@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/mateu-mdd.iml" filepath="$PROJECT_DIR$/mateu-mdd.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mdd/mdd.iml" filepath="$PROJECT_DIR$/mdd/mdd.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mdd-annotations/mdd-annotations.iml" filepath="$PROJECT_DIR$/mdd-annotations/mdd-annotations.iml" />
     </modules>
   </component>
 </project>

@@ -1,0 +1,86 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>mdd-parent</artifactId>
+        <groupId>io.mateu.ui</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.mateu.ui</groupId>
+    <artifactId>mdd</artifactId>
+    <packaging>jar</packaging>
+
+    <name>mdd</name>
+    <url>http://maven.apache.org</url>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>3.8.1</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.mateu.ui</groupId>
+            <artifactId>core</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.mateu.ui</groupId>
+            <artifactId>mdd-annotations</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.12-SNAPSHOT</version>
+        </dependency>
+
+    </dependencies>
+
+    <distributionManagement>
+        <repository>
+            <uniqueVersion>false</uniqueVersion>
+            <id>mateu-central</id>
+            <url>http://nexus.mateu.io/repository/mateu-central/</url>
+            <layout>default</layout>
+        </repository>
+        <snapshotRepository>
+            <uniqueVersion>true</uniqueVersion>
+            <id>mateu-central</id>
+            <url>http://nexus.mateu.io/repository/mateu-central/</url>
+            <layout>default</layout>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <repositories>
+        <repository>
+            <id>mateu-central</id>
+            <url>http://nexus.mateu.io/repository/mateu-central</url>
+        </repository>
+    </repositories>
+
+</project>
