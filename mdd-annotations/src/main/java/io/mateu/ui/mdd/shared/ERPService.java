@@ -18,13 +18,13 @@ public interface ERPService {
 
     public int executeUpdate(String jpql) throws Throwable;
 
-    Data set(String serverSideControllerKey, String entityClassName, Data data) throws Throwable;
+    Data set(String entityClassName, Data data) throws Throwable;
 
-    Data get(String serverSideControllerKey, String entityClassName, long id) throws Throwable;
+    Data get(String entityClassName, long id) throws Throwable;
 
-    Data get(String serverSideControllerKey, String entityClassName, int id) throws Throwable;
+    Data get(String entityClassName, int id) throws Throwable;
 
-    Data get(String serverSideControllerKey, String entityClassName, String id) throws Throwable;
+    Data get(String entityClassName, String id) throws Throwable;
 
     Data getMetaData(String entityClassName) throws Throwable;
 

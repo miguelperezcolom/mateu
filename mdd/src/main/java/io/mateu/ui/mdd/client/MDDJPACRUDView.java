@@ -54,6 +54,11 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
     }
 
     @Override
+    public boolean canCreate() {
+        return getMetadata().isEmpty("_newnotallowed");
+    }
+
+    @Override
     public AbstractEditorView getNewEditorView() {
            return getNewEditorView(getEntityClassName(), getMetadata().getData("_editorform"));
     }
@@ -575,7 +580,19 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
             for (Data of : orderFields) {
                 if (primero) primero = false;
                 else jpql += " , ";
-                jpql += " x." + of.getString("_ordercol");
+
+                String x = "x";
+                if (!of.isEmpty("_leftjoin")) x += ljs.get(of.getString("_leftjoin"));
+                if (!of.isEmpty("_innerjoin")) x += ijs.get(of.getString("_innerjoin"));
+
+
+                if (!of.isEmpty("_leftjoinql")) {
+                    if (!of.isEmpty("_leftjoin")) jpql += x + "." + of.getString("_qlname").substring(of.getString("_leftjoin").length() + 1);
+                    else jpql += x + "." + of.getString("_qlname");
+                }
+                else if (!of.isEmpty("_colql")) jpql += of.getString("_colql");
+                else if (of.isEmpty("_qlname")) jpql += x + "." + of.getString("_id");
+                else jpql += x + "." + of.getString("_qlname");
                 if (of.getBoolean("_orderdesc")) jpql += " desc ";
             }
         }

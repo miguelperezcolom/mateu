@@ -17,6 +17,7 @@
   <modules>
     <module>mdd</module>
     <module>mdd-annotations</module>
+      <module>mdd-tester</module>
   </modules>
 
   <dependencies>

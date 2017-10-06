@@ -3,6 +3,7 @@ package io.mateu.ui.mdd.server.util;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.api.client.http.*;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonObjectParser;
@@ -67,6 +68,10 @@ public class Helper {
     private static EntityManagerFactory emf;
 
     private static ObjectMapper mapper = new ObjectMapper();
+
+    static {
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+    }
 
     // Create your Configuration instance, and specify if up to what FreeMarker
 // version (here 2.3.25) do you want to apply the fixes that are not 100%

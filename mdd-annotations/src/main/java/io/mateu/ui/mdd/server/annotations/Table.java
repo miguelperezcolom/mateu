@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD) //can use in method only.
-public @interface OwnedList {
+public @interface Table {
 
     /* comma separated list of columns */
     String fields();

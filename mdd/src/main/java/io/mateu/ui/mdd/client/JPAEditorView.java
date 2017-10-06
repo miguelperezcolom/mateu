@@ -29,15 +29,15 @@ public abstract class JPAEditorView extends BaseEditorView {
     @Override
     public void save(Data data, AsyncCallback<Data> callback) {
         ERPServiceAsync s = MateuUI.create(ERPService.class);
-        s.set(this.getServerSideControllerKey(), getEntityClassName(), data, callback);
+        s.set(getEntityClassName(), data, callback);
     }
 
     @Override
     public void load(Object id, AsyncCallback<Data> callback) {
         ERPServiceAsync s = MateuUI.create(ERPService.class);
-        if (id instanceof Long) s.get(this.getServerSideControllerKey(), getEntityClassName(), (long) id, callback);
-        else if (id instanceof Integer) s.get(this.getServerSideControllerKey(), getEntityClassName(), (int) id, callback);
-        else if (id instanceof String) s.get(this.getServerSideControllerKey(), getEntityClassName(), (String) id, callback);
+        if (id instanceof Long) s.get(getEntityClassName(), (long) id, callback);
+        else if (id instanceof Integer) s.get(getEntityClassName(), (int) id, callback);
+        else if (id instanceof String) s.get(getEntityClassName(), (String) id, callback);
         else callback.onFailure(new Throwable("" + ((id != null)?id.getClass().getName():"null object class") + " type is not supported as ID"));
     }
 

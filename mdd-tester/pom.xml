@@ -1,0 +1,376 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>mdd-parent</artifactId>
+        <groupId>io.mateu.ui</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.mateu.mdd</groupId>
+    <artifactId>mdd-tester</artifactId>
+    <packaging>jar</packaging>
+
+    <name>mdd-tester</name>
+    <url>http://maven.apache.org</url>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-maven-plugin</artifactId>
+                <version>9.3.9.v20160517</version>
+            </plugin>
+        </plugins>
+    </build>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>3.8.1</version>
+            <scope>test</scope>
+        </dependency>
+
+
+        <dependency>
+            <groupId>io.mateu.jpa</groupId>
+            <artifactId>common</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.mateu.ui</groupId>
+            <artifactId>core</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.mateu.ui</groupId>
+            <artifactId>mdd-annotations</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.quartz-scheduler</groupId>
+            <artifactId>quartz</artifactId>
+            <version>2.2.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>1.22.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava-jdk5</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.oauth-client</groupId>
+            <artifactId>google-oauth-client-jetty</artifactId>
+            <version>1.22.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-calendar</artifactId>
+            <version>v3-rev245-1.22.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava-jdk5</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.10.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.javamoney</groupId>
+            <artifactId>moneta</artifactId>
+            <version>1.0</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-grizzly2-http</artifactId>
+            <version>2.26</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-json-jackson</artifactId>
+            <version>2.26</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+            <version>2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.inject</groupId>
+            <artifactId>jersey-hk2</artifactId>
+            <version>2.26</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.jhades</groupId>
+            <artifactId>jhades</artifactId>
+            <version>1.0.4</version>
+        </dependency>
+        <dependency>
+            <groupId>io.mateu.ui</groupId>
+            <artifactId>mdd</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+
+    </dependencies>
+
+
+
+    <profiles>
+        <profile>
+            <id>vaadin</id>
+
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+
+            <dependencies>
+                <dependency>
+                    <groupId>io.mateu.ui</groupId>
+                    <artifactId>port-vaadin</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <type>war</type>
+                    <scope>compile</scope>
+                </dependency>
+            </dependencies>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-war-plugin</artifactId>
+                        <configuration>
+                            <failOnMissingWebXml>false</failOnMissingWebXml>
+
+                            <overlays>
+                                <overlay></overlay>
+                                <overlay>
+                                    <groupId>io.mateu.ui</groupId>
+                                    <artifactId>port-vaadin</artifactId>
+                                    <!--
+                                    <classifier>war</classifier>
+                                    -->
+                                    <!--
+                                    <excludes>
+                                        <exclude>WEB-INF/classes/images/sampleimage-dependency.jpg</exclude>
+                                    </excludes>
+                                    -->
+                                </overlay>
+                            </overlays>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>html5</id>
+
+            <properties>
+                <teavm.version>0.5.0</teavm.version>
+            </properties>
+
+
+            <dependencies>
+
+                <!-- Emulator of Java class library for TeaVM -->
+                <dependency>
+                    <groupId>org.teavm</groupId>
+                    <artifactId>teavm-classlib</artifactId>
+                    <version>${teavm.version}</version>
+                    <scope>provided</scope>
+                </dependency>
+
+                <!-- JavaScriptObjects (JSO) - a JavaScript binding for TeaVM -->
+                <dependency>
+                    <groupId>org.teavm</groupId>
+                    <artifactId>teavm-jso-apis</artifactId>
+                    <version>${teavm.version}</version>
+                    <scope>provided</scope>
+                </dependency>
+
+                <dependency>
+                    <groupId>io.mateu.ui</groupId>
+                    <artifactId>port-html5</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <type>war</type>
+                    <scope>compile</scope>
+                </dependency>
+
+                <dependency>
+                    <groupId>io.mateu.ui</groupId>
+                    <artifactId>port-html5-core</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <scope>compile</scope>
+                </dependency>
+            </dependencies>
+
+            <build>
+                <plugins>
+                    <!-- Configure WAR plugin to include JavaScript files generated by TeaVM -->
+
+
+
+                    <!-- Configure TeaVM -->
+                    <plugin>
+                        <groupId>org.teavm</groupId>
+                        <artifactId>teavm-maven-plugin</artifactId>
+                        <version>0.5.1</version>
+                        <dependencies>
+                            <!-- This dependency is required by TeaVM to emulate subset of Java class library -->
+                            <dependency>
+                                <groupId>org.teavm</groupId>
+                                <artifactId>teavm-classlib</artifactId>
+                                <version>0.5.1</version>
+                            </dependency>
+                        </dependencies>
+                        <executions>
+                            <execution>
+                                <id>web-client</id>
+                                <goals>
+                                    <goal>compile</goal>
+                                </goals>
+                                <configuration>
+                                    <!-- Directory where TeaVM should put generated files. This configuration conforms to the settings
+                           of the WAR plugin -->
+                                    <targetDirectory>${project.build.directory}/generated/js/teavm</targetDirectory>
+
+                                    <!-- Main class, containing static void main(String[]) -->
+                                    <!-- <mainClass>io.mateu.ui.Port</mainClass> -->
+                                    <mainClass>io.mateu.ui.Port</mainClass>
+
+                                    <!-- Whether TeaVM should produce minified JavaScript. Can reduce JavaScript file size more than
+                           two times -->
+                                    <minifying>true</minifying>
+
+                                    <!-- Whether TeaVM should produce debug information for its built-in debugger -->
+                                    <debugInformationGenerated>true</debugInformationGenerated>
+
+                                    <!-- Whether TeaVM should produce source maps file -->
+                                    <sourceMapsGenerated>true</sourceMapsGenerated>
+
+                                    <!-- Whether TeaVM should also put source files into output directory,
+                           for compatibility with source maps -->
+                                    <sourceFilesCopied>true</sourceFilesCopied>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-war-plugin</artifactId>
+                        <version>2.4</version>
+                        <configuration>
+                            <failOnMissingWebXml>false</failOnMissingWebXml>
+
+                            <webResources>
+                                <resource>
+                                    <directory>${project.build.directory}/generated/js</directory>
+                                </resource>
+                            </webResources>
+
+                            <overlays>
+                                <overlay></overlay>
+                                <overlay>
+                                    <groupId>io.mateu.ui</groupId>
+                                    <artifactId>port-html5</artifactId>
+                                    <!--
+                                    <classifier>war</classifier>
+                                    -->
+                                    <!--
+                                    <excludes>
+                                        <exclude>WEB-INF/classes/images/sampleimage-dependency.jpg</exclude>
+                                    </excludes>
+                                    -->
+                                </overlay>
+                            </overlays>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>run-locally</id>
+
+            <dependencies>
+                <dependency>
+                    <groupId>io.mateu.ui</groupId>
+                    <artifactId>port-javafx</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <scope>compile</scope>
+                </dependency>
+            </dependencies>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.6.0</version>
+                        <executions>
+                            <execution>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>java</goal>
+                                </goals>
+                                <configuration>
+                                    <mainClass>io.mateu.ui.javafx.Main</mainClass>
+                                    <!--
+                                    <arguments>
+                                        <argument>arg0</argument>
+                                        <argument>arg1</argument>
+                                    </arguments>
+                                    -->
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>

@@ -1,6 +1,7 @@
 package io.mateu.ui.mdd.server;
 
 import com.google.common.base.Strings;
+import io.mateu.erp.model.util.XMLSerializable;
 import io.mateu.ui.core.shared.*;
 import io.mateu.ui.mdd.server.annotations.*;
 import io.mateu.ui.mdd.server.annotations.CellStyleGenerator;
@@ -182,7 +183,7 @@ public class ERPServiceImpl implements ERPService {
     }
 
     @Override
-    public Data set(String serverSideControllerKey, String entityClassName, Data data) throws Throwable {
+    public Data set(String entityClassName, Data data) throws Throwable {
         Helper.transact(new JPATransaction() {
             @Override
             public void run(EntityManager em) throws Throwable {
@@ -196,25 +197,25 @@ public class ERPServiceImpl implements ERPService {
 
 
         Object id = data.get("_id");
-        if (id instanceof Long) return get(serverSideControllerKey, entityClassName, (long) id);
-        else if (id instanceof Integer) return get(serverSideControllerKey, entityClassName, (int) id);
-        else if (id instanceof String) return get(serverSideControllerKey, entityClassName, (String) id);
+        if (id instanceof Long) return get(entityClassName, (long) id);
+        else if (id instanceof Integer) return get(entityClassName, (int) id);
+        else if (id instanceof String) return get(entityClassName, (String) id);
         else return null;
     }
 
     @Override
-    public Data get(String serverSideControllerKey, String entityClassName, long id) throws Throwable {
-        return _get(serverSideControllerKey, entityClassName, id);
+    public Data get(String entityClassName, long id) throws Throwable {
+        return _get(entityClassName, id);
     }
 
     @Override
-    public Data get(String serverSideControllerKey, String entityClassName, int id) throws Throwable {
-        return _get(serverSideControllerKey, entityClassName, id);
+    public Data get(String entityClassName, int id) throws Throwable {
+        return _get(entityClassName, id);
     }
 
     @Override
-    public Data get(String serverSideControllerKey, String entityClassName, String id) throws Throwable {
-        return _get(serverSideControllerKey, entityClassName, id);
+    public Data get(String entityClassName, String id) throws Throwable {
+        return _get(entityClassName, id);
     }
 
     private Object fill(EntityManager em, Class cl, Data data) throws Throwable {
@@ -449,7 +450,7 @@ public class ERPServiceImpl implements ERPService {
         return "set" + f.getName().substring(0, 1).toUpperCase() + f.getName().substring(1);
     }
 
-    private Data _get(String serverSideControllerKey, String entityClassName, Object id) throws Throwable {
+    private Data _get(String entityClassName, Object id) throws Throwable {
         Data data = new Data();
 
         Helper.notransact(new JPATransaction() {
@@ -534,7 +535,21 @@ public class ERPServiceImpl implements ERPService {
                         v = ((Translated) v).get();
                         ok = true;
                     } else if (v.getClass().isAnnotationPresent(Entity.class)) {
-                        v = new Pair(em.getEntityManagerFactory().getPersistenceUnitUtil().getIdentifier(v), v.toString());
+                        String n = v.toString();
+                        boolean toStringIsOverriden = v.getClass().getMethod("toString").getDeclaringClass().equals(v.getClass());
+                        if (!toStringIsOverriden) {
+                            boolean hayName = false;
+                            for (Field ff : getAllFields(v.getClass())) if ("name".equals(ff.getName()) || "title".equals(ff.getName())) {
+                                n = "" + v.getClass().getMethod(getGetter(ff)).invoke(v);
+                                hayName = true;
+                            }
+                            if (!hayName) {
+                                for (Field ff : getAllFields(v.getClass())) if (ff.isAnnotationPresent(Id.class)) {
+                                    n = "" + v.getClass().getMethod(getGetter(ff)).invoke(v);
+                                }
+                            }
+                        }
+                        v = new Pair(em.getEntityManagerFactory().getPersistenceUnitUtil().getIdentifier(v), n);
                         ok = true;
                     }
                     if (f.getType().isEnum()) {
@@ -574,9 +589,35 @@ public class ERPServiceImpl implements ERPService {
                         } else {
                             List<Pair> dl = new ArrayList<>();
 
+                            Method m = null;
+
+                            if (genericClass.isAnnotationPresent(Entity.class)) {
+
+                                boolean toStringIsOverriden = genericClass.getMethod("toString").getDeclaringClass().equals(genericClass);
+                                if (!toStringIsOverriden) {
+                                    boolean hayName = false;
+                                    for (Field ff : getAllFields(genericClass)) if ("name".equals(ff.getName()) || "title".equals(ff.getName())) {
+                                        m = genericClass.getMethod(getGetter(ff));
+                                        hayName = true;
+                                    }
+                                    if (!hayName) {
+                                        for (Field ff : getAllFields(genericClass)) if (ff.isAnnotationPresent(Id.class)) {
+                                            m = genericClass.getMethod(getGetter(ff));
+                                        }
+                                    }
+                                }
+
+                            }
+
                             List l = (List) v;
                             for (Object x : l) {
-                                dl.add(new Pair(getId(x), "" + x));
+
+                                String n = v.toString();
+
+                                if (m != null) n = "" + m.invoke(x);
+
+                                dl.add(new Pair(getId(x), n));
+
                             }
 
                             PairList pl = new PairList();
@@ -588,6 +629,9 @@ public class ERPServiceImpl implements ERPService {
                     }
 
                     if (ok) data.set(f.getName(), v);
+                    else if (XMLSerializable.class.isAssignableFrom(f.getType())) {
+                        data.set(f.getName(), v.toString());
+                    }
                 }
             }
         }
@@ -610,6 +654,7 @@ public class ERPServiceImpl implements ERPService {
         data.set("_rawtitle", Helper.capitalize(Helper.pluralize(c.getSimpleName())));
 
         if (c.isAnnotationPresent(Indelible.class)) data.set("_indelible", true);
+        if (c.isAnnotationPresent(NewNotAllowed.class)) data.set("_newnotallowed", true);
 
         // buscamos subclases
 
@@ -745,7 +790,7 @@ public class ERPServiceImpl implements ERPService {
         }
         if (!ordered && listColumns.size() >= 2) {
             listColumns.get(1).set("_order", 0);
-            listColumns.get(1).set("_ordercol", listColumns.get(1).get("_qlname"));
+            listColumns.get(1).set("_ordercol", listColumns.get(1).getString("_qlname"));
         }
 
 
@@ -1128,9 +1173,10 @@ public class ERPServiceImpl implements ERPService {
                 } else if (!Strings.isNullOrEmpty(listColumnAnnotation.ql()))
                 d.set("_colql", listColumnAnnotation.ql());
                 else d.set("_qlname", f.getName());
+
                 if (listColumnAnnotation.order()) {
                     d.set("_order", 0);
-                    d.set("_ordercol", f.getName());
+                    d.set("_ordercol", d.getString("_qlname"));
                 }
                 if (listColumnAnnotation.width() >= 0) d.set("_colwidth", listColumnAnnotation.width());
 
@@ -1247,7 +1293,15 @@ public class ERPServiceImpl implements ERPService {
                 } else if (!Strings.isNullOrEmpty(searchFilterAnnotation.ql()))
                     d.set("_qlname", searchFilterAnnotation.ql());
                 else d.set("_qlname", f.getName());
-            } else d.set("_qlname", f.getName());
+            } else if (Translated.class.isAssignableFrom(f.getType())) {
+                d.set("_translation", true);
+                d.set("_qlname", "es");
+            } else {
+                d.set("_qlname", f.getName());
+            }
+
+
+
 
 
             if (f.isAnnotationPresent(Required.class)) {
@@ -1258,7 +1312,7 @@ public class ERPServiceImpl implements ERPService {
                 Order o = f.getAnnotation(Order.class);
                 d.set("_order", o.priority());
                 d.set("_orderdesc", o.desc());
-                d.set("_ordercol", f.getName());
+                d.set("_ordercol", d.getString("_qlname"));
             }
 
 
@@ -1341,11 +1395,33 @@ public class ERPServiceImpl implements ERPService {
                         d.set("_type", MetaData.FIELDTYPE_ENTITY);
                         d.set("_entityClassName", f.getType().getCanonicalName());
 
-                        String defaultQl = "select x.id, x.name from " + f.getType().getName() + " x order by x.name";
+                        String nombreCampoId = "id";
+                        for (Field ff : getAllFields(f.getType())) if (ff.isAnnotationPresent(Id.class)) {
+                            nombreCampoId = ff.getName();
+                        }
 
+
+                        String defaultQl = "select x." + nombreCampoId + ", x.name from " + f.getType().getName() + " x order by x.name";
+
+                        boolean hayName = false;
                         for (Field ff : getAllFields(f.getType())) if ("name".equals(ff.getName()) || "title".equals(ff.getName())) {
                             if (!buildingSearchForm) d.set("_qlname", d.get("_qlname") + "." + ff.getName());
                             defaultQl = defaultQl.replaceAll("\\.name", "." + ff.getName());
+
+                            if (Translated.class.isAssignableFrom(ff.getType())) {
+                                d.set("_translation", true);
+                                d.set("_qlname", d.getString("_qlname") + ".es");
+
+                                defaultQl = "select x." + nombreCampoId + ", x." + ff.getName() + ".es from " + f.getType().getName() + " x order by x." + ff.getName() + ".es";
+                            }
+                            hayName = true;
+                        }
+                        if (!hayName) {
+                            for (Field ff : getAllFields(f.getType())) if (ff.isAnnotationPresent(Id.class)) {
+                                d.set("_qlname", d.getString("_qlname") + "." + ff.getName());
+
+                                defaultQl = defaultQl.replaceAll("\\.name", "." + ff.getName());
+                            }
                         }
 
                         if (buildingSearchForm) {
