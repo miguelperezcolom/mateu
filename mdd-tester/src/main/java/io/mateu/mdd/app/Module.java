@@ -62,11 +62,25 @@ public class Module extends AbstractModule {
         });
 
 
+        m.add(new AbstractAction("Invoices") {
+            @Override
+            public void run() {
+                ((ERPServiceAsync)MateuUI.create(ERPService.class)).getMetaData("io.mateu.mdd.model.finnancials.Invoice", new MDDCallback());
+            }
+        });
+
 
         m.add(new AbstractAction("Owned") {
             @Override
             public void run() {
                 ((ERPServiceAsync)MateuUI.create(ERPService.class)).getMetaData("io.mateu.mdd.model.tests.owned.Propietario", new MDDCallback());
+            }
+        });
+
+        m.add(new AbstractAction("Contracts") {
+            @Override
+            public void run() {
+                ((ERPServiceAsync)MateuUI.create(ERPService.class)).getMetaData("io.mateu.mdd.model.hotelcontract.HotelContract", new MDDCallback());
             }
         });
 

@@ -4,6 +4,9 @@ import io.mateu.ui.core.client.app.AbstractAction;
 import io.mateu.ui.core.client.app.Callback;
 import io.mateu.ui.core.client.app.MateuUI;
 import io.mateu.ui.core.client.components.Button;
+import io.mateu.ui.core.client.components.Component;
+import io.mateu.ui.core.client.components.Tab;
+import io.mateu.ui.core.client.components.Tabs;
 import io.mateu.ui.core.client.components.fields.*;
 import io.mateu.ui.core.client.components.fields.grids.CalendarField;
 import io.mateu.ui.core.client.components.fields.grids.columns.*;
@@ -186,7 +189,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
     }
 
     private void buildFromMetadata(AbstractView view, Data metadata, boolean buildingSearchForm) {
-        buildFromMetadata(view, metadata.getList("_fields"), buildingSearchForm);
+        buildFromMetadata(view.getForm(), metadata.getList("_fields"), buildingSearchForm);
         for (Data da : metadata.getList("_actions")) {
             if (da.getBoolean("_addasbutton")) {
                 AbstractAction a = createAction(view, da);
@@ -201,166 +204,238 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
         }
     }
 
+    private void buildFromMetadata(FieldContainer form, Data metadata, boolean buildingSearchForm) {
+        buildFromMetadata(form, "", metadata.getList("_fields"), buildingSearchForm);
+    }
+
+    private void buildFromMetadata(FieldContainer form, String prefix, Data metadata, boolean buildingSearchForm) {
+        buildFromMetadata(form, prefix, metadata.getList("_fields"), buildingSearchForm);
+    }
+
     private void buildFromMetadata(AbstractView view, List<Data> fieldsMetadata, boolean buildingSearchForm) {
+        buildFromMetadata(view.getForm(), fieldsMetadata, buildingSearchForm);
+    }
+
+    private void buildFromMetadata(FieldContainer form, List<Data> fieldsMetadata, boolean buildingSearchForm) {
+        buildFromMetadata(form, "", fieldsMetadata, buildingSearchForm);
+    }
+
+    private void buildFromMetadata(FieldContainer originalContainer, String prefix, List<Data> fieldsMetadata, boolean buildingSearchForm) {
+
+        if (!"".equals(prefix)) prefix += "_";
+
+        FieldContainer container = originalContainer;
+
+        List<Component> stack = new ArrayList<>();
+
         for (Data d : fieldsMetadata) {
-            List<AbstractField> fields = new ArrayList<>();
-            if (MetaData.FIELDTYPE_OUTPUT.equals(d.getString("_type"))) {
-                fields.add(new ShowTextField(d.getString("_id"), d.getString("_label")));
-            } else if (MetaData.FIELDTYPE_TEXTAREA.equals(d.getString("_type"))) {
-                fields.add(new TextAreaField(d.getString("_id"), d.getString("_label")));
-            } else if (MetaData.FIELDTYPE_STRING.equals(d.getString("_type"))) {
-                fields.add(new TextField(d.getString("_id"), d.getString("_label")));
-            } else if (MetaData.FIELDTYPE_INTEGER.equals(d.getString("_type"))) {
-                fields.add(new IntegerField(d.getString("_id"), d.getString("_label")));
-            } else if (MetaData.FIELDTYPE_LONG.equals(d.getString("_type"))) {
-                fields.add(new LongField(d.getString("_id"), d.getString("_label")));
-            } else if (MetaData.FIELDTYPE_DOUBLE.equals(d.getString("_type"))) {
-                fields.add(new DoubleField(d.getString("_id"), d.getString("_label")));
-            } else if (MetaData.FIELDTYPE_BOOLEAN.equals(d.getString("_type"))) {
-                fields.add(new CheckBoxField(d.getString("_id"), d.getString("_label")));
-            } else if (MetaData.FIELDTYPE_DATE.equals(d.getString("_type"))) {
-                if (buildingSearchForm) {
-                    fields.add(new CalendarField(d.getString("_id") + "_from", d.getString("_label") + " from"));
-                    fields.add(new CalendarField(d.getString("_id") + "_to", d.getString("_label") + " to"));
-                } else {
-                    fields.add(new CalendarField(d.getString("_id"), d.getString("_label")));
+
+            if (!buildingSearchForm) {
+
+                if (d.containsKey("_starttabs")) {
+                    Tabs tabs;
+                    container.add(tabs = new Tabs());
+                    stack.add(tabs);
                 }
-            } else if (MetaData.FIELDTYPE_DATETIME.equals(d.getString("_type"))) {
-                if (buildingSearchForm) {
-                    fields.add(new CalendarField(d.getString("_id") + "_from", d.getString("_label") + " from"));
-                    fields.add(new CalendarField(d.getString("_id") + "_to", d.getString("_label") + " to"));
-                } else {
-                    fields.add(new DateTimeField(d.getString("_id"), d.getString("_label")));
+                
+
+                if (d.containsKey("_starttab")) {
+
+                    Tabs tabs = null;
+                    if (stack.size() > 0 && (stack.get(stack.size() - 1) instanceof Tab)) {
+                        stack.remove(stack.size() - 1);
+                    }
+                    if (stack.size() == 0 || !(stack.get(stack.size() - 1) instanceof Tabs)) {
+                        container.add(tabs = new Tabs());
+                        stack.add(tabs);
+                    } else {
+                        tabs = (Tabs) stack.get(stack.size() - 1);
+                    }
+                    Tab tab;
+                    tabs.add(tab = new Tab(d.getString("_starttab")));
+                    container = tab;
+                    stack.add(tab);
                 }
-            } else if (MetaData.FIELDTYPE_ENUM.equals(d.getString("_type"))) {
-                fields.add(new ComboBoxField(d.getString("_id"), d.getString("_label"), d.getPairList("_values")));
-            } else if (MetaData.FIELDTYPE_FILE.equals(d.getString("_type"))) {
-                fields.add(new FileField(d.getString("_id"), d.getString("_label")));
-            } else if (MetaData.FIELDTYPE_ENTITY.equals(d.getString("_type"))) {
-                if (d.getBoolean("_useidtoselect")) {
-                    fields.add(new JPASelectByIdField(d.getString("_id"), d.getString("_label"), d.getString("_ql")) {
 
-                        Data metadata = null;
+                if (d.containsKey("_endtabs")) {
+                    while (stack.size() > 0 && (stack.get(stack.size() - 1) instanceof Tabs)) {
+                        stack.remove(stack.size() - 1);
+                        container = (stack.size() == 0)?originalContainer: (FieldContainer) stack.get(stack.size() - 1);
+                    }
 
-                        @Override
-                        public AbstractEditorView getEditor() {
-                            JPAEditorView editor = new JPAEditorView(null) {
+                }
 
-                                public JPAEditorView get() {
-                                    return this;
-                                }
+            }
 
-                                @Override
-                                public String getEntityClassName() {
-                                    return d.getString("_entityClassName");
-                                }
+            {
 
-                                @Override
-                                public List<AbstractAction> createActions() {
-                                    List<AbstractAction> as = super.createActions();
-                                    for (Data da : metadata.getData("_editorform").getList("_actions")) {
-                                        as.add(createAction(this, da));
+                List<AbstractField> fields = new ArrayList<>();
+                if (MetaData.FIELDTYPE_OUTPUT.equals(d.getString("_type"))) {
+                    fields.add(new ShowTextField(prefix + d.getString("_id"), d.getString("_label")));
+                } else if (MetaData.FIELDTYPE_TEXTAREA.equals(d.getString("_type"))) {
+                    fields.add(new TextAreaField(prefix + d.getString("_id"), d.getString("_label")));
+                } else if (MetaData.FIELDTYPE_STRING.equals(d.getString("_type"))) {
+                    fields.add(new TextField(prefix + d.getString("_id"), d.getString("_label")));
+                } else if (MetaData.FIELDTYPE_INTEGER.equals(d.getString("_type"))) {
+                    fields.add(new IntegerField(prefix + d.getString("_id"), d.getString("_label")));
+                } else if (MetaData.FIELDTYPE_LONG.equals(d.getString("_type"))) {
+                    fields.add(new LongField(prefix + d.getString("_id"), d.getString("_label")));
+                } else if (MetaData.FIELDTYPE_DOUBLE.equals(d.getString("_type"))) {
+                    fields.add(new DoubleField(prefix + d.getString("_id"), d.getString("_label")));
+                } else if (MetaData.FIELDTYPE_BOOLEAN.equals(d.getString("_type"))) {
+                    fields.add(new CheckBoxField(prefix + d.getString("_id"), d.getString("_label")));
+                } else if (MetaData.FIELDTYPE_DATE.equals(d.getString("_type"))) {
+                    if (buildingSearchForm) {
+                        fields.add(new CalendarField(prefix + d.getString("_id") + "_from", d.getString("_label") + " from"));
+                        fields.add(new CalendarField(prefix + d.getString("_id") + "_to", d.getString("_label") + " to"));
+                    } else {
+                        fields.add(new CalendarField(prefix + d.getString("_id"), d.getString("_label")));
+                    }
+                } else if (MetaData.FIELDTYPE_DATETIME.equals(d.getString("_type"))) {
+                    if (buildingSearchForm) {
+                        fields.add(new CalendarField(prefix + d.getString("_id") + "_from", d.getString("_label") + " from"));
+                        fields.add(new CalendarField(prefix + d.getString("_id") + "_to", d.getString("_label") + " to"));
+                    } else {
+                        fields.add(new DateTimeField(prefix + d.getString("_id"), d.getString("_label")));
+                    }
+                } else if (MetaData.FIELDTYPE_ENUM.equals(d.getString("_type"))) {
+                    fields.add(new ComboBoxField(prefix + d.getString("_id"), d.getString("_label"), d.getPairList("_values")));
+                } else if (MetaData.FIELDTYPE_COMBO.equals(d.getString("_type"))) {
+                    fields.add(new JPAComboBoxField(prefix + d.getString("_id"), d.getString("_label"), d.getString("_ql")));
+                } else if (MetaData.FIELDTYPE_FILE.equals(d.getString("_type"))) {
+                    fields.add(new FileField(prefix + d.getString("_id"), d.getString("_label")));
+                } else if (MetaData.FIELDTYPE_OBJECT.equals(d.getString("_type"))) {
+                    buildFromMetadata(container, prefix + d.getString("_id"), d.getData("_metadata"), buildingSearchForm);
+                } else if (MetaData.FIELDTYPE_ENTITY.equals(d.getString("_type"))) {
+                    if (d.getBoolean("_owned")) {
+                        buildFromMetadata(container, prefix + d.getString("_id"), d.getData("_metadata"), buildingSearchForm);
+                    } else if (d.getBoolean("_useidtoselect")) {
+                        fields.add(new JPASelectByIdField(prefix + d.getString("_id"), d.getString("_label"), d.getString("_ql")) {
+
+                            Data metadata = null;
+
+                            @Override
+                            public AbstractEditorView getEditor() {
+                                JPAEditorView editor = new JPAEditorView(null) {
+
+                                    public JPAEditorView get() {
+                                        return this;
                                     }
-                                    return as;
-                                }
 
-                                @Override
-                                public String getViewId() {
-                                    return d.getString("_entityClassName") + "-" + getInitialId();
-                                }
+                                    @Override
+                                    public String getEntityClassName() {
+                                        return d.getString("_entityClassName");
+                                    }
 
-                                @Override
-                                public String getTitle() {
-                                    return d.getString("_entityClassName").substring(getEntityClassName().lastIndexOf(".") + 1);
-                                }
+                                    @Override
+                                    public List<AbstractAction> createActions() {
+                                        List<AbstractAction> as = super.createActions();
+                                        for (Data da : metadata.getData("_editorform").getList("_actions")) {
+                                            as.add(createAction(this, da));
+                                        }
+                                        return as;
+                                    }
 
+                                    @Override
+                                    public String getViewId() {
+                                        return d.getString("_entityClassName") + "-" + getInitialId();
+                                    }
+
+                                    @Override
+                                    public String getTitle() {
+                                        return d.getString("_entityClassName").substring(getEntityClassName().lastIndexOf(".") + 1);
+                                    }
+
+                                    @Override
+                                    public void build() {
+                                        buildFromMetadata(this, metadata.getData("_editorform").getList("_fields"), false);
+                                    }
+                                };
+                                return editor;
+                            }
+
+                            @Override
+                            public Pair getPair(Data editorData) {
+                                return new Pair(editorData.get("_id"), editorData.get("_tostring"));
+                            }
+
+                            @Override
+                            public void createNew() {
+                                if (metadata == null)
+                                    ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(d.getString("_entityClassName"), new Callback<Data>() {
+                                        @Override
+                                        public void onSuccess(Data result) {
+                                            metadata = result;
+                                            _createNew();
+                                        }
+                                    });
+                                else _createNew();
+                            }
+
+                            public void _createNew() {
+                                super.createNew();
+                            }
+
+                            @Override
+                            public void edit(Object id) {
+                                if (metadata == null)
+                                    ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(d.getString("_entityClassName"), new Callback<Data>() {
+                                        @Override
+                                        public void onSuccess(Data result) {
+                                            metadata = result;
+                                            _edit(id);
+                                        }
+                                    });
+                                else _edit(id);
+                            }
+
+                            public void _edit(Object id) {
+                                super.edit(id);
+                            }
+                        });
+                    } else if (d.getBoolean("_useautocompletetoselect")) {
+                        fields.add(new JPAAutocompleteField(prefix + d.getString("_id"), d.getString("_label"), d.getString("_ql")));
+                    } else {
+                        fields.add(new JPAComboBoxField(prefix + d.getString("_id"), d.getString("_label"), d.getString("_ql")));
+                    }
+                } else if (MetaData.FIELDTYPE_PK.equals(d.getString("_type"))) {
+                    fields.add(new PKField(prefix + d.getString("_id"), d.getString("_label")));
+                } else if (MetaData.FIELDTYPE_LIST.equals(d.getString("_type"))) {
+                    String ql = d.getString("_ql");
+                    if (ql == null) ql = "select x.id, x.name from " + d.getString("_entityClassName") + " x order by x.name";
+                    fields.add(new JPAListSelectionField(prefix + d.getString("_id"), d.getString("_label"), ql));
+                } else if (MetaData.FIELDTYPE_GRID.equals(d.getString("_type"))) {
+                    List<AbstractColumn> cols = new ArrayList<>();
+                    for (Data dc : d.getList("_cols")) {
+                        cols.add(new OutputColumn(dc.getString("_id"), dc.getString("_label"), 100));
+                    }
+                    fields.add(new GridField(prefix + d.getString("_id"), d.getString("_label"), cols) {
+                        @Override
+                        public AbstractForm getDataForm(Data initialData) {
+                            AbstractForm f = new AbstractForm() {
                                 @Override
-                                public void build() {
-                                    buildFromMetadata(this, metadata.getData("_editorform").getList("_fields"), false);
+                                public Data initializeData() {
+                                    return (initialData != null)?initialData:super.initializeData();
                                 }
                             };
-                            return editor;
-                        }
-
-                        @Override
-                        public Pair getPair(Data editorData) {
-                            return new Pair(editorData.get("_id"), editorData.get("_tostring"));
-                        }
-
-                        @Override
-                        public void createNew() {
-                            if (metadata == null)
-                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(d.getString("_entityClassName"), new Callback<Data>() {
-                                    @Override
-                                    public void onSuccess(Data result) {
-                                        metadata = result;
-                                        _createNew();
-                                    }
-                                });
-                            else _createNew();
-                        }
-
-                        public void _createNew() {
-                            super.createNew();
-                        }
-
-                        @Override
-                        public void edit(Object id) {
-                            if (metadata == null)
-                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(d.getString("_entityClassName"), new Callback<Data>() {
-                                    @Override
-                                    public void onSuccess(Data result) {
-                                        metadata = result;
-                                        _edit(id);
-                                    }
-                                });
-                            else _edit(id);
-                        }
-
-                        public void _edit(Object id) {
-                            super.edit(id);
+                            buildFromMetadata(f, d.getList("_cols"), false);
+                            return f;
                         }
                     });
-                } else if (d.getBoolean("_useautocompletetoselect")) {
-                    fields.add(new JPAAutocompleteField(d.getString("_id"), d.getString("_label"), d.getString("_ql")));
-                } else {
-                    fields.add(new JPAComboBoxField(d.getString("_id"), d.getString("_label"), d.getString("_ql")));
                 }
-            } else if (MetaData.FIELDTYPE_PK.equals(d.getString("_type"))) {
-                fields.add(new PKField(d.getString("_id"), d.getString("_label")));
-            } else if (MetaData.FIELDTYPE_LIST.equals(d.getString("_type"))) {
-                String ql = d.getString("_ql");
-                if (ql == null) ql = "select x.id, x.name from " + d.getString("_entityClassName") + " x order by x.name";
-                fields.add(new JPAListSelectionField(d.getString("_id"), d.getString("_label"), ql));
-            } else if (MetaData.FIELDTYPE_GRID.equals(d.getString("_type"))) {
-                List<AbstractColumn> cols = new ArrayList<>();
-                for (Data dc : d.getList("_cols")) {
-                    cols.add(new OutputColumn(dc.getString("_id"), dc.getString("_label"), 100));
+                if (d.containsKey("_required")) {
+                    for (AbstractField field : fields) field.setRequired(true);
                 }
-                fields.add(new GridField(d.getString("_id"), d.getString("_label"), cols) {
-                    @Override
-                    public AbstractForm getDataForm(Data initialData) {
-                        AbstractForm f = new AbstractForm() {
-                            @Override
-                            public Data initializeData() {
-                                return (initialData != null)?initialData:super.initializeData();
-                            }
-                        };
-                        buildFromMetadata(view, d.getList("_cols"), false);
-                        return f;
-                    }
-                });
+                if (d.containsKey("_startsline")) {
+                    for (AbstractField field : fields) field.setBeginingOfLine(true);
+                }
+                if (d.containsKey("_unmodifiable")) {
+                    for (AbstractField field : fields) field.setUnmodifiable(true);
+                }
+                for (AbstractField field : fields) container.add(field);
+
             }
-            if (d.containsKey("_required")) {
-                for (AbstractField field : fields) field.setRequired(true);
-            }
-            if (d.containsKey("_startsline")) {
-                for (AbstractField field : fields) field.setBeginingOfLine(true);
-            }
-            if (d.containsKey("_unmodifiable")) {
-                for (AbstractField field : fields) field.setUnmodifiable(true);
-            }
-            for (AbstractField field : fields) view.add(field);
+
         }
     }
 

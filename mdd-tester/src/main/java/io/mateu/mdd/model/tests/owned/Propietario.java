@@ -26,4 +26,6 @@ public class Propietario {
     @Owned
     private Propiedad hijo;
 
+    private NoEntity noEntity;
+
 }

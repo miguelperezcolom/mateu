@@ -4,6 +4,9 @@ import com.google.common.io.BaseEncoding;
 import io.mateu.erp.model.util.Helper;
 import io.mateu.mdd.model.common.File;
 import io.mateu.mdd.model.finnancials.Actor;
+import io.mateu.mdd.model.finnancials.Currency;
+import io.mateu.erp.model.product.hotel.hotel.RoomType;
+import io.mateu.mdd.model.tests.owned.Propiedad;
 import io.mateu.ui.mdd.server.annotations.*;
 import io.mateu.ui.mdd.server.interfaces.WithTriggers;
 import lombok.Getter;
@@ -13,7 +16,9 @@ import javax.persistence.*;
 import javax.persistence.Table;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * holder for users of our erp. It can be an internal user or a user created for a customer or a supplier
@@ -53,6 +58,71 @@ public class User implements WithTriggers {
     @ListColumn("Status")
     @Required
     private USER_STATUS status;
+
+    @Tab("Listas")
+    @ElementCollection
+    private List<String> akas = new ArrayList<>();
+
+    @ElementCollection
+    @ValueClass(RoomType.class)
+    private List<String> habitaciones = new ArrayList<>();
+
+    @ElementCollection
+    private List<Integer> ints = new ArrayList<>();
+
+    @ElementCollection
+    private List<Long> longs = new ArrayList<>();
+
+    @ElementCollection
+    private List<Double> doubles = new ArrayList<>();
+
+    @Tab("Mapas")
+    @ElementCollection
+    @MapLabels(labelForKey = "Hola", labelForValue = "Caracola")
+    private Map<String, String> stringString = new HashMap<>();
+
+    @ElementCollection
+    @MapLabels(labelForKey = "Moneda", labelForValue = "Usuario")
+    @KeyClass(Currency.class)
+    @ValueClass(User.class)
+    private Map<String, String> currencyUser = new HashMap<>();
+
+
+    @ElementCollection
+    private Map<Integer, String> integerString = new HashMap<>();
+
+    @ElementCollection
+    private Map<Boolean, Integer> booleanInteger = new HashMap<>();
+
+
+
+    /*
+
+    @ElementCollection
+@CollectionTable(name="EMP_SENIORITY")
+@MapKeyJoinColumn(name="EMP_ID")
+@Column(name="SENIORITY")
+private Map<Employee, Integer> seniorities;
+
+     */
+
+    @Tab("Más mapas")
+    @ElementCollection
+    @JoinTable(name = "_user_actor_string")
+    private Map<Actor, String> actorString = new HashMap<>();
+
+//    @ManyToMany
+//    @JoinTable
+//    private Map<String, Actor> stringActor = new HashMap<>();
+
+    @OneToMany
+    @JoinTable(name = "_user_currency_actor")
+    private Map<Currency, Actor> currencyActor = new HashMap<>();
+
+    @OneToMany
+    @JoinTable(name = "_user_currency_propiedad")
+    @OwnedList
+    private Map<Currency, Propiedad> currencyPropiedad = new HashMap<>();
 
 
     @OneToMany

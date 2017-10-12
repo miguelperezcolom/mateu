@@ -1,9 +1,6 @@
 package io.mateu.mdd.model.finnancials;
 
-import io.mateu.ui.mdd.server.annotations.ListColumn;
-import io.mateu.ui.mdd.server.annotations.Required;
-import io.mateu.ui.mdd.server.annotations.SearchFilter;
-import io.mateu.ui.mdd.server.annotations.StartsLine;
+import io.mateu.ui.mdd.server.annotations.*;
 import jdk.nashorn.internal.ir.annotations.Ignore;
 import lombok.Getter;
 import lombok.Setter;
@@ -59,6 +56,11 @@ public class Actor {
     private boolean exportableToinvoicingApp;
     private String idInInvoicingApp;
     private boolean shuttleTransfersInOwnInvoice;
+
+    @StartsLine
+    @Output
+    @OneToMany(mappedBy = "actor")
+    private List<Invoice> invoices = new ArrayList<>();
 
 
     @Override

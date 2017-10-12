@@ -24,5 +24,7 @@ public interface MetaData {
     public static final String FIELDTYPE_DATA = "data";
     public static final String FIELDTYPE_USERDATA = "userdata";
     public static final String FIELDTYPE_LISTDATA = "listdata";
+    public static final String FIELDTYPE_OBJECT = "object";
+    public static final String FIELDTYPE_COMBO = "combo";
 
 }

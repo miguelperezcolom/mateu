@@ -10,15 +10,8 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD) //can use in method only.
-public @interface OwnedList {
+public @interface KeyQL {
 
-    /* comma separated list of columns */
-    String fields() default "";
-
-    /* comma separated list of columns which must be totalized */
-    String totalize() default "";
-
-    /* comma separated list of Labels for columns*/
-    String labels() default "";
+    String value() default "";
 
 }
