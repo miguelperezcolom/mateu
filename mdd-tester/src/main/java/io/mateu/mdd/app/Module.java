@@ -77,6 +77,22 @@ public class Module extends AbstractModule {
             }
         });
 
+
+        m.add(new AbstractAction("OneToOne mapped") {
+            @Override
+            public void run() {
+                ((ERPServiceAsync)MateuUI.create(ERPService.class)).getMetaData("io.mateu.mdd.model.tests.onetoone.UnoAUnoMapped", new MDDCallback());
+            }
+        });
+
+        m.add(new AbstractAction("OneToOne mapper") {
+            @Override
+            public void run() {
+                ((ERPServiceAsync)MateuUI.create(ERPService.class)).getMetaData("io.mateu.mdd.model.tests.onetoone.UnoAUnoMapper", new MDDCallback());
+            }
+        });
+
+
         m.add(new AbstractAction("Contracts") {
             @Override
             public void run() {

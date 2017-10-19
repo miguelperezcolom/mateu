@@ -138,6 +138,11 @@ public class MyAppAtServerSide extends BaseServerSideApp implements ServerSideAp
     }
 
     @Override
+    public void forgotPassword(String s) throws Throwable {
+
+    }
+
+    @Override
     public void changePassword(String login, String oldPassword, String newPassword)throws Throwable {
         Helper.transact(new JPATransaction() {
             @Override

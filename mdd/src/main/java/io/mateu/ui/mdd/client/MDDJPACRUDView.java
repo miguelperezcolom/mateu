@@ -234,7 +234,8 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
                 if (d.containsKey("_starttabs")) {
                     Tabs tabs;
-                    container.add(tabs = new Tabs());
+                    container.add(tabs = new Tabs(d.getString("_id")));
+                    tabs.setFullWidth(d.containsKey("_fullwidth"));
                     stack.add(tabs);
                 }
                 
@@ -246,7 +247,8 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                         stack.remove(stack.size() - 1);
                     }
                     if (stack.size() == 0 || !(stack.get(stack.size() - 1) instanceof Tabs)) {
-                        container.add(tabs = new Tabs());
+                        container.add(tabs = new Tabs(d.getString("_id")));
+                        tabs.setFullWidth(d.containsKey("_fullwidth"));
                         stack.add(tabs);
                     } else {
                         tabs = (Tabs) stack.get(stack.size() - 1);
@@ -406,7 +408,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                     fields.add(new JPAListSelectionField(prefix + d.getString("_id"), d.getString("_label"), ql));
                 } else if (MetaData.FIELDTYPE_GRID.equals(d.getString("_type"))) {
                     List<AbstractColumn> cols = new ArrayList<>();
-                    for (Data dc : d.getList("_cols")) {
+                    for (Data dc : d.getList("_cols")) if (!dc.containsKey("_notinlist")) {
                         cols.add(new OutputColumn(dc.getString("_id"), dc.getString("_label"), 100));
                     }
                     fields.add(new GridField(prefix + d.getString("_id"), d.getString("_label"), cols) {
@@ -421,7 +423,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                             buildFromMetadata(f, d.getList("_cols"), false);
                             return f;
                         }
-                    });
+                    }.setFullWidth(d.containsKey("_fullwidth")));
                 }
                 if (d.containsKey("_required")) {
                     for (AbstractField field : fields) field.setRequired(true);
@@ -628,7 +630,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                                 if ("enum".equals(d.getString("_type"))) {
                                     filters += " = " + d.getString("_enumtype") + "." + vv + " ";
                                 } else {
-                                    if (v instanceof String) {
+                                    if (vv instanceof String) {
                                         filters += " = '" + vv + "' ";
                                     } else {
                                         filters += " = " + vv + " ";
@@ -639,7 +641,11 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                             if (posfilter++ == 0) filters += "";
                             else filters += " and ";
                             filters += x + "." + d.getString("_qlname");
-                            filters += " = " + v + " ";
+                            if (v instanceof String) {
+                                filters += " = '" + v + "' ";
+                            } else {
+                                filters += " = " + v + " ";
+                            }
                         }
                     }
                 }

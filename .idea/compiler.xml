@@ -8,12 +8,14 @@
         <outputRelativeToContentRoot value="true" />
         <module name="mdd" />
         <module name="mdd-annotations" />
+        <module name="mdd-tester" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="mateu-mdd" target="1.5" />
       <module name="mdd" target="1.8" />
       <module name="mdd-annotations" target="1.8" />
+      <module name="mdd-tester" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>
