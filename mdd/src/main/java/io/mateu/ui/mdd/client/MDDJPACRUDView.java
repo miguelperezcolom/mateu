@@ -171,16 +171,20 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
         if (getMetadata().isEmpty("_subclasses")) {
             super.open(propertyId, data);
         } else {
-            Class type = null;
+            String className = null;
+            int maxCol = -1;
             for (String n : data.getPropertyNames()) {
-                Object o = data.get(n);
-                if (o instanceof Class) {
-                    type = (Class) o;
-                    break;
+                if (n.startsWith("col")) {
+                    int numCol = Integer.parseInt(n.substring("col".length()));
+                    if (maxCol < numCol) {
+                        className = "" + data.get(n);
+                        maxCol = numCol;
+                    }
                 }
             }
+            if (className != null) className = className.replaceAll("class ", "");
             for (Data d : getMetadata().getList("_subclasses")) {
-                if (d.get("_type").equals(type.getCanonicalName())) {
+                if (d.get("_type").equals(className)) {
                     openEditor(getNewEditorView(d.get("_type"), d.get("_editorform")).setInitialId(data.get(propertyId)));
                     break;
                 }
@@ -254,7 +258,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                         tabs = (Tabs) stack.get(stack.size() - 1);
                     }
                     Tab tab;
-                    tabs.add(tab = new Tab(d.getString("_starttab")));
+                    tabs.add(tab = new Tab(originalContainer.getForm(), d.getString("_starttab")));
                     container = tab;
                     stack.add(tab);
                 }

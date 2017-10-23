@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: com.github.h-thurow:simple-jndi:0.16.0">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/github/h-thurow/simple-jndi/0.16.0/simple-jndi-0.16.0.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/com/github/h-thurow/simple-jndi/0.16.0/simple-jndi-0.16.0-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/github/h-thurow/simple-jndi/0.16.0/simple-jndi-0.16.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

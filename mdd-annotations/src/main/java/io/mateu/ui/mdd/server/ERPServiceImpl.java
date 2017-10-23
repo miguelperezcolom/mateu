@@ -12,9 +12,11 @@ import io.mateu.ui.mdd.server.interfaces.WithTriggers;
 import io.mateu.ui.mdd.server.util.Helper;
 import io.mateu.ui.mdd.server.util.JPATransaction;
 import io.mateu.ui.mdd.shared.ERPService;
+import io.mateu.ui.mdd.shared.MDDLink;
 import io.mateu.ui.mdd.shared.MetaData;
 import org.apache.commons.beanutils.BeanUtils;
 import org.reflections.Reflections;
+import org.reflections.util.ConfigurationBuilder;
 
 import javax.persistence.*;
 import java.lang.annotation.Annotation;
@@ -370,7 +372,30 @@ public class ERPServiceImpl implements ERPService {
                             genericClass = (genericType != null && genericType.getActualTypeArguments().length > 0)?(Class<?>) genericType.getActualTypeArguments()[0]:null;
                         }
 
-                        if (f.getType().isAnnotationPresent(Entity.class)) {
+                        if (f.getType().isArray()) {
+                            if (v != null) {
+                                List<Object> l = new ArrayList<>();
+                                Class c = f.getType().getComponentType();
+                                for (String s : ((String)v).split(",")) if (!Strings.isNullOrEmpty(s)) {
+                                    if (c.isPrimitive()) {
+                                        if (int.class.equals(c)) {
+                                            l.add(new Integer(s));
+                                        } else if (double.class.equals(c)) {
+                                            l.add(new Double(s));
+                                        } else if (long.class.equals(c)) {
+                                            l.add(new Long(s));
+                                        } else if (boolean.class.equals(c)) {
+                                            l.add(new Boolean(s));
+                                        }
+                                    } else {
+                                        Constructor<?> cons = c.getConstructor(String.class);
+                                        Object z = cons.newInstance(s);
+                                        l.add(z);
+                                    }
+                                }
+                                v = l.toArray();
+                            }
+                        } else if (f.getType().isAnnotationPresent(Entity.class)) {
                             Field parentField = null;
                             for (Field ff : getAllFields(f.getType())) {
                                 try {
@@ -780,7 +805,7 @@ public class ERPServiceImpl implements ERPService {
                     }
                 }
 
-                data.set("_title", Helper.capitalize(o.getClass().getSimpleName()) + " " + ((data.isEmpty("_tostring"))?id:data.get("_tostring")));
+                data.set("_title", Helper.capitalize((o.getClass().isAnnotationPresent(Entity.class) && !Strings.isNullOrEmpty(((Entity)o.getClass().getAnnotation(Entity.class)).name()))?((Entity)o.getClass().getAnnotation(Entity.class)).name():o.getClass().getSimpleName()) + " " + ((data.isEmpty("_tostring"))?id:data.get("_tostring")));
 
             }
         });
@@ -842,6 +867,16 @@ public class ERPServiceImpl implements ERPService {
                         ok = true;
                     } else if (Translated.class.isAssignableFrom(f.getType())) {
                     if (v != null) v = ((Translated) v).get();
+                    ok = true;
+                    } else if (f.getType().isArray()) {
+                        if (v!= null) {
+                            StringBuffer sb = new StringBuffer();
+                            for (int i = 0; i < Array.getLength(v); i++) {
+                                if (i > 0) sb.append(",");
+                                sb.append(Array.get(v, i));
+                            }
+                            v = sb.toString();
+                        }
                         ok = true;
                     } else if (f.getType().isAnnotationPresent(Entity.class)) {
                         if (f.isAnnotationPresent(Owned.class)) {
@@ -883,7 +918,20 @@ public class ERPServiceImpl implements ERPService {
 
                         Method m = null;
 
-                        if (genericClass.isAnnotationPresent(Entity.class)) {
+                        if (f.isAnnotationPresent(OwnedList.class)) {
+
+                            List<Data> dl = new ArrayList<>();
+
+                            List l = (List) v;
+                            for (Object x : l) {
+                                Data dx = new Data();
+                                fill(em, getId(x), dx, x);
+                                dl.add(dx);
+                            }
+
+                            v = dl;
+
+                        } else {
 
                             boolean toStringIsOverriden = genericClass.getMethod("toString").getDeclaringClass().equals(genericClass);
                             if (!toStringIsOverriden) {
@@ -1162,18 +1210,18 @@ public class ERPServiceImpl implements ERPService {
     public Data getMetadaData(String parentFieldName, Class c) throws Exception {
         Data data = new Data();
         data.set("_entityClassName", c.getName());
-        data.set("_rawtitle", Helper.capitalize(Helper.pluralize(c.getSimpleName())));
+        data.set("_rawtitle", Helper.capitalize(Helper.pluralize((c.isAnnotationPresent(Entity.class) && !Strings.isNullOrEmpty(((Entity)c.getAnnotation(Entity.class)).name()))?((Entity)c.getAnnotation(Entity.class)).name():c.getSimpleName())));
 
         if (c.isAnnotationPresent(Indelible.class)) data.set("_indelible", true);
         if (c.isAnnotationPresent(NewNotAllowed.class)) data.set("_newnotallowed", true);
 
         // buscamos subclases
 
-        if (!c.isArray()) {
+        if (!c.isArray() && !c.isPrimitive() && c.getProtectionDomain() != null && c.getProtectionDomain().getCodeSource() != null && c.getProtectionDomain().getCodeSource().getLocation() != null) {
 
-            Reflections reflections = new Reflections(c.getPackage().getName());
+            Reflections reflections = new Reflections(new ConfigurationBuilder().addUrls(c.getProtectionDomain().getCodeSource().getLocation())); //c.getPackage().getName());
 
-            Set<Class> subTypes = reflections.getSubTypesOf(c);
+            Set<Class> subTypes = getSubtypes(reflections, c);
 
             List<Data> subclases = new ArrayList<>();
             for (Class s : subTypes) {
@@ -1364,6 +1412,16 @@ public class ERPServiceImpl implements ERPService {
         }
 
         return data;
+    }
+
+    private Set<Class> getSubtypes(Reflections reflections, Class c) {
+        List<Class> l = new ArrayList<>();
+        Set<Class> s = reflections.getSubTypesOf(c);
+        l.addAll(s);
+        for (Class sc : s) {
+            l.addAll(getSubtypes(reflections, sc));
+        }
+        return new HashSet<>(l);
     }
 
 
@@ -1982,7 +2040,10 @@ public class ERPServiceImpl implements ERPService {
                 d.set("_unmodifiable", true);
             }
 
-            if (f.isAnnotationPresent(OptionsClass.class)) {
+            if (f.getType().isArray()) {
+                d.set("_type", MetaData.FIELDTYPE_STRING);
+                upload = true;
+            } else if (f.isAnnotationPresent(OptionsClass.class)) {
                 d.set("_type", MetaData.FIELDTYPE_COMBO);
                 d.set("_ql", getQlForEntityField(f.getAnnotation(OptionsClass.class).value()));
                 upload = true;

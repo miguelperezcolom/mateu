@@ -69,6 +69,19 @@ public class Module extends AbstractModule {
             }
         });
 
+        m.add(new AbstractAction("Tabs") {
+            @Override
+            public void run() {
+                ((ERPServiceAsync)MateuUI.create(ERPService.class)).getMetaData("io.mateu.mdd.model.tests.tabs.Tabs", new MDDCallback());
+            }
+        });
+
+        m.add(new AbstractAction("OneToMany") {
+            @Override
+            public void run() {
+                ((ERPServiceAsync)MateuUI.create(ERPService.class)).getMetaData("io.mateu.mdd.model.tests.onetomany.Uno", new MDDCallback());
+            }
+        });
 
         m.add(new AbstractAction("Owned") {
             @Override
