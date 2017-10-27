@@ -26,5 +26,7 @@ public interface MetaData {
     public static final String FIELDTYPE_LISTDATA = "listdata";
     public static final String FIELDTYPE_OBJECT = "object";
     public static final String FIELDTYPE_COMBO = "combo";
-
+    public static final String FIELDTYPE_WEEKDAYS = "weekdays";
+    public static final String FIELDTYPE_WIZARD = "wizard";
+    public static final String FIELDTYPE_SELECTFROMGRID = "selectfromgrid";
 }

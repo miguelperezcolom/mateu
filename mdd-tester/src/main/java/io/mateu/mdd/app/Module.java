@@ -76,6 +76,13 @@ public class Module extends AbstractModule {
             }
         });
 
+        m.add(new AbstractAction("Basic") {
+            @Override
+            public void run() {
+                ((ERPServiceAsync)MateuUI.create(ERPService.class)).getMetaData("io.mateu.mdd.model.tests.basic.Basico", new MDDCallback());
+            }
+        });
+
         m.add(new AbstractAction("OneToMany") {
             @Override
             public void run() {

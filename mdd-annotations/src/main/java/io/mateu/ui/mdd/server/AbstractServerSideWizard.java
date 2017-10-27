@@ -1,6 +1,7 @@
 package io.mateu.ui.mdd.server;
 
 import io.mateu.ui.core.shared.Data;
+import io.mateu.ui.mdd.shared.MDDLink;
 
 /**
  * Created by miguel on 23/4/17.

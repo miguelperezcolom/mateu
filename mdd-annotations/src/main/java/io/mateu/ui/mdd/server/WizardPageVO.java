@@ -7,6 +7,14 @@ import io.mateu.ui.core.shared.Data;
  */
 public class WizardPageVO extends Data {
 
+    public void setTitle(String v) {
+        set("_title", v);
+    }
+
+    public String getTitle() {
+        return get("_title");
+    }
+
 
     public void setWizardClassName(String v) {
         set("_wizardclassname", v);
@@ -49,6 +57,21 @@ public class WizardPageVO extends Data {
         return get("_lastpage");
     }
 
+    public void setGoNextAction(String v) {
+        set("_gonextaction", v);
+    }
+
+    public String getGoNextAction() {
+        return get("_gonextaction");
+    }
+
+    public void setGoBackAction(String v) {
+        set("_gobackaction", v);
+    }
+
+    public String getGoBackAction() {
+        return get("_gobackaction");
+    }
 
 
 }

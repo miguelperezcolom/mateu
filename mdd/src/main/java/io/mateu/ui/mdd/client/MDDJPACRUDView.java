@@ -14,7 +14,7 @@ import io.mateu.ui.core.client.views.*;
 import io.mateu.ui.core.shared.CellStyleGenerator;
 import io.mateu.ui.core.shared.Data;
 import io.mateu.ui.core.shared.Pair;
-import io.mateu.ui.mdd.server.util.Helper;
+import io.mateu.ui.mdd.server.WizardPageVO;
 import io.mateu.ui.mdd.shared.ERPService;
 import io.mateu.ui.mdd.shared.MDDLink;
 import io.mateu.ui.mdd.shared.MetaData;
@@ -278,6 +278,8 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                 List<AbstractField> fields = new ArrayList<>();
                 if (MetaData.FIELDTYPE_OUTPUT.equals(d.getString("_type"))) {
                     fields.add(new ShowTextField(prefix + d.getString("_id"), d.getString("_label")));
+                } else if (MetaData.FIELDTYPE_WEEKDAYS.equals(d.getString("_type"))) {
+                    fields.add(new WeekDaysField(prefix + d.getString("_id"), d.getString("_label")));
                 } else if (MetaData.FIELDTYPE_TEXTAREA.equals(d.getString("_type"))) {
                     fields.add(new TextAreaField(prefix + d.getString("_id"), d.getString("_label")));
                 } else if (MetaData.FIELDTYPE_STRING.equals(d.getString("_type"))) {
@@ -410,11 +412,12 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                     String ql = d.getString("_ql");
                     if (ql == null) ql = "select x.id, x.name from " + d.getString("_entityClassName") + " x order by x.name";
                     fields.add(new JPAListSelectionField(prefix + d.getString("_id"), d.getString("_label"), ql));
-                } else if (MetaData.FIELDTYPE_GRID.equals(d.getString("_type"))) {
+                } else if (MetaData.FIELDTYPE_GRID.equals(d.getString("_type")) || MetaData.FIELDTYPE_SELECTFROMGRID.equals(d.getString("_type"))) {
                     List<AbstractColumn> cols = new ArrayList<>();
                     for (Data dc : d.getList("_cols")) if (!dc.containsKey("_notinlist")) {
                         cols.add(new OutputColumn(dc.getString("_id"), dc.getString("_label"), 100));
                     }
+
                     fields.add(new GridField(prefix + d.getString("_id"), d.getString("_label"), cols) {
                         @Override
                         public AbstractForm getDataForm(Data initialData) {
@@ -427,7 +430,9 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                             buildFromMetadata(f, d.getList("_cols"), false);
                             return f;
                         }
-                    }.setFullWidth(d.containsKey("_fullwidth")));
+                    }.setFullWidth(d.containsKey("_fullwidth"))
+                    .setUsedToSelect(MetaData.FIELDTYPE_SELECTFROMGRID.equals(d.getString("_type")))
+                    .setUsedToSelectMultipleValues(d.containsKey("_multipleselection")));
                 }
                 if (d.containsKey("_required")) {
                     for (AbstractField field : fields) field.setRequired(true);
@@ -764,6 +769,8 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
                 boolean needsParameters = false;
 
+                Data wizard = null;
+                String wizardParameterName = null;
                 for (Data dp : da.getList("_parameters")) {
                     String n = dp.getString("_id");
                     if (MetaData.FIELDTYPE_LISTDATA.equals(dp.getString("_type"))) {
@@ -772,37 +779,76 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                         parameters.set(n, v.getForm().getData());
                     } else if (MetaData.FIELDTYPE_USERDATA.equals(dp.getString("_type"))) {
                         parameters.set(n, MateuUI.getApp().getUserData());
+                    } else if (MetaData.FIELDTYPE_WIZARD.equals(dp.getString("_type"))) {
+                        wizard = dp;
+                        wizardParameterName = n;
+                        needsParameters = true;
                     } else needsParameters = true;
                 }
 
                 if (needsParameters) {
-                    MateuUI.openView(new AbstractDialog() {
+                    if (wizard !=  null) {
 
-                        @Override
-                        public Data initializeData() {
-                            return parameters;
-                        }
+                        WizardPageVO vo = wizard.get("_pagevo");
 
-                        @Override
-                        public void onOk(Data data) {
-                            ((ERPServiceAsync)MateuUI.create(ERPService.class)).runInServer(da.getString("_entityClassName"), da.getString("_methodname"), getForm().getData(), new Callback<Object>() {
-                                @Override
-                                public void onSuccess(Object result) {
-                                    h.onSuccess(result);
-                                }
-                            });
-                        }
+                        String finalWizardParameterName = wizardParameterName;
 
-                        @Override
-                        public String getTitle() {
-                            return da.getString("_name");
-                        }
+                        AbstractWizard[] w = new AbstractWizard[1];
 
-                        @Override
-                        public void build() {
-                            buildFromMetadata(this, da.getData("_form").getList("_fields"), false);
-                        }
-                    });
+                        Callback<Data> cb = new Callback<Data>() {
+                            @Override
+                            public void onSuccess(Data data) {
+                                parameters.set(finalWizardParameterName, data);
+                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).runInServer(da.getString("_entityClassName"), da.getString("_methodname"), parameters, new Callback<Object>() {
+                                    @Override
+                                    public void onSuccess(Object result) {
+                                        h.onSuccess(result);
+                                        w[0].close();
+                                    }
+
+                                    @Override
+                                    public void onFailure(Throwable caught) {
+                                        super.onFailure(caught);
+                                    }
+                                });
+                            }
+                        };
+
+                        w[0] = crearWizard(da.getString("_name"), vo, cb);
+
+                        MateuUI.open(w[0]);
+
+                    } else {
+
+                        MateuUI.openView(new AbstractDialog() {
+
+                            @Override
+                            public Data initializeData() {
+                                return parameters;
+                            }
+
+                            @Override
+                            public void onOk(Data data) {
+                                ((ERPServiceAsync)MateuUI.create(ERPService.class)).runInServer(da.getString("_entityClassName"), da.getString("_methodname"), getForm().getData(), new Callback<Object>() {
+                                    @Override
+                                    public void onSuccess(Object result) {
+                                        h.onSuccess(result);
+                                    }
+                                });
+                            }
+
+                            @Override
+                            public String getTitle() {
+                                return da.getString("_name");
+                            }
+
+                            @Override
+                            public void build() {
+                                buildFromMetadata(this, da.getData("_form").getList("_fields"), false);
+                            }
+                        });
+
+                    }
                 } else ((ERPServiceAsync)MateuUI.create(ERPService.class)).runInServer(da.getString("_entityClassName"), da.getString("_methodname"), parameters, new Callback<Object>() {
                     @Override
                     public void onSuccess(Object result) {
@@ -815,12 +861,155 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
     }
 
+    private AbstractWizard crearWizard(String title, WizardPageVO vo, Callback<Data> datacallback) {
+
+        AbstractWizard w = new BaseWizard(title) {
+
+            BaseWizard z = this;
+
+            @Override
+            public void navigate(Object action, Data data, Callback<AbstractWizardPageView> callback) throws Throwable {
+                if (action == null) {
+                    set("_gonextaction", vo.getGoNextAction());
+                    set("_gobackaction", vo.getGoBackAction());
+                    AbstractWizardPageView v = new AbstractWizardPageView(z) {
+
+                        @Override
+                        public boolean isFirstPage() {
+                            return vo.isFirstPage();
+                        }
+
+                        @Override
+                        public boolean isLastPage() {
+                            return vo.isLastPage();
+                        }
+
+                        @Override
+                        public String getTitle() {
+                            return vo.getTitle();
+                        }
+
+                        @Override
+                        public void build() {
+                            buildFromMetadata(this, vo.getMetaData().getData("_editorform"), false);
+                        }
+                    };
+                    callback.onSuccess(v);
+                } else {
+                    if (action instanceof Actions) {
+                        Actions a = (Actions) action;
+                        switch (a) {
+                            case GONEXT:
+                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).execute(vo.getWizardClassName(), data.get("_gonextaction"), data, new Callback<WizardPageVO>() {
+                                    @Override
+                                    public void onSuccess(WizardPageVO result) {
+                                        setAll(result.getData());
+                                        set("_gonextaction", result.getGoNextAction());
+                                        set("_gobackaction", result.getGoBackAction());
+                                        callback.onSuccess(new AbstractWizardPageView(z) {
+
+                                            @Override
+                                            public boolean isFirstPage() {
+                                                return result.isFirstPage();
+                                            }
+
+                                            @Override
+                                            public boolean isLastPage() {
+                                                return result.isLastPage();
+                                            }
+
+                                            @Override
+                                            public String getTitle() {
+                                                return result.getTitle();
+                                            }
+
+                                            @Override
+                                            public void build() {
+                                                buildFromMetadata(this, result.getMetaData().getData("_editorform"), false);
+                                            }
+                                        });
+                                    }
+                                });
+                                break;
+                            case GOBACK:
+                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).execute(vo.getWizardClassName(), data.get("_gobackaction"), data, new Callback<WizardPageVO>() {
+                                    @Override
+                                    public void onSuccess(WizardPageVO result) {
+                                        setAll(result.getData());
+                                        set("_gonextaction", result.getGoNextAction());
+                                        set("_gobackaction", result.getGoBackAction());
+                                        callback.onSuccess(new AbstractWizardPageView(z) {
+
+                                            @Override
+                                            public boolean isFirstPage() {
+                                                return result.isFirstPage();
+                                            }
+
+                                            @Override
+                                            public boolean isLastPage() {
+                                                return result.isLastPage();
+                                            }
+
+                                            @Override
+                                            public String getTitle() {
+                                                return result.getTitle();
+                                            }
+
+                                            @Override
+                                            public void build() {
+                                                buildFromMetadata(this, result.getMetaData().getData("_editorform"), false);
+                                            }
+                                        });
+                                    }
+                                });
+                                break;
+                            case END:
+                                close();
+                                break;
+                            default:
+                                throw new Throwable("Unknown action");
+                        }
+                    }
+
+                }
+            }
+
+            @Override
+            public String getTitle() {
+                return title;
+            }
+
+            @Override
+            public void onOk(Data data) throws Throwable {
+                datacallback.onSuccess(data);
+            }
+
+            @Override
+            public void build() {
+
+            }
+
+            @Override
+            public boolean closeOnOk() {
+                return false;
+            }
+        };
+
+
+        return w;
+    }
+
     private AbstractAction createAction(MDDJPACRUDView v, Data da) {
         return createAction(v, da, new MDDActionHelper() {
             @Override
             public void onSuccess(Object result) {
                 if (result instanceof URL) {
                     MateuUI.open((URL) result);
+                } else if (result instanceof MDDLink) {
+                    MDDLink l = (MDDLink) result;
+                    createAction(l).run();
+                } else if (result instanceof Data) {
+                    v.getForm().setData((Data) result);
                 } else {
                     v.search();
                 }

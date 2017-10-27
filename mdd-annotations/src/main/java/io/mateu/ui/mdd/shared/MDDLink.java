@@ -69,7 +69,9 @@ public class MDDLink extends Data {
     }
 
     public Data getData() {
-        return get("_data");
+        Data data = get("_data");
+        if (data == null) data = new Data();
+        return data;
     }
 
     public void setData(Data data) {

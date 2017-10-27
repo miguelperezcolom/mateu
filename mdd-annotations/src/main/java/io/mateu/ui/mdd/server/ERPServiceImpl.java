@@ -2,6 +2,7 @@ package io.mateu.ui.mdd.server;
 
 import com.google.common.base.Strings;
 import io.mateu.erp.model.util.XMLSerializable;
+import io.mateu.ui.core.client.views.AbstractWizard;
 import io.mateu.ui.core.shared.*;
 import io.mateu.ui.mdd.server.annotations.*;
 import io.mateu.ui.mdd.server.annotations.CellStyleGenerator;
@@ -12,11 +13,10 @@ import io.mateu.ui.mdd.server.interfaces.WithTriggers;
 import io.mateu.ui.mdd.server.util.Helper;
 import io.mateu.ui.mdd.server.util.JPATransaction;
 import io.mateu.ui.mdd.shared.ERPService;
-import io.mateu.ui.mdd.shared.MDDLink;
 import io.mateu.ui.mdd.shared.MetaData;
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.BeanUtilsBean;
 import org.reflections.Reflections;
-import org.reflections.util.ConfigurationBuilder;
 
 import javax.persistence.*;
 import java.lang.annotation.Annotation;
@@ -24,12 +24,16 @@ import java.lang.reflect.*;
 import java.lang.reflect.Parameter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.*;
 
 /**
  * Created by miguel on 11/1/17.
  */
 public class ERPServiceImpl implements ERPService {
+
+    private static Map<Class, List<Class>> cacheSubclases = new HashMap<>();
 
     static List<Class> basicos = new ArrayList<>();
 
@@ -45,10 +49,7 @@ public class ERPServiceImpl implements ERPService {
     }
 
 
-
-    @Override
-    public Object[][] select(String jpql) throws Throwable {
-
+    public static Object[][] staticSelect(String jpql) throws Throwable {
         System.out.println("jpql: " + jpql);
 
         List<Object[]> r = new ArrayList<>();
@@ -67,6 +68,11 @@ public class ERPServiceImpl implements ERPService {
 
 
         return r.toArray(new Object[0][]);
+    }
+
+    @Override
+    public Object[][] select(String jpql) throws Throwable {
+        return staticSelect(jpql);
     }
 
     @Override
@@ -208,7 +214,7 @@ public class ERPServiceImpl implements ERPService {
 
                 Class cl = Class.forName(entityClassName);
 
-                fill(em, cl, data);
+                fillData(em, cl, data);
 
             }
         });
@@ -236,7 +242,7 @@ public class ERPServiceImpl implements ERPService {
         return _get(entityClassName, id);
     }
 
-    private Object fill(EntityManager em, Class cl, Data data) throws Throwable {
+    private static Object fillData(EntityManager em, Class cl, Data data) throws Throwable {
         Object o = null;
 
         boolean newInstance = false;
@@ -287,11 +293,12 @@ public class ERPServiceImpl implements ERPService {
         return o;
     }
 
-    private void fillEntity(EntityManager em, Object o, Data data, boolean newInstance) throws Throwable {
+    public static void fillEntity(EntityManager em, Object o, Data data, boolean newInstance) throws Throwable {
+        BeanUtilsBean.getInstance().getConvertUtils().register(false, false, 0);
         fillEntity(em, o, data, newInstance, "");
     }
 
-    private void fillEntity(EntityManager em, Object o, Data data, boolean newInstance, String prefix) throws Throwable {
+    public static void fillEntity(EntityManager em, Object o, Data data, boolean newInstance, String prefix) throws Throwable {
         //auditoría
         for (Field f : getAllFields(o.getClass())) if (AuditRecord.class.isAssignableFrom(f.getType())) {
             AuditRecord a = (AuditRecord) o.getClass().getMethod(getGetter(f)).invoke(o);
@@ -488,7 +495,7 @@ public class ERPServiceImpl implements ERPService {
                                 for (Object x : borrar) em.remove(x);
                                 for (Data d : (List<Data>) v) {
                                     if (d.isEmpty("_id")) {
-                                        Object x = fill(em, genericClass, d);
+                                        Object x = fillData(em, genericClass, d);
                                         if (f.isAnnotationPresent(OneToMany.class)) {
                                             String mappedby = f.getAnnotation(OneToMany.class).mappedBy();
                                             if (!Strings.isNullOrEmpty(mappedby)) { // seteamos la relación inversa
@@ -629,7 +636,7 @@ public class ERPServiceImpl implements ERPService {
 
 
                                     if (d.isEmpty("_id")) {
-                                        Object x = fill(em, genericClass, d);
+                                        Object x = fillData(em, genericClass, d);
                                         if (f.isAnnotationPresent(OneToMany.class)) {
                                             String mappedby = f.getAnnotation(OneToMany.class).mappedBy();
                                             if (!Strings.isNullOrEmpty(mappedby)) {
@@ -692,9 +699,19 @@ public class ERPServiceImpl implements ERPService {
 
                         }
 
+                        if (Date.class.equals(f.getType()) && v != null && v instanceof LocalDateTime) {
+                            v = ((LocalDateTime)v).atZone(ZoneId.systemDefault()).toInstant();
+                        }
+
 
                         //System.out.println("o." + getSetter(f) + "(" + v + ")");
                         //m.invoke(o, data.get(n));
+                        if (v != null && v instanceof Data && !Data.class.equals(f.getType())) {
+                            Object z = f.getType().newInstance();
+                            fillEntity(em, z, (Data) v, false);
+                            v = z;
+                        }
+
                         BeanUtils.setProperty(o, f.getName(), v);
                     }
                 }
@@ -706,7 +723,7 @@ public class ERPServiceImpl implements ERPService {
         }
     }
 
-    private Method getMethod(Class<?> c, String methodName) {
+    private static Method getMethod(Class<?> c, String methodName) {
         Method m = null;
         while (m == null) {
             try {
@@ -723,7 +740,7 @@ public class ERPServiceImpl implements ERPService {
         return m;
     }
 
-    private Field getDeclaredField(Class<?> c, String fieldName) {
+    private static Field getDeclaredField(Class<?> c, String fieldName) {
         Field m = null;
         while (m == null) {
             try {
@@ -740,7 +757,7 @@ public class ERPServiceImpl implements ERPService {
         return m;
     }
 
-    private Method getMethod(Class<?> c, String methodName, Class<?> parameterClass) {
+    private static Method getMethod(Class<?> c, String methodName, Class<?> parameterClass) {
         Method m = null;
         while (m == null) {
             try {
@@ -757,11 +774,11 @@ public class ERPServiceImpl implements ERPService {
         return m;
     }
 
-    private String getGetter(Field f) {
+    private static String getGetter(Field f) {
         return (("boolean".equals(f.getType().getName()) || Boolean.class.equals(f.getType()))?"is":"get") + f.getName().substring(0, 1).toUpperCase() + f.getName().substring(1);
     }
 
-    private String getSetter(Field f) {
+    private static String getSetter(Field f) {
         return "set" + f.getName().substring(0, 1).toUpperCase() + f.getName().substring(1);
     }
 
@@ -773,7 +790,7 @@ public class ERPServiceImpl implements ERPService {
             public void run(EntityManager em) throws Throwable {
                 Object o = em.find(Class.forName(entityClassName), (id instanceof Integer)?new Long((Integer)id):id);
 
-                fill(em, id, data, o);
+                fillData(em, id, data, o);
 
                 for (Method m : o.getClass().getDeclaredMethods()) {
                     if ("toString".equals(m.getName())) {
@@ -813,11 +830,15 @@ public class ERPServiceImpl implements ERPService {
         return data;
     }
 
-    private void fill(EntityManager em, Object id, Data data, Object o) throws Throwable {
-        fill(em, id, data, "", o);
+    private static void fillData(EntityManager em, Object id, Data data, Object o) throws Throwable {
+        fillData(em, id, data, "", o);
     }
 
-    private void fill(EntityManager em, Object id, Data data, String prefix, Object o) throws Throwable {
+    public static void fillData(Data data, Object o) throws Throwable {
+        fillData(null, null, data, "", o);
+    }
+
+    private static void fillData(EntityManager em, Object id, Data data, String prefix, Object o) throws Throwable {
 
         if (id != null) data.set("_id", id);
 
@@ -846,6 +867,9 @@ public class ERPServiceImpl implements ERPService {
                 }
 
                 if (f.getType().isPrimitive() || basicos.contains(f.getType())) {
+                    ok = true;
+                } else if (v != null && v instanceof Date) {
+                    v = LocalDateTime.ofInstant(((Date)v).toInstant(), ZoneId.systemDefault());
                     ok = true;
                 } else if (f.getType().isAnnotationPresent(Embeddable.class)) {
                         if (v != null) {
@@ -880,7 +904,7 @@ public class ERPServiceImpl implements ERPService {
                         ok = true;
                     } else if (f.getType().isAnnotationPresent(Entity.class)) {
                         if (f.isAnnotationPresent(Owned.class)) {
-                            if (v != null) fill(em, em.getEntityManagerFactory().getPersistenceUnitUtil().getIdentifier(v), data, f.getName() + "_", v);
+                            if (v != null) fillData(em, em.getEntityManagerFactory().getPersistenceUnitUtil().getIdentifier(v), data, f.getName() + "_", v);
                             ok = false; // no añadimos el objeto tal cual
                         } else {
                             if (v != null) {
@@ -925,7 +949,7 @@ public class ERPServiceImpl implements ERPService {
                             List l = (List) v;
                             for (Object x : l) {
                                 Data dx = new Data();
-                                fill(em, getId(x), dx, x);
+                                fillData(em, getId(x), dx, x);
                                 dl.add(dx);
                             }
 
@@ -1014,7 +1038,7 @@ public class ERPServiceImpl implements ERPService {
                             List l = (List) v;
                             for (Object x : l) {
                                 Data dx = new Data();
-                                fill(em, getId(x), dx, x);
+                                fillData(em, getId(x), dx, x);
                                 dl.add(dx);
                             }
 
@@ -1072,7 +1096,7 @@ public class ERPServiceImpl implements ERPService {
                             if (f.isAnnotationPresent(OwnedList.class)) {
 
                                 Data dx = new Data("_key", k);
-                                fill(em, getId(z), dx, z);
+                                fillData(em, getId(z), dx, z);
                                 dl.add(dx);
 
                             } else {
@@ -1129,7 +1153,7 @@ public class ERPServiceImpl implements ERPService {
 
                     } else {
                         data.set(prefix + f.getName() + "____object", true);
-                        if (v != null) fill(em, null, data, f.getName() + "_", v);
+                        if (v != null) fillData(em, null, data, f.getName() + "_", v);
                         ok = false; // no añadimos el objeto tal cual
                     }
 
@@ -1143,10 +1167,10 @@ public class ERPServiceImpl implements ERPService {
             }
     }
 
-    private Object getQLPair(EntityManager em, Object v, String ql) throws Throwable {
+    private static Object getQLPair(EntityManager em, Object v, String ql) throws Throwable {
         if (v == null) return null;
         Pair p = new Pair(v, "Not found");
-        for (Object[] l : select(ql)) {
+        for (Object[] l : staticSelect(ql)) {
             if (v.equals(l[0])) {
                 p = new Pair(v, "" + l[1]);
                 break;
@@ -1155,7 +1179,7 @@ public class ERPServiceImpl implements ERPService {
         return p;
     }
 
-    private Object getEntityPair(EntityManager em, Object v, Class c) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    private static Object getEntityPair(EntityManager em, Object v, Class c) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 
         if (v == null) return null;
 
@@ -1192,7 +1216,7 @@ public class ERPServiceImpl implements ERPService {
 
     }
 
-    private Object getId(Object o) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    private static Object getId(Object o) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Object id = null;
         for (Field f : getAllFields(o.getClass())) {
             if (f.isAnnotationPresent(Id.class)) {
@@ -1203,11 +1227,11 @@ public class ERPServiceImpl implements ERPService {
         return id;
     }
 
-    public Data getMetadaData(Class c) throws Exception {
+    public static Data getMetadaData(Class c) throws Exception {
         return getMetadaData(null, c);
     }
 
-    public Data getMetadaData(String parentFieldName, Class c) throws Exception {
+    public static Data getMetadaData(String parentFieldName, Class c) throws Exception {
         Data data = new Data();
         data.set("_entityClassName", c.getName());
         data.set("_rawtitle", Helper.capitalize(Helper.pluralize((c.isAnnotationPresent(Entity.class) && !Strings.isNullOrEmpty(((Entity)c.getAnnotation(Entity.class)).name()))?((Entity)c.getAnnotation(Entity.class)).name():c.getSimpleName())));
@@ -1219,7 +1243,19 @@ public class ERPServiceImpl implements ERPService {
 
         if (!c.isArray() && !c.isPrimitive() && c.getProtectionDomain() != null && c.getProtectionDomain().getCodeSource() != null && c.getProtectionDomain().getCodeSource().getLocation() != null) {
 
-            Reflections reflections = new Reflections(new ConfigurationBuilder().addUrls(c.getProtectionDomain().getCodeSource().getLocation())); //c.getPackage().getName());
+            /*
+            Reflections reflections = new Reflections(new ConfigurationBuilder()
+                    .filterInputsBy(new FilterBuilder()
+                            .add((s) -> {
+                                //System.out.println(s);
+                                return s.endsWith(".class");
+                            })
+                            //.include("\\.class")
+                    )
+                    .setScanners(new SubTypesScanner()).setUrls(c.getProtectionDomain().getCodeSource().getLocation())); //c.getPackage().getName());
+                    */
+
+            Reflections reflections = new Reflections(c.getPackage().getName());
 
             Set<Class> subTypes = getSubtypes(reflections, c);
 
@@ -1414,13 +1450,28 @@ public class ERPServiceImpl implements ERPService {
         return data;
     }
 
-    private Set<Class> getSubtypes(Reflections reflections, Class c) {
-        List<Class> l = new ArrayList<>();
-        Set<Class> s = reflections.getSubTypesOf(c);
-        l.addAll(s);
-        for (Class sc : s) {
-            l.addAll(getSubtypes(reflections, sc));
+    private static Set<Class> getSubtypes(Reflections reflections, Class c) {
+
+        List<Class> l = cacheSubclases.get(c);
+
+        if (l == null) {
+
+            System.out.println("lista subclases de " + c.getName() + " no está en caché. Recorremos el jar...");
+
+            l = new ArrayList<>();
+            Set<Class> s = reflections.getSubTypesOf(c);
+            l.addAll(s);
+            for (Class sc : s) {
+                l.addAll(getSubtypes(reflections, sc));
+            }
+            cacheSubclases.put(c, l);
+
+        } else {
+
+            System.out.println("lista subclases de " + c.getName() + " está en caché.");
+
         }
+
         return new HashSet<>(l);
     }
 
@@ -1432,7 +1483,7 @@ public class ERPServiceImpl implements ERPService {
         return getMetadaData(c);
     }
 
-    private Data getEditorForm(Class c) throws Exception {
+    private static Data getEditorForm(Class c) throws Exception {
         List<Data> editorFormFields = new ArrayList<>();
         for (Field f : getAllFields(c)) {
             if (!f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(NotInEditor.class) && !(f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class))) {
@@ -1506,7 +1557,7 @@ public class ERPServiceImpl implements ERPService {
         return def;
     }
 
-    private List<Method> getAllMethods(Class c) {
+    private static List<Method> getAllMethods(Class c) {
         List<Method> l = new ArrayList<>();
 
         if (c.getSuperclass() != null && c.getSuperclass().isAnnotationPresent(Entity.class)) l.addAll(getAllMethods(c.getSuperclass()));
@@ -1516,7 +1567,7 @@ public class ERPServiceImpl implements ERPService {
         return l;
     }
 
-    private List<Field> getAllFields(Class c) {
+    private static List<Field> getAllFields(Class c) {
         List<Field> l = new ArrayList<>();
 
         if (c.getSuperclass() != null && c.getSuperclass().isAnnotationPresent(Entity.class)) l.addAll(getAllFields(c.getSuperclass()));
@@ -1559,6 +1610,10 @@ public class ERPServiceImpl implements ERPService {
                                     }
                                 }
                                 vs.add(v);
+                            } else if (p.isAnnotationPresent(Wizard.class)) {
+                                vs.add(parameters);
+                            } else if (AbstractServerSideWizard.class.isAssignableFrom(p.getType())) {
+                                vs.add(fillWizard(em, p.getType(), parameters.get(p.getName())));
                             } else {
                                 vs.add(parameters.get(p.getName()));
                             }
@@ -1574,7 +1629,7 @@ public class ERPServiceImpl implements ERPService {
         } else {
             boolean needsEM = false;
             for (Parameter p : m.getParameters()) {
-                if (EntityManager.class.equals(p.getType())) needsEM = true;
+                if (EntityManager.class.equals(p.getType()) || AbstractServerSideWizard.class.isAssignableFrom(p.getType())) needsEM = true;
             }
             if (needsEM) {
                 Method finalM1 = m;
@@ -1597,6 +1652,10 @@ public class ERPServiceImpl implements ERPService {
                                     }
                                 }
                                 vs.add(v);
+                            } else if (p.isAnnotationPresent(Wizard.class)) {
+                                vs.add(parameters);
+                            } else if (AbstractServerSideWizard.class.isAssignableFrom(p.getType())) {
+                                vs.add(fillWizard(em, p.getType(), parameters.get(p.getName())));
                             } else {
                                 vs.add(parameters.get(p.getName()));
                             }
@@ -1625,12 +1684,25 @@ public class ERPServiceImpl implements ERPService {
         return r[0];
     }
 
+    private <T> T fillWizard(EntityManager em, Class<T> type, Data data) throws Throwable {
+        T o = type.newInstance();
+        if (o instanceof BaseServerSideWizard) {
+            BaseServerSideWizard w = (BaseServerSideWizard) o;
+
+            for (Object p : w.getPages()) {
+                fillEntity(em, p, data, false);
+            }
+
+            return (T) w;
+        } else throw new Exception("" + type.getName() + " must extend " + BaseServerSideWizard.class.getName());
+    }
+
     @Override
     public WizardPageVO execute(String wizardClassName, String action, Data data) throws Throwable {
         return ((AbstractServerSideWizard)Class.forName(wizardClassName).newInstance()).execute(action, data);
     }
 
-    private void addMethod(List<Data> actions, Method m) throws Exception {
+    private static void addMethod(List<Data> actions, Method m) throws Exception {
         if (m.isAnnotationPresent(Action.class)) {
             List<Data> parameters = new ArrayList<>();
             for (Parameter p : m.getParameters()) {
@@ -1702,7 +1774,7 @@ public class ERPServiceImpl implements ERPService {
         }
     }
 
-    private void addColumn(List<Data> listColumns, Field f) throws Exception {
+    private static void addColumn(List<Data> listColumns, Field f) throws Exception {
         List<ListColumn> lcs = new ArrayList<>();
         for (ListColumn lc : f.getDeclaredAnnotationsByType(ListColumn.class)) lcs.add(lc);
         if (lcs.size() == 0) lcs.add(null);
@@ -1763,11 +1835,11 @@ public class ERPServiceImpl implements ERPService {
         }
     }
 
-    private void addField(List<Data> _fields, FieldInterfaced f) throws Exception {
+    private static void addField(List<Data> _fields, FieldInterfaced f) throws Exception {
         addField(_fields, f, null, null, null, false, false);
     }
 
-    private void addField(List<Data> _fields, FieldInterfaced f, ListColumn listColumnAnnotation, SearchFilter searchFilterAnnotation, SearchFilterIsNull searchFilterIsNullAnnotation, boolean buildingSearchForm, boolean buildingColumns) throws Exception {
+    private static void addField(List<Data> _fields, FieldInterfaced f, ListColumn listColumnAnnotation, SearchFilter searchFilterAnnotation, SearchFilterIsNull searchFilterIsNullAnnotation, boolean buildingSearchForm, boolean buildingColumns) throws Exception {
         if (!f.isAnnotationPresent(Ignored.class)) {
 
             Data d = new Data();
@@ -2040,7 +2112,44 @@ public class ERPServiceImpl implements ERPService {
                 d.set("_unmodifiable", true);
             }
 
-            if (f.getType().isArray()) {
+            if (f.isAnnotationPresent(UseGridToSelect.class)) {
+                d.set("_type", MetaData.FIELDTYPE_SELECTFROMGRID);
+                UseGridToSelect a = f.getAnnotation(UseGridToSelect.class);
+                if (!Strings.isNullOrEmpty(a.data())) d.set("_dataproperty", a.data());
+                else if (!Strings.isNullOrEmpty(a.ql())) d.set("_ql", a.ql());
+
+                List<Data> cols = new ArrayList<>();
+                Class c = f.getType();
+                if (List.class.isAssignableFrom(f.getType())) c = f.getGenericClass();
+                for (Field ff : c.getDeclaredFields()) {
+                    if (!ff.isAnnotationPresent(Id.class) && !ff.getType().equals(f.getDeclaringClass()))
+                        addColumn(cols, ff);
+                }
+                d.set("_cols", cols);
+
+                upload = true;
+            } else if (f.isAnnotationPresent(Wizard.class)) {
+                d.set("_type", MetaData.FIELDTYPE_WIZARD);
+                Class<? extends AbstractServerSideWizard> wc = f.getAnnotation(Wizard.class).value();
+                try {
+                    d.set("_pagevo", wc.newInstance().execute(null, null));
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
+                }
+                upload = true;
+            } else if (AbstractServerSideWizard.class.isAssignableFrom(f.getType())) {
+                d.set("_type", MetaData.FIELDTYPE_WIZARD);
+                Class<? extends AbstractServerSideWizard> wc = (Class<? extends AbstractServerSideWizard>) f.getType();
+                try {
+                    d.set("_pagevo", wc.newInstance().execute(null, null));
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
+                }
+                upload = true;
+            } else if (f.isAnnotationPresent(OptionsClass.class)) {
+                d.set("_type", MetaData.FIELDTYPE_WEEKDAYS);
+                upload = true;
+            } else if (f.getType().isArray()) {
                 d.set("_type", MetaData.FIELDTYPE_STRING);
                 upload = true;
             } else if (f.isAnnotationPresent(OptionsClass.class)) {
@@ -2545,7 +2654,7 @@ public class ERPServiceImpl implements ERPService {
         }
     }
 
-    private String getIdFieldName(Class<?> c) {
+    private static String getIdFieldName(Class<?> c) {
         String nombreCampoId = "id";
         for (Field ff : getAllFields(c))
             if (ff.isAnnotationPresent(Id.class)) {
@@ -2555,11 +2664,11 @@ public class ERPServiceImpl implements ERPService {
             return nombreCampoId;
     }
 
-    private String getQlForEntityField(FieldInterfaced f) {
+    private static String getQlForEntityField(FieldInterfaced f) {
         return getQlForEntityField(f.getGenericClass());
     }
 
-    private String getQlForEntityField(Class<?> c) {
+    private static String getQlForEntityField(Class<?> c) {
 
         String nombreCampoId = "id";
         for (Field ff : getAllFields(c))
@@ -2603,4 +2712,23 @@ public class ERPServiceImpl implements ERPService {
         //System.out.println(new ERPServiceImpl().getMetaData(Actor.class.getCanonicalName()));
     }
 
+    public static WizardPageVO getWizardPageVO(BaseServerSideWizard w, AbstractServerSideWizardPage p, Data data) throws Throwable {
+        if (p == null) {
+            return null;
+        } else {
+            WizardPageVO vo = new WizardPageVO();
+
+            vo.setTitle(p.getTitle());
+            vo.setWizardClassName(w.getClass().getName());
+            vo.setMetaData(getMetadaData(p.getClass()));
+            vo.setFirstPage(w.getPages().indexOf(p) == 0);
+            vo.setLastPage(w.getPages().indexOf(p) == w.getPages().size() - 1);
+            if (!vo.isFirstPage()) vo.setGoBackAction("gotopage_" + (w.getPages().indexOf(p) - 1));
+            if (!vo.isLastPage()) vo.setGoNextAction("gotopage_" + (w.getPages().indexOf(p) + 1));
+
+            vo.setData(p.getData(data));
+
+            return vo;
+        }
+    }
 }
