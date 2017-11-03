@@ -1,6 +1,5 @@
 package io.mateu.mdd.model.config;
 
-import io.mateu.ui.mdd.server.annotations.Required;
 import io.mateu.ui.mdd.server.annotations.TextArea;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,6 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.validation.constraints.NotNull;
 
 /**
  * Created by miguel on 21/1/17.
@@ -24,7 +24,7 @@ public class Template {
 
     //TODO: falta lista aplicaciones
 
-    @Required
+    @NotNull
     private String name;
 
     @TextArea

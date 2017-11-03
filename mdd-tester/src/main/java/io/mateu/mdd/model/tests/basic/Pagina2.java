@@ -8,9 +8,9 @@ import lombok.Setter;
 @Getter
 public class Pagina2 extends AbstractServerSideWizardPage {
 
-    private int edad;
+    private int edad = 5;
 
-    private boolean casado;
+    private boolean casado = true;
 
     @Override
     public String getTitle() {

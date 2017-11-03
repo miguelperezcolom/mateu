@@ -3,10 +3,7 @@ package io.mateu.ui.mdd.client;
 import io.mateu.ui.core.client.app.AbstractAction;
 import io.mateu.ui.core.client.app.Callback;
 import io.mateu.ui.core.client.app.MateuUI;
-import io.mateu.ui.core.client.components.Button;
-import io.mateu.ui.core.client.components.Component;
-import io.mateu.ui.core.client.components.Tab;
-import io.mateu.ui.core.client.components.Tabs;
+import io.mateu.ui.core.client.components.*;
 import io.mateu.ui.core.client.components.fields.*;
 import io.mateu.ui.core.client.components.fields.grids.CalendarField;
 import io.mateu.ui.core.client.components.fields.grids.columns.*;
@@ -276,7 +273,15 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
             {
 
                 List<AbstractField> fields = new ArrayList<>();
-                if (MetaData.FIELDTYPE_OUTPUT.equals(d.getString("_type"))) {
+
+                if (d.containsKey("_separator")) {
+                    fields.add(new Separator(d.getString("_separator")));
+                }
+
+
+                if (MetaData.FIELDTYPE_HTML.equals(d.getString("_type"))) {
+                    fields.add(new HtmlField(prefix + d.getString("_id"), d.getString("_label")));
+                } else if (MetaData.FIELDTYPE_OUTPUT.equals(d.getString("_type"))) {
                     fields.add(new ShowTextField(prefix + d.getString("_id"), d.getString("_label")));
                 } else if (MetaData.FIELDTYPE_WEEKDAYS.equals(d.getString("_type"))) {
                     fields.add(new WeekDaysField(prefix + d.getString("_id"), d.getString("_label")));
@@ -431,6 +436,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                             return f;
                         }
                     }.setFullWidth(d.containsKey("_fullwidth"))
+                            .setExpandable(!MetaData.FIELDTYPE_SELECTFROMGRID.equals(d.getString("_type")))
                     .setUsedToSelect(MetaData.FIELDTYPE_SELECTFROMGRID.equals(d.getString("_type")))
                     .setUsedToSelectMultipleValues(d.containsKey("_multipleselection")));
                 }
@@ -814,7 +820,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                             }
                         };
 
-                        w[0] = crearWizard(da.getString("_name"), vo, cb);
+                        w[0] = crearWizard(da.getString("_name"), wizard.getData("_initialdata"), vo, cb);
 
                         MateuUI.open(w[0]);
 
@@ -861,11 +867,16 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
     }
 
-    private AbstractWizard crearWizard(String title, WizardPageVO vo, Callback<Data> datacallback) {
+    private AbstractWizard crearWizard(String title, Data initialData, WizardPageVO vo, Callback<Data> datacallback) {
 
         AbstractWizard w = new BaseWizard(title) {
 
             BaseWizard z = this;
+
+            @Override
+            public Data initializeData() {
+                return initialData;
+            }
 
             @Override
             public void navigate(Object action, Data data, Callback<AbstractWizardPageView> callback) throws Throwable {
@@ -873,6 +884,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                     set("_gonextaction", vo.getGoNextAction());
                     set("_gobackaction", vo.getGoBackAction());
                     AbstractWizardPageView v = new AbstractWizardPageView(z) {
+
 
                         @Override
                         public boolean isFirstPage() {
@@ -900,7 +912,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                         Actions a = (Actions) action;
                         switch (a) {
                             case GONEXT:
-                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).execute(vo.getWizardClassName(), data.get("_gonextaction"), data, new Callback<WizardPageVO>() {
+                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).execute(vo.getWizardClassName(), (String) data.get("_gonextaction"), data, new Callback<WizardPageVO>() {
                                     @Override
                                     public void onSuccess(WizardPageVO result) {
                                         setAll(result.getData());
@@ -932,10 +944,10 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                                 });
                                 break;
                             case GOBACK:
-                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).execute(vo.getWizardClassName(), data.get("_gobackaction"), data, new Callback<WizardPageVO>() {
+                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).execute(vo.getWizardClassName(), (String) data.get("_gobackaction"), data, new Callback<WizardPageVO>() {
                                     @Override
                                     public void onSuccess(WizardPageVO result) {
-                                        setAll(result.getData());
+                                        //setAll(result.getData());
                                         set("_gonextaction", result.getGoNextAction());
                                         set("_gobackaction", result.getGoBackAction());
                                         callback.onSuccess(new AbstractWizardPageView(z) {
@@ -964,7 +976,8 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                                 });
                                 break;
                             case END:
-                                close();
+                                onOk(data);
+                                //close();
                                 break;
                             default:
                                 throw new Throwable("Unknown action");

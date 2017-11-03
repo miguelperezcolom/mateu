@@ -76,6 +76,13 @@ public class Module extends AbstractModule {
             }
         });
 
+        m.add(new AbstractAction("Methods as fields") {
+            @Override
+            public void run() {
+                ((ERPServiceAsync)MateuUI.create(ERPService.class)).getMetaData("io.mateu.mdd.model.tests.showmethodresult.ConMetodos", new MDDCallback());
+            }
+        });
+
         m.add(new AbstractAction("Basic") {
             @Override
             public void run() {

@@ -1,9 +1,6 @@
 package io.mateu.mdd.model.tests.basic;
 
-import io.mateu.mdd.model.authentication.User;
 import io.mateu.ui.mdd.server.BaseServerSideWizard;
-import io.mateu.ui.mdd.shared.ActionType;
-import io.mateu.ui.mdd.shared.MDDLink;
 
 public class MiWizard extends BaseServerSideWizard {
 

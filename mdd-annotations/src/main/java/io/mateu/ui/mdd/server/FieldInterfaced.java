@@ -29,4 +29,6 @@ public interface FieldInterfaced {
     Class<?> getOptionsClass();
 
     String getOptionsQL();
+
+    Object getValue(Object o);
 }

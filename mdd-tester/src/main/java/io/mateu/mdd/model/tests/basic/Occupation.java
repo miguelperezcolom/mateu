@@ -1,13 +1,17 @@
 package io.mateu.mdd.model.tests.basic;
 
-import io.mateu.ui.mdd.server.annotations.Required;
+import lombok.Getter;
+import lombok.Setter;
 
+import javax.validation.constraints.NotNull;
+
+@Getter@Setter
 public class Occupation {
 
-    @Required
+    @NotNull
     private int numberOfRooms = 1;
 
-    @Required
+    @NotNull
     private int paxPerRoom = 2;
 
     private int[] ages;

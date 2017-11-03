@@ -1,11 +1,11 @@
 package io.mateu.mdd.model.authentication;
 
 import com.google.common.io.BaseEncoding;
+import io.mateu.erp.model.product.hotel.hotel.RoomType;
 import io.mateu.erp.model.util.Helper;
 import io.mateu.mdd.model.common.File;
 import io.mateu.mdd.model.finnancials.Actor;
 import io.mateu.mdd.model.finnancials.Currency;
-import io.mateu.erp.model.product.hotel.hotel.RoomType;
 import io.mateu.mdd.model.tests.owned.Propiedad;
 import io.mateu.ui.mdd.server.annotations.*;
 import io.mateu.ui.mdd.server.interfaces.WithTriggers;
@@ -14,6 +14,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,25 +42,30 @@ public class User implements WithTriggers {
     @Id
     @ListColumn("Login")
     @Unmodifiable
-    @Required
+    @NotNull
+    @SearchFilter
     private String login;
 
     @ListColumn("Name")
-    @Required
+    @NotNull
+    @SearchFilter
     private String name;
 
     @ListColumn("Email")
-    @Required
+    @NotNull
+    @Separator("Xxxxx")
+    @SearchFilter
     private String email;
 
     @Ignored
     private String password;
 
     @ListColumn("Status")
-    @Required
+    @NotNull
     private USER_STATUS status;
 
     @Tab("Listas")
+    @FullWidth
     @ElementCollection
     private List<String> akas = new ArrayList<>();
 
@@ -136,7 +142,7 @@ private Map<Employee, Integer> seniorities;
 
 
     @Action(name = "Create token")
-    public void createToken(EntityManager em, @Required Actor a) throws IOException {
+    public void createToken(EntityManager em, @NotNull Actor a) throws IOException {
         AuthToken t = new AuthToken();
         em.persist(t);
         t.setActor(a);
@@ -149,7 +155,7 @@ private Map<Employee, Integer> seniorities;
     }
 
     @Action(name = "test est. 1")
-    public static void testEstatico1(@Required @Caption("a") String a, @Caption("b")String b) {
+    public static void testEstatico1(@NotNull @Caption("a") String a, @Caption("b")String b) {
         System.out.println("testEstatico1(" + a + ", " + b + ")");
     }
 

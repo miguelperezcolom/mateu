@@ -3,11 +3,11 @@ package io.mateu.mdd.model.tests.basic;
 import io.mateu.ui.core.shared.Data;
 import io.mateu.ui.mdd.server.AbstractServerSideWizardPage;
 import io.mateu.ui.mdd.server.ERPServiceImpl;
-import io.mateu.ui.mdd.server.annotations.Required;
 import io.mateu.ui.mdd.server.annotations.UseGridToSelect;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +16,7 @@ import java.util.List;
 public class Pagina3 extends AbstractServerSideWizardPage {
 
     @UseGridToSelect(data = "opciones")
-    @Required
+    @NotNull
     private Option option;
 
     @Override

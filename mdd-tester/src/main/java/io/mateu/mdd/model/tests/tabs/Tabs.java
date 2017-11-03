@@ -1,12 +1,16 @@
 package io.mateu.mdd.model.tests.tabs;
 
-import io.mateu.mdd.model.tests.onetomany.Linea;
-import io.mateu.ui.mdd.server.annotations.*;
+import io.mateu.ui.mdd.server.annotations.ListColumn;
+import io.mateu.ui.mdd.server.annotations.SearchFilter;
+import io.mateu.ui.mdd.server.annotations.Tab;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.*;
-import java.util.List;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.validation.constraints.NotNull;
 
 @Entity
 @Getter@Setter
@@ -16,14 +20,14 @@ public class Tabs {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Required
+    @NotNull
     @SearchFilter
     @ListColumn
     private String name;
 
 
     @Tab("a")
-    @Required
+    @NotNull
     private String name1;
 
     private String name2;
@@ -35,7 +39,7 @@ public class Tabs {
     @Tab("b")
     private String name5;
 
-    @Required
+    @NotNull
     private String name6;
 
     private String name7;
@@ -45,7 +49,7 @@ public class Tabs {
     @Tab("c")
     private String name9;
 
-    @Required
+    @NotNull
     private String name10;
 
     private String name11;

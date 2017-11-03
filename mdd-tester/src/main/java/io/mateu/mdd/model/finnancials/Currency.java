@@ -1,12 +1,12 @@
 package io.mateu.mdd.model.finnancials;
 
 import io.mateu.ui.mdd.server.annotations.QLForCombo;
-import io.mateu.ui.mdd.server.annotations.Required;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.validation.constraints.NotNull;
 
 /**
  * holder for currencies
@@ -19,12 +19,12 @@ import javax.persistence.Id;
 public class Currency {
 
     @Id
-    @Required
+    @NotNull
     private String isoCode;
 
     private String iso4217Code;
 
-    @Required
+    @NotNull
     private String name;
 
     private int decimals;

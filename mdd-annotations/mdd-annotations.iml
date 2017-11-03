@@ -30,7 +30,6 @@
     <orderEntry type="library" name="Maven: org.glassfish.jersey.core:jersey-server:2.26" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.jersey.core:jersey-client:2.26" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.jersey.media:jersey-media-jaxb:2.26" level="project" />
-    <orderEntry type="library" name="Maven: javax.validation:validation-api:1.1.0.Final" level="project" />
     <orderEntry type="library" name="Maven: javax.ws.rs:javax.ws.rs-api:2.1" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.jersey.containers:jersey-container-jetty-servlet:2.26" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.jersey.containers:jersey-container-servlet:2.26" level="project" />
@@ -83,8 +82,10 @@
     <orderEntry type="library" name="Maven: com.google.guava:guava:21.0" level="project" />
     <orderEntry type="library" name="Maven: io.mateu.ui:code-generation:1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: io.mateu.jpa:common:1.0-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: org.eclipse.persistence:eclipselink:2.5.0-RC1" level="project" />
-    <orderEntry type="library" name="Maven: org.eclipse.persistence:javax.persistence:2.1.0-RC1" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.persistence:eclipselink:2.7.0" level="project" />
+    <orderEntry type="library" name="Maven: javax.validation:validation-api:1.1.0.Final" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish:javax.json:1.0.4" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.persistence:javax.persistence:2.1.1" level="project" />
     <orderEntry type="library" name="Maven: org.projectlombok:lombok:1.16.10" level="project" />
     <orderEntry type="library" name="Maven: org.postgresql:postgresql:9.4.1210" level="project" />
     <orderEntry type="library" name="Maven: commons-beanutils:commons-beanutils:1.9.3" level="project" />

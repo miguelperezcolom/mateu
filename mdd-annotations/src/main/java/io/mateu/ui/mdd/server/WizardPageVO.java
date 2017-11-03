@@ -33,6 +33,14 @@ public class WizardPageVO extends Data {
         return get("_metadata");
     }
 
+    public void setInitalData(Data v) {
+        set("_initialdata", v);
+    }
+
+    public Data getInitialData() {
+        return get("_initialdata");
+    }
+
     public void setData(Data v) {
         set("_data", v);
     }

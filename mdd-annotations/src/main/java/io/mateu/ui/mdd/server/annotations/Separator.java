@@ -10,5 +10,8 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.PARAMETER}) //can use in method only.
-public @interface StartsLine {
+public @interface Separator {
+
+    String value() default "";
+
 }

@@ -2,7 +2,6 @@ package io.mateu.ui.mdd.server;
 
 import com.google.common.base.Strings;
 import io.mateu.erp.model.util.XMLSerializable;
-import io.mateu.ui.core.client.views.AbstractWizard;
 import io.mateu.ui.core.shared.*;
 import io.mateu.ui.mdd.server.annotations.*;
 import io.mateu.ui.mdd.server.annotations.CellStyleGenerator;
@@ -19,13 +18,13 @@ import org.apache.commons.beanutils.BeanUtilsBean;
 import org.reflections.Reflections;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.lang.reflect.Parameter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.*;
 
 /**
@@ -214,7 +213,7 @@ public class ERPServiceImpl implements ERPService {
 
                 Class cl = Class.forName(entityClassName);
 
-                fillData(em, cl, data);
+                fillEntity(em, cl, data);
 
             }
         });
@@ -242,7 +241,7 @@ public class ERPServiceImpl implements ERPService {
         return _get(entityClassName, id);
     }
 
-    private static Object fillData(EntityManager em, Class cl, Data data) throws Throwable {
+    private static Object fillEntity(EntityManager em, Class cl, Data data) throws Throwable {
         Object o = null;
 
         boolean newInstance = false;
@@ -299,6 +298,9 @@ public class ERPServiceImpl implements ERPService {
     }
 
     public static void fillEntity(EntityManager em, Object o, Data data, boolean newInstance, String prefix) throws Throwable {
+
+        if (prefix == null) prefix = "";
+
         //auditoría
         for (Field f : getAllFields(o.getClass())) if (AuditRecord.class.isAssignableFrom(f.getType())) {
             AuditRecord a = (AuditRecord) o.getClass().getMethod(getGetter(f)).invoke(o);
@@ -325,7 +327,7 @@ public class ERPServiceImpl implements ERPService {
                         z = f.getType().newInstance();
                         BeanUtils.setProperty(o, f.getName(), z);
                     }
-                    fillEntity(em, z, data, recienCreado, prefix + f.getName() + "_");
+                    fillEntity(em, z, data.get(prefix + f.getName()), recienCreado, null);
                 } else if (f.isAnnotationPresent(Owned.class)) {
                     if (f.getType().isAnnotationPresent(Entity.class)) {
                         Object z = o.getClass().getMethod(getGetter(f)).invoke(o);
@@ -495,7 +497,7 @@ public class ERPServiceImpl implements ERPService {
                                 for (Object x : borrar) em.remove(x);
                                 for (Data d : (List<Data>) v) {
                                     if (d.isEmpty("_id")) {
-                                        Object x = fillData(em, genericClass, d);
+                                        Object x = fillEntity(em, genericClass, d);
                                         if (f.isAnnotationPresent(OneToMany.class)) {
                                             String mappedby = f.getAnnotation(OneToMany.class).mappedBy();
                                             if (!Strings.isNullOrEmpty(mappedby)) { // seteamos la relación inversa
@@ -636,7 +638,7 @@ public class ERPServiceImpl implements ERPService {
 
 
                                     if (d.isEmpty("_id")) {
-                                        Object x = fillData(em, genericClass, d);
+                                        Object x = fillEntity(em, genericClass, d);
                                         if (f.isAnnotationPresent(OneToMany.class)) {
                                             String mappedby = f.getAnnotation(OneToMany.class).mappedBy();
                                             if (!Strings.isNullOrEmpty(mappedby)) {
@@ -778,6 +780,10 @@ public class ERPServiceImpl implements ERPService {
         return (("boolean".equals(f.getType().getName()) || Boolean.class.equals(f.getType()))?"is":"get") + f.getName().substring(0, 1).toUpperCase() + f.getName().substring(1);
     }
 
+    private static String getGetter(FieldInterfaced f) {
+        return (("boolean".equals(f.getType().getName()) || Boolean.class.equals(f.getType()))?"is":"get") + f.getName().substring(0, 1).toUpperCase() + f.getName().substring(1);
+    }
+
     private static String getSetter(Field f) {
         return "set" + f.getName().substring(0, 1).toUpperCase() + f.getName().substring(1);
     }
@@ -843,21 +849,211 @@ public class ERPServiceImpl implements ERPService {
         if (id != null) data.set("_id", id);
 
 
-        for (Field f : getAllFields(o.getClass())) if (!f.isAnnotationPresent(Ignored.class) && !(f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class))) {
+        for (Field f : getAllFields(o.getClass())) fillData(em, data, prefix, o, getInterfaced(f));
+
+        for (Method m : getAllMethods(o.getClass())) {
+            if (!Modifier.isStatic(m.getModifiers())) {
+                if (m.isAnnotationPresent(Show.class) || m.isAnnotationPresent(ShowAsHtml.class)) {
+
+                    fillData(em, data, prefix, o, getInterfaced(m));
+
+                }
+            }
+        }
+    }
+
+    private static FieldInterfaced getInterfaced(Method m) {
+        return new FieldInterfaced() {
+            @Override
+            public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
+                return m.isAnnotationPresent(annotationClass);
+            }
+
+            @Override
+            public Class<?> getType() {
+                return m.getReturnType();
+            }
+
+            @Override
+            public Class<?> getGenericClass() {
+                if (m.getGenericReturnType() instanceof ParameterizedType) {
+                    ParameterizedType genericType = (ParameterizedType) m.getGenericReturnType();
+                    Class<?> genericClass = (Class<?>) genericType.getActualTypeArguments()[0];
+                    return genericClass;
+                } else return null;
+            }
+
+            @Override
+            public Class<?> getDeclaringClass() {
+                return m.getDeclaringClass();
+            }
+
+            @Override
+            public Type getGenericType() {
+                return m.getGenericReturnType();
+            }
+
+            @Override
+            public String getName() {
+                String n = m.getName();
+                if (n.startsWith("is")) n = n.replaceFirst("is", "");
+                else if (n.startsWith("get")) n = n.replaceFirst("get", "");
+                else if (m.isAnnotationPresent(Show.class) && !Strings.isNullOrEmpty(m.getAnnotation(Show.class).value())) n = m.getAnnotation(Show.class).value();
+                else if (m.isAnnotationPresent(ShowAsHtml.class) && !Strings.isNullOrEmpty(m.getAnnotation(ShowAsHtml.class).value())) n = m.getAnnotation(ShowAsHtml.class).value();
+                return n;
+            }
+
+            @Override
+            public String getId() {
+                return m.getName();
+            }
+
+            @Override
+            public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
+                return m.getAnnotation(annotationClass);
+            }
+
+            @Override
+            public Class<?> getOptionsClass() {
+                return null;
+            }
+
+            @Override
+            public String getOptionsQL() {
+                return null;
+            }
+
+            @Override
+            public Object getValue(Object o) {
+                return ERPServiceImpl.getValue(m, o);
+            }
+        };
+    }
+
+    public static Object getValue(Method m, Object o) {
+        Object v = null;
+
+        try {
+            v = execute(m, null, o);
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+
+        return v;
+    }
+
+    private static FieldInterfaced getInterfaced(Field f) {
+        return new FieldInterfaced() {
+            @Override
+            public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
+                return f.isAnnotationPresent(annotationClass);
+            }
+
+            @Override
+            public Class<?> getType() {
+                return f.getType();
+            }
+
+            @Override
+            public Class<?> getGenericClass() {
+                if (f.getGenericType() instanceof ParameterizedType) {
+                    ParameterizedType genericType = (ParameterizedType) f.getGenericType();
+                    Class<?> genericClass = (Class<?>) genericType.getActualTypeArguments()[0];
+                    return genericClass;
+                } else return null;
+            }
+
+            @Override
+            public Class<?> getDeclaringClass() {
+                return f.getDeclaringClass();
+            }
+
+            @Override
+            public Type getGenericType() {
+                return f.getGenericType();
+            }
+
+            @Override
+            public String getName() {
+                return f.getName();
+            }
+
+            @Override
+            public String getId() {
+                return f.getName();
+            }
+
+            @Override
+            public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
+                return f.getAnnotation(annotationClass);
+            }
+
+            @Override
+            public Class<?> getOptionsClass() {
+                return null;
+            }
+
+            @Override
+            public String getOptionsQL() {
+                return null;
+            }
+
+            @Override
+            public Object getValue(Object o) {
+                return ERPServiceImpl.getValue(f, o);
+            }
+        };
+    }
+
+    public static Object getValue(Field f, Object o) {
+        Method getter = null;
+        try {
+            getter = o.getClass().getMethod(getGetter(f));
+        } catch (Exception e) {
+
+        }
+        Object v = null;
+        try {
+            if (getter != null)
+                v = getter.invoke(o);
+            else v = f.get(o);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return v;
+    }
+
+    public static Object getValue(FieldInterfaced f, Object o) {
+        Method getter = null;
+        try {
+            getter = o.getClass().getMethod(getGetter(f));
+        } catch (Exception e) {
+
+        }
+        Object v = null;
+        try {
+            if (getter != null)
+                v = getter.invoke(o);
+            else v = null; // no es posible hacer esto con campos interfaced!!!
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return v;
+    }
+
+    private static void fillData(EntityManager em, Data data, String prefix, Object o, FieldInterfaced f) throws Throwable {
+        if (!f.isAnnotationPresent(Ignored.class) && !(f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class))) {
             boolean uneditable = false;
             if (f.isAnnotationPresent(Output.class) || f.isAnnotationPresent(Unmodifiable.class)) {
                 uneditable = false;
             }
 
-            Method getter = null;
-            try {
-                getter = o.getClass().getMethod(getGetter(f));
-            } catch (Exception e) {
-
-            }
-            if (!uneditable && getter != null) {
-                Object v = getter.invoke(o);
-                //Object v = BeanUtils.getProperty(o,f.getName());
+            Object v = f.getValue(o);
+            if (!uneditable && v != null) {
                 boolean ok = false;
 
                 Class genericClass = null;
@@ -872,71 +1068,71 @@ public class ERPServiceImpl implements ERPService {
                     v = LocalDateTime.ofInstant(((Date)v).toInstant(), ZoneId.systemDefault());
                     ok = true;
                 } else if (f.getType().isAnnotationPresent(Embeddable.class)) {
-                        if (v != null) {
-    
-                            Method mts;
-                            if ((mts = f.getType().getMethod("toString")) != null) {
-                                v = mts.invoke(v);
-                            }
+                    if (v != null) {
+
+                        Method mts;
+                        if ((mts = f.getType().getMethod("toString")) != null) {
+                            v = mts.invoke(v);
                         }
-                        ok = true;
-                    } else if (f.isAnnotationPresent(OptionsClass.class)) {
-                        if (v != null) v = getEntityPair(em, v, f.getAnnotation(OptionsClass.class).value());
-                        ok = true;
-                    } else if (f.isAnnotationPresent(OptionsQL.class)) {
-                        if (v != null) v = getQLPair(em, v, f.getAnnotation(OptionsQL.class).value());
-                        ok = true;
-                    } else if (v instanceof File) {
+                    }
+                    ok = true;
+                } else if (f.isAnnotationPresent(OptionsClass.class)) {
+                    if (v != null) v = getEntityPair(em, v, f.getAnnotation(OptionsClass.class).value());
+                    ok = true;
+                } else if (f.isAnnotationPresent(OptionsQL.class)) {
+                    if (v != null) v = getQLPair(em, v, f.getAnnotation(OptionsQL.class).value());
+                    ok = true;
+                } else if (v instanceof File) {
                     if (v != null) v = ((File)v).toFileLocator();
-                        ok = true;
-                    } else if (Translated.class.isAssignableFrom(f.getType())) {
+                    ok = true;
+                } else if (Translated.class.isAssignableFrom(f.getType())) {
                     if (v != null) v = ((Translated) v).get();
                     ok = true;
-                    } else if (f.getType().isArray()) {
-                        if (v!= null) {
-                            StringBuffer sb = new StringBuffer();
-                            for (int i = 0; i < Array.getLength(v); i++) {
-                                if (i > 0) sb.append(",");
-                                sb.append(Array.get(v, i));
+                } else if (f.getType().isArray()) {
+                    if (v!= null) {
+                        StringBuffer sb = new StringBuffer();
+                        for (int i = 0; i < Array.getLength(v); i++) {
+                            if (i > 0) sb.append(",");
+                            sb.append(Array.get(v, i));
+                        }
+                        v = sb.toString();
+                    }
+                    ok = true;
+                } else if (f.getType().isAnnotationPresent(Entity.class)) {
+                    if (f.isAnnotationPresent(Owned.class)) {
+                        if (v != null) fillData(em, em.getEntityManagerFactory().getPersistenceUnitUtil().getIdentifier(v), data, f.getName() + "_", v);
+                        ok = false; // no añadimos el objeto tal cual
+                    } else {
+                        if (v != null) {
+                            String n = v.toString();
+                            boolean toStringIsOverriden = f.getType().getMethod("toString").getDeclaringClass().equals(f.getType());
+                            if (!toStringIsOverriden) {
+                                boolean hayName = false;
+                                for (Field ff : getAllFields(f.getType()))
+                                    if ("name".equals(ff.getName()) || "title".equals(ff.getName())) {
+                                        n = "" + f.getType().getMethod(getGetter(ff)).invoke(v);
+                                        hayName = true;
+                                    }
+                                if (!hayName) {
+                                    for (Field ff : getAllFields(f.getType()))
+                                        if (ff.isAnnotationPresent(Id.class)) {
+                                            n = "" + f.getType().getMethod(getGetter(ff)).invoke(v);
+                                        }
+                                }
                             }
-                            v = sb.toString();
+                            v = new Pair(em.getEntityManagerFactory().getPersistenceUnitUtil().getIdentifier(v), n);
                         }
                         ok = true;
-                    } else if (f.getType().isAnnotationPresent(Entity.class)) {
-                        if (f.isAnnotationPresent(Owned.class)) {
-                            if (v != null) fillData(em, em.getEntityManagerFactory().getPersistenceUnitUtil().getIdentifier(v), data, f.getName() + "_", v);
-                            ok = false; // no añadimos el objeto tal cual
-                        } else {
-                            if (v != null) {
-                                String n = v.toString();
-                                boolean toStringIsOverriden = f.getType().getMethod("toString").getDeclaringClass().equals(f.getType());
-                                if (!toStringIsOverriden) {
-                                    boolean hayName = false;
-                                    for (Field ff : getAllFields(f.getType()))
-                                        if ("name".equals(ff.getName()) || "title".equals(ff.getName())) {
-                                            n = "" + f.getType().getMethod(getGetter(ff)).invoke(v);
-                                            hayName = true;
-                                        }
-                                    if (!hayName) {
-                                        for (Field ff : getAllFields(f.getType()))
-                                            if (ff.isAnnotationPresent(Id.class)) {
-                                                n = "" + f.getType().getMethod(getGetter(ff)).invoke(v);
-                                            }
-                                    }
-                                }
-                                v = new Pair(em.getEntityManagerFactory().getPersistenceUnitUtil().getIdentifier(v), n);
-                            }
+                    }
+                } else if (f.getType().isEnum()) {
+                    for (Object x : f.getType().getEnumConstants()) {
+                        if (x.equals(v)) {
+                            v = new Pair("" + x, "" + x);
                             ok = true;
+                            break;
                         }
-                    } else if (f.getType().isEnum()) {
-                        for (Object x : f.getType().getEnumConstants()) {
-                            if (x.equals(v)) {
-                                v = new Pair("" + x, "" + x);
-                                ok = true;
-                                break;
-                            }
-                        }
-                    } else if (List.class.isAssignableFrom(f.getType())) {
+                    }
+                } else if (List.class.isAssignableFrom(f.getType())) {
 
                     if (genericClass.isAnnotationPresent(Entity.class)) {
 
@@ -1137,7 +1333,7 @@ public class ERPServiceImpl implements ERPService {
 
 
 
-                            Data dx = new Data("_key", k, "_value", z);
+                                Data dx = new Data("_key", k, "_value", z);
                                 dl.add(dx);
 
                             }
@@ -1151,20 +1347,20 @@ public class ERPServiceImpl implements ERPService {
                     ok = true;
 
 
-                    } else {
-                        data.set(prefix + f.getName() + "____object", true);
-                        if (v != null) fillData(em, null, data, f.getName() + "_", v);
-                        ok = false; // no añadimos el objeto tal cual
-                    }
+                } else {
+                    data.set(prefix + f.getName() + "____object", true);
+                    if (v != null) fillData(em, null, data, f.getName() + "_", v);
+                    ok = false; // no añadimos el objeto tal cual
+                }
 
-                    if (v != null) {
-                        if (ok) data.set(prefix + f.getName(), v);
-                        else if (XMLSerializable.class.isAssignableFrom(f.getType())) {
-                            data.set(prefix + f.getName(), v.toString());
-                        }
+                if (v != null) {
+                    if (ok) data.set(prefix + f.getId(), v);
+                    else if (XMLSerializable.class.isAssignableFrom(f.getType())) {
+                        data.set(prefix + f.getName(), v.toString());
                     }
                 }
             }
+        }
     }
 
     private static Object getQLPair(EntityManager em, Object v, String ql) throws Throwable {
@@ -1278,62 +1474,7 @@ public class ERPServiceImpl implements ERPService {
         for (Field f : getAllFields(c)) {
             if (f.isAnnotationPresent(SearchFilter.class) || f.isAnnotationPresent(SearchFilters.class)) {
                 for (SearchFilter sf : f.getDeclaredAnnotationsByType(SearchFilter.class)) {
-                    addField(searchFormFields, new FieldInterfaced() {
-                        @Override
-                        public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-                            return f.isAnnotationPresent(annotationClass);
-                        }
-
-                        @Override
-                        public Class<?> getType() {
-                            return f.getType();
-                        }
-
-                        @Override
-                        public Class<?> getGenericClass() {
-                            Type t = f.getGenericType();
-                            if (t instanceof ParameterizedType) {
-                                ParameterizedType genericType = (ParameterizedType) t;
-                                Class<?> genericClass = (Class<?>) genericType.getActualTypeArguments()[0];
-                                return genericClass;
-                            } else return null;
-                        }
-
-                        @Override
-                        public Class<?> getDeclaringClass() {
-                            return f.getDeclaringClass();
-                        }
-
-                        @Override
-                        public Type getGenericType() {
-                            return f.getGenericType();
-                        }
-
-                        @Override
-                        public String getName() {
-                            return f.getName();
-                        }
-
-                        @Override
-                        public String getId() {
-                            return f.getName();
-                        }
-
-                        @Override
-                        public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
-                            return f.getAnnotation(annotationClass);
-                        }
-
-                        @Override
-                        public Class<?> getOptionsClass() {
-                            return null;
-                        }
-
-                        @Override
-                        public String getOptionsQL() {
-                            return null;
-                        }
-                    }, null, sf, null, true, false);
+                    addField(searchFormFields, getInterfaced(f), null, sf, null, true, false);
                 }
             }
 
@@ -1387,6 +1528,11 @@ public class ERPServiceImpl implements ERPService {
                     @Override
                     public String getOptionsQL() {
                         return null;
+                    }
+
+                    @Override
+                    public Object getValue(Object o) {
+                        return ERPServiceImpl.getValue(f, o);
                     }
                 }, null, null, f.getAnnotation(SearchFilterIsNull.class), true, false);
             }
@@ -1487,63 +1633,19 @@ public class ERPServiceImpl implements ERPService {
         List<Data> editorFormFields = new ArrayList<>();
         for (Field f : getAllFields(c)) {
             if (!f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(NotInEditor.class) && !(f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class))) {
-                addField(editorFormFields, new FieldInterfaced() {
-                    @Override
-                    public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-                        return f.isAnnotationPresent(annotationClass);
-                    }
-
-                    @Override
-                    public Class<?> getType() {
-                        return f.getType();
-                    }
-
-                    @Override
-                    public Class<?> getGenericClass() {
-                        if (f.getGenericType() instanceof ParameterizedType) {
-                            ParameterizedType genericType = (ParameterizedType) f.getGenericType();
-                            Class<?> genericClass = (Class<?>) genericType.getActualTypeArguments()[0];
-                            return genericClass;
-                        } else return null;
-                    }
-
-                    @Override
-                    public Class<?> getDeclaringClass() {
-                        return f.getDeclaringClass();
-                    }
-
-                    @Override
-                    public Type getGenericType() {
-                        return f.getGenericType();
-                    }
-
-                    @Override
-                    public String getName() {
-                        return f.getName();
-                    }
-
-                    @Override
-                    public String getId() {
-                        return f.getName();
-                    }
-
-                    @Override
-                    public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
-                        return f.getAnnotation(annotationClass);
-                    }
-
-                    @Override
-                    public Class<?> getOptionsClass() {
-                        return null;
-                    }
-
-                    @Override
-                    public String getOptionsQL() {
-                        return null;
-                    }
-                });
+                addField(editorFormFields, getInterfaced(f));
             }
         }
+
+        for (Method m : getAllMethods(c)) {
+            if (!Modifier.isStatic(m.getModifiers())) {
+                if (m.isAnnotationPresent(Show.class) || m.isAnnotationPresent(ShowAsHtml.class)) {
+                    addField(editorFormFields, getInterfaced(m));
+                }
+            }
+        }
+
+
         Data def = new Data();
         def.set("_fields", editorFormFields);
         List<Data> actions = new ArrayList<>();
@@ -1581,11 +1683,19 @@ public class ERPServiceImpl implements ERPService {
     public Object runInServer(String className, String methodName, Data parameters) throws Throwable {
         Class c = Class.forName(className);
         Method m = null;
-        for (Method x : c.getDeclaredMethods()) if (x.getName().equals(methodName) && x.isAnnotationPresent(Action.class)) {
+        for (Method x : c.getDeclaredMethods()) if (x.getName().equals(methodName)) {
             m = x;
             break;
         }
 
+        return execute(m, parameters);
+    }
+
+    private static Object execute(Method m, Data parameters) throws Throwable {
+        return execute(m, parameters, null);
+    }
+
+    private static Object execute(Method m, Data parameters, Object instance) throws Throwable {
         Object[] r = {null};
 
         if (!Modifier.isStatic(m.getModifiers())) {
@@ -1594,7 +1704,8 @@ public class ERPServiceImpl implements ERPService {
                 @Override
                 public void run(EntityManager em) throws Throwable {
                     try {
-                        Object o = (parameters.isEmpty("_id"))?c.newInstance():em.find(c, parameters.get("_id"));
+                        Object o = instance;
+                        if (o == null) o = (parameters.isEmpty("_id"))?m.getDeclaringClass().newInstance():em.find(m.getDeclaringClass(), parameters.get("_id"));
                         List<Object> vs = new ArrayList<>();
                         for (Parameter p : finalM.getParameters()) {
                             if (p.isAnnotationPresent(Selection.class)) {
@@ -1684,7 +1795,7 @@ public class ERPServiceImpl implements ERPService {
         return r[0];
     }
 
-    private <T> T fillWizard(EntityManager em, Class<T> type, Data data) throws Throwable {
+    private static <T> T fillWizard(EntityManager em, Class<T> type, Data data) throws Throwable {
         T o = type.newInstance();
         if (o instanceof BaseServerSideWizard) {
             BaseServerSideWizard w = (BaseServerSideWizard) o;
@@ -1755,6 +1866,11 @@ public class ERPServiceImpl implements ERPService {
                     @Override
                     public String getOptionsQL() {
                         return null;
+                    }
+
+                    @Override
+                    public Object getValue(Object o) {
+                        return ERPServiceImpl.getValue(m, o);
                     }
                 });
             }
@@ -1831,6 +1947,11 @@ public class ERPServiceImpl implements ERPService {
                 public String getOptionsQL() {
                     return null;
                 }
+
+                @Override
+                public Object getValue(Object o) {
+                    return ERPServiceImpl.getValue(f, o);
+                }
             }, lc, null, null, false, true);
         }
     }
@@ -1845,7 +1966,7 @@ public class ERPServiceImpl implements ERPService {
             Data d = new Data();
             boolean upload = false;
 
-            if (f.getType().isAnnotationPresent(Entity.class) && !f.isAnnotationPresent(Required.class)) d.set("_leftjoin",f.getName());
+            if (f.getType().isAnnotationPresent(Entity.class) && !f.isAnnotationPresent(NotNull.class)) d.set("_leftjoin",f.getName());
 
             if (f.isAnnotationPresent(CellStyleGenerator.class)) d.set("_cellstylegenerator", f.getAnnotation(CellStyleGenerator.class).value().getName());
 
@@ -1908,6 +2029,11 @@ public class ERPServiceImpl implements ERPService {
                                 @Override
                                 public String getOptionsQL() {
                                     return null;
+                                }
+
+                                @Override
+                                public Object getValue(Object o) {
+                                    return ERPServiceImpl.getValue(ff, o);
                                 }
                             };
                             break;
@@ -1984,6 +2110,11 @@ public class ERPServiceImpl implements ERPService {
                                 public String getOptionsQL() {
                                     return null;
                                 }
+
+                                @Override
+                                public Object getValue(Object o) {
+                                    return ERPServiceImpl.getValue(ff, o);
+                                }
                             };
                             break;
                         }
@@ -2059,6 +2190,11 @@ public class ERPServiceImpl implements ERPService {
                                 public String getOptionsQL() {
                                     return null;
                                 }
+
+                                @Override
+                                public Object getValue(Object o) {
+                                    return ERPServiceImpl.getValue(ff, o);
+                                }
                             };
                             break;
                         }
@@ -2083,7 +2219,7 @@ public class ERPServiceImpl implements ERPService {
             if (f.isAnnotationPresent(FullWidth.class)) {
                 d.set("_fullwidth", true);
             }
-            if (f.isAnnotationPresent(Required.class)) {
+            if (f.isAnnotationPresent(NotNull.class)) {
                 d.set("_required", true);
             }
 
@@ -2112,7 +2248,13 @@ public class ERPServiceImpl implements ERPService {
                 d.set("_unmodifiable", true);
             }
 
-            if (f.isAnnotationPresent(UseGridToSelect.class)) {
+            if (f.isAnnotationPresent(Show.class)) {
+                d.set("_type", MetaData.FIELDTYPE_OUTPUT);
+                upload = true;
+            } else if (f.isAnnotationPresent(ShowAsHtml.class)) {
+                d.set("_type", MetaData.FIELDTYPE_HTML);
+                upload = true;
+            } else if (f.isAnnotationPresent(UseGridToSelect.class)) {
                 d.set("_type", MetaData.FIELDTYPE_SELECTFROMGRID);
                 UseGridToSelect a = f.getAnnotation(UseGridToSelect.class);
                 if (!Strings.isNullOrEmpty(a.data())) d.set("_dataproperty", a.data());
@@ -2133,6 +2275,7 @@ public class ERPServiceImpl implements ERPService {
                 Class<? extends AbstractServerSideWizard> wc = f.getAnnotation(Wizard.class).value();
                 try {
                     d.set("_pagevo", wc.newInstance().execute(null, null));
+                    d.set("_initialdata", getInitialData(wc));
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();
                 }
@@ -2142,6 +2285,7 @@ public class ERPServiceImpl implements ERPService {
                 Class<? extends AbstractServerSideWizard> wc = (Class<? extends AbstractServerSideWizard>) f.getType();
                 try {
                     d.set("_pagevo", wc.newInstance().execute(null, null));
+                    d.set("_initialdata", getInitialData(wc));
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();
                 }
@@ -2301,6 +2445,11 @@ public class ERPServiceImpl implements ERPService {
                                         return (finalF1.isAnnotationPresent(ValueQL.class))?finalF1.getAnnotation(ValueQL.class).value():null;
                                     }
 
+                                    @Override
+                                    public Object getValue(Object o) {
+                                        return ERPServiceImpl.getValue(finalF1, o);
+                                    }
+
                                 }, null, null, null, false, true);
 
                                 d.set("_cols", cols);
@@ -2392,6 +2541,11 @@ public class ERPServiceImpl implements ERPService {
                         public String getOptionsQL() {
                             return (finalF1.isAnnotationPresent(KeyQL.class))?finalF1.getAnnotation(KeyQL.class).value():null;
                         }
+
+                        @Override
+                        public Object getValue(Object o) {
+                            return ERPServiceImpl.getValue(finalF1, o);
+                        }
                     }, null, null, null, false, true);
 
 
@@ -2455,6 +2609,11 @@ public class ERPServiceImpl implements ERPService {
                             @Override
                             public String getOptionsQL() {
                                 return (finalF1.isAnnotationPresent(ValueQL.class))?finalF1.getAnnotation(ValueQL.class).value():null;
+                            }
+
+                            @Override
+                            public Object getValue(Object o) {
+                                return ERPServiceImpl.getValue(this, o);
                             }
 
                         }, null, null, null, false, true);
@@ -2639,9 +2798,10 @@ public class ERPServiceImpl implements ERPService {
                 d.set("_width", ancho);
                 d.set("_align", alineado);
 
-                if (f.isAnnotationPresent(StartsLine.class)) {
-                    d.set("_startsline", true);
+                if (f.isAnnotationPresent(Separator.class)) {
+                    d.set("_separator", f.getAnnotation(Separator.class).value());
                 }
+                if (!buildingSearchForm && !f.isAnnotationPresent(SameLine.class)) d.set("_startsline", true);
 
                 if (d.isEmpty("_label")) {
                     if (f.isAnnotationPresent(Caption.class)) {
@@ -2652,6 +2812,17 @@ public class ERPServiceImpl implements ERPService {
             }
 
         }
+    }
+
+    private static Data getInitialData(Class<? extends AbstractServerSideWizard> wc) throws Throwable {
+        Data d = new Data();
+
+        BaseServerSideWizard w = (BaseServerSideWizard) wc.newInstance();
+        for (AbstractServerSideWizardPage p : w.getPages()) {
+            fillData(d, p);
+        }
+
+        return d;
     }
 
     private static String getIdFieldName(Class<?> c) {

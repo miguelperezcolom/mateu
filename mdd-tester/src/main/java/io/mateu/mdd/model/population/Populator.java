@@ -1,6 +1,8 @@
 package io.mateu.mdd.model.population;
 
 import io.mateu.erp.model.multilanguage.Literal;
+import io.mateu.erp.model.product.hotel.hotel.BoardType;
+import io.mateu.erp.model.product.hotel.hotel.RoomType;
 import io.mateu.mdd.model.authentication.Permission;
 import io.mateu.mdd.model.authentication.USER_STATUS;
 import io.mateu.mdd.model.authentication.User;
@@ -9,8 +11,6 @@ import io.mateu.mdd.model.finnancials.Actor;
 import io.mateu.mdd.model.finnancials.Currency;
 import io.mateu.mdd.model.finnancials.Invoice;
 import io.mateu.mdd.model.finnancials.InvoiceLine;
-import io.mateu.erp.model.product.hotel.hotel.BoardType;
-import io.mateu.erp.model.product.hotel.hotel.RoomType;
 import io.mateu.ui.mdd.server.util.Helper;
 import io.mateu.ui.mdd.server.util.JPATransaction;
 

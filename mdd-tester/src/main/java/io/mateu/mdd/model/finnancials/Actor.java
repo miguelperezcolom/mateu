@@ -1,12 +1,12 @@
 package io.mateu.mdd.model.finnancials;
 
 import io.mateu.ui.mdd.server.annotations.*;
-import jdk.nashorn.internal.ir.annotations.Ignore;
 import lombok.Getter;
 import lombok.Setter;
 import org.jdom2.Element;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +24,7 @@ public class Actor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Required
+    @NotNull
     @SearchFilter
     @ListColumn
     private String name;
@@ -43,21 +43,22 @@ public class Actor {
     private String comments;
 
     @ManyToOne
-    @Required
+    @NotNull
     private Currency currency;
 
 
-    @StartsLine
+    @SameLine
+    @Separator("Xxxxx")
     private String sendOrdersTo;
     private boolean automaticOrderSending;
     private boolean automaticOrderConfirmation;
 
-    @StartsLine
+    @SameLine
     private boolean exportableToinvoicingApp;
     private String idInInvoicingApp;
     private boolean shuttleTransfersInOwnInvoice;
 
-    @StartsLine
+    @SameLine
     @Output
     @OneToMany(mappedBy = "actor")
     private List<Invoice> invoices = new ArrayList<>();

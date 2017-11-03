@@ -2,7 +2,6 @@ package io.mateu.mdd.model.common;
 
 import io.mateu.ui.core.server.Utils;
 import io.mateu.ui.core.shared.FileLocator;
-import io.mateu.ui.mdd.server.annotations.Required;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,6 +9,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.validation.constraints.NotNull;
 import java.net.URL;
 
 /**
@@ -22,7 +22,7 @@ public class File implements io.mateu.ui.mdd.server.interfaces.File {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Required
+    @NotNull
     private String name;
 
     private String path;

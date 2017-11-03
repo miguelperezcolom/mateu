@@ -1,17 +1,23 @@
 package io.mateu.mdd.model.tests.basic;
 
 import io.mateu.ui.mdd.server.AbstractServerSideWizardPage;
-import io.mateu.ui.mdd.server.annotations.Required;
 import lombok.Getter;
 import lombok.Setter;
+
+import javax.validation.constraints.NotNull;
+import java.util.Arrays;
+import java.util.List;
 
 @Setter@Getter
 public class Pagina1 extends AbstractServerSideWizardPage {
 
-    @Required
-    private String nombre;
+    @NotNull
+    private String nombre = "valor por defecto";
 
-    private String apellidos;
+    private String apellidos = "tus apellidos";
+
+    private List<Occupation> occupations = Arrays.asList(new Occupation());
+
 
     @Override
     public String getTitle() {

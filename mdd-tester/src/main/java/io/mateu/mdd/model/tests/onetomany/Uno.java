@@ -1,11 +1,14 @@
 package io.mateu.mdd.model.tests.onetomany;
 
-import io.mateu.mdd.model.tests.owned.NoEntity;
-import io.mateu.ui.mdd.server.annotations.*;
+import io.mateu.ui.mdd.server.annotations.Action;
+import io.mateu.ui.mdd.server.annotations.ListColumn;
+import io.mateu.ui.mdd.server.annotations.OwnedList;
+import io.mateu.ui.mdd.server.annotations.SearchFilter;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Entity
@@ -16,7 +19,7 @@ public class Uno {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Required
+    @NotNull
     @SearchFilter
     @ListColumn
     private String name;
