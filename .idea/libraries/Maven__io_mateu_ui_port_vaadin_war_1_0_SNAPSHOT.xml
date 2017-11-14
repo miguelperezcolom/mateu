@@ -1,13 +1,13 @@
 <component name="libraryTable">
   <library name="Maven: io.mateu.ui:port-vaadin:war:1.0-SNAPSHOT">
     <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/io/mateu/ui/port-vaadin/1.0-SNAPSHOT/port-vaadin-1.0-SNAPSHOT.war!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/mateu/ui/port-vaadin/1.0-SNAPSHOT/port-vaadin-1.0-20171107.091317-38.war!/" />
     </CLASSES>
     <JAVADOC>
-      <root url="jar://$MAVEN_REPOSITORY$/io/mateu/ui/port-vaadin/1.0-SNAPSHOT/port-vaadin-1.0-SNAPSHOT-javadoc.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/mateu/ui/port-vaadin/1.0-SNAPSHOT/port-vaadin-1.0-20171107.091317-38-javadoc.jar!/" />
     </JAVADOC>
     <SOURCES>
-      <root url="jar://$MAVEN_REPOSITORY$/io/mateu/ui/port-vaadin/1.0-SNAPSHOT/port-vaadin-1.0-SNAPSHOT-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/mateu/ui/port-vaadin/1.0-SNAPSHOT/port-vaadin-1.0-20171107.091317-38-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

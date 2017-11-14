@@ -846,7 +846,7 @@ public class ERPServiceImpl implements ERPService {
 
     private static void fillData(EntityManager em, Object id, Data data, String prefix, Object o) throws Throwable {
 
-        if (id != null) data.set("_id", id);
+        if (id != null) data.set(prefix + "_id", id);
 
 
         for (Field f : getAllFields(o.getClass())) fillData(em, data, prefix, o, getInterfaced(f));
