@@ -1,13 +1,13 @@
 <component name="libraryTable">
   <library name="Maven: io.mateu.ui:core:1.0-SNAPSHOT">
     <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/io/mateu/ui/core/1.0-SNAPSHOT/core-1.0-20171107.091309-46.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/mateu/ui/core/1.0-SNAPSHOT/core-1.0-20171116.150757-53.jar!/" />
     </CLASSES>
     <JAVADOC>
-      <root url="jar://$MAVEN_REPOSITORY$/io/mateu/ui/core/1.0-SNAPSHOT/core-1.0-20171107.091309-46-javadoc.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/mateu/ui/core/1.0-SNAPSHOT/core-1.0-20171116.150757-53-javadoc.jar!/" />
     </JAVADOC>
     <SOURCES>
-      <root url="jar://$MAVEN_REPOSITORY$/io/mateu/ui/core/1.0-SNAPSHOT/core-1.0-20171107.091309-46-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/mateu/ui/core/1.0-SNAPSHOT/core-1.0-20171116.150757-53-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

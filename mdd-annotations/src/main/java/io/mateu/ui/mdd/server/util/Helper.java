@@ -152,7 +152,7 @@ public class Helper {
 
     private static EntityManagerFactory getEMF() {
         if (emf == null) {
-            emf = Persistence.createEntityManagerFactory("default");
+            emf = Persistence.createEntityManagerFactory(System.getProperty("defaultpuname", "default"));
         }
         return emf;
     }
