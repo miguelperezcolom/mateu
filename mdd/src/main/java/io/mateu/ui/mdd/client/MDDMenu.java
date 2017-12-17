@@ -13,7 +13,7 @@ public class MDDMenu extends AbstractMenu {
     public MDDMenu(Object... args) {
         super((args.length > 0)?"" + args[0]:"Missing parameters at MDDMenu");
 
-        for (int pos = 1; pos < args.length; pos++) {
+        for (int pos = 2; pos < args.length; pos++) {
             if ((pos + 1) % 2 == 0) {
                 if (args[pos - 1] instanceof String && args[pos] instanceof Class) {
                     String n = (String) args[pos - 1];
