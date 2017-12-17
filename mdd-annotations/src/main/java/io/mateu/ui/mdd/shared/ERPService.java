@@ -2,6 +2,7 @@ package io.mateu.ui.mdd.shared;
 
 import io.mateu.ui.core.communication.Service;
 import io.mateu.ui.core.shared.Data;
+import io.mateu.ui.core.shared.UserData;
 import io.mateu.ui.mdd.server.WizardPageVO;
 
 /**
@@ -26,7 +27,9 @@ public interface ERPService {
 
     Data get(String entityClassName, String id) throws Throwable;
 
-    Data getMetaData(String entityClassName) throws Throwable;
+    Data getMetaData(UserData user, String entityClassName) throws Throwable;
+
+    Data getMetaData(UserData user, Class entity) throws Throwable;
 
     Object runInServer(String className, String methodName, Data parameters) throws Throwable;
 

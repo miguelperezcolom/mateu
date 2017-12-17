@@ -1,10 +1,26 @@
 package io.mateu.mdd.app;
 
+import io.mateu.mdd.model.authentication.AuthToken;
+import io.mateu.mdd.model.authentication.User;
+import io.mateu.mdd.model.config.AppConfig;
+import io.mateu.mdd.model.finnancials.Actor;
+import io.mateu.mdd.model.finnancials.Currency;
+import io.mateu.mdd.model.finnancials.Invoice;
+import io.mateu.mdd.model.hotelcontract.HotelContract;
+import io.mateu.mdd.model.tests.basic.Basico;
+import io.mateu.mdd.model.tests.onetomany.Uno;
+import io.mateu.mdd.model.tests.onetoone.UnoAUnoMapped;
+import io.mateu.mdd.model.tests.onetoone.UnoAUnoMapper;
+import io.mateu.mdd.model.tests.owned.Propietario;
+import io.mateu.mdd.model.tests.showmethodresult.ConMetodos;
+import io.mateu.mdd.model.tests.stereotype.Estereotipado;
+import io.mateu.mdd.model.tests.tabs.Tabs;
+import io.mateu.mdd.model.tests.view.Booking;
+import io.mateu.mdd.model.tests.view.View1;
+import io.mateu.mdd.model.tests.view.View2;
 import io.mateu.ui.core.client.app.*;
 import io.mateu.ui.core.shared.Data;
-import io.mateu.ui.mdd.client.ERPServiceAsync;
-import io.mateu.ui.mdd.client.MDDCallback;
-import io.mateu.ui.mdd.client.MDDJPACRUDView;
+import io.mateu.ui.mdd.client.*;
 import io.mateu.ui.mdd.shared.ERPService;
 
 import java.util.ArrayList;
@@ -20,112 +36,43 @@ public class Module extends AbstractModule {
     public List<MenuEntry> getMenu() {
         List<MenuEntry> m = new ArrayList<>();
 
-        m.add(new AbstractAction("AppConfig") {
-            @Override
-            public void run() {
-                ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData("io.mateu.mdd.model.config.AppConfig", new Callback<Data>() {
-                    @Override
-                    public void onSuccess(Data result) {
-                        MateuUI.openView(new MDDJPACRUDView(result).getNewEditorView().setInitialId(1l));
-                    }
-                });
-            }
-        });
+        m.add(new MDDAction("AppConfig", AppConfig.class, 1l));
 
-        m.add(new AbstractAction("Users") {
-            @Override
-            public void run() {
-                ((ERPServiceAsync)MateuUI.create(ERPService.class)).getMetaData("io.mateu.mdd.model.authentication.User", new MDDCallback());
-            }
-        });
+        m.add(new MDDAction("Users", User.class));
 
-        m.add(new AbstractAction("Auth tokens") {
-            @Override
-            public void run() {
-                ((ERPServiceAsync)MateuUI.create(ERPService.class)).getMetaData("io.mateu.mdd.model.authentication.AuthToken", new MDDCallback());
-            }
-        });
+        m.add(new MDDAction("Auth tokens", AuthToken.class));
 
+        m.add(new MDDAction("Actors", Actor.class));
 
-        m.add(new AbstractAction("Actors") {
-            @Override
-            public void run() {
-                ((ERPServiceAsync)MateuUI.create(ERPService.class)).getMetaData("io.mateu.mdd.model.finnancials.Actor", new MDDCallback());
-            }
-        });
+        m.add(new MDDAction("Currencies", Currency.class));
 
-        m.add(new AbstractAction("Cuurencies") {
-            @Override
-            public void run() {
-                ((ERPServiceAsync)MateuUI.create(ERPService.class)).getMetaData("io.mateu.mdd.model.finnancials.Currency", new MDDCallback());
-            }
-        });
+        m.add(new MDDAction("Invoices", Invoice.class));
+
+        m.add(new MDDAction("Tabs", Tabs.class));
+
+        m.add(new MDDAction("Methods as fields", ConMetodos.class));
+
+        m.add(new MDDAction("Basic", Basico.class));
+
+        m.add(new MDDAction("OneToMany", Uno.class));
+
+        m.add(new MDDAction("Owned", Propietario.class));
+
+        m.add(new MDDAction("OneToOne mapped", UnoAUnoMapped.class));
+
+        m.add(new MDDAction("OneToOne mapper", UnoAUnoMapper.class));
 
 
-        m.add(new AbstractAction("Invoices") {
-            @Override
-            public void run() {
-                ((ERPServiceAsync)MateuUI.create(ERPService.class)).getMetaData("io.mateu.mdd.model.finnancials.Invoice", new MDDCallback());
-            }
-        });
+        m.add(new MDDAction("Contracts", HotelContract.class));
 
-        m.add(new AbstractAction("Tabs") {
-            @Override
-            public void run() {
-                ((ERPServiceAsync)MateuUI.create(ERPService.class)).getMetaData("io.mateu.mdd.model.tests.tabs.Tabs", new MDDCallback());
-            }
-        });
+        m.add(new MDDAction("Booking", Booking.class));
 
-        m.add(new AbstractAction("Methods as fields") {
-            @Override
-            public void run() {
-                ((ERPServiceAsync)MateuUI.create(ERPService.class)).getMetaData("io.mateu.mdd.model.tests.showmethodresult.ConMetodos", new MDDCallback());
-            }
-        });
+        m.add(new MDDAction("View 1", View1.class));
 
-        m.add(new AbstractAction("Basic") {
-            @Override
-            public void run() {
-                ((ERPServiceAsync)MateuUI.create(ERPService.class)).getMetaData("io.mateu.mdd.model.tests.basic.Basico", new MDDCallback());
-            }
-        });
+        m.add(new MDDAction("View 2", View2.class));
 
-        m.add(new AbstractAction("OneToMany") {
-            @Override
-            public void run() {
-                ((ERPServiceAsync)MateuUI.create(ERPService.class)).getMetaData("io.mateu.mdd.model.tests.onetomany.Uno", new MDDCallback());
-            }
-        });
+        m.add(new MDDAction("Estereotipado", Estereotipado.class));
 
-        m.add(new AbstractAction("Owned") {
-            @Override
-            public void run() {
-                ((ERPServiceAsync)MateuUI.create(ERPService.class)).getMetaData("io.mateu.mdd.model.tests.owned.Propietario", new MDDCallback());
-            }
-        });
-
-
-        m.add(new AbstractAction("OneToOne mapped") {
-            @Override
-            public void run() {
-                ((ERPServiceAsync)MateuUI.create(ERPService.class)).getMetaData("io.mateu.mdd.model.tests.onetoone.UnoAUnoMapped", new MDDCallback());
-            }
-        });
-
-        m.add(new AbstractAction("OneToOne mapper") {
-            @Override
-            public void run() {
-                ((ERPServiceAsync)MateuUI.create(ERPService.class)).getMetaData("io.mateu.mdd.model.tests.onetoone.UnoAUnoMapper", new MDDCallback());
-            }
-        });
-
-
-        m.add(new AbstractAction("Contracts") {
-            @Override
-            public void run() {
-                ((ERPServiceAsync)MateuUI.create(ERPService.class)).getMetaData("io.mateu.mdd.model.hotelcontract.HotelContract", new MDDCallback());
-            }
-        });
 
         return m;
     }

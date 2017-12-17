@@ -375,7 +375,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                             @Override
                             public void createNew() {
                                 if (metadata == null)
-                                    ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(d.getString("_entityClassName"), new Callback<Data>() {
+                                    ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(MateuUI.getApp().getUserData(), d.getString("_entityClassName"), new Callback<Data>() {
                                         @Override
                                         public void onSuccess(Data result) {
                                             metadata = result;
@@ -392,7 +392,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                             @Override
                             public void edit(Object id) {
                                 if (metadata == null)
-                                    ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(d.getString("_entityClassName"), new Callback<Data>() {
+                                    ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(MateuUI.getApp().getUserData(), d.getString("_entityClassName"), new Callback<Data>() {
                                         @Override
                                         public void onSuccess(Data result) {
                                             metadata = result;
@@ -565,6 +565,9 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
         int posfilter = 0;
         String filters = "";
+
+        if (getMetadata().containsKey("_additionalcriteria")) filters += getMetadata().get("_additionalcriteria");
+
         for (Data d : getMetadata().getData("_searchform").getList("_fields")) {
 
             String x = "x";
@@ -1066,7 +1069,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
             public void run() {
                 switch (l.getActionType()) {
                     case OPENEDITOR:
-                        ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(l.getEntityClassName(),  new MDDCallback(l.getData()) {
+                        ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(MateuUI.getApp().getUserData(), l.getEntityClassName(),  new MDDCallback(l.getData()) {
                             @Override
                             public void onSuccess(Data result) {
                                 MateuUI.openView(new MDDJPACRUDView(result) {
@@ -1079,7 +1082,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                         });
                         break;
                     case OPENLIST:
-                        ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(l.getEntityClassName(), new MDDCallback(l.getData()));
+                        ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(MateuUI.getApp().getUserData(), l.getEntityClassName(), new MDDCallback(l.getData()));
                         break;
                     default: MateuUI.alert("Unkown operation " + l.getActionType());
                 }
