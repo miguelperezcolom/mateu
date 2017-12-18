@@ -19,15 +19,15 @@ public abstract class JPAServerSideEditorViewController extends ServerSideEditor
 
     @Override
     public Data get(Object id) throws Throwable {
-        if (id instanceof Long) return new ERPServiceImpl().get(getModelClass().getName(), (long) id);
-        else if (id instanceof Integer) return new ERPServiceImpl().get(getModelClass().getName(), (int) id);
-        else if (id instanceof String) return new ERPServiceImpl().get(getModelClass().getName(), (String) id);
+        if (id instanceof Long) return new ERPServiceImpl().get(getModelClass().getName(), getModelClass().getName(), (long) id);
+        else if (id instanceof Integer) return new ERPServiceImpl().get(getModelClass().getName(), getModelClass().getName(), (int) id);
+        else if (id instanceof String) return new ERPServiceImpl().get(getModelClass().getName(), getModelClass().getName(), (String) id);
         else return null;
     }
 
     @Override
     public Object set(Data data) throws Throwable {
-        return new ERPServiceImpl().set(getModelClass().getName(), data).get("_id");
+        return new ERPServiceImpl().set(getModelClass().getName(), getModelClass().getName(), data).get("_id");
     }
 
    public abstract Class getModelClass();

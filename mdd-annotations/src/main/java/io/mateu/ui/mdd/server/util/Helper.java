@@ -334,6 +334,7 @@ public class Helper {
 
     public static String capitalize(String s) {
         if (s == null || "".equals(s)) return s;
+        s = s.replaceAll("\\.", " ");
         String c = s.replaceAll(
                 String.format("%s|%s|%s",
                         "(?<=[A-Z])(?=[A-Z][a-z])",
@@ -342,6 +343,7 @@ public class Helper {
                 ),
                 " "
         ).toLowerCase();
+        c = c.replaceAll("[ ]+", " ");
         if (c.length() > 1) c = c.substring(0, 1).toUpperCase() + c.substring(1);
 
         return c;

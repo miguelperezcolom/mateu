@@ -23,6 +23,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by miguel on 11/1/17.
@@ -147,12 +148,12 @@ public class ERPServiceImpl implements ERPService {
                     for (Object o : em.createQuery(jpaql.replaceFirst("delete", "select x")).getResultList()) {
                         if (o instanceof WithTriggers) ((WithTriggers)o).beforeDelete(em);
 
-                        for (Field f : getAllFields(o.getClass())) {
+                        for (FieldInterfaced f : getAllFields(o.getClass())) {
                             if (f.getType().isAnnotationPresent(Entity.class)) {
                                 Object v = o.getClass().getMethod(getGetter(f)).invoke(o);
                                 if (v != null) {
-                                    Field parentField = null;
-                                    for (Field ff : getAllFields(f.getType())) {
+                                    FieldInterfaced parentField = null;
+                                    for (FieldInterfaced ff : getAllFields(f.getType())) {
                                         try {
                                             if (ff.isAnnotationPresent(OneToMany.class)) System.out.println("el campo " + ff.getName() + " es onetomany");
                                             if (ff.isAnnotationPresent(OneToMany.class)) {
@@ -202,51 +203,56 @@ public class ERPServiceImpl implements ERPService {
     }
 
     @Override
-    public Data set(String entityClassName, Data data) throws Throwable {
+    public Data set(String entityClassName, String viewClassName, Data data) throws Throwable {
         Helper.transact(new JPATransaction() {
             @Override
             public void run(EntityManager em) throws Throwable {
 
                 Class cl = Class.forName(entityClassName);
+                Class vcl = Class.forName(viewClassName);
 
-                fillEntity(em, cl, data);
+                fillEntity(em, cl, vcl, data);
 
             }
         });
 
 
         Object id = data.get("_id");
-        if (id instanceof Long) return get(entityClassName, (long) id);
-        else if (id instanceof Integer) return get(entityClassName, (int) id);
-        else if (id instanceof String) return get(entityClassName, (String) id);
+        if (id instanceof Long) return get(entityClassName, viewClassName, (long) id);
+        else if (id instanceof Integer) return get(entityClassName, viewClassName, (int) id);
+        else if (id instanceof String) return get(entityClassName, viewClassName, (String) id);
         else return null;
     }
 
     @Override
-    public Data get(String entityClassName, long id) throws Throwable {
-        return _get(entityClassName, id);
+    public Data get(String entityClassName, String viewClassName, long id) throws Throwable {
+        return _get(entityClassName, viewClassName, id);
     }
 
     @Override
-    public Data get(String entityClassName, int id) throws Throwable {
-        return _get(entityClassName, id);
+    public Data get(String entityClassName, String viewClassName, int id) throws Throwable {
+        return _get(entityClassName, viewClassName, id);
     }
 
     @Override
-    public Data get(String entityClassName, String id) throws Throwable {
-        return _get(entityClassName, id);
+    public Data get(String entityClassName, String viewClassName, String id) throws Throwable {
+        return _get(entityClassName, viewClassName, id);
     }
 
     private static Object fillEntity(EntityManager em, Class cl, Data data) throws Throwable {
+        return fillEntity(em, cl, cl, data);
+    }
+
+    private static Object fillEntity(EntityManager em, Class cl, Class vcl, Data data) throws Throwable {
         Object o = null;
 
         boolean newInstance = false;
 
 
         if (cl.isAnnotationPresent(Entity.class)) {
-            Field idField = null;
+            FieldInterfaced idField = null;
             boolean generated = false;
-            for (Field f : getAllFields(cl)) {
+            for (FieldInterfaced f : getAllFields(cl)) {
                 if (f.isAnnotationPresent(Id.class)) {
                     idField = f;
                     if (f.isAnnotationPresent(GeneratedValue.class)) {
@@ -283,22 +289,26 @@ public class ERPServiceImpl implements ERPService {
         }
 
 
-        fillEntity(em, o, data, newInstance);
+        fillEntity(em, o, data, newInstance, vcl);
 
         return o;
     }
 
     public static void fillEntity(EntityManager em, Object o, Data data, boolean newInstance) throws Throwable {
-        BeanUtilsBean.getInstance().getConvertUtils().register(false, false, 0);
-        fillEntity(em, o, data, newInstance, "");
+        fillEntity(em, o, data, newInstance, o.getClass());
     }
 
-    public static void fillEntity(EntityManager em, Object o, Data data, boolean newInstance, String prefix) throws Throwable {
+    public static void fillEntity(EntityManager em, Object o, Data data, boolean newInstance, Class viewClass) throws Throwable {
 
-        if (prefix == null) prefix = "";
+        BeanUtilsBean.getInstance().getConvertUtils().register(false, false, 0);
+
+        View view = null;
+        if (viewClass != null && !viewClass.equals(o.getClass())) {
+            view = (View) viewClass.newInstance();
+        }
 
         //auditoría
-        for (Field f : getAllFields(o.getClass())) if (AuditRecord.class.isAssignableFrom(f.getType())) {
+        for (FieldInterfaced f : getAllFields(o.getClass())) if (AuditRecord.class.isAssignableFrom(f.getType())) {
             AuditRecord a = (AuditRecord) o.getClass().getMethod(getGetter(f)).invoke(o);
             if (a == null) {
                 BeanUtils.setProperty(o, f.getName(), a = (AuditRecord) f.getType().newInstance());
@@ -307,7 +317,7 @@ public class ERPServiceImpl implements ERPService {
         }
 
 
-        for (Field f : getAllFields(o.getClass())) {
+        for (FieldInterfaced f : getAllFields(o.getClass(), view, asList(view.getFields()))) {
             boolean updatable = true;
             if (AuditRecord.class.isAssignableFrom(f.getType()) || f.isAnnotationPresent(Output.class) || f.isAnnotationPresent(Ignored.class) || f.isAnnotationPresent(NotInEditor.class) || (!newInstance && f.isAnnotationPresent(Unmodifiable.class))) {
                 updatable = false;
@@ -315,7 +325,7 @@ public class ERPServiceImpl implements ERPService {
 
             if (updatable) {
 
-                if (data.containsKey(prefix + f.getName() + "____object")) {
+                if (data.containsKey(f.getId() + "____object")) {
                     Object z = o.getClass().getMethod(getGetter(f)).invoke(o);
                     boolean recienCreado = false;
                     if (z == null) {
@@ -323,7 +333,7 @@ public class ERPServiceImpl implements ERPService {
                         z = f.getType().newInstance();
                         BeanUtils.setProperty(o, f.getName(), z);
                     }
-                    fillEntity(em, z, data.get(prefix + f.getName()), recienCreado, null);
+                    fillEntity(em, z, data.getData(f.getId()), recienCreado, viewClass);
                 } else if (f.isAnnotationPresent(Owned.class)) {
                     if (f.getType().isAnnotationPresent(Entity.class)) {
                         Object z = o.getClass().getMethod(getGetter(f)).invoke(o);
@@ -334,12 +344,12 @@ public class ERPServiceImpl implements ERPService {
                             em.persist(z);
                             BeanUtils.setProperty(o, f.getName(), z);
                         }
-                        fillEntity(em, z, data, recienCreado, prefix + f.getName() + "_");
+                        fillEntity(em, z, data, recienCreado);
                     } else {
                         System.out.println("owned y no es una entity");
                     }
-                } else if (data.containsKey(prefix + f.getName())) {
-                    Object v = data.get(prefix + f.getName());
+                } else if (data.containsKey(f.getId())) {
+                    Object v = data.get(f.getId());
                     if (v != null && v instanceof Pair) v = ((Pair) v).getValue();
                     
                     if (File.class.isAssignableFrom(f.getType())) {
@@ -401,8 +411,8 @@ public class ERPServiceImpl implements ERPService {
                                 v = l.toArray();
                             }
                         } else if (f.getType().isAnnotationPresent(Entity.class)) {
-                            Field parentField = null;
-                            for (Field ff : getAllFields(f.getType())) {
+                            FieldInterfaced parentField = null;
+                            for (FieldInterfaced ff : getAllFields(f.getType())) {
                                 try {
                                     if (ff.isAnnotationPresent(OneToMany.class) && ((ParameterizedType)ff.getGenericType()).getActualTypeArguments()[0].equals(o.getClass())) {
                                             OneToMany a = ff.getAnnotation(OneToMany.class);
@@ -472,7 +482,7 @@ public class ERPServiceImpl implements ERPService {
 
                             if (f.isAnnotationPresent(OwnedList.class)) {
                                 String idfieldatx = "id";
-                                for (Field fx : getAllFields(genericClass))
+                                for (FieldInterfaced fx : getAllFields(genericClass))
                                     if (fx.isAnnotationPresent(Id.class)) {
                                         idfieldatx = fx.getName();
                                         break;
@@ -571,7 +581,7 @@ public class ERPServiceImpl implements ERPService {
                                         List<Data> ll = (List<Data>) v;
                                         for (Data d : ll) {
                                             Object z = genericClass.newInstance();
-                                            fillEntity(em, z, d, true, "");
+                                            fillEntity(em, z, d, true);
                                             l.add(z);
                                         }
 
@@ -593,7 +603,7 @@ public class ERPServiceImpl implements ERPService {
                             if (f.isAnnotationPresent(OwnedList.class)) {
 
                                 String idfieldatx = "id";
-                                for (Field fx : getAllFields(genericClass))
+                                for (FieldInterfaced fx : getAllFields(genericClass))
                                     if (fx.isAnnotationPresent(Id.class)) {
                                         idfieldatx = fx.getName();
                                         break;
@@ -710,7 +720,7 @@ public class ERPServiceImpl implements ERPService {
                             v = z;
                         }
 
-                        BeanUtils.setProperty(o, f.getName(), v);
+                        f.setValue(o, v);
                     }
                 }
             }
@@ -780,11 +790,18 @@ public class ERPServiceImpl implements ERPService {
         return (("boolean".equals(f.getType().getName()) || Boolean.class.equals(f.getType()))?"is":"get") + f.getName().substring(0, 1).toUpperCase() + f.getName().substring(1);
     }
 
+    private static String getGetter(String fn) {
+        return "get" + fn.substring(0, 1).toUpperCase() + fn.substring(1);
+    }
+
     private static String getSetter(Field f) {
         return "set" + f.getName().substring(0, 1).toUpperCase() + f.getName().substring(1);
     }
+    private static String getSetter(FieldInterfaced f) {
+        return "set" + f.getName().substring(0, 1).toUpperCase() + f.getName().substring(1);
+    }
 
-    private Data _get(String entityClassName, Object id) throws Throwable {
+    private Data _get(String entityClassName, String viewClassName, Object id) throws Throwable {
         Data data = new Data();
 
         Helper.notransact(new JPATransaction() {
@@ -792,7 +809,7 @@ public class ERPServiceImpl implements ERPService {
             public void run(EntityManager em) throws Throwable {
                 Object o = em.find(Class.forName(entityClassName), (id instanceof Integer)?new Long((Integer)id):id);
 
-                fillData(em, id, data, o);
+                fillData(em, Class.forName(viewClassName), id, data, o);
 
                 for (Method m : o.getClass().getDeclaredMethods()) {
                     if ("toString".equals(m.getName())) {
@@ -832,30 +849,50 @@ public class ERPServiceImpl implements ERPService {
         return data;
     }
 
-    private static void fillData(EntityManager em, Object id, Data data, Object o) throws Throwable {
-        fillData(em, id, data, "", o);
+    private static void fillData(EntityManager em, Class viewClass, Object id, Data data, Object o) throws Throwable {
+        fillData(em, viewClass, id, data, "", o);
     }
 
     public static void fillData(Data data, Object o) throws Throwable {
-        fillData(null, null, data, "", o);
+        fillData(null, null, null, data, "", o);
     }
 
-    private static void fillData(EntityManager em, Object id, Data data, String prefix, Object o) throws Throwable {
+    private static void fillData(EntityManager em, Class viewClass, Object id, Data data, String prefix, Object o) throws Throwable {
 
         if (id != null) data.set(prefix + "_id", id);
 
+        View v = null;
+        List<String> l = null;
 
-        for (Field f : getAllFields(o.getClass())) fillData(em, data, prefix, o, getInterfaced(f));
+        if (!viewClass.equals(o.getClass())) {
+            v = (View) viewClass.newInstance();
+            l = asList(v.getFields());
+        }
+
+        if (v == null) {
+            for (FieldInterfaced f : getAllFields(o.getClass())) fillData(em, viewClass, data, prefix, o, f);
+        } else {
+            for (FieldInterfaced f : getAllFields(o.getClass(), v, l)) fillData(em, viewClass, data, prefix, o, f);
+        }
 
         for (Method m : getAllMethods(o.getClass())) {
             if (!Modifier.isStatic(m.getModifiers())) {
                 if (m.isAnnotationPresent(Show.class) || m.isAnnotationPresent(ShowAsHtml.class)) {
 
-                    fillData(em, data, prefix, o, getInterfaced(m));
+                    if (v == null || l.contains(m.getName().toLowerCase())) fillData(em, viewClass, data, prefix, o, getInterfaced(m));
 
                 }
             }
         }
+    }
+
+    private static List<String> asList(String s) {
+        List<String> l = new ArrayList<>();
+        if (s != null) for (String t : s.split(",")) {
+            t = t.trim();
+            if (!"".equals(t)) l.add(t.toLowerCase());
+        }
+        return l;
     }
 
     private static FieldInterfaced getInterfaced(Method m) {
@@ -923,6 +960,26 @@ public class ERPServiceImpl implements ERPService {
             public Object getValue(Object o) {
                 return ERPServiceImpl.getValue(m, o);
             }
+
+            @Override
+            public String toString() {
+                return m.toString();
+            }
+
+            @Override
+            public Field getField() {
+                return null;
+            }
+
+            @Override
+            public <T extends Annotation> T[] getDeclaredAnnotationsByType(Class<T> annotationClass) {
+                return m.getDeclaredAnnotationsByType(annotationClass);
+            }
+
+            @Override
+            public void setValue(Object o, Object v) {
+
+            }
         };
     }
 
@@ -938,68 +995,6 @@ public class ERPServiceImpl implements ERPService {
         return v;
     }
 
-    private static FieldInterfaced getInterfaced(Field f) {
-        return new FieldInterfaced() {
-            @Override
-            public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-                return f.isAnnotationPresent(annotationClass);
-            }
-
-            @Override
-            public Class<?> getType() {
-                return f.getType();
-            }
-
-            @Override
-            public Class<?> getGenericClass() {
-                if (f.getGenericType() instanceof ParameterizedType) {
-                    ParameterizedType genericType = (ParameterizedType) f.getGenericType();
-                    Class<?> genericClass = (Class<?>) genericType.getActualTypeArguments()[0];
-                    return genericClass;
-                } else return null;
-            }
-
-            @Override
-            public Class<?> getDeclaringClass() {
-                return f.getDeclaringClass();
-            }
-
-            @Override
-            public Type getGenericType() {
-                return f.getGenericType();
-            }
-
-            @Override
-            public String getName() {
-                return f.getName();
-            }
-
-            @Override
-            public String getId() {
-                return f.getName();
-            }
-
-            @Override
-            public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
-                return f.getAnnotation(annotationClass);
-            }
-
-            @Override
-            public Class<?> getOptionsClass() {
-                return null;
-            }
-
-            @Override
-            public String getOptionsQL() {
-                return null;
-            }
-
-            @Override
-            public Object getValue(Object o) {
-                return ERPServiceImpl.getValue(f, o);
-            }
-        };
-    }
 
     public static Object getValue(Field f, Object o) {
         Method getter = null;
@@ -1021,10 +1016,28 @@ public class ERPServiceImpl implements ERPService {
         return v;
     }
 
-    public static Object getValue(FieldInterfaced f, Object o) {
+    public static void setValue(FieldInterfaced f, Object o, Object v) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        setValue(f.getId(), o, v);
+    }
+
+    public static void setValue(String fn, Object o, Object v) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        if (fn.contains(".")) {
+            o = getInstance(o, fn.substring(0, fn.indexOf(".")));
+            setValue(fn.substring(fn.indexOf(".") + 1), o, v);
+        } else {
+            BeanUtils.setProperty(o, fn, v);
+        }
+    }
+
+    public static Object getValue(FieldInterfaced f, Object o) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+
+        if (f.getId().contains(".")) {
+            o = getInstance(o, f.getId().substring(0, f.getId().lastIndexOf(".")));
+        }
+
         Method getter = null;
         try {
-            getter = o.getClass().getMethod(getGetter(f));
+            getter = o.getClass().getMethod(getGetter(f.getField()));
         } catch (Exception e) {
 
         }
@@ -1041,7 +1054,20 @@ public class ERPServiceImpl implements ERPService {
         return v;
     }
 
-    private static void fillData(EntityManager em, Data data, String prefix, Object o, FieldInterfaced f) throws Throwable {
+    private static Object getInstance(Object o, String fn) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        Object x = null;
+        if (o != null) {
+            if (fn.contains(".")) {
+                o = getInstance(o, fn.substring(0, fn.indexOf(".")));
+                x = getInstance(o, fn.substring(fn.indexOf(".") + 1));
+            } else {
+                x = o.getClass().getMethod(getGetter(fn)).invoke(o);
+            }
+        }
+        return x;
+    }
+
+    private static void fillData(EntityManager em, Class viewClass, Data data, String prefix, Object o, FieldInterfaced f) throws Throwable {
         if (!f.isAnnotationPresent(Ignored.class) && !(f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class))) {
             boolean uneditable = false;
             if (f.isAnnotationPresent(Output.class) || f.isAnnotationPresent(Unmodifiable.class)) {
@@ -1096,7 +1122,7 @@ public class ERPServiceImpl implements ERPService {
                     ok = true;
                 } else if (f.getType().isAnnotationPresent(Entity.class)) {
                     if (f.isAnnotationPresent(Owned.class)) {
-                        if (v != null) fillData(em, em.getEntityManagerFactory().getPersistenceUnitUtil().getIdentifier(v), data, f.getName() + "_", v);
+                        if (v != null) fillData(em, viewClass, em.getEntityManagerFactory().getPersistenceUnitUtil().getIdentifier(v), data, f.getName() + "_", v);
                         ok = false; // no añadimos el objeto tal cual
                     } else {
                         if (v != null) {
@@ -1104,13 +1130,13 @@ public class ERPServiceImpl implements ERPService {
                             boolean toStringIsOverriden = f.getType().getMethod("toString").getDeclaringClass().equals(f.getType());
                             if (!toStringIsOverriden) {
                                 boolean hayName = false;
-                                for (Field ff : getAllFields(f.getType()))
+                                for (FieldInterfaced ff : getAllFields(f.getType()))
                                     if ("name".equals(ff.getName()) || "title".equals(ff.getName())) {
                                         n = "" + f.getType().getMethod(getGetter(ff)).invoke(v);
                                         hayName = true;
                                     }
                                 if (!hayName) {
-                                    for (Field ff : getAllFields(f.getType()))
+                                    for (FieldInterfaced ff : getAllFields(f.getType()))
                                         if (ff.isAnnotationPresent(Id.class)) {
                                             n = "" + f.getType().getMethod(getGetter(ff)).invoke(v);
                                         }
@@ -1141,7 +1167,7 @@ public class ERPServiceImpl implements ERPService {
                             List l = (List) v;
                             for (Object x : l) {
                                 Data dx = new Data();
-                                fillData(em, getId(x), dx, x);
+                                fillData(em, viewClass, getId(x), dx, x);
                                 dl.add(dx);
                             }
 
@@ -1152,13 +1178,13 @@ public class ERPServiceImpl implements ERPService {
                             boolean toStringIsOverriden = genericClass.getMethod("toString").getDeclaringClass().equals(genericClass);
                             if (!toStringIsOverriden) {
                                 boolean hayName = false;
-                                for (Field ff : getAllFields(genericClass))
+                                for (FieldInterfaced ff : getAllFields(genericClass))
                                     if ("name".equals(ff.getName()) || "title".equals(ff.getName())) {
                                         m = genericClass.getMethod(getGetter(ff));
                                         hayName = true;
                                     }
                                 if (!hayName) {
-                                    for (Field ff : getAllFields(genericClass))
+                                    for (FieldInterfaced ff : getAllFields(genericClass))
                                         if (ff.isAnnotationPresent(Id.class)) {
                                             m = genericClass.getMethod(getGetter(ff));
                                         }
@@ -1230,7 +1256,7 @@ public class ERPServiceImpl implements ERPService {
                             List l = (List) v;
                             for (Object x : l) {
                                 Data dx = new Data();
-                                fillData(em, getId(x), dx, x);
+                                fillData(em, viewClass, getId(x), dx, x);
                                 dl.add(dx);
                             }
 
@@ -1261,13 +1287,13 @@ public class ERPServiceImpl implements ERPService {
                                     boolean toStringIsOverriden = k.getClass().getMethod("toString").getDeclaringClass().equals(k.getClass());
                                     if (!toStringIsOverriden) {
                                         boolean hayName = false;
-                                        for (Field ff : getAllFields(k.getClass()))
+                                        for (FieldInterfaced ff : getAllFields(k.getClass()))
                                             if ("name".equals(ff.getName()) || "title".equals(ff.getName())) {
                                                 m = k.getClass().getMethod(getGetter(ff));
                                                 hayName = true;
                                             }
                                         if (!hayName) {
-                                            for (Field ff : getAllFields(k.getClass()))
+                                            for (FieldInterfaced ff : getAllFields(k.getClass()))
                                                 if (ff.isAnnotationPresent(Id.class)) {
                                                     m = k.getClass().getMethod(getGetter(ff));
                                                 }
@@ -1288,7 +1314,7 @@ public class ERPServiceImpl implements ERPService {
                             if (f.isAnnotationPresent(OwnedList.class)) {
 
                                 Data dx = new Data("_key", k);
-                                fillData(em, getId(z), dx, z);
+                                fillData(em, viewClass, getId(z), dx, z);
                                 dl.add(dx);
 
                             } else {
@@ -1302,13 +1328,13 @@ public class ERPServiceImpl implements ERPService {
                                         boolean toStringIsOverriden = z.getClass().getMethod("toString").getDeclaringClass().equals(z.getClass());
                                         if (!toStringIsOverriden) {
                                             boolean hayName = false;
-                                            for (Field ff : getAllFields(z.getClass()))
+                                            for (FieldInterfaced ff : getAllFields(z.getClass()))
                                                 if ("name".equals(ff.getName()) || "title".equals(ff.getName())) {
                                                     m = z.getClass().getMethod(getGetter(ff));
                                                     hayName = true;
                                                 }
                                             if (!hayName) {
-                                                for (Field ff : getAllFields(z.getClass()))
+                                                for (FieldInterfaced ff : getAllFields(z.getClass()))
                                                     if (ff.isAnnotationPresent(Id.class)) {
                                                         m = z.getClass().getMethod(getGetter(ff));
                                                     }
@@ -1345,7 +1371,7 @@ public class ERPServiceImpl implements ERPService {
 
                 } else {
                     data.set(prefix + f.getName() + "____object", true);
-                    if (v != null) fillData(em, null, data, f.getName() + "_", v);
+                    if (v != null) fillData(em,  viewClass,null, data, f.getName() + "_", v);
                     ok = false; // no añadimos el objeto tal cual
                 }
 
@@ -1379,15 +1405,15 @@ public class ERPServiceImpl implements ERPService {
 
         Pair p = null;
         if (o != null) {
-            Field fieldForName = null;
+            FieldInterfaced fieldForName = null;
             boolean hayName = false;
-            for (Field ff : getAllFields(c))
+            for (FieldInterfaced ff : getAllFields(c))
                 if ("name".equals(ff.getName()) || "title".equals(ff.getName())) {
                     fieldForName = ff;
                     hayName = true;
                 }
             if (!hayName) {
-                for (Field ff : getAllFields(c))
+                for (FieldInterfaced ff : getAllFields(c))
                     if (ff.isAnnotationPresent(Id.class)) {
                         fieldForName = ff;
                     }
@@ -1410,7 +1436,7 @@ public class ERPServiceImpl implements ERPService {
 
     private static Object getId(Object o) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Object id = null;
-        for (Field f : getAllFields(o.getClass())) {
+        for (FieldInterfaced f : getAllFields(o.getClass())) {
             if (f.isAnnotationPresent(Id.class)) {
                 id = o.getClass().getMethod(getGetter(f)).invoke(o);
                 break;
@@ -1454,6 +1480,7 @@ public class ERPServiceImpl implements ERPService {
         if (v != null) viewClass = v.getClass();
 
         data.set("_entityClassName", c.getName());
+        data.set("_viewClassName", viewClass.getName());
         data.set("_rawtitle", Helper.capitalize(Helper.pluralize((c.isAnnotationPresent(Entity.class) && !Strings.isNullOrEmpty(((Entity)c.getAnnotation(Entity.class)).name()))?((Entity)c.getAnnotation(Entity.class)).name():c.getSimpleName())));
 
         if (viewClass.isAnnotationPresent(Indelible.class)) data.set("_indelible", true);
@@ -1509,17 +1536,13 @@ public class ERPServiceImpl implements ERPService {
         List<Data> listColumns = new ArrayList<>();
         List<Data> staticActions = new ArrayList<>();
 
-        for (Field f : getAllFields(c)) if (v == null || viewParamFields.contains(f.getName().toLowerCase())) {
+        for (FieldInterfaced f : getAllFields(c, v, viewParamFields)) {
             if (f.isAnnotationPresent(SearchFilter.class) || f.isAnnotationPresent(SearchFilters.class)) {
                 for (SearchFilter sf : f.getDeclaredAnnotationsByType(SearchFilter.class)) {
-                    addField(searchFormFields, getInterfaced(f), null, sf, null, true, false);
+                    addField(searchFormFields, f, null, sf, null, true, false);
                 }
             } else if (f.isAnnotationPresent(SearchFilterIsNull.class)) {
-                addField(searchFormFields, new FieldInterfaced() {
-                    @Override
-                    public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-                        return f.isAnnotationPresent(annotationClass);
-                    }
+                addField(searchFormFields, new FieldInterfacedFromField(f) {
 
                     @Override
                     public Class<?> getType() {
@@ -1527,58 +1550,19 @@ public class ERPServiceImpl implements ERPService {
                     }
 
                     @Override
-                    public Class<?> getGenericClass() {
-                        return null;
-                    }
-
-                    @Override
-                    public Class<?> getDeclaringClass() {
-                        return f.getDeclaringClass();
-                    }
-
-                    @Override
-                    public Type getGenericType() {
-                        return f.getGenericType();
-                    }
-
-                    @Override
-                    public String getName() {
-                        return f.getName();
-                    }
-
-                    @Override
                     public String getId() {
                         return f.getName() + "_isnull";
                     }
 
-                    @Override
-                    public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
-                        return f.getAnnotation(annotationClass);
-                    }
-
-                    @Override
-                    public Class<?> getOptionsClass() {
-                        return null;
-                    }
-
-                    @Override
-                    public String getOptionsQL() {
-                        return null;
-                    }
-
-                    @Override
-                    public Object getValue(Object o) {
-                        return ERPServiceImpl.getValue(f, o);
-                    }
                 }, null, null, f.getAnnotation(SearchFilterIsNull.class), true, false);
             } else if (v != null && viewParamFields.contains(f.getName().toLowerCase())) {
-                addField(searchFormFields, getInterfaced(f), null, null, null, true, false);
+                addField(searchFormFields, f, null, null, null, true, false);
             }
 
         }
 
         boolean hayListColumns = false;
-        for (Field f : getAllFields(c))  if (v == null || viewColumnFields.contains(f.getName().toLowerCase())) {
+        if (v == null) for (FieldInterfaced f : getAllFields(c)) {
             if (f.isAnnotationPresent(Id.class) || f.isAnnotationPresent(ListColumn.class) || f.isAnnotationPresent(SearchFilter.class) || f.isAnnotationPresent(ListColumns.class) || f.isAnnotationPresent(SearchFilters.class)) {
                 if (!(f.isAnnotationPresent(OneToMany.class) || f.isAnnotationPresent(ManyToMany.class) || f.isAnnotationPresent(MapKey.class) || f.isAnnotationPresent(ElementCollection.class) || f.isAnnotationPresent(NotInList.class))) {
                     hayListColumns |= f.isAnnotationPresent(ListColumn.class) || f.isAnnotationPresent(ListColumns.class);
@@ -1589,7 +1573,7 @@ public class ERPServiceImpl implements ERPService {
 
         if (!hayListColumns) {
             listColumns.clear();
-            for (Field f : getAllFields(c))  if (v == null || viewColumnFields.contains(f.getName().toLowerCase())) {
+            for (FieldInterfaced f : getAllFields(c, v, viewColumnFields)) {
                 if (!(f.isAnnotationPresent(OneToMany.class) || f.isAnnotationPresent(ManyToMany.class) || f.isAnnotationPresent(MapKey.class) || f.isAnnotationPresent(ElementCollection.class) || f.isAnnotationPresent(NotInList.class)))
                     addColumn(listColumns, f);
             }
@@ -1681,9 +1665,9 @@ public class ERPServiceImpl implements ERPService {
 
     private static Data getEditorForm(View v, List<String> viewFormFields, Class viewClass, Class c) throws Exception {
         List<Data> editorFormFields = new ArrayList<>();
-        for (Field f : getAllFields(c)) if (v == null || viewFormFields.contains(f.getName().toLowerCase())) {
+        for (FieldInterfaced f : getAllFields(c, v, viewFormFields)) {
             if (!f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(NotInEditor.class) && !(f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class))) {
-                addField(editorFormFields, getInterfaced(f));
+                addField(editorFormFields, f);
             }
         }
 
@@ -1694,7 +1678,6 @@ public class ERPServiceImpl implements ERPService {
                 }
             }
         }
-
 
         Data def = new Data();
         def.set("_fields", editorFormFields);
@@ -1719,14 +1702,70 @@ public class ERPServiceImpl implements ERPService {
         return l;
     }
 
-    private static List<Field> getAllFields(Class c) {
-        List<Field> l = new ArrayList<>();
+    private static List<FieldInterfaced> getAllFields(Class c) {
+        List<FieldInterfaced> l = new ArrayList<>();
 
         if (c.getSuperclass() != null && c.getSuperclass().isAnnotationPresent(Entity.class)) l.addAll(getAllFields(c.getSuperclass()));
 
-        for (Field f : c.getDeclaredFields()) l.add(f);
+        for (Field f : c.getDeclaredFields()) l.add(new FieldInterfacedFromField(f));
 
         return l;
+    }
+
+    private static Map<String, FieldInterfaced> getAllFieldsMap(Class c) {
+        return getAllFieldsMap(getAllFields(c));
+    }
+
+    private static Map<String, FieldInterfaced> getAllFieldsMap(List<FieldInterfaced> l) {
+
+        Map<String, FieldInterfaced> m = new HashMap<>();
+
+        for (FieldInterfaced f : l) m.put(f.getName().toLowerCase(), f);
+
+        return m;
+    }
+
+    private static List<FieldInterfaced> getAllFields(Class entityClass, View view, List<String> fieldsFilter) {
+        List<FieldInterfaced> fs = getAllFields(entityClass);
+        Map<String, FieldInterfaced> m = getAllFieldsMap(fs);
+
+        List<FieldInterfaced> l = new ArrayList<>();
+
+        if (view != null) for (String fn : fieldsFilter) {
+            fn = fn.toLowerCase();
+            if (fn.contains(".")) {
+                FieldInterfaced f = null;
+                String finalFn = fn;
+                l.add(f = new FieldInterfacedFromField(getField(entityClass, finalFn, m)) {
+                    @Override
+                    public String getId() {
+                        return finalFn;
+                    }
+
+                    @Override
+                    public String getName() {
+                        return Helper.capitalize(getId());
+                    }
+                });
+
+            } else {
+                if (m.containsKey(fn)) l.add(m.get(fn));
+            }
+        } else l.addAll(fs);
+
+        return l.stream().filter((f) -> f != null).collect(Collectors.toList());
+    }
+
+    private static FieldInterfaced getField(Class entityClass, String fn, Map<String, FieldInterfaced> m) {
+        FieldInterfaced f = null;
+        if (fn.contains(".")) {
+            String flfn = fn.substring(0, fn.indexOf("."));
+            FieldInterfaced flf = m.get(flfn);
+            if (flf != null) f = getField(flf.getType(), fn.substring(flfn.length() + 1), getAllFieldsMap(flf.getType()));
+        } else {
+            if (m.containsKey(fn)) f = m.get(fn);
+        }
+        return f;
     }
 
     @Override
@@ -1953,6 +1992,26 @@ public class ERPServiceImpl implements ERPService {
                     public Object getValue(Object o) {
                         return ERPServiceImpl.getValue(m, o);
                     }
+
+                    @Override
+                    public String toString() {
+                        return m.toString();
+                    }
+
+                    @Override
+                    public Field getField() {
+                        return null;
+                    }
+
+                    @Override
+                    public <T extends Annotation> T[] getDeclaredAnnotationsByType(Class<T> annotationClass) {
+                        return p.getDeclaredAnnotationsByType(annotationClass);
+                    }
+
+                    @Override
+                    public void setValue(Object o, Object v) {
+
+                    }
                 });
             }
             Data a = new Data();
@@ -1971,69 +2030,12 @@ public class ERPServiceImpl implements ERPService {
         }
     }
 
-    private static void addColumn(List<Data> listColumns, Field f) throws Exception {
+    private static void addColumn(List<Data> listColumns, FieldInterfaced f) throws Exception {
         List<ListColumn> lcs = new ArrayList<>();
         for (ListColumn lc : f.getDeclaredAnnotationsByType(ListColumn.class)) lcs.add(lc);
         if (lcs.size() == 0) lcs.add(null);
         for (ListColumn lc : lcs) {
-            addField(listColumns, new FieldInterfaced() {
-                @Override
-                public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-                    return f.isAnnotationPresent(annotationClass);
-                }
-
-                @Override
-                public Class<?> getType() {
-                    return f.getType();
-                }
-
-                @Override
-                public Class<?> getGenericClass() {
-                    ParameterizedType genericType = (ParameterizedType) f.getGenericType();
-                    Class<?> genericClass = (Class<?>) genericType.getActualTypeArguments()[0];
-                    return genericClass;
-                }
-
-                @Override
-                public Class<?> getDeclaringClass() {
-                    return f.getDeclaringClass();
-                }
-
-                @Override
-                public Type getGenericType() {
-                    return f.getGenericType();
-                }
-
-                @Override
-                public String getName() {
-                    return f.getName();
-                }
-
-                @Override
-                public String getId() {
-                    return f.getName();
-                }
-
-                @Override
-                public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
-                    return f.getAnnotation(annotationClass);
-                }
-
-                @Override
-                public Class<?> getOptionsClass() {
-                    return null;
-                }
-
-                @Override
-                public String getOptionsQL() {
-                    return null;
-                }
-
-                @Override
-                public Object getValue(Object o) {
-                    return ERPServiceImpl.getValue(f, o);
-                }
-            }, lc, null, null, false, true);
+            addField(listColumns, f, lc, null, null, false, true);
         }
     }
 
@@ -2047,7 +2049,7 @@ public class ERPServiceImpl implements ERPService {
             Data d = new Data();
             boolean upload = false;
 
-            if (f.getType().isAnnotationPresent(Entity.class) && !f.isAnnotationPresent(NotNull.class)) d.set("_leftjoin",f.getName());
+            if (f.getType().isAnnotationPresent(Entity.class) && !f.isAnnotationPresent(NotNull.class)) d.set("_leftjoin", f.getId());
 
             if (f.isAnnotationPresent(CellStyleGenerator.class)) d.set("_cellstylegenerator", f.getAnnotation(CellStyleGenerator.class).value().getName());
 
@@ -2056,73 +2058,16 @@ public class ERPServiceImpl implements ERPService {
                     d.set("_label", listColumnAnnotation.value());
                 }
                 if (!Strings.isNullOrEmpty(listColumnAnnotation.field())) {
-                    d.set("_qlname", f.getName() + "." + listColumnAnnotation.field());
-                    for (Field ff : getAllFields(f.getType())) {
+                    d.set("_qlname", f.getId() + "." + listColumnAnnotation.field());
+                    for (FieldInterfaced ff : getAllFields(f.getType())) {
                         if (ff.getName().equals(listColumnAnnotation.field())) {
-                            f = new FieldInterfaced() {
-                                @Override
-                                public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-                                    return ff.isAnnotationPresent(annotationClass);
-                                }
-
-                                @Override
-                                public Class<?> getType() {
-                                    return ff.getType();
-                                }
-
-                                @Override
-                                public Class<?> getGenericClass() {
-                                    ParameterizedType genericType = (ParameterizedType) ff.getGenericType();
-                                    Class<?> genericClass = (Class<?>) genericType.getActualTypeArguments()[0];
-                                    return genericClass;
-                                }
-
-                                @Override
-                                public Class<?> getDeclaringClass() {
-                                    return ff.getDeclaringClass();
-                                }
-
-                                @Override
-                                public Type getGenericType() {
-                                    return ff.getGenericType();
-                                }
-
-                                @Override
-                                public String getName() {
-                                    return ff.getName();
-                                }
-
-                                @Override
-                                public String getId() {
-                                    return ff.getName();
-                                }
-
-                                @Override
-                                public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
-                                    return ff.getAnnotation(annotationClass);
-                                }
-
-                                @Override
-                                public Class<?> getOptionsClass() {
-                                    return null;
-                                }
-
-                                @Override
-                                public String getOptionsQL() {
-                                    return null;
-                                }
-
-                                @Override
-                                public Object getValue(Object o) {
-                                    return ERPServiceImpl.getValue(ff, o);
-                                }
-                            };
+                            f = ff;
                             break;
                         }
                     }
                 } else if (!Strings.isNullOrEmpty(listColumnAnnotation.ql()))
                 d.set("_colql", listColumnAnnotation.ql());
-                else d.set("_qlname", f.getName());
+                else d.set("_qlname", f.getId());
 
                 if (listColumnAnnotation.order()) {
                     d.set("_order", 0);
@@ -2136,145 +2081,36 @@ public class ERPServiceImpl implements ERPService {
                     d.set("_label", searchFilterIsNullAnnotation.value());
                 }
                 if (!Strings.isNullOrEmpty(searchFilterIsNullAnnotation.field())) {
-                    d.set("_qlname", f.getName() + "." + searchFilterIsNullAnnotation.field());
-                    for (Field ff : getAllFields(f.getType())) {
+                    d.set("_qlname", f.getId() + "." + searchFilterIsNullAnnotation.field());
+                    for (FieldInterfaced ff : getAllFields(f.getType())) {
                         if (ff.getName().equals(searchFilterIsNullAnnotation.field())) {
-                            f = new FieldInterfaced() {
-                                @Override
-                                public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-                                    return ff.isAnnotationPresent(annotationClass);
-                                }
-
-                                @Override
-                                public Class<?> getType() {
-                                    return ff.getType();
-                                }
-
-                                @Override
-                                public Class<?> getGenericClass() {
-                                    ParameterizedType genericType = (ParameterizedType) ff.getGenericType();
-                                    Class<?> genericClass = (Class<?>) genericType.getActualTypeArguments()[0];
-                                    return genericClass;
-                                }
-
-                                @Override
-                                public Class<?> getDeclaringClass() {
-                                    return ff.getDeclaringClass();
-                                }
-
-                                @Override
-                                public Type getGenericType() {
-                                    return ff.getGenericType();
-                                }
-
-                                @Override
-                                public String getName() {
-                                    return ff.getName();
-                                }
-
-                                @Override
-                                public String getId() {
-                                    return ff.getName();
-                                }
-
-                                @Override
-                                public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
-                                    return ff.getAnnotation(annotationClass);
-                                }
-
-                                @Override
-                                public Class<?> getOptionsClass() {
-                                    return null;
-                                }
-
-                                @Override
-                                public String getOptionsQL() {
-                                    return null;
-                                }
-
-                                @Override
-                                public Object getValue(Object o) {
-                                    return ERPServiceImpl.getValue(ff, o);
-                                }
-                            };
+                            f = ff;
                             break;
                         }
                     }
                 } else if (!Strings.isNullOrEmpty(searchFilterIsNullAnnotation.ql()))
                     d.set("_qlname", searchFilterIsNullAnnotation.ql());
-                else d.set("_qlname", f.getName());
+                else d.set("_qlname", f.getId());
             } else if (searchFilterAnnotation != null) {
                 if (!Strings.isNullOrEmpty(searchFilterAnnotation.value())) {
                     d.set("_label", searchFilterAnnotation.value());
                 }
                 if (searchFilterAnnotation.exactMatch()) d.set("_exactmatch", true);
                 if (!Strings.isNullOrEmpty(searchFilterAnnotation.field())) {
-                    d.set("_qlname", f.getName() + "." + searchFilterAnnotation.field());
+                    d.set("_qlname", f.getId() + "." + searchFilterAnnotation.field());
                     Class aux = f.getGenericClass();
                     if (aux == null || Class.class.equals(aux)) aux = f.getType();
                     else {
-                        d.set("_innerjoin", f.getName());
+                        d.set("_innerjoin", f.getId());
                         d.set("_qlname", searchFilterAnnotation.field());
                     }
-                    for (Field ff : getAllFields(aux)) {
+                    for (FieldInterfaced ff : getAllFields(aux)) {
                         if (ff.getName().equals(searchFilterAnnotation.field())) {
                             FieldInterfaced finalF = f;
-                            f = new FieldInterfaced() {
-                                @Override
-                                public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-                                    return ff.isAnnotationPresent(annotationClass);
-                                }
-
-                                @Override
-                                public Class<?> getType() {
-                                    return ff.getType();
-                                }
-
-                                @Override
-                                public Class<?> getGenericClass() {
-                                    ParameterizedType genericType = (ParameterizedType) ff.getGenericType();
-                                    Class<?> genericClass = (Class<?>) genericType.getActualTypeArguments()[0];
-                                    return genericClass;
-                                }
-
-                                @Override
-                                public Class<?> getDeclaringClass() {
-                                    return ff.getDeclaringClass();
-                                }
-
-                                @Override
-                                public Type getGenericType() {
-                                    return ff.getGenericType();
-                                }
-
-                                @Override
-                                public String getName() {
-                                    return ff.getName();
-                                }
-
+                            f = new FieldInterfacedFromField(ff) {
                                 @Override
                                 public String getId() {
                                     return finalF.getName() + "." + ff.getName();
-                                }
-
-                                @Override
-                                public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
-                                    return ff.getAnnotation(annotationClass);
-                                }
-
-                                @Override
-                                public Class<?> getOptionsClass() {
-                                    return null;
-                                }
-
-                                @Override
-                                public String getOptionsQL() {
-                                    return null;
-                                }
-
-                                @Override
-                                public Object getValue(Object o) {
-                                    return ERPServiceImpl.getValue(ff, o);
                                 }
                             };
                             break;
@@ -2282,12 +2118,12 @@ public class ERPServiceImpl implements ERPService {
                     }
                 } else if (!Strings.isNullOrEmpty(searchFilterAnnotation.ql()))
                     d.set("_qlname", searchFilterAnnotation.ql());
-                else d.set("_qlname", f.getName());
+                else d.set("_qlname", f.getId());
             } else if (Translated.class.isAssignableFrom(f.getType())) {
                 d.set("_translation", true);
                 d.set("_qlname", "es");
             } else {
-                d.set("_qlname", f.getName());
+                d.set("_qlname", f.getId());
             }
 
 
@@ -2346,7 +2182,7 @@ public class ERPServiceImpl implements ERPService {
                 if (List.class.isAssignableFrom(f.getType())) c = f.getGenericClass();
                 for (Field ff : c.getDeclaredFields()) {
                     if (!ff.isAnnotationPresent(Id.class) && !ff.getType().equals(f.getDeclaringClass()))
-                        addColumn(cols, ff);
+                        addColumn(cols, new FieldInterfacedFromField(ff));
                 }
                 d.set("_cols", cols);
 
@@ -2450,14 +2286,14 @@ public class ERPServiceImpl implements ERPService {
                     d.set("_values", values);
                     d.set("_enumtype", f.getType().getCanonicalName());
 
-                    d.set("_leftjoinql", f.getName());
+                    d.set("_leftjoinql", f.getId());
 
                     upload = true;
                 } else if (List.class.isAssignableFrom(f.getType())) {
                     if (buildingSearchForm && f.getGenericClass().isAnnotationPresent(Entity.class)) {
                         d.set("_type", MetaData.FIELDTYPE_ENTITY);
                         d.set("_entityClassName", f.getType().getCanonicalName());
-                        d.set("_innerjoin", f.getName());
+                        d.set("_innerjoin", f.getId());
                         d.set("_qlname", getIdFieldName(f.getGenericClass()));
                         d.set("_ql", getQlForEntityField(f.getGenericClass()));
 
@@ -2475,30 +2311,10 @@ public class ERPServiceImpl implements ERPService {
 
                                 Class<?> finalGenericClass = gc;
                                 final FieldInterfaced finalF1 = f;
-                                addField(cols, new FieldInterfaced() {
-                                    @Override
-                                    public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-                                        return false;
-                                    }
-
+                                addField(cols, new FieldInterfacedFromField(f) {
                                     @Override
                                     public Class<?> getType() {
                                         return finalGenericClass;
-                                    }
-
-                                    @Override
-                                    public Class<?> getGenericClass() {
-                                        return null;
-                                    }
-
-                                    @Override
-                                    public Class<?> getDeclaringClass() {
-                                        return null;
-                                    }
-
-                                    @Override
-                                    public Type getGenericType() {
-                                        return null;
                                     }
 
                                     @Override
@@ -2511,25 +2327,7 @@ public class ERPServiceImpl implements ERPService {
                                         return "_value";
                                     }
 
-                                    @Override
-                                    public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
-                                        return null;
-                                    }
 
-                                    @Override
-                                    public Class<?> getOptionsClass() {
-                                        return (finalF1.isAnnotationPresent(ValueClass.class))?finalF1.getAnnotation(ValueClass.class).value():null;
-                                    }
-
-                                    @Override
-                                    public String getOptionsQL() {
-                                        return (finalF1.isAnnotationPresent(ValueQL.class))?finalF1.getAnnotation(ValueQL.class).value():null;
-                                    }
-
-                                    @Override
-                                    public Object getValue(Object o) {
-                                        return ERPServiceImpl.getValue(finalF1, o);
-                                    }
 
                                 }, null, null, null, false, true);
 
@@ -2542,7 +2340,7 @@ public class ERPServiceImpl implements ERPService {
                             List<Data> cols = new ArrayList<>();
                             for (Field ff : f.getGenericClass().getDeclaredFields()) {
                                 if (!ff.isAnnotationPresent(Id.class) && !ff.getType().equals(f.getDeclaringClass()))
-                                    addColumn(cols, ff);
+                                    addColumn(cols, new FieldInterfacedFromField(ff));
                             }
                             d.set("_cols", cols);
                         }
@@ -2572,46 +2370,22 @@ public class ERPServiceImpl implements ERPService {
                     Class<?> finalGenericKeyClass = genericKeyClass;
 
                     FieldInterfaced finalF1 = f;
-                    addField(cols, new FieldInterfaced() {
-                            @Override
-                            public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-                                return false;
-                            }
+                    addField(cols, new FieldInterfacedFromField(f) {
 
-                            @Override
-                            public Class<?> getType() {
-                                return finalGenericKeyClass;
-                            }
+                        @Override
+                        public Class<?> getType() {
+                            return finalGenericKeyClass;
+                        }
 
-                            @Override
-                            public Class<?> getGenericClass() {
-                                return null;
-                            }
+                        @Override
+                        public String getName() {
+                            return (finalF1.isAnnotationPresent(MapLabels.class) && !Strings.isNullOrEmpty(finalF1.getAnnotation(MapLabels.class).labelForKey()))?finalF1.getAnnotation(MapLabels.class).labelForKey():"Key";
+                        }
 
-                            @Override
-                            public Class<?> getDeclaringClass() {
-                                return null;
-                            }
-
-                            @Override
-                            public Type getGenericType() {
-                                return null;
-                            }
-
-                            @Override
-                            public String getName() {
-                                return (finalF1.isAnnotationPresent(MapLabels.class) && !Strings.isNullOrEmpty(finalF1.getAnnotation(MapLabels.class).labelForKey()))?finalF1.getAnnotation(MapLabels.class).labelForKey():"Key";
-                            }
-
-                            @Override
-                            public String getId() {
-                                return "_key";
-                            }
-
-                            @Override
-                            public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
-                                return null;
-                            }
+                        @Override
+                        public String getId() {
+                            return "_key";
+                        }
 
                         @Override
                         public Class<?> getOptionsClass() {
@@ -2623,10 +2397,6 @@ public class ERPServiceImpl implements ERPService {
                             return (finalF1.isAnnotationPresent(KeyQL.class))?finalF1.getAnnotation(KeyQL.class).value():null;
                         }
 
-                        @Override
-                        public Object getValue(Object o) {
-                            return ERPServiceImpl.getValue(finalF1, o);
-                        }
                     }, null, null, null, false, true);
 
 
@@ -2634,37 +2404,18 @@ public class ERPServiceImpl implements ERPService {
 
                         for (Field ff : genericClass.getDeclaredFields()) {
                             if (!ff.isAnnotationPresent(Id.class) && !ff.getType().equals(genericClass))
-                                addColumn(cols, ff);
+                                addColumn(cols, new FieldInterfacedFromField(ff));
                         }
 
 
                     } else {
 
                         Class<?> finalGenericClass = genericClass;
-                        addField(cols, new FieldInterfaced() {
-                            @Override
-                            public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-                                return false;
-                            }
+                        addField(cols, new FieldInterfacedFromField(f) {
 
                             @Override
                             public Class<?> getType() {
                                 return finalGenericClass;
-                            }
-
-                            @Override
-                            public Class<?> getGenericClass() {
-                                return null;
-                            }
-
-                            @Override
-                            public Class<?> getDeclaringClass() {
-                                return null;
-                            }
-
-                            @Override
-                            public Type getGenericType() {
-                                return null;
                             }
 
                             @Override
@@ -2675,26 +2426,6 @@ public class ERPServiceImpl implements ERPService {
                             @Override
                             public String getId() {
                                 return "_value";
-                            }
-
-                            @Override
-                            public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
-                                return null;
-                            }
-
-                            @Override
-                            public Class<?> getOptionsClass() {
-                                return (finalF1.isAnnotationPresent(ValueClass.class))?finalF1.getAnnotation(ValueClass.class).value():null;
-                            }
-
-                            @Override
-                            public String getOptionsQL() {
-                                return (finalF1.isAnnotationPresent(ValueQL.class))?finalF1.getAnnotation(ValueQL.class).value():null;
-                            }
-
-                            @Override
-                            public Object getValue(Object o) {
-                                return ERPServiceImpl.getValue(this, o);
                             }
 
                         }, null, null, null, false, true);
@@ -2731,7 +2462,7 @@ public class ERPServiceImpl implements ERPService {
                             } else {
 
                                 String nombreCampoId = "id";
-                                for (Field ff : getAllFields(f.getType()))
+                                for (FieldInterfaced ff : getAllFields(f.getType()))
                                     if (ff.isAnnotationPresent(Id.class)) {
                                         nombreCampoId = ff.getName();
                                     }
@@ -2740,7 +2471,7 @@ public class ERPServiceImpl implements ERPService {
                                 String defaultQl = "select x." + nombreCampoId + ", x.name from " + f.getType().getName() + " x order by x.name";
 
                                 boolean hayName = false;
-                                for (Field ff : getAllFields(f.getType()))
+                                for (FieldInterfaced ff : getAllFields(f.getType()))
                                     if ("name".equals(ff.getName()) || "title".equals(ff.getName())) {
                                         if (!buildingSearchForm) d.set("_qlname", d.get("_qlname") + "." + ff.getName());
                                         defaultQl = defaultQl.replaceAll("\\.name", "." + ff.getName());
@@ -2754,7 +2485,7 @@ public class ERPServiceImpl implements ERPService {
                                         hayName = true;
                                     }
                                 if (!hayName) {
-                                    for (Field ff : getAllFields(f.getType()))
+                                    for (FieldInterfaced ff : getAllFields(f.getType()))
                                         if (ff.isAnnotationPresent(Id.class)) {
                                             d.set("_qlname", d.getString("_qlname") + "." + ff.getName());
 
@@ -2763,14 +2494,14 @@ public class ERPServiceImpl implements ERPService {
                                 }
 
                                 if (buildingSearchForm) {
-                                    for (Field ff : getAllFields(f.getType()))
+                                    for (FieldInterfaced ff : getAllFields(f.getType()))
                                         if (ff.isAnnotationPresent(Id.class)) {
                                             d.set("_qlname", d.get("_qlname") + "." + ff.getName());
                                         }
                                 }
 
                                 if (!d.isEmpty("_leftjoin")) {
-                                    for (Field ff : getAllFields(f.getType()))
+                                    for (FieldInterfaced ff : getAllFields(f.getType()))
                                         if (ff.isAnnotationPresent(Id.class)) {
                                             d.set("_leftjoinql", ff.getName());
                                         }
@@ -2778,7 +2509,7 @@ public class ERPServiceImpl implements ERPService {
 
                                 if (f.getType().isAnnotationPresent(UseIdToSelect.class)) {
                                     d.set("_useidtoselect", true);
-                                    for (Field fid : getAllFields(f.getType())) {
+                                    for (FieldInterfaced fid : getAllFields(f.getType())) {
                                         if (fid.isAnnotationPresent(Id.class)) {
                                             d.set("_idtype", fid.getType().getName());
                                             break;
@@ -2787,7 +2518,7 @@ public class ERPServiceImpl implements ERPService {
                                     defaultQl = "select x.id, x.name from " + f.getType().getName() + " x where x.id = xxxx";
 
                                     hayName = false;
-                                    for (Field ff : getAllFields(f.getType()))
+                                    for (FieldInterfaced ff : getAllFields(f.getType()))
                                         if ("name".equals(ff.getName()) || "title".equals(ff.getName())) {
                                             if (!buildingSearchForm) d.set("_qlname", d.get("_qlname") + "." + ff.getName());
                                             defaultQl = defaultQl.replaceAll("\\.name", "." + ff.getName());
@@ -2801,7 +2532,7 @@ public class ERPServiceImpl implements ERPService {
                                             hayName = true;
                                         }
                                     if (!hayName) {
-                                        for (Field ff : getAllFields(f.getType()))
+                                        for (FieldInterfaced ff : getAllFields(f.getType()))
                                             if (ff.isAnnotationPresent(Id.class)) {
                                                 d.set("_qlname", d.getString("_qlname") + "." + ff.getName());
 
@@ -2841,9 +2572,9 @@ public class ERPServiceImpl implements ERPService {
 
                             upload = true;
 
-                            System.out.println("adding field " + f.getName());
+                            System.out.println("adding field " +f.getId());
 
-                            d.set("_metadata", getMetadaData(null, f.getName(), f.getType()).getData("_editorform"));
+                            d.set("_metadata", getMetadaData(null, f.getId(), f.getType()).getData("_editorform"));
 
 
                         }
@@ -2908,7 +2639,7 @@ public class ERPServiceImpl implements ERPService {
 
     private static String getIdFieldName(Class<?> c) {
         String nombreCampoId = "id";
-        for (Field ff : getAllFields(c))
+        for (FieldInterfaced ff : getAllFields(c))
             if (ff.isAnnotationPresent(Id.class)) {
                 nombreCampoId = ff.getName();
                 break;
@@ -2923,7 +2654,7 @@ public class ERPServiceImpl implements ERPService {
     private static String getQlForEntityField(Class<?> c) {
 
         String nombreCampoId = "id";
-        for (Field ff : getAllFields(c))
+        for (FieldInterfaced ff : getAllFields(c))
             if (ff.isAnnotationPresent(Id.class)) {
                 nombreCampoId = ff.getName();
                 break;
@@ -2933,7 +2664,7 @@ public class ERPServiceImpl implements ERPService {
         String defaultQl = "select x." + nombreCampoId + ", x.name from " + c.getName() + " x order by x.name";
 
         boolean hayName = false;
-        for (Field ff : getAllFields(c))
+        for (FieldInterfaced ff : getAllFields(c))
             if ("name".equals(ff.getName()) || "title".equals(ff.getName())) {
                 defaultQl = defaultQl.replaceAll("\\.name", "." + ff.getName());
 
@@ -2944,7 +2675,7 @@ public class ERPServiceImpl implements ERPService {
                 hayName = true;
             }
         if (!hayName) {
-            for (Field ff : getAllFields(c))
+            for (FieldInterfaced ff : getAllFields(c))
                 if (ff.isAnnotationPresent(Id.class)) {
                     defaultQl = defaultQl.replaceAll("\\.name", "." + ff.getName());
                 }

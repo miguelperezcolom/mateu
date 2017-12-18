@@ -16,6 +16,8 @@ public abstract class JPACRUDView extends AbstractCRUDView {
 
     public abstract String getEntityClassName();
 
+    public abstract String getViewClassName();
+
     @Override
     public void rpc(Data parameters, AsyncCallback<Data> callback) {
         parameters.set("_sql", getSql());

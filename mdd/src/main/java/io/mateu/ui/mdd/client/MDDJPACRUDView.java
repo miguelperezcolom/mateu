@@ -36,10 +36,12 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
     private Data metadata;
     private String entityClassName;
+    private String viewClassName;
 
     public MDDJPACRUDView(Data metadata) {
         this.metadata = metadata;
         this.entityClassName = metadata.getString("_entityClassName");
+        this.viewClassName = metadata.getString("_viewClassName");
     }
 
     @Override
@@ -1093,5 +1095,10 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
     @Override
     public String getEntityClassName() {
         return entityClassName;
+    }
+
+    @Override
+    public String getViewClassName() {
+        return viewClassName;
     }
 }

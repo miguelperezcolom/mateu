@@ -22,6 +22,9 @@ public class Booking {
     @NotNull
     private String leadName;
 
+    @ManyToOne
+    private Agency agency;
+
     @Column(name = "_user")
     private String user;
 

@@ -15,9 +15,7 @@ import io.mateu.mdd.model.tests.owned.Propietario;
 import io.mateu.mdd.model.tests.showmethodresult.ConMetodos;
 import io.mateu.mdd.model.tests.stereotype.Estereotipado;
 import io.mateu.mdd.model.tests.tabs.Tabs;
-import io.mateu.mdd.model.tests.view.Booking;
-import io.mateu.mdd.model.tests.view.View1;
-import io.mateu.mdd.model.tests.view.View2;
+import io.mateu.mdd.model.tests.view.*;
 import io.mateu.ui.core.client.app.*;
 import io.mateu.ui.core.shared.Data;
 import io.mateu.ui.mdd.client.*;
@@ -65,11 +63,15 @@ public class Module extends AbstractModule {
 
         m.add(new MDDAction("Contracts", HotelContract.class));
 
+        m.add(new MDDAction("Agencies", Agency.class));
+
         m.add(new MDDAction("Booking", Booking.class));
 
         m.add(new MDDAction("View 1", View1.class));
 
         m.add(new MDDAction("View 2", View2.class));
+
+        m.add(new MDDAction("View 3", View3.class));
 
         m.add(new MDDAction("Estereotipado", Estereotipado.class));
 

@@ -3,6 +3,8 @@ package io.mateu.ui.mdd.server;
 import io.mateu.ui.mdd.server.annotations.Ignored;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 
 /**
@@ -30,5 +32,13 @@ public interface FieldInterfaced {
 
     String getOptionsQL();
 
-    Object getValue(Object o);
+    Object getValue(Object o) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException;
+
+    String toString();
+
+    Field getField();
+
+    public <T extends Annotation> T[] getDeclaredAnnotationsByType(Class<T> annotationClass);
+
+    public void setValue(Object o, Object v) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException;
 }
