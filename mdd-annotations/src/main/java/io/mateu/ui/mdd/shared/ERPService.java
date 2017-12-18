@@ -29,8 +29,6 @@ public interface ERPService {
 
     Data getMetaData(UserData user, String entityClassName) throws Throwable;
 
-    Data getMetaData(UserData user, Class entity) throws Throwable;
-
     Object runInServer(String className, String methodName, Data parameters) throws Throwable;
 
     WizardPageVO execute(String wizardClassName, String action, Data data) throws Throwable;

@@ -1658,8 +1658,7 @@ public class ERPServiceImpl implements ERPService {
         return getMetadaData(user, c);
     }
 
-    @Override
-    public Data getMetaData(UserData user, Class entity) throws Throwable {
+    private Data getMetaData(UserData user, Class entity) throws Throwable {
         return getMetadaData(user, entity);
     }
 
