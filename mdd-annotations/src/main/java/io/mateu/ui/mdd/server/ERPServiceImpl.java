@@ -809,35 +809,41 @@ public class ERPServiceImpl implements ERPService {
             public void run(EntityManager em) throws Throwable {
                 Object o = em.find(Class.forName(entityClassName), (id instanceof Integer)?new Long((Integer)id):id);
 
-                fillData(user, em, Class.forName(viewClassName), id, data, o);
+                Class viewClass = Class.forName(viewClassName);
 
-                for (Method m : o.getClass().getDeclaredMethods()) {
+                View v = null;
+
+                if (!viewClass.equals(o.getClass())) v = (View) viewClass.newInstance();
+
+                fillData(user, em, viewClass, id, data, o);
+
+                for (Method m : viewClass.getDeclaredMethods()) {
                     if ("toString".equals(m.getName())) {
-                        data.set("_tostring", m.invoke(o));
+                        data.set("_tostring", (v == null)?m.invoke(v):m.invoke(v, o));
                     }
 
                     if (m.isAnnotationPresent(Subtitle.class)) {
-                        data.set("_subtitle", m.invoke(o));
+                        data.set("_subtitle", (v == null)?m.invoke(v):m.invoke(v, o));
                     }
 
                     if (m.isAnnotationPresent(Badges.class)) {
-                        data.set("_badges", m.invoke(o));
+                        data.set("_badges", (v == null)?m.invoke(v):m.invoke(v, o));
                     }
 
                     if (m.isAnnotationPresent(Links.class)) {
-                        data.set("_links", m.invoke(o));
+                        data.set("_links", (v == null)?m.invoke(v):m.invoke(v, o));
                     }
                 }
 
-                if (data.isEmpty("_badges")) for (Method m : getAllMethods(o.getClass())) {
+                if (data.isEmpty("_badges")) for (Method m : getAllMethods(viewClass)) {
                     if (m.isAnnotationPresent(Badges.class)) {
-                        data.set("_badges", m.invoke(o));
+                        data.set("_badges", (v == null)?m.invoke(v):m.invoke(v, o));
                     }
                 }
 
-                if (data.isEmpty("_links")) for (Method m : getAllMethods(o.getClass())) {
+                if (data.isEmpty("_links")) for (Method m : getAllMethods(viewClass)) {
                     if (m.isAnnotationPresent(Links.class)) {
-                        data.set("_links", m.invoke(o));
+                        data.set("_links", (v == null)?m.invoke(v):m.invoke(v, o));
                     }
                 }
 
