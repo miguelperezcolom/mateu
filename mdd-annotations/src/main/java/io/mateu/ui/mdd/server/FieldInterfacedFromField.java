@@ -13,6 +13,7 @@ import java.lang.reflect.Type;
 public class FieldInterfacedFromField implements FieldInterfaced {
 
     private final Field f;
+    private final FieldInterfaced ff;
 
     @Override
     public Field getField() {
@@ -26,10 +27,12 @@ public class FieldInterfacedFromField implements FieldInterfaced {
 
 
     public FieldInterfacedFromField(FieldInterfaced f) {
+        this.ff = f;
         this.f = f.getField();
     }
 
     public FieldInterfacedFromField(Field f) {
+        this.ff = null;
         this.f = f;
     }
 
@@ -68,12 +71,12 @@ public class FieldInterfacedFromField implements FieldInterfaced {
 
     @Override
     public String getName() {
-        return f.getName();
+        return (ff != null)?ff.getName():f.getName();
     }
 
     @Override
     public String getId() {
-        return f.getName();
+        return (ff != null)?ff.getId():f.getName();
     }
 
     @Override

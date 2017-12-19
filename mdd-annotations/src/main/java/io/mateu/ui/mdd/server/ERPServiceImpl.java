@@ -1175,7 +1175,7 @@ public class ERPServiceImpl implements ERPService {
                             List l = (List) v;
                             for (Object x : l) {
                                 Data dx = new Data();
-                                fillData(user, em, viewClass, getId(x), dx, x);
+                                fillData(user, em, o.getClass(), getId(x), dx, x);
                                 dl.add(dx);
                             }
 
@@ -1264,7 +1264,7 @@ public class ERPServiceImpl implements ERPService {
                             List l = (List) v;
                             for (Object x : l) {
                                 Data dx = new Data();
-                                fillData(user, em, viewClass, getId(x), dx, x);
+                                fillData(user, em, o.getClass(), getId(x), dx, x);
                                 dl.add(dx);
                             }
 
@@ -1322,7 +1322,7 @@ public class ERPServiceImpl implements ERPService {
                             if (f.isAnnotationPresent(OwnedList.class)) {
 
                                 Data dx = new Data("_key", k);
-                                fillData(user, em, viewClass, getId(z), dx, z);
+                                fillData(user, em, o.getClass(), getId(z), dx, z);
                                 dl.add(dx);
 
                             } else {
@@ -1686,8 +1686,18 @@ public class ERPServiceImpl implements ERPService {
     private static Data getEditorForm(UserData user, EntityManager em, View v, List<String> viewFormFields, Class viewClass, Class c) throws Exception {
         List<Data> editorFormFields = new ArrayList<>();
         for (FieldInterfaced f : getAllFields(c, v, viewFormFields)) {
-            if (!f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(NotInEditor.class) && !(f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class))) {
-                addField(user, em, editorFormFields, f);
+            if (v == null || (!f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(NotInEditor.class) && !(f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))) {
+                addField(user, em, editorFormFields, (v == null)?f:new FieldInterfacedFromField(f) {
+
+                    @Override
+                    public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
+                        if (Tab.class.equals(annotationClass)) return false;
+                        else if (NotInEditor.class.equals(annotationClass)) return false;
+                        else if (Ignored.class.equals(annotationClass)) return false;
+                        else return super.isAnnotationPresent(annotationClass);
+                    }
+
+                });
             }
         }
 
@@ -1767,10 +1777,15 @@ public class ERPServiceImpl implements ERPService {
         List<FieldInterfaced> l = new ArrayList<>();
 
         if (view != null) for (String fn : fieldsFilter) {
-            fn = fn;
+            boolean soloSalida = false;
+            if (fn.startsWith("-")) {
+                soloSalida = true;
+                fn = fn.substring(1);
+            }
             if (fn.contains(".")) {
                 FieldInterfaced f = null;
                 String finalFn = fn;
+                boolean finalSoloSalida = soloSalida;
                 l.add(f = new FieldInterfacedFromField(getField(entityClass, finalFn, m)) {
                     @Override
                     public String getId() {
@@ -1780,6 +1795,12 @@ public class ERPServiceImpl implements ERPService {
                     @Override
                     public String getName() {
                         return Helper.capitalize(getId());
+                    }
+
+                    @Override
+                    public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
+                        if (finalSoloSalida && Output.class.equals(annotationClass)) return true;
+                        else return super.isAnnotationPresent(annotationClass);
                     }
                 });
 
