@@ -864,7 +864,9 @@ public class ERPServiceImpl implements ERPService {
         View v = null;
         List<String> l = null;
 
-        if (!viewClass.equals(o.getClass())) {
+        if (viewClass == null) viewClass = o.getClass();
+
+        if (View.class.isAssignableFrom(viewClass)) {
             v = (View) viewClass.newInstance();
             l = asList(v.getFields());
         }
@@ -879,7 +881,7 @@ public class ERPServiceImpl implements ERPService {
             if (!Modifier.isStatic(m.getModifiers())) {
                 if (m.isAnnotationPresent(Show.class) || m.isAnnotationPresent(ShowAsHtml.class)) {
 
-                    if (v == null || l.contains(m.getName().toLowerCase())) fillData(em, viewClass, data, prefix, o, getInterfaced(m));
+                    if (v == null || l.contains(m.getName())) fillData(em, viewClass, data, prefix, o, getInterfaced(m));
 
                 }
             }
@@ -890,7 +892,7 @@ public class ERPServiceImpl implements ERPService {
         List<String> l = new ArrayList<>();
         if (s != null) for (String t : s.split(",")) {
             t = t.trim();
-            if (!"".equals(t)) l.add(t.toLowerCase());
+            if (!"".equals(t)) l.add(t);
         }
         return l;
     }
@@ -1555,7 +1557,7 @@ public class ERPServiceImpl implements ERPService {
                     }
 
                 }, null, null, f.getAnnotation(SearchFilterIsNull.class), true, false);
-            } else if (v != null && viewParamFields.contains(f.getName().toLowerCase())) {
+            } else if (v != null && viewParamFields.contains(f.getName())) {
                 addField(searchFormFields, f, null, null, null, true, false);
             }
 
@@ -1621,7 +1623,7 @@ public class ERPServiceImpl implements ERPService {
     private static void addToList(List<String> l, String s) {
         if (s != null) for (String t : s.split(",")) {
             t = t.trim();
-            if (!"".equals(t)) l.add(t.toLowerCase());
+            if (!"".equals(t)) l.add(t);
         }
     }
 
@@ -1719,7 +1721,7 @@ public class ERPServiceImpl implements ERPService {
 
         Map<String, FieldInterfaced> m = new HashMap<>();
 
-        for (FieldInterfaced f : l) m.put(f.getName().toLowerCase(), f);
+        for (FieldInterfaced f : l) m.put(f.getName(), f);
 
         return m;
     }
@@ -1731,7 +1733,7 @@ public class ERPServiceImpl implements ERPService {
         List<FieldInterfaced> l = new ArrayList<>();
 
         if (view != null) for (String fn : fieldsFilter) {
-            fn = fn.toLowerCase();
+            fn = fn;
             if (fn.contains(".")) {
                 FieldInterfaced f = null;
                 String finalFn = fn;

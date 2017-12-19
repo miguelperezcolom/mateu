@@ -8,11 +8,11 @@ import io.mateu.ui.mdd.shared.ERPService;
 public class MDD {
 
     public static void openCRUD(Class entityClass) {
-        ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(MateuUI.getApp().getUserData(), entityClass, new MDDCallback());
+        ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(MateuUI.getApp().getUserData(), entityClass.getName(), new MDDCallback());
     }
 
     public static void openEditor(Class entityClass, Object id) {
-        ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(MateuUI.getApp().getUserData(), entityClass, new Callback<Data>() {
+        ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(MateuUI.getApp().getUserData(), entityClass.getName(), new Callback<Data>() {
             @Override
             public void onSuccess(Data result) {
                 MateuUI.openView(new MDDJPACRUDView(result).getNewEditorView().setInitialId(id));
