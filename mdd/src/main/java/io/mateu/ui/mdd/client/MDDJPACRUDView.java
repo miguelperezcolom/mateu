@@ -426,7 +426,19 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                 } else if (MetaData.FIELDTYPE_GRID.equals(d.getString("_type")) || MetaData.FIELDTYPE_SELECTFROMGRID.equals(d.getString("_type"))) {
                     List<AbstractColumn> cols = new ArrayList<>();
                     for (Data dc : d.getList("_cols")) if (!dc.containsKey("_notinlist")) {
-                        cols.add(new OutputColumn(dc.getString("_id"), dc.getString("_label"), 100));
+                        OutputColumn c;
+                        cols.add(c = new OutputColumn(dc.getString("_id"), dc.getString("_label"), 100));
+                        if (!dc.isEmpty("_cellstylegenerator")) {
+                            try {
+                                c.setStyleGenerator((CellStyleGenerator)Class.forName(d.getString("_cellstylegenerator")).newInstance());
+                            } catch (InstantiationException e) {
+                                e.printStackTrace();
+                            } catch (IllegalAccessException e) {
+                                e.printStackTrace();
+                            } catch (ClassNotFoundException e) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
 
                     fields.add(new GridField(prefix + d.getString("_id"), d.getString("_label"), cols) {
