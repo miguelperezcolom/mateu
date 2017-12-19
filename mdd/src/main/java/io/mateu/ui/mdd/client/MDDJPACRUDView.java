@@ -1,5 +1,6 @@
 package io.mateu.ui.mdd.client;
 
+import com.google.common.base.Strings;
 import io.mateu.ui.core.client.app.AbstractAction;
 import io.mateu.ui.core.client.app.Callback;
 import io.mateu.ui.core.client.app.MateuUI;
@@ -15,6 +16,7 @@ import io.mateu.ui.mdd.server.WizardPageVO;
 import io.mateu.ui.mdd.shared.ERPService;
 import io.mateu.ui.mdd.shared.MDDLink;
 import io.mateu.ui.mdd.shared.MetaData;
+import org.apache.batik.util.RunnableQueue;
 
 import java.io.IOException;
 import java.net.URL;
@@ -285,6 +287,8 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                     fields.add(new HtmlField(prefix + d.getString("_id"), d.getString("_label")));
                 } else if (MetaData.FIELDTYPE_OUTPUT.equals(d.getString("_type"))) {
                     fields.add(new ShowTextField(prefix + d.getString("_id"), d.getString("_label")));
+                } else if (MetaData.FIELDTYPE_OUTPUTENTITY.equals(d.getString("_type"))) {
+                    fields.add(new ShowEntityField(prefix + d.getString("_id"), d.getString("_label")));
                 } else if (MetaData.FIELDTYPE_WEEKDAYS.equals(d.getString("_type"))) {
                     fields.add(new WeekDaysField(prefix + d.getString("_id"), d.getString("_label")));
                 } else if (MetaData.FIELDTYPE_TEXTAREA.equals(d.getString("_type"))) {
@@ -798,7 +802,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                 }
 
                 if (needsParameters) {
-                    if (wizard !=  null) {
+                    if (wizard != null) {
 
                         WizardPageVO vo = wizard.get("_pagevo");
 
@@ -810,7 +814,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                             @Override
                             public void onSuccess(Data data) {
                                 parameters.set(finalWizardParameterName, data);
-                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).runInServer(da.getString("_entityClassName"), da.getString("_methodname"), parameters, new Callback<Object>() {
+                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).runInServer(MateuUI.getApp().getUserData(), da.getString("_entityClassName"), da.getString("_methodname"), parameters, new Callback<Object>() {
                                     @Override
                                     public void onSuccess(Object result) {
                                         h.onSuccess(result);
@@ -840,7 +844,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
                             @Override
                             public void onOk(Data data) {
-                                ((ERPServiceAsync)MateuUI.create(ERPService.class)).runInServer(da.getString("_entityClassName"), da.getString("_methodname"), getForm().getData(), new Callback<Object>() {
+                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).runInServer(MateuUI.getApp().getUserData(), da.getString("_entityClassName"), da.getString("_methodname"), getForm().getData(), new Callback<Object>() {
                                     @Override
                                     public void onSuccess(Object result) {
                                         h.onSuccess(result);
@@ -860,7 +864,24 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                         });
 
                     }
-                } else ((ERPServiceAsync)MateuUI.create(ERPService.class)).runInServer(da.getString("_entityClassName"), da.getString("_methodname"), parameters, new Callback<Object>() {
+                } else if (!Strings.isNullOrEmpty(da.getString("_confirmationmessage"))) {
+                    MateuUI.confirm(da.getString("_confirmationmessage"), new RunnableQueue.IdleRunnable() {
+                        @Override
+                        public long getWaitTime() {
+                            return 0;
+                        }
+
+                        @Override
+                        public void run() {
+                            ((ERPServiceAsync)MateuUI.create(ERPService.class)).runInServer(MateuUI.getApp().getUserData(), da.getString("_entityClassName"), da.getString("_methodname"), parameters, new Callback<Object>() {
+                                @Override
+                                public void onSuccess(Object result) {
+                                    h.onSuccess(result);
+                                }
+                            });
+                        }
+                    });
+                } else ((ERPServiceAsync)MateuUI.create(ERPService.class)).runInServer(MateuUI.getApp().getUserData(), da.getString("_entityClassName"), da.getString("_methodname"), parameters, new Callback<Object>() {
                     @Override
                     public void onSuccess(Object result) {
                         h.onSuccess(result);
@@ -917,7 +938,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                         Actions a = (Actions) action;
                         switch (a) {
                             case GONEXT:
-                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).execute(vo.getWizardClassName(), (String) data.get("_gonextaction"), data, new Callback<WizardPageVO>() {
+                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).execute(MateuUI.getApp().getUserData(), vo.getWizardClassName(), (String) data.get("_gonextaction"), data, new Callback<WizardPageVO>() {
                                     @Override
                                     public void onSuccess(WizardPageVO result) {
                                         setAll(result.getData());
@@ -949,7 +970,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                                 });
                                 break;
                             case GOBACK:
-                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).execute(vo.getWizardClassName(), (String) data.get("_gobackaction"), data, new Callback<WizardPageVO>() {
+                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).execute(MateuUI.getApp().getUserData(), vo.getWizardClassName(), (String) data.get("_gobackaction"), data, new Callback<WizardPageVO>() {
                                     @Override
                                     public void onSuccess(WizardPageVO result) {
                                         //setAll(result.getData());

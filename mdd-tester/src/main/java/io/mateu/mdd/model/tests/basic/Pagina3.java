@@ -1,12 +1,14 @@
 package io.mateu.mdd.model.tests.basic;
 
 import io.mateu.ui.core.shared.Data;
+import io.mateu.ui.core.shared.UserData;
 import io.mateu.ui.mdd.server.AbstractServerSideWizardPage;
 import io.mateu.ui.mdd.server.ERPServiceImpl;
 import io.mateu.ui.mdd.server.annotations.UseGridToSelect;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.persistence.EntityManager;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,14 +27,14 @@ public class Pagina3 extends AbstractServerSideWizardPage {
     }
 
     @Override
-    public Data getData(Data in) throws Throwable {
+    public Data getData(UserData user, EntityManager em, Data in) throws Throwable {
         Data out = new Data();
 
         List<Data> l = new ArrayList<>();
         for (Option o : getOptions()) {
             Data d;
             l.add(d = new Data());
-            ERPServiceImpl.fillData(d, o);
+            ERPServiceImpl.fillData(user, em, d, o);
         }
         out.set("option_data", l);
 

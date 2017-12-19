@@ -45,10 +45,14 @@ public class FieldInterfacedFromField implements FieldInterfaced {
 
     @Override
     public Class<?> getGenericClass() {
-        ParameterizedType genericType = (ParameterizedType) f.getGenericType();
-        if (genericType != null && genericType.getActualTypeArguments().length > 0) {
-            Class<?> genericClass = (Class<?>) genericType.getActualTypeArguments()[0];
-            return genericClass;
+        if (f.getGenericType() != null && f.getGenericType() instanceof ParameterizedType) {
+
+            ParameterizedType genericType = (ParameterizedType) f.getGenericType();
+            if (genericType != null && genericType.getActualTypeArguments().length > 0) {
+                Class<?> genericClass = (Class<?>) genericType.getActualTypeArguments()[0];
+                return genericClass;
+            } else return null;
+
         } else return null;
     }
 

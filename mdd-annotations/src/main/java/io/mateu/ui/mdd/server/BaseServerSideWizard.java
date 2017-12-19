@@ -2,7 +2,9 @@ package io.mateu.ui.mdd.server;
 
 import com.google.common.base.Strings;
 import io.mateu.ui.core.shared.Data;
+import io.mateu.ui.core.shared.UserData;
 
+import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +14,7 @@ public abstract class BaseServerSideWizard extends AbstractServerSideWizard {
 
 
     @Override
-    public WizardPageVO execute(String action, Data data) throws Throwable {
+    public WizardPageVO execute(UserData user, EntityManager em, String action, Data data) throws Throwable {
         AbstractServerSideWizardPage p = null;
         if (Strings.isNullOrEmpty(action)) {
             if (getPages().size() > 0) p = getPages().get(0);
@@ -22,7 +24,7 @@ public abstract class BaseServerSideWizard extends AbstractServerSideWizard {
                 p = getPages().get(i);
             }
         }
-        return ERPServiceImpl.getWizardPageVO(this, p, data);
+        return ERPServiceImpl.getWizardPageVO(user, em, this, p, data);
     }
 
 

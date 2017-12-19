@@ -18,4 +18,6 @@ public @interface Action {
 
     boolean addAsButton() default false;
 
+    String confirmationMessage() default "";
+
 }

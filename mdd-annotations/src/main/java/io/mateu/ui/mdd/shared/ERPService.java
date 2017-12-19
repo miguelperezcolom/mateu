@@ -19,18 +19,18 @@ public interface ERPService {
 
     public int executeUpdate(String jpql) throws Throwable;
 
-    Data set(String entityClassName, String viewClassName, Data data) throws Throwable;
+    Data set(UserData user, String entityClassName, String viewClassName, Data data) throws Throwable;
 
-    Data get(String entityClassName, String viewClassName, long id) throws Throwable;
+    Data get(UserData user, String entityClassName, String viewClassName, long id) throws Throwable;
 
-    Data get(String entityClassName, String viewClassName, int id) throws Throwable;
+    Data get(UserData user, String entityClassName, String viewClassName, int id) throws Throwable;
 
-    Data get(String entityClassName, String viewClassName, String id) throws Throwable;
+    Data get(UserData user, String entityClassName, String viewClassName, String id) throws Throwable;
 
     Data getMetaData(UserData user, String entityClassName) throws Throwable;
 
-    Object runInServer(String className, String methodName, Data parameters) throws Throwable;
+    Object runInServer(UserData user, String className, String methodName, Data parameters) throws Throwable;
 
-    WizardPageVO execute(String wizardClassName, String action, Data data) throws Throwable;
+    WizardPageVO execute(UserData user, String wizardClassName, String action, Data data) throws Throwable;
 
 }
