@@ -430,7 +430,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                         cols.add(c = new OutputColumn(dc.getString("_id"), dc.getString("_label"), 100));
                         if (!dc.isEmpty("_cellstylegenerator")) {
                             try {
-                                c.setStyleGenerator((CellStyleGenerator)Class.forName(d.getString("_cellstylegenerator")).newInstance());
+                                c.setStyleGenerator((CellStyleGenerator)Class.forName(dc.getString("_cellstylegenerator")).newInstance());
                             } catch (InstantiationException e) {
                                 e.printStackTrace();
                             } catch (IllegalAccessException e) {
