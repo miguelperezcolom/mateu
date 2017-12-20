@@ -13,11 +13,15 @@ import io.mateu.ui.core.shared.CellStyleGenerator;
 import io.mateu.ui.core.shared.Data;
 import io.mateu.ui.core.shared.Pair;
 import io.mateu.ui.mdd.server.WizardPageVO;
+import io.mateu.ui.mdd.server.interfaces.View;
+import io.mateu.ui.mdd.server.util.Helper;
+import io.mateu.ui.mdd.server.util.JPATransaction;
 import io.mateu.ui.mdd.shared.ERPService;
 import io.mateu.ui.mdd.shared.MDDLink;
 import io.mateu.ui.mdd.shared.MetaData;
 import org.apache.batik.util.RunnableQueue;
 
+import javax.persistence.EntityManager;
 import java.io.IOException;
 import java.net.URL;
 import java.time.Instant;
@@ -503,6 +507,37 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
     @Override
     public String getSql() {
 
+        Data sfd = getForm().getData();
+
+        if (!Strings.isNullOrEmpty(viewClassName) && !viewClassName.equals(entityClassName)) {
+            try {
+                View v = (View) Class.forName(viewClassName).newInstance();
+
+                String[] jpql = new String[1];
+
+                Helper.transact(new JPATransaction() {
+                    @Override
+                    public void run(EntityManager em) throws Throwable {
+
+                        jpql[0] = v.buildQuery(em, MateuUI.getApp().getUserData(), sfd);
+
+                    }
+                });
+
+                if (!Strings.isNullOrEmpty(jpql[0])) return jpql[0];
+
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
+            }
+        }
+
+
         // seleccionamos todos los campos y acumulamos los left joins los filtros y los ordenes
         List<Data> selects = new ArrayList<>();
         List<Data> wheres = new ArrayList<>();
@@ -563,7 +598,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
             jpql += " left outer join x." + lj + " x" + ljs.get(lj) + " ";
         }
 
-        Data sfd = getForm().getData();
+
 
         for (String ij : innerJoins) {
 
@@ -583,6 +618,34 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
         int posfilter = 0;
         String filters = "";
+
+        if (!Strings.isNullOrEmpty(viewClassName) && !viewClassName.equals(entityClassName)) {
+            try {
+                View v = (View) Class.forName(viewClassName).newInstance();
+
+                String[] f = new String[1];
+
+                Helper.transact(new JPATransaction() {
+                    @Override
+                    public void run(EntityManager em) throws Throwable {
+
+                        f[0] = v.getAdditionalFilters(em, MateuUI.getApp().getUserData(), sfd);
+
+                    }
+                });
+
+                if (!Strings.isNullOrEmpty(f[0])) filters = f[0];
+
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
+            }
+        }
 
         if (getMetadata().containsKey("_additionalcriteria")) filters += getMetadata().get("_additionalcriteria");
 

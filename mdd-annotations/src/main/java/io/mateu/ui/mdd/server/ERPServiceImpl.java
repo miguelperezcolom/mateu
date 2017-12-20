@@ -1686,7 +1686,9 @@ public class ERPServiceImpl implements ERPService {
     private static Data getEditorForm(UserData user, EntityManager em, View v, List<String> viewFormFields, Class viewClass, Class c) throws Exception {
         List<Data> editorFormFields = new ArrayList<>();
         for (FieldInterfaced f : getAllFields(c, v, viewFormFields)) {
-            if (v == null || (!f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(NotInEditor.class) && !(f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))) {
+            System.out.println("xxxxxxx:" + f.getId());
+            if (v != null || (!f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(NotInEditor.class) && !(f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))) {
+                System.out.println("addField(" + f.getId() + ")");
                 addField(user, em, editorFormFields, (v == null)?f:new FieldInterfacedFromField(f) {
 
                     @Override
@@ -1805,7 +1807,16 @@ public class ERPServiceImpl implements ERPService {
                 });
 
             } else {
-                if (m.containsKey(fn)) l.add(m.get(fn));
+                if (m.containsKey(fn)) {
+                    boolean finalSoloSalida1 = soloSalida;
+                    l.add((soloSalida)?new FieldInterfacedFromField(m.get(fn)) {
+                        @Override
+                        public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
+                            if (finalSoloSalida1 && Output.class.equals(annotationClass)) return true;
+                            else return super.isAnnotationPresent(annotationClass);
+                        }
+                    }:m.get(fn));
+                }
             }
         } else l.addAll(fs);
 

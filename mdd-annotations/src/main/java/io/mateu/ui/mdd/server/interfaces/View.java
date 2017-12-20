@@ -1,12 +1,34 @@
 package io.mateu.ui.mdd.server.interfaces;
 
+import io.mateu.ui.core.shared.Data;
+import io.mateu.ui.core.shared.UserData;
+
+import javax.persistence.EntityManager;
+
 public interface View<T> {
 
-    public String getFields();
+    default String getFields() {
+        return null;
+    }
 
-    public String getParams();
+    default String getParams() {
+        return null;
+    }
 
-    public String getCols();
+    default String getCols() {
+        return null;
+    }
 
-    public String getOrderCriteria();
+    default String getOrderCriteria() {
+        return null;
+    }
+
+    default String getAdditionalFilters(EntityManager em, UserData user, Data parameters) {
+        return null;
+    }
+
+
+    default String buildQuery(EntityManager em, UserData user, Data parameters) {
+        return null;
+    }
 }

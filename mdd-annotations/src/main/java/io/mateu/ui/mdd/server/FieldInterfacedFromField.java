@@ -22,7 +22,7 @@ public class FieldInterfacedFromField implements FieldInterfaced {
 
     @Override
     public <T extends Annotation> T[] getDeclaredAnnotationsByType(Class<T> annotationClass) {
-        return f.getDeclaredAnnotationsByType(annotationClass);
+        return (ff != null)?ff.getDeclaredAnnotationsByType(annotationClass):f.getDeclaredAnnotationsByType(annotationClass);
     }
 
 
@@ -38,17 +38,18 @@ public class FieldInterfacedFromField implements FieldInterfaced {
 
     @Override
     public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-        return f.isAnnotationPresent(annotationClass);
+        return (ff != null)?ff.isAnnotationPresent(annotationClass):f.isAnnotationPresent(annotationClass);
     }
 
     @Override
     public Class<?> getType() {
-        return f.getType();
+        return (ff != null)?ff.getType():f.getType();
     }
 
     @Override
     public Class<?> getGenericClass() {
-        if (f.getGenericType() != null && f.getGenericType() instanceof ParameterizedType) {
+        if (ff != null) return ff.getGenericClass();
+        else if (f.getGenericType() != null && f.getGenericType() instanceof ParameterizedType) {
 
             ParameterizedType genericType = (ParameterizedType) f.getGenericType();
             if (genericType != null && genericType.getActualTypeArguments().length > 0) {
@@ -61,12 +62,12 @@ public class FieldInterfacedFromField implements FieldInterfaced {
 
     @Override
     public Class<?> getDeclaringClass() {
-        return f.getDeclaringClass();
+        return (ff != null)?ff.getDeclaringClass():f.getDeclaringClass();
     }
 
     @Override
     public Type getGenericType() {
-        return f.getGenericType();
+        return (ff != null)?ff.getGenericType():f.getGenericType();
     }
 
     @Override
@@ -81,17 +82,17 @@ public class FieldInterfacedFromField implements FieldInterfaced {
 
     @Override
     public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
-        return f.getAnnotation(annotationClass);
+        return (ff != null)?ff.getAnnotation(annotationClass):f.getAnnotation(annotationClass);
     }
 
     @Override
     public Class<?> getOptionsClass() {
-        return (f.isAnnotationPresent(ValueClass.class))?f.getAnnotation(ValueClass.class).value():null;
+        return (ff != null)?ff.getOptionsClass():((f.isAnnotationPresent(ValueClass.class))?f.getAnnotation(ValueClass.class).value():null);
     }
 
     @Override
     public String getOptionsQL() {
-        return (f.isAnnotationPresent(ValueQL.class))?f.getAnnotation(ValueQL.class).value():null;
+        return (ff != null)?ff.getOptionsQL():((f.isAnnotationPresent(ValueQL.class))?f.getAnnotation(ValueQL.class).value():null);
     }
 
     @Override
