@@ -1641,8 +1641,12 @@ public class ERPServiceImpl implements ERPService {
 
         if (!Strings.isNullOrEmpty(parentFieldName)) {
             parentFieldName = Helper.capitalize(parentFieldName);
+            int pos = 0;
             for (Data x : data.getData("_editorform").getList("_fields")) {
-                if (x.containsKey("_label")) x.set("_label", parentFieldName + " " + x.get("_label"));
+                if (pos == 0) {
+                    x.set("_separator", Helper.capitalize(parentFieldName));
+                    break;
+                }
             }
         }
 
