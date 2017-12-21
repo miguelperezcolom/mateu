@@ -5,24 +5,20 @@ import io.mateu.ui.core.client.app.AbstractAction;
 public class MDDAction extends AbstractAction {
 
     private final Class entityClass;
-    private final Object id;
-
-    public MDDAction(String name, Class entityClass, Object id) {
-        super(name);
-        this.entityClass = entityClass;
-        this.id = id;
-    }
+    private final String queryFilters;
 
     public MDDAction(String name, Class entityClass) {
         this(name, entityClass, null);
     }
 
+    public MDDAction(String name, Class entityClass, String queryFilters) {
+        super(name);
+        this.entityClass = entityClass;
+        this.queryFilters = queryFilters;
+    }
+
     @Override
     public void run() {
-        if (id == null) {
-            MDD.openCRUD(entityClass);
-        } else {
-            MDD.openEditor(entityClass, id);
-        }
+        MDD.openCRUD(entityClass, queryFilters);
     }
 }

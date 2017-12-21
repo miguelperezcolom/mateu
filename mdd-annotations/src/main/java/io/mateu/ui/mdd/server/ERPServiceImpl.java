@@ -1453,11 +1453,11 @@ public class ERPServiceImpl implements ERPService {
         return id;
     }
 
-    public static Data getMetadaData(UserData user, EntityManager em, Class c) throws Exception {
-        return getMetadaData(user, em, null, c);
+    public static Data getMetadaData(UserData user, EntityManager em, Class c, String queryFilters) throws Exception {
+        return getMetadaData(user, em, null, c, queryFilters);
     }
 
-    public static Data getMetadaData(UserData user, EntityManager em, String parentFieldName, Class c) throws Exception {
+    public static Data getMetadaData(UserData user, EntityManager em, String parentFieldName, Class c, String queryFilters) throws Exception {
         Data data = new Data();
 
         View v = null;
@@ -1494,13 +1494,19 @@ public class ERPServiceImpl implements ERPService {
         if (viewClass.isAnnotationPresent(Indelible.class)) data.set("_indelible", true);
         if (viewClass.isAnnotationPresent(NewNotAllowed.class)) data.set("_newnotallowed", true);
 
+        String [] qf = {queryFilters};
+
         if (Filtered.class.isAssignableFrom(viewClass)) {
             try {
                 Class finalViewClass = viewClass;
                 Helper.transact(new JPATransaction() {
                     @Override
                     public void run(EntityManager em) throws Throwable {
-                        data.set("_additionalcriteria", ((Filtered) finalViewClass.newInstance()).getAdditionalCriteria(em, user));
+                        String f = ((Filtered) finalViewClass.newInstance()).getAdditionalCriteria(em, user);
+                        if (!Strings.isNullOrEmpty(f)) {
+                            if (!Strings.isNullOrEmpty(qf[0])) qf[0] += " and ";
+                            qf[0] += f;
+                        }
                     }
                 });
             } catch (Throwable throwable) {
@@ -1508,7 +1514,9 @@ public class ERPServiceImpl implements ERPService {
             }
         }
 
-        // buscamos subclases
+        if (!Strings.isNullOrEmpty(qf[0])) data.set("_additionalcriteria", qf[0]);
+
+                // buscamos subclases
 
         if (!c.isArray() && !c.isPrimitive() && c.getProtectionDomain() != null && c.getProtectionDomain().getCodeSource() != null && c.getProtectionDomain().getCodeSource().getLocation() != null) {
 
@@ -1660,7 +1668,7 @@ public class ERPServiceImpl implements ERPService {
 
 
     @Override
-    public Data getMetaData(UserData user, String entityClassName) throws Exception {
+    public Data getMetaData(UserData user, String entityClassName, String queryFilters) throws Exception {
         Class c = Class.forName(entityClassName);
 
         Data[] data = new Data[1];
@@ -1669,7 +1677,7 @@ public class ERPServiceImpl implements ERPService {
             Helper.transact(new JPATransaction() {
                 @Override
                 public void run(EntityManager em) throws Throwable {
-                    data[0] = getMetadaData(user, em, c);
+                    data[0] = getMetadaData(user, em, c, queryFilters);
                 }
             });
         } catch (Throwable throwable) {
@@ -1679,8 +1687,8 @@ public class ERPServiceImpl implements ERPService {
         return data[0];
     }
 
-    private Data getMetaData(UserData user, EntityManager em, Class entity) throws Throwable {
-        return getMetadaData(user, em, entity);
+    private Data getMetaData(UserData user, EntityManager em, Class entity, String queryFilters) throws Throwable {
+        return getMetadaData(user, em, entity, queryFilters);
     }
 
     private static Data getEditorForm(UserData user, EntityManager em, View v, List<String> viewFormFields, Class viewClass, Class c) throws Exception {
@@ -2570,7 +2578,7 @@ public class ERPServiceImpl implements ERPService {
                             if (f.isAnnotationPresent(Owned.class)) {
                                 d.set("_owned", true);
 
-                                d.set("_metadata", getMetadaData(user, em, f.getType()).getData("_editorform"));
+                                d.set("_metadata", getMetadaData(user, em, f.getType(), null).getData("_editorform"));
 
                             } else {
 
@@ -2687,7 +2695,7 @@ public class ERPServiceImpl implements ERPService {
 
                             System.out.println("adding field " +f.getId());
 
-                            d.set("_metadata", getMetadaData(user, em, f.getId(), f.getType()).getData("_editorform"));
+                            d.set("_metadata", getMetadaData(user, em, f.getId(), f.getType(), null).getData("_editorform"));
 
 
                         }
@@ -2816,7 +2824,7 @@ public class ERPServiceImpl implements ERPService {
 
             vo.setTitle(p.getTitle());
             vo.setWizardClassName(w.getClass().getName());
-            vo.setMetaData(getMetadaData(user, em, p.getClass()));
+            vo.setMetaData(getMetadaData(user, em, p.getClass(), null));
             vo.setFirstPage(w.getPages().indexOf(p) == 0);
             vo.setLastPage(w.getPages().indexOf(p) == w.getPages().size() - 1);
             if (!vo.isFirstPage()) vo.setGoBackAction("gotopage_" + (w.getPages().indexOf(p) - 1));
