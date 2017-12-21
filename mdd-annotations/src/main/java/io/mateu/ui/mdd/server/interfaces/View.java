@@ -34,7 +34,7 @@ public interface View<T> {
         return null;
     }
 
-    default String newInstance(EntityManager em, UserData user) {
+    default T newInstance(EntityManager em, UserData user) {
         return null;
     }
 
