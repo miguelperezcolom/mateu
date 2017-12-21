@@ -17,7 +17,7 @@ public abstract class AbstractServerSideWizardPage {
         return null;
     }
 
-    public void fill(EntityManager em, Data data) throws Throwable {
-        ERPServiceImpl.fillEntity(em, this, data, false);
+    public void fill(EntityManager em, UserData user, Data data) throws Throwable {
+        ERPServiceImpl.fillEntity(em, user,this, data, false);
     }
 }

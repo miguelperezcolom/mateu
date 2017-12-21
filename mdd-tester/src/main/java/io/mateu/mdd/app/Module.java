@@ -73,6 +73,8 @@ public class Module extends AbstractModule {
 
         m.add(new MDDAction("View 3", View3.class));
 
+        m.add(new MDDAction("View 4", View4.class));
+
         m.add(new MDDAction("Estereotipado", Estereotipado.class));
 
 

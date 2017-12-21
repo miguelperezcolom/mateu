@@ -11,6 +11,8 @@ public interface View<T> {
         return null;
     }
 
+    default boolean isFieldsListedOnly() { return true; }
+
     default String getParams() {
         return null;
     }
@@ -31,4 +33,14 @@ public interface View<T> {
     default String buildQuery(EntityManager em, UserData user, Data parameters) {
         return null;
     }
+
+    default String newInstance(EntityManager em, UserData user) {
+        return null;
+    }
+
+    default String getQLFilter(EntityManager em, UserData user, String field) {
+        return null;
+    }
+
+
 }
