@@ -29,7 +29,7 @@ public abstract class JPAEditorView extends BaseEditorView {
     @Override
     public void save(Data data, AsyncCallback<Data> callback) {
         ERPServiceAsync s = MateuUI.create(ERPService.class);
-        s.set(null, getEntityClassName(), crud.getViewClassName(), data, callback);
+        s.set(MateuUI.getApp().getUserData(), getEntityClassName(), crud.getViewClassName(), data, callback);
     }
 
     @Override

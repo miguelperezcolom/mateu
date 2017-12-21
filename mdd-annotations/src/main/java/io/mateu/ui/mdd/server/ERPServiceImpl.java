@@ -1593,7 +1593,7 @@ public class ERPServiceImpl implements ERPService {
         }
 
         boolean hayListColumns = false;
-        if (v == null) for (FieldInterfaced f : getAllFields(c)) {
+        if (v == null || Strings.isNullOrEmpty(v.getCols())) for (FieldInterfaced f : getAllFields(c)) {
             if (f.isAnnotationPresent(Id.class) || f.isAnnotationPresent(ListColumn.class) || f.isAnnotationPresent(SearchFilter.class) || f.isAnnotationPresent(ListColumns.class) || f.isAnnotationPresent(SearchFilters.class)) {
                 if (!(f.isAnnotationPresent(OneToMany.class) || f.isAnnotationPresent(ManyToMany.class) || f.isAnnotationPresent(MapKey.class) || f.isAnnotationPresent(ElementCollection.class) || f.isAnnotationPresent(NotInList.class))) {
                     hayListColumns |= f.isAnnotationPresent(ListColumn.class) || f.isAnnotationPresent(ListColumns.class);
@@ -1604,7 +1604,7 @@ public class ERPServiceImpl implements ERPService {
 
         if (!hayListColumns) {
             listColumns.clear();
-            for (FieldInterfaced f : getAllFields(c, v, viewColumnFields, null)) {
+            for (FieldInterfaced f : getAllFields(c, (v == null || Strings.isNullOrEmpty(v.getCols()))?null:v, viewColumnFields, null)) {
                 if (!(f.isAnnotationPresent(OneToMany.class) || f.isAnnotationPresent(ManyToMany.class) || f.isAnnotationPresent(MapKey.class) || f.isAnnotationPresent(ElementCollection.class) || f.isAnnotationPresent(NotInList.class)))
                     addColumn(user, em, v, listColumns, f);
             }
@@ -1726,7 +1726,7 @@ public class ERPServiceImpl implements ERPService {
     private static Data getEditorForm(UserData user, EntityManager em, View v, List<String> viewFormFields, List<String> negatedFormFields, Class viewClass, Class c) throws Exception {
         List<Data> editorFormFields = new ArrayList<>();
         for (FieldInterfaced f : getAllFields(c, v, viewFormFields, negatedFormFields)) {
-            if (v != null || (!f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(NotInEditor.class) && !(f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))) {
+            if ((v != null && v.isFieldsListedOnly()) || (!f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(NotInEditor.class) && !(f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))) {
                 addField(user, em, v, editorFormFields, (v == null)?f:new FieldInterfacedFromField(f) {
 
                     @Override
