@@ -2722,20 +2722,24 @@ public class ERPServiceImpl implements ERPService {
                                 }
 
 
-                                String w = view.getQLFilter(em, user, f.getId());
+                                if (view != null) {
 
-                                if (!Strings.isNullOrEmpty(w)) {
-                                    int pos = defaultQl.indexOf(" where ");
-                                    if (pos > 0) {
-                                        pos = pos + " where".length();
-                                        defaultQl = defaultQl.substring(0, pos) + " " + w + defaultQl.substring(pos);
-                                    } else {
-                                        pos = defaultQl.indexOf(" order ");
+                                    String w = view.getQLFilter(em, user, f.getId());
+
+                                    if (!Strings.isNullOrEmpty(w)) {
+                                        int pos = defaultQl.indexOf(" where ");
                                         if (pos > 0) {
-                                            defaultQl = defaultQl.substring(0, pos) + " where " + w + defaultQl.substring(pos);
+                                            pos = pos + " where".length();
+                                            defaultQl = defaultQl.substring(0, pos) + " " + w + defaultQl.substring(pos);
                                         } else {
-                                            defaultQl += " where " + w;
+                                            pos = defaultQl.indexOf(" order ");
+                                            if (pos > 0) {
+                                                defaultQl = defaultQl.substring(0, pos) + " where " + w + defaultQl.substring(pos);
+                                            } else {
+                                                defaultQl += " where " + w;
+                                            }
                                         }
+
                                     }
 
                                 }
@@ -2872,20 +2876,24 @@ public class ERPServiceImpl implements ERPService {
             if (ql != null && !"".equals(ql.trim())) defaultQl = ql;
         }
 
-        String w = view.getQLFilter(em, user, fieldId);
+        if (view != null) {
 
-        if (!Strings.isNullOrEmpty(w)) {
-            int pos = defaultQl.indexOf(" where ");
-            if (pos > 0) {
-                pos = pos + " where".length();
-                defaultQl = defaultQl.substring(0, pos) + " " + w + defaultQl.substring(pos);
-            } else {
-                pos = defaultQl.indexOf(" order ");
+            String w = view.getQLFilter(em, user, fieldId);
+
+            if (!Strings.isNullOrEmpty(w)) {
+                int pos = defaultQl.indexOf(" where ");
                 if (pos > 0) {
-                    defaultQl = defaultQl.substring(0, pos) + " where " + w + defaultQl.substring(pos);
+                    pos = pos + " where".length();
+                    defaultQl = defaultQl.substring(0, pos) + " " + w + defaultQl.substring(pos);
                 } else {
-                    defaultQl += " where " + w;
+                    pos = defaultQl.indexOf(" order ");
+                    if (pos > 0) {
+                        defaultQl = defaultQl.substring(0, pos) + " where " + w + defaultQl.substring(pos);
+                    } else {
+                        defaultQl += " where " + w;
+                    }
                 }
+
             }
 
         }
