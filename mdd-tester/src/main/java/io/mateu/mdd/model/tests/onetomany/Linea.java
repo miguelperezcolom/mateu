@@ -28,6 +28,6 @@ public class Linea {
 
     private boolean active;
 
-    private int[] ages;
+    //private int[] ages;
 
 }

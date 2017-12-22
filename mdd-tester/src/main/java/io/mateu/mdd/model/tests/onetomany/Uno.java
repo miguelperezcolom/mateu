@@ -28,6 +28,8 @@ public class Uno {
     @OwnedList
     private List<Linea> hijo;
 
+    private String test;
+
 
     @Action(name = "Provocar error")
     public void provocarExcepcion() throws Throwable {

@@ -3,10 +3,7 @@ package io.mateu.mdd.model.tests.basic;
 import io.mateu.mdd.model.authentication.User;
 import io.mateu.ui.core.shared.Data;
 import io.mateu.ui.core.shared.UserData;
-import io.mateu.ui.mdd.server.annotations.Action;
-import io.mateu.ui.mdd.server.annotations.Output;
-import io.mateu.ui.mdd.server.annotations.SearchFilter;
-import io.mateu.ui.mdd.server.annotations.Wizard;
+import io.mateu.ui.mdd.server.annotations.*;
 import io.mateu.ui.mdd.shared.ActionType;
 import io.mateu.ui.mdd.shared.MDDLink;
 import lombok.Getter;
@@ -38,6 +35,12 @@ public class Basico {
     @Temporal(TemporalType.TIMESTAMP)
     @Output
     private Date date2 = new Date();
+
+    @ShowAsHtml("Método")
+    public String metodo() {
+        return "<h1>Hola!!!</h1>";
+    }
+
 
     @Action(name = "Test wizard")
     public MDDLink testWizard(@Wizard(MiWizard.class) Data parametros) {

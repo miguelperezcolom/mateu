@@ -334,6 +334,8 @@ public class ERPServiceImpl implements ERPService {
 
             if (updatable) {
 
+                boolean set = true;
+
                 if (data != null && data.containsKey(f.getId() + "____object")) {
                     Object z = o.getClass().getMethod(getGetter(f)).invoke(o);
                     boolean recienCreado = false;
@@ -530,7 +532,7 @@ public class ERPServiceImpl implements ERPService {
                                         fillEntity(em, user, em.find(genericClass, d.get("_id")), d, false);
                                     }
                                 }
-                                break; // no hacer el set
+                                set = false;
                             } else if (genericClass.isAnnotationPresent(Entity.class)) {
                                 List<Object> l = new ArrayList<>();
                                 List<Pair> ll = (v instanceof PairList)?((PairList)v).getValues(): (List<Pair>) v;
@@ -729,7 +731,7 @@ public class ERPServiceImpl implements ERPService {
                             v = z;
                         }
 
-                        f.setValue(o, v);
+                        if (set) f.setValue(o, v);
                     }
                 }
             }
