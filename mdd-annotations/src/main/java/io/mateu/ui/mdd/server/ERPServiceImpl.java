@@ -1469,10 +1469,10 @@ public class ERPServiceImpl implements ERPService {
     }
 
     public static Data getMetadaData(UserData user, EntityManager em, Class c, String queryFilters) throws Exception {
-        return getMetadaData(user, em, null, c, queryFilters);
+        return getMetadaData(user, em, null, c, queryFilters, false);
     }
 
-    public static Data getMetadaData(UserData user, EntityManager em, String parentFieldName, Class c, String queryFilters) throws Exception {
+    public static Data getMetadaData(UserData user, EntityManager em, String parentFieldName, Class c, String queryFilters, boolean doNotIncludeSeparator) throws Exception {
         Data data = new Data();
 
         View v = null;
@@ -1641,7 +1641,7 @@ public class ERPServiceImpl implements ERPService {
         data.set("_actions", staticActions);
         data.set("_editorform", getEditorForm(user, em, v, viewFormFields, negatedViewFormFields, viewClass, c));
 
-        if (!Strings.isNullOrEmpty(parentFieldName)) {
+        if (!Strings.isNullOrEmpty(parentFieldName) && !doNotIncludeSeparator) {
             parentFieldName = Helper.capitalize(parentFieldName);
             int pos = 0;
             for (Data x : data.getData("_editorform").getList("_fields")) {
@@ -2765,7 +2765,7 @@ public class ERPServiceImpl implements ERPService {
 
                             System.out.println("adding field " +f.getId());
 
-                            d.set("_metadata", getMetadaData(user, em, f.getId(), f.getType(), null).getData("_editorform"));
+                            d.set("_metadata", getMetadaData(user, em, f.getId(), f.getType(), null, f.isAnnotationPresent(DoNotIncludeSeparator.class)).getData("_editorform"));
 
 
                         }
