@@ -1729,7 +1729,7 @@ public class ERPServiceImpl implements ERPService {
         List<Data> editorFormFields = new ArrayList<>();
         for (FieldInterfaced f : getAllFields(c, v, viewFormFields, negatedFormFields)) {
             if ((v != null && v.isFieldsListedOnly()) || (!f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(NotInEditor.class) && !(f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))) {
-                addField(user, em, v, editorFormFields, (v == null)?f:new FieldInterfacedFromField(f) {
+                addField(user, em, v, editorFormFields, (v == null || !v.isFieldsListedOnly())?f:new FieldInterfacedFromField(f) {
 
                     @Override
                     public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
