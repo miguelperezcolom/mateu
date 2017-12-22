@@ -902,7 +902,7 @@ public class ERPServiceImpl implements ERPService {
             if (!Modifier.isStatic(m.getModifiers())) {
                 if (m.isAnnotationPresent(Show.class) || m.isAnnotationPresent(ShowAsHtml.class)) {
 
-                    if (v == null || fl.contains(m.getName())) fillData(user, em, viewClass, data, prefix, o, getInterfaced(m));
+                    if (v == null || !v.isFieldsListedOnly() || fl.contains(m.getName())) fillData(user, em, viewClass, data, prefix, o, getInterfaced(m));
 
                 }
             }
