@@ -8,6 +8,10 @@ Besides looking at JPA annotation, it provides its own annotations for a fine gr
 
 I hope you like it ;)
 
+## Manual
+
+Please go to [https://github.com/miguelperezcolom/mateu-mdd/wiki]
+
 
 
 ## Thanks to
