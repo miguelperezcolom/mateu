@@ -22,6 +22,7 @@ public class Basico {
     private long id;
 
     @SearchFilter
+    @Help("Full name of the user")
     private String name;
 
     private int entero;

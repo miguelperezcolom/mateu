@@ -46,13 +46,15 @@ public class AppConfig {
 
     private String adminEmailCC;
 
-    @SameLine
     private String pop3Host;
 
+    @SameLine
     private String pop3User;
 
+    @SameLine
     private String pop3Password;
 
+    @SameLine
     private String pop3ReboundToEmail;
 
     @SameLine
