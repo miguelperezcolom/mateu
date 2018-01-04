@@ -1505,6 +1505,7 @@ public class ERPServiceImpl implements ERPService {
 
         data.set("_entityClassName", c.getName());
         data.set("_viewClassName", viewClass.getName());
+        data.set("_queryFilters", queryFilters);
         data.set("_rawtitle", Helper.capitalize(Helper.pluralize((c.isAnnotationPresent(Entity.class) && !Strings.isNullOrEmpty(((Entity)c.getAnnotation(Entity.class)).name()))?((Entity)c.getAnnotation(Entity.class)).name():c.getSimpleName())));
 
         if (viewClass.isAnnotationPresent(Indelible.class)) data.set("_indelible", true);
@@ -2304,6 +2305,9 @@ public class ERPServiceImpl implements ERPService {
             }
             if (f.isAnnotationPresent(NotNull.class)) {
                 d.set("_required", true);
+            }
+            if (f.isAnnotationPresent(Help.class)) {
+                d.set("_help", f.getAnnotation(Help.class).value());
             }
 
             if (f.isAnnotationPresent(Order.class)) {

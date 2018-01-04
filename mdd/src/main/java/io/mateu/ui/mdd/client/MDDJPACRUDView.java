@@ -1,6 +1,7 @@
 package io.mateu.ui.mdd.client;
 
 import com.google.common.base.Strings;
+import com.google.common.io.BaseEncoding;
 import io.mateu.ui.core.client.app.AbstractAction;
 import io.mateu.ui.core.client.app.AbstractApplication;
 import io.mateu.ui.core.client.app.Callback;
@@ -36,19 +37,30 @@ import java.util.*;
  */
 public class MDDJPACRUDView extends BaseJPACRUDView {
 
-    @Override
-    public String getViewId() {
-        return getEntityClassName();
-    }
-
     private Data metadata;
     private String entityClassName;
     private String viewClassName;
+    private String queryFilters;
 
     public MDDJPACRUDView(Data metadata) {
+        init(metadata);
+    }
+
+    public MDDJPACRUDView() {
+
+    }
+
+    public void init(Data metadata) {
         this.metadata = metadata;
         this.entityClassName = metadata.getString("_entityClassName");
         this.viewClassName = metadata.getString("_viewClassName");
+        this.queryFilters = metadata.getString("_queryFilters");
+    }
+
+
+    @Override
+    public String getViewIdBase() {
+        return "mdd.." + viewClassName + ".." + BaseEncoding.base64().encode(((queryFilters != null)?queryFilters:"").getBytes());
     }
 
     @Override
@@ -92,7 +104,18 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
             @Override
                 public String getViewId() {
-                    return entityClassName + "-" + getInitialId();
+                    String id = null;
+                    if (getInitialId() != null) {
+                        Object iid = getInitialId();
+                        String s = "" + iid;
+                        if (iid instanceof String) s = "s" + s;
+                        else if (iid instanceof Long) s = "l" + s;
+                        else if (iid instanceof Integer) s = "i" + s;
+                        //id += "/" + s;
+                        id = s;
+                    }
+
+                    return "mdd.." + viewClassName + ".." + BaseEncoding.base64().encode(((queryFilters != null)?queryFilters:"").getBytes()) + ".." + "edit" + ((id != null)?"/" + id:"");
                 }
 
                 @Override
@@ -471,6 +494,9 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                 }
                 if (d.containsKey("_unmodifiable")) {
                     for (AbstractField field : fields) field.setUnmodifiable(true);
+                }
+                if (d.containsKey("_help")) {
+                    for (AbstractField field : fields) field.setHelp(d.get("_help"));
                 }
                 for (AbstractField field : fields) container.add(field);
 
