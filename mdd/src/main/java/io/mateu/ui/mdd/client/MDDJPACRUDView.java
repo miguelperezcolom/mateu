@@ -552,6 +552,18 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                     e.printStackTrace();
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();
+                } else if (col instanceof DataColumn) {
+                    col.setStyleGenerator(new CellStyleGenerator() {
+                        @Override
+                        public String getStyle(Object o) {
+                            return (o == null)?null:((Data)o).get("_css");
+                        }
+
+                        @Override
+                        public boolean isContentShown() {
+                            return true;
+                        }
+                    });
                 }
             }
             poscol++;
