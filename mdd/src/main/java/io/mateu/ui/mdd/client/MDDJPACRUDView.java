@@ -11,9 +11,7 @@ import io.mateu.ui.core.client.components.fields.*;
 import io.mateu.ui.core.client.components.fields.grids.CalendarField;
 import io.mateu.ui.core.client.components.fields.grids.columns.*;
 import io.mateu.ui.core.client.views.*;
-import io.mateu.ui.core.shared.CellStyleGenerator;
-import io.mateu.ui.core.shared.Data;
-import io.mateu.ui.core.shared.Pair;
+import io.mateu.ui.core.shared.*;
 import io.mateu.ui.mdd.server.WizardPageVO;
 import io.mateu.ui.mdd.server.interfaces.View;
 import io.mateu.ui.mdd.server.util.Helper;
@@ -38,8 +36,10 @@ import java.util.*;
 public class MDDJPACRUDView extends BaseJPACRUDView {
 
     private Data metadata;
+    private String idFieldName;
     private String entityClassName;
     private String viewClassName;
+    private String rpcViewClassName;
     private String queryFilters;
 
     public MDDJPACRUDView(Data metadata) {
@@ -53,14 +53,31 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
     public void init(Data metadata) {
         this.metadata = metadata;
         this.entityClassName = metadata.getString("_entityClassName");
+        this.idFieldName = metadata.getString("_idFieldName");
         this.viewClassName = metadata.getString("_viewClassName");
+        this.rpcViewClassName = metadata.getString("_rpcViewClassName");
         this.queryFilters = metadata.getString("_queryFilters");
     }
 
 
     @Override
     public String getViewIdBase() {
-        return "mdd.." + viewClassName + ".." + BaseEncoding.base64().encode(((queryFilters != null)?queryFilters:"").getBytes());
+        return "mdd.." + ((!Strings.isNullOrEmpty(rpcViewClassName))?rpcViewClassName:viewClassName) + ".." + BaseEncoding.base64().encode(((queryFilters != null)?queryFilters:"").getBytes());
+    }
+
+    @Override
+    public boolean useAutoColumnIds() {
+        return Strings.isNullOrEmpty(rpcViewClassName);
+    }
+
+    @Override
+    public boolean isExcelEnabled() {
+        return Strings.isNullOrEmpty(rpcViewClassName);
+    }
+
+    @Override
+    public boolean isPdfEnabled() {
+        return Strings.isNullOrEmpty(rpcViewClassName);
     }
 
     @Override
@@ -511,8 +528,19 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
         int poscol = 0;
         for (Data d : getMetadata().getData("_searchform").getList("_columns")) {
             if (poscol > 0 || (!MetaData.FIELDTYPE_ID.equals(d.getString("_type")) && !MetaData.FIELDTYPE_PK.equals(d.getString("_type")))) {
-                OutputColumn col;
-                cols.add(col = new OutputColumn("col" + poscol, d.getString("_label"), d.getInt("_width")));
+                AbstractColumn col;
+                if (MetaData.FIELDTYPE_DATA.equalsIgnoreCase(d.get("_type"))) {
+                    col = new DataColumn((useAutoColumnIds()) ? "col" + poscol : d.getString("_id"), d.getString("_label"), d.getInt("_width")) {
+                        @Override
+                        public void run(Data data) {
+                            if (data != null && data.get("_id") != null) open(data.get("_id"));
+                            else MateuUI.alert("Empty record. Nothing to see.");
+                        }
+                    };
+                } else {
+                    col = new OutputColumn((useAutoColumnIds())?"col" + poscol:d.getString("_id"), d.getString("_label"), d.getInt("_width"));
+                }
+                cols.add(col);
                 if ("center".equals(d.getString("_align"))) col.setAlignment(ColumnAlignment.CENTER);
                 if ("right".equals(d.getString("_align"))) col.setAlignment(ColumnAlignment.RIGHT);
                 if (!d.isEmpty("_colwidth")) col.setWidth(d.get("_colwidth"));
@@ -918,7 +946,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                             @Override
                             public void onSuccess(Data data) {
                                 parameters.set(finalWizardParameterName, data);
-                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).runInServer(MateuUI.getApp().getUserData(), da.getString("_entityClassName"), da.getString("_methodname"), parameters, new Callback<Object>() {
+                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).runInServer(MateuUI.getApp().getUserData(), da.getString("_entityClassName"), da.getString("_methodname"), parameters, rpcViewClassName, (!Strings.isNullOrEmpty(rpcViewClassName))?MDDJPACRUDView.this.getForm().getData():null, new Callback<Object>() {
                                     @Override
                                     public void onSuccess(Object result) {
                                         h.onSuccess(result);
@@ -948,7 +976,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
                             @Override
                             public void onOk(Data data) {
-                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).runInServer(MateuUI.getApp().getUserData(), da.getString("_entityClassName"), da.getString("_methodname"), getForm().getData(), new Callback<Object>() {
+                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).runInServer(MateuUI.getApp().getUserData(), da.getString("_entityClassName"), da.getString("_methodname"), getForm().getData(), rpcViewClassName, (!Strings.isNullOrEmpty(rpcViewClassName))?MDDJPACRUDView.this.getForm().getData():null, new Callback<Object>() {
                                     @Override
                                     public void onSuccess(Object result) {
                                         h.onSuccess(result);
@@ -977,7 +1005,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
                         @Override
                         public void run() {
-                            ((ERPServiceAsync)MateuUI.create(ERPService.class)).runInServer(MateuUI.getApp().getUserData(), da.getString("_entityClassName"), da.getString("_methodname"), parameters, new Callback<Object>() {
+                            ((ERPServiceAsync)MateuUI.create(ERPService.class)).runInServer(MateuUI.getApp().getUserData(), da.getString("_entityClassName"), da.getString("_methodname"), parameters, rpcViewClassName, (!Strings.isNullOrEmpty(rpcViewClassName))?MDDJPACRUDView.this.getForm().getData():null, new Callback<Object>() {
                                 @Override
                                 public void onSuccess(Object result) {
                                     h.onSuccess(result);
@@ -985,7 +1013,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                             });
                         }
                     });
-                } else ((ERPServiceAsync)MateuUI.create(ERPService.class)).runInServer(MateuUI.getApp().getUserData(), da.getString("_entityClassName"), da.getString("_methodname"), parameters, new Callback<Object>() {
+                } else ((ERPServiceAsync)MateuUI.create(ERPService.class)).runInServer(MateuUI.getApp().getUserData(), da.getString("_entityClassName"), da.getString("_methodname"), parameters, rpcViewClassName, (!Strings.isNullOrEmpty(rpcViewClassName))?MDDJPACRUDView.this.getForm().getData():null, new Callback<Object>() {
                     @Override
                     public void onSuccess(Object result) {
                         h.onSuccess(result);
@@ -1225,5 +1253,31 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
     @Override
     public String getViewClassName() {
         return viewClassName;
+    }
+
+    @Override
+    public String getIdFieldName() {
+        return idFieldName;
+    }
+
+
+    @Override
+    public void rpc(Data parameters, AsyncCallback<Data> callback) {
+        if (!Strings.isNullOrEmpty(rpcViewClassName)) {
+            ERPServiceAsync s = MateuUI.create(ERPService.class);
+            s.rpc(MateuUI.getApp().getUserData(), rpcViewClassName, parameters, new AsyncCallback<GridData>() {
+                @Override
+                public void onFailure(Throwable throwable) {
+                    callback.onFailure(throwable);
+                }
+
+                @Override
+                public void onSuccess(GridData gridData) {
+                    callback.onSuccess(gridData.asData());
+                }
+            });
+        } else {
+            super.rpc(parameters, callback);
+        }
     }
 }

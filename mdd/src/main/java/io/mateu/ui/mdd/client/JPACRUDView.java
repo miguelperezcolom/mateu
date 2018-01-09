@@ -18,6 +18,8 @@ public abstract class JPACRUDView extends AbstractCRUDView {
 
     public abstract String getViewClassName();
 
+    public abstract String getIdFieldName();
+
     @Override
     public void rpc(Data parameters, AsyncCallback<Data> callback) {
         parameters.set("_sql", getSql());
@@ -44,7 +46,7 @@ public abstract class JPACRUDView extends AbstractCRUDView {
     }
 
     private String getDeleteJpql(List<Data> list) {
-        String s = "delete from " + getEntityClassName() + " x where x.id in (";
+        String s = "delete from " + getEntityClassName() + " x where x." + getIdFieldName() + " in (";
 
         boolean first = true;
         for (Data d : list) {
@@ -52,7 +54,10 @@ public abstract class JPACRUDView extends AbstractCRUDView {
             if (first) first = false;
             else s += ",";
 
-            s += d.get("_id");
+            Object v = d.get("_id");
+
+            if (v instanceof String) s += "'" + ((String)v).replaceAll("'", "''") + "'";
+            else s += v;
         }
 
 

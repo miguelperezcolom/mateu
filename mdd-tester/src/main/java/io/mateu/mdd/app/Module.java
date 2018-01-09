@@ -7,6 +7,9 @@ import io.mateu.mdd.model.finnancials.Actor;
 import io.mateu.mdd.model.finnancials.Currency;
 import io.mateu.mdd.model.finnancials.Invoice;
 import io.mateu.mdd.model.hotelcontract.HotelContract;
+import io.mateu.mdd.model.rpc.Hotel;
+import io.mateu.mdd.model.rpc.Room;
+import io.mateu.mdd.model.rpc.StopSalesView;
 import io.mateu.mdd.model.tests.basic.Basico;
 import io.mateu.mdd.model.tests.onetomany.Uno;
 import io.mateu.mdd.model.tests.onetoone.UnoAUnoMapped;
@@ -76,6 +79,13 @@ public class Module extends AbstractModule {
         m.add(new MDDAction("View 4", View4.class));
 
         m.add(new MDDAction("Estereotipado", Estereotipado.class));
+
+        m.add(new MDDAction("Hotels", Hotel.class));
+
+        m.add(new MDDAction("Rooms", Room.class));
+
+        m.add(new MDDAction("Stop sales", StopSalesView.class));
+
 
 
         return m;

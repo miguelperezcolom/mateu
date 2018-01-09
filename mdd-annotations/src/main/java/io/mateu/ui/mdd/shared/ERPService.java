@@ -2,6 +2,7 @@ package io.mateu.ui.mdd.shared;
 
 import io.mateu.ui.core.communication.Service;
 import io.mateu.ui.core.shared.Data;
+import io.mateu.ui.core.shared.GridData;
 import io.mateu.ui.core.shared.UserData;
 import io.mateu.ui.mdd.server.WizardPageVO;
 
@@ -29,8 +30,10 @@ public interface ERPService {
 
     Data getMetaData(UserData user, String entityClassName, String queryFilters) throws Throwable;
 
-    Object runInServer(UserData user, String className, String methodName, Data parameters) throws Throwable;
+    Object runInServer(UserData user, String className, String methodName, Data parameters, String rpcViewClassName, Data rpcViewData) throws Throwable;
 
     WizardPageVO execute(UserData user, String wizardClassName, String action, Data data) throws Throwable;
+
+    GridData rpc(UserData user, String rpcViewClassName, Data parameters) throws Throwable;
 
 }
