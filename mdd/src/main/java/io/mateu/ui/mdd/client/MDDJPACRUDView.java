@@ -81,6 +81,11 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
     }
 
     @Override
+    public boolean isIdColumnNeeded() {
+        return Strings.isNullOrEmpty(rpcViewClassName);
+    }
+
+    @Override
     public AbstractForm createForm() {
         return new ViewForm(this);
     }

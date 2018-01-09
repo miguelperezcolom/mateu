@@ -1863,7 +1863,7 @@ public class ERPServiceImpl implements ERPService {
         for (Method m : getAllMethods(c)) {
             if (!Modifier.isStatic(m.getModifiers())) {
                 if (m.isAnnotationPresent(Show.class) || m.isAnnotationPresent(ShowAsHtml.class)) {
-                    addField(user, em, v, editorFormFields, getInterfaced(m));
+                            addField(user, em, v, editorFormFields, getInterfaced(m));
                 }
             }
         }
@@ -2522,9 +2522,10 @@ public class ERPServiceImpl implements ERPService {
             if (f.isAnnotationPresent(FullWidth.class)) {
                 d.set("_fullwidth", true);
             }
-            if (f.isAnnotationPresent(NotNull.class)) {
+            if ((searchFilterAnnotation == null && f.isAnnotationPresent(NotNull.class)) || (searchFilterAnnotation != null && searchFilterAnnotation.required())) {
                 d.set("_required", true);
             }
+
             if (f.isAnnotationPresent(Help.class)) {
                 d.set("_help", f.getAnnotation(Help.class).value());
             }

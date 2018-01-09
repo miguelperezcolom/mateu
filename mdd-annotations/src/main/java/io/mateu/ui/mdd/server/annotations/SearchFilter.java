@@ -18,4 +18,6 @@ public @interface SearchFilter {
 
     boolean exactMatch() default false;
 
+    boolean required() default false;
+
 }
