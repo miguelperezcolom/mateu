@@ -327,7 +327,7 @@ public class ERPServiceImpl implements ERPService {
         }
 
 
-        for (FieldInterfaced f : getAllFields(o.getClass(), view, fl, nfl)) {
+        for (FieldInterfaced f : getAllFields(o.getClass(), view != null && view.isFieldsListedOnly(), fl, nfl)) {
             boolean updatable = true;
             if (AuditRecord.class.isAssignableFrom(f.getType()) || f.isAnnotationPresent(Output.class) || f.isAnnotationPresent(Ignored.class) || f.isAnnotationPresent(NotInEditor.class) || (!newInstance && f.isAnnotationPresent(Unmodifiable.class))) {
                 updatable = false;
@@ -885,7 +885,7 @@ public class ERPServiceImpl implements ERPService {
 
         if (id != null) data.set(prefix + "_id", id);
 
-        View v = null;
+        ListView v = null;
         List<String> fl = new ArrayList<>();
         List<String> nfl = new ArrayList<>();
 
@@ -894,22 +894,22 @@ public class ERPServiceImpl implements ERPService {
         if (View.class.isAssignableFrom(viewClass)) {
             v = (View) viewClass.newInstance();
 
-            if (v != null) {
-                addToList(fl, nfl, v.getFields());
+            if (v != null && v instanceof View) {
+                addToList(fl, nfl, ((View)v).getFields());
             }
         }
 
         if (v == null) {
             for (FieldInterfaced f : getAllFields(o.getClass())) fillData(user, em, viewClass, data, prefix, o, f);
         } else {
-            for (FieldInterfaced f : getAllFields(o.getClass(), v, fl, nfl)) fillData(user, em, viewClass, data, prefix, o, f);
+            for (FieldInterfaced f : getAllFields(o.getClass(), v != null && v instanceof View && ((View)v).isFieldsListedOnly(), fl, nfl)) fillData(user, em, viewClass, data, prefix, o, f);
         }
 
         for (Method m : getAllMethods(o.getClass())) {
             if (!Modifier.isStatic(m.getModifiers())) {
                 if (m.isAnnotationPresent(Show.class) || m.isAnnotationPresent(ShowAsHtml.class)) {
 
-                    if (v == null || !v.isFieldsListedOnly() || fl.contains(m.getName())) fillData(user, em, viewClass, data, prefix, o, getInterfaced(m));
+                    if (v == null || !(v instanceof View) || !((View)v).isFieldsListedOnly() || fl.contains(m.getName())) fillData(user, em, viewClass, data, prefix, o, getInterfaced(m));
 
                 }
             }
@@ -1488,7 +1488,7 @@ public class ERPServiceImpl implements ERPService {
 
         } else {
 
-            View v = null;
+            ListView v = null;
 
             List<String> viewParamFields = new ArrayList<>();
             List<String> viewColumnFields = new ArrayList<>();
@@ -1496,9 +1496,9 @@ public class ERPServiceImpl implements ERPService {
             List<String> viewFormFields = new ArrayList<>();
             List<String> negatedViewFormFields = new ArrayList<>();
 
-            if (View.class.isAssignableFrom(c)) {
+            if (ListView.class.isAssignableFrom(c)) {
                 System.out.println(c.getName() + " is a view");
-                v = (View) c.newInstance();
+                v = (ListView) c.newInstance();
                 for (Type t : c.getGenericInterfaces()) {
                     if (t.getTypeName().startsWith(View.class.getName())) c = (Class) ((ParameterizedType)t).getActualTypeArguments()[0];
                 }
@@ -1506,7 +1506,7 @@ public class ERPServiceImpl implements ERPService {
                 addToList(viewParamFields, v.getParams());
                 addToList(viewColumnFields, v.getCols());
                 addToList(viewOrderFields, v.getOrderCriteria());
-                addToList(viewFormFields, negatedViewFormFields, v.getFields());
+                if (v instanceof View) addToList(viewFormFields, negatedViewFormFields, ((View)v).getFields());
 
             } else {
                 System.out.println(c.getName() + " is an entity");
@@ -1523,11 +1523,16 @@ public class ERPServiceImpl implements ERPService {
             }
 
             data.set("_viewClassName", viewClass.getName());
+            if (CompositeView.class.isAssignableFrom(viewClass)) {
+                for (Type t : c.getGenericInterfaces()) {
+                    if (t.getTypeName().startsWith(View.class.getName())) data.set("_compositeClassName", ((Class) ((ParameterizedType)t).getActualTypeArguments()[0]).getName());
+                }
+            }
             data.set("_queryFilters", queryFilters);
             data.set("_rawtitle", Helper.capitalize(Helper.pluralize((c.isAnnotationPresent(Entity.class) && !Strings.isNullOrEmpty(((Entity)c.getAnnotation(Entity.class)).name()))?((Entity)c.getAnnotation(Entity.class)).name():c.getSimpleName())));
 
             if (viewClass.isAnnotationPresent(Indelible.class)) data.set("_indelible", true);
-            if (viewClass.isAnnotationPresent(NewNotAllowed.class)) data.set("_newnotallowed", true);
+            if (viewClass.isAnnotationPresent(NewNotAllowed.class) || (v != null && CompositeView.class.isAssignableFrom(viewClass))) data.set("_newnotallowed", true);
 
             String [] qf = {queryFilters};
 
@@ -1574,7 +1579,7 @@ public class ERPServiceImpl implements ERPService {
 
                 List<Data> subclases = new ArrayList<>();
                 for (Class s : subTypes) {
-                    if (s.getCanonicalName() != null) subclases.add(new Data("_name", Helper.capitalize(s.getSimpleName()), "_type", s.getCanonicalName(), "_editorform", getEditorForm(user, em, v, viewFormFields, negatedViewFormFields, viewClass, s)));
+                    if (s.getCanonicalName() != null) subclases.add(new Data("_name", Helper.capitalize(s.getSimpleName()), "_type", s.getCanonicalName(), "_editorform", getEditorForm(user, em, (v instanceof View)? (View) v :null, viewFormFields, negatedViewFormFields, viewClass, s)));
                 }
                 if (subclases.size() > 0) data.set("_subclasses", subclases);
 
@@ -1588,13 +1593,13 @@ public class ERPServiceImpl implements ERPService {
             List<Data> listColumns = new ArrayList<>();
             List<Data> staticActions = new ArrayList<>();
 
-            for (FieldInterfaced f : getAllFields(c, v, viewParamFields, null)) {
+            for (FieldInterfaced f : getAllFields(c, (v instanceof View)? ((View) v).isFieldsListedOnly() :false, viewParamFields, null)) {
                 if (f.isAnnotationPresent(SearchFilter.class) || f.isAnnotationPresent(SearchFilters.class)) {
                     for (SearchFilter sf : f.getDeclaredAnnotationsByType(SearchFilter.class)) {
-                        addField(user, em, v, searchFormFields, f, null, sf, null, true, false);
+                        addField(user, em, (v instanceof View)? (View) v :null, searchFormFields, f, null, sf, null, true, false);
                     }
                 } else if (f.isAnnotationPresent(SearchFilterIsNull.class)) {
-                    addField(user, em, v, searchFormFields, new FieldInterfacedFromField(f) {
+                    addField(user, em, (v instanceof View)? (View) v :null, searchFormFields, new FieldInterfacedFromField(f) {
 
                         @Override
                         public Class<?> getType() {
@@ -1608,7 +1613,7 @@ public class ERPServiceImpl implements ERPService {
 
                     }, null, null, f.getAnnotation(SearchFilterIsNull.class), true, false);
                 } else if (v != null && viewParamFields.contains(f.getName())) {
-                    addField(user, em, v, searchFormFields, f, null, null, null, true, false);
+                    addField(user, em, (v instanceof View)? (View) v :null, searchFormFields, f, null, null, null, true, false);
                 }
 
             }
@@ -1625,7 +1630,7 @@ public class ERPServiceImpl implements ERPService {
 
             if (!hayListColumns) {
                 listColumns.clear();
-                for (FieldInterfaced f : getAllFields(c, (v == null || Strings.isNullOrEmpty(v.getCols()))?null:v, viewColumnFields, null)) {
+                for (FieldInterfaced f : getAllFields(c, (v == null || Strings.isNullOrEmpty(v.getCols()))?false:true, viewColumnFields, null)) {
                     if (!(f.isAnnotationPresent(OneToMany.class) || f.isAnnotationPresent(ManyToMany.class) || f.isAnnotationPresent(MapKey.class) || f.isAnnotationPresent(ElementCollection.class) || f.isAnnotationPresent(NotInList.class)))
                         addColumn(user, em, v, listColumns, f);
                 }
@@ -1658,7 +1663,7 @@ public class ERPServiceImpl implements ERPService {
             dsf.set("_fields", searchFormFields);
             dsf.set("_columns", listColumns);
             data.set("_actions", staticActions);
-            data.set("_editorform", getEditorForm(user, em, v, viewFormFields, negatedViewFormFields, viewClass, c));
+            data.set("_editorform", getEditorForm(user, em, (v != null && v instanceof View)? (View) v :null, viewFormFields, negatedViewFormFields, viewClass, c));
 
             if (!Strings.isNullOrEmpty(parentFieldName) && !doNotIncludeSeparator) {
                 parentFieldName = Helper.capitalize(parentFieldName);
@@ -1725,7 +1730,7 @@ public class ERPServiceImpl implements ERPService {
 
         if (!hayListColumns) {
             listColumns.clear();
-            for (FieldInterfaced f : getAllFields(lc, null, null, null)) {
+            for (FieldInterfaced f : getAllFields(lc, false, null, null)) {
                 if (!(f.isAnnotationPresent(OneToMany.class) || f.isAnnotationPresent(ManyToMany.class) || f.isAnnotationPresent(MapKey.class) || f.isAnnotationPresent(ElementCollection.class) || f.isAnnotationPresent(NotInList.class)))
                     addColumn(user, em, null, listColumns, f);
             }
@@ -1843,8 +1848,9 @@ public class ERPServiceImpl implements ERPService {
     }
 
     private static Data getEditorForm(UserData user, EntityManager em, View v, List<String> viewFormFields, List<String> negatedFormFields, Class viewClass, Class c) throws Exception {
+        if (viewClass != null && CompositeView.class.isAssignableFrom(viewClass)) return null;
         List<Data> editorFormFields = new ArrayList<>();
-        for (FieldInterfaced f : getAllFields(c, v, viewFormFields, negatedFormFields)) {
+        for (FieldInterfaced f : getAllFields(c, v != null && v.isFieldsListedOnly(), viewFormFields, negatedFormFields)) {
             if ((v != null && v.isFieldsListedOnly()) || (!f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(NotInEditor.class) && !(f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))) {
                 addField(user, em, v, editorFormFields, (v == null || !v.isFieldsListedOnly())?f:new FieldInterfacedFromField(f) {
 
@@ -1929,13 +1935,13 @@ public class ERPServiceImpl implements ERPService {
         return m;
     }
 
-    private static List<FieldInterfaced> getAllFields(Class entityClass, View view, List<String> fieldsFilter, List<String> negatedFormFields) {
+    private static List<FieldInterfaced> getAllFields(Class entityClass, boolean fieldsInFilterOnly, List<String> fieldsFilter, List<String> negatedFormFields) {
         List<FieldInterfaced> fs = getAllFields(entityClass);
         Map<String, FieldInterfaced> m = getAllFieldsMap(fs);
 
         List<FieldInterfaced> l = new ArrayList<>();
 
-        if (view != null && view.isFieldsListedOnly()) {
+        if (fieldsInFilterOnly) {
             if (fieldsFilter != null) for (String fn : fieldsFilter) {
                 boolean soloSalida = false;
                 if (fn.startsWith("-")) {
@@ -2312,7 +2318,7 @@ public class ERPServiceImpl implements ERPService {
 
 
 
-    private static void addMethod(UserData user, EntityManager em, View view, List<Data> actions, Method m, Class viewClass) throws Exception {
+    private static void addMethod(UserData user, EntityManager em, ListView view, List<Data> actions, Method m, Class viewClass) throws Exception {
         if (m.isAnnotationPresent(Action.class)) {
             List<Data> parameters = new ArrayList<>();
             Class entityClass = viewClass;
@@ -2409,6 +2415,7 @@ public class ERPServiceImpl implements ERPService {
             a.set("_confirmationmessage", m.getAnnotation(Action.class).confirmationMessage());
             if (m.getAnnotation(Action.class).callOnEnterKeyPressed()) a.set("_callonenterkeypressed", true);
             if (m.getAnnotation(Action.class).addAsButton()) a.set("_addasbutton", true);
+            if (m.getAnnotation(Action.class).keepOpened()) a.set("_keepopened", true);
             a.set("_methodname", m.getName());
             a.set("_parameters", parameters);
             Data def;
@@ -2420,7 +2427,7 @@ public class ERPServiceImpl implements ERPService {
         }
     }
 
-    private static void addColumn(UserData user, EntityManager em, View view, List<Data> listColumns, FieldInterfaced f) throws Exception {
+    private static void addColumn(UserData user, EntityManager em, ListView view, List<Data> listColumns, FieldInterfaced f) throws Exception {
         List<ListColumn> lcs = new ArrayList<>();
         for (ListColumn lc : f.getDeclaredAnnotationsByType(ListColumn.class)) lcs.add(lc);
         if (lcs.size() == 0) lcs.add(null);
@@ -2429,11 +2436,11 @@ public class ERPServiceImpl implements ERPService {
         }
     }
 
-    private static void addField(UserData user, EntityManager em, View view, List<Data> _fields, FieldInterfaced f) throws Exception {
+    private static void addField(UserData user, EntityManager em, ListView view, List<Data> _fields, FieldInterfaced f) throws Exception {
         addField(user, em, view, _fields, f, null, null, null, false, false);
     }
 
-    private static void addField(UserData user, EntityManager em, View view, List<Data> _fields, FieldInterfaced f, ListColumn listColumnAnnotation, SearchFilter searchFilterAnnotation, SearchFilterIsNull searchFilterIsNullAnnotation, boolean buildingSearchForm, boolean buildingColumns) throws Exception {
+    private static void addField(UserData user, EntityManager em, ListView view, List<Data> _fields, FieldInterfaced f, ListColumn listColumnAnnotation, SearchFilter searchFilterAnnotation, SearchFilterIsNull searchFilterIsNullAnnotation, boolean buildingSearchForm, boolean buildingColumns) throws Exception {
         if (!f.isAnnotationPresent(Ignored.class)) {
 
             Data d = new Data();
@@ -3066,11 +3073,11 @@ public class ERPServiceImpl implements ERPService {
             return nombreCampoId;
     }
 
-    private static String getQlForEntityField(EntityManager em, UserData user, View view, FieldInterfaced f) {
+    private static String getQlForEntityField(EntityManager em, UserData user, ListView view, FieldInterfaced f) {
         return getQlForEntityField(em, user, view, f.getGenericClass(), f.getId());
     }
 
-    private static String getQlForEntityField(EntityManager em, UserData user, View view, Class<?> c, String fieldId) {
+    private static String getQlForEntityField(EntityManager em, UserData user, ListView view, Class<?> c, String fieldId) {
 
         String nombreCampoId = "id";
         for (FieldInterfaced ff : getAllFields(c))

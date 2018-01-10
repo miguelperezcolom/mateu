@@ -24,5 +24,22 @@ public class MDD {
         });
     }
 
+    public static void openView(Class entityClass, Data data) {
+        openView(entityClass, data, null);
+    }
+
+    public static void openView(Class entityClass, Data data, String queryFilters) {
+        ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(MateuUI.getApp().getUserData(), entityClass.getName(), queryFilters, new MDDCallback() {
+            @Override
+            public void onSuccess(Data result) {
+                MateuUI.openView(new MDDJPACRUDView(result) {
+                    @Override
+                    public Data initializeData() {
+                        return data;
+                    }
+                });
+            }
+        });
+    }
 
 }

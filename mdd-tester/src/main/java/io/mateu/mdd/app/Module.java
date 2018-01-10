@@ -9,6 +9,7 @@ import io.mateu.mdd.model.finnancials.Invoice;
 import io.mateu.mdd.model.hotelcontract.HotelContract;
 import io.mateu.mdd.model.rpc.Hotel;
 import io.mateu.mdd.model.rpc.Room;
+import io.mateu.mdd.model.rpc.StopSalesListView;
 import io.mateu.mdd.model.rpc.StopSalesView;
 import io.mateu.mdd.model.tests.basic.Basico;
 import io.mateu.mdd.model.tests.onetomany.Uno;
@@ -86,6 +87,8 @@ public class Module extends AbstractModule {
 
         m.add(new MDDAction("Stop sales", StopSalesView.class));
 
+
+        m.add(new MDDAction("Stop sales from hotel", StopSalesListView.class));
 
 
         return m;

@@ -219,28 +219,41 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
     @Override
     public void open(String propertyId, Data data) {
-        if (getMetadata().isEmpty("_subclasses")) {
-            super.open(propertyId, data);
+        if (getMetadata().containsKey("_compositeClassName")) {
+
+            try {
+                MDD.openCRUD(Class.forName(getMetadata().get("_compositeClassName")), queryFilters);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+
         } else {
-            String className = null;
-            int maxCol = -1;
-            for (String n : data.getPropertyNames()) {
-                if (n.startsWith("col")) {
-                    int numCol = Integer.parseInt(n.substring("col".length()));
-                    if (maxCol < numCol) {
-                        className = "" + data.get(n);
-                        maxCol = numCol;
+
+            if (getMetadata().isEmpty("_subclasses")) {
+                super.open(propertyId, data);
+            } else {
+                String className = null;
+                int maxCol = -1;
+                for (String n : data.getPropertyNames()) {
+                    if (n.startsWith("col")) {
+                        int numCol = Integer.parseInt(n.substring("col".length()));
+                        if (maxCol < numCol) {
+                            className = "" + data.get(n);
+                            maxCol = numCol;
+                        }
+                    }
+                }
+                if (className != null) className = className.replaceAll("class ", "");
+                for (Data d : getMetadata().getList("_subclasses")) {
+                    if (d.get("_type").equals(className)) {
+                        openEditor(getNewEditorView(d.get("_type"), d.get("_editorform")).setInitialId(data.get(propertyId)));
+                        break;
                     }
                 }
             }
-            if (className != null) className = className.replaceAll("class ", "");
-            for (Data d : getMetadata().getList("_subclasses")) {
-                if (d.get("_type").equals(className)) {
-                    openEditor(getNewEditorView(d.get("_type"), d.get("_editorform")).setInitialId(data.get(propertyId)));
-                    break;
-                }
-            }
+
         }
+
     }
 
     private void buildFromMetadata(AbstractView view, Data metadata, boolean buildingSearchForm) {
@@ -967,7 +980,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                                     @Override
                                     public void onSuccess(Object result) {
                                         h.onSuccess(result);
-                                        w[0].close();
+                                        if (!da.containsKey("_keeppened")) w[0].close();
                                     }
 
                                     @Override
@@ -1009,6 +1022,11 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                             @Override
                             public void build() {
                                 buildFromMetadata(this, da.getData("_form").getList("_fields"), false);
+                            }
+
+                            @Override
+                            public boolean isCloseOnOk() {
+                                return !da.containsKey("_keepopened");
                             }
                         });
 

@@ -83,17 +83,6 @@ public class StopSalesView implements RPCView<StopSalesMonth, StopSalesLine> {
         return gd;
     }
 
-    @Override
-    public Data get(UserData user, Object id) throws Throwable {
-        Data d = new Data();
-        Helper.transact(new JPATransaction() {
-            @Override
-            public void run(EntityManager em) throws Throwable {
-                ERPServiceImpl.fillData(user, em, d, em.find(StopSalesLine.class, id));
-            }
-        });
-        return d;
-    }
 
 
     @Action(name = "Enter stop sales")

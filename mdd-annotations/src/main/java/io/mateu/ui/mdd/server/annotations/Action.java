@@ -20,4 +20,6 @@ public @interface Action {
 
     String confirmationMessage() default "";
 
+    boolean keepOpened() default false;
+
 }
