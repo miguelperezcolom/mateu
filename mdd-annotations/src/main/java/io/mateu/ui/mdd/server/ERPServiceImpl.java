@@ -837,31 +837,31 @@ public class ERPServiceImpl implements ERPService {
 
                 for (Method m : viewClass.getDeclaredMethods()) {
                     if ("toString".equals(m.getName())) {
-                        data.set("_tostring", (v == null)?m.invoke(v):m.invoke(v, o));
+                        data.set("_tostring", (v == null)?m.invoke(o):m.invoke(v, o));
                     }
 
                     if (m.isAnnotationPresent(Subtitle.class)) {
-                        data.set("_subtitle", (v == null)?m.invoke(v):m.invoke(v, o));
+                        data.set("_subtitle", (v == null)?m.invoke(o):m.invoke(v, o));
                     }
 
                     if (m.isAnnotationPresent(Badges.class)) {
-                        data.set("_badges", (v == null)?m.invoke(v):m.invoke(v, o));
+                        data.set("_badges", (v == null)?m.invoke(o):m.invoke(v, o));
                     }
 
                     if (m.isAnnotationPresent(Links.class)) {
-                        data.set("_links", (v == null)?m.invoke(v):m.invoke(v, o));
+                        data.set("_links", (v == null)?m.invoke(o):m.invoke(v, o));
                     }
                 }
 
                 if (data.isEmpty("_badges")) for (Method m : getAllMethods(viewClass)) {
                     if (m.isAnnotationPresent(Badges.class)) {
-                        data.set("_badges", (v == null)?m.invoke(v):m.invoke(v, o));
+                        data.set("_badges", (v == null)?m.invoke(o):m.invoke(v, o));
                     }
                 }
 
                 if (data.isEmpty("_links")) for (Method m : getAllMethods(viewClass)) {
                     if (m.isAnnotationPresent(Links.class)) {
-                        data.set("_links", (v == null)?m.invoke(v):m.invoke(v, o));
+                        data.set("_links", (v == null)?m.invoke(o):m.invoke(v, o));
                     }
                 }
 
@@ -2140,6 +2140,8 @@ public class ERPServiceImpl implements ERPService {
                                 vs.add(parameters);
                             } else if (AbstractServerSideWizard.class.isAssignableFrom(p.getType())) {
                                 vs.add(fillWizard(user, em, p.getType(), parameters.get(p.getName())));
+                            } else if (UserData.class.equals(p.getType())) {
+                                vs.add(user);
                             } else {
                                 Object v = extractValue(em, user, null, parameters, getInterfaced(p));
                                 vs.add(v);
