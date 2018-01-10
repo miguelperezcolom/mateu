@@ -2091,6 +2091,8 @@ public class ERPServiceImpl implements ERPService {
                                 vs.add(parameters);
                             } else if (AbstractServerSideWizard.class.isAssignableFrom(p.getType())) {
                                 vs.add(fillWizard(user, em, p.getType(), parameters.get(p.getName())));
+                            } else if (UserData.class.equals(p.getType())) {
+                                vs.add(user);
                             } else {
                                 Object v = extractValue(em, user, o, parameters, getInterfaced(p));
                                 vs.add(v);
