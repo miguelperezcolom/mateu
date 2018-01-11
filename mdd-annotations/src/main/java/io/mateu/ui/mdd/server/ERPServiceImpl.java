@@ -1492,6 +1492,7 @@ public class ERPServiceImpl implements ERPService {
 
             List<String> viewParamFields = new ArrayList<>();
             List<String> viewColumnFields = new ArrayList<>();
+            List<String> viewColumnHeaders = new ArrayList<>();
             List<String> viewOrderFields = new ArrayList<>();
             List<String> viewFormFields = new ArrayList<>();
             List<String> negatedViewFormFields = new ArrayList<>();
@@ -1500,11 +1501,12 @@ public class ERPServiceImpl implements ERPService {
                 System.out.println(c.getName() + " is a view");
                 v = (ListView) c.newInstance();
                 for (Type t : c.getGenericInterfaces()) {
-                    if (t.getTypeName().startsWith(View.class.getName())) c = (Class) ((ParameterizedType)t).getActualTypeArguments()[0];
+                    if (t.getTypeName().startsWith(View.class.getName()) || t.getTypeName().startsWith(ListView.class.getName()) || t.getTypeName().startsWith(CompositeView.class.getName())) c = (Class) ((ParameterizedType)t).getActualTypeArguments()[0];
                 }
 
                 addToList(viewParamFields, v.getParams());
                 addToList(viewColumnFields, v.getCols());
+                addToList(viewColumnHeaders, v.getColHeaders());
                 addToList(viewOrderFields, v.getOrderCriteria());
                 if (v instanceof View) addToList(viewFormFields, negatedViewFormFields, ((View)v).getFields());
 
@@ -1524,12 +1526,26 @@ public class ERPServiceImpl implements ERPService {
 
             data.set("_viewClassName", viewClass.getName());
             if (CompositeView.class.isAssignableFrom(viewClass)) {
-                for (Type t : c.getGenericInterfaces()) {
-                    if (t.getTypeName().startsWith(View.class.getName())) data.set("_compositeClassName", ((Class) ((ParameterizedType)t).getActualTypeArguments()[0]).getName());
+                Type t = viewClass.getGenericInterfaces()[0];
+                Class ccomposite = (Class) ((ParameterizedType) t).getActualTypeArguments()[1];
+                data.set("_compositeClassName", ccomposite.getName());
+
+                for (FieldInterfaced f : getAllFields(ccomposite)) {
+                    if (f.getType().equals(c)) {
+
+                        data.set("_compositeFieldName", f.getName());
+                        break;
+
+                    }
                 }
+
+                data.set("_compositeActionName", ((CompositeView)viewClass.newInstance()).getActionName());
+
             }
             data.set("_queryFilters", queryFilters);
             data.set("_rawtitle", Helper.capitalize(Helper.pluralize((c.isAnnotationPresent(Entity.class) && !Strings.isNullOrEmpty(((Entity)c.getAnnotation(Entity.class)).name()))?((Entity)c.getAnnotation(Entity.class)).name():c.getSimpleName())));
+
+            if (ListView.class.isAssignableFrom(viewClass) && v != null && v.getViewTitle() != null) data.set("_rawtitle", v.getViewTitle());
 
             if (viewClass.isAnnotationPresent(Indelible.class)) data.set("_indelible", true);
             if (viewClass.isAnnotationPresent(NewNotAllowed.class) || (v != null && CompositeView.class.isAssignableFrom(viewClass))) data.set("_newnotallowed", true);
@@ -1633,6 +1649,12 @@ public class ERPServiceImpl implements ERPService {
                 for (FieldInterfaced f : getAllFields(c, (v == null || Strings.isNullOrEmpty(v.getCols()))?false:true, viewColumnFields, null)) {
                     if (!(f.isAnnotationPresent(OneToMany.class) || f.isAnnotationPresent(ManyToMany.class) || f.isAnnotationPresent(MapKey.class) || f.isAnnotationPresent(ElementCollection.class) || f.isAnnotationPresent(NotInList.class)))
                         addColumn(user, em, v, listColumns, f);
+                }
+            }
+
+            if (viewColumnHeaders.size() > 0) {
+                for (int pos = 0; pos < viewColumnHeaders.size(); pos++) {
+                    if (listColumns.size() > pos + 1) listColumns.get(pos + 1).set("_label", viewColumnHeaders.get(pos));
                 }
             }
 
@@ -1764,6 +1786,9 @@ public class ERPServiceImpl implements ERPService {
         data.set("_viewClassName", ec.getName());
         data.set("_queryFilters", queryFilters);
         data.set("_rawtitle", Helper.capitalize(Helper.pluralize(c.getSimpleName())));
+
+        RPCView v = (RPCView) c.newInstance();
+        if (v.getViewTitle() != null) data.set("_rawtitle", v.getViewTitle());
 
 
         Data dsf;

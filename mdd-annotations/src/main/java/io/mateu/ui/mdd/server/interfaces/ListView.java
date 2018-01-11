@@ -7,11 +7,17 @@ import javax.persistence.EntityManager;
 
 public interface ListView<T> {
 
+    default String getViewTitle() { return null; };
+
     default String getParams() {
         return null;
     }
 
     default String getCols() {
+        return null;
+    }
+
+    default String getColHeaders() {
         return null;
     }
 

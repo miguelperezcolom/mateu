@@ -24,6 +24,11 @@ import java.util.Map;
 public class StopSalesListView implements CompositeView<Hotel, StopSalesView> {
 
     @Override
+    public String getViewTitle() {
+        return "Stop sales";
+    }
+
+    @Override
     public String getParams() {
         return "name";
     }
@@ -31,7 +36,16 @@ public class StopSalesListView implements CompositeView<Hotel, StopSalesView> {
 
     @Override
     public String getCols() {
-        return "name";
+        return "id, name";
     }
 
+    @Override
+    public String getColHeaders() {
+        return "Hotel name";
+    }
+
+    @Override
+    public String getActionName() {
+        return "Open stop sales";
+    }
 }

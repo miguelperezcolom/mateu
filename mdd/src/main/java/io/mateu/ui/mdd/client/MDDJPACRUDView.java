@@ -13,6 +13,7 @@ import io.mateu.ui.core.client.components.fields.grids.columns.*;
 import io.mateu.ui.core.client.views.*;
 import io.mateu.ui.core.shared.*;
 import io.mateu.ui.mdd.server.WizardPageVO;
+import io.mateu.ui.mdd.server.interfaces.ListView;
 import io.mateu.ui.mdd.server.interfaces.View;
 import io.mateu.ui.mdd.server.util.Helper;
 import io.mateu.ui.mdd.server.util.JPATransaction;
@@ -40,6 +41,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
     private String entityClassName;
     private String viewClassName;
     private String rpcViewClassName;
+    private String compositeClassName;
     private String queryFilters;
 
     public MDDJPACRUDView(Data metadata) {
@@ -56,6 +58,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
         this.idFieldName = metadata.getString("_idFieldName");
         this.viewClassName = metadata.getString("_viewClassName");
         this.rpcViewClassName = metadata.getString("_rpcViewClassName");
+        this.compositeClassName = metadata.getString("_compositeClassName");
         this.queryFilters = metadata.getString("_queryFilters");
     }
 
@@ -82,7 +85,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
     @Override
     public boolean isIdColumnNeeded() {
-        return Strings.isNullOrEmpty(rpcViewClassName);
+        return Strings.isNullOrEmpty(rpcViewClassName) && Strings.isNullOrEmpty(compositeClassName);
     }
 
     @Override
@@ -222,7 +225,11 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
         if (getMetadata().containsKey("_compositeClassName")) {
 
             try {
-                MDD.openCRUD(Class.forName(getMetadata().get("_compositeClassName")), queryFilters);
+                Data d = new Data();
+                if (getMetadata().containsKey("_compositeFieldName")) {
+                    d.set(getMetadata().get("_compositeFieldName"), new Pair(data.get("_id"), data.get("col1")));
+                }
+                MDD.openView(Class.forName(getMetadata().get("_compositeClassName")), d, queryFilters);
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
@@ -586,6 +593,21 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
             }
             poscol++;
         }
+        if (!Strings.isNullOrEmpty(compositeClassName)) {
+            LinkColumn col;
+            cols.add(col = new LinkColumn("_open", "Action", 200) {
+                @Override
+                public void run(Data data) {
+                    open("xxx", data);
+                }
+
+                @Override
+                public String getText() {
+                    return metadata.get("_compositeActionName");
+                }
+            });
+            col.setAlignment(ColumnAlignment.CENTER);
+        }
         return cols;
     }
 
@@ -596,7 +618,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
         if (!Strings.isNullOrEmpty(viewClassName) && !viewClassName.equals(entityClassName)) {
             try {
-                View v = (View) Class.forName(viewClassName).newInstance();
+                io.mateu.ui.mdd.server.interfaces.ListView v = (io.mateu.ui.mdd.server.interfaces.ListView) Class.forName(viewClassName).newInstance();
 
                 String[] jpql = new String[1];
 
@@ -706,7 +728,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
         if (!Strings.isNullOrEmpty(viewClassName) && !viewClassName.equals(entityClassName)) {
             try {
-                View v = (View) Class.forName(viewClassName).newInstance();
+                ListView v = (ListView) Class.forName(viewClassName).newInstance();
 
                 String[] f = new String[1];
 

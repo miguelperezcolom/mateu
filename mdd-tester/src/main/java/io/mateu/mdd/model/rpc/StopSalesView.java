@@ -23,6 +23,11 @@ import java.util.Map;
 @Getter@Setter
 public class StopSalesView implements RPCView<StopSalesMonth, StopSalesLine> {
 
+    @Override
+    public String getViewTitle() {
+        return "Hotel stop sales";
+    }
+
     @NotNull
     private Hotel hotel;
 
