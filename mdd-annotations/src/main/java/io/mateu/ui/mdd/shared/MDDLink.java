@@ -41,6 +41,14 @@ public class MDDLink extends Data {
         set("_entityClassName", entityClassName);
     }
 
+    public String getViewClassName() {
+        return get("_viewClassName");
+    }
+
+    public void setViewClassName(String entityClassName) {
+        set("_viewClassName", entityClassName);
+    }
+
     public Data getMetaData() {
         return get("_metadata");
     }

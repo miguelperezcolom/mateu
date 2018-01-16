@@ -12,11 +12,11 @@ public class MDD {
     }
 
     public static void openCRUD(Class entityClass, String queryFilters) {
-        ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(MateuUI.getApp().getUserData(), entityClass.getName(), queryFilters, new MDDCallback());
+        ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(MateuUI.getApp().getUserData(), entityClass.getName(), entityClass.getName(), queryFilters, new MDDCallback());
     }
 
     public static void openEditor(Class entityClass, Object id) {
-        ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(MateuUI.getApp().getUserData(), entityClass.getName(), null, new Callback<Data>() {
+        ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(MateuUI.getApp().getUserData(), entityClass.getName(), entityClass.getName(), null, new Callback<Data>() {
             @Override
             public void onSuccess(Data result) {
                 MateuUI.openView(new MDDJPACRUDView(result).getNewEditorView().setInitialId(id));
@@ -29,7 +29,7 @@ public class MDD {
     }
 
     public static void openView(Class entityClass, Data data, String queryFilters) {
-        ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(MateuUI.getApp().getUserData(), entityClass.getName(), queryFilters, new MDDCallback() {
+        ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(MateuUI.getApp().getUserData(), entityClass.getName(), entityClass.getName(), queryFilters, new MDDCallback() {
             @Override
             public void onSuccess(Data result) {
                 MateuUI.openView(new MDDJPACRUDView(result) {

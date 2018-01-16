@@ -28,7 +28,7 @@ public interface ERPService {
 
     Data get(UserData user, String entityClassName, String viewClassName, String id) throws Throwable;
 
-    Data getMetaData(UserData user, String entityClassName, String queryFilters) throws Throwable;
+    Data getMetaData(UserData user, String entityClassName, String viewClassName, String queryFilters) throws Throwable;
 
     Object runInServer(UserData user, String className, String methodName, Data parameters, String rpcViewClassName, Data rpcViewData) throws Throwable;
 

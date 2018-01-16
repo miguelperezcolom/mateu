@@ -1850,8 +1850,8 @@ public class ERPServiceImpl implements ERPService {
 
 
     @Override
-    public Data getMetaData(UserData user, String entityClassName, String queryFilters) throws Exception {
-        Class c = Class.forName(entityClassName);
+    public Data getMetaData(UserData user, String entityClassName, String viewClassName, String queryFilters) throws Exception {
+        Class c = Class.forName(viewClassName);
 
         Data[] data = new Data[1];
 

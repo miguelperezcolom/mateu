@@ -42,10 +42,11 @@ public class MDDViewProvider implements ViewProvider {
 
                 String[] t = viewName.split("\\.\\.");
                 String ed = t[0];
-                String qf = (t.length > 1)?new String(BaseEncoding.base64().decode(t[1])):null;
+                String vd = t[1];
+                String qf = (t.length > 2)?new String(BaseEncoding.base64().decode(t[2])):null;
 
 
-                view = new MDDJPACRUDView(new ERPServiceImpl().getMetaData(MateuUI.getApp().getUserData(), ed, qf));
+                view = new MDDJPACRUDView(new ERPServiceImpl().getMetaData(MateuUI.getApp().getUserData(), ed, vd, qf));
 
                 if (t.length > 2) {
                     return view.getNewEditorView();
