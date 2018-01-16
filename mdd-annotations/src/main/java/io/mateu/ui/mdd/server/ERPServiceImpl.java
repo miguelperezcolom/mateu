@@ -406,6 +406,7 @@ public class ERPServiceImpl implements ERPService {
         Object v = data.get(f.getId());
         if (v != null && v instanceof Pair) v = ((Pair) v).getValue();
 
+        if (File.class.isAssignableFrom(f.getType()) || Translated.class.isAssignableFrom(f.getType())) return v;
 
         Class<?> genericClass = null;
         if (f.getGenericType() instanceof ParameterizedType) {
@@ -2596,6 +2597,10 @@ public class ERPServiceImpl implements ERPService {
                 upload = true;
             } else if (f.isAnnotationPresent(ShowAsHtml.class)) {
                 d.set("_type", MetaData.FIELDTYPE_HTML);
+                upload = true;
+            } else if (Translated.class.isAssignableFrom(f.getType())) {
+                d.set("_type", MetaData.FIELDTYPE_MULTILANGUAGETEXT);
+                if (f.isAnnotationPresent(TextArea.class)) d.set("_type", MetaData.FIELDTYPE_MULTILANGUAGETEXTAREA);
                 upload = true;
             } else if (f.isAnnotationPresent(UseGridToSelect.class)) {
                 d.set("_type", MetaData.FIELDTYPE_SELECTFROMGRID);

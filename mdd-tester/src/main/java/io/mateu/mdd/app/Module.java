@@ -12,6 +12,8 @@ import io.mateu.mdd.model.rpc.Room;
 import io.mateu.mdd.model.rpc.StopSalesListView;
 import io.mateu.mdd.model.rpc.StopSalesView;
 import io.mateu.mdd.model.tests.basic.Basico;
+import io.mateu.mdd.model.tests.herencia.Abstracta;
+import io.mateu.mdd.model.tests.multiidioma.Traducido;
 import io.mateu.mdd.model.tests.onetomany.Uno;
 import io.mateu.mdd.model.tests.onetoone.UnoAUnoMapped;
 import io.mateu.mdd.model.tests.onetoone.UnoAUnoMapper;
@@ -90,6 +92,10 @@ public class Module extends AbstractModule {
 
         m.add(new MDDAction("Stop sales from hotel", StopSalesListView.class));
 
+
+        m.add(new MDDAction("Abstracta", Abstracta.class));
+
+        m.add(new MDDAction("Multiidioma", Traducido.class));
 
         return m;
     }

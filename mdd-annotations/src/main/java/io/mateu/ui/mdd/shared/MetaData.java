@@ -31,4 +31,6 @@ public interface MetaData {
     public static final String FIELDTYPE_WIZARD = "wizard";
     public static final String FIELDTYPE_SELECTFROMGRID = "selectfromgrid";
     public static final String FIELDTYPE_HTML = "html";
+    public static final String FIELDTYPE_MULTILANGUAGETEXT = "multilanguagetext";
+    public static final String FIELDTYPE_MULTILANGUAGETEXTAREA = "multilanguagetextarea";
 }

@@ -106,10 +106,10 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
     @Override
     public AbstractEditorView getNewEditorView() {
-           return getNewEditorView(getEntityClassName(), getMetadata().getData("_editorform"));
+           return getNewEditorViewForSubclass(getViewClassName(), getMetadata().getData("_editorform"));
     }
 
-    public AbstractEditorView getNewEditorView(String entityClassName, Data formMetaData) {
+    public AbstractEditorView getNewEditorViewForSubclass(String entityClassName, Data formMetaData) {
 
         return new JPAEditorView(this) {
 
@@ -140,7 +140,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                         id = s;
                     }
 
-                    return "mdd.." + viewClassName + ".." + BaseEncoding.base64().encode(((queryFilters != null)?queryFilters:"").getBytes()) + ".." + "edit" + ((id != null)?"/" + id:"");
+                    return "mdd.." + entityClassName + ".." + BaseEncoding.base64().encode(((queryFilters != null)?queryFilters:"").getBytes()) + ".." + "edit" + ((id != null)?"/" + id:"");
                 }
 
                 @Override
@@ -199,7 +199,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                         String type = (String) ((Pair)getForm().getData().get("type")).getValue();
                         for (Data d : getMetadata().getList("_subclasses")) {
                             if (type.equals(d.get("_type"))) {
-                                openEditor(getNewEditorView(d.get("_type"), d.get("_editorform")));
+                                openEditor(getNewEditorViewForSubclass(d.get("_type"), d.get("_editorform")));
                                 break;
                             }
                         }
@@ -253,7 +253,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                 if (className != null) className = className.replaceAll("class ", "");
                 for (Data d : getMetadata().getList("_subclasses")) {
                     if (d.get("_type").equals(className)) {
-                        openEditor(getNewEditorView(d.get("_type"), d.get("_editorform")).setInitialId(data.get(propertyId)));
+                        openEditor(getNewEditorViewForSubclass(d.get("_type"), d.get("_editorform")).setInitialId(data.get(propertyId)));
                         break;
                     }
                 }
