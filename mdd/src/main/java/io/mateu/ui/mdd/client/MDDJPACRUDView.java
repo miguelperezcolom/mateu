@@ -756,7 +756,10 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
         if (filters == null) filters = "";
 
-        if (getMetadata().containsKey("_additionalcriteria")) filters += getMetadata().get("_additionalcriteria");
+        if (getMetadata().containsKey("_additionalcriteria")) {
+            filters += getMetadata().get("_additionalcriteria");
+            posfilter += filters.split(" ").length;
+        }
 
         for (Data d : getMetadata().getData("_searchform").getList("_fields")) {
 
