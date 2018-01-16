@@ -97,6 +97,8 @@ public class Module extends AbstractModule {
 
         m.add(new MDDAction("Multiidioma", Traducido.class));
 
+        m.add(new MDDAction("Bookings restricted", Booking.class, "x.agency.id = " + MateuUI.getApp().getUserData().get("agencyId")));
+
         return m;
     }
 }

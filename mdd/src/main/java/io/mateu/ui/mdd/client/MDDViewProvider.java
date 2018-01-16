@@ -48,7 +48,7 @@ public class MDDViewProvider implements ViewProvider {
 
                 view = new MDDJPACRUDView(new ERPServiceImpl().getMetaData(MateuUI.getApp().getUserData(), ed, vd, qf));
 
-                if (t.length > 2) {
+                if (t.length > 3) {
                     return view.getNewEditorView();
                 }
 
