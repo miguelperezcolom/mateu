@@ -1,4 +1,4 @@
-package io.mateu.erp.model.product.hotel.hotel;
+package io.mateu.erp.model.product.hotel;
 
 import io.mateu.erp.model.multilanguage.Literal;
 import lombok.Getter;
@@ -15,12 +15,11 @@ import javax.persistence.ManyToOne;
 @Entity
 @Getter
 @Setter
-public class BoardType {
+public class RoomType {
 
     @Id
     private String code;
 
     @ManyToOne(cascade = CascadeType.ALL)
     private Literal name;
-
 }

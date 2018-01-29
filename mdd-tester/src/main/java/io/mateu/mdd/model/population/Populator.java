@@ -1,8 +1,8 @@
 package io.mateu.mdd.model.population;
 
 import io.mateu.erp.model.multilanguage.Literal;
-import io.mateu.erp.model.product.hotel.hotel.BoardType;
-import io.mateu.erp.model.product.hotel.hotel.RoomType;
+import io.mateu.erp.model.product.hotel.BoardType;
+import io.mateu.erp.model.product.hotel.RoomType;
 import io.mateu.mdd.model.authentication.Permission;
 import io.mateu.mdd.model.authentication.USER_STATUS;
 import io.mateu.mdd.model.authentication.User;

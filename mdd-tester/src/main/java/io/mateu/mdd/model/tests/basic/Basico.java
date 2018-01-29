@@ -23,7 +23,7 @@ public class Basico {
 
     @SearchFilter
     @Help("Full name of the user")
-    private String name;
+    private String name = "Hola!!!";
 
     private int entero;
 

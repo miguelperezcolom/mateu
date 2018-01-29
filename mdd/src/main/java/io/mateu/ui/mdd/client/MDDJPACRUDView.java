@@ -8,7 +8,7 @@ import io.mateu.ui.core.client.app.Callback;
 import io.mateu.ui.core.client.app.MateuUI;
 import io.mateu.ui.core.client.components.*;
 import io.mateu.ui.core.client.components.fields.*;
-import io.mateu.ui.core.client.components.fields.grids.CalendarField;
+import io.mateu.ui.core.client.components.fields.CalendarField;
 import io.mateu.ui.core.client.components.fields.grids.columns.*;
 import io.mateu.ui.core.client.views.*;
 import io.mateu.ui.core.shared.*;
@@ -177,7 +177,22 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
     @Override
     public void openNew() {
         if (getMetadata().isEmpty("_subclasses")) {
-            super.openNew();
+
+            ((ERPServiceAsync) MateuUI.create(ERPService.class)).getInitialData(MateuUI.getApp().getUserData(), getEntityClassName(), getViewClassName(), getData(), new Callback<Data>() {
+                @Override
+                public void onSuccess(Data result) {
+                    AbstractEditorView ed;
+                    openEditor(ed = getNewEditorView());
+                    MateuUI.runInUIThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ed.setData(result);
+                        }
+                    });
+                }
+            } );
+
+
         } else {
             List<Pair> options = new ArrayList<>();
             for (Data d : getMetadata().getList("_subclasses")) {
@@ -199,7 +214,19 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                         String type = (String) ((Pair)getForm().getData().get("type")).getValue();
                         for (Data d : getMetadata().getList("_subclasses")) {
                             if (type.equals(d.get("_type"))) {
-                                openEditor(getNewEditorViewForSubclass(d.get("_type"), d.get("_type"), d.get("_editorform")));
+                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).getInitialData(MateuUI.getApp().getUserData(), getEntityClassName(), getViewClassName(), getData(), new Callback<Data>() {
+                                    @Override
+                                    public void onSuccess(Data result) {
+                                        AbstractEditorView ed;
+                                        openEditor(ed = getNewEditorViewForSubclass(d.get("_type"), d.get("_type"), d.get("_editorform")));
+                                        MateuUI.runInUIThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                ed.setData(result);
+                                            }
+                                        });
+                                    }
+                                } );
                                 break;
                             }
                         }
@@ -355,6 +382,22 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
                 if (MetaData.FIELDTYPE_HTML.equals(d.getString("_type"))) {
                     fields.add(new HtmlField(prefix + d.getString("_id"), d.getString("_label")));
+                } else if (MetaData.FIELDTYPE_DATE.equals(d.getString("_type"))) {
+                    fields.add(new DateField(prefix + d.getString("_id"), d.getString("_label")));
+                } else if (MetaData.FIELDTYPE_DATETIME.equals(d.getString("_type"))) {
+                    fields.add(new DateTimeField(prefix + d.getString("_id"), d.getString("_label")));
+                } else if (MetaData.FIELDTYPE_CALENDAR.equals(d.getString("_type"))) {
+                    fields.add(new CalendarField(prefix + d.getString("_id"), d.getString("_label"), d.getString("_nameproperty")) {
+                        @Override
+                        public AbstractForm getDataForm() {
+                            AbstractForm f = new AbstractForm() {
+                            };
+                            buildFromMetadata(f, d.getData("_editorform"), false);
+                            return f;
+                        }
+                    });
+                } else if (MetaData.FIELDTYPE_SUPPLEMENTORPOSITIVE.equals(d.getString("_type"))) {
+                    fields.add(new SupplementOrPositiveField(prefix + d.getString("_id"), d.getString("_label")));
                 } else if (MetaData.FIELDTYPE_OUTPUT.equals(d.getString("_type"))) {
                     fields.add(new ShowTextField(prefix + d.getString("_id"), d.getString("_label")));
                 } else if (MetaData.FIELDTYPE_OUTPUTENTITY.equals(d.getString("_type"))) {
@@ -375,15 +418,15 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                     fields.add(new CheckBoxField(prefix + d.getString("_id"), d.getString("_label")));
                 } else if (MetaData.FIELDTYPE_DATE.equals(d.getString("_type"))) {
                     if (buildingSearchForm) {
-                        fields.add(new CalendarField(prefix + d.getString("_id") + "_from", d.getString("_label") + " from"));
-                        fields.add(new CalendarField(prefix + d.getString("_id") + "_to", d.getString("_label") + " to"));
+                        fields.add(new DateField(prefix + d.getString("_id") + "_from", d.getString("_label") + " from"));
+                        fields.add(new DateField(prefix + d.getString("_id") + "_to", d.getString("_label") + " to"));
                     } else {
-                        fields.add(new CalendarField(prefix + d.getString("_id"), d.getString("_label")));
+                        fields.add(new DateField(prefix + d.getString("_id"), d.getString("_label")));
                     }
                 } else if (MetaData.FIELDTYPE_DATETIME.equals(d.getString("_type"))) {
                     if (buildingSearchForm) {
-                        fields.add(new CalendarField(prefix + d.getString("_id") + "_from", d.getString("_label") + " from"));
-                        fields.add(new CalendarField(prefix + d.getString("_id") + "_to", d.getString("_label") + " to"));
+                        fields.add(new DateTimeField(prefix + d.getString("_id") + "_from", d.getString("_label") + " from"));
+                        fields.add(new DateTimeField(prefix + d.getString("_id") + "_to", d.getString("_label") + " to"));
                     } else {
                         fields.add(new DateTimeField(prefix + d.getString("_id"), d.getString("_label")));
                     }

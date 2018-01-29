@@ -1,12 +1,19 @@
 package io.mateu.ui.mdd.server;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import io.mateu.erp.model.product.hotel.DatesRange;
 import io.mateu.erp.model.util.XMLSerializable;
+import io.mateu.ui.core.client.components.Component;
+import io.mateu.ui.core.client.components.Tabs;
+import io.mateu.ui.core.client.components.fields.*;
+import io.mateu.ui.core.client.views.AbstractForm;
 import io.mateu.ui.core.client.views.RPCView;
 import io.mateu.ui.core.shared.*;
 import io.mateu.ui.mdd.server.annotations.*;
 import io.mateu.ui.mdd.server.annotations.CellStyleGenerator;
 import io.mateu.ui.mdd.server.interfaces.*;
+import io.mateu.ui.mdd.server.interfaces.SupplementOrPositive;
 import io.mateu.ui.mdd.server.util.Helper;
 import io.mateu.ui.mdd.server.util.JPATransaction;
 import io.mateu.ui.mdd.shared.ERPService;
@@ -414,7 +421,11 @@ public class ERPServiceImpl implements ERPService {
             genericClass = (genericType != null && genericType.getActualTypeArguments().length > 0)?(Class<?>) genericType.getActualTypeArguments()[0]:null;
         }
 
-        if (f.getType().isArray()) {
+        if (DataSerializable.class.isAssignableFrom(f.getType())) {
+            DataSerializable ds = (DataSerializable) f.getType().newInstance();
+            ds.fill(em, user, (Data) v);
+            v = ds;
+        } else if (f.getType().isArray()) {
             if (v != null) {
                 List<Object> l = new ArrayList<>();
                 Class c = f.getType().getComponentType();
@@ -826,7 +837,9 @@ public class ERPServiceImpl implements ERPService {
         Helper.notransact(new JPATransaction() {
             @Override
             public void run(EntityManager em) throws Throwable {
-                Object o = em.find(Class.forName(entityClassName), (id instanceof Integer)?new Long((Integer)id):id);
+                Object o = null;
+                if (id != null) o = em.find(Class.forName(entityClassName), (id instanceof Integer)?new Long((Integer)id):id);
+                else o = Class.forName(entityClassName).newInstance();
 
                 Class viewClass = Class.forName(viewClassName);
 
@@ -866,7 +879,21 @@ public class ERPServiceImpl implements ERPService {
                     }
                 }
 
-                data.set("_title", Helper.capitalize((o.getClass().isAnnotationPresent(Entity.class) && !Strings.isNullOrEmpty(((Entity)o.getClass().getAnnotation(Entity.class)).name()))?((Entity)o.getClass().getAnnotation(Entity.class)).name():o.getClass().getSimpleName()) + " " + ((data.isEmpty("_tostring"))?id:data.get("_tostring")));
+                if (id == null) {
+                    data.set("_title", "New " + Helper.capitalize(
+                            (o.getClass().isAnnotationPresent(Entity.class) && !Strings.isNullOrEmpty(((Entity)o.getClass().getAnnotation(Entity.class)).name()))?
+                                    ((Entity)o.getClass().getAnnotation(Entity.class)).name()
+                                    :o.getClass().getSimpleName())
+                    );
+                } else {
+                    data.set("_title",
+                            Helper.capitalize(
+                                    (o.getClass().isAnnotationPresent(Entity.class) && !Strings.isNullOrEmpty(((Entity)o.getClass().getAnnotation(Entity.class)).name()))?
+                                            ((Entity)o.getClass().getAnnotation(Entity.class)).name()
+                                            :o.getClass().getSimpleName()) + " " + ((data.isEmpty("_tostring"))?id:data.get("_tostring")
+                            )
+                    );
+                }
 
             }
         });
@@ -1115,7 +1142,10 @@ public class ERPServiceImpl implements ERPService {
                     genericClass = (genericType != null && genericType.getActualTypeArguments().length > 0)?(Class<?>) genericType.getActualTypeArguments()[0]:null;
                 }
 
-                if (f.getType().isPrimitive() || basicos.contains(f.getType())) {
+                if (DataSerializable.class.isAssignableFrom(f.getType())) {
+                    v = ((DataSerializable)v).toData(em, user);
+                    ok = true;
+                } else if (f.getType().isPrimitive() || basicos.contains(f.getType())) {
                     ok = true;
                 } else if (v != null && v instanceof Date) {
                     v = LocalDateTime.ofInstant(((Date)v).toInstant(), ZoneId.systemDefault());
@@ -1187,7 +1217,49 @@ public class ERPServiceImpl implements ERPService {
                     }
                 } else if (List.class.isAssignableFrom(f.getType())) {
 
-                    if (genericClass.isAnnotationPresent(Entity.class)) {
+                    if (genericClass != null && UseCalendarToEdit.class.isAssignableFrom(genericClass)) {
+                        Data d = new Data();
+                        List<Data> values = new ArrayList<>();
+                        List<Data> options = new ArrayList<>();
+                        LocalDate first = null;
+                        LocalDate last = null;
+                        for (UseCalendarToEdit x : (List<UseCalendarToEdit>) v) {
+                            String uuid;
+                            Data option = new Data("__id", uuid = UUID.randomUUID().toString());
+                            fillData(user, em, option, x);
+                            option.set("_nameproperty", x.getNamePropertyName());
+                            options.add(option);
+
+                            List<LocalDate> fechas = x.getCalendarDates();
+
+                            if (x.getDatesRangesPropertyName() != null) {
+                                List<DatesRange> l = (List<DatesRange>) x.getClass().getMethod(getGetter(x.getDatesRangesPropertyName())).invoke(x);
+                                fechas = new ArrayList<>();
+                                for (DatesRange r : l) {
+                                    LocalDate del = LocalDate.from(r.getStart());
+                                    LocalDate al = LocalDate.from(r.getEnd());
+                                    if (del != null && al != null && del.isBefore(al)) {
+                                        while (!del.isAfter(al)) {
+                                            fechas.add(del);
+                                            del = del.plusDays(1);
+                                        }
+                                    }
+                                }
+                            }
+
+                            for (LocalDate dx : fechas) {
+                                values.add(new Data("_key", dx, "_value", uuid));
+                                if (first == null || first.isAfter(dx)) first = LocalDate.from(dx);
+                                if (last == null || last.isBefore(dx)) last = LocalDate.from(dx);
+                            }
+
+                        }
+                        d.set("_values", values);
+                        d.set("_options", options);
+                        d.set("_fromdate", first);
+                        d.set("_todate", last);
+                        v = d;
+                    } else if (genericClass.isAnnotationPresent(Entity.class)) {
 
                         Method m = null;
 
@@ -2598,10 +2670,24 @@ public class ERPServiceImpl implements ERPService {
             } else if (f.isAnnotationPresent(ShowAsHtml.class)) {
                 d.set("_type", MetaData.FIELDTYPE_HTML);
                 upload = true;
+            } else if (SupplementOrPositive.class.isAssignableFrom(f.getType())) {
+                d.set("_type", MetaData.FIELDTYPE_SUPPLEMENTORPOSITIVE);
+                upload = true;
             } else if (Translated.class.isAssignableFrom(f.getType())) {
                 d.set("_type", MetaData.FIELDTYPE_MULTILANGUAGETEXT);
                 if (f.isAnnotationPresent(TextArea.class)) d.set("_type", MetaData.FIELDTYPE_MULTILANGUAGETEXTAREA);
                 upload = true;
+            } else if (UseCalendarToEdit.class.isAssignableFrom(f.getType())) {
+                d.set("_type", MetaData.FIELDTYPE_CALENDAR);
+
+                Class genericClass = null;
+                if (f.getGenericType() instanceof ParameterizedType) {
+                    ParameterizedType genericType = (ParameterizedType) f.getGenericType();
+                    genericClass = (genericType != null && genericType.getActualTypeArguments().length > 0)?(Class<?>) genericType.getActualTypeArguments()[0]:null;
+                }
+                if (genericClass != null) d.set("_nameproperty", ((UseCalendarToEdit)genericClass.newInstance()).getNamePropertyName());
+
+                d.set("_editorform", toMetaData(((UseCalendarToEdit)f.getType().newInstance()).getForm(em, user)));
             } else if (f.isAnnotationPresent(UseGridToSelect.class)) {
                 d.set("_type", MetaData.FIELDTYPE_SELECTFROMGRID);
                 UseGridToSelect a = f.getAnnotation(UseGridToSelect.class);
@@ -2731,62 +2817,76 @@ public class ERPServiceImpl implements ERPService {
                         d.set("_innerjoin", f.getId());
                         d.set("_qlname", getIdFieldName(f.getGenericClass()));
                         d.set("_ql", getQlForEntityField(em, user, view, f.getGenericClass(), f.getId()));
-
-                    } else if (f.isAnnotationPresent(OwnedList.class) || !f.getGenericClass().isAnnotationPresent(Entity.class)) {
+                    } else {
 
                         Class gc = f.getGenericClass();
 
-                        if (gc.isPrimitive() || gc.equals(Long.class) || gc.equals(Integer.class) || gc.equals(Double.class) || gc.equals(String.class)) {
-                            d.set("_type", MetaData.FIELDTYPE_TEXTAREA);
+                        if (gc != null && UseCalendarToEdit.class.isAssignableFrom(gc)) {
+                            d.set("_type", MetaData.FIELDTYPE_CALENDAR);
+                            AbstractForm form = ((UseCalendarToEdit) gc.newInstance()).getForm(em, user);
+                            if (form != null) {
+                                d.set("_editorform", toMetaData(form));
+                            } else {
+                                d.set("_editorform", getMetadaData(user, em, gc, null).getData("_editorform"));
+                            }
 
-                            if (f.isAnnotationPresent(ValueClass.class) || f.isAnnotationPresent(ValueQL.class)) {
+                            d.set("_nameproperty", ((UseCalendarToEdit)gc.newInstance()).getNamePropertyName());
 
+                            upload = true;
+                        }else if (f.isAnnotationPresent(OwnedList.class) || !f.getGenericClass().isAnnotationPresent(Entity.class)) {
+
+                            if (gc.isPrimitive() || gc.equals(Long.class) || gc.equals(Integer.class) || gc.equals(Double.class) || gc.equals(String.class)) {
+                                d.set("_type", MetaData.FIELDTYPE_TEXTAREA);
+
+                                if (f.isAnnotationPresent(ValueClass.class) || f.isAnnotationPresent(ValueQL.class)) {
+
+                                    d.set("_type", MetaData.FIELDTYPE_GRID);
+                                    List<Data> cols = new ArrayList<>();
+
+                                    Class<?> finalGenericClass = gc;
+                                    final FieldInterfaced finalF1 = f;
+                                    addField(user, em, view, cols, new FieldInterfacedFromField(f) {
+                                        @Override
+                                        public Class<?> getType() {
+                                            return finalGenericClass;
+                                        }
+
+                                        @Override
+                                        public String getName() {
+                                            return (finalF1.isAnnotationPresent(MapLabels.class) && !Strings.isNullOrEmpty(finalF1.getAnnotation(MapLabels.class).labelForValue()))?finalF1.getAnnotation(MapLabels.class).labelForValue():"Value";
+                                        }
+
+                                        @Override
+                                        public String getId() {
+                                            return "_value";
+                                        }
+
+
+
+                                    }, null, null, null, false, true);
+
+                                    d.set("_cols", cols);
+
+                                }
+
+                            } else {
                                 d.set("_type", MetaData.FIELDTYPE_GRID);
                                 List<Data> cols = new ArrayList<>();
-
-                                Class<?> finalGenericClass = gc;
-                                final FieldInterfaced finalF1 = f;
-                                addField(user, em, view, cols, new FieldInterfacedFromField(f) {
-                                    @Override
-                                    public Class<?> getType() {
-                                        return finalGenericClass;
-                                    }
-
-                                    @Override
-                                    public String getName() {
-                                        return (finalF1.isAnnotationPresent(MapLabels.class) && !Strings.isNullOrEmpty(finalF1.getAnnotation(MapLabels.class).labelForValue()))?finalF1.getAnnotation(MapLabels.class).labelForValue():"Value";
-                                    }
-
-                                    @Override
-                                    public String getId() {
-                                        return "_value";
-                                    }
-
-
-
-                                }, null, null, null, false, true);
-
+                                for (Field ff : f.getGenericClass().getDeclaredFields()) {
+                                    if (!ff.isAnnotationPresent(Id.class) && !ff.getType().equals(f.getDeclaringClass()))
+                                        addColumn(user, em, view, cols, new FieldInterfacedFromField(ff));
+                                }
                                 d.set("_cols", cols);
-
                             }
 
                         } else {
-                            d.set("_type", MetaData.FIELDTYPE_GRID);
-                            List<Data> cols = new ArrayList<>();
-                            for (Field ff : f.getGenericClass().getDeclaredFields()) {
-                                if (!ff.isAnnotationPresent(Id.class) && !ff.getType().equals(f.getDeclaringClass()))
-                                    addColumn(user, em, view, cols, new FieldInterfacedFromField(ff));
-                            }
-                            d.set("_cols", cols);
+                            d.set("_type", MetaData.FIELDTYPE_LIST);
+                            d.set("_entityClassName", f.getGenericClass().getCanonicalName());
+
+                            String ql = getQlForEntityField(em, user, view, f);
+
+                            d.set("_ql", ql);
                         }
-
-                    } else {
-                        d.set("_type", MetaData.FIELDTYPE_LIST);
-                        d.set("_entityClassName", f.getGenericClass().getCanonicalName());
-
-                        String ql = getQlForEntityField(em, user, view, f);
-
-                        d.set("_ql", ql);
                     }
                     upload = true;
                 } else if (Map.class.isAssignableFrom(f.getType())) {
@@ -3082,6 +3182,121 @@ public class ERPServiceImpl implements ERPService {
         }
     }
 
+    private static Data toMetaData(AbstractForm form) {
+        Data d = new Data();
+        List<Data> l = new ArrayList<>();
+        List<Component> carga = new ArrayList<>();
+        for (Component c : form.getComponentsSequence()) {
+            addMetaData(l, c, carga);
+        }
+        d.set("_fields", l);
+        return d;
+    }
+
+    private static void addMetaData(List<Data> l, Component c, List<Component> carga) {
+        Data d = null;
+        if (c instanceof WeekDaysField) {
+            l.add(d = new Data("_type", MetaData.FIELDTYPE_WEEKDAYS));
+        } else if (c instanceof SupplementOrPositiveField) {
+            l.add(d = new Data("_type", MetaData.FIELDTYPE_SUPPLEMENTORPOSITIVE));
+        } else if (c instanceof FileField) {
+            l.add(d = new Data("_type", MetaData.FIELDTYPE_FILE));
+        } else if (c instanceof SqlComboBoxField) {
+            l.add(d = new Data("_type", MetaData.FIELDTYPE_COMBO, "_ql", ((SqlComboBoxField) c).getSql()));
+        } else if (c instanceof ComboBoxField) {
+            l.add(d = new Data("_type", MetaData.FIELDTYPE_COMBO, "_values", ((ComboBoxField) c).getValues()));
+        } else if (c instanceof HtmlField) {
+            l.add(d = new Data("_type", MetaData.FIELDTYPE_HTML));
+        } else if (c instanceof ShowTextField) {
+            l.add(d = new Data("_type", MetaData.FIELDTYPE_OUTPUTENTITY));
+        } else if (c instanceof ShowEntityField) {
+            l.add(d = new Data("_type", MetaData.FIELDTYPE_OUTPUTENTITY));
+        } else if (c instanceof ShowEntityField) {
+            l.add(d = new Data("_type", MetaData.FIELDTYPE_OUTPUTENTITY));
+        } else if (c instanceof PKField) {
+            l.add(d = new Data("_type", MetaData.FIELDTYPE_PK));
+        } else if (c instanceof MultilanguageTextField) {
+            l.add(d = new Data("_type", MetaData.FIELDTYPE_MULTILANGUAGETEXT));
+        } else if (c instanceof MultilanguageTextAreaField) {
+            l.add(d = new Data("_type", MetaData.FIELDTYPE_MULTILANGUAGETEXTAREA));
+        } else if (c instanceof DateTimeField) {
+            l.add(d = new Data("_type", MetaData.FIELDTYPE_DATETIME));
+        } else if (c instanceof DateField) {
+            l.add(d = new Data("_type", MetaData.FIELDTYPE_DATE));
+        } else if (c instanceof CheckBoxField) {
+            l.add(d = new Data("_type", MetaData.FIELDTYPE_BOOLEAN));
+        } else if (c instanceof DoubleField) {
+            l.add(d = new Data("_type", MetaData.FIELDTYPE_DOUBLE));
+        } else if (c instanceof LongField) {
+            l.add(d = new Data("_type", MetaData.FIELDTYPE_LONG));
+        } else if (c instanceof IntegerField) {
+            l.add(d = new Data("_type", MetaData.FIELDTYPE_INTEGER));
+        } else if (c instanceof TextAreaField) {
+            l.add(d = new Data("_type", MetaData.FIELDTYPE_TEXTAREA));
+        } else if (c instanceof TextField) {
+            l.add(d = new Data("_type", MetaData.FIELDTYPE_STRING));
+        }
+
+
+        //todo: acabar
+
+        /*
+
+                } else if (MetaData.FIELDTYPE_OBJECT.equals(d.getString("_type"))) {
+                    buildFromMetadata(container, prefix + d.getString("_id"), d.getData("_metadata"), buildingSearchForm);
+
+         */
+
+                /*
+    public static final String FIELDTYPE_ENTITY = "entity";
+    public static final String FIELDTYPE_ID = "id";
+    public static final String FIELDTYPE_LIST = "list";
+    public static final String FIELDTYPE_GRID = "grid";
+    public static final String FIELDTYPE_DATA = "data";
+    public static final String FIELDTYPE_USERDATA = "userdata";
+    public static final String FIELDTYPE_LISTDATA = "listdata";
+    public static final String FIELDTYPE_OBJECT = "object";
+    public static final String FIELDTYPE_WIZARD = "wizard";
+    public static final String FIELDTYPE_SELECTFROMGRID = "selectfromgrid";
+         */
+
+        if (c instanceof  AbstractField) {
+            AbstractField f = (AbstractField) c;
+            d.set("_label", f.getLabel());
+            d.set("_id", f.getId());
+            if (f.isRequired()) d.set("_required", true);
+            if (f.isBeginingOfLine()) d.set("_startsline", true);
+            if (!Strings.isNullOrEmpty(f.getHelp())) d.set("_help", f.getHelp());
+            if (f.isUnmodifiable()) d.set("_unmodifiable", true);
+
+            for (Component cx : carga) {
+                if (cx instanceof io.mateu.ui.core.client.components.Separator) {
+                    d.set("_separator", ((io.mateu.ui.core.client.components.Separator) cx).getText());
+                } else if (cx instanceof io.mateu.ui.core.client.components.Tab) {
+                    d.set("_starttab", ((io.mateu.ui.core.client.components.Tab) cx).getCaption());
+                } else if (cx instanceof io.mateu.ui.core.client.components.Tabs) {
+                    d.set("_starttabs", ((io.mateu.ui.core.client.components.Tabs) cx).getId());
+                    if (((io.mateu.ui.core.client.components.Tabs) cx).isFullWidth()) d.set("_fullwidth", true);
+                }
+            }
+
+            carga.clear();
+        } else if (c instanceof Tabs) {
+            List<Data> ll = new ArrayList<>();
+            boolean primerapestanya = true;
+            for (io.mateu.ui.core.client.components.Tab t : ((Tabs) c).getTabs()) {
+                List<Component> cc = Lists.newArrayList(t);
+                if (primerapestanya) {
+                    cc.add(c);
+                    primerapestanya = false;
+                }
+                for (Component x : t.getComponentsSequence()) addMetaData(ll, x, cc);
+            }
+            if (ll.size() > 0) ll.get(ll.size() - 1).set("_endtabs", true);
+        } else if (c instanceof Separator) carga.add(c);
+
+    }
+
     private static Data getInitialData(UserData user, EntityManager em, Class<? extends BaseServerSideWizard> wc) throws Throwable {
         Data d = new Data();
 
@@ -3207,5 +3422,11 @@ public class ERPServiceImpl implements ERPService {
         });
 
         return gd[0];
+    }
+
+    @Override
+    public Data getInitialData(UserData user, String entityClassName, String viewClassName, Data parentData) throws Throwable {
+        Data data = _get(user, entityClassName, viewClassName, null);
+        return data;
     }
 }

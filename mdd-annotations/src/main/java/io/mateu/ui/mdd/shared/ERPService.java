@@ -36,4 +36,6 @@ public interface ERPService {
 
     GridData rpc(UserData user, String rpcViewClassName, Data parameters) throws Throwable;
 
+    Data getInitialData(UserData user, String entityClassName, String viewClassName, Data parentData) throws Throwable;
+
 }
