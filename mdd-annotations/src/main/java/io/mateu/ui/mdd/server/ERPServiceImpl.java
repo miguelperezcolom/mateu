@@ -1988,7 +1988,7 @@ public class ERPServiceImpl implements ERPService {
     private static List<Method> getAllMethods(Class c) {
         List<Method> l = new ArrayList<>();
 
-        if (c.getSuperclass() != null && c.getSuperclass().isAnnotationPresent(Entity.class)) l.addAll(getAllMethods(c.getSuperclass()));
+        if (c.getSuperclass() != null && (!c.isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class)));
 
         for (Method f : c.getDeclaredMethods()) l.add(f);
 
@@ -2005,7 +2005,7 @@ public class ERPServiceImpl implements ERPService {
 
         List<FieldInterfaced> l = new ArrayList<>();
 
-        if (c.getSuperclass() != null && (!c.isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(Entity.class))) {
+        if (c.getSuperclass() != null && (!c.isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class))) {
             for (FieldInterfaced f : getAllFields(c.getSuperclass())) {
                 if (!originales.containsKey(f.getId())) l.add(f);
                 else l.add(new FieldInterfacedFromField(originales.get(f.getName())));
