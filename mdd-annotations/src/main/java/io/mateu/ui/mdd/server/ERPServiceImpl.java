@@ -1238,7 +1238,7 @@ public class ERPServiceImpl implements ERPService {
                                 for (DatesRange r : l) {
                                     LocalDate del = LocalDate.from(r.getStart());
                                     LocalDate al = LocalDate.from(r.getEnd());
-                                    if (del != null && al != null && del.isBefore(al)) {
+                                    if (del != null && al != null && !del.isAfter(al)) {
                                         while (!del.isAfter(al)) {
                                             fechas.add(del);
                                             del = del.plusDays(1);
