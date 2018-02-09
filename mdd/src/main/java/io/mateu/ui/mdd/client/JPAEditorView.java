@@ -29,7 +29,7 @@ public abstract class JPAEditorView extends BaseEditorView {
     @Override
     public void save(Data data, AsyncCallback<Data> callback) {
         ERPServiceAsync s = MateuUI.create(ERPService.class);
-        s.set(MateuUI.getApp().getUserData(), getEntityClassName(), crud.getViewClassName(), data, callback);
+        s.set(MateuUI.getApp().getUserData(), getEntityClassName(), getViewClassName(), data, callback);
     }
 
     @Override
@@ -41,4 +41,7 @@ public abstract class JPAEditorView extends BaseEditorView {
         else callback.onFailure(new Throwable("" + ((id != null)?id.getClass().getName():"null object class") + " type is not supported as ID"));
     }
 
+    public String getViewClassName() {
+        return crud.getViewClassName();
+    }
 }

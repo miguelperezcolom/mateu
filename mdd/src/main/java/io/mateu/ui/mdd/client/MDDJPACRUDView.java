@@ -128,6 +128,11 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
             }
 
             @Override
+            public String getViewClassName() {
+                return viewClass;
+            }
+
+            @Override
                 public String getViewId() {
                     String id = null;
                     if (getInitialId() != null) {
@@ -214,7 +219,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                         String type = (String) ((Pair)getForm().getData().get("type")).getValue();
                         for (Data d : getMetadata().getList("_subclasses")) {
                             if (type.equals(d.get("_type"))) {
-                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).getInitialData(MateuUI.getApp().getUserData(), getEntityClassName(), getViewClassName(), getData(), new Callback<Data>() {
+                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).getInitialData(MateuUI.getApp().getUserData(), type, type, getData(), new Callback<Data>() {
                                     @Override
                                     public void onSuccess(Data result) {
                                         AbstractEditorView ed;
