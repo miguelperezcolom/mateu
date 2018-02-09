@@ -1988,7 +1988,8 @@ public class ERPServiceImpl implements ERPService {
     private static List<Method> getAllMethods(Class c) {
         List<Method> l = new ArrayList<>();
 
-        if (c.getSuperclass() != null && (!c.isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class)));
+        if (c.getSuperclass() != null && (!c.isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class)))
+            l.addAll(getAllMethods(c.getSuperclass()));
 
         for (Method f : c.getDeclaredMethods()) l.add(f);
 
