@@ -145,7 +145,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                         id = s;
                     }
 
-                    return "mdd.." + entityClassName + ".." + viewClassName + ".." + BaseEncoding.base64().encode(((queryFilters != null)?queryFilters:"").getBytes()) + ".." + "edit" + ((id != null)?"/" + id:"");
+                    return "mdd.." + getEntityClassName() + ".." + getViewClassName() + ".." + BaseEncoding.base64().encode(((queryFilters != null)?queryFilters:"").getBytes()) + ".." + "edit" + ((id != null)?"/" + id:"");
                 }
 
                 @Override
