@@ -2686,9 +2686,22 @@ public class ERPServiceImpl implements ERPService {
                     ParameterizedType genericType = (ParameterizedType) f.getGenericType();
                     genericClass = (genericType != null && genericType.getActualTypeArguments().length > 0)?(Class<?>) genericType.getActualTypeArguments()[0]:null;
                 }
-                if (genericClass != null) d.set("_nameproperty", ((UseCalendarToEdit)genericClass.newInstance()).getNamePropertyName());
+                if (genericClass != null) {
+                    UseCalendarToEdit i = ((UseCalendarToEdit) genericClass.newInstance());
+                    d.set("_nameproperty", i.getNamePropertyName());
+                    d.set("_datesproperty", i.getDatesRangesPropertyName());
+                };
 
-                d.set("_editorform", toMetaData(((UseCalendarToEdit)f.getType().newInstance()).getForm(em, user)));
+                Data ef = toMetaData(((UseCalendarToEdit)f.getType().newInstance()).getForm(em, user));
+
+                if (!Strings.isNullOrEmpty(d.get("_datesproperty"))) {
+                    List<Data> l = ef.getList("_fields");
+                    List<Data> ll = new ArrayList<>();
+                    for (Data dx : l) if (!dx.get("_id").equals(d.get("_datesproperty"))) ll.add(dx);
+                    ef.set("_fields", ll);
+                }
+
+                d.set("_editorform", ef);
             } else if (f.isAnnotationPresent(UseGridToSelect.class)) {
                 d.set("_type", MetaData.FIELDTYPE_SELECTFROMGRID);
                 UseGridToSelect a = f.getAnnotation(UseGridToSelect.class);
@@ -2825,16 +2838,30 @@ public class ERPServiceImpl implements ERPService {
                         if (gc != null && UseCalendarToEdit.class.isAssignableFrom(gc)) {
                             d.set("_type", MetaData.FIELDTYPE_CALENDAR);
                             AbstractForm form = ((UseCalendarToEdit) gc.newInstance()).getForm(em, user);
+                            Data ef = null;
                             if (form != null) {
-                                d.set("_editorform", toMetaData(form));
+                                ef = toMetaData(form);
                             } else {
-                                d.set("_editorform", getMetadaData(user, em, gc, null).getData("_editorform"));
+                                ef = getMetadaData(user, em, gc, null).getData("_editorform");
                             }
 
-                            d.set("_nameproperty", ((UseCalendarToEdit)gc.newInstance()).getNamePropertyName());
+                            if (gc != null) {
+                                UseCalendarToEdit i = ((UseCalendarToEdit) gc.newInstance());
+                                d.set("_nameproperty", i.getNamePropertyName());
+                                d.set("_datesproperty", i.getDatesRangesPropertyName());
+                            };
 
-                            upload = true;
-                        }else if (f.isAnnotationPresent(OwnedList.class) || !f.getGenericClass().isAnnotationPresent(Entity.class)) {
+                            if (!Strings.isNullOrEmpty(d.get("_datesproperty"))) {
+                                List<Data> l = ef.getList("_fields");
+                                List<Data> ll = new ArrayList<>();
+                                for (Data dx : l) if (!dx.get("_id").equals(d.get("_datesproperty"))) ll.add(dx);
+                                ef.set("_fields", ll);
+                            }
+
+                            d.set("_editorform", ef);
+
+                                    upload = true;
+                        } else if (f.isAnnotationPresent(OwnedList.class) || !f.getGenericClass().isAnnotationPresent(Entity.class)) {
 
                             if (gc.isPrimitive() || gc.equals(Long.class) || gc.equals(Integer.class) || gc.equals(Double.class) || gc.equals(String.class)) {
                                 d.set("_type", MetaData.FIELDTYPE_TEXTAREA);
