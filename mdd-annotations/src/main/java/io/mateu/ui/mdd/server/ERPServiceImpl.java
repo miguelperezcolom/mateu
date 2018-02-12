@@ -1980,6 +1980,11 @@ public class ERPServiceImpl implements ERPService {
                 addMethod(user, em, v, actions, m, viewClass);
             }
         }
+        for (Method m : getAllMethods(c)) {
+            if (!Modifier.isStatic(m.getModifiers())) {
+                addMethod(user, em, v, actions, m, viewClass);
+            }
+        }
         def.set("_actions", actions);
         def.set("_rawtitle", Helper.capitalize(c.getSimpleName()));
         return def;
