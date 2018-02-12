@@ -388,9 +388,19 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                 if (MetaData.FIELDTYPE_HTML.equals(d.getString("_type"))) {
                     fields.add(new HtmlField(prefix + d.getString("_id"), d.getString("_label")));
                 } else if (MetaData.FIELDTYPE_DATE.equals(d.getString("_type"))) {
-                    fields.add(new DateField(prefix + d.getString("_id"), d.getString("_label")));
+                    if (buildingSearchForm) {
+                        fields.add(new DateField(prefix + d.getString("_id") + "_from", d.getString("_label") + " from"));
+                        fields.add(new DateField(prefix + d.getString("_id") + "_to", d.getString("_label") + " to"));
+                    } else {
+                        fields.add(new DateField(prefix + d.getString("_id"), d.getString("_label")));
+                    }
                 } else if (MetaData.FIELDTYPE_DATETIME.equals(d.getString("_type"))) {
-                    fields.add(new DateTimeField(prefix + d.getString("_id"), d.getString("_label")));
+                    if (buildingSearchForm) {
+                        fields.add(new DateTimeField(prefix + d.getString("_id") + "_from", d.getString("_label") + " from"));
+                        fields.add(new DateTimeField(prefix + d.getString("_id") + "_to", d.getString("_label") + " to"));
+                    } else {
+                        fields.add(new DateTimeField(prefix + d.getString("_id"), d.getString("_label")));
+                    }
                 } else if (MetaData.FIELDTYPE_CALENDAR.equals(d.getString("_type"))) {
                     fields.add(new CalendarField(prefix + d.getString("_id"), d.getString("_label"), d.getString("_nameproperty")) {
                         @Override
@@ -421,20 +431,6 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                     fields.add(new DoubleField(prefix + d.getString("_id"), d.getString("_label")));
                 } else if (MetaData.FIELDTYPE_BOOLEAN.equals(d.getString("_type"))) {
                     fields.add(new CheckBoxField(prefix + d.getString("_id"), d.getString("_label")));
-                } else if (MetaData.FIELDTYPE_DATE.equals(d.getString("_type"))) {
-                    if (buildingSearchForm) {
-                        fields.add(new DateField(prefix + d.getString("_id") + "_from", d.getString("_label") + " from"));
-                        fields.add(new DateField(prefix + d.getString("_id") + "_to", d.getString("_label") + " to"));
-                    } else {
-                        fields.add(new DateField(prefix + d.getString("_id"), d.getString("_label")));
-                    }
-                } else if (MetaData.FIELDTYPE_DATETIME.equals(d.getString("_type"))) {
-                    if (buildingSearchForm) {
-                        fields.add(new DateTimeField(prefix + d.getString("_id") + "_from", d.getString("_label") + " from"));
-                        fields.add(new DateTimeField(prefix + d.getString("_id") + "_to", d.getString("_label") + " to"));
-                    } else {
-                        fields.add(new DateTimeField(prefix + d.getString("_id"), d.getString("_label")));
-                    }
                 } else if (MetaData.FIELDTYPE_ENUM.equals(d.getString("_type"))) {
                     fields.add(new ComboBoxField(prefix + d.getString("_id"), d.getString("_label"), d.getPairList("_values")));
                 } else if (MetaData.FIELDTYPE_COMBO.equals(d.getString("_type"))) {
