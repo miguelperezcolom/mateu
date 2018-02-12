@@ -300,7 +300,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
         for (Data da : metadata.getList("_actions")) {
             if (da.getBoolean("_addasbutton")) {
                 AbstractAction a = createAction(view, da);
-                add(new Button(da.getString("_name")) {
+                view.getForm().add(new Button(da.getString("_name")) {
 
                     @Override
                     public void run() {

@@ -1,6 +1,7 @@
 package io.mateu.mdd.model.tests.basic;
 
 import io.mateu.mdd.model.authentication.User;
+import io.mateu.ui.core.client.app.MateuUI;
 import io.mateu.ui.core.shared.Data;
 import io.mateu.ui.core.shared.UserData;
 import io.mateu.ui.mdd.server.annotations.*;
@@ -59,5 +60,10 @@ public class Basico {
     public MDDLink testWizard3(UserData user, MiWizard wizard) throws Throwable {
         System.out.println("parametros = " + wizard);
         throw new Exception("error xxxx");
+    }
+
+    @Action(name = "Prueba botón", callOnEnterKeyPressed = true, addAsButton = true)
+    public void testBoton() {
+        MateuUI.alert("Hola!!!!");
     }
 }
