@@ -411,6 +411,10 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                             return f;
                         }
                     });
+                } else if (MetaData.FIELDTYPE_MULTILANGUAGETEXT.equals(d.getString("_type"))) {
+                    fields.add(new MultilanguageTextField(prefix + d.getString("_id"), d.getString("_label")));
+                } else if (MetaData.FIELDTYPE_MULTILANGUAGETEXTAREA.equals(d.getString("_type"))) {
+                    fields.add(new MultilanguageTextAreaField(prefix + d.getString("_id"), d.getString("_label")));
                 } else if (MetaData.FIELDTYPE_SUPPLEMENTORPOSITIVE.equals(d.getString("_type"))) {
                     fields.add(new SupplementOrPositiveField(prefix + d.getString("_id"), d.getString("_label")));
                 } else if (MetaData.FIELDTYPE_OUTPUT.equals(d.getString("_type"))) {

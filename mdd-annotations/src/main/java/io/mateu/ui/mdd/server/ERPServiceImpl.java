@@ -395,7 +395,7 @@ public class ERPServiceImpl implements ERPService {
                             BeanUtils.setProperty(o, f.getName(), current);
                             em.persist(current);
                         }
-                        ((Translated) current).set((String) v);
+                        ((Translated) current).set((Data) v);
                     } else if (!f.isAnnotationPresent(OwnedList.class)) { // en este caso ya hemos añadido el valor dentro del método exractValue()
                         f.setValue(o, v);
                     }
