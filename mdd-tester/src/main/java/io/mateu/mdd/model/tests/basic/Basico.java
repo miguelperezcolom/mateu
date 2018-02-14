@@ -1,6 +1,7 @@
 package io.mateu.mdd.model.tests.basic;
 
 import io.mateu.mdd.model.authentication.User;
+import io.mateu.mdd.model.finnancials.Currency;
 import io.mateu.ui.core.client.app.MateuUI;
 import io.mateu.ui.core.shared.Data;
 import io.mateu.ui.core.shared.UserData;
@@ -37,6 +38,10 @@ public class Basico {
     @Temporal(TemporalType.TIMESTAMP)
     @Output
     private Date date2 = new Date();
+
+    @ManyToOne
+    @SearchFilterIsNull(value = "Unmapped")
+    private Currency moneda;
 
     @ShowAsHtml("Método")
     public String metodo() {

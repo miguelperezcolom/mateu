@@ -2591,7 +2591,7 @@ public class ERPServiceImpl implements ERPService {
                     }
                 } else if (!Strings.isNullOrEmpty(searchFilterIsNullAnnotation.ql()))
                     d.set("_qlname", searchFilterIsNullAnnotation.ql());
-                else d.set("_qlname", f.getId());
+                else d.set("_qlname", f.getId().replaceAll("_isnull", ""));
             } else if (searchFilterAnnotation != null) {
                 if (!Strings.isNullOrEmpty(searchFilterAnnotation.value())) {
                     d.set("_label", searchFilterAnnotation.value());
