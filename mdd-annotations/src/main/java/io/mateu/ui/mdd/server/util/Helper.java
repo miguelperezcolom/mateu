@@ -60,6 +60,12 @@ import static io.mateu.ui.core.server.BaseServerSideApp.fop;
  */
 public class Helper {
 
+    public static boolean propertiesLoaded = false;
+
+    static {
+        loadProperties();
+    }
+
     static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
     static final com.google.api.client.json.JsonFactory JSON_FACTORY = new JacksonFactory();
 
@@ -108,6 +114,59 @@ public class Helper {
     public static String toJson(Object o) throws IOException {
         return mapper.writeValueAsString(o);
     }
+
+
+
+
+
+
+    public static void loadProperties() {
+        if (!propertiesLoaded) {
+            System.out.println("Loading properties...");
+            propertiesLoaded = true;
+            InputStream s = null;
+            try {
+                if (System.getProperty("appconf") != null) {
+                    System.out.println("Loading properties from file " + System.getProperty("appconf"));
+                    s = new FileInputStream(System.getProperty("appconf"));
+                } else {
+                    s = Helper.class.getResourceAsStream("/appconf.properties");
+                    System.out.println("Loading properties classpath /appconf.properties");
+                }
+
+                if (s != null) {
+
+                    Properties p = new Properties();
+                    p.load(s);
+
+                    for (Map.Entry<Object, Object> e : p.entrySet()) {
+                        System.out.println("" + e.getKey() + "=" + e.getValue());
+                        if (System.getProperty("" + e.getKey()) == null) {
+                            System.setProperty("" + e.getKey(), "" + e.getValue());
+                            System.out.println("property fixed");
+                        } else {
+                            System.out.println("property " + e.getKey() + " is already set with value " + System.getProperty("" + e.getKey()));
+                        }
+                    }
+
+                } else {
+                    System.out.println("No appconf. Either set -Dappconf=xxxxxx.properties or place an appconf.properties file in your classpath.");
+                }
+
+            } catch (FileNotFoundException e1) {
+                e1.printStackTrace();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+
+        } else {
+            System.out.println("Properties already loaded");
+        }
+    }
+
+
+
+
 
 
     public static void transact(SQLTransaction t) throws Throwable {
