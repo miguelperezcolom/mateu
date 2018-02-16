@@ -1923,6 +1923,7 @@ public class ERPServiceImpl implements ERPService {
 
     @Override
     public Data getMetaData(UserData user, String entityClassName, String viewClassName, String queryFilters) throws Exception {
+        if (viewClassName == null) viewClassName = entityClassName;
         Class c = Class.forName(viewClassName);
 
         Data[] data = new Data[1];
