@@ -21,6 +21,7 @@ import io.mateu.mdd.model.tests.owned.Propietario;
 import io.mateu.mdd.model.tests.showmethodresult.ConMetodos;
 import io.mateu.mdd.model.tests.stereotype.Estereotipado;
 import io.mateu.mdd.model.tests.tabs.Tabs;
+import io.mateu.mdd.model.tests.usaridparaseleccionar.Referenciador;
 import io.mateu.mdd.model.tests.view.*;
 import io.mateu.ui.core.client.app.*;
 import io.mateu.ui.core.shared.Data;
@@ -57,6 +58,8 @@ public class Module extends AbstractModule {
         m.add(new MDDAction("Methods as fields", ConMetodos.class));
 
         m.add(new MDDAction("Basic", Basico.class));
+
+        m.add(new MDDAction("UseIdToSelect", Referenciador.class));
 
         m.add(new MDDAction("OneToMany", Uno.class));
 

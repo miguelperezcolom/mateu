@@ -1,5 +1,6 @@
 package io.mateu.ui.mdd.server;
 
+import io.mateu.ui.mdd.server.annotations.ListColumn;
 import io.mateu.ui.mdd.server.annotations.ValueClass;
 import io.mateu.ui.mdd.server.annotations.ValueQL;
 import org.apache.commons.beanutils.BeanUtils;
@@ -9,11 +10,19 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FieldInterfacedFromField implements FieldInterfaced {
 
     private final Field f;
     private final FieldInterfaced ff;
+    private List<Annotation> extraAnnotations = new ArrayList<>();
+
+    public FieldInterfacedFromField(FieldInterfaced f, Annotation a) {
+        this(f);
+        extraAnnotations.add(a);
+    }
 
     @Override
     public Field getField() {
@@ -38,6 +47,9 @@ public class FieldInterfacedFromField implements FieldInterfaced {
 
     @Override
     public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
+        if (extraAnnotations.size() > 0) {
+            for (Annotation a : extraAnnotations) if (a.getClass().equals(annotationClass)) return true;
+        }
         return (ff != null)?ff.isAnnotationPresent(annotationClass):f.isAnnotationPresent(annotationClass);
     }
 
@@ -82,6 +94,9 @@ public class FieldInterfacedFromField implements FieldInterfaced {
 
     @Override
     public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
+        if (extraAnnotations.size() > 0) {
+            for (Annotation a : extraAnnotations) if (a.getClass().equals(annotationClass)) return (T) a;
+        }
         return (ff != null)?ff.getAnnotation(annotationClass):f.getAnnotation(annotationClass);
     }
 

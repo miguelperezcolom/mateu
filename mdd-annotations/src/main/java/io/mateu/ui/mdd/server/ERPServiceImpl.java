@@ -217,7 +217,7 @@ public class ERPServiceImpl implements ERPService {
             public void run(EntityManager em) throws Throwable {
 
                 Class cl = Class.forName(entityClassName);
-                Class vcl = Class.forName(viewClassName);
+                Class vcl = Class.forName((viewClassName != null)?viewClassName:entityClassName);
 
                 fillEntity(em, user, cl, vcl, data);
 
@@ -841,7 +841,7 @@ public class ERPServiceImpl implements ERPService {
                 if (id != null) o = em.find(Class.forName(entityClassName), (id instanceof Integer)?new Long((Integer)id):id);
                 else o = Class.forName(entityClassName).newInstance();
 
-                Class viewClass = Class.forName(viewClassName);
+                Class viewClass = Class.forName((viewClassName != null)?viewClassName:entityClassName);
 
                 View v = null;
 
@@ -3089,13 +3089,9 @@ public class ERPServiceImpl implements ERPService {
                                     hayName = false;
                                     for (FieldInterfaced ff : getAllFields(f.getType()))
                                         if ("name".equals(ff.getName()) || "title".equals(ff.getName())) {
-                                            if (!buildingSearchForm) d.set("_qlname", d.get("_qlname") + "." + ff.getName());
                                             defaultQl = defaultQl.replaceAll("\\.name", "." + ff.getName());
 
                                             if (Translated.class.isAssignableFrom(ff.getType())) {
-                                                d.set("_translation", true);
-                                                d.set("_qlname", d.getString("_qlname") + ".es");
-
                                                 defaultQl = "select x." + nombreCampoId + ", x." + ff.getName() + ".es from " + f.getType().getName() + " x where x.id = xxxx order by x." + ff.getName() + ".es";
                                             }
                                             hayName = true;
@@ -3103,8 +3099,6 @@ public class ERPServiceImpl implements ERPService {
                                     if (!hayName) {
                                         for (FieldInterfaced ff : getAllFields(f.getType()))
                                             if (ff.isAnnotationPresent(Id.class)) {
-                                                d.set("_qlname", d.getString("_qlname") + "." + ff.getName());
-
                                                 defaultQl = defaultQl.replaceAll("\\.name", "." + ff.getName());
                                             }
                                     }

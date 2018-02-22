@@ -1,6 +1,10 @@
 package io.mateu.mdd.model.finnancials;
 
+import io.mateu.ui.core.shared.Data;
+import io.mateu.ui.core.shared.Pair;
 import io.mateu.ui.mdd.server.annotations.*;
+import io.mateu.ui.mdd.shared.ActionType;
+import io.mateu.ui.mdd.shared.MDDLink;
 import lombok.Getter;
 import lombok.Setter;
 import org.jdom2.Element;
@@ -80,6 +84,15 @@ public class Actor {
         if (getComments() != null) xml.setAttribute("comments", getComments());
 
         return xml;
+    }
+
+
+
+    @Links
+    public List<MDDLink> getLinks() {
+        List<MDDLink> l = new ArrayList<>();
+        l.add(new MDDLink("Invoices", Invoice.class, ActionType.OPENLIST, new Data("actor.id", getId())));
+        return l;
     }
 
 }

@@ -2,6 +2,7 @@ package io.mateu.mdd.model.finnancials;
 
 
 import io.mateu.ui.mdd.server.annotations.OwnedList;
+import io.mateu.ui.mdd.server.annotations.SearchFilter;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,6 +21,7 @@ public class Invoice {
     private long id;
 
     @ManyToOne
+    @SearchFilter
     private Actor actor;
 
     private LocalDate date;

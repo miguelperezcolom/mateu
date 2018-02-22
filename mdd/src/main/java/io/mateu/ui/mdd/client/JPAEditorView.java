@@ -13,12 +13,12 @@ public abstract class JPAEditorView extends BaseEditorView {
 
     private final JPACRUDView crud;
 
-    public JPAEditorView(JPACRUDView crud) {
+        public JPAEditorView(JPACRUDView crud) {
         this.crud = crud;
     }
 
     public String getEntityClassName() {
-        return crud.getEntityClassName();
+        return (crud != null)?crud.getEntityClassName():null;
     }
 
     @Override
@@ -42,6 +42,6 @@ public abstract class JPAEditorView extends BaseEditorView {
     }
 
     public String getViewClassName() {
-        return crud.getViewClassName();
+        return (crud != null)?crud.getViewClassName():null;
     }
 }
