@@ -298,16 +298,22 @@ public class ERPServiceImpl implements ERPService {
         }
 
 
-        fillEntity(em, user, o, data, newInstance, vcl);
+        fillEntity(em, user, o, data, newInstance, vcl, (o instanceof CalendarLimiter)? (CalendarLimiter) o :null);
 
         return o;
     }
 
     public static void fillEntity(EntityManager em, UserData user, Object o, Data data, boolean newInstance) throws Throwable {
-        fillEntity(em, user, o, data, newInstance, o.getClass());
+        fillEntity(em, user, o, data, newInstance, o.getClass(), (o instanceof CalendarLimiter)? (CalendarLimiter) o :null);
     }
 
-    public static void fillEntity(EntityManager em, UserData user, Object o, Data data, boolean newInstance, Class viewClass) throws Throwable {
+    public static void fillEntity(EntityManager em, UserData user, Object o, Data data, boolean newInstance, Class viewClass, CalendarLimiter calendarLimiter) throws Throwable {
+        fillEntity(em, user, o, data, null, newInstance, viewClass, calendarLimiter);
+    }
+
+    public static void fillEntity(EntityManager em, UserData user, Object o, Data data, String prefix, boolean newInstance, Class viewClass, CalendarLimiter calendarLimiter) throws Throwable {
+
+        if (prefix == null) prefix = "";
 
         BeanUtilsBean.getInstance().getConvertUtils().register(false, false, 0);
 
@@ -335,6 +341,7 @@ public class ERPServiceImpl implements ERPService {
 
 
         for (FieldInterfaced f : getAllFields(o.getClass(), view != null && view.isFieldsListedOnly(), fl, nfl)) {
+
             boolean updatable = true;
             if (AuditRecord.class.isAssignableFrom(f.getType()) || f.isAnnotationPresent(Output.class) || f.isAnnotationPresent(Ignored.class) || f.isAnnotationPresent(NotInEditor.class) || (!newInstance && f.isAnnotationPresent(Unmodifiable.class))) {
                 updatable = false;
@@ -342,7 +349,7 @@ public class ERPServiceImpl implements ERPService {
 
             if (updatable) {
 
-                if (data != null && data.containsKey(f.getId() + "____object")) {
+                if (data != null && data.containsKey(prefix + f.getId() + "____object")) {
                     Object z = o.getClass().getMethod(getGetter(f)).invoke(o);
                     boolean recienCreado = false;
                     if (z == null) {
@@ -350,7 +357,7 @@ public class ERPServiceImpl implements ERPService {
                         z = f.getType().newInstance();
                         BeanUtils.setProperty(o, f.getName(), z);
                     }
-                    fillEntity(em, user, z, data.getData(f.getId()), recienCreado, z.getClass());
+                    fillEntity(em, user, z, data, prefix + f.getId() + "_", recienCreado, z.getClass(), (z instanceof CalendarLimiter)? (CalendarLimiter) z : calendarLimiter);
                 } else if (f.isAnnotationPresent(Owned.class)) {
                     if (f.getType().isAnnotationPresent(Entity.class)) {
                         Object z = o.getClass().getMethod(getGetter(f)).invoke(o);
@@ -361,13 +368,13 @@ public class ERPServiceImpl implements ERPService {
                             em.persist(z);
                             BeanUtils.setProperty(o, f.getName(), z);
                         }
-                        fillEntity(em, user, z, data, recienCreado);
+                        fillEntity(em, user, z, data, prefix, recienCreado, z.getClass(), (z instanceof CalendarLimiter)? (CalendarLimiter) z : calendarLimiter);
                     } else {
                         System.out.println("owned y no es una entity");
                     }
-                } else if (data != null && data.containsKey(f.getId())) {
+                } else if (data != null && data.containsKey(prefix + f.getId())) {
 
-                    Object v = extractValue(em, user, o, data, f);
+                    Object v = extractValue(em, user, o, data, f, prefix);
 
                     if (File.class.isAssignableFrom(f.getType())) {
                         File current = (File) o.getClass().getMethod(getGetter(f)).invoke(o);
@@ -409,8 +416,12 @@ public class ERPServiceImpl implements ERPService {
     }
 
     private static Object extractValue(EntityManager em, UserData user, Object o, Data data, FieldInterfaced f) throws Throwable {
+        return extractValue(em, user, o, data, f, "");
+    }
 
-        Object v = data.get(f.getId());
+    private static Object extractValue(EntityManager em, UserData user, Object o, Data data, FieldInterfaced f, String prefix) throws Throwable {
+
+        Object v = data.get(prefix + f.getId());
         if (v != null && v instanceof Pair) v = ((Pair) v).getValue();
 
         if (File.class.isAssignableFrom(f.getType()) || Translated.class.isAssignableFrom(f.getType())) return v;
@@ -429,25 +440,69 @@ public class ERPServiceImpl implements ERPService {
             if (v != null) {
                 List<Object> l = new ArrayList<>();
                 Class c = f.getType().getComponentType();
-                for (String s : ((String)v).split(",")) if (!Strings.isNullOrEmpty(s)) {
-                    if (c.isPrimitive()) {
-                        if (int.class.equals(c)) {
-                            l.add(new Integer(s));
-                        } else if (double.class.equals(c)) {
-                            l.add(new Double(s));
-                        } else if (long.class.equals(c)) {
-                            l.add(new Long(s));
-                        } else if (boolean.class.equals(c)) {
-                            l.add(new Boolean(s));
+                for (String s : ((String) v).split(","))
+                    if (!Strings.isNullOrEmpty(s)) {
+                        if (c.isPrimitive()) {
+                            if (int.class.equals(c)) {
+                                l.add(new Integer(s));
+                            } else if (double.class.equals(c)) {
+                                l.add(new Double(s));
+                            } else if (long.class.equals(c)) {
+                                l.add(new Long(s));
+                            } else if (boolean.class.equals(c)) {
+                                l.add(new Boolean(s));
+                            }
+                        } else {
+                            Constructor<?> cons = c.getConstructor(String.class);
+                            Object z = cons.newInstance(s);
+                            l.add(z);
                         }
-                    } else {
-                        Constructor<?> cons = c.getConstructor(String.class);
-                        Object z = cons.newInstance(s);
-                        l.add(z);
                     }
-                }
                 v = l.toArray();
             }
+        } if (genericClass != null && UseCalendarToEdit.class.isAssignableFrom(genericClass)) {
+
+            List<UseCalendarToEdit> l = new ArrayList<>();
+
+            if (v != null) {
+
+                Data dv = (Data) v;
+
+                Map<String, UseCalendarToEdit> m = new HashMap<>();
+                for (Data d : dv.getList("_options")) {
+                    UseCalendarToEdit x = (UseCalendarToEdit) genericClass.newInstance();
+                    fillEntity(em, user, x, d, false);
+                    l.add(x);
+                    m.put(d.get("__id"), x);
+                }
+
+                UseCalendarToEdit x = null;
+                for (Data d : dv.getList("_values")) {
+                    LocalDate fecha = d.get("_key");
+                    if (fecha != null) {
+                        String uuid = d.getString("_value");
+                        if (x != null && uuid == null) {
+                            x = null;
+                        } else if (uuid != null) {
+                            boolean eraNull = x == null;
+                            if (x == null) x = m.get(uuid);
+                            if (x != null && x.getDatesRangesPropertyName() != null) {
+                                List<DatesRange> ll = (List<DatesRange>) x.getClass().getMethod(getGetter(x.getDatesRangesPropertyName())).invoke(x);
+                                if (ll.size() == 0 || eraNull || !x.equals(m.get(uuid))) {
+                                    ll.add(new DatesRange(fecha, fecha));
+                                } else {
+                                    ll.get(ll.size() - 1).setEnd(fecha);
+                                }
+                            }
+                            x = m.get(uuid);
+                        }
+                    }
+                }
+
+            }
+
+            v = l;
+
         } else if (f.getType().isAnnotationPresent(Entity.class)) {
             FieldInterfaced parentField = null;
             for (FieldInterfaced ff : getAllFields(f.getType())) {
@@ -847,7 +902,7 @@ public class ERPServiceImpl implements ERPService {
 
                 if (!viewClass.equals(o.getClass())) v = (View) viewClass.newInstance();
 
-                fillData(user, em, viewClass, id, data, o);
+                fillData(user, em, viewClass, id, data, o, (o instanceof CalendarLimiter)? (CalendarLimiter) o :null);
 
                 for (Method m : viewClass.getDeclaredMethods()) {
                     if ("toString".equals(m.getName())) {
@@ -901,15 +956,15 @@ public class ERPServiceImpl implements ERPService {
         return data;
     }
 
-    private static void fillData(UserData user, EntityManager em, Class viewClass, Object id, Data data, Object o) throws Throwable {
-        fillData(user, em, viewClass, id, data, "", o);
+    private static void fillData(UserData user, EntityManager em, Class viewClass, Object id, Data data, Object o, CalendarLimiter calendarLimiter) throws Throwable {
+        fillData(user, em, viewClass, id, data, "", o, calendarLimiter);
     }
 
-    public static void fillData(UserData user, EntityManager em, Data data, Object o) throws Throwable {
-        fillData(user, em, null, null, data, "", o);
+    public static void fillData(UserData user, EntityManager em, Data data, Object o, CalendarLimiter calendarLimiter) throws Throwable {
+        fillData(user, em, null, null, data, "", o, calendarLimiter);
     }
 
-    private static void fillData(UserData user, EntityManager em, Class viewClass, Object id, Data data, String prefix, Object o) throws Throwable {
+    private static void fillData(UserData user, EntityManager em, Class viewClass, Object id, Data data, String prefix, Object o, CalendarLimiter calendarLimiter) throws Throwable {
 
         if (id != null) data.set(prefix + "_id", id);
 
@@ -928,16 +983,16 @@ public class ERPServiceImpl implements ERPService {
         }
 
         if (v == null) {
-            for (FieldInterfaced f : getAllFields(o.getClass())) fillData(user, em, viewClass, data, prefix, o, f);
+            for (FieldInterfaced f : getAllFields(o.getClass())) fillData(user, em, viewClass, data, prefix, o, f, calendarLimiter);
         } else {
-            for (FieldInterfaced f : getAllFields(o.getClass(), v != null && v instanceof View && ((View)v).isFieldsListedOnly(), fl, nfl)) fillData(user, em, viewClass, data, prefix, o, f);
+            for (FieldInterfaced f : getAllFields(o.getClass(), v != null && v instanceof View && ((View)v).isFieldsListedOnly(), fl, nfl)) fillData(user, em, viewClass, data, prefix, o, f, calendarLimiter);
         }
 
         for (Method m : getAllMethods(o.getClass())) {
             if (!Modifier.isStatic(m.getModifiers())) {
                 if (m.isAnnotationPresent(Show.class) || m.isAnnotationPresent(ShowAsHtml.class)) {
 
-                    if (v == null || !(v instanceof View) || !((View)v).isFieldsListedOnly() || fl.contains(m.getName())) fillData(user, em, viewClass, data, prefix, o, getInterfaced(m));
+                    if (v == null || !(v instanceof View) || !((View)v).isFieldsListedOnly() || fl.contains(m.getName())) fillData(user, em, viewClass, data, prefix, o, getInterfaced(m), calendarLimiter);
 
                 }
             }
@@ -1125,7 +1180,7 @@ public class ERPServiceImpl implements ERPService {
         return x;
     }
 
-    private static void fillData(UserData user, EntityManager em, Class viewClass, Data data, String prefix, Object o, FieldInterfaced f) throws Throwable {
+    private static void fillData(UserData user, EntityManager em, Class viewClass, Data data, String prefix, Object o, FieldInterfaced f, CalendarLimiter calendarLimiter) throws Throwable {
         if (!f.isAnnotationPresent(Ignored.class) && !(f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class))) {
             boolean uneditable = false;
             if (f.isAnnotationPresent(Output.class) || f.isAnnotationPresent(Unmodifiable.class)) {
@@ -1133,7 +1188,7 @@ public class ERPServiceImpl implements ERPService {
             }
 
             Object v = f.getValue(o);
-            if (!uneditable && v != null) {
+            if (!uneditable) {
                 boolean ok = false;
 
                 Class genericClass = null;
@@ -1143,13 +1198,17 @@ public class ERPServiceImpl implements ERPService {
                 }
 
                 if (DataSerializable.class.isAssignableFrom(f.getType())) {
-                    v = ((DataSerializable)v).toData(em, user);
-                    ok = true;
+                    if (v != null) {
+                        v = ((DataSerializable)v).toData(em, user);
+                        ok = true;
+                    }
                 } else if (f.getType().isPrimitive() || basicos.contains(f.getType())) {
-                    ok = true;
-                } else if (v != null && v instanceof Date) {
-                    v = LocalDateTime.ofInstant(((Date)v).toInstant(), ZoneId.systemDefault());
-                    ok = true;
+                    if (v != null) ok = true;
+                } else if (v instanceof Date) {
+                    if (v != null) {
+                        v = LocalDateTime.ofInstant(((Date)v).toInstant(), ZoneId.systemDefault());
+                        ok = true;
+                    }
                 } else if (f.getType().isAnnotationPresent(Embeddable.class)) {
                     if (v != null) {
 
@@ -1160,17 +1219,25 @@ public class ERPServiceImpl implements ERPService {
                     }
                     ok = true;
                 } else if (f.isAnnotationPresent(OptionsClass.class)) {
-                    if (v != null) v = getEntityPair(em, v, f.getAnnotation(OptionsClass.class).value());
-                    ok = true;
+                    if (v != null) {
+                        v = getEntityPair(em, v, f.getAnnotation(OptionsClass.class).value());
+                        ok = true;
+                    }
                 } else if (f.isAnnotationPresent(OptionsQL.class)) {
-                    if (v != null) v = getQLPair(em, v, f.getAnnotation(OptionsQL.class).value());
-                    ok = true;
+                    if (v != null) {
+                        v = getQLPair(em, v, f.getAnnotation(OptionsQL.class).value());
+                        ok = true;
+                    }
                 } else if (v instanceof File) {
-                    if (v != null) v = ((File)v).toFileLocator();
-                    ok = true;
+                    if (v != null) {
+                        v = ((File)v).toFileLocator();
+                        ok = true;
+                    }
                 } else if (Translated.class.isAssignableFrom(f.getType())) {
-                    if (v != null) v = ((Translated) v).get();
-                    ok = true;
+                    if (v != null) {
+                        v = ((Translated) v).get();
+                        ok = true;
+                    }
                 } else if (f.getType().isArray()) {
                     if (v!= null) {
                         StringBuffer sb = new StringBuffer();
@@ -1179,14 +1246,14 @@ public class ERPServiceImpl implements ERPService {
                             sb.append(Array.get(v, i));
                         }
                         v = sb.toString();
+                        ok = true;
                     }
-                    ok = true;
                 } else if (f.getType().isAnnotationPresent(Entity.class)) {
-                    if (f.isAnnotationPresent(Owned.class)) {
-                        if (v != null) fillData(user, em, viewClass, em.getEntityManagerFactory().getPersistenceUnitUtil().getIdentifier(v), data, f.getName() + "_", v);
-                        ok = false; // no añadimos el objeto tal cual
-                    } else {
-                        if (v != null) {
+                    if (v != null) {
+                        if (f.isAnnotationPresent(Owned.class)) {
+                            fillData(user, em, viewClass, em.getEntityManagerFactory().getPersistenceUnitUtil().getIdentifier(v), data, f.getName() + "_", v, calendarLimiter);
+                            ok = false; // no añadimos el objeto tal cual
+                        } else {
                             String n = v.toString();
                             boolean toStringIsOverriden = f.getType().getMethod("toString").getDeclaringClass().equals(f.getType());
                             if (!toStringIsOverriden) {
@@ -1216,85 +1283,98 @@ public class ERPServiceImpl implements ERPService {
                         }
                     }
                 } else if (List.class.isAssignableFrom(f.getType())) {
+                    if (v != null) {
+                        if (genericClass != null && UseCalendarToEdit.class.isAssignableFrom(genericClass)) {
+                            Data d = new Data();
+                            List<Data> values = new ArrayList<>();
+                            List<Data> options = new ArrayList<>();
+                            LocalDate first = (calendarLimiter != null)?calendarLimiter.getBegining():null;
+                            LocalDate last = (calendarLimiter != null)?calendarLimiter.getEnding():null;
+                            List<LocalDate> vistas = new ArrayList<>();
+                            for (UseCalendarToEdit x : (List<UseCalendarToEdit>) v) {
+                                String uuid;
+                                Data option = new Data("__id", uuid = UUID.randomUUID().toString());
+                                fillData(user, em, option, x, calendarLimiter);
+                                option.set("_nameproperty", x.getNamePropertyName());
+                                options.add(option);
 
-                    if (genericClass != null && UseCalendarToEdit.class.isAssignableFrom(genericClass)) {
-                        Data d = new Data();
-                        List<Data> values = new ArrayList<>();
-                        List<Data> options = new ArrayList<>();
-                        LocalDate first = null;
-                        LocalDate last = null;
-                        for (UseCalendarToEdit x : (List<UseCalendarToEdit>) v) {
-                            String uuid;
-                            Data option = new Data("__id", uuid = UUID.randomUUID().toString());
-                            fillData(user, em, option, x);
-                            option.set("_nameproperty", x.getNamePropertyName());
-                            options.add(option);
+                                List<LocalDate> fechas = x.getCalendarDates();
 
-                            List<LocalDate> fechas = x.getCalendarDates();
-
-                            if (x.getDatesRangesPropertyName() != null) {
-                                List<DatesRange> l = (List<DatesRange>) x.getClass().getMethod(getGetter(x.getDatesRangesPropertyName())).invoke(x);
-                                fechas = new ArrayList<>();
-                                for (DatesRange r : l) {
-                                    LocalDate del = LocalDate.from(r.getStart());
-                                    LocalDate al = LocalDate.from(r.getEnd());
-                                    if (del != null && al != null && !del.isAfter(al)) {
-                                        while (!del.isAfter(al)) {
-                                            fechas.add(del);
-                                            del = del.plusDays(1);
+                                if (x.getDatesRangesPropertyName() != null) {
+                                    List<DatesRange> l = (List<DatesRange>) x.getClass().getMethod(getGetter(x.getDatesRangesPropertyName())).invoke(x);
+                                    fechas = new ArrayList<>();
+                                    for (DatesRange r : l) {
+                                        LocalDate del = LocalDate.from(r.getStart());
+                                        LocalDate al = LocalDate.from(r.getEnd());
+                                        if (del != null && al != null && !del.isAfter(al)) {
+                                            while (!del.isAfter(al)) {
+                                                fechas.add(del);
+                                                del = del.plusDays(1);
+                                            }
                                         }
                                     }
                                 }
+
+                                for (LocalDate dx : fechas) {
+                                    values.add(new Data("_key", dx, "_value", uuid));
+                                    vistas.add(dx);
+                                    if (first == null || first.isAfter(dx)) first = LocalDate.from(dx);
+                                    if (last == null || last.isBefore(dx)) last = LocalDate.from(dx);
+                                }
+
                             }
 
-                            for (LocalDate dx : fechas) {
-                                values.add(new Data("_key", dx, "_value", uuid));
-                                if (first == null || first.isAfter(dx)) first = LocalDate.from(dx);
-                                if (last == null || last.isBefore(dx)) last = LocalDate.from(dx);
+                            if (first == null) {
+                                first = LocalDate.now();
+                                last = first.plusYears(1);
                             }
 
-                        }
-                        d.set("_values", values);
-                        d.set("_options", options);
-                        d.set("_fromdate", first);
-                        d.set("_todate", last);
-                        v = d;
-                    } else if (genericClass.isAnnotationPresent(Entity.class)) {
-
-                        Method m = null;
-
-                        if (f.isAnnotationPresent(OwnedList.class)) {
-
-                            List<Data> dl = new ArrayList<>();
-
-                            List l = (List) v;
-                            for (Object x : l) {
-                                Data dx = new Data();
-                                fillData(user, em, o.getClass(), getId(x), dx, x);
-                                dl.add(dx);
+                            for (LocalDate dx = LocalDate.from(first); !dx.isAfter(last); dx = dx.plusDays(1)) {
+                                if (!vistas.contains(dx)) values.add(new Data("_key", dx, "_value", null));
                             }
 
-                            v = dl;
+                            values.sort((d0, d1) -> d0.getLocalDate("_key").compareTo(d1.getLocalDate("_key")));
 
-                        } else {
+                            d.set("_values", values);
+                            d.set("_options", options);
+                            d.set("_fromdate", first);
+                            d.set("_todate", last);
+                            v = d;
+                        } else if (genericClass.isAnnotationPresent(Entity.class)) {
 
-                            boolean toStringIsOverriden = genericClass.getMethod("toString").getDeclaringClass().equals(genericClass);
-                            if (!toStringIsOverriden) {
-                                boolean hayName = false;
-                                for (FieldInterfaced ff : getAllFields(genericClass))
-                                    if ("name".equals(ff.getName()) || "title".equals(ff.getName())) {
-                                        m = genericClass.getMethod(getGetter(ff));
-                                        hayName = true;
-                                    }
-                                if (!hayName) {
+                            Method m = null;
+
+                            if (f.isAnnotationPresent(OwnedList.class)) {
+
+                                List<Data> dl = new ArrayList<>();
+
+                                List l = (List) v;
+                                for (Object x : l) {
+                                    Data dx = new Data();
+                                    fillData(user, em, o.getClass(), getId(x), dx, x, calendarLimiter);
+                                    dl.add(dx);
+                                }
+
+                                v = dl;
+
+                            } else {
+
+                                boolean toStringIsOverriden = genericClass.getMethod("toString").getDeclaringClass().equals(genericClass);
+                                if (!toStringIsOverriden) {
+                                    boolean hayName = false;
                                     for (FieldInterfaced ff : getAllFields(genericClass))
-                                        if (ff.isAnnotationPresent(Id.class)) {
+                                        if ("name".equals(ff.getName()) || "title".equals(ff.getName())) {
                                             m = genericClass.getMethod(getGetter(ff));
+                                            hayName = true;
                                         }
+                                    if (!hayName) {
+                                        for (FieldInterfaced ff : getAllFields(genericClass))
+                                            if (ff.isAnnotationPresent(Id.class)) {
+                                                m = genericClass.getMethod(getGetter(ff));
+                                            }
+                                    }
                                 }
-                            }
 
-                            if (v != null) {
 
                                 List<Pair> dl = new ArrayList<>();
 
@@ -1315,11 +1395,9 @@ public class ERPServiceImpl implements ERPService {
 
                             }
 
-                        }
+                        } else if (String.class.equals(genericClass) || Integer.class.equals(genericClass)
+                                || Long.class.equals(genericClass) || Double.class.equals(genericClass)) {
 
-                    } else if (String.class.equals(genericClass) || Integer.class.equals(genericClass) || Long.class.equals(genericClass) || Double.class.equals(genericClass)) {
-
-                        if (v != null) {
 
                             if (f.isAnnotationPresent(ValueClass.class) || f.isAnnotationPresent(ValueQL.class)) {
 
@@ -1348,27 +1426,22 @@ public class ERPServiceImpl implements ERPService {
 
                             }
 
-                        }
-
-                    } else {
-
-                        if (v != null) {
-
+                        } else {
                             List<Data> dl = new ArrayList<>();
 
                             List l = (List) v;
                             for (Object x : l) {
                                 Data dx = new Data();
-                                fillData(user, em, o.getClass(), getId(x), dx, x);
+                                fillData(user, em, o.getClass(), getId(x), dx, x, calendarLimiter);
                                 dl.add(dx);
                             }
 
                             v = dl;
                         }
 
+                        ok = true;
                     }
 
-                    ok = true;
                 } else if (Map.class.isAssignableFrom(f.getType())) {
 
 
@@ -1417,7 +1490,7 @@ public class ERPServiceImpl implements ERPService {
                             if (f.isAnnotationPresent(OwnedList.class)) {
 
                                 Data dx = new Data("_key", k);
-                                fillData(user, em, o.getClass(), getId(z), dx, z);
+                                fillData(user, em, o.getClass(), getId(z), dx, z, calendarLimiter);
                                 dl.add(dx);
 
                             } else {
@@ -1455,9 +1528,6 @@ public class ERPServiceImpl implements ERPService {
                                     }
                                 }
 
-
-
-
                                 Data dx = new Data("_key", k, "_value", z);
                                 dl.add(dx);
 
@@ -1466,16 +1536,17 @@ public class ERPServiceImpl implements ERPService {
                         }
 
                         v = dl;
+
+                        ok = true;
                     }
-
-
-                    ok = true;
 
 
                 } else {
                     data.set(prefix + f.getName() + "____object", true);
-                    if (v != null) fillData(user, em,  viewClass,null, data, f.getName() + "_", v);
-                    ok = false; // no añadimos el objeto tal cual
+                    if (v != null) {
+                        fillData(user, em,  viewClass,null, data, f.getName() + "_", v, calendarLimiter);
+                        ok = false; // no añadimos el objeto tal cual
+                    }
                 }
 
                 if (v != null) {
@@ -1976,12 +2047,14 @@ public class ERPServiceImpl implements ERPService {
         Data def = new Data();
         def.set("_fields", editorFormFields);
         List<Data> actions = new ArrayList<>();
+        List<Method> visited = new ArrayList<>();
         for (Method m : getAllMethods(viewClass)) {
             if (!Modifier.isStatic(m.getModifiers())) {
                 addMethod(user, em, v, actions, m, viewClass);
+                visited.add(m);
             }
         }
-        for (Method m : getAllMethods(c)) {
+        for (Method m : getAllMethods(c)) if (!visited.contains(m)) {
             if (!Modifier.isStatic(m.getModifiers())) {
                 addMethod(user, em, v, actions, m, viewClass);
             }
@@ -3330,7 +3403,7 @@ public class ERPServiceImpl implements ERPService {
 
         BaseServerSideWizard w = fillWizard(user, em, wc, d);
         for (AbstractServerSideWizardPage p : w.getPages()) {
-            fillData(user, em, d, p);
+            fillData(user, em, d, p, null);
         }
 
         return d;

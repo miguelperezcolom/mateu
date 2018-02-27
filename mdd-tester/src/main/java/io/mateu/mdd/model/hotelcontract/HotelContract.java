@@ -5,6 +5,7 @@ import io.mateu.erp.model.product.hotel.*;
 import io.mateu.ui.mdd.server.annotations.Action;
 import io.mateu.ui.mdd.server.annotations.FullWidth;
 import io.mateu.ui.mdd.server.annotations.Tab;
+import io.mateu.ui.mdd.server.interfaces.CalendarLimiter;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,7 +19,7 @@ import java.util.Map;
 @Entity
 @Getter
 @Setter
-public class HotelContract {
+public class HotelContract implements CalendarLimiter {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -67,4 +68,13 @@ public class HotelContract {
 
     }
 
+    @Override
+    public LocalDate getBegining() {
+        return getValidFrom();
+    }
+
+    @Override
+    public LocalDate getEnding() {
+        return getValidTo();
+    }
 }

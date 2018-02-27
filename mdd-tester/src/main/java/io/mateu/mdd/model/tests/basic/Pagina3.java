@@ -34,7 +34,7 @@ public class Pagina3 extends AbstractServerSideWizardPage {
         for (Option o : getOptions()) {
             Data d;
             l.add(d = new Data());
-            ERPServiceImpl.fillData(user, em, d, o);
+            ERPServiceImpl.fillData(user, em, d, o, null);
         }
         out.set("option_data", l);
 
