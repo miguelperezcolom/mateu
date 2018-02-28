@@ -26,6 +26,21 @@ public class MDDLink extends Data {
         setActionType(actionType);
     }
 
+    public MDDLink(Class entityClass, Class viewClass, Data data) {
+        setEntityClassName(entityClass.getName());
+        setViewClassName(viewClass.getName());
+        setData(data);
+        setActionType(ActionType.OPENVIEW);
+    }
+
+    public MDDLink(String caption, Class entityClass, Class viewClass, Data data) {
+        setCaption(caption);
+        setEntityClassName(entityClass.getName());
+        setViewClassName(viewClass.getName());
+        setData(data);
+        setActionType(ActionType.OPENVIEW);
+    }
+
 
     public String getCaption() {
         return get("_caption");
@@ -63,6 +78,7 @@ public class MDDLink extends Data {
         switch(getString("_actiontype")) {
             case "openeditor": return ActionType.OPENEDITOR;
             case "openlist": return ActionType.OPENLIST;
+            case "openview": return ActionType.OPENVIEW;
             default: return ActionType.OPENLIST;
         }
     }
@@ -71,6 +87,7 @@ public class MDDLink extends Data {
         switch (actionType) {
             case OPENEDITOR: setActionType("openeditor"); break;
             case OPENLIST: setActionType("openlist"); break;
+            case OPENVIEW: setActionType("openview"); break;
         }
     }
 

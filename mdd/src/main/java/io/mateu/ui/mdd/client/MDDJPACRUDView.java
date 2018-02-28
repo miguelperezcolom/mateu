@@ -1347,6 +1347,9 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                     case OPENLIST:
                         ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(MateuUI.getApp().getUserData(), l.getEntityClassName(), l.getViewClassName(), null, new MDDCallback(l.getData()));
                         break;
+                    case OPENVIEW:
+                    ((ERPServiceAsync) MateuUI.create(ERPService.class)).getMetaData(MateuUI.getApp().getUserData(), l.getEntityClassName(), l.getViewClassName(), null, new MDDCallback(l.getData()));
+                    break;
                     default: MateuUI.alert("Unkown operation " + l.getActionType());
                 }
             }

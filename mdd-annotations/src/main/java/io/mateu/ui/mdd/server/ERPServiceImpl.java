@@ -350,14 +350,14 @@ public class ERPServiceImpl implements ERPService {
             if (updatable) {
 
                 if (data != null && data.containsKey(prefix + f.getId() + "____object")) {
-                    Object z = o.getClass().getMethod(getGetter(f)).invoke(o);
+                    Object z = null; //o.getClass().getMethod(getGetter(f)).invoke(o);    SIEMPRE CREAMOS UN OBJETO NUEVO, PARA ASEGURARNOS DE QUE DETECTA EL CAMBIO
                     boolean recienCreado = false;
                     if (z == null) {
                         recienCreado = true;
                         z = f.getType().newInstance();
                         BeanUtils.setProperty(o, f.getName(), z);
                     }
-                    fillEntity(em, user, z, data, prefix + f.getId() + "_", recienCreado, z.getClass(), (z instanceof CalendarLimiter)? (CalendarLimiter) z : calendarLimiter);
+                    fillEntity(em, user, z, (f.isAnnotationPresent(UseGridToSelect.class))?data.getData(f.getId()):data, (f.isAnnotationPresent(UseGridToSelect.class))?"":prefix + f.getId() + "_", recienCreado, z.getClass(), (z instanceof CalendarLimiter)? (CalendarLimiter) z : calendarLimiter);
                 } else if (f.isAnnotationPresent(Owned.class)) {
                     if (f.getType().isAnnotationPresent(Entity.class)) {
                         Object z = o.getClass().getMethod(getGetter(f)).invoke(o);

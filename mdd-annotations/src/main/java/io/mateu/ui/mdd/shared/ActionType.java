@@ -6,4 +6,5 @@ package io.mateu.ui.mdd.shared;
 public enum ActionType {
     OPENEDITOR
     , OPENLIST
+    , OPENVIEW
 }
