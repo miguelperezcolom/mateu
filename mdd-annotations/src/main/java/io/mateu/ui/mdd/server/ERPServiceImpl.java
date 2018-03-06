@@ -2825,7 +2825,7 @@ public class ERPServiceImpl implements ERPService {
                 upload = true;
             } else if (f.isAnnotationPresent(OptionsClass.class)) {
                 d.set("_type", MetaData.FIELDTYPE_COMBO);
-                d.set("_ql", getQlForEntityField(em, user, view, f.getAnnotation(OptionsClass.class).value(), f.getId()));
+                d.set("_ql", getQlForEntityField(em, user, view, f.getAnnotation(OptionsClass.class).value(), f.getId(), f.getAnnotation(QLFilter.class)));
                 upload = true;
             } else if (f.isAnnotationPresent(OptionsQL.class)) {
                 d.set("_type", MetaData.FIELDTYPE_COMBO);
@@ -2833,7 +2833,7 @@ public class ERPServiceImpl implements ERPService {
                 upload = true;
             } else if (f.getOptionsClass() != null) {
                 d.set("_type", MetaData.FIELDTYPE_COMBO);
-                d.set("_ql", getQlForEntityField(em, user, view, f.getOptionsClass(), f.getId()));
+                d.set("_ql", getQlForEntityField(em, user, view, f.getOptionsClass(), f.getId(), f.getAnnotation(QLFilter.class)));
                 upload = true;
             } else if (f.getOptionsQL() != null) {
                 d.set("_type", MetaData.FIELDTYPE_COMBO);
@@ -2909,7 +2909,7 @@ public class ERPServiceImpl implements ERPService {
                         d.set("_entityClassName", f.getType().getCanonicalName());
                         d.set("_innerjoin", f.getId());
                         d.set("_qlname", getIdFieldName(f.getGenericClass()));
-                        d.set("_ql", getQlForEntityField(em, user, view, f.getGenericClass(), f.getId()));
+                        d.set("_ql", getQlForEntityField(em, user, view, f.getGenericClass(), f.getId(), f.getAnnotation(QLFilter.class)));
                     } else {
 
                         Class gc = f.getGenericClass();
@@ -3190,6 +3190,29 @@ public class ERPServiceImpl implements ERPService {
                                 }
 
 
+                                if (f.isAnnotationPresent(QLFilter.class)) {
+
+                                    String w = f.getAnnotation(QLFilter.class).value();
+
+                                    if (!Strings.isNullOrEmpty(w)) {
+                                        int pos = defaultQl.indexOf(" where ");
+                                        if (pos > 0) {
+                                            pos = pos + " where".length();
+                                            defaultQl = defaultQl.substring(0, pos) + " " + w + defaultQl.substring(pos);
+                                        } else {
+                                            pos = defaultQl.indexOf(" order ");
+                                            if (pos > 0) {
+                                                defaultQl = defaultQl.substring(0, pos) + " where " + w + defaultQl.substring(pos);
+                                            } else {
+                                                defaultQl += " where " + w;
+                                            }
+                                        }
+
+                                    }
+
+                                }
+
+
                                 if (view != null) {
 
                                     String w = view.getQLFilter(em, user, f.getId());
@@ -3420,10 +3443,10 @@ public class ERPServiceImpl implements ERPService {
     }
 
     private static String getQlForEntityField(EntityManager em, UserData user, ListView view, FieldInterfaced f) {
-        return getQlForEntityField(em, user, view, f.getGenericClass(), f.getId());
+        return getQlForEntityField(em, user, view, f.getGenericClass(), f.getId(), null);
     }
 
-    private static String getQlForEntityField(EntityManager em, UserData user, ListView view, Class<?> c, String fieldId) {
+    private static String getQlForEntityField(EntityManager em, UserData user, ListView view, Class<?> c, String fieldId, QLFilter qlFilter) {
 
         String nombreCampoId = "id";
         for (FieldInterfaced ff : getAllFields(c))
@@ -3461,7 +3484,13 @@ public class ERPServiceImpl implements ERPService {
 
         if (view != null) {
 
-            String w = view.getQLFilter(em, user, fieldId);
+            String w = (qlFilter != null)?qlFilter.value():null;
+            String z = view.getQLFilter(em, user, fieldId);
+            if (!Strings.isNullOrEmpty(z)) {
+                if (!Strings.isNullOrEmpty(w)) {
+                    w += " and " + w;
+                } else w = z;
+            }
 
             if (!Strings.isNullOrEmpty(w)) {
                 int pos = defaultQl.indexOf(" where ");
