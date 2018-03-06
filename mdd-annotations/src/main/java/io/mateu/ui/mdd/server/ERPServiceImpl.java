@@ -1381,7 +1381,7 @@ public class ERPServiceImpl implements ERPService {
                                 List l = (List) v;
                                 for (Object x : l) {
 
-                                    String n = v.toString();
+                                    String n = x.toString();
 
                                     if (m != null) n = "" + m.invoke(x);
 
