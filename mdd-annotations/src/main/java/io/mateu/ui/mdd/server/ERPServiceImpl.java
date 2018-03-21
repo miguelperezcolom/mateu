@@ -892,15 +892,19 @@ public class ERPServiceImpl implements ERPService {
         Helper.notransact(new JPATransaction() {
             @Override
             public void run(EntityManager em) throws Throwable {
-                Object o = null;
-                if (id != null) o = em.find(Class.forName(entityClassName), (id instanceof Integer)?new Long((Integer)id):id);
-                else o = Class.forName(entityClassName).newInstance();
 
                 Class viewClass = Class.forName((viewClassName != null)?viewClassName:entityClassName);
-
                 View v = null;
+                if (!viewClass.equals(Class.forName(entityClassName))) v = (View) viewClass.newInstance();
 
-                if (!viewClass.equals(o.getClass())) v = (View) viewClass.newInstance();
+
+                Object o = null;
+                if (id != null) o = em.find(Class.forName(entityClassName), (id instanceof Integer)?new Long((Integer)id):id);
+                else {
+                    if (v != null) o = v.newInstance(em, user);
+                    else o = Class.forName(entityClassName).newInstance();
+                }
+
 
                 fillData(user, em, viewClass, id, data, o, (o instanceof CalendarLimiter)? (CalendarLimiter) o :null);
 
