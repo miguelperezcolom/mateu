@@ -902,7 +902,7 @@ public class ERPServiceImpl implements ERPService {
                 if (id != null) o = em.find(Class.forName(entityClassName), (id instanceof Integer)?new Long((Integer)id):id);
                 else {
                     if (v != null) o = v.newInstance(em, user);
-                    else o = Class.forName(entityClassName).newInstance();
+                    if (o == null) o = Class.forName(entityClassName).newInstance();
                 }
 
 
