@@ -65,7 +65,9 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
     @Override
     public String getViewIdBase() {
-        return "mdd.." + entityClassName + ".." + ((!Strings.isNullOrEmpty(rpcViewClassName))?rpcViewClassName:viewClassName) + ".." + BaseEncoding.base64().encode(((queryFilters != null)?queryFilters:"").getBytes());
+        Data datosIniciales = initializeData();
+
+        return "mdd.." + entityClassName + ".." + ((!Strings.isNullOrEmpty(rpcViewClassName))?rpcViewClassName:viewClassName) + ".." + BaseEncoding.base64().encode(((queryFilters != null)?queryFilters:"").getBytes()) + ".." + BaseEncoding.base64().encode(((datosIniciales != null)?datosIniciales.toJson():"").getBytes());
     }
 
     @Override
@@ -106,14 +108,23 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
     @Override
     public AbstractEditorView getNewEditorView() {
-           return getNewEditorViewForSubclass(getEntityClassName(), getViewClassName(), getMetadata().getData("_editorform"));
+        return getNewEditorView(null);
     }
 
-    public AbstractEditorView getNewEditorViewForSubclass(String entityClassName, String viewClass, Data formMetaData) {
+    public AbstractEditorView getNewEditorView(Data datosIniciales) {
+           return getNewEditorViewForSubclass(getEntityClassName(), getViewClassName(), getMetadata().getData("_editorform"), datosIniciales);
+    }
+
+    public AbstractEditorView getNewEditorViewForSubclass(String entityClassName, String viewClass, Data formMetaData, Data datosIniciales) {
 
         return new JPAEditorView(this) {
 
-                @Override
+            @Override
+            public Data initializeData() {
+                return datosIniciales;
+            }
+
+            @Override
                 public List<AbstractAction> createActions() {
                     List<AbstractAction> as = super.createActions();
                     for (Data da : formMetaData.getList("_actions")) if (da.isEmpty("_addasbutton")) {
@@ -145,7 +156,9 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                         id = s;
                     }
 
-                    return "mdd.." + getEntityClassName() + ".." + getViewClassName() + ".." + BaseEncoding.base64().encode(((queryFilters != null)?queryFilters:"").getBytes()) + ".." + "edit" + ((id != null)?"/" + id:"");
+                    Data datosIniciales = initializeData();
+
+                    return "mdd.." + getEntityClassName() + ".." + getViewClassName() + ".." + BaseEncoding.base64().encode(((queryFilters != null)?queryFilters:"").getBytes()) + ".." + BaseEncoding.base64().encode(((datosIniciales != null)?datosIniciales.toJson():"").getBytes()) + ".." + "edit" + ((id != null)?"/" + id:"");
                 }
 
                 @Override
@@ -186,12 +199,11 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
             ((ERPServiceAsync) MateuUI.create(ERPService.class)).getInitialData(MateuUI.getApp().getUserData(), getEntityClassName(), getViewClassName(), getData(), new Callback<Data>() {
                 @Override
                 public void onSuccess(Data result) {
-                    AbstractEditorView ed;
-                    openEditor(ed = getNewEditorView());
                     MateuUI.runInUIThread(new Runnable() {
                         @Override
                         public void run() {
-                            ed.setData(result);
+                            AbstractEditorView ed = getNewEditorView(result);
+                            openEditor(ed);
                         }
                     });
                 }
@@ -222,12 +234,13 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                                 ((ERPServiceAsync) MateuUI.create(ERPService.class)).getInitialData(MateuUI.getApp().getUserData(), type, type, getData(), new Callback<Data>() {
                                     @Override
                                     public void onSuccess(Data result) {
-                                        AbstractEditorView ed;
-                                        openEditor(ed = getNewEditorViewForSubclass(d.get("_type"), d.get("_type"), d.get("_editorform")));
+
                                         MateuUI.runInUIThread(new Runnable() {
                                             @Override
                                             public void run() {
-                                                ed.setData(result);
+
+                                                AbstractEditorView ed = getNewEditorViewForSubclass(d.get("_type"), d.get("_type"), d.get("_editorform"), result);
+                                                openEditor(ed);
                                             }
                                         });
                                     }
@@ -285,7 +298,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                 if (className != null) className = className.replaceAll("class ", "");
                 for (Data d : getMetadata().getList("_subclasses")) {
                     if (d.get("_type").equals(className)) {
-                        openEditor(getNewEditorViewForSubclass(d.get("_type"), d.get("_type"), d.get("_editorform")).setInitialId(data.get(propertyId)));
+                        openEditor(getNewEditorViewForSubclass(d.get("_type"), d.get("_type"), d.get("_editorform"), null).setInitialId(data.get(propertyId)));
                         break;
                     }
                 }

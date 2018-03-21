@@ -13,6 +13,7 @@ import io.mateu.ui.core.shared.ViewProvider;
 import io.mateu.ui.mdd.server.ERPServiceImpl;
 
 import java.lang.reflect.Constructor;
+import java.util.Arrays;
 
 
 @AutoService(ViewProvider.class)
@@ -40,16 +41,17 @@ public class MDDViewProvider implements ViewProvider {
 
                 if (viewName.startsWith("mdd..")) viewName = viewName.replaceFirst("mdd\\.\\.", "");
 
-                String[] t = viewName.split("\\.\\.");
+                String[] t = viewName.split("\\.\\.", -1);
                 String ed = t[0];
                 String vd = t[1];
-                String qf = (t.length > 2)?new String(BaseEncoding.base64().decode(t[2])):null;
+                String qf = (!Strings.isNullOrEmpty(t[2]))?new String(BaseEncoding.base64().decode(t[2])):null;
+                String jsonDatosIniciales = (!Strings.isNullOrEmpty(t[3]))?new String(BaseEncoding.base64().decode(t[3])):null;
 
 
                 view = new MDDJPACRUDView(new ERPServiceImpl().getMetaData(MateuUI.getApp().getUserData(), ed, vd, qf));
 
-                if (t.length > 3) {
-                    return view.getNewEditorView();
+                if (viewName.endsWith("edit")) {
+                    return view.getNewEditorView((jsonDatosIniciales != null)?new Data(jsonDatosIniciales):null);
                 }
 
                 if (view instanceof AbstractCRUDView) {
@@ -68,6 +70,11 @@ public class MDDViewProvider implements ViewProvider {
         }
 
         return view;
+    }
+
+
+    public static void main(String[] args) {
+        System.out.println(Arrays.toString("com.quonext.quoon.platform.model.product.hotel.Hotel..com.quonext.quoon.platform.backoffice.hotel.views.HotelsView....".split("\\.\\.", -1)));
     }
 
 }
