@@ -1,5 +1,6 @@
 package io.mateu.ui.mdd.client;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.io.BaseEncoding;
 import io.mateu.ui.core.client.app.AbstractAction;
@@ -158,7 +159,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
                     Data datosIniciales = initializeData();
 
-                    return "mdd.." + getEntityClassName() + ".." + getViewClassName() + ".." + BaseEncoding.base64().encode(((queryFilters != null)?queryFilters:"").getBytes()) + ".." + BaseEncoding.base64().encode(((datosIniciales != null)?datosIniciales.toJson():"").getBytes()) + ".." + "edit" + ((id != null)?"/" + id:"");
+                    return "mdd.." + getEntityClassName() + ".." + getViewClassName() + ".." + BaseEncoding.base64().encode(((queryFilters != null)?queryFilters:"").getBytes(Charsets.UTF_8)) + ".." + BaseEncoding.base64().encode(((datosIniciales != null)?datosIniciales.toJson():"").getBytes(Charsets.UTF_8)) + ".." + "edit" + ((id != null)?"/" + id:"");
                 }
 
                 @Override

@@ -1,6 +1,7 @@
 package io.mateu.ui.mdd.client;
 
 import com.google.auto.service.AutoService;
+import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.io.BaseEncoding;
 import io.mateu.ui.core.client.app.MateuUI;
@@ -44,8 +45,8 @@ public class MDDViewProvider implements ViewProvider {
                 String[] t = viewName.split("\\.\\.", -1);
                 String ed = t[0];
                 String vd = t[1];
-                String qf = (!Strings.isNullOrEmpty(t[2]))?new String(BaseEncoding.base64().decode(t[2])):null;
-                String jsonDatosIniciales = (!Strings.isNullOrEmpty(t[3]))?new String(BaseEncoding.base64().decode(t[3])):null;
+                String qf = (!Strings.isNullOrEmpty(t[2]))?new String(BaseEncoding.base64().decode(t[2]), Charsets.UTF_8):null;
+                String jsonDatosIniciales = (!Strings.isNullOrEmpty(t[3]))?new String(BaseEncoding.base64().decode(t[3]), Charsets.UTF_8):null;
 
 
                 view = new MDDJPACRUDView(new ERPServiceImpl().getMetaData(MateuUI.getApp().getUserData(), ed, vd, qf));
