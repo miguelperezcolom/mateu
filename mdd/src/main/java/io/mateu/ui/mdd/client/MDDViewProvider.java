@@ -22,7 +22,10 @@ public class MDDViewProvider implements ViewProvider {
     @Override
     public String getViewName(String viewAndParameters) {
         System.out.println("MDDViewProvider.getViewName(" + viewAndParameters + ")");
-        if (viewAndParameters == null || !viewAndParameters.startsWith("mdd..")) return null;
+        String vn = viewAndParameters;
+        if (vn.startsWith("area")) vn = vn.substring(vn.indexOf("..") + "..".length());
+        if (vn.startsWith("pos")) vn = vn.substring(vn.indexOf("..") + "..".length());
+        if (!(vn.startsWith("mdd.."))) return null;
         String p = viewAndParameters;
         if (p.contains("?")) p = p.substring(0, p.indexOf("?"));
         if (p.contains("/")) p = p.substring(0, p.indexOf("/"));
@@ -39,10 +42,21 @@ public class MDDViewProvider implements ViewProvider {
 
             if (!Strings.isNullOrEmpty(viewName)) {
 
+                String vn = viewName;
+                if (vn.startsWith("area")) {
+                    int pos = Integer.parseInt(vn.substring("area".length(), vn.indexOf("..")));
+                    MateuUI.getApp().setArea(MateuUI.getApp().getAreas().get(pos));
+                    vn = vn.substring(vn.indexOf("..") + "..".length());
+                }
+                if (vn.startsWith("pos")) {
+                    String pos = vn.substring("area".length(), vn.indexOf(".."));
+                    MateuUI.getApp().setPosicion(MateuUI.getApp().getMenu(pos));
 
-                if (viewName.startsWith("mdd..")) viewName = viewName.replaceFirst("mdd\\.\\.", "");
+                    vn = vn.substring(vn.indexOf("..") + "..".length());
+                }
+                if (vn.startsWith("mdd..")) vn = vn.replaceFirst("mdd\\.\\.", "");
 
-                String[] t = viewName.split("\\.\\.", -1);
+                String[] t = vn.split("\\.\\.", -1);
                 String ed = t[0];
                 String vd = t[1];
                 String qf = (!Strings.isNullOrEmpty(t[2]))?new String(BaseEncoding.base64().decode(t[2]), Charsets.UTF_8):null;
@@ -51,7 +65,7 @@ public class MDDViewProvider implements ViewProvider {
 
                 view = new MDDJPACRUDView(new ERPServiceImpl().getMetaData(MateuUI.getApp().getUserData(), ed, vd, qf));
 
-                if (viewName.endsWith("edit")) {
+                if (vn.endsWith("edit")) {
                     return view.getNewEditorView((jsonDatosIniciales != null)?new Data(jsonDatosIniciales):null);
                 }
 
