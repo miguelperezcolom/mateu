@@ -20,8 +20,12 @@ public class MDDAction extends AbstractAction {
         this.queryFilters = queryFilters;
     }
 
+    public String getQueryFilters() {
+        return queryFilters;
+    }
+
     @Override
     public void run() {
-        MDD.openCRUD(entityClass, viewClass, queryFilters);
+        MDD.openCRUD(entityClass, viewClass, getQueryFilters());
     }
 }
