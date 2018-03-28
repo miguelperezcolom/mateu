@@ -194,7 +194,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
     }
 
     @Override
-    public void openNew() {
+    public void openNew(boolean inNewTab) {
         if (getMetadata().isEmpty("_subclasses")) {
 
             ((ERPServiceAsync) MateuUI.create(ERPService.class)).getInitialData(MateuUI.getApp().getUserData(), getEntityClassName(), getViewClassName(), getData(), new Callback<Data>() {
@@ -204,7 +204,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                         @Override
                         public void run() {
                             AbstractEditorView ed = getNewEditorView(result);
-                            openEditor(ed);
+                            openEditor(ed, inNewTab);
                         }
                     });
                 }
@@ -241,7 +241,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                                             public void run() {
 
                                                 AbstractEditorView ed = getNewEditorViewForSubclass(d.get("_type"), d.get("_type"), d.get("_editorform"), result);
-                                                openEditor(ed);
+                                                openEditor(ed, inNewTab);
                                             }
                                         });
                                     }
@@ -267,7 +267,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
     }
 
     @Override
-    public void open(String propertyId, Data data) {
+    public void open(String propertyId, Data data, boolean inNewTab) {
         if (getMetadata().containsKey("_compositeClassName")) {
 
             try {
@@ -283,7 +283,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
         } else {
 
             if (getMetadata().isEmpty("_subclasses")) {
-                super.open(propertyId, data);
+                super.open(propertyId, data, inNewTab);
             } else {
                 String className = null;
                 int maxCol = -1;
@@ -299,7 +299,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                 if (className != null) className = className.replaceAll("class ", "");
                 for (Data d : getMetadata().getList("_subclasses")) {
                     if (d.get("_type").equals(className)) {
-                        openEditor(getNewEditorViewForSubclass(d.get("_type"), d.get("_type"), d.get("_editorform"), null).setInitialId(data.get(propertyId)));
+                        openEditor(getNewEditorViewForSubclass(d.get("_type"), d.get("_type"), d.get("_editorform"), null).setInitialId(data.get(propertyId)), inNewTab);
                         break;
                     }
                 }
@@ -620,7 +620,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                     col = new DataColumn((useAutoColumnIds()) ? "col" + poscol : d.getString("_id"), d.getString("_label"), d.getInt("_width")) {
                         @Override
                         public void run(Data data) {
-                            if (data != null && data.get("_id") != null) open(data.get("_id"));
+                            if (data != null && data.get("_id") != null) open(data.get("_id"), false);
                             else MateuUI.alert("Empty record. Nothing to see.");
                         }
                     };
@@ -660,7 +660,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
             cols.add(col = new LinkColumn("_open", "Action", 200) {
                 @Override
                 public void run(Data data) {
-                    open("xxx", data);
+                    open("xxx", data, false);
                 }
 
                 @Override
@@ -1080,7 +1080,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
                         w[0] = crearWizard(da.getString("_name"), wizard.getData("_initialdata"), vo, cb);
 
-                        MateuUI.open(w[0]);
+                        MateuUI.open(w[0], false);
 
                     } else {
 

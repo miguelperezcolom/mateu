@@ -38,7 +38,7 @@ public class Module extends AbstractModule {
     }
 
     @Override
-    public List<MenuEntry> getMenu() {
+    public List<MenuEntry> buildMenu() {
         List<MenuEntry> m = new ArrayList<>();
 
         m.add(new MDDOpenEditorAction("AppConfig", AppConfig.class, 1l));

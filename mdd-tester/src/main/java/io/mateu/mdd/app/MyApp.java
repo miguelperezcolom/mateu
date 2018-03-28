@@ -12,10 +12,10 @@ public class MyApp extends AbstractApplication {
         return "My Appp";
     }
 
-    public List<AbstractArea> getAreas() {
+    public List<AbstractArea> buildAreas() {
         return Arrays.asList((AbstractArea) new AbstractArea("Area 1") {
             @Override
-            public List<AbstractModule> getModules() {
+            public List<AbstractModule> buildModules() {
                 return Arrays.asList(new Module());
             }
         });

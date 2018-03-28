@@ -58,8 +58,8 @@ public class MDDViewProvider implements ViewProvider {
                 if (view instanceof AbstractCRUDView) {
                     ((AbstractCRUDView) view).addListener(new CRUDListener() {
                         @Override
-                        public void openEditor(AbstractEditorView e) {
-                            MateuUI.openView(e);
+                        public void openEditor(AbstractEditorView e, boolean inNewTab) {
+                            MateuUI.openView(e, inNewTab);
                         }
                     });
                 }
