@@ -452,7 +452,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                 } else if (MetaData.FIELDTYPE_ENUM.equals(d.getString("_type"))) {
                     fields.add(new ComboBoxField(prefix + d.getString("_id"), d.getString("_label"), d.getPairList("_values")));
                 } else if (MetaData.FIELDTYPE_COMBO.equals(d.getString("_type"))) {
-                    fields.add(new JPAComboBoxField(prefix + d.getString("_id"), d.getString("_label"), d.getString("_ql")));
+                    fields.add(new JPAAutocompleteField(prefix + d.getString("_id"), d.getString("_label"), d.getString("_ql")));
                 } else if (MetaData.FIELDTYPE_FILE.equals(d.getString("_type"))) {
                     fields.add(new FileField(prefix + d.getString("_id"), d.getString("_label")));
                 } else if (MetaData.FIELDTYPE_OBJECT.equals(d.getString("_type"))) {
