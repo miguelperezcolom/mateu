@@ -24,6 +24,10 @@ public class MDDCallback extends Callback<Data> {
         this.initialData = initialData;
     }
 
+    public MDDCallback(Data initialData, boolean modifierPressed) {
+        this.initialData = initialData;
+        this.modifierPressed = modifierPressed;
+    }
 
     @Override
     public void onSuccess(Data result) {
