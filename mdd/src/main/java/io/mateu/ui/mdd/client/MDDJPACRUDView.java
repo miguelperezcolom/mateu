@@ -275,7 +275,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                 if (getMetadata().containsKey("_compositeFieldName")) {
                     d.set(getMetadata().get("_compositeFieldName"), new Pair(data.get("_id"), data.get("col1")));
                 }
-                MDD.openView(Class.forName(getMetadata().get("_compositeClassName")), d, queryFilters);
+                MDD.openView(Class.forName(getMetadata().get("_compositeClassName")), d, queryFilters, inNewTab);
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }

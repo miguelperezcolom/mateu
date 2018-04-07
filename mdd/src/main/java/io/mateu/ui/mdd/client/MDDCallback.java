@@ -10,9 +10,14 @@ import io.mateu.ui.core.shared.Data;
 public class MDDCallback extends Callback<Data> {
 
     private Data initialData = new Data();
+    private boolean modifierPressed;
 
     public MDDCallback() {
 
+    }
+
+    public MDDCallback(boolean modifierPressed) {
+        this.modifierPressed = modifierPressed;
     }
 
     public MDDCallback(Data initialData) {
@@ -27,7 +32,7 @@ public class MDDCallback extends Callback<Data> {
             public Data initializeData() {
                 return initialData;
             }
-        } );
+        }, modifierPressed);
     }
 
 }

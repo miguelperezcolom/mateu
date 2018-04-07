@@ -26,6 +26,6 @@ public class MDDAction extends AbstractAction {
 
     @Override
     public void run() {
-        MDD.openCRUD(entityClass, viewClass, getQueryFilters());
+        MDD.openCRUD(entityClass, viewClass, getQueryFilters(), isModifierPressed());
     }
 }
