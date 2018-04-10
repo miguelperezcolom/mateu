@@ -212,6 +212,9 @@ public class ERPServiceImpl implements ERPService {
 
     @Override
     public Data set(UserData user, String entityClassName, String viewClassName, Data data) throws Throwable {
+
+        Object[] o = new Object[1];
+
         Helper.transact(new JPATransaction() {
             @Override
             public void run(EntityManager em) throws Throwable {
@@ -219,13 +222,27 @@ public class ERPServiceImpl implements ERPService {
                 Class cl = Class.forName(entityClassName);
                 Class vcl = Class.forName((viewClassName != null)?viewClassName:entityClassName);
 
-                fillEntity(em, user, cl, vcl, data);
+                o[0] = fillEntity(em, user, cl, vcl, data);
 
             }
         });
 
+        FieldInterfaced idField = null;
+        boolean generated = false;
+        for (FieldInterfaced f : getAllFields(Class.forName(entityClassName))) {
+            if (f.isAnnotationPresent(Id.class)) {
+                idField = f;
+                if (f.isAnnotationPresent(GeneratedValue.class)) {
+                    generated = true;
+                }
+                break;
+            }
+        }
 
-        Object id = data.get("_id");
+        Method m = o[0].getClass().getMethod(getGetter(idField));
+        Object id = m.invoke(o[0]);
+
+        //Object id = data.get("_id");
         if (id instanceof Long) return get(user, entityClassName, viewClassName, (long) id);
         else if (id instanceof Integer) return get(user, entityClassName, viewClassName, (int) id);
         else if (id instanceof String) return get(user, entityClassName, viewClassName, (String) id);
@@ -276,7 +293,8 @@ public class ERPServiceImpl implements ERPService {
             } else {
                 if (vcl != null && !vcl.equals(cl)) o = ((View)vcl.newInstance()).newInstance(em, user);
                 if (o == null) o = cl.newInstance();
-                em.persist(o);
+                //em.persist(o);
+                /*
                 if (generated) {
                     em.flush(); // to get the id
                     Method m = o.getClass().getMethod(getGetter(idField));
@@ -284,6 +302,7 @@ public class ERPServiceImpl implements ERPService {
                 } else {
                     id = data.get(idField.getName());
                 }
+                */
                 newInstance = true;
             }
 
@@ -297,8 +316,11 @@ public class ERPServiceImpl implements ERPService {
             ((WithTriggers)o).beforeSet(em, newInstance);
         }
 
-
         fillEntity(em, user, o, data, newInstance, vcl, (o instanceof CalendarLimiter)? (CalendarLimiter) o :null);
+
+        if (newInstance) {
+            em.persist(o);
+        }
 
         return o;
     }
