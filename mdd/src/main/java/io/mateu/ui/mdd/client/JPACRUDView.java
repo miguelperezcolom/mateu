@@ -23,7 +23,7 @@ public abstract class JPACRUDView extends AbstractCRUDView {
     @Override
     public void rpc(Data parameters, AsyncCallback<Data> callback) {
         parameters.set("_sql", getSql());
-        parameters.set("_rowsperpage", 3000);
+        parameters.set("_rowsperpage", 100);
         ERPServiceAsync s = MateuUI.create(ERPService.class);
         s.selectPaginated(parameters, callback);
     }

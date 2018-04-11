@@ -640,7 +640,7 @@ public class ERPServiceImpl implements ERPService {
             } else if (genericClass.isAnnotationPresent(Entity.class)) {
                 List<Object> l = new ArrayList<>();
                 List<Pair> ll = (v instanceof PairList)?((PairList)v).getValues(): (List<Pair>) v;
-                for (Pair p : ll) {
+                for (Pair p : ll) if (p != null && p.getValue() != null) {
                     //todo: buscar el inverso y actualizar, si en un @ManyToMany
                     Object x;
                     l.add(x = em.find(genericClass, p.getValue()));
