@@ -23,6 +23,8 @@ import org.apache.commons.beanutils.BeanUtilsBean;
 import org.reflections.Reflections;
 
 import javax.persistence.*;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
 import javax.validation.constraints.NotNull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -213,40 +215,54 @@ public class ERPServiceImpl implements ERPService {
     @Override
     public Data set(UserData user, String entityClassName, String viewClassName, Data data) throws Throwable {
 
-        Object[] o = new Object[1];
+        try {
+            Object[] o = new Object[1];
 
-        Helper.transact(new JPATransaction() {
-            @Override
-            public void run(EntityManager em) throws Throwable {
+            System.out.println("data=" + data);
 
-                Class cl = Class.forName(entityClassName);
-                Class vcl = Class.forName((viewClassName != null)?viewClassName:entityClassName);
+            Helper.transact(new JPATransaction() {
+                @Override
+                public void run(EntityManager em) throws Throwable {
 
-                o[0] = fillEntity(em, user, cl, vcl, data);
+                    Class cl = Class.forName(entityClassName);
+                    Class vcl = Class.forName((viewClassName != null)?viewClassName:entityClassName);
 
-            }
-        });
+                    o[0] = fillEntity(em, user, cl, vcl, data);
 
-        FieldInterfaced idField = null;
-        boolean generated = false;
-        for (FieldInterfaced f : getAllFields(Class.forName(entityClassName))) {
-            if (f.isAnnotationPresent(Id.class)) {
-                idField = f;
-                if (f.isAnnotationPresent(GeneratedValue.class)) {
-                    generated = true;
                 }
-                break;
+            });
+
+            FieldInterfaced idField = null;
+            boolean generated = false;
+            for (FieldInterfaced f : getAllFields(Class.forName(entityClassName))) {
+                if (f.isAnnotationPresent(Id.class)) {
+                    idField = f;
+                    if (f.isAnnotationPresent(GeneratedValue.class)) {
+                        generated = true;
+                    }
+                    break;
+                }
             }
+
+            Method m = o[0].getClass().getMethod(getGetter(idField));
+            Object id = m.invoke(o[0]);
+
+            //Object id = data.get("_id");
+            if (id instanceof Long) return get(user, entityClassName, viewClassName, (long) id);
+            else if (id instanceof Integer) return get(user, entityClassName, viewClassName, (int) id);
+            else if (id instanceof String) return get(user, entityClassName, viewClassName, (String) id);
+            else return null;
+        } catch (Throwable throwable) {
+            if (throwable instanceof ConstraintViolationException) {
+                ConstraintViolationException cve = (ConstraintViolationException) throwable;
+                StringBuffer sb = new StringBuffer();
+                for (ConstraintViolation cv : cve.getConstraintViolations()) {
+                    if (sb.length() > 0) sb.append(", ");
+                    sb.append(cv.toString());
+                }
+                throw new Exception(sb.toString());
+            } else throw throwable;
         }
-
-        Method m = o[0].getClass().getMethod(getGetter(idField));
-        Object id = m.invoke(o[0]);
-
-        //Object id = data.get("_id");
-        if (id instanceof Long) return get(user, entityClassName, viewClassName, (long) id);
-        else if (id instanceof Integer) return get(user, entityClassName, viewClassName, (int) id);
-        else if (id instanceof String) return get(user, entityClassName, viewClassName, (String) id);
-        else return null;
     }
 
     @Override
@@ -387,10 +403,10 @@ public class ERPServiceImpl implements ERPService {
                         if (z == null) {
                             recienCreado = true;
                             z = f.getType().newInstance();
-                            em.persist(z);
                             BeanUtils.setProperty(o, f.getName(), z);
                         }
                         fillEntity(em, user, z, data, prefix, recienCreado, z.getClass(), (z instanceof CalendarLimiter)? (CalendarLimiter) z : calendarLimiter);
+                        if (recienCreado) em.persist(z);
                     } else {
                         System.out.println("owned y no es una entity");
                     }
