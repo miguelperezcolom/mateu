@@ -11,6 +11,7 @@ import io.mateu.ui.core.client.views.AbstractForm;
 import io.mateu.ui.core.client.views.RPCView;
 import io.mateu.ui.core.shared.*;
 import io.mateu.ui.mdd.server.annotations.*;
+import io.mateu.ui.mdd.server.annotations.Action;
 import io.mateu.ui.mdd.server.annotations.CellStyleGenerator;
 import io.mateu.ui.mdd.server.interfaces.*;
 import io.mateu.ui.mdd.server.interfaces.SupplementOrPositive;

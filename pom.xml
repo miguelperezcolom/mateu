@@ -19,6 +19,8 @@
     <module>mdd</module>
     <module>mdd-annotations</module>
       <module>mdd-tester</module>
+      <module>pocs</module>
+    <module>mdd-server</module>
   </modules>
 
   <dependencies>

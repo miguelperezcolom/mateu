@@ -37,14 +37,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="mdd-annotations" />
-    <orderEntry type="module" module-name="mdd-annotations" />
-    <orderEntry type="library" name="Maven: com.google.http-client:google-http-client:1.23.0" level="project" />
-    <orderEntry type="library" name="Maven: com.google.http-client:google-http-client-jackson2:1.23.0" level="project" />
-    <orderEntry type="library" name="Maven: org.ostermiller:utils:1.07.00" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-stdlib:1.2.30" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: org.jetbrains.kotlin:kotlin-test-junit:1.2.30" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: org.jetbrains.kotlin:kotlin-test:1.2.30" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: junit:junit:3.8.1" level="project" />
     <orderEntry type="library" name="Maven: com.google.auto.service:auto-service:1.0-rc4" level="project" />
     <orderEntry type="library" name="Maven: com.google.auto:auto-common:0.8" level="project" />

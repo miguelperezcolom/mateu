@@ -147,6 +147,13 @@
         </dependency>
 
 
+        <dependency>
+            <groupId>io.mateu.ui.mdd</groupId>
+            <artifactId>mdd-server</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+
     </dependencies>
 
 
