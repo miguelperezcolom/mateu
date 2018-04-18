@@ -228,7 +228,11 @@ public class ERPServiceImpl implements ERPService {
                     Class cl = Class.forName(entityClassName);
                     Class vcl = Class.forName((viewClassName != null)?viewClassName:entityClassName);
 
-                    o[0] = fillEntity(em, user, cl, vcl, data);
+                    List<Object> persistPending = new ArrayList<>();
+
+                    o[0] = fillEntity(em, persistPending, user, cl, vcl, data);
+
+                    for (Object x : persistPending) em.persist(x);
 
                 }
             });
@@ -282,14 +286,21 @@ public class ERPServiceImpl implements ERPService {
     }
 
     private static Object fillEntity(EntityManager em, UserData user, Class cl, Data data) throws Throwable {
-        return fillEntity(em, user, cl, cl, data);
+        List<Object> persistPending = new ArrayList<>();
+        Object o = fillEntity(em, persistPending, user, cl, cl, data);
+        for (Object x : persistPending) em.persist(x);
+
+        if (o instanceof WithTriggers) {
+            ((WithTriggers)o).afterSet(em, persistPending.contains(o));
+        }
+
+        return o;
     }
 
-    private static Object fillEntity(EntityManager em, UserData user, Class cl, Class vcl, Data data) throws Throwable {
+    private static Object fillEntity(EntityManager em, List<Object> persistPending, UserData user, Class cl, Class vcl, Data data) throws Throwable {
         Object o = null;
 
         boolean newInstance = false;
-
 
         if (cl.isAnnotationPresent(Entity.class)) {
             FieldInterfaced idField = null;
@@ -333,24 +344,24 @@ public class ERPServiceImpl implements ERPService {
             ((WithTriggers)o).beforeSet(em, newInstance);
         }
 
-        fillEntity(em, user, o, data, newInstance, vcl, (o instanceof CalendarLimiter)? (CalendarLimiter) o :null);
+        fillEntity(em, persistPending, user, o, data, newInstance, vcl, (o instanceof CalendarLimiter)? (CalendarLimiter) o :null);
 
         if (newInstance) {
-            em.persist(o);
+            persistPending.add(o);
         }
 
         return o;
     }
 
-    public static void fillEntity(EntityManager em, UserData user, Object o, Data data, boolean newInstance) throws Throwable {
-        fillEntity(em, user, o, data, newInstance, o.getClass(), (o instanceof CalendarLimiter)? (CalendarLimiter) o :null);
+    public static void fillEntity(EntityManager em, List<Object> persistPending, UserData user, Object o, Data data, boolean newInstance) throws Throwable {
+        fillEntity(em, persistPending, user, o, data, newInstance, o.getClass(), (o instanceof CalendarLimiter)? (CalendarLimiter) o :null);
     }
 
-    public static void fillEntity(EntityManager em, UserData user, Object o, Data data, boolean newInstance, Class viewClass, CalendarLimiter calendarLimiter) throws Throwable {
-        fillEntity(em, user, o, data, null, newInstance, viewClass, calendarLimiter);
+    public static void fillEntity(EntityManager em, List<Object> persistPending, UserData user, Object o, Data data, boolean newInstance, Class viewClass, CalendarLimiter calendarLimiter) throws Throwable {
+        fillEntity(em, persistPending, user, o, data, null, newInstance, viewClass, calendarLimiter);
     }
 
-    public static void fillEntity(EntityManager em, UserData user, Object o, Data data, String prefix, boolean newInstance, Class viewClass, CalendarLimiter calendarLimiter) throws Throwable {
+    public static void fillEntity(EntityManager em, List<Object> persistPending, UserData user, Object o, Data data, String prefix, boolean newInstance, Class viewClass, CalendarLimiter calendarLimiter) throws Throwable {
 
         if (prefix == null) prefix = "";
 
@@ -396,7 +407,7 @@ public class ERPServiceImpl implements ERPService {
                         z = f.getType().newInstance();
                         BeanUtils.setProperty(o, f.getName(), z);
                     }
-                    fillEntity(em, user, z, (f.isAnnotationPresent(UseGridToSelect.class))?data.getData(f.getId()):data, (f.isAnnotationPresent(UseGridToSelect.class))?"":prefix + f.getId() + "_", recienCreado, z.getClass(), (z instanceof CalendarLimiter)? (CalendarLimiter) z : calendarLimiter);
+                    fillEntity(em, persistPending, user, z, (f.isAnnotationPresent(UseGridToSelect.class))?data.getData(f.getId()):data, (f.isAnnotationPresent(UseGridToSelect.class))?"":prefix + f.getId() + "_", recienCreado, z.getClass(), (z instanceof CalendarLimiter)? (CalendarLimiter) z : calendarLimiter);
                 } else if (f.isAnnotationPresent(Owned.class)) {
                     if (f.getType().isAnnotationPresent(Entity.class)) {
                         Object z = o.getClass().getMethod(getGetter(f)).invoke(o);
@@ -406,14 +417,14 @@ public class ERPServiceImpl implements ERPService {
                             z = f.getType().newInstance();
                             BeanUtils.setProperty(o, f.getName(), z);
                         }
-                        fillEntity(em, user, z, data, prefix, recienCreado, z.getClass(), (z instanceof CalendarLimiter)? (CalendarLimiter) z : calendarLimiter);
-                        if (recienCreado) em.persist(z);
+                        fillEntity(em, persistPending, user, z, data, prefix, recienCreado, z.getClass(), (z instanceof CalendarLimiter)? (CalendarLimiter) z : calendarLimiter);
+                        if (recienCreado) persistPending.add(z);
                     } else {
                         System.out.println("owned y no es una entity");
                     }
                 } else if (data != null && data.containsKey(prefix + f.getId())) {
 
-                    Object v = extractValue(em, user, o, data, f, prefix);
+                    Object v = extractValue(em, persistPending, user, o, data, f, prefix);
 
                     if (File.class.isAssignableFrom(f.getType())) {
                         File current = (File) o.getClass().getMethod(getGetter(f)).invoke(o);
@@ -428,7 +439,7 @@ public class ERPServiceImpl implements ERPService {
                             if (current == null) {
                                 current = (File) f.getType().newInstance();
                                 BeanUtils.setProperty(o, f.getName(), current);
-                                em.persist(current);
+                                persistPending.add(current);
                             }
                             if (l.isModified()) {
                                 current.set(l.getFileName(), l.getTmpPath());
@@ -439,7 +450,7 @@ public class ERPServiceImpl implements ERPService {
                         if (current == null) {
                             current = f.getType().newInstance();
                             BeanUtils.setProperty(o, f.getName(), current);
-                            em.persist(current);
+                            persistPending.add(current);
                         }
                         ((Translated) current).set((Data) v);
                     } else if (!f.isAnnotationPresent(OwnedList.class)) { // en este caso ya hemos añadido el valor dentro del método exractValue()
@@ -449,16 +460,13 @@ public class ERPServiceImpl implements ERPService {
             }
         }
 
-        if (o instanceof WithTriggers) {
-            ((WithTriggers)o).afterSet(em, newInstance);
-        }
     }
 
-    private static Object extractValue(EntityManager em, UserData user, Object o, Data data, FieldInterfaced f) throws Throwable {
-        return extractValue(em, user, o, data, f, "");
+    private static Object extractValue(EntityManager em, List<Object> persistPending, UserData user, Object o, Data data, FieldInterfaced f) throws Throwable {
+        return extractValue(em, persistPending, user, o, data, f, "");
     }
 
-    private static Object extractValue(EntityManager em, UserData user, Object o, Data data, FieldInterfaced f, String prefix) throws Throwable {
+    private static Object extractValue(EntityManager em, List<Object> persistPending, UserData user, Object o, Data data, FieldInterfaced f, String prefix) throws Throwable {
 
         Object v = data.get(prefix + f.getId());
         if (v != null && v instanceof Pair) v = ((Pair) v).getValue();
@@ -510,7 +518,7 @@ public class ERPServiceImpl implements ERPService {
                 Map<String, UseCalendarToEdit> m = new HashMap<>();
                 for (Data d : dv.getList("_options")) {
                     UseCalendarToEdit x = (UseCalendarToEdit) genericClass.newInstance();
-                    fillEntity(em, user, x, d, false);
+                    fillEntity(em, persistPending, user, x, d, false);
                     l.add(x);
                     m.put(d.get("__id"), x);
                 }
@@ -621,6 +629,10 @@ public class ERPServiceImpl implements ERPService {
                         break;
                     }
                 List aux = (List) o.getClass().getMethod(getGetter(f)).invoke(o);
+                if (aux == null) {
+                    o.getClass().getMethod(getSetter(f), List.class).invoke(o, new ArrayList<>());
+                    aux = (List) o.getClass().getMethod(getGetter(f)).invoke(o);
+                }
                 List borrar = new ArrayList();
                 for (Object x : aux) {
                     boolean found = false;
@@ -636,7 +648,7 @@ public class ERPServiceImpl implements ERPService {
                 for (Object x : borrar) em.remove(x);
                 for (Data d : (List<Data>) v) {
                     if (d.isEmpty("_id")) {
-                        Object x = fillEntity(em, user, genericClass, d);
+                        Object x = fillEntity(em, persistPending, user, genericClass, genericClass, d);
                         if (f.isAnnotationPresent(OneToMany.class)) {
                             String mappedby = f.getAnnotation(OneToMany.class).mappedBy();
                             if (!Strings.isNullOrEmpty(mappedby)) { // seteamos la relación inversa
@@ -651,7 +663,7 @@ public class ERPServiceImpl implements ERPService {
                         }
                         aux.add(x);
                     } else {
-                        fillEntity(em, user, em.find(genericClass, d.get("_id")), d, false);
+                        fillEntity(em, persistPending, user, em.find(genericClass, d.get("_id")), d, false);
                     }
                 }
             } else if (genericClass.isAnnotationPresent(Entity.class)) {
@@ -713,7 +725,7 @@ public class ERPServiceImpl implements ERPService {
                         List<Data> ll = (List<Data>) v;
                         for (Data d : ll) {
                             Object z = genericClass.newInstance();
-                            fillEntity(em, user, z, d, true);
+                            fillEntity(em, persistPending, user, z, d, true);
                             l.add(z);
                         }
 
@@ -789,10 +801,10 @@ public class ERPServiceImpl implements ERPService {
                                 if (!rl.contains(o)) rl.add(o);
                             }
                         }
-                        if (x.getClass().isAnnotationPresent(Entity.class)) em.persist(x);
+                        if (x.getClass().isAnnotationPresent(Entity.class)) persistPending.add(x);
                         xv = x;
                     } else {
-                        fillEntity(em, user, xv = em.find(genericClass, d.get("_id")), d, false);
+                        fillEntity(em, persistPending, user, xv = em.find(genericClass, d.get("_id")), d, false);
                     }
                     aux.put(xk, xv);
                 }
@@ -848,7 +860,7 @@ public class ERPServiceImpl implements ERPService {
         //m.invoke(o, data.get(n));
         if (v != null && v instanceof Data && !Data.class.equals(f.getType())) {
             Object z = f.getType().newInstance();
-            fillEntity(em, user, z, (Data) v, false);
+            fillEntity(em, persistPending, user, z, (Data) v, false);
             v = z;
         }
 
@@ -2287,11 +2299,13 @@ public class ERPServiceImpl implements ERPService {
                 @Override
                 public void run(EntityManager em) throws Throwable {
                     try {
+                        List<Object> persistPending = new ArrayList<>();
+
                         Object o = instance;
                         if (o == null) {
                             if (!Strings.isNullOrEmpty(rpcViewClassName)) {
                                 o = Class.forName(rpcViewClassName).newInstance();
-                                fillEntity(em, user, o, rpcViewData, true);
+                                fillEntity(em, persistPending, user, o, rpcViewData, true);
                             } else {
                                 o = (parameters.isEmpty("_id"))?finalEntityClass.newInstance():em.find(finalEntityClass, parameters.get("_id"));
                             }
@@ -2321,12 +2335,14 @@ public class ERPServiceImpl implements ERPService {
                             } else if (UserData.class.equals(p.getType())) {
                                 vs.add(user);
                             } else {
-                                Object v = extractValue(em, user, o, parameters, getInterfaced(p));
+                                Object v = extractValue(em, persistPending, user, o, parameters, getInterfaced(p));
                                 vs.add(v);
                                 //vs.add(parameters.get(p.getName()));
                             }
                         }
                         Object[] args = vs.toArray();
+
+                        for (Object x : persistPending) em.persist(x);
 
                         Object i = o;
                         if (Strings.isNullOrEmpty(rpcViewClassName) && finalCalledFromView && finalViewClass != null) i = finalViewClass.newInstance();
@@ -2347,6 +2363,8 @@ public class ERPServiceImpl implements ERPService {
                 Helper.transact(new JPATransaction() {
                     @Override
                     public void run(EntityManager em) throws Throwable {
+
+                        List<Object> persistPending = new ArrayList<>();
 
                         List<Object> vs = new ArrayList<>();
                         for (Parameter p : finalM1.getParameters()) {
@@ -2370,12 +2388,14 @@ public class ERPServiceImpl implements ERPService {
                             } else if (UserData.class.equals(p.getType())) {
                                 vs.add(user);
                             } else {
-                                Object v = extractValue(em, user, null, parameters, getInterfaced(p));
+                                Object v = extractValue(em, persistPending, user, null, parameters, getInterfaced(p));
                                 vs.add(v);
                                 //vs.add(parameters.get(p.getName()));
                             }
                         }
                         Object[] args = vs.toArray();
+
+                        for (Object x : persistPending) em.persist(x);
 
                         r[0] = finalM1.invoke(null, args);
 
@@ -2515,9 +2535,13 @@ public class ERPServiceImpl implements ERPService {
         if (o instanceof BaseServerSideWizard) {
             BaseServerSideWizard w = (BaseServerSideWizard) o;
 
+            List<Object> persistPending = new ArrayList<>();
+
             for (Object p : w.getPages()) {
-                fillEntity(em, user, p, data, false);
+                fillEntity(em, persistPending, user, p, data, false);
             }
+
+            for (Object x : persistPending) em.persist(x);
 
             return (T) w;
         } else throw new Exception("" + type.getName() + " must extend " + BaseServerSideWizard.class.getName());

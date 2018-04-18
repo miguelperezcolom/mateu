@@ -15,6 +15,7 @@ import io.mateu.mdd.model.tests.basic.Basico;
 import io.mateu.mdd.model.tests.herencia.Abstracta;
 import io.mateu.mdd.model.tests.multiidioma.Traducido;
 import io.mateu.mdd.model.tests.onetomany.Uno;
+import io.mateu.mdd.model.tests.onetomanyowned.UnoOwned;
 import io.mateu.mdd.model.tests.onetoone.UnoAUnoMapped;
 import io.mateu.mdd.model.tests.onetoone.UnoAUnoMapper;
 import io.mateu.mdd.model.tests.owned.Propietario;
@@ -62,6 +63,8 @@ public class Module extends AbstractModule {
         m.add(new MDDAction("UseIdToSelect", Referenciador.class));
 
         m.add(new MDDAction("OneToMany", Uno.class));
+
+        m.add(new MDDAction("OneToManyOwned", UnoOwned.class));
 
         m.add(new MDDAction("Owned", Propietario.class));
 

@@ -4,6 +4,8 @@ import io.mateu.ui.core.shared.Data;
 import io.mateu.ui.core.shared.UserData;
 
 import javax.persistence.EntityManager;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class AbstractServerSideWizardPage {
 
@@ -18,6 +20,8 @@ public abstract class AbstractServerSideWizardPage {
     }
 
     public void fill(EntityManager em, UserData user, Data data) throws Throwable {
-        ERPServiceImpl.fillEntity(em, user,this, data, false);
+        List<Object> persistPending = new ArrayList<>();
+        ERPServiceImpl.fillEntity(em, persistPending, user,this, data, false);
+        for (Object x : persistPending) em.persist(x);
     }
 }

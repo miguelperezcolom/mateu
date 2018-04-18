@@ -38,6 +38,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.sql.DataSource;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
 import java.net.URL;
@@ -197,7 +199,15 @@ public class Helper {
 
             em.getTransaction().commit();
 
-
+        } catch (ConstraintViolationException e) {
+            e.printStackTrace();
+            StringBuffer sb = new StringBuffer();
+            for (ConstraintViolation v : e.getConstraintViolations()) {
+                sb.append(v.toString());
+            }
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            em.close();
+            throw new Exception(sb.toString());
         } catch (Exception e) {
             e.printStackTrace();
             if (em.getTransaction().isActive()) em.getTransaction().rollback();
