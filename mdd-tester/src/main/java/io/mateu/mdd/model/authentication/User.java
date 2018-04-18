@@ -8,7 +8,6 @@ import io.mateu.mdd.model.finnancials.Actor;
 import io.mateu.mdd.model.finnancials.Currency;
 import io.mateu.mdd.model.tests.owned.Propiedad;
 import io.mateu.ui.mdd.server.annotations.*;
-import io.mateu.ui.mdd.server.interfaces.WithTriggers;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,7 +29,7 @@ import java.util.Map;
 @Entity
 @Table(name = "_USER")
 @Getter@Setter
-public class User implements WithTriggers {
+public class User {
 
     @Embedded
     @Output
@@ -176,24 +175,10 @@ private Map<Employee, Integer> seniorities;
         return "" + a + b;
     }
 
-    @Override
-    public void beforeSet(EntityManager em, boolean isNew) throws Exception {
 
-    }
-
-    @Override
-    public void afterSet(EntityManager em, boolean isNew) throws Exception {
+    @PrePersist
+    public void afterSet() throws Exception {
         setPassword("1");
-    }
-
-    @Override
-    public void beforeDelete(EntityManager em) throws Exception {
-
-    }
-
-    @Override
-    public void afterDelete(EntityManager em) throws Exception {
-
     }
 
     public String createToken(EntityManager em) {

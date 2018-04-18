@@ -157,7 +157,6 @@ public class ERPServiceImpl implements ERPService {
             public void run(EntityManager em) throws Throwable {
                 if (jpaql.startsWith("delete")) {
                     for (Object o : em.createQuery(jpaql.replaceFirst("delete", "select x")).getResultList()) {
-                        if (o instanceof WithTriggers) ((WithTriggers)o).beforeDelete(em);
 
                         for (FieldInterfaced f : getAllFields(o.getClass())) {
                             if (f.getType().isAnnotationPresent(Entity.class)) {
@@ -203,7 +202,6 @@ public class ERPServiceImpl implements ERPService {
 
 
                         em.remove(o);
-                        if (o instanceof WithTriggers) ((WithTriggers)o).afterDelete(em);
                     }
                 } else {
                     r[0] = em.createQuery(jpaql).executeUpdate();
@@ -290,10 +288,6 @@ public class ERPServiceImpl implements ERPService {
         Object o = fillEntity(em, persistPending, user, cl, cl, data);
         for (Object x : persistPending) em.persist(x);
 
-        if (o instanceof WithTriggers) {
-            ((WithTriggers)o).afterSet(em, persistPending.contains(o));
-        }
-
         return o;
     }
 
@@ -337,11 +331,6 @@ public class ERPServiceImpl implements ERPService {
             data.set("_id", id);
         } else {
             o = cl.newInstance();
-        }
-
-
-        if (o instanceof WithTriggers) {
-            ((WithTriggers)o).beforeSet(em, newInstance);
         }
 
         fillEntity(em, persistPending, user, o, data, newInstance, vcl, (o instanceof CalendarLimiter)? (CalendarLimiter) o :null);
