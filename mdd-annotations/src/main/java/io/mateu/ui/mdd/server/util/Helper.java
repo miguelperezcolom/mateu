@@ -184,6 +184,11 @@ public class Helper {
 
     }
 
+    public static EntityManager getEMFromThreadLocal() {
+        ThreadLocal<EntityManager> tlem = new ThreadLocal<>();
+        return tlem.get();
+    }
+
 
 
     public static void transact(JPATransaction t) throws Throwable {
@@ -193,6 +198,9 @@ public class Helper {
         try {
 
             em.getTransaction().begin();
+
+            ThreadLocal<EntityManager> tlem = new ThreadLocal<>();
+            tlem.set(em);
 
             t.run(em);
 
