@@ -1,9 +1,6 @@
 package io.mateu.ui.mdd.server.util;
 
 import io.mateu.ui.core.shared.Data;
-import io.mateu.ui.mdd.server.interfaces.WithTriggers;
-import io.mateu.ui.mdd.server.util.Helper;
-import io.mateu.ui.mdd.server.util.JPATransaction;
 
 import javax.persistence.*;
 import java.lang.reflect.Field;
@@ -129,7 +126,6 @@ public class JPAHelper {
             public void run(EntityManager em) throws Throwable {
                 if (jpaql.startsWith("delete")) {
                     for (Object o : em.createQuery(jpaql.replaceFirst("delete", "select x")).getResultList()) {
-                        if (o instanceof WithTriggers) ((WithTriggers)o).beforeDelete(em);
 
                         for (Field f : getAllFields(o.getClass())) {
                             if (f.getType().isAnnotationPresent(Entity.class)) {
@@ -165,7 +161,6 @@ public class JPAHelper {
 
 
                         em.remove(o);
-                        if (o instanceof WithTriggers) ((WithTriggers)o).afterDelete(em);
                     }
                 } else {
                     r[0] = em.createQuery(jpaql).executeUpdate();
