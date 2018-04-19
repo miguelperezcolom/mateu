@@ -1,6 +1,8 @@
 package io.mateu.ui.mdd.server.util;
 
 
+import com.Ostermiller.util.CSVParser;
+import com.Ostermiller.util.CSVPrinter;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -73,7 +75,7 @@ public class Helper {
 
 
     private static DataSource dataSource;
-    private static EntityManagerFactory emf;
+    private static Map<String, EntityManagerFactory> emf = new HashMap<>();
 
     private static ThreadLocal<EntityManager> tlem = new ThreadLocal<>();
 
@@ -115,58 +117,16 @@ public class Helper {
         return mapper.readValue(json, Map.class);
     }
 
+    public static <T> T fromJson(String json, Class<T> c) throws IOException {
+        if (json == null || "".equals(json)) json = "{}";
+        return mapper.readValue(json, c);
+    }
+
     public static String toJson(Object o) throws IOException {
         return mapper.writeValueAsString(o);
     }
 
 
-
-
-
-
-    public static void loadProperties() {
-        if (!propertiesLoaded) {
-            System.out.println("Loading properties...");
-            propertiesLoaded = true;
-            InputStream s = null;
-            try {
-                if (System.getProperty("appconf") != null) {
-                    System.out.println("Loading properties from file " + System.getProperty("appconf"));
-                    s = new FileInputStream(System.getProperty("appconf"));
-                } else {
-                    s = Helper.class.getResourceAsStream("/appconf.properties");
-                    System.out.println("Loading properties classpath /appconf.properties");
-                }
-
-                if (s != null) {
-
-                    Properties p = new Properties();
-                    p.load(s);
-
-                    for (Map.Entry<Object, Object> e : p.entrySet()) {
-                        System.out.println("" + e.getKey() + "=" + e.getValue());
-                        if (System.getProperty("" + e.getKey()) == null) {
-                            System.setProperty("" + e.getKey(), "" + e.getValue());
-                            System.out.println("property fixed");
-                        } else {
-                            System.out.println("property " + e.getKey() + " is already set with value " + System.getProperty("" + e.getKey()));
-                        }
-                    }
-
-                } else {
-                    System.out.println("No appconf. Either set -Dappconf=xxxxxx.properties or place an appconf.properties file in your classpath.");
-                }
-
-            } catch (FileNotFoundException e1) {
-                e1.printStackTrace();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
-
-        } else {
-            System.out.println("Properties already loaded");
-        }
-    }
 
 
 
@@ -193,6 +153,10 @@ public class Helper {
 
 
     public static void transact(JPATransaction t) throws Throwable {
+        transact(System.getProperty("defaultpuname", "default"), t);
+    }
+
+    public static void transact(String persistenceUnit, JPATransaction t) throws Throwable {
 
         EntityManager em = getEMF().createEntityManager();
 
@@ -230,10 +194,15 @@ public class Helper {
     }
 
     private static EntityManagerFactory getEMF() {
-        if (emf == null) {
-            emf = Persistence.createEntityManagerFactory(System.getProperty("defaultpuname", "default"));
+        return getEMF(System.getProperty("defaultpuname", "default"));
+    }
+
+    private static EntityManagerFactory getEMF(String persistenceUnit) {
+        EntityManagerFactory v;
+        if ((v = emf.get(persistenceUnit)) == null) {
+            emf.put(persistenceUnit, v = Persistence.createEntityManagerFactory(persistenceUnit));
         }
-        return emf;
+        return v;
     }
 
     public static void notransact(SQLTransaction t) throws Throwable {
@@ -689,6 +658,247 @@ public class Helper {
         int v = 0;
         try {
             v = Integer.parseInt(s);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return v;
+    }
+
+
+    public static void loadProperties() {
+        if (!propertiesLoaded) {
+            System.out.println("Loading properties...");
+            propertiesLoaded = true;
+            InputStream s = null;
+            try {
+                if (System.getProperty("appconf") != null) {
+                    System.out.println("Loading properties from file " + System.getProperty("appconf"));
+                    s = new FileInputStream(System.getProperty("appconf"));
+                } else {
+                    s = Helper.class.getResourceAsStream("/appconf.properties");
+                    System.out.println("Loading properties classpath /appconf.properties");
+                }
+
+                if (s != null) {
+
+                    Properties p = new Properties();
+                    p.load(s);
+
+                    for (Map.Entry<Object, Object> e : p.entrySet()) {
+                        System.out.println("" + e.getKey() + "=" + e.getValue());
+                        if (System.getProperty("" + e.getKey()) == null) {
+                            System.setProperty("" + e.getKey(), "" + e.getValue());
+                            System.out.println("property fixed");
+                        } else {
+                            System.out.println("property " + e.getKey() + " is already set with value " + System.getProperty("" + e.getKey()));
+                        }
+                    }
+
+                } else {
+                    System.out.println("No appconf. Either set -Dappconf=xxxxxx.properties or place an appconf.properties file in your classpath.");
+                }
+
+            } catch (FileNotFoundException e1) {
+                e1.printStackTrace();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+
+        } else {
+            System.out.println("Properties already loaded");
+        }
+    }
+
+
+
+    public static String leerFichero(Class c, String p) {
+
+        String s = "";
+
+        InputStream input = c.getResourceAsStream(p);
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+        byte[] buffer = new byte[1024];
+        long count = 0;
+        int n = 0;
+        try {
+            while (-1 != (n = input.read(buffer))) {
+                output.write(buffer, 0, n);
+                count += n;
+            }
+            s = new String(output.toByteArray());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return s;
+    }
+
+    public static String leerInputStream(InputStream is, String encoding) {
+        StringBuffer s = new StringBuffer();
+        try {
+            BufferedReader br = new BufferedReader(new InputStreamReader(is, encoding));
+            String l = null;
+            boolean primeraLinea = true;
+            while ((l = br.readLine()) != null) {
+                if (primeraLinea) {
+                    primeraLinea = false;
+                } else {
+                    s.append("\n");
+                }
+                s.append(l);
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return s.toString();
+    }
+
+    public static String leerFichero(InputStream input, String codificacion) {
+
+        String s = "";
+
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+        byte[] buffer = new byte[1024];
+        long count = 0;
+        int n = 0;
+        try {
+            while (-1 != (n = input.read(buffer))) {
+                output.write(buffer, 0, n);
+                count += n;
+            }
+            s = new String(output.toByteArray(), codificacion);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return s;
+    }
+
+
+    public static String leerFichero(InputStream is) throws IOException {
+
+        int count;
+        byte data[] = new byte[BUFFER];
+        ByteArrayOutputStream dest = new ByteArrayOutputStream();
+        while ((count = is.read(data, 0, BUFFER))
+                != -1) {
+            dest.write(data, 0, count);
+        }
+        dest.flush();
+        dest.close();
+
+        return new String(dest.toByteArray());
+    }
+
+    public static String leerFichero(String fn, String encoding) {
+        String s = "";
+        byte[] buffer = new byte[(int) new File(fn).length()];
+        BufferedInputStream f;
+        try {
+            f = new BufferedInputStream(new FileInputStream(fn));
+            f.read(buffer);
+            s = new String(buffer, encoding);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return s;
+    }
+
+    public static String leerFichero(String fn) {
+        String s = "";
+        byte[] buffer = new byte[(int) new File(fn).length()];
+        BufferedInputStream f;
+        try {
+            f = new BufferedInputStream(new FileInputStream(fn));
+            f.read(buffer);
+            s = new String(buffer);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return s;
+    }
+
+
+    private static final int BUFFER = 2048;
+    public static byte[] leerByteArray(InputStream is) {
+        int count;
+        byte data[] = new byte[BUFFER];
+        // write the files to the disk
+        ByteArrayOutputStream dest = new ByteArrayOutputStream();
+        try {
+            while ((count = is.read(data, 0, BUFFER))
+                    != -1) {
+                dest.write(data, 0, count);
+            }
+            dest.flush();
+            dest.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return dest.toByteArray();
+    }
+
+    public static String[][] parsearCSV(String txt, char delimitador) {
+        return CSVParser.parse(txt,delimitador);
+    }
+
+    public static String[][] parsearCSV(String txt) {
+        return parsearCSV(txt, ',');
+    }
+
+    public static String[][] leerCSV(String path, char delimitador) {
+        return CSVParser.parse(leerFichero(path),delimitador);
+    }
+
+    public static String[][] leerCSV(String path) {
+        return leerCSV(path, ',');
+    }
+
+    public static void escribirCSV(List<String[]> data, OutputStream os) throws IOException {
+        CSVPrinter p = new CSVPrinter(os);
+        for (String[] l : data) p.writeln(l);
+        p.close();
+    }
+
+    public static void escribirCSV(List<String[]> data, OutputStream os , char delimiter) throws IOException {
+        CSVPrinter p = new CSVPrinter(os);
+        p.changeDelimiter(delimiter);
+        for (String[] l : data) p.writeln(l);
+        p.close();
+    }
+
+    public static void escribirCSV(List<String[]> data, String fileName) throws IOException {
+        CSVPrinter p = new CSVPrinter(new FileOutputStream(fileName));
+        for (String[] l : data) p.writeln(l);
+        p.close();
+    }
+
+    public static void escribirCSV(List<String[]> data, String path , char delimiter ) throws IOException {
+        CSVPrinter p = new CSVPrinter(new FileOutputStream(path));
+        p.changeDelimiter(delimiter);
+        for (String[] l : data) p.writeln(l);
+        p.close();
+    }
+
+    public static String[][] leerCSV(Class c, String path, char delimitador) {
+        return CSVParser.parse(leerFichero(c, path), delimitador);
+    }
+
+    public static String[][] leerCSV(Class c, String path) {
+        return leerCSV(c, path, ',');
+    }
+
+
+    public static double toDouble(String s) {
+        double v = 0;
+        try {
+            v = Double.parseDouble(s);
         } catch (Exception e) {
             e.printStackTrace();
         }
