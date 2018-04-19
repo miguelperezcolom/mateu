@@ -5,23 +5,31 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class WorkflowEngine {
 
     private static ConcurrentLinkedQueue queue;
+    private static ThreadLocal<Boolean> uselocalRunners = new ThreadLocal<>();
 
     static {
         start();
     }
 
+    public static void activateLocalRunner() {
+        uselocalRunners.set(true);
+    }
+
     public static void add(Runnable task) {
         System.out.println("añadiendo tarea " + task.getClass().getName());
-        ThreadLocal<WorkflowLocalRunner> localRunner = new ThreadLocal<>();
-        if (localRunner.get() != null) {
+
+        if (uselocalRunners.get() != null && uselocalRunners.get()) {
             System.out.println("va al runner del thread");
-            localRunner.get().add(task);
+            try {
+                task.run();
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
         } else {
             System.out.println("va al workflow global");
             queue.add(task);
         }
     }
-
 
     private static synchronized void start() {
 

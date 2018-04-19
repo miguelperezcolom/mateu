@@ -75,6 +75,8 @@ public class Helper {
     private static DataSource dataSource;
     private static EntityManagerFactory emf;
 
+    private static ThreadLocal<EntityManager> tlem = new ThreadLocal<>();
+
     private static ObjectMapper mapper = new ObjectMapper();
 
     static {
@@ -185,7 +187,6 @@ public class Helper {
     }
 
     public static EntityManager getEMFromThreadLocal() {
-        ThreadLocal<EntityManager> tlem = new ThreadLocal<>();
         return tlem.get();
     }
 
@@ -199,7 +200,6 @@ public class Helper {
 
             em.getTransaction().begin();
 
-            ThreadLocal<EntityManager> tlem = new ThreadLocal<>();
             tlem.set(em);
 
             t.run(em);

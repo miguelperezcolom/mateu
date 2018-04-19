@@ -17,7 +17,7 @@ import io.mateu.ui.mdd.server.interfaces.*;
 import io.mateu.ui.mdd.server.interfaces.SupplementOrPositive;
 import io.mateu.ui.mdd.server.util.Helper;
 import io.mateu.ui.mdd.server.util.JPATransaction;
-import io.mateu.ui.mdd.server.workflow.WorkflowLocalRunner;
+import io.mateu.ui.mdd.server.workflow.WorkflowEngine;
 import io.mateu.ui.mdd.shared.ERPService;
 import io.mateu.ui.mdd.shared.MetaData;
 import org.apache.commons.beanutils.BeanUtils;
@@ -215,8 +215,7 @@ public class ERPServiceImpl implements ERPService {
     @Override
     public Data set(UserData user, String entityClassName, String viewClassName, Data data) throws Throwable {
 
-        ThreadLocal<WorkflowLocalRunner> localRunner = new ThreadLocal<>();
-        localRunner.set(new WorkflowLocalRunner());
+        WorkflowEngine.activateLocalRunner();
 
         try {
 
@@ -241,7 +240,6 @@ public class ERPServiceImpl implements ERPService {
                 }
             });
 
-            localRunner.get().waitForEmpty();
 
             FieldInterfaced idField = null;
             boolean generated = false;
@@ -264,7 +262,6 @@ public class ERPServiceImpl implements ERPService {
             else if (id instanceof String) return get(user, entityClassName, viewClassName, (String) id);
             else return null;
         } catch (Throwable throwable) {
-            localRunner.get().waitForEmpty();
 
             if (throwable instanceof ConstraintViolationException) {
                 ConstraintViolationException cve = (ConstraintViolationException) throwable;
