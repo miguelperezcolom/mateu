@@ -203,8 +203,10 @@ public class Helper {
             e.printStackTrace();
             StringBuffer sb = new StringBuffer();
             for (ConstraintViolation v : e.getConstraintViolations()) {
+                if (sb.length() > 0) sb.append("\n");
                 sb.append(v.toString());
             }
+            System.out.println(sb.toString());
             if (em.getTransaction().isActive()) em.getTransaction().rollback();
             em.close();
             throw new Exception(sb.toString());
