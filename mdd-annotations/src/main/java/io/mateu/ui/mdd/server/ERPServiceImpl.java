@@ -17,6 +17,7 @@ import io.mateu.ui.mdd.server.interfaces.*;
 import io.mateu.ui.mdd.server.interfaces.SupplementOrPositive;
 import io.mateu.ui.mdd.server.util.Helper;
 import io.mateu.ui.mdd.server.util.JPATransaction;
+import io.mateu.ui.mdd.server.workflow.WorkflowLocalRunner;
 import io.mateu.ui.mdd.shared.ERPService;
 import io.mateu.ui.mdd.shared.MetaData;
 import org.apache.commons.beanutils.BeanUtils;
@@ -214,7 +215,12 @@ public class ERPServiceImpl implements ERPService {
     @Override
     public Data set(UserData user, String entityClassName, String viewClassName, Data data) throws Throwable {
 
+        ThreadLocal<WorkflowLocalRunner> localRunner = new ThreadLocal<>();
+        localRunner.set(new WorkflowLocalRunner());
+
         try {
+
+
             Object[] o = new Object[1];
 
             System.out.println("data=" + data);
@@ -234,6 +240,8 @@ public class ERPServiceImpl implements ERPService {
 
                 }
             });
+
+            localRunner.get().waitForEmpty();
 
             FieldInterfaced idField = null;
             boolean generated = false;
@@ -256,13 +264,16 @@ public class ERPServiceImpl implements ERPService {
             else if (id instanceof String) return get(user, entityClassName, viewClassName, (String) id);
             else return null;
         } catch (Throwable throwable) {
+            localRunner.get().waitForEmpty();
+
             if (throwable instanceof ConstraintViolationException) {
                 ConstraintViolationException cve = (ConstraintViolationException) throwable;
                 StringBuffer sb = new StringBuffer();
                 for (ConstraintViolation cv : cve.getConstraintViolations()) {
-                    if (sb.length() > 0) sb.append(", ");
+                    if (sb.length() > 0) sb.append("\n");
                     sb.append(cv.toString());
                 }
+                System.out.println(sb.toString());
                 throw new Exception(sb.toString());
             } else throw throwable;
         }
