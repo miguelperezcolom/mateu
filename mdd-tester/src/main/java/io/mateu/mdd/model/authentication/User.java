@@ -2,12 +2,12 @@ package io.mateu.mdd.model.authentication;
 
 import com.google.common.io.BaseEncoding;
 import io.mateu.erp.model.product.hotel.RoomType;
-import io.mateu.erp.model.util.Helper;
 import io.mateu.mdd.model.common.File;
 import io.mateu.mdd.model.finnancials.Actor;
 import io.mateu.mdd.model.finnancials.Currency;
 import io.mateu.mdd.model.tests.owned.Propiedad;
 import io.mateu.ui.mdd.server.annotations.*;
+import io.mateu.ui.mdd.server.util.Helper;
 import lombok.Getter;
 import lombok.Setter;
 
