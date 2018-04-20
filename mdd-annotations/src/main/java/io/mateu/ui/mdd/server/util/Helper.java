@@ -183,10 +183,25 @@ public class Helper {
             em.close();
             throw new Exception(sb.toString());
         } catch (Exception e) {
-            e.printStackTrace();
-            if (em.getTransaction().isActive()) em.getTransaction().rollback();
-            em.close();
-            throw e;
+
+            if (e.getCause() != null && e.getCause() instanceof ConstraintViolationException) {
+                ConstraintViolationException cve = (ConstraintViolationException) e.getCause();
+                StringBuffer sb = new StringBuffer();
+                for (ConstraintViolation v : cve.getConstraintViolations()) {
+                    if (sb.length() > 0) sb.append("\n");
+                    sb.append(v.toString());
+                }
+                System.out.println(sb.toString());
+                if (em.getTransaction().isActive()) em.getTransaction().rollback();
+                em.close();
+                throw new Exception(sb.toString());
+            } else {
+                e.printStackTrace();
+                if (em.getTransaction().isActive()) em.getTransaction().rollback();
+                em.close();
+                throw e;
+            }
+
         }
 
         em.close();
