@@ -206,6 +206,8 @@ public class Helper {
 
         em.close();
 
+        System.out.println("em cerrado");
+
     }
 
     private static EntityManagerFactory getEMF() {
