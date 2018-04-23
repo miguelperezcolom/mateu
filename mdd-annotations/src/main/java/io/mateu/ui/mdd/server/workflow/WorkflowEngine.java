@@ -18,7 +18,7 @@ public class WorkflowEngine {
     public static void add(Runnable task) {
         System.out.println("añadiendo tarea " + task.getClass().getName());
 
-        if (uselocalRunners.get() != null && uselocalRunners.get()) {
+        if (false && uselocalRunners.get() != null && uselocalRunners.get()) {
             System.out.println("va al runner del thread");
             try {
                 task.run();
