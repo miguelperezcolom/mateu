@@ -36,7 +36,7 @@ public class WorkflowEngine {
         while (localQueues.get().size() > 0) {
             Runnable task = (Runnable) localQueues.get().poll();
             try {
-                task.run();
+                queue.add(task);
             } catch (Throwable e) {
                 e.printStackTrace();
             }
