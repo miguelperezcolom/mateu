@@ -1,11 +1,14 @@
 package io.mateu.ui.mdd.server.workflow;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
 
 public class WorkflowEngine {
 
     private static ConcurrentLinkedQueue queue;
     private static ThreadLocal<Boolean> uselocalRunners = new ThreadLocal<>();
+    private static ThreadLocal<ConcurrentLinkedQueue> localQueues = new ThreadLocal<>();
 
     static {
         start();
@@ -13,21 +16,36 @@ public class WorkflowEngine {
 
     public static void activateLocalRunner() {
         uselocalRunners.set(true);
+        localQueues.set(new ConcurrentLinkedQueue());
     }
 
     public static void add(Runnable task) {
         System.out.println("añadiendo tarea " + task.getClass().getName());
 
-        if (false && uselocalRunners.get() != null && uselocalRunners.get()) {
+        if (uselocalRunners.get() != null && uselocalRunners.get()) {
             System.out.println("va al runner del thread");
+            localQueues.get().add(task);
+        } else {
+            System.out.println("va al workflow global");
+            queue.add(task);
+        }
+    }
+
+    public static void runAndWaitThreadLocalTasks() {
+        CountDownLatch latch = new CountDownLatch(localQueues.get().size());
+        while (localQueues.get().size() > 0) {
+            Runnable task = (Runnable) localQueues.get().poll();
             try {
                 task.run();
             } catch (Throwable e) {
                 e.printStackTrace();
             }
-        } else {
-            System.out.println("va al workflow global");
-            queue.add(task);
+            latch.countDown();
+        }
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 

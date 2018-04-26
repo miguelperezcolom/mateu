@@ -17,6 +17,7 @@ import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 import io.mateu.ui.core.server.SQLTransaction;
 import io.mateu.ui.core.server.Utils;
+import io.mateu.ui.mdd.server.workflow.WorkflowEngine;
 import org.apache.commons.mail.DefaultAuthenticator;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
@@ -166,10 +167,13 @@ public class Helper {
 
             tlem.set(em);
 
+            WorkflowEngine.activateLocalRunner();
+
             t.run(em);
 
-
             em.getTransaction().commit();
+
+            WorkflowEngine.runAndWaitThreadLocalTasks();
 
         } catch (ConstraintViolationException e) {
             e.printStackTrace();
