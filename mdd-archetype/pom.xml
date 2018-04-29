@@ -4,9 +4,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.mateu.ui</groupId>
-    <artifactId>mdd-archetype</artifactId>
-    <version>0.1.0</version>
+    <groupId>io.mateu.ui.mdd.archetypes</groupId>
+    <artifactId>mdd-base</artifactId>
+    <version>0.1.1</version>
 
 
     <name>Archetype for building mateu mdd apps.</name>
@@ -32,9 +32,9 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:git@github.com:miguelperezcolom/easytravelapi.git</connection>
-        <developerConnection>scm:git:git@github.com:miguelperezcolom/easytravelapi.git</developerConnection>
-        <url>https://github.com/miguelperezcolom/easytravelapi</url>
+        <connection>scm:git:git@github.com:miguelperezcolom/mateu-mdd.git</connection>
+        <developerConnection>scm:git:git@github.com:miguelperezcolom/mateu-mdd.git</developerConnection>
+        <url>https://github.com/miguelperezcolom/mateu-mdd</url>
     </scm>
 
     <build>
