@@ -4,6 +4,8 @@ mateu-mdd is a framework to create awesome applications from our java classes (l
 
 So, you define your data model using JPA annotated java classes and it generates an application (desktop, web or mobile) to maintain your data.
 
+Beside providing CRUDs for our entities mateu-mdd allows us to publish methods from our server side classes.
+
 Besides looking at JPA annotation, it provides its own annotations for a fine grained control of the user interface. 
 
 I hope you like it ;)
