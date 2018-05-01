@@ -19,7 +19,7 @@ public interface MDDResource {
     @Path("/menu")
     public Map<String, Object> getMenu() throws Throwable;
 
-    @GET
+    @POST
     @Path("/authenticate")
     public UserData authenticate(Data parameters);
 

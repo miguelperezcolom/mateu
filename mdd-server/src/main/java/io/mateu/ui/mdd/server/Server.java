@@ -15,6 +15,7 @@ public class Server {
         ResourceConfig config = new ResourceConfig(
                 MDDResourceImpl.class
         );
+        config.register(new CORSFilter());
         HttpServer server = GrizzlyHttpServerFactory.createHttpServer(baseUri, config);
 
         System.out.println("Servidor arrancado ;)");
