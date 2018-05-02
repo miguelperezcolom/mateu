@@ -684,7 +684,7 @@ public class ERPServiceImpl implements ERPService {
             }
         } else if (List.class.isAssignableFrom(f.getType())) {
 
-            if (f.isAnnotationPresent(OwnedList.class)) {
+            if (f.isAnnotationPresent(OwnedList.class) || f.isAnnotationPresent(Owned.class)) {
                 String idfieldatx = "id";
                 for (FieldInterfaced fx : getAllFields(genericClass))
                     if (fx.isAnnotationPresent(Id.class)) {
@@ -807,7 +807,7 @@ public class ERPServiceImpl implements ERPService {
                 genericClass = (genericType != null && genericType.getActualTypeArguments().length > 1)?(Class<?>) genericType.getActualTypeArguments()[1]:null;
             }
 
-            if (f.isAnnotationPresent(OwnedList.class)) {
+            if (f.isAnnotationPresent(OwnedList.class) || f.isAnnotationPresent(Owned.class)) {
 
                 String idfieldatx = "id";
                 for (FieldInterfaced fx : getAllFields(genericClass))
