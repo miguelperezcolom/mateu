@@ -4,6 +4,7 @@ import io.mateu.ui.mdd.server.util.Helper;
 import io.mateu.ui.mdd.server.util.JPATransaction;
 import lombok.Getter;
 import lombok.Setter;
+import org.eclipse.persistence.annotations.CacheIndex;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -18,6 +19,7 @@ public class D {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @CacheIndex
     private String name;
 
     @ManyToOne
@@ -37,6 +39,11 @@ public class D {
 
         setName("Esto es una D " + LocalDateTime.now());
 
+    }
+
+    @PostPersist
+    public void despues() {
+        System.out.println("después");
     }
 
     @PostUpdate

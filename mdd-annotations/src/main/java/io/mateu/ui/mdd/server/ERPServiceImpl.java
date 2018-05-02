@@ -451,7 +451,73 @@ public class ERPServiceImpl implements ERPService {
                         }
                         ((Translated) current).set((Data) v);
                     } else if (!f.isAnnotationPresent(OwnedList.class)) { // en este caso ya hemos añadido el valor dentro del método exractValue()
+
+                        Object old = f.getValue(o);
+
+                        if (old != null && !old.equals(v)) {
+
+                            if (f.isAnnotationPresent(ManyToOne.class)) {
+                                // buscamos la relación inversa
+                                for (FieldInterfaced ff : getAllFields(f.getType())) {
+                                    if (ff.isAnnotationPresent(OneToMany.class) && ff.getGenericClass().isAssignableFrom(o.getClass()) && f.getName().equals(ff.getAnnotation(OneToMany.class).mappedBy())) {
+                                        System.out.println("Eliminando la relación onetomany con el inverso de " + o.getClass().getName() + "." + f.getName() + " al cambiar el valor");
+                                        List l = (List) getMethod(ff.getType(), getGetter(ff.getField())).invoke(v);
+                                        if (l.contains(o)) l.remove(o);
+                                    }
+                                }
+                            }
+
+                            if (f.isAnnotationPresent(ManyToMany.class)) {
+                                // buscamos la relación inversa
+                                for (FieldInterfaced ff : getAllFields(f.getGenericClass())) {
+                                    if (!Strings.isNullOrEmpty(f.getAnnotation(ManyToMany.class).mappedBy()) && ff.getName().equals(f.getAnnotation(ManyToMany.class).mappedBy())) {
+                                        System.out.println("Eliminando la relación manytomany(a) con el inverso de " + o.getClass().getName() + "." + f.getName() + " que es " + f.getGenericClass().getName() + "." + f.getAnnotation(ManyToMany.class).mappedBy() + " al cambiar el valor");
+                                        List l = (List) getMethod(f.getType(), getGetter(f.getAnnotation(ManyToMany.class).mappedBy())).invoke(o);
+                                        if (l.contains(o)) l.remove(o);
+                                    } else if (ff.isAnnotationPresent(ManyToMany.class) && ff.getGenericClass().isAssignableFrom(o.getClass()) && f.getName().equals(ff.getAnnotation(ManyToMany.class).mappedBy())) {
+                                        System.out.println("Eliminando la relación manytomany(a) con el inverso de " + o.getClass().getName() + "." + f.getName() + " que es " + f.getGenericClass().getName() + "." + ff.getName() + " al cambiar el valor");
+                                        List l = (List) getMethod(ff.getGenericClass(), getGetter(ff.getField())).invoke(old);
+                                        if (l.contains(o)) l.remove(o);
+                                    }
+                                }
+                            }
+
+                        }
+
+
                         f.setValue(o, v);
+
+                        if (v != null) {
+
+                            if (f.isAnnotationPresent(ManyToOne.class)) {
+                                // buscamos la relación inversa
+                                for (FieldInterfaced ff : getAllFields(f.getType())) {
+                                    if (ff.isAnnotationPresent(OneToMany.class) && ff.getGenericClass().isAssignableFrom(o.getClass()) && f.getName().equals(ff.getAnnotation(OneToMany.class).mappedBy())) {
+                                        //System.out.println("miguel: " + ff.getGenericClass() + " == "  + o.getClass() +"? " + ff.getGenericClass().isAssignableFrom(o.getClass()) + "/" + o.getClass().isAssignableFrom(ff.getGenericClass()));
+                                        System.out.println("Seteando la relación onetomany con el inverso de " + o.getClass().getName() + "." + f.getName() + " que es " + f.getType() + "." + ff.getName());
+                                        List l = (List) getMethod(f.getType(), getGetter(ff.getField())).invoke(v);
+                                        if (!l.contains(o)) l.add(o);
+                                    }
+                                }
+                            }
+
+                            if (f.isAnnotationPresent(ManyToMany.class)) {
+                                // buscamos la relación inversa
+                                for (FieldInterfaced ff : getAllFields(f.getGenericClass())) {
+                                    if (!Strings.isNullOrEmpty(f.getAnnotation(ManyToMany.class).mappedBy()) && ff.getName().equals(f.getAnnotation(ManyToMany.class).mappedBy())) {
+                                        System.out.println("Seteando la relación manytomany(a) con el inverso de " + o.getClass().getName() + "." + f.getName() + " que es " + f.getGenericClass() + "." + f.getAnnotation(ManyToMany.class).mappedBy());
+                                        List l = (List) getMethod(f.getGenericClass(), getGetter(f.getAnnotation(ManyToMany.class).mappedBy())).invoke(v);
+                                        if (!l.contains(o)) l.add(o);
+                                    } else if (ff.isAnnotationPresent(ManyToMany.class) && ff.getGenericClass().isAssignableFrom(o.getClass()) && f.getName().equals(ff.getAnnotation(ManyToMany.class).mappedBy())) {
+                                        System.out.println("Seteando la relación manytomany(b) con el inverso de " + o.getClass().getName() + "." + f.getName() + " que es " + f.getGenericClass() + "." + ff.getName());
+                                        List l = (List) getMethod(f.getGenericClass(), getGetter(ff.getField())).invoke(v);
+                                        if (!l.contains(o)) l.add(o);
+                                    }
+                                }
+                            }
+
+                        }
+
                     }
                 }
             }
@@ -2125,6 +2191,15 @@ public class ERPServiceImpl implements ERPService {
         for (Method f : c.getDeclaredMethods()) l.add(f);
 
         return l;
+    }
+
+    private static Method getMethod(Class c, String methodName, Class<?>... parameterTypes) throws NoSuchMethodException {
+        Method m = c.getClass().getDeclaredMethod(methodName, parameterTypes);
+
+        if (m == null && c.getSuperclass() != null && (!c.isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class)))
+            m = getMethod(c.getSuperclass(), methodName, parameterTypes);
+
+        return m;
     }
 
     private static List<FieldInterfaced> getAllFields(Class c) {

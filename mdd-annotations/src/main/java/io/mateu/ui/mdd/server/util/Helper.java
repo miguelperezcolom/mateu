@@ -171,7 +171,11 @@ public class Helper {
 
             t.run(em);
 
+            System.out.println("commit");
+
             em.getTransaction().commit();
+
+            System.out.println("commited");
 
             WorkflowEngine.runAndWaitThreadLocalTasks();
 

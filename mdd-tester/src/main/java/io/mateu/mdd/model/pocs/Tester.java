@@ -4,6 +4,7 @@ import io.mateu.ui.mdd.server.util.Helper;
 import io.mateu.ui.mdd.server.util.JPATransaction;
 
 import javax.persistence.EntityManager;
+import javax.persistence.FlushModeType;
 import java.time.LocalDateTime;
 
 public class Tester {
@@ -14,17 +15,27 @@ public class Tester {
             @Override
             public void run(EntityManager em) throws Throwable {
 
+
 /*
                 A a = new A();
                 a.setName("Esto es una A " + LocalDateTime.now());
 
                 em.persist(a);
-*/
+
+
+
+                em.createQuery("select x from " + D.class.getName() + " x where x.name = :n").setParameter("n", "Hola").getSingleResult();
 
 
                 D d = em.find(D.class, 1l);
 
                 d.setName(d.getName() + ".");
+*/
+
+
+                D d = new D();
+                d.setName("Test");
+                em.persist(d);
 
             }
         });
