@@ -3,7 +3,7 @@ package io.mateu.ui.mdd.server;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import io.mateu.erp.model.product.hotel.DatesRange;
-import io.mateu.erp.model.util.XMLSerializable;
+import io.mateu.common.model.util.XMLSerializable;
 import io.mateu.ui.core.client.components.Component;
 import io.mateu.ui.core.client.components.Tabs;
 import io.mateu.ui.core.client.components.fields.*;
