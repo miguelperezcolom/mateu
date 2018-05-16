@@ -90,6 +90,8 @@ public class MDDViewProvider implements ViewProvider {
                         }
 
                         return view.getNewEditorView((jsonDatosIniciales != null)?new Data(jsonDatosIniciales):null).setInitialId(id);
+                    } else {
+                        view.setParametros(parametros);
                     }
 
                     if (view instanceof AbstractCRUDView) {
