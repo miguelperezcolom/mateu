@@ -68,7 +68,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
     public String getViewIdBase() {
         Data datosIniciales = initializeData();
 
-        return "mdd.." + entityClassName + ".." + ((!Strings.isNullOrEmpty(rpcViewClassName))?rpcViewClassName:viewClassName) + ".." + BaseEncoding.base64().encode(((queryFilters != null)?queryFilters:"").getBytes()) + ".." + BaseEncoding.base64().encode(((datosIniciales != null)?datosIniciales.toJson():"").getBytes());
+        return "mdd/" + entityClassName + ".." + ((!Strings.isNullOrEmpty(rpcViewClassName))?rpcViewClassName:viewClassName) + ".." + BaseEncoding.base64().encode(((queryFilters != null)?queryFilters:"").getBytes()) + ".." + BaseEncoding.base64().encode(((datosIniciales != null)?datosIniciales.toJson():"").getBytes());
     }
 
     @Override
@@ -159,7 +159,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
                     Data datosIniciales = initializeData();
 
-                    return "mdd.." + getEntityClassName() + ".." + getViewClassName() + ".." + BaseEncoding.base64().encode(((queryFilters != null)?queryFilters:"").getBytes(Charsets.UTF_8)) + ".." + BaseEncoding.base64().encode(((datosIniciales != null)?datosIniciales.toJson():"").getBytes(Charsets.UTF_8)) + ".." + "edit" + ((id != null)?"/" + id:"");
+                    return "mdd/" + getEntityClassName() + ".." + getViewClassName() + ".." + BaseEncoding.base64().encode(((queryFilters != null)?queryFilters:"").getBytes(Charsets.UTF_8)) + ".." + BaseEncoding.base64().encode(((datosIniciales != null)?datosIniciales.toJson():"").getBytes(Charsets.UTF_8)) + ".." + "edit" + ((id != null)?"/" + id:"");
                 }
 
                 @Override

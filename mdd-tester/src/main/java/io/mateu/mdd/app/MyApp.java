@@ -1,5 +1,6 @@
 package io.mateu.mdd.app;
 
+import io.mateu.common.BaseMDDApp;
 import io.mateu.ui.core.client.app.AbstractApplication;
 import io.mateu.ui.core.client.app.AbstractArea;
 import io.mateu.ui.core.client.app.AbstractModule;
@@ -7,7 +8,7 @@ import io.mateu.ui.core.client.app.AbstractModule;
 import java.util.Arrays;
 import java.util.List;
 
-public class MyApp extends AbstractApplication {
+public class MyApp extends BaseMDDApp {
     public String getName() {
         return "My Appp";
     }

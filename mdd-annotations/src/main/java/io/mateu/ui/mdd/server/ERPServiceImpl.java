@@ -44,6 +44,8 @@ public class ERPServiceImpl implements ERPService {
 
     private static Map<Class, List<Class>> cacheSubclases = new HashMap<>();
 
+    public static MemorizadorRegistroEditado memorizadorRegistrosEditados;
+
     static List<Class> basicos = new ArrayList<>();
 
     {
@@ -224,6 +226,8 @@ public class ERPServiceImpl implements ERPService {
 
             System.out.println("data=" + data);
 
+            boolean isNew = data.get("_id") != null;
+
             Helper.transact(new JPATransaction() {
                 @Override
                 public void run(EntityManager em) throws Throwable {
@@ -256,6 +260,22 @@ public class ERPServiceImpl implements ERPService {
             Method m = o[0].getClass().getMethod(getGetter(idField));
             Object id = m.invoke(o[0]);
 
+
+            String name = "Record of type " + o.getClass().getName() + " with id " + id;
+
+            try {
+                name = Helper.capitalize(
+                        (o.getClass().isAnnotationPresent(Entity.class) && !Strings.isNullOrEmpty(((Entity)o.getClass().getAnnotation(Entity.class)).name()))?
+                                ((Entity)o.getClass().getAnnotation(Entity.class)).name()
+                                :o.getClass().getSimpleName()) + " " + ((data.isEmpty("_tostring"))?id:data.get("_tostring")
+                );
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+
+
+            rememberEditedRecord(user, isNew, name, data.getString("_sourceuri"), id);
+
             //Object id = data.get("_id");
             if (id instanceof Long) return get(user, entityClassName, viewClassName, (long) id);
             else if (id instanceof Integer) return get(user, entityClassName, viewClassName, (int) id);
@@ -274,6 +294,12 @@ public class ERPServiceImpl implements ERPService {
                 throw new Exception(sb.toString());
             } else throw throwable;
         }
+    }
+
+    private void rememberEditedRecord(UserData user, boolean isNew, String name, String sourceurl, Object id) {
+
+        if (memorizadorRegistrosEditados != null) memorizadorRegistrosEditados.recordar(user, isNew, name, sourceurl, id);
+
     }
 
     @Override
