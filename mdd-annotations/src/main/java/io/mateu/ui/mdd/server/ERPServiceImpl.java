@@ -226,7 +226,7 @@ public class ERPServiceImpl implements ERPService {
 
             System.out.println("data=" + data);
 
-            boolean isNew = data.get("_id") != null;
+            boolean isNew = data.get("_id") == null;
 
             Helper.transact(new JPATransaction() {
                 @Override
@@ -265,9 +265,9 @@ public class ERPServiceImpl implements ERPService {
 
             try {
                 name = Helper.capitalize(
-                        (o.getClass().isAnnotationPresent(Entity.class) && !Strings.isNullOrEmpty(((Entity)o.getClass().getAnnotation(Entity.class)).name()))?
-                                ((Entity)o.getClass().getAnnotation(Entity.class)).name()
-                                :o.getClass().getSimpleName()) + " " + ((data.isEmpty("_tostring"))?id:data.get("_tostring")
+                        (o[0].getClass().isAnnotationPresent(Entity.class) && !Strings.isNullOrEmpty(((Entity)o[0].getClass().getAnnotation(Entity.class)).name()))?
+                                ((Entity)o[0].getClass().getAnnotation(Entity.class)).name()
+                                :o[0].getClass().getSimpleName()) + " " + ((data.isEmpty("_tostring"))?id:data.get("_tostring")
                 );
             } catch (Throwable e) {
                 e.printStackTrace();
