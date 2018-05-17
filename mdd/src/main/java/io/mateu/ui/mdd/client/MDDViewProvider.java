@@ -54,7 +54,7 @@ public class MDDViewProvider implements ViewProvider {
 
                 if ("mdd".equals(selector)) {
 
-                    if (data.get("area") != null && data.get("menu") != null) return new ForbiddenView();
+                    if (data.get("area") == null || data.get("menu") == null) return new ForbiddenView();
 
                     Object o = null;
 
