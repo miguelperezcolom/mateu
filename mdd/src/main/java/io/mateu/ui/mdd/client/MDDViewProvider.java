@@ -91,7 +91,10 @@ public class MDDViewProvider implements ViewProvider {
                             else if (s.startsWith("i")) id = Integer.parseInt(s.substring(1));
                         }
 
-                        return view.getNewEditorView((jsonDatosIniciales != null)?new Data(jsonDatosIniciales):null).setInitialId(id);
+                        AbstractEditorView ev = view.getNewEditorView((jsonDatosIniciales != null) ? new Data(jsonDatosIniciales) : null).setInitialId(id);
+                        ev.setGranted(data.get("area") != null && data.get("menu") != null);
+
+                        return ev;
                     } else {
                         view.setParametros(parametros);
                     }
