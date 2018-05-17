@@ -110,6 +110,9 @@ public class MDDViewProvider implements ViewProvider {
                         });
                     }
 
+                } else {
+                    // si estamos aquí es que no reconocemos el selector (por no haber reconocido el area / menu). Devolvemos forbidden
+                    if (data.get("area") == null || data.get("menu") == null) return new ForbiddenView();
                 }
 
             }
