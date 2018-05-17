@@ -31,12 +31,13 @@ public class MDDCallback extends Callback<Data> {
 
     @Override
     public void onSuccess(Data result) {
-        MateuUI.openView(new MDDJPACRUDView(result) {
+        MDDJPACRUDView v = new MDDJPACRUDView(result) {
             @Override
             public Data initializeData() {
                 return initialData;
             }
-        }, modifierPressed);
+        };
+        MateuUI.openView(v, modifierPressed);
     }
 
 }

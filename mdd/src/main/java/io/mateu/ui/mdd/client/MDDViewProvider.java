@@ -96,6 +96,9 @@ public class MDDViewProvider implements ViewProvider {
                         AbstractEditorView ev = view.getNewEditorView((jsonDatosIniciales != null) ? new Data(jsonDatosIniciales) : null).setInitialId(id);
                         ev.setGranted(data.get("area") != null && data.get("menu") != null);
 
+                        ev.setArea((AbstractArea) data.get("area"));
+                        ev.setMenu((MenuEntry) data.get("menu"));
+
                         return ev;
                     } else {
                         view.setParametros(parametros);
