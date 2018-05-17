@@ -487,7 +487,8 @@ public class ERPServiceImpl implements ERPService {
                                 for (FieldInterfaced ff : getAllFields(f.getType())) {
                                     if (ff.isAnnotationPresent(OneToMany.class) && ff.getGenericClass().isAssignableFrom(o.getClass()) && f.getName().equals(ff.getAnnotation(OneToMany.class).mappedBy())) {
                                         System.out.println("Eliminando la relación onetomany con el inverso de " + o.getClass().getName() + "." + f.getName() + " al cambiar el valor");
-                                        List l = (List) getMethod(ff.getType(), getGetter(ff.getField())).invoke(v);
+                                        System.out.println("El inverso es " + f.getType().getName() + "." + getGetter(ff.getField()) + " ==> " + getMethod(ff.getType(), getGetter(ff.getField())));
+                                        List l = (List) getMethod(f.getType(), getGetter(ff.getField())).invoke(v);
                                         if (l.contains(o)) l.remove(o);
                                     }
                                 }
