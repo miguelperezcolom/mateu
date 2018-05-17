@@ -150,7 +150,11 @@ public class ERPServiceImpl implements ERPService {
                 int numRows = new Integer("" + r[0][pos++]);
                 List<Data> sums = new ArrayList<>();
                 for (Data d : parameters.getList("_sums")) {
-                    sums.add(new Data("name", d.get("name"), "value", r[0][pos++]));
+                    Object v = r[0][pos++];
+                    if (v != null && v instanceof Double) {
+                        v = Math.round(100d * (Double) v) / 100d;
+                    }
+                    sums.add(new Data("name", d.get("name"), "value", v));
                 }
                 long t = new Date().getTime() - t0;
                 d.set("_subtitle", "" + numRows + " records found in " + t + "ms.");
