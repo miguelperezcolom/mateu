@@ -1,6 +1,7 @@
 package io.mateu.mdd.model.tests.view;
 
 import io.mateu.ui.core.shared.UserData;
+import io.mateu.ui.mdd.server.annotations.Sum;
 import io.mateu.ui.mdd.server.interfaces.Filtered;
 import lombok.Getter;
 import lombok.Setter;
@@ -34,6 +35,7 @@ public class Booking {
     @Column(name = "_end")
     private LocalDate end;
 
+    @Sum
     private int pax;
 
     private LocalDateTime formalized;
@@ -42,8 +44,10 @@ public class Booking {
 
     private boolean cancelled;
 
+    @Sum
     private double sale;
 
+    @Sum
     private double cost;
 
     private String currencyCode;

@@ -13,6 +13,10 @@ public interface ListView<T> {
         return null;
     }
 
+    default String getSums() {
+        return null;
+    }
+
     default String getCols() {
         return null;
     }

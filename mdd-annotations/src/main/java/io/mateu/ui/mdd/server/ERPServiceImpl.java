@@ -18,7 +18,6 @@ import io.mateu.ui.mdd.server.util.Helper;
 import io.mateu.ui.mdd.server.util.JPATransaction;
 import io.mateu.ui.mdd.server.util.XMLSerializable;
 import io.mateu.ui.mdd.server.workflow.WorkflowEngine;
-import io.mateu.ui.mdd.shared.ActionType;
 import io.mateu.ui.mdd.shared.ERPService;
 import io.mateu.ui.mdd.shared.MDDLink;
 import io.mateu.ui.mdd.shared.MetaData;
@@ -73,7 +72,8 @@ public class ERPServiceImpl implements ERPService {
                 Query q = em.createQuery(jpql);
                 List rs = q.getResultList();
                 for (Object o : rs) {
-                    r.add((Object[]) o);
+                    if (o != null && o.getClass().isArray()) r.add((Object[]) o);
+                    else r.add(new Object[] { o });
                 }
 
             }
@@ -139,13 +139,25 @@ public class ERPServiceImpl implements ERPService {
 
                 String jpqlx = jpql.substring(jpql.toLowerCase().indexOf(" from "));
                 if (jpqlx.toLowerCase().contains(" order by ")) jpqlx = jpqlx.substring(0, jpqlx.toLowerCase().indexOf(" order by "));
-                jpqlx = "select count(x) " + jpqlx;
-                int numRows = ((Long) selectSingleValue(jpqlx)).intValue();
+                String sumsQl = "";
+                for (Data d : parameters.getList("_sums")) {
+                    sumsQl += ", ";
+                    sumsQl += d.get("jpql");
+                }
+                jpqlx = "select count(x) " + sumsQl + jpqlx;
+                Object[][] r = select(jpqlx);
+                int pos = 0;
+                int numRows = new Integer("" + r[0][pos++]);
+                List<Data> sums = new ArrayList<>();
+                for (Data d : parameters.getList("_sums")) {
+                    sums.add(new Data("name", d.get("name"), "value", r[0][pos++]));
+                }
                 long t = new Date().getTime() - t0;
                 d.set("_subtitle", "" + numRows + " records found in " + t + "ms.");
                 d.set("_data_currentpageindex", fromRow / rowsPerPage);
                 d.set("_data_totalrows", numRows);
                 d.set("_data_pagecount", numRows / rowsPerPage + ((numRows % rowsPerPage == 0)?0:1));
+                d.set("_data_sums", sums);
             }
         });
 
@@ -1798,6 +1810,7 @@ public class ERPServiceImpl implements ERPService {
             List<String> viewParamFields = new ArrayList<>();
             List<String> viewColumnFields = new ArrayList<>();
             List<String> viewColumnHeaders = new ArrayList<>();
+            List<String> viewSumFields = new ArrayList<>();
             List<String> viewOrderFields = new ArrayList<>();
             List<String> viewFormFields = new ArrayList<>();
             List<String> negatedViewFormFields = new ArrayList<>();
@@ -1810,6 +1823,7 @@ public class ERPServiceImpl implements ERPService {
                 }
 
                 addToList(viewParamFields, v.getParams());
+                addToList(viewSumFields, v.getSums());
                 addToList(viewColumnFields, v.getCols());
                 addToList(viewColumnHeaders, v.getColHeaders());
                 addToList(viewOrderFields, v.getOrderCriteria());
@@ -1911,6 +1925,7 @@ public class ERPServiceImpl implements ERPService {
             // seguimos...
 
             List<Data> searchFormFields = new ArrayList<>();
+            List<Data> sums = new ArrayList<>();
             List<Data> listColumns = new ArrayList<>();
             List<Data> staticActions = new ArrayList<>();
 
@@ -1963,6 +1978,13 @@ public class ERPServiceImpl implements ERPService {
                 }
             }
 
+
+            for (FieldInterfaced f : getAllFields(c, (v == null || Strings.isNullOrEmpty(v.getSums()))?false:true, viewSumFields, null)) {
+                if (f.isAnnotationPresent(Sum.class))
+                    sums.add(new Data("name", Helper.capitalize(f.getName()), "jpql", "sum(x." + f.getId() + ")"));
+            }
+
+
             boolean ordered = false;
             for (Data d : listColumns) if (!d.isEmpty("_order")) {
                 ordered = true;
@@ -1989,6 +2011,7 @@ public class ERPServiceImpl implements ERPService {
             data.set("_searchform", dsf = new Data());
             dsf.set("_fields", searchFormFields);
             dsf.set("_columns", listColumns);
+            data.set("_sums", sums);
             data.set("_actions", staticActions);
             data.set("_editorform", getEditorForm(user, em, (v != null && v instanceof View)? (View) v :null, viewFormFields, negatedViewFormFields, viewClass, c));
 

@@ -7,6 +7,7 @@ import io.mateu.ui.core.shared.AsyncCallback;
 import io.mateu.ui.core.shared.Data;
 import io.mateu.ui.mdd.shared.ERPService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -22,6 +23,7 @@ public abstract class JPACRUDView extends AbstractCRUDView {
 
     @Override
     public void rpc(Data parameters, AsyncCallback<Data> callback) {
+        parameters.set("_sums", getSums());
         parameters.set("_sql", getSql());
         parameters.set("_rowsperpage", 100);
         ERPServiceAsync s = MateuUI.create(ERPService.class);

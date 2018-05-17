@@ -25,7 +25,7 @@ public class MDDMenu extends AbstractMenu {
     }
 
     @Override
-    public List<MenuEntry> getEntries() {
+    public List<MenuEntry> buildEntries() {
         return m;
     }
 }

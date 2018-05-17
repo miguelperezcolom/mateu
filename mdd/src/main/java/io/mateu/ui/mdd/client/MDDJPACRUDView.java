@@ -61,6 +61,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
         this.rpcViewClassName = metadata.getString("_rpcViewClassName");
         this.compositeClassName = metadata.getString("_compositeClassName");
         this.queryFilters = metadata.getString("_queryFilters");
+        setSums(metadata.getList("_sums"));
     }
 
 
