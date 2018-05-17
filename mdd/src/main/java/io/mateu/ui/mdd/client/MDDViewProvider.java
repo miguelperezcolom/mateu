@@ -79,6 +79,8 @@ public class MDDViewProvider implements ViewProvider {
 
                     view = new MDDJPACRUDView(new ERPServiceImpl().getMetaData(MateuUI.getApp().getUserData(), ed, vd, qf));
 
+                    view.setGranted(data.get("area") != null && data.get("menu") != null);
+
                     if (vn.endsWith("edit")) {
 
                         String s = parametros;
