@@ -31,7 +31,7 @@ public class MDDViewProvider implements ViewProvider {
         // el siguiente elemento lo utilizamos para saber si es nuestro
         String selector = (String) data.get("selector");
         if (selector != null) {
-            if (!selector.equals("mdd")) return null;
+            if (!selector.equals("mdd") && !viewAndParameters.contains("/mdd/")) return null;
             else return viewAndParameters;
         } else return null;
     }
