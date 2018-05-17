@@ -18,7 +18,9 @@ import io.mateu.ui.mdd.server.util.Helper;
 import io.mateu.ui.mdd.server.util.JPATransaction;
 import io.mateu.ui.mdd.server.util.XMLSerializable;
 import io.mateu.ui.mdd.server.workflow.WorkflowEngine;
+import io.mateu.ui.mdd.shared.ActionType;
 import io.mateu.ui.mdd.shared.ERPService;
+import io.mateu.ui.mdd.shared.MDDLink;
 import io.mateu.ui.mdd.shared.MetaData;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.BeanUtilsBean;
@@ -1077,6 +1079,20 @@ public class ERPServiceImpl implements ERPService {
                     if (m.isAnnotationPresent(Links.class)) {
                         data.set("_links", (v == null)?m.invoke(o):m.invoke(v, o));
                     }
+                }
+
+                if (data.isEmpty("_links")) {
+                    List<MDDLink> l = new ArrayList<>();
+                    for (FieldInterfaced f : getAllFields(viewClass)) {
+                        if (f.isAnnotationPresent(OneToMany.class)) {
+                            /*
+                            l.add(new MDDLink("Booking", Booking.class, ActionType.OPENEDITOR, new Data("_id", getBooking().getId())));
+                            l.add(new MDDLink("Tasks", AbstractTask.class, ActionType.OPENLIST, new Data("services.id", getId())));
+                            l.add(new MDDLink("Purchase orders", PurchaseOrder.class, ActionType.OPENLIST, new Data("services.id", getId())));
+                            */
+                        }
+                    }
+                    if (l.size() > 0) data.set("_links", l);
                 }
 
                 if (id == null) {
