@@ -81,6 +81,7 @@ public class MDDViewProvider implements ViewProvider {
 
 
                     view = new MDDJPACRUDView(new ERPServiceImpl().getMetaData(MateuUI.getApp().getUserData(), ed, vd, qf));
+                    view.setInitialData((jsonDatosIniciales != null) ? new Data(jsonDatosIniciales) : null);
 
                     view.setGranted(data.get("area") != null && data.get("menu") != null);
 
