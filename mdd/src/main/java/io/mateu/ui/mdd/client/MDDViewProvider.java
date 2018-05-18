@@ -112,7 +112,7 @@ public class MDDViewProvider implements ViewProvider {
                                 else if ("count".equals(k)) ev.setListCount(Integer.parseInt(v));
                                 else if ("rpp".equals(k)) ev.setListRowsPerPage(Integer.parseInt(v));
                                 else if ("page".equals(k)) ev.setListPage(Integer.parseInt(v));
-                                else if ("listfragment".equals(k)) ev.setListFragment(v);
+                                else if ("listfragment".equals(k)) ev.setListFragment(new String(BaseEncoding.base64().decode(v)));
                             } else {
                                 System.out.println("parámetro " + p + " sin valor");
                             }
