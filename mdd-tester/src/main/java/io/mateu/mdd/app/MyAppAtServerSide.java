@@ -11,14 +11,17 @@ import io.mateu.ui.core.server.BaseServerSideApp;
 import io.mateu.ui.core.server.SQLTransaction;
 import io.mateu.ui.core.server.ServerSideApp;
 import io.mateu.ui.core.server.Utils;
+import io.mateu.ui.core.shared.Data;
 import io.mateu.ui.core.shared.FileLocator;
 import io.mateu.ui.core.shared.UserData;
 import io.mateu.ui.mdd.server.util.Helper;
 import io.mateu.ui.mdd.server.util.JPATransaction;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.sql.DataSource;
 import java.net.URL;
+import java.util.List;
 
 /**
  * Created by miguel on 3/1/17.
@@ -210,5 +213,28 @@ public class MyAppAtServerSide extends BaseServerSideApp implements ServerSideAp
                 } else throw new Exception("No user with login " + login);
             }
         });
+    }
+
+    @Override
+    public Object selectIdAtPos(String ql, int pos) throws Throwable {
+        Object[] id = new Object[1];
+        Helper.transact(new JPATransaction() {
+            @Override
+            public void run(EntityManager em) throws Throwable {
+                Query q = em.createQuery(ql);
+                q.setFirstResult(pos);
+                q.setMaxResults(1);
+                List rs = q.getResultList();
+                for (Object o : rs) {
+                    if (o.getClass().isArray()) {
+                        Object[] l = (Object[]) o;
+                        id[0] = l[0];
+                    } else {
+                        id[0] = o;
+                    }
+                }
+            }
+        });
+        return id[0];
     }
 }

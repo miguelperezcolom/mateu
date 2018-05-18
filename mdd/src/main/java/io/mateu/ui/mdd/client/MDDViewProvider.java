@@ -62,11 +62,12 @@ public class MDDViewProvider implements ViewProvider {
                     if (vn.startsWith("/")) vn = vn.substring(1);
                     String parametros = "";
                     if (vn.contains("?")) {
-                        parametros = vn.substring(vn.indexOf("?") + 1);
+                        parametros = vn.substring(vn.indexOf("?") + 1) + parametros;
                         vn = vn.substring(0, vn.indexOf("?"));
                     }
                     if (vn.contains("/")) {
-                        parametros = vn.substring(vn.indexOf("/") + 1);
+                        if (!"".equals(parametros)) parametros = "?" + parametros;
+                        parametros = vn.substring(vn.indexOf("/") + 1) + parametros;
                         vn = vn.substring(0, vn.indexOf("/"));
                     }
 
@@ -86,6 +87,12 @@ public class MDDViewProvider implements ViewProvider {
                     if (vn.endsWith("edit")) {
 
                         String s = parametros;
+
+                        if (s.contains("?")) {
+                            s = s.substring(0, s.indexOf("?"));
+                            parametros = parametros.substring(parametros.indexOf("?") + 1);
+                        }
+
                         Object id = null;
                         if (!Strings.isNullOrEmpty(s)) {
                             if (s.startsWith("s")) id = s.substring(1);
@@ -94,6 +101,24 @@ public class MDDViewProvider implements ViewProvider {
                         }
 
                         AbstractEditorView ev = view.getNewEditorView((jsonDatosIniciales != null) ? new Data(jsonDatosIniciales) : null).setInitialId(id);
+
+                        if (!Strings.isNullOrEmpty(parametros)) {
+                            String[] tx = parametros.split("&");
+                            for (String p : tx) if (p.contains("=")) {
+                                String k = p.split("=")[0];
+                                String v = p.split("=")[1];
+                                if ("q".equals(k)) ev.setListQl(new String(BaseEncoding.base64().decode(v)));
+                                else if ("pos".equals(k)) ev.setListPos(Integer.parseInt(v));
+                                else if ("count".equals(k)) ev.setListCount(Integer.parseInt(v));
+                                else if ("rpp".equals(k)) ev.setListRowsPerPage(Integer.parseInt(v));
+                                else if ("page".equals(k)) ev.setListPage(Integer.parseInt(v));
+                                else if ("listfragment".equals(k)) ev.setListFragment(v);
+                            } else {
+                                System.out.println("parámetro " + p + " sin valor");
+                            }
+                        }
+
+
                         ev.setGranted(data.get("area") != null && data.get("menu") != null);
 
                         ev.setArea((AbstractArea) data.get("area"));
@@ -108,6 +133,7 @@ public class MDDViewProvider implements ViewProvider {
                         ((AbstractCRUDView) view).addListener(new CRUDListener() {
                             @Override
                             public void openEditor(AbstractEditorView e, boolean inNewTab) {
+                                e.setListFragment(MateuUI.getCurrentFragment());
                                 MateuUI.openView(e, inNewTab);
                             }
                         });

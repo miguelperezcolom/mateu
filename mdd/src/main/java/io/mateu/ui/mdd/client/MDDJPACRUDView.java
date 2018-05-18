@@ -160,6 +160,20 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
                     Data datosIniciales = initializeData();
 
+                if (!Strings.isNullOrEmpty(getListQl())) {
+
+                    id += "?";
+
+                    id += "q=" + BaseEncoding.base64().encode(getListQl().getBytes());
+                    id += "&pos=" + getListPos();
+                    id += "&count=" + getListCount();
+                    id += "&rpp=" + getListRowsPerPage();
+                    id += "&page=" + getListPage();
+                    if (!Strings.isNullOrEmpty(getListFragment())) id += "&listfragment=" + BaseEncoding.base64().encode(getListFragment().getBytes());
+
+                }
+
+
                     return "mdd/" + getEntityClassName() + ".." + getViewClassName() + ".." + BaseEncoding.base64().encode(((queryFilters != null)?queryFilters:"").getBytes(Charsets.UTF_8)) + ".." + BaseEncoding.base64().encode(((datosIniciales != null)?datosIniciales.toJson():"").getBytes(Charsets.UTF_8)) + ".." + "edit" + ((id != null)?"/" + id:"");
                 }
 
@@ -621,7 +635,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                     col = new DataColumn((useAutoColumnIds()) ? "col" + poscol : d.getString("_id"), d.getString("_label"), d.getInt("_width")) {
                         @Override
                         public void run(Data data) {
-                            if (data != null && data.get("_id") != null) open(data.get("_id"), false);
+                            if (data != null && data.get("_id") != null) open("_id", data, false);
                             else MateuUI.alert("Empty record. Nothing to see.");
                         }
                     };
