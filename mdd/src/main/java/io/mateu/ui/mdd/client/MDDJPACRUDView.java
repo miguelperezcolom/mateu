@@ -1048,6 +1048,8 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
 
                 boolean needsParameters = false;
 
+                boolean ok = true;
+
                 Data wizard = null;
                 String wizardParameterName = null;
                 for (Data dp : da.getList("_parameters")) {
@@ -1055,7 +1057,13 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                     if (MetaData.FIELDTYPE_LISTDATA.equals(dp.getString("_type"))) {
                         parameters.set(n, getSelection());
                     } else if (MetaData.FIELDTYPE_DATA.equals(dp.getString("_type"))) {
-                        parameters.set(n, v.getForm().getData());
+                        List<String> errors = getForm().validate();
+                        if (errors.size() > 0) {
+                            MateuUI.notifyErrors(errors);
+                            ok = false;
+                        } else {
+                            parameters.set(n, v.getForm().getData());
+                        }
                     } else if (MetaData.FIELDTYPE_USERDATA.equals(dp.getString("_type"))) {
                         parameters.set(n, MateuUI.getApp().getUserData());
                     } else if (MetaData.FIELDTYPE_WIZARD.equals(dp.getString("_type"))) {
@@ -1065,97 +1073,101 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                     } else needsParameters = true;
                 }
 
-                if (needsParameters) {
-                    if (wizard != null) {
+                if (ok) {
 
-                        WizardPageVO vo = wizard.get("_pagevo");
+                    if (needsParameters) {
+                        if (wizard != null) {
 
-                        String finalWizardParameterName = wizardParameterName;
+                            WizardPageVO vo = wizard.get("_pagevo");
 
-                        AbstractWizard[] w = new AbstractWizard[1];
+                            String finalWizardParameterName = wizardParameterName;
 
-                        Callback<Data> cb = new Callback<Data>() {
-                            @Override
-                            public void onSuccess(Data data) {
-                                parameters.set(finalWizardParameterName, data);
-                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).runInServer(MateuUI.getApp().getUserData(), da.getString("_entityClassName"), da.getString("_methodname"), parameters, rpcViewClassName, (!Strings.isNullOrEmpty(rpcViewClassName))?MDDJPACRUDView.this.getForm().getData():null, new Callback<Object>() {
-                                    @Override
-                                    public void onSuccess(Object result) {
-                                        h.onSuccess(result);
-                                        if (!da.containsKey("_keeppened")) w[0].close();
-                                    }
+                            AbstractWizard[] w = new AbstractWizard[1];
 
-                                    @Override
-                                    public void onFailure(Throwable caught) {
-                                        super.onFailure(caught);
-                                    }
-                                });
-                            }
-                        };
-
-                        w[0] = crearWizard(da.getString("_name"), wizard.getData("_initialdata"), vo, cb);
-
-                        MateuUI.open(w[0], false);
-
-                    } else {
-
-                        MateuUI.openView(new AbstractDialog() {
-
-                            @Override
-                            public Data initializeData() {
-                                return parameters;
-                            }
-
-                            @Override
-                            public void onOk(Data data) {
-                                ((ERPServiceAsync) MateuUI.create(ERPService.class)).runInServer(MateuUI.getApp().getUserData(), da.getString("_entityClassName"), da.getString("_methodname"), getForm().getData(), rpcViewClassName, (!Strings.isNullOrEmpty(rpcViewClassName))?MDDJPACRUDView.this.getForm().getData():null, new Callback<Object>() {
-                                    @Override
-                                    public void onSuccess(Object result) {
-                                        h.onSuccess(result);
-                                    }
-                                });
-                            }
-
-                            @Override
-                            public String getTitle() {
-                                return da.getString("_name");
-                            }
-
-                            @Override
-                            public void build() {
-                                buildFromMetadata(this, da.getData("_form").getList("_fields"), false);
-                            }
-
-                            @Override
-                            public boolean isCloseOnOk() {
-                                return !da.containsKey("_keepopened");
-                            }
-                        });
-
-                    }
-                } else if (!Strings.isNullOrEmpty(da.getString("_confirmationmessage"))) {
-                    MateuUI.confirm(da.getString("_confirmationmessage"), new RunnableQueue.IdleRunnable() {
-                        @Override
-                        public long getWaitTime() {
-                            return 0;
-                        }
-
-                        @Override
-                        public void run() {
-                            ((ERPServiceAsync)MateuUI.create(ERPService.class)).runInServer(MateuUI.getApp().getUserData(), da.getString("_entityClassName"), da.getString("_methodname"), parameters, rpcViewClassName, (!Strings.isNullOrEmpty(rpcViewClassName))?MDDJPACRUDView.this.getForm().getData():null, new Callback<Object>() {
+                            Callback<Data> cb = new Callback<Data>() {
                                 @Override
-                                public void onSuccess(Object result) {
-                                    h.onSuccess(result);
+                                public void onSuccess(Data data) {
+                                    parameters.set(finalWizardParameterName, data);
+                                    ((ERPServiceAsync) MateuUI.create(ERPService.class)).runInServer(MateuUI.getApp().getUserData(), da.getString("_entityClassName"), da.getString("_methodname"), parameters, rpcViewClassName, (!Strings.isNullOrEmpty(rpcViewClassName))?MDDJPACRUDView.this.getForm().getData():null, new Callback<Object>() {
+                                        @Override
+                                        public void onSuccess(Object result) {
+                                            h.onSuccess(result);
+                                            if (!da.containsKey("_keeppened")) w[0].close();
+                                        }
+
+                                        @Override
+                                        public void onFailure(Throwable caught) {
+                                            super.onFailure(caught);
+                                        }
+                                    });
+                                }
+                            };
+
+                            w[0] = crearWizard(da.getString("_name"), wizard.getData("_initialdata"), vo, cb);
+
+                            MateuUI.open(w[0], false);
+
+                        } else {
+
+                            MateuUI.openView(new AbstractDialog() {
+
+                                @Override
+                                public Data initializeData() {
+                                    return parameters;
+                                }
+
+                                @Override
+                                public void onOk(Data data) {
+                                    ((ERPServiceAsync) MateuUI.create(ERPService.class)).runInServer(MateuUI.getApp().getUserData(), da.getString("_entityClassName"), da.getString("_methodname"), getForm().getData(), rpcViewClassName, (!Strings.isNullOrEmpty(rpcViewClassName))?MDDJPACRUDView.this.getForm().getData():null, new Callback<Object>() {
+                                        @Override
+                                        public void onSuccess(Object result) {
+                                            h.onSuccess(result);
+                                        }
+                                    });
+                                }
+
+                                @Override
+                                public String getTitle() {
+                                    return da.getString("_name");
+                                }
+
+                                @Override
+                                public void build() {
+                                    buildFromMetadata(this, da.getData("_form").getList("_fields"), false);
+                                }
+
+                                @Override
+                                public boolean isCloseOnOk() {
+                                    return !da.containsKey("_keepopened");
                                 }
                             });
+
+                        }
+                    } else if (!Strings.isNullOrEmpty(da.getString("_confirmationmessage"))) {
+                        MateuUI.confirm(da.getString("_confirmationmessage"), new RunnableQueue.IdleRunnable() {
+                            @Override
+                            public long getWaitTime() {
+                                return 0;
+                            }
+
+                            @Override
+                            public void run() {
+                                ((ERPServiceAsync)MateuUI.create(ERPService.class)).runInServer(MateuUI.getApp().getUserData(), da.getString("_entityClassName"), da.getString("_methodname"), parameters, rpcViewClassName, (!Strings.isNullOrEmpty(rpcViewClassName))?MDDJPACRUDView.this.getForm().getData():null, new Callback<Object>() {
+                                    @Override
+                                    public void onSuccess(Object result) {
+                                        h.onSuccess(result);
+                                    }
+                                });
+                            }
+                        });
+                    } else ((ERPServiceAsync)MateuUI.create(ERPService.class)).runInServer(MateuUI.getApp().getUserData(), da.getString("_entityClassName"), da.getString("_methodname"), parameters, rpcViewClassName, (!Strings.isNullOrEmpty(rpcViewClassName))?MDDJPACRUDView.this.getForm().getData():null, new Callback<Object>() {
+                        @Override
+                        public void onSuccess(Object result) {
+                            h.onSuccess(result);
                         }
                     });
-                } else ((ERPServiceAsync)MateuUI.create(ERPService.class)).runInServer(MateuUI.getApp().getUserData(), da.getString("_entityClassName"), da.getString("_methodname"), parameters, rpcViewClassName, (!Strings.isNullOrEmpty(rpcViewClassName))?MDDJPACRUDView.this.getForm().getData():null, new Callback<Object>() {
-                    @Override
-                    public void onSuccess(Object result) {
-                        h.onSuccess(result);
-                    }
-                });
+
+                }
 
             }
         };
