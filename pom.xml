@@ -4,7 +4,7 @@
 
   <groupId>io.mateu.ui</groupId>
   <artifactId>mdd-parent</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>0.0.1</version>
   <packaging>pom</packaging>
 
   <name>mateu-mdd</name>

@@ -6,7 +6,7 @@
 
     <groupId>io.mateu.ui.mdd.archetypes</groupId>
     <artifactId>mdd-base</artifactId>
-    <version>0.1.3</version>
+    <version>0.0.1</version>
 
 
     <name>Archetype for building mateu mdd apps.</name>
@@ -122,19 +122,19 @@
         <dependency>
             <groupId>io.mateu.jpa</groupId>
             <artifactId>common</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.0.1</version>
         </dependency>
 
         <dependency>
             <groupId>io.mateu.ui</groupId>
             <artifactId>core</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.0.1</version>
         </dependency>
 
         <dependency>
             <groupId>io.mateu.ui</groupId>
             <artifactId>mdd-annotations</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.0.1</version>
             <scope>compile</scope>
         </dependency>
 
@@ -153,7 +153,7 @@
                 <dependency>
                     <groupId>io.mateu.ui</groupId>
                     <artifactId>port-vaadin</artifactId>
-                    <version>1.0-SNAPSHOT</version>
+                    <version>0.0.1</version>
                     <type>war</type>
                     <scope>compile</scope>
                 </dependency>

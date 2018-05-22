@@ -3,7 +3,7 @@
     <parent>
         <artifactId>mdd-parent</artifactId>
         <groupId>io.mateu.ui</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <version>0.0.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -178,7 +178,7 @@
         <dependency>
             <groupId>io.mateu.ui</groupId>
             <artifactId>core</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.0.1</version>
         </dependency>
 
 
@@ -265,7 +265,7 @@
         <dependency>
             <groupId>io.mateu.ui</groupId>
             <artifactId>core</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.0.1</version>
             <scope>compile</scope>
         </dependency>
 
@@ -274,7 +274,7 @@
         <dependency>
             <groupId>io.mateu.ui</groupId>
             <artifactId>code-generation</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.0.1</version>
             <scope>compile</scope>
         </dependency>
 

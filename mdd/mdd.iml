@@ -46,9 +46,9 @@
     <orderEntry type="library" name="Maven: com.google.errorprone:error_prone_annotations:2.0.18" level="project" />
     <orderEntry type="library" name="Maven: com.google.j2objc:j2objc-annotations:1.1" level="project" />
     <orderEntry type="library" name="Maven: org.codehaus.mojo:animal-sniffer-annotations:1.14" level="project" />
-    <orderEntry type="library" name="Maven: io.mateu.ui:core:1.0-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Maven: io.mateu.ui:core:0.0.1" level="project" />
     <orderEntry type="library" name="Maven: org.hsqldb:hsqldb:2.3.4" level="project" />
-    <orderEntry type="library" name="Maven: io.mateu.ui:code-generation:1.0-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Maven: io.mateu.ui:code-generation:0.0.1" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.jersey.containers:jersey-container-jetty-http:2.26" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.hk2.external:javax.inject:2.5.0-b42" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-server:9.4.3.v20170317" level="project" />
