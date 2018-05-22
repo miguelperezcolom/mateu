@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 
 @Entity
@@ -25,6 +26,7 @@ public class Basico {
 
     @SearchFilter
     @Help("Full name of the user")
+    @NotNull
     private String name = "Hola!!!";
 
     private int entero;
@@ -71,4 +73,14 @@ public class Basico {
     public void testBoton() {
         MateuUI.alert("Hola!!!!");
     }
+
+
+    @Action(name = "Prueba requeridos")
+    public void testRequeridos(Data _data) {
+
+        System.out.println(_data);
+
+        MateuUI.alert("Hola!!!!");
+    }
+
 }

@@ -1057,7 +1057,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                     if (MetaData.FIELDTYPE_LISTDATA.equals(dp.getString("_type"))) {
                         parameters.set(n, getSelection());
                     } else if (MetaData.FIELDTYPE_DATA.equals(dp.getString("_type"))) {
-                        List<String> errors = getForm().validate();
+                        List<String> errors = v.getForm().validate();
                         if (errors.size() > 0) {
                             MateuUI.notifyErrors(errors);
                             ok = false;
