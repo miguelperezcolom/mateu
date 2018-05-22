@@ -192,7 +192,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                     ViewForm f = new ViewForm(this) {
                         @Override
                         public void setData(Data data, boolean only_) {
-                            if (data.containsKey("_links")) {
+                            if (data != null && data.containsKey("_links")) {
                                 for (Data x : data.getList("_links")) if (x != null) {
                                     MDDLink l = (MDDLink) x;
                                     x.set("_action", createAction(l));
