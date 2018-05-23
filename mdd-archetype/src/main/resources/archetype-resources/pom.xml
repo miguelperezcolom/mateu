@@ -1,0 +1,116 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>${groupId}</groupId>
+  <artifactId>${artifactId}</artifactId>
+  <version>${version}</version>
+
+  <packaging>war</packaging>
+
+
+  <name>myapp</name>
+  <!-- FIXME change it to the project's website -->
+  <url>http://www.example.com</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+  </properties>
+
+  <repositories>
+    <repository>
+      <id>mateu-central</id>
+      <url>http://nexus.mateu.io/repository/mateu-central</url>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>mateu-central</id>
+      <url>http://nexus.mateu.io/repository/mateu-central</url>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+
+
+    <dependency>
+      <groupId>io.mateu.jpa</groupId>
+      <artifactId>common</artifactId>
+      <version>0.0.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.mateu.ui</groupId>
+      <artifactId>port-vaadin</artifactId>
+      <version>0.0.1</version>
+      <type>war</type>
+      <scope>compile</scope>
+    </dependency>
+
+
+  </dependencies>
+
+
+  <build>
+    <plugins>
+
+      <plugin>
+        <groupId>io.mateu.jpa-utils</groupId>
+        <artifactId>pujoiner-plugin</artifactId>
+        <version>0.0.1</version>
+
+        <configuration>
+          <puname>yourapp</puname>
+        </configuration>
+
+        <executions>
+          <execution>
+            <phase>compile</phase>
+            <goals>
+              <goal>procesarpus</goal>
+            </goals>
+          </execution>
+        </executions>
+
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <configuration>
+          <failOnMissingWebXml>false</failOnMissingWebXml>
+
+          <overlays>
+            <overlay></overlay>
+            <overlay>
+              <groupId>io.mateu.ui</groupId>
+              <artifactId>port-vaadin</artifactId>
+              <excludes>
+                <exclude>WEB-INF/lib/sample-app-core-0.0.1.jar</exclude>
+              </excludes>
+            </overlay>
+          </overlays>
+        </configuration>
+
+
+
+      </plugin>
+
+      <plugin>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-maven-plugin</artifactId>
+        <version>9.3.9.v20160517</version>
+      </plugin>
+
+    </plugins>
+  </build>
+
+</project>
