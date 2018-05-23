@@ -21,7 +21,6 @@
       <module>mdd-tester</module>
       <module>pocs</module>
     <module>mdd-server</module>
-    <module>mdd-archetype-myapp</module>
     <module>mdd-archetype</module>
   </modules>
 
