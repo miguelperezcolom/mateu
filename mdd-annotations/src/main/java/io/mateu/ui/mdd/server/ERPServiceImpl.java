@@ -11,6 +11,7 @@ import io.mateu.ui.core.shared.*;
 import io.mateu.ui.mdd.server.annotations.*;
 import io.mateu.ui.mdd.server.annotations.Action;
 import io.mateu.ui.mdd.server.annotations.CellStyleGenerator;
+import io.mateu.ui.mdd.server.annotations.Table;
 import io.mateu.ui.mdd.server.interfaces.*;
 import io.mateu.ui.mdd.server.interfaces.SupplementOrPositive;
 import io.mateu.ui.mdd.server.util.DatesRange;
@@ -3051,7 +3052,7 @@ public class ERPServiceImpl implements ERPService {
             } else if (searchFilterIsNullAnnotation != null) {
                 d.set("_type", MetaData.FIELDTYPE_BOOLEAN);
                 upload = true;
-            } else if (f.isAnnotationPresent(Output.class) && searchFilterAnnotation == null && !buildingColumns) {
+            } else if (f.isAnnotationPresent(Output.class) && searchFilterAnnotation == null && !buildingColumns && !List.class.isAssignableFrom(f.getType())) {
                 if (f.getType().isAnnotationPresent(Entity.class)) {
                     d.set("_type", MetaData.FIELDTYPE_OUTPUTENTITY);
                 } else {
@@ -3149,14 +3150,24 @@ public class ERPServiceImpl implements ERPService {
                             d.set("_editorform", ef);
 
                                     upload = true;
-                        } else if (f.isAnnotationPresent(OwnedList.class) || !f.getGenericClass().isAnnotationPresent(Entity.class)) {
+                        } else if (f.isAnnotationPresent(OwnedList.class) || !f.getGenericClass().isAnnotationPresent(Entity.class) || f.isAnnotationPresent(Table.class)  || f.isAnnotationPresent(Output.class)) {
 
-                            if (gc.isPrimitive() || gc.equals(Long.class) || gc.equals(Integer.class) || gc.equals(Double.class) || gc.equals(String.class)) {
+                            if (f.isAnnotationPresent(Table.class)  || f.isAnnotationPresent(Output.class)) {
+                                d.set("_type", MetaData.FIELDTYPE_GRID_TABLE);
+                                List<Data> cols = new ArrayList<>();
+                                for (Field ff : f.getGenericClass().getDeclaredFields()) {
+                                    if (!ff.isAnnotationPresent(Id.class) && !ff.getType().equals(f.getDeclaringClass())) {
+                                        addColumn(user, em, view, cols, new FieldInterfacedFromField(ff));
+                                    }
+                                }
+                                d.set("_cols", cols);
+                            } else if (gc.isPrimitive() || gc.equals(Long.class) || gc.equals(Integer.class) || gc.equals(Double.class) || gc.equals(String.class)) {
                                 d.set("_type", MetaData.FIELDTYPE_TEXTAREA);
 
                                 if (f.isAnnotationPresent(ValueClass.class) || f.isAnnotationPresent(ValueQL.class)) {
 
                                     d.set("_type", MetaData.FIELDTYPE_GRID);
+                                    d.set("_gridtype", MetaData.FIELDTYPE_GRID_INLINE);
                                     List<Data> cols = new ArrayList<>();
 
                                     Class<?> finalGenericClass = gc;
@@ -3187,11 +3198,20 @@ public class ERPServiceImpl implements ERPService {
 
                             } else {
                                 d.set("_type", MetaData.FIELDTYPE_GRID);
+                                boolean tieneCamposComplejos = false;
+                                int numCols = 0;
                                 List<Data> cols = new ArrayList<>();
                                 for (Field ff : f.getGenericClass().getDeclaredFields()) {
-                                    if (!ff.isAnnotationPresent(Id.class) && !ff.getType().equals(f.getDeclaringClass()))
+                                    if (!ff.isAnnotationPresent(Id.class) && !ff.getType().equals(f.getDeclaringClass())) {
+                                        if (!(gc.isPrimitive() || gc.equals(Long.class) || gc.equals(Integer.class) || gc.equals(Double.class) || gc.equals(String.class))) tieneCamposComplejos = true;
                                         addColumn(user, em, view, cols, new FieldInterfacedFromField(ff));
+                                        numCols++;
+                                    }
                                 }
+                                //todo: comprobar con la relación inversa, y con el cascade
+                                if (tieneCamposComplejos) d.set("_gridtype", MetaData.FIELDTYPE_GRID_POPUP);
+                                else if (numCols > 4) d.set("_gridtype", MetaData.FIELDTYPE_GRID_ASIDE);
+                                else d.set("_gridtype", MetaData.FIELDTYPE_GRID_INLINE);
                                 d.set("_cols", cols);
                             }
 

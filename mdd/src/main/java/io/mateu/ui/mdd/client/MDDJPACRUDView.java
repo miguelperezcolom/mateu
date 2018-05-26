@@ -570,7 +570,7 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                     String ql = d.getString("_ql");
                     if (ql == null) ql = "select x.id, x.name from " + d.getString("_entityClassName") + " x order by x.name";
                     fields.add(new JPAListSelectionField(prefix + d.getString("_id"), d.getString("_label"), ql));
-                } else if (MetaData.FIELDTYPE_GRID.equals(d.getString("_type")) || MetaData.FIELDTYPE_SELECTFROMGRID.equals(d.getString("_type"))) {
+                } else if (MetaData.FIELDTYPE_GRID.equals(d.getString("_type")) || MetaData.FIELDTYPE_GRID_TABLE.equals(d.getString("_type")) || MetaData.FIELDTYPE_SELECTFROMGRID.equals(d.getString("_type"))) {
                     List<AbstractColumn> cols = new ArrayList<>();
                     for (Data dc : d.getList("_cols")) if (!dc.containsKey("_notinlist")) {
                         OutputColumn c;
@@ -601,8 +601,12 @@ public class MDDJPACRUDView extends BaseJPACRUDView {
                             return f;
                         }
                     }.setFullWidth(d.containsKey("_fullwidth"))
-                            .setExpandable(!MetaData.FIELDTYPE_SELECTFROMGRID.equals(d.getString("_type")))
+                            .setExpandable(!MetaData.FIELDTYPE_SELECTFROMGRID.equals(d.getString("_type")) && !MetaData.FIELDTYPE_GRID_TABLE.equals(d.getString("_type")))
                     .setUsedToSelect(MetaData.FIELDTYPE_SELECTFROMGRID.equals(d.getString("_type")))
+                            .setShowAsTable(MetaData.FIELDTYPE_GRID_TABLE.equals(d.getString("_type")))
+                            .setEditInline(MetaData.FIELDTYPE_GRID_INLINE.equals(d.getString("_gridtype")))
+                            .setEditAside(MetaData.FIELDTYPE_GRID_ASIDE.equals(d.getString("_gridtype")))
+                            .setEditPopup(MetaData.FIELDTYPE_GRID_POPUP.equals(d.getString("_gridtype")))
                     .setUsedToSelectMultipleValues(d.containsKey("_multipleselection")));
                 }
                 if (d.containsKey("_required")) {
