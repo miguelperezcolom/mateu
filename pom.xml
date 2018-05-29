@@ -2,12 +2,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>io.mateu.ui</groupId>
+  <groupId>io.mateu</groupId>
   <artifactId>mdd-parent</artifactId>
   <version>0.0.2-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>mateu-mdd</name>
   <url>http://maven.apache.org</url>
 
   <properties>
@@ -16,12 +15,10 @@
   </properties>
 
   <modules>
-    <module>mdd</module>
-    <module>mdd-annotations</module>
-      <module>mdd-tester</module>
-      <module>pocs</module>
-    <module>mdd-server</module>
+    <module>mdd-core</module>
+    <module>mdd-tester</module>
     <module>mdd-archetype</module>
+    <module>mdd-vaadin</module>
   </modules>
 
   <dependencies>

@@ -3,8 +3,8 @@ package io.mateu.ui.mdd.client;
 import io.mateu.ui.core.client.app.Callback;
 import io.mateu.ui.core.client.app.MateuUI;
 import io.mateu.ui.core.client.views.AbstractCRUDView;
-import io.mateu.ui.core.shared.AsyncCallback;
-import io.mateu.ui.core.shared.Data;
+import io.mateu.mdd.core.data.AsyncCallback;
+import io.mateu.mdd.core.data.Data;
 import io.mateu.ui.mdd.shared.ERPService;
 
 import java.util.ArrayList;

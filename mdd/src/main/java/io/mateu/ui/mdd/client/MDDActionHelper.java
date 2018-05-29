@@ -1,6 +1,6 @@
 package io.mateu.ui.mdd.client;
 
-import io.mateu.ui.core.shared.Data;
+import io.mateu.mdd.core.data.Data;
 
 /**
  * Created by miguel on 22/2/17.

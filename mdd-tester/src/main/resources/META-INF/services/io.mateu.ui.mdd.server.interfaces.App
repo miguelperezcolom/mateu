@@ -1,1 +1,0 @@
-io.mateu.mdd.newapp.MyApp
