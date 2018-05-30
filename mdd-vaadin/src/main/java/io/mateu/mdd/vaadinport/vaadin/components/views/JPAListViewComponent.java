@@ -1,9 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.views;
 
 import com.vaadin.data.ValueProvider;
-import com.vaadin.data.provider.GridSortOrder;
 import com.vaadin.data.provider.QuerySortOrder;
-import com.vaadin.data.provider.SortOrder;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.ui.Grid;
@@ -39,6 +37,10 @@ public class JPAListViewComponent extends ListViewComponent {
 
     }
 
+    public Class getEntityClass() {
+        return entityClass;
+    }
+
     @Override
     public void addMenuItems(MenuBar bar) {
         super.addMenuItems(bar);
@@ -47,7 +49,7 @@ public class JPAListViewComponent extends ListViewComponent {
             @Override
             public void menuSelected(MenuBar.MenuItem menuItem) {
                 try {
-                    MDD.openEditor(createNewInstance(), false);
+                    MDD.openEditor(getOriginatingAction(), null, false);
                 } catch (Throwable throwable) {
                     MDD.alert(throwable);
                 }
@@ -81,23 +83,6 @@ public class JPAListViewComponent extends ListViewComponent {
         }
 
 
-    }
-
-
-    @Override
-    public void edit(Object id) throws Throwable {
-        final Object[] o = {null};
-        if (id == null) {
-                o[0] = entityClass.newInstance();
-        } else {
-            Helper.transact(new JPATransaction() {
-                @Override
-                public void run(EntityManager em) throws Throwable {
-                    o[0] = em.find(entityClass, id);
-                }
-            });
-        }
-        MDD.openEditor(o[0], false);
     }
 
     @Override

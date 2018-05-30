@@ -4,11 +4,14 @@ import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.Label;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class ListViewComponent extends ViewComponent {
 
     private ResultsComponent resultsComponent;
+
+    private List<ListViewComponentListener> listeners = new ArrayList<>();
 
     private int count;
     private Label countLabel;
@@ -36,8 +39,14 @@ public abstract class ListViewComponent extends ViewComponent {
         resultsComponent.search();
     }
 
+    public void addListener(ListViewComponentListener listener) {
+        listeners.add(listener);
+    }
 
-    public abstract void edit(Object id) throws Throwable;
+
+    public void edit(Object id) {
+        for (ListViewComponentListener l : listeners) l.onEdit(id);
+    };
 
     public abstract List findAll(List<QuerySortOrder> sortOrders, int offset, int limit);
     public int count() {

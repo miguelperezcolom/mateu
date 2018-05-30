@@ -2,16 +2,20 @@ package io.mateu.mdd.vaadinport.vaadin.components.app;
 
 import com.vaadin.server.Responsive;
 import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.CustomLayout;
 import com.vaadin.ui.HorizontalLayout;
 import io.mateu.mdd.core.app.AbstractApplication;
 import io.mateu.mdd.vaadinport.vaadin.components.views.JPAListViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.views.ViewComponent;
 
-public class AppComponent extends HorizontalLayout {
+public class AppComponent extends CustomLayout {
     private final AbstractApplication app;
     private final CenterComponent center;
 
     public AppComponent(AbstractApplication app) {
+
+        super("app");
+
         this.app = app;
 
 
@@ -22,9 +26,9 @@ public class AppComponent extends HorizontalLayout {
         setSizeFull();
 
 
-        addComponent(new LeftSideComponent(app));
+        addComponent(new LeftSideComponent(app), "contenedornavegacion");
 
-        addComponentsAndExpand(center = new CenterComponent());
+        addComponent(center = new CenterComponent(), "contenedorviews");
 
     }
 

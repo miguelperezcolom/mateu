@@ -43,43 +43,65 @@
     background: grey;
 
 
-    .viewcontainer {
-      background-color: #97bee5;
-      padding: 0px;
-      margin: 0px;
+    #app {
+      display: flex;
+      width: 100%;
+      height: 100%;
 
 
-      .viewcomponent {
+      .contenedornavegacion {
+        display: flex;
+        float: left;
+      }
 
 
-        .resultscomponent {
+      .contenedorviews {
+        width: 100%;
+
+
+
+        .viewcontainer {
+          background-color: #97bee5;
           padding: 0px;
           margin: 0px;
+
+
+          .viewcomponent {
+
+
+            .resultscomponent {
+              padding: 0px;
+              margin: 0px;
+            }
+
+          }
         }
 
+
       }
+
     }
+
+
+
+
 
   }
 
   .miapp[width-range~="0-499px"] {
 
-    background: red;
+    #app {
 
-    .leftside {
-      background: green;
-      width: 10px;
+      .contenedornavegacion {
+        display: none;
+      }
+
     }
 
   }
 
   .miapp[width-range~="500px-"] {
-    background: blue;
 
-    .leftside {
-      background: brown;
-      width: 250px;
-    }
 }
 
 

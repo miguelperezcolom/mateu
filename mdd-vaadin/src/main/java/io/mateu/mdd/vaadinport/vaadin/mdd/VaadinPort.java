@@ -3,11 +3,15 @@ package io.mateu.mdd.vaadinport.vaadin.mdd;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.UI;
 import io.mateu.mdd.core.MDDPort;
+import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.app.MDDAction;
+import io.mateu.mdd.core.app.MDDOpenEditorAction;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.views.RPCView;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.vaadinport.vaadin.components.views.EditorViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.views.JPAListViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.navigation.MDDNavigator;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -22,18 +26,17 @@ public class VaadinPort implements MDDPort {
     }
 
     @Override
-    public void openCRUD(Class entityClass, String queryFilters, boolean modifierPressed) {
+    public void openCRUD(AbstractAction action, Class entityClass, String queryFilters, boolean modifierPressed) {
         System.out.println("open crud");
 
-        ((MyUI)UI.getCurrent()).open(new JPAListViewComponent(entityClass));
-
+        ((MyUI)UI.getCurrent()).goTo(MDDNavigator.getPath(action, entityClass));
     }
 
     @Override
-    public void openEditor(Object object, boolean modifierPressed) {
+    public void openEditor(AbstractAction action, Class viewClass, Object id, boolean modifierPressed) {
         System.out.println("open editor");
 
-        ((MyUI)UI.getCurrent()).open(new EditorViewComponent(object));
+        ((MyUI)UI.getCurrent()).goTo(MDDNavigator.getPathForEditor(action, viewClass, id));
     }
 
     @Override

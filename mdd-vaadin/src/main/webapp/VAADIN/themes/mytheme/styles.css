@@ -15054,36 +15054,32 @@ div.v-layout.v-horizontal.v-widget {
 	background: grey;
 }
 
-.mytheme .miapp .viewcontainer {
+.mytheme .miapp #app {
+	display: flex;
+	width: 100%;
+	height: 100%;
+}
+
+.mytheme .miapp #app .contenedornavegacion {
+	display: flex;
+	float: left;
+}
+
+.mytheme .miapp #app .contenedorviews {
+	width: 100%;
+}
+
+.mytheme .miapp #app .contenedorviews .viewcontainer {
 	background-color: #97bee5;
 	padding: 0px;
 	margin: 0px;
 }
 
-.mytheme .miapp .viewcontainer .viewcomponent {
+.mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent .resultscomponent {
 	padding: 0px;
 	margin: 0px;
 }
 
-.mytheme .miapp .viewcontainer .viewcomponent .resultscomponent {
-	padding: 0px;
-	margin: 0px;
-}
-
-.mytheme .miapp[width-range~="0-499px"] {
-	background: red;
-}
-
-.mytheme .miapp[width-range~="0-499px"] .leftside {
-	background: green;
-	width: 10px;
-}
-
-.mytheme .miapp[width-range~="500px-"] {
-	background: blue;
-}
-
-.mytheme .miapp[width-range~="500px-"] .leftside {
-	background: brown;
-	width: 250px;
+.mytheme .miapp[width-range~="0-499px"] #app .contenedornavegacion {
+	display: none;
 }

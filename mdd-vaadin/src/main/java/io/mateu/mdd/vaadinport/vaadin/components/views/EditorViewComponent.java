@@ -14,29 +14,57 @@ import io.mateu.mdd.vaadinport.vaadin.components.fields.JPAFieldBuilder;
 import javax.persistence.EntityManager;
 import java.util.List;
 
-public class EditorViewComponent extends ViewComponent {
+public abstract class EditorViewComponent extends ViewComponent {
 
-    private final Object model;
+    private Object model;
+    private final Class modelType;
+
     private Binder binder;
 
+    public EditorViewComponent(Class modelType) {
+        this.modelType = modelType;
+        try {
+            this.model = modelType.newInstance();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        build();
+    }
+
+
     public EditorViewComponent(Object model) {
+        this.modelType = model.getClass();
         this.model = model;
 
         build();
+    }
 
+
+    public Object getModel() {
+        return model;
+    }
+
+    public void setModel(Object model) {
+        this.model = model;
+        binder.readBean(model);
+    }
+
+    public Class getModelType() {
+        return modelType;
     }
 
     private void build() {
 
         JPAFieldBuilder fieldBuilder = new JPAFieldBuilder();
 
-        Class c = model.getClass();
-
-        binder = new Binder(c);
+        binder = new Binder(modelType);
 
 
 
-        for (FieldInterfaced f : ReflectionHelper.getAllFields(c)) {
+        for (FieldInterfaced f : ReflectionHelper.getAllFields(modelType)) {
 
             if (fieldBuilder.isSupported(f)) fieldBuilder.build(f, model, this, binder);
 
@@ -68,12 +96,7 @@ public class EditorViewComponent extends ViewComponent {
     }
 
 
-    private void save() throws Throwable {
-        Helper.transact(new JPATransaction() {
-            @Override
-            public void run(EntityManager em) throws Throwable {
-                em.merge(model);
-            }
-        });
-    }
+    public abstract void save() throws Throwable;
+
+    public abstract void load(Object id) throws Throwable;
 }

@@ -4,11 +4,14 @@ import com.google.common.collect.Lists;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.VerticalLayout;
+import io.mateu.mdd.core.app.AbstractAction;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ViewComponent extends VerticalLayout {
+
+    private AbstractAction originatingAction;
 
     public ViewComponent() {
         build();
@@ -28,5 +31,14 @@ public class ViewComponent extends VerticalLayout {
 
     public void addMenuItems(MenuBar bar) {
 
+    }
+
+
+    public AbstractAction getOriginatingAction() {
+        return originatingAction;
+    }
+
+    public void setOriginatingAction(AbstractAction originatingAction) {
+        this.originatingAction = originatingAction;
     }
 }

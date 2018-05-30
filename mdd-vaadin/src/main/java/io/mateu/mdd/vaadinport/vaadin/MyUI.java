@@ -2,12 +2,16 @@ package io.mateu.mdd.vaadinport.vaadin;
 
 import javax.servlet.annotation.WebServlet;
 
+import com.vaadin.annotations.StyleSheet;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.annotations.Viewport;
+import com.vaadin.navigator.Navigator;
+import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Responsive;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServlet;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.UI;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractApplication;
@@ -17,6 +21,7 @@ import io.mateu.mdd.vaadinport.vaadin.components.views.EditorViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.views.JPAListViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.views.ViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.mdd.VaadinPort;
+import io.mateu.mdd.vaadinport.vaadin.navigation.MDDNavigator;
 
 import java.util.Iterator;
 import java.util.ServiceLoader;
@@ -29,10 +34,12 @@ import java.util.ServiceLoader;
  * overridden to add component to the user interface and initialize non-component functionality.
  */
 @Theme("mytheme")
+//@StyleSheet("https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css")
 @Viewport("width=device-width, initial-scale=1")
 public class MyUI extends UI {
 
     private AppComponent appComponent;
+    private MDDNavigator navegador;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -47,12 +54,24 @@ public class MyUI extends UI {
 
         MDD.setPort(new VaadinPort());
 
+        appComponent = new AppComponent(app);
 
-        setContent(appComponent = new AppComponent(app));
+        addNavigator();
+
+        setContent(appComponent);
+
     }
 
-    public void open(ViewComponent viewComponent) {
-        appComponent.open(viewComponent);
+    private void addNavigator() {
+
+        Navigator navigator = new Navigator(this, new Panel());
+
+        navigator.addViewChangeListener(navegador = new MDDNavigator(appComponent, navigator));
+
+    }
+
+    public void goTo(String path) {
+        navegador.goTo(path);
     }
 
     @WebServlet(urlPatterns = "/*", name = "MyUIServlet", asyncSupported = true)

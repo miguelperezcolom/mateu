@@ -1,5 +1,8 @@
 package io.mateu.mdd.core;
 
+import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.app.MDDAction;
+import io.mateu.mdd.core.app.MDDOpenEditorAction;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.views.RPCView;
 
@@ -22,12 +25,12 @@ public class MDD {
         getPort().alert(msg);
     }
 
-    public static void openCRUD(Class entityClass, String queryFilters, boolean modifierPressed) {
-        getPort().openCRUD(entityClass, queryFilters, modifierPressed);
+    public static void openCRUD(AbstractAction action, Class entityClass, String queryFilters, boolean modifierPressed) {
+        getPort().openCRUD(action, entityClass, queryFilters, modifierPressed);
     }
 
-    public static void openEditor(Object object, boolean modifierPressed) {
-        getPort().openEditor(object, modifierPressed);
+    public static void openEditor(AbstractAction action, Object object, boolean modifierPressed) {
+        getPort().openEditor(action, object, modifierPressed);
     }
 
     public static UserData getUserData() {

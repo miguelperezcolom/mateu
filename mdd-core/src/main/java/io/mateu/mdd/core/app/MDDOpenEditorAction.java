@@ -26,6 +26,6 @@ public class MDDOpenEditorAction extends AbstractAction {
 
     @Override
     public void run() {
-        MDD.openEditor(id, modifierPressed);
+        MDD.openEditor(this, id, modifierPressed);
     }
 }
