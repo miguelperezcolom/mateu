@@ -49,7 +49,7 @@ public class JPAListViewComponent extends ListViewComponent {
             @Override
             public void menuSelected(MenuBar.MenuItem menuItem) {
                 try {
-                    MDD.openEditor(getOriginatingAction(), null, false);
+                    MDD.openEditor(getOriginatingAction(), entityClass, null, false);
                 } catch (Throwable throwable) {
                     MDD.alert(throwable);
                 }

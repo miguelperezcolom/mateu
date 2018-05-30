@@ -29,8 +29,8 @@ public class MDD {
         getPort().openCRUD(action, entityClass, queryFilters, modifierPressed);
     }
 
-    public static void openEditor(AbstractAction action, Object object, boolean modifierPressed) {
-        getPort().openEditor(action, object, modifierPressed);
+    public static void openEditor(AbstractAction action, Class viewClass, Object object, boolean modifierPressed) {
+        getPort().openEditor(action, viewClass, object, modifierPressed);
     }
 
     public static UserData getUserData() {
