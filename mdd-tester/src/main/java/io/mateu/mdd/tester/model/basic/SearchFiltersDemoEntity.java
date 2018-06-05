@@ -1,5 +1,6 @@
 package io.mateu.mdd.tester.model.basic;
 
+import io.mateu.mdd.core.annotations.SearchFilter;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,23 +11,17 @@ import javax.persistence.Id;
 
 @Entity
 @Getter@Setter
-public class BasicFields {
+public class SearchFiltersDemoEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
 
-    private String stringField;
+    @SearchFilter
+    private String stringField = "zzzz";
 
     private int intField;
-
-    private long longField;
-
-    private double doubleField;
-
-    private boolean booleanField;
-
 
 
 }

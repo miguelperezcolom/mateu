@@ -7,7 +7,7 @@ import com.vaadin.ui.Label;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class ListViewComponent extends ViewComponent {
+public abstract class ListViewComponent extends AbstractViewComponent<ListViewComponent> {
 
     private ResultsComponent resultsComponent;
 
@@ -16,7 +16,12 @@ public abstract class ListViewComponent extends ViewComponent {
     private int count;
     private Label countLabel;
 
-    protected void build() {
+    @Override
+    public ListViewComponent build() {
+
+        super.build();
+
+        addStyleName("listviewcomponent");
         
         
         addComponent(new FiltersComponent(this));
@@ -26,6 +31,7 @@ public abstract class ListViewComponent extends ViewComponent {
 
         addComponentsAndExpand(resultsComponent = buildResultsComponent());
 
+        return this;
     }
 
 
@@ -57,4 +63,7 @@ public abstract class ListViewComponent extends ViewComponent {
 
     protected abstract int gatherCount();
 
+    public abstract Object deserializeId(String id);
+
+    public abstract String getPathForEditor(Object id);
 }

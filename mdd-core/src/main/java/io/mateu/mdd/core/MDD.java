@@ -1,6 +1,7 @@
 package io.mateu.mdd.core;
 
 import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.app.AbstractApplication;
 import io.mateu.mdd.core.app.MDDAction;
 import io.mateu.mdd.core.app.MDDOpenEditorAction;
 import io.mateu.mdd.core.data.UserData;
@@ -9,6 +10,7 @@ import io.mateu.mdd.core.views.RPCView;
 public class MDD {
 
     private static MDDPort port;
+    private static AbstractApplication app;
 
     public static MDDPort getPort() {
         return port;
@@ -44,5 +46,13 @@ public class MDD {
 
     public static void alert(Throwable throwable) {
         getPort().alert(throwable);
+    }
+
+    public static AbstractApplication getApp() {
+        return app;
+    }
+
+    public static void setApp(AbstractApplication app) {
+        MDD.app = app;
     }
 }

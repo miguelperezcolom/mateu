@@ -10,7 +10,7 @@ public abstract class AbstractAction implements MenuEntry, Runnable {
     private String name;
     private boolean callOnEnterKeyPressed = false;
     private boolean modifierPressed;
-    private String id = UUID.randomUUID().toString();
+    private final String id = UUID.randomUUID().toString();
 
 
     public AbstractAction(String name) {
@@ -50,12 +50,7 @@ public abstract class AbstractAction implements MenuEntry, Runnable {
     }
 
     @Override
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    @Override
     public int hashCode() {
-        return getId().hashCode();
+        return id.hashCode();
     }
 }

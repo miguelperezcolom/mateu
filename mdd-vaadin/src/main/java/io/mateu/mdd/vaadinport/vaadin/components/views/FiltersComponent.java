@@ -13,6 +13,15 @@ public class FiltersComponent extends CssLayout {
 
         this.listViewComponent = listViewComponent;
 
+
+        build();
+    }
+
+    private void build() {
+
+
+        addStyleName("filterscomponent");
+
         Button b;
         addComponent(b = new Button("Search"));
         b.addClickListener(new Button.ClickListener() {
@@ -25,6 +34,7 @@ public class FiltersComponent extends CssLayout {
                 }
             }
         });
+
 
     }
 }

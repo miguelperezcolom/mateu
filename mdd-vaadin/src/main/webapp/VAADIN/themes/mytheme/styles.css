@@ -15051,7 +15051,15 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .mytheme .miapp {
-	background: grey;
+	background: white;
+}
+
+.mytheme .miapp .v-slot-hidden {
+	display: none;
+}
+
+.mytheme .miapp .v-readonly {
+	border: none;
 }
 
 .mytheme .miapp #app {
@@ -15070,14 +15078,51 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .mytheme .miapp #app .contenedorviews .viewcontainer {
-	background-color: #97bee5;
+	background-color: white;
 	padding: 0px;
 	margin: 0px;
+}
+
+.mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent {
+	width: 100%;
+}
+
+.mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent .title {
+	font-size: 30px;
 }
 
 .mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent .resultscomponent {
 	padding: 0px;
 	margin: 0px;
+}
+
+.mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent.editorviewcomponent, .mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent.searchinmenucomponent, .mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent.showmenucomponent {
+	height: 100%;
+}
+
+.mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent.editorviewcomponent .v-slot-contentcontainer, .mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent.searchinmenucomponent .v-slot-contentcontainer, .mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent.showmenucomponent .v-slot-contentcontainer {
+	overflow: auto;
+	height: 100%;
+}
+
+.mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent.editorviewcomponent .v-slot-contentcontainer .contentcontainer, .mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent.searchinmenucomponent .v-slot-contentcontainer .contentcontainer, .mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent.showmenucomponent .v-slot-contentcontainer .contentcontainer {
+	padding: 0px;
+}
+
+.mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent.editorviewcomponent .v-slot-contentcontainer .contentcontainer .listaopcionesmenu, .mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent.searchinmenucomponent .v-slot-contentcontainer .contentcontainer .listaopcionesmenu, .mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent.showmenucomponent .v-slot-contentcontainer .contentcontainer .listaopcionesmenu {
+	padding: 0px;
+}
+
+.mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent.editorviewcomponent .v-slot-contentcontainer .contentcontainer .listaopcionesmenu .submenu, .mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent.searchinmenucomponent .v-slot-contentcontainer .contentcontainer .listaopcionesmenu .submenu, .mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent.showmenucomponent .v-slot-contentcontainer .contentcontainer .listaopcionesmenu .submenu {
+	padding: 0px;
+}
+
+.mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent.editorviewcomponent .v-slot-contentcontainer .contentcontainer .listaopcionesmenu .submenu .contenedorsubmenu, .mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent.searchinmenucomponent .v-slot-contentcontainer .contentcontainer .listaopcionesmenu .submenu .contenedorsubmenu, .mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent.showmenucomponent .v-slot-contentcontainer .contentcontainer .listaopcionesmenu .submenu .contenedorsubmenu {
+	padding: 0 0 0 5px;
+}
+
+.mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent.editorviewcomponent .v-slot-contentcontainer .contentcontainer .listaopcionesmenu .submenu .contenedorsubmenu .accionsubmenu, .mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent.searchinmenucomponent .v-slot-contentcontainer .contentcontainer .listaopcionesmenu .submenu .contenedorsubmenu .accionsubmenu, .mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent.showmenucomponent .v-slot-contentcontainer .contentcontainer .listaopcionesmenu .submenu .contenedorsubmenu .accionsubmenu {
+	padding: 0px;
 }
 
 .mytheme .miapp[width-range~="0-499px"] #app .contenedornavegacion {

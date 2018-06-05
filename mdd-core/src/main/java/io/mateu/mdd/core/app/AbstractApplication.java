@@ -31,6 +31,7 @@ public abstract class AbstractApplication implements App {
     private String baseUrl;
     private String port;
     private Map<AbstractArea, String> areaIds;
+    private Map<MenuEntry, AbstractArea> menuToArea;
     private Map<MenuEntry, String> menuIds;
     private Map<String, AbstractArea> areaIdsReversed;
     private Map<String, MenuEntry> menuIdsReversed;
@@ -101,6 +102,28 @@ public abstract class AbstractApplication implements App {
         return menuIdsReversed.get(id);
     }
 
+    public String getState(AbstractArea a) {
+        String u = "";
+
+        u += getAreaId(a);
+
+        return u;
+    }
+
+    public String getState(MenuEntry e) {
+        String u = "";
+
+        if (menuToArea == null) buildAreaAndMenuIds();
+
+        u += getAreaId(menuToArea.get(e));
+
+        u += "/";
+
+        u += getMenuId(e);
+
+        return u;
+    }
+
     public List<MenuEntry> getPath(MenuEntry e) {
         if (menuPaths == null) buildAreaAndMenuIds();
         return menuPaths.get(e);
@@ -111,7 +134,7 @@ public abstract class AbstractApplication implements App {
     }
 
     public List<AbstractArea> getAreas() {
-        if (areas == null) {
+        if (areas == null) synchronized (this) {
             areas = new ArrayList<>();
             boolean autentico = getUserData() != null;
             for (AbstractArea a : buildAreas()) {
@@ -122,12 +145,13 @@ public abstract class AbstractApplication implements App {
     }
 
 
-    private void buildAreaAndMenuIds() {
+    public synchronized void buildAreaAndMenuIds() {
         areaIds = new HashMap<>();
         menuIds = new HashMap<>();
         areaIdsReversed = new HashMap<>();
         menuIdsReversed = new HashMap<>();
         menuPaths = new HashMap<>();
+        menuToArea = new HashMap<>();
 
         for (AbstractArea a : getAreas()) {
             String id = a.getName().toLowerCase().replaceAll(" ", "");
@@ -139,13 +163,13 @@ public abstract class AbstractApplication implements App {
 
             for (AbstractModule m : a.getModules()) {
                 for (MenuEntry e : m.getMenu()) {
-                    buildMenuIds(id + "__", new ArrayList<>(), e);
+                    buildMenuIds(a,id + "__", new ArrayList<>(), e);
                 }
             }
         }
     }
 
-    private void buildMenuIds(String prefijo, List<MenuEntry> incomingPath, MenuEntry e) {
+    private void buildMenuIds(AbstractArea a, String prefijo, List<MenuEntry> incomingPath, MenuEntry e) {
         String id = e.getName().toLowerCase().replaceAll(" ", "");
 
         int pos = 0;
@@ -160,12 +184,14 @@ public abstract class AbstractApplication implements App {
         if (path == null) menuPaths.put(e, path = new ArrayList<>());
         path.addAll(incomingPath);
 
+        menuToArea.put(e, a);
+
         if (e instanceof AbstractMenu) {
             prefijo += id + "__";
             List<MenuEntry> outgoingPath = new ArrayList<>(path);
             outgoingPath.add(e);
             for (MenuEntry x : ((AbstractMenu) e).getEntries()) {
-                buildMenuIds(prefijo, outgoingPath, x);
+                buildMenuIds(a, prefijo, outgoingPath, x);
             }
         }
 

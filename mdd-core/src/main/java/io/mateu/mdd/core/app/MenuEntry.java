@@ -7,7 +7,5 @@ public interface MenuEntry {
 
     String getName();
 
-    void setId(String id);
-
     String getId();
 }

@@ -9,7 +9,7 @@ import java.util.UUID;
  */
 public abstract class AbstractArea {
 
-    private String id = UUID.randomUUID().toString();
+    private final String id = UUID.randomUUID().toString();
     private boolean publicAccess = false;
     private String name;
     private List<AbstractModule> modules;
@@ -27,7 +27,9 @@ public abstract class AbstractArea {
     }
 
     public List<AbstractModule> getModules() {
-        if (modules == null) modules = buildModules();
+        if (modules == null) synchronized (this) {
+            modules = buildModules();
+        }
         return modules;
     }
 
@@ -45,12 +47,8 @@ public abstract class AbstractArea {
         return id;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
     @Override
     public int hashCode() {
-        return getId().hashCode();
+        return id.hashCode();
     }
 }

@@ -20,13 +20,13 @@ public class ResultsComponent extends VerticalLayout {
 
         this.listViewComponent = listViewComponent;
 
-        addStyleName("resultscomponent");
-
         build();
 
     }
 
     private void build() {
+
+        addStyleName("resultscomponent");
 
         grid = new Grid<>();
 

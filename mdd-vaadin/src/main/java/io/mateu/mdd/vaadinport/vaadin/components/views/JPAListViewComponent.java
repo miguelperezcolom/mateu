@@ -8,16 +8,21 @@ import com.vaadin.ui.Grid;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.components.grid.SortOrderProvider;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
+import io.mateu.mdd.vaadinport.vaadin.MyUI;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Id;
 import javax.persistence.Query;
+import javax.persistence.Transient;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class JPAListViewComponent extends ListViewComponent {
@@ -25,25 +30,20 @@ public class JPAListViewComponent extends ListViewComponent {
     private final Class entityClass;
 
     public JPAListViewComponent(Class entityClass) {
-        super();
         this.entityClass = entityClass;
 
-        build();
+        setViewTitle(Helper.pluralize(Helper.capitalize(entityClass.getSimpleName())));
     }
 
-    protected void build() {
-
-        super.build();
-
-    }
 
     public Class getEntityClass() {
         return entityClass;
     }
 
+
     @Override
-    public void addMenuItems(MenuBar bar) {
-        super.addMenuItems(bar);
+    public void addViewActionsMenuItems(MenuBar bar) {
+        super.addViewActionsMenuItems(bar);
 
         bar.addItem("New", VaadinIcons.PLUS, new MenuBar.Command() {
             @Override
@@ -63,10 +63,15 @@ public class JPAListViewComponent extends ListViewComponent {
         return entityClass.newInstance();
     }
 
+
+    private List<FieldInterfaced> getColumnFields() {
+        return ReflectionHelper.getAllFields(entityClass).stream().filter((f) -> !f.isAnnotationPresent(Transient.class) && !f.isAnnotationPresent(Ignored.class) && !Modifier.isTransient(f.getModifiers())).collect(Collectors.toList());
+    }
+
     @Override
     public void buildColumns(Grid grid) {
         int pos = 0;
-        for (FieldInterfaced f : ReflectionHelper.getAllFields(entityClass)) {
+        for (FieldInterfaced f : getColumnFields()) {
             int finalPos = 1 + pos++;
              grid.addColumn(new ValueProvider() {
                 @Override
@@ -141,14 +146,44 @@ public class JPAListViewComponent extends ListViewComponent {
         return count[0];
     }
 
+    @Override
+    public Object deserializeId(String sid) {
+
+        FieldInterfaced idField = null;
+        for (FieldInterfaced f : ReflectionHelper.getAllFields(entityClass)) {
+            if (f.isAnnotationPresent(Id.class)) {
+                idField = f;
+                break;
+            }
+        }
+
+        Object id = sid;
+        if (idField != null) {
+
+            if (Long.class.equals(idField.getType()) || long.class.equals(idField.getType())) id = Long.parseLong(sid);
+            else if (Integer.class.equals(idField.getType()) || int.class.equals(idField.getType())) id = Integer.parseInt(sid);
+            else if (Boolean.class.equals(idField.getType()) || boolean.class.equals(idField.getType())) id = Boolean.parseBoolean(sid);
+            else if (Double.class.equals(idField.getType()) || double.class.equals(idField.getType())) id = Double.parseDouble(sid);
+
+        }
+        return id;
+    }
+
+    @Override
+    public String getPathForEditor(Object id) {
+        return ((MyUI) MyUI.getCurrent()).getPath(getOriginatingAction(), entityClass, id);
+    }
+
     private String buildFieldsPart(String alias) {
         String s = "";
         FieldInterfaced id = null;
-        for (FieldInterfaced f : ReflectionHelper.getAllFields(entityClass)) {
-            if (!"".equals(s)) s += ", ";
-            s += "" + alias + "." + f.getName();
+        for (FieldInterfaced f : getColumnFields()) {
 
-            if (f.isAnnotationPresent(Id.class)) id = f;
+                if (!"".equals(s)) s += ", ";
+                s += "" + alias + "." + f.getName();
+
+                if (f.isAnnotationPresent(Id.class)) id = f;
+
         }
 
         if (id != null) {

@@ -118,4 +118,14 @@ public class FieldInterfacedFromField implements io.mateu.mdd.core.reflection.Fi
     public void setValue(Object o, Object v) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         ReflectionHelper.setValue(this, o, v);
     }
+
+    @Override
+    public int getModifiers() {
+        return f.getModifiers();
+    }
+
+    @Override
+    public String toString() {
+        return getName();
+    }
 }

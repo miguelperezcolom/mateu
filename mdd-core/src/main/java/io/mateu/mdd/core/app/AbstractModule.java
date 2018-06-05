@@ -12,7 +12,9 @@ public abstract class AbstractModule {
     public abstract String getName();
 
     public List<MenuEntry> getMenu() {
-        if (menu == null) menu = buildMenu();
+        if (menu == null) synchronized (this) {
+            menu = buildMenu();
+        }
         return menu;
     }
 

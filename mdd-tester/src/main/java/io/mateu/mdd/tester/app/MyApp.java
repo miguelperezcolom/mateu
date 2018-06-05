@@ -18,7 +18,9 @@ public class MyApp extends AbstractApplication {
         return Arrays.asList((AbstractArea) new AbstractArea("Area 1") {
             @Override
             public List<AbstractModule> buildModules() {
-                return Arrays.asList(new Module());
+                return Arrays.asList(
+                        //new DeepMenusModule(),
+                        new Module());
             }
 
             @Override

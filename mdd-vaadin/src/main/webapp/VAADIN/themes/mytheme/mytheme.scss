@@ -31,6 +31,9 @@
 
 @import "../valo/valo.scss";
 
+@import "views/editor.scss";
+
+
 @mixin mytheme {
   @include valo;
 
@@ -40,7 +43,16 @@
 
   /* Various general settings */
   .miapp{
-    background: grey;
+
+    background: white;
+
+    .v-slot-hidden {
+      display: none;
+    }
+
+    .v-readonly {
+      border: none;
+    }
 
 
     #app {
@@ -55,30 +67,7 @@
       }
 
 
-      .contenedorviews {
-        width: 100%;
-
-
-
-        .viewcontainer {
-          background-color: #97bee5;
-          padding: 0px;
-          margin: 0px;
-
-
-          .viewcomponent {
-
-
-            .resultscomponent {
-              padding: 0px;
-              margin: 0px;
-            }
-
-          }
-        }
-
-
-      }
+      @include views;
 
     }
 
@@ -102,7 +91,7 @@
 
   .miapp[width-range~="500px-"] {
 
-}
+  }
 
 
 

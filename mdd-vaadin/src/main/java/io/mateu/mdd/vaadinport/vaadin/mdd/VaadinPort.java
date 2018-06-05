@@ -26,17 +26,17 @@ public class VaadinPort implements MDDPort {
     }
 
     @Override
-    public void openCRUD(AbstractAction action, Class entityClass, String queryFilters, boolean modifierPressed) {
+    public void openCRUD(AbstractAction action, Class viewClass, String queryFilters, boolean modifierPressed) {
         System.out.println("open crud");
 
-        ((MyUI)UI.getCurrent()).goTo(MDDNavigator.getPath(action, entityClass));
+        ((MyUI)UI.getCurrent()).goTo(action, viewClass);
     }
 
     @Override
     public void openEditor(AbstractAction action, Class viewClass, Object id, boolean modifierPressed) {
         System.out.println("open editor");
 
-        ((MyUI)UI.getCurrent()).goTo(MDDNavigator.getPathForEditor(action, viewClass, id));
+        ((MyUI)UI.getCurrent()).goTo(action, viewClass, id);
     }
 
     @Override
@@ -51,6 +51,8 @@ public class VaadinPort implements MDDPort {
 
     @Override
     public void alert(Throwable throwable) {
+        throwable.printStackTrace();
+
         StringWriter sw = new StringWriter();
         throwable.printStackTrace(new PrintWriter(sw));
         Notification.show("Error",

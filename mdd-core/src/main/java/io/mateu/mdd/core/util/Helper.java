@@ -286,9 +286,10 @@ public class Helper {
 
     public static String pluralize(String s) {
         if (s == null || "".equals(s)) return s;
-        String c = s + "s";
-        if (c.endsWith("ys")) c = c.replaceAll("ys$", "ies") ;
-        return c;
+        if (s.endsWith("s")) s += "es";
+        else s += "s";
+        if (s.endsWith("ys")) s = s.replaceAll("ys$", "ies") ;
+        return s;
     }
 
     public static String httpGet(String url) throws IOException {

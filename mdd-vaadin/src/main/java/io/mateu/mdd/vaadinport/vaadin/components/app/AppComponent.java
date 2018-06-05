@@ -36,4 +36,12 @@ public class AppComponent extends CustomLayout {
     public void open(ViewComponent viewComponent) {
         center.open(viewComponent);
     }
+
+    public AbstractApplication getApp() {
+        return app;
+    }
+
+    public void clear() {
+        center.removeAllComponents();
+    }
 }

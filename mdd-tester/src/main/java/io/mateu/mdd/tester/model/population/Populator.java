@@ -2,7 +2,7 @@ package io.mateu.mdd.tester.model.population;
 
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
-import io.mateu.mdd.tester.model.basic.BasicFields;
+import io.mateu.mdd.tester.model.basic.BasicFieldsDemoEntity;
 
 import javax.persistence.EntityManager;
 
@@ -15,7 +15,7 @@ public class Populator {
             public void run(EntityManager em) throws Throwable {
 
                 for (int i = 1000; i < 12000; i++) {
-                    BasicFields o = new BasicFields();
+                    BasicFieldsDemoEntity o = new BasicFieldsDemoEntity();
                     o.setIntField(i);
                     o.setStringField("Objeto básico " + i);
                     o.setLongField(i * 2);

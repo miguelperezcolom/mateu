@@ -39,4 +39,6 @@ public interface FieldInterfaced {
     public <T extends Annotation> T[] getDeclaredAnnotationsByType(Class<T> annotationClass);
 
     public void setValue(Object o, Object v) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException;
+
+    int getModifiers();
 }

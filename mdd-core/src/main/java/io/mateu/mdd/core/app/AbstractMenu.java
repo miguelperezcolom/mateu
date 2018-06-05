@@ -8,7 +8,7 @@ import java.util.UUID;
  */
 public abstract class AbstractMenu implements MenuEntry {
 
-    private String id = UUID.randomUUID().toString();
+    private final String id = UUID.randomUUID().toString();
 
     private String name;
     private List<MenuEntry> entries;
@@ -22,7 +22,7 @@ public abstract class AbstractMenu implements MenuEntry {
     }
 
     public List<MenuEntry> getEntries() {
-        if (entries == null) {
+        if (entries == null) synchronized (this) {
             entries = buildEntries();
         }
         return entries;
@@ -32,14 +32,10 @@ public abstract class AbstractMenu implements MenuEntry {
 
     @Override
     public int hashCode() {
-        return getId().hashCode();
+        return id.hashCode();
     }
 
     public String getId() {
         return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 }

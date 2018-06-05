@@ -106,7 +106,7 @@ public class ReflectionHelper {
         return x;
     }
 
-    private static Method getMethod(Class<?> c, String methodName) {
+    public static Method getMethod(Class<?> c, String methodName) {
         Method m = null;
         while (m == null) {
             try {
@@ -1226,6 +1226,11 @@ public class ReflectionHelper {
             @Override
             public void setValue(Object o, Object v) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
 
+            }
+
+            @Override
+            public int getModifiers() {
+                return p.getModifiers();
             }
         };
     }

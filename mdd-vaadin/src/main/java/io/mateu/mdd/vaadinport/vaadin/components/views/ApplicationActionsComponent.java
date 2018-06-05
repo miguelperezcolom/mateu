@@ -1,14 +1,12 @@
 package io.mateu.mdd.vaadinport.vaadin.components.views;
 
-import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.MenuBar;
-import io.mateu.mdd.core.app.AbstractAction;
 
-public class ActionsComponent extends CssLayout {
-    private final ViewComponent viewComponent;
+public class ApplicationActionsComponent extends CssLayout {
+    private final AbstractViewComponent viewComponent;
 
-    public ActionsComponent(ViewComponent viewComponent) {
+    public ApplicationActionsComponent(AbstractViewComponent viewComponent) {
         this.viewComponent = viewComponent;
 
         build();
@@ -16,9 +14,11 @@ public class ActionsComponent extends CssLayout {
 
     private void build() {
 
+        addStyleName("applicationactions");
+
         MenuBar bar = new MenuBar();
 
-        viewComponent.addMenuItems(bar);
+        viewComponent.addViewActionsMenuItems(bar);
 
         addComponent(bar);
 

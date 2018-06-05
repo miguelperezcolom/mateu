@@ -29,8 +29,10 @@ public class JPAEditorViewComponent extends EditorViewComponent {
     @Override
     public void load(Object id) throws Throwable {
         if (id == null) {
+            newRecord = true;
             setModel(getModelType().newInstance());
         } else {
+            newRecord = false;
             Helper.transact(new JPATransaction() {
                 @Override
                 public void run(EntityManager em) throws Throwable {
