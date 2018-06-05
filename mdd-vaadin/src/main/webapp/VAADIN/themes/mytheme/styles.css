@@ -15073,6 +15073,26 @@ div.v-layout.v-horizontal.v-widget {
 	float: left;
 }
 
+.mytheme .miapp #app .contenedornavegacion .navegacion .opcionmenu {
+	background: none;
+	color: inherit;
+	font-weight: inherit;
+}
+
+.mytheme .miapp #app .contenedornavegacion .navegacion .opcionmenu .valo-menu-badge {
+	padding: 2px 6px;
+	background-color: orangered;
+	background-image: none;
+}
+
+.mytheme .miapp #app .contenedornavegacion .navegacion .opcionmenu:hover {
+	color: darkorange;
+}
+
+.mytheme .miapp #app .contenedornavegacion .navegacion .opcionmenu:hover .valo-menu-badge {
+	color: orange;
+}
+
 .mytheme .miapp #app .contenedorviews {
 	width: 100%;
 }

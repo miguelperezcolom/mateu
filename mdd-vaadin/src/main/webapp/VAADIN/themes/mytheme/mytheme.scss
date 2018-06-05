@@ -64,6 +64,44 @@
       .contenedornavegacion {
         display: flex;
         float: left;
+
+
+        .navegacion {
+
+          .tituloarea {
+
+          }
+
+          .titulomodulo {
+
+          }
+
+          .opcionmenu {
+
+            background: none;
+            color: inherit;
+            font-weight: inherit;
+
+            .valo-menu-badge {
+              padding: 2px 6px;
+              background-color: orangered;
+              background-image: none;
+            }
+
+          }
+
+          .opcionmenu:hover {
+
+            color: darkorange;
+
+            .valo-menu-badge {
+              color: orange;
+            }
+
+          }
+
+        }
+
       }
 
 

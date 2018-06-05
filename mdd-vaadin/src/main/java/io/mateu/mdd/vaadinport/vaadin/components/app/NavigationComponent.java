@@ -10,14 +10,21 @@ public class NavigationComponent extends VerticalLayout {
 
     public NavigationComponent(AbstractApplication app) {
 
+        addStyleName("navegacion");
+        setSpacing(false);
+
+
         for (AbstractArea a : app.getAreas()) {
 
-            addComponent(new Label(a.getName()));
+            Label l;
+            addComponent(l = new Label(a.getName()));
+            l.addStyleName("tituloarea");
 
 
             for (AbstractModule m : a.getModules()) {
 
-                addComponent(new Label(m.getName()));
+                addComponent(l = new Label(m.getName()));
+                l.addStyleName("titulomodulo");
 
                 for (MenuEntry e : m.getMenu()) {
 
@@ -37,6 +44,7 @@ public class NavigationComponent extends VerticalLayout {
         Button b = new Button(e.getName() + ((e instanceof  AbstractMenu)?"<span class=\"valo-menu-badge\">" + ((AbstractMenu) e).getEntries().size() + "</span>":""));
         //b.setIcon(FontAwesome.TH_LIST);
         b.setPrimaryStyleName(ValoTheme.MENU_ITEM);
+        b.addStyleName("opcionmenu");
         b.addStyleName("selected");
         b.setCaptionAsHtml(true);
         addComponent(b);
