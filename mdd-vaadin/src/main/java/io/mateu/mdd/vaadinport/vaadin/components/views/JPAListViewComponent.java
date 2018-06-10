@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.views;
 
+import com.google.common.base.Strings;
 import com.vaadin.data.ValueProvider;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.icons.VaadinIcons;
@@ -9,19 +10,21 @@ import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.components.grid.SortOrderProvider;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Ignored;
+import io.mateu.mdd.core.annotations.SearchFilter;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Id;
-import javax.persistence.Query;
-import javax.persistence.Transient;
+import javax.persistence.*;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -40,6 +43,15 @@ public class JPAListViewComponent extends ListViewComponent {
         return entityClass;
     }
 
+    @Override
+    public Class getModelTypeForSearchFilters() {
+        return entityClass;
+    }
+
+    @Override
+    public Object getModelForSearchFilters() throws InstantiationException, IllegalAccessException {
+        return createNewInstance();
+    }
 
     @Override
     public void addViewActionsMenuItems(MenuBar bar) {
@@ -91,7 +103,7 @@ public class JPAListViewComponent extends ListViewComponent {
     }
 
     @Override
-    public List findAll(List<QuerySortOrder> sortOrders, int offset, int limit) {
+    public List findAll(Object filters, List<QuerySortOrder> sortOrders, int offset, int limit) {
         List l = new ArrayList();
 
         try {
@@ -99,18 +111,7 @@ public class JPAListViewComponent extends ListViewComponent {
                 @Override
                 public void run(EntityManager em) throws Throwable {
 
-                    String alias = "x";
-
-                    String jpql = "select " + buildFieldsPart(alias) + " from " + entityClass.getName() + " x";
-                    String oc = "";
-                    for (QuerySortOrder qso : sortOrders) {
-                        if (!"".equals(oc)) oc += ", ";
-                        oc += alias + "." + qso.getSorted() + " " + ((SortDirection.DESCENDING.equals(qso.getDirection()))?"desc":"asc");
-                    }
-                    if (!"".equals(oc)) jpql += " order by " + oc;
-
-                    Query q = em.createQuery(jpql).setFirstResult(offset).setMaxResults(limit);
-                    System.out.println(q.toString());
+                    Query q = buildQuery(em, (alias) -> buildFieldsPart(alias), filters, sortOrders, offset, limit);
 
                     l.addAll(q.getResultList());
 
@@ -123,8 +124,72 @@ public class JPAListViewComponent extends ListViewComponent {
         return l;
     }
 
+    private Query buildQuery(EntityManager em, Function<String, String> fieldsPartBuilderFunction, Object filters, List<QuerySortOrder> sortOrders, int offset, int limit) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        String alias = "x";
+
+        String jpql = "select " + fieldsPartBuilderFunction.apply(alias) + " from " + entityClass.getName() + " x ";
+
+        Map<String, Object> parameterValues = new HashMap<>();
+        String w = "";
+        w = buildWhereClause(filters, entityClass, parameterValues);
+        if (!"".equals(w)) jpql += " where " + w;
+
+
+        String oc = "";
+        if (sortOrders != null) for (QuerySortOrder qso : sortOrders) {
+            if (!"".equals(oc)) oc += ", ";
+            oc += alias + "." + qso.getSorted() + " " + ((SortDirection.DESCENDING.equals(qso.getDirection()))?"desc":"asc");
+        }
+        if (!"".equals(oc)) jpql += " order by " + oc;
+
+        Query q = em.createQuery(jpql).setFirstResult(offset).setMaxResults(limit);
+        for (String k : parameterValues.keySet()) q.setParameter(k, parameterValues.get(k));
+        System.out.println(q.toString());
+        return q;
+    }
+
+    private String buildWhereClause(Object filters, Class entityClass, Map<String, Object> parameterValues) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+
+        if (filters == null) return "";
+
+        List<FieldInterfaced> allFields = ReflectionHelper.getAllFields(entityClass);
+
+        allFields = allFields.stream().filter((f) ->
+                !(f.isAnnotationPresent(Ignored.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))
+        ).collect(Collectors.toList());
+
+        //todo: contemplar caso varias anttaciones @SearchFilter para un mismo campo
+
+        String ql = "";
+
+        for (FieldInterfaced f : allFields) if (f.isAnnotationPresent(SearchFilter.class)) {
+
+            Object v = ReflectionHelper.getValue(f, filters);
+
+            if (v != null) {
+
+                if (String.class.equals(v.getClass())) {
+
+                    String s = (String) v;
+
+                    if (!Strings.isNullOrEmpty(s)) {
+                        if (!"".equals(ql)) ql += " and ";
+                        ql += " lower(x." + f.getName() + ") like :" + f.getName() + " ";
+                        parameterValues.put(f.getName(), "%" + ((String) v).toLowerCase() + "%");
+                    }
+
+                }
+
+            }
+
+
+        }
+
+        return ql;
+    }
+
     @Override
-    public int gatherCount() {
+    public int gatherCount(Object filters) {
         final int[] count = {0};
 
         try {
@@ -132,7 +197,7 @@ public class JPAListViewComponent extends ListViewComponent {
                 @Override
                 public void run(EntityManager em) throws Throwable {
 
-                    Query q = em.createQuery("select count(x) from " + entityClass.getName() + " x");
+                    Query q = buildQuery(em, (alias) -> "count(" + alias + ")", filters, null, 0, 1000);
                     System.out.println(q.toString());
 
                     count[0] = ((Long) q.getSingleResult()).intValue();

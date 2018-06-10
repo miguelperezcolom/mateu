@@ -10,7 +10,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     private Label titleLabel;
     private String title = "View title";
 
-    public A build() {
+    public A build() throws InstantiationException, IllegalAccessException {
 
         addStyleName("viewcomponent");
 

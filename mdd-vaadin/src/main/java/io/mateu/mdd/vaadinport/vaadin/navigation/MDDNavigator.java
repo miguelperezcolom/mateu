@@ -58,7 +58,7 @@ public class MDDNavigator implements ViewChangeListener {
         //Page.getCurrent().open(path, (event.isAltKey() || event.isCtrlKey())?"_blank":Page.getCurrent().getWindowName()
     }
 
-    private ViewComponent getComponentForState(String state) throws ClassNotFoundException {
+    private ViewComponent getComponentForState(String state) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
 
         System.out.println("MDDNavigator.beforeViewChange: state=" + state);
 
@@ -180,6 +180,10 @@ public class MDDNavigator implements ViewChangeListener {
 
 
         } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
             e.printStackTrace();
         }
 

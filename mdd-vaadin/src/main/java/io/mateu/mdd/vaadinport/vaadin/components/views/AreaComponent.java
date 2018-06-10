@@ -21,7 +21,7 @@ public class AreaComponent extends AbstractViewComponent {
     }
 
     @Override
-    public AreaComponent build() {
+    public AreaComponent build() throws IllegalAccessException, InstantiationException {
 
         super.build();
 

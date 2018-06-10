@@ -4,6 +4,8 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.tester.model.basic.*;
+import io.mateu.mdd.tester.model.relations.OneToOneReferenced;
+import io.mateu.mdd.tester.model.relations.OneToOneReferencer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +49,8 @@ public class Module extends AbstractModule {
                 List<MenuEntry> l = new ArrayList<>();
 
                 l.add(new MDDMenu("Fields", "Enumeration field", EnumerationFieldDemoEntity.class, "TextArea", TextAreaFieldDemoEntity.class));
+
+                l.add(new MDDMenu("@OneToOne", "Referenced", OneToOneReferenced.class, "Referencer", OneToOneReferencer.class));
 
                 l.add(new MDDMenu("Relations", "@ManyToOne", ManyToOneFieldDemoEntity.class));
 

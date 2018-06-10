@@ -2,10 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.views;
 
 import com.vaadin.data.*;
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Layout;
-import com.vaadin.ui.MenuBar;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.annotations.Output;
@@ -15,10 +12,12 @@ import io.mateu.mdd.core.interfaces.VoidStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.vaadinport.vaadin.components.fields.JPAFieldBuilder;
 import io.mateu.mdd.vaadinport.vaadin.components.fields.JPAOutputFieldBuilder;
 import io.mateu.mdd.vaadinport.vaadin.data.ChangeNotificationListener;
 import io.mateu.mdd.vaadinport.vaadin.data.MDDBinder;
+import io.mateu.mdd.vaadinport.vaadin.navigation.MDDNavigator;
 import javafx.beans.value.ChangeListener;
 
 import javax.persistence.GeneratedValue;
@@ -73,7 +72,7 @@ public abstract class EditorViewComponent extends AbstractViewComponent {
     }
 
     @Override
-    public EditorViewComponent build() {
+    public EditorViewComponent build() throws IllegalAccessException, InstantiationException {
 
         super.build();
 
@@ -159,6 +158,11 @@ public abstract class EditorViewComponent extends AbstractViewComponent {
                     //binder.writeBean(model);
 
                     save();
+
+                    // cambiamos la url, para reflejar el cambio
+
+                    ((MyUI)UI.getCurrent()).goTo(getOriginatingAction(), getModelType(), ReflectionHelper.getId(model));
+
                 } catch (Throwable throwable) {
                     MDD.alert(throwable);
                 }

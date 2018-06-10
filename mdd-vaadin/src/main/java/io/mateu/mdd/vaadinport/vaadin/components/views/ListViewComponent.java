@@ -17,7 +17,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     private Label countLabel;
 
     @Override
-    public ListViewComponent build() {
+    public ListViewComponent build() throws InstantiationException, IllegalAccessException {
 
         super.build();
 
@@ -41,8 +41,8 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
     public abstract void buildColumns(Grid grid);
 
-    public void search() throws Throwable {
-        resultsComponent.search();
+    public void search(Object filters) throws Throwable {
+        resultsComponent.search(filters);
     }
 
     public void addListener(ListViewComponentListener listener) {
@@ -54,16 +54,25 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         for (ListViewComponentListener l : listeners) l.onEdit(id);
     };
 
-    public abstract List findAll(List<QuerySortOrder> sortOrders, int offset, int limit);
-    public int count() {
-        count = gatherCount();
+    public abstract List findAll(Object filters, List<QuerySortOrder> sortOrders, int offset, int limit);
+
+    public int count(Object filters) {
+        count = gatherCount(filters);
         countLabel.setValue("" + count + " matches.");
         return count;
     }
 
-    protected abstract int gatherCount();
+    protected abstract int gatherCount(Object filters);
 
     public abstract Object deserializeId(String id);
 
     public abstract String getPathForEditor(Object id);
+
+    public Class getModelTypeForSearchFilters() {
+        return this.getClass();
+    }
+
+    public Object getModelForSearchFilters() throws InstantiationException, IllegalAccessException {
+        return this;
+    }
 }

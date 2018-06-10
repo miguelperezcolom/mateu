@@ -21,6 +21,7 @@ public abstract class JPAFieldBuilder {
             , new JPALongFieldBuilder()
             , new JPADoubleFieldBuilder()
             , new JPABooleanFieldBuilder()
+            , new JPAEnumerationFieldBuilder()
     );
 
     public abstract boolean isSupported(FieldInterfaced field);

@@ -4,10 +4,7 @@ import io.mateu.mdd.core.annotations.SearchFilter;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
 @Getter@Setter
@@ -19,9 +16,11 @@ public class EnumerationFieldDemoEntity {
 
 
     @SearchFilter
-    private String stringField = "zzzz";
+    private String stringField;
 
-    private DemoEnumeration enumerationField;
+    @Enumerated(EnumType.STRING)
+    private DemoEnumeration enumerationFieldAsString;
 
+    private DemoEnumeration enumerationFieldAsOrdinal;
 
 }

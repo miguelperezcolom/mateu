@@ -3,6 +3,7 @@ package io.mateu.mdd.vaadinport.vaadin.data;
 import com.google.common.base.Strings;
 import com.vaadin.data.HasValue;
 import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.TextField;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
@@ -319,6 +320,27 @@ public class MDDBinder {
             @Override
             public void changed(ObservableValue<? extends Object> observable, Object oldValue, Object newValue) {
                 tf.setValue((newValue == null)?"":"" + newValue);
+            }
+        });
+    }
+
+    public void bindEnum(ComboBox c, String fieldName) {
+        Property p = vaadinSideProperties.get(fieldName);
+        if (p == null) {
+            p = new SimpleObjectProperty();
+            vaadinSideProperties.put(fieldName, p);
+        } else c.setValue(p.getValue());
+        p.addListener(new ChangeListener<Object>() {
+            @Override
+            public void changed(ObservableValue<? extends Object> observable, Object oldValue, Object newValue) {
+                c.setValue(newValue);
+            }
+        });
+        Property finalP = p;
+        c.addValueChangeListener(new HasValue.ValueChangeListener() {
+            @Override
+            public void valueChange(HasValue.ValueChangeEvent valueChangeEvent) {
+                finalP.setValue(valueChangeEvent.getValue());
             }
         });
     }

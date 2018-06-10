@@ -23,11 +23,11 @@ public class SearchInMenuComponent extends AbstractViewComponent {
     }
 
     @Override
-    public SearchInMenuComponent build() {
+    public SearchInMenuComponent build() throws IllegalAccessException, InstantiationException {
 
         super.build();
 
-        addStyleName("seachinmenucomponent");
+        addStyleName("searchinmenucomponent");
 
 
         TextField t;

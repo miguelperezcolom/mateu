@@ -15,6 +15,7 @@ public class ResultsComponent extends VerticalLayout {
 
     private final ListViewComponent listViewComponent;
     private Grid grid;
+    private Object filters;
 
     public ResultsComponent(ListViewComponent listViewComponent) {
 
@@ -46,7 +47,7 @@ public class ResultsComponent extends VerticalLayout {
         grid.setSizeFull();
 
 
-        DataProvider p = DataProvider.fromFilteringCallbacks(query -> listViewComponent.findAll(query.getSortOrders(), query.getOffset(), query.getLimit()).stream(), query -> listViewComponent.count());
+        DataProvider p = DataProvider.fromFilteringCallbacks(query -> listViewComponent.findAll(filters, query.getSortOrders(), query.getOffset(), query.getLimit()).stream(), query -> listViewComponent.count(filters));
 
         grid.setDataProvider(p);
         grid.setColumnReorderingAllowed(true);
@@ -115,7 +116,8 @@ public class ResultsComponent extends VerticalLayout {
         }
     }
 
-    public void search() throws Throwable {
+    public void search(Object filters) throws Throwable {
+        this.filters = filters;
         grid.getDataProvider().refreshAll();
     }
 }

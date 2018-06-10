@@ -980,6 +980,18 @@ public class ReflectionHelper {
         return f;
     }
 
+    public static Object getId(Object model) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        FieldInterfaced idField = null;
+        for (FieldInterfaced f : ReflectionHelper.getAllFields(model.getClass())) {
+            if (f.isAnnotationPresent(Id.class)) {
+                idField = f;
+                break;
+            }
+        }
+
+        return ReflectionHelper.getValue(idField, model);
+    }
+
     public Object runInServer(UserData user, String className, String methodName, Data parameters, String rpcViewClassName, Data rpcViewData) throws Throwable {
         Class c = Class.forName(className);
         Method m = null;

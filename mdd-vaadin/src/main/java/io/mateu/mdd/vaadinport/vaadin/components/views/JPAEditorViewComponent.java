@@ -21,7 +21,8 @@ public class JPAEditorViewComponent extends EditorViewComponent {
         Helper.transact(new JPATransaction() {
             @Override
             public void run(EntityManager em) throws Throwable {
-                em.merge(getModel());
+                Object m = getModel();
+                setModel(em.merge(m));
             }
         });
     }

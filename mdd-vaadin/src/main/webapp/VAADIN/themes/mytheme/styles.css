@@ -15111,6 +15111,11 @@ div.v-layout.v-horizontal.v-widget {
 	font-size: 30px;
 }
 
+.mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent .filterscomponent .contentcontainer * {
+	margin-right: 10px;
+	margin-bottom: 5px;
+}
+
 .mytheme .miapp #app .contenedorviews .viewcontainer .viewcomponent .resultscomponent {
 	padding: 0px;
 	margin: 0px;

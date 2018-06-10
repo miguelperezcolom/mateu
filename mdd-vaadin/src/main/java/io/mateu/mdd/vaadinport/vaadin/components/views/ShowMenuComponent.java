@@ -24,7 +24,7 @@ public class ShowMenuComponent extends AbstractViewComponent {
     }
 
     @Override
-    public ShowMenuComponent build() {
+    public ShowMenuComponent build() throws IllegalAccessException, InstantiationException {
 
         super.build();
 

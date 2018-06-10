@@ -25,7 +25,7 @@ public class ChangeAreaComponent extends AbstractViewComponent {
     }
 
     @Override
-    public ChangeAreaComponent build() {
+    public ChangeAreaComponent build() throws IllegalAccessException, InstantiationException {
 
         super.build();
 
