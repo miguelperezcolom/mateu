@@ -15,12 +15,11 @@ import com.vaadin.server.VaadinServlet;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.UI;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.AbstractApplication;
-import io.mateu.mdd.core.app.AbstractArea;
-import io.mateu.mdd.core.app.MenuEntry;
+import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.interfaces.App;
 import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.flow.FlowComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.flow.views.LoginFlowComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.views.EditorViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.views.JPAListViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.views.ViewComponent;
@@ -52,9 +51,9 @@ import java.util.ServiceLoader;
 @PreserveOnRefresh
 public class MyUI extends UI {
 
-    private AppComponent appComponent;
     private MDDNavigator navegador;
     private Navigator navigator;
+    private FlowComponent flowComponent;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -70,13 +69,14 @@ public class MyUI extends UI {
 
         MDD.setPort(new VaadinPort());
 
-        MDD.setApp(app);
+        MDD.setApp((BaseMDDApp) app);
 
-        appComponent = new AppComponent(app);
+        flowComponent = new FlowComponent();
 
         addNavigator();
 
-        setContent(appComponent);
+
+        setContent(flowComponent);
 
     }
 
@@ -89,6 +89,7 @@ public class MyUI extends UI {
         System.out.println("MyUI.refresh: new state = " + state);
         navigator.navigateTo(state);
     }
+
 
 
     @WebServlet(urlPatterns = "/*", name = "MyUIServlet", asyncSupported = true)
@@ -121,7 +122,7 @@ public class MyUI extends UI {
             }
         });
 
-        navegador = new MDDNavigator(appComponent, navigator);
+        navegador = new MDDNavigator(flowComponent, navigator);
 
         navigator.addViewChangeListener(navegador);
     }
@@ -130,9 +131,15 @@ public class MyUI extends UI {
         return navegador.getPath(action, viewClass, id);
     }
 
+    public String getPath(AbstractAction action, Class viewClass) {
+        return navegador.getPath(action, viewClass);
+    }
+
     public void goTo(String path) {
         navegador.goTo(path);
     }
+
+    public void go(String relativePath) { navegador.go(relativePath); }
 
     public void goTo(AbstractAction action, Class viewClass) {
         navegador.goTo(navegador.getPath(action, viewClass));
@@ -141,6 +148,11 @@ public class MyUI extends UI {
     public void goTo(AbstractAction action, Class viewClass, Object id) {
         navegador.goTo(navegador.getPath(action, viewClass, id));
     }
+
+    public void goTo(AbstractModule m) {
+        navegador.goTo(navegador.getPath(m));
+    }
+
 
     public void goTo(MenuEntry e) {
         navegador.goTo(navegador.getPath(e));

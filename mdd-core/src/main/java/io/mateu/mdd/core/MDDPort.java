@@ -1,6 +1,9 @@
 package io.mateu.mdd.core;
 
 import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.app.AbstractArea;
+import io.mateu.mdd.core.app.AbstractModule;
+import io.mateu.mdd.core.app.MenuEntry;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.views.RPCView;
 
@@ -17,4 +20,14 @@ public interface MDDPort {
     void openView(RPCView v, boolean modifierPressed);
 
     void alert(Throwable throwable);
+
+    void setUserData(UserData userData);
+
+    void openPrivateAreaSelector();
+
+    void open(AbstractArea a);
+
+    void open(MenuEntry m);
+
+    void open(AbstractModule m);
 }

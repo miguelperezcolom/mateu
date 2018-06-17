@@ -5,6 +5,7 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
+import io.mateu.mdd.vaadinport.vaadin.components.app.flow.AbstractMDDExecutionContext;
 
 public class NavigationComponent extends VerticalLayout {
 
@@ -58,7 +59,7 @@ public class NavigationComponent extends VerticalLayout {
                 } else if (e instanceof AbstractAction) {
                     AbstractAction a = (AbstractAction) e;
                     a.setModifierPressed(event.isAltKey() || event.isCtrlKey());
-                    a.run();
+                    a.run(new AbstractMDDExecutionContext());
                 }
 
             }

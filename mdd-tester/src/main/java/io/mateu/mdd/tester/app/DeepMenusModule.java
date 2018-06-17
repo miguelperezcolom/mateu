@@ -1,10 +1,7 @@
 package io.mateu.mdd.tester.app;
 
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.AbstractMenu;
-import io.mateu.mdd.core.app.AbstractModule;
-import io.mateu.mdd.core.app.MenuEntry;
+import io.mateu.mdd.core.app.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,8 +44,8 @@ public class DeepMenusModule extends AbstractModule {
         } else {
             m = new AbstractAction("Action " + id) {
                 @Override
-                public void run() {
-                    MDD.alert("Hello from option " + id);
+                public void run(MDDExecutionContext context) {
+                    context.alert("Hello from option " + id);
                 }
             };
         }

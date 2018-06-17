@@ -1,16 +1,13 @@
 package io.mateu.mdd.core;
 
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.AbstractApplication;
-import io.mateu.mdd.core.app.MDDAction;
-import io.mateu.mdd.core.app.MDDOpenEditorAction;
+import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.views.RPCView;
 
 public class MDD {
 
     private static MDDPort port;
-    private static AbstractApplication app;
+    private static BaseMDDApp app;
 
     public static MDDPort getPort() {
         return port;
@@ -35,6 +32,10 @@ public class MDD {
         getPort().openEditor(action, viewClass, object, modifierPressed);
     }
 
+    public static void setUserData(UserData userData) {
+        getPort().setUserData(userData);
+    }
+
     public static UserData getUserData() {
         return getPort().getUserData();
     }
@@ -48,11 +49,27 @@ public class MDD {
         getPort().alert(throwable);
     }
 
-    public static AbstractApplication getApp() {
+    public static BaseMDDApp getApp() {
         return app;
     }
 
-    public static void setApp(AbstractApplication app) {
+    public static void setApp(BaseMDDApp app) {
         MDD.app = app;
+    }
+
+    public static void openPrivateAreaSelector() {
+        getPort().openPrivateAreaSelector();
+    }
+
+    public static void open(AbstractArea a) {
+        getPort().open(a);
+    }
+
+    public static void open(AbstractModule m) {
+        getPort().open(m);
+    }
+
+    public static void open(MenuEntry m) {
+        getPort().open(m);
     }
 }

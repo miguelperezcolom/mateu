@@ -4,11 +4,7 @@ import com.google.common.base.Strings;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
-
-import javax.persistence.EntityManager;
 
 public class CRUDViewComponent extends HorizontalLayout implements ListViewComponentListener, ViewComponent {
 
@@ -31,8 +27,8 @@ public class CRUDViewComponent extends HorizontalLayout implements ListViewCompo
 
         addStyleName("crudviewcomponent");
 
-        addComponentsAndExpand(listViewComponent);
-        addComponentsAndExpand(editorViewComponent);
+        //addComponentsAndExpand(listViewComponent);
+        //addComponentsAndExpand(editorViewComponent);
 
         return this;
     }
@@ -40,7 +36,7 @@ public class CRUDViewComponent extends HorizontalLayout implements ListViewCompo
     @Override
     public void onEdit(Object id) {
         try {
-            ((MyUI)UI.getCurrent()).goTo(listViewComponent.getPathForEditor(id));
+            ((MyUI)UI.getCurrent()).go(listViewComponent.getPathForEditor(id));
         } catch (Throwable throwable) {
             MDD.alert(throwable);
         }
@@ -82,5 +78,23 @@ public class CRUDViewComponent extends HorizontalLayout implements ListViewCompo
         this.originatingAction = action;
         listViewComponent.setOriginatingAction(action);
         editorViewComponent.setOriginatingAction(action);
+    }
+
+    @Override
+    public String getViewTitle() {
+        return listViewComponent.getViewTitle();
+    }
+
+
+    public ListViewComponent getListViewComponent() {
+        return listViewComponent;
+    }
+
+    public EditorViewComponent getEditorViewComponent() {
+        return editorViewComponent;
+    }
+
+    public Component getFiltersViewComponent() {
+        return listViewComponent.getFiltersViewComponent();
     }
 }

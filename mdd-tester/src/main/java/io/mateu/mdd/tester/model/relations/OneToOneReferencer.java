@@ -26,7 +26,10 @@ public class OneToOneReferencer {
     private OneToOneReferenced referencedNotNull;
 
 
-    @OneToOne(mappedBy = "referencer")
+    @OneToOne
     private OneToOneReferenced referencedMapped;
+
+    @OneToOne(mappedBy = "referencerMapper")
+    private OneToOneReferenced referencedMapper;
 
 }

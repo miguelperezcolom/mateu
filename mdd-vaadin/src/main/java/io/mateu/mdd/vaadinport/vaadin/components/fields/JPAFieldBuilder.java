@@ -22,6 +22,11 @@ public abstract class JPAFieldBuilder {
             , new JPADoubleFieldBuilder()
             , new JPABooleanFieldBuilder()
             , new JPAEnumerationFieldBuilder()
+            , new JPAOneToOneFieldBuilder()
+            , new JPAManyToOneFieldBuilder()
+            , new JPAOneToManyFieldBuilder()
+            , new JPALocalDateFieldBuilder()
+            , new JPALocalDateTimeFieldBuilder()
     );
 
     public abstract boolean isSupported(FieldInterfaced field);

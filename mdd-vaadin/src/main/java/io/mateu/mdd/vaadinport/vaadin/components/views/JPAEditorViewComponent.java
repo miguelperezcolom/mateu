@@ -21,6 +21,7 @@ public class JPAEditorViewComponent extends EditorViewComponent {
         Helper.transact(new JPATransaction() {
             @Override
             public void run(EntityManager em) throws Throwable {
+                for (Object o : getMergeables()) em.merge(o);
                 Object m = getModel();
                 setModel(em.merge(m));
             }
@@ -34,7 +35,7 @@ public class JPAEditorViewComponent extends EditorViewComponent {
             setModel(getModelType().newInstance());
         } else {
             newRecord = false;
-            Helper.transact(new JPATransaction() {
+            Helper.notransact(new JPATransaction() {
                 @Override
                 public void run(EntityManager em) throws Throwable {
                     setModel(em.find(getModelType(), id));

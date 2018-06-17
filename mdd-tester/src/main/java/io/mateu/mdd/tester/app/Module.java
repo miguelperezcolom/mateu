@@ -21,15 +21,19 @@ public class Module extends AbstractModule {
         List<MenuEntry> m = new ArrayList<>();
 
         m.add(new AbstractAction("Alert") {
+
             @Override
-            public void run() {
-                MDD.alert("Hola!");
+            public void run(MDDExecutionContext context) {
+                context.alert("Hola!");
             }
+
         });
 
         m.add(new MDDOpenEditorAction("AppConfig", AppConfig.class, 1l));
 
         m.add(new MDDAction("Basic fields", BasicFieldsDemoEntity.class));
+
+        m.add(new MDDAction("Date fields", DateTimeFieldsDemoEntity.class));
 
         m.add(new MDDAction("Basic fields with validation", BasicFieldsWithValidationDemoEntity.class));
 
@@ -50,11 +54,23 @@ public class Module extends AbstractModule {
 
                 l.add(new MDDMenu("Fields", "Enumeration field", EnumerationFieldDemoEntity.class, "TextArea", TextAreaFieldDemoEntity.class));
 
-                l.add(new MDDMenu("@OneToOne", "Referenced", OneToOneReferenced.class, "Referencer", OneToOneReferencer.class));
 
-                l.add(new MDDMenu("Relations", "@ManyToOne", ManyToOneFieldDemoEntity.class));
+                l.add(new AbstractMenu("Relations") {
+                    @Override
+                    public List<MenuEntry> buildEntries() {
+                        List<MenuEntry> l = new ArrayList<>();
 
-                l.add(new MDDMenu("@Owned", "ManyToOne", ManyToOneFieldDemoEntity.class));
+                        l.add(new MDDMenu("@OneToOne", "Referenced", OneToOneReferenced.class, "Referencer", OneToOneReferencer.class));
+
+                        l.add(new MDDMenu("@ManyToTone", "Destination", ManyToOneFieldDemoDestinationEntity.class, "Source", ManyToOneFieldDemoEntity.class));
+
+                        l.add(new MDDMenu("@Owned", "ManyToOne", ManyToOneFieldDemoEntity.class));
+
+                        return l;
+                    }
+                });
+
+
 
                 return l;
             }

@@ -1,6 +1,7 @@
 package io.mateu.mdd.core.reflection;
 
 import com.google.common.base.Strings;
+import com.sun.javafx.collections.ObservableSetWrapper;
 import io.mateu.mdd.core.data.*;
 import io.mateu.mdd.core.util.DatesRange;
 import io.mateu.mdd.core.util.Helper;
@@ -64,11 +65,14 @@ public class ReflectionHelper {
             o = getInstance(o, fn.substring(0, fn.indexOf(".")));
             setValue(fn.substring(fn.indexOf(".") + 1), o, v);
         } else {
+            if (v instanceof ObservableSetWrapper) v = new ArrayList((Collection) v);
             BeanUtils.setProperty(o, fn, v);
         }
     }
 
     public static Object getValue(io.mateu.mdd.core.reflection.FieldInterfaced f, Object o) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+
+        if (o == null) return null;
 
         if (f.getId().contains(".")) {
             o = getInstance(o, f.getId().substring(0, f.getId().lastIndexOf(".")));
@@ -990,6 +994,77 @@ public class ReflectionHelper {
         }
 
         return ReflectionHelper.getValue(idField, model);
+    }
+
+    public static FieldInterfaced getNameField(Class entityClass) {
+        FieldInterfaced fName = null;
+        Method toStringMethod = getMethod(entityClass, "toString");
+        boolean toStringIsOverriden = toStringMethod != null && toStringMethod.getDeclaringClass().equals(entityClass);
+        if (!toStringIsOverriden) {
+            boolean hayName = false;
+            for (FieldInterfaced ff : getAllFields(entityClass))
+                if ("name".equalsIgnoreCase(ff.getName()) || "title".equalsIgnoreCase(ff.getName())) {
+                    fName = ff;
+                    hayName = true;
+                }
+            if (!hayName) {
+                for (FieldInterfaced ff : getAllFields(entityClass))
+                    if (ff.isAnnotationPresent(Id.class)) {
+                        fName = ff;
+                    }
+            }
+        }
+        return fName;
+    }
+
+    /*
+    devuelve el campo de la clase destino que tienen mappedBy = mappedFieldName
+     */
+    public static FieldInterfaced getMapper(Class<?> entityClass, String mappedFieldName) {
+        FieldInterfaced mapper = null;
+
+        for (FieldInterfaced f : getAllFields(entityClass)) {
+            if ((f.isAnnotationPresent(OneToOne.class) && mappedFieldName.equalsIgnoreCase(f.getAnnotation(OneToOne.class).mappedBy()))
+                    ||
+                    (f.isAnnotationPresent(OneToMany.class) && mappedFieldName.equalsIgnoreCase(f.getAnnotation(OneToMany.class).mappedBy()))
+                    || (f.isAnnotationPresent(ManyToMany.class) && mappedFieldName.equalsIgnoreCase(f.getAnnotation(ManyToMany.class).mappedBy()))) {
+                mapper = f;
+                break;
+            }
+        }
+
+        return mapper;
+    }
+
+    public static FieldInterfaced getFieldByName(Class sourceClass, String fieldName) {
+        FieldInterfaced field = null;
+        for (FieldInterfaced f : getAllFields(sourceClass)) {
+            if (fieldName.equals(f.getName())) {
+                field = f;
+                break;
+            }
+        }
+        return field;
+    }
+
+    /*
+    devuelve el campo de la clase destino (el segundo parámetro) que tienen mappedBy = fieldName
+     */
+    public static FieldInterfaced getMapper(Class sourceClass, String fieldName, Class<?> destinationClass) {
+        FieldInterfaced mapper = null;
+
+        FieldInterfaced originField = getFieldByName(sourceClass, fieldName);
+
+        if (originField != null) {
+            String reverseFieldName = null;
+            if (originField.isAnnotationPresent(OneToOne.class)) reverseFieldName = originField.getAnnotation(OneToOne.class).mappedBy();
+            if (originField.isAnnotationPresent(OneToMany.class)) reverseFieldName = originField.getAnnotation(OneToMany.class).mappedBy();
+            if (originField.isAnnotationPresent(ManyToMany.class)) reverseFieldName = originField.getAnnotation(ManyToMany.class).mappedBy();
+
+            if (!Strings.isNullOrEmpty(reverseFieldName)) mapper = getFieldByName(destinationClass, reverseFieldName);
+        }
+
+        return mapper;
     }
 
     public Object runInServer(UserData user, String className, String methodName, Data parameters, String rpcViewClassName, Data rpcViewData) throws Throwable {

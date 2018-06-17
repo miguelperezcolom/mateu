@@ -2,10 +2,9 @@ package io.mateu.mdd.vaadinport.vaadin.mdd;
 
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.UI;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.MDDPort;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.MDDAction;
-import io.mateu.mdd.core.app.MDDOpenEditorAction;
+import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.views.RPCView;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
@@ -58,5 +57,31 @@ public class VaadinPort implements MDDPort {
         Notification.show("Error",
                 sw.toString(),
                 Notification.Type.ERROR_MESSAGE);
+    }
+
+    @Override
+    public void setUserData(UserData userData) {
+        UI.getCurrent().getSession().setAttribute("_userdata", userData);
+    }
+
+    @Override
+    public void openPrivateAreaSelector() {
+        ((MyUI)UI.getCurrent()).goTo("private");
+    }
+
+
+    @Override
+    public void open(AbstractArea a) {
+        ((MyUI)UI.getCurrent()).goTo(a);
+    }
+
+    @Override
+    public void open(MenuEntry m) {
+        ((MyUI)UI.getCurrent()).goTo(m);
+    }
+
+    @Override
+    public void open(AbstractModule m) {
+        ((MyUI)UI.getCurrent()).goTo(m);
     }
 }

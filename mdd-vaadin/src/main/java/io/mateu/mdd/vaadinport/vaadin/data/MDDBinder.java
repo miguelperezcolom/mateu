@@ -2,25 +2,31 @@ package io.mateu.mdd.vaadinport.vaadin.data;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.HasValue;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.TextField;
+import com.vaadin.data.Validator;
+import com.vaadin.ui.*;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
+import javafx.collections.SetChangeListener;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class MDDBinder {
 
+    List<AbstractComponent> fields = new ArrayList<>();
+
     private Map<String, Property> vaadinSideProperties = new HashMap<>();
     private Map<String, Property> beanSideProperties = new HashMap<>();
+
+    private List<Object> mergeables = new ArrayList<>();
 
     private List<ChangeNotificationListener> changeNotificationListeners = new ArrayList<>();
 
@@ -32,11 +38,25 @@ public class MDDBinder {
         createProperties(beanType);
     }
 
+    public List<Object> getMergeables() {
+        return mergeables;
+    }
+
     public void addChangeNotificationListener(ChangeNotificationListener listener) {
         changeNotificationListeners.add(listener);
     }
 
     public void setBean(Object bean) {
+
+        if (bean == null) {
+            try {
+                bean = beanType.newInstance();
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
 
         this.bean = bean;
 
@@ -57,6 +77,8 @@ public class MDDBinder {
             vsp.setValue(bsp.getValue());
             bsp.bindBidirectional(vsp);
         }
+
+        mergeables = new ArrayList<>();
     }
 
     private void createProperties(Class beanType) {
@@ -90,6 +112,8 @@ public class MDDBinder {
             p = new SimpleBooleanProperty(bean, f.getName());
         } else if (String.class.equals(t)) {
             p = new SimpleStringProperty(bean, f.getName());
+        } else if (Collection.class.isAssignableFrom(t)) {
+            p = new SimpleSetProperty(bean, f.getName());
         } else {
             p = new SimpleObjectProperty(bean, f.getName());
         }
@@ -111,6 +135,34 @@ public class MDDBinder {
             p = new SimpleBooleanProperty(bean, f.getName(), (Boolean) getValue(f, bean));
         } else if (String.class.equals(t)) {
             p = new SimpleStringProperty(bean, f.getName(), (String) getValue(f, bean));
+        } else if (Collection.class.isAssignableFrom(t)) {
+            ObservableSet<Object> s = FXCollections.observableSet();
+            Collection col = (Collection) getValue(f, bean);
+            if (col != null) s.addAll(col);
+            p = new SimpleSetProperty(bean, f.getName(), s);
+
+            s.addListener(new SetChangeListener<Object>() {
+                @Override
+                public void onChanged(Change<?> change) {
+                    try {
+                        List l = (List) ReflectionHelper.getValue(f, bean);
+                        if (l == null) {
+                            ReflectionHelper.setValue(f, bean, l = new ArrayList());
+                        }
+
+                        if (change.wasRemoved()) l.remove(change.getElementRemoved());
+                        if (change.wasAdded()) l.add(change.getElementAdded());
+
+                    } catch (NoSuchMethodException e) {
+                        e.printStackTrace();
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
         } else {
             p = new SimpleObjectProperty(bean, f.getName(), getValue(f, bean));
         }
@@ -121,7 +173,15 @@ public class MDDBinder {
                     ReflectionHelper.setValue(f, bean, newValue);
 
                     for (FieldInterfaced f : ReflectionHelper.getAllFields(beanType)) {
-                        beanSideProperties.get(f.getName()).setValue(ReflectionHelper.getValue(f, bean));
+                        Object v = ReflectionHelper.getValue(f, bean);
+                        if (v != null && List.class.isAssignableFrom(v.getClass())) {
+                            SimpleSetProperty p = (SimpleSetProperty) beanSideProperties.get(f.getName());
+                            Collection col = (Collection) v;
+                            p.retainAll(col);
+                            p.addAll((Collection) col.stream().filter(e -> !p.contains(e)).collect(Collectors.toList()));
+                        } else {
+                            beanSideProperties.get(f.getName()).setValue(v);
+                        }
                     }
 
                     changeNotificationListeners.forEach((l) -> l.somethingChanged());
@@ -160,6 +220,7 @@ public class MDDBinder {
     }
 
     public void bindInteger(TextField tf, String name) {
+        fields.add(tf);
         SimpleIntegerProperty p = (SimpleIntegerProperty) vaadinSideProperties.get(name);
         if (p == null) {
             p = new SimpleIntegerProperty();
@@ -187,6 +248,7 @@ public class MDDBinder {
     }
 
     public void bindLong(TextField tf, String name) {
+        fields.add(tf);
         SimpleLongProperty p = (SimpleLongProperty) vaadinSideProperties.get(name);
         if (p == null) {
             p = new SimpleLongProperty();
@@ -214,6 +276,7 @@ public class MDDBinder {
     }
 
     public void bindFloat(TextField tf, String name) {
+        fields.add(tf);
         SimpleFloatProperty p = (SimpleFloatProperty) vaadinSideProperties.get(name);
         if (p == null) {
             p = new SimpleFloatProperty();
@@ -242,6 +305,7 @@ public class MDDBinder {
 
 
     public void bindDouble(TextField tf, String name) {
+        fields.add(tf);
         SimpleDoubleProperty p = (SimpleDoubleProperty) vaadinSideProperties.get(name);
         if (p == null) {
             p = new SimpleDoubleProperty();
@@ -269,6 +333,7 @@ public class MDDBinder {
     }
 
     public void bindString(TextField tf, String name) {
+        fields.add(tf);
         SimpleStringProperty p = (SimpleStringProperty) vaadinSideProperties.get(name);
         if (p == null) {
             p = new SimpleStringProperty();
@@ -290,6 +355,7 @@ public class MDDBinder {
     }
 
     public void bindBoolean(CheckBox cb, String name) {
+        fields.add(cb);
         SimpleBooleanProperty p = (SimpleBooleanProperty) vaadinSideProperties.get(name);
         if (p == null) {
             p = new SimpleBooleanProperty();
@@ -310,7 +376,53 @@ public class MDDBinder {
         });
     }
 
+    public void bindLocalDate(DateField df, String name) {
+        fields.add(df);
+        SimpleObjectProperty p = (SimpleObjectProperty) vaadinSideProperties.get(name);
+        if (p == null) {
+            p = new SimpleObjectProperty();
+            vaadinSideProperties.put(name, p);
+        } else df.setValue((LocalDate) p.getValue());
+        p.addListener(new ChangeListener<Object>() {
+            @Override
+            public void changed(ObservableValue<? extends Object> observable, Object oldValue, Object newValue) {
+                df.setValue((LocalDate) newValue);
+            }
+        });
+        SimpleObjectProperty finalP = p;
+        df.addValueChangeListener(new HasValue.ValueChangeListener<LocalDate>() {
+            @Override
+            public void valueChange(HasValue.ValueChangeEvent<LocalDate> valueChangeEvent) {
+                if (valueChangeEvent.isUserOriginated()) finalP.setValue(valueChangeEvent.getValue());
+            }
+        });
+    }
+
+    public void bindLocalDateTime(DateTimeField df, String name) {
+        fields.add(df);
+        SimpleObjectProperty p = (SimpleObjectProperty) vaadinSideProperties.get(name);
+        if (p == null) {
+            p = new SimpleObjectProperty();
+            vaadinSideProperties.put(name, p);
+        } else df.setValue((LocalDateTime) p.getValue());
+        p.addListener(new ChangeListener<Object>() {
+            @Override
+            public void changed(ObservableValue<? extends Object> observable, Object oldValue, Object newValue) {
+                df.setValue((LocalDateTime) newValue);
+            }
+        });
+        SimpleObjectProperty finalP = p;
+        df.addValueChangeListener(new HasValue.ValueChangeListener<LocalDateTime>() {
+            @Override
+            public void valueChange(HasValue.ValueChangeEvent<LocalDateTime> valueChangeEvent) {
+                if (valueChangeEvent.isUserOriginated()) finalP.setValue(valueChangeEvent.getValue());
+            }
+        });
+    }
+
+
     public void bindAnythingToString(TextField tf, String name) {
+        fields.add(tf);
         Property p = vaadinSideProperties.get(name);
         if (p == null) {
             p = new SimpleStringProperty();
@@ -325,6 +437,7 @@ public class MDDBinder {
     }
 
     public void bindEnum(ComboBox c, String fieldName) {
+        fields.add(c);
         Property p = vaadinSideProperties.get(fieldName);
         if (p == null) {
             p = new SimpleObjectProperty();
@@ -343,5 +456,249 @@ public class MDDBinder {
                 finalP.setValue(valueChangeEvent.getValue());
             }
         });
+    }
+
+    public void bindOneToOne(ComboBox c, String fieldName) {
+        fields.add(c);
+        Property p = vaadinSideProperties.get(fieldName);
+        if (p == null) {
+            p = new SimpleObjectProperty();
+            vaadinSideProperties.put(fieldName, p);
+        } else c.setValue(p.getValue());
+        p.addListener(new ChangeListener<Object>() {
+            @Override
+            public void changed(ObservableValue<? extends Object> observable, Object oldValue, Object newValue) {
+                c.setValue(newValue);
+            }
+        });
+        Property finalP = p;
+        c.addValueChangeListener(new HasValue.ValueChangeListener() {
+            @Override
+            public void valueChange(HasValue.ValueChangeEvent valueChangeEvent) {
+                if (valueChangeEvent.getOldValue() != null) {
+                    FieldInterfaced mapper = ReflectionHelper.getMapper(valueChangeEvent.getOldValue().getClass(), fieldName);
+                    if (mapper == null) {
+                        mapper = ReflectionHelper.getMapper(beanType, fieldName, valueChangeEvent.getOldValue().getClass());
+                    }
+                    if (mapper != null) {
+                        try {
+                            ReflectionHelper.setValue(mapper, valueChangeEvent.getOldValue(), null);
+                            if (!mergeables.contains(valueChangeEvent.getOldValue())) mergeables.add(valueChangeEvent.getOldValue());
+                        } catch (InvocationTargetException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        } catch (NoSuchMethodException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                if (valueChangeEvent.getValue() != null) {
+                    FieldInterfaced mapper = ReflectionHelper.getMapper(valueChangeEvent.getValue().getClass(), fieldName);
+                    if (mapper == null) {
+                        mapper = ReflectionHelper.getMapper(beanType, fieldName, valueChangeEvent.getValue().getClass());
+                    }
+                    if (mapper != null) {
+
+                        try {
+                            Object oldValue = ReflectionHelper.getValue(mapper, valueChangeEvent.getValue());
+
+                            if (oldValue != null) {
+                                ReflectionHelper.setValue(ReflectionHelper.getFieldByName(beanType, fieldName), oldValue, null);
+                                if (!mergeables.contains(oldValue)) mergeables.add(oldValue);
+                            }
+                        } catch (NoSuchMethodException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        } catch (InvocationTargetException e) {
+                            e.printStackTrace();
+                        }
+
+                        try {
+                            ReflectionHelper.setValue(mapper, valueChangeEvent.getValue(), bean);
+                            if (!mergeables.contains(valueChangeEvent.getValue())) mergeables.add(valueChangeEvent.getValue());
+                        } catch (InvocationTargetException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        } catch (NoSuchMethodException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+                finalP.setValue(valueChangeEvent.getValue());
+            }
+        });
+    }
+
+    public void bindManyToOne(ComboBox c, String fieldName) {
+        fields.add(c);
+        Property p = vaadinSideProperties.get(fieldName);
+        if (p == null) {
+            p = new SimpleObjectProperty();
+            vaadinSideProperties.put(fieldName, p);
+        } else c.setValue(p.getValue());
+        p.addListener(new ChangeListener<Object>() {
+            @Override
+            public void changed(ObservableValue<? extends Object> observable, Object oldValue, Object newValue) {
+                c.setValue(newValue);
+            }
+        });
+        Property finalP = p;
+        c.addValueChangeListener(new HasValue.ValueChangeListener() {
+            @Override
+            public void valueChange(HasValue.ValueChangeEvent valueChangeEvent) {
+                if (valueChangeEvent.getOldValue() != null) {
+                    FieldInterfaced mapper = ReflectionHelper.getMapper(valueChangeEvent.getOldValue().getClass(), fieldName);
+                    if (mapper == null) {
+                        mapper = ReflectionHelper.getMapper(beanType, fieldName, valueChangeEvent.getOldValue().getClass());
+                    }
+                    if (mapper != null) {
+                        try {
+                            List l = (List)ReflectionHelper.getValue(mapper, valueChangeEvent.getOldValue());
+                            if (l.contains(bean)){
+                                l.remove(bean);
+                                if (!mergeables.contains(valueChangeEvent.getOldValue())) mergeables.add(valueChangeEvent.getOldValue());
+                            }
+                        } catch (InvocationTargetException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        } catch (NoSuchMethodException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                if (valueChangeEvent.getValue() != null) {
+                    FieldInterfaced mapper = ReflectionHelper.getMapper(valueChangeEvent.getValue().getClass(), fieldName);
+                    if (mapper == null) {
+                        mapper = ReflectionHelper.getMapper(beanType, fieldName, valueChangeEvent.getValue().getClass());
+                    }
+                    if (mapper != null) {
+
+                        try {
+                            List l = (List)ReflectionHelper.getValue(mapper, valueChangeEvent.getValue());
+                            if (!l.contains(bean)) {
+                                l.add(bean);
+                                if (!mergeables.contains(valueChangeEvent.getValue())) mergeables.add(valueChangeEvent.getValue());
+                            }
+                        } catch (NoSuchMethodException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        } catch (InvocationTargetException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                }
+
+                finalP.setValue(valueChangeEvent.getValue());
+            }
+        });
+    }
+
+    public void bindOneToMany(TwinColSelect<Object> c, String fieldName) {
+        fields.add(c);
+        Property p = vaadinSideProperties.get(fieldName);
+        if (p == null) {
+            p = new SimpleSetProperty();
+            vaadinSideProperties.put(fieldName, p);
+        } else {
+            if (p.getValue() != null) c.setValue(((SimpleSetProperty)p).getValue());
+        }
+        p.addListener(new ChangeListener<Object>() {
+            @Override
+            public void changed(ObservableValue<? extends Object> observable, Object oldValue, Object newValue) {
+                Collection col = (Collection) newValue;
+                //((JPQLListDataProvider)c.getDataProvider()).getItems().contains(col.iterator().next())
+                c.updateSelection(
+                        (Set<Object>) col.stream().filter(e -> !c.getSelectedItems().contains(e)).collect(Collectors.toSet()),
+                        c.getSelectedItems().stream().filter(e -> !col.contains(e)).collect(Collectors.toSet())
+                );
+            }
+        });
+        Property finalP = p;
+        c.addValueChangeListener(new HasValue.ValueChangeListener() {
+            @Override
+            public void valueChange(HasValue.ValueChangeEvent valueChangeEvent) {
+                Class genericClass = ReflectionHelper.getFieldByName(beanType, fieldName).getGenericClass();
+
+                // recogemos los elementos eliminados y los no eliminados
+                Set old = (Set) valueChangeEvent.getOldValue();
+                Set value = (Set) valueChangeEvent.getValue();
+
+                List removed = (List) old.stream().filter(e -> !value.contains(e)).collect(Collectors.toList());
+                List added = (List) value.stream().filter(e -> !old.contains(e)).collect(Collectors.toList());
+
+                if (removed.size() > 0) {
+                    FieldInterfaced mapper = ReflectionHelper.getMapper(genericClass, fieldName);
+                    if (mapper == null) {
+                        mapper = ReflectionHelper.getMapper(beanType, fieldName, genericClass);
+                    }
+                    if (mapper != null) {
+                        try {
+                            for (Object o : removed) {
+                                Object v = ReflectionHelper.getValue(mapper, o);
+                                if (List.class.isAssignableFrom(mapper.getType())) {
+                                    ((List)v).remove(bean);
+                                } else {
+                                    ReflectionHelper.setValue(mapper, o, null);
+                                }
+                                if (!mergeables.contains(o)) mergeables.add(o);
+                            }
+                        } catch (InvocationTargetException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        } catch (NoSuchMethodException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                }
+                if (added.size() > 0) {
+                    FieldInterfaced mapper = ReflectionHelper.getMapper(genericClass, fieldName);
+                    if (mapper == null) {
+                        mapper = ReflectionHelper.getMapper(beanType, fieldName, genericClass);
+                    }
+                    if (mapper != null) {
+
+                        try {
+                            for (Object o : added) {
+                                Object v = ReflectionHelper.getValue(mapper, o);
+                                if (List.class.isAssignableFrom(mapper.getType())) {
+                                    List l = ((List)v);
+                                    if (!l.contains(bean)) l.add(bean);
+                                } else {
+                                    ReflectionHelper.setValue(mapper, o, bean);
+                                }
+                                if (!mergeables.contains(o)) mergeables.add(o);
+                            }
+                        } catch (NoSuchMethodException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        } catch (InvocationTargetException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                }
+
+                Set v = ((SimpleSetProperty) finalP);
+                v.removeAll(removed);
+                v.addAll(added);
+            }
+        });
+    }
+
+
+    public boolean allValid() {
+        boolean ok = true;
+        for (AbstractComponent x : fields) ok &= x.getErrorMessage() == null;
+        return ok;
     }
 }

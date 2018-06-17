@@ -1,5 +1,6 @@
 package io.mateu.mdd.tester.model.basic;
 
+import io.mateu.mdd.core.annotations.MainSearchFilter;
 import io.mateu.mdd.core.annotations.SearchFilter;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,7 +20,31 @@ public class SearchFiltersDemoEntity {
 
 
     @SearchFilter
-    private String stringField = "zzzz";
+    private String a = "zzzz";
+
+    @MainSearchFilter
+    private String b;
+
+    @SearchFilter
+    private String c;
+
+    @SearchFilter
+    private String d;
+
+    @SearchFilter
+    private String e;
+
+    @SearchFilter
+    private String f;
+
+    @SearchFilter
+    private String g;
+
+    @SearchFilter
+    private String h;
+
+    @SearchFilter
+    private String i;
 
     private int intField;
 

@@ -5,7 +5,7 @@ import java.util.UUID;
 /**
  * Created by miguel on 8/8/16.
  */
-public abstract class AbstractAction implements MenuEntry, Runnable {
+public abstract class AbstractAction implements MenuEntry {
 
     private String name;
     private boolean callOnEnterKeyPressed = false;
@@ -44,6 +44,8 @@ public abstract class AbstractAction implements MenuEntry, Runnable {
     public boolean isModifierPressed() {
         return modifierPressed;
     }
+
+    public abstract void run(MDDExecutionContext context);
 
     public String getId() {
         return id;

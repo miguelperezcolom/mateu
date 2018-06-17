@@ -5,11 +5,12 @@ package io.mateu.mdd.tester.app;
 import io.mateu.mdd.core.app.AbstractApplication;
 import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.AbstractModule;
+import io.mateu.mdd.core.app.BaseMDDApp;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class MyApp extends AbstractApplication {
+public class MyApp extends BaseMDDApp {
     public String getName() {
         return "My Appp";
     }

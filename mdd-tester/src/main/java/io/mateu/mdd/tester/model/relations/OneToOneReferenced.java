@@ -17,7 +17,9 @@ public class OneToOneReferenced {
 
     private String name;
 
-    @OneToOne
+    @OneToOne(mappedBy = "referencedMapped")
     private OneToOneReferencer referencer;
 
+    @OneToOne
+    private OneToOneReferencer referencerMapper;
 }

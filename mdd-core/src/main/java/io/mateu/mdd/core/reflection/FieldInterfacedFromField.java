@@ -128,4 +128,14 @@ public class FieldInterfacedFromField implements io.mateu.mdd.core.reflection.Fi
     public String toString() {
         return getName();
     }
+
+    @Override
+    public int hashCode() {
+        return ("" + getField().getDeclaringClass().getName() + "/" + getField().getName() + "").hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return hashCode() == obj.hashCode();
+    }
 }

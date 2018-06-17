@@ -19,7 +19,24 @@ public class ManyToOneFieldDemoEntity {
     private String stringField = "zzzz";
 
     @ManyToOne
-    private BasicFieldsDemoEntity basicFields;
+    private ManyToOneFieldDemoDestinationEntity simple;
 
+    @ManyToOne
+    private ManyToOneFieldDemoDestinationEntity mapped;
+
+
+
+
+
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return this == obj || (obj != null && obj instanceof  ManyToOneFieldDemoEntity && id == ((ManyToOneFieldDemoEntity)obj).id);
+    }
 
 }

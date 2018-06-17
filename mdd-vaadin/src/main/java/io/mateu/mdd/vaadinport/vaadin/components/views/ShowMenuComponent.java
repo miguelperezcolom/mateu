@@ -6,6 +6,7 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.vaadinport.vaadin.components.app.flow.AbstractMDDExecutionContext;
 import io.mateu.mdd.vaadinport.vaadin.components.views.AbstractViewComponent;
 
 import java.util.ArrayList;
@@ -82,7 +83,7 @@ public class ShowMenuComponent extends AbstractViewComponent {
                     @Override
                     public void buttonClick(Button.ClickEvent event) {
                         //navigator.navigateTo(item.getKey());
-                        ((AbstractAction)e).setModifierPressed(event.isAltKey() || event.isCtrlKey()).run();
+                        ((AbstractAction)e).setModifierPressed(event.isAltKey() || event.isCtrlKey()).run(new AbstractMDDExecutionContext());
                     }
                 });
             b.setCaption(b.getCaption()

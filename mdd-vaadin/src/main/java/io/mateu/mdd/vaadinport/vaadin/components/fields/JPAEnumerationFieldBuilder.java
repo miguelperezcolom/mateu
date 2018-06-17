@@ -9,6 +9,7 @@ import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.data.validator.StringLengthValidator;
 import com.vaadin.server.UserError;
+import com.vaadin.shared.ui.ErrorLevel;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Layout;
@@ -60,7 +61,18 @@ public class JPAEnumerationFieldBuilder extends JPAFieldBuilder {
 
         tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
 
-        if (field.isAnnotationPresent(NotNull.class)) validators.get(tf).add(new StringLengthValidator("Required field", 1, Integer.MAX_VALUE));
+        if (field.isAnnotationPresent(NotNull.class)) validators.get(tf).add(new Validator() {
+            @Override
+            public ValidationResult apply(Object o, ValueContext valueContext) {
+                if (o == null) return ValidationResult.create("Required field", ErrorLevel.ERROR);
+                else return ValidationResult.ok();
+            }
+
+            @Override
+            public Object apply(Object o, Object o2) {
+                return null;
+            }
+        });
 
         BeanValidator bv = new BeanValidator(field.getDeclaringClass(), field.getName());
 

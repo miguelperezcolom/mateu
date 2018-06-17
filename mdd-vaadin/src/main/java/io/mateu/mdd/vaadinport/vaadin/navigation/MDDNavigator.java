@@ -3,17 +3,22 @@ package io.mateu.mdd.vaadinport.vaadin.navigation;
 import com.google.common.base.Strings;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.ui.UI;
+import com.vaadin.server.Page;
+import com.vaadin.ui.Component;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.AbstractArea;
-import io.mateu.mdd.core.app.MenuEntry;
-import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
+import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.vaadinport.vaadin.components.app.flow.FlowComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.flow.FlowViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.flow.views.*;
 import io.mateu.mdd.vaadinport.vaadin.components.views.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MDDNavigator implements ViewChangeListener {
 
-    private final AppComponent appComponent;
+    private final FlowComponent flowComponent;
+    private List<String> stepsInFlow = new ArrayList<>();
     private final Navigator navigator;
 
     private ViewComponent currentViewComponent;
@@ -21,15 +26,14 @@ public class MDDNavigator implements ViewChangeListener {
     private String currentStateHeader;
 
 
-    public MDDNavigator(AppComponent appComponent, Navigator navigator) {
-        this.appComponent = appComponent;
+    public MDDNavigator(FlowComponent flowComponent, Navigator navigator) {
+        this.flowComponent = flowComponent;
         this.navigator = navigator;
     }
 
 
     public String getPath(AbstractAction action, Class viewClass) {
-        String u = "mdd/";
-        u += appComponent.getApp().getState(action);
+        String u = MDD.getApp().getState(action);
         u += "/";
         u += viewClass.getName();
         return u;
@@ -40,22 +44,29 @@ public class MDDNavigator implements ViewChangeListener {
     }
 
     public String getPath(MenuEntry e) {
-        String u = "mdd/";
-        u += appComponent.getApp().getState(e);
-        return u;
+        return MDD.getApp().getState(e);
     }
 
     public String getPath(AbstractArea area) {
-        String u = "mdd/";
-        u += appComponent.getApp().getState(area);
-        return u;
+        return MDD.getApp().getState(area);
+    }
+
+    public String getPath(AbstractModule m) {
+        return MDD.getApp().getState(m);
+    }
+
+    public void go(String relativePath) {
+        String path = currentState + "/" + relativePath;
+        if (path != null && !path.equals(currentState)) {
+            Page.getCurrent().open(((path.startsWith("/"))?"":"/") + path, Page.getCurrent().getWindowName());
+        }
     }
 
 
-
     public void goTo(String path) {
-        if (path != null && !path.equals(currentState)) navigator.navigateTo(path);
-        //Page.getCurrent().open(path, (event.isAltKey() || event.isCtrlKey())?"_blank":Page.getCurrent().getWindowName()
+        if (path != null && !path.equals(currentState)) {
+            Page.getCurrent().open(((path.startsWith("/"))?"":"/") + path, Page.getCurrent().getWindowName());
+        }
     }
 
     private ViewComponent getComponentForState(String state) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
@@ -64,13 +75,13 @@ public class MDDNavigator implements ViewChangeListener {
 
         Class modelType = Class.forName(state.split("/")[3]);
         ViewComponent v = new CRUDViewComponent(new JPAListViewComponent(modelType).build(), new JPAEditorViewComponent(modelType).build()).build();
-        v.setOriginatingAction((AbstractAction) appComponent.getApp().getMenu(state.split("/")[2]));
+        v.setOriginatingAction((AbstractAction) MDD.getApp().getMenu(state.split("/")[2]));
 
         return v;
     }
 
     @Override
-    public boolean beforeViewChange(ViewChangeEvent viewChangeEvent) {
+    public boolean beforeViewChange(ViewChangeEvent viewChangeEvent) { // interceptamos porque no queremos proporcionar una clase, sino cargar una instancia concreta
         try {
 
             String state = viewChangeEvent.getViewName();
@@ -80,111 +91,160 @@ public class MDDNavigator implements ViewChangeListener {
             if (!state.equals(currentState)) {
 
 
-                // mdd/area/menu/vista/id
+                String[] steps = state.split("/");
 
-                if (!Strings.isNullOrEmpty(state)) {
-                    String stateHeader = "";
-                    String[] ts = state.split("/");
-                    stateHeader += ts[1];
-                    if (ts.length > 2) {
-                        stateHeader += "/";
-                        stateHeader += ts[2];
-                        if (ts.length > 3) {
-                            stateHeader += "/";
-                            stateHeader += ts[3];
-                        }
-                    }
+                String prefijo = "";
 
-                    String areaId = "";
-                    String menuId = "";
-                    areaId += ts[1];
-                    if (ts.length > 2) {
-                        menuId += ts[2];
-                    }
+                int posInFlow = 0; // nos dice hasta que posición del flow podemos mantener
+                while (posInFlow < steps.length
+                        && posInFlow < stepsInFlow.size()
+                        && stepsInFlow.get(posInFlow).equals(steps[posInFlow])) {
+                    if (!"".equals(prefijo)) prefijo += "/";
+                    prefijo += steps[posInFlow];
+                    posInFlow++;
+                }
+
+                if (posInFlow > 0) {
+                    flowComponent.popTo(posInFlow - 1); // retrocedemos al punto de partida común
+                    while (stepsInFlow.size() > posInFlow) stepsInFlow.remove(stepsInFlow.size() - 1);
+                }
 
 
+                //public
+                //login
+                //private
+                //private|public/area
+                //private|public/modulo
+                //private|public/modulo/menu
+                //private|public/modulo/menu/menu
+                //private|public/modulo/menu/menu/accion
+                //private|public/modulo/menu/menu/accion/vista
+                //private|public/modulo/menu/menu/accion/vista/filters
+                //private|public/modulo/menu/menu/accion/vista/add
+                //private|public/modulo/menu/menu/accion/vista/id
+                //private|public/modulo/menu/menu/accion/vista/id|add/view/id <-- abrir registro relacionado
+                //private|public/modulo/menu/menu/accion/vista/id|add/field <-- rellenar editando lista inline
+                //private|public/modulo/menu/menu/accion/vista/id|add/field <-- rellenar seleccionado registros
 
-                    if (ts.length == 2) { // es una area
 
 
-                        if ("searchinmenu".equalsIgnoreCase(ts[1])) {
+                 if (Strings.isNullOrEmpty(state)) {
+                    goTo((MDD.getApp().isAuthenticationNeeded())?"login":"public");
+                } else {
 
-                            currentViewComponent = new SearchInMenuComponent(appComponent.getApp().getMenu(menuId)).build();
-                            appComponent.open(currentViewComponent);
-                            currentStateHeader = stateHeader;
+                    while (posInFlow < steps.length) { //vamos completando
+                        String step = steps[posInFlow];
 
-                        } else {
+                        FlowViewComponent lastFlowComponent = null;
+                        if (flowComponent.getStackSize() > 0) lastFlowComponent = flowComponent.getComponentInStack(flowComponent.getStackSize() - 1);
 
-                            currentViewComponent = new AreaComponent(appComponent.getApp().getArea(menuId)).build();
-                            appComponent.open(currentViewComponent);
-                            currentStateHeader = stateHeader;
+                        boolean procesar = false;
 
-                        }
-
-                    } else if (ts.length == 3) { // es un menu
-
-                        if ("change".equalsIgnoreCase(ts[2])) {
-                            currentViewComponent = new ChangeAreaComponent(appComponent.getApp().getArea(menuId)).build();
-                            appComponent.open(currentViewComponent);
-                            currentStateHeader = stateHeader;
-                        } else {
-                            currentViewComponent = new ShowMenuComponent(appComponent.getApp().getMenu(menuId)).build();
-                            appComponent.open(currentViewComponent);
-                            currentStateHeader = stateHeader;
-                        }
-
-                    } else {
-
-                        CRUDViewComponent crud = null;
-
-                        if (stateHeader.equals(currentStateHeader)) {
-
-                            if (currentViewComponent == null) {
-                                currentViewComponent = getComponentForState(state);
-                                appComponent.open(currentViewComponent);
+                        if (
+                                lastFlowComponent != null
+                                && !(lastFlowComponent instanceof PublicMenuFlowComponent)
+                                && !(lastFlowComponent instanceof PrivateMenuFlowComponent)
+                                && !(lastFlowComponent instanceof AreaFlowComponent)
+                                && !(lastFlowComponent instanceof ModuleFlowComponent)
+                                ) {
+                            if (
+                                    !(lastFlowComponent instanceof MenuFlowComponent)
+                                    || MDD.getApp().getMenu(prefijo + "/" + step) == null
+                                    ) {
+                                procesar = true;
                             }
-
-                        } else {
-                            currentViewComponent = getComponentForState(state);
-                            appComponent.open(currentViewComponent);
-
-                            currentStateHeader = stateHeader;
                         }
 
-                        if (currentViewComponent instanceof CRUDViewComponent) crud = (CRUDViewComponent) currentViewComponent;
+                        if (procesar) {
+                            // miramos el último componente añadido
 
-                        if (crud != null) {
-                            if (ts.length > 4) {
-                                String sid = ts[4];
+                            if (lastFlowComponent instanceof ViewFlowComponent) { // el último fué una listView, estamos en un id, add, o en los filtros
+
+                                ViewFlowComponent vfc = (ViewFlowComponent) lastFlowComponent;
+
+                                // step es filters, add o el id del objeto a editar
+
+                                if ("filters".equals(step)) {
+
+                                    flowComponent.push(new FiltersViewFlowComponent(state, vfc.getCrudViewComponent()));
+
+                                } else {
+
+                                    EditorViewComponent evc = vfc.getCrudViewComponent().getEditorViewComponent();
+
+                                    try {
+
+                                        if (Strings.isNullOrEmpty(step) || "add".equals(step)) { // estamos añadiendo un nuevo registro
+                                            evc.load(null);
+                                        } else { // step es el id del objeto a editar
+                                            String sid = step;
+                                            evc.load(vfc.getCrudViewComponent().getListViewComponent().deserializeId(sid));
+                                        }
+
+                                    } catch (Throwable throwable) {
+                                        throwable.printStackTrace();
+                                    }
+
+                                    flowComponent.push(new EditorViewFlowComponent(state, evc));
+                                }
+
+                            } else {
+                                // step es el id de la vista
+
+                                Class modelType = null;
                                 try {
 
-                                    crud.loadInEditor(sid);
+                                    modelType = Class.forName(step);
+                                    CRUDViewComponent v = new CRUDViewComponent(new JPAListViewComponent(modelType).build(), new JPAEditorViewComponent(modelType).build()).build();
+                                    v.setOriginatingAction(null);
 
-                                } catch (Throwable throwable) {
-                                    MDD.alert(throwable);
+                                    flowComponent.push(new ViewFlowComponent(state, v));
+
+                                } catch (ClassNotFoundException e) {
+                                    e.printStackTrace();
+                                } catch (IllegalAccessException e) {
+                                    e.printStackTrace();
+                                } catch (InstantiationException e) {
+                                    e.printStackTrace();
                                 }
-                            } else {
-                                crud.showList();
+
+
+                                //crud.loadInEditor(sid);
+
+
                             }
+
+                        } else if (posInFlow > 2) { // el id del menu
+                            MenuEntry e = MDD.getApp().getMenu(prefijo + "/" + step);
+                            if (e instanceof AbstractAction) {
+                                ((AbstractAction)e).run(flowComponent);
+                            } else if (e instanceof AbstractMenu) {
+                                flowComponent.push(new MenuFlowComponent(state, (AbstractMenu) e));
+                            }
+                        } else if (posInFlow == 2) { // public | private --> lista de areas
+                            flowComponent.push(new ModuleFlowComponent(state, MDD.getApp().getModule(prefijo + "/" + step)));
+                        } else if (posInFlow == 1) { // public | private --> lista de areas
+                            flowComponent.push(new AreaFlowComponent(state, MDD.getApp().getArea(prefijo + "/" + step)));
+                        } else if (posInFlow == 0) { // acción básica
+                            if ("public".equalsIgnoreCase(step)) flowComponent.push(new PublicMenuFlowComponent(state));
+                            else if ("login".equalsIgnoreCase(step)) flowComponent.push(new LoginFlowComponent(state));
                         }
 
+                        stepsInFlow.add(step);
+                        posInFlow++;
+                        if (!"".equals(prefijo)) prefijo += "/";
+                        prefijo += step;
                     }
-
-                } else {
-                    appComponent.clear();
-                    currentStateHeader = "";
                 }
+
+                flowComponent.showLast();
 
                 currentState = state;
             }
 
 
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
+        } finally {
+
         }
 
         return true;

@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.views;
 
 import com.vaadin.data.provider.QuerySortOrder;
+import com.vaadin.ui.Component;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.Label;
 
@@ -15,6 +16,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
     private int count;
     private Label countLabel;
+    private FiltersComponent filtersComponent;
 
     @Override
     public ListViewComponent build() throws InstantiationException, IllegalAccessException {
@@ -23,11 +25,9 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
         addStyleName("listviewcomponent");
         
-        
-        addComponent(new FiltersComponent(this));
+        addComponent(filtersComponent = new FiltersComponent(this));
 
         addComponent(countLabel = new Label());
-
 
         addComponentsAndExpand(resultsComponent = buildResultsComponent());
 
@@ -68,11 +68,17 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
     public abstract String getPathForEditor(Object id);
 
+    public abstract String getPathForFilters();
+
     public Class getModelTypeForSearchFilters() {
         return this.getClass();
     }
 
     public Object getModelForSearchFilters() throws InstantiationException, IllegalAccessException {
         return this;
+    }
+
+    public Component getFiltersViewComponent() {
+        return filtersComponent.getFiltersViewComponent();
     }
 }
