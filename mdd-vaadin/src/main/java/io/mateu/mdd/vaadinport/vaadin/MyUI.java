@@ -145,7 +145,7 @@ public class MyUI extends UI {
         navegador.goTo(navegador.getPath(action, viewClass));
     }
 
-    public void goTo(AbstractAction action, Class viewClass, Object id) {
+    public void goTo(MenuEntry action, Class viewClass, Object id) {
         navegador.goTo(navegador.getPath(action, viewClass, id));
     }
 

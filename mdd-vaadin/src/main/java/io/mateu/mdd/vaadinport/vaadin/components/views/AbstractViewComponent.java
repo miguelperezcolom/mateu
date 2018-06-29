@@ -3,10 +3,11 @@ package io.mateu.mdd.vaadinport.vaadin.components.views;
 import com.vaadin.server.Page;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.app.MenuEntry;
 
 public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> extends VerticalLayout implements ViewComponent {
 
-    private AbstractAction originatingAction;
+    private MenuEntry originatingAction;
     private Label titleLabel;
     private String title = "View title";
 
@@ -49,11 +50,11 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     }
 
 
-    public AbstractAction getOriginatingAction() {
+    public MenuEntry getOriginatingAction() {
         return originatingAction;
     }
 
-    public void setOriginatingAction(AbstractAction originatingAction) {
+    public void setOriginatingAction(MenuEntry originatingAction) {
         this.originatingAction = originatingAction;
     }
 

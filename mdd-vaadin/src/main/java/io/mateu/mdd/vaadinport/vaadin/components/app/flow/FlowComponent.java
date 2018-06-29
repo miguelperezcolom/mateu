@@ -4,10 +4,7 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.Page;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.MDDAction;
-import io.mateu.mdd.core.app.MDDExecutionContext;
-import io.mateu.mdd.core.app.MDDOpenEditorAction;
+import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.views.EditorViewFlowComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.views.ViewFlowComponent;
@@ -114,7 +111,7 @@ public class FlowComponent extends HorizontalLayout implements MDDExecutionConte
 
             modelType = viewClass;
             CRUDViewComponent v = new CRUDViewComponent(new JPAListViewComponent(modelType).build(), new JPAEditorViewComponent(modelType).build()).build();
-            v.setOriginatingAction((AbstractAction) MDD.getApp().getMenu(calculateCurrentState()));
+            v.setOriginatingAction((MenuEntry) MDD.getApp().getMenu(calculateCurrentState()));
 
             push(new EditorViewFlowComponent(calculateCurrentState(), v.getEditorViewComponent()));
 
@@ -138,7 +135,7 @@ public class FlowComponent extends HorizontalLayout implements MDDExecutionConte
 
             modelType = entityClass;
             CRUDViewComponent v = new CRUDViewComponent(new JPAListViewComponent(modelType).build(), new JPAEditorViewComponent(modelType).build()).build();
-            v.setOriginatingAction((AbstractAction) MDD.getApp().getMenu(calculateCurrentState()));
+            v.setOriginatingAction(MDD.getApp().getMenu(calculateCurrentState()));
 
             push(new ViewFlowComponent(calculateCurrentState(), v));
 

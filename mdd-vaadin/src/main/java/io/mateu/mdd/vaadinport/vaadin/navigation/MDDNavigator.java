@@ -32,14 +32,14 @@ public class MDDNavigator implements ViewChangeListener {
     }
 
 
-    public String getPath(AbstractAction action, Class viewClass) {
+    public String getPath(MenuEntry action, Class viewClass) {
         String u = MDD.getApp().getState(action);
         u += "/";
         u += viewClass.getName();
         return u;
     }
 
-    public String getPath(AbstractAction action, Class viewClass, Object id) {
+    public String getPath(MenuEntry action, Class viewClass, Object id) {
         return getPath(action, viewClass) + "/" + ((id != null)?id:"add");
     }
 

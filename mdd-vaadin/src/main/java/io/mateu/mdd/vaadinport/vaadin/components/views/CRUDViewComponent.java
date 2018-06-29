@@ -4,13 +4,14 @@ import com.google.common.base.Strings;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.app.MenuEntry;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 
 public class CRUDViewComponent extends HorizontalLayout implements ListViewComponentListener, ViewComponent {
 
     private final ListViewComponent listViewComponent;
     private final EditorViewComponent editorViewComponent;
-    private AbstractAction originatingAction;
+    private MenuEntry originatingAction;
 
     public CRUDViewComponent(ListViewComponent listViewComponent, EditorViewComponent editorViewComponent) {
 
@@ -74,7 +75,7 @@ public class CRUDViewComponent extends HorizontalLayout implements ListViewCompo
     }
 
     @Override
-    public void setOriginatingAction(AbstractAction action) {
+    public void setOriginatingAction(MenuEntry action) {
         this.originatingAction = action;
         listViewComponent.setOriginatingAction(action);
         editorViewComponent.setOriginatingAction(action);

@@ -70,11 +70,10 @@ public abstract class BaseMDDApp extends AbstractApplication {
                     Populator.populate(AppConfig.class);
                 }
 
-
                 User u = em.find(User.class, login.toLowerCase().trim());
                 if (u != null) {
                     if (u.getPassword() == null) throw new Exception("Missing password for user " + login);
-                    if (!password.trim().equalsIgnoreCase(u.getPassword().trim())) throw new Exception("Wrong password");
+                    if (!Helper.md5(password.toLowerCase().trim()).equalsIgnoreCase(u.getPassword().trim())) throw new Exception("Wrong password");
                     if (USER_STATUS.INACTIVE.equals(u.getStatus())) throw new Exception("Deactivated user");
                     d.setName(u.getName());
                     d.setEmail(u.getEmail());
