@@ -1,5 +1,6 @@
 package io.mateu.mdd.tester.model.basic;
 
+import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.SearchFilter;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,4 +25,13 @@ public class ActionsDemoEntity {
     private int intField;
 
 
+    @Action(name = "Action on all")
+    public static void action1() {
+        System.out.println("action 1");
+    }
+
+    @Action(name = "Action on item")
+    public void action2() {
+        System.out.println("action 2");
+    }
 }
