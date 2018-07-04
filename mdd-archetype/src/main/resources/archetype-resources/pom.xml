@@ -44,13 +44,13 @@
     <dependency>
       <groupId>io.mateu.jpa</groupId>
       <artifactId>common</artifactId>
-      <version>0.0.1</version>
+      <version>0.0.2-SNAPSHOT</version>
     </dependency>
 
     <dependency>
       <groupId>io.mateu.ui</groupId>
       <artifactId>port-vaadin</artifactId>
-      <version>0.0.1</version>
+      <version>0.0.2-SNAPSHOT</version>
       <type>war</type>
       <scope>compile</scope>
     </dependency>
