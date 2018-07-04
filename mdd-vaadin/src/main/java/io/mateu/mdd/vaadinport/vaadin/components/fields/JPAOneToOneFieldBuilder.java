@@ -4,10 +4,7 @@ import com.vaadin.data.HasValue;
 import com.vaadin.data.ValidationResult;
 import com.vaadin.data.Validator;
 import com.vaadin.data.ValueContext;
-import com.vaadin.data.provider.ListDataProvider;
-import com.vaadin.data.validator.AbstractValidator;
 import com.vaadin.data.validator.BeanValidator;
-import com.vaadin.data.validator.StringLengthValidator;
 import com.vaadin.server.UserError;
 import com.vaadin.shared.ui.ErrorLevel;
 import com.vaadin.ui.ComboBox;
@@ -24,7 +21,6 @@ import javax.persistence.OneToOne;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 

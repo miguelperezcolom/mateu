@@ -1,13 +1,19 @@
 package io.mateu.mdd.vaadinport.vaadin.components.views;
 
-import com.vaadin.server.Page;
+import com.google.common.collect.Lists;
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.*;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MenuEntry;
+import io.mateu.mdd.vaadinport.vaadin.MyUI;
+import io.mateu.mdd.vaadinport.vaadin.components.app.flow.AbstractMDDExecutionContext;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> extends VerticalLayout implements ViewComponent {
 
-    private MenuEntry originatingAction;
     private Label titleLabel;
     private String title = "View title";
 
@@ -47,15 +53,25 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
     public void addViewActionsMenuItems(MenuBar bar) {
 
+        for (AbstractAction a : getActions()) {
+
+            bar.addItem(a.getName(), VaadinIcons.BOLT, new MenuBar.Command() {
+                @Override
+                public void menuSelected(MenuBar.MenuItem menuItem) {
+                    try {
+                        a.run(new AbstractMDDExecutionContext());
+                    } catch (Throwable throwable) {
+                        MDD.alert(throwable);
+                    }
+                }
+            });
+
+        }
+
     }
 
-
-    public MenuEntry getOriginatingAction() {
-        return originatingAction;
-    }
-
-    public void setOriginatingAction(MenuEntry originatingAction) {
-        this.originatingAction = originatingAction;
+    public List<AbstractAction> getActions() {
+        return new ArrayList<>();
     }
 
 }

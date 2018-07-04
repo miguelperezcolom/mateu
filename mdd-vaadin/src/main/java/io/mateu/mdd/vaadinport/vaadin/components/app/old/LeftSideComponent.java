@@ -1,7 +1,5 @@
-package io.mateu.mdd.vaadinport.vaadin.components.app;
+package io.mateu.mdd.vaadinport.vaadin.components.app.old;
 
-import com.vaadin.server.Responsive;
-import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.app.AbstractApplication;

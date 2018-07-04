@@ -1,13 +1,13 @@
 package io.mateu.mdd.vaadinport.vaadin.components.views;
 
-import com.vaadin.data.HasValue;
-import com.vaadin.icons.VaadinIcons;
-import com.vaadin.server.Page;
 import com.vaadin.server.VaadinSession;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 
 import java.util.ArrayList;
@@ -63,8 +63,7 @@ public class ChangeAreaComponent extends AbstractViewComponent {
             Button b = new Button(a.getName(), new Button.ClickListener() {
                 @Override
                 public void buttonClick(Button.ClickEvent event) {
-                    MyUI ui = (MyUI) UI.getCurrent();
-                    ui.goTo(a);
+                    MyUI.get().getNavegador().goTo(a);
                 }
             });
 

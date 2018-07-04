@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class FiltersComponent extends CssLayout {
+public class ActionParametersComponent extends CssLayout {
 
     private final ListViewComponent listViewComponent;
     private final Class modelType;
@@ -34,7 +34,7 @@ public class FiltersComponent extends CssLayout {
     private Component allFiltersComponent;
 
 
-    public FiltersComponent(ListViewComponent listViewComponent) throws IllegalAccessException, InstantiationException {
+    public ActionParametersComponent(ListViewComponent listViewComponent) throws IllegalAccessException, InstantiationException {
 
         this.listViewComponent = listViewComponent;
 

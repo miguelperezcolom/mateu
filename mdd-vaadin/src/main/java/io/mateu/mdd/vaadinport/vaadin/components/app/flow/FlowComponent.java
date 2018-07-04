@@ -4,7 +4,10 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.Page;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.app.MDDAction;
+import io.mateu.mdd.core.app.MDDExecutionContext;
+import io.mateu.mdd.core.app.MDDOpenEditorAction;
+import io.mateu.mdd.core.app.MenuEntry;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.views.EditorViewFlowComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.views.ViewFlowComponent;
@@ -21,6 +24,11 @@ public class FlowComponent extends HorizontalLayout implements MDDExecutionConte
 
     private List<FlowViewComponent> stack = new ArrayList<>();
     private Map<FlowViewComponent, Component> wrappers = new HashMap<>();
+
+
+    public FlowComponent() {
+        addStyleName("flowcomponent");
+    }
 
     public void push(FlowViewComponent component) {
         Component w;
@@ -46,9 +54,7 @@ public class FlowComponent extends HorizontalLayout implements MDDExecutionConte
     private Component createBackLink() {
         Button b = new Button("Back to " + stack.get(stack.size() - 1).getViewTile(), VaadinIcons.ARROW_CIRCLE_LEFT);
         b.addClickListener(e -> {
-            String u = Page.getCurrent().getLocation().getPath();
-            u = u.substring(0, u.lastIndexOf("/"));
-            ((MyUI)UI.getCurrent()).goTo(u);
+            MyUI.get().getNavegador().goBack();
         });
         b.addStyleName("backlink");
         return b;
@@ -111,7 +117,6 @@ public class FlowComponent extends HorizontalLayout implements MDDExecutionConte
 
             modelType = viewClass;
             CRUDViewComponent v = new CRUDViewComponent(new JPAListViewComponent(modelType).build(), new JPAEditorViewComponent(modelType).build()).build();
-            v.setOriginatingAction((MenuEntry) MDD.getApp().getMenu(calculateCurrentState()));
 
             push(new EditorViewFlowComponent(calculateCurrentState(), v.getEditorViewComponent()));
 
@@ -135,7 +140,6 @@ public class FlowComponent extends HorizontalLayout implements MDDExecutionConte
 
             modelType = entityClass;
             CRUDViewComponent v = new CRUDViewComponent(new JPAListViewComponent(modelType).build(), new JPAEditorViewComponent(modelType).build()).build();
-            v.setOriginatingAction(MDD.getApp().getMenu(calculateCurrentState()));
 
             push(new ViewFlowComponent(calculateCurrentState(), v));
 

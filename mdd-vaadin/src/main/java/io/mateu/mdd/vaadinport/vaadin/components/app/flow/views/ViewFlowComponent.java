@@ -24,6 +24,8 @@ public class ViewFlowComponent extends VerticalLayout implements FlowViewCompone
         this.state = state;
         this.crudViewComponent = crudViewComponent;
 
+        addStyleName("viewflowcomponent");
+
         addComponent(crudViewComponent.getListViewComponent());
     }
 

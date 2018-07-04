@@ -4,13 +4,11 @@ import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
-import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.annotations.Output;
 import io.mateu.mdd.core.annotations.Stylist;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.interfaces.VoidStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.components.fields.JPAFieldBuilder;
 import io.mateu.mdd.vaadinport.vaadin.components.fields.JPAOutputFieldBuilder;
@@ -19,12 +17,9 @@ import io.mateu.mdd.vaadinport.vaadin.data.MDDBinder;
 import javafx.util.Pair;
 
 import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public class FormLayoutBuilder {
 

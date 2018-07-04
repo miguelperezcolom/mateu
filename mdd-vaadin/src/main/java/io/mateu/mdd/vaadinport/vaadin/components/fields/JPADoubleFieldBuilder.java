@@ -1,7 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fields;
 
 import com.google.common.base.Strings;
-import com.vaadin.data.HasValue;
 import com.vaadin.data.ValidationResult;
 import com.vaadin.data.Validator;
 import com.vaadin.data.ValueContext;
@@ -11,7 +10,6 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadinport.vaadin.data.MDDBinder;
 
 import java.util.List;
-import java.util.Map;
 
 public class JPADoubleFieldBuilder extends JPAStringFieldBuilder {
 

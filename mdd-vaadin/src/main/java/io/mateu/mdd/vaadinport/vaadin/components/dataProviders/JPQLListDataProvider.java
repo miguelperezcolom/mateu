@@ -4,7 +4,6 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Id;
 import javax.persistence.Query;
 import java.util.Collection;
 

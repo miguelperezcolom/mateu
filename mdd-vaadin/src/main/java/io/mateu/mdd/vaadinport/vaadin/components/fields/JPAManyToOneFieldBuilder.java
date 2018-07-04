@@ -18,7 +18,6 @@ import io.mateu.mdd.vaadinport.vaadin.components.dataProviders.JPQLListDataProvi
 import io.mateu.mdd.vaadinport.vaadin.data.MDDBinder;
 
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;

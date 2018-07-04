@@ -4,14 +4,17 @@ import com.google.common.base.Strings;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Page;
-import com.vaadin.ui.Component;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.vaadinport.vaadin.MyUI;
+import io.mateu.mdd.vaadinport.vaadin.components.app.flow.AbstractMDDExecutionContext;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.FlowComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.FlowViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.views.*;
 import io.mateu.mdd.vaadinport.vaadin.components.views.*;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,16 +22,12 @@ public class MDDNavigator implements ViewChangeListener {
 
     private final FlowComponent flowComponent;
     private List<String> stepsInFlow = new ArrayList<>();
-    private final Navigator navigator;
 
-    private ViewComponent currentViewComponent;
     private String currentState;
-    private String currentStateHeader;
 
 
-    public MDDNavigator(FlowComponent flowComponent, Navigator navigator) {
+    public MDDNavigator(FlowComponent flowComponent) {
         this.flowComponent = flowComponent;
-        this.navigator = navigator;
     }
 
 
@@ -40,7 +39,8 @@ public class MDDNavigator implements ViewChangeListener {
     }
 
     public String getPath(MenuEntry action, Class viewClass, Object id) {
-        return getPath(action, viewClass) + "/" + ((id != null)?id:"add");
+        //return getPath(action, viewClass) + "/" + ((id != null)?id:"add");
+        return getPath(action) + "/" + ((id != null)?id:"add");
     }
 
     public String getPath(MenuEntry e) {
@@ -69,13 +69,32 @@ public class MDDNavigator implements ViewChangeListener {
         }
     }
 
+    public void goTo(AbstractAction action, Class viewClass) {
+        goTo(getPath(action, viewClass));
+    }
+
+    public void goTo(MenuEntry action, Class viewClass, Object id) {
+        goTo(getPath(action, viewClass, id));
+    }
+
+    public void goTo(AbstractModule m) {
+        goTo(getPath(m));
+    }
+
+    public void goTo(MenuEntry e) {
+        goTo(getPath(e));
+    }
+
+    public void goTo(AbstractArea area) {
+        goTo(getPath(area));
+    }
+
     private ViewComponent getComponentForState(String state) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
 
         System.out.println("MDDNavigator.beforeViewChange: state=" + state);
 
         Class modelType = Class.forName(state.split("/")[3]);
         ViewComponent v = new CRUDViewComponent(new JPAListViewComponent(modelType).build(), new JPAEditorViewComponent(modelType).build()).build();
-        v.setOriginatingAction((AbstractAction) MDD.getApp().getMenu(state.split("/")[2]));
 
         return v;
     }
@@ -120,11 +139,13 @@ public class MDDNavigator implements ViewChangeListener {
                 //private|public/modulo/menu/menu/accion
                 //private|public/modulo/menu/menu/accion/vista
                 //private|public/modulo/menu/menu/accion/vista/filters
+                //private|public/modulo/menu/menu/accion/vista/staticMethodName
                 //private|public/modulo/menu/menu/accion/vista/add
                 //private|public/modulo/menu/menu/accion/vista/id
                 //private|public/modulo/menu/menu/accion/vista/id|add/view/id <-- abrir registro relacionado
                 //private|public/modulo/menu/menu/accion/vista/id|add/field <-- rellenar editando lista inline
                 //private|public/modulo/menu/menu/accion/vista/id|add/field <-- rellenar seleccionado registros
+                //private|public/modulo/menu/menu/accion/vista/id|add/methodName <-- rellenar seleccionado registros
 
 
 
@@ -164,7 +185,13 @@ public class MDDNavigator implements ViewChangeListener {
 
                                 // step es filters, add o el id del objeto a editar
 
-                                if ("filters".equals(step)) {
+                                AbstractAction action = vfc.getCrudViewComponent().getListViewComponent().getAction(step);
+
+                                if (action != null) {
+
+                                    flowComponent.push(new ActionParametersViewFlowComponent(state, vfc.getCrudViewComponent(), action));
+
+                                } else if ("filters".equals(step)) {
 
                                     flowComponent.push(new FiltersViewFlowComponent(state, vfc.getCrudViewComponent()));
 
@@ -196,7 +223,6 @@ public class MDDNavigator implements ViewChangeListener {
 
                                     modelType = Class.forName(step);
                                     CRUDViewComponent v = new CRUDViewComponent(new JPAListViewComponent(modelType).build(), new JPAEditorViewComponent(modelType).build()).build();
-                                    v.setOriginatingAction(null);
 
                                     flowComponent.push(new ViewFlowComponent(state, v));
 
@@ -255,4 +281,31 @@ public class MDDNavigator implements ViewChangeListener {
 
     }
 
+    public void goTo(FieldInterfaced f) {
+        String state = currentState;
+        state += "/" + f.getName();
+        goTo(state);
+    }
+
+    public void goTo(Method m) {
+        String state = currentState;
+        state += "/" + m.getName();
+        goTo(state);
+    }
+
+    public void goTo(Object id) {
+        String state = currentState;
+        if (!state.endsWith("/" + id)) {
+            if (state.endsWith("/add")) state = state.substring(0, state.length() - "add".length());
+            if (!state.endsWith("/")) state += "/";
+            state += id;
+        }
+        goTo(state);
+    }
+
+    public void goBack() {
+        String u = Page.getCurrent().getLocation().getPath();
+        u = u.substring(0, u.lastIndexOf("/"));
+        MyUI.get().getNavegador().goTo(u);
+    }
 }

@@ -7,13 +7,10 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.MenuBar;
-import com.vaadin.ui.UI;
 import com.vaadin.ui.components.grid.SortOrderProvider;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.Ignored;
-import io.mateu.mdd.core.annotations.ListColumn;
-import io.mateu.mdd.core.annotations.MainSearchFilter;
-import io.mateu.mdd.core.annotations.SearchFilter;
+import io.mateu.mdd.core.annotations.*;
+import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
@@ -23,8 +20,12 @@ import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -56,19 +57,32 @@ public class JPAListViewComponent extends ListViewComponent {
 
     @Override
     public void addViewActionsMenuItems(MenuBar bar) {
-        super.addViewActionsMenuItems(bar);
 
         bar.addItem("New", VaadinIcons.PLUS, new MenuBar.Command() {
             @Override
             public void menuSelected(MenuBar.MenuItem menuItem) {
                 try {
-                    ((MyUI)UI.getCurrent()).go("add");
+                    MyUI.get().getNavegador().go("add");
                 } catch (Throwable throwable) {
                     MDD.alert(throwable);
                 }
             }
         });
 
+        super.addViewActionsMenuItems(bar);
+    }
+
+    @Override
+    public List<AbstractAction> getActions() {
+        List<AbstractAction> l = new ArrayList<>();
+
+        for (Method m : ReflectionHelper.getAllMethods(entityClass)) {
+            if (Modifier.isStatic(m.getModifiers()) && m.isAnnotationPresent(Action.class)) {
+                l.add(ViewComponentHelper.createAction(m, this));
+            }
+        }
+
+        return l;
     }
 
 

@@ -9,7 +9,8 @@ import com.vaadin.ui.Grid;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.components.grid.ItemClickListener;
 import io.mateu.mdd.core.MDD;
-import org.vaadin.patrik.FastNavigation;
+
+import java.util.Set;
 
 public class ResultsComponent extends VerticalLayout {
 
@@ -119,5 +120,9 @@ public class ResultsComponent extends VerticalLayout {
     public void search(Object filters) throws Throwable {
         this.filters = filters;
         grid.getDataProvider().refreshAll();
+    }
+
+    public Set getSelection() {
+        return grid.getSelectedItems();
     }
 }

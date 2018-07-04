@@ -5,7 +5,10 @@ import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.AbstractModule;
 import io.mateu.mdd.core.app.MenuEntry;
 import io.mateu.mdd.core.data.UserData;
+import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.views.RPCView;
+
+import java.lang.reflect.Method;
 
 public interface MDDPort {
 
@@ -30,4 +33,8 @@ public interface MDDPort {
     void open(MenuEntry m);
 
     void open(AbstractModule m);
+
+    void open(Method m);
+
+    void open(FieldInterfaced f);
 }

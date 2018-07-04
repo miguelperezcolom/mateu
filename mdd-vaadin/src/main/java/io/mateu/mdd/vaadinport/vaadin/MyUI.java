@@ -1,32 +1,23 @@
 package io.mateu.mdd.vaadinport.vaadin;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import com.google.common.base.Strings;
 import com.vaadin.annotations.*;
-import com.vaadin.navigator.*;
-import com.vaadin.server.Page;
-import com.vaadin.server.Responsive;
+import com.vaadin.navigator.Navigator;
+import com.vaadin.navigator.PushStateNavigation;
+import com.vaadin.navigator.View;
+import com.vaadin.navigator.ViewProvider;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServlet;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.UI;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.app.AbstractApplication;
+import io.mateu.mdd.core.app.BaseMDDApp;
 import io.mateu.mdd.core.interfaces.App;
-import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.FlowComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.app.flow.views.LoginFlowComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.views.EditorViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.views.JPAListViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.views.ViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.mdd.VaadinPort;
 import io.mateu.mdd.vaadinport.vaadin.navigation.MDDNavigator;
 
-import java.io.IOException;
+import javax.servlet.annotation.WebServlet;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 
@@ -101,7 +92,9 @@ public class MyUI extends UI {
 
 
 
-
+    public static MyUI get() {
+        return (MyUI) UI.getCurrent();
+    }
 
 
     private void addNavigator() {
@@ -122,45 +115,13 @@ public class MyUI extends UI {
             }
         });
 
-        navegador = new MDDNavigator(flowComponent, navigator);
+        navegador = new MDDNavigator(flowComponent);
 
         navigator.addViewChangeListener(navegador);
     }
 
-    public String getPath(AbstractAction action, Class viewClass, Object id) {
-        return navegador.getPath(action, viewClass, id);
+
+    public MDDNavigator getNavegador() {
+        return navegador;
     }
-
-    public String getPath(AbstractAction action, Class viewClass) {
-        return navegador.getPath(action, viewClass);
-    }
-
-    public void goTo(String path) {
-        navegador.goTo(path);
-    }
-
-    public void go(String relativePath) { navegador.go(relativePath); }
-
-    public void goTo(AbstractAction action, Class viewClass) {
-        navegador.goTo(navegador.getPath(action, viewClass));
-    }
-
-    public void goTo(MenuEntry action, Class viewClass, Object id) {
-        navegador.goTo(navegador.getPath(action, viewClass, id));
-    }
-
-    public void goTo(AbstractModule m) {
-        navegador.goTo(navegador.getPath(m));
-    }
-
-
-    public void goTo(MenuEntry e) {
-        navegador.goTo(navegador.getPath(e));
-    }
-
-    public void goTo(AbstractArea area) {
-        navegador.goTo(navegador.getPath(area));
-    }
-
-
 }

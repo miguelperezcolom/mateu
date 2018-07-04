@@ -1,10 +1,12 @@
 package io.mateu.mdd.vaadinport.vaadin.components.views;
 
-import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 
 import javax.persistence.EntityManager;
+import java.util.List;
 
 public class JPAEditorViewComponent extends EditorViewComponent {
 
@@ -43,4 +45,5 @@ public class JPAEditorViewComponent extends EditorViewComponent {
             });
         }
     }
+
 }

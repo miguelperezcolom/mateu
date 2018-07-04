@@ -4,8 +4,9 @@ import com.vaadin.server.Page;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.app.*;
-import io.mateu.mdd.vaadinport.vaadin.components.app.flow.AbstractMDDExecutionContext;
+import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.app.AbstractMenu;
+import io.mateu.mdd.core.app.AbstractModule;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.FlowViewComponent;
 
 public class ModuleFlowComponent extends VerticalLayout implements FlowViewComponent {
@@ -28,6 +29,7 @@ public class ModuleFlowComponent extends VerticalLayout implements FlowViewCompo
         this.state = state;
         this.module = module;
 
+        addStyleName("moduleflowcomponent");
 
         module.getMenu().forEach(e -> addComponent(new Button(e.getName(), x ->{
             if (e instanceof AbstractMenu) MDD.open(e);

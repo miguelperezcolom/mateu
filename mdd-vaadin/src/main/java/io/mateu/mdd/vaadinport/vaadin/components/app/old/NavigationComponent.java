@@ -1,7 +1,8 @@
-package io.mateu.mdd.vaadinport.vaadin.components.app;
+package io.mateu.mdd.vaadinport.vaadin.components.app.old;
 
-import com.vaadin.server.FontAwesome;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
@@ -55,7 +56,7 @@ public class NavigationComponent extends VerticalLayout {
             public void buttonClick(Button.ClickEvent event) {
 
                 if (e instanceof AbstractMenu) {
-                    ((MyUI)UI.getCurrent()).goTo(e);
+                    MyUI.get().getNavegador().goTo(e);
                 } else if (e instanceof AbstractAction) {
                     AbstractAction a = (AbstractAction) e;
                     a.setModifierPressed(event.isAltKey() || event.isCtrlKey());

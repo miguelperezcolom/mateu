@@ -1,9 +1,6 @@
-package io.mateu.mdd.vaadinport.vaadin.components.app;
+package io.mateu.mdd.vaadinport.vaadin.components.app.old;
 
-import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
-import io.mateu.mdd.vaadinport.vaadin.components.views.AbstractViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.views.JPAListViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.views.ViewComponent;
 
 public class CenterComponent extends VerticalLayout {

@@ -15057,3 +15057,67 @@ div.v-layout.v-horizontal.v-widget {
 .mytheme .hidden {
 	display: none;
 }
+
+.mytheme .flowcomponent {
+	padding: 0px;
+}
+
+.mytheme .flowcomponent .areaflowcomponent {
+	padding: 0px;
+}
+
+.mytheme .flowcomponent .editorflowcomponent {
+	padding: 0px;
+}
+
+.mytheme .flowcomponent .editorflowcomponent .editorviewcomponent {
+	padding: 0px;
+}
+
+.mytheme .flowcomponent .editorflowcomponent .editorviewcomponent .contentcontainer {
+	padding: 0px;
+}
+
+.mytheme .flowcomponent .filtersflowcomponent {
+	padding: 0px;
+}
+
+.mytheme .flowcomponent .filtersflowcomponent .contentcontainer {
+	padding: 0px;
+}
+
+.mytheme .flowcomponent .menuflowcomponent {
+	padding: 0px;
+}
+
+.mytheme .flowcomponent .moduleflowcomponent {
+	padding: 0px;
+}
+
+.mytheme .flowcomponent .privatemenuflowcomponent {
+	padding: 0px;
+}
+
+.mytheme .flowcomponent .publicmenuflowcomponent {
+	padding: 0px;
+}
+
+.mytheme .flowcomponent .viewflowcomponent {
+	padding: 0px;
+}
+
+.mytheme .flowcomponent .viewflowcomponent .listviewcomponent {
+	padding: 0px;
+}
+
+.mytheme .flowcomponent .viewflowcomponent .listviewcomponent .filterscomponent {
+	padding: 0px;
+}
+
+.mytheme .flowcomponent .viewflowcomponent .listviewcomponent .filterscomponent .contentcontainer {
+	padding: 0px;
+}
+
+.mytheme .flowcomponent .viewflowcomponent .listviewcomponent .resultscomponent {
+	padding: 0px;
+}

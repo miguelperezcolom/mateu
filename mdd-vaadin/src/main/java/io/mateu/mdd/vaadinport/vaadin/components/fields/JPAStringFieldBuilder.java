@@ -1,6 +1,9 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fields;
 
-import com.vaadin.data.*;
+import com.vaadin.data.HasValue;
+import com.vaadin.data.ValidationResult;
+import com.vaadin.data.Validator;
+import com.vaadin.data.ValueContext;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.data.validator.StringLengthValidator;
 import com.vaadin.server.UserError;

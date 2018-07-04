@@ -2,7 +2,6 @@ package io.mateu.mdd.vaadinport.vaadin.data;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.HasValue;
-import com.vaadin.data.Validator;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;

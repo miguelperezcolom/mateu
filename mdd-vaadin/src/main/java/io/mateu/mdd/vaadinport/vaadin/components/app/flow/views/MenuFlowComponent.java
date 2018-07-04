@@ -5,10 +5,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.AbstractMenu;
-import io.mateu.mdd.core.app.MenuEntry;
-import io.mateu.mdd.vaadinport.vaadin.components.app.flow.AbstractMDDExecutionContext;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.FlowViewComponent;
 
 public class MenuFlowComponent extends VerticalLayout implements FlowViewComponent {
@@ -30,6 +27,8 @@ public class MenuFlowComponent extends VerticalLayout implements FlowViewCompone
     public MenuFlowComponent(String state, AbstractMenu menu) {
         this.state = state;
         this.menu = menu;
+
+        addStyleName("menuflowcomponent");
 
         menu.getEntries().forEach(e -> addComponent(new Button(e.getName(), x ->{
             if (e instanceof AbstractMenu) MDD.open(e);

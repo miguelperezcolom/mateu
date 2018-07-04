@@ -1,32 +1,36 @@
 package io.mateu.mdd.vaadinport.vaadin.components.views;
 
-import com.vaadin.data.*;
+import com.google.common.base.Strings;
+import com.vaadin.data.HasValue;
+import com.vaadin.data.ValidationResult;
+import com.vaadin.data.Validator;
+import com.vaadin.data.ValueContext;
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.server.CompositeErrorMessage;
 import com.vaadin.server.ErrorMessage;
+import com.vaadin.server.Page;
 import com.vaadin.shared.ui.ErrorLevel;
-import com.vaadin.ui.*;
+import com.vaadin.ui.AbstractComponent;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.MenuBar;
+import com.vaadin.ui.Notification;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Ignored;
-import io.mateu.mdd.core.annotations.Output;
-import io.mateu.mdd.core.annotations.SearchFilter;
-import io.mateu.mdd.core.annotations.Stylist;
+import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.app.MDDExecutionContext;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.core.interfaces.VoidStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
-import io.mateu.mdd.vaadinport.vaadin.components.fields.JPAFieldBuilder;
-import io.mateu.mdd.vaadinport.vaadin.components.fields.JPAOutputFieldBuilder;
-import io.mateu.mdd.vaadinport.vaadin.data.ChangeNotificationListener;
 import io.mateu.mdd.vaadinport.vaadin.data.MDDBinder;
-import io.mateu.mdd.vaadinport.vaadin.navigation.MDDNavigator;
-import javafx.beans.value.ChangeListener;
 import javafx.util.Pair;
 
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -151,7 +155,7 @@ public abstract class EditorViewComponent extends AbstractViewComponent {
 
                         // cambiamos la url, para reflejar el cambio
 
-                        ((MyUI)UI.getCurrent()).goTo(getOriginatingAction(), getModelType(), ReflectionHelper.getId(model));
+                        MyUI.get().getNavegador().goTo(ReflectionHelper.getId(model));
 
                     }
                     else Notification.show("There are errors", Notification.Type.ERROR_MESSAGE);
@@ -176,4 +180,20 @@ public abstract class EditorViewComponent extends AbstractViewComponent {
     public void setStylist(AbstractStylist stylist) {
         this.stylist = stylist;
     }
+
+
+    @Override
+    public List<AbstractAction> getActions() {
+        List<AbstractAction> l = new ArrayList<>();
+
+        for (Method m : ReflectionHelper.getAllMethods(modelType)) {
+            if (!Modifier.isStatic(m.getModifiers()) && m.isAnnotationPresent(Action.class)) {
+                Action aa = m.getAnnotation(Action.class);
+                l.add(ViewComponentHelper.createAction(m, this));
+            }
+        }
+
+        return l;
+    }
+
 }

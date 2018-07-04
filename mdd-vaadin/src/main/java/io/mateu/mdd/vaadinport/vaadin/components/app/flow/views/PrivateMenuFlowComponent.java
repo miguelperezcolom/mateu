@@ -20,6 +20,9 @@ public class PrivateMenuFlowComponent extends VerticalLayout implements FlowView
 
     public PrivateMenuFlowComponent(String state) {
         this.state = state;
+
+        addStyleName("privatemenuflowcomponent");
+
     }
 
 

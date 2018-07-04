@@ -1,11 +1,8 @@
-package io.mateu.mdd.vaadinport.vaadin.components.app;
+package io.mateu.mdd.vaadinport.vaadin.components.app.old;
 
 import com.vaadin.server.Responsive;
-import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.CustomLayout;
-import com.vaadin.ui.HorizontalLayout;
 import io.mateu.mdd.core.app.AbstractApplication;
-import io.mateu.mdd.vaadinport.vaadin.components.views.JPAListViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.views.ViewComponent;
 
 public class AppComponent extends CustomLayout {

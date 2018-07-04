@@ -4,9 +4,10 @@ import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.Label;
+import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public abstract class ListViewComponent extends AbstractViewComponent<ListViewComponent> {
 
@@ -17,6 +18,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     private int count;
     private Label countLabel;
     private FiltersComponent filtersComponent;
+    private Map<AbstractAction, ActionParametersComponent> actionComponents = new HashMap<>();
 
     @Override
     public ListViewComponent build() throws InstantiationException, IllegalAccessException {
@@ -31,7 +33,21 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
         addComponentsAndExpand(resultsComponent = buildResultsComponent());
 
+        buildActionComponents();
+
         return this;
+    }
+
+    protected void buildActionComponents() {
+        for (AbstractAction a : getActions()) {
+            try {
+                actionComponents.put(a, new ActionParametersComponent(this));
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 
@@ -80,5 +96,18 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
     public Component getFiltersViewComponent() {
         return filtersComponent.getFiltersViewComponent();
+    }
+
+
+    public AbstractAction getAction(String step) {
+        return null;
+    }
+
+    public Component getActionViewComponent(AbstractAction action) {
+        return actionComponents.get(action);
+    }
+
+    public Set getSelection() {
+        return resultsComponent.getSelection();
     }
 }

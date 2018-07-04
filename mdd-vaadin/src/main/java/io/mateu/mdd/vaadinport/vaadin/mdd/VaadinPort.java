@@ -2,18 +2,19 @@ package io.mateu.mdd.vaadinport.vaadin.mdd;
 
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.UI;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.MDDPort;
-import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.app.AbstractArea;
+import io.mateu.mdd.core.app.AbstractModule;
+import io.mateu.mdd.core.app.MenuEntry;
 import io.mateu.mdd.core.data.UserData;
+import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.views.RPCView;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
-import io.mateu.mdd.vaadinport.vaadin.components.views.EditorViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.views.JPAListViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.navigation.MDDNavigator;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.Method;
 
 public class VaadinPort implements MDDPort {
 
@@ -28,14 +29,14 @@ public class VaadinPort implements MDDPort {
     public void openCRUD(AbstractAction action, Class viewClass, String queryFilters, boolean modifierPressed) {
         System.out.println("open crud");
 
-        ((MyUI)UI.getCurrent()).goTo(action, viewClass);
+        MyUI.get().getNavegador().goTo(action, viewClass);
     }
 
     @Override
     public void openEditor(AbstractAction action, Class viewClass, Object id, boolean modifierPressed) {
         System.out.println("open editor");
 
-        ((MyUI)UI.getCurrent()).goTo(action, viewClass, id);
+        MyUI.get().getNavegador().goTo(action, viewClass, id);
     }
 
     @Override
@@ -66,22 +67,32 @@ public class VaadinPort implements MDDPort {
 
     @Override
     public void openPrivateAreaSelector() {
-        ((MyUI)UI.getCurrent()).goTo("private");
+        MyUI.get().getNavegador().goTo("private");
     }
 
 
     @Override
     public void open(AbstractArea a) {
-        ((MyUI)UI.getCurrent()).goTo(a);
+        MyUI.get().getNavegador().goTo(a);
     }
 
     @Override
     public void open(MenuEntry m) {
-        ((MyUI)UI.getCurrent()).goTo(m);
+        MyUI.get().getNavegador().goTo(m);
     }
 
     @Override
     public void open(AbstractModule m) {
-        ((MyUI)UI.getCurrent()).goTo(m);
+        MyUI.get().getNavegador().goTo(m);
+    }
+
+    @Override
+    public void open(Method m) {
+        MyUI.get().getNavegador().goTo(m);
+    }
+
+    @Override
+    public void open(FieldInterfaced f) {
+        MyUI.get().getNavegador().goTo(f);
     }
 }

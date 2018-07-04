@@ -2,6 +2,10 @@ package io.mateu.mdd.core.reflection;
 
 import com.google.common.base.Strings;
 import com.sun.javafx.collections.ObservableSetWrapper;
+import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.annotations.Action;
+import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.app.MDDExecutionContext;
 import io.mateu.mdd.core.data.*;
 import io.mateu.mdd.core.util.DatesRange;
 import io.mateu.mdd.core.util.Helper;
@@ -846,7 +850,7 @@ public class ReflectionHelper {
 
 
 
-    private static List<Method> getAllMethods(Class c) {
+    public static List<Method> getAllMethods(Class c) {
         List<Method> l = new ArrayList<>();
 
         if (c.getSuperclass() != null && (!c.isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class)))
@@ -1066,6 +1070,7 @@ public class ReflectionHelper {
 
         return mapper;
     }
+
 
     public Object runInServer(UserData user, String className, String methodName, Data parameters, String rpcViewClassName, Data rpcViewData) throws Throwable {
         Class c = Class.forName(className);
