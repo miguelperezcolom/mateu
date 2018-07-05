@@ -17,7 +17,6 @@
   <modules>
     <module>mdd-core</module>
     <module>mdd-tester</module>
-    <module>mdd-archetype</module>
     <module>mdd-vaadin</module>
   </modules>
 
