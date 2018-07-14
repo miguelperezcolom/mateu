@@ -1,18 +1,16 @@
 package io.mateu.mdd.vaadinport.vaadin.navigation;
 
 import com.google.common.base.Strings;
-import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Page;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
-import io.mateu.mdd.vaadinport.vaadin.components.app.flow.AbstractMDDExecutionContext;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.FlowComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.FlowViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.views.*;
-import io.mateu.mdd.vaadinport.vaadin.components.views.*;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -153,113 +151,148 @@ public class MDDNavigator implements ViewChangeListener {
                     goTo((MDD.getApp().isAuthenticationNeeded())?"login":"public");
                 } else {
 
-                    while (posInFlow < steps.length) { //vamos completando
-                        String step = steps[posInFlow];
+                    if (flowComponent.getStackSize() >= steps.length && state.equals(flowComponent.getComponentInStack(steps.length - 1).getStatePath())) {
 
-                        FlowViewComponent lastFlowComponent = null;
-                        if (flowComponent.getStackSize() > 0) lastFlowComponent = flowComponent.getComponentInStack(flowComponent.getStackSize() - 1);
+                    } else {
 
-                        boolean procesar = false;
+                        while (posInFlow < steps.length) { //vamos completando
+                            String step = steps[posInFlow];
 
-                        if (
-                                lastFlowComponent != null
-                                && !(lastFlowComponent instanceof PublicMenuFlowComponent)
-                                && !(lastFlowComponent instanceof PrivateMenuFlowComponent)
-                                && !(lastFlowComponent instanceof AreaFlowComponent)
-                                && !(lastFlowComponent instanceof ModuleFlowComponent)
-                                ) {
+                            FlowViewComponent lastFlowComponent = null;
+                            if (flowComponent.getStackSize() > 0)
+                                lastFlowComponent = flowComponent.getComponentInStack(flowComponent.getStackSize() - 1);
+
+                            boolean procesar = false;
+
                             if (
-                                    !(lastFlowComponent instanceof MenuFlowComponent)
-                                    || MDD.getApp().getMenu(prefijo + "/" + step) == null
+                                    lastFlowComponent != null
+                                            && !(lastFlowComponent instanceof PublicMenuFlowComponent)
+                                            && !(lastFlowComponent instanceof PrivateMenuFlowComponent)
+                                            && !(lastFlowComponent instanceof AreaFlowComponent)
+                                            && !(lastFlowComponent instanceof ModuleFlowComponent)
                                     ) {
-                                procesar = true;
+                                if (
+                                        !(lastFlowComponent instanceof MenuFlowComponent)
+                                                || MDD.getApp().getMenu(prefijo + "/" + step) == null
+                                        ) {
+                                    procesar = true;
+                                }
                             }
-                        }
 
-                        if (procesar) {
-                            // miramos el último componente añadido
+                            if (procesar) {
+                                // miramos el último componente añadido
 
-                            if (lastFlowComponent instanceof ViewFlowComponent) { // el último fué una listView, estamos en un id, add, o en los filtros
+                                if (lastFlowComponent instanceof CrudViewFlowComponent || lastFlowComponent instanceof  ListViewFlowComponent) { // el último fué una listView, estamos en un id, add, o en los filtros
 
-                                ViewFlowComponent vfc = (ViewFlowComponent) lastFlowComponent;
-
-                                // step es filters, add o el id del objeto a editar
-
-                                AbstractAction action = vfc.getCrudViewComponent().getListViewComponent().getAction(step);
-
-                                if (action != null) {
-
-                                    flowComponent.push(new ActionParametersViewFlowComponent(state, vfc.getCrudViewComponent(), action));
-
-                                } else if ("filters".equals(step)) {
-
-                                    flowComponent.push(new FiltersViewFlowComponent(state, vfc.getCrudViewComponent()));
-
-                                } else {
-
-                                    EditorViewComponent evc = vfc.getCrudViewComponent().getEditorViewComponent();
-
-                                    try {
-
-                                        if (Strings.isNullOrEmpty(step) || "add".equals(step)) { // estamos añadiendo un nuevo registro
-                                            evc.load(null);
-                                        } else { // step es el id del objeto a editar
-                                            String sid = step;
-                                            evc.load(vfc.getCrudViewComponent().getListViewComponent().deserializeId(sid));
-                                        }
-
-                                    } catch (Throwable throwable) {
-                                        throwable.printStackTrace();
+                                    ListViewComponent lvc = null;
+                                    if (lastFlowComponent instanceof CrudViewFlowComponent) {
+                                        CrudViewFlowComponent vfc = (CrudViewFlowComponent) lastFlowComponent;
+                                        lvc = vfc.getCrudViewComponent().getListViewComponent();
+                                    } else if (lastFlowComponent instanceof ListViewFlowComponent) {
+                                        lvc = ((ListViewFlowComponent) lastFlowComponent).getListViewComponent();
                                     }
 
-                                    flowComponent.push(new EditorViewFlowComponent(state, evc));
+
+
+                                    // step es filters, add o el id del objeto a editar
+
+                                    Method method = lvc.getMethod(step);
+
+                                    if (method != null) {
+
+                                        flowComponent.push(new MethodParametersViewFlowComponent(state, method, null));
+
+                                    } else if ("filters".equals(step)) {
+
+                                        flowComponent.push(new FiltersViewFlowComponent(state, lvc));
+
+                                    } else {
+
+                                        if (lastFlowComponent instanceof CrudViewFlowComponent) {
+                                            CrudViewFlowComponent vfc = (CrudViewFlowComponent) lastFlowComponent;
+
+                                            EditorViewComponent evc = vfc.getCrudViewComponent().getEditorViewComponent();
+
+                                            try {
+
+                                                if (Strings.isNullOrEmpty(step) || "add".equals(step)) { // estamos añadiendo un nuevo registro
+                                                    evc.load(null);
+                                                } else { // step es el id del objeto a editar
+                                                    String sid = step;
+                                                    evc.load(vfc.getCrudViewComponent().getListViewComponent().deserializeId(sid));
+                                                }
+
+                                            } catch (Throwable throwable) {
+                                                throwable.printStackTrace();
+                                            }
+
+                                            flowComponent.push(new EditorViewFlowComponent(state, evc));
+
+                                        } else {
+
+                                        }
+                                    }
+
+                                } else if (lastFlowComponent instanceof EditorViewFlowComponent) {
+
+                                    EditorViewFlowComponent evfc = (EditorViewFlowComponent) lastFlowComponent;
+
+                                    Method method = evfc.getEditorViewComponent().getMethod(step);
+
+                                    if (method != null) {
+
+                                        flowComponent.push(new MethodParametersViewFlowComponent(state, method, evfc.getEditorViewComponent().getModel()));
+
+                                    }
+
+                                } else {
+                                    // step es el id de la vista
+
+                                    Class modelType = null;
+                                    try {
+
+                                        modelType = Class.forName(step);
+                                        CRUDViewComponent v = new CRUDViewComponent(new JPAListViewComponent(modelType).build(), new JPAEditorViewComponent(modelType).build()).build();
+
+                                        flowComponent.push(new CrudViewFlowComponent(state, v));
+
+                                    } catch (ClassNotFoundException e) {
+                                        e.printStackTrace();
+                                    } catch (IllegalAccessException e) {
+                                        e.printStackTrace();
+                                    } catch (InstantiationException e) {
+                                        e.printStackTrace();
+                                    }
+
+
+                                    //crud.loadInEditor(sid);
+
+
                                 }
 
-                            } else {
-                                // step es el id de la vista
-
-                                Class modelType = null;
-                                try {
-
-                                    modelType = Class.forName(step);
-                                    CRUDViewComponent v = new CRUDViewComponent(new JPAListViewComponent(modelType).build(), new JPAEditorViewComponent(modelType).build()).build();
-
-                                    flowComponent.push(new ViewFlowComponent(state, v));
-
-                                } catch (ClassNotFoundException e) {
-                                    e.printStackTrace();
-                                } catch (IllegalAccessException e) {
-                                    e.printStackTrace();
-                                } catch (InstantiationException e) {
-                                    e.printStackTrace();
+                            } else if (posInFlow > 2) { // el id del menu
+                                MenuEntry e = MDD.getApp().getMenu(prefijo + "/" + step);
+                                if (e instanceof AbstractAction) {
+                                    ((AbstractAction) e).run(flowComponent);
+                                } else if (e instanceof AbstractMenu) {
+                                    flowComponent.push(new MenuFlowComponent(state, (AbstractMenu) e));
                                 }
-
-
-                                //crud.loadInEditor(sid);
-
-
+                            } else if (posInFlow == 2) { // public | private --> lista de areas
+                                flowComponent.push(new ModuleFlowComponent(state, MDD.getApp().getModule(prefijo + "/" + step)));
+                            } else if (posInFlow == 1) { // public | private --> lista de areas
+                                flowComponent.push(new AreaFlowComponent(state, MDD.getApp().getArea(prefijo + "/" + step)));
+                            } else if (posInFlow == 0) { // acción básica
+                                if ("public".equalsIgnoreCase(step))
+                                    flowComponent.push(new PublicMenuFlowComponent(state));
+                                else if ("login".equalsIgnoreCase(step))
+                                    flowComponent.push(new LoginFlowComponent(state));
                             }
 
-                        } else if (posInFlow > 2) { // el id del menu
-                            MenuEntry e = MDD.getApp().getMenu(prefijo + "/" + step);
-                            if (e instanceof AbstractAction) {
-                                ((AbstractAction)e).run(flowComponent);
-                            } else if (e instanceof AbstractMenu) {
-                                flowComponent.push(new MenuFlowComponent(state, (AbstractMenu) e));
-                            }
-                        } else if (posInFlow == 2) { // public | private --> lista de areas
-                            flowComponent.push(new ModuleFlowComponent(state, MDD.getApp().getModule(prefijo + "/" + step)));
-                        } else if (posInFlow == 1) { // public | private --> lista de areas
-                            flowComponent.push(new AreaFlowComponent(state, MDD.getApp().getArea(prefijo + "/" + step)));
-                        } else if (posInFlow == 0) { // acción básica
-                            if ("public".equalsIgnoreCase(step)) flowComponent.push(new PublicMenuFlowComponent(state));
-                            else if ("login".equalsIgnoreCase(step)) flowComponent.push(new LoginFlowComponent(state));
+                            stepsInFlow.add(step);
+                            posInFlow++;
+                            if (!"".equals(prefijo)) prefijo += "/";
+                            prefijo += step;
                         }
-
-                        stepsInFlow.add(step);
-                        posInFlow++;
-                        if (!"".equals(prefijo)) prefijo += "/";
-                        prefijo += step;
                     }
                 }
 
@@ -307,5 +340,16 @@ public class MDDNavigator implements ViewChangeListener {
         String u = Page.getCurrent().getLocation().getPath();
         u = u.substring(0, u.lastIndexOf("/"));
         MyUI.get().getNavegador().goTo(u);
+    }
+
+    public void showResult(Method m, Object r) {
+        String state = currentState;
+        if (!state.endsWith("/")) state += "/";
+        state += "result";
+
+        flowComponent.push(new MethodResultViewFlowComponent(state, m, r));
+        stepsInFlow.add("result");
+
+        goTo(state);
     }
 }

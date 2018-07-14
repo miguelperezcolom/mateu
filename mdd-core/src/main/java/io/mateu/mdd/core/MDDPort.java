@@ -20,7 +20,7 @@ public interface MDDPort {
 
     UserData getUserData();
 
-    void openView(RPCView v, boolean modifierPressed);
+    void openView(AbstractAction mddOpenListViewAction, Class listViewClass, boolean modifierPressed);
 
     void alert(Throwable throwable);
 

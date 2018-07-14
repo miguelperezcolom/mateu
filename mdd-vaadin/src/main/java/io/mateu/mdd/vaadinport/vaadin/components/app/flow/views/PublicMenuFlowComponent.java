@@ -5,7 +5,7 @@ import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.FlowViewComponent;
 
-public class PublicMenuFlowComponent extends VerticalLayout implements FlowViewComponent {
+public class PublicMenuFlowComponent extends AbstractFlowComponent {
 
     private final String state;
 

@@ -1077,7 +1077,7 @@
  */
 
 .v-vaadin-version:after {
-	content: "8.4.2";
+	content: "8.4.4";
 }
 
 .v-widget {
@@ -15050,7 +15050,11 @@ div.v-layout.v-horizontal.v-widget {
 	overflow: hidden;
 }
 
-.mytheme .viewTitle {
+.mytheme .viewHeader {
+	padding: 0px;
+}
+
+.mytheme .viewHeader .viewTitle {
 	font-size: 2em;
 }
 
@@ -15058,7 +15062,62 @@ div.v-layout.v-horizontal.v-widget {
 	display: none;
 }
 
+.mytheme .backlink {
+	font-size: 1.7em;
+	margin: 0px;
+	padding: 0px;
+}
+
+.mytheme .backlink .v-icon {
+	margin-top: 4px;
+}
+
+.mytheme .buttonlink {
+	font-size: 1.7em;
+}
+
+.mytheme .buttonlink .v-icon {
+	margin-top: -10px;
+}
+
+.mytheme .filterscomponent  > * {
+	margin-right: 20px;
+}
+
+.mytheme .filterscomponent .v-caption {
+	margin-top: 0.65em;
+	margin-right: 10px;
+}
+
+.mytheme .filterscomponent .v-button {
+	margin-right: 5px;
+}
+
+.mytheme .viewHeader {
+	margin-bottom: 40px;
+}
+
+.mytheme .filterscomponent {
+	margin-bottom: 40px;
+}
+
+.mytheme .applicationactions {
+	margin-bottom: 40px;
+}
+
 .mytheme .flowcomponent {
+	padding: 0px;
+}
+
+.mytheme .flowcomponent .actionparametersflowcomponent, .mytheme .flowcomponent .methodresultflowcomponent {
+	padding: 0px;
+}
+
+.mytheme .flowcomponent .actionparametersflowcomponent .editorviewcomponent, .mytheme .flowcomponent .methodresultflowcomponent .editorviewcomponent {
+	padding: 0px;
+}
+
+.mytheme .flowcomponent .actionparametersflowcomponent .editorviewcomponent .contentcontainer, .mytheme .flowcomponent .methodresultflowcomponent .editorviewcomponent .contentcontainer {
 	padding: 0px;
 }
 
@@ -15119,5 +15178,13 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .mytheme .flowcomponent .viewflowcomponent .listviewcomponent .resultscomponent {
+	padding: 0px;
+}
+
+.mytheme .flowwrapperpanel .v-panel-content {
+	padding: 0px;
+}
+
+.mytheme .flowwrapperpanel .v-panel-content .v-verticallayout {
 	padding: 0px;
 }

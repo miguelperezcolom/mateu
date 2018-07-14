@@ -1,10 +1,8 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.flow.views;
 
-import com.vaadin.ui.VerticalLayout;
-import io.mateu.mdd.vaadinport.vaadin.components.app.flow.FlowViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.views.EditorViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 
-public class EditorViewFlowComponent extends VerticalLayout implements FlowViewComponent {
+public class EditorViewFlowComponent extends AbstractFlowComponent {
 
     private final EditorViewComponent editorViewComponent;
     private final String state;
@@ -24,10 +22,16 @@ public class EditorViewFlowComponent extends VerticalLayout implements FlowViewC
         this.state = state;
         this.editorViewComponent = editorViewComponent;
 
+        editorViewComponent.addViewListener(t -> flowViewListeners.forEach(l -> l.titleChanged(t)));
+
         addStyleName("editorflowcomponent");
 
         addComponent(editorViewComponent);
 
+
     }
 
+    public EditorViewComponent getEditorViewComponent() {
+        return editorViewComponent;
+    }
 }

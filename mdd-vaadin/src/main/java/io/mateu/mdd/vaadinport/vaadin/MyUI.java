@@ -13,6 +13,7 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractApplication;
 import io.mateu.mdd.core.app.BaseMDDApp;
 import io.mateu.mdd.core.interfaces.App;
+import io.mateu.mdd.vaadinport.vaadin.arciiart.Painter;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.FlowComponent;
 import io.mateu.mdd.vaadinport.vaadin.mdd.VaadinPort;
 import io.mateu.mdd.vaadinport.vaadin.navigation.MDDNavigator;
@@ -45,6 +46,14 @@ public class MyUI extends UI {
     private MDDNavigator navegador;
     private Navigator navigator;
     private FlowComponent flowComponent;
+
+    static{
+
+        Painter.paint("Hello");
+        System.out.println();
+        Painter.paint("MATEU");
+
+    }
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {

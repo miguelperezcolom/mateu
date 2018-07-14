@@ -8,7 +8,7 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.AbstractMenu;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.FlowViewComponent;
 
-public class MenuFlowComponent extends VerticalLayout implements FlowViewComponent {
+public class MenuFlowComponent extends AbstractFlowComponent {
 
     private final AbstractMenu menu;
     private final String state;

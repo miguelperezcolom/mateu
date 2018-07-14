@@ -28,7 +28,7 @@ public class SearchFiltersDemoEntity {
     @SearchFilter
     private String c;
 
-    @SearchFilter
+    @MainSearchFilter
     private String d;
 
     @SearchFilter

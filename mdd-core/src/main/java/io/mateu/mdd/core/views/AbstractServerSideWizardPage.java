@@ -22,7 +22,7 @@ public abstract class AbstractServerSideWizardPage {
 
     public void fill(EntityManager em, UserData user, Data data) throws Throwable {
         List<Object> persistPending = new ArrayList<>();
-        ReflectionHelper.fillEntity(em, persistPending, user,this, data, false);
+        //ReflectionHelper.fillEntity(em, persistPending, user,this, data, false);
         for (Object x : persistPending) em.persist(x);
 
     }

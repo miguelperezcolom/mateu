@@ -1,12 +1,11 @@
 package io.mateu.mdd.core.interfaces;
 
-import io.mateu.mdd.core.data.GridData;
-import io.mateu.mdd.core.data.UserData;
+import java.util.List;
 
-import javax.persistence.EntityManager;
+public interface RpcView<F, C> {
 
-public interface RpcView<T, S> {
+    List<C> rpc(F filters, int offset, int limit);
 
-    GridData<S> rpc(EntityManager em, UserData user, T parameters);
+    int gatherCount(F filters);
 
 }

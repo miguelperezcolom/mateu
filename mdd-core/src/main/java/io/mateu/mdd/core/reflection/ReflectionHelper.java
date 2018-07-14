@@ -65,12 +65,16 @@ public class ReflectionHelper {
     }
 
     public static void setValue(String fn, Object o, Object v) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
-        if (fn.contains(".")) {
-            o = getInstance(o, fn.substring(0, fn.indexOf(".")));
-            setValue(fn.substring(fn.indexOf(".") + 1), o, v);
+        if (Map.class.isAssignableFrom(o.getClass())) {
+            ((Map)o).put(fn, v);
         } else {
-            if (v instanceof ObservableSetWrapper) v = new ArrayList((Collection) v);
-            BeanUtils.setProperty(o, fn, v);
+            if (fn.contains(".")) {
+                o = getInstance(o, fn.substring(0, fn.indexOf(".")));
+                setValue(fn.substring(fn.indexOf(".") + 1), o, v);
+            } else {
+                if (v instanceof ObservableSetWrapper) v = new ArrayList((Collection) v);
+                BeanUtils.setProperty(o, fn, v);
+            }
         }
     }
 
@@ -219,16 +223,6 @@ public class ReflectionHelper {
             } else {
                 if (vcl != null && !vcl.equals(cl)) o = ((io.mateu.mdd.core.interfaces.View)vcl.newInstance()).newInstance(em, user);
                 if (o == null) o = cl.newInstance();
-                //em.persist(o);
-                /*
-                if (generated) {
-                    em.flush(); // to get the id
-                    Method m = o.getClass().getMethod(getGetter(idField));
-                    id = m.invoke(o);
-                } else {
-                    id = data.get(idField.getName());
-                }
-                */
                 newInstance = true;
             }
 
@@ -573,10 +567,7 @@ public class ReflectionHelper {
 
                 v = em.find(f.getType(), v);
                 if (parentField != null) {
-                                        /*
-    @OneToMany(mappedBy="albergue", cascade = CascadeType.ALL)
-    @MapKey(name="fecha")
-                                         */
+
                     if (parentField.isAnnotationPresent(MapKey.class)) {
                         String keyFieldName = parentField.getAnnotation(MapKey.class).name();
                         Field keyField = o.getClass().getDeclaredField(keyFieldName);
@@ -875,7 +866,7 @@ public class ReflectionHelper {
         List<String> vistos = new ArrayList<>();
         Map<String, Field> originales = new HashMap<>();
         for (Field f : c.getDeclaredFields()) {
-            originales.put(f.getName(), f);
+            if (!f.getName().contains("$")) originales.put(f.getName(), f);
         }
 
         List<io.mateu.mdd.core.reflection.FieldInterfaced> l = new ArrayList<>();
@@ -888,11 +879,33 @@ public class ReflectionHelper {
             }
         }
 
-        for (Field f : c.getDeclaredFields()) if (!vistos.contains(f.getName())) {
+        for (Field f : c.getDeclaredFields()) if (!vistos.contains(f.getName())) if (!f.getName().contains("$")) {
             l.add(new io.mateu.mdd.core.reflection.FieldInterfacedFromField(f));
         }
 
         return l;
+    }
+
+    public static List<io.mateu.mdd.core.reflection.FieldInterfaced> getAllFields(Method m) {
+
+        List<FieldInterfaced> l = new ArrayList<>();
+
+        for (Parameter p : m.getParameters()) if (!isInjectable(p)) {
+            l.add(new io.mateu.mdd.core.reflection.FieldInterfacedFromParameter(m, p));
+        }
+
+        return l;
+    }
+
+    private static boolean isInjectable(Parameter p) {
+        boolean injectable = true;
+        if (EntityManager.class.equals(p.getType())) {
+        } else if (UserData.class.equals(p.getType())) {
+        } else if (Set.class.isAssignableFrom(p.getType())) {
+        } else {
+            injectable = false;
+        }
+        return injectable;
     }
 
     private static Map<String, io.mateu.mdd.core.reflection.FieldInterfaced> getAllFieldsMap(Class c) {
@@ -1071,6 +1084,331 @@ public class ReflectionHelper {
         return mapper;
     }
 
+    public static Class getGenericClass(Class sourceClass, Class asClassOrInterface, String genericArgumentName) {
+        Class c = null;
+
+        if (asClassOrInterface.isInterface()) {
+
+            // buscamos la clase (entre ella misma y las superclases) que implementa la interfaz o un derivado
+            // vamos bajando por las interfaces hasta encontrar una clase
+            // si no tenemos la clase, vamos bajando por las subclases hasta encontrarla
+
+            Class baseInterface = null;
+
+            if (sourceClass.isInterface()) {
+                baseInterface = sourceClass;
+            } else {
+
+                // buscamos hasta la clase que implemente la interfaz o una subclase de la misma
+
+                boolean laImplementa = false;
+
+                List<Type> jerarquia = new ArrayList<>();
+                List<Type> jerarquiaInterfaces = null;
+
+                Type tipoEnCurso = sourceClass;
+                while (tipoEnCurso != null && !laImplementa) {
+
+                    jerarquiaInterfaces = buscarInterfaz(tipoEnCurso, asClassOrInterface);
+
+                    laImplementa = jerarquiaInterfaces != null;
+
+                    if (!laImplementa) { // si no la implementa subimos por las superclases
+
+                        Type genericSuperclass = getSuper(tipoEnCurso);
+
+                        if (genericSuperclass != null && genericSuperclass instanceof ParameterizedType) {
+                            ParameterizedType pt = (ParameterizedType)genericSuperclass;
+                            if (pt.getRawType() instanceof Class) {
+
+                                genericSuperclass = pt.getRawType();
+
+                                if (Object.class.equals(genericSuperclass)) {
+                                    // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos null
+                                    tipoEnCurso = null;
+                                } else {
+                                    jerarquia.add(tipoEnCurso);
+                                    tipoEnCurso = pt;
+                                }
+
+                            }
+                        } else if (genericSuperclass != null && genericSuperclass instanceof Class) {
+
+                            if (Object.class.equals(genericSuperclass)) {
+                                // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos null
+                                tipoEnCurso = null;
+                            } else {
+                                jerarquia.add(tipoEnCurso);
+                                tipoEnCurso = (Class) genericSuperclass;
+                            }
+
+                        } else {
+                            // todo: puede no ser una clase?
+                            tipoEnCurso = null;
+                        }
+
+                    }
+                }
+
+
+                if (laImplementa) {
+
+                    // añadimos la clase en cuestión
+                    jerarquia.add(tipoEnCurso);
+
+                    // localizamos el parámetro y bajamos por las interfaces
+                    jerarquia.addAll(jerarquiaInterfaces);
+                    c = buscarHaciaAbajo(asClassOrInterface, genericArgumentName, jerarquia);
+
+                }
+
+            }
+
+
+
+
+
+        } else {
+
+            // una interfaz no puede extender una clase
+            if (sourceClass.isInterface()) return null;
+
+            // buscamos la clase (entre ella misma y las superclases)
+            // localizamos la posición del argumento
+            // vamos bajando hasta que encontramos una clase
+
+            List<Type> jerarquia = new ArrayList<>();
+
+            Type tipoEnCurso = sourceClass;
+            while (tipoEnCurso != null && !(asClassOrInterface.equals(tipoEnCurso) || (tipoEnCurso instanceof ParameterizedType && asClassOrInterface.equals(((ParameterizedType)tipoEnCurso).getRawType())))) {
+                Type genericSuperclass = getSuper(tipoEnCurso);
+
+                if (genericSuperclass != null && genericSuperclass instanceof ParameterizedType) {
+                    ParameterizedType pt = (ParameterizedType)genericSuperclass;
+                    if (pt.getRawType() instanceof Class) {
+
+                        genericSuperclass = pt.getRawType();
+
+                        if (Object.class.equals(genericSuperclass)) {
+                            // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos null
+                            tipoEnCurso = null;
+                        } else {
+                            jerarquia.add(tipoEnCurso);
+                            tipoEnCurso = pt;
+                        }
+
+                    }
+                } else if (genericSuperclass != null && genericSuperclass instanceof Class) {
+
+                    if (Object.class.equals(genericSuperclass)) {
+                        // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos null
+                        tipoEnCurso = null;
+                    } else {
+                        jerarquia.add(tipoEnCurso);
+                        tipoEnCurso = (Class) genericSuperclass;
+                    }
+
+                } else {
+                    // todo: puede no ser una clase?
+                    tipoEnCurso = null;
+                }
+            }
+
+            if (tipoEnCurso != null) {
+
+                // añadimos la clase en cuestión
+                jerarquia.add(tipoEnCurso);
+
+                c = buscarHaciaAbajo(asClassOrInterface, genericArgumentName, jerarquia);
+
+            } else {
+
+                // no hemos encontrado la clase entre las superclases. devolveremos null
+
+            }
+
+        }
+
+        return c;
+    }
+
+    private static Class buscarHaciaAbajo(Type asClassOrInterface, String genericArgumentName, List<Type> jerarquia) {
+
+        Class c = null;
+
+        // localizamos la posición del argumento
+        int argPos = getArgPos(asClassOrInterface, genericArgumentName);
+
+        // vamos bajando hasta que encontremos una clase en la posición indicada (y vamos actualizando la posición en cada escalón)
+        int escalon = jerarquia.size() - 1;
+        while (escalon >= 0 && c == null) {
+
+            Type tipoEnCurso = jerarquia.get(escalon);
+
+            if (tipoEnCurso instanceof Class) {
+
+                if (((Class)tipoEnCurso).getTypeParameters().length > argPos) {
+                    TypeVariable t = ((Class)tipoEnCurso).getTypeParameters()[argPos];
+
+                    genericArgumentName = t.getName();
+                    asClassOrInterface = (Class) tipoEnCurso;
+
+                    argPos = getArgPos(asClassOrInterface, genericArgumentName);
+                } else {
+                    c = Object.class;
+                }
+
+            } else if (tipoEnCurso instanceof ParameterizedType) {
+                ParameterizedType pt = (ParameterizedType) tipoEnCurso;
+                Type t = pt.getActualTypeArguments()[argPos];
+
+                if (t instanceof Class) { // lo hemos encontrado
+                    c = (Class) t;
+                } else if (t instanceof TypeVariable) {
+                    genericArgumentName = ((TypeVariable)t).getName();
+                    asClassOrInterface = tipoEnCurso;
+
+                    argPos = getArgPos(asClassOrInterface, genericArgumentName);
+                }
+            }
+
+            escalon--;
+        }
+
+        return c;
+    }
+
+    private static List<Type> buscarInterfaz(Type tipo, Class interfaz) {
+        List<Type> jerarquia = null;
+
+        Class clase = null;
+        if (tipo instanceof Class) clase = (Class) tipo;
+        else if (tipo instanceof ParameterizedType) {
+            ParameterizedType pt = (ParameterizedType)tipo;
+            if (pt.getRawType() instanceof Class) clase = (Class) pt.getRawType();
+        }
+
+        if (clase != null) for (Type t : clase.getGenericInterfaces()) {
+            jerarquia = buscarSuperInterfaz(t, interfaz);
+            if (jerarquia != null) break;
+        }
+
+        return jerarquia;
+    }
+
+    private static List<Type> buscarSuperInterfaz(Type tipo, Class interfaz) {
+        List<Type> jerarquia = null;
+
+        Class clase = null;
+        if (tipo instanceof Class) clase = (Class) tipo;
+        else if (tipo instanceof ParameterizedType) {
+            ParameterizedType pt = (ParameterizedType)tipo;
+            if (pt.getRawType() instanceof Class) clase = (Class) pt.getRawType();
+        }
+
+        if (clase != null) {
+
+            //buscar en superclases y rellenar jerarquía
+            Type tipoEnCurso = clase;
+
+            List<Type> tempJerarquia = new ArrayList<>();
+            tempJerarquia.add(tipo);
+
+            while (tipoEnCurso != null && !(interfaz.equals(tipoEnCurso) || (tipoEnCurso instanceof ParameterizedType && interfaz.equals(((ParameterizedType)tipoEnCurso).getRawType())))) {
+                Type genericSuperclass = getSuper(tipoEnCurso);
+                if (genericSuperclass != null && genericSuperclass instanceof ParameterizedType) {
+                    ParameterizedType pt = (ParameterizedType)genericSuperclass;
+                    if (pt.getRawType() instanceof Class) {
+
+                        genericSuperclass = pt.getRawType();
+
+                        if (Object.class.equals(genericSuperclass)) {
+                            // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos null
+                            tipoEnCurso = null;
+                        } else {
+                            tempJerarquia.add(tipoEnCurso);
+                            tipoEnCurso = pt;
+                        }
+
+                    }
+                } else if (genericSuperclass != null && genericSuperclass instanceof Class) {
+
+                    if (Object.class.equals(genericSuperclass)) {
+                        // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos null
+                        tipoEnCurso = null;
+                    } else {
+                        tempJerarquia.add(tipoEnCurso);
+                        tipoEnCurso = (Class) genericSuperclass;
+                    }
+
+                } else {
+                    // todo: puede no ser una clase?
+                    tipoEnCurso = null;
+                }
+            }
+
+            if (tipoEnCurso != null) {
+                jerarquia = tempJerarquia;
+            }
+
+        }
+
+        return jerarquia;
+    }
+
+    private static Type getSuper(Type tipoEnCurso) {
+        Type genericSuperclass = null;
+        if (tipoEnCurso instanceof Class) {
+            if (((Class) tipoEnCurso).isInterface()) {
+                Class[] is = ((Class) tipoEnCurso).getInterfaces();
+                if (is != null && is.length > 0) genericSuperclass = is[0];
+            }
+            else genericSuperclass = ((Class)tipoEnCurso).getGenericSuperclass();
+        }
+        else if (tipoEnCurso instanceof ParameterizedType) {
+            ParameterizedType pt = (ParameterizedType)tipoEnCurso;
+            if (pt.getRawType() instanceof Class) genericSuperclass = ((Class)pt.getRawType()).getGenericSuperclass();
+        }
+        return genericSuperclass;
+    }
+
+    private static int getArgPos(Type asClassOrInterface, String genericArgumentName) {
+        int argPos = 0;
+
+        Type[] types = null;
+        if (asClassOrInterface instanceof Class) {
+            types = ((Class)asClassOrInterface).getTypeParameters();
+        } else if (asClassOrInterface instanceof ParameterizedType) {
+            types = ((ParameterizedType)asClassOrInterface).getActualTypeArguments();
+        }
+
+        int argPosAux = 0;
+        if (types != null) for (int pos = 0; pos < types.length; pos++) {
+            if (types[pos] instanceof TypeVariable) {
+                TypeVariable t = (TypeVariable) types[pos];
+                if (t.getName().equals(genericArgumentName)) {
+                    argPos = argPosAux;
+                    break;
+                }
+                argPosAux++;
+            }
+        }
+        return argPos;
+    }
+
+    public static <T> T fillQueryResult(Object[] o, Class<T> rowClass) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
+        T t = null;
+        if (rowClass.getDeclaringClass() != null) t = (T) rowClass.getConstructors()[0].newInstance(rowClass.getDeclaringClass().newInstance());
+        else t = rowClass.newInstance();
+        int pos = 0;
+        for (FieldInterfaced f : getAllFields(rowClass)) {
+            if (pos < o.length) rowClass.getMethod(getSetter(f), f.getType()).invoke(t, o[pos]);
+            else break;
+            pos++;
+        }
+        return t;
+    }
+
 
     public Object runInServer(UserData user, String className, String methodName, Data parameters, String rpcViewClassName, Data rpcViewData) throws Throwable {
         Class c = Class.forName(className);
@@ -1090,6 +1428,10 @@ public class ReflectionHelper {
 
     private static Object execute(UserData user, Method m, Data parameters) throws Throwable {
         return execute(user, m, parameters, null, null, null);
+    }
+
+    public static Object execute(UserData user, Method m, Data parameters, Object instance) throws Throwable {
+        return execute(user, m, parameters, instance, null, null);
     }
 
     private static Object execute(UserData user, Method m, Data parameters, Object instance, String rpcViewClassName, Data rpcViewData) throws Throwable {
@@ -1231,7 +1573,13 @@ public class ReflectionHelper {
                     if (p.isAnnotationPresent(io.mateu.mdd.core.annotations.Selection.class)) {
                         vs.add(parameters.get("_selection"));
                     } else {
-                        vs.add(parameters.get(p.getName()));
+                        Object v = parameters.get(p.getName());
+                        if (int.class.equals(p.getType()) && v == null) vs.add(0);
+                        else if (long.class.equals(p.getType()) && v == null) vs.add(0l);
+                        else if (double.class.equals(p.getType()) && v == null) vs.add(0d);
+                        else if (float.class.equals(p.getType()) && v == null) vs.add(0f);
+                        else if (boolean.class.equals(p.getType()) && v == null) vs.add(false);
+                        else vs.add(v);
                     }
                 }
                 Object[] args = vs.toArray();
@@ -1242,6 +1590,7 @@ public class ReflectionHelper {
 
         return r[0];
     }
+
 
     private static io.mateu.mdd.core.reflection.FieldInterfaced getInterfaced(Parameter p) {
         return new io.mateu.mdd.core.reflection.FieldInterfaced() {
@@ -1367,7 +1716,7 @@ public class ReflectionHelper {
             List<Object> persistPending = new ArrayList<>();
 
             for (Object p : w.getPages()) {
-                fillEntity(em, persistPending, user, p, data, false);
+                //fillEntity(em, persistPending, user, p, data, false);
             }
 
             for (Object x : persistPending) em.persist(x);

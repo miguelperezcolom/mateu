@@ -6,7 +6,7 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.FlowViewComponent;
 
-public class AreaFlowComponent extends VerticalLayout implements FlowViewComponent {
+public class AreaFlowComponent extends AbstractFlowComponent {
 
     private final AbstractArea area;
     private final String state;
@@ -30,7 +30,6 @@ public class AreaFlowComponent extends VerticalLayout implements FlowViewCompone
 
 
         area.getModules().forEach(m -> addComponent(new Button(m.getName(), e -> MDD.open(m))));
-
 
     }
 

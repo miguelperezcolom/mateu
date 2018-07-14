@@ -8,7 +8,7 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.FlowViewComponent;
 
-public class LoginFlowComponent extends FormLayout implements FlowViewComponent {
+public class LoginFlowComponent extends AbstractFlowComponent {
 
     private final TextField login;
     private final PasswordField password;

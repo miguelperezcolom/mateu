@@ -3,9 +3,15 @@ package io.mateu.mdd.tester.app;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.model.config.AppConfig;
+import io.mateu.mdd.tester.jpql.SampleJPQLCrudView;
+import io.mateu.mdd.tester.jpql.SampleJPQLLIstView;
 import io.mateu.mdd.tester.model.basic.*;
 import io.mateu.mdd.tester.model.relations.OneToOneReferenced;
 import io.mateu.mdd.tester.model.relations.OneToOneReferencer;
+import io.mateu.mdd.tester.pojos.SamplePMO;
+import io.mateu.mdd.tester.pojos.SamplePOJO;
+import io.mateu.mdd.tester.rpc.SampleRPCListView;
+import io.mateu.mdd.tester.rpc.SampleRPCToJPAListView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,6 +77,48 @@ public class Module extends AbstractModule {
                 });
 
 
+
+                return l;
+            }
+        });
+
+
+        m.add(new AbstractMenu("JPQL") {
+            @Override
+            public List<MenuEntry> buildEntries() {
+                List<MenuEntry> l = new ArrayList<>();
+
+                l.add(new MDDOpenListViewAction("Sample JPQL list view", SampleJPQLLIstView.class));
+
+                l.add(new MDDOpenListViewAction("Sample JPQL crud view", SampleJPQLCrudView.class));
+
+                return l;
+            }
+        });
+
+        m.add(new AbstractMenu("Non JPA") {
+            @Override
+            public List<MenuEntry> buildEntries() {
+                List<MenuEntry> l = new ArrayList<>();
+
+                l.add(new MDDOpenEditorAction("Sample POJO", SamplePOJO.class, null));
+
+
+                l.add(new MDDOpenEditorAction("Sample PMO", SamplePMO.class, null));
+
+                return l;
+            }
+        });
+
+
+        m.add(new AbstractMenu("Rpc") {
+            @Override
+            public List<MenuEntry> buildEntries() {
+                List<MenuEntry> l = new ArrayList<>();
+
+                l.add(new MDDOpenListViewAction("Sample Rpc view", SampleRPCListView.class));
+
+                l.add(new MDDOpenListViewAction("Sample Rpc to JPA entity view", SampleRPCToJPAListView.class));
 
                 return l;
             }

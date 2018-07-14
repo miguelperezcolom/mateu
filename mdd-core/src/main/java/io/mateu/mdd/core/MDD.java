@@ -40,8 +40,8 @@ public class MDD {
         return getPort().getUserData();
     }
 
-    public static void openView(RPCView v, boolean modifierPressed) {
-        getPort().openView(v, modifierPressed);
+    public static void openView(MDDOpenListViewAction mddOpenListViewAction, Class listViewClass, boolean modifierPressed) {
+        getPort().openView(mddOpenListViewAction, listViewClass, modifierPressed);
     }
 
 

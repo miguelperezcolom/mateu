@@ -7,4 +7,6 @@ public interface FlowViewComponent extends Component {
     String getViewTile();
 
     String getStatePath();
+
+    void addFlowViewListener(FlowViewListener listener);
 }

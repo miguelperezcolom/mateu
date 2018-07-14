@@ -3,7 +3,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.app.flow.views;
 import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.FlowViewComponent;
 
-public class PrivateMenuFlowComponent extends VerticalLayout implements FlowViewComponent {
+public class PrivateMenuFlowComponent extends AbstractFlowComponent {
 
     private final String state;
 

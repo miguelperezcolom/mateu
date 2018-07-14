@@ -70,11 +70,27 @@ public class MDDBinder {
         }
         beanSideProperties.clear();
         createPropertiesAndBind(beanType, beanSideProperties);
-        for (String n : beanSideProperties.keySet()) {
-            Property vsp = vaadinSideProperties.get(n);
-            Property bsp = beanSideProperties.get(n);
-            vsp.setValue(bsp.getValue());
-            bsp.bindBidirectional(vsp);
+        if (Map.class.isAssignableFrom(beanType)) {
+            Map m = (Map) bean;
+            for (String n : vaadinSideProperties.keySet()) {
+                Property vsp = vaadinSideProperties.get(n);
+                if (m != null && m.containsKey(n)) {
+                    vsp.setValue(m.get(n));
+                }
+                vsp.addListener(new ChangeListener() {
+                    @Override
+                    public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                        m.put(n, newValue);
+                    }
+                });
+            }
+        } else {
+            for (String n : beanSideProperties.keySet()) {
+                Property vsp = vaadinSideProperties.get(n);
+                Property bsp = beanSideProperties.get(n);
+                vsp.setValue(bsp.getValue());
+                bsp.bindBidirectional(vsp);
+            }
         }
 
         mergeables = new ArrayList<>();
@@ -85,13 +101,13 @@ public class MDDBinder {
     }
 
     private void createPropertiesAndBind(Class beanType, Map<String, Property> propertiesMap) {
-        for (FieldInterfaced f : ReflectionHelper.getAllFields(beanType)) {
+        if (!Map.class.isAssignableFrom(beanType)) for (FieldInterfaced f : ReflectionHelper.getAllFields(beanType)) {
             propertiesMap.put(f.getName(), createPropertyAndBind(f));
         }
     }
 
     private void createProperties(Class beanType, Map<String, Property> propertiesMap) {
-        for (FieldInterfaced f : ReflectionHelper.getAllFields(beanType)) {
+        if (!Map.class.isAssignableFrom(beanType)) for (FieldInterfaced f : ReflectionHelper.getAllFields(beanType)) {
             propertiesMap.put(f.getName(), createProperty(f));
         }
     }
@@ -99,22 +115,49 @@ public class MDDBinder {
     private Property createProperty(FieldInterfaced f) {
         Class t = f.getType();
         Property p = null;
-        if (Integer.class.equals(t) || int.class.equals(t)) {
-            p = new SimpleIntegerProperty(bean, f.getName());
-        } else if (Long.class.equals(t) || long.class.equals(t)) {
-            p = new SimpleLongProperty(bean, f.getName());
-        } else if (Float.class.equals(t) || float.class.equals(t)) {
-            p = new SimpleFloatProperty(bean, f.getName());
-        } else if (Double.class.equals(t) || double.class.equals(t)) {
-            p = new SimpleDoubleProperty(bean, f.getName());
-        } else if (Boolean.class.equals(t) || boolean.class.equals(t)) {
-            p = new SimpleBooleanProperty(bean, f.getName());
-        } else if (String.class.equals(t)) {
-            p = new SimpleStringProperty(bean, f.getName());
-        } else if (Collection.class.isAssignableFrom(t)) {
-            p = new SimpleSetProperty(bean, f.getName());
+        if (Map.class.isAssignableFrom(beanType)) {
+            if (Integer.class.equals(t) || int.class.equals(t)) {
+                p = new SimpleIntegerProperty();
+            } else if (Long.class.equals(t) || long.class.equals(t)) {
+                p = new SimpleLongProperty();
+            } else if (Float.class.equals(t) || float.class.equals(t)) {
+                p = new SimpleFloatProperty();
+            } else if (Double.class.equals(t) || double.class.equals(t)) {
+                p = new SimpleDoubleProperty();
+            } else if (Boolean.class.equals(t) || boolean.class.equals(t)) {
+                p = new SimpleBooleanProperty();
+            } else if (String.class.equals(t)) {
+                p = new SimpleStringProperty();
+            } else if (Collection.class.isAssignableFrom(t)) {
+                p = new SimpleSetProperty();
+            } else {
+                p = new SimpleObjectProperty();
+            }
+            p.addListener(new ChangeListener() {
+                @Override
+                public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                    ((Map) bean).put(f.getName(), newValue);
+                }
+            });
+
         } else {
-            p = new SimpleObjectProperty(bean, f.getName());
+            if (Integer.class.equals(t) || int.class.equals(t)) {
+                p = new SimpleIntegerProperty(bean, f.getName());
+            } else if (Long.class.equals(t) || long.class.equals(t)) {
+                p = new SimpleLongProperty(bean, f.getName());
+            } else if (Float.class.equals(t) || float.class.equals(t)) {
+                p = new SimpleFloatProperty(bean, f.getName());
+            } else if (Double.class.equals(t) || double.class.equals(t)) {
+                p = new SimpleDoubleProperty(bean, f.getName());
+            } else if (Boolean.class.equals(t) || boolean.class.equals(t)) {
+                p = new SimpleBooleanProperty(bean, f.getName());
+            } else if (String.class.equals(t)) {
+                p = new SimpleStringProperty(bean, f.getName());
+            } else if (Collection.class.isAssignableFrom(t)) {
+                p = new SimpleSetProperty(bean, f.getName());
+            } else {
+                p = new SimpleObjectProperty(bean, f.getName());
+            }
         }
         return p;
     }
@@ -122,48 +165,104 @@ public class MDDBinder {
     private Property createPropertyAndBind(FieldInterfaced f) {
         Class t = f.getType();
         Property p = null;
-        if (Integer.class.equals(t) || int.class.equals(t)) {
-            p = new SimpleIntegerProperty(bean, f.getName(), (Integer) getValue(f, bean));
-        } else if (Long.class.equals(t) || long.class.equals(t)) {
-            p = new SimpleLongProperty(bean, f.getName(), (Long) getValue(f, bean));
-        } else if (Float.class.equals(t) || float.class.equals(t)) {
-            p = new SimpleFloatProperty(bean, f.getName(), (Float) getValue(f, bean));
-        } else if (Double.class.equals(t) || double.class.equals(t)) {
-            p = new SimpleDoubleProperty(bean, f.getName(), (Double) getValue(f, bean));
-        } else if (Boolean.class.equals(t) || boolean.class.equals(t)) {
-            p = new SimpleBooleanProperty(bean, f.getName(), (Boolean) getValue(f, bean));
-        } else if (String.class.equals(t)) {
-            p = new SimpleStringProperty(bean, f.getName(), (String) getValue(f, bean));
-        } else if (Collection.class.isAssignableFrom(t)) {
-            ObservableSet<Object> s = FXCollections.observableSet();
-            Collection col = (Collection) getValue(f, bean);
-            if (col != null) s.addAll(col);
-            p = new SimpleSetProperty(bean, f.getName(), s);
+        if (Map.class.isAssignableFrom(beanType)) {
 
-            s.addListener(new SetChangeListener<Object>() {
-                @Override
-                public void onChanged(Change<?> change) {
-                    try {
-                        List l = (List) ReflectionHelper.getValue(f, bean);
-                        if (l == null) {
-                            ReflectionHelper.setValue(f, bean, l = new ArrayList());
+            Object v = getValue(f, bean);
+
+            if (Integer.class.equals(t) || int.class.equals(t)) {
+                p = new SimpleIntegerProperty();
+            } else if (Long.class.equals(t) || long.class.equals(t)) {
+                p = new SimpleLongProperty();
+            } else if (Float.class.equals(t) || float.class.equals(t)) {
+                p = new SimpleFloatProperty();
+            } else if (Double.class.equals(t) || double.class.equals(t)) {
+                p = new SimpleDoubleProperty();
+            } else if (Boolean.class.equals(t) || boolean.class.equals(t)) {
+                p = new SimpleBooleanProperty();
+            } else if (String.class.equals(t)) {
+                p = new SimpleStringProperty();
+            } else if (Collection.class.isAssignableFrom(t)) {
+                ObservableSet<Object> s = FXCollections.observableSet();
+                Collection col = (Collection) v;
+                if (col != null) s.addAll(col);
+                p = new SimpleSetProperty(s);
+
+                s.addListener(new SetChangeListener<Object>() {
+                    @Override
+                    public void onChanged(Change<?> change) {
+                        try {
+                            List l = (List) ReflectionHelper.getValue(f, bean);
+                            if (l == null) {
+                                ReflectionHelper.setValue(f, bean, l = new ArrayList());
+                            }
+
+                            if (change.wasRemoved()) l.remove(change.getElementRemoved());
+                            if (change.wasAdded()) l.add(change.getElementAdded());
+
+                        } catch (NoSuchMethodException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        } catch (InvocationTargetException e) {
+                            e.printStackTrace();
                         }
-
-                        if (change.wasRemoved()) l.remove(change.getElementRemoved());
-                        if (change.wasAdded()) l.add(change.getElementAdded());
-
-                    } catch (NoSuchMethodException e) {
-                        e.printStackTrace();
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    } catch (InvocationTargetException e) {
-                        e.printStackTrace();
                     }
+                });
+
+            } else {
+                p = new SimpleObjectProperty(v);
+            }
+            if (v != null) p.setValue(v);
+            p.addListener(new ChangeListener() {
+                @Override
+                public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                    ((Map)bean).put(f.getName(), newValue);
                 }
             });
-
         } else {
-            p = new SimpleObjectProperty(bean, f.getName(), getValue(f, bean));
+            if (Integer.class.equals(t) || int.class.equals(t)) {
+                p = new SimpleIntegerProperty(bean, f.getName(), (Integer) getValue(f, bean));
+            } else if (Long.class.equals(t) || long.class.equals(t)) {
+                p = new SimpleLongProperty(bean, f.getName(), (Long) getValue(f, bean));
+            } else if (Float.class.equals(t) || float.class.equals(t)) {
+                p = new SimpleFloatProperty(bean, f.getName(), (Float) getValue(f, bean));
+            } else if (Double.class.equals(t) || double.class.equals(t)) {
+                p = new SimpleDoubleProperty(bean, f.getName(), (Double) getValue(f, bean));
+            } else if (Boolean.class.equals(t) || boolean.class.equals(t)) {
+                p = new SimpleBooleanProperty(bean, f.getName(), (Boolean) getValue(f, bean));
+            } else if (String.class.equals(t)) {
+                p = new SimpleStringProperty(bean, f.getName(), (String) getValue(f, bean));
+            } else if (Collection.class.isAssignableFrom(t)) {
+                ObservableSet<Object> s = FXCollections.observableSet();
+                Collection col = (Collection) getValue(f, bean);
+                if (col != null) s.addAll(col);
+                p = new SimpleSetProperty(bean, f.getName(), s);
+
+                s.addListener(new SetChangeListener<Object>() {
+                    @Override
+                    public void onChanged(Change<?> change) {
+                        try {
+                            List l = (List) ReflectionHelper.getValue(f, bean);
+                            if (l == null) {
+                                ReflectionHelper.setValue(f, bean, l = new ArrayList());
+                            }
+
+                            if (change.wasRemoved()) l.remove(change.getElementRemoved());
+                            if (change.wasAdded()) l.add(change.getElementAdded());
+
+                        } catch (NoSuchMethodException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        } catch (InvocationTargetException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+
+            } else {
+                p = new SimpleObjectProperty(bean, f.getName(), getValue(f, bean));
+            }
         }
         p.addListener(new ChangeListener() {
             @Override
@@ -198,15 +297,25 @@ public class MDDBinder {
     }
 
     private Object getValue(FieldInterfaced f, Object bean) {
-        try {
-            return ReflectionHelper.getValue(f, bean);
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
+
+        if (Map.class.isAssignableFrom(bean.getClass())) {
+
+            return ((Map)bean).get(f.getName());
+
+        } else {
+
+            try {
+                return ReflectionHelper.getValue(f, bean);
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
+
         }
+
         return null;
     }
 

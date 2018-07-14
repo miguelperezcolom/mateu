@@ -1,20 +1,23 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.flow;
 
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.server.Page;
 import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.MDDAction;
 import io.mateu.mdd.core.app.MDDExecutionContext;
 import io.mateu.mdd.core.app.MDDOpenEditorAction;
-import io.mateu.mdd.core.app.MenuEntry;
+import io.mateu.mdd.core.app.MDDOpenListViewAction;
+import io.mateu.mdd.core.interfaces.RpcCrudView;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.views.EditorViewFlowComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.app.flow.views.ViewFlowComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.views.CRUDViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.views.JPAEditorViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.views.JPAListViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.flow.views.CrudViewFlowComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.flow.views.ListViewFlowComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
 
+import javax.persistence.Entity;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +31,13 @@ public class FlowComponent extends HorizontalLayout implements MDDExecutionConte
 
     public FlowComponent() {
         addStyleName("flowcomponent");
+
+        setSpacing(false);
+
+        setResponsive(true);
+
+        setSizeFull();
+
     }
 
     public void push(FlowViewComponent component) {
@@ -38,24 +48,59 @@ public class FlowComponent extends HorizontalLayout implements MDDExecutionConte
     }
 
     private Component wrapViewComponent(FlowViewComponent component) {
-        VerticalLayout l = new VerticalLayout();
+        Component l;
+        VerticalLayout vl;
+        l = vl = new VerticalLayout();
+        vl.addComponent(createHeader(component));
+        vl.addComponentsAndExpand(component);
+        if (!(component instanceof ListViewFlowComponent || component instanceof CrudViewFlowComponent)) {
+            l = new Panel(l);
+            l.setStyleName(ValoTheme.PANEL_BORDERLESS);
+            l.addStyleName("flowwrapperpanel");
+            l = new VerticalLayout(l); // para dar siempre el mismo padding
+        }
+        return l;
+    }
+
+    private Component createHeader(FlowViewComponent component) {
+        HorizontalLayout l = new HorizontalLayout();
+
+        l.addStyleName("viewHeader");
+
         if (stack.size() > 0) l.addComponent(createBackLink());
         l.addComponent(createTitleLabel(component));
-        l.addComponentsAndExpand(component);
+
         return l;
     }
 
     private Component createTitleLabel(FlowViewComponent component) {
-        Label l = new Label(component.getViewTile());
+        Label l = new Label();
         l.addStyleName("viewTitle");
+
+        updateViewTitle(l, component.getViewTile());
+
+        component.addFlowViewListener(new FlowViewListener() {
+            @Override
+            public void titleChanged(String newTitle) {
+                updateViewTitle(l, newTitle);
+            }
+        });
+
         return l;
     }
 
+    private void updateViewTitle(Label l, String newTitle) {
+        l.setValue(newTitle);
+        UI.getCurrent().getPage().setTitle((newTitle != null)?newTitle:"No title");
+    }
+
     private Component createBackLink() {
-        Button b = new Button("Back to " + stack.get(stack.size() - 1).getViewTile(), VaadinIcons.ARROW_CIRCLE_LEFT);
+        Button b = new Button(null, VaadinIcons.ARROW_CIRCLE_LEFT);
+        b.setDescription("Back to " + stack.get(stack.size() - 1).getViewTile());
         b.addClickListener(e -> {
             MyUI.get().getNavegador().goBack();
         });
+        b.addStyleName(ValoTheme.BUTTON_QUIET);
         b.addStyleName("backlink");
         return b;
     }
@@ -79,12 +124,16 @@ public class FlowComponent extends HorizontalLayout implements MDDExecutionConte
 
     public void showLast() {
         stack.stream().map(c -> wrappers.get(c)).forEach(w -> {
-            if (!w.getStyleName().contains("hidden")) w.addStyleName("hidden");
+            if (!w.getStyleName().contains("hidden")) {
+                w.addStyleName("hidden");
+                setExpandRatio(w, 0);
+            }
         });
         if (stack.size() > 0) {
             FlowViewComponent fvc = stack.get(stack.size() - 1);
             Component w = wrappers.get(fvc);
             if (w.getStyleName().contains("hidden")) w.removeStyleName("hidden");
+            setExpandRatio(w, 1);
         }
     }
 
@@ -116,9 +165,8 @@ public class FlowComponent extends HorizontalLayout implements MDDExecutionConte
         try {
 
             modelType = viewClass;
-            CRUDViewComponent v = new CRUDViewComponent(new JPAListViewComponent(modelType).build(), new JPAEditorViewComponent(modelType).build()).build();
 
-            push(new EditorViewFlowComponent(calculateCurrentState(), v.getEditorViewComponent()));
+            push(new EditorViewFlowComponent(calculateCurrentState(),  createEditorViewComponent(modelType)));
 
         } catch (IllegalAccessException e) {
             e.printStackTrace();
@@ -127,10 +175,22 @@ public class FlowComponent extends HorizontalLayout implements MDDExecutionConte
         }
     }
 
-    private String calculateCurrentState() {
-        String s = "";
-        if (stack.size() > 0) s = stack.get(stack.size() - 1).getStatePath();
-        return s;
+    @Override
+    public void openListView(MDDOpenListViewAction mddOpenListViewAction, Class viewClass, boolean modifierPressed) {
+        try {
+
+            if (RpcCrudView.class.isAssignableFrom(viewClass)) {
+                Class modelType = ReflectionHelper.getGenericClass(viewClass, RpcCrudView.class, "T");
+                push(new CrudViewFlowComponent(calculateCurrentState(), new CRUDViewComponent(new RpcListViewComponent(viewClass).build(), createEditorViewComponent(modelType)).build()));
+            } else {
+                push(new ListViewFlowComponent(calculateCurrentState(), new RpcListViewComponent(viewClass).build()));
+            }
+
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -139,14 +199,50 @@ public class FlowComponent extends HorizontalLayout implements MDDExecutionConte
         try {
 
             modelType = entityClass;
-            CRUDViewComponent v = new CRUDViewComponent(new JPAListViewComponent(modelType).build(), new JPAEditorViewComponent(modelType).build()).build();
+            CRUDViewComponent v = new CRUDViewComponent(createListViewComponent(modelType), createEditorViewComponent(modelType)).build();
 
-            push(new ViewFlowComponent(calculateCurrentState(), v));
+            push(new CrudViewFlowComponent(calculateCurrentState(), v));
 
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         } catch (InstantiationException e) {
             e.printStackTrace();
         }
+    }
+
+    private EditorViewComponent createEditorViewComponent(Class modelType) throws InstantiationException, IllegalAccessException {
+        EditorViewComponent v = null;
+        if (modelType.isAnnotationPresent(Entity.class)) {
+            v = new JPAEditorViewComponent(modelType).build();
+        } else {
+            v = new EditorViewComponent(modelType) {
+                @Override
+                public void save() throws Throwable {
+
+                }
+
+                @Override
+                public void load(Object id) throws Throwable {
+
+                }
+            }.build();
+        }
+        return v;
+    }
+
+    private ListViewComponent createListViewComponent(Class modelType) throws IllegalAccessException, InstantiationException {
+        ListViewComponent v = null;
+        if (modelType.isAnnotationPresent(Entity.class)) {
+            v = new JPAListViewComponent(modelType).build();
+        } else {
+
+        }
+        return v;
+    }
+
+    private String calculateCurrentState() {
+        String s = "";
+        if (stack.size() > 0) s = stack.get(stack.size() - 1).getStatePath();
+        return s;
     }
 }

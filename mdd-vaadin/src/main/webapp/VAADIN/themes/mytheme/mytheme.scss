@@ -39,20 +39,85 @@
 
   // Insert your own theme rules here
 
+  .viewHeader {
+    padding: 0px;
 
-  .viewTitle {
-    font-size: 2em;
+    .viewTitle {
+      font-size: 2em;
+    }
+
   }
+
 
   .hidden {
     display: none;
   }
 
 
+  .backlink {
+    font-size: 1.7em;
+    margin: 0px;
+    padding: 0px;
+
+    .v-icon {
+      margin-top: 4px;
+    }
+
+  }
+
+  .buttonlink {
+    font-size: 1.7em;
+
+    .v-icon {
+      margin-top: -10px;
+    }
+
+  }
+
+  .filterscomponent {
+
+    > * {
+      margin-right: 20px;
+    }
+
+    .v-caption {
+      margin-top: 0.65em;
+      margin-right: 10px;
+    }
+
+    .v-button {
+      margin-right: 5px;
+    }
+
+  }
+
+  .viewHeader {
+    margin-bottom: 40px;
+  }
+
+  .filterscomponent {
+    margin-bottom: 40px;
+  }
+
+  .applicationactions {
+    margin-bottom: 40px;
+  }
 
   .flowcomponent {
 
     padding: 0px;
+
+    .actionparametersflowcomponent, .methodresultflowcomponent {
+      padding: 0px;
+
+      .editorviewcomponent {
+        padding: 0px;
+
+        .contentcontainer {
+          padding: 0px;
+        }
+      }
+    }
 
     .areaflowcomponent {
       padding: 0px;
@@ -126,5 +191,20 @@
   }
 
 
+
+  .flowwrapperpanel {
+
+    .v-panel-content {
+
+      padding: 0px;
+
+      .v-verticallayout {
+
+        padding: 0px;
+
+      }
+
+    }
+  }
 
 }

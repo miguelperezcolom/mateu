@@ -3,7 +3,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.app.old;
 import com.vaadin.server.Responsive;
 import com.vaadin.ui.CustomLayout;
 import io.mateu.mdd.core.app.AbstractApplication;
-import io.mateu.mdd.vaadinport.vaadin.components.views.ViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ViewComponent;
 
 public class AppComponent extends CustomLayout {
     private final AbstractApplication app;

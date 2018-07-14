@@ -45,8 +45,8 @@ public class VaadinPort implements MDDPort {
     }
 
     @Override
-    public void openView(RPCView v, boolean modifierPressed) {
-        System.out.println("open view");
+    public void openView(AbstractAction action, Class listViewClass, boolean modifierPressed) {
+        MyUI.get().getNavegador().goTo(action, listViewClass);
     }
 
     @Override

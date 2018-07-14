@@ -2,19 +2,18 @@ package io.mateu.mdd.vaadinport.vaadin.components.app.flow.views;
 
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
-import io.mateu.mdd.vaadinport.vaadin.components.app.flow.FlowViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.views.CRUDViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
 
-public class FiltersViewFlowComponent extends VerticalLayout implements FlowViewComponent {
+public class FiltersViewFlowComponent extends AbstractFlowComponent {
 
-    private final CRUDViewComponent crudViewComponent;
+    private final ListViewComponent listViewComponent;
     private final String state;
 
     @Override
     public String getViewTile() {
-        return "All filters for " + crudViewComponent.getViewTitle();
+        return "All filters for " + listViewComponent.getViewTitle();
     }
 
     @Override
@@ -23,16 +22,20 @@ public class FiltersViewFlowComponent extends VerticalLayout implements FlowView
     }
 
 
-    public FiltersViewFlowComponent(String state, CRUDViewComponent crudViewComponent) {
+    public FiltersViewFlowComponent(String state, ListViewComponent listViewComponent) {
         this.state = state;
-        this.crudViewComponent = crudViewComponent;
+        this.listViewComponent = listViewComponent;
 
         addStyleName("filtersflowcomponent");
 
-        addComponent(crudViewComponent.getFiltersViewComponent());
+        addComponent(listViewComponent.getFiltersViewComponent());
 
         Button b;
-        addComponent(b = new Button("Search", VaadinIcons.SEARCH));
+        addComponent(b = new Button(VaadinIcons.SEARCH));
+        b.setDescription("Search");
+        b.addStyleName(ValoTheme.BUTTON_QUIET);
+        b.addStyleName("buttonlink");
+
         b.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent clickEvent) {
