@@ -47,6 +47,7 @@ public class SamplePMO implements PMO {
     public void load(Object id) throws Throwable {
         System.out.println("load(" + id + ")");
         setName("id = " + id);
+
     }
 
     @Override
