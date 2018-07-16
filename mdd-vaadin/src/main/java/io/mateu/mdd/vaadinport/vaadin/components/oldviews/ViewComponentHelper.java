@@ -87,7 +87,7 @@ public class ViewComponentHelper {
 
 
             }
-        };
+        }.setIcon(aa.icon()).setConfirmationMessage(aa.confirmationMessage());
 
         return action;
 

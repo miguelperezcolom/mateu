@@ -1,5 +1,8 @@
 package io.mateu.mdd.core.annotations;
 
+import com.vaadin.icons.VaadinIcons;
+import com.vaadin.server.FontIcon;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -13,6 +16,8 @@ import java.lang.annotation.Target;
 public @interface Action {
 
     String name();
+
+    VaadinIcons icon() default VaadinIcons.BOLT;
 
     boolean callOnEnterKeyPressed() default false;
 

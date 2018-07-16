@@ -22,7 +22,6 @@ public class Payment {
     private Audit audit;
 
     @ManyToOne(cascade = CascadeType.MERGE)
-    @NonNull
     @MainSearchFilter
     private BankAccount account;
 

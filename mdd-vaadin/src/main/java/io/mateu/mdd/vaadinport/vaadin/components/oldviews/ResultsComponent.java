@@ -99,11 +99,7 @@ public class ResultsComponent extends VerticalLayout {
                 if (itemClick.getMouseEventDetails().isDoubleClick()) {
                     Object i = itemClick.getItem();
                     if (i != null) {
-                        if (i instanceof Object[]) {
-                            edit(((Object[]) i)[0]);
-                        } else {
-                            edit(i);
-                        }
+                        edit(listViewComponent.toId(i));
                     }
                 }
             }

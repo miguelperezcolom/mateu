@@ -1,5 +1,6 @@
 package io.mateu.mdd.tester.model.entities.basic;
 
+import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Parameter;
 import io.mateu.mdd.core.annotations.SearchFilter;
@@ -25,7 +26,7 @@ public class ActionsDemoEntity {
     private int intField;
 
 
-    @Action(name = "Action on all")
+    @Action(name = "Action on all", icon = VaadinIcons.AIRPLANE)
     public static void action1() {
         System.out.println("action 1");
     }
@@ -47,7 +48,7 @@ public class ActionsDemoEntity {
         System.out.println("action 4");
     }
 
-    @Action(name = "Action on item")
+    @Action(name = "Action on item", icon = VaadinIcons.ALARM, confirmationMessage = "Are you sure you want to do it?")
     public void action2() {
         System.out.println("action 2");
         setStringField("" + getStringField() + " - " + new Date());

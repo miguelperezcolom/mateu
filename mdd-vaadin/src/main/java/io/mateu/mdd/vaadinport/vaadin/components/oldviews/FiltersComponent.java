@@ -2,6 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
+import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
@@ -90,6 +91,7 @@ public class FiltersComponent extends CssLayout {
                         MyUI.get().getNavegador().go(listViewComponent.getPathForFilters());
                     }
                 });
+                b.setClickShortcut(ShortcutAction.KeyCode.F, ShortcutAction.ModifierKey.CTRL);
             }
 
         } else {
@@ -131,7 +133,7 @@ public class FiltersComponent extends CssLayout {
                 }
             }
         });
-
+        b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
 
     }
 

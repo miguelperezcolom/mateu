@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.flow.views;
 
+import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.themes.ValoTheme;
@@ -42,6 +43,9 @@ public class FiltersViewFlowComponent extends AbstractFlowComponent {
                 MyUI.get().getNavegador().goBack();
             }
         });
+
+        b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
+
 
 
     }

@@ -195,6 +195,12 @@ public class JPAListViewComponent extends ListViewComponent {
                         parameterValues.put(f.getName(), "%" + ((String) v).toLowerCase() + "%");
                     }
 
+                } else {
+
+                    if (!"".equals(ql)) ql += " and ";
+                    ql += " x." + f.getName() + " = :" + f.getName() + " ";
+                    parameterValues.put(f.getName(), v);
+
                 }
 
             }
@@ -298,7 +304,7 @@ public class JPAListViewComponent extends ListViewComponent {
                 @Override
                 public void run(EntityManager em) throws Throwable {
 
-                    selection.forEach(o -> em.remove(em.find(entityClass, (o instanceof Object[])?((Object[])o)[0]:deserializeId(o.toString()))));
+                    selection.forEach(o -> em.remove(em.find(entityClass, toId(o))));
 
                 }
             });

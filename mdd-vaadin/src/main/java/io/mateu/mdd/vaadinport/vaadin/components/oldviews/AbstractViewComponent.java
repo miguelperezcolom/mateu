@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
+import com.google.common.base.Strings;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.MenuBar;
@@ -52,20 +53,41 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
         for (AbstractAction a : getActions()) {
 
-            bar.addItem(a.getName(), VaadinIcons.BOLT, new MenuBar.Command() {
+            bar.addItem(a.getName(), a.getIcon(), new MenuBar.Command() {
                 @Override
                 public void menuSelected(MenuBar.MenuItem menuItem) {
                     try {
 
-                        a.run(new AbstractMDDExecutionContext());
+                        Runnable r = new Runnable() {
+                            @Override
+                            public void run() {
 
-                        if (AbstractViewComponent.this instanceof EditorViewComponent) {
+                                a.run(new AbstractMDDExecutionContext());
 
-                            EditorViewComponent evc = (EditorViewComponent) AbstractViewComponent.this;
+                                if (AbstractViewComponent.this instanceof EditorViewComponent) {
 
-                            evc.setModel(evc.getModel());
+                                    EditorViewComponent evc = (EditorViewComponent) AbstractViewComponent.this;
 
-                        }
+                                    evc.setModel(evc.getModel());
+
+                                }
+
+
+                            }
+                        };
+
+                        if (!Strings.isNullOrEmpty(a.getConfirmationMessage())) {
+                            MDD.confirm(a.getConfirmationMessage(), new Runnable() {
+                                @Override
+                                public void run() {
+
+                                    r.run();
+
+                                    //todo: actualizar vista con los cambios en el modelo
+
+                                }
+                            });
+                        } else r.run();
 
                     } catch (Throwable throwable) {
                         MDD.alert(throwable);

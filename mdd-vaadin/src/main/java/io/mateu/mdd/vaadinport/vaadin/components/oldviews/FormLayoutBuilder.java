@@ -72,7 +72,7 @@ public class FormLayoutBuilder {
             sections.forEach(s -> {
                 FormLayout form = new FormLayout();
 
-                form.addStyleName(ValoTheme.FORMLAYOUT_LIGHT);
+                //form.addStyleName(ValoTheme.FORMLAYOUT_LIGHT);
 
                 Label section = new Label(s.getCaption());
                 section.addStyleName(ValoTheme.LABEL_H2);

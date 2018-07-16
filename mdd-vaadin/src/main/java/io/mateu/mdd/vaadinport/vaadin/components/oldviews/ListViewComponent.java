@@ -2,12 +2,10 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.vaadin.data.ValueProvider;
 import com.vaadin.data.provider.QuerySortOrder;
+import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.data.sort.SortDirection;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Grid;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.MenuBar;
+import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.SortOrderProvider;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Ignored;
@@ -224,44 +222,68 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     @Override
     public void addViewActionsMenuItems(MenuBar bar) {
 
-        if (isAddEnabled()) bar.addItem("New", VaadinIcons.PLUS, new MenuBar.Command() {
-            @Override
-            public void menuSelected(MenuBar.MenuItem menuItem) {
-                try {
-                    MyUI.get().getNavegador().go("add");
-                } catch (Throwable throwable) {
-                    MDD.alert(throwable);
-                }
-            }
-        });
-
-        if (isDeleteEnabled()) bar.addItem("Delete", VaadinIcons.MINUS, new MenuBar.Command() {
-            @Override
-            public void menuSelected(MenuBar.MenuItem menuItem) {
-
-                MDD.confirm("Are you sure you want to delete the selected items?", new Runnable() {
-                    @Override
-                    public void run() {
-
-                        try {
-                            delete(getSelection());
-
-                            resultsComponent.refresh();
-                        } catch (Throwable throwable) {
-                            MDD.alert(throwable);
-                        }
-
+        if (isAddEnabled()) {
+            MenuBar.Command cmd;
+            MenuBar.MenuItem i = bar.addItem("New", VaadinIcons.PLUS, cmd = new MenuBar.Command() {
+                @Override
+                public void menuSelected(MenuBar.MenuItem menuItem) {
+                    try {
+                        MyUI.get().getNavegador().go("add");
+                    } catch (Throwable throwable) {
+                        MDD.alert(throwable);
                     }
-                });
+                }
+            });
 
-            }
+            Button b;
+            addComponent(b = new Button());
+            b.addStyleName("hidden");
+            b.addClickListener(e -> cmd.menuSelected(i));
+            b.setClickShortcut(ShortcutAction.KeyCode.INSERT, ShortcutAction.ModifierKey.CTRL);
+        }
 
-        });
+        if (isDeleteEnabled()) {
+            MenuBar.Command cmd;
+            MenuBar.MenuItem i = bar.addItem("Delete", VaadinIcons.MINUS, cmd = new MenuBar.Command() {
+                @Override
+                public void menuSelected(MenuBar.MenuItem menuItem) {
+
+                    MDD.confirm("Are you sure you want to delete the selected items?", new Runnable() {
+                        @Override
+                        public void run() {
+
+                            try {
+                                delete(getSelection());
+
+                                resultsComponent.refresh();
+                            } catch (Throwable throwable) {
+                                MDD.alert(throwable);
+                            }
+
+                        }
+                    });
+
+                }
+
+            });
+
+            Button b;
+            addComponent(b = new Button());
+            b.addStyleName("hidden");
+            b.addClickListener(e -> cmd.menuSelected(i));
+            b.setClickShortcut(ShortcutAction.KeyCode.DELETE, ShortcutAction.ModifierKey.CTRL);
+
+        }
 
         super.addViewActionsMenuItems(bar);
     }
 
     protected void delete(Set selection) {
 
+    }
+
+    public Object toId(Object row) {
+        if (row instanceof Object[]) return ((Object[]) row)[0];
+        return row;
     }
 }

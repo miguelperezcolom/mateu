@@ -1,5 +1,7 @@
 package io.mateu.mdd.core.app;
 
+import com.vaadin.icons.VaadinIcons;
+
 import java.util.UUID;
 
 /**
@@ -7,6 +9,8 @@ import java.util.UUID;
  */
 public abstract class AbstractAction implements MenuEntry {
 
+    private VaadinIcons icon = VaadinIcons.BOLT;
+    private String confirmationMessage;
     private String name;
     private boolean callOnEnterKeyPressed = false;
     private boolean modifierPressed;
@@ -54,5 +58,23 @@ public abstract class AbstractAction implements MenuEntry {
     @Override
     public int hashCode() {
         return id.hashCode();
+    }
+
+    public VaadinIcons getIcon() {
+        return icon;
+    }
+
+    public AbstractAction setIcon(VaadinIcons icon) {
+        this.icon = icon;
+        return this;
+    }
+
+    public String getConfirmationMessage() {
+        return confirmationMessage;
+    }
+
+    public AbstractAction setConfirmationMessage(String confirmationMessage) {
+        this.confirmationMessage = confirmationMessage;
+        return this;
     }
 }

@@ -283,5 +283,21 @@
         </dependency>
 
 
+
+
+
+
+
+
+
+
+
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-server</artifactId>
+            <version>8.4.5</version>
+        </dependency>
+
+
     </dependencies>
 </project>

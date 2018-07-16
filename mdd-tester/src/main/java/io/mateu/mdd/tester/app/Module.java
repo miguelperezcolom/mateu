@@ -15,6 +15,8 @@ import io.mateu.mdd.tester.model.rpc.SampleRPCToJPAListView;
 import io.mateu.mdd.tester.model.rpc.SampleRPCToPMOListView;
 import io.mateu.mdd.tester.model.useCases.bankAccount.BankAccount;
 import io.mateu.mdd.tester.model.useCases.bankAccount.Payment;
+import io.mateu.mdd.tester.model.useCases.invoicing.Customer;
+import io.mateu.mdd.tester.model.useCases.invoicing.Invoice;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -158,16 +160,9 @@ public class Module extends AbstractModule {
                         List<MenuEntry> l = new ArrayList<>();
 
 
-                        return l;
-                    }
-                });
+                        l.add(new MDDAction("Customers", Customer.class));
 
-
-                l.add(new AbstractMenu("Chat") {
-                    @Override
-                    public List<MenuEntry> buildEntries() {
-                        List<MenuEntry> l = new ArrayList<>();
-
+                        l.add(new MDDAction("Invoices", Invoice.class));
 
                         return l;
                     }

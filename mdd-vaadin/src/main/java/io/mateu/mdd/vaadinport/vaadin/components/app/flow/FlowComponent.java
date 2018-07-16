@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.flow;
 
+import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
@@ -102,6 +103,7 @@ public class FlowComponent extends HorizontalLayout implements MDDExecutionConte
         });
         b.addStyleName(ValoTheme.BUTTON_QUIET);
         b.addStyleName("backlink");
+        b.setClickShortcut(ShortcutAction.KeyCode.ARROW_LEFT, ShortcutAction.ModifierKey.CTRL);
         return b;
     }
 

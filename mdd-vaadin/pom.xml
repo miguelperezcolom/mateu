@@ -18,8 +18,8 @@
     </prerequisites>
 
     <properties>
-        <vaadin.version>8.4.4</vaadin.version>
-        <vaadin.plugin.version>8.4.4</vaadin.plugin.version>
+        <vaadin.version>8.4.5</vaadin.version>
+        <vaadin.plugin.version>8.4.5</vaadin.plugin.version>
         <jetty.plugin.version>9.3.9.v20160517</jetty.plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -53,10 +53,6 @@
             <artifactId>javax.servlet-api</artifactId>
             <version>3.0.1</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.vaadin</groupId>
-            <artifactId>vaadin-server</artifactId>
         </dependency>
         <dependency>
             <groupId>com.vaadin</groupId>
