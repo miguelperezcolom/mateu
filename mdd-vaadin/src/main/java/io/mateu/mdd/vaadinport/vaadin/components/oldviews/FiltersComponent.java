@@ -54,7 +54,7 @@ public class FiltersComponent extends CssLayout {
 
         binder = new MDDBinder(modelType);
         //binder = new Binder(modelType, true);
-        //binder.setBean(model);
+        //binder.setBean(entities);
 
         Map<HasValue, List<Validator>> validators = new HashMap<>();
 

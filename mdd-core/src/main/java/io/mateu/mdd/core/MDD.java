@@ -72,4 +72,8 @@ public class MDD {
     public static void open(MenuEntry m) {
         getPort().open(m);
     }
+
+    public static void confirm(String msg, Runnable onOk) {
+        getPort().confirm(msg, onOk);
+    }
 }

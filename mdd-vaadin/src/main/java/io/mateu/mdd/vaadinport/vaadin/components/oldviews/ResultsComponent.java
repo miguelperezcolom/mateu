@@ -125,10 +125,15 @@ public class ResultsComponent extends VerticalLayout {
 
     public void search(Object filters) throws Throwable {
         this.filters = filters;
+        grid.deselectAll();
         grid.getDataProvider().refreshAll();
     }
 
     public Set getSelection() {
         return grid.getSelectedItems();
+    }
+
+    public void refresh() throws Throwable {
+        search(filters);
     }
 }

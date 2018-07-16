@@ -55,7 +55,7 @@ public class MethodParametersViewComponent extends AbstractViewComponent {
         String t = Helper.capitalize(method.getName());
         if (method.isAnnotationPresent(Action.class)) t = method.getAnnotation(Action.class).name();
         setViewTitle(t);
-        //setViewTitle(stylist.getViewTitle(newRecord, model));
+        //setViewTitle(stylist.getViewTitle(newRecord, entities));
 
         try {
             build();
@@ -105,7 +105,7 @@ public class MethodParametersViewComponent extends AbstractViewComponent {
             public void menuSelected(MenuBar.MenuItem menuItem) {
                 try {
 
-                    //binder.writeBean(model);
+                    //binder.writeBean(entities);
 
                     ValueContext vc = new ValueContext();
                     for (HasValue h : validators.keySet()) for (Validator v : validators.get(h)) {

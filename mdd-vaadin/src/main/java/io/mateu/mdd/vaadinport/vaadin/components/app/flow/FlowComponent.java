@@ -131,6 +131,16 @@ public class FlowComponent extends HorizontalLayout implements MDDExecutionConte
         });
         if (stack.size() > 0) {
             FlowViewComponent fvc = stack.get(stack.size() - 1);
+
+            if (fvc instanceof EditorViewFlowComponent) {
+
+                EditorViewComponent evc = ((EditorViewFlowComponent) fvc).getEditorViewComponent();
+
+                evc.setModel(evc.getModel());
+
+            }
+
+
             Component w = wrappers.get(fvc);
             if (w.getStyleName().contains("hidden")) w.removeStyleName("hidden");
             setExpandRatio(w, 1);
@@ -211,22 +221,7 @@ public class FlowComponent extends HorizontalLayout implements MDDExecutionConte
     }
 
     private EditorViewComponent createEditorViewComponent(Class modelType) throws InstantiationException, IllegalAccessException {
-        EditorViewComponent v = null;
-        if (modelType.isAnnotationPresent(Entity.class)) {
-            v = new JPAEditorViewComponent(modelType).build();
-        } else {
-            v = new EditorViewComponent(modelType) {
-                @Override
-                public void save() throws Throwable {
-
-                }
-
-                @Override
-                public void load(Object id) throws Throwable {
-
-                }
-            }.build();
-        }
+        EditorViewComponent v = new EditorViewComponent(modelType).build();
         return v;
     }
 

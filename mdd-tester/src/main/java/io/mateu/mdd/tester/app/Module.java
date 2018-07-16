@@ -1,17 +1,20 @@
 package io.mateu.mdd.tester.app;
 
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.model.config.AppConfig;
-import io.mateu.mdd.tester.jpql.SampleJPQLCrudView;
-import io.mateu.mdd.tester.jpql.SampleJPQLLIstView;
-import io.mateu.mdd.tester.model.basic.*;
-import io.mateu.mdd.tester.model.relations.OneToOneReferenced;
-import io.mateu.mdd.tester.model.relations.OneToOneReferencer;
-import io.mateu.mdd.tester.pojos.SamplePMO;
-import io.mateu.mdd.tester.pojos.SamplePOJO;
-import io.mateu.mdd.tester.rpc.SampleRPCListView;
-import io.mateu.mdd.tester.rpc.SampleRPCToJPAListView;
+import io.mateu.mdd.tester.model.jpql.SampleJPQLCrudView;
+import io.mateu.mdd.tester.model.jpql.SampleJPQLLIstView;
+import io.mateu.mdd.tester.model.jpql.SampleJPQLToPMOCrudView;
+import io.mateu.mdd.tester.model.entities.basic.*;
+import io.mateu.mdd.tester.model.entities.relations.OneToOneReferenced;
+import io.mateu.mdd.tester.model.entities.relations.OneToOneReferencer;
+import io.mateu.mdd.tester.model.pojos.SamplePMO;
+import io.mateu.mdd.tester.model.pojos.SamplePOJO;
+import io.mateu.mdd.tester.model.rpc.SampleRPCListView;
+import io.mateu.mdd.tester.model.rpc.SampleRPCToJPAListView;
+import io.mateu.mdd.tester.model.rpc.SampleRPCToPMOListView;
+import io.mateu.mdd.tester.model.useCases.bankAccount.BankAccount;
+import io.mateu.mdd.tester.model.useCases.bankAccount.Payment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,6 +95,8 @@ public class Module extends AbstractModule {
 
                 l.add(new MDDOpenListViewAction("Sample JPQL crud view", SampleJPQLCrudView.class));
 
+                l.add(new MDDOpenListViewAction("Sample JPQL to PMO crud view", SampleJPQLToPMOCrudView.class));
+
                 return l;
             }
         });
@@ -120,10 +125,58 @@ public class Module extends AbstractModule {
 
                 l.add(new MDDOpenListViewAction("Sample Rpc to JPA entity view", SampleRPCToJPAListView.class));
 
+                l.add(new MDDOpenListViewAction("Sample Rpc to PMO entity view", SampleRPCToPMOListView.class));
+
                 return l;
             }
         });
 
+
+
+        m.add(new AbstractMenu("Sample use cases") {
+            @Override
+            public List<MenuEntry> buildEntries() {
+                List<MenuEntry> l = new ArrayList<>();
+
+                l.add(new AbstractMenu("Bank account") {
+                    @Override
+                    public List<MenuEntry> buildEntries() {
+                        List<MenuEntry> l = new ArrayList<>();
+
+                        l.add(new MDDAction("Accounts", BankAccount.class));
+
+                        l.add(new MDDAction("Payments", Payment.class));
+
+                        return l;
+                    }
+                });
+
+
+                l.add(new AbstractMenu("Invoicing") {
+                    @Override
+                    public List<MenuEntry> buildEntries() {
+                        List<MenuEntry> l = new ArrayList<>();
+
+
+                        return l;
+                    }
+                });
+
+
+                l.add(new AbstractMenu("Chat") {
+                    @Override
+                    public List<MenuEntry> buildEntries() {
+                        List<MenuEntry> l = new ArrayList<>();
+
+
+                        return l;
+                    }
+                });
+
+
+                return l;
+            }
+        });
 
         return m;
     }

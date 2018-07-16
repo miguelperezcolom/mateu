@@ -19,11 +19,14 @@ import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.interfaces.PMO;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.vaadinport.vaadin.data.MDDBinder;
 import javafx.util.Pair;
 
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import java.lang.reflect.Method;
@@ -34,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public abstract class EditorViewComponent extends AbstractViewComponent {
+public class EditorViewComponent extends AbstractViewComponent {
 
     private Map<HasValue, List<Validator>> validators = new HashMap<>();
 
@@ -123,7 +126,7 @@ public abstract class EditorViewComponent extends AbstractViewComponent {
             public void menuSelected(MenuBar.MenuItem menuItem) {
                 try {
 
-                    //binder.writeBean(model);
+                    //binder.writeBean(entities);
 
                     ValueContext vc = new ValueContext();
                     for (HasValue h : validators.keySet()) for (Validator v : validators.get(h)) {
@@ -150,27 +153,7 @@ public abstract class EditorViewComponent extends AbstractViewComponent {
 
                     if (binder.allValid()) {
 
-
-                        if (modelType.isAnnotationPresent(Entity.class)) {
-
-                            save();
-
-                            // cambiamos la url, para reflejar el cambio
-
-                            MyUI.get().getNavegador().goTo(ReflectionHelper.getId(model));
-
-                        }
-                        else if (PMO.class.isAssignableFrom(modelType)) {
-
-                            PMO pmo = (PMO) getModel();
-
-                            pmo.save();
-
-                            // cambiamos la url, para reflejar el cambio
-
-                            MyUI.get().getNavegador().goTo(pmo.getId());
-                        }
-
+                        save();
 
                     }
                     else Notification.show("There are errors", Notification.Type.ERROR_MESSAGE);
@@ -182,11 +165,6 @@ public abstract class EditorViewComponent extends AbstractViewComponent {
             }
         });
     }
-
-
-    public abstract void save() throws Throwable;
-
-    public abstract void load(Object id) throws Throwable;
 
     public AbstractStylist getStylist() {
         return stylist;
@@ -223,6 +201,65 @@ public abstract class EditorViewComponent extends AbstractViewComponent {
         }
 
         return a;
+
+    }
+
+
+
+    public void save() throws Throwable {
+        if (modelType.isAnnotationPresent(Entity.class)) {
+
+            Helper.transact(new JPATransaction() {
+                @Override
+                public void run(EntityManager em) throws Throwable {
+                    for (Object o : getMergeables()) em.merge(o);
+                    Object m = getModel();
+                    setModel(em.merge(m));
+                }
+            });
+
+            // cambiamos la url, para reflejar el cambio
+            MyUI.get().getNavegador().goTo(ReflectionHelper.getId(model));
+
+        } else if (PMO.class.isAssignableFrom(modelType)) {
+
+            PMO pmo = (PMO) getModel();
+
+            pmo.save();
+
+            // cambiamos la url, para reflejar el cambio
+            MyUI.get().getNavegador().goTo(pmo.getId());
+
+        }
+    }
+
+    public void load(Object id) throws Throwable {
+        if (id == null) {
+            newRecord = true;
+            setModel(modelType.newInstance());
+        } else {
+            newRecord = false;
+
+            if (modelType.isAnnotationPresent(Entity.class)) {
+
+                Helper.notransact(new JPATransaction() {
+                    @Override
+                    public void run(EntityManager em) throws Throwable {
+                        setModel(em.find(modelType, id));
+                    }
+                });
+
+            } else if (PMO.class.isAssignableFrom(modelType)) {
+                PMO pmo = (PMO) modelType.newInstance();
+
+                pmo.load(id);
+
+                setModel(pmo);
+            } else {
+                setModel(modelType.newInstance());
+            }
+
+        }
 
     }
 }

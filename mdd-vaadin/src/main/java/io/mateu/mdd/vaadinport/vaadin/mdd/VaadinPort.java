@@ -1,7 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.mdd;
 
-import com.vaadin.ui.Notification;
-import com.vaadin.ui.UI;
+import com.vaadin.ui.*;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.MDDPort;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.AbstractArea;
@@ -94,5 +94,33 @@ public class VaadinPort implements MDDPort {
     @Override
     public void open(FieldInterfaced f) {
         MyUI.get().getNavegador().goTo(f);
+    }
+
+    @Override
+    public void confirm(String msg, Runnable onOk) {
+
+        Window w = new Window("Please confirm action");
+
+        VerticalLayout l = new VerticalLayout();
+
+        l.addComponent(new Label(msg));
+
+        Button b;
+        l.addComponent(b = new Button("Yes, do it", e -> {
+            try {
+                onOk.run();
+            } catch (Throwable t) {
+                MDD.alert(t);
+            }
+            w.close();
+        }));
+
+        w.setContent(l);
+
+        w.center();
+        w.setModal(true);
+
+        UI.getCurrent().addWindow(w);
+
     }
 }

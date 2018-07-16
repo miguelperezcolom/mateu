@@ -92,7 +92,7 @@ public class MDDNavigator implements ViewChangeListener {
         System.out.println("MDDNavigator.beforeViewChange: state=" + state);
 
         Class modelType = Class.forName(state.split("/")[3]);
-        ViewComponent v = new CRUDViewComponent(new JPAListViewComponent(modelType).build(), new JPAEditorViewComponent(modelType).build()).build();
+        ViewComponent v = new CRUDViewComponent(new JPAListViewComponent(modelType).build(), new EditorViewComponent(modelType).build()).build();
 
         return v;
     }
@@ -252,7 +252,7 @@ public class MDDNavigator implements ViewChangeListener {
                                     try {
 
                                         modelType = Class.forName(step);
-                                        CRUDViewComponent v = new CRUDViewComponent(new JPAListViewComponent(modelType).build(), new JPAEditorViewComponent(modelType).build()).build();
+                                        CRUDViewComponent v = new CRUDViewComponent(new JPAListViewComponent(modelType).build(), new EditorViewComponent(modelType).build()).build();
 
                                         flowComponent.push(new CrudViewFlowComponent(state, v));
 

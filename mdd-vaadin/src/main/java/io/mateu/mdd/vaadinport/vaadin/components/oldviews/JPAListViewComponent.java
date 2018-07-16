@@ -22,10 +22,7 @@ import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -53,6 +50,11 @@ public class JPAListViewComponent extends ListViewComponent {
 
     @Override
     public boolean isAddEnabled() {
+        return true;
+    }
+
+    @Override
+    public boolean isDeleteEnabled() {
         return true;
     }
 
@@ -286,5 +288,22 @@ public class JPAListViewComponent extends ListViewComponent {
     @Override
     public Class getColumnType() {
         return entityClass;
+    }
+
+
+    @Override
+    protected void delete(Set selection) {
+        try {
+            Helper.transact(new JPATransaction() {
+                @Override
+                public void run(EntityManager em) throws Throwable {
+
+                    selection.forEach(o -> em.remove(em.find(entityClass, (o instanceof Object[])?((Object[])o)[0]:deserializeId(o.toString()))));
+
+                }
+            });
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
     }
 }

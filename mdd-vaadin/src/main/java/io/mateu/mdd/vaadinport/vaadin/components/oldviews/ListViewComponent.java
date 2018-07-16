@@ -2,11 +2,14 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.vaadin.data.ValueProvider;
 import com.vaadin.data.provider.QuerySortOrder;
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.components.grid.SortOrderProvider;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.annotations.ListColumn;
 import io.mateu.mdd.core.annotations.MainSearchFilter;
@@ -15,6 +18,7 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.vaadinport.vaadin.MyUI;
 
 import javax.persistence.Transient;
 import java.lang.reflect.InvocationTargetException;
@@ -206,4 +210,58 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     public abstract Class getFiltersType();
+
+
+
+    public boolean isAddEnabled() {
+        return false;
+    }
+
+    public boolean isDeleteEnabled() {
+        return false;
+    }
+
+    @Override
+    public void addViewActionsMenuItems(MenuBar bar) {
+
+        if (isAddEnabled()) bar.addItem("New", VaadinIcons.PLUS, new MenuBar.Command() {
+            @Override
+            public void menuSelected(MenuBar.MenuItem menuItem) {
+                try {
+                    MyUI.get().getNavegador().go("add");
+                } catch (Throwable throwable) {
+                    MDD.alert(throwable);
+                }
+            }
+        });
+
+        if (isDeleteEnabled()) bar.addItem("Delete", VaadinIcons.MINUS, new MenuBar.Command() {
+            @Override
+            public void menuSelected(MenuBar.MenuItem menuItem) {
+
+                MDD.confirm("Are you sure you want to delete the selected items?", new Runnable() {
+                    @Override
+                    public void run() {
+
+                        try {
+                            delete(getSelection());
+
+                            resultsComponent.refresh();
+                        } catch (Throwable throwable) {
+                            MDD.alert(throwable);
+                        }
+
+                    }
+                });
+
+            }
+
+        });
+
+        super.addViewActionsMenuItems(bar);
+    }
+
+    protected void delete(Set selection) {
+
+    }
 }

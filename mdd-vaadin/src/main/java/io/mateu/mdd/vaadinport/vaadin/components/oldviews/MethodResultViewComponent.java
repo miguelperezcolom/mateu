@@ -50,7 +50,7 @@ public class MethodResultViewComponent extends AbstractViewComponent {
         String t = Helper.capitalize(method.getName());
         if (method.isAnnotationPresent(Action.class)) t = method.getAnnotation(Action.class).name();
         setViewTitle(t);
-        //setViewTitle(stylist.getViewTitle(newRecord, model));
+        //setViewTitle(stylist.getViewTitle(newRecord, entities));
 
         try {
             build();
