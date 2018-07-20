@@ -22,10 +22,15 @@ public class MDDViewComponentCreator {
 
             v = createEditorViewComponent(modelType);
 
+            ((EditorViewComponent)v).load(id);
+
+
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         } catch (InstantiationException e) {
             e.printStackTrace();
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
         }
 
         return v;

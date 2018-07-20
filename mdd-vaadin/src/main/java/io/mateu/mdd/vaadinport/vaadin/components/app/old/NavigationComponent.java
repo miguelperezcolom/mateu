@@ -51,6 +51,7 @@ public class NavigationComponent extends VerticalLayout {
                 //b.setIcon(FontAwesome.TH_LIST);
                 b.setPrimaryStyleName(ValoTheme.BUTTON_QUIET);
                 b.addStyleName("tituloarea");
+                b.setDescription("Click to change to another area");
                 addComponent(b);
 
                 b.addClickListener(e -> MyUI.get().getNavegador().goTo((a.isPublicAccess())?"public":"private"));

@@ -6,11 +6,13 @@ import com.vaadin.navigator.ViewProvider;
 import com.vaadin.ui.Component;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.util.Pair;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.views.*;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.views.AreaComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
+import io.mateu.mdd.vaadinport.vaadin.pojos.Profile;
 
 import java.lang.reflect.Method;
 
@@ -63,6 +65,8 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
         }
 
+        currentPath = state;
+
         if ("login".equals(state)) { // caso "login"
 
             stack.clear();
@@ -79,7 +83,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
             MyUI.get().getAppComponent().setArea(MDD.getApp().getDefaultPublicArea());
 
-        } else if ((state.startsWith("private") || state.equals("welcome")) && MDD.getUserData() == null) {
+        } else if ((state.startsWith("private") || state.equals("welcome") || state.equals("profile")) && MDD.getUserData() == null) {
 
             stack.clear();
 
@@ -94,7 +98,6 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
             MyUI.get().getAppComponent().setArea(MDD.getApp().getDefaultPrivateArea());
 
-
         } else if ("public".equals(state)) { // caso "login"
 
             stack.clear();
@@ -108,7 +111,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
             v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PrivateMenuFlowComponent());
 
 
-        } else if (state.split("/").length == 2) { // es una area
+        } else if (state.split("/").length == 2 && !"private/profile".equals(state)) { // es una area
 
             AbstractArea area = MDD.getApp().getArea(state);
 
@@ -151,6 +154,24 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                 String lastPath = "";
                 int lastPos = 0;
                 boolean menuPassed = false;
+
+                if (state.startsWith("private/profile")) { // caso "login"
+
+                    stack.clear();
+
+                    openEditor(null, Profile.class, MDD.getUserData(), false);
+
+                    v = lastView = stack.get("private/profile");
+
+                    lastIndexInStack = 0;
+
+                    lastPos = pos = 2;
+
+                    lastPath = auxPath = "private/profile";
+
+                }
+
+
                 while (coincide && pos < steps.length) {
                     lastPath = auxPath;
                     lastPos = pos;
@@ -173,6 +194,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                     pos++;
                 }
+
 
 
                 if (lastIndexInStack < stack.size() - 1) stack.popTo(lastIndexInStack);

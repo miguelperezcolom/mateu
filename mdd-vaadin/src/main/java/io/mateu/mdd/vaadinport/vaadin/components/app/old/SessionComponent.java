@@ -7,6 +7,7 @@ import com.vaadin.ui.Image;
 import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.UserData;
+import io.mateu.mdd.vaadinport.vaadin.MyUI;
 
 public class SessionComponent extends VerticalLayout {
 
@@ -19,6 +20,8 @@ public class SessionComponent extends VerticalLayout {
         addComponent(foto = new Image("", new ClassResource("/images/profile.jpg")));
         foto.setVisible(false);
         foto.addStyleName("foto");
+        foto.setDescription("Click to change your profile");
+        foto.addClickListener(e -> MyUI.get().getNavegador().goTo("private/profile"));
 
 
     }

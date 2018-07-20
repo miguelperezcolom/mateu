@@ -93,7 +93,14 @@
               margin-left: 10%;
               width: 80%;
               border-radius: 50%;
+              border: 3px solid transparent;
+              cursor: pointer;
             }
+
+            .foto:hover {
+              border-color: whitesmoke;
+            }
+
           }
 
 

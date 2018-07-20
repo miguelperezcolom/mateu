@@ -58,6 +58,10 @@ public class User {
         this.password = Helper.md5(password.toLowerCase().trim());
     }
 
+    public boolean checkPassword(String password) {
+        return Helper.md5(password.toLowerCase().trim()).equals(password);
+    }
+
     @ListColumn("Status")
     @NotNull
     private USER_STATUS status;

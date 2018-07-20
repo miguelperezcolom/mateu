@@ -15102,6 +15102,12 @@ div.v-layout.v-horizontal.v-widget {
 	margin-left: 10%;
 	width: 80%;
 	border-radius: 50%;
+	border: 3px solid transparent;
+	cursor: pointer;
+}
+
+.mytheme .miapp .leftside .sesion .foto:hover {
+	border-color: whitesmoke;
 }
 
 .mytheme .miapp .leftside .v-slot-tituloarea {
