@@ -3,33 +3,30 @@ package io.mateu.mdd.vaadinport.vaadin.components.app.flow.views;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
 
-public class FiltersViewFlowComponent extends AbstractFlowComponent {
+public class FiltersViewFlowComponent extends VerticalLayout {
 
     private final ListViewComponent listViewComponent;
-    private final String state;
 
     @Override
-    public String getViewTile() {
-        return "All filters for " + listViewComponent.getViewTitle();
+    public String toString() {
+        return "All filters for " + listViewComponent;
     }
-
-    @Override
-    public String getStatePath() {
-        return state;
-    }
-
 
     public FiltersViewFlowComponent(String state, ListViewComponent listViewComponent) {
-        this.state = state;
         this.listViewComponent = listViewComponent;
 
         addStyleName("filtersflowcomponent");
 
-        addComponent(listViewComponent.getFiltersViewComponent());
+        Panel p = new Panel(listViewComponent.getFiltersViewComponent());
+        p.addStyleName(ValoTheme.PANEL_BORDERLESS);
+        addComponentsAndExpand(p);
+
 
         Button b;
         addComponent(b = new Button(VaadinIcons.SEARCH));

@@ -52,9 +52,6 @@ public class MethodParametersViewComponent extends AbstractViewComponent {
         this.bean = bean;
         this.method = method;
 
-        String t = Helper.capitalize(method.getName());
-        if (method.isAnnotationPresent(Action.class)) t = method.getAnnotation(Action.class).name();
-        setViewTitle(t);
         //setViewTitle(stylist.getViewTitle(newRecord, entities));
 
         try {
@@ -64,6 +61,13 @@ public class MethodParametersViewComponent extends AbstractViewComponent {
         } catch (InstantiationException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public String toString() {
+        String t = Helper.capitalize(method.getName());
+        if (method.isAnnotationPresent(Action.class)) t = method.getAnnotation(Action.class).name();
+        return t;
     }
 
     @Override

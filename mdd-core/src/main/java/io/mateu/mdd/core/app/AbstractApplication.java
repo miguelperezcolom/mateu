@@ -116,6 +116,7 @@ public abstract class AbstractApplication implements App {
 
 
     public String getState(AbstractArea a) {
+        if (a == null) return (userData == null)?"public":"private";
         return getAreaId(a);
     }
 
@@ -308,5 +309,38 @@ public abstract class AbstractApplication implements App {
         this.memorizador = memorizador;
     }
 
+
+    public boolean hasPublicContent() {
+        boolean r = false;
+        for (AbstractArea a : areas) {
+            if (a.isPublicAccess()) {
+                r = true;
+                break;
+            }
+        }
+        return r;
+    }
+
+    public AbstractArea getDefaultPrivateArea() {
+        AbstractArea area = null;
+        for (AbstractArea a : areas) {
+            if (!a.isPublicAccess()) {
+                area = a;
+                break;
+            }
+        }
+        return area;
+    }
+
+    public AbstractArea getDefaultPublicArea() {
+        AbstractArea area = null;
+        for (AbstractArea a : areas) {
+            if (a.isPublicAccess()) {
+                area = a;
+                break;
+            }
+        }
+        return area;
+    }
 
 }

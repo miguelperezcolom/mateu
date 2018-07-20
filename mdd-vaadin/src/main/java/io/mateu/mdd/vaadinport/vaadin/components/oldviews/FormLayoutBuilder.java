@@ -71,7 +71,8 @@ public class FormLayoutBuilder {
             AbstractStylist finalStylist1 = stylist;
             sections.forEach(s -> {
                 FormLayout form = new FormLayout();
-
+                form.setSizeUndefined();
+                form.addStyleName("section");
                 //form.addStyleName(ValoTheme.FORMLAYOUT_LIGHT);
 
                 Label section = new Label(s.getCaption());

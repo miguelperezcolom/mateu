@@ -1,12 +1,8 @@
 package io.mateu.mdd.core;
 
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.AbstractArea;
-import io.mateu.mdd.core.app.AbstractModule;
-import io.mateu.mdd.core.app.MenuEntry;
+import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.views.RPCView;
 
 import java.lang.reflect.Method;
 
@@ -39,4 +35,8 @@ public interface MDDPort {
     void open(FieldInterfaced f);
 
     void confirm(String msg, Runnable onOk);
+
+    AbstractApplication getApp();
+
+    void setApp(AbstractApplication app);
 }

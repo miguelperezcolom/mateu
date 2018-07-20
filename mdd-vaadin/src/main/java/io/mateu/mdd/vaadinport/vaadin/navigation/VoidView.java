@@ -1,4 +1,4 @@
-package io.mateu.mdd.vaadinport.vaadin;
+package io.mateu.mdd.vaadinport.vaadin.navigation;
 
 import com.vaadin.navigator.View;
 import com.vaadin.ui.Label;

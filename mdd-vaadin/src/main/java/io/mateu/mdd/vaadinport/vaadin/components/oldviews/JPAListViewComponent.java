@@ -33,8 +33,11 @@ public class JPAListViewComponent extends ListViewComponent {
 
     public JPAListViewComponent(Class entityClass) {
         this.entityClass = entityClass;
+    }
 
-        setViewTitle(Helper.pluralize(Helper.capitalize(entityClass.getSimpleName())));
+    @Override
+    public String toString() {
+        return Helper.pluralize(Helper.capitalize(entityClass.getSimpleName()));
     }
 
     @Override

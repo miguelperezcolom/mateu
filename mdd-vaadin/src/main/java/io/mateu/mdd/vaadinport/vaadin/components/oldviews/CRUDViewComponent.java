@@ -23,8 +23,11 @@ public class CRUDViewComponent extends AbstractViewComponent implements ListView
     }
 
     public CRUDViewComponent build() {
-
         addStyleName("crudviewcomponent");
+
+
+        addComponentsAndExpand(getListViewComponent());
+
 
         return this;
     }
@@ -39,8 +42,8 @@ public class CRUDViewComponent extends AbstractViewComponent implements ListView
     }
 
     @Override
-    public String getViewTitle() {
-        return listViewComponent.getViewTitle();
+    public String toString() {
+        return listViewComponent.toString();
     }
 
 

@@ -14,40 +14,23 @@ import io.mateu.mdd.vaadinport.vaadin.components.app.flow.AbstractMDDExecutionCo
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> extends VerticalLayout implements ViewComponent {
+public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> extends VerticalLayout {
 
     private String title = "View title";
-
-    List<ViewListener> viewListeners = new ArrayList<>();
-
-    @Override
-    public void addViewListener(ViewListener listener) {
-        viewListeners.add(listener);
-    }
 
     public A build() throws InstantiationException, IllegalAccessException {
 
         addStyleName("viewcomponent");
 
-        HorizontalLayout actionsBar = new HorizontalLayout();
-        actionsBar.addStyleName("actionsbar");
 
-        actionsBar.addComponent(new ApplicationActionsComponent(this));
-
-        addComponent(actionsBar);
+        MenuBar bar = new MenuBar();
+        bar.addStyleName("actionsbar");
+        bar.setWidth("100%");
+        addViewActionsMenuItems(bar);
+        if (bar.getItems().size() > 0) addComponent(bar);
 
         return (A) this;
     }
-
-    public void setViewTitle(String title) {
-        this.title = title;
-
-    }
-
-    public String getViewTitle() {
-        return title;
-    }
-
 
     public void addViewActionsMenuItems(MenuBar bar) {
 

@@ -16,18 +16,6 @@ public class MyApp extends BaseMDDApp {
     }
 
     public List<AbstractArea> buildAreas() {
-        return Arrays.asList((AbstractArea) new AbstractArea("Area 1") {
-            @Override
-            public List<AbstractModule> buildModules() {
-                return Arrays.asList(
-                        //new DeepMenusModule(),
-                        new Module());
-            }
-
-            @Override
-            public boolean isPublicAccess() {
-                return true;
-            }
-        });
+        return Arrays.asList(new MainArea(), new UseCasesArea(), new PrivateArea());
     }
 }

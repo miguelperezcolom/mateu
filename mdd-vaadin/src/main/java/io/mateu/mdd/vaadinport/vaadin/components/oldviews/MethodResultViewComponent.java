@@ -47,11 +47,6 @@ public class MethodResultViewComponent extends AbstractViewComponent {
         this.result = result;
         this.method = method;
 
-        String t = Helper.capitalize(method.getName());
-        if (method.isAnnotationPresent(Action.class)) t = method.getAnnotation(Action.class).name();
-        setViewTitle(t);
-        //setViewTitle(stylist.getViewTitle(newRecord, entities));
-
         try {
             build();
         } catch (IllegalAccessException e) {
@@ -59,6 +54,13 @@ public class MethodResultViewComponent extends AbstractViewComponent {
         } catch (InstantiationException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public String toString() {
+        String t = Helper.capitalize(method.getName());
+        if (method.isAnnotationPresent(Action.class)) t = method.getAnnotation(Action.class).name();
+        return t;
     }
 
     @Override

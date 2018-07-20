@@ -4,50 +4,86 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.AbstractMDDExecutionContext;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class NavigationComponent extends VerticalLayout {
 
+    private final AbstractApplication app;
+    private AbstractArea area;
+    private Map<MenuEntry, Button> botones;
+    private MenuEntry menu;
+
     public NavigationComponent(AbstractApplication app) {
+
+        this.app = app;
 
         addStyleName("navegacion");
         setSpacing(false);
 
 
+        build();
+
+    }
+
+    private void build() {
+        botones = new HashMap<>();
+        menu = null;
         for (AbstractArea a : app.getAreas()) {
 
-            Label l;
-            addComponent(l = new Label(a.getName()));
-            l.addStyleName("tituloarea");
+            boolean valid = false;
 
+            if (area != null) {
+                valid = a.equals(area);
+            } else {
+                if (MDD.getUserData() == null) valid = a.isPublicAccess();
+                else valid = !a.isPublicAccess();
+            }
 
-            for (AbstractModule m : a.getModules()) {
+            if (valid) {
 
-                addComponent(l = new Label(m.getName()));
-                l.addStyleName("titulomodulo");
+                Button b = new Button(a.getName(), a.getIcon());
+                //b.setIcon(FontAwesome.TH_LIST);
+                b.setPrimaryStyleName(ValoTheme.BUTTON_QUIET);
+                b.addStyleName("tituloarea");
+                addComponent(b);
 
-                for (MenuEntry e : m.getMenu()) {
+                b.addClickListener(e -> MyUI.get().getNavegador().goTo((a.isPublicAccess())?"public":"private"));
 
-                    addMenu(e);
+                for (AbstractModule m : a.getModules()) {
+
+                    Label l;
+                    addComponent(l = new Label(m.getName()));
+                    l.addStyleName("titulomodulo");
+
+                    for (MenuEntry e : m.getMenu()) {
+
+                        addMenu(e);
+
+                    }
 
                 }
+
+                break;
 
             }
 
         }
-
     }
 
     private void addMenu(MenuEntry e) {
 
 
-        Button b = new Button(e.getName() + ((e instanceof  AbstractMenu)?"<span class=\"valo-menu-badge\">" + ((AbstractMenu) e).getEntries().size() + "</span>":""));
+        Button b = new Button(e.getName() + ((e instanceof  AbstractMenu)?"<span class=\"menu-badge\">" + ((AbstractMenu) e).getEntries().size() + "</span>":""));
         //b.setIcon(FontAwesome.TH_LIST);
-        b.setPrimaryStyleName(ValoTheme.MENU_ITEM);
+        b.setPrimaryStyleName(ValoTheme.BUTTON_QUIET);
         b.addStyleName("opcionmenu");
-        b.addStyleName("selected");
+        //b.addStyleName("selected");
         b.setCaptionAsHtml(true);
         addComponent(b);
 
@@ -55,18 +91,25 @@ public class NavigationComponent extends VerticalLayout {
             @Override
             public void buttonClick(Button.ClickEvent event) {
 
-                if (e instanceof AbstractMenu) {
-                    MyUI.get().getNavegador().goTo(e);
-                } else if (e instanceof AbstractAction) {
-                    AbstractAction a = (AbstractAction) e;
-                    a.setModifierPressed(event.isAltKey() || event.isCtrlKey());
-                    a.run(new AbstractMDDExecutionContext());
-                }
+                MyUI.get().getNavegador().goTo(e);
 
             }
         });
 
 
+        botones.put(e, b);
+
     }
 
+    public void setArea(AbstractArea a) {
+        this.area = a;
+        removeAllComponents();
+        build();
+    }
+
+    public void setMenu(MenuEntry menu) {
+        if (this.menu != null) botones.get(this.menu).removeStyleName("selected");
+        if (menu != null) botones.get(menu).addStyleName("selected");
+        this.menu = menu;
+    }
 }

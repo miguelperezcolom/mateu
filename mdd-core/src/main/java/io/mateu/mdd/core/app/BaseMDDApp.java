@@ -83,6 +83,9 @@ public abstract class BaseMDDApp extends AbstractApplication {
                 } else throw new Exception("No user with login " + login);
             }
         });
+
+        setUserData(d);
+
         return d;
     }
 

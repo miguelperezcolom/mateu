@@ -1,27 +1,36 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.flow.views;
 
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
-import io.mateu.mdd.vaadinport.vaadin.components.app.flow.FlowViewComponent;
+import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.vaadinport.vaadin.MyUI;
 
-public class PrivateMenuFlowComponent extends AbstractFlowComponent {
-
-    private final String state;
-
-    @Override
-    public String getViewTile() {
-        return "";
-    }
+public class PrivateMenuFlowComponent extends VerticalLayout {
 
     @Override
-    public String getStatePath() {
-        return state;
+    public String toString() {
+        return "Private areas for " + MDD.getApp().getName();
     }
 
-
-    public PrivateMenuFlowComponent(String state) {
-        this.state = state;
+    public PrivateMenuFlowComponent() {
 
         addStyleName("privatemenuflowcomponent");
+
+
+
+        MDD.getApp().getAreas().stream().filter(a -> !a.isPublicAccess()).forEach(a -> {
+
+            Button b;
+            addComponent(b = new Button(a.getName(), a.getIcon()));
+            b.addClickListener(e -> MyUI.get().getNavegador().goTo(a));
+            b.addStyleName(ValoTheme.BUTTON_QUIET);
+
+        });
+
+
+        addComponentsAndExpand(new Label(""));
 
     }
 

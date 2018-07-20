@@ -1,24 +1,28 @@
 package io.mateu.mdd.vaadinport.vaadin;
 
+import com.google.common.base.Strings;
 import com.vaadin.annotations.*;
+import com.vaadin.annotations.JavaScript;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.PushStateNavigation;
-import com.vaadin.navigator.View;
-import com.vaadin.navigator.ViewProvider;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServlet;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.UI;
+import com.vaadin.server.VaadinServletRequest;
+import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractApplication;
 import io.mateu.mdd.core.app.BaseMDDApp;
 import io.mateu.mdd.core.interfaces.App;
-import io.mateu.mdd.vaadinport.vaadin.arciiart.Painter;
-import io.mateu.mdd.vaadinport.vaadin.components.app.flow.FlowComponent;
+import io.mateu.mdd.vaadinport.vaadin.asciiart.Painter;
+import io.mateu.mdd.vaadinport.vaadin.components.app.old.AppComponent;
 import io.mateu.mdd.vaadinport.vaadin.mdd.VaadinPort;
 import io.mateu.mdd.vaadinport.vaadin.navigation.MDDNavigator;
+import io.mateu.mdd.vaadinport.vaadin.navigation.MDDViewProvider;
+import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
+import io.mateu.mdd.vaadinport.vaadin.navigation.VoidView;
 
 import javax.servlet.annotation.WebServlet;
+import java.io.File;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 
@@ -45,7 +49,8 @@ public class MyUI extends UI {
 
     private MDDNavigator navegador;
     private Navigator navigator;
-    private FlowComponent flowComponent;
+    private ViewStack stack;
+    private Layout viewContainer;
 
     static{
 
@@ -55,11 +60,40 @@ public class MyUI extends UI {
 
     }
 
+    private AppComponent appComponent;
+    private AbstractApplication app;
+
+    public AbstractApplication getApp() {
+        return app;
+    }
+
+    public void setApp(AbstractApplication app) {
+        this.app = app;
+    }
+
+    public AppComponent getAppComponent() {
+        return appComponent;
+    }
+
     @Override
     protected void init(VaadinRequest vaadinRequest) {
 
+        if (Strings.isNullOrEmpty(System.getProperty("tmpurl"))) {
+            String url = ((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getRequestURL().toString();
+            String uri = ((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getRequestURI();
+
+            String contextUrl = url.substring(0, url.length() - uri.length());
+            contextUrl += ((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getContextPath();
+
+            if (!contextUrl.endsWith("/")) contextUrl += "/";
+
+            System.setProperty("tmpurl", contextUrl + "tmp");
+            System.setProperty("tmpdir", ((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getServletContext().getRealPath("/tmp/"));
+        }
+
+
         Iterator<App> apps = ServiceLoader.load(App.class).iterator();
-        AbstractApplication app = null;
+        app = null;
         while (apps.hasNext()) {
             app = (AbstractApplication) apps.next();
             System.out.println("app " + app.getName() + " loaded");
@@ -71,13 +105,25 @@ public class MyUI extends UI {
 
         MDD.setApp((BaseMDDApp) app);
 
-        flowComponent = new FlowComponent();
+
+        viewContainer = createViewContainer();
+
 
         addNavigator();
 
 
-        setContent(flowComponent);
 
+        //setContent(flowComponent);
+
+        setContent(appComponent = new AppComponent(app, viewContainer));
+
+    }
+
+    private Layout createViewContainer() {
+        VerticalLayout l = new VerticalLayout();
+        l.addStyleName("viewcontainer");
+        l.setSizeFull();
+        return l;
     }
 
 
@@ -92,7 +138,7 @@ public class MyUI extends UI {
 
 
 
-    @WebServlet(urlPatterns = "/*", name = "MyUIServlet", asyncSupported = true)
+    @WebServlet(urlPatterns = "/*", name = "MyUIServlet", asyncSupported = true, loadOnStartup = 1000)
     @VaadinServletConfiguration(ui = MyUI.class, productionMode = false)
     public static class MyUIServlet extends VaadinServlet {
 
@@ -106,27 +152,16 @@ public class MyUI extends UI {
     }
 
 
+
     private void addNavigator() {
 
 
-        navigator = new Navigator(this, new Panel());
+        navigator = new Navigator(this, viewContainer);
+        navegador = new MDDNavigator(stack = new ViewStack(), navigator);
 
         VoidView voidView = new VoidView();
-        navigator.addProvider(new ViewProvider() {
-            @Override
-            public String getViewName(String s) {
-                return s;
-            }
+        navigator.addProvider(new MDDViewProvider(stack));
 
-            @Override
-            public View getView(String s) {
-                return voidView;
-            }
-        });
-
-        navegador = new MDDNavigator(flowComponent);
-
-        navigator.addViewChangeListener(navegador);
     }
 
 

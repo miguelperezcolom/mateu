@@ -24,9 +24,12 @@ public class RpcListViewComponent extends ListViewComponent {
         this.rpcListView = (RpcView) rpcListViewClass.newInstance();
         this.columnType = ReflectionHelper.getGenericClass(rpcListViewClass, RpcView.class, "C");
 
-        setViewTitle(Helper.pluralize(Helper.capitalize(rpcListViewClass.getSimpleName())));
     }
 
+    @Override
+    public String toString() {
+        return Helper.pluralize(Helper.capitalize(rpcListViewClass.getSimpleName()));
+    }
 
     @Override
     public Class getModelTypeForSearchFilters() {

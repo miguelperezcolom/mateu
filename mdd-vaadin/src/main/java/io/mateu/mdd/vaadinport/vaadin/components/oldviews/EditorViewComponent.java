@@ -9,6 +9,7 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.ErrorMessage;
 import com.vaadin.shared.ui.ErrorLevel;
 import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Ignored;
@@ -63,7 +64,6 @@ public class EditorViewComponent extends AbstractViewComponent {
             e.printStackTrace();
         }
 
-        setViewTitle(modelType.getSimpleName());
     }
 
 
@@ -79,7 +79,13 @@ public class EditorViewComponent extends AbstractViewComponent {
     public void setModel(Object model) {
         this.model = model;
         binder.setBean(model);
-        setViewTitle(stylist.getViewTitle(newRecord, model));
+    }
+
+
+    @Override
+    public String toString() {
+        String t = stylist.getViewTitle(newRecord, model);
+        return t;
     }
 
     public Class getModelType() {
@@ -100,7 +106,13 @@ public class EditorViewComponent extends AbstractViewComponent {
         Pair<Component, AbstractStylist> r = FormLayoutBuilder.build(binder, modelType, model, validators, getAllFields());
 
         stylist = r.getValue();
-        addComponent(r.getKey());
+
+
+        Panel p = new Panel(r.getKey());
+        p.addStyleName(ValoTheme.PANEL_BORDERLESS);
+        addComponentsAndExpand(p);
+
+
 
         return this;
     }

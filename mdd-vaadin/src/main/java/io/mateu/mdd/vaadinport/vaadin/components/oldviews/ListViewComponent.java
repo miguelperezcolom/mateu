@@ -45,8 +45,11 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
         super.build();
 
+        setSizeFull();
+
 
         addComponent(countLabel = new Label());
+        countLabel.addStyleName("resultsmessage");
 
         addComponentsAndExpand(resultsComponent = buildResultsComponent());
         return this;

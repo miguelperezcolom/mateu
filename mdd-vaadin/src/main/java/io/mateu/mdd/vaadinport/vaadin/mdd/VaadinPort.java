@@ -3,13 +3,9 @@ package io.mateu.mdd.vaadinport.vaadin.mdd;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.MDDPort;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.AbstractArea;
-import io.mateu.mdd.core.app.AbstractModule;
-import io.mateu.mdd.core.app.MenuEntry;
+import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.views.RPCView;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 
 import java.io.PrintWriter;
@@ -62,7 +58,9 @@ public class VaadinPort implements MDDPort {
 
     @Override
     public void setUserData(UserData userData) {
+        MDD.getApp().setUserData(userData);
         UI.getCurrent().getSession().setAttribute("_userdata", userData);
+        MyUI.get().getAppComponent().updateSession();
     }
 
     @Override
@@ -122,5 +120,15 @@ public class VaadinPort implements MDDPort {
 
         UI.getCurrent().addWindow(w);
 
+    }
+
+    @Override
+    public AbstractApplication getApp() {
+        return MyUI.get().getApp();
+    }
+
+    @Override
+    public void setApp(AbstractApplication app) {
+        MyUI.get().setApp(app);
     }
 }
