@@ -1,8 +1,8 @@
-# mateu-mdd
+# Mateu MDD
 
-mateu-mdd is a framework to create awesome applications from our java classes (lightweight Model Driven Development, aka MDD).
+Mateu-mdd is a framework to create awesome applications from our java classes (lightweight Model Driven Development, aka MDD).
 
-So, you define your data model using JPA annotated java classes and it generates an application (desktop, web or mobile) to maintain your data.
+So, you define your data model using JPA annotated java classes and it generates a responsive web application to maintain your data.
 
 Beside providing CRUDs for our entities mateu-mdd allows us to publish methods from our server side classes.
 

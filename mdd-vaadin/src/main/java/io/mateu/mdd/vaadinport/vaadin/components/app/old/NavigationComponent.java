@@ -47,14 +47,20 @@ public class NavigationComponent extends VerticalLayout {
 
             if (valid) {
 
-                Button b = new Button(a.getName(), a.getIcon());
-                //b.setIcon(FontAwesome.TH_LIST);
-                b.setPrimaryStyleName(ValoTheme.BUTTON_QUIET);
-                b.addStyleName("tituloarea");
-                b.setDescription("Click to change to another area");
-                addComponent(b);
+                if (app.getAreas().size() > 1) {
 
-                b.addClickListener(e -> MyUI.get().getNavegador().goTo((a.isPublicAccess())?"public":"private"));
+                    Button b = new Button(a.getName() + ((app.getAreas().size() > 1)?"<span class=\"menu-badge\">+" + (app.getAreas().size() - 1) + "</span>":""), a.getIcon());
+                    //b.setIcon(FontAwesome.TH_LIST);
+                    b.setPrimaryStyleName(ValoTheme.BUTTON_QUIET);
+                    b.setCaptionAsHtml(true);
+                    b.addStyleName("tituloarea");
+                    b.setDescription("Click to change to another area");
+                    addComponent(b);
+
+                    b.addClickListener(e -> MyUI.get().getNavegador().goTo((a.isPublicAccess())?"public":"private"));
+
+                }
+
 
                 for (AbstractModule m : a.getModules()) {
 

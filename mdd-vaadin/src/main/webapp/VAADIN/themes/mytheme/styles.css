@@ -15149,14 +15149,6 @@ div.v-layout.v-horizontal.v-widget {
 	cursor: pointer;
 }
 
-.mytheme .miapp .leftside .navegacion .opcionmenu .menu-badge {
-	width: 20px;
-	background-color: orange;
-	border-radius: 2px;
-	float: right;
-	text-align: center;
-}
-
 .mytheme .miapp .leftside .navegacion .opcionmenu.selected {
 	background-color: whitesmoke;
 }
@@ -15268,6 +15260,14 @@ div.v-layout.v-horizontal.v-widget {
 
 .mytheme .filterscomponent .v-button {
 	margin-right: 5px;
+}
+
+.mytheme .menu-badge {
+	width: 20px;
+	background-color: orange;
+	border-radius: 2px;
+	float: right;
+	text-align: center;
 }
 
 .mytheme .applicationactions {

@@ -145,15 +145,6 @@
               padding: 3px 10px 3px 10px;
               cursor: pointer;
 
-
-              .menu-badge {
-                width: 20px;
-                background-color: orange;
-                border-radius: 2px;
-                float: right;
-                text-align: center;
-              }
-
             }
 
             .opcionmenu.selected {
@@ -309,6 +300,15 @@
     }
 
   }
+
+  .menu-badge {
+    width: 20px;
+    background-color: orange;
+    border-radius: 2px;
+    float: right;
+    text-align: center;
+  }
+
 
   .viewHeader {
     /* margin-bottom: 40px; */

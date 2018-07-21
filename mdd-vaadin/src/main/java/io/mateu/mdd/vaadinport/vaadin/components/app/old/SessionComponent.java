@@ -18,7 +18,7 @@ public class SessionComponent extends VerticalLayout {
         addStyleName("sesion");
 
         addComponent(foto = new Image("", new ClassResource("/images/profile.jpg")));
-        foto.setVisible(false);
+        setVisible(false);
         foto.addStyleName("foto");
         foto.setDescription("Click to change your profile");
         foto.addClickListener(e -> MyUI.get().getNavegador().goTo("private/profile"));
@@ -29,6 +29,6 @@ public class SessionComponent extends VerticalLayout {
     public void update() {
         UserData ud = MDD.getUserData();
         foto.setSource((ud != null && !Strings.isNullOrEmpty(ud.getPhoto()))?new ExternalResource(ud.getPhoto()):new ClassResource("/images/profile.jpg"));
-        foto.setVisible(ud != null);
+        setVisible(ud != null);
     }
 }
