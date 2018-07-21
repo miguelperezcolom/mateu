@@ -4,6 +4,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.oauth;
 import com.google.common.base.Strings;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.BrowserWindowOpener;
+import com.vaadin.server.ClassResource;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.server.Page;
 import com.vaadin.ui.BrowserFrame;
@@ -78,7 +79,9 @@ Accept: application/xml
      */
 
     public GitHubButton(String key, String secret) {
-        super("GitHub", VaadinIcons.GOOGLE_PLUS);
+        super("Sign in with GitHub", new ClassResource("/images/github-logo-64.png"));
+
+        addStyleName("signinbutton");
 
         addClickListener(e -> {
 

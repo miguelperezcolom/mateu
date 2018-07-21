@@ -15165,17 +15165,23 @@ div.v-layout.v-horizontal.v-widget {
 	background-color: #73a5d7;
 }
 
-.mytheme .miapp[width-range~="0-600px"] .appheader .burguer {
+.mytheme .miapp[width-range~="0-800px"] .appheader .burguer {
 	display: block;
 }
 
-.mytheme .miapp[width-range~="0-600px"] .v-slot-leftside {
+.mytheme .miapp[width-range~="0-800px"] .loginilayoutdcha {
+	border-left: inherit;
+	padding-left: inherit;
+	margin-left: inherit;
+}
+
+.mytheme .miapp[width-range~="0-800px"] .v-slot-leftside {
 	position: relative;
 	float: left;
 	display: none;
 }
 
-.mytheme .miapp[width-range~="0-600px"].menuvisible .v-slot-leftside {
+.mytheme .miapp[width-range~="0-800px"].menuvisible .v-slot-leftside {
 	display: block;
 }
 
@@ -15240,14 +15246,15 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .mytheme .loginilayoutizda {
+	min-width: 300px;
 	padding: 0px;
 }
 
 .mytheme .loginilayoutdcha {
+	min-width: 300px;
 	border-left: 1px solid grey;
 	padding: 0px;
 	padding-left: 80px;
-	margin-left: 80px;
 }
 
 .mytheme .filterscomponent  > * {
@@ -15291,6 +15298,11 @@ div.v-layout.v-horizontal.v-widget {
 	-webkit-box-shadow: inset 0 1px 0 white, inset 0 -1px 0 #e7e7e7, 0 2px 3px rgba(0, 0, 0, 0.05);
 	box-shadow: inset 0 1px 0 white, inset 0 -1px 0 #e7e7e7, 0 2px 3px rgba(0, 0, 0, 0.05);
 	text-shadow: 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.mytheme .signinbutton img {
+	width: 30px;
+	margin-top: -4px;
 }
 
 .mytheme .viewcontainer {

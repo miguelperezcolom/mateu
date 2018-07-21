@@ -31,6 +31,7 @@ public class LoginFlowComponent extends VerticalLayout {
         VerticalLayout izda = new VerticalLayout();
 
         izda.addStyleName("loginilayoutizda");
+        izda.setSizeUndefined();
 
         Label t;
         //izda.addComponent(t = new Label("Sign in " + MDD.getApp().getName()));
@@ -41,18 +42,21 @@ public class LoginFlowComponent extends VerticalLayout {
         Button b;
         izda.addComponent(b = new Button("Sign in", e -> login()));
         b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
-        izda.addComponentsAndExpand(new Label(""));
 
 
         VerticalLayout dcha = new VerticalLayout();
         dcha.addStyleName("loginilayoutdcha");
+        dcha.setSizeUndefined();
 
-        dcha.addComponent(t = new Label("Sign in with:"));
+
+        dcha.addComponent(t = new Label("Or:"));
         t.addStyleName(ValoTheme.LABEL_H3);
 
         dcha.addComponent(new GitHubButton("2043fd5fdff6f9986731", "mysecret"));
 
         dcha.addComponent(new GoogleButton("1058149524857-gq2tebj8v2c21k51psiv87eu4gtbhs5p.apps.googleusercontent.com", "-EHzj7LyMGQq_rD5fUAkJI8H"));
+
+        dcha.addComponent(new Label(""));
 
 /*
         ob.addOAuthListener(new OAuthListener() {
@@ -77,8 +81,6 @@ public class LoginFlowComponent extends VerticalLayout {
         });
 */
 
-        dcha.addComponentsAndExpand(new Label(""));
-
 
         /*
 
@@ -91,11 +93,8 @@ public class LoginFlowComponent extends VerticalLayout {
 
 */
 
-        HorizontalLayout hl = new HorizontalLayout(izda, dcha);
-
-        addComponent(hl);
-
-        addComponentsAndExpand(new Label(""));
+        CssLayout hl = new CssLayout(izda, dcha);
+        addComponentsAndExpand(hl);
 
     }
 

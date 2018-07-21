@@ -3,8 +3,10 @@ package io.mateu.mdd.vaadinport.vaadin.components.oauth;
 
 import com.google.common.base.Strings;
 import com.vaadin.icons.VaadinIcons;
+import com.vaadin.server.ClassResource;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 
@@ -77,7 +79,10 @@ Accept: application/xml
      */
 
     public GoogleButton(String key, String secret) {
-        super("Google", VaadinIcons.GOOGLE_PLUS);
+        super("Sign in with Google", new ClassResource("/images/google-logo-64.png"));
+
+        addStyleName("signinbutton");
+
 
         addClickListener(e -> {
 

@@ -176,7 +176,7 @@
 
   }
 
-  .miapp[width-range~="0-600px"] {
+  .miapp[width-range~="0-800px"] {
 
         .appheader {
           .burguer {
@@ -185,6 +185,12 @@
 
         }
 
+
+    .loginilayoutdcha {
+      border-left: inherit;
+      padding-left: inherit;
+      margin-left: inherit;
+    }
 
     .v-slot-leftside {
       position:relative;
@@ -195,7 +201,7 @@
 
   }
 
-  .miapp[width-range~="0-600px"].menuvisible {
+  .miapp[width-range~="0-800px"].menuvisible {
 
     .v-slot-leftside {
       display: block;
@@ -273,15 +279,18 @@
 
 
   .loginilayoutizda {
+    min-width: 300px;
     padding: 0px;
   }
 
   .loginilayoutdcha {
+    min-width: 300px;
     border-left: 1px solid grey;
     padding: 0px;
     padding-left: 80px;
-    margin-left: 80px;
+    /* margin-left: 80px; */
   }
+
 
 
   .filterscomponent {
@@ -352,6 +361,13 @@
     }
     */
 
+  }
+
+  .signinbutton {
+    img {
+      width: 30px;
+      margin-top: -4px;
+    }
   }
 
   .viewcontainer {
