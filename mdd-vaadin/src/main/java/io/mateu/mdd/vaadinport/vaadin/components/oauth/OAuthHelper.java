@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oauth;
 
 import com.google.common.base.Strings;
+import com.vaadin.server.Page;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.model.authentication.Permission;
 import io.mateu.mdd.core.model.authentication.USER_STATUS;
@@ -15,6 +16,186 @@ import java.util.Map;
 
 public class OAuthHelper {
 
+
+    public static UserData getUserDataFromGoogleCode(String code) throws Throwable {
+        UserData[] ud = { null };
+
+        /*
+        POST /oauth2/v4/token HTTP/1.1
+Host: www.googleapis.com
+Content-Type: application/x-www-form-urlencoded
+
+code=4/P7q7W91a-oMsCeLvIaQm6bTrgtp7&
+client_id=your_client_id&
+client_secret=your_client_secret&
+redirect_uri=https://oauth2.example.com/code&
+grant_type=authorization_code
+         */
+
+        if (!Strings.isNullOrEmpty(code)) {
+
+            String apiKey = "1058149524857-gq2tebj8v2c21k51psiv87eu4gtbhs5p.apps.googleusercontent.com";
+            String apiSecret = "-EHzj7LyMGQq_rD5fUAkJI8H";
+
+            String access_token = null;
+
+
+            Page p = Page.getCurrent();
+
+            String callbackUrl = p.getLocation().toString();
+
+            if (!Strings.isNullOrEmpty(p.getLocation().getQuery())) callbackUrl = callbackUrl.substring(0, callbackUrl.length() - (p.getLocation().getQuery().length() + 1));
+            if (!Strings.isNullOrEmpty(p.getLocation().getPath())) callbackUrl = callbackUrl.substring(0, callbackUrl.length() - p.getLocation().getPath().length());
+            callbackUrl += "";
+
+            if (!callbackUrl.endsWith("/")) callbackUrl += "/";
+            callbackUrl += "oauth/google/callback";
+
+
+            OkHttpClient client = new OkHttpClient();
+
+            {
+
+                RequestBody formBody = new FormBody.Builder()
+                        .add("client_id", apiKey)
+                        .add("client_secret", apiSecret)
+                        .add("code", code)
+                        .add("redirect_uri", callbackUrl)
+                        .add("grant_type", "authorization_code")
+                        .build();
+                Request request = new Request.Builder()
+                        .url("https://www.googleapis.com/oauth2/v4/token")
+                        .post(formBody)
+                        .build();
+
+                try (Response response = client.newCall(request).execute()) {
+                    if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+
+                    String rb = response.body().string();
+
+                    System.out.println("" + rb);
+
+                    Map<String, Object> m = Helper.fromJson(rb);
+
+                    System.out.println("" + m);
+
+                    access_token = (String) m.get("access_token");
+
+                    System.out.println("access_token=" + access_token);
+                }
+
+            }
+
+
+            //access_token=321ad41cf16c46a77f0697c48bc47b21cd0b47c7&scope=&token_type=bearer
+
+
+
+
+            {
+
+
+                Request request = new Request.Builder()
+                        .url("https://www.googleapis.com/oauth2/v2/userinfo?alt=json&access_token=" + access_token)
+                        .get()
+                        .build();
+
+                try (Response response = client.newCall(request).execute()) {
+                    if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+
+                    String rb = response.body().string();
+
+                    System.out.println("response=" + rb);
+
+                    Map<String, Object> m = Helper.fromJson(rb);
+
+                /*
+
+{
+  "login": "miguelperezcolom",
+  "id": 20686545,
+  "node_id": "MDQ6VXNlcjIwNjg2NTQ1",
+  "avatar_url": "https://avatars2.githubusercontent.com/u/20686545?v=4",
+  "gravatar_id": "",
+  "url": "https://api.github.com/users/miguelperezcolom",
+  "html_url": "https://github.com/miguelperezcolom",
+  "followers_url": "https://api.github.com/users/miguelperezcolom/followers",
+  "following_url": "https://api.github.com/users/miguelperezcolom/following{/other_user}",
+  "gists_url": "https://api.github.com/users/miguelperezcolom/gists{/gist_id}",
+  "starred_url": "https://api.github.com/users/miguelperezcolom/starred{/owner}{/repo}",
+  "subscriptions_url": "https://api.github.com/users/miguelperezcolom/subscriptions",
+  "organizations_url": "https://api.github.com/users/miguelperezcolom/orgs",
+  "repos_url": "https://api.github.com/users/miguelperezcolom/repos",
+  "events_url": "https://api.github.com/users/miguelperezcolom/events{/privacy}",
+  "received_events_url": "https://api.github.com/users/miguelperezcolom/received_events",
+  "type": "User",
+  "site_admin": false,
+  "name": "Miguel Pérez Colom",
+  "company": null,
+  "blog": "",
+  "location": null,
+  "email": null,
+  "hireable": null,
+  "bio": "Project manager at Multinucleo",
+  "public_repos": 31,
+  "public_gists": 0,
+  "followers": 1,
+  "following": 0,
+  "created_at": "2016-07-27T16:18:08Z",
+  "updated_at": "2018-07-15T08:30:16Z"
+}
+
+                 */
+
+                    String avatarUrl = (String) m.get("picture");
+                    String name = (String) m.get("name");
+                    String email = (String) m.get("email");
+                    String login = (String) m.get("email");
+
+                    System.out.println("" + avatarUrl);
+                    System.out.println("" + name);
+                    System.out.println("" + email); // puede ser null
+                    System.out.println("" + login);
+
+                    Helper.transact(new JPATransaction() {
+                        @Override
+                        public void run(EntityManager em) throws Throwable {
+
+                            User u = em.find(User.class, login);
+
+                            UserData d = new UserData();
+
+                            if (u == null) {
+                                u = new User();
+                                u.setLogin(login);
+                                u.setEmail((email != null)?email:"");
+                                u.setName((name != null)?name:"");
+                                //u.setPhoto(null);
+                                u.setStatus(USER_STATUS.ACTIVE);
+                                em.persist(u);
+                            }
+
+                            d.setName(u.getName());
+                            d.setEmail(u.getEmail());
+                            d.setLogin(login);
+                            if (u.getPhoto() != null) d.setPhoto(u.getPhoto().toFileLocator().getUrl());
+                            for (Permission p : u.getPermissions()) d.getPermissions().add(Math.toIntExact(p.getId()));
+
+                            ud[0] = d;
+
+                        }
+                    });
+
+                }
+
+            }
+
+
+
+        }
+
+        return ud[0];
+    }
 
 
     public static UserData getUserDataFromGitHubCode(String code) throws Throwable {

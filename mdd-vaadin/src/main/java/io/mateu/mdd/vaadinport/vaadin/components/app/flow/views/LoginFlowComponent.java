@@ -8,6 +8,7 @@ import io.mateu.mdd.core.app.BaseMDDApp;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.GitHubButton;
+import io.mateu.mdd.vaadinport.vaadin.components.oauth.GoogleButton;
 
 public class LoginFlowComponent extends VerticalLayout {
 
@@ -50,6 +51,8 @@ public class LoginFlowComponent extends VerticalLayout {
         t.addStyleName(ValoTheme.LABEL_H3);
 
         dcha.addComponent(new GitHubButton("2043fd5fdff6f9986731", "mysecret"));
+
+        dcha.addComponent(new GoogleButton("1058149524857-gq2tebj8v2c21k51psiv87eu4gtbhs5p.apps.googleusercontent.com", "-EHzj7LyMGQq_rD5fUAkJI8H"));
 
 /*
         ob.addOAuthListener(new OAuthListener() {

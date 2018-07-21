@@ -84,6 +84,23 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                 state = "welcome";
             }
 
+        } else if ("oauth/google/callback".equalsIgnoreCase(state)) {
+
+            //http://localhost:8080/callback?code=c0324687fdcdf68fde05
+
+            System.out.println("state = " + state);
+
+            Map<String, String> params = Helper.parseQueryString(Page.getCurrent().getLocation().getQuery());
+
+            if (params.containsKey("code")) {
+                try {
+                    MDD.setUserData(OAuthHelper.getUserDataFromGoogleCode(params.get("code")));
+                } catch (Throwable throwable) {
+                    MDD.alert(throwable);
+                }
+                state = "welcome";
+            }
+
         }
 
             currentPath = state;

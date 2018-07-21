@@ -1,9 +1,11 @@
 package io.mateu.mdd.vaadinport.vaadin.pojos;
 
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.interfaces.PMO;
+import io.mateu.mdd.core.model.authentication.Permission;
 import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.model.common.File;
 import io.mateu.mdd.core.util.Helper;
@@ -62,6 +64,13 @@ public class Profile implements PMO {
                 u.setName(getName());
 
                 u.setEmail(getEmail());
+
+                userData.setName(u.getName());
+                userData.setEmail(u.getEmail());
+                if (u.getPhoto() != null) userData.setPhoto(u.getPhoto().toFileLocator().getUrl());
+                for (Permission p : u.getPermissions()) userData.getPermissions().add(Math.toIntExact(p.getId()));
+
+                MDD.setUserData(userData);
 
             }
         });
