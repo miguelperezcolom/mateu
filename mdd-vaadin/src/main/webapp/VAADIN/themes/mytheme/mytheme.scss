@@ -81,7 +81,7 @@
         .leftside {
 
           background-color: lightslategrey;
-          width: 300px;
+          width: 250px;
           height: 100%;
           padding:  0px;
 
@@ -251,7 +251,7 @@
   }
 
   .resultsmessage {
-    margin-top: 40px;
+    /* margin-top: 40px; */
   }
 
   .resultscomponent {
@@ -302,11 +302,11 @@
   }
 
   .viewHeader {
-    margin-bottom: 40px;
+    /* margin-bottom: 40px; */
   }
 
   .filterscomponent {
-    margin-bottom: 40px;
+    /* margin-bottom: 40px; */
   }
 
   .applicationactions {
@@ -326,13 +326,41 @@
 
     .v-menubar-menuitem {
       border: none;
-      border-radius: 3px;
-    }
+      margin-right: 5px;
 
-    .v-menubar-menuitem:hover {
+/*
       background-color: lightgray;
+      border-radius: 5px;
+*/
+
+      border-radius: 4px;
+      border: 1px solid #c5c5c5;
+      border-top-color: #c5c5c5;
+      border-bottom-color: #bcbcbc;
+      background-color: #fafafa;
+      background-image: -webkit-linear-gradient(top, #fafafa 2%, #efefef 98%);
+      background-image: linear-gradient(to bottom,#fafafa 2%, #efefef 98%);
+      -webkit-box-shadow: inset 0 1px 0 white, inset 0 -1px 0 #e7e7e7, 0 2px 3px rgba(0, 0, 0, 0.05);
+      box-shadow: inset 0 1px 0 white, inset 0 -1px 0 #e7e7e7, 0 2px 3px rgba(0, 0, 0, 0.05);
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.05);
     }
 
+
+    /*
+    .v-menubar-menuitem:hover {
+      background-color: gray;
+    }
+    */
+
+  }
+
+  .viewcontainer {
+    padding: 0px;
+  }
+
+
+  .submenuoption:hover {
+    color: red;
   }
 
   .flowcomponent {

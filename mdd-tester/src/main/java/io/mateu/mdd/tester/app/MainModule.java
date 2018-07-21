@@ -42,14 +42,6 @@ public class MainModule extends AbstractModule {
 
         m.add(new MDDOpenEditorAction("AppConfig", AppConfig.class, 1l));
 
-        m.add(new MDDAction("Basic fields", BasicFieldsDemoEntity.class));
-
-        m.add(new MDDAction("Date fields", DateTimeFieldsDemoEntity.class));
-
-        m.add(new MDDAction("Basic fields with validation", BasicFieldsWithValidationDemoEntity.class));
-
-        m.add(new MDDAction("Calculated fields", CalculatedFieldsDemoEntity.class));
-
         m.add(new MDDAction("Styled class", StyledDemoEntity.class));
 
         m.add(new MDDAction("Actions", ActionsDemoEntity.class));
@@ -63,7 +55,14 @@ public class MainModule extends AbstractModule {
             public List<MenuEntry> buildEntries() {
                 List<MenuEntry> l = new ArrayList<>();
 
-                l.add(new MDDMenu("Fields", "Enumeration field", EnumerationFieldDemoEntity.class, "TextArea", TextAreaFieldDemoEntity.class));
+                l.add(new MDDMenu("Fields"
+                        , "Basic fields", BasicFieldsDemoEntity.class
+                        , "Date fields", DateTimeFieldsDemoEntity.class
+                        , "Basic fields with validation", BasicFieldsWithValidationDemoEntity.class
+                        , "Calculated fields", CalculatedFieldsDemoEntity.class
+                        , "Enumeration field", EnumerationFieldDemoEntity.class
+                        , "TextArea", TextAreaFieldDemoEntity.class
+                ));
 
 
                 l.add(new AbstractMenu("Relations") {

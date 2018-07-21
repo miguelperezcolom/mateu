@@ -68,6 +68,12 @@ public class FormLayoutBuilder {
                 if (sections.size() == 0) sections.add(new FormLayoutSection("General"));
                 sections.get(sections.size() - 1).getFields().add(f);
             });
+
+            if (sections.size() == 1) {
+                FormLayoutSection s = sections.get(0);
+                if ("general".equalsIgnoreCase(s.getCaption())) s.setCaption(null);
+            }
+
             AbstractStylist finalStylist1 = stylist;
             sections.forEach(s -> {
                 FormLayout form = new FormLayout();
@@ -75,10 +81,13 @@ public class FormLayoutBuilder {
                 form.addStyleName("section");
                 //form.addStyleName(ValoTheme.FORMLAYOUT_LIGHT);
 
-                Label section = new Label(s.getCaption());
-                section.addStyleName(ValoTheme.LABEL_H2);
-                section.addStyleName(ValoTheme.LABEL_COLORED);
-                form.addComponent(section);
+                if (s.getCaption() != null) {
+                    Label section = new Label(s.getCaption());
+                    section.addStyleName(ValoTheme.LABEL_H2);
+                    section.addStyleName(ValoTheme.LABEL_COLORED);
+                    form.addComponent(section);
+                }
+
 
                 buildAndAddFields(ofb, model, form, binder, validators, finalStylist1, allFieldContainers, s.getFields());
                 contentContainer.addComponent(form);

@@ -3,18 +3,21 @@ package io.mateu.mdd.vaadinport.vaadin.navigation;
 import com.google.common.base.Strings;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewProvider;
+import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
-import io.mateu.mdd.core.model.authentication.User;
+import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.Pair;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.views.*;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.views.AreaComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.oauth.OAuthHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
 import io.mateu.mdd.vaadinport.vaadin.pojos.Profile;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 
 
 //public
@@ -51,7 +54,6 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
     @Override
     public View getView(String state) {
-
         View v = null;
 
         if (Strings.isNullOrEmpty(state)) { // caso ""
@@ -65,7 +67,26 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
         }
 
-        currentPath = state;
+        if ("oauth/github/callback".equalsIgnoreCase(state)) {
+
+            //http://localhost:8080/callback?code=c0324687fdcdf68fde05
+
+            System.out.println("state = " + state);
+
+            Map<String, String> params = Helper.parseQueryString(Page.getCurrent().getLocation().getQuery());
+
+            if (params.containsKey("code")) {
+                try {
+                    MDD.setUserData(OAuthHelper.getUserDataFromGitHubCode(params.get("code")));
+                } catch (Throwable throwable) {
+                    MDD.alert(throwable);
+                }
+                state = "welcome";
+            }
+
+        }
+
+            currentPath = state;
 
         if ("login".equals(state)) { // caso "login"
 
@@ -157,20 +178,30 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                 if (state.startsWith("private/profile")) { // caso "login"
 
-                    stack.clear();
-
-                    openEditor(null, Profile.class, MDD.getUserData(), false);
+                    currentPath = lastPath = auxPath = "private/profile";
 
                     v = lastView = stack.get("private/profile");
+
+                    if (v == null) {
+
+                        stack.clear();
+                        openEditor(null, Profile.class, MDD.getUserData(), false);
+
+                        v = lastView = stack.get("private/profile");
+
+                    }
+
 
                     lastIndexInStack = 0;
 
                     lastPos = pos = 2;
 
-                    lastPath = auxPath = "private/profile";
+                    menuPassed = true;
 
                 }
 
+
+                // va avanzando en los steps mientra exista en el stack
 
                 while (coincide && pos < steps.length) {
                     lastPath = auxPath;
@@ -178,11 +209,11 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     if (!"".equals(auxPath)) auxPath += "/";
                     auxPath += steps[pos];
 
-                    menuPassed = menuPassed || MDD.getApp().getMenu(auxPath) != null;
+                    menuPassed = menuPassed || stack.get(auxPath) != null || (MDD.getApp().getMenu(auxPath) != null && MDD.getApp().getMenu(auxPath) instanceof AbstractAction);
 
                     if (menuPassed) {
                         io.mateu.mdd.vaadinport.vaadin.navigation.View auxV = stack.get(auxPath);
-                        coincide = auxV != null;
+                        coincide = auxV != null || (MDD.getApp().getMenu(auxPath) != null && !(MDD.getApp().getMenu(auxPath) instanceof AbstractAction));
 
                         if (coincide) {
                             path = auxPath;
@@ -196,10 +227,25 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                 }
 
 
+                /*
+                // nos hemos parado en una acción pero no existe la vista
+                if (lastView == null && MDD.getApp().getMenu(auxPath) != null && MDD.getApp().getMenu(auxPath) instanceof AbstractAction) {
+                    ((AbstractAction)MDD.getApp().getMenu(auxPath)).run(this);
+                    lastView = stack.get(lastPath);
+                    lastIndexInStack = stack.indexOf(lastView);
+                }
+                */
+
+
 
                 if (lastIndexInStack < stack.size() - 1) stack.popTo(lastIndexInStack);
 
+
                 // aquí el stack está limpio hasta el último contenido que coincide
+
+
+                // vamos creando el stack hasta que terminemos los steps
+
                 int currentStepIndex = lastPos;
                 currentPath = lastPath;
                 while (currentStepIndex < steps.length) { //vamos completando
@@ -212,7 +258,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     //recordar: (private|public)/area/modulo/menu/menu/accion
 
 
-                    boolean procesar = currentStepIndex > 3 && MDD.getApp().getMenu(currentPath) == null;
+                    boolean procesar = menuPassed && MDD.getApp().getMenu(currentPath) == null && lastView != null;
 
 
                     if (procesar) {
@@ -320,7 +366,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     }
 
                     currentStepIndex++;
-                    v = stack.get(currentPath);
+                    v = lastView = stack.get(currentPath);
                 }
 
 

@@ -10,6 +10,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonObjectParser;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
 import com.google.common.hash.Hashing;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -158,7 +159,7 @@ public class Helper {
             StringBuffer sb = new StringBuffer();
             for (ConstraintViolation v : e.getConstraintViolations()) {
                 if (sb.length() > 0) sb.append("\n");
-                sb.append(v.toString());
+                sb.append(v.getMessage());
             }
             System.out.println(sb.toString());
             if (em.getTransaction().isActive()) em.getTransaction().rollback();
@@ -171,7 +172,7 @@ public class Helper {
                 StringBuffer sb = new StringBuffer();
                 for (ConstraintViolation v : cve.getConstraintViolations()) {
                     if (sb.length() > 0) sb.append("\n");
-                    sb.append(v.toString());
+                    sb.append(v.getMessage());
                 }
                 System.out.println(sb.toString());
                 if (em.getTransaction().isActive()) em.getTransaction().rollback();
@@ -302,6 +303,22 @@ public class Helper {
                     }
                 });
         HttpRequest request = requestFactory.buildGetRequest(new GenericUrl(url));
+        return request.execute().parseAsString(); //.parseAs(VideoFeed.class);
+    }
+
+    public static String httpPost(String url, Map<String, String> parameters) throws IOException {
+        System.out.println("HTTP POST " + url);
+        HttpRequestFactory requestFactory =
+                HTTP_TRANSPORT.createRequestFactory(new HttpRequestInitializer() {
+                    @Override
+                    public void initialize(HttpRequest request) {
+                        request.setParser(new JsonObjectParser(JSON_FACTORY));
+                    }
+                });
+
+
+
+        HttpRequest request = requestFactory.buildPostRequest(new GenericUrl(url), new UrlEncodedContent(""));
         return request.execute().parseAsString(); //.parseAs(VideoFeed.class);
     }
 
@@ -791,5 +808,21 @@ public class Helper {
             e.printStackTrace();
         }
         return v;
+    }
+
+    public static Map<String,String> parseQueryString(String query) {
+        Map<String,String> params = new HashMap<>();
+
+        if (!Strings.isNullOrEmpty(query)) {
+
+            for (String t : query.split("&")) if (!Strings.isNullOrEmpty(t)) {
+                String[] q = t.split("=");
+                params.put(q[0], (q.length > 1)?q[1]:null);
+            }
+
+        }
+
+
+        return params;
     }
 }

@@ -8,6 +8,7 @@ import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 
+import javax.validation.ConstraintViolationException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
@@ -49,10 +50,13 @@ public class VaadinPort implements MDDPort {
     public void alert(Throwable throwable) {
         throwable.printStackTrace();
 
-        StringWriter sw = new StringWriter();
-        throwable.printStackTrace(new PrintWriter(sw));
+        String msg = (throwable.getMessage() != null)?throwable.getMessage():throwable.getClass().getName();
+
+        //StringWriter sw = new StringWriter();
+        //throwable.printStackTrace(new PrintWriter(sw));
         Notification.show("Error",
-                sw.toString(),
+                msg,
+                //sw.toString(),
                 Notification.Type.ERROR_MESSAGE);
     }
 

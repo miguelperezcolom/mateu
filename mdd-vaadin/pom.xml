@@ -79,20 +79,6 @@
 
 
         <dependency>
-            <groupId>com.github.scribejava</groupId>
-            <artifactId>scribejava-apis</artifactId>
-            <!-- <version>5.5.0</version> -->
-            <version>2.7.3</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.vaadin.addon.oauthpopup</groupId>
-            <artifactId>oauthpopup</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-
-
-        <dependency>
             <groupId>org.vaadin.patrik</groupId>
             <artifactId>GridFastNavigation</artifactId>
             <version>2.2.3</version>

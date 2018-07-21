@@ -71,7 +71,7 @@ public class Profile implements PMO {
 
     @Override
     public void load(Object id) throws Throwable {
-        UserData userData = (UserData) id;
+        userData = (UserData) id;
 
         setName(userData.getName());
 

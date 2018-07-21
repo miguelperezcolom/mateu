@@ -85,6 +85,7 @@ public class MenuFlowComponent extends CssLayout {
             }));
 
             b.setPrimaryStyleName(ValoTheme.BUTTON_QUIET);
+            b.addStyleName("submenuoption");
 
         }
 

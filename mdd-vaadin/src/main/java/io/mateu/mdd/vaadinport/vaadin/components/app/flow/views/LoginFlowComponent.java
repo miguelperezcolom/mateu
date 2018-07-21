@@ -1,20 +1,13 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.flow.views;
 
-import com.github.scribejava.core.model.OAuth1AccessToken;
-import com.github.scribejava.core.model.OAuth2AccessToken;
-import com.github.scribejava.core.model.Token;
+import com.vaadin.event.ShortcutAction;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.BaseMDDApp;
 import io.mateu.mdd.core.data.UserData;
-import io.mateu.mdd.core.interfaces.App;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
-import org.vaadin.addon.oauthpopup.OAuthListener;
-import org.vaadin.addon.oauthpopup.OAuthPopupButton;
-import org.vaadin.addon.oauthpopup.OAuthPopupConfig;
-import org.vaadin.addon.oauthpopup.OAuthPopupUI;
-import org.vaadin.addon.oauthpopup.buttons.*;
+import io.mateu.mdd.vaadinport.vaadin.components.oauth.GitHubButton;
 
 public class LoginFlowComponent extends VerticalLayout {
 
@@ -39,12 +32,14 @@ public class LoginFlowComponent extends VerticalLayout {
         izda.addStyleName("loginilayoutizda");
 
         Label t;
-        izda.addComponent(t = new Label("Sign in " + MDD.getApp().getName()));
-        t.addStyleName(ValoTheme.LABEL_H3);
+        //izda.addComponent(t = new Label("Sign in " + MDD.getApp().getName()));
+        //t.addStyleName(ValoTheme.LABEL_H3);
 
         izda.addComponent(login = new TextField("Login"));
         izda.addComponent(password = new PasswordField("password"));
-        izda.addComponent(new Button("Sign in", e -> login()));
+        Button b;
+        izda.addComponent(b = new Button("Sign in", e -> login()));
+        b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
         izda.addComponentsAndExpand(new Label(""));
 
 
@@ -54,14 +49,9 @@ public class LoginFlowComponent extends VerticalLayout {
         dcha.addComponent(t = new Label("Sign in with:"));
         t.addStyleName(ValoTheme.LABEL_H3);
 
-        GitHubButton ob;
-        dcha.addComponent(ob = new GitHubButton("mykey", "mysecret"));
-        dcha.addComponent(new FacebookButton("mykey", "mysecret"));
-        dcha.addComponent(new GoogleButton("mykey", "mysecret", "scope"));
-        dcha.addComponent(new LinkedInButton("mykey", "mysecret"));
-        dcha.addComponent(new TwitterButton("mykey", "mysecret"));
+        dcha.addComponent(new GitHubButton("2043fd5fdff6f9986731", "mysecret"));
 
-
+/*
         ob.addOAuthListener(new OAuthListener() {
 
             @Override
@@ -82,7 +72,7 @@ public class LoginFlowComponent extends VerticalLayout {
                 Notification.show("Failed to authenticate!", Notification.Type.ERROR_MESSAGE);
             }
         });
-
+*/
 
         dcha.addComponentsAndExpand(new Label(""));
 

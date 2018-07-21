@@ -250,9 +250,6 @@ public class EditorViewComponent extends AbstractViewComponent {
 
             pmo.save();
 
-            // cambiamos la url, para reflejar el cambio
-            MyUI.get().getNavegador().goTo(pmo.getId());
-
         }
     }
 

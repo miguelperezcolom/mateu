@@ -52,7 +52,13 @@
       <artifactId>port-vaadin</artifactId>
       <version>0.0.2-SNAPSHOT</version>
       <type>war</type>
-      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.vaadin</groupId>
+      <artifactId>vaadin-server</artifactId>
+      <version>8.4.1</version>
+      <scope>provided</scope>
     </dependency>
 
 

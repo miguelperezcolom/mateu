@@ -7,6 +7,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class FieldInterfacedFromParameter implements FieldInterfaced {
 
@@ -77,7 +78,7 @@ public class FieldInterfacedFromParameter implements FieldInterfaced {
 
     @Override
     public Class<?> getDeclaringClass() {
-        return (ff != null)?ff.getDeclaringClass(): m.getDeclaringClass();
+        return (ff != null)?ff.getDeclaringClass(): Map.class;
     }
 
     @Override
