@@ -2,6 +2,7 @@ package io.mateu.mdd.tester.app;
 
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.model.config.AppConfig;
+import io.mateu.mdd.tester.model.customComponents.CustomComponent;
 import io.mateu.mdd.tester.model.jpql.SampleJPQLCrudView;
 import io.mateu.mdd.tester.model.jpql.SampleJPQLLIstView;
 import io.mateu.mdd.tester.model.jpql.SampleJPQLToPMOCrudView;
@@ -49,6 +50,8 @@ public class MainModule extends AbstractModule {
         m.add(new MDDAction("Search filters", SearchFiltersDemoEntity.class));
 
         m.add(new MDDAction("Sections", SectionDemoEntity.class));
+
+        m.add(new MDDOpenCustomComponentAction("Custom component", CustomComponent.class));
 
         m.add(new AbstractMenu("Field use cases") {
             @Override

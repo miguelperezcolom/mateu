@@ -101,6 +101,24 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                 state = "welcome";
             }
 
+        } else if ("oauth/microsoft/callback".equalsIgnoreCase(state)) {
+
+            //http://localhost:8080/callback?code=c0324687fdcdf68fde05
+
+            System.out.println("state = " + state);
+
+            Map<String, String> params = Helper.parseQueryString(Page.getCurrent().getLocation().getQuery());
+
+            if (params.containsKey("code")) {
+                try {
+                    MDD.setUserData(OAuthHelper.getUserDataFromMicrosoftCode(params.get("code")));
+                } catch (Throwable throwable) {
+                    MDD.alert(throwable);
+                }
+                state = "welcome";
+            }
+
+
         }
 
             currentPath = state;
@@ -469,5 +487,19 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
     @Override
     public void openCRUD(MDDAction action, Class entityClass, String queryFilters, boolean modifierPressed) {
         stack.push(currentPath, MDDViewComponentCreator.createComponent(action, entityClass, queryFilters, modifierPressed));
+    }
+
+    @Override
+    public void openComponent(AbstractAction action, Class componentClass, boolean modifierPressed) {
+        try {
+            stack.push(currentPath, (Component) componentClass.newInstance());
+        } catch (Exception e) {
+            MDD.alert(e);
+        }
+    }
+
+    @Override
+    public void open(AbstractAction action, Component component, boolean modifierPressed) {
+        stack.push(currentPath, component);
     }
 }

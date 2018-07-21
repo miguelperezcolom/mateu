@@ -135,4 +135,5 @@ public class VaadinPort implements MDDPort {
     public void setApp(AbstractApplication app) {
         MyUI.get().setApp(app);
     }
+
 }

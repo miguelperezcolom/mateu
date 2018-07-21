@@ -1,5 +1,6 @@
 package io.mateu.mdd.core;
 
+import com.vaadin.ui.Component;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.views.RPCView;

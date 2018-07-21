@@ -68,4 +68,9 @@ public class ActionsDemoEntity {
         System.out.println(msg);
         return msg;
     }
+
+    @Action(name = "Open custom component")
+    public void action8() {
+
+    }
 }
