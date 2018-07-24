@@ -19,7 +19,7 @@ public class VaadinPort implements MDDPort {
     public void alert(String msg) {
         Notification.show("Alert",
                 msg,
-                Notification.Type.HUMANIZED_MESSAGE);
+                Notification.Type.ERROR_MESSAGE);
     }
 
     @Override
@@ -134,6 +134,13 @@ public class VaadinPort implements MDDPort {
     @Override
     public void setApp(AbstractApplication app) {
         MyUI.get().setApp(app);
+    }
+
+    @Override
+    public void info(String msg) {
+        Notification.show("Alert",
+                msg,
+                Notification.Type.WARNING_MESSAGE);
     }
 
 }

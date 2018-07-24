@@ -125,7 +125,7 @@ public abstract class BaseMDDApp extends AbstractApplication {
     }
 
     public String recoverPassword(String s) throws Throwable {
-        return null;
+        throw new Exception("Not implemented. You mus override the recoverPassword method of your aplication class.");
     }
 
 

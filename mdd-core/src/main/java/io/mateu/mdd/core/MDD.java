@@ -75,4 +75,7 @@ public class MDD {
         getPort().confirm(msg, onOk);
     }
 
+    public static void info(String msg) {
+        getPort().info(msg);
+    }
 }

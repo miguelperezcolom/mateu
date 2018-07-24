@@ -40,4 +40,6 @@ public interface MDDPort {
     AbstractApplication getApp();
 
     void setApp(AbstractApplication app);
+
+    void info(String msg);
 }

@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.flow.views;
 
+import com.google.common.base.Strings;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
@@ -105,19 +106,49 @@ public class LoginFlowComponent extends VerticalLayout {
         CssLayout cl = new CssLayout(izda, dcha);
         addComponentsAndExpand(cl);
 
+        login.focus();
+
     }
 
     private void forgotPassword() {
+
+        if (!Strings.isNullOrEmpty(login.getValue())) {
+
+            try {
+                MDD.info(((BaseMDDApp)MDD.getApp()).recoverPassword(login.getValue()));
+            } catch (Throwable throwable) {
+                MDD.alert(throwable);
+            }
+
+
+        } else {
+
+            MDD.alert("Login is required");
+            login.focus();
+
+        }
+
+
     }
 
     private void login() {
 
-        try {
-            UserData u = ((BaseMDDApp)MDD.getApp()).authenticate(login.getValue(), password.getValue());
-            MDD.setUserData(u);
-            MyUI.get().getNavegador().goTo("welcome");
-        } catch (Throwable throwable) {
-            MDD.alert(throwable);
+        if (Strings.isNullOrEmpty(login.getValue())) {
+            MDD.alert("Login is required");
+            login.focus();
+        } else if (Strings.isNullOrEmpty(password.getValue())) {
+            MDD.alert("Password is required");
+            password.focus();
+        } else {
+
+            try {
+                UserData u = ((BaseMDDApp)MDD.getApp()).authenticate(login.getValue(), password.getValue());
+                MDD.setUserData(u);
+                MyUI.get().getNavegador().goTo("welcome");
+            } catch (Throwable throwable) {
+                MDD.alert(throwable);
+            }
+
         }
 
     }
