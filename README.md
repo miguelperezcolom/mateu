@@ -16,7 +16,7 @@ For achieving this goal, Mateu MDD provides
 So, you define your whole application by using plain java clases. From the application structure and menus to any UI custom component.
 
 
-The true power of this approach comes up when you compose or extend existing appications just by using java inheritance, polimorphism and the maven dependency mechanism.
+The true power of this approach (java based) comes up when you compose or extend existing appications just by using java inheritance, polimorphism and the maven dependency mechanism.
 
 
 Mateu MDD is not about scaling neither about deploying your application to cloud, though we see a way to do it in a chapter of the manual.
