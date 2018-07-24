@@ -2,6 +2,7 @@ package io.mateu.mdd.core.app;
 
 
 import com.google.common.base.Strings;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.Data;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.interfaces.App;
@@ -27,7 +28,6 @@ public abstract class AbstractApplication implements App {
     public static final String PORT_JAVAFX = "javafx";
 
 
-    private UserData userData;
     private String baseUrl;
     private String port;
     private Map<AbstractArea, String> areaIds;
@@ -116,7 +116,7 @@ public abstract class AbstractApplication implements App {
 
 
     public String getState(AbstractArea a) {
-        if (a == null) return (userData == null)?"public":"private";
+        if (a == null) return (MDD.getUserData() == null)?"public":"private";
         return getAreaId(a);
     }
 
@@ -138,10 +138,16 @@ public abstract class AbstractApplication implements App {
         return false;
     }
 
+    public void updateSession() {
+        this.areas = null;
+        buildAreaAndMenuIds();
+    }
+
+
     public List<AbstractArea> getAreas() {
         if (areas == null) synchronized (this) {
             areas = new ArrayList<>();
-            boolean autentico = getUserData() != null;
+            boolean autentico = MDD.getUserData() != null;
             for (AbstractArea a : buildAreas()) {
                 if ((!autentico && a.isPublicAccess()) || (autentico && !a.isPublicAccess())) areas.add(a);
             }
@@ -218,16 +224,6 @@ public abstract class AbstractApplication implements App {
     }
 
     public abstract List<AbstractArea> buildAreas();
-
-    public void setUserData(UserData userData) {
-        this.userData = userData;
-        this.areas = null;
-        buildAreaAndMenuIds();
-    }
-
-    public UserData getUserData() {
-        return userData;
-    }
 
     public View getPublicHome() { return null; };
 

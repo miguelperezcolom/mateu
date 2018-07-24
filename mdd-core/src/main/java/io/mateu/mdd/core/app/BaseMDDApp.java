@@ -1,6 +1,7 @@
 package io.mateu.mdd.core.app;
 
 import com.google.common.base.Strings;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.Data;
 import io.mateu.mdd.core.data.FileLocator;
 import io.mateu.mdd.core.data.UserData;
@@ -84,7 +85,7 @@ public abstract class BaseMDDApp extends AbstractApplication {
             }
         });
 
-        setUserData(d);
+        MDD.setUserData(d);
 
         return d;
     }

@@ -26,6 +26,8 @@ public class LeftSideComponent extends VerticalLayout {
 
         addComponent(nav = new NavigationComponent(app));
 
+        updateSession();
+
     }
 
 

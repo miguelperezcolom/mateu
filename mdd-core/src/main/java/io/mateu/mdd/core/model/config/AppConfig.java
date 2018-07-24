@@ -5,6 +5,7 @@ import io.mateu.mdd.core.annotations.NotInEditor;
 import io.mateu.mdd.core.annotations.Tab;
 import io.mateu.mdd.core.annotations.TextArea;
 import io.mateu.mdd.core.model.common.File;
+import io.mateu.mdd.core.model.population.Populator;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import lombok.Getter;
@@ -75,7 +76,16 @@ public class AppConfig {
     //private CurrencyExchange currencyExchange = new CurrencyExchange();
 
     public static AppConfig get(EntityManager em) {
-        return em.find(AppConfig.class, 1l);
+        AppConfig c = em.find(AppConfig.class, 1l);
+        if (c == null) {
+            try {
+                Populator.populate(AppConfig.class);
+                c = em.find(AppConfig.class, 1l);
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
+            }
+        }
+        return c;
     }
 
     @Action(value = "Create dummy dates")

@@ -97,7 +97,6 @@ public class MyUI extends UI {
         while (apps.hasNext()) {
             app = (AbstractApplication) apps.next();
             System.out.println("app " + app.getName() + " loaded");
-            app.buildAreaAndMenuIds();
             break;
         }
 
@@ -105,6 +104,7 @@ public class MyUI extends UI {
 
         MDD.setApp((BaseMDDApp) app);
 
+        app.buildAreaAndMenuIds();
 
         viewContainer = createViewContainer();
 

@@ -36,6 +36,14 @@ public class VaadinPort implements MDDPort {
         MyUI.get().getNavegador().goTo(action, viewClass, id);
     }
 
+
+    @Override
+    public void setUserData(UserData userData) {
+        UI.getCurrent().getSession().setAttribute("_userdata", userData);
+        getApp().updateSession();
+        MyUI.get().getAppComponent().updateSession();
+    }
+
     @Override
     public UserData getUserData() {
         return (UserData) UI.getCurrent().getSession().getAttribute("_userdata");
@@ -60,12 +68,7 @@ public class VaadinPort implements MDDPort {
                 Notification.Type.ERROR_MESSAGE);
     }
 
-    @Override
-    public void setUserData(UserData userData) {
-        MDD.getApp().setUserData(userData);
-        UI.getCurrent().getSession().setAttribute("_userdata", userData);
-        MyUI.get().getAppComponent().updateSession();
-    }
+
 
     @Override
     public void openPrivateAreaSelector() {

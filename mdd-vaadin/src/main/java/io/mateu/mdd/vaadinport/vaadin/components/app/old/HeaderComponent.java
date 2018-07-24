@@ -63,6 +63,8 @@ public class HeaderComponent extends HorizontalLayout {
 
         setExpandRatio(spacing, 1);
 
+
+        updateSession();
     }
 
     public void updateSession() {

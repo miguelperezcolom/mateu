@@ -40,7 +40,7 @@ public class Populator {
             c.setXslfoForList(Resources.toString(Resources.getResource("/xsl/listing.xsl"), Charsets.UTF_8));
             em.persist(c);
 
-            c.createDummyDates();
+            //c.createDummyDates();
 
 
             // create super admin permission
