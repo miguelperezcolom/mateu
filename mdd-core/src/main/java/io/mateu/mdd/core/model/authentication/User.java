@@ -133,7 +133,7 @@ public class User {
         if (Strings.isNullOrEmpty(getPassword())) throw new Exception("Missing password for user " + login);
         if (Strings.isNullOrEmpty(getEmail())) throw new Exception("Missing email for user " + login);
         if (USER_STATUS.INACTIVE.equals(getStatus())) throw new Exception("Deactivated user");
-        EmailHelper.sendEmail(getEmail(), "Welcome " + getName(), "Your password is " + getPassword(), true);
+        EmailHelper.sendEmail(getEmail(), "Welcome " + getName(), (getPassword() != null)?"Your password is " + getPassword():"Welcome " + getName(), true);
     }
 
 

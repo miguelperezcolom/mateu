@@ -7,15 +7,19 @@ import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.BaseMDDApp;
 import io.mateu.mdd.core.data.UserData;
+import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.GitHubButton;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.GoogleButton;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.MicrosoftButton;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class LoginFlowComponent extends VerticalLayout {
 
-    private final TextField login;
-    private final PasswordField password;
+    private TextField login;
+    private PasswordField password;
 
     @Override
     public String toString() {
@@ -27,86 +31,80 @@ public class LoginFlowComponent extends VerticalLayout {
 
         addStyleName("logincomponent");
 
+        Helper.loadProperties();
+
         setSizeFull();
 
+        List<Layout> layouts = new ArrayList<>();
 
-        VerticalLayout izda = new VerticalLayout();
+        if (!"true".equalsIgnoreCase(System.getProperty("oauthonly"))) {
+            VerticalLayout izda = new VerticalLayout();
 
-        izda.addStyleName("loginilayoutizda");
-        izda.setSizeUndefined();
+            izda.addStyleName("loginilayoutizda");
+            izda.setSizeUndefined();
 
-        Label t;
-        //izda.addComponent(t = new Label("Sign in " + MDD.getApp().getName()));
-        //t.addStyleName(ValoTheme.LABEL_H3);
+            Label t;
+            //izda.addComponent(t = new Label("Sign in " + MDD.getApp().getName()));
+            //t.addStyleName(ValoTheme.LABEL_H3);
 
-        izda.addComponent(login = new TextField("Login"));
-        izda.addComponent(password = new PasswordField("password"));
+            izda.addComponent(login = new TextField("Login"));
+            izda.addComponent(password = new PasswordField("password"));
 
-        HorizontalLayout hl;
-        izda.addComponent(hl = new HorizontalLayout());
-        Button b;
-        hl.addComponent(b = new Button("Sign in", e -> login()));
-        b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
-        b.addStyleName(ValoTheme.BUTTON_PRIMARY);
+            HorizontalLayout hl;
+            izda.addComponent(hl = new HorizontalLayout());
+            Button b;
+            hl.addComponent(b = new Button("Sign in", e -> login()));
+            b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
+            b.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
-        hl.addComponent(b = new Button("Forgot password", e -> forgotPassword()));
+            hl.addComponent(b = new Button("Forgot password", e -> forgotPassword()));
 
+            izda.addComponentsAndExpand(new Label(""));
 
-        VerticalLayout dcha = new VerticalLayout();
-        dcha.addStyleName("loginilayoutdcha");
-        dcha.setSizeUndefined();
+            layouts.add(izda);
 
+        }
 
-        dcha.addComponent(t = new Label("Or:"));
-        t.addStyleName(ValoTheme.LABEL_H3);
-
-        dcha.addComponent(new GitHubButton("2043fd5fdff6f9986731", "mysecret"));
-
-        dcha.addComponent(new GoogleButton("1058149524857-gq2tebj8v2c21k51psiv87eu4gtbhs5p.apps.googleusercontent.com", "-EHzj7LyMGQq_rD5fUAkJI8H"));
-
-        dcha.addComponent(new MicrosoftButton("1058149524857-gq2tebj8v2c21k51psiv87eu4gtbhs5p.apps.googleusercontent.com", "-EHzj7LyMGQq_rD5fUAkJI8H"));
-
-        dcha.addComponent(new Label(""));
-
-/*
-        ob.addOAuthListener(new OAuthListener() {
-
-            @Override
-            public void authSuccessful(Token token, boolean isOAuth20) {
-                // Do something useful with the OAuth token, like persist it
-                if (token instanceof OAuth2AccessToken) {
-                    ((OAuth2AccessToken) token).getAccessToken();
-                    ((OAuth2AccessToken) token).getRefreshToken();
-                    ((OAuth2AccessToken) token).getExpiresIn();
-                } else {
-                    ((OAuth1AccessToken) token).getToken();
-                    ((OAuth1AccessToken) token).getTokenSecret();
-                }
-            }
-
-            @Override
-            public void authDenied(String reason) {
-                Notification.show("Failed to authenticate!", Notification.Type.ERROR_MESSAGE);
-            }
-        });
-*/
+        if (System.getProperty("oauth.github.client_id") != null
+                || System.getProperty("oauth.google.client_id") != null
+                || System.getProperty("oauth.microsoft.client_id") != null) {
 
 
-        /*
+            VerticalLayout dcha = new VerticalLayout();
+            if (layouts.size() > 0) dcha.addStyleName("loginilayoutdcha");
+            else dcha.addStyleName("loginilayoutizda");
+            dcha.setSizeUndefined();
 
-        dcha.addComponent(new OAuthPopupButton(com.github.scribejava.apis.LiveApi.instance(), "mikey", "misecret"));
-        OAuthPopupConfig config = OAuthPopupConfig.getStandardOAuth20Config("my-key", "my-secret");
-        //config.setGrantType("authorization_code");
-        config.setScope("https://www.googleapis.com/auth/plus.login");
-        config.setCallbackUrl("urn:ietf:wg:oauth:2.0:oob");
-        OAuthPopupButton google = new OAuthPopupButton(GoogleApi20.instance(), config);
+            Label t;
+            dcha.addComponent(t = new Label((layouts.size() > 0)?"Or:":"Choose one"));
+            t.addStyleName(ValoTheme.LABEL_H3);
 
-*/
+            if (System.getProperty("oauth.github.client_id") != null) dcha.addComponent(new GitHubButton(System.getProperty("oauth.github.client_id"), System.getProperty("oauth.github.client_secret")));
 
-        CssLayout cl = new CssLayout(izda, dcha);
-        addComponentsAndExpand(cl);
+            if (System.getProperty("oauth.google.client_id") != null) dcha.addComponent(new GoogleButton(System.getProperty("oauth.google.client_id"), System.getProperty("oauth.google.client_secret")));
 
-        login.focus();
+            if (System.getProperty("oauth.microsoft.client_id") != null) dcha.addComponent(new MicrosoftButton(System.getProperty("oauth.microsoft.client_id"), System.getProperty("oauth.microsoft.client_secret")));
+
+            dcha.addComponentsAndExpand(new Label(""));
+
+            layouts.add(dcha);
+        }
+
+        if (layouts.size() > 1) {
+
+            CssLayout cl = new CssLayout();
+            layouts.forEach(l -> cl.addComponent(l));
+            addComponentsAndExpand(cl);
+
+        } else if (layouts.size() > 0) {
+
+            addComponentsAndExpand(layouts.get(0));
+
+        }
+
+
+
+        if (login != null) login.focus();
 
     }
 

@@ -59,7 +59,6 @@
         <property name="eclipselink.jdbc.uppercase-columns" value="true"/>
         <property name="eclipselink.jpa.uppercase-column-names" value="true"/>
 
-        <property name="eclipselink.target-database" value="io.mateu.common.model.util.MiPostgreSQLPlatform"/>
     </properties>
 </persistence-unit>
     </persistence>
