@@ -4,6 +4,8 @@ import com.vaadin.ui.Component;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
 
+import java.lang.reflect.Method;
+
 public class AbstractMDDExecutionContext implements MDDExecutionContext {
 
     @Override
@@ -39,5 +41,15 @@ public class AbstractMDDExecutionContext implements MDDExecutionContext {
     @Override
     public void callMethod(AbstractAction action, Class entityClass, String methodName) {
 
+    }
+
+    @Override
+    public void callMethod(AbstractAction action, Method method, Object instance) {
+
+    }
+
+    @Override
+    public String getCurrentState() {
+        return null;
     }
 }

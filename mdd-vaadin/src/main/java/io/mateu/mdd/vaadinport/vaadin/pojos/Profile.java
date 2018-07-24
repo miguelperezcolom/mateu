@@ -30,7 +30,7 @@ public class Profile implements PMO {
     private String email;
 
 
-    @Action(name = "Change password")
+    @Action(value = "Change password")
     public void changePassword(@NotNull String currentPassword, @NotNull String newPassword, @NotNull String newPasswordAgain) throws Throwable {
 
         Helper.transact(new JPATransaction() {

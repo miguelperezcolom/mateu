@@ -1,10 +1,8 @@
-package io.mateu.mdd.tester.app;
+package io.mateu.mdd.tester.app.complexCase;
 
 
 
-import io.mateu.mdd.core.app.AbstractApplication;
 import io.mateu.mdd.core.app.AbstractArea;
-import io.mateu.mdd.core.app.AbstractModule;
 import io.mateu.mdd.core.app.BaseMDDApp;
 
 import java.util.Arrays;

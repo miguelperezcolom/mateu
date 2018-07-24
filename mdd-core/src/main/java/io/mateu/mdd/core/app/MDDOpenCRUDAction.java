@@ -6,6 +6,14 @@ public class MDDOpenCRUDAction extends AbstractAction {
     private final Class entityClass;
     private final String queryFilters;
 
+    public MDDOpenCRUDAction(Class entityClass) {
+        this(null, entityClass, null);
+    }
+
+    public MDDOpenCRUDAction(Class entityClass, String queryFilters) {
+        this(null, entityClass, queryFilters);
+    }
+
     public MDDOpenCRUDAction(String name, Class entityClass) {
         this(name, entityClass, null);
     }

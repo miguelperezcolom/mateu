@@ -40,9 +40,15 @@ public class LoginFlowComponent extends VerticalLayout {
 
         izda.addComponent(login = new TextField("Login"));
         izda.addComponent(password = new PasswordField("password"));
+
+        HorizontalLayout hl;
+        izda.addComponent(hl = new HorizontalLayout());
         Button b;
-        izda.addComponent(b = new Button("Sign in", e -> login()));
+        hl.addComponent(b = new Button("Sign in", e -> login()));
         b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
+        b.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
+        hl.addComponent(b = new Button("Forgot password", e -> forgotPassword()));
 
 
         VerticalLayout dcha = new VerticalLayout();
@@ -96,9 +102,12 @@ public class LoginFlowComponent extends VerticalLayout {
 
 */
 
-        CssLayout hl = new CssLayout(izda, dcha);
-        addComponentsAndExpand(hl);
+        CssLayout cl = new CssLayout(izda, dcha);
+        addComponentsAndExpand(cl);
 
+    }
+
+    private void forgotPassword() {
     }
 
     private void login() {

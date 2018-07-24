@@ -1,4 +1,4 @@
-package io.mateu.mdd.tester.app;
+package io.mateu.mdd.tester.app.complexCase;
 
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;

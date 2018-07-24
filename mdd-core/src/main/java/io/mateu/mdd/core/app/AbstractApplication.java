@@ -161,7 +161,11 @@ public abstract class AbstractApplication implements App {
         menuToArea = new HashMap<>();
 
         for (AbstractArea a : getAreas()) {
-            String id = ((a.isPublicAccess())?"public":"private") + "/" + a.getName().toLowerCase().replaceAll(" ", "");
+
+            String areaName = a.getName();
+            if (Strings.isNullOrEmpty(areaName)) areaName = "noname";
+
+            String id = ((a.isPublicAccess())?"public":"private") + "/" + areaName.toLowerCase().replaceAll(" ", "");
             int pos = 0;
             String idbase = id;
             while (areaIdsReversed.containsKey(id)) id = idbase + pos++;
@@ -169,7 +173,11 @@ public abstract class AbstractApplication implements App {
             areaIdsReversed.put(id, a);
 
             for (AbstractModule m : a.getModules()) {
-                String idm = id + "/" + m.getName().toLowerCase().replaceAll(" ", "");
+
+                String moduleName = m.getName();
+                if (Strings.isNullOrEmpty(moduleName)) moduleName = "noname";
+
+                String idm = id + "/" + moduleName.toLowerCase().replaceAll(" ", "");
                 int posm = 0;
                 String idbasem = idm;
                 while (moduleIdsReversed.containsKey(idm)) idm = idbasem + posm++;

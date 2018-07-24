@@ -12,6 +12,7 @@ import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Ignored;
+import io.mateu.mdd.core.app.MDDExecutionContext;
 import io.mateu.mdd.core.data.Data;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -33,6 +34,7 @@ public class MethodParametersViewComponent extends AbstractViewComponent {
 
     private final Method method;
     private final Object bean;
+    private final MDDExecutionContext context;
     private Map<HasValue, List<Validator>> validators = new HashMap<>();
 
     private Map<String, Object> model = new HashMap<>();
@@ -45,8 +47,9 @@ public class MethodParametersViewComponent extends AbstractViewComponent {
         return binder.getMergeables();
     }
 
-    public MethodParametersViewComponent(Object bean, Method method) {
+    public MethodParametersViewComponent(Object bean, Method method, MDDExecutionContext context) {
 
+        this.context = context;
         this.bean = bean;
         this.method = method;
 
@@ -64,7 +67,7 @@ public class MethodParametersViewComponent extends AbstractViewComponent {
     @Override
     public String toString() {
         String t = Helper.capitalize(method.getName());
-        if (method.isAnnotationPresent(Action.class)) t = method.getAnnotation(Action.class).name();
+        if (method.isAnnotationPresent(Action.class)) t = method.getAnnotation(Action.class).value();
         return t;
     }
 
@@ -146,7 +149,7 @@ public class MethodParametersViewComponent extends AbstractViewComponent {
                             MyUI.get().getNavegador().goBack();
                             MDD.alert("Done");
                         } else {
-                            MyUI.get().getNavegador().showResult(method, r);
+                            MyUI.get().getNavegador().showResult(method, r, context, true);
                         }
 
                         // cambiamos la url, para reflejar el cambio

@@ -11,7 +11,7 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the organization nor the
+ *     * Neither the value of the organization nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
  *
@@ -52,7 +52,7 @@ import java.util.*;
  * An adapter that takes a POJO bean and internally and recursively
  * binds/un-binds it's fields to other {@link Property} components. It allows a
  * <b><code>.</code></b> separated field path to be traversed on a bean until
- * the final field name is found (last entry in the <b><code>.</code></b>
+ * the final field value is found (last entry in the <b><code>.</code></b>
  * separated field path). Each field will have a corresponding {@link Property}
  * that is automatically generated and reused in the binding process. Each
  * {@link Property} is bean-aware and will dynamically update it's values and
@@ -175,17 +175,17 @@ import java.util.*;
  * <pre>
  * // Assuming "hobbies" and
  * "allHobbies" are a collection/map // fields in person and each element within
- * them contain an // instance of Hobby that has it's own field called "name" //
- * we can bind "allHobbies" and "hobbies" to the Hobby "name"s // for each Hobby
+ * them contain an // instance of Hobby that has it's own field called "value" //
+ * we can bind "allHobbies" and "hobbies" to the Hobby "value"s // for each Hobby
  * in the items/selections (respectively) to/from // a ListView wich will only
- * contain the String name of each Hobby // as it's items and selections Person
+ * contain the String value of each Hobby // as it's items and selections Person
  * person = new Person(); BeanPathAdapter&lt;Person&gt; personPA = new
  * BeanPathAdapter&lt;&gt;(person); ListView&lt;String&gt; lv = new ListView&lt;&gt;();
  * // bind items 
- * personPA.bindContentBidirectional("allHobbies", "name", Hobby.class,
+ * personPA.bindContentBidirectional("allHobbies", "value", Hobby.class,
  * 		lv.getItems(), String.class, null, null);
  * // bind selections that reference the same instances within the items
- * personPA.bindContentBidirectional("languages", "name", Hobby.class,
+ * personPA.bindContentBidirectional("languages", "value", Hobby.class,
  * 		lv.getSelectionModel().getSelectedItems(), String.class,
  * 		lv.getSelectionModel(), "allHobbiess");
  * </pre>
@@ -206,10 +206,10 @@ import java.util.*;
  * person.getAllHobbies().add(hobby2);
  * BeanPathAdapter&lt;Person&gt; personPA = new BeanPathAdapter&lt;&gt;(person);
  * ListView&lt;String&gt; lv = new ListView&lt;&gt;();
- * personPA.bindContentBidirectional(&quot;allHobbies&quot;, &quot;name&quot;, Hobby.class,
+ * personPA.bindContentBidirectional(&quot;allHobbies&quot;, &quot;value&quot;, Hobby.class,
  * 		lv.getItems(), String.class, null, null);
  * ListView&lt;String&gt; lv2 = new ListView&lt;&gt;();
- * personPA.bindContentBidirectional(&quot;allHobbies&quot;, &quot;name&quot;, Hobby.class,
+ * personPA.bindContentBidirectional(&quot;allHobbies&quot;, &quot;value&quot;, Hobby.class,
  * 		lv2.getItems(), String.class, null, null);
  * </pre>
  *
@@ -229,10 +229,10 @@ import java.util.*;
  * 		&quot;Hobby 2&quot;, &quot;Hobby 3&quot;);
  * BeanPathAdapter&lt;Person&gt; personPA = new BeanPathAdapter&lt;&gt;(person);
  * ListView&lt;String&gt; lv = new ListView&lt;&gt;(oc);
- * personPA.bindContentBidirectional(&quot;allHobbies&quot;, &quot;name&quot;, Hobby.class,
+ * personPA.bindContentBidirectional(&quot;allHobbies&quot;, &quot;value&quot;, Hobby.class,
  * 		lv.getItems(), String.class, null, null);
  * ListView&lt;String&gt; lv2 = new ListView&lt;&gt;(); // &lt;-- notice that oc is not passed
- * personPA.bindContentBidirectional(&quot;allHobbies&quot;, &quot;name&quot;, Hobby.class,
+ * personPA.bindContentBidirectional(&quot;allHobbies&quot;, &quot;value&quot;, Hobby.class,
  * 		lv2.getItems(), String.class, null, null);
  * </pre>
  *
@@ -281,14 +281,14 @@ import java.util.*;
  * <b>{@link javafx.scene.control.TableView} binding:</b>
  *
  * <pre>
- * // Assuming &quot;name&quot;/&quot;description&quot; are a java.lang.String fields in Hobby
+ * // Assuming &quot;value&quot;/&quot;description&quot; are a java.lang.String fields in Hobby
  * // and &quot;hobbies&quot; is a List/Set/Map in Person
  * final Person person = new Person();
  * final BeanPathAdapter&lt;Person&gt; personPA = new BeanPathAdapter&lt;&gt;(person);
  * TableView&lt;Hobby&gt; table = new TableView&lt;&gt;();
  * TableColumn&lt;Hobby, String&gt; nameCol = new TableColumn&lt;&gt;(&quot;Hobby Name&quot;);
  * nameCol.setMinWidth(100);
- * nameCol.setCellValueFactory(new PropertyValueFactory&lt;Hobby, String&gt;(&quot;name&quot;));
+ * nameCol.setCellValueFactory(new PropertyValueFactory&lt;Hobby, String&gt;(&quot;value&quot;));
  * TableColumn&lt;Hobby, String&gt; descCol = new TableColumn&lt;&gt;(&quot;Hobby Desc&quot;);
  * descCol.setMinWidth(100);
  * descCol.setCellValueFactory(new PropertyValueFactory&lt;Hobby, String&gt;(
@@ -936,7 +936,7 @@ public class BeanPathAdapter<B> {
     /**
      * A POJO bean extension that allows binding based upon a <b><code>.</code>
      * </b> separated field path that will be traversed on a bean until the
-     * final field name is found. Each bean may contain child {@link FieldBean}s
+     * final field value is found. Each bean may contain child {@link FieldBean}s
      * when an operation is perfomed with a direct descendant field that is a
      * non-primitive type. Any primitive types are added as a
      * {@link FieldProperty} reference to the {@link FieldBean}.
@@ -993,7 +993,7 @@ public class BeanPathAdapter<B> {
          * @param bean
          *            the bean that the {@link FieldBean} is for
          * @param fieldName
-         *            the field name of the parent {@link FieldBean} for which
+         *            the field value of the parent {@link FieldBean} for which
          *            the new {@link FieldBean} is for
          * @param notifyProperty
          *            the {@link FieldPathValueProperty} that will be set every
@@ -1024,7 +1024,7 @@ public class BeanPathAdapter<B> {
          * @param bean
          *            the child bean
          * @param fieldName
-         *            the field name of the child within the parent
+         *            the field value of the child within the parent
          * @return the {@link FieldHandle}
          */
         @SuppressWarnings("unchecked")
@@ -1409,7 +1409,7 @@ public class BeanPathAdapter<B> {
         }
 
         /**
-         * @return the field name that the {@link FieldBean} represents in it's
+         * @return the field value that the {@link FieldBean} represents in it's
          *         parent (null when the {@link FieldBean} is root)
          */
         public String getFieldName() {
@@ -1463,8 +1463,8 @@ public class BeanPathAdapter<B> {
         /**
          * @see #getFieldProperties()
          * @see #getFieldSelectionProperties()
-         * @return the {@link FieldProperty} with the given name that belongs to
-         *         the {@link FieldBean} (null when the name does not exist)
+         * @return the {@link FieldProperty} with the given value that belongs to
+         *         the {@link FieldBean} (null when the value does not exist)
          */
         public FieldProperty<BT, ?, ?> getFieldProperty(
                 final String proptertyName) {
@@ -1667,7 +1667,7 @@ public class BeanPathAdapter<B> {
          *            the full <code>.</code> separated path to the
          *            {@link FieldProperty}
          * @param fieldName
-         *            the name of the field within the bean
+         *            the value of the field within the bean
          * @param notifyProperty
          *            the {@link FieldPathValueProperty} that will be set every
          *            time the {@link FieldProperty#setValue(Object)} is
@@ -2815,7 +2815,7 @@ public class BeanPathAdapter<B> {
         }
 
         /**
-         * @return a <code>.</code> separated field name that represents each
+         * @return a <code>.</code> separated field value that represents each
          *         item in the underlying collection
          */
         public String getCollectionItemPath() {
@@ -2910,7 +2910,7 @@ public class BeanPathAdapter<B> {
          * @param target
          *            the {@link #getTarget()} for the {@link MethodHandle}s
          * @param fieldName
-         *            the field name defined in the {@link #getTarget()}
+         *            the field value defined in the {@link #getTarget()}
          * @param declaredFieldType
          *            the declared field type for the {@link #getFieldName()}
          */
@@ -2942,7 +2942,7 @@ public class BeanPathAdapter<B> {
          * @param target
          *            the accessor target
          * @param fieldName
-         *            the field name of the target
+         *            the field value of the target
          * @return the accessor return type
          */
         public static Class<?> getAccessorType(final Object target,
@@ -2952,13 +2952,13 @@ public class BeanPathAdapter<B> {
         }
 
         /**
-         * Attempts to build a {@link MethodHandle} accessor for the field name
+         * Attempts to build a {@link MethodHandle} accessor for the field value
          * using common prefixes used for methods to access a field
          *
          * @param target
          *            the target object that the accessor is for
          * @param fieldName
-         *            the field name that the accessor is for
+         *            the field value that the accessor is for
          * @return the accessor {@link MethodHandle}
          */
         protected static MethodHandle buildAccessorWithLikelyPrefixes(
@@ -2973,16 +2973,16 @@ public class BeanPathAdapter<B> {
         }
 
         /**
-         * Attempts to build a {@link MethodHandle} accessor for the field name
+         * Attempts to build a {@link MethodHandle} accessor for the field value
          * using common prefixes used for methods to access a field
          *
          * @param target
          *            the target object that the accessor is for
          * @param fieldName
-         *            the field name that the accessor is for
+         *            the field value that the accessor is for
          * @return the accessor {@link MethodHandle}
          * @param fieldNamePrefix
-         *            the prefix of the method for the field name
+         *            the prefix of the method for the field value
          * @return the accessor {@link MethodHandle}
          */
         protected static MethodHandle buildAccessor(final Object target,
@@ -3017,7 +3017,7 @@ public class BeanPathAdapter<B> {
          * @param target
          *            the target object that the setter is for
          * @param fieldName
-         *            the field name that the setter is for
+         *            the field value that the setter is for
          * @return the setter {@link MethodHandle}
          */
         protected static MethodHandle buildSetter(final MethodHandle accessor,
@@ -3120,13 +3120,13 @@ public class BeanPathAdapter<B> {
         }
 
         /**
-         * Builds a method name using a prefix and a field name
+         * Builds a method value using a prefix and a field value
          *
          * @param prefix
          *            the method's prefix
          * @param fieldName
-         *            the method's field name
-         * @return the method name
+         *            the method's field value
+         * @return the method value
          */
         protected static String buildMethodName(final String prefix,
                                                 final String fieldName) {

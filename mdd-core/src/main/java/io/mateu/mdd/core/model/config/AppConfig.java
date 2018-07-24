@@ -78,7 +78,7 @@ public class AppConfig {
         return em.find(AppConfig.class, 1l);
     }
 
-    @Action(name = "Create dummy dates")
+    @Action(value = "Create dummy dates")
     public void createDummyDates() throws Throwable {
         Helper.transact(new JPATransaction() {
             @Override

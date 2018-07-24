@@ -224,4 +224,8 @@ public abstract class BaseMDDApp extends AbstractApplication {
         }
     }
 
+
+    public boolean isOAuthAllowed() {
+        return true;
+    }
 }

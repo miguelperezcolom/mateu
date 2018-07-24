@@ -1,4 +1,4 @@
-package io.mateu.mdd.tester.app;
+package io.mateu.mdd.tester.app.complexCase;
 
 import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.app.AbstractArea;

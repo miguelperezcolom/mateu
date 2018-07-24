@@ -20,7 +20,7 @@
             <fo:layout-master-set>
                 <fo:simple-page-master master-name="odd" page-height="{/root/@height}" page-width="{/root/@width}" margin-top="1cm" margin-bottom="1cm" margin-left="1cm" margin-right="1cm">
                     <!--
-                    <fo:simple-page-master master-name="odd" page-height="29.7cm" page-width="21cm" margin-top="1cm" margin-bottom="1cm" margin-left="1.5cm" margin-right="1.5cm">
+                    <fo:simple-page-master master-value="odd" page-height="29.7cm" page-width="21cm" margin-top="1cm" margin-bottom="1cm" margin-left="1.5cm" margin-right="1.5cm">
                      -->
                     <fo:region-body region-name="xsl-region-body" margin-top="0.5cm" margin-bottom="0.5cm" margin-left="0cm" margin-right="0cm"/>
                     <!-- DEFINICION CABECERA DE PAGINA -->

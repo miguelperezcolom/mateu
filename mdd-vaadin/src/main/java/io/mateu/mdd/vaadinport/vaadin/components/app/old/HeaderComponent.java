@@ -47,6 +47,7 @@ public class HeaderComponent extends HorizontalLayout {
         addComponent(greeting = new Label(""));
         greeting.addStyleName("greeting");
 
+
         addComponent(signingButton = new Button("Login"));
         signingButton.addStyleName(ValoTheme.BUTTON_LINK);
         signingButton.addStyleName("signingbutton");
@@ -58,6 +59,7 @@ public class HeaderComponent extends HorizontalLayout {
             }
         });
 
+        if (!app.isAuthenticationNeeded()) signingButton.setVisible(false);
 
         setExpandRatio(spacing, 1);
 

@@ -22,7 +22,7 @@ public class TestNashorn {
         nashorn.put("n", "Mateu");
         nashorn.eval("print('Hola ' + n + '!')");
 
-        nashorn.eval("function hello(name) { print('Hello, ' + name) }");
+        nashorn.eval("function hello(value) { print('Hello, ' + value) }");
         Invocable inv = (Invocable) nashorn;
         inv.invokeFunction("hello", "Scripting!");
 

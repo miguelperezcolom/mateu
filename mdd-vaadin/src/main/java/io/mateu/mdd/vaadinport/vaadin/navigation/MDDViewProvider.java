@@ -321,7 +321,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                             if (method != null) {
 
-                                stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, null));
+                                stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, null, this));
 
                             } else if ("filters".equals(step)) {
 
@@ -362,7 +362,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                             if (method != null) {
 
-                                stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, evfc.getModel()));
+                                stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, evfc.getModel(), this));
 
                             }
 
@@ -511,11 +511,44 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
         if (method != null) {
             try {
-                stack.push(currentPath, new MethodParametersViewFlowComponent(currentPath, method, Modifier.isStatic(method.getModifiers())?null:entityClass.newInstance()));
+                callMethod(action, method, Modifier.isStatic(method.getModifiers())?null:entityClass.newInstance());
             } catch (Exception e) {
                 MDD.alert(e);
             }
         }
     }
 
+    @Override
+    public void callMethod(AbstractAction action, Method method, Object instance) {
+        if (method != null) {
+            try {
+
+                if (method.getParameterCount() > 0) {
+                    stack.push(currentPath, new MethodParametersViewFlowComponent(currentPath, method, instance, this));
+                } else {
+                    MyUI.get().getNavegador().showResult(method, method.invoke(instance), this, false);
+                }
+
+            } catch (Exception e) {
+                MDD.alert(e);
+            }
+        }
+    }
+
+    @Override
+    public String getCurrentState() {
+
+        String state = currentPath;
+
+        if (stack.size() > 0) {
+
+            io.mateu.mdd.vaadinport.vaadin.navigation.View lastView = stack.getLast();
+
+            state = stack.getState(lastView);
+
+        }
+
+
+        return state;
+    }
 }

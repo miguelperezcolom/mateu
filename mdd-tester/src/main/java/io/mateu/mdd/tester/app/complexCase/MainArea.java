@@ -1,4 +1,4 @@
-package io.mateu.mdd.tester.app;
+package io.mateu.mdd.tester.app.complexCase;
 
 import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.AbstractModule;
@@ -9,9 +9,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public class MainArea extends AbstractArea {
+
     public MainArea() {
         super("Main area");
-        defaultAction = new MDDOpenCRUDAction("Welcome page", BasicFieldsDemoEntity.class);
+        defaultAction = new MDDOpenCRUDAction("Welcome page",
+                BasicFieldsDemoEntity.class);
     }
 
     @Override

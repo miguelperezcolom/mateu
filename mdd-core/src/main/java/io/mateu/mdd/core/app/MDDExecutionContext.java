@@ -2,6 +2,8 @@ package io.mateu.mdd.core.app;
 
 import com.vaadin.ui.Component;
 
+import java.lang.reflect.Method;
+
 public interface MDDExecutionContext {
 
     void alert(String s);
@@ -17,4 +19,8 @@ public interface MDDExecutionContext {
     void open(AbstractAction action, Component component, boolean modifierPressed);
 
     void callMethod(AbstractAction action, Class entityClass, String methodName);
+
+    void callMethod(AbstractAction action, Method method, Object instance);
+
+    String getCurrentState();
 }

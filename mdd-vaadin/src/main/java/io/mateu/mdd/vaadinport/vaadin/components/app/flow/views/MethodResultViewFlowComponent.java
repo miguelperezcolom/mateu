@@ -4,8 +4,6 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.CRUDViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.MethodParametersViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.MethodResultViewComponent;
 
 import java.lang.reflect.Method;
@@ -18,7 +16,7 @@ public class MethodResultViewFlowComponent extends VerticalLayout {
     @Override
     public String toString() {
         String t = Helper.capitalize(method.getName());
-        if (method.isAnnotationPresent(Action.class)) t = method.getAnnotation(Action.class).name();
+        if (method.isAnnotationPresent(Action.class)) t = method.getAnnotation(Action.class).value();
         return "Result of " + t;
     }
 

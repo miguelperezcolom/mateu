@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD) //can use in method only.
 public @interface Action {
 
-    String name();
+    String value() default "";
 
     VaadinIcons icon() default VaadinIcons.BOLT;
 

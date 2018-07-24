@@ -841,7 +841,7 @@ public class ReflectionHelper {
         if (c.getSuperclass() != null && (!c.isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class)))
             l.addAll(getAllMethods(c.getSuperclass()));
 
-        for (Method f : c.getDeclaredMethods()) l.add(f);
+        for (Method f : c.getMethods()) if (c.equals(f.getDeclaringClass())) l.add(f);
 
         return l;
     }
@@ -1014,7 +1014,7 @@ public class ReflectionHelper {
         if (!toStringIsOverriden) {
             boolean hayName = false;
             for (FieldInterfaced ff : getAllFields(entityClass))
-                if ("name".equalsIgnoreCase(ff.getName()) || "title".equalsIgnoreCase(ff.getName())) {
+                if ("value".equalsIgnoreCase(ff.getName()) || "title".equalsIgnoreCase(ff.getName())) {
                     fName = ff;
                     hayName = true;
                 }

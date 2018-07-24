@@ -1,22 +1,14 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.vaadin.data.HasValue;
-import com.vaadin.data.ValidationResult;
 import com.vaadin.data.Validator;
-import com.vaadin.data.ValueContext;
-import com.vaadin.icons.VaadinIcons;
-import com.vaadin.server.ErrorMessage;
-import com.vaadin.shared.ui.ErrorLevel;
 import com.vaadin.ui.*;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Ignored;
-import io.mateu.mdd.core.data.Data;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.vaadinport.vaadin.data.MDDBinder;
 import javafx.util.Pair;
 
@@ -59,7 +51,7 @@ public class MethodResultViewComponent extends AbstractViewComponent {
     @Override
     public String toString() {
         String t = Helper.capitalize(method.getName());
-        if (method.isAnnotationPresent(Action.class)) t = method.getAnnotation(Action.class).name();
+        if (method.isAnnotationPresent(Action.class)) t = method.getAnnotation(Action.class).value();
         return t;
     }
 
