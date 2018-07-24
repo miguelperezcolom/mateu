@@ -120,18 +120,12 @@ public class ReflectionHelper {
 
     public static Method getMethod(Class<?> c, String methodName) {
         Method m = null;
-        while (m == null) {
-            try {
-                m = c.getDeclaredMethod(methodName);
-            } catch (NoSuchMethodException e) {
-            }
-            if (m != null) break;
-            else {
-                if (c.getSuperclass() != null && c.getSuperclass().isAnnotationPresent(Entity.class)) c = c.getSuperclass();
-                else break;
+        for (Method q : getAllMethods(c)) {
+            if (methodName.equals(q.getName())) {
+                m = q;
+                break;
             }
         }
-
         return m;
     }
 

@@ -212,7 +212,7 @@ public class MDDBinder {
             } else {
                 p = new SimpleObjectProperty(v);
             }
-            if (v != null) p.setValue(v);
+
             p.addListener(new ChangeListener() {
                 @Override
                 public void changed(ObservableValue observable, Object oldValue, Object newValue) {
@@ -220,21 +220,24 @@ public class MDDBinder {
                 }
             });
         } else {
+
+            Object v = getValue(f, bean);
+
             if (Integer.class.equals(t) || int.class.equals(t)) {
-                p = new SimpleIntegerProperty(bean, f.getName(), (Integer) getValue(f, bean));
+                p = new SimpleIntegerProperty(bean, f.getName());
             } else if (Long.class.equals(t) || long.class.equals(t)) {
-                p = new SimpleLongProperty(bean, f.getName(), (Long) getValue(f, bean));
+                p = new SimpleLongProperty(bean, f.getName());
             } else if (Float.class.equals(t) || float.class.equals(t)) {
-                p = new SimpleFloatProperty(bean, f.getName(), (Float) getValue(f, bean));
+                p = new SimpleFloatProperty(bean, f.getName());
             } else if (Double.class.equals(t) || double.class.equals(t)) {
-                p = new SimpleDoubleProperty(bean, f.getName(), (Double) getValue(f, bean));
+                p = new SimpleDoubleProperty(bean, f.getName());
             } else if (Boolean.class.equals(t) || boolean.class.equals(t)) {
-                p = new SimpleBooleanProperty(bean, f.getName(), (Boolean) getValue(f, bean));
+                p = new SimpleBooleanProperty(bean, f.getName());
             } else if (String.class.equals(t)) {
-                p = new SimpleStringProperty(bean, f.getName(), (String) getValue(f, bean));
+                p = new SimpleStringProperty(bean, f.getName());
             } else if (Collection.class.isAssignableFrom(t)) {
                 ObservableSet<Object> s = FXCollections.observableSet();
-                Collection col = (Collection) getValue(f, bean);
+                Collection col = (Collection) v;
                 if (col != null) s.addAll(col);
                 p = new SimpleSetProperty(bean, f.getName(), s);
 
@@ -242,7 +245,7 @@ public class MDDBinder {
                     @Override
                     public void onChanged(Change<?> change) {
                         try {
-                            List l = (List) ReflectionHelper.getValue(f, bean);
+                            List l = (List) v;
                             if (l == null) {
                                 ReflectionHelper.setValue(f, bean, l = new ArrayList());
                             }
@@ -261,8 +264,11 @@ public class MDDBinder {
                 });
 
             } else {
-                p = new SimpleObjectProperty(bean, f.getName(), getValue(f, bean));
+                p = new SimpleObjectProperty(bean, f.getName(), v);
             }
+
+            if (v != null) p.setValue(v);
+
         }
         p.addListener(new ChangeListener() {
             @Override

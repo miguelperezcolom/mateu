@@ -16,7 +16,7 @@ public class MDDMenu extends AbstractMenu {
                 if (args[pos - 1] instanceof String && args[pos] instanceof Class) {
                     String n = (String) args[pos - 1];
                     Class c = (Class) args[pos];
-                    m.add(new MDDAction(n, c));
+                    m.add(new MDDOpenCRUDAction(n, c));
                 } else System.out.println("Wrong class parameters. Found " + args[pos - 1].getClass().getName() + ", " + args[pos].getClass().getName() + " while expected String, Class");
             }
         }

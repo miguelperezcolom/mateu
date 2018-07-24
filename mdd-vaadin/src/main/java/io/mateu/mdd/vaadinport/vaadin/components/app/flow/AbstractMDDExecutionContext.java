@@ -22,7 +22,7 @@ public class AbstractMDDExecutionContext implements MDDExecutionContext {
     }
 
     @Override
-    public void openCRUD(MDDAction action, Class entityClass, String queryFilters, boolean modifierPressed) {
+    public void openCRUD(MDDOpenCRUDAction action, Class entityClass, String queryFilters, boolean modifierPressed) {
         MDD.openCRUD(action, entityClass, queryFilters, modifierPressed);
     }
 
@@ -33,6 +33,11 @@ public class AbstractMDDExecutionContext implements MDDExecutionContext {
 
     @Override
     public void open(AbstractAction action, Component component, boolean modifierPressed) {
+
+    }
+
+    @Override
+    public void callMethod(AbstractAction action, Class entityClass, String methodName) {
 
     }
 }

@@ -1,5 +1,7 @@
 package io.mateu.mdd.tester.app;
 
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.tester.model.customComponents.CustomComponent;
@@ -14,10 +16,6 @@ import io.mateu.mdd.tester.model.pojos.SamplePOJO;
 import io.mateu.mdd.tester.model.rpc.SampleRPCListView;
 import io.mateu.mdd.tester.model.rpc.SampleRPCToJPAListView;
 import io.mateu.mdd.tester.model.rpc.SampleRPCToPMOListView;
-import io.mateu.mdd.tester.model.useCases.bankAccount.BankAccount;
-import io.mateu.mdd.tester.model.useCases.bankAccount.Payment;
-import io.mateu.mdd.tester.model.useCases.invoicing.Customer;
-import io.mateu.mdd.tester.model.useCases.invoicing.Invoice;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,13 +41,15 @@ public class MainModule extends AbstractModule {
 
         m.add(new MDDOpenEditorAction("AppConfig", AppConfig.class, 1l));
 
-        m.add(new MDDAction("Styled class", StyledDemoEntity.class));
+        m.add(new MDDOpenCRUDAction("Styled class", StyledDemoEntity.class));
 
-        m.add(new MDDAction("Actions", ActionsDemoEntity.class));
+        m.add(new MDDOpenCRUDAction("Actions", ActionsDemoEntity.class));
 
-        m.add(new MDDAction("Search filters", SearchFiltersDemoEntity.class));
+        m.add(new MDDCallMethodAction("Call method", MainModule.class, "returnsComponent"));
 
-        m.add(new MDDAction("Sections", SectionDemoEntity.class));
+        m.add(new MDDOpenCRUDAction("Search filters", SearchFiltersDemoEntity.class));
+
+        m.add(new MDDOpenCRUDAction("Sections", SectionDemoEntity.class));
 
         m.add(new MDDOpenCustomComponentAction("Custom component", CustomComponent.class));
 
@@ -73,11 +73,11 @@ public class MainModule extends AbstractModule {
                     public List<MenuEntry> buildEntries() {
                         List<MenuEntry> l = new ArrayList<>();
 
-                        l.add(new MDDMenu("@OneToOne", "Referenced", OneToOneReferenced.class, "Referencer", OneToOneReferencer.class));
+                        l.add(new MDDMenu("One to one", "Referenced", OneToOneReferenced.class, "Referencer", OneToOneReferencer.class));
 
-                        l.add(new MDDMenu("@ManyToTone", "Destination", ManyToOneFieldDemoDestinationEntity.class, "Source", ManyToOneFieldDemoEntity.class));
+                        l.add(new MDDMenu("Many to one", "Destination", ManyToOneFieldDemoDestinationEntity.class, "Source", ManyToOneFieldDemoEntity.class));
 
-                        l.add(new MDDMenu("@Owned", "ManyToOne", ManyToOneFieldDemoEntity.class));
+                        l.add(new MDDMenu("Owned", "ManyToOne", ManyToOneFieldDemoEntity.class));
 
                         return l;
                     }
@@ -138,5 +138,13 @@ public class MainModule extends AbstractModule {
 
         return m;
     }
+
+
+
+
+    public static Component returnsComponent(String yourName, int age) {
+        return new Label("Hello " + yourName + "!");
+    }
+
 
 }

@@ -7,6 +7,7 @@ import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.Pair;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
@@ -17,6 +18,7 @@ import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
 import io.mateu.mdd.vaadinport.vaadin.pojos.Profile;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Map;
 
 
@@ -485,7 +487,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
     }
 
     @Override
-    public void openCRUD(MDDAction action, Class entityClass, String queryFilters, boolean modifierPressed) {
+    public void openCRUD(MDDOpenCRUDAction action, Class entityClass, String queryFilters, boolean modifierPressed) {
         stack.push(currentPath, MDDViewComponentCreator.createComponent(action, entityClass, queryFilters, modifierPressed));
     }
 
@@ -502,4 +504,18 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
     public void open(AbstractAction action, Component component, boolean modifierPressed) {
         stack.push(currentPath, component);
     }
+
+    @Override
+    public void callMethod(AbstractAction action, Class entityClass, String methodName) {
+        Method method = ReflectionHelper.getMethod(entityClass, methodName);
+
+        if (method != null) {
+            try {
+                stack.push(currentPath, new MethodParametersViewFlowComponent(currentPath, method, Modifier.isStatic(method.getModifiers())?null:entityClass.newInstance()));
+            } catch (Exception e) {
+                MDD.alert(e);
+            }
+        }
+    }
+
 }

@@ -1,7 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.navigation;
 
 import com.vaadin.ui.Component;
-import io.mateu.mdd.core.app.MDDAction;
+import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.app.MDDOpenEditorAction;
 import io.mateu.mdd.core.app.MDDOpenListViewAction;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
@@ -56,7 +56,7 @@ public class MDDViewComponentCreator {
         return v;
     }
 
-    public static Component createComponent(MDDAction mddAction, Class entityClass, String queryFilters, boolean modifierPressed) {
+    public static Component createComponent(MDDOpenCRUDAction mddOpenCRUDAction, Class entityClass, String queryFilters, boolean modifierPressed) {
         Component v = null;
         Class modelType = null;
         try {

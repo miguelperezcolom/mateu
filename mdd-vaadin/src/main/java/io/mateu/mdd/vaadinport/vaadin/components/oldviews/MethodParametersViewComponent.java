@@ -4,13 +4,11 @@ import com.vaadin.data.HasValue;
 import com.vaadin.data.ValidationResult;
 import com.vaadin.data.Validator;
 import com.vaadin.data.ValueContext;
+import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.ErrorMessage;
 import com.vaadin.shared.ui.ErrorLevel;
-import com.vaadin.ui.AbstractComponent;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.MenuBar;
-import com.vaadin.ui.Notification;
+import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Ignored;
@@ -104,7 +102,8 @@ public class MethodParametersViewComponent extends AbstractViewComponent {
 
         super.addViewActionsMenuItems(bar);
 
-        bar.addItem("Run", VaadinIcons.BOLT, new MenuBar.Command() {
+        MenuBar.Command cmd;
+        MenuBar.MenuItem i = bar.addItem("Run", VaadinIcons.BOLT, cmd = new MenuBar.Command() {
             @Override
             public void menuSelected(MenuBar.MenuItem menuItem) {
                 try {
@@ -112,27 +111,28 @@ public class MethodParametersViewComponent extends AbstractViewComponent {
                     //binder.writeBean(entities);
 
                     ValueContext vc = new ValueContext();
-                    for (HasValue h : validators.keySet()) for (Validator v : validators.get(h)) {
-                        ValidationResult r = v.apply(h.getValue(), vc);
-                        if (h instanceof AbstractComponent) {
-                            AbstractComponent c = (AbstractComponent) h;
-                            if (r.isError()) {
-                                c.setComponentError(new ErrorMessage() {
-                                    @Override
-                                    public ErrorLevel getErrorLevel() {
-                                        return r.getErrorLevel().get();
-                                    }
+                    for (HasValue h : validators.keySet())
+                        for (Validator v : validators.get(h)) {
+                            ValidationResult r = v.apply(h.getValue(), vc);
+                            if (h instanceof AbstractComponent) {
+                                AbstractComponent c = (AbstractComponent) h;
+                                if (r.isError()) {
+                                    c.setComponentError(new ErrorMessage() {
+                                        @Override
+                                        public ErrorLevel getErrorLevel() {
+                                            return r.getErrorLevel().get();
+                                        }
 
-                                    @Override
-                                    public String getFormattedHtmlMessage() {
-                                        return r.getErrorMessage();
-                                    }
-                                });
-                            } else {
-                                c.setComponentError(null);
+                                        @Override
+                                        public String getFormattedHtmlMessage() {
+                                            return r.getErrorMessage();
+                                        }
+                                    });
+                                } else {
+                                    c.setComponentError(null);
+                                }
                             }
                         }
-                    }
 
                     if (binder.allValid()) {
 
@@ -152,9 +152,7 @@ public class MethodParametersViewComponent extends AbstractViewComponent {
                         // cambiamos la url, para reflejar el cambio
 
 
-
-                    }
-                    else Notification.show("There are errors", Notification.Type.ERROR_MESSAGE);
+                    } else Notification.show("There are errors", Notification.Type.ERROR_MESSAGE);
 
 
                 } catch (Throwable throwable) {
@@ -162,6 +160,12 @@ public class MethodParametersViewComponent extends AbstractViewComponent {
                 }
             }
         });
+
+        Button b;
+        addComponent(b = new Button());
+        b.addStyleName("hidden");
+        b.addClickListener(e -> cmd.menuSelected(i));
+        b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
     }
 
     public AbstractStylist getStylist() {

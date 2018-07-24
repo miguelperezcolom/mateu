@@ -10,10 +10,11 @@ public interface MDDExecutionContext {
 
     void openListView(MDDOpenListViewAction mddOpenListViewAction, Class viewClass, boolean modifierPressed);
 
-    void openCRUD(MDDAction mddAction, Class entityClass, String queryFilters, boolean modifierPressed);
+    void openCRUD(MDDOpenCRUDAction mddOpenCRUDAction, Class entityClass, String queryFilters, boolean modifierPressed);
 
     void openComponent(AbstractAction action, Class componentClass, boolean modifierPressed);
 
     void open(AbstractAction action, Component component, boolean modifierPressed);
 
+    void callMethod(AbstractAction action, Class entityClass, String methodName);
 }

@@ -375,6 +375,18 @@
   }
 
 
+  .actionparametersflowcomponent, .methodresultflowcomponent {
+    padding: 0px;
+
+    .editorviewcomponent {
+      padding: 0px;
+
+      .contentcontainer {
+        padding: 0px;
+      }
+    }
+  }
+
   .submenuoption:hover {
     color: red;
   }
@@ -383,17 +395,7 @@
 
     padding: 0px;
 
-    .actionparametersflowcomponent, .methodresultflowcomponent {
-      padding: 0px;
 
-      .editorviewcomponent {
-        padding: 0px;
-
-        .contentcontainer {
-          padding: 0px;
-        }
-      }
-    }
 
     .areaflowcomponent {
       padding: 0px;

@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.flow.views;
 
+import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.util.Helper;
@@ -28,7 +29,8 @@ public class MethodResultViewFlowComponent extends VerticalLayout {
 
         addStyleName("methodresultflowcomponent");
 
-        addComponent(new MethodResultViewComponent(method, result));
+        if (result instanceof Component) addComponent((Component) result);
+        else addComponent(new MethodResultViewComponent(method, result));
 
     }
 

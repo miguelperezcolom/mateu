@@ -2,7 +2,7 @@ package io.mateu.mdd.tester.app;
 
 import io.mateu.mdd.core.app.AbstractMenu;
 import io.mateu.mdd.core.app.AbstractModule;
-import io.mateu.mdd.core.app.MDDAction;
+import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.app.MenuEntry;
 import io.mateu.mdd.tester.model.useCases.bankAccount.BankAccount;
 import io.mateu.mdd.tester.model.useCases.bankAccount.Payment;
@@ -29,9 +29,9 @@ public class UseCasesModule extends AbstractModule {
             public List<MenuEntry> buildEntries() {
                 List<MenuEntry> l = new ArrayList<>();
 
-                l.add(new MDDAction("Accounts", BankAccount.class));
+                l.add(new MDDOpenCRUDAction("Accounts", BankAccount.class));
 
-                l.add(new MDDAction("Payments", Payment.class));
+                l.add(new MDDOpenCRUDAction("Payments", Payment.class));
 
                 return l;
             }
@@ -46,9 +46,9 @@ public class UseCasesModule extends AbstractModule {
                 List<MenuEntry> l = new ArrayList<>();
 
 
-                l.add(new MDDAction("Customers", Customer.class));
+                l.add(new MDDOpenCRUDAction("Customers", Customer.class));
 
-                l.add(new MDDAction("Invoices", Invoice.class));
+                l.add(new MDDOpenCRUDAction("Invoices", Invoice.class));
 
                 return l;
             }
