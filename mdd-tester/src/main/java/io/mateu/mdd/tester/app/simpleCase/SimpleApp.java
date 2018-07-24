@@ -12,13 +12,13 @@ public class SimpleApp extends SimpleMDDApplication {
 
 
 
-    @Action("Say hello")
+    @Action(value = "Say hello", order = 1)
     public String hello(String name) {
         return "Hello " + name + "!";
     }
 
 
-    @Action
+    @Action(order = 2)
     public AbstractAction maintainEntities() {
         return new MDDOpenCRUDAction(BasicFieldsDemoEntity.class);
     }
