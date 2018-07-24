@@ -78,7 +78,11 @@ public class SimpleMDDApplication extends BaseMDDApp {
         if (c.getSuperclass() != null && !SimpleMDDApplication.class.equals(c.getSuperclass()))
             l.addAll(getAllActionMethods(c.getSuperclass()));
 
-        for (Method f : c.getMethods()) if (c.equals(f.getDeclaringClass()) && f.isAnnotationPresent(Action.class)) l.add(f);
+        for (Method f : c.getDeclaredMethods()) if (f.isAnnotationPresent(Action.class)) l.add(f);
+
+        l.sort((a, b) -> {
+            return a.getAnnotation(Action.class).order() - b.getAnnotation(Action.class).order();
+        });
 
         return l;
     }

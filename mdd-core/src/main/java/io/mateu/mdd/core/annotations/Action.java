@@ -27,4 +27,6 @@ public @interface Action {
 
     boolean keepOpened() default false;
 
+    int order() default 0;
+
 }
