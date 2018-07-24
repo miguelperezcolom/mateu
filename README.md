@@ -19,7 +19,7 @@ So, you define your whole application by using plain java clases. From the appli
 The true power of this approach comes up when you compose or extend existing appications just by using java inheritance, polimorphism and the maven dependency mechanism.
 
 
-Mateu MDD is not about deploying your application to cloud, though we see a way to do it in a chapter of the manual.
+Mateu MDD is not about scaling neither about deploying your application to cloud, though we see a way to do it in a chapter of the manual.
 
 
 I hope you like it ;)
