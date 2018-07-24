@@ -202,12 +202,18 @@ public class EditorViewComponent extends AbstractViewComponent {
     public List<AbstractAction> getActions() {
         List<AbstractAction> l = new ArrayList<>();
 
+        List<Method> ms = new ArrayList<>();
         for (Method m : ReflectionHelper.getAllMethods(modelType)) {
             if (!Modifier.isStatic(m.getModifiers()) && m.isAnnotationPresent(Action.class)) {
-                Action aa = m.getAnnotation(Action.class);
-                l.add(ViewComponentHelper.createAction(m, this));
+                ms.add(m);
             }
         }
+
+        ms.sort((a, b) -> {
+            return a.getAnnotation(Action.class).order() - b.getAnnotation(Action.class).order();
+        });
+
+        ms.forEach(m -> l.add(ViewComponentHelper.createAction(m, this)));
 
         return l;
     }
