@@ -1,5 +1,6 @@
 package io.mateu.mdd.tester.app.complexCase;
 
+import com.kbdunn.vaadin.addons.fontawesome.FontAwesome;
 import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.AbstractModule;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
