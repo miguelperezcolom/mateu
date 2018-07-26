@@ -13,6 +13,7 @@ import io.mateu.mdd.tester.model.entities.relations.OneToOneReferenced;
 import io.mateu.mdd.tester.model.entities.relations.OneToOneReferencer;
 import io.mateu.mdd.tester.model.pojos.SamplePMO;
 import io.mateu.mdd.tester.model.pojos.SamplePOJO;
+import io.mateu.mdd.tester.model.rpc.SampleCustomizedRPCListView;
 import io.mateu.mdd.tester.model.rpc.SampleRPCListView;
 import io.mateu.mdd.tester.model.rpc.SampleRPCToJPAListView;
 import io.mateu.mdd.tester.model.rpc.SampleRPCToPMOListView;
@@ -39,19 +40,29 @@ public class MainModule extends AbstractModule {
 
         });
 
-        m.add(new MDDOpenEditorAction("AppConfig", AppConfig.class, 1l));
-
-        m.add(new MDDOpenCRUDAction("Styled class", StyledDemoEntity.class));
-
         m.add(new MDDOpenCRUDAction("Actions", ActionsDemoEntity.class));
 
         m.add(new MDDCallMethodAction("Call method", MainModule.class, "returnsComponent"));
 
-        m.add(new MDDOpenCRUDAction("Search filters", SearchFiltersDemoEntity.class));
-
-        m.add(new MDDOpenCRUDAction("Sections", SectionDemoEntity.class));
-
         m.add(new MDDOpenCustomComponentAction("Custom component", CustomComponent.class));
+
+        m.add(new AbstractMenu("Refinements") {
+            @Override
+            public List<MenuEntry> buildEntries() {
+                List<MenuEntry> l = new ArrayList<>();
+
+                l.add(new MDDOpenEditorAction("AppConfig", AppConfig.class, 1l));
+
+                l.add(new MDDOpenCRUDAction("Styled class", StyledDemoEntity.class));
+
+                l.add(new MDDOpenCRUDAction("Search filters", SearchFiltersDemoEntity.class));
+
+                l.add(new MDDOpenCRUDAction("Sections", SectionDemoEntity.class));
+
+                return l;
+            }
+        });
+
 
         m.add(new AbstractMenu("Field use cases") {
             @Override
@@ -60,6 +71,7 @@ public class MainModule extends AbstractModule {
 
                 l.add(new MDDMenu("Fields"
                         , "Basic fields", BasicFieldsDemoEntity.class
+                        , "Grid decorator", GridDecoratorDemoEntity.class
                         , "Date fields", DateTimeFieldsDemoEntity.class
                         , "Basic fields with validation", BasicFieldsWithValidationDemoEntity.class
                         , "Calculated fields", CalculatedFieldsDemoEntity.class
@@ -126,6 +138,8 @@ public class MainModule extends AbstractModule {
                 List<MenuEntry> l = new ArrayList<>();
 
                 l.add(new MDDOpenListViewAction("Sample Rpc view", SampleRPCListView.class));
+
+                l.add(new MDDOpenListViewAction("Sample customized Rpc view", SampleCustomizedRPCListView.class));
 
                 l.add(new MDDOpenListViewAction("Sample Rpc to JPA entity view", SampleRPCToJPAListView.class));
 

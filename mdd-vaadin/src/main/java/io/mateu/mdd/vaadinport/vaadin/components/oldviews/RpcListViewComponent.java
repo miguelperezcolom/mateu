@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.vaadin.data.provider.QuerySortOrder;
+import com.vaadin.ui.Grid;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
@@ -101,5 +102,10 @@ public class RpcListViewComponent extends ListViewComponent {
     @Override
     public boolean isAddEnabled() {
         return rpcListView instanceof RpcCrudView &&  ((RpcCrudView)rpcListView).isAddEnabled();
+    }
+
+    @Override
+    public void decorateGrid(Grid grid) {
+        rpcListView.decorateGrid(grid);
     }
 }

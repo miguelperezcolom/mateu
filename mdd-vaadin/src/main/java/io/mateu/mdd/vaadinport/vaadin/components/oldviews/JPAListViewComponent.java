@@ -11,6 +11,7 @@ import com.vaadin.ui.components.grid.SortOrderProvider;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.interfaces.GridDecorator;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
@@ -324,6 +325,17 @@ public class JPAListViewComponent extends ListViewComponent {
             });
         } catch (Throwable throwable) {
             throwable.printStackTrace();
+        }
+    }
+
+    @Override
+    public void decorateGrid(Grid grid) {
+        if (GridDecorator.class.isAssignableFrom(entityClass)) {
+            try {
+                ((GridDecorator)ReflectionHelper.newInstance(entityClass)).decorateGrid(grid);
+            } catch (Exception e) {
+                MDD.alert(e);
+            }
         }
     }
 }

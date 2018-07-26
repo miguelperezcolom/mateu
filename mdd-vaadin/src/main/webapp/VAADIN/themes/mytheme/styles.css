@@ -15396,3 +15396,7 @@ div.v-layout.v-horizontal.v-widget {
 .mytheme .flowwrapperpanel .v-panel-content .v-verticallayout {
 	padding: 0px;
 }
+
+.mytheme .green {
+	background-color: green !important;
+}

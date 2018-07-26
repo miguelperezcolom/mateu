@@ -294,4 +294,6 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         if (row instanceof Object[]) return ((Object[]) row)[0];
         return row;
     }
+
+    public abstract void decorateGrid(Grid grid);
 }
