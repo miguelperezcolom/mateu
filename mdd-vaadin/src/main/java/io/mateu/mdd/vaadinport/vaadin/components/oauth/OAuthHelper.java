@@ -34,8 +34,8 @@ grant_type=authorization_code
 
         if (!Strings.isNullOrEmpty(code)) {
 
-            String apiKey = "1058149524857-gq2tebj8v2c21k51psiv87eu4gtbhs5p.apps.googleusercontent.com";
-            String apiSecret = "-EHzj7LyMGQq_rD5fUAkJI8H";
+            String apiKey = System.getProperty("oauth.microsoft.client_id");
+            String apiSecret = System.getProperty("oauth.microsoft.client_secret");
 
             String access_token = null;
 
@@ -68,6 +68,10 @@ grant_type=authorization_code
                         .post(formBody)
                         .build();
 
+                System.out.println("request=" + request);
+
+
+
                 try (Response response = client.newCall(request).execute()) {
                     if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
 
@@ -99,6 +103,9 @@ grant_type=authorization_code
                         .url("https://www.googleapis.com/oauth2/v2/userinfo?alt=json&access_token=" + access_token)
                         .get()
                         .build();
+
+                System.out.println("request=" + request);
+
 
                 try (Response response = client.newCall(request).execute()) {
                     if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
@@ -215,8 +222,8 @@ grant_type=authorization_code
 
         if (!Strings.isNullOrEmpty(code)) {
 
-            String apiKey = "1058149524857-gq2tebj8v2c21k51psiv87eu4gtbhs5p.apps.googleusercontent.com";
-            String apiSecret = "-EHzj7LyMGQq_rD5fUAkJI8H";
+            String apiKey = System.getProperty("oauth.google.client_id");
+            String apiSecret = System.getProperty("oauth.google.client_secret");
 
             String access_token = null;
 
@@ -249,6 +256,9 @@ grant_type=authorization_code
                         .post(formBody)
                         .build();
 
+                System.out.println("request=" + request);
+
+
                 try (Response response = client.newCall(request).execute()) {
                     if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
 
@@ -280,6 +290,9 @@ grant_type=authorization_code
                         .url("https://www.googleapis.com/oauth2/v2/userinfo?alt=json&access_token=" + access_token)
                         .get()
                         .build();
+
+                System.out.println("request=" + request);
+
 
                 try (Response response = client.newCall(request).execute()) {
                     if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
@@ -384,8 +397,8 @@ grant_type=authorization_code
 
         if (!Strings.isNullOrEmpty(code)) {
 
-            String apiKey = "2043fd5fdff6f9986731";
-            String apiSecret = "1220c641ac37d215f79dded684476e4ebb5a6c43";
+            String apiKey = System.getProperty("oauth.github.client_id");
+            String apiSecret = System.getProperty("oauth.github.client_secret");
 
             String access_token = null;
 
@@ -403,6 +416,9 @@ grant_type=authorization_code
                         .url("https://github.com/login/oauth/access_token")
                         .post(formBody)
                         .build();
+
+                System.out.println("request=" + request);
+                for (int i = 0; i < ((FormBody) formBody).size(); i++) System.out.println("" + ((FormBody) formBody).name(i) + "=" + ((FormBody) formBody).value(i));
 
                 try (Response response = client.newCall(request).execute()) {
                     if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
@@ -435,6 +451,9 @@ grant_type=authorization_code
                         .url("https://api.github.com/user?access_token=" + access_token)
                         .get()
                         .build();
+
+                System.out.println("request=" + request);
+
 
                 try (Response response = client.newCall(request).execute()) {
                     if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
