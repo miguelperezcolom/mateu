@@ -234,6 +234,21 @@ public class EditorViewComponent extends AbstractViewComponent {
     }
 
 
+    public FieldInterfaced getField(String fieldName) {
+
+        FieldInterfaced a = null;
+
+        for (FieldInterfaced m : ReflectionHelper.getAllFields(getModelType())) {
+            if (m.getName().equals(fieldName)) {
+                a = m;
+                break;
+            }
+        }
+
+        return a;
+    }
+
+
 
     public void save() throws Throwable {
         if (modelType.isAnnotationPresent(Entity.class)) {

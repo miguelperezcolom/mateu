@@ -3,14 +3,18 @@ package io.mateu.mdd.vaadinport.vaadin.components.fields;
 import com.vaadin.data.*;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.server.UserError;
+import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ErrorLevel;
 import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.annotations.DataProvider;
+import io.mateu.mdd.core.annotations.UseLinkToListView;
 import io.mateu.mdd.core.annotations.UseRadioButtons;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.vaadinport.vaadin.components.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.vaadinport.vaadin.data.MDDBinder;
 
@@ -30,11 +34,55 @@ public class JPAManyToOneFieldBuilder extends JPAFieldBuilder {
 
     public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers) {
 
-        HasValue tf = null;
+        Component tf = null;
+        HasValue hv = null;
 
-        if (field.isAnnotationPresent(UseRadioButtons.class)) {
 
-            container.addComponent(tf = new RadioButtonGroup());
+        if (field.isAnnotationPresent(UseLinkToListView.class)) {
+
+            HorizontalLayout wrap = new HorizontalLayout();
+            wrap.setSpacing(true);
+            wrap.setDefaultComponentAlignment(Alignment.MIDDLE_LEFT);
+
+            TextField l = new TextField();
+            l.setEnabled(false);
+            l.addStyleName(ValoTheme.TEXTFIELD_BORDERLESS);
+            wrap.addComponent(l);
+
+
+            hv = new AbstractField() {
+
+                Object v = null;
+
+                @Override
+                protected void doSetValue(Object o) {
+                    v = o;
+                    if (o != null) l.setValue(o.toString());
+                    else l.setValue("");
+                }
+
+                @Override
+                public Object getValue() {
+                    return v;
+                }
+            };
+
+            Button b = new Button("Select");
+            b.addStyleName(ValoTheme.BUTTON_LINK);
+            b.addClickListener(e -> MyUI.get().getNavegador().go(field.getName()));
+            wrap.addComponent(b);
+            container.addComponent(wrap);
+
+            tf = wrap;
+
+            l.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
+
+        } else if (field.isAnnotationPresent(UseRadioButtons.class)) {
+
+            RadioButtonGroup rbg;
+            container.addComponent(tf = rbg = new RadioButtonGroup());
+
+            hv = rbg;
 
             //AbstractBackendDataProvider
             //FetchItemsCallback
@@ -48,7 +96,7 @@ public class JPAManyToOneFieldBuilder extends JPAFieldBuilder {
 
                     ((HasDataProvider)tf).setDataProvider(a.dataProvider().newInstance());
 
-                    tf.setItemCaptionGenerator(a.itemCaptionGenerator().newInstance());
+                    rbg.setItemCaptionGenerator(a.itemCaptionGenerator().newInstance());
 
                 } catch (InstantiationException e) {
                     e.printStackTrace();
@@ -59,13 +107,13 @@ public class JPAManyToOneFieldBuilder extends JPAFieldBuilder {
             } else {
 
                 try {
-                    Helper.notransact((em) -> ((HasDataProvider<Object>)tf).setDataProvider(new JPQLListDataProvider(em, field.getType())));
+                    Helper.notransact((em) -> rbg.setDataProvider(new JPQLListDataProvider(em, field.getType())));
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();
                 }
 
                 FieldInterfaced fName = ReflectionHelper.getNameField(field.getType());
-                if (fName != null) tf.setItemCaptionGenerator((i) -> {
+                if (fName != null) rbg.setItemCaptionGenerator((i) -> {
                     try {
                         return "" + ReflectionHelper.getValue(fName, i);
                     } catch (NoSuchMethodException e) {
@@ -80,10 +128,15 @@ public class JPAManyToOneFieldBuilder extends JPAFieldBuilder {
 
             }
 
+            rbg.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
+
         } else {
 
-            ComboBox tf;
-            container.addComponent(tf = new ComboBox());
+            ComboBox cb;
+            container.addComponent(tf = cb = new ComboBox());
+
+            hv = cb;
+
 
             //AbstractBackendDataProvider
             //FetchItemsCallback
@@ -95,9 +148,9 @@ public class JPAManyToOneFieldBuilder extends JPAFieldBuilder {
 
                     DataProvider a = field.getAnnotation(DataProvider.class);
 
-                    tf.setDataProvider(a.dataProvider().newInstance());
+                    cb.setDataProvider(a.dataProvider().newInstance());
 
-                    tf.setItemCaptionGenerator(a.itemCaptionGenerator().newInstance());
+                    cb.setItemCaptionGenerator(a.itemCaptionGenerator().newInstance());
 
                 } catch (InstantiationException e) {
                     e.printStackTrace();
@@ -108,13 +161,13 @@ public class JPAManyToOneFieldBuilder extends JPAFieldBuilder {
             } else {
 
                 try {
-                    Helper.notransact((em) -> tf.setDataProvider(new JPQLListDataProvider(em, field.getType())));
+                    Helper.notransact((em) -> cb.setDataProvider(new JPQLListDataProvider(em, field.getType())));
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();
                 }
 
                 FieldInterfaced fName = ReflectionHelper.getNameField(field.getType());
-                if (fName != null) tf.setItemCaptionGenerator((i) -> {
+                if (fName != null) cb.setItemCaptionGenerator((i) -> {
                     try {
                         return "" + ReflectionHelper.getValue(fName, i);
                     } catch (NoSuchMethodException e) {
@@ -129,6 +182,8 @@ public class JPAManyToOneFieldBuilder extends JPAFieldBuilder {
 
             }
 
+            cb.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
+
         }
 
 
@@ -139,25 +194,27 @@ public class JPAManyToOneFieldBuilder extends JPAFieldBuilder {
 
         tf.setCaption(Helper.capitalize(field.getName()));
 
-        validators.put(tf, new ArrayList<>());
+         AbstractComponent c = (AbstractComponent) tf;
 
-        tf.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
+        validators.put(hv, new ArrayList<>());
+
+        HasValue finalHv = hv;
+        hv.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
             @Override
             public void valueChange(HasValue.ValueChangeEvent<String> valueChangeEvent) {
                     ValidationResult result = null;
-                for (Validator v : validators.get(tf)) {
-                    result = v.apply(valueChangeEvent.getValue(), new ValueContext(tf));
+                for (Validator v : validators.get(finalHv)) {
+                    result = v.apply(valueChangeEvent.getValue(), new ValueContext(c));
                     if (result.isError()) break;
                 }
                 if (result != null && result.isError()) {
-                    tf.setComponentError(new UserError(result.getErrorMessage()));
+                    c.setComponentError(new UserError(result.getErrorMessage()));
                 } else {
-                    tf.setComponentError(null);
+                    c.setComponentError(null);
                 }
             }
         });
 
-        tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
 
         if (field.isAnnotationPresent(NotNull.class)) validators.get(tf).add(new Validator() {
             @Override
@@ -176,7 +233,7 @@ public class JPAManyToOneFieldBuilder extends JPAFieldBuilder {
 
         BeanValidator bv = new BeanValidator(field.getDeclaringClass(), field.getName());
 
-        validators.get(tf).add(new Validator() {
+        validators.get(hv).add(new Validator() {
 
             @Override
             public ValidationResult apply(Object o, ValueContext valueContext) {
@@ -189,14 +246,14 @@ public class JPAManyToOneFieldBuilder extends JPAFieldBuilder {
             }
         });
 
-        addValidators(validators.get(tf));
+        addValidators(validators.get(hv));
 
         /*
         tf.setDescription();
         tf.setPlaceholder();
         */
 
-        bind(binder, tf, field);
+        bind(binder, hv, field);
     }
 
     public Object convert(String s) {
@@ -206,7 +263,8 @@ public class JPAManyToOneFieldBuilder extends JPAFieldBuilder {
     public void addValidators(List<Validator> validators) {
     }
 
-    protected void bind(MDDBinder binder, ComboBox tf, FieldInterfaced field) {
+    protected void bind(MDDBinder binder, HasValue tf, FieldInterfaced field) {
         binder.bindManyToOne(tf, field.getName());
     }
+
 }

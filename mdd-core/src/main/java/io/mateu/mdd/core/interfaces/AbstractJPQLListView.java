@@ -28,13 +28,16 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
                     q.setFirstResult(offset);
                     q.setMaxResults(limit);
 
-                    for (Object o : q.getResultList()) l.add((R) ReflectionHelper.fillQueryResult((Object[]) o, getRowClass()));
+                    Class rowClass = getRowClass();
+                    
+                    for (Object o : q.getResultList()) l.add((R) ReflectionHelper.fillQueryResult((Object[]) o, rowClass));
 
 
                 }
             });
         } catch (Throwable e) {
             MDD.alert(e);
+            for (int i = 0; i < limit - offset; i++) l.add(null);
         }
 
         return l;
@@ -64,7 +67,9 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
         return c[0];
     }
 
-    public abstract Query buildQuery(EntityManager em, boolean forCount);
+    public abstract Query buildQuery(EntityManager em, boolean forCount) throws Throwable;
 
-    public abstract Class getRowClass();
+    public Class getRowClass() {
+        return ReflectionHelper.getGenericClass(this.getClass(), RpcView.class, "C");
+    }
 }

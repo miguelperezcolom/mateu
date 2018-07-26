@@ -128,6 +128,10 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         for (ListViewComponentListener l : listeners) l.onEdit(id);
     };
 
+    public void select(Object id) {
+        for (ListViewComponentListener l : listeners) l.onSelect(id);
+    };
+
     public abstract List findAll(Object filters, List<QuerySortOrder> sortOrders, int offset, int limit);
 
     public int count(Object filters) {
@@ -176,6 +180,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
         return a;
     }
+
 
     public Set getSelection() {
         return resultsComponent.getSelection();

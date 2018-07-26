@@ -62,8 +62,4 @@ public class SampleJPQLLIstView extends AbstractJPQLListView<SampleJPQLLIstView.
         return q;
     }
 
-    @Override
-    public Class getRowClass() {
-        return Row.class;
-    }
 }

@@ -93,4 +93,8 @@ public class Profile implements PMO {
     }
 
 
+    @Override
+    public String toString() {
+        return "Profile for user " + ((userData != null)?userData.getLogin():"unknown");
+    }
 }

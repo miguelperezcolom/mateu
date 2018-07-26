@@ -267,7 +267,12 @@ public class MDDBinder {
                 p = new SimpleObjectProperty(bean, f.getName(), v);
             }
 
-            if (v != null) p.setValue(v);
+            if (v != null) {
+                if (Collection.class.isAssignableFrom(t)) {
+                    SimpleSetProperty ssp = (SimpleSetProperty) p;
+                    ssp.getValue().addAll((Collection) v);
+                } else p.setValue(v);
+            }
 
         }
         p.addListener(new ChangeListener() {
@@ -647,13 +652,15 @@ public class MDDBinder {
         });
     }
 
-    public void bindManyToOne(ComboBox c, String fieldName) {
-        fields.add(c);
+    public void bindManyToOne(HasValue c, String fieldName) {
+        fields.add((AbstractComponent) c);
         Property p = vaadinSideProperties.get(fieldName);
         if (p == null) {
             p = new SimpleObjectProperty();
             vaadinSideProperties.put(fieldName, p);
-        } else c.setValue(p.getValue());
+        } else {
+            if (!(c instanceof TextField) || p.getValue() != null) c.setValue(p.getValue());
+        }
         p.addListener(new ChangeListener<Object>() {
             @Override
             public void changed(ObservableValue<? extends Object> observable, Object oldValue, Object newValue) {

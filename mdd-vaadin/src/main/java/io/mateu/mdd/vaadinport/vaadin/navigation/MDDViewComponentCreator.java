@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.navigation;
 
 import com.vaadin.ui.Component;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.app.MDDOpenEditorAction;
 import io.mateu.mdd.core.app.MDDOpenListViewAction;
@@ -9,6 +10,7 @@ import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
 
 import javax.persistence.Entity;
+import java.lang.reflect.InvocationTargetException;
 
 public class MDDViewComponentCreator {
 
@@ -48,10 +50,8 @@ public class MDDViewComponentCreator {
                 v = new RpcListViewComponent(viewClass).build();
             }
 
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            MDD.alert(e);
         }
         return v;
     }

@@ -36,4 +36,9 @@ public class ManyToOneFieldDemoDestinationEntity {
     public boolean equals(Object obj) {
         return this == obj || (obj != null && obj instanceof  ManyToOneFieldDemoDestinationEntity && id == ((ManyToOneFieldDemoDestinationEntity)obj).id);
     }
+
+    @Override
+    public String toString() {
+        return stringField;
+    }
 }

@@ -90,6 +90,7 @@ public class ResultsComponent extends VerticalLayout {
             @Override
             public void selectionChange(SelectionEvent selectionEvent) {
                 System.out.println("selected " + selectionEvent.getFirstSelectedItem());
+                select(listViewComponent.toId(selectionEvent.getFirstSelectedItem()));
             }
         });
 
@@ -114,6 +115,14 @@ public class ResultsComponent extends VerticalLayout {
     private void edit(Object id) {
         try {
             listViewComponent.edit(id);
+        } catch (Throwable throwable) {
+            MDD.alert(throwable);
+        }
+    }
+
+    private void select(Object id) {
+        try {
+            listViewComponent.select(id);
         } catch (Throwable throwable) {
             MDD.alert(throwable);
         }

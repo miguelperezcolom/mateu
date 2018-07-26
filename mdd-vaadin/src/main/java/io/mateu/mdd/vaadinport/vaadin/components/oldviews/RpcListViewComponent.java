@@ -8,6 +8,8 @@ import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -19,9 +21,9 @@ public class RpcListViewComponent extends ListViewComponent {
     private final RpcView rpcListView;
     private final Class columnType;
 
-    public RpcListViewComponent(Class rpcListViewClass) throws IllegalAccessException, InstantiationException {
+    public RpcListViewComponent(Class rpcListViewClass) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         this.rpcListViewClass = rpcListViewClass;
-        this.rpcListView = (RpcView) rpcListViewClass.newInstance();
+        this.rpcListView = (RpcView) ReflectionHelper.newInstance(rpcListViewClass);
         this.columnType = ReflectionHelper.getGenericClass(rpcListViewClass, RpcView.class, "C");
 
     }
@@ -77,7 +79,12 @@ public class RpcListViewComponent extends ListViewComponent {
 
     @Override
     public List findAll(Object filters, List<QuerySortOrder> sortOrders, int offset, int limit) {
-        return rpcListView.rpc(filters, offset, limit);
+        try {
+            return rpcListView.rpc(filters, offset, limit);
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+            return null;
+        }
     }
 
     @Override

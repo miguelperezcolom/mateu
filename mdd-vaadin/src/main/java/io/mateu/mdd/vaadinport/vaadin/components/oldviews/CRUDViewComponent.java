@@ -42,6 +42,11 @@ public class CRUDViewComponent extends AbstractViewComponent implements ListView
     }
 
     @Override
+    public void onSelect(Object id) {
+        // do nothing
+    }
+
+    @Override
     public String toString() {
         return listViewComponent.toString();
     }

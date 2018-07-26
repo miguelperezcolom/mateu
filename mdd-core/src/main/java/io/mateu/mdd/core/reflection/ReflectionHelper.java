@@ -1392,8 +1392,7 @@ public class ReflectionHelper {
 
     public static <T> T fillQueryResult(Object[] o, Class<T> rowClass) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         T t = null;
-        if (rowClass.getDeclaringClass() != null) t = (T) rowClass.getConstructors()[0].newInstance(rowClass.getDeclaringClass().newInstance());
-        else t = rowClass.newInstance();
+        t = (T) ReflectionHelper.newInstance(rowClass);
         int pos = 0;
         for (FieldInterfaced f : getAllFields(rowClass)) {
             if (pos < o.length) rowClass.getMethod(getSetter(f), f.getType()).invoke(t, o[pos]);
@@ -1401,6 +1400,19 @@ public class ReflectionHelper {
             pos++;
         }
         return t;
+    }
+
+    public static Object newInstance(Class c) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        Object o = null;
+        if (c.getDeclaringClass() != null) {
+            Object p = newInstance(c.getDeclaringClass());
+            Constructor<?> cons = c.getDeclaredConstructors()[0];
+            cons.setAccessible(true);
+            o = cons.newInstance(p);
+        } else {
+            o = c.newInstance();
+        }
+        return o;
     }
 
 

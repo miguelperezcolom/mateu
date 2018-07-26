@@ -10,6 +10,8 @@ public interface RpcView<F, C> {
 
     int gatherCount(F filters);
 
-    void decorateGrid(Grid<C> grid);
+    default void decorateGrid(Grid<C> grid) {
+
+    };
 
 }

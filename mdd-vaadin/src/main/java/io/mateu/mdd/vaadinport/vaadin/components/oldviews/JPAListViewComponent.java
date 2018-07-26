@@ -234,11 +234,13 @@ public class JPAListViewComponent extends ListViewComponent {
                 if (!"".equals(s)) s += ", ";
                 if (f.getType().isAnnotationPresent(Entity.class) && !f.isAnnotationPresent(NotNull.class)) {
                     s += "" + alias.get(f);
-                    s += "." + ReflectionHelper.getNameField(f.getType());
+                    FieldInterfaced nf = ReflectionHelper.getNameField(f.getType());
+                    if (nf != null) s += "." + nf.getName();
                 } else {
                     s += "x." + f.getName();
                     if (f.getType().isAnnotationPresent(Entity.class)) {
-                        s += "." + ReflectionHelper.getNameField(f.getType());
+                        FieldInterfaced nf = ReflectionHelper.getNameField(f.getType());
+                        if (nf != null) s += "." + nf.getName();
                     }
                 }
 

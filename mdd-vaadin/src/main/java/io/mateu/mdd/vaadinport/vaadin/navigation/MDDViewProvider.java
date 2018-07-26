@@ -6,13 +6,16 @@ import com.vaadin.navigator.ViewProvider;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.annotations.UseLinkToListView;
 import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.interfaces.EntityProvider;
+import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.Pair;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
-import io.mateu.mdd.vaadinport.vaadin.components.app.flow.views.*;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.views.AreaComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.flow.views.*;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.OAuthHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
 import io.mateu.mdd.vaadinport.vaadin.pojos.Profile;
@@ -20,6 +23,7 @@ import io.mateu.mdd.vaadinport.vaadin.pojos.Profile;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Map;
+import java.util.Optional;
 
 
 //public
@@ -319,6 +323,8 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                             Method method = lvc.getMethod(step);
 
+
+
                             if (method != null) {
 
                                 stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, null, this));
@@ -360,9 +366,88 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                             Method method = evfc.getMethod(step);
 
+                            FieldInterfaced field = evfc.getField(step);
+
                             if (method != null) {
 
                                 stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, evfc.getModel(), this));
+
+                            } else if (field != null) {
+
+                                if (field.isAnnotationPresent(UseLinkToListView.class)) {
+                                    try {
+
+                                        UseLinkToListView aa = field.getAnnotation(UseLinkToListView.class);
+
+                                        ListViewComponent lvc = null;
+                                        Component vc = null;
+
+                                        if (!Void.class.equals(aa.listViewClass())) {
+
+                                            vc = lvc = new RpcListViewComponent(aa.listViewClass()).build();
+
+                                        } else {
+
+                                            lvc = new JPAListViewComponent(field.getType()).build();
+
+                                            vc = new CRUDViewComponent(lvc, new EditorViewComponent(field.getType()).build()).build();
+
+
+                                        }
+
+                                        lvc.addListener(new ListViewComponentListener() {
+                                            @Override
+                                            public void onEdit(Object id) {
+
+                                            }
+
+                                            @Override
+                                            public void onSelect(Object id) {
+                                                System.out.println("Han seleccionado " + id);
+                                                Optional o = (Optional) id;
+                                                if (o.isPresent()) {
+
+                                                    try {
+
+                                                        Helper.notransact(em -> {
+
+                                                            Object m = evfc.getModel();
+                                                            Object oid = o.get();
+
+
+                                                            Object e = null;
+
+                                                            if (oid instanceof Object[]) {
+                                                                e = em.find(field.getType(), ((Object[])oid)[0]);
+                                                            } else if (oid instanceof EntityProvider) {
+                                                                e = ((EntityProvider) oid).toEntity(em);
+                                                            } else {
+                                                                e = em.find(field.getType(), oid);
+                                                            }
+
+
+                                                            ReflectionHelper.setValue(field, m, e);
+                                                            evfc.setModel(m);
+
+                                                            MyUI.get().getNavegador().goBack();
+
+                                                        });
+                                                    } catch (Throwable throwable) {
+                                                        MDD.alert(throwable);
+                                                    }
+
+                                                }
+                                            }
+                                        });
+
+                                        stack.push(currentPath, vc);
+
+                                    } catch (Exception e) {
+                                        MDD.alert(e);
+                                    }
+                                } else {
+                                    stack.push(currentPath, new FieldEditorComponent(field));
+                                }
 
                             }
 
