@@ -179,6 +179,7 @@ public class EditorViewComponent extends AbstractViewComponent {
                     }
                 }
             });
+            i.setStyleName(ValoTheme.BUTTON_PRIMARY);
 
             Button b;
             addComponent(b = new Button());

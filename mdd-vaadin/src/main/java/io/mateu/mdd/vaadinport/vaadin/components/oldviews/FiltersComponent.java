@@ -134,6 +134,7 @@ public class FiltersComponent extends CssLayout {
             }
         });
         b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
+        b.setStyleName(ValoTheme.BUTTON_PRIMARY);
 
     }
 

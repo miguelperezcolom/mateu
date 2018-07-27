@@ -41,6 +41,7 @@ public class FiltersViewFlowComponent extends VerticalLayout {
             }
         });
 
+        b.setStyleName(ValoTheme.BUTTON_PRIMARY);
         b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
 
 

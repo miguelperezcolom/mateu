@@ -89,6 +89,8 @@ public class MainModule extends AbstractModule {
 
                         l.add(new MDDMenu("Many to one", "Destination", ManyToOneFieldDemoDestinationEntity.class, "Source", ManyToOneFieldDemoEntity.class));
 
+                        l.add(new MDDMenu("One to many", "Parent", OneToManyParentEntity.class, "Children", OneToManyChildEntity.class));
+
                         l.add(new MDDMenu("Owned", "ManyToOne", ManyToOneFieldDemoEntity.class));
 
                         return l;

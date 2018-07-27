@@ -9,6 +9,7 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.ErrorMessage;
 import com.vaadin.shared.ui.ErrorLevel;
 import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Ignored;
@@ -163,6 +164,7 @@ public class MethodParametersViewComponent extends AbstractViewComponent {
                 }
             }
         });
+        i.setStyleName(ValoTheme.BUTTON_PRIMARY);
 
         Button b;
         addComponent(b = new Button());

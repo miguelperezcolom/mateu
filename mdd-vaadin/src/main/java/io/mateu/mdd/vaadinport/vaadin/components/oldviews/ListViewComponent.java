@@ -61,7 +61,12 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
     public void buildColumns(Grid grid) {
 
-        List<FieldInterfaced> colFields = getColumnFields();
+        List<FieldInterfaced> colFields = getColumnFields(getColumnType());
+
+        buildColumns(grid, colFields, this instanceof JPAListViewComponent);
+    }
+
+    public static void buildColumns(Grid grid, List<FieldInterfaced> colFields, boolean isJPAListViewComponent) {
 
         int pos = 0;
         for (FieldInterfaced f : colFields) {
@@ -69,7 +74,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
             Grid.Column col;
 
-            if (this instanceof JPAListViewComponent) {
+            if (isJPAListViewComponent) {
                 col = grid.addColumn(new ValueProvider() {
                     @Override
                     public Object apply(Object o) {
@@ -111,7 +116,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
     }
 
-    private double getColumnWidth(FieldInterfaced f) {
+    private static double getColumnWidth(FieldInterfaced f) {
         return 150;
     }
 
@@ -189,15 +194,15 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
     
 
-    public List<FieldInterfaced> getColumnFields() {
-        List<FieldInterfaced> explicitColumns = ReflectionHelper.getAllFields(getColumnType()).stream().filter(
+    public static List<FieldInterfaced> getColumnFields(Class objectType) {
+        List<FieldInterfaced> explicitColumns = ReflectionHelper.getAllFields(objectType).stream().filter(
                 (f) -> f.isAnnotationPresent(ListColumn.class)
         ).collect(Collectors.toList());
 
         if (explicitColumns.size() > 0) {
             return explicitColumns;
         } else
-            return ReflectionHelper.getAllFields(getColumnType()).stream().filter(
+            return ReflectionHelper.getAllFields(objectType).stream().filter(
                     (f) -> !f.isAnnotationPresent(Transient.class)
                             && !f.isAnnotationPresent(Ignored.class)
                             && !Modifier.isTransient(f.getModifiers())

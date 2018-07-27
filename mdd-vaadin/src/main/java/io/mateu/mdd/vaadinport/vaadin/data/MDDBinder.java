@@ -2,6 +2,8 @@ package io.mateu.mdd.vaadinport.vaadin.data;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.HasValue;
+import com.vaadin.data.provider.DataProvider;
+import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
@@ -814,6 +816,117 @@ public class MDDBinder {
                 v.addAll(added);
             }
         });
+    }
+
+
+    public void bindOneToMany(Grid g, String fieldName) {
+        fields.add(g);
+
+        ListDataProvider ldp;
+        g.setDataProvider(ldp = new ListDataProvider(new ArrayList()));
+
+        Property p = vaadinSideProperties.get(fieldName);
+        if (p == null) {
+            p = new SimpleSetProperty();
+            vaadinSideProperties.put(fieldName, p);
+        } else {
+            if (p.getValue() != null) {
+                ldp.getItems().addAll(((SimpleSetProperty)p).getValue());
+            }
+        }
+        g.setHeightByRows((ldp.getItems().size() > 0)?ldp.getItems().size():1);
+
+        p.addListener(new ChangeListener<Object>() {
+            @Override
+            public void changed(ObservableValue<? extends Object> observable, Object oldValue, Object newValue) {
+                Collection col = (Collection) newValue;
+                ldp.getItems().clear();
+                ldp.getItems().addAll(col);
+                g.setHeightByRows((ldp.getItems().size() > 0)?ldp.getItems().size():1);
+                //((JPQLListDataProvider)c.getDataProvider()).getItems().contains(col.iterator().next())
+                /*
+                c.updateSelection(
+                        (Set<Object>) col.stream().filter(e -> !c.getSelectedItems().contains(e)).collect(Collectors.toSet()),
+                        c.getSelectedItems().stream().filter(e -> !col.contains(e)).collect(Collectors.toSet())
+                );
+                */
+            }
+        });
+        /*
+        Property finalP = p;
+        c.addValueChangeListener(new HasValue.ValueChangeListener() {
+            @Override
+            public void valueChange(HasValue.ValueChangeEvent valueChangeEvent) {
+                Class genericClass = ReflectionHelper.getFieldByName(beanType, fieldName).getGenericClass();
+
+                // recogemos los elementos eliminados y los no eliminados
+                Set old = (Set) valueChangeEvent.getOldValue();
+                Set value = (Set) valueChangeEvent.getValue();
+
+                List removed = (List) old.stream().filter(e -> !value.contains(e)).collect(Collectors.toList());
+                List added = (List) value.stream().filter(e -> !old.contains(e)).collect(Collectors.toList());
+
+                if (removed.size() > 0) {
+                    FieldInterfaced mapper = ReflectionHelper.getMapper(genericClass, fieldName);
+                    if (mapper == null) {
+                        mapper = ReflectionHelper.getMapper(beanType, fieldName, genericClass);
+                    }
+                    if (mapper != null) {
+                        try {
+                            for (Object o : removed) {
+                                Object v = ReflectionHelper.getValue(mapper, o);
+                                if (List.class.isAssignableFrom(mapper.getType())) {
+                                    ((List)v).remove(bean);
+                                } else {
+                                    ReflectionHelper.setValue(mapper, o, null);
+                                }
+                                if (!mergeables.contains(o)) mergeables.add(o);
+                            }
+                        } catch (InvocationTargetException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        } catch (NoSuchMethodException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                }
+                if (added.size() > 0) {
+                    FieldInterfaced mapper = ReflectionHelper.getMapper(genericClass, fieldName);
+                    if (mapper == null) {
+                        mapper = ReflectionHelper.getMapper(beanType, fieldName, genericClass);
+                    }
+                    if (mapper != null) {
+
+                        try {
+                            for (Object o : added) {
+                                Object v = ReflectionHelper.getValue(mapper, o);
+                                if (List.class.isAssignableFrom(mapper.getType())) {
+                                    List l = ((List)v);
+                                    if (!l.contains(bean)) l.add(bean);
+                                } else {
+                                    ReflectionHelper.setValue(mapper, o, bean);
+                                }
+                                if (!mergeables.contains(o)) mergeables.add(o);
+                            }
+                        } catch (NoSuchMethodException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        } catch (InvocationTargetException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                }
+
+                Set v = ((SimpleSetProperty) finalP);
+                v.removeAll(removed);
+                v.addAll(added);
+            }
+        });
+        */
     }
 
 
