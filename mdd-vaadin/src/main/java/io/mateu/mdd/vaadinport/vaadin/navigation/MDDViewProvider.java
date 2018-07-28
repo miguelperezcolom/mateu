@@ -20,8 +20,11 @@ import io.mateu.mdd.vaadinport.vaadin.components.oauth.OAuthHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
 import io.mateu.mdd.vaadinport.vaadin.pojos.Profile;
 
+import javax.persistence.Entity;
+import javax.persistence.OneToMany;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
@@ -379,21 +382,168 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                                         UseLinkToListView aa = field.getAnnotation(UseLinkToListView.class);
 
-                                        ListViewComponent lvc = null;
-                                        Component vc = null;
+                                        if (Collection.class.isAssignableFrom(field.getType())) {
 
-                                        if (!Void.class.equals(aa.listViewClass())) {
+                                            ListViewComponent lvc = null;
+                                            Component vc = null;
 
-                                            vc = lvc = new RpcListViewComponent(aa.listViewClass()).build();
+                                            if (!Void.class.equals(aa.listViewClass())) {
+
+                                                vc = lvc = new RpcListViewComponent(aa.listViewClass()).build();
+
+                                            } else {
+
+                                                lvc = new JPAListViewComponent(field.getGenericClass()).build();
+
+                                                vc = new CRUDViewComponent(lvc, new EditorViewComponent(field.getGenericType()).build()).build();
+
+
+                                            }
+
+                                            lvc.addListener(new ListViewComponentListener() {
+                                                @Override
+                                                public void onEdit(Object id) {
+
+                                                }
+
+                                                @Override
+                                                public void onSelect(Object id) {
+                                                    System.out.println("Han seleccionado " + id);
+                                                    Optional o = (Optional) id;
+                                                    if (o.isPresent()) {
+
+                                                        try {
+
+                                                            Helper.notransact(em -> {
+
+                                                                Object m = evfc.getModel();
+                                                                Object oid = o.get();
+
+
+                                                                Object e = null;
+
+                                                                if (oid instanceof Object[]) {
+                                                                    e = em.find(field.getGenericClass(), ((Object[]) oid)[0]);
+                                                                } else if (oid instanceof EntityProvider) {
+                                                                    e = ((EntityProvider) oid).toEntity(em);
+                                                                } else {
+                                                                    e = em.find(field.getGenericClass(), oid);
+                                                                }
+
+
+                                                                Collection col = (Collection) ReflectionHelper.getValue(field, m);
+                                                                if (!col.contains(e)) col.add(e);
+                                                                evfc.setModel(m);
+
+                                                                String mb = null;
+                                                                FieldInterfaced mbf = null;
+                                                                if (field.isAnnotationPresent(OneToMany.class)) {
+                                                                    mb = field.getAnnotation(OneToMany.class).mappedBy();
+                                                                    if (!Strings.isNullOrEmpty(mb)) {
+                                                                        mbf = ReflectionHelper.getFieldByName(field.getGenericClass(), mb);
+                                                                    }
+                                                                }
+                                                                if (mbf != null) {
+                                                                    FieldInterfaced finalMbf = mbf;
+                                                                    try {
+                                                                        ReflectionHelper.setValue(finalMbf, e, m);
+                                                                        em.merge(e);
+                                                                    } catch (Throwable e1) {
+                                                                        MDD.alert(e1);
+                                                                    }
+                                                                }
+
+                                                                MyUI.get().getNavegador().goBack();
+
+                                                            });
+                                                        } catch (Throwable throwable) {
+                                                            MDD.alert(throwable);
+                                                        }
+
+                                                    }
+                                                }
+                                            });
+
+                                            stack.push(currentPath, vc);
 
                                         } else {
 
-                                            lvc = new JPAListViewComponent(field.getType()).build();
+                                            ListViewComponent lvc = null;
+                                            Component vc = null;
 
-                                            vc = new CRUDViewComponent(lvc, new EditorViewComponent(field.getType()).build()).build();
+                                            if (!Void.class.equals(aa.listViewClass())) {
 
+                                                vc = lvc = new RpcListViewComponent(aa.listViewClass()).build();
+
+                                            } else {
+
+                                                lvc = new JPAListViewComponent(field.getType()).build();
+
+                                                vc = new CRUDViewComponent(lvc, new EditorViewComponent(field.getType()).build()).build();
+
+
+                                            }
+
+                                            lvc.addListener(new ListViewComponentListener() {
+                                                @Override
+                                                public void onEdit(Object id) {
+
+                                                }
+
+                                                @Override
+                                                public void onSelect(Object id) {
+                                                    System.out.println("Han seleccionado " + id);
+                                                    Optional o = (Optional) id;
+                                                    if (o.isPresent()) {
+
+                                                        try {
+
+                                                            Helper.notransact(em -> {
+
+                                                                Object m = evfc.getModel();
+                                                                Object oid = o.get();
+
+
+                                                                Object e = null;
+
+                                                                if (oid instanceof Object[]) {
+                                                                    e = em.find(field.getType(), ((Object[]) oid)[0]);
+                                                                } else if (oid instanceof EntityProvider) {
+                                                                    e = ((EntityProvider) oid).toEntity(em);
+                                                                } else {
+                                                                    e = em.find(field.getType(), oid);
+                                                                }
+
+                                                                ReflectionHelper.setValue(field, m, e);
+                                                                evfc.setModel(m);
+
+                                                                MyUI.get().getNavegador().goBack();
+
+                                                            });
+                                                        } catch (Throwable throwable) {
+                                                            MDD.alert(throwable);
+                                                        }
+
+                                                    }
+                                                }
+                                            });
+
+                                            stack.push(currentPath, vc);
 
                                         }
+
+                                    } catch (Exception e) {
+                                        MDD.alert(e);
+                                    }
+                                } else if (field.isAnnotationPresent(OneToMany.class)) {
+
+                                    ListViewComponent lvc = null;
+                                    Component vc = null;
+
+                                    try {
+                                        lvc = new JPAListViewComponent(field.getGenericClass()).build();
+
+                                        vc = new CRUDViewComponent(lvc, new EditorViewComponent(field.getGenericType()).build()).build();
 
                                         lvc.addListener(new ListViewComponentListener() {
                                             @Override
@@ -418,16 +568,45 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                                             Object e = null;
 
                                                             if (oid instanceof Object[]) {
-                                                                e = em.find(field.getType(), ((Object[])oid)[0]);
+                                                                e = em.find(field.getGenericClass(), ((Object[]) oid)[0]);
                                                             } else if (oid instanceof EntityProvider) {
                                                                 e = ((EntityProvider) oid).toEntity(em);
                                                             } else {
-                                                                e = em.find(field.getType(), oid);
+                                                                e = em.find(field.getGenericClass(), oid);
                                                             }
 
 
-                                                            ReflectionHelper.setValue(field, m, e);
+                                                            Collection col = (Collection) ReflectionHelper.getValue(field, m);
+                                                            if (!col.contains(e)) col.add(e);
                                                             evfc.setModel(m);
+
+                                                            String mb = null;
+                                                            FieldInterfaced mbf = null;
+                                                            if (field.isAnnotationPresent(OneToMany.class)) {
+                                                                mb = field.getAnnotation(OneToMany.class).mappedBy();
+                                                                if (!Strings.isNullOrEmpty(mb)) {
+                                                                    mbf = ReflectionHelper.getFieldByName(field.getGenericClass(), mb);
+                                                                }
+                                                            }
+                                                            if (mbf != null) {
+                                                                FieldInterfaced finalMbf = mbf;
+                                                                try {
+
+                                                                    Object old = ReflectionHelper.getValue(finalMbf, e);
+
+                                                                    if (old != null) {
+                                                                        Collection oldCol = (Collection) ReflectionHelper.getValue(field, old);
+                                                                        oldCol.remove(e);
+                                                                        Helper.transact(emx -> emx.merge(old));
+                                                                    }
+
+                                                                    ReflectionHelper.setValue(finalMbf, e, m);
+                                                                    Object finalE = e;
+                                                                    Helper.transact(emx -> emx.merge(finalE));
+                                                                } catch (Throwable e1) {
+                                                                    MDD.alert(e1);
+                                                                }
+                                                            }
 
                                                             MyUI.get().getNavegador().goBack();
 
@@ -445,6 +624,8 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                     } catch (Exception e) {
                                         MDD.alert(e);
                                     }
+
+
                                 } else {
                                     stack.push(currentPath, new FieldEditorComponent(field));
                                 }

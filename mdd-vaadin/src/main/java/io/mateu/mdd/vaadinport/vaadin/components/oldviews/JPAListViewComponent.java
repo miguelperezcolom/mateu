@@ -120,7 +120,7 @@ public class JPAListViewComponent extends ListViewComponent {
 
     private Query buildQuery(EntityManager em, Function<Map<FieldInterfaced, String>, Object> fieldsPartBuilderFunction, Object filters, List<QuerySortOrder> sortOrders, int offset, int limit) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
-        List<FieldInterfaced> columnFields = getColumnFields(getColumnType());
+        List<FieldInterfaced> columnFields = getSelectFields(getColumnType());
         List<FieldInterfaced> filterFields = getFilterFields();
 
         Map<FieldInterfaced, String> alias = new HashMap<>();
@@ -178,6 +178,18 @@ public class JPAListViewComponent extends ListViewComponent {
         return q;
     }
 
+    private List<FieldInterfaced> getSelectFields(Class targetType) {
+        List<FieldInterfaced> cols = getColumnFields(targetType);
+
+        FieldInterfaced idField = null;
+
+        for (FieldInterfaced f : ReflectionHelper.getAllFields(targetType)) if (f.isAnnotationPresent(Id.class)) idField = f;
+
+        cols.add(0, idField);
+
+        return cols;
+    }
+
     private String buildWhereClause(Object filters, Class entityClass, Map<String, Object> parameterValues) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
         if (filters == null) return "";
@@ -230,7 +242,7 @@ public class JPAListViewComponent extends ListViewComponent {
 
 
 
-        for (FieldInterfaced f : getColumnFields(getColumnType())) {
+        for (FieldInterfaced f : getSelectFields(getColumnType())) {
 
                 if (!"".equals(s)) s += ", ";
                 if (f.getType().isAnnotationPresent(Entity.class) && !f.isAnnotationPresent(NotNull.class)) {

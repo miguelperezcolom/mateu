@@ -15397,6 +15397,10 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0px;
 }
 
+.mytheme .collectionlinklabel {
+	margin-top: 6px;
+}
+
 .mytheme .green {
 	background-color: green !important;
 }

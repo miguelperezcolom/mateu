@@ -18,6 +18,7 @@ import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 
+import javax.persistence.GeneratedValue;
 import javax.persistence.Transient;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -79,7 +80,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     @Override
                     public Object apply(Object o) {
                         //return ReflectionHelper.getValue(f, o);
-                        return ((Object[]) o)[finalPos];
+                        return ((Object[]) o)[finalPos + 1];
                     }
                 });
             } else {
@@ -208,6 +209,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                             && !Modifier.isTransient(f.getModifiers())
                             && !f.getType().isAssignableFrom(List.class)
                             && !f.getType().isAssignableFrom(Map.class)
+                            && !f.isAnnotationPresent(GeneratedValue.class)
             ).collect(Collectors.toList());
     }
 

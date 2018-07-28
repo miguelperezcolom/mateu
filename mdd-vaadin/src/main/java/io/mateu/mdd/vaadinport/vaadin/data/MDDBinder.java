@@ -2,11 +2,13 @@ package io.mateu.mdd.vaadinport.vaadin.data;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.HasValue;
-import com.vaadin.data.provider.DataProvider;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.ui.*;
+import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.annotations.UseLinkToListView;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.mdd.core.util.Helper;
 import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -104,13 +106,27 @@ public class MDDBinder {
 
     private void createPropertiesAndBind(Class beanType, Map<String, Property> propertiesMap) {
         if (!Map.class.isAssignableFrom(beanType)) for (FieldInterfaced f : ReflectionHelper.getAllFields(beanType)) {
-            propertiesMap.put(f.getName(), createPropertyAndBind(f));
+            if (f.isAnnotationPresent(UseLinkToListView.class)) {
+                Collection col = null;
+                try {
+                    col = (Collection) ReflectionHelper.getValue(f, bean);
+                } catch (Exception e) {
+                    MDD.alert(e);
+                }
+                propertiesMap.put(f.getName() + "_size", new SimpleIntegerProperty((col != null)?col.size():0));
+            } else {
+                propertiesMap.put(f.getName(), createPropertyAndBind(f));
+            }
         }
     }
 
     private void createProperties(Class beanType, Map<String, Property> propertiesMap) {
         if (!Map.class.isAssignableFrom(beanType)) for (FieldInterfaced f : ReflectionHelper.getAllFields(beanType)) {
-            propertiesMap.put(f.getName(), createProperty(f));
+            if (f.isAnnotationPresent(UseLinkToListView.class)) {
+                propertiesMap.put(f.getName() + "_size", new SimpleIntegerProperty());
+            } else {
+                propertiesMap.put(f.getName(), createProperty(f));
+            }
         }
     }
 
@@ -167,6 +183,9 @@ public class MDDBinder {
     private Property createPropertyAndBind(FieldInterfaced f) {
         Class t = f.getType();
         Property p = null;
+
+        boolean fake = false;
+
         if (Map.class.isAssignableFrom(beanType)) {
 
             Object v = getValue(f, bean);
@@ -223,76 +242,100 @@ public class MDDBinder {
             });
         } else {
 
-            Object v = getValue(f, bean);
 
-            if (Integer.class.equals(t) || int.class.equals(t)) {
-                p = new SimpleIntegerProperty(bean, f.getName());
-            } else if (Long.class.equals(t) || long.class.equals(t)) {
-                p = new SimpleLongProperty(bean, f.getName());
-            } else if (Float.class.equals(t) || float.class.equals(t)) {
-                p = new SimpleFloatProperty(bean, f.getName());
-            } else if (Double.class.equals(t) || double.class.equals(t)) {
-                p = new SimpleDoubleProperty(bean, f.getName());
-            } else if (Boolean.class.equals(t) || boolean.class.equals(t)) {
-                p = new SimpleBooleanProperty(bean, f.getName());
-            } else if (String.class.equals(t)) {
-                p = new SimpleStringProperty(bean, f.getName());
-            } else if (Collection.class.isAssignableFrom(t)) {
-                ObservableSet<Object> s = FXCollections.observableSet();
-                Collection col = (Collection) v;
-                if (col != null) s.addAll(col);
-                p = new SimpleSetProperty(bean, f.getName(), s);
+            if (f.isAnnotationPresent(UseLinkToListView.class)) {
+                p = new SimpleIntegerProperty();
 
-                s.addListener(new SetChangeListener<Object>() {
-                    @Override
-                    public void onChanged(Change<?> change) {
-                        try {
-                            List l = (List) v;
-                            if (l == null) {
-                                ReflectionHelper.setValue(f, bean, l = new ArrayList());
-                            }
+                if (bean != null) {
 
-                            if (change.wasRemoved()) l.remove(change.getElementRemoved());
-                            if (change.wasAdded()) l.add(change.getElementAdded());
-
-                        } catch (NoSuchMethodException e) {
-                            e.printStackTrace();
-                        } catch (IllegalAccessException e) {
-                            e.printStackTrace();
-                        } catch (InvocationTargetException e) {
-                            e.printStackTrace();
-                        }
+                    try {
+                        f.getType().getMethod("size").invoke(ReflectionHelper.getValue(f, bean));
+                    } catch (Exception e) {
+                        MDD.alert(e);
                     }
-                });
 
+                }
+
+                fake = true;
             } else {
-                p = new SimpleObjectProperty(bean, f.getName(), v);
-            }
 
-            if (v != null) {
-                if (Collection.class.isAssignableFrom(t)) {
-                    SimpleSetProperty ssp = (SimpleSetProperty) p;
-                    ssp.getValue().addAll((Collection) v);
-                } else p.setValue(v);
+                Object v = getValue(f, bean);
+
+                if (Integer.class.equals(t) || int.class.equals(t)) {
+                    p = new SimpleIntegerProperty(bean, f.getName());
+                } else if (Long.class.equals(t) || long.class.equals(t)) {
+                    p = new SimpleLongProperty(bean, f.getName());
+                } else if (Float.class.equals(t) || float.class.equals(t)) {
+                    p = new SimpleFloatProperty(bean, f.getName());
+                } else if (Double.class.equals(t) || double.class.equals(t)) {
+                    p = new SimpleDoubleProperty(bean, f.getName());
+                } else if (Boolean.class.equals(t) || boolean.class.equals(t)) {
+                    p = new SimpleBooleanProperty(bean, f.getName());
+                } else if (String.class.equals(t)) {
+                    p = new SimpleStringProperty(bean, f.getName());
+                } else if (Collection.class.isAssignableFrom(t)) {
+                    ObservableSet<Object> s = FXCollections.observableSet();
+                    Collection col = (Collection) v;
+                    if (col != null) s.addAll(col);
+                    p = new SimpleSetProperty(bean, f.getName(), s);
+
+                    s.addListener(new SetChangeListener<Object>() {
+                        @Override
+                        public void onChanged(Change<?> change) {
+                            try {
+                                List l = (List) v;
+                                if (l == null) {
+                                    ReflectionHelper.setValue(f, bean, l = new ArrayList());
+                                }
+
+                                if (change.wasRemoved()) l.remove(change.getElementRemoved());
+                                if (change.wasAdded()) l.add(change.getElementAdded());
+
+                            } catch (NoSuchMethodException e) {
+                                e.printStackTrace();
+                            } catch (IllegalAccessException e) {
+                                e.printStackTrace();
+                            } catch (InvocationTargetException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+
+                } else {
+                    p = new SimpleObjectProperty(bean, f.getName(), v);
+                }
+
+                if (v != null) {
+                    if (Collection.class.isAssignableFrom(t)) {
+                        SimpleSetProperty ssp = (SimpleSetProperty) p;
+                        ssp.getValue().addAll((Collection) v);
+                    } else p.setValue(v);
+                }
+
             }
 
         }
-        p.addListener(new ChangeListener() {
+        if (!fake) p.addListener(new ChangeListener() {
             @Override
             public void changed(ObservableValue observable, Object oldValue, Object newValue) {
                 try {
                     ReflectionHelper.setValue(f, bean, newValue);
 
                     for (FieldInterfaced f : ReflectionHelper.getAllFields(beanType)) {
-                        Object v = ReflectionHelper.getValue(f, bean);
-                        if (v != null && List.class.isAssignableFrom(v.getClass())) {
-                            SimpleSetProperty p = (SimpleSetProperty) beanSideProperties.get(f.getName());
-                            Collection col = (Collection) v;
-                            p.retainAll(col);
-                            p.addAll((Collection) col.stream().filter(e -> !p.contains(e)).collect(Collectors.toList()));
-                        } else {
-                            beanSideProperties.get(f.getName()).setValue(v);
+                        if (!f.isAnnotationPresent(UseLinkToListView.class)) {
+
+                            Object v = ReflectionHelper.getValue(f, bean);
+                            if (v != null && List.class.isAssignableFrom(v.getClass())) {
+                                SimpleSetProperty p = (SimpleSetProperty) beanSideProperties.get(f.getName());
+                                Collection col = (Collection) v;
+                                p.retainAll(col);
+                                p.addAll((Collection) col.stream().filter(e -> !p.contains(e)).collect(Collectors.toList()));
+                            } else {
+                                beanSideProperties.get(f.getName()).setValue(v);
+                            }
+
                         }
+
                     }
 
                     changeNotificationListeners.forEach((l) -> l.somethingChanged());
@@ -819,6 +862,29 @@ public class MDDBinder {
     }
 
 
+
+    public void bindOneToMany(Label l, String fieldName) {
+        fields.add(l);
+
+        Property p = vaadinSideProperties.get(fieldName + "_size");
+        if (p == null) {
+            p = new SimpleIntegerProperty();
+            vaadinSideProperties.put(fieldName + "_size", p);
+        } else {
+            if (p.getValue() != null) {
+                l.setValue("" + p.getValue() + " " + Helper.pluralize(Helper.capitalize(fieldName)) + " related");
+            }
+        }
+
+        p.addListener(new ChangeListener() {
+            @Override
+            public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                l.setValue("" + newValue + " " + Helper.pluralize(Helper.capitalize(fieldName)) + " related");
+            }
+        });
+
+    }
+
     public void bindOneToMany(Grid g, String fieldName) {
         fields.add(g);
 
@@ -843,6 +909,7 @@ public class MDDBinder {
                 ldp.getItems().clear();
                 ldp.getItems().addAll(col);
                 g.setHeightByRows((ldp.getItems().size() > 0)?ldp.getItems().size():1);
+                g.getDataProvider().refreshAll();
                 //((JPQLListDataProvider)c.getDataProvider()).getItems().contains(col.iterator().next())
                 /*
                 c.updateSelection(
@@ -935,4 +1002,5 @@ public class MDDBinder {
         for (AbstractComponent x : fields) ok &= x.getErrorMessage() == null;
         return ok;
     }
+
 }

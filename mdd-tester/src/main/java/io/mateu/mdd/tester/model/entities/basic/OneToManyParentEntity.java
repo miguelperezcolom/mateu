@@ -1,6 +1,7 @@
 package io.mateu.mdd.tester.model.entities.basic;
 
 import io.mateu.mdd.core.annotations.SearchFilter;
+import io.mateu.mdd.core.annotations.UseLinkToListView;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,6 +25,10 @@ public class OneToManyParentEntity {
 
     @OneToMany(mappedBy = "parent")
     private List<OneToManyChildEntity> children = new ArrayList<>();
+
+    @OneToMany
+    @UseLinkToListView
+    private List<OneToManyChildEntity> lazyChildren = new ArrayList<>();
 
 
 
