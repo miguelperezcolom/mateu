@@ -395,7 +395,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                                                 lvc = new JPAListViewComponent(field.getGenericClass()).build();
 
-                                                vc = new CRUDViewComponent(lvc, new EditorViewComponent(field.getGenericType()).build()).build();
+                                                vc = new CRUDViewComponent(lvc, new EditorViewComponent(field.getGenericClass()).build()).build();
 
 
                                             }
@@ -447,7 +447,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                                                     FieldInterfaced finalMbf = mbf;
                                                                     try {
                                                                         ReflectionHelper.setValue(finalMbf, e, m);
-                                                                        em.merge(e);
+                                                                        evfc.getBinder().getMergeables().add(e);
                                                                     } catch (Throwable e1) {
                                                                         MDD.alert(e1);
                                                                     }
@@ -543,7 +543,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                     try {
                                         lvc = new JPAListViewComponent(field.getGenericClass()).build();
 
-                                        vc = new CRUDViewComponent(lvc, new EditorViewComponent(field.getGenericType()).build()).build();
+                                        vc = new CRUDViewComponent(lvc, new EditorViewComponent(field.getGenericClass()).build()).build();
 
                                         lvc.addListener(new ListViewComponentListener() {
                                             @Override
@@ -597,12 +597,11 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                                                     if (old != null) {
                                                                         Collection oldCol = (Collection) ReflectionHelper.getValue(field, old);
                                                                         oldCol.remove(e);
-                                                                        Helper.transact(emx -> emx.merge(old));
+                                                                        evfc.getBinder().getMergeables().add(old);
                                                                     }
 
                                                                     ReflectionHelper.setValue(finalMbf, e, m);
-                                                                    Object finalE = e;
-                                                                    Helper.transact(emx -> emx.merge(finalE));
+                                                                    evfc.getBinder().getMergeables().add(e);
                                                                 } catch (Throwable e1) {
                                                                     MDD.alert(e1);
                                                                 }

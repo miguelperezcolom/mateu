@@ -49,6 +49,10 @@ public class EditorViewComponent extends AbstractViewComponent {
 
     private AbstractStylist stylist;
 
+    public MDDBinder getBinder() {
+        return binder;
+    }
+
     public List<Object> getMergeables() {
         return binder.getMergeables();
     }

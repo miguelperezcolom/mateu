@@ -55,16 +55,7 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
         }
 
 
-        if (owned) {
-
-
-            Grid g = new Grid();
-
-            g.setCaption(Helper.capitalize(field.getName()));
-
-            container.addComponent(g);
-
-        } else if (field.isAnnotationPresent(UseTwinCols.class)) {
+        if (field.isAnnotationPresent(UseTwinCols.class)) {
 
             TwinColSelect<Object> tf = new TwinColSelect(Helper.capitalize(field.getName()));
             tf.setRows(10);
@@ -218,8 +209,45 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
             HorizontalLayout hl = new HorizontalLayout();
 
             Button b;
-            hl.addComponent(b = new Button("Add", VaadinIcons.PLUS));
-            b.addClickListener(e -> MyUI.get().getNavegador().go(field.getName()));
+
+            if (owned) {
+
+                hl.addComponent(b = new Button("Add", VaadinIcons.PLUS));
+                b.addClickListener(e -> {
+                    try {
+                        Object bean = binder.getBean();
+
+                        Object i = field.getGenericClass().newInstance();
+                        ((Collection)ReflectionHelper.getValue(field, bean)).add(i);
+
+
+                        String mb = null;
+                        FieldInterfaced mbf = null;
+                        if (field.isAnnotationPresent(OneToMany.class)) {
+                            mb = field.getAnnotation(OneToMany.class).mappedBy();
+                            if (!Strings.isNullOrEmpty(mb)) {
+                                mbf = ReflectionHelper.getFieldByName(field.getGenericClass(), mb);
+                            }
+                        }
+                        if (mbf != null) {
+                            FieldInterfaced finalMbf = mbf;
+                            ReflectionHelper.setValue(finalMbf, i, bean);
+                        }
+                        binder.setBean(bean);
+                    } catch (Exception e1) {
+                        MDD.alert(e1);
+                    }
+                });
+
+
+            } else {
+
+                hl.addComponent(b = new Button("Add", VaadinIcons.PLUS));
+                b.addClickListener(e -> MyUI.get().getNavegador().go(field.getName() + "/add"));
+
+                //todo: fata abrir el editor cuando se hace doble click
+            }
+
 
             hl.addComponent(b = new Button("Remove", VaadinIcons.MINUS));
             b.addClickListener(e -> {
@@ -240,7 +268,7 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
                         l.forEach(o -> {
                             try {
                                 ReflectionHelper.setValue(finalMbf, o, null);
-                                Helper.transact(em -> em.merge(o));
+                                binder.getMergeables().add(o);
                             } catch (Throwable e1) {
                                 MDD.alert(e1);
                             }
