@@ -197,6 +197,8 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
 
             ListViewComponent.buildColumns(g, getColumnFields(field), false, owned);
 
+            g.setSelectionMode(Grid.SelectionMode.MULTI);
+
             // añadimos columna para que no haga feo
             if (g.getColumns().size() == 1) ((Grid.Column)g.getColumns().get(0)).setExpandRatio(1);
             else g.addColumn((d) -> null).setWidthUndefined().setCaption("");

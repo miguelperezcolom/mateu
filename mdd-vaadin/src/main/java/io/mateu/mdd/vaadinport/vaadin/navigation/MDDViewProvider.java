@@ -22,11 +22,10 @@ import io.mateu.mdd.vaadinport.vaadin.pojos.Profile;
 
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 
 //public
@@ -384,6 +383,10 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                                         if (Collection.class.isAssignableFrom(field.getType())) {
 
+
+                                            // todo: cambiar comportamiento para poder seleccionar varios y añadir acción para añadirlos a la lista.
+                                            // todo: no deben mostrarse los que ya están incluidos
+
                                             ListViewComponent lvc = null;
                                             Component vc = null;
 
@@ -541,82 +544,90 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                     Component vc = null;
 
                                     try {
-                                        lvc = new JPAListViewComponent(field.getGenericClass()).build();
-
-                                        vc = new CRUDViewComponent(lvc, new EditorViewComponent(field.getGenericClass()).build()).build();
-
-                                        lvc.addListener(new ListViewComponentListener() {
+                                        lvc = new JPAListViewComponent(field.getGenericClass()) {
                                             @Override
-                                            public void onEdit(Object id) {
+                                            public List<AbstractAction> getActions() {
+                                                List<AbstractAction> l = super.getActions();
 
-                                            }
+                                                l.add(new AbstractAction("Add selected") {
+                                                    @Override
+                                                    public void run(MDDExecutionContext context) {
 
-                                            @Override
-                                            public void onSelect(Object id) {
-                                                System.out.println("Han seleccionado " + id);
-                                                Optional o = (Optional) id;
-                                                if (o.isPresent()) {
+                                                        try {
 
-                                                    try {
+                                                            Helper.notransact(em -> {
 
-                                                        Helper.notransact(em -> {
-
-                                                            Object m = evfc.getModel();
-                                                            Object oid = o.get();
+                                                                getSelection().forEach(o -> {
+                                                                    Object m = evfc.getModel();
+                                                                    Object oid = o;
 
 
-                                                            Object e = null;
+                                                                    Object e = null;
 
-                                                            if (oid instanceof Object[]) {
-                                                                e = em.find(field.getGenericClass(), ((Object[]) oid)[0]);
-                                                            } else if (oid instanceof EntityProvider) {
-                                                                e = ((EntityProvider) oid).toEntity(em);
-                                                            } else {
-                                                                e = em.find(field.getGenericClass(), oid);
-                                                            }
-
-
-                                                            Collection col = (Collection) ReflectionHelper.getValue(field, m);
-                                                            if (!col.contains(e)) col.add(e);
-                                                            evfc.setModel(m);
-
-                                                            String mb = null;
-                                                            FieldInterfaced mbf = null;
-                                                            if (field.isAnnotationPresent(OneToMany.class)) {
-                                                                mb = field.getAnnotation(OneToMany.class).mappedBy();
-                                                                if (!Strings.isNullOrEmpty(mb)) {
-                                                                    mbf = ReflectionHelper.getFieldByName(field.getGenericClass(), mb);
-                                                                }
-                                                            }
-                                                            if (mbf != null) {
-                                                                FieldInterfaced finalMbf = mbf;
-                                                                try {
-
-                                                                    Object old = ReflectionHelper.getValue(finalMbf, e);
-
-                                                                    if (old != null) {
-                                                                        Collection oldCol = (Collection) ReflectionHelper.getValue(field, old);
-                                                                        oldCol.remove(e);
-                                                                        evfc.getBinder().getMergeables().add(old);
+                                                                    if (oid instanceof Object[]) {
+                                                                        e = em.find(field.getGenericClass(), ((Object[]) oid)[0]);
+                                                                    } else if (oid instanceof EntityProvider) {
+                                                                        e = ((EntityProvider) oid).toEntity(em);
+                                                                    } else {
+                                                                        e = em.find(field.getGenericClass(), oid);
                                                                     }
 
-                                                                    ReflectionHelper.setValue(finalMbf, e, m);
-                                                                    evfc.getBinder().getMergeables().add(e);
-                                                                } catch (Throwable e1) {
-                                                                    MDD.alert(e1);
-                                                                }
-                                                            }
 
-                                                            MyUI.get().getNavegador().goBack();
+                                                                    Collection col = null;
+                                                                    try {
+                                                                        col = (Collection) ReflectionHelper.getValue(field, m);
 
-                                                        });
-                                                    } catch (Throwable throwable) {
-                                                        MDD.alert(throwable);
+                                                                        if (!col.contains(e)) col.add(e);
+                                                                        evfc.setModel(m);
+
+                                                                        String mb = null;
+                                                                        FieldInterfaced mbf = null;
+                                                                        if (field.isAnnotationPresent(OneToMany.class)) {
+                                                                            mb = field.getAnnotation(OneToMany.class).mappedBy();
+                                                                            if (!Strings.isNullOrEmpty(mb)) {
+                                                                                mbf = ReflectionHelper.getFieldByName(field.getGenericClass(), mb);
+                                                                            }
+                                                                        }
+                                                                        if (mbf != null) {
+                                                                            FieldInterfaced finalMbf = mbf;
+                                                                            try {
+
+                                                                                Object old = ReflectionHelper.getValue(finalMbf, e);
+
+                                                                                if (old != null) {
+                                                                                    Collection oldCol = (Collection) ReflectionHelper.getValue(field, old);
+                                                                                    oldCol.remove(e);
+                                                                                    evfc.getBinder().getMergeables().add(old);
+                                                                                }
+
+                                                                                ReflectionHelper.setValue(finalMbf, e, m);
+                                                                                evfc.getBinder().getMergeables().add(e);
+                                                                            } catch (Throwable e1) {
+                                                                                MDD.alert(e1);
+                                                                            }
+                                                                        }
+
+                                                                    } catch (Exception e1) {
+                                                                        MDD.alert(e1);
+                                                                    }
+                                                                });
+
+                                                                MyUI.get().getNavegador().goBack();
+
+                                                            });
+                                                        } catch (Throwable throwable) {
+                                                            MDD.alert(throwable);
+                                                        }
+
+
                                                     }
+                                                });
 
-                                                }
+                                                return l;
                                             }
-                                        });
+                                        }.build();
+
+                                        vc = new CRUDViewComponent(lvc, new EditorViewComponent(field.getGenericClass()).build()).build();
 
                                         stack.push(currentPath, vc);
 
