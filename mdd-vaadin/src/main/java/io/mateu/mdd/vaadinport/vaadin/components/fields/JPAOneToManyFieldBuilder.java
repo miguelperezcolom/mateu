@@ -14,7 +14,9 @@ import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.annotations.UseCheckboxes;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
+import io.mateu.mdd.core.annotations.UseRadioButtons;
 import io.mateu.mdd.core.annotations.UseTwinCols;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -177,7 +179,7 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
             HorizontalLayout hl = new HorizontalLayout();
 
             Label l;
-            hl.addComponent(l = new Label("" ));
+            hl.addComponent(l = new Label(""));
             l.addStyleName("collectionlinklabel");
 
             Button b;
@@ -190,6 +192,12 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
             container.addComponent(hl);
 
             bind(binder, l, field);
+
+        } else if (field.isAnnotationPresent(UseCheckboxes.class)) {
+
+            // todo: completar
+
+
 
         } else {
 
