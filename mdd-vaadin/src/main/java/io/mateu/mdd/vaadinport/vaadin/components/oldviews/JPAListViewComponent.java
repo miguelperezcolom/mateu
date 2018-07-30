@@ -336,7 +336,7 @@ public class JPAListViewComponent extends ListViewComponent {
                 }
             });
         } catch (Throwable throwable) {
-            throwable.printStackTrace();
+            MDD.alert(throwable);
         }
     }
 

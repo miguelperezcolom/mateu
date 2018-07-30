@@ -10,6 +10,7 @@ import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.UserError;
 import com.vaadin.shared.ui.ErrorLevel;
+import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
@@ -194,7 +195,7 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
 
             Grid g = new Grid();
 
-            ListViewComponent.buildColumns(g, getColumnFields(field), false);
+            ListViewComponent.buildColumns(g, getColumnFields(field), false, owned);
 
             // añadimos columna para que no haga feo
             if (g.getColumns().size() == 1) ((Grid.Column)g.getColumns().get(0)).setExpandRatio(1);
@@ -211,6 +212,12 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
             Button b;
 
             if (owned) {
+
+                g.getEditor().setEnabled(true);
+                g.getEditor().setBuffered(false);
+                g.setHeightByRows(5);
+
+
 
                 hl.addComponent(b = new Button("Add", VaadinIcons.PLUS));
                 b.addClickListener(e -> {
@@ -243,7 +250,7 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
             } else {
 
                 hl.addComponent(b = new Button("Add", VaadinIcons.PLUS));
-                b.addClickListener(e -> MyUI.get().getNavegador().go(field.getName() + "/add"));
+                b.addClickListener(e -> MyUI.get().getNavegador().go(field.getName()));
 
                 //todo: fata abrir el editor cuando se hace doble click
             }

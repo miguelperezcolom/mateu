@@ -34,7 +34,9 @@ public class OneToManyChildEntity {
 
     @Override
     public boolean equals(Object obj) {
-        return this == obj || (obj != null && obj instanceof OneToManyChildEntity && id == ((OneToManyChildEntity)obj).id);
+        boolean eq = this == obj || (obj != null && obj instanceof OneToManyChildEntity && id == ((OneToManyChildEntity)obj).id);
+        if (eq && id == 0) eq = this == obj;
+        return eq;
     }
 
     @Override

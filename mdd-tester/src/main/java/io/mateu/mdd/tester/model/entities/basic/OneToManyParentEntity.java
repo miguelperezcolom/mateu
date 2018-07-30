@@ -30,7 +30,7 @@ public class OneToManyParentEntity {
     @UseLinkToListView
     private List<OneToManyChildEntity> lazyChildren = new ArrayList<>();
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinTable(name = "onetomanyowned")
     private List<OneToManyChildEntity> ownedChildren = new ArrayList<>();
 

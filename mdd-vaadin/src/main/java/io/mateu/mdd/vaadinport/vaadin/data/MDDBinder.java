@@ -900,7 +900,7 @@ public class MDDBinder {
                 ldp.getItems().addAll(((SimpleSetProperty)p).getValue());
             }
         }
-        g.setHeightByRows((ldp.getItems().size() > 0)?ldp.getItems().size():1);
+        if (!g.getEditor().isEnabled()) g.setHeightByRows((ldp.getItems().size() > 0)?ldp.getItems().size():1);
 
         p.addListener(new ChangeListener<Object>() {
             @Override
@@ -908,7 +908,7 @@ public class MDDBinder {
                 Collection col = (Collection) newValue;
                 ldp.getItems().clear();
                 ldp.getItems().addAll(col);
-                g.setHeightByRows((ldp.getItems().size() > 0)?ldp.getItems().size():1);
+                if (!g.getEditor().isEnabled()) g.setHeightByRows((ldp.getItems().size() > 0)?ldp.getItems().size():1);
                 g.getDataProvider().refreshAll();
                 //((JPQLListDataProvider)c.getDataProvider()).getItems().contains(col.iterator().next())
                 /*

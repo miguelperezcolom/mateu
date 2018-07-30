@@ -68,6 +68,10 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     public static void buildColumns(Grid grid, List<FieldInterfaced> colFields, boolean isJPAListViewComponent) {
+        buildColumns(grid, colFields, isJPAListViewComponent, false);
+    }
+
+    public static void buildColumns(Grid grid, List<FieldInterfaced> colFields, boolean isJPAListViewComponent, boolean editable) {
 
         int pos = 0;
         for (FieldInterfaced f : colFields) {
@@ -99,6 +103,30 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                         return null;
                     }
                 });
+            }
+
+            if (editable) {
+                if (Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) {
+                    col.setEditorComponent(new CheckBox(), (o, v) -> {
+                        try {
+                            ReflectionHelper.setValue(f, o, v);
+                        } catch (Exception e) {
+                            MDD.alert(e);
+                        }
+                    });
+                    col.setEditable(true);
+                } else if (String.class.equals(f.getType())) {
+                    col.setEditorComponent(new TextField(), (o, v) -> {
+                        try {
+                            ReflectionHelper.setValue(f, o, v);
+                        } catch (Exception e) {
+                            MDD.alert(e);
+                        }
+                    });
+                    col.setEditable(true);
+                }
+
+                //todo: acabar
             }
 
             col.setCaption(Helper.capitalize(f.getName()));
