@@ -16,6 +16,9 @@ public class WithEmbeddedEntity {
     private String name;
 
     @Embedded
-    private EmbeddableEntity embedded;
+    @AttributeOverrides({
+            @AttributeOverride(name="name", column=@Column(name="emb_name")),
+            @AttributeOverride(name="age", column=@Column(name="emb_age"))})
+    private EmbeddableEntity embedded = new EmbeddableEntity();
 
 }

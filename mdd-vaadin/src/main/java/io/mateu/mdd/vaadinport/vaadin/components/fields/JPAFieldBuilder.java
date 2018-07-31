@@ -28,6 +28,7 @@ public abstract class JPAFieldBuilder {
             , new JPAOneToManyFieldBuilder()
             , new JPALocalDateFieldBuilder()
             , new JPALocalDateTimeFieldBuilder()
+            , new JPAPOJOFieldBuilder()
     );
 
     public abstract boolean isSupported(FieldInterfaced field);

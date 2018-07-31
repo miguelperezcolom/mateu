@@ -111,7 +111,7 @@ public class EditorViewComponent extends AbstractViewComponent {
         binder = new MDDBinder(modelType);
         //binder = new Binder(modelType, true);
 
-        Pair<Component, AbstractStylist> r = FormLayoutBuilder.build(binder, modelType, model, validators, getAllFields());
+        Pair<Component, AbstractStylist> r = FormLayoutBuilder.build(binder, modelType, model, validators, ReflectionHelper.getAllEditableFields(modelType));
 
         stylist = r.getValue();
 
@@ -125,15 +125,7 @@ public class EditorViewComponent extends AbstractViewComponent {
         return this;
     }
 
-    private List<FieldInterfaced> getAllFields() {
-        List<FieldInterfaced> allFields = ReflectionHelper.getAllFields(modelType);
 
-        allFields = allFields.stream().filter((f) ->
-                !(f.isAnnotationPresent(Ignored.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))
-        ).collect(Collectors.toList());
-
-        return allFields;
-    }
 
     @Override
     public void addViewActionsMenuItems(MenuBar bar) {

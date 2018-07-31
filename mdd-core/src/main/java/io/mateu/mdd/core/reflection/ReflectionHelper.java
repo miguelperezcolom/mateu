@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.sun.javafx.collections.ObservableSetWrapper;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
+import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDExecutionContext;
 import io.mateu.mdd.core.data.*;
@@ -1426,6 +1427,16 @@ public class ReflectionHelper {
             o = c.newInstance();
         }
         return o;
+    }
+
+    public static List<FieldInterfaced> getAllEditableFields(Class modelType) {
+        List<FieldInterfaced> allFields = ReflectionHelper.getAllFields(modelType);
+
+        allFields = allFields.stream().filter((f) ->
+                !(f.isAnnotationPresent(Ignored.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))
+        ).collect(Collectors.toList());
+
+        return allFields;
     }
 
 

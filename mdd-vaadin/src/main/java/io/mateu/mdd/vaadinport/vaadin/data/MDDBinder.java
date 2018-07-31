@@ -2,21 +2,24 @@ package io.mateu.mdd.vaadinport.vaadin.data;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.HasValue;
+import com.vaadin.data.Validator;
 import com.vaadin.data.provider.ListDataProvider;
-import com.vaadin.event.selection.MultiSelectionEvent;
-import com.vaadin.event.selection.MultiSelectionListener;
 import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
+import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.FormLayoutBuilder;
 import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
+import javafx.util.Pair;
 
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;
@@ -978,6 +981,46 @@ public class MDDBinder {
                 col.addAll(e.getNewSelection());
             } catch (Exception e1) {
                 MDD.alert(e1);
+            }
+        });
+    }
+
+    public void update(FormLayout l, FieldInterfaced field, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields) {
+        try {
+            Object v = ReflectionHelper.getValue(field, bean);
+
+            l.removeAllComponents();
+
+            if (v != null) {
+
+                MDDBinder binder = new MDDBinder(v.getClass());
+                
+                Pair<Component, AbstractStylist> r = FormLayoutBuilder.build(binder, v.getClass(), v, validators, ReflectionHelper.getAllEditableFields(v.getClass()));
+
+                //stylist = r.getValue();
+
+                l.addComponent(r.getKey());
+
+            }
+
+
+        } catch (Exception e) {
+            MDD.alert(e);
+        }
+    }
+
+    public void bindEmbedded(FormLayout l, FieldInterfaced field, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields) {
+        fields.add(l);
+
+        SimpleObjectProperty p = (SimpleObjectProperty) vaadinSideProperties.get(field.getName());
+        if (p == null) {
+            p = new SimpleObjectProperty();
+            vaadinSideProperties.put(field.getName(), p);
+        } else update(l, field, validators, allFields);
+        p.addListener(new ChangeListener<Object>() {
+            @Override
+            public void changed(ObservableValue<?> observable, Object oldValue, Object newValue) {
+                update(l, field, validators, allFields);
             }
         });
     }

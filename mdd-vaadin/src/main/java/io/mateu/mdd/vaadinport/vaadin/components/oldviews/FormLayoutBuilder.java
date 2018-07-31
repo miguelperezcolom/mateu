@@ -117,7 +117,10 @@ public class FormLayoutBuilder {
             if (f.isAnnotationPresent(GeneratedValue.class) || f.isAnnotationPresent(Output.class)) {
                 ofb.build(f, model, contentContainer, binder, validators, stylist, allFieldContainers);
             } else {
-                for (JPAFieldBuilder fieldBuilder : JPAFieldBuilder.builders) if (fieldBuilder.isSupported(f)) fieldBuilder.build(f, model, contentContainer, binder, validators, stylist, allFieldContainers);
+                for (JPAFieldBuilder fieldBuilder : JPAFieldBuilder.builders) if (fieldBuilder.isSupported(f)) {
+                    fieldBuilder.build(f, model, contentContainer, binder, validators, stylist, allFieldContainers);
+                    break;
+                }
             }
 
         }
