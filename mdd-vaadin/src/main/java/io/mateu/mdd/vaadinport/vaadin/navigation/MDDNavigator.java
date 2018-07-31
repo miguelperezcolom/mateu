@@ -46,8 +46,8 @@ public class MDDNavigator {
     }
 
     public String getPath(MenuEntry action, Class viewClass, Object id) {
-        //return getPath(action, viewClass) + "/" + ((id != null)?id:"add");
-        return getPath(action) + "/" + ((id != null)?id:"add");
+        //return getPath(action, viewClass) + "/" + ((id != null)?id:"new");
+        return getPath(action) + "/" + ((id != null)?id:"new");
     }
 
     public String getPath(MenuEntry e) {
@@ -127,7 +127,7 @@ public class MDDNavigator {
     public void goTo(Object id) {
         String state = stack.getState(stack.getLast());
         if (!state.endsWith("/" + id)) {
-            if (state.endsWith("/add")) state = state.substring(0, state.length() - "add".length());
+            if (state.endsWith("/add")) state = state.substring(0, state.length() - "new".length());
             if (!state.endsWith("/")) state += "/";
             state += id;
         }

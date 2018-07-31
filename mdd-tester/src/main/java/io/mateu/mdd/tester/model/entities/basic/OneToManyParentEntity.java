@@ -1,7 +1,9 @@
 package io.mateu.mdd.tester.model.entities.basic;
 
 import io.mateu.mdd.core.annotations.SearchFilter;
+import io.mateu.mdd.core.annotations.UseCheckboxes;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
+import io.mateu.mdd.core.annotations.UseTwinCols;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,9 +32,20 @@ public class OneToManyParentEntity {
     @UseLinkToListView
     private List<OneToManyChildEntity> lazyChildren = new ArrayList<>();
 
+
+    @OneToMany
+    @UseCheckboxes
+    @JoinTable(name = "onetomanywithcheckboxes")
+    private List<OneToManyChildEntity> withCheckboxes = new ArrayList<>();
+
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinTable(name = "onetomanyowned")
     private List<OneToManyChildEntity> ownedChildren = new ArrayList<>();
+
+    @OneToMany
+    @UseTwinCols
+    @JoinTable(name = "onetomanytwincols")
+    private List<OneToManyChildEntity> twinColsChildren = new ArrayList<>();
 
 
 

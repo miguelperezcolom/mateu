@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MenuFlowComponent extends CssLayout {
+public class MenuFlowComponent extends Panel {
 
     private final AbstractMenu menu;
 
@@ -27,12 +27,19 @@ public class MenuFlowComponent extends CssLayout {
     public MenuFlowComponent(AbstractMenu menu) {
         this.menu = menu;
 
-        addStyleName("menuflowcomponent");
+        setSizeFull();
+        addStyleName(ValoTheme.PANEL_BORDERLESS);
+
+        CssLayout cssLayout = new CssLayout();
+
+        setContent(cssLayout);
+
+        cssLayout.addStyleName("menuflowcomponent");
 
         List<MenuEntry> plainActions = menu.getEntries().stream().filter(e -> e instanceof AbstractAction).collect(Collectors.toList());
 
         if (plainActions.size() > 0) {
-            addComponent(createMenuComponent(new AbstractMenu("Options") {
+            cssLayout.addComponent(createMenuComponent(new AbstractMenu("Options") {
                 @Override
                 public List<MenuEntry> buildEntries() {
                     return plainActions;
@@ -40,7 +47,7 @@ public class MenuFlowComponent extends CssLayout {
             }));
         }
 
-        menu.getEntries().stream().filter(e -> e instanceof AbstractMenu).forEach(e -> addComponent(createMenuComponent(e)));
+        menu.getEntries().stream().filter(e -> e instanceof AbstractMenu).forEach(e -> cssLayout.addComponent(createMenuComponent(e)));
 
     }
 

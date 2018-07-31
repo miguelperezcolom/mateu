@@ -82,7 +82,7 @@ public class FiltersComponent extends CssLayout {
 
                 Button b;
                 addComponent(b = new Button(VaadinIcons.FILTER));
-                b.setDescription("All filters");
+                b.setDescription("All filters. Click Ctrl + F to fire");
                 b.addStyleName(ValoTheme.BUTTON_QUIET);
                 b.addStyleName("buttonlink");
                 b.addClickListener(new Button.ClickListener() {
@@ -120,7 +120,7 @@ public class FiltersComponent extends CssLayout {
 
         Button b;
         addComponent(b = new Button(VaadinIcons.SEARCH));
-        b.setDescription("Search");
+        b.setDescription("Search. Click ENTER to fire");
         b.addStyleName(ValoTheme.BUTTON_QUIET);
         b.addStyleName("buttonlink");
         b.addClickListener(new Button.ClickListener() {

@@ -85,6 +85,10 @@ public class EditorViewComponent extends AbstractViewComponent {
         binder.setBean(model);
     }
 
+    public void updateModel(Object model) {
+        this.model = model;
+        binder.setBean(model, false);
+    }
 
     @Override
     public String toString() {
@@ -185,11 +189,12 @@ public class EditorViewComponent extends AbstractViewComponent {
             });
             i.setStyleName(ValoTheme.BUTTON_PRIMARY);
 
+            i.setDescription("Click Ctrl + S to fire");
             Button b;
             addComponent(b = new Button());
             b.addStyleName("hidden");
             b.addClickListener(e -> cmd.menuSelected(i));
-            b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
+            b.setClickShortcut(ShortcutAction.KeyCode.S, ShortcutAction.ModifierKey.CTRL);
         }
 
     }
@@ -253,9 +258,11 @@ public class EditorViewComponent extends AbstractViewComponent {
         return a;
     }
 
-
-
     public void save() throws Throwable {
+        save(true);
+    }
+
+    public void save(boolean goBack) throws Throwable {
         if (modelType.isAnnotationPresent(Entity.class)) {
 
             Helper.transact(new JPATransaction() {
@@ -268,7 +275,7 @@ public class EditorViewComponent extends AbstractViewComponent {
             });
 
             // cambiamos la url, para reflejar el cambio
-            MyUI.get().getNavegador().goTo(ReflectionHelper.getId(model));
+            if (goBack) MyUI.get().getNavegador().goTo(ReflectionHelper.getId(model));
 
         } else if (PMO.class.isAssignableFrom(modelType)) {
 

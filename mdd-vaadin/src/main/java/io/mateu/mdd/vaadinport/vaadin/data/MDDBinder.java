@@ -3,6 +3,8 @@ package io.mateu.mdd.vaadinport.vaadin.data;
 import com.google.common.base.Strings;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.provider.ListDataProvider;
+import com.vaadin.event.selection.MultiSelectionEvent;
+import com.vaadin.event.selection.MultiSelectionListener;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
@@ -50,6 +52,10 @@ public class MDDBinder {
     }
 
     public void setBean(Object bean) {
+        setBean(bean, true);
+    }
+
+    public void setBean(Object bean, boolean reset) {
 
         if (bean == null) {
             try {
@@ -92,12 +98,14 @@ public class MDDBinder {
             for (String n : beanSideProperties.keySet()) {
                 Property vsp = vaadinSideProperties.get(n);
                 Property bsp = beanSideProperties.get(n);
-                vsp.setValue(bsp.getValue());
-                bsp.bindBidirectional(vsp);
+                if (vsp != null && bsp != null) {
+                    vsp.setValue(bsp.getValue());
+                    bsp.bindBidirectional(vsp);
+                }
             }
         }
 
-        mergeables = new ArrayList<>();
+        if (reset) mergeables = new ArrayList<>();
     }
 
     private void createProperties(Class beanType) {
@@ -106,7 +114,7 @@ public class MDDBinder {
 
     private void createPropertiesAndBind(Class beanType, Map<String, Property> propertiesMap) {
         if (!Map.class.isAssignableFrom(beanType)) for (FieldInterfaced f : ReflectionHelper.getAllFields(beanType)) {
-            if (f.isAnnotationPresent(UseLinkToListView.class)) {
+            if (f.isAnnotationPresent(UseLinkToListView.class) && Collection.class.isAssignableFrom(f.getType())) {
                 Collection col = null;
                 try {
                     col = (Collection) ReflectionHelper.getValue(f, bean);
@@ -243,7 +251,7 @@ public class MDDBinder {
         } else {
 
 
-            if (f.isAnnotationPresent(UseLinkToListView.class)) {
+            if (f.isAnnotationPresent(UseLinkToListView.class) && Collection.class.isAssignableFrom(f.getType())) {
                 p = new SimpleIntegerProperty();
 
                 if (bean != null) {
@@ -921,4 +929,42 @@ public class MDDBinder {
         return ok;
     }
 
+    public void bindOneToMany(CheckBoxGroup cbg, FieldInterfaced field) {
+        fields.add(cbg);
+
+        cbg.deselectAll();
+
+        ListDataProvider ldp = (ListDataProvider) cbg.getDataProvider();
+
+        Property p = vaadinSideProperties.get(field.getName());
+        if (p == null) {
+            p = new SimpleSetProperty();
+            vaadinSideProperties.put(field.getName(), p);
+        } else {
+            if (p.getValue() != null) {
+                Collection col = ((SimpleSetProperty)p).getValue();
+                col.forEach(o -> cbg.select(o));
+            }
+        }
+
+        p.addListener(new ChangeListener<Object>() {
+            @Override
+            public void changed(ObservableValue<? extends Object> observable, Object oldValue, Object newValue) {
+                cbg.deselectAll();
+
+                Collection col = (Collection) newValue;
+                col.forEach(o -> cbg.select(o));
+            }
+        });
+
+        cbg.addSelectionListener(e -> {
+            try {
+                Collection col = (Collection) ReflectionHelper.getValue(field, bean);
+                col.clear();
+                col.addAll(e.getNewSelection());
+            } catch (Exception e1) {
+                MDD.alert(e1);
+            }
+        });
+    }
 }

@@ -18,6 +18,7 @@ import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 
+import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Transient;
 import java.lang.reflect.InvocationTargetException;
@@ -271,18 +272,20 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                 @Override
                 public void menuSelected(MenuBar.MenuItem menuItem) {
                     try {
-                        MyUI.get().getNavegador().go("add");
+                        MyUI.get().getNavegador().go("new");
                     } catch (Throwable throwable) {
                         MDD.alert(throwable);
                     }
                 }
             });
 
+
+            i.setDescription("Click Ctrl + N to fire");
             Button b;
             addComponent(b = new Button());
             b.addStyleName("hidden");
             b.addClickListener(e -> cmd.menuSelected(i));
-            b.setClickShortcut(ShortcutAction.KeyCode.INSERT, ShortcutAction.ModifierKey.CTRL);
+            b.setClickShortcut(ShortcutAction.KeyCode.N, ShortcutAction.ModifierKey.CTRL);
         }
 
         if (isDeleteEnabled()) {
@@ -310,6 +313,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
             });
 
+            i.setDescription("Click Ctrl + DELETE to fire");
             Button b;
             addComponent(b = new Button());
             b.addStyleName("hidden");
@@ -326,8 +330,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     public Object toId(Object row) {
-        if (row instanceof Object[]) return ((Object[]) row)[0];
-        return row;
+        return ReflectionHelper.getId(row);
     }
 
     public abstract void decorateGrid(Grid grid);

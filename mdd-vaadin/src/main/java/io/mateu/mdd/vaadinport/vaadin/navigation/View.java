@@ -88,11 +88,11 @@ public class View implements com.vaadin.navigator.View {
     private Component createBackLink() {
 
         Button b = new Button(null, VaadinIcons.ARROW_CIRCLE_LEFT);
-        b.setDescription("Back to " + stack.get(stack.size() - 1));
+        b.setDescription("Back to " + stack.get(stack.size() - 1) + ". Click Ctrl + B to fire");
         b.addClickListener(e -> MyUI.get().getNavegador().goBack());
         b.addStyleName(ValoTheme.BUTTON_QUIET);
         b.addStyleName("backlink");
-        b.setClickShortcut(ShortcutAction.KeyCode.ARROW_LEFT, ShortcutAction.ModifierKey.CTRL);
+        b.setClickShortcut(ShortcutAction.KeyCode.B, ShortcutAction.ModifierKey.CTRL);
         return b;
     }
 

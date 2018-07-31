@@ -995,16 +995,29 @@ public class ReflectionHelper {
         return f;
     }
 
-    public static Object getId(Object model) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        FieldInterfaced idField = null;
-        for (FieldInterfaced f : ReflectionHelper.getAllFields(model.getClass())) {
-            if (f.isAnnotationPresent(Id.class)) {
-                idField = f;
-                break;
-            }
-        }
+    public static Object getId(Object model) {
+        if (model instanceof Object[]) return ((Object[]) model)[0];
+        else if (model.getClass().isAnnotationPresent(Entity.class)) {
+            Object id = null;
+            try {
+                FieldInterfaced idField = null;
+                for (FieldInterfaced f : ReflectionHelper.getAllFields(model.getClass())) {
+                    if (f.isAnnotationPresent(Id.class)) {
+                        idField = f;
+                        break;
+                    }
+                }
 
-        return ReflectionHelper.getValue(idField, model);
+                id = ReflectionHelper.getValue(idField, model);
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
+            return id;
+        } else return model;
     }
 
     public static FieldInterfaced getNameField(Class entityClass) {

@@ -195,9 +195,20 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
 
         } else if (field.isAnnotationPresent(UseCheckboxes.class)) {
 
-            // todo: completar
+            CheckBoxGroup cbg = new CheckBoxGroup();
 
 
+            try {
+                Helper.notransact(em -> cbg.setDataProvider((new JPQLListDataProvider(em, field.getGenericClass()))));
+            } catch (Throwable throwable) {
+                MDD.alert(throwable);
+            }
+
+            cbg.setCaption(Helper.capitalize(field.getName()));
+
+            container.addComponent(cbg);
+
+            bind(binder, cbg, field);
 
         } else {
 
@@ -259,6 +270,16 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
 
             } else {
 
+                g.addItemClickListener(e -> {
+                   if (e.getMouseEventDetails().isDoubleClick()) {
+                       Object i = e.getItem();
+                       if (i != null) {
+                           //edit(listViewComponent.toId(i));
+                           MyUI.get().getNavegador().go(field.getName() + "/" + toId(i));
+                       }
+                   }
+                });
+
                 hl.addComponent(b = new Button("Add", VaadinIcons.PLUS));
                 b.addClickListener(e -> MyUI.get().getNavegador().go(field.getName()));
 
@@ -307,6 +328,11 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
 
     }
 
+    private Object toId(Object row) {
+        return ReflectionHelper.getId(row);
+    }
+
+
     private List<FieldInterfaced> getColumnFields(FieldInterfaced field) {
         List<FieldInterfaced> l = ListViewComponent.getColumnFields(field.getGenericClass());
 
@@ -333,6 +359,10 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
     public void addValidators(List<Validator> validators) {
     }
 
+
+    private void bind(MDDBinder binder, CheckBoxGroup cbg, FieldInterfaced field) {
+        binder.bindOneToMany(cbg, field);
+    }
 
     private void bind(MDDBinder binder, Label l, FieldInterfaced field) {
         binder.bindOneToMany(l, field.getName());

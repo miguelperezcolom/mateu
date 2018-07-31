@@ -166,6 +166,7 @@ public class MethodParametersViewComponent extends AbstractViewComponent {
         });
         i.setStyleName(ValoTheme.BUTTON_PRIMARY);
 
+        i.setDescription("Click ENTER to fire");
         Button b;
         addComponent(b = new Button());
         b.addStyleName("hidden");

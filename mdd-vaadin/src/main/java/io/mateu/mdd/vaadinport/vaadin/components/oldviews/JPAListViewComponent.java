@@ -30,10 +30,17 @@ import java.util.stream.Stream;
 
 public class JPAListViewComponent extends ListViewComponent {
 
+    private ExtraFilters extraFilters;
+
     private final Class entityClass;
 
     public JPAListViewComponent(Class entityClass) {
         this.entityClass = entityClass;
+    }
+
+    public JPAListViewComponent(Class entityClass, ExtraFilters extraFilters) {
+        this.entityClass = entityClass;
+        this.extraFilters = extraFilters;
     }
 
     @Override
@@ -190,9 +197,25 @@ public class JPAListViewComponent extends ListViewComponent {
         return cols;
     }
 
+
+
+
     private String buildWhereClause(Object filters, Class entityClass, Map<String, Object> parameterValues) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
-        if (filters == null) return "";
+        String ql = "";
+
+
+        if (extraFilters != null && !Strings.isNullOrEmpty(extraFilters.getQl())) {
+
+            if (!"".equals(ql)) ql += " and ";
+
+            ql += extraFilters.getQl();
+
+            if (extraFilters.getParameters() != null) parameterValues.putAll(extraFilters.getParameters());
+
+        }
+
+        if (filters == null) return ql;
 
         List<FieldInterfaced> allFields = ReflectionHelper.getAllFields(entityClass);
 
@@ -202,7 +225,6 @@ public class JPAListViewComponent extends ListViewComponent {
 
         //todo: contemplar caso varias anttaciones @SearchFilter para un mismo campo
 
-        String ql = "";
 
         for (FieldInterfaced f : allFields) if (f.isAnnotationPresent(SearchFilter.class) || f.isAnnotationPresent(MainSearchFilter.class)) {
 
@@ -349,5 +371,13 @@ public class JPAListViewComponent extends ListViewComponent {
                 MDD.alert(e);
             }
         }
+    }
+
+    public ExtraFilters getExtraFilters() {
+        return extraFilters;
+    }
+
+    public void setExtraFilters(ExtraFilters extraFilters) {
+        this.extraFilters = extraFilters;
     }
 }

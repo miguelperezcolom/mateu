@@ -5,6 +5,7 @@ import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewProvider;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Notification;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
 import io.mateu.mdd.core.app.*;
@@ -20,9 +21,8 @@ import io.mateu.mdd.vaadinport.vaadin.components.oauth.OAuthHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
 import io.mateu.mdd.vaadinport.vaadin.pojos.Profile;
 
-import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -309,7 +309,21 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                         Component lastViewComponent = lastView.getComponent();
 
-                        if (lastViewComponent instanceof CRUDViewComponent || lastViewComponent instanceof  ListViewComponent) { // el último fué una listView, estamos en un id, add, o en los filtros
+
+                        if (lastViewComponent instanceof JPACollectionFieldCRUDViewComponent && "add".equals(step)) {
+
+                            JPACollectionFieldCRUDViewComponent cfcvc = (JPACollectionFieldCRUDViewComponent) lastViewComponent;
+
+                            try {
+                                Component vc = new JPACollectionFieldCRUDViewComponent(cfcvc.getField(), cfcvc.getEvfc(), true).build();
+
+                                stack.push(currentPath, vc);
+
+                            } catch (Exception e) {
+                                MDD.alert(e);
+                            }
+
+                        } else if (lastViewComponent instanceof CRUDViewComponent || lastViewComponent instanceof  ListViewComponent) { // el último fué una listView, estamos en un id, add, o en los filtros
 
                             ListViewComponent lvc = null;
                             if (lastViewComponent instanceof CRUDViewComponent) {
@@ -344,7 +358,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                                     try {
 
-                                        if (Strings.isNullOrEmpty(step) || "add".equals(step)) { // estamos añadiendo un nuevo registro
+                                        if (Strings.isNullOrEmpty(step) || "new".equals(step)) { // estamos añadiendo un nuevo registro
                                             evc.load(null);
                                         } else { // step es el id del objeto a editar
                                             String sid = step;
@@ -376,100 +390,12 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                             } else if (field != null) {
 
-                                if (field.isAnnotationPresent(UseLinkToListView.class)) {
+                                if (field.isAnnotationPresent(ManyToOne.class) && field.isAnnotationPresent(UseLinkToListView.class)) {
                                     try {
 
                                         UseLinkToListView aa = field.getAnnotation(UseLinkToListView.class);
 
-                                        if (Collection.class.isAssignableFrom(field.getType())) {
-
-
-                                            // todo: cambiar comportamiento para poder seleccionar varios y añadir acción para añadirlos a la lista.
-                                            // todo: no deben mostrarse los que ya están incluidos
-
-                                            ListViewComponent lvc = null;
-                                            Component vc = null;
-
-                                            if (!Void.class.equals(aa.listViewClass())) {
-
-                                                vc = lvc = new RpcListViewComponent(aa.listViewClass()).build();
-
-                                            } else {
-
-                                                lvc = new JPAListViewComponent(field.getGenericClass()).build();
-
-                                                vc = new CRUDViewComponent(lvc, new EditorViewComponent(field.getGenericClass()).build()).build();
-
-
-                                            }
-
-                                            lvc.addListener(new ListViewComponentListener() {
-                                                @Override
-                                                public void onEdit(Object id) {
-
-                                                }
-
-                                                @Override
-                                                public void onSelect(Object id) {
-                                                    System.out.println("Han seleccionado " + id);
-                                                    Optional o = (Optional) id;
-                                                    if (o.isPresent()) {
-
-                                                        try {
-
-                                                            Helper.notransact(em -> {
-
-                                                                Object m = evfc.getModel();
-                                                                Object oid = o.get();
-
-
-                                                                Object e = null;
-
-                                                                if (oid instanceof Object[]) {
-                                                                    e = em.find(field.getGenericClass(), ((Object[]) oid)[0]);
-                                                                } else if (oid instanceof EntityProvider) {
-                                                                    e = ((EntityProvider) oid).toEntity(em);
-                                                                } else {
-                                                                    e = em.find(field.getGenericClass(), oid);
-                                                                }
-
-
-                                                                Collection col = (Collection) ReflectionHelper.getValue(field, m);
-                                                                if (!col.contains(e)) col.add(e);
-                                                                evfc.setModel(m);
-
-                                                                String mb = null;
-                                                                FieldInterfaced mbf = null;
-                                                                if (field.isAnnotationPresent(OneToMany.class)) {
-                                                                    mb = field.getAnnotation(OneToMany.class).mappedBy();
-                                                                    if (!Strings.isNullOrEmpty(mb)) {
-                                                                        mbf = ReflectionHelper.getFieldByName(field.getGenericClass(), mb);
-                                                                    }
-                                                                }
-                                                                if (mbf != null) {
-                                                                    FieldInterfaced finalMbf = mbf;
-                                                                    try {
-                                                                        ReflectionHelper.setValue(finalMbf, e, m);
-                                                                        evfc.getBinder().getMergeables().add(e);
-                                                                    } catch (Throwable e1) {
-                                                                        MDD.alert(e1);
-                                                                    }
-                                                                }
-
-                                                                MyUI.get().getNavegador().goBack();
-
-                                                            });
-                                                        } catch (Throwable throwable) {
-                                                            MDD.alert(throwable);
-                                                        }
-
-                                                    }
-                                                }
-                                            });
-
-                                            stack.push(currentPath, vc);
-
-                                        } else {
+                                        {
 
                                             ListViewComponent lvc = null;
                                             Component vc = null;
@@ -518,7 +444,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                                                 }
 
                                                                 ReflectionHelper.setValue(field, m, e);
-                                                                evfc.setModel(m);
+                                                                evfc.updateModel(m);
 
                                                                 MyUI.get().getNavegador().goBack();
 
@@ -544,94 +470,14 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                     Component vc = null;
 
                                     try {
-                                        lvc = new JPAListViewComponent(field.getGenericClass()) {
-                                            @Override
-                                            public List<AbstractAction> getActions() {
-                                                List<AbstractAction> l = super.getActions();
 
-                                                l.add(new AbstractAction("Add selected") {
-                                                    @Override
-                                                    public void run(MDDExecutionContext context) {
+                                        if (field.isAnnotationPresent(UseLinkToListView.class)) evfc.save(false);
 
-                                                        try {
-
-                                                            Helper.notransact(em -> {
-
-                                                                getSelection().forEach(o -> {
-                                                                    Object m = evfc.getModel();
-                                                                    Object oid = o;
-
-
-                                                                    Object e = null;
-
-                                                                    if (oid instanceof Object[]) {
-                                                                        e = em.find(field.getGenericClass(), ((Object[]) oid)[0]);
-                                                                    } else if (oid instanceof EntityProvider) {
-                                                                        e = ((EntityProvider) oid).toEntity(em);
-                                                                    } else {
-                                                                        e = em.find(field.getGenericClass(), oid);
-                                                                    }
-
-
-                                                                    Collection col = null;
-                                                                    try {
-                                                                        col = (Collection) ReflectionHelper.getValue(field, m);
-
-                                                                        if (!col.contains(e)) col.add(e);
-                                                                        evfc.setModel(m);
-
-                                                                        String mb = null;
-                                                                        FieldInterfaced mbf = null;
-                                                                        if (field.isAnnotationPresent(OneToMany.class)) {
-                                                                            mb = field.getAnnotation(OneToMany.class).mappedBy();
-                                                                            if (!Strings.isNullOrEmpty(mb)) {
-                                                                                mbf = ReflectionHelper.getFieldByName(field.getGenericClass(), mb);
-                                                                            }
-                                                                        }
-                                                                        if (mbf != null) {
-                                                                            FieldInterfaced finalMbf = mbf;
-                                                                            try {
-
-                                                                                Object old = ReflectionHelper.getValue(finalMbf, e);
-
-                                                                                if (old != null) {
-                                                                                    Collection oldCol = (Collection) ReflectionHelper.getValue(field, old);
-                                                                                    oldCol.remove(e);
-                                                                                    evfc.getBinder().getMergeables().add(old);
-                                                                                }
-
-                                                                                ReflectionHelper.setValue(finalMbf, e, m);
-                                                                                evfc.getBinder().getMergeables().add(e);
-                                                                            } catch (Throwable e1) {
-                                                                                MDD.alert(e1);
-                                                                            }
-                                                                        }
-
-                                                                    } catch (Exception e1) {
-                                                                        MDD.alert(e1);
-                                                                    }
-                                                                });
-
-                                                                MyUI.get().getNavegador().goBack();
-
-                                                            });
-                                                        } catch (Throwable throwable) {
-                                                            MDD.alert(throwable);
-                                                        }
-
-
-                                                    }
-                                                });
-
-                                                return l;
-                                            }
-                                        }.build();
-
-                                        vc = new CRUDViewComponent(lvc, new EditorViewComponent(field.getGenericClass()).build()).build();
+                                        vc = new JPACollectionFieldCRUDViewComponent(field, evfc, false).build();
 
                                         stack.push(currentPath, vc);
 
-                                    } catch (Exception e) {
+                                    } catch (Throwable e) {
                                         MDD.alert(e);
                                     }
 
@@ -712,6 +558,8 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
         }
 
         if (v == null) v = new VoidView();
+
+        if (v != null && v instanceof io.mateu.mdd.vaadinport.vaadin.navigation.View && ((io.mateu.mdd.vaadinport.vaadin.navigation.View)v).getComponent() instanceof CRUDViewComponent) Notification.show("Double click on matches to edit", Notification.Type.TRAY_NOTIFICATION);
 
         return v;
 

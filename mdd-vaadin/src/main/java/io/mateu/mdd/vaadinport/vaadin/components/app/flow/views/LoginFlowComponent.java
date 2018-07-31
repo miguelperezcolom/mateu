@@ -54,6 +54,7 @@ public class LoginFlowComponent extends VerticalLayout {
             izda.addComponent(hl = new HorizontalLayout());
             Button b;
             hl.addComponent(b = new Button("Sign in", e -> login()));
+            b.setDescription("Click ENTER to sign in");
             b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
             b.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
