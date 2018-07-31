@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.mdd;
 
+import com.vaadin.server.Page;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.MDDPort;

@@ -373,6 +373,6 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
     }
 
     protected void bind(MDDBinder binder, TwinColSelect<Object> tf, FieldInterfaced field) {
-        binder.bindOneToMany(tf, field.getName());
+        binder.bindOneToMany(tf, field);
     }
 }
