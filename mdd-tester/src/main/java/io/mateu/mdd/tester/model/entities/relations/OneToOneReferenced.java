@@ -21,4 +21,9 @@ public class OneToOneReferenced {
 
     @OneToOne
     private OneToOneReferencer referencerMapper;
+
+    @Override
+    public String toString() {
+        return getName();
+    }
 }
