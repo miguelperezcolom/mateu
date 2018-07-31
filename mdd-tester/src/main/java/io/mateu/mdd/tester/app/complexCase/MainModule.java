@@ -5,6 +5,8 @@ import com.vaadin.ui.Label;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.tester.model.customComponents.CustomComponent;
+import io.mateu.mdd.tester.model.entities.relations.EmbeddableEntity;
+import io.mateu.mdd.tester.model.entities.relations.WithEmbeddedEntity;
 import io.mateu.mdd.tester.model.jpql.SampleJPQLCrudView;
 import io.mateu.mdd.tester.model.jpql.SampleJPQLLIstView;
 import io.mateu.mdd.tester.model.jpql.SampleJPQLToPMOCrudView;
@@ -91,7 +93,22 @@ public class MainModule extends AbstractModule {
 
                         l.add(new MDDMenu("One to many", "Parent", OneToManyParentEntity.class, "Children", OneToManyChildEntity.class));
 
-                        l.add(new MDDMenu("Owned", "ManyToOne", ManyToOneFieldDemoEntity.class));
+
+                        return l;
+                    }
+                });
+
+
+                l.add(new AbstractMenu("More relations") {
+                    @Override
+                    public List<MenuEntry> buildEntries() {
+                        List<MenuEntry> l = new ArrayList<>();
+
+                        l.add(new MDDMenu("Many to many", "ManyToOne", ManyToOneFieldDemoEntity.class));
+
+                        l.add(new MDDMenu("Map", "ManyToOne", ManyToOneFieldDemoEntity.class));
+
+                        l.add(new MDDMenu("Embedded", "Embedded", WithEmbeddedEntity.class));
 
                         return l;
                     }
