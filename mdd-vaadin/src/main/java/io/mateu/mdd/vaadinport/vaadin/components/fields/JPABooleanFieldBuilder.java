@@ -26,6 +26,8 @@ public class JPABooleanFieldBuilder extends JPAFieldBuilder {
         CheckBox cb;
         container.addComponent(cb = new CheckBox());
 
+        if (allFieldContainers.size() == 0) cb.focus();
+
         cb.setCaption(Helper.capitalize(field.getName()));
         
         bind(binder, cb, field);

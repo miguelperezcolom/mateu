@@ -33,6 +33,7 @@ public class FieldEditorComponent extends VerticalLayout {
             com.vaadin.ui.TextArea t;
             addComponentsAndExpand(t = new com.vaadin.ui.TextArea());
             t.setSizeFull();
+            t.focus();
             try {
                 t.setValue((String) ReflectionHelper.getValue(field, binder.getBean()));
             } catch (Exception e) {

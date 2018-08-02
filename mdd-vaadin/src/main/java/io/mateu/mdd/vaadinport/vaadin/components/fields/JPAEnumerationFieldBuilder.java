@@ -34,6 +34,8 @@ public class JPAEnumerationFieldBuilder extends JPAFieldBuilder {
         ComboBox tf;
         container.addComponent(tf = new ComboBox());
 
+        if (allFieldContainers.size() == 0) tf.focus();
+
         tf.setDataProvider(new ListDataProvider(Arrays.asList(field.getType().getEnumConstants())));
 
         allFieldContainers.put(field, tf);

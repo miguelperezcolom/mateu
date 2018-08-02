@@ -36,6 +36,8 @@ public class JPATextAreaFieldBuilder extends JPAFieldBuilder {
         com.vaadin.ui.TextArea tf;
         l.addComponent(tf = new com.vaadin.ui.TextArea());
 
+        if (allFieldContainers.size() == 0) tf.focus();
+
         Button b;
         l.addComponent(b = new Button(VaadinIcons.EXPAND_SQUARE));
         b.addStyleName(ValoTheme.BUTTON_QUIET);

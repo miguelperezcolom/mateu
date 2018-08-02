@@ -36,6 +36,8 @@ public class JPAOneToOneFieldBuilder extends JPAFieldBuilder {
         ComboBox tf;
         container.addComponent(tf = new ComboBox());
 
+        if (allFieldContainers.size() == 0) tf.focus();
+
         try {
             Helper.notransact((em) -> tf.setDataProvider(new JPQLListDataProvider(em, field.getType())));
         } catch (Throwable throwable) {

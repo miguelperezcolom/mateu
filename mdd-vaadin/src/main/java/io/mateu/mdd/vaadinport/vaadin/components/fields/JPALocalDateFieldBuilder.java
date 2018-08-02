@@ -33,6 +33,8 @@ public class JPALocalDateFieldBuilder extends JPAFieldBuilder {
         DateField tf;
         container.addComponent(tf = new DateField());
 
+        if (allFieldContainers.size() == 0) tf.focus();
+
         allFieldContainers.put(field, tf);
 
         tf.setCaption(Helper.capitalize(field.getName()));

@@ -135,6 +135,8 @@ public class JPAManyToOneFieldBuilder extends JPAFieldBuilder {
             ComboBox cb;
             container.addComponent(tf = cb = new ComboBox());
 
+            if (allFieldContainers.size() == 0) cb.focus();
+
             hv = cb;
 
 

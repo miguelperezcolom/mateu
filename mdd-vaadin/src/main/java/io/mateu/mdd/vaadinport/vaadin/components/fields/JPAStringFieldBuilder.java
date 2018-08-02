@@ -32,6 +32,8 @@ public class JPAStringFieldBuilder extends JPAFieldBuilder {
         TextField tf;
         container.addComponent(tf = new TextField());
 
+        if (allFieldContainers.size() == 0) tf.focus();
+
         allFieldContainers.put(field, tf);
 
         tf.setCaption(Helper.capitalize(field.getName()));
