@@ -1,7 +1,8 @@
-package io.mateu.mdd.tester.model.entities.basic;
+package io.mateu.mdd.tester.model.entities.relations;
 
 import io.mateu.mdd.core.annotations.Owned;
 import io.mateu.mdd.core.annotations.SearchFilter;
+import io.mateu.mdd.tester.model.entities.basic.BasicFieldsDemoEntity;
 import lombok.Getter;
 import lombok.Setter;
 

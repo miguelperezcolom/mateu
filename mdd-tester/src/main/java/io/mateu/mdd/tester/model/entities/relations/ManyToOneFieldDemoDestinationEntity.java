@@ -1,4 +1,4 @@
-package io.mateu.mdd.tester.model.entities.basic;
+package io.mateu.mdd.tester.model.entities.relations;
 
 import io.mateu.mdd.core.annotations.SearchFilter;
 import lombok.Getter;

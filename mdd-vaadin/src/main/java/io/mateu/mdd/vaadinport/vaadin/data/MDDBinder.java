@@ -507,8 +507,8 @@ public class MDDBinder {
         });
     }
 
-    public void bindString(TextField tf, String name) {
-        fields.add(tf);
+    public void bindString(HasValue<String> tf, String name) {
+        fields.add((AbstractComponent) tf);
         SimpleStringProperty p = (SimpleStringProperty) vaadinSideProperties.get(name);
         if (p == null) {
             p = new SimpleStringProperty();

@@ -483,7 +483,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
 
                                 } else {
-                                    stack.push(currentPath, new FieldEditorComponent(field));
+                                    stack.push(currentPath, new FieldEditorComponent(evfc.getBinder(), field));
                                 }
 
                             }

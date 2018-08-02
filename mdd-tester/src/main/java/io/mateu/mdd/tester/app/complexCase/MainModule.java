@@ -5,14 +5,12 @@ import com.vaadin.ui.Label;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.tester.model.customComponents.CustomComponent;
-import io.mateu.mdd.tester.model.entities.relations.EmbeddableEntity;
-import io.mateu.mdd.tester.model.entities.relations.WithEmbeddedEntity;
+import io.mateu.mdd.tester.model.entities.embedded.WithEmbeddedEntity;
+import io.mateu.mdd.tester.model.entities.relations.*;
 import io.mateu.mdd.tester.model.jpql.SampleJPQLCrudView;
 import io.mateu.mdd.tester.model.jpql.SampleJPQLLIstView;
 import io.mateu.mdd.tester.model.jpql.SampleJPQLToPMOCrudView;
 import io.mateu.mdd.tester.model.entities.basic.*;
-import io.mateu.mdd.tester.model.entities.relations.OneToOneReferenced;
-import io.mateu.mdd.tester.model.entities.relations.OneToOneReferencer;
 import io.mateu.mdd.tester.model.pojos.SamplePMO;
 import io.mateu.mdd.tester.model.pojos.SamplePOJO;
 import io.mateu.mdd.tester.model.rpc.SampleCustomizedRPCListView;
@@ -108,12 +106,22 @@ public class MainModule extends AbstractModule {
 
                         l.add(new MDDMenu("Map", "ManyToOne", ManyToOneFieldDemoEntity.class));
 
-                        l.add(new MDDMenu("Embedded", "Embedded", WithEmbeddedEntity.class));
-
                         return l;
                     }
                 });
 
+                l.add(new AbstractMenu("More relations") {
+                    @Override
+                    public List<MenuEntry> buildEntries() {
+                        List<MenuEntry> l = new ArrayList<>();
+
+                        l.add(new MDDOpenCRUDAction("Element collection", WithElementCollectionEntity.class));
+
+                        l.add(new MDDOpenCRUDAction("Embedded", WithEmbeddedEntity.class));
+
+                        return l;
+                    }
+                });
 
 
                 return l;

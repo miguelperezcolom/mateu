@@ -1,25 +1,28 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
-import com.vaadin.data.ValueProvider;
+import com.vaadin.data.*;
+import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
+import com.vaadin.server.UserError;
 import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.SortOrderProvider;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.Ignored;
-import io.mateu.mdd.core.annotations.ListColumn;
-import io.mateu.mdd.core.annotations.MainSearchFilter;
-import io.mateu.mdd.core.annotations.SearchFilter;
+import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
+import io.mateu.mdd.vaadinport.vaadin.components.dataProviders.JPQLListDataProvider;
+import io.mateu.mdd.vaadinport.vaadin.components.fields.JPAFieldBuilder;
+import org.vaadin.ui.NumberField;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
+import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -93,7 +96,8 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     @Override
                     public Object apply(Object o) {
                         try {
-                            return ReflectionHelper.getValue(f, o);
+                            Object v = ReflectionHelper.getValue(f, o);
+                            return (v != null)?"" + v:null;
                         } catch (NoSuchMethodException e) {
                             e.printStackTrace();
                         } catch (IllegalAccessException e) {
@@ -105,6 +109,13 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     }
                 });
             }
+
+        if (Integer.class.equals(f.getType()) || int.class.equals(f.getType())
+                || Long.class.equals(f.getType()) || long.class.equals(f.getType())
+                || Double.class.equals(f.getType()) || double.class.equals(f.getType())
+                ) {
+                col.setStyleGenerator(c -> "v-align-right");
+        }
 
             if (editable) {
                 if (Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) {
@@ -125,6 +136,102 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                         }
                     });
                     col.setEditable(true);
+                } else if (Integer.class.equals(f.getType()) || int.class.equals(f.getType())) {
+
+                    NumberField nf = new NumberField();
+                    nf.setDecimalAllowed(false);
+                    col.setEditorComponent(nf, (o, v) -> {
+                        try {
+                                ReflectionHelper.setValue(f, o, v);
+                        } catch (Exception e) {
+                            MDD.alert(e);
+                        }
+                    });
+                    col.setEditable(true);
+                } else if (Double.class.equals(f.getType()) || double.class.equals(f.getType())) {
+
+                    NumberField nf = new NumberField();
+                    nf.setDecimalAllowed(true);
+                    col.setEditorComponent(nf, (o, v) -> {
+                        try {
+                            ReflectionHelper.setValue(f, o, v);
+                        } catch (Exception e) {
+                            MDD.alert(e);
+                        }
+                    });
+                    col.setEditable(true);
+                } else if (f.getType().isEnum()) {
+
+                    ComboBox tf = new ComboBox();
+
+                    tf.setDataProvider(new ListDataProvider(Arrays.asList(f.getType().getEnumConstants())));
+
+                    col.setEditorComponent(tf, (o, v) -> {
+                        try {
+                            ReflectionHelper.setValue(f, o, v);
+                        } catch (Exception e) {
+                            MDD.alert(e);
+                        }
+                    });
+                    col.setEditable(true);
+
+                } else if (f.isAnnotationPresent(ManyToOne.class)) {
+
+                    ComboBox cb = new ComboBox();
+
+                    //AbstractBackendDataProvider
+                    //FetchItemsCallback
+                    //newItemProvider
+
+                    if (f.isAnnotationPresent(DataProvider.class)) {
+
+                        try {
+
+                            DataProvider a = f.getAnnotation(DataProvider.class);
+
+                            cb.setDataProvider(a.dataProvider().newInstance());
+
+                            cb.setItemCaptionGenerator(a.itemCaptionGenerator().newInstance());
+
+                        } catch (InstantiationException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        }
+
+                    } else {
+
+                        try {
+                            Helper.notransact((em) -> cb.setDataProvider(new JPQLListDataProvider(em, f.getType())));
+                        } catch (Throwable throwable) {
+                            throwable.printStackTrace();
+                        }
+
+                        FieldInterfaced fName = ReflectionHelper.getNameField(f.getType());
+                        if (fName != null) cb.setItemCaptionGenerator((i) -> {
+                            try {
+                                return "" + ReflectionHelper.getValue(fName, i);
+                            } catch (NoSuchMethodException e) {
+                                e.printStackTrace();
+                            } catch (IllegalAccessException e) {
+                                e.printStackTrace();
+                            } catch (InvocationTargetException e) {
+                                e.printStackTrace();
+                            }
+                            return "Error";
+                        });
+
+                    }
+
+                    col.setEditorComponent(cb, (o, v) -> {
+                        try {
+                            ReflectionHelper.setValue(f, o, v);
+                        } catch (Exception e) {
+                            MDD.alert(e);
+                        }
+                    });
+                    col.setEditable(true);
+
                 }
 
                 //todo: acabar

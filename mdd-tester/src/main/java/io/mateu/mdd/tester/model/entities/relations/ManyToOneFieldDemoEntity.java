@@ -1,4 +1,4 @@
-package io.mateu.mdd.tester.model.entities.basic;
+package io.mateu.mdd.tester.model.entities.relations;
 
 import com.google.common.base.Strings;
 import io.mateu.mdd.core.annotations.Ignored;

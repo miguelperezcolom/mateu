@@ -1,4 +1,4 @@
-package io.mateu.mdd.tester.model.entities.relations;
+package io.mateu.mdd.tester.model.entities.embedded;
 
 import lombok.Getter;
 import lombok.Setter;

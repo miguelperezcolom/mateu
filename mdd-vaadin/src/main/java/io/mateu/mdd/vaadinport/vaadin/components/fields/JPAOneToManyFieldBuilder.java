@@ -28,6 +28,7 @@ import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.data.MDDBinder;
 
 import javax.persistence.CascadeType;
+import javax.persistence.ElementCollection;
 import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
@@ -39,7 +40,7 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
 
 
     public boolean isSupported(FieldInterfaced field) {
-        return field.isAnnotationPresent(OneToMany.class);
+        return field.isAnnotationPresent(OneToMany.class) || field.isAnnotationPresent(ElementCollection.class);
     }
 
     public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers) {
@@ -50,12 +51,13 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
         OneToMany aa = field.getAnnotation(OneToMany.class);
 
         boolean owned = false;
-        if (aa.cascade() != null) for (CascadeType ct : aa.cascade()) {
+        if (aa != null && aa.cascade() != null) for (CascadeType ct : aa.cascade()) {
             if (CascadeType.ALL.equals(ct) || CascadeType.REMOVE.equals(ct)) {
                 owned = true;
                 break;
             }
-        }
+        } else if (field.isAnnotationPresent(ElementCollection.class)) owned = true;
+
 
 
         if (field.isAnnotationPresent(UseTwinCols.class)) {
@@ -167,11 +169,6 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
 
             addValidators(validators.get(tf));
 
-        /*
-        tf.setDescription();
-        tf.setPlaceholder();
-        */
-
             bind(binder, tf, field);
 
         } else if (field.isAnnotationPresent(UseLinkToListView.class)) {
@@ -237,8 +234,6 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
                 g.getEditor().setEnabled(true);
                 g.getEditor().setBuffered(false);
                 g.setHeightByRows(5);
-
-
 
                 hl.addComponent(b = new Button("Add", VaadinIcons.PLUS));
                 b.addClickListener(e -> {
@@ -336,17 +331,22 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
     private List<FieldInterfaced> getColumnFields(FieldInterfaced field) {
         List<FieldInterfaced> l = ListViewComponent.getColumnFields(field.getGenericClass());
 
-        String mb = field.getAnnotation(OneToMany.class).mappedBy();
+        OneToMany aa;
+        if ((aa = field.getAnnotation(OneToMany.class)) != null) {
 
-        if (!Strings.isNullOrEmpty(mb)) {
-            FieldInterfaced mbf = null;
-            for (FieldInterfaced f : l) {
-                if (f.getName().equals(mb)) {
-                    mbf = f;
-                    break;
+            String mb = field.getAnnotation(OneToMany.class).mappedBy();
+
+            if (!Strings.isNullOrEmpty(mb)) {
+                FieldInterfaced mbf = null;
+                for (FieldInterfaced f : l) {
+                    if (f.getName().equals(mb)) {
+                        mbf = f;
+                        break;
+                    }
                 }
+                if (mbf != null) l.remove(mbf);
             }
-            if (mbf != null) l.remove(mbf);
+
         }
 
         return l;

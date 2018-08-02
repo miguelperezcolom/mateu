@@ -1,8 +1,8 @@
 package io.mateu.mdd.tester.model.tests;
 
 import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.tester.model.entities.basic.OneToManyChildEntity;
-import io.mateu.mdd.tester.model.entities.basic.OneToManyParentEntity;
+import io.mateu.mdd.tester.model.entities.relations.OneToManyChildEntity;
+import io.mateu.mdd.tester.model.entities.relations.OneToManyParentEntity;
 
 import javax.persistence.Query;
 import java.util.List;

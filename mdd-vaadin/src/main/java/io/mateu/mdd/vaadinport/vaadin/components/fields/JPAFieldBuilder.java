@@ -17,7 +17,8 @@ import java.util.Set;
 public abstract class JPAFieldBuilder {
 
     public static List<JPAFieldBuilder> builders = Lists.newArrayList(
-            new JPAStringFieldBuilder()
+            new JPATextAreaFieldBuilder()
+            , new JPAStringFieldBuilder()
             , new JPAIntegerFieldBuilder()
             , new JPALongFieldBuilder()
             , new JPADoubleFieldBuilder()

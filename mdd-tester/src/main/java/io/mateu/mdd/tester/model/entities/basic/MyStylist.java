@@ -26,4 +26,10 @@ public class MyStylist extends AbstractStylist {
 
         return styles;
     }
+
+    //todo: añadir enabled
+
+    //todo: buscar métodos
+
+    //todo: añadir acceso a los campos
 }
