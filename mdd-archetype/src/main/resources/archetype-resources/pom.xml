@@ -41,26 +41,19 @@
     </dependency>
 
 
+
     <dependency>
-      <groupId>io.mateu.jpa</groupId>
-      <artifactId>common</artifactId>
+      <groupId>io.mateu</groupId>
+      <artifactId>mdd-core</artifactId>
       <version>0.0.2-SNAPSHOT</version>
     </dependency>
 
     <dependency>
-      <groupId>io.mateu.ui</groupId>
-      <artifactId>port-vaadin</artifactId>
+      <groupId>io.mateu</groupId>
+      <artifactId>mdd-vaadin</artifactId>
       <version>0.0.2-SNAPSHOT</version>
       <type>war</type>
     </dependency>
-
-    <dependency>
-      <groupId>com.vaadin</groupId>
-      <artifactId>vaadin-server</artifactId>
-      <version>8.4.1</version>
-      <scope>provided</scope>
-    </dependency>
-
 
   </dependencies>
 
@@ -90,6 +83,22 @@
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.7.0</version>
+        <configuration>
+          <compilerArgs>
+            <!--
+            <arg>-verbose</arg>
+            <arg>-Xlint:all,-options,-path</arg>
+            -->
+            <arg>-parameters</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
+
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
         <configuration>
           <failOnMissingWebXml>false</failOnMissingWebXml>
@@ -100,7 +109,7 @@
               <groupId>io.mateu.ui</groupId>
               <artifactId>port-vaadin</artifactId>
               <excludes>
-                <exclude>WEB-INF/lib/sample-app-core-0.0.1.jar</exclude>
+                <exclude>WEB-INF/lib/mdd-tester-0.0.2-SNAPSHOT.jar</exclude>
               </excludes>
             </overlay>
           </overlays>
@@ -113,7 +122,7 @@
       <plugin>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-maven-plugin</artifactId>
-        <version>9.3.9.v20160517</version>
+        <version>9.4.11.v20180605</version>
       </plugin>
 
     </plugins>

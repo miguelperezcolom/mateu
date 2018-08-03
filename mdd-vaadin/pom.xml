@@ -111,6 +111,7 @@
             <groupId>io.mateu</groupId>
             <artifactId>mdd-tester</artifactId>
             <version>0.0.2-SNAPSHOT</version>
+            <scope>provided</scope>
         </dependency>
 
 

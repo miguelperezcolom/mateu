@@ -87,4 +87,8 @@ public class SimpleMDDApplication extends BaseMDDApp {
         return l;
     }
 
+    @Override
+    public boolean isAuthenticationNeeded() {
+        return false;
+    }
 }
