@@ -13,14 +13,19 @@ import java.util.List;
 
 public class SearchInMenuComponent extends AbstractViewComponent {
 
-    private final MenuEntry action;
-
     private final CssLayout menu = new CssLayout();
 
-    public SearchInMenuComponent(MenuEntry action) {
+    @Override
+    public String toString() {
+        return "Search in menu";
+    }
 
-        this.action = action;
-
+    public SearchInMenuComponent() {
+        try {
+            build();
+        } catch (Exception e) {
+            MDD.alert(e);
+        }
     }
 
     @Override
@@ -32,8 +37,9 @@ public class SearchInMenuComponent extends AbstractViewComponent {
 
 
         TextField t;
-        addComponent(t = new TextField("Search in menu"));
-        t.setIcon(VaadinIcons.SEARCH);
+        addComponent(t = new TextField(""));
+        //t.setIcon(VaadinIcons.SEARCH);
+        t.setPlaceholder("Type to search");
         t.focus();
 
         t.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
@@ -43,10 +49,11 @@ public class SearchInMenuComponent extends AbstractViewComponent {
             }
         });
 
-        VerticalLayout contentContainer = new VerticalLayout();
+        Panel contentContainer = new Panel();
+        contentContainer.addStyleName(ValoTheme.PANEL_BORDERLESS);
         contentContainer.addStyleName("contentcontainer");
 
-        contentContainer.addComponent(menu);
+        contentContainer.setContent(menu);
 
         addComponentsAndExpand(contentContainer);
 
@@ -68,6 +75,7 @@ public class SearchInMenuComponent extends AbstractViewComponent {
         CssLayout contenedor;
         menu.addComponent(contenedor = new CssLayout());
         contenedor.setWidth("100%");
+        contenedor.addStyleName("contenedor");
 
         List<AbstractArea> areas = new ArrayList<>();
 
@@ -85,6 +93,7 @@ public class SearchInMenuComponent extends AbstractViewComponent {
         for (AbstractArea a : areas) {
 
             CssLayout la = new CssLayout();
+            la.addStyleName("contenedor");
             for (AbstractModule m : a.getModules()) {
                 for (MenuEntry e : m.getMenu()) {
                     addMenuEntry(la, a, e, text);
@@ -93,6 +102,7 @@ public class SearchInMenuComponent extends AbstractViewComponent {
 
             if (la.getComponentCount() > 0) {
                 VerticalLayout vl = new VerticalLayout();
+                vl.addStyleName("contenedor");
                 Label l;
                 vl.addComponent(l = new Label("In " + a.getName() + ":"));
                 l.addStyleName("tituloarea");

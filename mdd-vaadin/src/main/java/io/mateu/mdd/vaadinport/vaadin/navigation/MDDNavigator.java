@@ -157,4 +157,10 @@ public class MDDNavigator {
 
         MyUI.get().getNavegador().goTo(u);
     }
+
+    public void openNewTab() {
+
+        Page.getCurrent().open(Page.getCurrent().getLocation().toString(), "_blank");
+
+    }
 }

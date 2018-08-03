@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
+import com.google.common.base.Strings;
 import com.vaadin.data.*;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.provider.QuerySortOrder;
@@ -12,6 +13,7 @@ import com.vaadin.ui.components.grid.SortOrderProvider;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.data.SumData;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
@@ -40,6 +42,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     private int count;
     private Label countLabel;
     private FiltersComponent filtersComponent;
+    private HorizontalLayout sumsComponent;
 
     @Override
     public ListViewComponent build() throws InstantiationException, IllegalAccessException {
@@ -52,6 +55,8 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
         setSizeFull();
 
+        addComponent(sumsComponent = new HorizontalLayout());
+        sumsComponent.setVisible(false);
 
         addComponent(countLabel = new Label());
         countLabel.addStyleName("resultsmessage");
@@ -279,10 +284,35 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     public int count(Object filters) {
         count = gatherCount(filters);
         countLabel.setValue((count == 1)?"" + count + " match.":"" + count + " matches.");
+
+        List<SumData> sums = getSums(filters);
+
+        if (sums != null && sums.size() > 0) {
+
+            sumsComponent.removeAllComponents();
+
+            for (SumData d : sums) {
+                sumsComponent.addComponent(buildSum(d));
+            }
+
+            sumsComponent.setVisible(true);
+        } else {
+            sumsComponent.setVisible(false);
+        }
+
         return count;
     }
 
+    private Component buildSum(SumData d) {
+        Label l = new Label(d.getTitle() + ": " + d.getValue());
+        l.addStyleName("sum");
+        if (!Strings.isNullOrEmpty(d.getStyle())) l.addStyleName(d.getStyle());
+        return l;
+    }
+
     protected abstract int gatherCount(Object filters);
+
+    protected abstract List<SumData> getSums(Object filters);
 
     public abstract Object deserializeId(String id);
 

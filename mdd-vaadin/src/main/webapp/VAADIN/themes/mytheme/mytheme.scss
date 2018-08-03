@@ -60,6 +60,14 @@
             margin-top: 7px;
           }
 
+          .tabs {
+            color: white;
+          }
+
+          .navigate {
+            color: white;
+          }
+
           .apptitle {
             font-weight: bold;
             text-decoration: none;
@@ -175,6 +183,44 @@
 
     }
 
+    .sum {
+      padding: 5px 19px;
+      background-color: darkred;
+      font-weight: bold;
+      color: white;
+      border: 1px solid black;
+      border-radius: 3px;
+    }
+
+    .searchinmenucomponent {
+
+      .contentcontainer {
+        padding: 0px;
+        margin-top: 30px;
+
+        .listaopcionesmenu {
+          padding: 0px;
+        }
+
+        .submenu {
+          padding: 0px;
+        }
+
+        .contenedorsubmenu {
+          padding: 0px;
+        }
+
+        .contenedor {
+          padding: 0px;
+        }
+
+      }
+
+    }
+    .accionsubmenu:hover {
+      color: red;
+    }
+
   }
 
   .miapp[width-range~="0-800px"] {
@@ -182,6 +228,14 @@
         .appheader {
           .burguer {
             display: block;
+          }
+
+          .tabs {
+            display: none;
+          }
+
+          .navigate {
+            display: none;
           }
 
         }

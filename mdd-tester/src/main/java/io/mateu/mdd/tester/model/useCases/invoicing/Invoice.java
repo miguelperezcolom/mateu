@@ -39,7 +39,7 @@ public class Invoice {
     private BigDecimal vat;
 
     @Output
-    @Sum
+    @Sum(caption = "Total")
     private BigDecimal total;
 
 }

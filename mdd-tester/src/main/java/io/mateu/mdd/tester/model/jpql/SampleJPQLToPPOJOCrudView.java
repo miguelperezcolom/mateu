@@ -4,7 +4,7 @@ import com.google.common.base.Strings;
 import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.interfaces.AbstractJPQLCrudView;
 import io.mateu.mdd.tester.model.entities.basic.BasicFieldsDemoEntity;
-import io.mateu.mdd.tester.model.pojos.SamplePMO;
+import io.mateu.mdd.tester.model.pojos.SamplePPOJO;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Getter@Setter
-public class SampleJPQLToPMOCrudView extends AbstractJPQLCrudView<SampleJPQLToPMOCrudView.Row, SamplePMO> {
+public class SampleJPQLToPPOJOCrudView extends AbstractJPQLCrudView<SampleJPQLToPPOJOCrudView.Row, SamplePPOJO> {
 
     private String filter;
 

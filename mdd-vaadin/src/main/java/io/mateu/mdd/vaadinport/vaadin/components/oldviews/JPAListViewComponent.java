@@ -11,6 +11,7 @@ import com.vaadin.ui.components.grid.SortOrderProvider;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.data.SumData;
 import io.mateu.mdd.core.interfaces.GridDecorator;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
@@ -23,6 +24,8 @@ import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -33,6 +36,8 @@ public class JPAListViewComponent extends ListViewComponent {
     private ExtraFilters extraFilters;
 
     private final Class entityClass;
+
+    private List<SumData> sums;
 
     public JPAListViewComponent(Class entityClass) {
         this.entityClass = entityClass;
@@ -298,10 +303,50 @@ public class JPAListViewComponent extends ListViewComponent {
                 @Override
                 public void run(EntityManager em) throws Throwable {
 
-                    Query q = buildQuery(em, (alias) -> "count(x)", filters, null, 0, 1000);
+                    sums = new ArrayList<>();
+
+                    List<FieldInterfaced> sumFields = ReflectionHelper.getAllFields(entityClass).stream().filter(f -> f.isAnnotationPresent(Sum.class)).collect(Collectors.toList());
+
+                    Query q = buildQuery(em, (alias) -> {
+                        String ql = "count(x)";
+
+                        for (FieldInterfaced f : sumFields) {
+                            if (!"".equals(ql)) ql += ", ";
+                            ql += " sum(x." + f.getName() + ") ";
+                        }
+
+                        return ql;
+                    }, filters, null, 0, 1000);
                     System.out.println(q.toString());
 
-                    count[0] = ((Long) q.getSingleResult()).intValue();
+                    Object r = q.getSingleResult();
+
+                    if (r instanceof Long) {
+                        count[0] = ((Long) r).intValue();
+                    } else if (r instanceof Object[]) {
+                        Object[] v = (Object[]) r;
+
+                        count[0] = ((Long) v[0]).intValue();
+
+
+                        NumberFormat nf = new DecimalFormat("#,###,###,###,###,###,###.00");
+
+
+                        int pos = 1;
+                        for (FieldInterfaced f : sumFields) {
+                            String caption = "Total " + Helper.capitalize(f.getName());
+                            if (!Strings.isNullOrEmpty(f.getAnnotation(Sum.class).caption())) caption = f.getAnnotation(Sum.class).caption();
+
+                            Object x = v[pos++];
+                            if (x != null && x instanceof Double) {
+                                x = Math.round(100d * (Double) x) / 100d;
+                                x = nf.format(x);
+                            }
+
+                            sums.add(new SumData(caption, (x != null)?"" + x:"---", ""));
+                        }
+
+                    }
 
                 }
             });
@@ -311,6 +356,13 @@ public class JPAListViewComponent extends ListViewComponent {
 
         return count[0];
     }
+
+
+
+    @Override
+    public List<SumData> getSums(Object filters) {
+        return sums;
+    };
 
     @Override
     public Object deserializeId(String sid) {

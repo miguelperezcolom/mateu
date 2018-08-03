@@ -7,7 +7,7 @@ import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.tester.model.entities.basic.BasicFieldsDemoEntity;
-import io.mateu.mdd.tester.model.pojos.SamplePMO;
+import io.mateu.mdd.tester.model.pojos.SamplePPOJO;
 import javafx.util.Pair;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Getter@Setter
-public class SampleRPCToPMOListView implements RpcCrudView<SampleRPCToPMOListView, SampleRPCToPMOListView.Row, SamplePMO> {
+public class SampleRPCToPPOJOListView implements RpcCrudView<SampleRPCToPPOJOListView, SampleRPCToPPOJOListView.Row, SamplePPOJO> {
 
     private String stringFieldFilter = "";
 
@@ -63,13 +63,13 @@ public class SampleRPCToPMOListView implements RpcCrudView<SampleRPCToPMOListVie
 
 
     @Override
-    public List<Row> rpc(SampleRPCToPMOListView filters, int offset, int limit) {
+    public List<Row> rpc(SampleRPCToPPOJOListView filters, int offset, int limit) {
         doRpcCall();
         return result.getValue().subList(offset, (result.getValue().size() > offset + limit)?offset + limit:result.getValue().size());
     }
 
     @Override
-    public int gatherCount(SampleRPCToPMOListView filters) {
+    public int gatherCount(SampleRPCToPPOJOListView filters) {
         doRpcCall();
         return result.getValue().size();
     }

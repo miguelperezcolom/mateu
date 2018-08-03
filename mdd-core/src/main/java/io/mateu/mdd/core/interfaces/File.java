@@ -9,7 +9,7 @@ import java.io.FileNotFoundException;
  */
 public interface File {
 
-    public FileLocator toFileLocator() throws Exception;
+    FileLocator toFileLocator() throws Exception;
 
     void set(String fileName, String tmpPath) throws FileNotFoundException, Exception;
 }

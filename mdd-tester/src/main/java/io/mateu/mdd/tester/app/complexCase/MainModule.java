@@ -9,14 +9,14 @@ import io.mateu.mdd.tester.model.entities.embedded.WithEmbeddedEntity;
 import io.mateu.mdd.tester.model.entities.relations.*;
 import io.mateu.mdd.tester.model.jpql.SampleJPQLCrudView;
 import io.mateu.mdd.tester.model.jpql.SampleJPQLLIstView;
-import io.mateu.mdd.tester.model.jpql.SampleJPQLToPMOCrudView;
+import io.mateu.mdd.tester.model.jpql.SampleJPQLToPPOJOCrudView;
 import io.mateu.mdd.tester.model.entities.basic.*;
-import io.mateu.mdd.tester.model.pojos.SamplePMO;
+import io.mateu.mdd.tester.model.pojos.SamplePPOJO;
 import io.mateu.mdd.tester.model.pojos.SamplePOJO;
 import io.mateu.mdd.tester.model.rpc.SampleCustomizedRPCListView;
 import io.mateu.mdd.tester.model.rpc.SampleRPCListView;
 import io.mateu.mdd.tester.model.rpc.SampleRPCToJPAListView;
-import io.mateu.mdd.tester.model.rpc.SampleRPCToPMOListView;
+import io.mateu.mdd.tester.model.rpc.SampleRPCToPPOJOListView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -138,7 +138,7 @@ public class MainModule extends AbstractModule {
 
                 l.add(new MDDOpenListViewAction("Sample JPQL crud view", SampleJPQLCrudView.class));
 
-                l.add(new MDDOpenListViewAction("Sample JPQL to PMO crud view", SampleJPQLToPMOCrudView.class));
+                l.add(new MDDOpenListViewAction("Sample JPQL to POJO crud view", SampleJPQLToPPOJOCrudView.class));
 
                 return l;
             }
@@ -152,7 +152,7 @@ public class MainModule extends AbstractModule {
                 l.add(new MDDOpenEditorAction("Sample POJO", SamplePOJO.class, null));
 
 
-                l.add(new MDDOpenEditorAction("Sample PMO", SamplePMO.class, null));
+                l.add(new MDDOpenEditorAction("Sample persistent POJO", SamplePPOJO.class, null));
 
                 return l;
             }
@@ -170,7 +170,7 @@ public class MainModule extends AbstractModule {
 
                 l.add(new MDDOpenListViewAction("Sample Rpc to JPA entity view", SampleRPCToJPAListView.class));
 
-                l.add(new MDDOpenListViewAction("Sample Rpc to PMO entity view", SampleRPCToPMOListView.class));
+                l.add(new MDDOpenListViewAction("Sample Rpc to POJO entity view", SampleRPCToPPOJOListView.class));
 
                 return l;
             }

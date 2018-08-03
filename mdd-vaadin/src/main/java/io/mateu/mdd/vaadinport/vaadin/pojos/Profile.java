@@ -4,7 +4,7 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.data.UserData;
-import io.mateu.mdd.core.interfaces.PMO;
+import io.mateu.mdd.core.interfaces.PersistentPOJO;
 import io.mateu.mdd.core.model.authentication.Permission;
 import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.model.common.File;
@@ -18,7 +18,7 @@ import javax.validation.constraints.NotNull;
 import java.io.IOException;
 
 @Getter@Setter
-public class Profile implements PMO {
+public class Profile implements PersistentPOJO {
 
     @Ignored
     private UserData userData;

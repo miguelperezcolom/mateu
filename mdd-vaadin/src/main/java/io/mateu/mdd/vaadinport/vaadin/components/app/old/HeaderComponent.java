@@ -18,6 +18,8 @@ public class HeaderComponent extends HorizontalLayout {
     private final Button hamburquesa;
     private final AppComponent appComponent;
     private final Label greeting;
+    private final Button tabsButton;
+    private final Button navigateButton;
 
     public HeaderComponent(AppComponent appComponent, AbstractApplication app) {
         this.appComponent = appComponent;
@@ -46,6 +48,17 @@ public class HeaderComponent extends HorizontalLayout {
 
         addComponent(greeting = new Label(""));
         greeting.addStyleName("greeting");
+
+
+        addComponent(navigateButton = new Button(VaadinIcons.ARROWS_CROSS));
+        navigateButton.addStyleName(ValoTheme.BUTTON_LINK);
+        navigateButton.addClickListener(e -> MyUI.get().getNavegador().goTo("menu"));
+        navigateButton.addStyleName("navigate");
+
+        addComponent(tabsButton = new Button(VaadinIcons.TABS));
+        tabsButton.addStyleName(ValoTheme.BUTTON_LINK);
+        tabsButton.addClickListener(e -> MyUI.get().getNavegador().openNewTab());
+        tabsButton.addStyleName("tabs");
 
 
         addComponent(signingButton = new Button("Login"));

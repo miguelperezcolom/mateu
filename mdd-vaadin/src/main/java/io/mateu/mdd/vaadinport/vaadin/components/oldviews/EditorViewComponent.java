@@ -12,30 +12,25 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
-import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.core.interfaces.PMO;
+import io.mateu.mdd.core.interfaces.PersistentPOJO;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.vaadinport.vaadin.data.MDDBinder;
-import javafx.scene.input.KeyCode;
 import javafx.util.Pair;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class EditorViewComponent extends AbstractViewComponent {
 
@@ -132,7 +127,7 @@ public class EditorViewComponent extends AbstractViewComponent {
 
         super.addViewActionsMenuItems(bar);
 
-        if (modelType.isAnnotationPresent(Entity.class) || PMO.class.isAssignableFrom(modelType)) {
+        if (modelType.isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(modelType)) {
             MenuBar.Command cmd;
             MenuBar.MenuItem i = bar.addItem("Save", VaadinIcons.DOWNLOAD, cmd = new MenuBar.Command() {
                 @Override
@@ -269,11 +264,11 @@ public class EditorViewComponent extends AbstractViewComponent {
             // cambiamos la url, para reflejar el cambio
             if (goBack) MyUI.get().getNavegador().goTo(ReflectionHelper.getId(model));
 
-        } else if (PMO.class.isAssignableFrom(modelType)) {
+        } else if (PersistentPOJO.class.isAssignableFrom(modelType)) {
 
-            PMO pmo = (PMO) getModel();
+            PersistentPOJO ppojo = (PersistentPOJO) getModel();
 
-            pmo.save();
+            ppojo.save();
 
         }
     }
@@ -294,12 +289,12 @@ public class EditorViewComponent extends AbstractViewComponent {
                     }
                 });
 
-            } else if (PMO.class.isAssignableFrom(modelType)) {
-                PMO pmo = (PMO) modelType.newInstance();
+            } else if (PersistentPOJO.class.isAssignableFrom(modelType)) {
+                PersistentPOJO ppojo = (PersistentPOJO) modelType.newInstance();
 
-                pmo.load(id);
+                ppojo.load(id);
 
-                setModel(pmo);
+                setModel(ppojo);
             } else {
                 setModel(modelType.newInstance());
             }

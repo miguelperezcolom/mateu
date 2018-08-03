@@ -4,6 +4,7 @@ import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Output;
 import io.mateu.mdd.core.annotations.Section;
 import io.mateu.mdd.core.annotations.Stylist;
@@ -11,6 +12,7 @@ import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.interfaces.VoidStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.vaadinport.vaadin.components.fields.FieldBuilder;
 import io.mateu.mdd.vaadinport.vaadin.components.fields.JPAFieldBuilder;
 import io.mateu.mdd.vaadinport.vaadin.components.fields.JPAOutputFieldBuilder;
 import io.mateu.mdd.vaadinport.vaadin.data.ChangeNotificationListener;
@@ -114,7 +116,13 @@ public class FormLayoutBuilder {
     private static void buildAndAddFields(JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields) {
         for (FieldInterfaced f : fields) {
 
-            if (f.isAnnotationPresent(GeneratedValue.class) || f.isAnnotationPresent(Output.class)) {
+            if (f.isAnnotationPresent(FieldBuilder.class)) {
+                try {
+                    (f.getAnnotation(FieldBuilder.class).value().newInstance()).build(f, model, contentContainer, binder, validators, stylist, allFieldContainers);
+                } catch (Exception e) {
+                    MDD.alert(e);
+                }
+            } else if (f.isAnnotationPresent(GeneratedValue.class) || f.isAnnotationPresent(Output.class)) {
                 ofb.build(f, model, contentContainer, binder, validators, stylist, allFieldContainers);
             } else {
                 for (JPAFieldBuilder fieldBuilder : JPAFieldBuilder.builders) if (fieldBuilder.isSupported(f)) {

@@ -2,7 +2,7 @@ package io.mateu.mdd.tester.model.pojos;
 
 
 import io.mateu.mdd.core.annotations.Action;
-import io.mateu.mdd.core.interfaces.PMO;
+import io.mateu.mdd.core.interfaces.PersistentPOJO;
 import io.mateu.mdd.core.util.Helper;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.Date;
 
 @Getter@Setter
-public class SamplePMO implements PMO {
+public class SamplePPOJO implements PersistentPOJO {
 
     private String name;
 
