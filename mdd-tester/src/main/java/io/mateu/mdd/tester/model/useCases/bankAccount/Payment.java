@@ -2,6 +2,7 @@ package io.mateu.mdd.tester.model.useCases.bankAccount;
 
 import io.mateu.mdd.core.annotations.MainSearchFilter;
 import io.mateu.mdd.core.annotations.Output;
+import io.mateu.mdd.core.annotations.Sum;
 import io.mateu.mdd.core.model.authentication.Audit;
 import lombok.Getter;
 import lombok.NonNull;
@@ -25,6 +26,7 @@ public class Payment {
     @MainSearchFilter
     private BankAccount account;
 
+    @Sum
     private double amount;
 
 

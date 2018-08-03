@@ -2,16 +2,11 @@ package io.mateu.mdd.core.reflection;
 
 import com.google.common.base.Strings;
 import com.sun.javafx.collections.ObservableSetWrapper;
-import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Ignored;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.MDDExecutionContext;
 import io.mateu.mdd.core.data.*;
 import io.mateu.mdd.core.util.DatesRange;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
-import io.mateu.mdd.core.views.RPCView;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.BeanUtilsBean;
 
@@ -1440,25 +1435,7 @@ public class ReflectionHelper {
     }
 
 
-    public Object runInServer(UserData user, String className, String methodName, Data parameters, String rpcViewClassName, Data rpcViewData) throws Throwable {
-        Class c = Class.forName(className);
-        Method m = null;
-        for (Method x : c.getDeclaredMethods()) if (x.getName().equals(methodName)) {
-            m = x;
-            break;
-        }
 
-        return execute(user, m, parameters, rpcViewClassName, rpcViewData);
-    }
-
-
-    private Object execute(UserData user, Method m, Data parameters, String rpcViewClassName, Data rpcViewData) throws Throwable {
-        return execute(user, m, parameters, null, rpcViewClassName, rpcViewData);
-    }
-
-    private static Object execute(UserData user, Method m, Data parameters) throws Throwable {
-        return execute(user, m, parameters, null, null, null);
-    }
 
     public static Object execute(UserData user, Method m, Data parameters, Object instance) throws Throwable {
         return execute(user, m, parameters, instance, null, null);
@@ -1473,12 +1450,6 @@ public class ReflectionHelper {
             Class viewClass = null;
             Class entityClass = m.getDeclaringClass();
             if (io.mateu.mdd.core.interfaces.View.class.isAssignableFrom(entityClass)) {
-                viewClass = entityClass;
-                for (Type t : entityClass.getGenericInterfaces()) {
-                    if (entityClass.getGenericInterfaces()[0].getTypeName().startsWith(io.mateu.mdd.core.interfaces.View.class.getName())) entityClass = (Class) ((ParameterizedType)t).getActualTypeArguments()[0];
-                }
-                calledFromView = true;
-            } else if (RPCView.class.isAssignableFrom(entityClass)) {
                 viewClass = entityClass;
                 for (Type t : entityClass.getGenericInterfaces()) {
                     if (entityClass.getGenericInterfaces()[0].getTypeName().startsWith(io.mateu.mdd.core.interfaces.View.class.getName())) entityClass = (Class) ((ParameterizedType)t).getActualTypeArguments()[0];

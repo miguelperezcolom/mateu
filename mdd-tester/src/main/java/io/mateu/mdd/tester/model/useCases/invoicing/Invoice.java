@@ -2,6 +2,7 @@ package io.mateu.mdd.tester.model.useCases.invoicing;
 
 
 import io.mateu.mdd.core.annotations.Output;
+import io.mateu.mdd.core.annotations.Sum;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -34,9 +35,11 @@ public class Invoice {
     private double vatPercent;
 
     @Output
+    @Sum
     private BigDecimal vat;
 
     @Output
+    @Sum
     private BigDecimal total;
 
 }
