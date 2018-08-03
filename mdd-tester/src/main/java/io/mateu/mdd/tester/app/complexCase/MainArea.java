@@ -18,7 +18,7 @@ public class MainArea extends AbstractArea {
 
     @Override
     public List<AbstractModule> buildModules() {
-        return Arrays.asList(new DeepMenusModule(), new MainModule());
+        return Arrays.asList(new MainModule(), new DeepMenusModule());
     }
 
     @Override
