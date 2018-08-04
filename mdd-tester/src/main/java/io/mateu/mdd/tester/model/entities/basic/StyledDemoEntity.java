@@ -1,5 +1,6 @@
 package io.mateu.mdd.tester.model.entities.basic;
 
+import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Stylist;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,5 +27,12 @@ public class StyledDemoEntity {
     private String visibleWhenLessThan10 = "visible when value is lower than 10";
 
     transient String visibleWhenMoreThan10 = "visible when value is greater than 10";
+
+    private String aux;
+
+    @Action
+    public void myAction() {
+        System.out.println("my action called");
+    }
 
 }

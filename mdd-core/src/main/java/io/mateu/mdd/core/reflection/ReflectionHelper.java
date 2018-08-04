@@ -159,22 +159,22 @@ public class ReflectionHelper {
         return m;
     }
 
-    private static String getGetter(Field f) {
+    public static String getGetter(Field f) {
         return (("boolean".equals(f.getType().getName()) || Boolean.class.equals(f.getType()))?"is":"get") + f.getName().substring(0, 1).toUpperCase() + f.getName().substring(1);
     }
 
-    private static String getGetter(io.mateu.mdd.core.reflection.FieldInterfaced f) {
+    public static String getGetter(io.mateu.mdd.core.reflection.FieldInterfaced f) {
         return (("boolean".equals(f.getType().getName()) || Boolean.class.equals(f.getType()))?"is":"get") + f.getName().substring(0, 1).toUpperCase() + f.getName().substring(1);
     }
 
-    private static String getGetter(String fn) {
+    public static String getGetter(String fn) {
         return "get" + fn.substring(0, 1).toUpperCase() + fn.substring(1);
     }
 
-    private static String getSetter(Field f) {
+    public static String getSetter(Field f) {
         return "set" + f.getName().substring(0, 1).toUpperCase() + f.getName().substring(1);
     }
-    private static String getSetter(io.mateu.mdd.core.reflection.FieldInterfaced f) {
+    public static String getSetter(io.mateu.mdd.core.reflection.FieldInterfaced f) {
         return "set" + f.getName().substring(0, 1).toUpperCase() + f.getName().substring(1);
     }
 

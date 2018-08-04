@@ -41,13 +41,6 @@
     </dependency>
 
 
-
-    <dependency>
-      <groupId>io.mateu</groupId>
-      <artifactId>mdd-core</artifactId>
-      <version>0.0.2-SNAPSHOT</version>
-    </dependency>
-
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>mdd-vaadin</artifactId>

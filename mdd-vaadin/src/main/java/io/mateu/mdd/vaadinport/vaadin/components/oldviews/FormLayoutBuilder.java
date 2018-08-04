@@ -104,11 +104,11 @@ public class FormLayoutBuilder {
         binder.addChangeNotificationListener(new ChangeNotificationListener() {
             @Override
             public void somethingChanged() {
-                JPAFieldBuilder.applyStyles(allFieldContainers, finalStylist.process(binder.getBean()));
+                JPAFieldBuilder.applyStyles(finalStylist, binder.getBean(), allFieldContainers, finalStylist.process(binder.getBean()));
             }
         });
 
-        JPAFieldBuilder.applyStyles(allFieldContainers, stylist.process(binder.getBean()));
+        JPAFieldBuilder.applyStyles(stylist, model, allFieldContainers, stylist.process(binder.getBean()));
 
         return new Pair(contentContainer, stylist);
     }

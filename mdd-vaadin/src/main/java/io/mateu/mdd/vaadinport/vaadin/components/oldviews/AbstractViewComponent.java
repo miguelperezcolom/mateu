@@ -12,18 +12,22 @@ import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.AbstractMDDExecutionContext;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> extends VerticalLayout {
 
     private String title = "View title";
+    protected MenuBar bar;
+    protected Map<String, MenuBar.MenuItem> menuItemsById = new HashMap<>();
 
     public A build() throws InstantiationException, IllegalAccessException {
 
         addStyleName("viewcomponent");
 
 
-        MenuBar bar = new MenuBar();
+        bar = new MenuBar();
         bar.addStyleName("actionsbar");
         bar.setWidth("100%");
         addViewActionsMenuItems(bar);
@@ -34,9 +38,11 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
     public void addViewActionsMenuItems(MenuBar bar) {
 
+        menuItemsById = new HashMap<>();
+
         for (AbstractAction a : getActions()) {
 
-            bar.addItem(a.getName(), a.getIcon(), new MenuBar.Command() {
+            MenuBar.MenuItem i = bar.addItem(a.getName(), a.getIcon(), new MenuBar.Command() {
                 @Override
                 public void menuSelected(MenuBar.MenuItem menuItem) {
                     try {
@@ -77,6 +83,8 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                     }
                 }
             });
+
+            menuItemsById.put(a.getId(), i);
 
         }
 

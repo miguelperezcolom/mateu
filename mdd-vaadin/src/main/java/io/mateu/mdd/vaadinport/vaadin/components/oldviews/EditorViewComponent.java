@@ -20,17 +20,17 @@ import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
+import io.mateu.mdd.vaadinport.vaadin.components.fields.JPAFieldBuilder;
+import io.mateu.mdd.vaadinport.vaadin.data.ChangeNotificationListener;
 import io.mateu.mdd.vaadinport.vaadin.data.MDDBinder;
 import javafx.util.Pair;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class EditorViewComponent extends AbstractViewComponent {
 
@@ -116,10 +116,36 @@ public class EditorViewComponent extends AbstractViewComponent {
         addComponentsAndExpand(p);
 
 
+        AbstractStylist finalStylist = stylist;
+        binder.addChangeNotificationListener(new ChangeNotificationListener() {
+            @Override
+            public void somethingChanged() {
+                updateActions();
+            }
+        });
+
+        updateActions();
+
 
         return this;
     }
 
+    private void updateActions() {
+        if (stylist != null) {
+            Object model = binder.getBean();
+
+            for (String k : (Set<String>) menuItemsById.keySet()) {
+                Method m = ReflectionHelper.getMethod(stylist.getClass(), "is" + (k.substring(0, 1).toUpperCase() + k.substring(1)) + "Enabled");
+                if (m != null) {
+                    try {
+                        ((MenuBar.MenuItem)menuItemsById.get(k)).setEnabled((Boolean) m.invoke(stylist, model));
+                    } catch (Exception e) {
+                        MDD.alert(e);
+                    }
+                }
+            }
+        }
+    }
 
 
     @Override

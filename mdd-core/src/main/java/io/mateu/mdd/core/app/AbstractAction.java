@@ -14,8 +14,12 @@ public abstract class AbstractAction implements MenuEntry {
     private String name;
     private boolean callOnEnterKeyPressed = false;
     private boolean modifierPressed;
-    private final String id = UUID.randomUUID().toString();
+    private String id = UUID.randomUUID().toString();
 
+    public AbstractAction(String id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 
     public AbstractAction(String name) {
         this.name = name;

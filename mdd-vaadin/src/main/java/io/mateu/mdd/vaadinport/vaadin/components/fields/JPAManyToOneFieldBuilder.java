@@ -3,7 +3,6 @@ package io.mateu.mdd.vaadinport.vaadin.components.fields;
 import com.vaadin.data.*;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.server.UserError;
-import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ErrorLevel;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;

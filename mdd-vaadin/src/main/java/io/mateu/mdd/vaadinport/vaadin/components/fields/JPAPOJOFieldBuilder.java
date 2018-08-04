@@ -3,7 +3,6 @@ package io.mateu.mdd.vaadinport.vaadin.components.fields;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
 import com.vaadin.ui.*;
-import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;

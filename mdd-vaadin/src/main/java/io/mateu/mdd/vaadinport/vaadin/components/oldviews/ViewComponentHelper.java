@@ -24,7 +24,7 @@ public class ViewComponentHelper {
 
         Action aa = m.getAnnotation(Action.class);
 
-        AbstractAction action = new AbstractAction((!Strings.isNullOrEmpty(aa.value())) ? aa.value() : Helper.capitalize(m.getName())) {
+        AbstractAction action = new AbstractAction(m.getName(), (!Strings.isNullOrEmpty(aa.value())) ? aa.value() : Helper.capitalize(m.getName())) {
             @Override
             public void run(MDDExecutionContext context) {
 

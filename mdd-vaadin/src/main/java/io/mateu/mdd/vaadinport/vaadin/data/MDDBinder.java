@@ -5,7 +5,6 @@ import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.ui.*;
-import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
 import io.mateu.mdd.core.interfaces.AbstractStylist;

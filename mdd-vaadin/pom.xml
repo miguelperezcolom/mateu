@@ -106,16 +106,11 @@
 
 
 
-
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>mdd-tester</artifactId>
+            <artifactId>mdd-core</artifactId>
             <version>0.0.2-SNAPSHOT</version>
-            <scope>provided</scope>
         </dependency>
-
-
-
 
     </dependencies>
 
@@ -195,6 +190,20 @@
     </build>
 
     <profiles>
+
+        <profile>
+            <id>with-mdd-tester</id>
+
+            <dependencies>
+                <dependency>
+                    <groupId>io.mateu</groupId>
+                    <artifactId>mdd-tester</artifactId>
+                    <version>0.0.2-SNAPSHOT</version>
+                </dependency>
+            </dependencies>
+
+        </profile>
+
         <profile>
             <!-- Vaadin pre-release repositories -->
             <id>vaadin-prerelease</id>

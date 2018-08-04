@@ -1,4 +1,4 @@
-package io.mateu.mdd.vaadinport.vaadin.tests;
+package io.mateu.mdd.tester.tests;
 
 import io.mateu.mdd.core.interfaces.AbstractJPQLListView;
 import io.mateu.mdd.core.interfaces.RpcView;
@@ -7,8 +7,8 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.tester.model.jpql.SampleJPQLLIstView;
 import io.mateu.mdd.tester.model.rpc.SampleRPCListView;
 import io.mateu.mdd.tester.model.rpc.SampleRPCToJPAListView;
-import io.mateu.mdd.vaadinport.vaadin.tests.reflection.MiJPQLListViewCaso1;
-import io.mateu.mdd.vaadinport.vaadin.tests.reflection.MiJPQLListViewCaso2;
+import io.mateu.mdd.tester.tests.reflection.MiJPQLListViewCaso1;
+import io.mateu.mdd.tester.tests.reflection.MiJPQLListViewCaso2;
 
 public class ReflectionTester {
 
