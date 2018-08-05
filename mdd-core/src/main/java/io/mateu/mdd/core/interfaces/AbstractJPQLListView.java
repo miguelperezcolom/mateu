@@ -1,6 +1,9 @@
 package io.mateu.mdd.core.interfaces;
 
+import com.vaadin.ui.Grid;
+import com.vaadin.ui.StyleGenerator;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
@@ -72,4 +75,5 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
     public Class getRowClass() {
         return ReflectionHelper.getGenericClass(this.getClass(), RpcView.class, "C");
     }
+
 }

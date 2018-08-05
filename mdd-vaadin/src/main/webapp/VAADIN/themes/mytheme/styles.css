@@ -15476,3 +15476,35 @@ div.v-layout.v-horizontal.v-widget {
 	box-shadow: inset 0 1px 0 #4d98e6, inset 0 -1px 0 #166bca, 0 2px 3px rgba(0, 0, 0, 0.05);
 	text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.05);
 }
+
+.mytheme .mdd-green-bgd {
+	background-color: green !important;
+}
+
+.mytheme .mdd-orange-bgd {
+	background-color: orange !important;
+}
+
+.mytheme .mdd-red-bgd {
+	background-color: red !important;
+}
+
+.mytheme .mdd-yellow-bgd {
+	background-color: yellow !important;
+}
+
+.mytheme .mdd-brown-bgd {
+	background-color: brown !important;
+}
+
+.mytheme .mdd-grey-bgd {
+	background-color: grey !important;
+}
+
+.mytheme .mdd-white-bgd {
+	background-color: white !important;
+}
+
+.mytheme .mdd-blue-bgd {
+	background-color: blue !important;
+}

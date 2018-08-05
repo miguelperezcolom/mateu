@@ -1,23 +1,21 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.google.common.base.Strings;
-import com.vaadin.data.ValueProvider;
 import com.vaadin.data.provider.QuerySortOrder;
-import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.ui.Grid;
-import com.vaadin.ui.MenuBar;
-import com.vaadin.ui.components.grid.SortOrderProvider;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.data.ChartData;
+import io.mateu.mdd.core.data.ChartValue;
 import io.mateu.mdd.core.data.SumData;
 import io.mateu.mdd.core.interfaces.GridDecorator;
+import io.mateu.mdd.core.interfaces.StyledEnum;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
-import io.mateu.mdd.vaadinport.vaadin.MyUI;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -29,7 +27,6 @@ import java.text.NumberFormat;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class JPAListViewComponent extends ListViewComponent {
 
@@ -131,6 +128,10 @@ public class JPAListViewComponent extends ListViewComponent {
     }
 
     private Query buildQuery(EntityManager em, Function<Map<FieldInterfaced, String>, Object> fieldsPartBuilderFunction, Object filters, List<QuerySortOrder> sortOrders, int offset, int limit) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        return buildQuery(em, fieldsPartBuilderFunction, filters, sortOrders, null, offset, limit);
+    }
+
+    private Query buildQuery(EntityManager em, Function<Map<FieldInterfaced, String>, Object> fieldsPartBuilderFunction, Object filters, List<QuerySortOrder> sortOrders, String groupClause, int offset, int limit) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
         List<FieldInterfaced> columnFields = getSelectFields(getColumnType());
         List<FieldInterfaced> filterFields = getFilterFields();
@@ -176,6 +177,8 @@ public class JPAListViewComponent extends ListViewComponent {
 
         if (!"".equals(w)) jpql += " where " + w;
 
+        if (!Strings.isNullOrEmpty(groupClause)) jpql += " " + groupClause + " ";
+
         String oc = "";
         if (sortOrders != null) for (QuerySortOrder qso : sortOrders) {
             if (!"".equals(oc)) oc += ", ";
@@ -190,7 +193,7 @@ public class JPAListViewComponent extends ListViewComponent {
         return q;
     }
 
-    private List<FieldInterfaced> getSelectFields(Class targetType) {
+    public static List<FieldInterfaced> getSelectFields(Class targetType) {
         List<FieldInterfaced> cols = getColumnFields(targetType);
 
         FieldInterfaced idField = null;
@@ -362,7 +365,51 @@ public class JPAListViewComponent extends ListViewComponent {
     @Override
     public List<SumData> getSums(Object filters) {
         return sums;
-    };
+    }
+
+    @Override
+    protected List<ChartData> getCharts(Object filters) {
+        List<ChartData> l = new ArrayList<>();
+
+        ReflectionHelper.getAllFields(entityClass).stream().filter(f -> f.getType().isEnum()).forEach(f -> l.add(gatherChartData(filters, f)));
+
+        return l;
+    }
+
+    private ChartData gatherChartData(Object filters, FieldInterfaced f) {
+
+        List<ChartValue> vs = new ArrayList<>();
+        String caption = "By " + Helper.capitalize(f.getName()).toLowerCase();
+
+        try {
+            Helper.notransact(new JPATransaction() {
+                @Override
+                public void run(EntityManager em) throws Throwable {
+
+                    Query q = buildQuery(em, (alias) ->  "x." + f.getName() + ", count(x)" , filters, null, "group by x." + f.getName(), 0, 1000);
+                    System.out.println(q.toString());
+
+                    List<Object[]> r = q.getResultList();
+
+                    for (Object[] l : r) {
+                        String s = "";
+
+                        if (l[0] instanceof StyledEnum) s = ((StyledEnum)l[0]).getStyle();
+
+                        vs.add(new ChartValue(l[0],"" + l[0], new Double("" + l[1]), s));
+                    }
+
+
+                }
+            });
+        } catch (Throwable throwable) {
+            MDD.alert(throwable);
+        }
+
+        ChartData d = new ChartData(f, caption, vs);
+
+        return d;
+    }
 
     @Override
     public Object deserializeId(String sid) {

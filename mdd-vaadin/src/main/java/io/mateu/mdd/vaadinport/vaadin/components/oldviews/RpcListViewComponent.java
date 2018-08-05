@@ -4,6 +4,7 @@ import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.ui.Grid;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.data.ChartData;
 import io.mateu.mdd.core.data.SumData;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.core.interfaces.RpcView;
@@ -97,6 +98,11 @@ public class RpcListViewComponent extends ListViewComponent {
     @Override
     protected List<SumData> getSums(Object filters) {
         return rpcListView.getSums(filters);
+    }
+
+    @Override
+    protected List<ChartData> getCharts(Object filters) {
+        return null;
     }
 
     @Override

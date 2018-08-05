@@ -6,6 +6,7 @@ import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.tester.model.customComponents.CustomComponent;
 import io.mateu.mdd.tester.model.entities.embedded.WithEmbeddedEntity;
+import io.mateu.mdd.tester.model.entities.groups.Person;
 import io.mateu.mdd.tester.model.entities.relations.*;
 import io.mateu.mdd.tester.model.jpql.SampleJPQLCrudView;
 import io.mateu.mdd.tester.model.jpql.SampleJPQLLIstView;
@@ -139,6 +140,8 @@ public class MainModule extends AbstractModule {
                 l.add(new MDDOpenListViewAction("Sample JPQL crud view", SampleJPQLCrudView.class));
 
                 l.add(new MDDOpenListViewAction("Sample JPQL to POJO crud view", SampleJPQLToPPOJOCrudView.class));
+
+                l.add(new MDDOpenCRUDAction("With groups", Person.class));
 
                 return l;
             }

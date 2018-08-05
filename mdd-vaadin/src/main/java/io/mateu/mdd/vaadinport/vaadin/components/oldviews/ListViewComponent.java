@@ -1,5 +1,9 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
+import com.byteowls.vaadin.chartjs.ChartJs;
+import com.byteowls.vaadin.chartjs.config.DonutChartConfig;
+import com.byteowls.vaadin.chartjs.data.Dataset;
+import com.byteowls.vaadin.chartjs.data.PieDataset;
 import com.google.common.base.Strings;
 import com.vaadin.data.*;
 import com.vaadin.data.provider.ListDataProvider;
@@ -13,7 +17,10 @@ import com.vaadin.ui.components.grid.SortOrderProvider;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.data.ChartData;
+import io.mateu.mdd.core.data.ChartValue;
 import io.mateu.mdd.core.data.SumData;
+import io.mateu.mdd.core.interfaces.StyledEnum;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
@@ -43,6 +50,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     private Label countLabel;
     private FiltersComponent filtersComponent;
     private HorizontalLayout sumsComponent;
+    private HorizontalLayout chartsComponent;
 
     @Override
     public ListViewComponent build() throws InstantiationException, IllegalAccessException {
@@ -57,6 +65,9 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
         addComponent(sumsComponent = new HorizontalLayout());
         sumsComponent.setVisible(false);
+
+        addComponent(chartsComponent = new HorizontalLayout());
+        chartsComponent.setVisible(false);
 
         addComponent(countLabel = new Label());
         countLabel.addStyleName("resultsmessage");
@@ -300,7 +311,87 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             sumsComponent.setVisible(false);
         }
 
+        List<ChartData> charts = getCharts(filters);
+
+        if (charts != null && charts.size() > 0) {
+
+            chartsComponent.removeAllComponents();
+
+            for (ChartData d : charts) {
+                chartsComponent.addComponent(buildChart(d));
+            }
+
+            chartsComponent.setVisible(true);
+        } else {
+            chartsComponent.setVisible(false);
+        }
+
         return count;
+    }
+
+    private Component buildChart(ChartData d) {
+        DonutChartConfig config = new DonutChartConfig();
+        config
+                .data()
+                .labelsAsList(d.getValues().stream().map(v -> v.getTitle()).collect(Collectors.toList()))
+                .addDataset(new PieDataset().label(d.getTitle()))
+                .and();
+
+        config.
+                options()
+                .rotation(Math.PI)
+                .circumference(Math.PI)
+                .responsive(true)
+                .title()
+                .display(true)
+                .text(d.getTitle())
+                .and()
+                .animation()
+                .animateScale(false)
+                .animateRotate(true)
+                .and()
+                .done();
+
+
+        double total = 0;
+        for (ChartValue v : d.getValues()) {
+            total += v.getValue();
+        }
+
+        List<String> labels = config.data().getLabels();
+        for (Dataset<?, ?> ds : config.data().getDatasets()) {
+            PieDataset lds = (PieDataset) ds;
+
+            String[] colors = d.getValues().stream().map(v -> v.getStyle().toLowerCase().replaceAll("mdd-", "").replaceAll("-bgd", "")).collect(Collectors.toList()).toArray(new String[0]);
+
+            if (colors.length > 0 && !Strings.isNullOrEmpty(colors[0])) lds.backgroundColor(colors);
+            else lds.randomBackgroundColors(true);
+
+            List<Double> data = new ArrayList<>();
+            for (int i = 0; i < d.getValues().size(); i++) {
+                //data.add(100d * d.getValues().get(i).getValue() / total);
+                data.add(d.getValues().get(i).getValue());
+            }
+            lds.dataAsList(data);
+        }
+
+        ChartJs chart = new ChartJs(config);
+        chart.setJsLoggingEnabled(true);
+        if (d.getField() != null) {
+            chart.addClickListener((a,b) -> {
+                Object bean = filtersComponent.getBinder().getBean();
+                try {
+                    ReflectionHelper.setValue(d.getField(), bean, d.getValues().get(b).getKey());
+                    filtersComponent.getBinder().setBean(bean);
+                    search(bean);
+                } catch (Throwable throwable) {
+                    MDD.alert(throwable);
+                }
+                //DemoUtils.notification(a, b, config.data().getDatasets().get(a));
+            });
+        }
+
+        return chart;
     }
 
     private Component buildSum(SumData d) {
@@ -313,6 +404,8 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     protected abstract int gatherCount(Object filters);
 
     protected abstract List<SumData> getSums(Object filters);
+
+    protected abstract List<ChartData> getCharts(Object filters);
 
     public abstract Object deserializeId(String id);
 
@@ -469,6 +562,34 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     public Object toId(Object row) {
         return ReflectionHelper.getId(row);
     }
+
+    public void decorateGridMain(Grid grid) {
+
+        int pos = 2;
+        for (FieldInterfaced f : getColumnFields(getColumnType())) {
+            if (StyledEnum.class.isAssignableFrom(f.getType())) {
+                Grid.Column col = grid.getColumn(f.getName());
+                int finalPos = pos;
+                col.setStyleGenerator(o -> {
+                    if (o instanceof Object[]) {
+                        return ((StyledEnum)((Object[])o)[finalPos]).getStyle();
+                    } else {
+                        try {
+                            return ((StyledEnum)ReflectionHelper.getValue(f, o)).getStyle();
+                        } catch (Exception e) {
+                            MDD.alert(e);
+                        }
+                        return null;
+                    }
+                });
+            }
+            pos++;
+        }
+
+
+        decorateGrid(grid);
+    }
+
 
     public abstract void decorateGrid(Grid grid);
 }

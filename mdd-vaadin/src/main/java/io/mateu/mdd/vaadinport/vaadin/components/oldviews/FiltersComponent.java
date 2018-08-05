@@ -35,6 +35,9 @@ public class FiltersComponent extends CssLayout {
 
     private Component allFiltersComponent;
 
+    public MDDBinder getBinder() {
+        return binder;
+    }
 
     public FiltersComponent(ListViewComponent listViewComponent) throws IllegalAccessException, InstantiationException {
 
@@ -139,8 +142,9 @@ public class FiltersComponent extends CssLayout {
     }
 
     private List<FieldInterfaced> getAllFilterFields() {
-        List<FieldInterfaced> allFields = ReflectionHelper.getAllFields(modelType);
+        List<FieldInterfaced> allFields = JPAListViewComponent.getSelectFields(modelType);
 
+        /*
         allFields = allFields.stream().filter((f) ->
                 !(f.isAnnotationPresent(Ignored.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))
         ).filter(f -> RpcView.class.isAssignableFrom(modelType) || f.isAnnotationPresent(SearchFilter.class) || f.isAnnotationPresent(MainSearchFilter.class)).collect(Collectors.toList());
@@ -149,6 +153,7 @@ public class FiltersComponent extends CssLayout {
         if (allFields.size() == 0) {
             //todo: considerar crear al menos un filtro para todos los campos de tipo string
         }
+        */
 
         return allFields;
     }

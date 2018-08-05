@@ -19,6 +19,10 @@ public class SimpleMDDApplication extends BaseMDDApp {
         return Helper.capitalize(getClass().getName());
     }
 
+    public AbstractAction getDefaultAction() {
+        return null;
+    }
+
     @Override
     public List<AbstractArea> buildAreas() {
         List<AbstractArea> l = Arrays.asList(new AbstractArea("") {
@@ -41,6 +45,11 @@ public class SimpleMDDApplication extends BaseMDDApp {
             @Override
             public boolean isPublicAccess() {
                 return !SimpleMDDApplication.this.isAuthenticationNeeded();
+            }
+
+            @Override
+            public AbstractAction getDefaultAction() {
+                return SimpleMDDApplication.this.getDefaultAction();
             }
         });
         return l;

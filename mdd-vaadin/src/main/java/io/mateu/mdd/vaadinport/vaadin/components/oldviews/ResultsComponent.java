@@ -44,7 +44,7 @@ public class ResultsComponent extends VerticalLayout {
             }
         });
 
-        listViewComponent.decorateGrid(grid);
+        listViewComponent.decorateGridMain(grid);
 
 
         grid.setSizeFull();
