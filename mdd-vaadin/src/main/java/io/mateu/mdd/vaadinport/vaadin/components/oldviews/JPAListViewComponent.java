@@ -200,7 +200,7 @@ public class JPAListViewComponent extends ListViewComponent {
 
         for (FieldInterfaced f : ReflectionHelper.getAllFields(targetType)) if (f.isAnnotationPresent(Id.class)) idField = f;
 
-        cols.add(0, idField);
+        if (idField != null) cols.add(0, idField);
 
         return cols;
     }
