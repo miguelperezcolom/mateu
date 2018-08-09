@@ -90,7 +90,7 @@ public class MethodResultViewComponent extends AbstractViewComponent {
                 binder = new MDDBinder(result.getClass());
                 //binder = new Binder(modelType, true);
 
-                Pair<Component, AbstractStylist> r = FormLayoutBuilder.build(binder, result.getClass(), result, validators, getAllFields());
+                Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, result.getClass(), result, validators, getAllFields());
 
                 stylist = r.getValue();
                 addComponent(r.getKey());

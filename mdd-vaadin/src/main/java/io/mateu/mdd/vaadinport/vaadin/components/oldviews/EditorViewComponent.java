@@ -104,7 +104,7 @@ public class EditorViewComponent extends AbstractViewComponent {
         binder = new MDDBinder(modelType);
         //binder = new Binder(modelType, true);
 
-        Pair<Component, AbstractStylist> r = FormLayoutBuilder.build(binder, modelType, model, validators, ReflectionHelper.getAllEditableFields(modelType));
+        Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, modelType, model, validators, ReflectionHelper.getAllEditableFields(modelType));
 
         stylist = r.getValue();
 

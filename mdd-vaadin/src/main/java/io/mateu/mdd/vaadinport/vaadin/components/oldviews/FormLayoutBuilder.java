@@ -25,19 +25,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FormLayoutBuilder {
+public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuilder {
 
-    public static Pair<Component, AbstractStylist> build(MDDBinder binder, Class modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields) {
+    @Override
+    public Pair<Component, AbstractStylist> build(MDDBinder binder, Class<?> modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields) {
         CssLayout contentContainer = new CssLayout();
         contentContainer.addStyleName("contentcontainer");
         return build(contentContainer, binder, modelType, model, validators, allFields);
     }
 
-    public static Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields) {
+    public Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields) {
         return build(contentContainer, binder, modelType, model, validators, allFields, true);
     }
 
-    public static Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, boolean createSections) {
+    public Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, boolean createSections) {
 
 
         AbstractStylist stylist = new VoidStylist();
@@ -113,7 +114,7 @@ public class FormLayoutBuilder {
         return new Pair(contentContainer, stylist);
     }
 
-    private static void buildAndAddFields(JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields) {
+    private void buildAndAddFields(JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields) {
         for (FieldInterfaced f : fields) {
 
             if (f.isAnnotationPresent(FieldBuilder.class)) {
@@ -134,4 +135,11 @@ public class FormLayoutBuilder {
         }
 
     }
+
+    private static FormLayoutBuilder instance = new FormLayoutBuilder();
+
+    public static FormLayoutBuilder get() {
+        return instance;
+    }
+
 }

@@ -3,6 +3,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.fields;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
 import com.vaadin.ui.*;
+import io.mateu.mdd.core.data.FormLayoutBuilder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
@@ -44,6 +45,6 @@ public class JPAPOJOFieldBuilder extends JPAFieldBuilder {
     }
 
     protected void bind(MDDBinder binder, FormLayout tf, FieldInterfaced field, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields) {
-        binder.bindEmbedded(tf, field, validators, allFields);
+        binder.bindEmbedded(tf, field, validators, allFields, io.mateu.mdd.vaadinport.vaadin.components.oldviews.FormLayoutBuilder.get());
     }
 }

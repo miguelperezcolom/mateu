@@ -815,154 +815,28 @@ public class ReflectionHelper {
     }
 
     private static Object execute(UserData user, Method m, MDDBinder parameters, Object instance, String rpcViewClassName, Data rpcViewData) throws Throwable {
-        Object[] r = {null};
+        Map<String, Object> params = (Map<String, Object>) parameters.getBean();
 
-        if (!Modifier.isStatic(m.getModifiers())) {
-
-            boolean calledFromView = false;
-            Class viewClass = null;
-            Class entityClass = m.getDeclaringClass();
-            if (io.mateu.mdd.core.interfaces.View.class.isAssignableFrom(entityClass)) {
-                viewClass = entityClass;
-                for (Type t : entityClass.getGenericInterfaces()) {
-                    if (entityClass.getGenericInterfaces()[0].getTypeName().startsWith(io.mateu.mdd.core.interfaces.View.class.getName())) entityClass = (Class) ((ParameterizedType)t).getActualTypeArguments()[0];
-                }
-                calledFromView = true;
-            }
-
-
-            Method finalM = m;
-            Class finalEntityClass = entityClass;
-            boolean finalCalledFromView = calledFromView;
-            Class finalViewClass = viewClass;
-            Helper.transact(new JPATransaction() {
-                @Override
-                public void run(EntityManager em) throws Throwable {
-                    try {
-                        List<Object> persistPending = new ArrayList<>();
-
-                        Object o = instance;
-                        if (o == null) {
-                            if (!Strings.isNullOrEmpty(rpcViewClassName)) {
-                                o = Class.forName(rpcViewClassName).newInstance();
-                                fillEntity(em, persistPending, user, o, rpcViewData, true);
-                            } else {
-                                o = (parameters.isEmpty("_id"))?finalEntityClass.newInstance():em.find(finalEntityClass, parameters.get("_id"));
-                            }
-                        }
-                        List<Object> vs = new ArrayList<>();
-                        for (Parameter p : finalM.getParameters()) {
-
-                            if (finalCalledFromView && finalEntityClass.isAssignableFrom(p.getType())) {
-                                vs.add(o);
-                            } else if (p.isAnnotationPresent(io.mateu.mdd.core.annotations.Selection.class)) {
-                                vs.add(parameters.get("_selection"));
-                            } else if (EntityManager.class.isAssignableFrom(p.getType())) {
-                                vs.add(em);
-                            } else if (p.getType().isAnnotationPresent(Entity.class)) {
-                                Object v = parameters.get(p.getName());
-                                if (v != null) {
-                                    Pair x = (Pair) v;
-                                    if (x.getValue() != null) {
-                                        v = em.find(p.getType(), x.getValue());
-                                    }
-                                }
-                                vs.add(v);
-                            } else if (p.isAnnotationPresent(io.mateu.mdd.core.annotations.Wizard.class)) {
-                                vs.add(parameters);
-                            } else if (io.mateu.mdd.core.views.AbstractServerSideWizard.class.isAssignableFrom(p.getType())) {
-                                vs.add(fillWizard(user, em, p.getType(), parameters.get(p.getName())));
-                            } else if (UserData.class.equals(p.getType())) {
-                                vs.add(user);
-                            } else {
-                                Object v = extractValue(em, persistPending, user, o, parameters, getInterfaced(p));
-                                vs.add(v);
-                                //vs.add(parameters.get(p.getName()));
-                            }
-                        }
-                        Object[] args = vs.toArray();
-
-                        for (Object x : persistPending) em.persist(x);
-
-                        Object i = o;
-                        if (Strings.isNullOrEmpty(rpcViewClassName) && finalCalledFromView && finalViewClass != null) i = finalViewClass.newInstance();
-
-                        r[0] = finalM.invoke(i, args);
-                    } catch (InvocationTargetException e) {
-                        throw e.getTargetException();
-                    }
-                }
-            });
-        } else {
-            boolean needsEM = false;
-            for (Parameter p : m.getParameters()) {
-                if (EntityManager.class.equals(p.getType()) || io.mateu.mdd.core.views.AbstractServerSideWizard.class.isAssignableFrom(p.getType())) needsEM = true;
-            }
-            if (needsEM) {
-                Method finalM1 = m;
-                Helper.transact(new JPATransaction() {
-                    @Override
-                    public void run(EntityManager em) throws Throwable {
-
-                        List<Object> persistPending = new ArrayList<>();
-
-                        List<Object> vs = new ArrayList<>();
-                        for (Parameter p : finalM1.getParameters()) {
-                            if (p.isAnnotationPresent(io.mateu.mdd.core.annotations.Selection.class)) {
-                                vs.add(parameters.get("_selection"));
-                            } else if (EntityManager.class.isAssignableFrom(p.getType())) {
-                                vs.add(em);
-                            } else if (p.getType().isAnnotationPresent(Entity.class)) {
-                                Object v = parameters.get(p.getName());
-                                if (v != null) {
-                                    Pair x = (Pair) v;
-                                    if (x.getValue() != null) {
-                                        v = em.find(p.getType(), x.getValue());
-                                    }
-                                }
-                                vs.add(v);
-                            } else if (p.isAnnotationPresent(io.mateu.mdd.core.annotations.Wizard.class)) {
-                                vs.add(parameters);
-                            } else if (io.mateu.mdd.core.views.AbstractServerSideWizard.class.isAssignableFrom(p.getType())) {
-                                vs.add(fillWizard(user, em, p.getType(), parameters.get(p.getName())));
-                            } else if (UserData.class.equals(p.getType())) {
-                                vs.add(user);
-                            } else {
-                                Object v = extractValue(em, persistPending, user, null, parameters, getInterfaced(p));
-                                vs.add(v);
-                                //vs.add(parameters.get(p.getName()));
-                            }
-                        }
-                        Object[] args = vs.toArray();
-
-                        for (Object x : persistPending) em.persist(x);
-
-                        r[0] = finalM1.invoke(null, args);
-
-                    }
-                });
+        List<Object> vs = new ArrayList<>();
+        for (Parameter p : m.getParameters()) {
+            if (UserData.class.equals(p.getType())) {
+                vs.add(user);
+            } else if (p.isAnnotationPresent(io.mateu.mdd.core.annotations.Selection.class)) {
+                vs.add(params.get("_selection"));
+            } else if (p.isAnnotationPresent(io.mateu.mdd.core.annotations.Wizard.class)) {
+                vs.add(parameters);
+            } else if (io.mateu.mdd.core.views.AbstractServerSideWizard.class.isAssignableFrom(p.getType())) {
+                //vs.add(fillWizard(user, em, p.getType(), parameters.get(p.getName())));
+            } else if (UserData.class.equals(p.getType())) {
+                vs.add(user);
             } else {
-                List<Object> vs = new ArrayList<>();
-                for (Parameter p : m.getParameters()) {
-                    if (p.isAnnotationPresent(io.mateu.mdd.core.annotations.Selection.class)) {
-                        vs.add(parameters.get("_selection"));
-                    } else {
-                        Object v = parameters.get(p.getName());
-                        if (int.class.equals(p.getType()) && v == null) vs.add(0);
-                        else if (long.class.equals(p.getType()) && v == null) vs.add(0l);
-                        else if (double.class.equals(p.getType()) && v == null) vs.add(0d);
-                        else if (float.class.equals(p.getType()) && v == null) vs.add(0f);
-                        else if (boolean.class.equals(p.getType()) && v == null) vs.add(false);
-                        else vs.add(v);
-                    }
-                }
-                Object[] args = vs.toArray();
-
-                r[0] = m.invoke(null, args);
+                vs.add(params.get(p.getName()));
             }
         }
 
-        return r[0];
+        Object[] args = vs.toArray();
+
+        return m.invoke(instance, args);
     }
 
 

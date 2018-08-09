@@ -11,7 +11,6 @@ import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.FormLayoutBuilder;
 import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -984,7 +983,7 @@ public class MDDBinder {
         });
     }
 
-    public void update(FormLayout l, FieldInterfaced field, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields) {
+    public void update(FormLayout l, FieldInterfaced field, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, FormLayoutBuilder builder) {
         try {
             Object v = ReflectionHelper.getValue(field, bean);
 
@@ -994,7 +993,7 @@ public class MDDBinder {
 
                 MDDBinder binder = new MDDBinder(v.getClass());
                 
-                Pair<Component, AbstractStylist> r = FormLayoutBuilder.build(binder, v.getClass(), v, validators, ReflectionHelper.getAllEditableFields(v.getClass()));
+                Pair<Component, AbstractStylist> r = builder.build(binder, v.getClass(), v, validators, ReflectionHelper.getAllEditableFields(v.getClass()));
 
                 //stylist = r.getValue();
 
@@ -1008,18 +1007,18 @@ public class MDDBinder {
         }
     }
 
-    public void bindEmbedded(FormLayout l, FieldInterfaced field, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields) {
+    public void bindEmbedded(FormLayout l, FieldInterfaced field, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, FormLayoutBuilder builder) {
         fields.add(l);
 
         SimpleObjectProperty p = (SimpleObjectProperty) vaadinSideProperties.get(field.getName());
         if (p == null) {
             p = new SimpleObjectProperty();
             vaadinSideProperties.put(field.getName(), p);
-        } else update(l, field, validators, allFields);
+        } else update(l, field, validators, allFields, builder);
         p.addListener(new ChangeListener<Object>() {
             @Override
             public void changed(ObservableValue<?> observable, Object oldValue, Object newValue) {
-                update(l, field, validators, allFields);
+                update(l, field, validators, allFields, builder);
             }
         });
     }

@@ -69,11 +69,11 @@ public class FiltersComponent extends CssLayout {
                 else mainFilterFields = allFilterFields;
             }
 
-            Pair<Component, AbstractStylist> r = FormLayoutBuilder.build(this, binder, modelType, model, validators, mainFilterFields, false);
+            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(this, binder, modelType, model, validators, mainFilterFields, false);
 
             if (mainFilterFields.size() < allFilterFields.size()) { // hay filtros que no son los
 
-                r = FormLayoutBuilder.build(binder, modelType, model, validators, allFilterFields);
+                r = FormLayoutBuilder.get().build(binder, modelType, model, validators, allFilterFields);
 
                 allFiltersComponent = r.getKey();
 
