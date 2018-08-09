@@ -10,7 +10,7 @@ It's main target is to allow you to write your applications with the minimum cod
 
 For achieving this goal, Mateu MDD provides 
 
-- a set of abstract classes and interfaces as a base framework
+- a set of abstract classes and interfaces for defining your app
 - Model Driven Development (aka MDD) utilities
 - and the power of the Vaadin framework
 
