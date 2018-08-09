@@ -18,7 +18,6 @@
     <module>mdd-core</module>
     <module>mdd-tester</module>
     <module>mdd-vaadin</module>
-      <module>javafx-beans</module>
   </modules>
 
   <dependencies>
