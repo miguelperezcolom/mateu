@@ -15,7 +15,7 @@ import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.vaadinport.vaadin.components.dataProviders.JPQLListDataProvider;
-import io.mateu.mdd.vaadinport.vaadin.data.MDDBinder;
+import io.mateu.mdd.core.data.MDDBinder;
 
 import javax.persistence.ManyToOne;
 import javax.validation.constraints.NotNull;

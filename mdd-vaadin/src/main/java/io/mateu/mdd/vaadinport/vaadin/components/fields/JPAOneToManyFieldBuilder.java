@@ -22,7 +22,7 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.vaadinport.vaadin.components.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.data.MDDBinder;
+import io.mateu.mdd.core.data.MDDBinder;
 
 import javax.persistence.CascadeType;
 import javax.persistence.ElementCollection;

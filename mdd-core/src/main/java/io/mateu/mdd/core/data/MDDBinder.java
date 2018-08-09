@@ -1,4 +1,4 @@
-package io.mateu.mdd.vaadinport.vaadin.data;
+package io.mateu.mdd.core.data;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.HasValue;

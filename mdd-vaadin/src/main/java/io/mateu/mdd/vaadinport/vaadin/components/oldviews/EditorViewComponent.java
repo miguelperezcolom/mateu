@@ -20,14 +20,12 @@ import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
-import io.mateu.mdd.vaadinport.vaadin.components.fields.JPAFieldBuilder;
-import io.mateu.mdd.vaadinport.vaadin.data.ChangeNotificationListener;
-import io.mateu.mdd.vaadinport.vaadin.data.MDDBinder;
+import io.mateu.mdd.core.data.ChangeNotificationListener;
+import io.mateu.mdd.core.data.MDDBinder;
 import javafx.util.Pair;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;

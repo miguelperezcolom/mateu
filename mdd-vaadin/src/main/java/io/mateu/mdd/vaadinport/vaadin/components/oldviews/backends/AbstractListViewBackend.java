@@ -4,7 +4,7 @@ import com.vaadin.data.provider.DataProvider;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Grid;
-import io.mateu.mdd.vaadinport.vaadin.data.MDDBinder;
+import io.mateu.mdd.core.data.MDDBinder;
 
 import java.util.List;
 

@@ -2,7 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews.backends;
 
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
-import io.mateu.mdd.vaadinport.vaadin.data.MDDBinder;
+import io.mateu.mdd.core.data.MDDBinder;
 
 import java.util.List;
 

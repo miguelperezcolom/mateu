@@ -14,13 +14,12 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.app.MDDExecutionContext;
-import io.mateu.mdd.core.data.Data;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
-import io.mateu.mdd.vaadinport.vaadin.data.MDDBinder;
+import io.mateu.mdd.core.data.MDDBinder;
 import javafx.util.Pair;
 
 import javax.persistence.GeneratedValue;
@@ -144,7 +143,7 @@ public class MethodParametersViewComponent extends AbstractViewComponent {
                         System.out.println(binder.getBean());
 
 
-                        Object r = ReflectionHelper.execute(MDD.getUserData(), method, new Data(binder.getBean()), bean);
+                        Object r = ReflectionHelper.execute(MDD.getUserData(), method, binder, bean);
 
                         if (void.class.equals(method.getReturnType())) {
                             MyUI.get().getNavegador().goBack();

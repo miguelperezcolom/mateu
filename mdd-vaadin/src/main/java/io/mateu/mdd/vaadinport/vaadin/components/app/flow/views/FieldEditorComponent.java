@@ -1,6 +1,5 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.flow.views;
 
-import com.vaadin.data.Binder;
 import com.vaadin.data.HasValue;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
@@ -9,9 +8,7 @@ import io.mateu.mdd.core.annotations.TextArea;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.vaadinport.vaadin.data.MDDBinder;
-
-import java.lang.reflect.InvocationTargetException;
+import io.mateu.mdd.core.data.MDDBinder;
 
 public class FieldEditorComponent extends VerticalLayout {
 

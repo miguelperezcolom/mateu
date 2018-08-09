@@ -1,4 +1,4 @@
-package io.mateu.mdd.vaadinport.vaadin.data;
+package io.mateu.mdd.core.data;
 
 public interface ChangeNotificationListener {
 

@@ -7,7 +7,7 @@ import com.vaadin.data.ValueContext;
 import com.vaadin.shared.ui.ErrorLevel;
 import com.vaadin.ui.TextField;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.vaadinport.vaadin.data.MDDBinder;
+import io.mateu.mdd.core.data.MDDBinder;
 
 import java.util.List;
 
