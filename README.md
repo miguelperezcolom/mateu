@@ -30,7 +30,7 @@ I hope you like it ;)
 
 Hi. I am currently refactoring Mateu MDD.
 
-I hope Mateu MDD will be ready by next week.
+I hope Mateu MDD will be ready by next week ;)
 
 
 ## The user manual
