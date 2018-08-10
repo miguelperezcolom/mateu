@@ -69,7 +69,7 @@ public class FiltersComponent extends CssLayout {
                 else mainFilterFields = allFilterFields;
             }
 
-            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(this, binder, modelType, model, validators, mainFilterFields, false);
+            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(this, binder, modelType, model, validators, mainFilterFields, false, true);
 
             if (mainFilterFields.size() < allFilterFields.size()) { // hay filtros que no son los
 
@@ -111,7 +111,7 @@ public class FiltersComponent extends CssLayout {
                     ph += s;
                 }
                 f.setPlaceholder(ph);
-                binder.bindString(f, "anytext");
+                binder.bind(f, "anytext");
             }
 
         }

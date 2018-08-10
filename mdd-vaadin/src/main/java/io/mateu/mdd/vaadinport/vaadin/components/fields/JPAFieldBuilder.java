@@ -33,7 +33,7 @@ public abstract class JPAFieldBuilder {
 
     public abstract boolean isSupported(FieldInterfaced field);
 
-    public abstract void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers);
+    public abstract void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter);
 
 
     public static void applyStyles(AbstractStylist stylist, Object model,  Map<FieldInterfaced, Component> containers, Pair<Map<FieldInterfaced, List<String>>, Map<FieldInterfaced, List<String>>> styleChanges) {

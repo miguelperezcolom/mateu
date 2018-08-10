@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.vaadin.data.ValidationResult;
 import com.vaadin.data.Validator;
 import com.vaadin.data.ValueContext;
+import com.vaadin.data.converter.StringToDoubleConverter;
 import com.vaadin.shared.ui.ErrorLevel;
 import com.vaadin.ui.TextField;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -44,8 +45,7 @@ public class JPADoubleFieldBuilder extends JPAStringFieldBuilder {
 
     @Override
     protected void bind(MDDBinder binder, TextField tf, FieldInterfaced field) {
-        //binder.forField(tf).withConverter(new StringToDoubleConverter("Must be an number")).bind(field.getName());
-        binder.bindDouble(tf, field.getName());
+        binder.forField(tf).withConverter(new StringToDoubleConverter("Must be an number")).bind(field.getName());
     }
 
 

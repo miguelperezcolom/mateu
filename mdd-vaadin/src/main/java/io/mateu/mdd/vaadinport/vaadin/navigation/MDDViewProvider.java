@@ -307,7 +307,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     //recordar: (private|public)/area/modulo/menu/menu/accion
 
 
-                    boolean procesar = menuPassed && MDD.getApp().getMenu(currentPath) == null && lastView != null;
+                    boolean procesar = menuPassed && MDD.getApp().getMenu(currentPath) == null && MDD.getApp().getModule(currentPath) == null && lastView != null;
 
 
                     if (procesar) {

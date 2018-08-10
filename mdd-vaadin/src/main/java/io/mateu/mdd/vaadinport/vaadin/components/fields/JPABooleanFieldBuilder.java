@@ -20,20 +20,29 @@ public class JPABooleanFieldBuilder extends JPAFieldBuilder {
         return Boolean.class.equals(field.getType()) || boolean.class.equals(field.getType());
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers) {
+    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
 
 
-        CheckBox cb;
-        container.addComponent(cb = new CheckBox());
+        if (forSearchFilter) {
 
-        if (allFieldContainers.size() == 0) cb.focus();
+            //todo: contemplar los casos si, no, indiferente
 
-        cb.setCaption(Helper.capitalize(field.getName()));
-        
-        bind(binder, cb, field);
+        } else {
+
+            CheckBox cb;
+            container.addComponent(cb = new CheckBox());
+
+            if (allFieldContainers.size() == 0) cb.focus();
+
+            cb.setCaption(Helper.capitalize(field.getName()));
+
+            bind(binder, cb, field);
+
+        }
+
     }
 
     protected void bind(MDDBinder binder, CheckBox cb, FieldInterfaced field) {
-        binder.bindBoolean(cb, field.getName());
+        binder.bind(cb, field.getName());
     }
 }

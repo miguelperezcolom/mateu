@@ -27,7 +27,7 @@ public class JPAStringFieldBuilder extends JPAFieldBuilder {
         return String.class.equals(field.getType());
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers) {
+    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
 
         TextField tf;
         container.addComponent(tf = new TextField());
@@ -38,44 +38,48 @@ public class JPAStringFieldBuilder extends JPAFieldBuilder {
 
         tf.setCaption(Helper.capitalize(field.getName()));
 
-        validators.put(tf, new ArrayList<>());
+        if (!forSearchFilter) {
 
-        tf.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
-            @Override
-            public void valueChange(HasValue.ValueChangeEvent<String> valueChangeEvent) {
+            validators.put(tf, new ArrayList<>());
+
+            tf.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
+                @Override
+                public void valueChange(HasValue.ValueChangeEvent<String> valueChangeEvent) {
                     ValidationResult result = null;
-                for (Validator v : validators.get(tf)) {
-                    result = v.apply(valueChangeEvent.getValue(), new ValueContext(tf));
-                    if (result.isError()) break;
+                    for (Validator v : validators.get(tf)) {
+                        result = v.apply(valueChangeEvent.getValue(), new ValueContext(tf));
+                        if (result.isError()) break;
+                    }
+                    if (result != null && result.isError()) {
+                        tf.setComponentError(new UserError(result.getErrorMessage()));
+                    } else {
+                        tf.setComponentError(null);
+                    }
                 }
-                if (result != null && result.isError()) {
-                    tf.setComponentError(new UserError(result.getErrorMessage()));
-                } else {
-                    tf.setComponentError(null);
+            });
+
+            tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
+
+            if (field.isAnnotationPresent(NotNull.class)) validators.get(tf).add(new StringLengthValidator("Required field", 1, Integer.MAX_VALUE));
+
+            BeanValidator bv = new BeanValidator(field.getDeclaringClass(), field.getName());
+
+            validators.get(tf).add(new Validator() {
+
+                @Override
+                public ValidationResult apply(Object o, ValueContext valueContext) {
+                    return bv.apply(convert((String) o), valueContext);
                 }
-            }
-        });
 
-        tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
+                @Override
+                public Object apply(Object o, Object o2) {
+                    return null;
+                }
+            });
 
-        if (field.isAnnotationPresent(NotNull.class)) validators.get(tf).add(new StringLengthValidator("Required field", 1, Integer.MAX_VALUE));
+            addValidators(validators.get(tf));
 
-        BeanValidator bv = new BeanValidator(field.getDeclaringClass(), field.getName());
-
-        validators.get(tf).add(new Validator() {
-
-            @Override
-            public ValidationResult apply(Object o, ValueContext valueContext) {
-                return bv.apply(convert((String) o), valueContext);
-            }
-
-            @Override
-            public Object apply(Object o, Object o2) {
-                return null;
-            }
-        });
-
-        addValidators(validators.get(tf));
+        }
 
         /*
         tf.setDescription();
@@ -93,6 +97,6 @@ public class JPAStringFieldBuilder extends JPAFieldBuilder {
     }
 
     protected void bind(MDDBinder binder, TextField tf, FieldInterfaced field) {
-        binder.bindString(tf, field.getName());
+        binder.bind(tf, field.getName());
     }
 }

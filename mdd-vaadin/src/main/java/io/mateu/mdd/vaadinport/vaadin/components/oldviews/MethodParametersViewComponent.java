@@ -137,7 +137,7 @@ public class MethodParametersViewComponent extends AbstractViewComponent {
                             }
                         }
 
-                    if (binder.allValid()) {
+                    if (binder.validate().isOk()) {
 
 
                         System.out.println(binder.getBean());

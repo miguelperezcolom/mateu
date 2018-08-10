@@ -294,7 +294,14 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
     public int count(Object filters) {
         count = gatherCount(filters);
-        countLabel.setValue((count == 1)?"" + count + " match.":"" + count + " matches.");
+
+        String s = (count == 1)?"" + count + " match.":"" + count + " matches";
+
+        s += toCountLabel(filters);
+
+        s += ".";
+
+        countLabel.setValue(s);
 
         List<SumData> sums = getSums(filters);
 
@@ -327,6 +334,29 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         }
 
         return count;
+    }
+
+    private String toCountLabel(Object filters) {
+
+        String s = "";
+
+        if (filters != null) for (FieldInterfaced f : ReflectionHelper.getAllFields(filters.getClass())) {
+            try {
+                Object v = f.getValue(filters);
+
+                if (v != null) {
+                    if (!"".equals(s)) s += ", ";
+                    s += Helper.capitalize(f.getName()) + " = " + v;
+                    s += "";
+                }
+
+            } catch (Exception e) {
+                MDD.alert(e);
+            }
+        }
+
+        if (!"".equals(s)) s = " where " + s;
+        return s;
     }
 
     private Component buildChart(ChartData d) {

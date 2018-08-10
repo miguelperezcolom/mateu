@@ -22,78 +22,87 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class JPATextAreaFieldBuilder extends JPAFieldBuilder {
+public class JPATextAreaFieldBuilder extends JPAStringFieldBuilder {
 
 
     public boolean isSupported(FieldInterfaced field) {
         return field.isAnnotationPresent(TextArea.class);
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers) {
+    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
 
-        HorizontalLayout l = new HorizontalLayout();
+        if (forSearchFilter) {
 
-        com.vaadin.ui.TextArea tf;
-        l.addComponent(tf = new com.vaadin.ui.TextArea());
+            super.build(field, object, container, binder, validators, stylist, allFieldContainers, forSearchFilter);
 
-        if (allFieldContainers.size() == 0) tf.focus();
+        } else {
 
-        Button b;
-        l.addComponent(b = new Button(VaadinIcons.EXPAND_SQUARE));
-        b.addStyleName(ValoTheme.BUTTON_QUIET);
-        b.addClickListener(e -> MyUI.get().getNavegador().go(field.getName()));
+            HorizontalLayout l = new HorizontalLayout();
 
-        container.addComponent(l);
+            com.vaadin.ui.TextArea tf;
+            l.addComponent(tf = new com.vaadin.ui.TextArea());
 
-        allFieldContainers.put(field, tf);
+            if (allFieldContainers.size() == 0) tf.focus();
 
-        l.setCaption(Helper.capitalize(field.getName()));
+            Button b;
+            l.addComponent(b = new Button(VaadinIcons.EXPAND_SQUARE));
+            b.addStyleName(ValoTheme.BUTTON_QUIET);
+            b.addClickListener(e -> MyUI.get().getNavegador().go(field.getName()));
 
-        validators.put(tf, new ArrayList<>());
+            container.addComponent(l);
 
-        tf.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
-            @Override
-            public void valueChange(HasValue.ValueChangeEvent<String> valueChangeEvent) {
+            allFieldContainers.put(field, tf);
+
+            l.setCaption(Helper.capitalize(field.getName()));
+
+            validators.put(tf, new ArrayList<>());
+
+            tf.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
+                @Override
+                public void valueChange(HasValue.ValueChangeEvent<String> valueChangeEvent) {
                     ValidationResult result = null;
-                for (Validator v : validators.get(tf)) {
-                    result = v.apply(valueChangeEvent.getValue(), new ValueContext(tf));
-                    if (result.isError()) break;
+                    for (Validator v : validators.get(tf)) {
+                        result = v.apply(valueChangeEvent.getValue(), new ValueContext(tf));
+                        if (result.isError()) break;
+                    }
+                    if (result != null && result.isError()) {
+                        tf.setComponentError(new UserError(result.getErrorMessage()));
+                    } else {
+                        tf.setComponentError(null);
+                    }
                 }
-                if (result != null && result.isError()) {
-                    tf.setComponentError(new UserError(result.getErrorMessage()));
-                } else {
-                    tf.setComponentError(null);
+            });
+
+            tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
+
+            if (field.isAnnotationPresent(NotNull.class)) validators.get(tf).add(new StringLengthValidator("Required field", 1, Integer.MAX_VALUE));
+
+            BeanValidator bv = new BeanValidator(field.getDeclaringClass(), field.getName());
+
+            validators.get(tf).add(new Validator() {
+
+                @Override
+                public ValidationResult apply(Object o, ValueContext valueContext) {
+                    return bv.apply(convert((String) o), valueContext);
                 }
-            }
-        });
 
-        tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
+                @Override
+                public Object apply(Object o, Object o2) {
+                    return null;
+                }
+            });
 
-        if (field.isAnnotationPresent(NotNull.class)) validators.get(tf).add(new StringLengthValidator("Required field", 1, Integer.MAX_VALUE));
-
-        BeanValidator bv = new BeanValidator(field.getDeclaringClass(), field.getName());
-
-        validators.get(tf).add(new Validator() {
-
-            @Override
-            public ValidationResult apply(Object o, ValueContext valueContext) {
-                return bv.apply(convert((String) o), valueContext);
-            }
-
-            @Override
-            public Object apply(Object o, Object o2) {
-                return null;
-            }
-        });
-
-        addValidators(validators.get(tf));
+            addValidators(validators.get(tf));
 
         /*
         tf.setDescription();
         tf.setPlaceholder();
         */
 
-        bind(binder, tf, field);
+            bind(binder, tf, field);
+
+        }
+
     }
 
     public Object convert(String s) {
@@ -104,6 +113,6 @@ public class JPATextAreaFieldBuilder extends JPAFieldBuilder {
     }
 
     protected void bind(MDDBinder binder, com.vaadin.ui.TextArea tf, FieldInterfaced field) {
-        binder.bindString(tf, field.getName());
+        binder.bind(tf, field.getName());
     }
 }

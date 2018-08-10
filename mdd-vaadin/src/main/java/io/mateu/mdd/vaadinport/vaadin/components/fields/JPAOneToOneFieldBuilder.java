@@ -31,96 +31,106 @@ public class JPAOneToOneFieldBuilder extends JPAFieldBuilder {
         return field.isAnnotationPresent(OneToOne.class);
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers) {
+    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
 
-        ComboBox tf;
-        container.addComponent(tf = new ComboBox());
+        if (forSearchFilter) {
 
-        if (allFieldContainers.size() == 0) tf.focus();
+            // todo: añadir este campo?
 
-        try {
-            Helper.notransact((em) -> tf.setDataProvider(new JPQLListDataProvider(em, field.getType())));
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
-        }
+        } else {
 
+            ComboBox tf;
+            container.addComponent(tf = new ComboBox());
 
-        FieldInterfaced fName = ReflectionHelper.getNameField(field.getType());
-        if (fName != null) tf.setItemCaptionGenerator((i) -> {
+            if (allFieldContainers.size() == 0) tf.focus();
+
             try {
-                return "" + ReflectionHelper.getValue(fName, i);
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
+                Helper.notransact((em) -> tf.setDataProvider(new JPQLListDataProvider(em, field.getType())));
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
             }
-            return "Error";
-        });
 
-        allFieldContainers.put(field, tf);
 
-        tf.setCaption(Helper.capitalize(field.getName()));
+            FieldInterfaced fName = ReflectionHelper.getNameField(field.getType());
+            if (fName != null) tf.setItemCaptionGenerator((i) -> {
+                try {
+                    return "" + ReflectionHelper.getValue(fName, i);
+                } catch (NoSuchMethodException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+                return "Error";
+            });
 
-        validators.put(tf, new ArrayList<>());
+            allFieldContainers.put(field, tf);
 
-        tf.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
-            @Override
-            public void valueChange(HasValue.ValueChangeEvent<String> valueChangeEvent) {
+            tf.setCaption(Helper.capitalize(field.getName()));
+
+            validators.put(tf, new ArrayList<>());
+
+            tf.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
+                @Override
+                public void valueChange(HasValue.ValueChangeEvent<String> valueChangeEvent) {
                     ValidationResult result = null;
-                for (Validator v : validators.get(tf)) {
-                    result = v.apply(valueChangeEvent.getValue(), new ValueContext(tf));
-                    if (result.isError()) break;
+                    for (Validator v : validators.get(tf)) {
+                        result = v.apply(valueChangeEvent.getValue(), new ValueContext(tf));
+                        if (result.isError()) break;
+                    }
+                    if (result != null && result.isError()) {
+                        tf.setComponentError(new UserError(result.getErrorMessage()));
+                    } else {
+                        tf.setComponentError(null);
+                    }
                 }
-                if (result != null && result.isError()) {
-                    tf.setComponentError(new UserError(result.getErrorMessage()));
-                } else {
-                    tf.setComponentError(null);
+            });
+
+            tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
+
+            if (field.isAnnotationPresent(NotNull.class)) validators.get(tf).add(new Validator() {
+                @Override
+                public ValidationResult apply(Object o, ValueContext valueContext) {
+                    ValidationResult r = null;
+                    if (o == null) r = ValidationResult.create("Required field", ErrorLevel.ERROR);
+                    else r = ValidationResult.ok();
+                    return r;
                 }
-            }
-        });
 
-        tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
+                @Override
+                public Object apply(Object o, Object o2) {
+                    return null;
+                }
+            });
 
-        if (field.isAnnotationPresent(NotNull.class)) validators.get(tf).add(new Validator() {
-            @Override
-            public ValidationResult apply(Object o, ValueContext valueContext) {
-                ValidationResult r = null;
-                if (o == null) r = ValidationResult.create("Required field", ErrorLevel.ERROR);
-                else r = ValidationResult.ok();
-                return r;
-            }
+            BeanValidator bv = new BeanValidator(field.getDeclaringClass(), field.getName());
 
-            @Override
-            public Object apply(Object o, Object o2) {
-                return null;
-            }
-        });
+            validators.get(tf).add(new Validator() {
 
-        BeanValidator bv = new BeanValidator(field.getDeclaringClass(), field.getName());
+                @Override
+                public ValidationResult apply(Object o, ValueContext valueContext) {
+                    return bv.apply(o, valueContext);
+                }
 
-        validators.get(tf).add(new Validator() {
+                @Override
+                public Object apply(Object o, Object o2) {
+                    return null;
+                }
+            });
 
-            @Override
-            public ValidationResult apply(Object o, ValueContext valueContext) {
-                return bv.apply(o, valueContext);
-            }
-
-            @Override
-            public Object apply(Object o, Object o2) {
-                return null;
-            }
-        });
-
-        addValidators(validators.get(tf));
+            addValidators(validators.get(tf));
 
         /*
         tf.setDescription();
         tf.setPlaceholder();
         */
 
-        bind(binder, tf, field);
+            bind(binder, tf, field);
+
+
+        }
+
     }
 
     public Object convert(String s) {
@@ -131,6 +141,6 @@ public class JPAOneToOneFieldBuilder extends JPAFieldBuilder {
     }
 
     protected void bind(MDDBinder binder, ComboBox tf, FieldInterfaced field) {
-        binder.bindOneToOne(tf, field.getName());
+        binder.bind(tf, field.getName());
     }
 }

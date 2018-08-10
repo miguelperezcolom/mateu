@@ -115,12 +115,7 @@ public class EditorViewComponent extends AbstractViewComponent {
 
 
         AbstractStylist finalStylist = stylist;
-        binder.addChangeNotificationListener(new ChangeNotificationListener() {
-            @Override
-            public void somethingChanged() {
-                updateActions();
-            }
-        });
+        binder.addValueChangeListener(e -> updateActions());
 
         updateActions();
 
@@ -184,7 +179,7 @@ public class EditorViewComponent extends AbstractViewComponent {
                                 }
                             }
 
-                        if (binder.allValid()) {
+                        if (binder.validate().isOk()) {
 
                             save();
 

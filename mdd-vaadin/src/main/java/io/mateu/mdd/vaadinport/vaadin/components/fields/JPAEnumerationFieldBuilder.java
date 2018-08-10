@@ -29,7 +29,7 @@ public class JPAEnumerationFieldBuilder extends JPAFieldBuilder {
         return field.getType().isEnum();
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers) {
+    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
 
         ComboBox tf;
         container.addComponent(tf = new ComboBox());
@@ -60,37 +60,43 @@ public class JPAEnumerationFieldBuilder extends JPAFieldBuilder {
             }
         });
 
-        tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
+        if (!forSearchFilter) {
 
-        if (field.isAnnotationPresent(NotNull.class)) validators.get(tf).add(new Validator() {
-            @Override
-            public ValidationResult apply(Object o, ValueContext valueContext) {
-                if (o == null) return ValidationResult.create("Required field", ErrorLevel.ERROR);
-                else return ValidationResult.ok();
-            }
+            tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
 
-            @Override
-            public Object apply(Object o, Object o2) {
-                return null;
-            }
-        });
+            if (field.isAnnotationPresent(NotNull.class)) validators.get(tf).add(new Validator() {
+                @Override
+                public ValidationResult apply(Object o, ValueContext valueContext) {
+                    if (o == null) return ValidationResult.create("Required field", ErrorLevel.ERROR);
+                    else return ValidationResult.ok();
+                }
 
-        BeanValidator bv = new BeanValidator(field.getDeclaringClass(), field.getName());
+                @Override
+                public Object apply(Object o, Object o2) {
+                    return null;
+                }
+            });
 
-        validators.get(tf).add(new Validator() {
+            BeanValidator bv = new BeanValidator(field.getDeclaringClass(), field.getName());
 
-            @Override
-            public ValidationResult apply(Object o, ValueContext valueContext) {
-                return bv.apply(o, valueContext);
-            }
+            validators.get(tf).add(new Validator() {
 
-            @Override
-            public Object apply(Object o, Object o2) {
-                return null;
-            }
-        });
+                @Override
+                public ValidationResult apply(Object o, ValueContext valueContext) {
+                    return bv.apply(o, valueContext);
+                }
 
-        addValidators(validators.get(tf));
+                @Override
+                public Object apply(Object o, Object o2) {
+                    return null;
+                }
+            });
+
+            addValidators(validators.get(tf));
+
+        }
+
+
 
         /*
         tf.setDescription();
@@ -108,6 +114,6 @@ public class JPAEnumerationFieldBuilder extends JPAFieldBuilder {
     }
 
     protected void bind(MDDBinder binder, ComboBox tf, FieldInterfaced field) {
-        binder.bindEnum(tf, field.getName());
+        binder.bind(tf, field.getName());
     }
 }

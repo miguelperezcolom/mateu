@@ -31,7 +31,7 @@ public class JPAManyToOneFieldBuilder extends JPAFieldBuilder {
         return field.isAnnotationPresent(ManyToOne.class);
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers) {
+    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
 
         Component tf = null;
         HasValue hv = null;
@@ -74,7 +74,7 @@ public class JPAManyToOneFieldBuilder extends JPAFieldBuilder {
 
             tf = wrap;
 
-            l.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
+            if (!forSearchFilter) l.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
 
         } else if (field.isAnnotationPresent(UseRadioButtons.class)) {
 
@@ -127,7 +127,7 @@ public class JPAManyToOneFieldBuilder extends JPAFieldBuilder {
 
             }
 
-            rbg.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
+            if (!forSearchFilter) rbg.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
 
         } else {
 
@@ -183,7 +183,7 @@ public class JPAManyToOneFieldBuilder extends JPAFieldBuilder {
 
             }
 
-            cb.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
+            if (!forSearchFilter) cb.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
 
         }
 
@@ -195,64 +195,69 @@ public class JPAManyToOneFieldBuilder extends JPAFieldBuilder {
 
         tf.setCaption(Helper.capitalize(field.getName()));
 
-         AbstractComponent c = (AbstractComponent) tf;
+        if (!forSearchFilter) {
 
-        validators.put(hv, new ArrayList<>());
+            AbstractComponent c = (AbstractComponent) tf;
 
-        HasValue finalHv = hv;
-        hv.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
-            @Override
-            public void valueChange(HasValue.ValueChangeEvent<String> valueChangeEvent) {
+            validators.put(hv, new ArrayList<>());
+
+            HasValue finalHv = hv;
+            hv.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
+                @Override
+                public void valueChange(HasValue.ValueChangeEvent<String> valueChangeEvent) {
                     ValidationResult result = null;
-                for (Validator v : validators.get(finalHv)) {
-                    result = v.apply(valueChangeEvent.getValue(), new ValueContext(c));
-                    if (result.isError()) break;
+                    for (Validator v : validators.get(finalHv)) {
+                        result = v.apply(valueChangeEvent.getValue(), new ValueContext(c));
+                        if (result.isError()) break;
+                    }
+                    if (result != null && result.isError()) {
+                        c.setComponentError(new UserError(result.getErrorMessage()));
+                    } else {
+                        c.setComponentError(null);
+                    }
                 }
-                if (result != null && result.isError()) {
-                    c.setComponentError(new UserError(result.getErrorMessage()));
-                } else {
-                    c.setComponentError(null);
+            });
+
+
+            if (field.isAnnotationPresent(NotNull.class)) validators.get(tf).add(new Validator() {
+                @Override
+                public ValidationResult apply(Object o, ValueContext valueContext) {
+                    ValidationResult r = null;
+                    if (o == null) r = ValidationResult.create("Required field", ErrorLevel.ERROR);
+                    else r = ValidationResult.ok();
+                    return r;
                 }
-            }
-        });
 
+                @Override
+                public Object apply(Object o, Object o2) {
+                    return null;
+                }
+            });
 
-        if (field.isAnnotationPresent(NotNull.class)) validators.get(tf).add(new Validator() {
-            @Override
-            public ValidationResult apply(Object o, ValueContext valueContext) {
-                ValidationResult r = null;
-                if (o == null) r = ValidationResult.create("Required field", ErrorLevel.ERROR);
-                else r = ValidationResult.ok();
-                return r;
-            }
+            BeanValidator bv = new BeanValidator(field.getDeclaringClass(), field.getName());
 
-            @Override
-            public Object apply(Object o, Object o2) {
-                return null;
-            }
-        });
+            validators.get(hv).add(new Validator() {
 
-        BeanValidator bv = new BeanValidator(field.getDeclaringClass(), field.getName());
+                @Override
+                public ValidationResult apply(Object o, ValueContext valueContext) {
+                    return bv.apply(o, valueContext);
+                }
 
-        validators.get(hv).add(new Validator() {
+                @Override
+                public Object apply(Object o, Object o2) {
+                    return null;
+                }
+            });
 
-            @Override
-            public ValidationResult apply(Object o, ValueContext valueContext) {
-                return bv.apply(o, valueContext);
-            }
-
-            @Override
-            public Object apply(Object o, Object o2) {
-                return null;
-            }
-        });
-
-        addValidators(validators.get(hv));
+            addValidators(validators.get(hv));
 
         /*
         tf.setDescription();
         tf.setPlaceholder();
         */
+
+        }
+
 
         bind(binder, hv, field);
     }
@@ -265,7 +270,7 @@ public class JPAManyToOneFieldBuilder extends JPAFieldBuilder {
     }
 
     protected void bind(MDDBinder binder, HasValue tf, FieldInterfaced field) {
-        binder.bindManyToOne(tf, field.getName());
+        binder.bind(tf, field.getName());
     }
 
 }

@@ -20,16 +20,18 @@ public class JPAOutputFieldBuilder extends JPAFieldBuilder {
         return String.class.equals(field.getType());
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers) {
+    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
 
-        TextField tf;
-        container.addComponent(tf = new TextField());
+        if (!forSearchFilter) {
 
-        tf.setReadOnly(true);
+            TextField tf;
+            container.addComponent(tf = new TextField());
 
-        allFieldContainers.put(field, tf);
+            tf.setReadOnly(true);
 
-        tf.setCaption(Helper.capitalize(field.getName()));
+            allFieldContainers.put(field, tf);
+
+            tf.setCaption(Helper.capitalize(field.getName()));
 
 
         /*
@@ -37,10 +39,13 @@ public class JPAOutputFieldBuilder extends JPAFieldBuilder {
         tf.setPlaceholder();
         */
 
-        bind(binder, tf, field);
+            bind(binder, tf, field);
+
+        }
+
     }
 
     protected void bind(MDDBinder binder, TextField tf, FieldInterfaced field) {
-        binder.bindAnythingToString(tf, field.getName());
+        binder.bind(tf, field.getName());
     }
 }

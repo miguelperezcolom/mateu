@@ -50,7 +50,23 @@ public class ResultsComponent extends VerticalLayout {
         grid.setSizeFull();
 
 
-        DataProvider p = DataProvider.fromFilteringCallbacks(query -> listViewComponent.findAll(filters, query.getSortOrders(), query.getOffset(), query.getLimit()).stream(), query -> listViewComponent.count(filters));
+
+
+        DataProvider p = DataProvider.fromFilteringCallbacks(query -> {
+            try {
+                return listViewComponent.findAll(listViewComponent.getModelForSearchFilters(), query.getSortOrders(), query.getOffset(), query.getLimit()).stream();
+            } catch (Exception e) {
+                MDD.alert(e);
+                return null;
+            }
+        }, query -> {
+            try {
+                return listViewComponent.count(listViewComponent.getModelForSearchFilters());
+            } catch (Exception e) {
+                MDD.alert(e);
+                return 0;
+            }
+        });
 
         grid.setDataProvider(p);
         grid.setColumnReorderingAllowed(true);
@@ -141,6 +157,6 @@ public class ResultsComponent extends VerticalLayout {
     }
 
     public void refresh() throws Throwable {
-        search(filters);
+        search(listViewComponent.getModelForSearchFilters());
     }
 }

@@ -31,14 +31,14 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
     public Pair<Component, AbstractStylist> build(MDDBinder binder, Class<?> modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields) {
         CssLayout contentContainer = new CssLayout();
         contentContainer.addStyleName("contentcontainer");
-        return build(contentContainer, binder, modelType, model, validators, allFields);
+        return build(contentContainer, binder, modelType, model, validators, allFields, true, true);
     }
 
     public Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields) {
-        return build(contentContainer, binder, modelType, model, validators, allFields, true);
+        return build(contentContainer, binder, modelType, model, validators, allFields, true, false);
     }
 
-    public Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, boolean createSections) {
+    public Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, boolean createSections, boolean forSearchFilters) {
 
 
         AbstractStylist stylist = new VoidStylist();
@@ -92,19 +92,19 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                 }
 
 
-                buildAndAddFields(ofb, model, form, binder, validators, finalStylist1, allFieldContainers, s.getFields());
+                buildAndAddFields(ofb, model, form, binder, validators, finalStylist1, allFieldContainers, s.getFields(), forSearchFilters);
                 contentContainer.addComponent(form);
             });
         } else {
-            buildAndAddFields(ofb, model, contentContainer, binder, validators, stylist, allFieldContainers, allFields);
+            buildAndAddFields(ofb, model, contentContainer, binder, validators, stylist, allFieldContainers, allFields, forSearchFilters);
         }
 
         binder.setBean(model);
 
         AbstractStylist finalStylist = stylist;
-        binder.addChangeNotificationListener(new ChangeNotificationListener() {
+        binder.addValueChangeListener(new HasValue.ValueChangeListener<Object>() {
             @Override
-            public void somethingChanged() {
+            public void valueChange(HasValue.ValueChangeEvent<Object> valueChangeEvent) {
                 JPAFieldBuilder.applyStyles(finalStylist, binder.getBean(), allFieldContainers, finalStylist.process(binder.getBean()));
             }
         });
@@ -114,20 +114,20 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
         return new Pair(contentContainer, stylist);
     }
 
-    private void buildAndAddFields(JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields) {
+    private void buildAndAddFields(JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters) {
         for (FieldInterfaced f : fields) {
 
             if (f.isAnnotationPresent(FieldBuilder.class)) {
                 try {
-                    (f.getAnnotation(FieldBuilder.class).value().newInstance()).build(f, model, contentContainer, binder, validators, stylist, allFieldContainers);
+                    (f.getAnnotation(FieldBuilder.class).value().newInstance()).build(f, model, contentContainer, binder, validators, stylist, allFieldContainers, forSearchFilters);
                 } catch (Exception e) {
                     MDD.alert(e);
                 }
             } else if (f.isAnnotationPresent(GeneratedValue.class) || f.isAnnotationPresent(Output.class)) {
-                ofb.build(f, model, contentContainer, binder, validators, stylist, allFieldContainers);
+                ofb.build(f, model, contentContainer, binder, validators, stylist, allFieldContainers, forSearchFilters);
             } else {
                 for (JPAFieldBuilder fieldBuilder : JPAFieldBuilder.builders) if (fieldBuilder.isSupported(f)) {
-                    fieldBuilder.build(f, model, contentContainer, binder, validators, stylist, allFieldContainers);
+                    fieldBuilder.build(f, model, contentContainer, binder, validators, stylist, allFieldContainers, forSearchFilters);
                     break;
                 }
             }
