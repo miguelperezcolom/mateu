@@ -21,7 +21,7 @@ import java.util.List;
 public class RpcListViewComponent extends ListViewComponent {
 
     private final Class rpcListViewClass;
-    private final RpcView rpcListView;
+    private RpcView rpcListView;
     private final Class columnType;
 
     public RpcListViewComponent(Class rpcListViewClass) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
@@ -44,6 +44,12 @@ public class RpcListViewComponent extends ListViewComponent {
     @Override
     public Object getModelForSearchFilters() throws InstantiationException, IllegalAccessException {
         return rpcListView;
+    }
+
+    @Override
+    public void setModelForSearchFilters(Object filters) {
+        filtersComponent.getBinder().setBean(filters);
+        rpcListView = (RpcView) filters;
     }
 
     @Override

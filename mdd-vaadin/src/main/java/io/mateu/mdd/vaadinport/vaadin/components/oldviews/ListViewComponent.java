@@ -48,7 +48,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
     private int count;
     private Label countLabel;
-    private FiltersComponent filtersComponent;
+    public FiltersComponent filtersComponent;
     private HorizontalLayout sumsComponent;
     private HorizontalLayout chartsComponent;
 
@@ -274,6 +274,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     public void search(Object filters) throws Throwable {
+        setModelForSearchFilters(filters);
         resultsComponent.search(filters);
     }
 
@@ -452,6 +453,8 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     public abstract Object getModelForSearchFilters() throws InstantiationException, IllegalAccessException;
+
+    public abstract void setModelForSearchFilters(Object filters);
 
     public Component getFiltersViewComponent() {
         return filtersComponent.getFiltersViewComponent();

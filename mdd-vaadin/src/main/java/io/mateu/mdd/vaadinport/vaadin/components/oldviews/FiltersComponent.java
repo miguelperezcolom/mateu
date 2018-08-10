@@ -6,6 +6,7 @@ import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.MainSearchFilter;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -24,7 +25,6 @@ public class FiltersComponent extends CssLayout {
 
     private final ListViewComponent listViewComponent;
     private final Class modelType;
-    private final Object model;
 
     private MDDBinder binder;
 
@@ -40,8 +40,6 @@ public class FiltersComponent extends CssLayout {
 
         this.modelType = listViewComponent.getModelTypeForSearchFilters();
 
-        this.model= listViewComponent.getModelForSearchFilters();
-
         build();
     }
 
@@ -52,8 +50,12 @@ public class FiltersComponent extends CssLayout {
 
 
         binder = new MDDBinder(modelType);
-        //binder = new Binder(modelType, true);
-        //binder.setBean(entities);
+        try {
+            binder.setBean(listViewComponent.getModelForSearchFilters());
+        } catch (Exception e) {
+            MDD.alert(e);
+        }
+        binder.addValueChangeListener(e -> listViewComponent.setModelForSearchFilters(binder.getBean()));
 
         Map<HasValue, List<Validator>> validators = new HashMap<>();
 
@@ -69,11 +71,11 @@ public class FiltersComponent extends CssLayout {
                 else mainFilterFields = allFilterFields;
             }
 
-            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(this, binder, modelType, model, validators, mainFilterFields, false, true);
+            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(this, binder, modelType, binder.getBean(), validators, mainFilterFields, false, true);
 
             if (mainFilterFields.size() < allFilterFields.size()) { // hay filtros que no son los
 
-                r = FormLayoutBuilder.get().build(binder, modelType, model, validators, allFilterFields);
+                r = FormLayoutBuilder.get().build(binder, modelType, binder.getBean(), validators, allFilterFields);
 
                 allFiltersComponent = r.getKey();
 
@@ -86,6 +88,7 @@ public class FiltersComponent extends CssLayout {
                 b.addClickListener(new Button.ClickListener() {
                     @Override
                     public void buttonClick(Button.ClickEvent clickEvent) {
+                        listViewComponent.setModelForSearchFilters(binder.getBean());
                         MyUI.get().getNavegador().go(listViewComponent.getPathForFilters());
                     }
                 });
@@ -125,7 +128,8 @@ public class FiltersComponent extends CssLayout {
             @Override
             public void buttonClick(Button.ClickEvent clickEvent) {
                 try {
-                    listViewComponent.search(model);
+                    listViewComponent.setModelForSearchFilters(binder.getBean());
+                    listViewComponent.search(binder.getBean());
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();
                 }

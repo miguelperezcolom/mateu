@@ -34,6 +34,8 @@ public class JPAListViewComponent extends ListViewComponent {
 
     private final Class entityClass;
 
+    private Object filters;
+
     private List<SumData> sums;
 
     public JPAListViewComponent(Class entityClass) {
@@ -58,6 +60,12 @@ public class JPAListViewComponent extends ListViewComponent {
     @Override
     public Object getModelForSearchFilters() throws InstantiationException, IllegalAccessException {
         return createNewInstance();
+    }
+
+    @Override
+    public void setModelForSearchFilters(Object filters) {
+        filtersComponent.getBinder().setBean(filters);
+        this.filters = filters;
     }
 
 
@@ -95,9 +103,11 @@ public class JPAListViewComponent extends ListViewComponent {
 
 
     public Object createNewInstance() throws IllegalAccessException, InstantiationException {
-        return entityClass.newInstance();
+        if (filters == null) {
+            filters = entityClass.newInstance();
+        }
+        return filters;
     }
-
 
     @Override
     public Class getFiltersType() {

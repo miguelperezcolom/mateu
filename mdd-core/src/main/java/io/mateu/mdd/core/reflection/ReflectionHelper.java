@@ -834,8 +834,16 @@ public class ReflectionHelper {
                 //vs.add(fillWizard(user, em, p.getType(), parameters.get(p.getName())));
             } else if (UserData.class.equals(p.getType())) {
                 vs.add(user);
-            } else {
+            } else if (params.containsKey(p.getName())) {
                 vs.add(params.get(p.getName()));
+            } else {
+                Object v = null;
+                if (int.class.equals(p.getType())) v = 0;
+                if (long.class.equals(p.getType())) v = 0l;
+                if (float.class.equals(p.getType())) v = 0f;
+                if (double.class.equals(p.getType())) v = 0d;
+                if (boolean.class.equals(p.getType())) v = false;
+                vs.add(v);
             }
         }
 
