@@ -8,7 +8,7 @@ import com.vaadin.ui.Layout;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.data.MDDBinder;
-import javafx.util.Pair;
+import io.mateu.mdd.core.data.Pair;
 
 import java.util.List;
 import java.util.Map;

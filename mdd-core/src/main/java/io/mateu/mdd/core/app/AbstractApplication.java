@@ -24,9 +24,6 @@ import java.util.Map;
  */
 public abstract class AbstractApplication implements App {
 
-    public static final String PORT_VAADIN = "vaadin";
-    public static final String PORT_JAVAFX = "javafx";
-
 
     private String baseUrl;
     private String port;

@@ -12,7 +12,7 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.core.data.MDDBinder;
-import javafx.util.Pair;
+import io.mateu.mdd.core.data.Pair;
 
 import java.util.ArrayList;
 import java.util.HashMap;

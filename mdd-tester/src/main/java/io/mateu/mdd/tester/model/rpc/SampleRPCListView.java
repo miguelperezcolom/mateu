@@ -5,7 +5,7 @@ import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.annotations.MainSearchFilter;
 import io.mateu.mdd.core.data.Just1StringColumn;
 import io.mateu.mdd.core.interfaces.RpcView;
-import javafx.util.Pair;
+import io.mateu.mdd.core.data.Pair;
 import lombok.Getter;
 import lombok.Setter;
 

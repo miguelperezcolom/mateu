@@ -4,7 +4,7 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
-import javafx.util.Pair;
+import io.mateu.mdd.core.data.Pair;
 
 import javax.persistence.Id;
 import java.lang.reflect.InvocationTargetException;

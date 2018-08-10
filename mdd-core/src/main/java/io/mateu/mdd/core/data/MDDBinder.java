@@ -17,7 +17,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
-import javafx.util.Pair;
 
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;

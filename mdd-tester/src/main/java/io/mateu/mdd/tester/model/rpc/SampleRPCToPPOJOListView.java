@@ -8,7 +8,7 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.tester.model.entities.basic.BasicFieldsDemoEntity;
 import io.mateu.mdd.tester.model.pojos.SamplePPOJO;
-import javafx.util.Pair;
+import io.mateu.mdd.core.data.Pair;
 import lombok.Getter;
 import lombok.Setter;
 

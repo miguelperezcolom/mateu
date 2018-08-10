@@ -17,7 +17,7 @@ import io.mateu.mdd.vaadinport.vaadin.components.fields.JPAFieldBuilder;
 import io.mateu.mdd.vaadinport.vaadin.components.fields.JPAOutputFieldBuilder;
 import io.mateu.mdd.core.data.ChangeNotificationListener;
 import io.mateu.mdd.core.data.MDDBinder;
-import javafx.util.Pair;
+import io.mateu.mdd.core.data.Pair;
 
 import javax.persistence.GeneratedValue;
 import java.util.ArrayList;

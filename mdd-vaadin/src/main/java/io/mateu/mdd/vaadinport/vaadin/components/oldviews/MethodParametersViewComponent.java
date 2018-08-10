@@ -20,7 +20,7 @@ import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.core.data.MDDBinder;
-import javafx.util.Pair;
+import io.mateu.mdd.core.data.Pair;
 
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;

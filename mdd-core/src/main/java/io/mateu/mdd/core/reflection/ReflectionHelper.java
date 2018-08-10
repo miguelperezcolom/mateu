@@ -1,14 +1,12 @@
 package io.mateu.mdd.core.reflection;
 
 import com.google.common.base.Strings;
-import com.sun.javafx.collections.ObservableSetWrapper;
 import io.mateu.mdd.core.annotations.Ignored;
-import io.mateu.mdd.core.data.*;
-import io.mateu.mdd.core.util.DatesRange;
+import io.mateu.mdd.core.data.Data;
+import io.mateu.mdd.core.data.MDDBinder;
+import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.util.JPATransaction;
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.beanutils.BeanUtilsBean;
 
 import javax.persistence.*;
 import java.lang.annotation.Annotation;
@@ -16,7 +14,6 @@ import java.lang.reflect.*;
 import java.lang.reflect.Parameter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -68,7 +65,7 @@ public class ReflectionHelper {
                 o = getInstance(o, fn.substring(0, fn.indexOf(".")));
                 setValue(fn.substring(fn.indexOf(".") + 1), o, v);
             } else {
-                if (v instanceof ObservableSetWrapper) v = new ArrayList((Collection) v);
+                if (v instanceof Collection) v = new ArrayList((Collection) v);
                 BeanUtils.setProperty(o, fn, v);
             }
         }
