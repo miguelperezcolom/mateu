@@ -1,9 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fields;
 
 import com.google.common.base.Strings;
-import com.vaadin.data.ValidationResult;
-import com.vaadin.data.Validator;
-import com.vaadin.data.ValueContext;
+import com.vaadin.data.*;
 import com.vaadin.data.converter.StringToIntegerConverter;
 import com.vaadin.shared.ui.ErrorLevel;
 import com.vaadin.ui.TextField;
@@ -45,7 +43,17 @@ public class JPAIntegerFieldBuilder extends JPAStringFieldBuilder {
 
     @Override
     protected void bind(MDDBinder binder, TextField tf, FieldInterfaced field) {
-        binder.forField(tf).withConverter(new StringToIntegerConverter("Must be an integer")).bind(field.getName());
+        binder.forField(tf).withConverter(new StringToIntegerConverter(0, "Must be an integer")).withConverter(new Converter() {
+            @Override
+            public Result convertToModel(Object o, ValueContext valueContext) {
+                return Result.ok(o);
+            }
+
+            @Override
+            public Object convertToPresentation(Object o, ValueContext valueContext) {
+                return (o != null)?o:0;
+            }
+        }).bind(field.getName());
     }
 
 

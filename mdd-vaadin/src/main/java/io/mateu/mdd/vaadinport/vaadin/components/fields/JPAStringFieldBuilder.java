@@ -1,9 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fields;
 
-import com.vaadin.data.HasValue;
-import com.vaadin.data.ValidationResult;
-import com.vaadin.data.Validator;
-import com.vaadin.data.ValueContext;
+import com.vaadin.data.*;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.data.validator.StringLengthValidator;
 import com.vaadin.server.UserError;
@@ -97,6 +94,16 @@ public class JPAStringFieldBuilder extends JPAFieldBuilder {
     }
 
     protected void bind(MDDBinder binder, TextField tf, FieldInterfaced field) {
-        binder.bind(tf, field.getName());
+        binder.forField(tf).withConverter(new Converter() {
+            @Override
+            public Result convertToModel(Object o, ValueContext valueContext) {
+                return Result.ok(o);
+            }
+
+            @Override
+            public Object convertToPresentation(Object o, ValueContext valueContext) {
+                return (o != null)?o:"";
+            }
+        }).bind(field.getName());
     }
 }

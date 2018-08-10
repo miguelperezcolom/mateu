@@ -1,6 +1,7 @@
 package io.mateu.mdd.core.reflection;
 
 import com.google.common.base.Strings;
+import io.mateu.mdd.core.annotations.Caption;
 import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.data.Data;
 import io.mateu.mdd.core.data.MDDBinder;
@@ -75,27 +76,34 @@ public class ReflectionHelper {
 
         if (o == null) return null;
 
-        if (f.getId().contains(".")) {
-            o = getInstance(o, f.getId().substring(0, f.getId().lastIndexOf(".")));
+        if (Map.class.isAssignableFrom(o.getClass())) {
+            return ((Map) o).get(f.getName());
+        } else {
+
+            if (f.getId().contains(".")) {
+                o = getInstance(o, f.getId().substring(0, f.getId().lastIndexOf(".")));
+            }
+
+            Method getter = null;
+            try {
+                getter = o.getClass().getMethod(getGetter(f.getField()));
+            } catch (Exception e) {
+
+            }
+            Object v = null;
+            try {
+                if (getter != null)
+                    v = getter.invoke(o);
+                else v = null; // no es posible hacer esto con campos interfaced!!!
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
+            return v;
+
         }
 
-        Method getter = null;
-        try {
-            getter = o.getClass().getMethod(getGetter(f.getField()));
-        } catch (Exception e) {
-
-        }
-        Object v = null;
-        try {
-            if (getter != null)
-                v = getter.invoke(o);
-            else v = null; // no es posible hacer esto con campos interfaced!!!
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        }
-        return v;
     }
 
     private static Object getInstance(Object o, String fn) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
@@ -970,4 +978,9 @@ public class ReflectionHelper {
         } else throw new Exception("" + type.getName() + " must extend " + io.mateu.mdd.core.views.BaseServerSideWizard.class.getName());
     }
 
+    public static String getCaption(FieldInterfaced f) {
+        if (f.isAnnotationPresent(Caption.class)) {
+            return f.getAnnotation(Caption.class).value();
+        } else return Helper.capitalize(f.getName());
+    }
 }

@@ -79,7 +79,7 @@ public class MethodParametersViewComponent extends AbstractViewComponent {
         addStyleName("editorviewcomponent");
 
 
-        binder = new MDDBinder(model.getClass());
+        binder = new MDDBinder(getAllFields());
         //binder = new Binder(modelType, true);
 
         Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, model.getClass(), model, validators, getAllFields());
