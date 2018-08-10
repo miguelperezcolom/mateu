@@ -19,8 +19,6 @@ public class CalculatedFieldsDemoEntity {
 
     public void setIntField(int infField) {
         this.intField = infField;
-        setCalculated(intField * 2);
-        setCalculatedAlso(intField * 3);
         setCalculatedAndPersistent(intField * 4);
     }
 
@@ -28,7 +26,15 @@ public class CalculatedFieldsDemoEntity {
     @Transient
     private int calculated;
 
+    public int getCalculated() {
+        return intField * 2;
+    }
+
     transient int calculatedAlso;
+
+    public int getCalculatedAlso() {
+        return intField * 3;
+    }
 
     @Output
     private int calculatedAndPersistent;

@@ -35,7 +35,6 @@ public class EditorViewComponent extends AbstractViewComponent {
     private Map<HasValue, List<Validator>> validators = new HashMap<>();
 
     protected boolean newRecord;
-    private Object model;
     private final Class modelType;
 
     private MDDBinder binder;
@@ -51,10 +50,10 @@ public class EditorViewComponent extends AbstractViewComponent {
     }
 
     public EditorViewComponent(Class modelType) {
-
         this.modelType = modelType;
+        binder = new MDDBinder(modelType);
         try {
-            this.model = modelType.newInstance();
+            setModel(modelType.newInstance());
         } catch (InstantiationException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {
@@ -66,26 +65,25 @@ public class EditorViewComponent extends AbstractViewComponent {
 
     public EditorViewComponent(Object model) {
         this.modelType = model.getClass();
-        this.model = model;
+        binder = new MDDBinder(modelType);
+        setModel(model);
     }
 
     public Object getModel() {
-        return model;
+        return binder.getBean();
     }
 
     public void setModel(Object model) {
-        this.model = model;
         binder.setBean(model);
     }
 
     public void updateModel(Object model) {
-        this.model = model;
         binder.setBean(model, false);
     }
 
     @Override
     public String toString() {
-        String t = stylist.getViewTitle(newRecord, model);
+        String t = stylist.getViewTitle(newRecord, getModel());
         return t;
     }
 
@@ -100,11 +98,9 @@ public class EditorViewComponent extends AbstractViewComponent {
 
         addStyleName("editorviewcomponent");
 
-
-        binder = new MDDBinder(modelType);
         //binder = new Binder(modelType, true);
 
-        Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, modelType, model, validators, ReflectionHelper.getAllEditableFields(modelType));
+        Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, modelType, getModel(), validators, ReflectionHelper.getAllEditableFields(modelType), false);
 
         stylist = r.getValue();
 
@@ -115,7 +111,10 @@ public class EditorViewComponent extends AbstractViewComponent {
 
 
         AbstractStylist finalStylist = stylist;
-        binder.addValueChangeListener(e -> updateActions());
+        binder.addValueChangeListener(e -> {
+            updateActions();
+            binder.setBean(binder.getBean()); // para campos calculados
+        });
 
         updateActions();
 
@@ -281,7 +280,7 @@ public class EditorViewComponent extends AbstractViewComponent {
             });
 
             // cambiamos la url, para reflejar el cambio
-            if (goBack) MyUI.get().getNavegador().goTo(ReflectionHelper.getId(model));
+            if (goBack) MyUI.get().getNavegador().goTo(ReflectionHelper.getId(getModel()));
 
         } else if (PersistentPOJO.class.isAssignableFrom(modelType)) {
 
@@ -314,11 +313,12 @@ public class EditorViewComponent extends AbstractViewComponent {
                 ppojo.load(id);
 
                 setModel(ppojo);
+
             } else {
                 setModel(modelType.newInstance());
             }
 
         }
-
+        setModel(getModel());
     }
 }

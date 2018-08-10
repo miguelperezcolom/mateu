@@ -75,7 +75,7 @@ public class FiltersComponent extends CssLayout {
 
             if (mainFilterFields.size() < allFilterFields.size()) { // hay filtros que no son los
 
-                r = FormLayoutBuilder.get().build(binder, modelType, binder.getBean(), validators, allFilterFields);
+                r = FormLayoutBuilder.get().build(binder, modelType, binder.getBean(), validators, allFilterFields, false);
 
                 allFiltersComponent = r.getKey();
 
