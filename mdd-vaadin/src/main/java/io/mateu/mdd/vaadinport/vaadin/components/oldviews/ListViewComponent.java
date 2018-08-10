@@ -341,7 +341,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
         String s = "";
 
-        if (filters != null) for (FieldInterfaced f : ReflectionHelper.getAllFields(filters.getClass())) {
+        if (filters != null) for (FieldInterfaced f : ReflectionHelper.getAllFields(filters.getClass())) if (!f.isAnnotationPresent(Ignored.class)) {
             try {
                 Object v = f.getValue(filters);
 
