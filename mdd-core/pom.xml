@@ -75,7 +75,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>9.4.1210</version>
+            <version>42.2.4</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
