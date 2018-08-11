@@ -105,6 +105,13 @@ public class JPAListViewComponent extends ListViewComponent {
     public Object createNewInstance() throws IllegalAccessException, InstantiationException {
         if (filters == null) {
             filters = entityClass.newInstance();
+            for (FieldInterfaced f : ReflectionHelper.getAllFields(entityClass)) {
+                try {
+                    ReflectionHelper.setValue(f, filters, null);
+                } catch (Exception e) {
+                    MDD.alert(e);
+                }
+            }
         }
         return filters;
     }
