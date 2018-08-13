@@ -1,6 +1,7 @@
 package io.mateu.mdd.core.reflection;
 
 import com.google.common.base.Strings;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Caption;
 import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.data.Data;
@@ -401,7 +402,7 @@ public class ReflectionHelper {
         if (!toStringIsOverriden) {
             boolean hayName = false;
             for (FieldInterfaced ff : getAllFields(entityClass))
-                if ("value".equalsIgnoreCase(ff.getName()) || "title".equalsIgnoreCase(ff.getName())) {
+                if ("value".equalsIgnoreCase(ff.getName()) || "name".equalsIgnoreCase(ff.getName()) || "title".equalsIgnoreCase(ff.getName())) {
                     fName = ff;
                     hayName = true;
                 }
@@ -415,24 +416,7 @@ public class ReflectionHelper {
         return fName;
     }
 
-    /*
-    devuelve el campo de la clase destino que tienen mappedBy = mappedFieldName
-     */
-    public static FieldInterfaced getMapper(Class<?> entityClass, String mappedFieldName) {
-        FieldInterfaced mapper = null;
 
-        for (FieldInterfaced f : getAllFields(entityClass)) {
-            if ((f.isAnnotationPresent(OneToOne.class) && mappedFieldName.equalsIgnoreCase(f.getAnnotation(OneToOne.class).mappedBy()))
-                    ||
-                    (f.isAnnotationPresent(OneToMany.class) && mappedFieldName.equalsIgnoreCase(f.getAnnotation(OneToMany.class).mappedBy()))
-                    || (f.isAnnotationPresent(ManyToMany.class) && mappedFieldName.equalsIgnoreCase(f.getAnnotation(ManyToMany.class).mappedBy()))) {
-                mapper = f;
-                break;
-            }
-        }
-
-        return mapper;
-    }
 
     public static FieldInterfaced getFieldByName(Class sourceClass, String fieldName) {
         FieldInterfaced field = null;
@@ -445,25 +429,30 @@ public class ReflectionHelper {
         return field;
     }
 
-    /*
-    devuelve el campo de la clase destino (el segundo parámetro) que tienen mappedBy = fieldName
-     */
-    public static FieldInterfaced getMapper(Class sourceClass, String fieldName, Class<?> destinationClass) {
+    public static FieldInterfaced getMapper(FieldInterfaced field) {
         FieldInterfaced mapper = null;
 
-        FieldInterfaced originField = getFieldByName(sourceClass, fieldName);
+        String mfn = null;
+        if (field.isAnnotationPresent(OneToOne.class)) mfn = field.getAnnotation(OneToOne.class).mappedBy();
+        else if (field.isAnnotationPresent(OneToMany.class)) mfn = field.getAnnotation(OneToMany.class).mappedBy();
+        else if (field.isAnnotationPresent(ManyToMany.class)) mfn = field.getAnnotation(ManyToMany.class).mappedBy();
 
-        if (originField != null) {
-            String reverseFieldName = null;
-            if (originField.isAnnotationPresent(OneToOne.class)) reverseFieldName = originField.getAnnotation(OneToOne.class).mappedBy();
-            if (originField.isAnnotationPresent(OneToMany.class)) reverseFieldName = originField.getAnnotation(OneToMany.class).mappedBy();
-            if (originField.isAnnotationPresent(ManyToMany.class)) reverseFieldName = originField.getAnnotation(ManyToMany.class).mappedBy();
+        if (!Strings.isNullOrEmpty(mfn)) {
 
-            if (!Strings.isNullOrEmpty(reverseFieldName)) mapper = getFieldByName(destinationClass, reverseFieldName);
+            Class targetClass = null;
+            if (Collection.class.isAssignableFrom(field.getType()) || Set.class.isAssignableFrom(field.getType())) {
+                targetClass = field.getGenericClass();
+            } else {
+                targetClass = field.getType();
+            }
+
+            mapper = getFieldByName(targetClass, mfn);
+
         }
 
         return mapper;
     }
+
 
     public static Class getGenericClass(Class sourceClass, Class asClassOrInterface, String genericArgumentName) {
         Class c = null;
@@ -990,5 +979,114 @@ public class ReflectionHelper {
         if (f.isAnnotationPresent(Caption.class)) {
             return f.getAnnotation(Caption.class).value();
         } else return Helper.capitalize(f.getName());
+    }
+
+    public static void addToCollection(MDDBinder binder, FieldInterfaced field, Object bean, Object i) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+
+        Object v = ReflectionHelper.getValue(field, bean);
+
+        if (Collection.class.isAssignableFrom(field.getType())) {
+
+            if (v == null) {
+                ReflectionHelper.setValue(field, bean, v = new ArrayList());
+            }
+
+            ((Collection)v).add(i);
+
+        } else if (Set.class.isAssignableFrom(field.getType())) {
+
+            if (v == null) {
+                ReflectionHelper.setValue(field, bean, v = new HashSet());
+            }
+
+            ((Set)v).add(i);
+
+        }
+
+        reverseMap(binder, field, bean, i);
+
+    }
+
+    public static void removeFromCollection(MDDBinder binder, FieldInterfaced field, Object bean, Set l) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+
+        Object v = ReflectionHelper.getValue(field, bean);
+
+        if (Collection.class.isAssignableFrom(field.getType())) {
+
+            if (v == null) {
+                ReflectionHelper.setValue(field, bean, v = new ArrayList());
+            }
+
+            ((Collection)v).removeAll(l);
+
+        } else if (Set.class.isAssignableFrom(field.getType())) {
+
+            if (v == null) {
+                ReflectionHelper.setValue(field, bean, v = new HashSet());
+            }
+
+            ((Set)v).removeAll(l);
+
+        }
+
+
+        final FieldInterfaced mbf = ReflectionHelper.getMapper(field);
+        if (mbf != null) {
+            l.forEach(o -> {
+                try {
+
+                    unReverseMap(binder, field, bean, o, mbf);
+
+                } catch (Throwable e1) {
+                    MDD.alert(e1);
+                }
+            });
+        }
+
+    }
+
+    public static void unReverseMap(MDDBinder binder, FieldInterfaced field, Object bean, Object i) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+
+        final FieldInterfaced mbf = ReflectionHelper.getMapper(field);
+        if (mbf != null) {
+            unReverseMap(binder, field, bean, i, mbf);
+        }
+
+    }
+
+    public static void unReverseMap(MDDBinder binder, FieldInterfaced field, Object bean, Object i, FieldInterfaced mbf) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+
+        if (Collection.class.isAssignableFrom(mbf.getType())) {
+            Collection col = (Collection) ReflectionHelper.getValue(mbf, i);
+            col.remove(i);
+        } else if (Set.class.isAssignableFrom(mbf.getType())) {
+            Set col = (Set) ReflectionHelper.getValue(mbf, i);
+            col.remove(i);
+        } else {
+            ReflectionHelper.setValue(mbf, i, null);
+        }
+        binder.getMergeables().add(i);
+
+    }
+
+
+    public static void reverseMap(MDDBinder binder, FieldInterfaced field, Object bean, Object i) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        FieldInterfaced mbf = ReflectionHelper.getMapper(field);
+
+        if (mbf != null) {
+
+            if (Collection.class.isAssignableFrom(mbf.getType())) {
+                Collection col = (Collection) ReflectionHelper.getValue(mbf, i);
+                if (!col.contains(i)) col.add(bean);
+            } else if (Set.class.isAssignableFrom(mbf.getType())) {
+                Set col = (Set) ReflectionHelper.getValue(mbf, i);
+                if (!col.contains(i)) col.add(bean);
+            } else {
+                ReflectionHelper.setValue(mbf, i, bean);
+            }
+            binder.getMergeables().add(i);
+
+        }
+
     }
 }

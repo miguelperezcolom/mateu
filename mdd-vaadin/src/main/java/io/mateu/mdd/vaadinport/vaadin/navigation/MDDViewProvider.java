@@ -21,6 +21,7 @@ import io.mateu.mdd.vaadinport.vaadin.components.oauth.OAuthHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
 import io.mateu.mdd.vaadinport.vaadin.pojos.Profile;
 
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import java.lang.reflect.Method;
@@ -470,7 +471,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                     } catch (Exception e) {
                                         MDD.alert(e);
                                     }
-                                } else if (field.isAnnotationPresent(OneToMany.class)) {
+                                } else if (field.isAnnotationPresent(OneToMany.class) || field.isAnnotationPresent(ManyToMany.class)) {
 
                                     ListViewComponent lvc = null;
                                     Component vc = null;

@@ -47,7 +47,7 @@ public class MainModule extends AbstractModule {
 
         m.add(new MDDOpenCustomComponentAction("Custom component", CustomComponent.class));
 
-        m.add(new AbstractMenu("Refinements") {
+        m.add(new AbstractMenu("Styling") {
             @Override
             public List<MenuEntry> buildEntries() {
                 List<MenuEntry> l = new ArrayList<>();
@@ -56,7 +56,7 @@ public class MainModule extends AbstractModule {
 
                 l.add(new MDDOpenCRUDAction("Styled class", StyledDemoEntity.class));
 
-                l.add(new MDDOpenCRUDAction("Search filters", SearchFiltersDemoEntity.class));
+                l.add(new MDDOpenCRUDAction("Grid decorator", GridDecoratorDemoEntity.class));
 
                 l.add(new MDDOpenCRUDAction("Sections", SectionDemoEntity.class));
 
@@ -72,12 +72,12 @@ public class MainModule extends AbstractModule {
 
                 l.add(new MDDMenu("Fields"
                         , "Basic fields", BasicFieldsDemoEntity.class
-                        , "Grid decorator", GridDecoratorDemoEntity.class
                         , "Date fields", DateTimeFieldsDemoEntity.class
                         , "Basic fields with validation", BasicFieldsWithValidationDemoEntity.class
                         , "Calculated fields", CalculatedFieldsDemoEntity.class
                         , "Enumeration field", EnumerationFieldDemoEntity.class
                         , "TextArea", TextAreaFieldDemoEntity.class
+                        , "Search filters", SearchFiltersDemoEntity.class
                 ));
 
 
@@ -103,9 +103,9 @@ public class MainModule extends AbstractModule {
                     public List<MenuEntry> buildEntries() {
                         List<MenuEntry> l = new ArrayList<>();
 
-                        l.add(new MDDMenu("Many to many", "ManyToOne", ManyToOneFieldDemoEntity.class));
+                        l.add(new MDDMenu("Many to many", "A side", ManyToManyASideEntity.class, "B side", ManyToManyBSideEntity.class));
 
-                        l.add(new MDDMenu("Map", "ManyToOne", ManyToOneFieldDemoEntity.class));
+                        l.add(new MDDMenu("Map", "Mapper", MapMapperEntity.class, "Key", MapKeyEntity.class, "Value", MapValueEntity.class));
 
                         return l;
                     }

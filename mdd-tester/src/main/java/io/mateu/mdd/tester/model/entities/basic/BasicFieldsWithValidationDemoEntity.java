@@ -9,6 +9,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 @Entity
@@ -20,7 +21,7 @@ public class BasicFieldsWithValidationDemoEntity {
     private long id;
 
 
-    @NotNull
+    @NotEmpty
     private String requiredStringField = "zzzz";
 
     @Min(value = 18, message = "Age should not be less than 18")

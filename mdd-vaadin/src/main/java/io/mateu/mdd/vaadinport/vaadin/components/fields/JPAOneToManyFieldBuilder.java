@@ -1,15 +1,11 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fields;
 
 import com.google.common.base.Strings;
-import com.vaadin.data.HasValue;
-import com.vaadin.data.ValidationResult;
-import com.vaadin.data.Validator;
-import com.vaadin.data.ValueContext;
+import com.vaadin.data.*;
+import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.server.UserError;
 import com.vaadin.shared.Registration;
-import com.vaadin.shared.ui.ErrorLevel;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
@@ -27,9 +23,8 @@ import io.mateu.mdd.core.data.MDDBinder;
 
 import javax.persistence.CascadeType;
 import javax.persistence.ElementCollection;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
@@ -37,7 +32,7 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
 
 
     public boolean isSupported(FieldInterfaced field) {
-        return field.isAnnotationPresent(OneToMany.class) || field.isAnnotationPresent(ElementCollection.class);
+        return field.isAnnotationPresent(OneToMany.class) || field.isAnnotationPresent(ElementCollection.class) || field.isAnnotationPresent(ManyToMany.class);
     }
 
     public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
@@ -50,9 +45,15 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
         } else {
 
             OneToMany aa = field.getAnnotation(OneToMany.class);
+            ManyToMany mm = field.getAnnotation(ManyToMany.class);
 
             boolean owned = false;
             if (aa != null && aa.cascade() != null) for (CascadeType ct : aa.cascade()) {
+                if (CascadeType.ALL.equals(ct) || CascadeType.REMOVE.equals(ct)) {
+                    owned = true;
+                    break;
+                }
+            } else if (mm != null && mm.cascade() != null) for (CascadeType ct : mm.cascade()) {
                 if (CascadeType.ALL.equals(ct) || CascadeType.REMOVE.equals(ct)) {
                     owned = true;
                     break;
@@ -78,6 +79,8 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
                     throwable.printStackTrace();
                 }
 
+                tf.addValueChangeListener(e -> updateReferences(binder, field, e));
+
 
                 FieldInterfaced fName = ReflectionHelper.getNameField(field.getGenericClass());
                 if (fName != null) tf.setItemCaptionGenerator((i) -> {
@@ -96,79 +99,6 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
                 allFieldContainers.put(field, tf);
 
                 tf.setCaption(Helper.capitalize(field.getName()));
-
-                validators.put(tf, new ArrayList<>());
-
-                tf.addValueChangeListener(new HasValue.ValueChangeListener<Set<Object>>() {
-                    @Override
-                    public void valueChange(HasValue.ValueChangeEvent<Set<Object>> valueChangeEvent) {
-
-                        ValidationResult result = null;
-                        for (Validator v : validators.get(tf)) {
-                            result = v.apply(valueChangeEvent.getValue(), new ValueContext(tf));
-                            if (result.isError()) break;
-                        }
-                        if (result != null && result.isError()) {
-                            tf.setComponentError(new UserError(result.getErrorMessage()));
-                        } else {
-                            tf.setComponentError(null);
-                        }
-
-                    }
-                });
-
-
-                tf.setRequiredIndicatorVisible(field.isAnnotationPresent(Size.class));
-
-                if (field.isAnnotationPresent(NotNull.class)) validators.get(tf).add(new Validator() {
-                    @Override
-                    public ValidationResult apply(Object o, ValueContext valueContext) {
-                        ValidationResult r = null;
-                        if (o == null) r = ValidationResult.create("Required field", ErrorLevel.ERROR);
-                        else r = ValidationResult.ok();
-                        return r;
-                    }
-
-                    @Override
-                    public Object apply(Object o, Object o2) {
-                        return null;
-                    }
-                });
-
-
-                // todo: esto es necesario?
-                if (field.isAnnotationPresent(Size.class)) validators.get(tf).add(new Validator() {
-                    @Override
-                    public ValidationResult apply(Object o, ValueContext valueContext) {
-                        ValidationResult r = null;
-                        if (o == null || ((List) o).size() < field.getAnnotation(Size.class).min())
-                            r = ValidationResult.create("Required field", ErrorLevel.ERROR);
-                        else r = ValidationResult.ok();
-                        return r;
-                    }
-
-                    @Override
-                    public Object apply(Object o, Object o2) {
-                        return null;
-                    }
-                });
-
-                BeanValidator bv = new BeanValidator(field.getDeclaringClass(), field.getName());
-
-                validators.get(tf).add(new Validator() {
-
-                    @Override
-                    public ValidationResult apply(Object o, ValueContext valueContext) {
-                        return bv.apply(o, valueContext);
-                    }
-
-                    @Override
-                    public Object apply(Object o, Object o2) {
-                        return null;
-                    }
-                });
-
-                addValidators(validators.get(tf));
 
                 bind(binder, tf, field);
 
@@ -201,6 +131,8 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
                 } catch (Throwable throwable) {
                     MDD.alert(throwable);
                 }
+
+                cbg.addValueChangeListener(e -> updateReferences(binder, field, e));
 
                 cbg.setCaption(Helper.capitalize(field.getName()));
 
@@ -241,28 +173,28 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
                         try {
                             Object bean = binder.getBean();
 
-                            Object i = field.getGenericClass().newInstance();
-                            ((Collection)ReflectionHelper.getValue(field, bean)).add(i);
+                            ReflectionHelper.addToCollection(binder, field, bean, field.getGenericClass().newInstance());
 
-
-                            String mb = null;
-                            FieldInterfaced mbf = null;
-                            if (field.isAnnotationPresent(OneToMany.class)) {
-                                mb = field.getAnnotation(OneToMany.class).mappedBy();
-                                if (!Strings.isNullOrEmpty(mb)) {
-                                    mbf = ReflectionHelper.getFieldByName(field.getGenericClass(), mb);
-                                }
-                            }
-                            if (mbf != null) {
-                                FieldInterfaced finalMbf = mbf;
-                                ReflectionHelper.setValue(finalMbf, i, bean);
-                            }
                             binder.setBean(bean);
                         } catch (Exception e1) {
                             MDD.alert(e1);
                         }
                     });
 
+                    hl.addComponent(b = new Button("Remove", VaadinIcons.MINUS));
+                    b.addClickListener(e -> {
+                        try {
+                            Object bean = binder.getBean();
+                            Set l = g.getSelectedItems();
+
+                            ReflectionHelper.removeFromCollection(binder, field, bean, l);
+
+
+                            binder.setBean(bean);
+                        } catch (Exception e1) {
+                            MDD.alert(e1);
+                        }
+                    });
 
                 } else {
 
@@ -271,59 +203,39 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
                             Object i = e.getItem();
                             if (i != null) {
                                 //edit(listViewComponent.toId(i));
-                                MyUI.get().getNavegador().go(field.getName() + "/" + toId(i));
+                                MyUI.get().getNavegador().go(field.getName());
                             }
                         }
                     });
 
-                    hl.addComponent(b = new Button("Add", VaadinIcons.PLUS));
+                    hl.addComponent(b = new Button("Edit list", VaadinIcons.EDIT));
                     b.addClickListener(e -> MyUI.get().getNavegador().go(field.getName()));
-
-                    //todo: fata abrir el editor cuando se hace doble click
                 }
 
-
-                hl.addComponent(b = new Button("Remove", VaadinIcons.MINUS));
-                b.addClickListener(e -> {
-                    try {
-                        Object bean = binder.getBean();
-                        Set l = g.getSelectedItems();
-                        ((Collection)ReflectionHelper.getValue(field, bean)).removeAll(l);
-                        String mb = null;
-                        FieldInterfaced mbf = null;
-                        if (field.isAnnotationPresent(OneToMany.class)) {
-                            mb = field.getAnnotation(OneToMany.class).mappedBy();
-                            if (!Strings.isNullOrEmpty(mb)) {
-                                mbf = ReflectionHelper.getFieldByName(field.getGenericClass(), mb);
-                            }
-                        }
-                        if (mbf != null) {
-                            FieldInterfaced finalMbf = mbf;
-                            l.forEach(o -> {
-                                try {
-                                    ReflectionHelper.setValue(finalMbf, o, null);
-                                    binder.getMergeables().add(o);
-                                } catch (Throwable e1) {
-                                    MDD.alert(e1);
-                                }
-                            });
-                        }
-                        binder.setBean(bean);
-                    } catch (Exception e1) {
-                        MDD.alert(e1);
-                    }
-                });
-
                 container.addComponent(hl);
-
-                //todo: añadir botones  y -
-                //todo: añadir y editar registros
-                //todo:
 
             }
 
         }
 
+    }
+
+    private void updateReferences(MDDBinder binder, FieldInterfaced field, HasValue.ValueChangeEvent<Set<Object>> e) {
+        Object bean = binder.getBean();
+        e.getOldValue().stream().filter(i -> !e.getValue().contains(i)).forEach(i -> {
+            try {
+                ReflectionHelper.unReverseMap(binder, field, bean, i);
+            } catch (Exception e1) {
+                MDD.alert(e1);
+            }
+        });
+        e.getValue().stream().filter(i -> !e.getValue().contains(i)).forEach(i -> {
+            try {
+                ReflectionHelper.reverseMap(binder, field, bean, i);
+            } catch (Exception e1) {
+                MDD.alert(e1);
+            }
+        });
     }
 
     private Object toId(Object row) {
@@ -334,6 +246,7 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
     private List<FieldInterfaced> getColumnFields(FieldInterfaced field) {
         List<FieldInterfaced> l = ListViewComponent.getColumnFields(field.getGenericClass());
 
+        // quitamos el campo mappedBy de las columnas, ya que se supone que siempre seremos nosotros
         OneToMany aa;
         if ((aa = field.getAnnotation(OneToMany.class)) != null) {
 
@@ -364,14 +277,17 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
 
 
     private void bind(MDDBinder binder, CheckBoxGroup cbg, FieldInterfaced field) {
-        binder.bind(cbg, field.getName());
+        Binder.BindingBuilder aux = binder.forField(cbg);
+        aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+        aux.bind(field.getName());
     }
 
     private void bind(MDDBinder binder, Label l, FieldInterfaced field) {
-        binder.bind(new HasValue() {
+        Binder.BindingBuilder aux = binder.forField(new HasValue() {
             @Override
             public void setValue(Object o) {
-                l.setValue((String) o);
+                if (o == null || ((Collection)o).size() == 0) l.setValue("Empty list");
+                else l.setValue("" + ((Collection)o).size() + " items");
             }
 
             @Override
@@ -403,15 +319,53 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
             public boolean isReadOnly() {
                 return false;
             }
-        }, field.getName());
+        });
+        aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+        aux.bind(field.getName());
     }
 
     protected void bind(MDDBinder binder, Grid g, FieldInterfaced field) {
-        //todo: implementar
-        //binder.bind(g.getDataProvider(), field.getName());
+        Binder.BindingBuilder aux = binder.forField(new HasValue() {
+            @Override
+            public void setValue(Object o) {
+                g.setDataProvider(new ListDataProvider((o != null) ? (Collection) o : new ArrayList()));
+            }
+
+            @Override
+            public Object getValue() {
+                return ((ListDataProvider) g.getDataProvider()).getItems();
+            }
+
+            @Override
+            public Registration addValueChangeListener(ValueChangeListener valueChangeListener) {
+                return null;
+            }
+
+            @Override
+            public void setRequiredIndicatorVisible(boolean b) {
+
+            }
+
+            @Override
+            public boolean isRequiredIndicatorVisible() {
+                return false;
+            }
+
+            @Override
+            public void setReadOnly(boolean b) {
+
+            }
+
+            @Override
+            public boolean isReadOnly() {
+                return false;
+            }
+        });
+        aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+        aux.bind(field.getName());
     }
 
     protected void bind(MDDBinder binder, TwinColSelect<Object> tf, FieldInterfaced field) {
-        binder.bind(tf, field.getName());
+        binder.forField(tf).withValidator(new BeanValidator(field.getDeclaringClass(), field.getName())).bind(field.getName());
     }
 }

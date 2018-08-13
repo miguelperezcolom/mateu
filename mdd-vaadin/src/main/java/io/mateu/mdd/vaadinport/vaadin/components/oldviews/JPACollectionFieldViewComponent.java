@@ -12,6 +12,7 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 
 import javax.persistence.OneToMany;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -63,61 +64,10 @@ public class JPACollectionFieldViewComponent extends JPAListViewComponent {
                 public void run(MDDExecutionContext context) {
 
                     try {
-
-                        Helper.notransact(em -> {
-
-                            getSelection().forEach(o -> {
-                                Object m = evfc.getModel();
-                                Object oid = o;
-
-
-                                Object e = null;
-
-                                if (oid instanceof Object[]) {
-                                    e = em.find(field.getGenericClass(), ((Object[]) oid)[0]);
-                                } else if (oid instanceof EntityProvider) {
-                                    e = ((EntityProvider) oid).toEntity(em);
-                                } else {
-                                    e = em.find(field.getGenericClass(), oid);
-                                }
-
-
-                                Collection col = null;
-                                try {
-                                    col = (Collection) ReflectionHelper.getValue(field, m);
-
-                                    if (col.contains(e)) col.remove(e);
-                                    evfc.updateModel(m);
-
-                                    String mb = null;
-                                    FieldInterfaced mbf = null;
-                                    if (field.isAnnotationPresent(OneToMany.class)) {
-                                        mb = field.getAnnotation(OneToMany.class).mappedBy();
-                                        if (!Strings.isNullOrEmpty(mb)) {
-                                            mbf = ReflectionHelper.getFieldByName(field.getGenericClass(), mb);
-                                        }
-                                    }
-                                    if (mbf != null) {
-                                        FieldInterfaced finalMbf = mbf;
-                                        try {
-                                            ReflectionHelper.setValue(finalMbf, e, null);
-                                            evfc.getBinder().getMergeables().add(e);
-                                        } catch (Throwable e1) {
-                                            MDD.alert(e1);
-                                        }
-                                    }
-
-                                } catch (Exception e1) {
-                                    MDD.alert(e1);
-                                }
-                            });
-
-
-                        });
-                    } catch (Throwable throwable) {
-                        MDD.alert(throwable);
+                        ReflectionHelper.removeFromCollection(evfc.getBinder(), field,  evfc.getModel(), getSelection());
+                    } catch (Exception e1) {
+                        MDD.alert(e1);
                     }
-
 
                     MyUI.get().getNavegador().goBack();
                 }
@@ -146,43 +96,12 @@ public class JPACollectionFieldViewComponent extends JPAListViewComponent {
                             }
 
 
-                            Collection col = null;
                             try {
-                                col = (Collection) ReflectionHelper.getValue(field, m);
-
-                                if (!col.contains(e)) col.add(e);
-                                evfc.updateModel(m);
-
-                                String mb = null;
-                                FieldInterfaced mbf = null;
-                                if (field.isAnnotationPresent(OneToMany.class)) {
-                                    mb = field.getAnnotation(OneToMany.class).mappedBy();
-                                    if (!Strings.isNullOrEmpty(mb)) {
-                                        mbf = ReflectionHelper.getFieldByName(field.getGenericClass(), mb);
-                                    }
-                                }
-                                if (mbf != null) {
-                                    FieldInterfaced finalMbf = mbf;
-                                    try {
-
-                                        Object old = ReflectionHelper.getValue(finalMbf, e);
-
-                                        if (old != null) {
-                                            Collection oldCol = (Collection) ReflectionHelper.getValue(field, old);
-                                            oldCol.remove(e);
-                                            evfc.getBinder().getMergeables().add(old);
-                                        }
-
-                                        ReflectionHelper.setValue(finalMbf, e, m);
-                                        evfc.getBinder().getMergeables().add(e);
-                                    } catch (Throwable e1) {
-                                        MDD.alert(e1);
-                                    }
-                                }
-
+                                ReflectionHelper.addToCollection(evfc.getBinder(), field, m, e);
                             } catch (Exception e1) {
                                 MDD.alert(e1);
                             }
+
                         });
 
                     });

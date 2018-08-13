@@ -39,6 +39,8 @@ import javax.sql.DataSource;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -599,6 +601,33 @@ public class Helper {
                         } else {
                             System.out.println("property " + e.getKey() + " is already set with value " + System.getProperty("" + e.getKey()));
                         }
+                    }
+
+                    if (System.getProperty("heroku.database.url") != null) {
+
+                        System.out.println("adjusting jdbc properties for Heroku...");
+
+                        URI dbUri = null;
+                        try {
+                            dbUri = new URI(System.getProperty("heroku.database.url"));
+                        } catch (URISyntaxException e) {
+                            e.printStackTrace();
+                        }
+
+
+                        System.setProperty("eclipselink.target-database", "io.mateu.common.model.util.MiPostgreSQLPlatform");
+                        System.setProperty("javax.persistence.jdbc.driver", "org.postgresql.Driver");
+
+                        String username = dbUri.getUserInfo().split(":")[0];
+                        String password = dbUri.getUserInfo().split(":")[1];
+                        String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ':' + dbUri.getPort() + dbUri.getPath() + "?sslmode=require&user=" + username + "&password=" + password;
+
+
+                        System.setProperty("javax.persistence.jdbc.url", dbUrl);
+                        System.getProperties().remove("javax.persistence.jdbc.user");
+                        System.getProperties().remove("javax.persistence.jdbc.password");
+
+
                     }
 
                 } else {

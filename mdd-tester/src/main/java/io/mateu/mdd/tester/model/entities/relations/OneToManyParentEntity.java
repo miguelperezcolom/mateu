@@ -9,7 +9,9 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter@Setter
@@ -34,7 +36,7 @@ public class OneToManyParentEntity {
     @OneToMany
     @UseCheckboxes
     @JoinTable(name = "onetomanywithcheckboxes")
-    private List<OneToManyChildEntity> withCheckboxes = new ArrayList<>();
+    private Set<OneToManyChildEntity> withCheckboxes = new HashSet<>();
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinTable(name = "onetomanyowned")
@@ -43,7 +45,7 @@ public class OneToManyParentEntity {
     @OneToMany
     @UseTwinCols
     @JoinTable(name = "onetomanytwincols")
-    private List<OneToManyChildEntity> twinColsChildren = new ArrayList<>();
+    private Set<OneToManyChildEntity> twinColsChildren = new HashSet<>();
 
 
 

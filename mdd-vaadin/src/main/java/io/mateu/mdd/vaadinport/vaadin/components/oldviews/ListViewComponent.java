@@ -499,8 +499,8 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     (f) -> !f.isAnnotationPresent(Transient.class)
                             && !f.isAnnotationPresent(Ignored.class)
                             && !Modifier.isTransient(f.getModifiers())
-                            && !f.getType().isAssignableFrom(List.class)
-                            && !f.getType().isAssignableFrom(Map.class)
+                            && !Collection.class.isAssignableFrom(f.getType())
+                            && !Map.class.isAssignableFrom(f.getType())
                             && !f.isAnnotationPresent(GeneratedValue.class)
             ).collect(Collectors.toList());
     }

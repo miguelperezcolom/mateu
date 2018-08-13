@@ -195,71 +195,7 @@ public class JPAManyToOneFieldBuilder extends JPAFieldBuilder {
 
         tf.setCaption(Helper.capitalize(field.getName()));
 
-        if (!forSearchFilter) {
-
-            AbstractComponent c = (AbstractComponent) tf;
-
-            validators.put(hv, new ArrayList<>());
-
-            HasValue finalHv = hv;
-            hv.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
-                @Override
-                public void valueChange(HasValue.ValueChangeEvent<String> valueChangeEvent) {
-                    ValidationResult result = null;
-                    for (Validator v : validators.get(finalHv)) {
-                        result = v.apply(valueChangeEvent.getValue(), new ValueContext(c));
-                        if (result.isError()) break;
-                    }
-                    if (result != null && result.isError()) {
-                        c.setComponentError(new UserError(result.getErrorMessage()));
-                    } else {
-                        c.setComponentError(null);
-                    }
-                }
-            });
-
-
-            if (field.isAnnotationPresent(NotNull.class)) validators.get(tf).add(new Validator() {
-                @Override
-                public ValidationResult apply(Object o, ValueContext valueContext) {
-                    ValidationResult r = null;
-                    if (o == null) r = ValidationResult.create("Required field", ErrorLevel.ERROR);
-                    else r = ValidationResult.ok();
-                    return r;
-                }
-
-                @Override
-                public Object apply(Object o, Object o2) {
-                    return null;
-                }
-            });
-
-            BeanValidator bv = new BeanValidator(field.getDeclaringClass(), field.getName());
-
-            validators.get(hv).add(new Validator() {
-
-                @Override
-                public ValidationResult apply(Object o, ValueContext valueContext) {
-                    return bv.apply(o, valueContext);
-                }
-
-                @Override
-                public Object apply(Object o, Object o2) {
-                    return null;
-                }
-            });
-
-            addValidators(validators.get(hv));
-
-        /*
-        tf.setDescription();
-        tf.setPlaceholder();
-        */
-
-        }
-
-
-        bind(binder, hv, field);
+        bind(binder, hv, field, forSearchFilter);
     }
 
     public Object convert(String s) {
@@ -269,8 +205,10 @@ public class JPAManyToOneFieldBuilder extends JPAFieldBuilder {
     public void addValidators(List<Validator> validators) {
     }
 
-    protected void bind(MDDBinder binder, HasValue tf, FieldInterfaced field) {
-        binder.bind(tf, field.getName());
+    protected void bind(MDDBinder binder, HasValue tf, FieldInterfaced field, boolean forSearchFilter) {
+        Binder.BindingBuilder aux = binder.forField(tf);
+        if (!forSearchFilter) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+        aux.bind(field.getName());
     }
 
 }

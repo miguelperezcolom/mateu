@@ -4,6 +4,7 @@ import com.vaadin.data.*;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.data.validator.StringLengthValidator;
 import com.vaadin.server.UserError;
+import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.TextField;
@@ -12,6 +13,7 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.data.MDDBinder;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +30,7 @@ public class JPAStringFieldBuilder extends JPAFieldBuilder {
 
         TextField tf;
         container.addComponent(tf = new TextField());
+        tf.setValueChangeMode(ValueChangeMode.BLUR);
 
         if (allFieldContainers.size() == 0) tf.focus();
 
@@ -37,44 +40,7 @@ public class JPAStringFieldBuilder extends JPAFieldBuilder {
 
         if (!forSearchFilter) {
 
-            validators.put(tf, new ArrayList<>());
-
-            tf.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
-                @Override
-                public void valueChange(HasValue.ValueChangeEvent<String> valueChangeEvent) {
-                    ValidationResult result = null;
-                    for (Validator v : validators.get(tf)) {
-                        result = v.apply(valueChangeEvent.getValue(), new ValueContext(tf));
-                        if (result.isError()) break;
-                    }
-                    if (result != null && result.isError()) {
-                        tf.setComponentError(new UserError(result.getErrorMessage()));
-                    } else {
-                        tf.setComponentError(null);
-                    }
-                }
-            });
-
-            tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
-
-            if (field.isAnnotationPresent(NotNull.class)) validators.get(tf).add(new StringLengthValidator("Required field", 1, Integer.MAX_VALUE));
-
-            BeanValidator bv = new BeanValidator(field.getDeclaringClass(), field.getName());
-
-            validators.get(tf).add(new Validator() {
-
-                @Override
-                public ValidationResult apply(Object o, ValueContext valueContext) {
-                    return bv.apply(convert((String) o), valueContext);
-                }
-
-                @Override
-                public Object apply(Object o, Object o2) {
-                    return null;
-                }
-            });
-
-            addValidators(validators.get(tf));
+            tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class) || field.isAnnotationPresent(NotEmpty.class));
 
         }
 
@@ -83,18 +49,15 @@ public class JPAStringFieldBuilder extends JPAFieldBuilder {
         tf.setPlaceholder();
         */
 
-        bind(binder, tf, field);
+        bind(binder, tf, field, forSearchFilter);
     }
 
     public Object convert(String s) {
         return s;
     }
 
-    public void addValidators(List<Validator> validators) {
-    }
-
-    protected void bind(MDDBinder binder, TextField tf, FieldInterfaced field) {
-        binder.forField(tf).withConverter(new Converter() {
+    protected void bind(MDDBinder binder, TextField tf, FieldInterfaced field, boolean forSearchFilter) {
+        Binder.BindingBuilder aux = binder.forField(tf).withConverter(new Converter() {
             @Override
             public Result convertToModel(Object o, ValueContext valueContext) {
                 return Result.ok(o);
@@ -102,8 +65,10 @@ public class JPAStringFieldBuilder extends JPAFieldBuilder {
 
             @Override
             public Object convertToPresentation(Object o, ValueContext valueContext) {
-                return (o != null)?o:"";
+                return (o != null) ? o : "";
             }
-        }).bind(field.getName());
+        });
+        if (!forSearchFilter) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+        aux.bind(field.getName());
     }
 }
