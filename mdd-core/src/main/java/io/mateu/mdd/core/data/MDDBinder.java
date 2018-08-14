@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 
 public class MDDBinder extends Binder {
 
+    private final Class beanType;
     private List<Object> mergeables = new ArrayList<>();
 
 
@@ -34,6 +35,7 @@ public class MDDBinder extends Binder {
                 return Optional.of(definitions.get(s));
             }
         });
+        this.beanType = new HashMap<String, Object>().getClass();
     }
 
     public static Map<String,PropertyDefinition> createDefinitions(PropertySet propertySet, List<FieldInterfaced> fields) {
@@ -107,6 +109,7 @@ public class MDDBinder extends Binder {
 
     public MDDBinder(Class beanType) {
         super(beanType);
+        this.beanType = beanType;
     }
 
     public List<Object> getMergeables() {
@@ -124,4 +127,7 @@ public class MDDBinder extends Binder {
         if (reset) mergeables.clear();
     }
 
+    public Class getBeanType() {
+        return beanType;
+    }
 }

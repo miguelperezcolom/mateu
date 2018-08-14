@@ -16,7 +16,8 @@ import java.util.Map;
 public abstract class JPAFieldBuilder {
 
     public static List<JPAFieldBuilder> builders = Lists.newArrayList(
-            new JPATextAreaFieldBuilder()
+            new FromDataProviderFieldBuilder()
+            , new JPATextAreaFieldBuilder()
             , new JPAStringFieldBuilder()
             , new JPAIntegerFieldBuilder()
             , new JPALongFieldBuilder()

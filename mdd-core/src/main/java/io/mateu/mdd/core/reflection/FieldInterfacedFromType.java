@@ -1,5 +1,6 @@
 package io.mateu.mdd.core.reflection;
 
+import com.vaadin.data.provider.DataProvider;
 import io.mateu.mdd.core.annotations.KeyClass;
 import io.mateu.mdd.core.annotations.KeyQL;
 
@@ -16,10 +17,16 @@ public class FieldInterfacedFromType implements FieldInterfaced {
     @ManyToOne
     private final Class type;
     private final String name;
+    private DataProvider dataProvider;
 
     public FieldInterfacedFromType(Class type, String name) {
+        this(type, name, null);
+    }
+
+    public FieldInterfacedFromType(Class type, String name, DataProvider dataProvider) {
         this.type = type;
         this.name = name;
+        this.dataProvider = dataProvider;
     }
 
 
@@ -98,6 +105,11 @@ public class FieldInterfacedFromType implements FieldInterfaced {
     @Override
     public int getModifiers() {
         return 0;
+    }
+
+    @Override
+    public DataProvider getDataProvider() {
+        return dataProvider;
     }
 
     @Override

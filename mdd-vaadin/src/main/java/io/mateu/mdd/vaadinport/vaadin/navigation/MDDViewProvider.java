@@ -362,6 +362,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                     CRUDViewComponent vfc = (CRUDViewComponent) lastViewComponent;
 
                                     EditorViewComponent evc = vfc.getEditorViewComponent();
+                                    evc.clear();
 
                                     try {
 

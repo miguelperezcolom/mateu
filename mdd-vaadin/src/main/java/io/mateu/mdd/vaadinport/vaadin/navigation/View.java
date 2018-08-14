@@ -5,6 +5,7 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.CRUDViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
 
@@ -13,12 +14,18 @@ public class View implements com.vaadin.navigator.View {
     private final Component viewComponent;
     private final ViewStack stack;
     private final Component component;
+    private Label titleLabel;
 
     public View(ViewStack stack, Component component) {
         this.stack = stack;
         this.component = component;
 
         viewComponent = wrapComponent(component);
+
+
+        if (component instanceof AbstractViewComponent) {
+            ((AbstractViewComponent) component).setView(this);
+        }
 
     }
 
@@ -72,16 +79,16 @@ public class View implements com.vaadin.navigator.View {
     }
 
     private Component createTitleLabel(Component component) {
-        Label l = new Label();
-        l.addStyleName("viewTitle");
+        titleLabel = new Label();
+        titleLabel.addStyleName("viewTitle");
 
-        updateViewTitle(l, component.toString());
+        updateViewTitle(component.toString());
 
-        return l;
+        return titleLabel;
     }
 
-    private void updateViewTitle(Label l, String newTitle) {
-        l.setValue(newTitle);
+    public void updateViewTitle(String newTitle) {
+        titleLabel.setValue(newTitle);
         UI.getCurrent().getPage().setTitle((newTitle != null)?newTitle:"No title");
     }
 

@@ -10,6 +10,7 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.Callback;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.flow.AbstractMDDExecutionContext;
+import io.mateu.mdd.vaadinport.vaadin.navigation.View;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,9 +19,19 @@ import java.util.Map;
 
 public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> extends VerticalLayout {
 
-    private String title = "View title";
+
+    private View view;
     protected MenuBar bar;
     protected Map<String, MenuBar.MenuItem> menuItemsById = new HashMap<>();
+
+
+    public View getView() {
+        return view;
+    }
+
+    public void setView(View view) {
+        this.view = view;
+    }
 
     public A build() throws InstantiationException, IllegalAccessException {
 

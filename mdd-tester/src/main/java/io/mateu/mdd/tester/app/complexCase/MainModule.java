@@ -5,9 +5,11 @@ import com.vaadin.ui.Label;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.tester.model.customComponents.CustomComponent;
+import io.mateu.mdd.tester.model.entities.dynamicContent.WithDynamicContent;
 import io.mateu.mdd.tester.model.entities.embedded.WithEmbeddedEntity;
 import io.mateu.mdd.tester.model.entities.groups.Person;
 import io.mateu.mdd.tester.model.entities.relations.*;
+import io.mateu.mdd.tester.model.entities.subclassed.Superclass;
 import io.mateu.mdd.tester.model.jpql.SampleJPQLCrudView;
 import io.mateu.mdd.tester.model.jpql.SampleJPQLLIstView;
 import io.mateu.mdd.tester.model.jpql.SampleJPQLToPPOJOCrudView;
@@ -130,18 +132,40 @@ public class MainModule extends AbstractModule {
         });
 
 
-        m.add(new AbstractMenu("JPQL") {
+        m.add(new AbstractMenu("JPA") {
             @Override
             public List<MenuEntry> buildEntries() {
                 List<MenuEntry> l = new ArrayList<>();
 
-                l.add(new MDDOpenListViewAction("Sample JPQL list view", SampleJPQLLIstView.class));
+                l.add(new AbstractMenu("CRUDs") {
+                    @Override
+                    public List<MenuEntry> buildEntries() {
+                        List<MenuEntry> l = new ArrayList<>();
 
-                l.add(new MDDOpenListViewAction("Sample JPQL crud view", SampleJPQLCrudView.class));
+                        l.add(new MDDOpenCRUDAction("Subclasses", Superclass.class));
 
-                l.add(new MDDOpenListViewAction("Sample JPQL to POJO crud view", SampleJPQLToPPOJOCrudView.class));
+                        l.add(new MDDOpenCRUDAction("Dynamic content", WithDynamicContent.class));
 
-                l.add(new MDDOpenCRUDAction("With groups", Person.class));
+                        return l;
+                    }
+                });
+
+                l.add(new AbstractMenu("JPQL") {
+                    @Override
+                    public List<MenuEntry> buildEntries() {
+                        List<MenuEntry> l = new ArrayList<>();
+
+                        l.add(new MDDOpenListViewAction("Sample JPQL list view", SampleJPQLLIstView.class));
+
+                        l.add(new MDDOpenListViewAction("Sample JPQL crud view", SampleJPQLCrudView.class));
+
+                        l.add(new MDDOpenListViewAction("Sample JPQL to POJO crud view", SampleJPQLToPPOJOCrudView.class));
+
+                        l.add(new MDDOpenCRUDAction("With groups", Person.class));
+
+                        return l;
+                    }
+                });
 
                 return l;
             }

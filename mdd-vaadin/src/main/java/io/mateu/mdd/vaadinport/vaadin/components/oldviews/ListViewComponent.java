@@ -279,8 +279,8 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                         || boolean.class.equals(t)
                         || Boolean.class.equals(t)
                 ) return 80;
-        else if (LocalDate.class.equals(t)) return 100;
-        else if (LocalDateTime.class.equals(t)) return 140;
+        else if (LocalDate.class.equals(t)) return 120;
+        else if (LocalDateTime.class.equals(t)) return 220;
         else return 250;
     }
 

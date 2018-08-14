@@ -23,6 +23,8 @@ import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.core.data.ChangeNotificationListener;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Pair;
+import io.mateu.mdd.vaadinport.vaadin.components.ClassOption;
+import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
@@ -35,11 +37,12 @@ public class EditorViewComponent extends AbstractViewComponent {
     private Map<HasValue, List<Validator>> validators = new HashMap<>();
 
     protected boolean newRecord;
-    private final Class modelType;
+    private Class modelType;
 
     private MDDBinder binder;
 
     private AbstractStylist stylist;
+    private Panel panel;
 
     public MDDBinder getBinder() {
         return binder;
@@ -51,30 +54,43 @@ public class EditorViewComponent extends AbstractViewComponent {
 
     public EditorViewComponent(Class modelType) {
         this.modelType = modelType;
-        binder = new MDDBinder(modelType);
-        try {
-            setModel(modelType.newInstance());
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-
     }
 
 
     public EditorViewComponent(Object model) {
         this.modelType = model.getClass();
-        binder = new MDDBinder(modelType);
         setModel(model);
     }
 
     public Object getModel() {
-        return binder.getBean();
+        return (binder != null)?binder.getBean():null;
     }
 
     public void setModel(Object model) {
+
+        binder = new MDDBinder(model.getClass());
+
         binder.setBean(model);
+
+        build(model);
+    }
+
+    private void build(Object model) {
+        Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, model.getClass(), model, validators, ReflectionHelper.getAllEditableFields(model.getClass()), false);
+
+        stylist = r.getValue();
+
+        panel.setContent(r.getKey());
+
+        AbstractStylist finalStylist = stylist;
+        binder.addValueChangeListener(e -> {
+            updateActions();
+            binder.setBean(binder.getBean()); // para campos calculados
+        });
+
+        updateActions();
+
+        if (getView() != null) getView().updateViewTitle(toString());
     }
 
     public void updateModel(Object model) {
@@ -83,7 +99,7 @@ public class EditorViewComponent extends AbstractViewComponent {
 
     @Override
     public String toString() {
-        String t = stylist.getViewTitle(newRecord, getModel());
+        String t = (stylist != null)?stylist.getViewTitle(newRecord, getModel()):"Not yet";
         return t;
     }
 
@@ -98,25 +114,9 @@ public class EditorViewComponent extends AbstractViewComponent {
 
         addStyleName("editorviewcomponent");
 
-        //binder = new Binder(modelType, true);
-
-        Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, modelType, getModel(), validators, ReflectionHelper.getAllEditableFields(modelType), false);
-
-        stylist = r.getValue();
-
-
-        Panel p = new Panel(r.getKey());
-        p.addStyleName(ValoTheme.PANEL_BORDERLESS);
-        addComponentsAndExpand(p);
-
-
-        AbstractStylist finalStylist = stylist;
-        binder.addValueChangeListener(e -> {
-            updateActions();
-            binder.setBean(binder.getBean()); // para campos calculados
-        });
-
-        updateActions();
+        panel = new Panel();
+        panel.addStyleName(ValoTheme.PANEL_BORDERLESS);
+        addComponentsAndExpand(panel);
 
 
         return this;
@@ -294,7 +294,27 @@ public class EditorViewComponent extends AbstractViewComponent {
     public void load(Object id) throws Throwable {
         if (id == null) {
             newRecord = true;
-            setModel(modelType.newInstance());
+
+            Set<Class> subClasses = ReflectionHelper.getSubclasses(modelType);
+
+            if (subClasses.size() > 1) {
+
+                Set<ClassOption> subClassesOptions = new LinkedHashSet<>();
+                subClasses.forEach(c -> subClassesOptions.add(new ClassOption(c)));
+
+                VaadinHelper.choose("Please choose type", subClassesOptions, c -> {
+                    try {
+                        setModel(((ClassOption)c).get_class().newInstance());
+                    } catch (Exception e) {
+                        MDD.alert(e);
+                    }
+                }, () -> MyUI.get().getNavegador().goBack());
+            } else if (subClasses.size() == 1) {
+                setModel(subClasses.iterator().next().newInstance());
+            } else {
+                setModel(modelType.newInstance());
+            }
+
         } else {
             newRecord = false;
 
@@ -319,6 +339,9 @@ public class EditorViewComponent extends AbstractViewComponent {
             }
 
         }
-        setModel(getModel());
+    }
+
+    public void clear() {
+        panel.setContent(null);
     }
 }

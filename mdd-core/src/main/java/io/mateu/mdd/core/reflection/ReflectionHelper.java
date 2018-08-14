@@ -2,6 +2,7 @@ package io.mateu.mdd.core.reflection;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.vaadin.data.provider.DataProvider;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Caption;
 import io.mateu.mdd.core.annotations.Ignored;
@@ -10,6 +11,7 @@ import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.util.Helper;
 import org.apache.commons.beanutils.BeanUtils;
+import org.reflections.Reflections;
 
 import javax.persistence.*;
 import java.lang.annotation.Annotation;
@@ -953,6 +955,11 @@ public class ReflectionHelper {
             public int getModifiers() {
                 return p.getModifiers();
             }
+
+            @Override
+            public DataProvider getDataProvider() {
+                return null;
+            }
         };
     }
 
@@ -1160,10 +1167,22 @@ public class ReflectionHelper {
     public static Class<?> getGenericClass(Class type) {
         Class<?> gc = null;
         if (type.getGenericInterfaces() != null) for (Type gi : type.getGenericInterfaces()) {
-            gc = (Class<?>) gi;
+            if (gi instanceof ParameterizedType) {
+                ParameterizedType pt = (ParameterizedType) gi;
+                gc = (Class<?>) pt.getActualTypeArguments()[0];
+            } else {
+                gc = (Class<?>) gi;
+            }
             break;
         }
         return gc;
     }
 
+    public static Set<Class> getSubclasses(Class c) {
+        Reflections reflections = new Reflections(c.getPackage().getName());
+
+        Set<Class> subs = reflections.getSubTypesOf(c);
+
+        return subs;
+    }
 }

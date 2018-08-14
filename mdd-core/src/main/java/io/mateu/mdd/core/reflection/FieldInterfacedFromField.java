@@ -1,5 +1,6 @@
 package io.mateu.mdd.core.reflection;
 
+import io.mateu.mdd.core.annotations.DataProvider;
 import io.mateu.mdd.core.annotations.ValueClass;
 import io.mateu.mdd.core.annotations.ValueQL;
 
@@ -122,6 +123,11 @@ public class FieldInterfacedFromField implements io.mateu.mdd.core.reflection.Fi
     @Override
     public int getModifiers() {
         return f.getModifiers();
+    }
+
+    @Override
+    public com.vaadin.data.provider.DataProvider getDataProvider() {
+        return null;
     }
 
     @Override

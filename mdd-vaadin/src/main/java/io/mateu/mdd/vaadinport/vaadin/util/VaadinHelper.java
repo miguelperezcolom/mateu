@@ -3,21 +3,80 @@ package io.mateu.mdd.vaadinport.vaadin.util;
 import com.google.common.collect.Lists;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
+import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.MDDBinder;
+import io.mateu.mdd.core.data.Value;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.FieldInterfacedFromType;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.fields.JPAOutputFieldBuilder;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.FormLayoutBuilder;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class VaadinHelper {
+
+    public static void choose(String caption, Set possibleValues, Consumer onOk, Runnable onClose) {
+
+        Map<FieldInterfaced, Component> allFieldContainers = new HashMap<>();
+        JPAOutputFieldBuilder ofb = new JPAOutputFieldBuilder();
+
+        FieldInterfaced field = new FieldInterfacedFromType(Object.class, "value", new ListDataProvider(possibleValues));
+
+        List<FieldInterfaced> fields = Lists.newArrayList(field);
+
+        MDDBinder binder = new MDDBinder(fields);
+
+
+        // Create a sub-window and set the content
+        Window subWindow = new Window(caption);
+        VerticalLayout subContent = new VerticalLayout();
+        subWindow.setContent(subContent);
+
+
+        VerticalLayout vl = new VerticalLayout();
+
+        Map<String, Object> model = new HashMap<>();
+
+        Map<HasValue, List<Validator>> validators = new HashMap<>();
+
+
+        FormLayoutBuilder.get().build(vl, binder, model.getClass(), model, validators, fields);
+
+        // Put some components in it
+        subContent.addComponent(vl);
+        Button b;
+        subContent.addComponent(b = new Button("OK"));
+
+        Value<Boolean> okd = new Value<>(false);
+
+        b.addClickListener(e -> {
+            Object v = ((Map<String, Object>)binder.getBean()).get("value");
+            onOk.accept(v);
+            okd.set(true);
+            subWindow.close();
+        });
+
+        // Center it in the browser window
+        subWindow.center();
+        subWindow.setModal(true);
+
+        subWindow.addCloseListener(e -> {
+            if (!okd.get()) onClose.run();
+        });
+
+        // Open it in the UI
+        UI.getCurrent().addWindow(subWindow);
+
+
+    }
 
     public static <T> void getValue(String caption, Class<T> type, Consumer<T> f) {
 
