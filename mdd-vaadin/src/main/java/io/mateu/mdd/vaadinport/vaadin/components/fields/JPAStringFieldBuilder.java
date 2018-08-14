@@ -68,7 +68,7 @@ public class JPAStringFieldBuilder extends JPAFieldBuilder {
                 return (o != null) ? o : "";
             }
         });
-        if (!forSearchFilter) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+        if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
         aux.bind(field.getName());
     }
 }

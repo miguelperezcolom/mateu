@@ -12,20 +12,23 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.UseCheckboxes;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
 import io.mateu.mdd.core.annotations.UseTwinCols;
+import io.mateu.mdd.core.data.Pair;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.mdd.core.reflection.*;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.vaadinport.vaadin.components.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
 import io.mateu.mdd.core.data.MDDBinder;
+import io.mateu.mdd.vaadinport.vaadin.mdd.VaadinPort;
+import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 
 import javax.persistence.CascadeType;
 import javax.persistence.ElementCollection;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.ParameterizedType;
 import java.util.*;
 
 public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
@@ -61,162 +64,248 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
             } else if (field.isAnnotationPresent(ElementCollection.class)) owned = true;
 
 
-
-            if (field.isAnnotationPresent(UseTwinCols.class)) {
-
-                TwinColSelect<Object> tf = new TwinColSelect(Helper.capitalize(field.getName()));
-                tf.setRows(10);
-                tf.setLeftColumnCaption("Available options");
-                tf.setRightColumnCaption("Selected options");
-
-                //tf.addValueChangeListener(event -> Notification.show("Value changed:", String.valueOf(event.getValue()), Type.TRAY_NOTIFICATION));
-
-                container.addComponent(tf);
-
-                try {
-                    Helper.notransact((em) -> tf.setDataProvider(new JPQLListDataProvider(em, field.getGenericClass())));
-                } catch (Throwable throwable) {
-                    throwable.printStackTrace();
-                }
-
-                tf.addValueChangeListener(e -> updateReferences(binder, field, e));
+            if (Map.class.isAssignableFrom(field.getType())) {
 
 
-                FieldInterfaced fName = ReflectionHelper.getNameField(field.getGenericClass());
-                if (fName != null) tf.setItemCaptionGenerator((i) -> {
-                    try {
-                        return "" + ReflectionHelper.getValue(fName, i);
-                    } catch (NoSuchMethodException e) {
-                        e.printStackTrace();
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    } catch (InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
-                    return "Error";
-                });
-
-                allFieldContainers.put(field, tf);
-
-                tf.setCaption(Helper.capitalize(field.getName()));
-
-                bind(binder, tf, field);
-
-            } else if (field.isAnnotationPresent(UseLinkToListView.class)) {
-
-                HorizontalLayout hl = new HorizontalLayout();
-
-                Label l;
-                hl.addComponent(l = new Label(""));
-                l.addStyleName("collectionlinklabel");
-
-                Button b;
-                hl.addComponent(b = new Button("Open"));
-                b.addStyleName(ValoTheme.BUTTON_LINK);
-                b.addClickListener(e -> MyUI.get().getNavegador().go(field.getName()));
-
-                hl.setCaption(Helper.capitalize(field.getName()));
-
-                container.addComponent(hl);
-
-                bind(binder, l, field);
-
-            } else if (field.isAnnotationPresent(UseCheckboxes.class)) {
-
-                CheckBoxGroup cbg = new CheckBoxGroup();
-
-
-                try {
-                    Helper.notransact(em -> cbg.setDataProvider((new JPQLListDataProvider(em, field.getGenericClass()))));
-                } catch (Throwable throwable) {
-                    MDD.alert(throwable);
-                }
-
-                cbg.addValueChangeListener(e -> updateReferences(binder, field, e));
-
-                cbg.setCaption(Helper.capitalize(field.getName()));
-
-                container.addComponent(cbg);
-
-                bind(binder, cbg, field);
+                buildMap(field, object, container, binder, validators, stylist, allFieldContainers, forSearchFilter, owned);
 
             } else {
 
-                Grid g = new Grid();
+                buildList(field, object, container, binder, validators, stylist, allFieldContainers, forSearchFilter, owned);
 
-                ListViewComponent.buildColumns(g, getColumnFields(field), false, owned);
-
-                g.setSelectionMode(Grid.SelectionMode.MULTI);
-
-                // añadimos columna para que no haga feo
-                if (g.getColumns().size() == 1) ((Grid.Column)g.getColumns().get(0)).setExpandRatio(1);
-                else g.addColumn((d) -> null).setWidthUndefined().setCaption("");
-
-                g.setCaption(Helper.capitalize(field.getName()));
-
-                container.addComponent(g);
-
-                bind(binder, g, field);
-
-                HorizontalLayout hl = new HorizontalLayout();
-
-                Button b;
-
-                if (owned) {
-
-                    g.getEditor().setEnabled(true);
-                    g.getEditor().setBuffered(false);
-                    g.setHeightByRows(5);
-
-                    hl.addComponent(b = new Button("Add", VaadinIcons.PLUS));
-                    b.addClickListener(e -> {
-                        try {
-                            Object bean = binder.getBean();
-
-                            ReflectionHelper.addToCollection(binder, field, bean, field.getGenericClass().newInstance());
-
-                            binder.setBean(bean);
-                        } catch (Exception e1) {
-                            MDD.alert(e1);
-                        }
-                    });
-
-                    hl.addComponent(b = new Button("Remove", VaadinIcons.MINUS));
-                    b.addClickListener(e -> {
-                        try {
-                            Object bean = binder.getBean();
-                            Set l = g.getSelectedItems();
-
-                            ReflectionHelper.removeFromCollection(binder, field, bean, l);
-
-
-                            binder.setBean(bean);
-                        } catch (Exception e1) {
-                            MDD.alert(e1);
-                        }
-                    });
-
-                } else {
-
-                    g.addItemClickListener(e -> {
-                        if (e.getMouseEventDetails().isDoubleClick()) {
-                            Object i = e.getItem();
-                            if (i != null) {
-                                //edit(listViewComponent.toId(i));
-                                MyUI.get().getNavegador().go(field.getName());
-                            }
-                        }
-                    });
-
-                    hl.addComponent(b = new Button("Edit list", VaadinIcons.EDIT));
-                    b.addClickListener(e -> MyUI.get().getNavegador().go(field.getName()));
-                }
-
-                container.addComponent(hl);
 
             }
 
         }
+
+    }
+
+    private void buildList(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue,List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced,Component> allFieldContainers, boolean forSearchFilter, boolean owned) {
+        if (field.isAnnotationPresent(UseTwinCols.class)) {
+
+            TwinColSelect<Object> tf = new TwinColSelect(Helper.capitalize(field.getName()));
+            tf.setRows(10);
+            tf.setLeftColumnCaption("Available options");
+            tf.setRightColumnCaption("Selected options");
+
+            //tf.addValueChangeListener(event -> Notification.show("Value changed:", String.valueOf(event.getValue()), Type.TRAY_NOTIFICATION));
+
+            container.addComponent(tf);
+
+            try {
+                Helper.notransact((em) -> tf.setDataProvider(new JPQLListDataProvider(em, field.getGenericClass())));
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
+            }
+
+            tf.addValueChangeListener(e -> updateReferences(binder, field, e));
+
+
+            FieldInterfaced fName = ReflectionHelper.getNameField(field.getGenericClass());
+            if (fName != null) tf.setItemCaptionGenerator((i) -> {
+                try {
+                    return "" + ReflectionHelper.getValue(fName, i);
+                } catch (NoSuchMethodException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+                return "Error";
+            });
+
+            allFieldContainers.put(field, tf);
+
+            tf.setCaption(Helper.capitalize(field.getName()));
+
+            bind(binder, tf, field);
+
+        } else if (field.isAnnotationPresent(UseLinkToListView.class)) {
+
+            HorizontalLayout hl = new HorizontalLayout();
+
+            Label l;
+            hl.addComponent(l = new Label(""));
+            l.addStyleName("collectionlinklabel");
+
+            Button b;
+            hl.addComponent(b = new Button("Open"));
+            b.addStyleName(ValoTheme.BUTTON_LINK);
+            b.addClickListener(e -> MyUI.get().getNavegador().go(field.getName()));
+
+            hl.setCaption(Helper.capitalize(field.getName()));
+
+            container.addComponent(hl);
+
+            bind(binder, l, field);
+
+        } else if (field.isAnnotationPresent(UseCheckboxes.class)) {
+
+            CheckBoxGroup cbg = new CheckBoxGroup();
+
+
+            try {
+                Helper.notransact(em -> cbg.setDataProvider((new JPQLListDataProvider(em, field.getGenericClass()))));
+            } catch (Throwable throwable) {
+                MDD.alert(throwable);
+            }
+
+            cbg.addValueChangeListener(e -> updateReferences(binder, field, e));
+
+            cbg.setCaption(Helper.capitalize(field.getName()));
+
+            container.addComponent(cbg);
+
+            bind(binder, cbg, field);
+
+        } else {
+
+            Grid g = new Grid();
+
+            ListViewComponent.buildColumns(g, getColumnFields(field), false, owned);
+
+            g.setSelectionMode(Grid.SelectionMode.MULTI);
+
+            // añadimos columna para que no haga feo
+            if (g.getColumns().size() == 1) ((Grid.Column)g.getColumns().get(0)).setExpandRatio(1);
+            else g.addColumn((d) -> null).setWidthUndefined().setCaption("");
+
+            g.setCaption(Helper.capitalize(field.getName()));
+
+            container.addComponent(g);
+
+            bind(binder, g, field);
+
+            HorizontalLayout hl = new HorizontalLayout();
+
+            Button b;
+
+            if (owned) {
+
+                g.getEditor().setEnabled(true);
+                g.getEditor().setBuffered(false);
+                g.setHeightByRows(5);
+
+                hl.addComponent(b = new Button("Add", VaadinIcons.PLUS));
+                b.addClickListener(e -> {
+                    try {
+                        Object bean = binder.getBean();
+
+                        ReflectionHelper.addToCollection(binder, field, bean, field.getGenericClass().newInstance());
+
+                        binder.setBean(bean);
+                    } catch (Exception e1) {
+                        MDD.alert(e1);
+                    }
+                });
+
+                hl.addComponent(b = new Button("Remove", VaadinIcons.MINUS));
+                b.addClickListener(e -> {
+                    try {
+                        Object bean = binder.getBean();
+                        Set l = g.getSelectedItems();
+
+                        ReflectionHelper.removeFromCollection(binder, field, bean, l);
+
+
+                        binder.setBean(bean);
+                    } catch (Exception e1) {
+                        MDD.alert(e1);
+                    }
+                });
+
+            } else {
+
+                g.addItemClickListener(e -> {
+                    if (e.getMouseEventDetails().isDoubleClick()) {
+                        Object i = e.getItem();
+                        if (i != null) {
+                            //edit(listViewComponent.toId(i));
+                            MyUI.get().getNavegador().go(field.getName());
+                        }
+                    }
+                });
+
+                hl.addComponent(b = new Button("Edit list", VaadinIcons.EDIT));
+                b.addClickListener(e -> MyUI.get().getNavegador().go(field.getName()));
+            }
+
+            container.addComponent(hl);
+
+        }
+
+    }
+
+    private void buildMap(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, boolean owned) {
+        Class keyType = ReflectionHelper.getGenericClass(field, Map.class, "K");
+        Class valueType = ReflectionHelper.getGenericClass(field, Map.class, "V");
+
+        Grid g = new Grid();
+
+        ListViewComponent.buildColumns(g, getColumnFields(field), false, true);
+
+        g.setSelectionMode(Grid.SelectionMode.MULTI);
+
+        // añadimos columna para que no haga feo
+        if (g.getColumns().size() == 1) ((Grid.Column)g.getColumns().get(0)).setExpandRatio(1);
+        else g.addColumn((d) -> null).setWidthUndefined().setCaption("");
+
+        g.setCaption(Helper.capitalize(field.getName()));
+
+        container.addComponent(g);
+
+        bind(binder, g, field);
+
+        HorizontalLayout hl = new HorizontalLayout();
+
+
+        Button b;
+
+        g.getEditor().setEnabled(true);
+        ((Grid.Column)g.getColumns().get(0)).setEditable(false);
+        g.getEditor().setBuffered(false);
+        g.setHeightByRows(5);
+
+        hl.addComponent(b = new Button("Add", VaadinIcons.PLUS));
+        b.addClickListener(e -> {
+
+
+            VaadinHelper.getPair("Please provide key and value", keyType, valueType, (k, v) -> {
+
+                try {
+                    Object bean = binder.getBean();
+
+                    ReflectionHelper.addToMap(binder, field, bean, k, v);
+
+                    binder.setBean(bean, false);
+                } catch (Exception e1) {
+                    MDD.alert(e1);
+                }
+
+
+            });
+
+        });
+
+        hl.addComponent(b = new Button("Remove", VaadinIcons.MINUS));
+        b.addClickListener(e -> {
+
+
+            try {
+                Object bean = binder.getBean();
+                Set l = g.getSelectedItems();
+
+                ReflectionHelper.removeFromMap(binder, field, bean, l);
+
+                binder.setBean(bean, false);
+            } catch (Exception e1) {
+                MDD.alert(e1);
+            }
+
+        });
+
+        container.addComponent(hl);
 
     }
 
@@ -244,23 +333,37 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
 
 
     private List<FieldInterfaced> getColumnFields(FieldInterfaced field) {
-        List<FieldInterfaced> l = ListViewComponent.getColumnFields(field.getGenericClass());
 
-        // quitamos el campo mappedBy de las columnas, ya que se supone que siempre seremos nosotros
-        OneToMany aa;
-        if ((aa = field.getAnnotation(OneToMany.class)) != null) {
+        List<FieldInterfaced> l = null;
 
-            String mb = field.getAnnotation(OneToMany.class).mappedBy();
+        if (Map.class.isAssignableFrom(field.getType())) {
 
-            if (!Strings.isNullOrEmpty(mb)) {
-                FieldInterfaced mbf = null;
-                for (FieldInterfaced f : l) {
-                    if (f.getName().equals(mb)) {
-                        mbf = f;
-                        break;
+            l = new ArrayList<>();
+
+            l.add(new FieldInterfacedFromType(ReflectionHelper.getGenericClass(field,  Map.class, "K"), "key"));
+            l.add(new FieldInterfacedFromType(ReflectionHelper.getGenericClass(field,  Map.class, "V"), "value"));
+
+        } else {
+
+            l = ListViewComponent.getColumnFields(field.getGenericClass());
+
+            // quitamos el campo mappedBy de las columnas, ya que se supone que siempre seremos nosotros
+            OneToMany aa;
+            if ((aa = field.getAnnotation(OneToMany.class)) != null) {
+
+                String mb = field.getAnnotation(OneToMany.class).mappedBy();
+
+                if (!Strings.isNullOrEmpty(mb)) {
+                    FieldInterfaced mbf = null;
+                    for (FieldInterfaced f : l) {
+                        if (f.getName().equals(mb)) {
+                            mbf = f;
+                            break;
+                        }
                     }
+                    if (mbf != null) l.remove(mbf);
                 }
-                if (mbf != null) l.remove(mbf);
+
             }
 
         }
@@ -328,7 +431,26 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
         Binder.BindingBuilder aux = binder.forField(new HasValue() {
             @Override
             public void setValue(Object o) {
-                g.setDataProvider(new ListDataProvider((o != null) ? (Collection) o : new ArrayList()));
+                Collection items = null;
+                if (o == null) {
+                    items = new ArrayList();
+                } else {
+
+                    Class keyType = ReflectionHelper.getGenericClass(field, Map.class, "K");
+
+                    if (keyType.isEnum()) {
+                        //todo: prefill
+                        //todo: añadir anotación @Prefill
+                    }
+
+                    if (o instanceof Map) {
+
+                        items = ((Map) o).entrySet();
+                    } else {
+                        items = (Collection) o;
+                    }
+                }
+                g.setDataProvider(new ListDataProvider(items));
             }
 
             @Override
@@ -361,11 +483,68 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
                 return false;
             }
         });
+
+        if (Map.class.isAssignableFrom(field.getType())) aux.withConverter(new Converter() {
+            @Override
+            public Result convertToModel(Object o, ValueContext valueContext) {
+                Map m = new HashMap();
+                if (o != null) {
+                    ((Collection)o).forEach(e -> m.put(((MapEntry)e).getKey(), ((MapEntry)e).getValue()));
+                }
+
+                Object bean = binder.getBean();
+                try {
+
+                    Map old = (Map) ReflectionHelper.getValue(field, bean);
+
+                    old.values().forEach(e -> {
+                        Object target = e;
+                        if (!m.containsValue(target)) {
+                            try {
+                                ReflectionHelper.unReverseMap(binder, field, bean, target);
+                            } catch (Exception e1) {
+                                MDD.alert(e1);
+                            }
+                        }
+                    });
+                    m.values().forEach(e -> {
+                        Object target = e;
+                        if (!old.containsValue(target)) {
+                            try {
+                                ReflectionHelper.reverseMap(binder, field, bean, target);
+                            } catch (Exception e1) {
+                                MDD.alert(e1);
+                            }
+                        }
+                    });
+                    ReflectionHelper.setValue(field, bean, (o != null)?m:null);
+                } catch (Exception e) {
+                    MDD.alert(e);
+                }
+                binder.setBean(bean, false);
+
+                return Result.ok((o != null)?m:null);
+            }
+
+            @Override
+            public Object convertToPresentation(Object o, ValueContext valueContext) {
+                return (o != null)?toList((Map) o):null;
+            }
+        });
+
         aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
         aux.bind(field.getName());
+    }
+
+    private List<MapEntry> toList(Map m) {
+        List<MapEntry> l = new ArrayList<>();
+        if (m != null) m.entrySet().forEach(e -> l.add(new MapEntry(((Map.Entry)e).getKey(), ((Map.Entry)e).getValue())));
+        return (m != null)?l:null;
     }
 
     protected void bind(MDDBinder binder, TwinColSelect<Object> tf, FieldInterfaced field) {
         binder.forField(tf).withValidator(new BeanValidator(field.getDeclaringClass(), field.getName())).bind(field.getName());
     }
+
+
 }

@@ -24,7 +24,7 @@ public class JPALongFieldBuilder extends JPAStringFieldBuilder {
     @Override
     protected void bind(MDDBinder binder, TextField tf, FieldInterfaced field, boolean forSearchFilter) {
         Binder.BindingBuilder aux = binder.forField(tf).withConverter(new StringToLongConverter("Must be an long"));
-        if (!forSearchFilter) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+        if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
         aux.bind(field.getName());
     }
 

@@ -1,6 +1,7 @@
 package io.mateu.mdd.core.reflection;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Caption;
 import io.mateu.mdd.core.annotations.Ignored;
@@ -87,7 +88,7 @@ public class ReflectionHelper {
 
             Method getter = null;
             try {
-                getter = o.getClass().getMethod(getGetter(f.getField()));
+                getter = o.getClass().getMethod(getGetter(f));
             } catch (Exception e) {
 
             }
@@ -442,6 +443,8 @@ public class ReflectionHelper {
             Class targetClass = null;
             if (Collection.class.isAssignableFrom(field.getType()) || Set.class.isAssignableFrom(field.getType())) {
                 targetClass = field.getGenericClass();
+            } else if (Map.class.isAssignableFrom(field.getType())) {
+                targetClass = ReflectionHelper.getGenericClass(field, Map.class, "V");
             } else {
                 targetClass = field.getType();
             }
@@ -453,8 +456,22 @@ public class ReflectionHelper {
         return mapper;
     }
 
+    public static Class getGenericClass(FieldInterfaced field, Class asClassOrInterface, String genericArgumentName) {
+        Type t = field.getGenericType();
+        return getGenericClass((t instanceof ParameterizedType)?(ParameterizedType) t:null, field.getType(), asClassOrInterface, genericArgumentName);
+    }
+
+    public static Class getGenericClass(ParameterizedType parameterizedType, Class asClassOrInterface, String genericArgumentName) {
+        return getGenericClass(parameterizedType, (Class) parameterizedType.getRawType(), asClassOrInterface, genericArgumentName);
+    }
 
     public static Class getGenericClass(Class sourceClass, Class asClassOrInterface, String genericArgumentName) {
+        return getGenericClass(null, sourceClass, asClassOrInterface, genericArgumentName);
+    }
+
+
+
+    public static Class getGenericClass(ParameterizedType parameterizedType, Class sourceClass, Class asClassOrInterface, String genericArgumentName) {
         Class c = null;
 
         if (asClassOrInterface.isInterface()) {
@@ -467,6 +484,22 @@ public class ReflectionHelper {
 
             if (sourceClass.isInterface()) {
                 baseInterface = sourceClass;
+
+                List<Type> jerarquiaInterfaces = buscarInterfaz(sourceClass, asClassOrInterface);
+                if (asClassOrInterface.equals(sourceClass)) jerarquiaInterfaces = Lists.newArrayList(asClassOrInterface);
+
+                boolean laImplementa = jerarquiaInterfaces != null;
+
+                if (laImplementa) {
+
+                    jerarquiaInterfaces.add((parameterizedType != null)?parameterizedType:sourceClass);
+
+                    // localizamos el parámetro y bajamos por las interfaces
+                    c = buscarHaciaAbajo(asClassOrInterface, genericArgumentName, jerarquiaInterfaces);
+
+                }
+
+
             } else {
 
                 // buscamos hasta la clase que implemente la interfaz o una subclase de la misma
@@ -476,7 +509,7 @@ public class ReflectionHelper {
                 List<Type> jerarquia = new ArrayList<>();
                 List<Type> jerarquiaInterfaces = null;
 
-                Type tipoEnCurso = sourceClass;
+                Type tipoEnCurso = (parameterizedType != null)?parameterizedType:sourceClass;
                 while (tipoEnCurso != null && !laImplementa) {
 
                     jerarquiaInterfaces = buscarInterfaz(tipoEnCurso, asClassOrInterface);
@@ -535,9 +568,6 @@ public class ReflectionHelper {
             }
 
 
-
-
-
         } else {
 
             // una interfaz no puede extender una clase
@@ -549,7 +579,7 @@ public class ReflectionHelper {
 
             List<Type> jerarquia = new ArrayList<>();
 
-            Type tipoEnCurso = sourceClass;
+            Type tipoEnCurso = (parameterizedType != null)?parameterizedType:sourceClass;
             while (tipoEnCurso != null && !(asClassOrInterface.equals(tipoEnCurso) || (tipoEnCurso instanceof ParameterizedType && asClassOrInterface.equals(((ParameterizedType)tipoEnCurso).getRawType())))) {
                 Type genericSuperclass = getSuper(tipoEnCurso);
 
@@ -1045,6 +1075,42 @@ public class ReflectionHelper {
 
     }
 
+    public static void addToMap(MDDBinder binder, FieldInterfaced field, Object bean, Object k, Object v) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+
+        Object m = ReflectionHelper.getValue(field, bean);
+
+        if (m == null) {
+            ReflectionHelper.setValue(field, bean, m = new HashMap<>());
+        }
+
+        ((Map)m).put(k, v);
+
+        reverseMap(binder, field, bean, v);
+    }
+
+    public static void removeFromMap(MDDBinder binder, FieldInterfaced field, Object bean, Set l) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+
+        final Object v = ReflectionHelper.getValue(field, bean);
+
+        l.forEach(e -> ((Map)v).remove(((MapEntry)e).getKey()));
+
+
+        final FieldInterfaced mbf = ReflectionHelper.getMapper(field);
+        if (mbf != null) {
+            l.forEach(o -> {
+                try {
+
+                    unReverseMap(binder, field, bean, ((MapEntry)o).getValue(), mbf);
+
+                } catch (Throwable e1) {
+                    MDD.alert(e1);
+                }
+            });
+        }
+
+    }
+
+
     public static void unReverseMap(MDDBinder binder, FieldInterfaced field, Object bean, Object i) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
 
         final FieldInterfaced mbf = ReflectionHelper.getMapper(field);
@@ -1070,6 +1136,7 @@ public class ReflectionHelper {
     }
 
 
+
     public static void reverseMap(MDDBinder binder, FieldInterfaced field, Object bean, Object i) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         FieldInterfaced mbf = ReflectionHelper.getMapper(field);
 
@@ -1089,4 +1156,14 @@ public class ReflectionHelper {
         }
 
     }
+
+    public static Class<?> getGenericClass(Class type) {
+        Class<?> gc = null;
+        if (type.getGenericInterfaces() != null) for (Type gi : type.getGenericInterfaces()) {
+            gc = (Class<?>) gi;
+            break;
+        }
+        return gc;
+    }
+
 }

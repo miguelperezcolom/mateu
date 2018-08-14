@@ -207,7 +207,7 @@ public class JPAManyToOneFieldBuilder extends JPAFieldBuilder {
 
     protected void bind(MDDBinder binder, HasValue tf, FieldInterfaced field, boolean forSearchFilter) {
         Binder.BindingBuilder aux = binder.forField(tf);
-        if (!forSearchFilter) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+        if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
         aux.bind(field.getName());
     }
 

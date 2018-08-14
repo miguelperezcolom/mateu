@@ -31,7 +31,7 @@ public class JPAIntegerFieldBuilder extends JPAStringFieldBuilder {
                 return (o != null) ? o : 0;
             }
         });
-        if (!forSearchFilter) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+        if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
         aux.bind(field.getName());
     }
 

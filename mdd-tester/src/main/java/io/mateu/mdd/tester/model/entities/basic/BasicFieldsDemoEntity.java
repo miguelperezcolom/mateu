@@ -30,4 +30,9 @@ public class BasicFieldsDemoEntity {
 
     private boolean booleanField;
 
+
+    @Override
+    public String toString() {
+        return getStringField();
+    }
 }

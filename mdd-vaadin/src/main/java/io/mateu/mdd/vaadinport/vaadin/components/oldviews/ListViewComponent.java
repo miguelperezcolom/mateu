@@ -10,13 +10,11 @@ import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.server.UserError;
 import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.SortOrderProvider;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
-import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.ChartData;
 import io.mateu.mdd.core.data.ChartValue;
 import io.mateu.mdd.core.data.SumData;
@@ -26,16 +24,14 @@ import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.vaadinport.vaadin.components.dataProviders.JPQLListDataProvider;
-import io.mateu.mdd.vaadinport.vaadin.components.fields.JPAFieldBuilder;
 import org.vaadin.ui.NumberField;
 
-import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -241,7 +237,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
                     col.setEditorComponent(cb, (o, v) -> {
                         try {
-                            ReflectionHelper.setValue(f, o, v);
+                                ReflectionHelper.setValue(f, o, v);
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -270,7 +266,22 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     private static double getColumnWidth(FieldInterfaced f) {
-        return 150;
+        Class t = f.getType();
+        if (
+                int.class.equals(t)
+                        || Integer.class.equals(t)
+                        || long.class.equals(t)
+                        || Long.class.equals(t)
+                        || float.class.equals(t)
+                        || Float.class.equals(t)
+                        || double.class.equals(t)
+                        || Double.class.equals(t)
+                        || boolean.class.equals(t)
+                        || Boolean.class.equals(t)
+                ) return 80;
+        else if (LocalDate.class.equals(t)) return 100;
+        else if (LocalDateTime.class.equals(t)) return 140;
+        else return 250;
     }
 
     public void search(Object filters) throws Throwable {
@@ -488,21 +499,23 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     
 
     public static List<FieldInterfaced> getColumnFields(Class objectType) {
-        List<FieldInterfaced> explicitColumns = ReflectionHelper.getAllFields(objectType).stream().filter(
-                (f) -> f.isAnnotationPresent(ListColumn.class)
-        ).collect(Collectors.toList());
 
-        if (explicitColumns.size() > 0) {
-            return explicitColumns;
-        } else
-            return ReflectionHelper.getAllFields(objectType).stream().filter(
-                    (f) -> !f.isAnnotationPresent(Transient.class)
-                            && !f.isAnnotationPresent(Ignored.class)
-                            && !Modifier.isTransient(f.getModifiers())
-                            && !Collection.class.isAssignableFrom(f.getType())
-                            && !Map.class.isAssignableFrom(f.getType())
-                            && !f.isAnnotationPresent(GeneratedValue.class)
+            List<FieldInterfaced> explicitColumns = ReflectionHelper.getAllFields(objectType).stream().filter(
+                    (f) -> f.isAnnotationPresent(ListColumn.class)
             ).collect(Collectors.toList());
+
+            if (explicitColumns.size() > 0) {
+                return explicitColumns;
+            } else
+                return ReflectionHelper.getAllFields(objectType).stream().filter(
+                        (f) -> !f.isAnnotationPresent(Transient.class)
+                                && !f.isAnnotationPresent(Ignored.class)
+                                && !Modifier.isTransient(f.getModifiers())
+                                && !Collection.class.isAssignableFrom(f.getType())
+                                && !Map.class.isAssignableFrom(f.getType())
+                                && !f.isAnnotationPresent(GeneratedValue.class)
+                ).collect(Collectors.toList());
+
     }
 
     public abstract Class getColumnType();
