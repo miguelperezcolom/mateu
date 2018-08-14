@@ -10,4 +10,7 @@ public class DynamicContent1 extends DynamicContent {
 
     private String subclass1OnlyField;
 
+    private String extraSubclass1OnlyField;
+
+
 }

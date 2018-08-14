@@ -9,6 +9,9 @@ import io.mateu.mdd.tester.model.entities.dynamicContent.WithDynamicContent;
 import io.mateu.mdd.tester.model.entities.embedded.WithEmbeddedEntity;
 import io.mateu.mdd.tester.model.entities.groups.Person;
 import io.mateu.mdd.tester.model.entities.relations.*;
+import io.mateu.mdd.tester.model.entities.specialFields.FileFieldEntity;
+import io.mateu.mdd.tester.model.entities.specialFields.MultilanguageFieldEntity;
+import io.mateu.mdd.tester.model.entities.specialFields.WeekdaysFieldEntity;
 import io.mateu.mdd.tester.model.entities.subclassed.Superclass;
 import io.mateu.mdd.tester.model.jpql.SampleJPQLCrudView;
 import io.mateu.mdd.tester.model.jpql.SampleJPQLLIstView;
@@ -80,6 +83,9 @@ public class MainModule extends AbstractModule {
                         , "Enumeration field", EnumerationFieldDemoEntity.class
                         , "TextArea", TextAreaFieldDemoEntity.class
                         , "Search filters", SearchFiltersDemoEntity.class
+                        , "File field", FileFieldEntity.class
+                        , "Multilanguage", MultilanguageFieldEntity.class
+                        , "Week days", WeekdaysFieldEntity.class
                 ));
 
 
