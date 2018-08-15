@@ -41,7 +41,7 @@ public class Profile implements PersistentPOJO {
 
                 if (!u.checkPassword(currentPassword)) throw new Exception("This is not your current password");
 
-                if (!newPassword.equals(newPasswordAgain)) throw new Exception("New password fields must be equal");
+                if (!newPassword.equals(newPasswordAgain)) throw new Exception("New password fieldBuilders must be equal");
 
                 u.setPassword(newPassword);
 

@@ -1,4 +1,4 @@
-package io.mateu.mdd.vaadinport.vaadin.components.fields;
+package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
@@ -13,7 +13,6 @@ import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.vaadinport.vaadin.components.ClassOption;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.FormLayoutBuilder;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public class JPAPOJOFieldBuilder extends JPAFieldBuilder {

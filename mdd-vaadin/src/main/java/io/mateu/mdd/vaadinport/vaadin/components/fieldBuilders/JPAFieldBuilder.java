@@ -1,4 +1,4 @@
-package io.mateu.mdd.vaadinport.vaadin.components.fields;
+package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.google.common.collect.Lists;
 import com.vaadin.data.HasValue;
@@ -17,6 +17,8 @@ public abstract class JPAFieldBuilder {
 
     public static List<JPAFieldBuilder> builders = Lists.newArrayList(
             new FromDataProviderFieldBuilder()
+            , new JPAFileFieldBuilder()
+            , new JPALiteralFieldBuilder()
             , new JPATextAreaFieldBuilder()
             , new JPAStringFieldBuilder()
             , new JPAIntegerFieldBuilder()

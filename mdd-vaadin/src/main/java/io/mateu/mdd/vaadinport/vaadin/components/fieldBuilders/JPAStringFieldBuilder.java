@@ -1,9 +1,7 @@
-package io.mateu.mdd.vaadinport.vaadin.components.fields;
+package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.vaadin.data.*;
 import com.vaadin.data.validator.BeanValidator;
-import com.vaadin.data.validator.StringLengthValidator;
-import com.vaadin.server.UserError;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Layout;
@@ -15,7 +13,6 @@ import io.mateu.mdd.core.data.MDDBinder;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -52,9 +49,6 @@ public class JPAStringFieldBuilder extends JPAFieldBuilder {
         bind(binder, tf, field, forSearchFilter);
     }
 
-    public Object convert(String s) {
-        return s;
-    }
 
     protected void bind(MDDBinder binder, TextField tf, FieldInterfaced field, boolean forSearchFilter) {
         Binder.BindingBuilder aux = binder.forField(tf).withConverter(new Converter() {

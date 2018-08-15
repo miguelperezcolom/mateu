@@ -1,4 +1,4 @@
-package io.mateu.mdd.vaadinport.vaadin.components.fields;
+package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

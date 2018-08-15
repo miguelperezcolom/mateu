@@ -1,32 +1,30 @@
-package io.mateu.mdd.vaadinport.vaadin.components.fields;
+package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.vaadin.data.HasValue;
 import com.vaadin.data.ValidationResult;
 import com.vaadin.data.Validator;
 import com.vaadin.data.ValueContext;
-import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.server.UserError;
 import com.vaadin.shared.ui.ErrorLevel;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Layout;
+import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.data.MDDBinder;
 
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class JPAEnumerationFieldBuilder extends JPAFieldBuilder {
+public class FromDataProviderFieldBuilder extends JPAFieldBuilder {
 
 
     public boolean isSupported(FieldInterfaced field) {
-        return field.getType().isEnum();
+        return field.getDataProvider() != null;
     }
 
     public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
@@ -36,7 +34,7 @@ public class JPAEnumerationFieldBuilder extends JPAFieldBuilder {
 
         if (allFieldContainers.size() == 0) tf.focus();
 
-        tf.setDataProvider(new ListDataProvider(Arrays.asList(field.getType().getEnumConstants())));
+        tf.setDataProvider(field.getDataProvider());
 
         allFieldContainers.put(field, tf);
 
@@ -77,7 +75,7 @@ public class JPAEnumerationFieldBuilder extends JPAFieldBuilder {
                 }
             });
 
-            BeanValidator bv = new BeanValidator(field.getDeclaringClass(), field.getName());
+            BeanValidator bv = new BeanValidator(binder.getBeanType(), field.getName());
 
             validators.get(tf).add(new Validator() {
 

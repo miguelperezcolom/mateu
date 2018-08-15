@@ -1,18 +1,11 @@
-package io.mateu.mdd.vaadinport.vaadin.components.fields;
+package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
-import com.google.common.base.Strings;
 import com.vaadin.data.Binder;
-import com.vaadin.data.ValidationResult;
-import com.vaadin.data.Validator;
-import com.vaadin.data.ValueContext;
 import com.vaadin.data.converter.StringToDoubleConverter;
 import com.vaadin.data.validator.BeanValidator;
-import com.vaadin.shared.ui.ErrorLevel;
 import com.vaadin.ui.TextField;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.data.MDDBinder;
-
-import java.util.List;
 
 public class JPADoubleFieldBuilder extends JPAStringFieldBuilder {
 
@@ -27,9 +20,4 @@ public class JPADoubleFieldBuilder extends JPAStringFieldBuilder {
         aux.bind(field.getName());
     }
 
-
-    @Override
-    public Object convert(String s) {
-        return (!Strings.isNullOrEmpty(s))?Double.parseDouble(s):null;
-    }
 }

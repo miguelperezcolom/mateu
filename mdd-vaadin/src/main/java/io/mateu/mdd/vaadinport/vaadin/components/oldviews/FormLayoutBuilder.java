@@ -12,10 +12,9 @@ import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.interfaces.VoidStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.vaadinport.vaadin.components.fields.FieldBuilder;
-import io.mateu.mdd.vaadinport.vaadin.components.fields.JPAFieldBuilder;
-import io.mateu.mdd.vaadinport.vaadin.components.fields.JPAOutputFieldBuilder;
-import io.mateu.mdd.core.data.ChangeNotificationListener;
+import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.FieldBuilder;
+import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.JPAFieldBuilder;
+import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.JPAOutputFieldBuilder;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Pair;
 

@@ -1,9 +1,7 @@
-package io.mateu.mdd.vaadinport.vaadin.components.fields;
+package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.vaadin.data.*;
 import com.vaadin.data.validator.BeanValidator;
-import com.vaadin.server.UserError;
-import com.vaadin.shared.ui.ErrorLevel;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.annotations.DataProvider;
@@ -20,7 +18,6 @@ import io.mateu.mdd.core.data.MDDBinder;
 import javax.persistence.ManyToOne;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 

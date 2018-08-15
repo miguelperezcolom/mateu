@@ -85,7 +85,7 @@ public class EditorViewComponent extends AbstractViewComponent {
         AbstractStylist finalStylist = stylist;
         binder.addValueChangeListener(e -> {
             updateActions();
-            binder.setBean(binder.getBean()); // para campos calculados
+            binder.setBean(binder.getBean(), false); // para campos calculados
         });
 
         updateActions();

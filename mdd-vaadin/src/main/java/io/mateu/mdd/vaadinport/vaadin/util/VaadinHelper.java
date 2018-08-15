@@ -10,8 +10,7 @@ import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Value;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.FieldInterfacedFromType;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.vaadinport.vaadin.components.fields.JPAOutputFieldBuilder;
+import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.JPAOutputFieldBuilder;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.FormLayoutBuilder;
 
 import java.util.HashMap;

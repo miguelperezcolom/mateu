@@ -76,16 +76,17 @@ public class MainModule extends AbstractModule {
                 List<MenuEntry> l = new ArrayList<>();
 
                 l.add(new MDDMenu("Fields"
-                        , "Basic fields", BasicFieldsDemoEntity.class
-                        , "Date fields", DateTimeFieldsDemoEntity.class
-                        , "Basic fields with validation", BasicFieldsWithValidationDemoEntity.class
-                        , "Calculated fields", CalculatedFieldsDemoEntity.class
+                        , "Basic fieldBuilders", BasicFieldsDemoEntity.class
+                        , "Date fieldBuilders", DateTimeFieldsDemoEntity.class
+                        , "Basic fieldBuilders with validation", BasicFieldsWithValidationDemoEntity.class
+                        , "Calculated fieldBuilders", CalculatedFieldsDemoEntity.class
                         , "Enumeration field", EnumerationFieldDemoEntity.class
                         , "TextArea", TextAreaFieldDemoEntity.class
                         , "Search filters", SearchFiltersDemoEntity.class
                         , "File field", FileFieldEntity.class
                         , "Multilanguage", MultilanguageFieldEntity.class
                         , "Week days", WeekdaysFieldEntity.class
+                        , "Dynamic content", WithDynamicContent.class
                 ));
 
 
@@ -149,8 +150,6 @@ public class MainModule extends AbstractModule {
                         List<MenuEntry> l = new ArrayList<>();
 
                         l.add(new MDDOpenCRUDAction("Subclasses", Superclass.class));
-
-                        l.add(new MDDOpenCRUDAction("Dynamic content", WithDynamicContent.class));
 
                         return l;
                     }

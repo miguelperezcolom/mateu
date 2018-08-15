@@ -1,4 +1,4 @@
-package io.mateu.mdd.vaadinport.vaadin.components.fields;
+package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;

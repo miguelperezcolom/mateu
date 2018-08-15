@@ -32,7 +32,7 @@ public class MDDBinderX {
 
     /*
 
-    List<AbstractComponent> fields = new ArrayList<>();
+    List<AbstractComponent> fieldBuilders = new ArrayList<>();
 
     private Map<String, Property> vaadinSideProperties = new HashMap<>();
     private Map<String, Property> beanSideProperties = new HashMap<>();
@@ -398,7 +398,7 @@ public class MDDBinderX {
     }
 
     public void bindInteger(TextField tf, String name) {
-        fields.add(tf);
+        fieldBuilders.add(tf);
         SimpleIntegerProperty p = (SimpleIntegerProperty) vaadinSideProperties.get(name);
         if (p == null) {
             p = new SimpleIntegerProperty();
@@ -426,7 +426,7 @@ public class MDDBinderX {
     }
 
     public void bindLong(TextField tf, String name) {
-        fields.add(tf);
+        fieldBuilders.add(tf);
         SimpleLongProperty p = (SimpleLongProperty) vaadinSideProperties.get(name);
         if (p == null) {
             p = new SimpleLongProperty();
@@ -454,7 +454,7 @@ public class MDDBinderX {
     }
 
     public void bindFloat(TextField tf, String name) {
-        fields.add(tf);
+        fieldBuilders.add(tf);
         SimpleFloatProperty p = (SimpleFloatProperty) vaadinSideProperties.get(name);
         if (p == null) {
             p = new SimpleFloatProperty();
@@ -483,7 +483,7 @@ public class MDDBinderX {
 
 
     public void bindDouble(TextField tf, String name) {
-        fields.add(tf);
+        fieldBuilders.add(tf);
         SimpleDoubleProperty p = (SimpleDoubleProperty) vaadinSideProperties.get(name);
         if (p == null) {
             p = new SimpleDoubleProperty();
@@ -511,7 +511,7 @@ public class MDDBinderX {
     }
 
     public void bindString(HasValue<String> tf, String name) {
-        fields.add((AbstractComponent) tf);
+        fieldBuilders.add((AbstractComponent) tf);
         SimpleStringProperty p = (SimpleStringProperty) vaadinSideProperties.get(name);
         if (p == null) {
             p = new SimpleStringProperty();
@@ -533,7 +533,7 @@ public class MDDBinderX {
     }
 
     public void bindBoolean(CheckBox cb, String name) {
-        fields.add(cb);
+        fieldBuilders.add(cb);
         SimpleBooleanProperty p = (SimpleBooleanProperty) vaadinSideProperties.get(name);
         if (p == null) {
             p = new SimpleBooleanProperty();
@@ -555,7 +555,7 @@ public class MDDBinderX {
     }
 
     public void bindLocalDate(DateField df, String name) {
-        fields.add(df);
+        fieldBuilders.add(df);
         SimpleObjectProperty p = (SimpleObjectProperty) vaadinSideProperties.get(name);
         if (p == null) {
             p = new SimpleObjectProperty();
@@ -577,7 +577,7 @@ public class MDDBinderX {
     }
 
     public void bindLocalDateTime(DateTimeField df, String name) {
-        fields.add(df);
+        fieldBuilders.add(df);
         SimpleObjectProperty p = (SimpleObjectProperty) vaadinSideProperties.get(name);
         if (p == null) {
             p = new SimpleObjectProperty();
@@ -600,7 +600,7 @@ public class MDDBinderX {
 
 
     public void bindAnythingToString(TextField tf, String name) {
-        fields.add(tf);
+        fieldBuilders.add(tf);
         Property p = vaadinSideProperties.get(name);
         if (p == null) {
             p = new SimpleStringProperty();
@@ -615,7 +615,7 @@ public class MDDBinderX {
     }
 
     public void bindEnum(ComboBox c, String fieldName) {
-        fields.add(c);
+        fieldBuilders.add(c);
         Property p = vaadinSideProperties.get(fieldName);
         if (p == null) {
             p = new SimpleObjectProperty();
@@ -637,7 +637,7 @@ public class MDDBinderX {
     }
 
     public void bindOneToOne(ComboBox c, String fieldName) {
-        fields.add(c);
+        fieldBuilders.add(c);
         Property p = vaadinSideProperties.get(fieldName);
         if (p == null) {
             p = new SimpleObjectProperty();
@@ -712,7 +712,7 @@ public class MDDBinderX {
     }
 
     public void bindManyToOne(HasValue c, String fieldName) {
-        fields.add((AbstractComponent) c);
+        fieldBuilders.add((AbstractComponent) c);
         Property p = vaadinSideProperties.get(fieldName);
         if (p == null) {
             p = new SimpleObjectProperty();
@@ -781,7 +781,7 @@ public class MDDBinderX {
     }
 
     public void bindOneToMany(TwinColSelect<Object> c, FieldInterfaced field) {
-        fields.add(c);
+        fieldBuilders.add(c);
         Property p = vaadinSideProperties.get(field.getName());
         if (p == null) {
             p = new SimpleSetProperty();
@@ -892,7 +892,7 @@ public class MDDBinderX {
 
 
     public void bindOneToMany(Label l, String fieldName) {
-        fields.add(l);
+        fieldBuilders.add(l);
 
         Property p = vaadinSideProperties.get(fieldName + "_size");
         if (p == null) {
@@ -914,7 +914,7 @@ public class MDDBinderX {
     }
 
     public void bindOneToMany(Grid g, String fieldName) {
-        fields.add(g);
+        fieldBuilders.add(g);
 
         ListDataProvider ldp;
         g.setDataProvider(ldp = new ListDataProvider(new ArrayList()));
@@ -945,12 +945,12 @@ public class MDDBinderX {
 
     public boolean allValid() {
         boolean ok = true;
-        for (AbstractComponent x : fields) ok &= x.getErrorMessage() == null;
+        for (AbstractComponent x : fieldBuilders) ok &= x.getErrorMessage() == null;
         return ok;
     }
 
     public void bindOneToMany(CheckBoxGroup cbg, FieldInterfaced field) {
-        fields.add(cbg);
+        fieldBuilders.add(cbg);
 
         cbg.deselectAll();
 
@@ -1013,7 +1013,7 @@ public class MDDBinderX {
     }
 
     public void bindEmbedded(FormLayout l, FieldInterfaced field, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, FormLayoutBuilder builder) {
-        fields.add(l);
+        fieldBuilders.add(l);
 
         SimpleObjectProperty p = (SimpleObjectProperty) vaadinSideProperties.get(field.getName());
         if (p == null) {

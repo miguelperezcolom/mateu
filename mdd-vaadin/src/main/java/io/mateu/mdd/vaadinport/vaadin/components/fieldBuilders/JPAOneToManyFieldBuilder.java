@@ -1,4 +1,4 @@
-package io.mateu.mdd.vaadinport.vaadin.components.fields;
+package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.*;
@@ -12,7 +12,6 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.UseCheckboxes;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
 import io.mateu.mdd.core.annotations.UseTwinCols;
-import io.mateu.mdd.core.data.Pair;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.*;
 import io.mateu.mdd.core.util.Helper;
@@ -20,7 +19,6 @@ import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.vaadinport.vaadin.components.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
 import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.vaadinport.vaadin.mdd.VaadinPort;
 import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 
 import javax.persistence.CascadeType;
@@ -28,7 +26,6 @@ import javax.persistence.ElementCollection;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.ParameterizedType;
 import java.util.*;
 
 public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
@@ -436,14 +433,14 @@ public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
                     items = new ArrayList();
                 } else {
 
-                    Class keyType = ReflectionHelper.getGenericClass(field, Map.class, "K");
-
-                    if (keyType.isEnum()) {
-                        //todo: prefill
-                        //todo: añadir anotación @Prefill
-                    }
-
                     if (o instanceof Map) {
+
+                        Class keyType = ReflectionHelper.getGenericClass(field, Map.class, "K");
+
+                        if (keyType != null && keyType.isEnum()) {
+                            //todo: prefill
+                            //todo: añadir anotación @Prefill
+                        }
 
                         items = ((Map) o).entrySet();
                     } else {
