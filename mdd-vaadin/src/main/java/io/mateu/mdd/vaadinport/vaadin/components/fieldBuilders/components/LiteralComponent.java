@@ -31,6 +31,8 @@ public class LiteralComponent extends Composite implements HasValue<Literal>, Co
 
         HorizontalLayout hl = new HorizontalLayout(tf, cb = new ComboBox<String>(null, langs));
         cb.setWidth("80px");
+        cb.setEmptySelectionAllowed(false);
+        cb.setValue("es");
 
         cb.addValueChangeListener(e -> {
             if (literal != null) {
@@ -46,8 +48,7 @@ public class LiteralComponent extends Composite implements HasValue<Literal>, Co
                 tf.setValue(v);
             }
         });
-        cb.setValue("es");
-        
+
         setCompositionRoot(hl);
 
         tf.setValueChangeMode(ValueChangeMode.BLUR);

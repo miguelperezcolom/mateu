@@ -18,7 +18,7 @@
     </prerequisites>
 
     <properties>
-        <vaadin.version>8.4.5</vaadin.version>
+        <vaadin.version>8.5.1</vaadin.version>
         <vaadin.plugin.version>8.4.5</vaadin.plugin.version>
         <jetty.plugin.version>9.4.11.v20180605</jetty.plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -58,10 +58,26 @@
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-push</artifactId>
         </dependency>
+<!--
         <dependency>
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-client-compiled</artifactId>
         </dependency>
+-->
+        <!--
+        <dependency>
+            <groupId>io.mateu.ui</groupId>
+            <artifactId>vaadin-client-compiled</artifactId>
+            <version>8.4.1</version>
+        </dependency>
+        -->
+
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mdd-addon</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-themes</artifactId>
@@ -95,17 +111,34 @@
         </dependency>
 
         <dependency>
-            <groupId>org.vaadin.ui</groupId>
-            <artifactId>numberfield</artifactId>
-            <version>0.2.0</version>
-        </dependency>
-
-
-        <dependency>
             <groupId>com.byteowls</groupId>
             <artifactId>vaadin-chartjs</artifactId>
             <version>1.3.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.vaadin.liveimageeditor</groupId>
+            <artifactId>live-image-editor</artifactId>
+            <version>2.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.vaadin.addons</groupId>
+            <artifactId>aceeditor</artifactId>
+            <version>0.8.15</version>
+        </dependency>
+
+        <dependency>
+            <groupId>eu.maxschuster</groupId>
+            <artifactId>vaadin-signaturefield</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+
+
+
+
+
+
 
 
 

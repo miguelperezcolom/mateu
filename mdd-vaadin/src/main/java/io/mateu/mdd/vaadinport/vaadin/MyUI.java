@@ -2,18 +2,19 @@ package io.mateu.mdd.vaadinport.vaadin;
 
 import com.google.common.base.Strings;
 import com.vaadin.annotations.*;
-import com.vaadin.annotations.JavaScript;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.PushStateNavigation;
+import com.vaadin.server.Page;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServlet;
 import com.vaadin.server.VaadinServletRequest;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Layout;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractApplication;
 import io.mateu.mdd.core.app.BaseMDDApp;
 import io.mateu.mdd.core.interfaces.App;
-import io.mateu.mdd.vaadinport.vaadin.asciiart.Painter;
 import io.mateu.mdd.vaadinport.vaadin.components.app.old.AppComponent;
 import io.mateu.mdd.vaadinport.vaadin.mdd.VaadinPort;
 import io.mateu.mdd.vaadinport.vaadin.navigation.MDDNavigator;
@@ -22,7 +23,7 @@ import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
 import io.mateu.mdd.vaadinport.vaadin.navigation.VoidView;
 
 import javax.servlet.annotation.WebServlet;
-import java.io.File;
+import javax.servlet.http.HttpServletRequest;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 
@@ -34,6 +35,8 @@ import java.util.ServiceLoader;
  * overridden to add component to the user interface and initialize non-component functionality.
  */
 @Theme("mytheme")
+
+//@Widgetset("com.vaadin.WidgetSet")
 
 //<link href="//cdn.muicss.com/mui-0.9.39/css/mui.min.css" rel="stylesheet" type="text/css" />
 //<script src="//cdn.muicss.com/mui-0.9.39/js/mui.min.js"></script>
@@ -52,13 +55,6 @@ public class MyUI extends UI {
     private ViewStack stack;
     private Layout viewContainer;
 
-    static{
-
-        Painter.paint("Hello");
-        System.out.println();
-        Painter.paint("MATEU");
-
-    }
 
     private AppComponent appComponent;
     private AbstractApplication app;
@@ -77,6 +73,19 @@ public class MyUI extends UI {
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
+
+
+        boolean mobile = Page.getCurrent().getWebBrowser().isAndroid() || Page.getCurrent().getWebBrowser().isIOS() || Page.getCurrent().getWebBrowser().isWindowsPhone();
+
+        if (vaadinRequest instanceof VaadinServletRequest) {
+            HttpServletRequest httpRequest = ((VaadinServletRequest) vaadinRequest).getHttpServletRequest();
+            String userAgent = httpRequest.getHeader("User-Agent").toLowerCase();
+            if (userAgent.contains("ipad")) { //... }
+               mobile = false;
+            }
+        }
+
+
 
         if (Strings.isNullOrEmpty(System.getProperty("tmpurl"))) {
             String url = ((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getRequestURL().toString();

@@ -1,4 +1,4 @@
-package io.mateu.mdd.vaadinport.vaadin.asciiart;
+package io.mateu.mdd.core.asciiart;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;

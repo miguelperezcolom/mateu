@@ -1,9 +1,11 @@
 package io.mateu.mdd.core.util;
 
 import com.google.common.io.Files;
+import com.google.common.io.Resources;
 import io.mateu.mdd.core.data.Data;
 
 import java.io.*;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -70,8 +72,11 @@ public class Utils {
     }
 
     public static byte[] readBytes(File f) throws IOException {
-        System.out.println("writing " + f.getAbsolutePath());
+        System.out.println("reading " + f.getAbsolutePath());
         return Files.asByteSource(f).read();
     }
 
+    public static byte[] readBytes(URL url) throws IOException {
+        return Resources.asByteSource(url).read();
+    }
 }

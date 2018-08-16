@@ -16,7 +16,10 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
+import io.mateu.mdd.core.asciiart.Painter;
+import io.mateu.mdd.core.reflection.MiURLConverter;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
+import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.mail.DefaultAuthenticator;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
@@ -576,6 +579,18 @@ public class Helper {
 
     public static void loadProperties() {
         if (!propertiesLoaded) {
+
+
+
+            Painter.paint("Hello");
+            System.out.println();
+            Painter.paint("MATEU");
+
+
+
+            System.out.println("Registrando concerters beanutils...");
+            ConvertUtils.register(new MiURLConverter(), URL.class);
+
             System.out.println("Loading properties...");
             propertiesLoaded = true;
             InputStream s = null;

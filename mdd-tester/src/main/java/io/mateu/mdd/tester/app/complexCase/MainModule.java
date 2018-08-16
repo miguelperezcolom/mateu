@@ -85,7 +85,11 @@ public class MainModule extends AbstractModule {
                         , "Search filters", SearchFiltersDemoEntity.class
                         , "File field", FileFieldEntity.class
                         , "Multilanguage", MultilanguageFieldEntity.class
-                        , "Week days", WeekdaysFieldEntity.class
+                        , "URL", URLFieldDemoEntity.class
+                        , "IFrame", IFrameFieldDemoEntity.class
+                        , "Html", HtmlFieldDemoEntity.class
+                        , "Code", CodeFieldDemoEntity.class
+                        , "Signature", SignatureFieldDemoEntity.class
                         , "Dynamic content", WithDynamicContent.class
                 ));
 
@@ -128,6 +132,10 @@ public class MainModule extends AbstractModule {
                         l.add(new MDDOpenCRUDAction("Element collection", WithElementCollectionEntity.class));
 
                         l.add(new MDDOpenCRUDAction("Embedded", WithEmbeddedEntity.class));
+
+                        l.add(new MDDOpenCRUDAction("Primitive collections", PrimitiveCollectionsFieldDemoEntity.class));
+
+                        l.add(new MDDOpenCRUDAction("Primitive arrays", PrimitiveArraysFieldDemoEntity.class));
 
                         return l;
                     }

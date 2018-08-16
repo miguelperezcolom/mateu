@@ -17,8 +17,16 @@ public abstract class JPAFieldBuilder {
 
     public static List<JPAFieldBuilder> builders = Lists.newArrayList(
             new FromDataProviderFieldBuilder()
+            , new JPAWeekDaysFieldBuilder()
+            , new JPAIFrameFieldBuilder()
+            , new JPAURLFieldBuilder()
             , new JPAFileFieldBuilder()
             , new JPALiteralFieldBuilder()
+            , new JPASignatureFieldBuilder()
+            , new JPACodeFieldBuilder()
+            , new JPAHtmlFieldBuilder()
+            , new JPAPrimitiveArraysFieldBuilder()
+            , new JPAPrimitiveCollectionsFieldBuilder()
             , new JPATextAreaFieldBuilder()
             , new JPAStringFieldBuilder()
             , new JPAIntegerFieldBuilder()

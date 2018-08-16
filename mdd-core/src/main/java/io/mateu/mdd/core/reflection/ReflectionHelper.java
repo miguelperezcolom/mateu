@@ -11,12 +11,15 @@ import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.util.Helper;
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.ConvertUtils;
+import org.apache.commons.beanutils.converters.URLConverter;
 import org.reflections.Reflections;
 
 import javax.persistence.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.lang.reflect.Parameter;
+import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;

@@ -5,7 +5,7 @@ import com.byteowls.vaadin.chartjs.config.DonutChartConfig;
 import com.byteowls.vaadin.chartjs.data.Dataset;
 import com.byteowls.vaadin.chartjs.data.PieDataset;
 import com.google.common.base.Strings;
-import com.vaadin.data.*;
+import com.vaadin.data.ValueProvider;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.event.ShortcutAction;
@@ -24,12 +24,14 @@ import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.vaadinport.vaadin.components.dataProviders.JPQLListDataProvider;
-import org.vaadin.ui.NumberField;
+import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components.WeekDaysComponent;
 
 import javax.persistence.GeneratedValue;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
-import java.lang.reflect.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -95,21 +97,17 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
             Grid.Column col;
 
-            if (isJPAListViewComponent) {
-                col = grid.addColumn(new ValueProvider() {
-                    @Override
-                    public Object apply(Object o) {
-                        //return ReflectionHelper.getValue(f, o);
-                        return ((Object[]) o)[finalPos + 1];
-                    }
-                });
-            } else {
-                col = grid.addColumn(new ValueProvider() {
-                    @Override
-                    public Object apply(Object o) {
+            col = grid.addColumn(new ValueProvider() {
+                @Override
+                public Object apply(Object o) {
+
+                    Object v = null;
+
+                    if (isJPAListViewComponent) {
+                        v = ((Object[]) o)[finalPos + 1];
+                    } else {
                         try {
-                            Object v = ReflectionHelper.getValue(f, o);
-                            return (v != null)?"" + v:null;
+                            v = ReflectionHelper.getValue(f, o);
                         } catch (NoSuchMethodException e) {
                             e.printStackTrace();
                         } catch (IllegalAccessException e) {
@@ -117,10 +115,26 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                         } catch (InvocationTargetException e) {
                             e.printStackTrace();
                         }
-                        return null;
                     }
-                });
-            }
+
+                    if (boolean[].class.equals(f.getType()) && f.isAnnotationPresent(WeekDays.class)) {
+                        if (o == null) return null;
+                        boolean[] wds = (boolean[]) v;
+
+                        String s = "";
+
+                        for (int i = 0; i < wds.length; i++) if (wds[i]) {
+                            if (!"".equals(s)) s += ",";
+                            s += WeekDaysComponent.days.get(i);
+                        }
+
+                        return s;
+
+                    } else {
+                        return (v != null)?"" + v:null;
+                    }
+                }
+            });
 
         if (Integer.class.equals(f.getType()) || int.class.equals(f.getType())
                 || Long.class.equals(f.getType()) || long.class.equals(f.getType())
@@ -150,11 +164,11 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     col.setEditable(true);
                 } else if (Integer.class.equals(f.getType()) || int.class.equals(f.getType())) {
 
-                    NumberField nf = new NumberField();
-                    nf.setDecimalAllowed(false);
+                    TextField nf = new TextField();
                     col.setEditorComponent(nf, (o, v) -> {
                         try {
-                                ReflectionHelper.setValue(f, o, v);
+                            //todo: validar entero
+                            ReflectionHelper.setValue(f, o, v);
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -162,10 +176,11 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     col.setEditable(true);
                 } else if (Double.class.equals(f.getType()) || double.class.equals(f.getType())) {
 
-                    NumberField nf = new NumberField();
-                    nf.setDecimalAllowed(true);
+                    TextField nf = new TextField();
                     col.setEditorComponent(nf, (o, v) -> {
                         try {
+                            //todo: validar doble
+                            //todo: falta float y long
                             ReflectionHelper.setValue(f, o, v);
                         } catch (Exception e) {
                             MDD.alert(e);
