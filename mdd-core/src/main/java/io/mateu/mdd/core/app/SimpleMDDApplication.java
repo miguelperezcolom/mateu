@@ -4,6 +4,8 @@ import com.google.common.base.Strings;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Caption;
+import io.mateu.mdd.core.annotations.SubApp;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 
 import java.lang.reflect.Method;
@@ -56,25 +58,71 @@ public class SimpleMDDApplication extends BaseMDDApp {
     }
 
     List<MenuEntry> buildMenu() {
+        return buildMenu(this);
+    }
+
+    List<MenuEntry> buildMenu(Object app) {
         List<MenuEntry> l = new ArrayList<>();
 
-        for (Method m : getAllActionMethods(getClass())) {
+        for (Method m : getAllActionMethods(app.getClass())) {
 
-            String caption = m.getAnnotation(Action.class).value();
+            String caption = (m.isAnnotationPresent(SubApp.class))?m.getAnnotation(SubApp.class).value():m.getAnnotation(Action.class).value();
             if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(m.getName());
 
-            l.add(new AbstractAction(caption) {
-                @Override
-                public void run(MDDExecutionContext context) {
-                    try {
+            if (m.isAnnotationPresent(SubApp.class)) {
 
-                        context.callMethod(null, m, SimpleMDDApplication.this);
-
-                    } catch (Throwable e) {
-                        MDD.alert(e);
+                l.add(new AbstractMenu(caption) {
+                    @Override
+                    public List<MenuEntry> buildEntries() {
+                        try {
+                            return buildMenu(ReflectionHelper.invokeInjectableParametersOnly(m, app));
+                        } catch (Throwable throwable) {
+                            MDD.alert(throwable);
+                        }
+                        return new ArrayList<>();
                     }
+                });
+
+            } else {
+
+                if (List.class.isAssignableFrom(m.getReturnType()) && MenuEntry.class.equals(ReflectionHelper.getGenericClass(m))) {
+
+                    l.add(new AbstractMenu(caption) {
+                        @Override
+                        public List<MenuEntry> buildEntries() {
+                            List<MenuEntry> l = new ArrayList<>();
+                            try {
+
+                                l = (List<MenuEntry>) ReflectionHelper.invokeInjectableParametersOnly(m, SimpleMDDApplication.this);
+
+                            } catch (Throwable e) {
+                                MDD.alert(e);
+                            }
+                            return l;
+                        }
+                    });
+
+
+                } else {
+
+                    l.add(new AbstractAction(caption) {
+                        @Override
+                        public void run(MDDExecutionContext context) {
+                            try {
+
+                                context.callMethod(null, m, app);
+
+                            } catch (Throwable e) {
+                                MDD.alert(e);
+                            }
+                        }
+                    });
+
                 }
-            });
+
+
+            }
+
 
         }
 
@@ -87,10 +135,16 @@ public class SimpleMDDApplication extends BaseMDDApp {
         if (c.getSuperclass() != null && !SimpleMDDApplication.class.equals(c.getSuperclass()))
             l.addAll(getAllActionMethods(c.getSuperclass()));
 
-        for (Method f : c.getDeclaredMethods()) if (f.isAnnotationPresent(Action.class)) l.add(f);
+        for (Method f : c.getDeclaredMethods()) if (f.isAnnotationPresent(Action.class) || f.isAnnotationPresent(SubApp.class)) l.add(f);
 
         l.sort((a, b) -> {
-            return a.getAnnotation(Action.class).order() - b.getAnnotation(Action.class).order();
+            int orderA = 0;
+            if (a.isAnnotationPresent(Action.class)) orderA = a.getAnnotation(Action.class).order();
+            else if (a.isAnnotationPresent(SubApp.class)) orderA = a.getAnnotation(SubApp.class).order();
+            int orderB = 0;
+            if (b.isAnnotationPresent(Action.class)) orderB = b.getAnnotation(Action.class).order();
+            else if (b.isAnnotationPresent(SubApp.class)) orderB = b.getAnnotation(SubApp.class).order();
+            return orderA - orderB;
         });
 
         return l;

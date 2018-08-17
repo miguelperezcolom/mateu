@@ -149,7 +149,7 @@ public class MethodParametersViewComponent extends AbstractViewComponent {
                             MyUI.get().getNavegador().goBack();
                             MDD.alert("Done");
                         } else {
-                            MyUI.get().getNavegador().showResult(method, r, context, true);
+                            MyUI.get().getNavegador().showResult(context.getCurrentState(), method, r, context, true);
                         }
 
                         // cambiamos la url, para reflejar el cambio

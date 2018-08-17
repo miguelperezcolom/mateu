@@ -6,6 +6,7 @@ import com.vaadin.data.provider.DataProvider;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Caption;
 import io.mateu.mdd.core.annotations.Ignored;
+import io.mateu.mdd.core.app.MenuEntry;
 import io.mateu.mdd.core.data.Data;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.UserData;
@@ -1236,4 +1237,15 @@ public class ReflectionHelper {
         return subs;
     }
 
+    public static Class<?> getGenericClass(Method m) {
+        Type gi = m.getGenericReturnType();
+        Class<?> gc = null;
+        if (gi instanceof ParameterizedType) {
+            ParameterizedType pt = (ParameterizedType) gi;
+            gc = (Class<?>) pt.getActualTypeArguments()[0];
+        } else {
+            gc = (Class<?>) gi;
+        }
+        return gc;
+    }
 }

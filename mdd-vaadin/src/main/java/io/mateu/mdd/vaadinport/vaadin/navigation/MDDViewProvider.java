@@ -666,7 +666,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                 if (hasNonInjectedParameters) {
                     stack.push(currentPath, new MethodParametersViewFlowComponent(currentPath, method, instance, this));
                 } else {
-                    MyUI.get().getNavegador().showResult(method, ReflectionHelper.invokeInjectableParametersOnly(method, instance), this, false);
+                    MyUI.get().getNavegador().showResult(currentPath, method, ReflectionHelper.invokeInjectableParametersOnly(method, instance), this, false);
                 }
 
             } catch (Throwable e) {

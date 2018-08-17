@@ -134,20 +134,18 @@ public class MDDNavigator {
         goTo(state);
     }
 
-    public void showResult(Method m, Object r, MDDExecutionContext context, boolean addStep) {
-
-        String state = context.getCurrentState();
+    public void showResult(String currentState, Method m, Object r, MDDExecutionContext context, boolean addStep) {
 
         if (addStep) {
-            if (!state.endsWith("/")) state += "/";
-            state += "result";
+            if (!currentState.endsWith("/")) currentState += "/";
+            currentState += "result";
         }
 
         if (r instanceof AbstractAction) {
             ((AbstractAction) r).run(context);
-        } else stack.push(state, new MethodResultViewFlowComponent(state, m, r));
+        } else stack.push(currentState, new MethodResultViewFlowComponent(currentState, m, r));
 
-        goTo(state);
+        goTo(currentState);
     }
 
 

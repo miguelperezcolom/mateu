@@ -1,11 +1,13 @@
 package io.mateu.mdd.tester.app.simpleCase;
 
+import com.google.common.collect.Lists;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Caption;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.MDDOpenCRUDAction;
-import io.mateu.mdd.core.app.SimpleMDDApplication;
+import io.mateu.mdd.core.annotations.SubApp;
+import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.tester.model.entities.basic.BasicFieldsDemoEntity;
+
+import java.util.List;
 
 @Caption("My simple app")
 public class SimpleApp extends SimpleMDDApplication {
@@ -23,6 +25,26 @@ public class SimpleApp extends SimpleMDDApplication {
         return new MDDOpenCRUDAction(BasicFieldsDemoEntity.class);
     }
 
+
+    @SubApp(order = 3)
+    public SubMenu aSubMenu() {
+        return new SubMenu();
+    }
+
+    @Action(order = 4)
+    public List<MenuEntry> anotherSubMenu() {
+        return Lists.newArrayList(new AbstractAction("Say hello") {
+            @Override
+            public void run(MDDExecutionContext context) {
+                System.out.println("hello");
+            }
+        }, new AbstractAction("Say bye") {
+            @Override
+            public void run(MDDExecutionContext context) {
+                System.out.println("bye");
+            }
+        });
+    }
 
     @Override
     public boolean isAuthenticationNeeded() {
