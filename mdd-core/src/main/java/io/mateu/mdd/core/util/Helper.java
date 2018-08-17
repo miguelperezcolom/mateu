@@ -55,6 +55,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.Executors;
 
 /**
  * Created by miguel on 13/9/16.
@@ -870,5 +871,25 @@ public class Helper {
 
 
         return params;
+    }
+
+
+    public static String runCommand(String command) throws IOException {
+
+        String homeDirectory = System.getProperty("user.home");
+        Process process = Runtime.getRuntime().exec(command);
+        String r = Helper.leerInputStream(process.getInputStream(), "utf-8");
+
+        //StreamGobbler streamGobbler = new StreamGobbler(process.getInputStream(), System.out::println);
+        //Executors.newSingleThreadExecutor().submit(streamGobbler);
+        //int exitCode = process.waitFor();
+        //assert exitCode == 0;
+
+        return r;
+    }
+
+    public static String toHtml(String s) {
+        if (!Strings.isNullOrEmpty(s)) return s.replaceAll("\\\n", "<br/>");
+        else return s;
     }
 }
