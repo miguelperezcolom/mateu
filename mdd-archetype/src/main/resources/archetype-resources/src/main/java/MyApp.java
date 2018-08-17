@@ -6,6 +6,7 @@ import io.mateu.mdd.core.annotations.Caption;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.app.SimpleMDDApplication;
+import io.mateu.mdd.core.util.Helper;
 
 public class MyApp extends SimpleMDDApplication {
 
@@ -18,6 +19,27 @@ public class MyApp extends SimpleMDDApplication {
     @Action(order = 2)
     public AbstractAction persons() {
         return new MDDOpenCRUDAction(Person.class);
+    }
+
+    @Action(order = 6)
+    public String md5(String s) {
+        return Helper.md5(s);
+    }
+
+    @Action(order = 7)
+    public String getThreadName() {
+        return Thread.currentThread().getName();
+    }
+
+    @Action(order = 8)
+    public String ls() throws IOException {
+        return Helper.toHtml(Helper.runCommand("ls -lh"));
+    }
+
+
+    @Action(order = 9)
+    public String df() throws IOException {
+        return Helper.toHtml(Helper.runCommand("df -h"));
     }
 
 }
