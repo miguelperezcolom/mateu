@@ -22,4 +22,6 @@ public class Person {
 
     private int age;
 
+    private Gender gender;
+
 }
