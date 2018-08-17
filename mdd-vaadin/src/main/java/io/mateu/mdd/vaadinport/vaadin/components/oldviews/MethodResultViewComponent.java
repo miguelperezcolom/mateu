@@ -84,7 +84,7 @@ public class MethodResultViewComponent extends AbstractViewComponent {
                     || Float.class.equals(c)
                     ) {
 
-                addComponent(new Label("" + result));
+                addComponent(new Label("" + result, ContentMode.HTML));
 
             } else {
 
