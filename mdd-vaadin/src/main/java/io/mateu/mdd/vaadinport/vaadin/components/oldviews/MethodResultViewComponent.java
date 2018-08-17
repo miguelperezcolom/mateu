@@ -2,6 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
+import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Ignored;
@@ -64,7 +65,7 @@ public class MethodResultViewComponent extends AbstractViewComponent {
 
         if (result == null) {
 
-            addComponent(new Label("Empty result"));
+            addComponent(new Label("Empty result", ContentMode.HTML));
 
         } else {
 
