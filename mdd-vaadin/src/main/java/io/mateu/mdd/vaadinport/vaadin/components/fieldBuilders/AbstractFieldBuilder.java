@@ -13,9 +13,9 @@ import io.mateu.mdd.core.data.Pair;
 import java.util.List;
 import java.util.Map;
 
-public abstract class JPAFieldBuilder {
+public abstract class AbstractFieldBuilder {
 
-    public static List<JPAFieldBuilder> builders = Lists.newArrayList(
+    public static List<AbstractFieldBuilder> builders = Lists.newArrayList(
             new FromDataProviderFieldBuilder()
             , new JPAWeekDaysFieldBuilder()
             , new JPAIFrameFieldBuilder()

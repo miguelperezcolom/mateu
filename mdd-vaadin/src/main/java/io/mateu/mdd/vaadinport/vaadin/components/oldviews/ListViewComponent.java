@@ -466,6 +466,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
     public abstract Object deserializeId(String id);
 
+
     public String getPathForEditor(Object id) {
         return "" + id;
     }

@@ -263,7 +263,7 @@ public class MDDBinderX {
                 if (bean != null) {
 
                     try {
-                        f.getType().getMethod("size").invoke(ReflectionHelper.getValue(f, bean));
+                        f.getType().getMethod("size").invokeInjectableParametersOnly(ReflectionHelper.getValue(f, bean));
                     } catch (Exception e) {
                         MDD.alert(e);
                     }

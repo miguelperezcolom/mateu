@@ -12,5 +12,5 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD}) //can use in method only.
 public @interface FieldBuilder {
 
-    Class<? extends JPAFieldBuilder> value();
+    Class<? extends AbstractFieldBuilder> value();
 }

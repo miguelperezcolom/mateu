@@ -28,7 +28,7 @@ import javax.persistence.OneToMany;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
-public class JPAOneToManyFieldBuilder extends JPAFieldBuilder {
+public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
 
     public boolean isSupported(FieldInterfaced field) {

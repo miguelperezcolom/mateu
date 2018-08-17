@@ -135,6 +135,94 @@
               background-color: slategray;
             }
 
+            .area-1 {
+              background-color: slategrey;
+            }
+
+            .area-1:hover {
+              background-color: #73a5d7;
+            }
+
+            .area-2 {
+              background-color: lightyellow;
+            }
+
+            .area-2:hover {
+              background-color: #73a5d7;
+            }
+
+            .area-3 {
+              background-color: lightcoral;
+            }
+
+            .area-3:hover {
+              background-color: #73a5d7;
+            }
+
+
+            .area-4 {
+              background-color: lightblue;
+            }
+
+            .area-4:hover {
+              background-color: #73a5d7;
+            }
+
+
+            .area-5 {
+              background-color: lightgreen;
+            }
+
+            .area-5:hover {
+              background-color: #73a5d7;
+            }
+
+
+            .area-6 {
+              background-color: lightpink;
+            }
+
+            .area-6:hover {
+              background-color: #73a5d7;
+            }
+
+
+            .area-7 {
+              background-color: lightseagreen;
+            }
+
+            .area-7:hover {
+              background-color: #73a5d7;
+            }
+
+
+            .area-8 {
+              background-color: lightcyan;
+            }
+
+            .area-8:hover {
+              background-color: #73a5d7;
+            }
+
+
+            .area-9 {
+              background-color: sandybrown;
+            }
+
+            .area-9:hover {
+              background-color: #73a5d7;
+            }
+
+
+            .area-10 {
+              background-color: indianred;
+            }
+
+            .area-10:hover {
+              background-color: #73a5d7;
+            }
+
+
             .v-slot-tituloarea:hover {
               background-color: #73a5d7;
             }
@@ -273,8 +361,18 @@
 
   }
 
+
+
+
   .section {
     margin-right: 50px;
+  }
+
+  .sectioncard {
+    background-color: white;
+    border: 1px grey solid;
+    border-radius: 4px;
+    padding: 20px;
   }
 
 

@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.old;
 
+import com.google.common.base.Strings;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
@@ -13,6 +14,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class NavigationComponent extends VerticalLayout {
+
+    private static final String[] estilosAreas = {"area-1", "area-2", "area-3", "area-4", "area-5", "area-6", "area-7", "area-8", "area-9", "area-10"};
+
 
     private final AbstractApplication app;
     private AbstractArea area;
@@ -55,6 +59,11 @@ public class NavigationComponent extends VerticalLayout {
                     b.setCaptionAsHtml(true);
                     b.addStyleName("tituloarea");
                     b.setDescription("Click to change to another area");
+
+                    String estiloArea = a.getStyle();
+                    if (Strings.isNullOrEmpty(estiloArea)) estiloArea = estilosAreas[app.getAreas().indexOf(a) % estilosAreas.length];
+                    b.addStyleName(estiloArea);
+
                     addComponent(b);
 
                     b.addClickListener(e -> MyUI.get().getNavegador().goTo((a.isPublicAccess())?"public":"private"));

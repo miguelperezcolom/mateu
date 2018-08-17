@@ -12,6 +12,7 @@ import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import javax.validation.ConstraintViolationException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class VaadinPort implements MDDPort {
@@ -58,6 +59,10 @@ public class VaadinPort implements MDDPort {
     @Override
     public void alert(Throwable throwable) {
         throwable.printStackTrace();
+
+        if (throwable instanceof InvocationTargetException) {
+            throwable = throwable.getCause();
+        }
 
         String msg = (throwable.getMessage() != null)?throwable.getMessage():throwable.getClass().getName();
 
@@ -145,6 +150,20 @@ public class VaadinPort implements MDDPort {
         Notification.show("Alert",
                 msg,
                 Notification.Type.WARNING_MESSAGE);
+    }
+
+    @Override
+    public void push(String msg) {
+        System.out.println("push(" + msg + ")");
+        Notification.show(msg, Notification.Type.TRAY_NOTIFICATION);
+        MyUI.get().push();
+    }
+
+    @Override
+    public void pushDone(String msg) {
+        System.out.println("pushDone(" + msg + ")");
+        Notification.show(msg, Notification.Type.HUMANIZED_MESSAGE);
+        MyUI.get().push();
     }
 
 }

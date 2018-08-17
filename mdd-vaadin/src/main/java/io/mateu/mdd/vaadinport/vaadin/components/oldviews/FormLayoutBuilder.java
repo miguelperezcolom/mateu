@@ -13,7 +13,7 @@ import io.mateu.mdd.core.interfaces.VoidStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.FieldBuilder;
-import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.JPAFieldBuilder;
+import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.AbstractFieldBuilder;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.JPAOutputFieldBuilder;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Pair;
@@ -70,8 +70,10 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
         if (createSections) {
             List<FormLayoutSection> sections = new ArrayList<>();
             allFields.forEach(f -> {
-                if (f.isAnnotationPresent(Section.class)) sections.add(new FormLayoutSection(f.getAnnotation(Section.class).value()));
-                if (sections.size() == 0) sections.add(new FormLayoutSection("General"));
+                if (f.isAnnotationPresent(Section.class)) {
+                    sections.add(new FormLayoutSection(f.getAnnotation(Section.class).value(), f.getAnnotation(Section.class).card()));
+                }
+                if (sections.size() == 0) sections.add(new FormLayoutSection("General", false));
                 sections.get(sections.size() - 1).getFields().add(f);
             });
 
@@ -85,6 +87,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                 FormLayout form = new FormLayout();
                 form.setSizeUndefined();
                 form.addStyleName("section");
+                if (s.isCard()) form.addStyleName("sectioncard");
                 //form.addStyleName(ValoTheme.FORMLAYOUT_LIGHT);
 
                 if (s.getCaption() != null) {
@@ -108,11 +111,11 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
         binder.addValueChangeListener(new HasValue.ValueChangeListener<Object>() {
             @Override
             public void valueChange(HasValue.ValueChangeEvent<Object> valueChangeEvent) {
-                JPAFieldBuilder.applyStyles(finalStylist, binder.getBean(), allFieldContainers, finalStylist.process(binder.getBean()));
+                AbstractFieldBuilder.applyStyles(finalStylist, binder.getBean(), allFieldContainers, finalStylist.process(binder.getBean()));
             }
         });
 
-        JPAFieldBuilder.applyStyles(stylist, model, allFieldContainers, stylist.process(binder.getBean()));
+        AbstractFieldBuilder.applyStyles(stylist, model, allFieldContainers, stylist.process(binder.getBean()));
 
         return new Pair(contentContainer, stylist);
     }
@@ -129,7 +132,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
             } else if (f.isAnnotationPresent(GeneratedValue.class) || f.isAnnotationPresent(Output.class)) {
                 ofb.build(f, model, contentContainer, binder, validators, stylist, allFieldContainers, forSearchFilters);
             } else {
-                for (JPAFieldBuilder fieldBuilder : JPAFieldBuilder.builders) if (fieldBuilder.isSupported(f)) {
+                for (AbstractFieldBuilder fieldBuilder : AbstractFieldBuilder.builders) if (fieldBuilder.isSupported(f)) {
                     fieldBuilder.build(f, model, contentContainer, binder, validators, stylist, allFieldContainers, forSearchFilters);
                     break;
                 }

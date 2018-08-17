@@ -18,6 +18,10 @@ public abstract class AbstractArea {
     private List<AbstractModule> modules;
     public AbstractAction defaultAction = null;
 
+    public String getStyle() {
+        return null;
+    }
+
     public AbstractArea(String name) {
         this.name = name;
     }

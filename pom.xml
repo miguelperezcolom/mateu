@@ -15,10 +15,10 @@
   </properties>
 
   <modules>
+    <module>mdd-addon</module>
     <module>mdd-core</module>
     <module>mdd-tester</module>
     <module>mdd-vaadin</module>
-    <module>mdd-addon</module>
   </modules>
 
   <dependencies>

@@ -12,14 +12,13 @@ import io.mateu.mdd.core.model.multilanguage.Literal;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components.FileComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components.LiteralComponent;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 
-public class JPAFileFieldBuilder extends JPAFieldBuilder {
+public class JPAFileFieldBuilder extends AbstractFieldBuilder {
 
 
     private Literal literal;

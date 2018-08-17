@@ -4,6 +4,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.model.config.AppConfig;
+import io.mateu.mdd.tester.model.callMethods.Caller;
 import io.mateu.mdd.tester.model.customComponents.CustomComponent;
 import io.mateu.mdd.tester.model.entities.dynamicContent.WithDynamicContent;
 import io.mateu.mdd.tester.model.entities.embedded.WithEmbeddedEntity;
@@ -37,18 +38,73 @@ public class MainModule extends AbstractModule {
     public List<MenuEntry> buildMenu() {
         List<MenuEntry> m = new ArrayList<>();
 
-        m.add(new AbstractAction("Alert") {
-
+        m.add(new AbstractMenu("Call methods") {
             @Override
-            public void run(MDDExecutionContext context) {
-                context.alert("Hola!");
-            }
+            public List<MenuEntry> buildEntries() {
+                List<MenuEntry> l = new ArrayList<>();
 
+                l.add(new AbstractAction("Alert") {
+
+                    @Override
+                    public void run(MDDExecutionContext context) {
+                        context.alert("Hola!");
+                    }
+
+                });
+
+                l.add(new MDDOpenCRUDAction("As actions", ActionsDemoEntity.class));
+
+                l.add(new MDDCallMethodAction("Returns void", Caller.class, "doSomething"));
+
+                l.add(new MDDCallMethodAction("Returns int", Caller.class, "returnInt"));
+
+                l.add(new MDDCallMethodAction("Returns String", Caller.class, "returnString"));
+
+                l.add(new MDDCallMethodAction("Returns Vaadin Component", Caller.class, "returnsComponent"));
+
+                l.add(new MDDCallMethodAction("Returns POJO (read only)", Caller.class, "returnsReadOnlyPojo"));
+
+                l.add(new MDDCallMethodAction("Returns POJO (editable)", Caller.class, "returnsDefaultEditablePojo"));
+
+                l.add(new MDDCallMethodAction("Returns entity", Caller.class, "returnsEntity"));
+
+                l.add(new MDDCallMethodAction("Returns list", Caller.class, "returnsList"));
+
+                l.add(new MDDCallMethodAction("Long running method", Caller.class, "longRunning"));
+
+                l.add(new MDDCallMethodAction("Throws exception", Caller.class, "throwsException"));
+
+                l.add(new MDDCallMethodAction("Throws exception 2", Caller.class, "throwsException2"));
+
+                l.add(new MDDCallMethodAction("Non-existent method", Caller.class, "thisMethodDoesNotExist"));
+
+                return l;
+            }
         });
 
-        m.add(new MDDOpenCRUDAction("Actions", ActionsDemoEntity.class));
+        m.add(new AbstractMenu("Wizards") {
+            @Override
+            public List<MenuEntry> buildEntries() {
+                List<MenuEntry> l = new ArrayList<>();
 
-        m.add(new MDDCallMethodAction("Call method", MainModule.class, "returnsComponent"));
+                l.add(new MDDCallMethodAction("Returns void", Caller.class, "returnsComponent"));
+
+                l.add(new MDDCallMethodAction("Returns String", Caller.class, "returnsComponent"));
+
+                l.add(new MDDCallMethodAction("Returns Vaadin Component", Caller.class, "returnsComponent"));
+
+                l.add(new MDDCallMethodAction("Returns POJO (read only)", Caller.class, "returnsComponent"));
+
+                l.add(new MDDCallMethodAction("Returns POJO (editable)", Caller.class, "returnsComponent"));
+
+                l.add(new MDDCallMethodAction("Returns entity", Caller.class, "returnsComponent"));
+
+                l.add(new MDDCallMethodAction("Returns list", Caller.class, "returnsComponent"));
+
+
+                return l;
+            }
+        });
 
         m.add(new MDDOpenCustomComponentAction("Custom component", CustomComponent.class));
 
@@ -90,6 +146,7 @@ public class MainModule extends AbstractModule {
                         , "Html", HtmlFieldDemoEntity.class
                         , "Code", CodeFieldDemoEntity.class
                         , "Signature", SignatureFieldDemoEntity.class
+                        , "Editable image", FileFieldEntity.class
                         , "Dynamic content", WithDynamicContent.class
                 ));
 
@@ -218,13 +275,6 @@ public class MainModule extends AbstractModule {
 
 
         return m;
-    }
-
-
-
-
-    public static Component returnsComponent(String yourName, int age) {
-        return new Label("Hello " + yourName + "!");
     }
 
 

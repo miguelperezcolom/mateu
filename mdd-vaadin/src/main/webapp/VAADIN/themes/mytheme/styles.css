@@ -15140,6 +15140,86 @@ div.v-layout.v-horizontal.v-widget {
 	background-color: slategray;
 }
 
+.mytheme .miapp .leftside .navegacion .area-1 {
+	background-color: slategrey;
+}
+
+.mytheme .miapp .leftside .navegacion .area-1:hover {
+	background-color: #73a5d7;
+}
+
+.mytheme .miapp .leftside .navegacion .area-2 {
+	background-color: lightyellow;
+}
+
+.mytheme .miapp .leftside .navegacion .area-2:hover {
+	background-color: #73a5d7;
+}
+
+.mytheme .miapp .leftside .navegacion .area-3 {
+	background-color: lightcoral;
+}
+
+.mytheme .miapp .leftside .navegacion .area-3:hover {
+	background-color: #73a5d7;
+}
+
+.mytheme .miapp .leftside .navegacion .area-4 {
+	background-color: lightblue;
+}
+
+.mytheme .miapp .leftside .navegacion .area-4:hover {
+	background-color: #73a5d7;
+}
+
+.mytheme .miapp .leftside .navegacion .area-5 {
+	background-color: lightgreen;
+}
+
+.mytheme .miapp .leftside .navegacion .area-5:hover {
+	background-color: #73a5d7;
+}
+
+.mytheme .miapp .leftside .navegacion .area-6 {
+	background-color: lightpink;
+}
+
+.mytheme .miapp .leftside .navegacion .area-6:hover {
+	background-color: #73a5d7;
+}
+
+.mytheme .miapp .leftside .navegacion .area-7 {
+	background-color: lightseagreen;
+}
+
+.mytheme .miapp .leftside .navegacion .area-7:hover {
+	background-color: #73a5d7;
+}
+
+.mytheme .miapp .leftside .navegacion .area-8 {
+	background-color: lightcyan;
+}
+
+.mytheme .miapp .leftside .navegacion .area-8:hover {
+	background-color: #73a5d7;
+}
+
+.mytheme .miapp .leftside .navegacion .area-9 {
+	background-color: sandybrown;
+}
+
+.mytheme .miapp .leftside .navegacion .area-9:hover {
+	background-color: #73a5d7;
+}
+
+.mytheme .miapp .leftside .navegacion .area-10 {
+	background-color: indianred;
+}
+
+.mytheme .miapp .leftside .navegacion .area-10:hover {
+	background-color: #73a5d7;
+}
+
 .mytheme .miapp .leftside .navegacion .v-slot-tituloarea:hover {
 	background-color: #73a5d7;
 }
@@ -15246,6 +15326,13 @@ div.v-layout.v-horizontal.v-widget {
 
 .mytheme .section {
 	margin-right: 50px;
+}
+
+.mytheme .sectioncard {
+	background-color: white;
+	border: 1px grey solid;
+	border-radius: 4px;
+	padding: 20px;
 }
 
 .mytheme .hidden {

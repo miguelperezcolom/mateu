@@ -16,7 +16,7 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 
-public class JPAStringFieldBuilder extends JPAFieldBuilder {
+public class JPAStringFieldBuilder extends AbstractFieldBuilder {
 
 
     public boolean isSupported(FieldInterfaced field) {

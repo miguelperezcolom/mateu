@@ -15,7 +15,7 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 
-public class JPALiteralFieldBuilder extends JPAFieldBuilder {
+public class JPALiteralFieldBuilder extends AbstractFieldBuilder {
 
 
     private Literal literal;

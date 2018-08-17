@@ -10,14 +10,12 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.core.views.AbstractServerSideWizard;
 
+import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ViewComponentHelper {
     public static AbstractAction createAction(Method m, AbstractViewComponent viewComponent) {
@@ -54,10 +52,19 @@ public class ViewComponentHelper {
                             instance = evc.getModel();
                         }
 
-                        Set selection = null;
+                        Set selection = new HashSet();
                         if (viewComponent instanceof ListViewComponent) {
                             ListViewComponent lvc = (ListViewComponent) viewComponent;
-                            selection = lvc.getSelection();
+                            Helper.notransact(em -> {
+                                boolean jpa = lvc.getColumnType().isAnnotationPresent(Entity.class);
+                                lvc.getSelection().forEach(o -> {
+                                    if (jpa && o instanceof Object[]) {
+                                        selection.add(em.find(lvc.getColumnType(), lvc.deserializeId("" + lvc.toId(o))));
+                                    } else {
+                                        selection.add(o);
+                                    }
+                                });
+                            });
                         }
 
 
@@ -82,6 +89,15 @@ public class ViewComponentHelper {
 
                     } catch (Throwable throwable) {
                         MDD.alert(throwable);
+                    }
+
+                    if (viewComponent instanceof ListViewComponent) {
+                        ListViewComponent lvc = (ListViewComponent) viewComponent;
+                        try {
+                            lvc.search(lvc.getModelForSearchFilters());
+                        } catch (Throwable throwable) {
+                            MDD.alert(throwable);
+                        }
                     }
                 }
 

@@ -55,7 +55,7 @@ public class SectionDemoEntity {
 
     private String f17 = "zzzz";
 
-    @Section("Section 3")
+    @Section(value = "Section 3", card = true)
     private String f18 = "zzzz";
 
     private String f19 = "zzzz";

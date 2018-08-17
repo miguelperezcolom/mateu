@@ -76,21 +76,31 @@ public class EditorViewComponent extends AbstractViewComponent {
     }
 
     private void build(Object model) {
-        Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, model.getClass(), model, validators, ReflectionHelper.getAllEditableFields(model.getClass()), false);
 
-        stylist = r.getValue();
+        try {
+            if (panel == null) build();
 
-        panel.setContent(r.getKey());
+            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, model.getClass(), model, validators, ReflectionHelper.getAllEditableFields(model.getClass()), false);
 
-        AbstractStylist finalStylist = stylist;
-        binder.addValueChangeListener(e -> {
+            stylist = r.getValue();
+
+            panel.setContent(r.getKey());
+
+            AbstractStylist finalStylist = stylist;
+            binder.addValueChangeListener(e -> {
+                updateActions();
+                binder.setBean(binder.getBean(), false); // para campos calculados
+            });
+
             updateActions();
-            binder.setBean(binder.getBean(), false); // para campos calculados
-        });
 
-        updateActions();
+            if (getView() != null) getView().updateViewTitle(toString());
 
-        if (getView() != null) getView().updateViewTitle(toString());
+
+        } catch (Exception e) {
+            MDD.alert(e);
+        }
+
     }
 
     public void updateModel(Object model) {
@@ -279,8 +289,9 @@ public class EditorViewComponent extends AbstractViewComponent {
                 }
             });
 
+            //todo: ver que hacemos aquí. Volvemos y ya está?
             // cambiamos la url, para reflejar el cambio
-            if (goBack) MyUI.get().getNavegador().goTo(ReflectionHelper.getId(getModel()));
+            //if (goBack) MyUI.get().getNavegador().goTo(ReflectionHelper.getId(getModel()));
 
         } else if (PersistentPOJO.class.isAssignableFrom(modelType)) {
 

@@ -8,6 +8,7 @@ import com.vaadin.server.Page;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServlet;
 import com.vaadin.server.VaadinServletRequest;
+import com.vaadin.shared.communication.PushMode;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
@@ -47,6 +48,7 @@ import java.util.ServiceLoader;
 //@StyleSheet("https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css")
 @Viewport("width=device-width, initial-scale=1")
 @PushStateNavigation // para urls sin #!
+@Push(PushMode.MANUAL)
 @PreserveOnRefresh
 public class MyUI extends UI {
 

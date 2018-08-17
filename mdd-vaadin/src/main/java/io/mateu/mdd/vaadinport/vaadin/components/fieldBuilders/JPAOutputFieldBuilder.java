@@ -15,7 +15,7 @@ import io.mateu.mdd.core.data.MDDBinder;
 import java.util.List;
 import java.util.Map;
 
-public class JPAOutputFieldBuilder extends JPAFieldBuilder {
+public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
 
     public boolean isSupported(FieldInterfaced field) {

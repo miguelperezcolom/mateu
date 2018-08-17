@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class JPAEnumerationFieldBuilder extends JPAFieldBuilder {
+public class JPAEnumerationFieldBuilder extends AbstractFieldBuilder {
 
 
     public boolean isSupported(FieldInterfaced field) {

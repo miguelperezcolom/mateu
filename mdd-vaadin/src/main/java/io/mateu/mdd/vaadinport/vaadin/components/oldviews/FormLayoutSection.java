@@ -10,11 +10,13 @@ import java.util.List;
 @Getter@Setter
 public class FormLayoutSection {
 
+    private final boolean card;
     private String caption;
 
     private List<FieldInterfaced> fields = new ArrayList<>();
 
-    public FormLayoutSection(String caption) {
-        this.caption = caption;
+    public FormLayoutSection(String caption, boolean card) {
+        this.caption = caption; 
+        this.card = card;
     }
 }

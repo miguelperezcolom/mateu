@@ -18,7 +18,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
-public class JPAURLFieldBuilder extends JPAFieldBuilder {
+public class JPAURLFieldBuilder extends AbstractFieldBuilder {
 
 
     public boolean isSupported(FieldInterfaced field) {

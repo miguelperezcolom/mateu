@@ -13,7 +13,7 @@ import io.mateu.mdd.core.data.MDDBinder;
 import java.util.List;
 import java.util.Map;
 
-public class JPABooleanFieldBuilder extends JPAFieldBuilder {
+public class JPABooleanFieldBuilder extends AbstractFieldBuilder {
 
 
     public boolean isSupported(FieldInterfaced field) {

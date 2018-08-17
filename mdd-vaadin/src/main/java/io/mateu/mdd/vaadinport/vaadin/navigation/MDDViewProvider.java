@@ -26,6 +26,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.util.*;
 
 
@@ -647,7 +648,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
             } catch (Exception e) {
                 MDD.alert(e);
             }
-        }
+        } else MDD.alert("Method " + methodName + " does not exist. Is it a typo?");
     }
 
     @Override
@@ -655,13 +656,20 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
         if (method != null) {
             try {
 
-                if (method.getParameterCount() > 0) {
-                    stack.push(currentPath, new MethodParametersViewFlowComponent(currentPath, method, instance, this));
-                } else {
-                    MyUI.get().getNavegador().showResult(method, method.invoke(instance), this, false);
+                boolean hasNonInjectedParameters = false;
+
+                for (Parameter p : method.getParameters()) if (!ReflectionHelper.isInjectable(p)) {
+                    hasNonInjectedParameters = true;
+                    break;
                 }
 
-            } catch (Exception e) {
+                if (hasNonInjectedParameters) {
+                    stack.push(currentPath, new MethodParametersViewFlowComponent(currentPath, method, instance, this));
+                } else {
+                    MyUI.get().getNavegador().showResult(method, ReflectionHelper.invokeInjectableParametersOnly(method, instance), this, false);
+                }
+
+            } catch (Throwable e) {
                 MDD.alert(e);
             }
         }

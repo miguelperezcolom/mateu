@@ -15,7 +15,7 @@ import io.mateu.mdd.vaadinport.vaadin.components.oldviews.FormLayoutBuilder;
 
 import java.util.*;
 
-public class JPAPOJOFieldBuilder extends JPAFieldBuilder {
+public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
 
     MDDBinder subbinder;
     private FieldInterfaced field;

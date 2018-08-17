@@ -10,6 +10,7 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.util.Date;
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Getter@Setter
@@ -45,7 +46,13 @@ public class ActionsDemoEntity {
 
     @Action(value = "Action on all w/injected params")
     public static void action4(EntityManager em, Set<ActionsDemoEntity> selection) {
-        System.out.println("action 4");
+        System.out.println("action 4. selected items count: " + selection.size());
+        String text = UUID.randomUUID().toString().substring(0, 10);
+        selection.forEach(o -> {
+            o.setStringField(text);
+            em.merge(o);
+        });
+
     }
 
     @Action(value = "Action on item", icon = VaadinIcons.ALARM, confirmationMessage = "Are you sure you want to do it?")

@@ -42,4 +42,9 @@ public interface MDDPort {
     void setApp(AbstractApplication app);
 
     void info(String msg);
+
+    void push(String msg);
+
+    void pushDone(String msg);
+
 }

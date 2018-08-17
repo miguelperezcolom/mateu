@@ -9,6 +9,7 @@ import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.data.Data;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.UserData;
+import io.mateu.mdd.core.interfaces.PushWriter;
 import io.mateu.mdd.core.util.Helper;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtils;
@@ -272,11 +273,12 @@ public class ReflectionHelper {
         return l;
     }
 
-    private static boolean isInjectable(Parameter p) {
+    public static boolean isInjectable(Parameter p) {
         boolean injectable = true;
         if (EntityManager.class.equals(p.getType())) {
         } else if (UserData.class.equals(p.getType())) {
         } else if (Set.class.isAssignableFrom(p.getType())) {
+        } else if (PushWriter.class.equals(p.getType())) {
         } else {
             injectable = false;
         }
@@ -837,6 +839,9 @@ public class ReflectionHelper {
     }
 
 
+    public static Object invokeInjectableParametersOnly(Method method, Object instance) throws Throwable {
+        return execute(MDD.getUserData(), method, new MDDBinder(new ArrayList<>()), instance);
+    }
 
 
     public static Object execute(UserData user, Method m, MDDBinder parameters, Object instance) throws Throwable {
@@ -846,10 +851,27 @@ public class ReflectionHelper {
     private static Object execute(UserData user, Method m, MDDBinder parameters, Object instance, String rpcViewClassName, Data rpcViewData) throws Throwable {
         Map<String, Object> params = (Map<String, Object>) parameters.getBean();
 
+        int posEM = -1;
+
         List<Object> vs = new ArrayList<>();
+        int pos = 0;
         for (Parameter p : m.getParameters()) {
             if (UserData.class.equals(p.getType())) {
                 vs.add(user);
+            } else if (EntityManager.class.equals(p.getType())) {
+                posEM = pos;
+            } else if (PushWriter.class.equals(p.getType())) {
+                vs.add(new PushWriter() {
+                    @Override
+                    public void push(String message) {
+                        MDD.getPort().push(message);
+                    }
+
+                    @Override
+                    public void done(String message) {
+                        MDD.getPort().pushDone(message);
+                    }
+                });
             } else if (p.isAnnotationPresent(io.mateu.mdd.core.annotations.Selection.class)) {
                 vs.add(params.get("_selection"));
             } else if (p.isAnnotationPresent(io.mateu.mdd.core.annotations.Wizard.class)) {
@@ -869,11 +891,36 @@ public class ReflectionHelper {
                 if (boolean.class.equals(p.getType())) v = false;
                 vs.add(v);
             }
+            pos++;
         }
 
-        Object[] args = vs.toArray();
+        if (posEM >= 0) {
 
-        return m.invoke(instance, args);
+            Object[] r = {null};
+
+            int finalPosEM = posEM;
+
+            Helper.transact(em -> {
+
+                vs.add(finalPosEM, em);
+
+                Object[] args = vs.toArray();
+
+                r[0] = m.invoke(instance, args);
+
+
+            });
+
+            return r[0];
+
+        } else {
+
+            Object[] args = vs.toArray();
+
+            return m.invoke(instance, args);
+
+        }
+
     }
 
 
@@ -1188,4 +1235,5 @@ public class ReflectionHelper {
 
         return subs;
     }
+
 }

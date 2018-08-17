@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class JPALocalDateTimeFieldBuilder extends JPAFieldBuilder {
+public class JPALocalDateTimeFieldBuilder extends AbstractFieldBuilder {
 
 
     public boolean isSupported(FieldInterfaced field) {

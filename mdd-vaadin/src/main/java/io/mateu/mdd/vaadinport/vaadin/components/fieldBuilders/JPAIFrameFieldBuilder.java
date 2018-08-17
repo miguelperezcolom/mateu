@@ -7,7 +7,6 @@ import com.vaadin.server.ExternalResource;
 import com.vaadin.shared.Registration;
 import com.vaadin.ui.BrowserFrame;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Layout;
 import io.mateu.mdd.core.annotations.IFrame;
 import io.mateu.mdd.core.data.MDDBinder;
@@ -18,7 +17,7 @@ import io.mateu.mdd.core.util.Helper;
 import java.util.List;
 import java.util.Map;
 
-public class JPAIFrameFieldBuilder extends JPAFieldBuilder {
+public class JPAIFrameFieldBuilder extends AbstractFieldBuilder {
 
 
     public boolean isSupported(FieldInterfaced field) {
