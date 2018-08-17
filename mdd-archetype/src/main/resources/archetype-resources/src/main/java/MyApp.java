@@ -7,6 +7,7 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.app.SimpleMDDApplication;
 import io.mateu.mdd.core.util.Helper;
+import java.io.IOException;
 
 public class MyApp extends SimpleMDDApplication {
 
