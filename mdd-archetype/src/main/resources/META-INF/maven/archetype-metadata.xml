@@ -121,10 +121,10 @@
       </includes>
     </fileSet>
     <fileSet filtered="true" encoding="UTF-8">
-      <directory>src</directory>
       <includes>
         <include>Procfile</include>
         <include>system.properties</include>
+        <include>.gitignore</include>
       </includes>
     </fileSet>
   </fileSets>
