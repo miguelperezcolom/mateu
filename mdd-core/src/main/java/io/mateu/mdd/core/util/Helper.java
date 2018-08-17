@@ -892,4 +892,10 @@ public class Helper {
         if (!Strings.isNullOrEmpty(s)) return s.replaceAll("\\\n", "<br/>");
         else return s;
     }
+
+    public static String getMemInfo() {
+        return new MemInfo().toString();
+    }
+
+
 }
