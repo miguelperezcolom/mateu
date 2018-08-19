@@ -8,6 +8,7 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.MainSearchFilter;
+import io.mateu.mdd.core.annotations.Output;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
@@ -154,7 +155,8 @@ public class FiltersComponent extends CssLayout {
         }
         */
 
-        return allFields;
+        //todo: acabar el tema de los filtros
+        return allFields.stream().filter(f -> String.class.equals(f.getType()) && !f.isAnnotationPresent(Output.class)).collect(Collectors.toList());
     }
 
 
