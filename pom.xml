@@ -19,6 +19,7 @@
     <module>mdd-core</module>
     <module>mdd-tester</module>
     <module>mdd-vaadin</module>
+    <module>mdd-showcase</module>
   </modules>
 
   <dependencies>

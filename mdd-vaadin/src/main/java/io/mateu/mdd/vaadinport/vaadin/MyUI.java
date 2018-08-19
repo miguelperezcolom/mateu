@@ -48,7 +48,7 @@ import java.util.ServiceLoader;
 //@StyleSheet("https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css")
 @Viewport("width=device-width, initial-scale=1")
 @PushStateNavigation // para urls sin #!
-//@Push(PushMode.MANUAL) // lo comentamos porque no funciona en Heroku
+//@Push // lo comentamos porque no funciona en Heroku
 @PreserveOnRefresh
 public class MyUI extends UI {
 

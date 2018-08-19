@@ -3,8 +3,6 @@
 Mateu MDD is a framework to create awesome web applications from java.
 
 
-![MDD](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/arquetipo1.png?raw=true)
-
 It's main target is to allow you to write your applications with the minimum code.
 
 
