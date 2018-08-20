@@ -69,12 +69,6 @@ public class MainModule extends AbstractModule {
 
                 l.add(new MDDCallMethodAction("Returns entity", Caller.class, "returnsEntity"));
 
-                l.add(new MDDCallMethodAction("Returns list", Caller.class, "returnsList"));
-
-                l.add(new MDDCallMethodAction("Returns query", Caller.class, "returnsQuery"));
-
-                //l.add(new MDDCallMethodAction("Returns query", Caller::returnsQuery));
-
                 l.add(new MDDCallMethodAction("Long running method", Caller.class, "longRunning"));
 
                 l.add(new MDDCallMethodAction("Throws exception", Caller.class, "throwsException"));
@@ -82,6 +76,33 @@ public class MainModule extends AbstractModule {
                 l.add(new MDDCallMethodAction("Throws exception 2", Caller.class, "throwsException2"));
 
                 l.add(new MDDCallMethodAction("Non-existent method", Caller.class, "thisMethodDoesNotExist"));
+
+
+
+
+                l.add(new MDDCallMethodAction("Returns list", Caller.class, "returnsList"));
+
+                l.add(new MDDCallMethodAction("Returns query", Caller.class, "returnsQuery"));
+
+                //l.add(new MDDCallMethodAction("Returns query", Caller::returnsQuery));
+
+                l.add(new MDDCallMethodAction("Returns open list action", Caller.class, "returnsOpenListViewAction"));
+
+                l.add(new MDDCallMethodAction("Returns list view", Caller.class, "returnsListView"));
+
+
+
+
+                l.add(new MDDCallMethodAction("Returns list as report", Caller.class, "returnsListAsReport"));
+
+                l.add(new MDDCallMethodAction("Returns query as report", Caller.class, "returnsQueryAsReport"));
+
+                //l.add(new MDDCallMethodAction("Returns query", Caller::returnsQuery));
+
+                l.add(new MDDCallMethodAction("Returns open list action as report", Caller.class, "returnsOpenListViewActionAsReport"));
+
+                l.add(new MDDCallMethodAction("Returns list view as report", Caller.class, "returnsListViewAsReport"));
+
 
                 return l;
             }
@@ -92,19 +113,9 @@ public class MainModule extends AbstractModule {
             public List<MenuEntry> buildEntries() {
                 List<MenuEntry> l = new ArrayList<>();
 
-                l.add(new MDDCallMethodAction("Returns void", Caller.class, "returnsComponent"));
+                l.add(new MDDCallMethodAction("Simple wizard", Caller.class, "doSomething"));
 
-                l.add(new MDDCallMethodAction("Returns String", Caller.class, "returnsComponent"));
-
-                l.add(new MDDCallMethodAction("Returns Vaadin Component", Caller.class, "returnsComponent"));
-
-                l.add(new MDDCallMethodAction("Returns POJO (read only)", Caller.class, "returnsComponent"));
-
-                l.add(new MDDCallMethodAction("Returns POJO (editable)", Caller.class, "returnsComponent"));
-
-                l.add(new MDDCallMethodAction("Returns entity", Caller.class, "returnsComponent"));
-
-                l.add(new MDDCallMethodAction("Returns list", Caller.class, "returnsComponent"));
+                l.add(new MDDCallMethodAction("Returns String", Caller.class, "returnString"));
 
 
                 return l;

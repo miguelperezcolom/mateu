@@ -3,8 +3,12 @@ package io.mateu.mdd.tester.model.callMethods;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.app.MDDOpenListViewAction;
 import io.mateu.mdd.core.interfaces.PushWriter;
+import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.tester.model.entities.groups.Person;
+import io.mateu.mdd.tester.model.rpc.SampleCustomizedRPCListView;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -46,12 +50,40 @@ public class Caller {
         return (Person) em.createQuery("select x from " + Person.class.getName() + " x").getResultList().get(0);
     }
 
+
+
     public static List<Person> returnsList(EntityManager em) {
         return em.createQuery("select x from " + Person.class.getName() + " x").getResultList();
     }
 
     public static Query returnsQuery(EntityManager em) {
         return em.createQuery("select x from " + Person.class.getName() + " x");
+    }
+
+    public static AbstractAction returnsOpenListViewAction() {
+        return new MDDOpenListViewAction("Open rpc view", SampleCustomizedRPCListView.class);
+    }
+
+    public static RpcView returnsListView() {
+        return new SampleCustomizedRPCListView();
+    }
+
+
+
+    public static List<Person> returnsListAsReport(EntityManager em) {
+        return em.createQuery("select x from " + Person.class.getName() + " x").getResultList();
+    }
+
+    public static Query returnsQueryAsReport(EntityManager em) {
+        return em.createQuery("select x from " + Person.class.getName() + " x");
+    }
+
+    public static AbstractAction returnsOpenListViewActionAsReport() {
+        return new MDDOpenListViewAction("Open rpc view", SampleCustomizedRPCListView.class);
+    }
+
+    public static RpcView returnsListViewAsReport() {
+        return new SampleCustomizedRPCListView();
     }
 
 
