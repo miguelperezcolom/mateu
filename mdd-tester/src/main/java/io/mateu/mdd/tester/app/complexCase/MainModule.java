@@ -80,6 +80,10 @@ public class MainModule extends AbstractModule {
 
 
 
+
+                //todo: acabar de aquí hacia abajo
+
+
                 l.add(new MDDCallMethodAction("Returns URL", Caller.class, "returnURL"));
 
 
@@ -106,6 +110,10 @@ public class MainModule extends AbstractModule {
                 l.add(new MDDCallMethodAction("Returns open list action as report", Caller.class, "returnsOpenListViewActionAsReport"));
 
                 l.add(new MDDCallMethodAction("Returns list view as report", Caller.class, "returnsListViewAsReport"));
+
+
+
+                //todo acabar hasta aquí
 
 
                 return l;
