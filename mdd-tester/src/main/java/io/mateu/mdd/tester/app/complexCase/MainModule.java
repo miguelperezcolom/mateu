@@ -80,6 +80,10 @@ public class MainModule extends AbstractModule {
 
 
 
+                l.add(new MDDCallMethodAction("Returns URL", Caller.class, "returnURL"));
+
+
+
                 l.add(new MDDCallMethodAction("Returns list", Caller.class, "returnsList"));
 
                 l.add(new MDDCallMethodAction("Returns query", Caller.class, "returnsQuery"));

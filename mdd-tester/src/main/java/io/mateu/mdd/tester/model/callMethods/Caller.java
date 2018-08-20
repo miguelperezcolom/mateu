@@ -13,6 +13,8 @@ import io.mateu.mdd.tester.model.rpc.SampleCustomizedRPCListView;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.validation.constraints.NotEmpty;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 
 public class Caller {
@@ -49,6 +51,14 @@ public class Caller {
     public static Person returnsEntity(EntityManager em) {
         return (Person) em.createQuery("select x from " + Person.class.getName() + " x").getResultList().get(0);
     }
+
+
+
+
+    public static URL returnURL() throws MalformedURLException {
+        return new URL("http://elpais.es");
+    }
+
 
 
 
