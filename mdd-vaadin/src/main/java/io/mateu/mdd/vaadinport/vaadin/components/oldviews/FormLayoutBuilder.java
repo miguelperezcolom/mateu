@@ -5,9 +5,7 @@ import com.vaadin.data.Validator;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.Output;
-import io.mateu.mdd.core.annotations.Section;
-import io.mateu.mdd.core.annotations.Stylist;
+import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.interfaces.VoidStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -121,19 +119,61 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
     }
 
     private void buildAndAddFields(JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters) {
+
+        TabSheet tabs = null;
+        TabSheet.Tab tab = null;
+
+        Layout currentContentContainer = contentContainer;
+
+        List<TabSheet> tabSheetsStack = new ArrayList<>();
+        List<TabSheet.Tab> tabsStack = new ArrayList<>();
+        List<Layout> containersStack = new ArrayList<>();
+
         for (FieldInterfaced f : fields) {
 
+
+            if (f.isAnnotationPresent(StartTabs.class)) { //todo: comprobar que también existe una etiqueta @Tab en este campo
+                if (tabs != null) {
+                    tabSheetsStack.add(0, tabs);
+                    tabsStack.add(0, tab);
+                    containersStack.add(0, currentContentContainer);
+                }
+                tabs = new TabSheet();
+                currentContentContainer.addComponent(tabs);
+            }
+            if (f.isAnnotationPresent(EndTabs.class)) {
+                if (tabSheetsStack.size() > 0) {
+                    tab = tabsStack.remove(0);
+                    tabs = tabSheetsStack.remove(0);
+                    currentContentContainer = containersStack.remove(0);
+                } else {
+                    tab = null;
+                    tabs = null;
+                    currentContentContainer = contentContainer;
+                }
+            }
+
+            if (f.isAnnotationPresent(Tab.class)) {
+                Tab ta = f.getAnnotation(Tab.class);
+                if (tabs == null) {
+                    tabs = new TabSheet();
+                    currentContentContainer.addComponent(tabs);
+                    //tabs.setCaption(ta.value());
+                }
+                tab = tabs.addTab(currentContentContainer = new FormLayout());
+                tab.setCaption(ta.value());
+            }
             if (f.isAnnotationPresent(FieldBuilder.class)) {
                 try {
-                    (f.getAnnotation(FieldBuilder.class).value().newInstance()).build(f, model, contentContainer, binder, validators, stylist, allFieldContainers, forSearchFilters);
+                    (f.getAnnotation(FieldBuilder.class).value().newInstance()).build(f, model, currentContentContainer, binder, validators, stylist, allFieldContainers, forSearchFilters);
                 } catch (Exception e) {
                     MDD.alert(e);
                 }
             } else if (f.isAnnotationPresent(GeneratedValue.class) || f.isAnnotationPresent(Output.class)) {
-                ofb.build(f, model, contentContainer, binder, validators, stylist, allFieldContainers, forSearchFilters);
+                ofb.build(f, model, currentContentContainer, binder, validators, stylist, allFieldContainers, forSearchFilters);
             } else {
                 for (AbstractFieldBuilder fieldBuilder : AbstractFieldBuilder.builders) if (fieldBuilder.isSupported(f)) {
-                    fieldBuilder.build(f, model, contentContainer, binder, validators, stylist, allFieldContainers, forSearchFilters);
+                    fieldBuilder.build(f, model, currentContentContainer, binder, validators, stylist, allFieldContainers, forSearchFilters);
                     break;
                 }
             }

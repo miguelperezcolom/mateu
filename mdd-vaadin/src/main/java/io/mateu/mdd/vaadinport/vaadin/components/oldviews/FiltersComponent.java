@@ -76,7 +76,7 @@ public class FiltersComponent extends CssLayout {
 
             if (mainFilterFields.size() < allFilterFields.size()) { // hay filtros que no son los
 
-                r = FormLayoutBuilder.get().build(binder, modelType, binder.getBean(), validators, allFilterFields, false);
+                r = FormLayoutBuilder.get().build(binder, modelType, binder.getBean(), validators, allFilterFields, true);
 
                 allFiltersComponent = r.getKey();
 
@@ -142,7 +142,7 @@ public class FiltersComponent extends CssLayout {
     }
 
     private List<FieldInterfaced> getAllFilterFields() {
-        List<FieldInterfaced> allFields = JPAListViewComponent.getSelectFields(modelType);
+        List<FieldInterfaced> allFields = listViewComponent.getFilterFields();
 
         /*
         allFields = allFields.stream().filter((f) ->
@@ -156,7 +156,7 @@ public class FiltersComponent extends CssLayout {
         */
 
         //todo: acabar el tema de los filtros
-        return allFields.stream().filter(f -> String.class.equals(f.getType()) && !f.isAnnotationPresent(Output.class)).collect(Collectors.toList());
+        return allFields;
     }
 
 

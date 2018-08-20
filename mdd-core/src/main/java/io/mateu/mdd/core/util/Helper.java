@@ -18,16 +18,19 @@ import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 import io.mateu.mdd.core.asciiart.Painter;
 import io.mateu.mdd.core.reflection.MiURLConverter;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.mail.DefaultAuthenticator;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
+import org.apache.fop.apps.*;
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.eclipse.persistence.internal.security.JCEEncryptor;
+import org.xml.sax.SAXException;
 
 import javax.crypto.CipherInputStream;
 import javax.mail.Message;
@@ -38,9 +41,12 @@ import javax.mail.internet.MimeMultipart;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import javax.persistence.Query;
 import javax.sql.DataSource;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
+import javax.xml.transform.*;
+import javax.xml.transform.sax.SAXResult;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -230,6 +236,57 @@ public class Helper {
         em.close();
 
     }
+
+
+    public static List<Object> selectObjects(String jpql) throws Throwable {
+        List<Object> l = new ArrayList<>();
+
+        Helper.notransact(em -> {
+
+            l.addAll(em.createQuery(jpql).getResultList());
+
+        });
+
+        return l;
+    }
+
+
+    //todo: sql nativo
+    public static List<Object[]> sqlSelectPage(String jpql, int offset, int limit) throws Throwable {
+        List<Object[]> list = new ArrayList<>();
+
+        Helper.notransact(em -> {
+
+            Query q = em.createQuery(jpql);
+
+            q.setFirstResult(offset);
+            q.setMaxResults(limit);
+
+
+            list.addAll(q.getResultList());
+
+        });
+
+        return list;
+    }
+
+    //todo: sql nativo
+    public static int sqlCount(String sql) throws Throwable {
+        int[] count = {0};
+
+        Helper.notransact(em -> {
+
+            String countjpql = "select count(*) from (" + sql + ") xxx";
+
+            count[0] = ((Long)em.createQuery(countjpql).getSingleResult()).intValue();
+
+
+        });
+
+        return count[0];
+    }
+
+
 
     public static String md5(String s) {
         return Hashing.sha256().newHasher().putString(s, Charsets.UTF_8).hash().toString();
@@ -897,5 +954,66 @@ public class Helper {
         return new MemInfo().toString();
     }
 
+
+    public static byte[] fop(Source xslfo, Source xml) throws IOException, SAXException {
+        long t0 = new Date().getTime();
+
+
+// Step 1: Construct a FopFactory by specifying a reference to the configuration file
+// (reuse if you plan to render multiple documents!)
+
+        FopFactoryBuilder builder = new FopFactoryBuilder(new File(".").toURI());
+        builder.setStrictFOValidation(false);
+        builder.setBreakIndentInheritanceOnReferenceAreaBoundary(true);
+        builder.setSourceResolution(96); // =96dpi (dots/pixels per Inch)
+        FopFactory fopFactory = builder.build();
+        //FopFactory fopFactory = FopFactory.newInstance(new File("C:/Temp/fop.xconf"));
+
+
+        // Step 2: Set up output stream.
+// Note: Using BufferedOutputStream for performance reasons (helpful with FileOutputStreams).
+        //OutputStream out = new BufferedOutputStream(new FileOutputStream(new File("C:/Temp/myfile.pdf")));
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        try {
+            // Step 3: Construct fop with desired output format
+            Fop fop = fopFactory.newFop(MimeConstants.MIME_PDF, out);
+
+            // Step 4: Setup JAXP using identity transformer
+            TransformerFactory factory = TransformerFactory.newInstance();
+            Transformer transformer = factory.newTransformer(xslfo); // identity transformer
+
+		    /*
+		    StreamResult xmlOutput = new StreamResult(new StringWriter());
+		    //transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+		    //transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+		    transformer.transform(src, xmlOutput);
+
+		    System.out.println(xmlOutput.getWriter().toString());
+		    */
+
+            // Step 5: Setup input and output for XSLT transformation
+            // Setup input stream
+            //Source src = new StreamSource(new StringReader(xml));
+
+            // Resulting SAX events (the generated FO) must be piped through to FOP
+            Result res = new SAXResult(fop.getDefaultHandler());
+
+            // Step 6: Start XSLT transformation and FOP processing
+            transformer.transform(xml, res);
+
+        } catch (FOPException e) {
+            e.printStackTrace();
+        } catch (TransformerConfigurationException e) {
+            e.printStackTrace();
+        } catch (TransformerException e) {
+            e.printStackTrace();
+        } finally {
+            //Clean-up
+            out.close();
+        }
+
+        return out.toByteArray();
+    }
 
 }

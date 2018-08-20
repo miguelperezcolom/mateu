@@ -15107,8 +15107,9 @@ div.v-layout.v-horizontal.v-widget {
 
 .mytheme .miapp .leftside .sesion .foto {
 	padding: 0px;
-	margin-left: 10%;
-	width: 80%;
+	margin-left: 50px;
+	width: 150px;
+	height: 150px;
 	border-radius: 50%;
 	border: 3px solid transparent;
 	cursor: pointer;

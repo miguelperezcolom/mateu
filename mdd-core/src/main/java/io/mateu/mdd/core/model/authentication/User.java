@@ -75,7 +75,7 @@ public class User {
     private int failedLogins;
 
     @NotInList
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     private File photo;
 
     @TextArea

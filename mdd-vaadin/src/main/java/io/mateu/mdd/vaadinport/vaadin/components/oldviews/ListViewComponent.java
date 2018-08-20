@@ -18,6 +18,7 @@ import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.data.ChartData;
 import io.mateu.mdd.core.data.ChartValue;
 import io.mateu.mdd.core.data.SumData;
+import io.mateu.mdd.core.interfaces.ICellStyleGenerator;
 import io.mateu.mdd.core.interfaces.StyledEnum;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
@@ -97,9 +98,23 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
             Grid.Column col;
 
+            ICellStyleGenerator csg = null;
+
+            if (f.isAnnotationPresent(CellStyleGenerator.class)) {
+                try {
+                    csg = (ICellStyleGenerator) f.getAnnotation(CellStyleGenerator.class).value().newInstance();
+                } catch (Exception e) {
+                    MDD.alert(e);
+                }
+            }
+
+
+            ICellStyleGenerator finalCsg = csg;
             col = grid.addColumn(new ValueProvider() {
                 @Override
                 public Object apply(Object o) {
+
+                    if (finalCsg != null && !finalCsg.isContentShown()) return null;
 
                     Object v = null;
 
@@ -136,7 +151,21 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                 }
             });
 
-        if (Integer.class.equals(f.getType()) || int.class.equals(f.getType())
+            if (csg != null) col.setStyleGenerator(new StyleGenerator() {
+                @Override
+                public String apply(Object o) {
+                    try {
+                        return finalCsg.getStyles(o, ReflectionHelper.getValue(f, o));
+                    } catch (Exception e) {
+                        MDD.alert(e);
+                    }
+                    return null;
+                }
+            });
+
+
+
+            if (Integer.class.equals(f.getType()) || int.class.equals(f.getType())
                 || Long.class.equals(f.getType()) || long.class.equals(f.getType())
                 || Double.class.equals(f.getType()) || double.class.equals(f.getType())
                 ) {
@@ -319,7 +348,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
     public abstract List findAll(Object filters, List<QuerySortOrder> sortOrders, int offset, int limit);
 
-    public int count(Object filters) {
+    public int count(Object filters) throws Throwable {
         count = gatherCount(filters);
 
         String s = (count == 1)?"" + count + " match.":"" + count + " matches";
@@ -458,7 +487,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         return l;
     }
 
-    protected abstract int gatherCount(Object filters);
+    protected abstract int gatherCount(Object filters) throws Throwable;
 
     protected abstract List<SumData> getSums(Object filters);
 
@@ -540,7 +569,13 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         List<FieldInterfaced> explicitFilters = ReflectionHelper.getAllFields(getFiltersType()).stream().filter(
                 (f) -> f.isAnnotationPresent(SearchFilter.class) || f.isAnnotationPresent(MainSearchFilter.class)
         ).collect(Collectors.toList());
-        return explicitFilters;
+        if (explicitFilters.size() > 0) {
+            return explicitFilters;
+        } else {
+            return ReflectionHelper.getAllFields(getFiltersType()).stream().filter(
+                    (f) ->  !f.isAnnotationPresent(Ignored.class) && ((String.class.equals(f.getType()) && !f.isAnnotationPresent(Output.class)) || f.getType().isEnum())
+            ).collect(Collectors.toList());
+        }
     }
 
     public abstract Class getFiltersType();

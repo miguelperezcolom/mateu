@@ -23,7 +23,7 @@ public class Profile implements PersistentPOJO {
     @Ignored
     private UserData userData;
 
-    private File foto;
+    private File photo;
 
     private String name;
 
@@ -64,6 +64,7 @@ public class Profile implements PersistentPOJO {
                 u.setName(getName());
 
                 u.setEmail(getEmail());
+                u.setPhoto(getPhoto());
 
                 userData.setName(u.getName());
                 userData.setEmail(u.getEmail());
@@ -82,9 +83,18 @@ public class Profile implements PersistentPOJO {
     public void load(Object id) throws Throwable {
         userData = (UserData) id;
 
-        setName(userData.getName());
+        Helper.transact(em -> {
 
-        setEmail(userData.getEmail());
+            User u = em.find(User.class, userData.getLogin());
+
+            setName(u.getName());
+
+            setEmail(u.getEmail());
+
+            setPhoto(u.getPhoto());
+
+        });
+
     }
 
     @Override

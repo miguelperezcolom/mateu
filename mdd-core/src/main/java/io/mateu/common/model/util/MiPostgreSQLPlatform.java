@@ -96,13 +96,18 @@ public class MiPostgreSQLPlatform extends PostgreSQLPlatform {
 
 
 
-
     public MiPostgreSQLPlatform() {
         super();
+
+        System.out.println("" + getClass().getName() + "()");
+
     }
 
     @Override
     protected Hashtable buildFieldTypes() {
+
+        System.out.println("" + getClass().getName() + ".buildFieldTypes()");
+
         Hashtable t = super.buildFieldTypes();
         t.put(String.class, new FieldTypeDefinition("TEXT", false));
         t.put(LocalDate.class, new FieldTypeDefinition("DATE", false));

@@ -55,14 +55,14 @@ public class ResultsComponent extends VerticalLayout {
         DataProvider p = DataProvider.fromFilteringCallbacks(query -> {
             try {
                 return listViewComponent.findAll(listViewComponent.getModelForSearchFilters(), query.getSortOrders(), query.getOffset(), query.getLimit()).stream();
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 MDD.alert(e);
                 return null;
             }
         }, query -> {
             try {
                 return listViewComponent.count(listViewComponent.getModelForSearchFilters());
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 MDD.alert(e);
                 return 0;
             }

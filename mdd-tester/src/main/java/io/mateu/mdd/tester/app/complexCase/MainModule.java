@@ -3,6 +3,7 @@ package io.mateu.mdd.tester.app.complexCase;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.tester.model.callMethods.Caller;
 import io.mateu.mdd.tester.model.customComponents.CustomComponent;
@@ -148,6 +149,7 @@ public class MainModule extends AbstractModule {
                         , "Signature", SignatureFieldDemoEntity.class
                         , "Editable image", FileFieldEntity.class
                         , "Dynamic content", WithDynamicContent.class
+                        , "Tabs", TabsDemoEntity.class
                 ));
 
 
@@ -215,6 +217,8 @@ public class MainModule extends AbstractModule {
                         List<MenuEntry> l = new ArrayList<>();
 
                         l.add(new MDDOpenCRUDAction("Subclasses", Superclass.class));
+
+                        l.add(new MDDOpenCRUDAction("Users CRUD", User.class));
 
                         return l;
                     }

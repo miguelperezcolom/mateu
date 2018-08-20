@@ -33,6 +33,21 @@ public class File {
 
     private byte[] bytes;
 
+
+    private String url;
+
+
+    public File() {
+
+    }
+
+    public File(URL url) {
+        this.type = FileType.URL;
+        this.url = url.toString();
+        this.name = url.getFile();
+    }
+
+
     public byte[] getBytes() {
         if (FileType.BYTES.equals(type)) return bytes;
         else {
@@ -48,7 +63,6 @@ public class File {
         }
     }
 
-    private String url;
 
     public FileLocator toFileLocator() throws Exception {
 

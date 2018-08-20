@@ -106,7 +106,7 @@ public class JPAListViewComponent extends ListViewComponent {
     public Object createNewInstance() throws IllegalAccessException, InstantiationException {
         if (filters == null) {
             filters = entityClass.newInstance();
-            for (FieldInterfaced f : ReflectionHelper.getAllFields(entityClass)) {
+            for (FieldInterfaced f : getFilterFields()) {
                 try {
                     ReflectionHelper.setValue(f, filters, null);
                 } catch (Exception e) {
@@ -243,7 +243,7 @@ public class JPAListViewComponent extends ListViewComponent {
 
         if (filters == null) return ql;
 
-        List<FieldInterfaced> allFields = ReflectionHelper.getAllFields(entityClass);
+        List<FieldInterfaced> allFields = getFilterFields();
 
         allFields = allFields.stream().filter((f) ->
                 !(f.isAnnotationPresent(Ignored.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))
@@ -252,7 +252,7 @@ public class JPAListViewComponent extends ListViewComponent {
         //todo: contemplar caso varias anttaciones @SearchFilter para un mismo campo
 
 
-        for (FieldInterfaced f : allFields) if (f.isAnnotationPresent(SearchFilter.class) || f.isAnnotationPresent(MainSearchFilter.class)) {
+        for (FieldInterfaced f : allFields) {
 
             Object v = ReflectionHelper.getValue(f, filters);
 

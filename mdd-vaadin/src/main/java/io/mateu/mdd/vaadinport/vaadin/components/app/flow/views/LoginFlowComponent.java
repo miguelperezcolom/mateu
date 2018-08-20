@@ -82,9 +82,9 @@ public class LoginFlowComponent extends VerticalLayout {
 
             if (System.getProperty("oauth.github.client_id") != null) dcha.addComponent(new GitHubButton(System.getProperty("oauth.github.client_id"), System.getProperty("oauth.github.client_secret")));
 
-            if (System.getProperty("oauth.google.client_id") != null) dcha.addComponent(new GoogleButton(System.getProperty("oauth.google.client_id"), System.getProperty("oauth.google.client_secret")));
+            //if (System.getProperty("oauth.google.client_id") != null) dcha.addComponent(new GoogleButton(System.getProperty("oauth.google.client_id"), System.getProperty("oauth.google.client_secret")));
 
-            if (System.getProperty("oauth.microsoft.client_id") != null) dcha.addComponent(new MicrosoftButton(System.getProperty("oauth.microsoft.client_id"), System.getProperty("oauth.microsoft.client_secret")));
+            //if (System.getProperty("oauth.microsoft.client_id") != null) dcha.addComponent(new MicrosoftButton(System.getProperty("oauth.microsoft.client_id"), System.getProperty("oauth.microsoft.client_secret")));
 
             dcha.addComponentsAndExpand(new Label(""));
 

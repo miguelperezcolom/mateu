@@ -97,7 +97,7 @@ public class RpcListViewComponent extends ListViewComponent {
     }
 
     @Override
-    protected int gatherCount(Object filters) {
+    protected int gatherCount(Object filters) throws Throwable {
         return rpcListView.gatherCount(filters);
     }
 

@@ -4,6 +4,7 @@ import io.mateu.mdd.core.app.AbstractMenu;
 import io.mateu.mdd.core.app.AbstractModule;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.app.MenuEntry;
+import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.tester.model.useCases.bankAccount.BankAccount;
 import io.mateu.mdd.tester.model.useCases.bankAccount.Payment;
 import io.mateu.mdd.tester.model.useCases.invoicing.Customer;
