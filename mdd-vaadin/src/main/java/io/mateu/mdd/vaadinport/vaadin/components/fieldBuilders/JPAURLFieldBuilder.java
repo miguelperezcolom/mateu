@@ -7,6 +7,7 @@ import com.vaadin.server.Page;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -52,6 +53,9 @@ public class JPAURLFieldBuilder extends AbstractFieldBuilder {
             tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class) || field.isAnnotationPresent(NotEmpty.class));
 
         }
+
+        if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
+
 
         bind(binder, tf, field, forSearchFilter);
     }

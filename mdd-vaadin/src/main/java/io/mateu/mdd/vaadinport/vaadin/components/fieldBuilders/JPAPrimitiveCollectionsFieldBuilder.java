@@ -9,6 +9,7 @@ import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import eu.maxschuster.vaadin.signaturefield.SignatureField;
+import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.annotations.Signature;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
@@ -48,6 +49,8 @@ public class JPAPrimitiveCollectionsFieldBuilder extends JPAStringFieldBuilder {
         tf.setDescription();
         tf.setPlaceholder();
         */
+
+            if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
 
             bind(binder, tf, field);
 

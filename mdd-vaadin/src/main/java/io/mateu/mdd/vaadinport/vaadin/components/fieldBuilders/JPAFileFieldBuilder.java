@@ -1,10 +1,12 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
+import com.google.common.base.Strings;
 import com.vaadin.data.Binder;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Layout;
+import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.model.common.File;
@@ -43,6 +45,9 @@ public class JPAFileFieldBuilder extends AbstractFieldBuilder {
             c.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class) || field.isAnnotationPresent(NotEmpty.class));
 
         }
+
+        if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) c.setDescription(field.getAnnotation(Help.class).value());
+
 
         bind(binder, c, field, forSearchFilter);
     }

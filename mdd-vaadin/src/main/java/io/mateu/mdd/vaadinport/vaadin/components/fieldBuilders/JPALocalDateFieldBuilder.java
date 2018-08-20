@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
+import com.google.common.base.Strings;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.ValidationResult;
 import com.vaadin.data.Validator;
@@ -10,6 +11,7 @@ import com.vaadin.shared.ui.ErrorLevel;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.Layout;
+import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.util.Helper;
@@ -100,6 +102,9 @@ public class JPALocalDateFieldBuilder extends AbstractFieldBuilder {
         tf.setDescription();
         tf.setPlaceholder();
         */
+
+            if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
+
 
             bind(binder, tf, field);
 

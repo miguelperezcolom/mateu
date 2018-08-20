@@ -1,10 +1,12 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
+import com.google.common.base.Strings;
 import com.vaadin.data.*;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.annotations.DataProvider;
+import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
 import io.mateu.mdd.core.annotations.UseRadioButtons;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
@@ -191,6 +193,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
         allFieldContainers.put(field, tf);
 
         tf.setCaption(Helper.capitalize(field.getName()));
+
 
         bind(binder, hv, field, forSearchFilter);
     }

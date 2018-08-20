@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
+import com.google.common.base.Strings;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.ValidationResult;
 import com.vaadin.data.Validator;
@@ -10,6 +11,7 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.UserError;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.annotations.Html;
 import io.mateu.mdd.core.annotations.TextArea;
 import io.mateu.mdd.core.data.MDDBinder;
@@ -95,6 +97,9 @@ public class JPAHtmlFieldBuilder extends JPAStringFieldBuilder {
         tf.setDescription();
         tf.setPlaceholder();
         */
+
+            if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
+
 
             bind(binder, tf, field);
 

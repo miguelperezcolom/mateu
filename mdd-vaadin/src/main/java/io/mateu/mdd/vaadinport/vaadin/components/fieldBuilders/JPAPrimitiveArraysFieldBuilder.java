@@ -6,6 +6,7 @@ import com.vaadin.data.Validator;
 import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
+import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -56,6 +57,9 @@ public class JPAPrimitiveArraysFieldBuilder extends JPAStringFieldBuilder {
         tf.setDescription();
         tf.setPlaceholder();
         */
+
+            if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
+
 
             bind(binder, tf, field);
 

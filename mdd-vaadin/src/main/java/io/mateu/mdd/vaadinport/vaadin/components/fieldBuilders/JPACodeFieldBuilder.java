@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
+import com.google.common.base.Strings;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.ValidationResult;
 import com.vaadin.data.Validator;
@@ -11,6 +12,7 @@ import com.vaadin.server.UserError;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.annotations.Code;
+import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.annotations.Html;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
@@ -81,6 +83,9 @@ public class JPACodeFieldBuilder extends JPAStringFieldBuilder {
             });
 
             tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
+
+            if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
+
 
             if (field.isAnnotationPresent(NotNull.class)) validators.get(tf).add(new StringLengthValidator("Required field", 1, Integer.MAX_VALUE));
 
