@@ -7,6 +7,7 @@ import io.mateu.mdd.core.interfaces.PushWriter;
 import io.mateu.mdd.tester.model.entities.groups.Person;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
@@ -48,6 +49,11 @@ public class Caller {
     public static List<Person> returnsList(EntityManager em) {
         return em.createQuery("select x from " + Person.class.getName() + " x").getResultList();
     }
+
+    public static Query returnsQuery(EntityManager em) {
+        return em.createQuery("select x from " + Person.class.getName() + " x");
+    }
+
 
     public static void throwsException() throws Exception {
         throw new Exception("Here comes the error message");

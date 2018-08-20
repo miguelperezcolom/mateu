@@ -2,8 +2,11 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
+import com.vaadin.data.provider.ListDataProvider;
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
@@ -12,13 +15,14 @@ import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Pair;
+import io.mateu.mdd.vaadinport.vaadin.MyUI;
+import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.JPAOneToManyFieldBuilder;
 
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Query;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class MethodResultViewComponent extends AbstractViewComponent {
@@ -85,6 +89,40 @@ public class MethodResultViewComponent extends AbstractViewComponent {
                     ) {
 
                 addComponent(new Label("" + result, ContentMode.HTML));
+
+            } else if (Collection.class.isAssignableFrom(c)) {
+
+                Collection col = (Collection) result;
+
+                if (col.size() == 0) {
+
+                    addComponent(new Label("Empty list", ContentMode.HTML));
+
+                } else {
+
+                    Grid g = new Grid();
+
+                    ListViewComponent.buildColumns(g, ListViewComponent.getColumnFields(col.iterator().next().getClass()), false, false);
+
+                    //g.setSelectionMode(Grid.SelectionMode.MULTI);
+
+                    // añadimos columna para que no haga feo
+                    if (g.getColumns().size() == 1) ((Grid.Column)g.getColumns().get(0)).setExpandRatio(1);
+                    else g.addColumn((d) -> null).setWidthUndefined().setCaption("");
+
+                    addComponent(g);
+
+                    g.setWidth("100%");
+                    g.setHeightByRows(col.size());
+
+                    g.setDataProvider(new ListDataProvider((Collection) result));
+
+                }
+
+
+            } else if (Query.class.equals(c)) {
+
+                addComponent(new JasperReportComponent((Query) result));
 
             } else {
 

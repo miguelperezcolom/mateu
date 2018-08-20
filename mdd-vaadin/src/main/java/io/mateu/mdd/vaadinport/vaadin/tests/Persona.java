@@ -32,4 +32,14 @@ public class Persona {
     public String getDescripcion() {
         return "" + nombre + " " + apellidos + " es una persona que tiene " + edad + " años.";
     }
+
+    public Persona() {
+
+    }
+
+    public Persona(String nombre, String apellidos, int edad) {
+        this.nombre = nombre;
+        this.apellidos = apellidos;
+        this.edad = edad;
+    }
 }

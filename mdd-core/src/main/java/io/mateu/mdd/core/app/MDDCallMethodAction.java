@@ -1,20 +1,28 @@
 package io.mateu.mdd.core.app;
 
 
+import io.mateu.mdd.core.reflection.ReflectionHelper;
+
+import java.lang.reflect.Method;
+import java.util.function.Consumer;
+
 public class MDDCallMethodAction extends AbstractAction {
 
-    private final Class entityClass;
-    private final String methodName;
+    private final Method method;
 
-    public MDDCallMethodAction(String name, Class entityClass, String methodName) {
+    public MDDCallMethodAction(String name, Consumer methodReference) {
         super(name);
-        this.entityClass = entityClass;
-        this.methodName = methodName;
+        method = ReflectionHelper.getMethod(methodReference);
+    }
+
+    public MDDCallMethodAction(String name, Class type, String methodName) {
+        super(name);
+        this.method = ReflectionHelper.getMethod(type, methodName);
     }
 
 
     @Override
     public void run(MDDExecutionContext context) {
-        context.callMethod(this, entityClass, methodName);
+        context.callMethod(this, method, null);
     }
 }

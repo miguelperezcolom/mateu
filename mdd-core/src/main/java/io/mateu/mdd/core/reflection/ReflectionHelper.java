@@ -25,6 +25,7 @@ import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class ReflectionHelper {
@@ -1247,5 +1248,10 @@ public class ReflectionHelper {
             gc = (Class<?>) gi;
         }
         return gc;
+    }
+
+    public static Method getMethod(Consumer methodReference) {
+        System.out.println("pendiente!!!");
+        return null;
     }
 }

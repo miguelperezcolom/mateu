@@ -71,6 +71,10 @@ public class MainModule extends AbstractModule {
 
                 l.add(new MDDCallMethodAction("Returns list", Caller.class, "returnsList"));
 
+                l.add(new MDDCallMethodAction("Returns query", Caller.class, "returnsQuery"));
+
+                //l.add(new MDDCallMethodAction("Returns query", Caller::returnsQuery));
+
                 l.add(new MDDCallMethodAction("Long running method", Caller.class, "longRunning"));
 
                 l.add(new MDDCallMethodAction("Throws exception", Caller.class, "throwsException"));

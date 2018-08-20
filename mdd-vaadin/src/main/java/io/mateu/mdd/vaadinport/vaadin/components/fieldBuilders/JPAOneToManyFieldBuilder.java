@@ -368,7 +368,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
     }
 
 
-    private List<FieldInterfaced> getColumnFields(FieldInterfaced field) {
+    public static List<FieldInterfaced> getColumnFields(FieldInterfaced field) {
 
         List<FieldInterfaced> l = null;
 
@@ -463,7 +463,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         aux.bind(field.getName());
     }
 
-    protected void bind(MDDBinder binder, Grid g, FieldInterfaced field) {
+    public static void bind(MDDBinder binder, Grid g, FieldInterfaced field) {
         Binder.BindingBuilder aux = binder.forField(new HasValue() {
             @Override
             public void setValue(Object o) {
@@ -572,7 +572,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         aux.bind(field.getName());
     }
 
-    private List<MapEntry> toList(Map m) {
+    private static List<MapEntry> toList(Map m) {
         List<MapEntry> l = new ArrayList<>();
         if (m != null) m.entrySet().forEach(e -> l.add(new MapEntry(((Map.Entry)e).getKey(), ((Map.Entry)e).getValue())));
         return (m != null)?l:null;
