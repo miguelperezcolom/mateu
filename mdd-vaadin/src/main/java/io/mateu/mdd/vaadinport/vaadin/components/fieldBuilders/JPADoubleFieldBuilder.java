@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.vaadin.data.Binder;
+import com.vaadin.data.HasValue;
 import com.vaadin.data.converter.StringToDoubleConverter;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.ui.TextField;

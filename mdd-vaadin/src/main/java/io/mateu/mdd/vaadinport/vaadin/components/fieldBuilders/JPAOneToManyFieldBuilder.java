@@ -9,14 +9,15 @@ import com.vaadin.shared.Registration;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.annotations.DataProvider;
 import io.mateu.mdd.core.annotations.UseCheckboxes;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
 import io.mateu.mdd.core.annotations.UseTwinCols;
+import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.*;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
-import io.mateu.mdd.vaadinport.vaadin.components.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
@@ -89,10 +90,30 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             container.addComponent(tf);
 
-            try {
-                Helper.notransact((em) -> tf.setDataProvider(new JPQLListDataProvider(em, field.getGenericClass())));
-            } catch (Throwable throwable) {
-                throwable.printStackTrace();
+            if (field.isAnnotationPresent(DataProvider.class)) {
+
+                try {
+
+                    DataProvider a = field.getAnnotation(DataProvider.class);
+
+                    ((HasDataProvider)tf).setDataProvider(a.dataProvider().newInstance());
+
+                    tf.setItemCaptionGenerator(a.itemCaptionGenerator().newInstance());
+
+                } catch (InstantiationException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+
+            } else {
+
+                try {
+                    Helper.notransact((em) -> tf.setDataProvider(new JPQLListDataProvider(em, field)));
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
+                }
+
             }
 
             tf.addValueChangeListener(e -> updateReferences(binder, field, e));
@@ -142,10 +163,28 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             CheckBoxGroup cbg = new CheckBoxGroup();
 
 
-            try {
-                Helper.notransact(em -> cbg.setDataProvider((new JPQLListDataProvider(em, field.getGenericClass()))));
-            } catch (Throwable throwable) {
-                MDD.alert(throwable);
+            if (field.isAnnotationPresent(DataProvider.class)) {
+
+                try {
+
+                    DataProvider a = field.getAnnotation(DataProvider.class);
+
+                    ((HasDataProvider)cbg).setDataProvider(a.dataProvider().newInstance());
+
+                    cbg.setItemCaptionGenerator(a.itemCaptionGenerator().newInstance());
+
+                } catch (InstantiationException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+
+            } else {
+                try {
+                    Helper.notransact(em -> cbg.setDataProvider((new JPQLListDataProvider(em, field))));
+                } catch (Throwable throwable) {
+                    MDD.alert(throwable);
+                }
             }
 
             cbg.addValueChangeListener(e -> updateReferences(binder, field, e));

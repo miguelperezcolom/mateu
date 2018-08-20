@@ -1,20 +1,18 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
-import com.vaadin.data.HasValue;
-import com.vaadin.data.ValidationResult;
-import com.vaadin.data.Validator;
-import com.vaadin.data.ValueContext;
+import com.vaadin.data.*;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.server.UserError;
 import com.vaadin.shared.ui.ErrorLevel;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Layout;
+import io.mateu.mdd.core.annotations.DataProvider;
+import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.vaadinport.vaadin.components.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.data.MDDBinder;
 
 import javax.persistence.OneToOne;
@@ -44,10 +42,28 @@ public class JPAOneToOneFieldBuilder extends AbstractFieldBuilder {
 
             if (allFieldContainers.size() == 0) tf.focus();
 
-            try {
-                Helper.notransact((em) -> tf.setDataProvider(new JPQLListDataProvider(em, field.getType())));
-            } catch (Throwable throwable) {
-                throwable.printStackTrace();
+            if (field.isAnnotationPresent(DataProvider.class)) {
+
+                try {
+
+                    DataProvider a = field.getAnnotation(DataProvider.class);
+
+                    ((HasDataProvider)tf).setDataProvider(a.dataProvider().newInstance());
+
+                    tf.setItemCaptionGenerator(a.itemCaptionGenerator().newInstance());
+
+                } catch (InstantiationException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+
+            } else {
+                try {
+                    Helper.notransact((em) -> tf.setDataProvider(new JPQLListDataProvider(em, field)));
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
+                }
             }
 
 

@@ -5,6 +5,7 @@ import com.byteowls.vaadin.chartjs.config.DonutChartConfig;
 import com.byteowls.vaadin.chartjs.data.Dataset;
 import com.byteowls.vaadin.chartjs.data.PieDataset;
 import com.google.common.base.Strings;
+import com.vaadin.data.HasDataProvider;
 import com.vaadin.data.ValueProvider;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.provider.QuerySortOrder;
@@ -18,13 +19,13 @@ import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.data.ChartData;
 import io.mateu.mdd.core.data.ChartValue;
 import io.mateu.mdd.core.data.SumData;
+import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.ICellStyleGenerator;
 import io.mateu.mdd.core.interfaces.StyledEnum;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
-import io.mateu.mdd.vaadinport.vaadin.components.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components.WeekDaysComponent;
 
 import javax.persistence.GeneratedValue;
@@ -257,10 +258,28 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
                     } else {
 
-                        try {
-                            Helper.notransact((em) -> cb.setDataProvider(new JPQLListDataProvider(em, f.getType())));
-                        } catch (Throwable throwable) {
-                            throwable.printStackTrace();
+                        if (f.isAnnotationPresent(DataProvider.class)) {
+
+                            try {
+
+                                DataProvider a = f.getAnnotation(DataProvider.class);
+
+                                ((HasDataProvider)cb).setDataProvider(a.dataProvider().newInstance());
+
+                                cb.setItemCaptionGenerator(a.itemCaptionGenerator().newInstance());
+
+                            } catch (InstantiationException e) {
+                                e.printStackTrace();
+                            } catch (IllegalAccessException e) {
+                                e.printStackTrace();
+                            }
+
+                        } else {
+                            try {
+                                Helper.notransact((em) -> cb.setDataProvider(new JPQLListDataProvider(em, f)));
+                            } catch (Throwable throwable) {
+                                throwable.printStackTrace();
+                            }
                         }
 
                         FieldInterfaced fName = ReflectionHelper.getNameField(f.getType());

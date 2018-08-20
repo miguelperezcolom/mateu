@@ -133,10 +133,10 @@ public class MainModule extends AbstractModule {
                 List<MenuEntry> l = new ArrayList<>();
 
                 l.add(new MDDMenu("Fields"
-                        , "Basic fieldBuilders", BasicFieldsDemoEntity.class
-                        , "Date fieldBuilders", DateTimeFieldsDemoEntity.class
-                        , "Basic fieldBuilders with validation", BasicFieldsWithValidationDemoEntity.class
-                        , "Calculated fieldBuilders", CalculatedFieldsDemoEntity.class
+                        , "Basic fields", BasicFieldsDemoEntity.class
+                        , "Date fields", DateTimeFieldsDemoEntity.class
+                        , "Basic fields with validation", BasicFieldsWithValidationDemoEntity.class
+                        , "Calculated fields", CalculatedFieldsDemoEntity.class
                         , "Enumeration field", EnumerationFieldDemoEntity.class
                         , "TextArea", TextAreaFieldDemoEntity.class
                         , "Search filters", SearchFiltersDemoEntity.class
@@ -195,6 +195,8 @@ public class MainModule extends AbstractModule {
                         l.add(new MDDOpenCRUDAction("Primitive collections", PrimitiveCollectionsFieldDemoEntity.class));
 
                         l.add(new MDDOpenCRUDAction("Primitive arrays", PrimitiveArraysFieldDemoEntity.class));
+
+                        l.add(new MDDOpenCRUDAction("Data providers", DataProviderFieldDemoEntity.class));
 
                         return l;
                     }

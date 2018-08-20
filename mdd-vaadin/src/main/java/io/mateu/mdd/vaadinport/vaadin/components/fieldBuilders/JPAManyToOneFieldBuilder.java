@@ -9,12 +9,12 @@ import io.mateu.mdd.core.annotations.DataProvider;
 import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
 import io.mateu.mdd.core.annotations.UseRadioButtons;
+import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
-import io.mateu.mdd.vaadinport.vaadin.components.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.data.MDDBinder;
 
 import javax.persistence.ManyToOne;
@@ -105,7 +105,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
             } else {
 
                 try {
-                    Helper.notransact((em) -> rbg.setDataProvider(new JPQLListDataProvider(em, field.getType())));
+                    Helper.notransact((em) -> rbg.setDataProvider(new JPQLListDataProvider(em, field)));
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();
                 }
@@ -161,7 +161,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
             } else {
 
                 try {
-                    Helper.notransact((em) -> cb.setDataProvider(new JPQLListDataProvider(em, field.getType())));
+                    Helper.notransact((em) -> cb.setDataProvider(new JPQLListDataProvider(em, field)));
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();
                 }
