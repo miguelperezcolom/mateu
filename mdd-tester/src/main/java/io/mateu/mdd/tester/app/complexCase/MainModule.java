@@ -174,8 +174,8 @@ public class MainModule extends AbstractModule {
                         , "IFrame", IFrameFieldDemoEntity.class
                         , "Html", HtmlFieldDemoEntity.class
                         , "Code", CodeFieldDemoEntity.class
-                        //, "Signature", SignatureFieldDemoEntity.class
-                        //, "Editable image", FileFieldEntity.class
+                        , "Signature", SignatureFieldDemoEntity.class
+                        , "Editable image", FileFieldEntity.class
                         , "Dynamic content", WithDynamicContent.class
                         , "Tabs", TabsDemoEntity.class
                 ));
