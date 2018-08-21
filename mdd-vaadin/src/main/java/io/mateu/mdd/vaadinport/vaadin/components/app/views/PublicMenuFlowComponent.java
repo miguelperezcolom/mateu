@@ -1,4 +1,4 @@
-package io.mateu.mdd.vaadinport.vaadin.components.app.flow.views;
+package io.mateu.mdd.vaadinport.vaadin.components.app.views;
 
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Label;
@@ -31,7 +31,7 @@ public class PublicMenuFlowComponent extends VerticalLayout {
         });
 
 
-        addComponentsAndExpand(new Label(""));
+       if (!MDD.isMobile()) addComponentsAndExpand(new Label(""));
     }
 
 }

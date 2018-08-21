@@ -807,11 +807,11 @@ public class MDDBinderX {
                 Class genericClass = field.getGenericClass();
 
                 // recogemos los elementos eliminados y los no eliminados
-                Set old = (Set) valueChangeEvent.getOldValue();
+                Set desktop = (Set) valueChangeEvent.getOldValue();
                 Set value = (Set) valueChangeEvent.getValue();
 
-                List removed = (List) old.stream().filter(e -> !value.contains(e)).collect(Collectors.toList());
-                List added = (List) value.stream().filter(e -> !old.contains(e)).collect(Collectors.toList());
+                List removed = (List) desktop.stream().filter(e -> !value.contains(e)).collect(Collectors.toList());
+                List added = (List) value.stream().filter(e -> !desktop.contains(e)).collect(Collectors.toList());
 
                 Collection col = null;
                 try {

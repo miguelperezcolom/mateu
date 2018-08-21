@@ -1,4 +1,4 @@
-package io.mateu.mdd.vaadinport.vaadin.components.app.flow.views;
+package io.mateu.mdd.vaadinport.vaadin.components.app.views;
 
 import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.annotations.Action;

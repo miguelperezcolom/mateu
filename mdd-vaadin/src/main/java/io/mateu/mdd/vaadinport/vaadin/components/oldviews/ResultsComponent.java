@@ -30,6 +30,8 @@ public class ResultsComponent extends VerticalLayout {
 
         addStyleName("resultscomponent");
 
+        if (!MDD.isMobile()) setSizeFull();
+
         grid = new Grid<>();
 
         listViewComponent.buildColumns(grid);

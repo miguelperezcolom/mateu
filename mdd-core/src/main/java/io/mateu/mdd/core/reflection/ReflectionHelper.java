@@ -910,6 +910,7 @@ public class ReflectionHelper {
 
                 r[0] = m.invoke(instance, args);
 
+                if (r[0] != null && r[0] instanceof Query) r[0] = ((Query)r[0]).getResultList();
 
             });
 

@@ -1,8 +1,9 @@
-package io.mateu.mdd.vaadinport.vaadin.components.app.flow;
+package io.mateu.mdd.vaadinport.vaadin.components.app;
 
 import com.vaadin.ui.Component;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.interfaces.WizardPage;
 
 import java.lang.reflect.Method;
 
@@ -51,5 +52,10 @@ public class AbstractMDDExecutionContext implements MDDExecutionContext {
     @Override
     public String getCurrentState() {
         return null;
+    }
+
+    @Override
+    public void openWizardPage(Class firstPageClass) {
+        MDD.openWizard(firstPageClass);
     }
 }

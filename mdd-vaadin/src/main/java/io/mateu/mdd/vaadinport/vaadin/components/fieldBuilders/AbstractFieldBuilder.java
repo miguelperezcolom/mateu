@@ -27,6 +27,8 @@ public abstract class AbstractFieldBuilder {
             , new JPAHtmlFieldBuilder()
             , new JPAPrimitiveArraysFieldBuilder()
             , new JPAPrimitiveCollectionsFieldBuilder()
+            , new JPAFastMoneyFieldBuilder()
+            , new JPAMoneyFieldBuilder()
             , new JPATextAreaFieldBuilder()
             , new JPAStringFieldBuilder()
             , new JPAIntegerFieldBuilder()

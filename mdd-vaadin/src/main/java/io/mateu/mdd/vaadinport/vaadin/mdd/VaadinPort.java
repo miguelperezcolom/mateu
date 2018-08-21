@@ -1,14 +1,18 @@
 package io.mateu.mdd.vaadinport.vaadin.mdd;
 
 import com.vaadin.server.Page;
+import com.vaadin.server.VaadinRequest;
+import com.vaadin.server.VaadinServletRequest;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.MDDPort;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.UserData;
+import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolationException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -16,6 +20,28 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class VaadinPort implements MDDPort {
+
+    private boolean mobile;
+
+    public VaadinPort(VaadinRequest vaadinRequest) {
+
+        mobile = Page.getCurrent().getWebBrowser().isAndroid() || Page.getCurrent().getWebBrowser().isIOS() || Page.getCurrent().getWebBrowser().isWindowsPhone();
+
+        if (vaadinRequest instanceof VaadinServletRequest) {
+            HttpServletRequest httpRequest = ((VaadinServletRequest) vaadinRequest).getHttpServletRequest();
+            String userAgent = httpRequest.getHeader("User-Agent").toLowerCase();
+            if (userAgent.contains("ipad")) { //... }
+                mobile = false;
+            }
+        }
+
+    }
+
+
+    @Override
+    public boolean isMobile() {
+        return mobile;
+    }
 
     @Override
     public void alert(String msg) {
@@ -37,6 +63,15 @@ public class VaadinPort implements MDDPort {
 
         MyUI.get().getNavegador().goTo(action, viewClass, id);
     }
+
+    @Override
+    public void openWizard(Class firstPageClass) {
+        System.out.println("open wizard");
+
+        //todo: ver que hacemos con esto
+        MyUI.get().getNavegador().goTo("error no tiene sentido");
+    }
+
 
 
     @Override
@@ -165,5 +200,6 @@ public class VaadinPort implements MDDPort {
         Notification.show(msg, Notification.Type.HUMANIZED_MESSAGE);
         MyUI.get().push();
     }
+
 
 }

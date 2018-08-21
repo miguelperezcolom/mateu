@@ -10,13 +10,14 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.interfaces.EntityProvider;
+import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.Pair;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
-import io.mateu.mdd.vaadinport.vaadin.components.app.flow.views.AreaComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.app.flow.views.*;
+import io.mateu.mdd.vaadinport.vaadin.components.app.views.AreaComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.OAuthHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
 import io.mateu.mdd.vaadinport.vaadin.pojos.Profile;
@@ -24,6 +25,7 @@ import io.mateu.mdd.vaadinport.vaadin.pojos.Profile;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.Query;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
@@ -174,27 +176,35 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
             stack.clear();
 
-            v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PublicMenuFlowComponent());
+            if (MDD.isMobile()) {
+                stack.push(currentPath, new PublicMenuFlowComponent());
+                v = stack.get(currentPath);
+            } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PublicMenuFlowComponent());
 
         } else if ("private".equals(state)) { // caso "login"
 
             stack.clear();
 
-            v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PrivateMenuFlowComponent());
+            if (MDD.isMobile()) {
+                stack.push(currentPath, new PrivateMenuFlowComponent());
+                v = stack.get(currentPath);
+            } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PrivateMenuFlowComponent());
 
 
         } else if (state.split("/").length == 2 && !"private/profile".equals(state)) { // es una area
 
             AbstractArea area = MDD.getApp().getArea(state);
 
-            stack.clear();
+            if (!MDD.isMobile()) stack.clear();
 
             AbstractAction action = area.getDefaultAction();
-            if (action != null) {
+            if (!MDD.isMobile() && action != null) {
                 action.run(this);
                 if (stack.size() > 0) v = stack.getLast();
-            }
-            else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new AreaComponent(area));
+            } else if (MDD.isMobile()) {
+                stack.push(currentPath, new AreaComponent(area));
+                v = stack.get(currentPath);
+            } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new AreaComponent(area));
 
             MyUI.get().getAppComponent().setArea(area);
 
@@ -218,7 +228,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                 String path = "";
 
-                int lastIndexInStack = -1; // nos dice hasta que posición del flow podemos mantener
+                int lastIndexInStack = -1; // nos dice hasta que posición del mobile podemos mantener
                 boolean coincide = true;
                 io.mateu.mdd.vaadinport.vaadin.navigation.View lastView = null;
                 int pos = 0;
@@ -235,7 +245,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                     if (v == null) {
 
-                        stack.clear();
+                        if (!MDD.isMobile()) stack.clear();
                         openEditor(null, Profile.class, MDD.getUserData(), false);
 
                         v = lastView = stack.get("private/profile");
@@ -522,6 +532,12 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                         }
 
+                    } else if (MDD.getApp().getModule(currentPath) != null) {
+
+                        AbstractModule module = MDD.getApp().getModule(currentPath);
+
+                        stack.push(currentPath, new ModuleComponent(module));
+
                     } else {
 
                         MenuEntry e = MDD.getApp().getMenu(currentPath);
@@ -544,14 +560,30 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     MenuEntry e = MDD.getApp().getMenu(currentPath);
                     if (e != null) {
                         if (e instanceof AbstractMenu) {
-                            v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new MenuFlowComponent((AbstractMenu) e));
+                            if (MDD.isMobile()) {
+                                stack.push(currentPath, new MobileMenuComponent(e));
+                                currentStepIndex++;
+                                v = lastView = stack.get(currentPath);
+                            }
+                            else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new MenuFlowComponent((AbstractMenu) e));
                         }
                     } else {
                         if (currentStepIndex == 0) { // public | private --> lista de areas
-                            if ("public".equalsIgnoreCase(path))
-                                v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PublicMenuFlowComponent());
-                            else if ("private".equalsIgnoreCase(path))
-                                v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PrivateMenuFlowComponent());
+                            if ("public".equalsIgnoreCase(path)) {
+                                if (MDD.isMobile()) {
+                                    stack.push(currentPath, new PublicMenuFlowComponent());
+                                    currentStepIndex++;
+                                    v = lastView = stack.get(currentPath);
+                                }
+                                else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PublicMenuFlowComponent());
+                            } else if ("private".equalsIgnoreCase(path)) {
+                                if (MDD.isMobile()) {
+                                    stack.push(currentPath, new PrivateMenuFlowComponent());
+                                    currentStepIndex++;
+                                    v = lastView = stack.get(currentPath);
+                                }
+                                else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PrivateMenuFlowComponent());
+                            }
                         } else if (currentStepIndex == 1) {
                             // todo: fijamos el menu en esta area
                         } else {
@@ -634,6 +666,15 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
     }
 
     @Override
+    public void openWizardPage(Class firstPageClass) {
+        try {
+            stack.push(currentPath, MDDViewComponentCreator.createComponent((WizardPage) firstPageClass.newInstance()));
+        } catch (Exception e) {
+            MDD.alert(e);
+        }
+    }
+
+    @Override
     public void open(AbstractAction action, Component component, boolean modifierPressed) {
         stack.push(currentPath, component);
     }
@@ -663,10 +704,21 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     break;
                 }
 
+
+
                 if (hasNonInjectedParameters) {
                     stack.push(currentPath, new MethodParametersViewFlowComponent(currentPath, method, instance, this));
                 } else {
-                    MyUI.get().getNavegador().showResult(currentPath, method, ReflectionHelper.invokeInjectableParametersOnly(method, instance), this, false);
+
+                    if (Query.class.equals(method.getReturnType())) {
+
+                        MyUI.get().getNavegador().showResult(currentPath, method, ReflectionHelper.invokeInjectableParametersOnly(method, instance), this, false);
+
+                    } else {
+
+                        MyUI.get().getNavegador().showResult(currentPath, method, ReflectionHelper.invokeInjectableParametersOnly(method, instance), this, false);
+
+                    }
                 }
 
             } catch (Throwable e) {
@@ -691,4 +743,6 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
         return state;
     }
+
+
 }

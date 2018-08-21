@@ -2,6 +2,7 @@ package io.mateu.mdd.core;
 
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.UserData;
+import io.mateu.mdd.core.interfaces.WizardPage;
 
 public class MDD {
 
@@ -75,5 +76,11 @@ public class MDD {
 
     public static void info(String msg) {
         getPort().info(msg);
+    }
+
+    public static boolean isMobile() { return getPort().isMobile(); }
+
+    public static void openWizard(Class firstPageClass) {
+        getPort().openWizard(firstPageClass);
     }
 }

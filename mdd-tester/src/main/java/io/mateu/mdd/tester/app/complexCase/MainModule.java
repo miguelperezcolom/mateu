@@ -25,6 +25,7 @@ import io.mateu.mdd.tester.model.rpc.SampleCustomizedRPCListView;
 import io.mateu.mdd.tester.model.rpc.SampleRPCListView;
 import io.mateu.mdd.tester.model.rpc.SampleRPCToJPAListView;
 import io.mateu.mdd.tester.model.rpc.SampleRPCToPPOJOListView;
+import io.mateu.mdd.tester.model.wizards.Wizard1Page1;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -107,10 +108,6 @@ public class MainModule extends AbstractModule {
 
                 l.add(new MDDCallMethodAction("Returns query as report", Caller.class, "returnsQueryAsReport"));
 
-                //l.add(new MDDCallMethodAction("Returns query", Caller::returnsQuery));
-
-                l.add(new MDDCallMethodAction("Returns open list action as report", Caller.class, "returnsOpenListViewActionAsReport"));
-
                 l.add(new MDDCallMethodAction("Returns list view as report", Caller.class, "returnsListViewAsReport"));
 
 
@@ -127,13 +124,11 @@ public class MainModule extends AbstractModule {
             public List<MenuEntry> buildEntries() {
                 List<MenuEntry> l = new ArrayList<>();
 
-                l.add(new MDDCallMethodAction("As an action", Caller.class, "doSomething"));
+                l.add(new MDDOpenWizardAction("As an action", Wizard1Page1.class));
 
                 l.add(new MDDCallMethodAction("As a field editor", Caller.class, "returnString"));
 
-                l.add(new MDDCallMethodAction("As a return value", Caller.class, "returnString"));
-
-                l.add(new MDDCallMethodAction("As a parameter", Caller.class, "returnString"));
+                l.add(new MDDCallMethodAction("As a return value", Caller.class, "returnWizard"));
 
                 return l;
             }
@@ -167,6 +162,7 @@ public class MainModule extends AbstractModule {
                 l.add(new MDDMenu("Fields"
                         , "Basic fields", BasicFieldsDemoEntity.class
                         , "Date fields", DateTimeFieldsDemoEntity.class
+                        , "Money fields", MoneyFieldsDemoEntity.class
                         , "Basic fields with validation", BasicFieldsWithValidationDemoEntity.class
                         , "Calculated fields", CalculatedFieldsDemoEntity.class
                         , "Enumeration field", EnumerationFieldDemoEntity.class
@@ -178,8 +174,8 @@ public class MainModule extends AbstractModule {
                         , "IFrame", IFrameFieldDemoEntity.class
                         , "Html", HtmlFieldDemoEntity.class
                         , "Code", CodeFieldDemoEntity.class
-                        , "Signature", SignatureFieldDemoEntity.class
-                        , "Editable image", FileFieldEntity.class
+                        //, "Signature", SignatureFieldDemoEntity.class
+                        //, "Editable image", FileFieldEntity.class
                         , "Dynamic content", WithDynamicContent.class
                         , "Tabs", TabsDemoEntity.class
                 ));

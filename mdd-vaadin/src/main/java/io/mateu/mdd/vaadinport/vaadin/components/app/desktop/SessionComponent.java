@@ -1,4 +1,4 @@
-package io.mateu.mdd.vaadinport.vaadin.components.app.old;
+package io.mateu.mdd.vaadinport.vaadin.components.app.desktop;
 
 import com.google.common.base.Strings;
 import com.vaadin.server.ClassResource;

@@ -1,4 +1,4 @@
-package io.mateu.mdd.vaadinport.vaadin.components.app.old;
+package io.mateu.mdd.vaadinport.vaadin.components.app.desktop;
 
 import com.google.common.base.Strings;
 import com.vaadin.ui.Button;
@@ -8,7 +8,6 @@ import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
-import io.mateu.mdd.vaadinport.vaadin.components.app.flow.AbstractMDDExecutionContext;
 
 import java.util.HashMap;
 import java.util.Map;

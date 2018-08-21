@@ -100,7 +100,7 @@ public abstract class BaseMDDApp extends AbstractApplication {
             public void run(EntityManager em)throws Throwable {
                 User u = em.find(User.class, login.toLowerCase().trim());
                 if (u != null) {
-                    if (!oldPassword.trim().equalsIgnoreCase(u.getPassword().trim())) throw new Exception("Wrong old password");
+                    if (!oldPassword.trim().equalsIgnoreCase(u.getPassword().trim())) throw new Exception("Wrong desktop password");
                     u.setPassword(newPassword);
                 } else throw new Exception("No user with login " + login);
             }

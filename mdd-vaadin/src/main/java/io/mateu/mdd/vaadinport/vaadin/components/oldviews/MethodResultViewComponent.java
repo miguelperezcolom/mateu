@@ -8,10 +8,9 @@ import com.vaadin.server.ExternalResource;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.Action;
-import io.mateu.mdd.core.annotations.IFrame;
-import io.mateu.mdd.core.annotations.Ignored;
+import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
+import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
@@ -98,11 +97,11 @@ public class MethodResultViewComponent extends AbstractViewComponent {
 
                 if (method.isAnnotationPresent(IFrame.class)) {
 
-                    addComponent(new BrowserFrame("Result", new ExternalResource(result.toString())));
+                    addComponent(new BrowserFrame("Click me to view the result", new ExternalResource(result.toString())));
 
                 } else {
 
-                    addComponent(new Link("Click me to open the result", new ExternalResource(result.toString())));
+                    addComponent(new Link("Click me to view the result", new ExternalResource(result.toString())));
 
                 }
 
@@ -113,6 +112,14 @@ public class MethodResultViewComponent extends AbstractViewComponent {
                 if (col.size() == 0) {
 
                     addComponent(new Label("Empty list", ContentMode.HTML));
+
+                } else if (method.isAnnotationPresent(Pdf.class) || Query.class.isAssignableFrom(method.getReturnType())) {
+
+                    try {
+                        addComponent(new PdfComponent((List) result));
+                    } catch (Throwable throwable) {
+                        MDD.alert(throwable);
+                    }
 
                 } else {
 
@@ -136,9 +143,34 @@ public class MethodResultViewComponent extends AbstractViewComponent {
                 }
 
 
-            } else if (Query.class.equals(c)) {
+            } else if (result instanceof Query) {
 
-                addComponent(new JasperReportComponent((Query) result));
+                try {
+                    addComponent(new PdfComponent((Query) result));
+                } catch (Throwable throwable) {
+                    MDD.alert(throwable);
+                }
+
+            } else if (result instanceof RpcView) {
+
+                if (method.isAnnotationPresent(Output.class)) {
+                    try {
+                        addComponent(new PdfComponent((RpcView) result, result));
+                    } catch (Throwable throwable) {
+                        MDD.alert(throwable);
+                    }
+                } else {
+                    try {
+                        if (MDD.isMobile()) addComponent(new RpcListViewComponent((RpcView) result).build());
+                        else addComponentsAndExpand(new RpcListViewComponent((RpcView) result).build());
+                    } catch (Throwable throwable) {
+                        MDD.alert(throwable);
+                    }
+                }
+
+            } else if (method.isAnnotationPresent(Output.class)) {
+
+                addComponent(new PrintPOJOComponent(result));
 
             } else {
 

@@ -1,4 +1,4 @@
-package io.mateu.mdd.vaadinport.vaadin.components.app.flow.views;
+package io.mateu.mdd.vaadinport.vaadin.components.app.views;
 
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;

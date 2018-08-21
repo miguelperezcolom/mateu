@@ -4,14 +4,10 @@ import com.vaadin.navigator.Navigator;
 import com.vaadin.server.Page;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
-import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
-import io.mateu.mdd.vaadinport.vaadin.components.app.flow.views.*;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
+import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
 
-import javax.persistence.Entity;
 import java.lang.reflect.Method;
 
 public class MDDNavigator {

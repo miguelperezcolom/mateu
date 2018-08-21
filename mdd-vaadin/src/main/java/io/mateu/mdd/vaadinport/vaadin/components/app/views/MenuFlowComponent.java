@@ -1,6 +1,5 @@
-package io.mateu.mdd.vaadinport.vaadin.components.app.flow.views;
+package io.mateu.mdd.vaadinport.vaadin.components.app.views;
 
-import com.vaadin.server.Page;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
@@ -9,7 +8,6 @@ import io.mateu.mdd.core.app.AbstractMenu;
 import io.mateu.mdd.core.app.MenuEntry;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 

@@ -1,15 +1,11 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.google.common.base.Strings;
-import com.vaadin.icons.VaadinIcons;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.Callback;
-import io.mateu.mdd.vaadinport.vaadin.MyUI;
-import io.mateu.mdd.vaadinport.vaadin.components.app.flow.AbstractMDDExecutionContext;
+import io.mateu.mdd.vaadinport.vaadin.components.app.AbstractMDDExecutionContext;
 import io.mateu.mdd.vaadinport.vaadin.navigation.View;
 
 import java.util.ArrayList;
@@ -36,6 +32,8 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     public A build() throws InstantiationException, IllegalAccessException {
 
         addStyleName("viewcomponent");
+
+        if (!MDD.isMobile()) setSizeFull();
 
 
         bar = new MenuBar();

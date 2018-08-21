@@ -24,6 +24,13 @@ public class RpcListViewComponent extends ListViewComponent {
     private RpcView rpcListView;
     private final Class columnType;
 
+    public RpcListViewComponent(RpcView rpcListView) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
+        this.rpcListViewClass = rpcListView.getClass();
+        this.rpcListView = rpcListView;
+        this.columnType = ReflectionHelper.getGenericClass(rpcListViewClass, RpcView.class, "C");
+    }
+
+
     public RpcListViewComponent(Class rpcListViewClass) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         this.rpcListViewClass = rpcListViewClass;
         this.rpcListView = (RpcView) ReflectionHelper.newInstance(rpcListViewClass);

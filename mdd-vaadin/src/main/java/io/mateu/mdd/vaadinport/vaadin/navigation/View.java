@@ -4,7 +4,10 @@ import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
+import io.mateu.mdd.vaadinport.vaadin.components.app.views.PrivateMenuFlowComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.views.PublicMenuFlowComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.CRUDViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
@@ -59,9 +62,10 @@ public class View implements com.vaadin.navigator.View {
 
         vl.addComponent(createHeader(component));
 
-        vl.setSizeFull();
+        if (!MDD.isMobile()) vl.setSizeFull();
 
-        vl.addComponentsAndExpand(component);
+        if (MDD.isMobile()) vl.addComponent(component);
+        else vl.addComponentsAndExpand(component);
 
         return l;
     }

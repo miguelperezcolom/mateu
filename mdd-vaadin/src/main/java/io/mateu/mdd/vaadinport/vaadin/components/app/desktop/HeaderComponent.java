@@ -1,10 +1,9 @@
-package io.mateu.mdd.vaadinport.vaadin.components.app.old;
+package io.mateu.mdd.vaadinport.vaadin.components.app.desktop;
 
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.Link;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractApplication;
@@ -16,12 +15,12 @@ public class HeaderComponent extends HorizontalLayout {
     private final Button signingButton;
     private final Button appTitle;
     private final Button hamburquesa;
-    private final AppComponent appComponent;
+    private final DesktopAppComponent appComponent;
     private final Label greeting;
     private final Button tabsButton;
     private final Button navigateButton;
 
-    public HeaderComponent(AppComponent appComponent, AbstractApplication app) {
+    public HeaderComponent(DesktopAppComponent appComponent, AbstractApplication app) {
         this.appComponent = appComponent;
         this.app = app;
         

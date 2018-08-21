@@ -1,6 +1,7 @@
 package io.mateu.mdd.core.app;
 
 import com.vaadin.ui.Component;
+import io.mateu.mdd.core.interfaces.WizardPage;
 
 import java.lang.reflect.Method;
 
@@ -23,4 +24,6 @@ public interface MDDExecutionContext {
     void callMethod(AbstractAction action, Method method, Object instance);
 
     String getCurrentState();
+
+    void openWizardPage(Class firstPageClass);
 }

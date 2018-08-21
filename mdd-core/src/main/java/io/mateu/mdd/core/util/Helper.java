@@ -17,6 +17,10 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 import io.mateu.mdd.core.asciiart.Painter;
+import io.mateu.mdd.core.data.Data;
+import io.mateu.mdd.core.interfaces.RpcView;
+import io.mateu.mdd.core.model.config.AppConfig;
+import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.MiURLConverter;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
@@ -30,6 +34,10 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.eclipse.persistence.internal.security.JCEEncryptor;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 import org.xml.sax.SAXException;
 
 import javax.crypto.CipherInputStream;
@@ -47,6 +55,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.xml.transform.*;
 import javax.xml.transform.sax.SAXResult;
+import javax.xml.transform.stream.StreamSource;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -55,6 +64,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -1015,5 +1025,211 @@ public class Helper {
 
         return out.toByteArray();
     }
+
+
+
+    public static URL queryToPdf(Query query)throws Throwable {
+
+        return Helper.listToPdf(query.getResultList());
+
+    }
+
+
+    public static URL viewToPdf(RpcView view, Object filters)throws Throwable {
+
+        return listToPdf(view.rpc(filters, 0, Integer.MAX_VALUE));
+
+    }
+
+    public static URL listToPdf(List list)throws Throwable {
+
+        String[] xslfo = {""};
+
+        Helper.notransact(em -> xslfo[0] = AppConfig.get(em).getXslfoForList());
+
+        long t0 = new Date().getTime();
+
+
+        try {
+
+
+            Class rowClass =(list.size() > 0)?list.get(0).getClass():EmptyRow.class;
+
+            Document xml = new Document();
+            Element arrel = new Element("root");
+            xml.addContent(arrel);
+
+
+            Element cab = new Element("header");
+            arrel.addContent(cab);
+
+            Element lineas = new Element("lines");
+            arrel.addContent(lineas);
+
+
+            if (Object[].class.equals(rowClass)) {
+
+                List<FieldInterfaced> rowFields = getColumnFields(rowClass);
+
+
+                int xx = 1;
+                int pixels = 0;
+
+                for (FieldInterfaced c : rowFields){
+                    String alineado = "left";
+                    Element aux = new Element("column");
+                    cab.addContent(aux);
+                    aux.setAttribute("label", ReflectionHelper.getCaption(c));
+                    int ancho = 200;
+                    aux.setAttribute("width", "" +  ancho / 1.5);
+                    //if (ColumnAlignment.CENTER.equals(c.getAlignment())) alineado = "center";
+                    //if (ColumnAlignment.RIGHT.equals(c.getAlignment())) alineado = "right";
+                    aux.setAttribute("align", alineado);
+                    pixels += ancho;
+                }
+
+                String ancho = "21cm";
+                String alto = "29.7cm";
+                if (pixels > 750){
+                    alto = "21cm";
+                    ancho = "29.7cm";
+                }
+                arrel.setAttribute("width", ancho);
+                arrel.setAttribute("height", alto);
+
+                for (Object x : list){
+
+                    Element linea = new Element("line");
+                    lineas.addContent(linea);
+
+                    for (FieldInterfaced c : rowFields){
+
+                        Element cell = new Element("cell");
+                        linea.addContent(cell);
+                        Object v = ReflectionHelper.getValue(c, x);
+                        String text = "";
+                        if (v != null) text += v;
+                        if (v instanceof Double){
+                            DecimalFormat dfm = new DecimalFormat("#0.00");
+                            text = dfm.format(((Double)v));
+                        }
+                        cell.setText(text);
+
+                    }
+
+                }
+
+            } else {
+
+                List<FieldInterfaced> rowFields = getColumnFields(rowClass);
+
+
+                int xx = 1;
+                int pixels = 0;
+
+                for (FieldInterfaced c : rowFields){
+                    String alineado = "left";
+                    Element aux = new Element("column");
+                    cab.addContent(aux);
+                    aux.setAttribute("label", ReflectionHelper.getCaption(c));
+                    int ancho = 200;
+                    aux.setAttribute("width", "" +  ancho / 1.5);
+                    //if (ColumnAlignment.CENTER.equals(c.getAlignment())) alineado = "center";
+                    //if (ColumnAlignment.RIGHT.equals(c.getAlignment())) alineado = "right";
+                    aux.setAttribute("align", alineado);
+                    pixels += ancho;
+                }
+
+                String ancho = "21cm";
+                String alto = "29.7cm";
+                if (pixels > 750){
+                    alto = "21cm";
+                    ancho = "29.7cm";
+                }
+                arrel.setAttribute("width", ancho);
+                arrel.setAttribute("height", alto);
+
+                for (Object x : list){
+
+                    Element linea = new Element("line");
+                    lineas.addContent(linea);
+
+                    for (FieldInterfaced c : rowFields){
+
+                        Element cell = new Element("cell");
+                        linea.addContent(cell);
+                        Object v = ReflectionHelper.getValue(c, x);
+                        String text = "";
+                        if (v != null) text += v;
+                        if (v instanceof Double){
+                            DecimalFormat dfm = new DecimalFormat("#0.00");
+                            text = dfm.format(((Double)v));
+                        }
+                        cell.setText(text);
+
+                    }
+
+                }
+
+            }
+
+
+            if (list.size() >= 5000) {
+                Element linea = new Element("line");
+                lineas.addContent(linea);
+
+                Element txt = new Element("cell");
+                linea.addContent(txt);
+
+                txt.setText("HAY MAS DE 5000 LINEAS. CONTACTA CON EL DEPARTAMENTO DE DESARROLLO SI QUIERES EL EXCEL COMPLETO...");
+            }
+
+            try {
+                String archivo = UUID.randomUUID().toString();
+
+                File temp = (System.getProperty("tmpdir") == null)?File.createTempFile(archivo, ".pdf"):new File(new File(System.getProperty("tmpdir")), archivo + ".pdf");
+
+
+                System.out.println("java.io.tmpdir=" + System.getProperty("java.io.tmpdir"));
+                System.out.println("Temp file : " + temp.getAbsolutePath());
+
+                FileOutputStream fileOut = new FileOutputStream(temp);
+                String sxml = new XMLOutputter(Format.getPrettyFormat()).outputString(xml);
+                System.out.println("xslfo=" + xslfo);
+                System.out.println("xml=" + sxml);
+                fileOut.write(fop(new StreamSource(new StringReader(xslfo[0])), new StreamSource(new StringReader(sxml))));
+                fileOut.close();
+
+                String baseUrl = System.getProperty("tmpurl");
+                if (baseUrl == null) {
+                    return temp.toURI().toURL();
+                }
+                return new URL(baseUrl + "/" + temp.getName());
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+        } catch (Exception e1) {
+            e1.printStackTrace();
+        }
+
+
+        return null;
+    }
+
+
+    private static List<FieldInterfaced> getColumnFields(RpcView view, Class rowClass) {
+        List<FieldInterfaced> cols = ReflectionHelper.getAllFields(rowClass);
+        return cols;
+    }
+
+    private static List<FieldInterfaced> getColumnFields(Class rowClass) {
+        List<FieldInterfaced> cols = ReflectionHelper.getAllFields(rowClass);
+        return cols;
+    }
+
+
 
 }

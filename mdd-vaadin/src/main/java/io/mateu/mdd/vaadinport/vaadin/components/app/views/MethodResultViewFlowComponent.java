@@ -1,15 +1,19 @@
-package io.mateu.mdd.vaadinport.vaadin.components.app.flow.views;
+package io.mateu.mdd.vaadinport.vaadin.components.app.views;
 
 import com.google.common.base.Strings;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
+import io.mateu.mdd.core.annotations.Output;
 import io.mateu.mdd.core.interfaces.PersistentPOJO;
+import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.MethodResultViewComponent;
 
 import javax.persistence.Entity;
+import javax.persistence.Query;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.Collection;
@@ -33,10 +37,12 @@ public class MethodResultViewFlowComponent extends VerticalLayout {
         this.method = method;
 
 
+        if (!MDD.isMobile()) setSizeFull();
+
         addStyleName("methodresultflowcomponent");
 
         if (result instanceof Component) addComponent((Component) result);
-        else if (isPOJO(result)) addComponent(new EditorViewComponent(result));
+        else if (!method.isAnnotationPresent(Output.class) && isPOJO(result)) addComponent(new EditorViewComponent(result));
         else addComponent(new MethodResultViewComponent(method, result));
 
     }
@@ -49,6 +55,7 @@ public class MethodResultViewFlowComponent extends VerticalLayout {
                         !o.getClass().isArray()
                         && !o.getClass().isEnum()
                         && !(o instanceof URL)
+                                && !(o instanceof Query)
                         && !(o instanceof String)
                                 && !(Integer.class.equals(o.getClass()))
                                 && !(Long.class.equals(o.getClass()))
@@ -60,6 +67,7 @@ public class MethodResultViewFlowComponent extends VerticalLayout {
                         && !Collection.class.isAssignableFrom(o.getClass())
                                 && !Set.class.isAssignableFrom(o.getClass())
                                 && !Map.class.isAssignableFrom(o.getClass())
+                        && !(o instanceof RpcView)
                         )
         )) pojo = true;
 

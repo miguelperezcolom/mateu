@@ -1,4 +1,4 @@
-package io.mateu.mdd.vaadinport.vaadin.components.app.flow.views;
+package io.mateu.mdd.vaadinport.vaadin.components.app.views;
 
 import com.google.common.base.Strings;
 import com.vaadin.event.ShortcutAction;
@@ -10,8 +10,6 @@ import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MyUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.GitHubButton;
-import io.mateu.mdd.vaadinport.vaadin.components.oauth.GoogleButton;
-import io.mateu.mdd.vaadinport.vaadin.components.oauth.MicrosoftButton;
 
 import java.util.ArrayList;
 import java.util.List;

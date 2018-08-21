@@ -1,12 +1,11 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.vaadin.data.HasValue;
-import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
-import io.mateu.mdd.vaadinport.vaadin.components.app.flow.AbstractMDDExecutionContext;
+import io.mateu.mdd.vaadinport.vaadin.components.app.AbstractMDDExecutionContext;
 
 import java.util.ArrayList;
 import java.util.List;

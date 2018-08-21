@@ -6,6 +6,7 @@ import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.app.MDDOpenEditorAction;
 import io.mateu.mdd.core.app.MDDOpenListViewAction;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
+import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
 
@@ -84,6 +85,12 @@ public class MDDViewComponentCreator {
         } else {
 
         }
+        return v;
+    }
+
+    public static Component createComponent(WizardPage page) throws IllegalAccessException, InstantiationException {
+        EditorViewComponent v = createEditorViewComponent(page.getClass());
+        v.setModel(page);
         return v;
     }
 }

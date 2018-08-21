@@ -4,11 +4,10 @@ import com.google.common.base.Strings;
 import com.vaadin.annotations.*;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.PushStateNavigation;
-import com.vaadin.server.Page;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServlet;
 import com.vaadin.server.VaadinServletRequest;
-import com.vaadin.shared.communication.PushMode;
+import com.vaadin.ui.Component;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
@@ -16,7 +15,9 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractApplication;
 import io.mateu.mdd.core.app.BaseMDDApp;
 import io.mateu.mdd.core.interfaces.App;
-import io.mateu.mdd.vaadinport.vaadin.components.app.old.AppComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.desktop.DesktopAppComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.mobile.MobileAppComponent;
 import io.mateu.mdd.vaadinport.vaadin.mdd.VaadinPort;
 import io.mateu.mdd.vaadinport.vaadin.navigation.MDDNavigator;
 import io.mateu.mdd.vaadinport.vaadin.navigation.MDDViewProvider;
@@ -24,7 +25,6 @@ import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
 import io.mateu.mdd.vaadinport.vaadin.navigation.VoidView;
 
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 
@@ -77,18 +77,6 @@ public class MyUI extends UI {
     protected void init(VaadinRequest vaadinRequest) {
 
 
-        boolean mobile = Page.getCurrent().getWebBrowser().isAndroid() || Page.getCurrent().getWebBrowser().isIOS() || Page.getCurrent().getWebBrowser().isWindowsPhone();
-
-        if (vaadinRequest instanceof VaadinServletRequest) {
-            HttpServletRequest httpRequest = ((VaadinServletRequest) vaadinRequest).getHttpServletRequest();
-            String userAgent = httpRequest.getHeader("User-Agent").toLowerCase();
-            if (userAgent.contains("ipad")) { //... }
-               mobile = false;
-            }
-        }
-
-
-
         if (Strings.isNullOrEmpty(System.getProperty("tmpurl"))) {
             String url = ((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getRequestURL().toString();
             String uri = ((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getRequestURI();
@@ -111,7 +99,7 @@ public class MyUI extends UI {
             break;
         }
 
-        MDD.setPort(new VaadinPort());
+        MDD.setPort(new VaadinPort(vaadinRequest));
 
         MDD.setApp((BaseMDDApp) app);
 
@@ -126,14 +114,14 @@ public class MyUI extends UI {
 
         //setContent(flowComponent);
 
-        setContent(appComponent = new AppComponent(app, viewContainer));
+        setContent((Component) (appComponent = (MDD.getPort().isMobile())?new MobileAppComponent(app, viewContainer):new DesktopAppComponent(app, viewContainer)));
 
     }
 
     private Layout createViewContainer() {
         VerticalLayout l = new VerticalLayout();
         l.addStyleName("viewcontainer");
-        l.setSizeFull();
+        if (!MDD.getPort().isMobile()) l.setSizeFull();
         return l;
     }
 
@@ -165,7 +153,6 @@ public class MyUI extends UI {
 
 
     private void addNavigator() {
-
 
         navigator = new Navigator(this, viewContainer);
         navegador = new MDDNavigator(stack = new ViewStack(), navigator);
