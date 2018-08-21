@@ -1251,7 +1251,7 @@ public class ReflectionHelper {
     }
 
     public static Method getMethod(Consumer methodReference) {
-        System.out.println("pendiente!!!");
-        return null;
+        //todo: pendiente!!!!
+        return ReflectionHelper.getMethod(methodReference.getClass(), methodReference.toString());
     }
 }

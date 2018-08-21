@@ -78,13 +78,15 @@ public class MainModule extends AbstractModule {
                 l.add(new MDDCallMethodAction("Non-existent method", Caller.class, "thisMethodDoesNotExist"));
 
 
+                l.add(new MDDCallMethodAction("Returns URL", Caller.class, "returnURL"));
+
+                l.add(new MDDCallMethodAction("Returns URL in IFRAME", Caller.class, "returnURLInIframe"));
 
 
 
                 //todo: acabar de aquí hacia abajo
 
 
-                l.add(new MDDCallMethodAction("Returns URL", Caller.class, "returnURL"));
 
 
 
@@ -125,10 +127,13 @@ public class MainModule extends AbstractModule {
             public List<MenuEntry> buildEntries() {
                 List<MenuEntry> l = new ArrayList<>();
 
-                l.add(new MDDCallMethodAction("Simple wizard", Caller.class, "doSomething"));
+                l.add(new MDDCallMethodAction("As an action", Caller.class, "doSomething"));
 
-                l.add(new MDDCallMethodAction("Returns String", Caller.class, "returnString"));
+                l.add(new MDDCallMethodAction("As a field editor", Caller.class, "returnString"));
 
+                l.add(new MDDCallMethodAction("As a return value", Caller.class, "returnString"));
+
+                l.add(new MDDCallMethodAction("As a parameter", Caller.class, "returnString"));
 
                 return l;
             }

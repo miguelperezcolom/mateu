@@ -11,6 +11,7 @@ import io.mateu.mdd.vaadinport.vaadin.components.oldviews.MethodResultViewCompon
 
 import javax.persistence.Entity;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -47,6 +48,7 @@ public class MethodResultViewFlowComponent extends VerticalLayout {
                 (
                         !o.getClass().isArray()
                         && !o.getClass().isEnum()
+                        && !(o instanceof URL)
                         && !(o instanceof String)
                                 && !(Integer.class.equals(o.getClass()))
                                 && !(Long.class.equals(o.getClass()))

@@ -4,10 +4,12 @@ import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.icons.VaadinIcons;
+import com.vaadin.server.ExternalResource;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
+import io.mateu.mdd.core.annotations.IFrame;
 import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -22,6 +24,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Query;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -89,6 +92,19 @@ public class MethodResultViewComponent extends AbstractViewComponent {
                     ) {
 
                 addComponent(new Label("" + result, ContentMode.HTML));
+
+            } else if (URL.class.equals(c)) {
+
+
+                if (method.isAnnotationPresent(IFrame.class)) {
+
+                    addComponent(new BrowserFrame("Result", new ExternalResource(result.toString())));
+
+                } else {
+
+                    addComponent(new Link("Click me to open the result", new ExternalResource(result.toString())));
+
+                }
 
             } else if (Collection.class.isAssignableFrom(c)) {
 

@@ -3,6 +3,7 @@ package io.mateu.mdd.tester.model.callMethods;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.annotations.IFrame;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDOpenListViewAction;
 import io.mateu.mdd.core.interfaces.PushWriter;
@@ -53,6 +54,12 @@ public class Caller {
     }
 
 
+
+
+    @IFrame
+    public static URL returnURLInIframe() throws MalformedURLException {
+        return new URL("http://elpais.es");
+    }
 
 
     public static URL returnURL() throws MalformedURLException {
