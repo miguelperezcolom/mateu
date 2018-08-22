@@ -7,11 +7,12 @@ import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.util.Helper;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.validation.constraints.NotEmpty;
 import java.io.IOException;
 
-@Getter@Setter
+@Getter@Setter@ToString
 public class Wizard1Page2 implements WizardPage {
 
     private String aux;
@@ -41,6 +42,6 @@ public class Wizard1Page2 implements WizardPage {
 
     @Override
     public void onOk() throws Throwable {
-        System.out.println(Helper.toJson(this));
+        System.out.println(this);
     }
 }

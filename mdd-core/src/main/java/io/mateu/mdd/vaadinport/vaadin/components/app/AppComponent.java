@@ -10,4 +10,6 @@ public interface AppComponent {
     void setCoordinates(Pair<AbstractArea, MenuEntry> coordinates);
 
     void updateSession();
+
+    void updateTitle(String title);
 }

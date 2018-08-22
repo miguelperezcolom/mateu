@@ -3,6 +3,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.app.views;
 import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.app.MDDExecutionContext;
+import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.MethodParametersViewComponent;
 
@@ -13,6 +14,7 @@ public class MethodParametersViewFlowComponent extends VerticalLayout {
     private final Method method;
     private final Object instance;
     private final MDDExecutionContext context;
+    private final MDDBinder binder;
 
     @Override
     public String toString() {
@@ -23,14 +25,15 @@ public class MethodParametersViewFlowComponent extends VerticalLayout {
 
 
 
-    public MethodParametersViewFlowComponent(String state, Method method, Object instance, MDDExecutionContext context) {
+    public MethodParametersViewFlowComponent(String state, Method method, Object instance, MDDExecutionContext context, MDDBinder binder) {
         this.instance = instance;
         this.method = method;
         this.context = context;
+        this.binder = binder;
 
         addStyleName("actionparametersflowcomponent");
 
-        addComponent(new MethodParametersViewComponent(instance, method, context));
+        addComponent(new MethodParametersViewComponent(binder, instance, method, context));
 
     }
 

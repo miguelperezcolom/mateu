@@ -51,4 +51,6 @@ public interface MDDPort {
     void pushDone(String msg);
 
     void openWizard(Class firstPageClass);
+
+    void updateTitle(String title);
 }

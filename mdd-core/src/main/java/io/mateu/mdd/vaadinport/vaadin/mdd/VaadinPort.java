@@ -68,6 +68,10 @@ public class VaadinPort implements MDDPort {
         MDDUI.get().getNavegador().goTo("error no tiene sentido");
     }
 
+    @Override
+    public void updateTitle(String title) {
+        MDDUI.get().getAppComponent().updateTitle(title);
+    }
 
 
     @Override

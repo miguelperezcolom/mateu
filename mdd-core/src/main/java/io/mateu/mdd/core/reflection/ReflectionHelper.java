@@ -6,22 +6,18 @@ import com.vaadin.data.provider.DataProvider;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Caption;
 import io.mateu.mdd.core.annotations.Ignored;
-import io.mateu.mdd.core.app.MenuEntry;
 import io.mateu.mdd.core.data.Data;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.interfaces.PushWriter;
 import io.mateu.mdd.core.util.Helper;
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.beanutils.ConvertUtils;
-import org.apache.commons.beanutils.converters.URLConverter;
 import org.reflections.Reflections;
 
 import javax.persistence.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.lang.reflect.Parameter;
-import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -847,10 +843,6 @@ public class ReflectionHelper {
 
 
     public static Object execute(UserData user, Method m, MDDBinder parameters, Object instance) throws Throwable {
-        return execute(user, m, parameters, instance, null, null);
-    }
-
-    private static Object execute(UserData user, Method m, MDDBinder parameters, Object instance, String rpcViewClassName, Data rpcViewData) throws Throwable {
         Map<String, Object> params = (Map<String, Object>) parameters.getBean();
 
         int posEM = -1;
@@ -878,8 +870,6 @@ public class ReflectionHelper {
                 vs.add(params.get("_selection"));
             } else if (p.isAnnotationPresent(io.mateu.mdd.core.annotations.Wizard.class)) {
                 vs.add(parameters);
-            } else if (io.mateu.mdd.core.views.AbstractServerSideWizard.class.isAssignableFrom(p.getType())) {
-                //vs.add(fillWizard(user, em, p.getType(), parameters.get(p.getName())));
             } else if (UserData.class.equals(p.getType())) {
                 vs.add(user);
             } else if (params.containsKey(p.getName())) {
@@ -1016,54 +1006,6 @@ public class ReflectionHelper {
         };
     }
 
-    private static <T> T fillWizard(UserData user, EntityManager em, Class<T> type, Data data) throws Throwable {
-        T o = null;
-
-        for (Constructor<?> cons : type.getConstructors()) {
-            if (cons.getParameterCount() == 0) {
-                o = type.newInstance();
-                break;
-            } else {
-                boolean allOk = true;
-                List args = new ArrayList<>();
-
-                for (Parameter p : cons.getParameters()) {
-                    if (p.getType().equals(UserData.class)) {
-                        args.add(user);
-                    } else if (p.getType().equals(EntityManager.class)) {
-                        args.add(em);
-                    } else {
-                        allOk = false;
-                        break;
-                    }
-                }
-
-                if (allOk) {
-                    o = (T) cons.newInstance(args.toArray());
-                    break;
-                }
-            }
-        }
-
-        if (o == null) throw  new Exception("Unable to instantiate wizard of class " + type.getCanonicalName());
-
-
-
-
-        if (o instanceof io.mateu.mdd.core.views.BaseServerSideWizard) {
-            io.mateu.mdd.core.views.BaseServerSideWizard w = (io.mateu.mdd.core.views.BaseServerSideWizard) o;
-
-            List<Object> persistPending = new ArrayList<>();
-
-            for (Object p : w.getPages()) {
-                //fillEntity(em, persistPending, user, p, data, false);
-            }
-
-            for (Object x : persistPending) em.persist(x);
-
-            return (T) w;
-        } else throw new Exception("" + type.getName() + " must extend " + io.mateu.mdd.core.views.BaseServerSideWizard.class.getName());
-    }
 
     public static String getCaption(FieldInterfaced f) {
         if (f.isAnnotationPresent(Caption.class)) {

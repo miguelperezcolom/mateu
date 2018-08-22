@@ -11,9 +11,9 @@ import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
 public class MobileAppComponent extends VerticalLayout implements AppComponent {
 
     private final AbstractApplication app;
-    private final Component viewContainer;
+    private final ViewContainer viewContainer;
 
-    public MobileAppComponent(AbstractApplication app, Component viewContainer) {
+    public MobileAppComponent(AbstractApplication app, ViewContainer viewContainer) {
         this.app = app;
         this.viewContainer = viewContainer;
         
@@ -33,5 +33,10 @@ public class MobileAppComponent extends VerticalLayout implements AppComponent {
     @Override
     public void updateSession() {
         //MDD.info("Session has been updated");
+    }
+
+    @Override
+    public void updateTitle(String title) {
+        viewContainer.updateTitle(title);
     }
 }

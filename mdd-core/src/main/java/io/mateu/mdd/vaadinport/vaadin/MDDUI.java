@@ -17,6 +17,7 @@ import io.mateu.mdd.core.interfaces.App;
 import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.desktop.DesktopAppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.mobile.MobileAppComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.mobile.ViewContainer;
 import io.mateu.mdd.vaadinport.vaadin.navigation.MDDNavigator;
 import io.mateu.mdd.vaadinport.vaadin.navigation.MDDViewProvider;
 import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
@@ -53,7 +54,7 @@ public class MDDUI extends UI {
     private MDDNavigator navegador;
     private Navigator navigator;
     private ViewStack stack;
-    private Layout viewContainer;
+    private ViewContainer viewContainer;
 
 
     private AppComponent appComponent;
@@ -121,11 +122,8 @@ public class MDDUI extends UI {
         return app;
     }
 
-    private Layout createViewContainer() {
-        VerticalLayout l = new VerticalLayout();
-        l.addStyleName("viewcontainer");
-        if (!MDD.getPort().isMobile()) l.setSizeFull();
-        return l;
+    private ViewContainer createViewContainer() {
+        return new ViewContainer();
     }
 
 

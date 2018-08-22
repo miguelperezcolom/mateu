@@ -35,6 +35,7 @@ public class MethodParametersViewComponent extends AbstractViewComponent {
     private final Method method;
     private final Object bean;
     private final MDDExecutionContext context;
+    private final MDDBinder parentBinder;
     private Map<HasValue, List<Validator>> validators = new HashMap<>();
 
     private Map<String, Object> model = new HashMap<>();
@@ -47,8 +48,9 @@ public class MethodParametersViewComponent extends AbstractViewComponent {
         return binder.getMergeables();
     }
 
-    public MethodParametersViewComponent(Object bean, Method method, MDDExecutionContext context) {
+    public MethodParametersViewComponent(MDDBinder parentBinder, Object bean, Method method, MDDExecutionContext context) {
 
+        this.parentBinder = parentBinder;
         this.context = context;
         this.bean = bean;
         this.method = method;
@@ -148,9 +150,14 @@ public class MethodParametersViewComponent extends AbstractViewComponent {
 
                         Object r = ReflectionHelper.execute(MDD.getUserData(), method, binder, bean);
 
+                        if (parentBinder != null) {
+                            parentBinder.setBean(null, false);
+                            parentBinder.setBean(bean, false);
+                        }
+
                         if (void.class.equals(method.getReturnType())) {
                             MDDUI.get().getNavegador().goBack();
-                            MDD.alert("Done");
+                            MDD.info("Done");
                         } else {
                             MDDUI.get().getNavegador().showResult(context.getCurrentState(), method, r, context, true);
                         }

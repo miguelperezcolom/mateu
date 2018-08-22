@@ -8,9 +8,11 @@ import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Output;
 import io.mateu.mdd.core.interfaces.PersistentPOJO;
 import io.mateu.mdd.core.interfaces.RpcView;
+import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.MethodResultViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.WizardComponent;
 
 import javax.persistence.Entity;
 import javax.persistence.Query;
@@ -27,9 +29,13 @@ public class MethodResultViewFlowComponent extends VerticalLayout {
 
     @Override
     public String toString() {
-        String t = Helper.capitalize(method.getName());
-        if (method.isAnnotationPresent(Action.class) && !Strings.isNullOrEmpty(method.getAnnotation(Action.class).value())) t = method.getAnnotation(Action.class).value();
-        return "Result of " + t;
+        if (result != null && result instanceof WizardPage) {
+            return Helper.capitalize(result.getClass().getSimpleName());
+        } else {
+            String t = Helper.capitalize(method.getName());
+            if (method.isAnnotationPresent(Action.class) && !Strings.isNullOrEmpty(method.getAnnotation(Action.class).value())) t = method.getAnnotation(Action.class).value();
+            return "Result of " + t;
+        }
     }
 
     public MethodResultViewFlowComponent(String state, Method method, Object result) {
@@ -43,6 +49,13 @@ public class MethodResultViewFlowComponent extends VerticalLayout {
 
         if (result instanceof Component) addComponent((Component) result);
         else if (!method.isAnnotationPresent(Output.class) && isPOJO(result)) addComponent(new EditorViewComponent(result));
+        else if (result instanceof WizardPage) {
+            try {
+                addComponent(new WizardComponent((WizardPage) result));
+            } catch (Exception e) {
+                MDD.alert(e);
+            }
+        }
         else addComponent(new MethodResultViewComponent(method, result));
 
     }
@@ -68,6 +81,7 @@ public class MethodResultViewFlowComponent extends VerticalLayout {
                                 && !Set.class.isAssignableFrom(o.getClass())
                                 && !Map.class.isAssignableFrom(o.getClass())
                         && !(o instanceof RpcView)
+                                && !(o instanceof WizardPage)
                         )
         )) pojo = true;
 

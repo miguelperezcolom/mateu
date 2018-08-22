@@ -72,7 +72,7 @@ public class MDDViewComponentCreator {
         return v;
     }
 
-    private static EditorViewComponent createEditorViewComponent(Class modelType) throws InstantiationException, IllegalAccessException {
+    public static EditorViewComponent createEditorViewComponent(Class modelType) throws InstantiationException, IllegalAccessException {
         EditorViewComponent v = new EditorViewComponent(modelType).build();
         return v;
     }
@@ -88,8 +88,6 @@ public class MDDViewComponentCreator {
     }
 
     public static Component createComponent(WizardPage page) throws IllegalAccessException, InstantiationException {
-        EditorViewComponent v = createEditorViewComponent(page.getClass());
-        v.setModel(page);
-        return v;
+        return new WizardComponent(page);
     }
 }

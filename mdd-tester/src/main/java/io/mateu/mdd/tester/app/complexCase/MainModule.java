@@ -26,6 +26,7 @@ import io.mateu.mdd.tester.model.rpc.SampleRPCListView;
 import io.mateu.mdd.tester.model.rpc.SampleRPCToJPAListView;
 import io.mateu.mdd.tester.model.rpc.SampleRPCToPPOJOListView;
 import io.mateu.mdd.tester.model.wizards.Wizard1Page1;
+import io.mateu.mdd.tester.model.wizards.WizardEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -126,7 +127,7 @@ public class MainModule extends AbstractModule {
 
                 l.add(new MDDOpenWizardAction("As an action", Wizard1Page1.class));
 
-                l.add(new MDDCallMethodAction("As a field editor", Caller.class, "returnString"));
+                l.add(new MDDOpenCRUDAction("As a field editor", WizardEntity.class));
 
                 l.add(new MDDCallMethodAction("As a return value", Caller.class, "returnWizard"));
 

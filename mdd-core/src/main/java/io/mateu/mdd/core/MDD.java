@@ -83,4 +83,8 @@ public class MDD {
     public static void openWizard(Class firstPageClass) {
         getPort().openWizard(firstPageClass);
     }
+
+    public static void updateTitle(String title) {
+        getPort().updateTitle(title);
+    }
 }

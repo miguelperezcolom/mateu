@@ -9,14 +9,15 @@ import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.MenuEntry;
 import io.mateu.mdd.core.util.Pair;
 import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.mobile.ViewContainer;
 
 public class DesktopAppComponent extends VerticalLayout implements AppComponent {
     private final AbstractApplication app;
     private final LeftSideComponent left;
     private final HeaderComponent top;
-    private final Component viewContainer;
+    private final ViewContainer viewContainer;
 
-    public DesktopAppComponent(AbstractApplication app, Component viewContainer) {
+    public DesktopAppComponent(AbstractApplication app, ViewContainer viewContainer) {
         this.app = app;
         this.viewContainer = viewContainer;
 
@@ -77,5 +78,10 @@ public class DesktopAppComponent extends VerticalLayout implements AppComponent 
     public void updateSession() {
         top.updateSession();
         left.updateSession();
+    }
+
+    @Override
+    public void updateTitle(String title) {
+        viewContainer.updateTitle(title);
     }
 }

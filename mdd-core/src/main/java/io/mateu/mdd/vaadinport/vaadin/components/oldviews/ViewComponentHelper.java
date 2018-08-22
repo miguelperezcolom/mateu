@@ -8,7 +8,6 @@ import io.mateu.mdd.core.app.MDDExecutionContext;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
-import io.mateu.mdd.core.views.AbstractServerSideWizard;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
@@ -118,10 +117,6 @@ public class ViewComponentHelper {
                 vs.add(MDD.getUserData());
             } else if (Set.class.isAssignableFrom(p.getType())) {
                 vs.add(selection);
-            } else if (AbstractServerSideWizard.class.isAssignableFrom(p.getType())) {
-                //todo: acabar
-                //vs.add(fillWizard(user, em, p.getType(), parameters.get(p.getName())));
-                vs.add(null);
             } else {
                 vs.add((parameterValues != null)?parameterValues.get(p.getName()):null);
             }

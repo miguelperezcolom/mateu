@@ -1,23 +1,25 @@
 package io.mateu.mdd.tester.model.wizards;
 
+import com.google.common.base.Strings;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Output;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.validation.constraints.NotEmpty;
 
-@Getter@Setter
+@Getter@Setter@ToString
 public class Wizard1Page1 implements WizardPage {
 
     @NotEmpty
     private String name;
 
-    @Output
     private int age;
 
-
+    @Output
+    private int friends;
 
     @Action
     public void setRandomName() {
@@ -25,8 +27,8 @@ public class Wizard1Page1 implements WizardPage {
     }
 
     @Action
-    public void askForAge(int age) {
-        this.age = age;
+    public void askForFriends(int numberOfFriends) {
+        setFriends(numberOfFriends);
     }
 
 
@@ -38,7 +40,12 @@ public class Wizard1Page1 implements WizardPage {
 
     @Override
     public WizardPage getNext() {
-        return null;
+        return new Wizard1Page2(this);
     }
 
+
+    @Override
+    public boolean isValid() {
+        return age > 10;
+    }
 }

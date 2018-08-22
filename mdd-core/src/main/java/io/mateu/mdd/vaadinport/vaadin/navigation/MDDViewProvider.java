@@ -361,7 +361,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                             if (method != null) {
 
-                                stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, null, this));
+                                stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, null, this, null));
 
                             } else if ("filters".equals(step)) {
 
@@ -395,9 +395,18 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                 }
                             }
 
-                        } else if (lastViewComponent instanceof EditorViewComponent) {
+                        } else if (lastViewComponent instanceof EditorViewComponent || lastViewComponent instanceof WizardComponent) {
 
-                            EditorViewComponent evfc = (EditorViewComponent) lastViewComponent;
+                            EditorViewComponent auxevfc = null;
+
+                            if (lastViewComponent instanceof WizardComponent) {
+                                auxevfc = ((WizardComponent) lastViewComponent).getEditorViewComponent();
+                            } else {
+                                auxevfc = (EditorViewComponent) lastViewComponent;
+                            }
+
+                            EditorViewComponent evfc = auxevfc;
+
 
                             Method method = evfc.getMethod(step);
 
@@ -405,7 +414,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                             if (method != null) {
 
-                                stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, evfc.getModel(), this));
+                                stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, evfc.getModel(), this, evfc.getBinder()));
 
                             } else if (field != null) {
 
@@ -707,7 +716,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
 
                 if (hasNonInjectedParameters) {
-                    stack.push(currentPath, new MethodParametersViewFlowComponent(currentPath, method, instance, this));
+                    stack.push(currentPath, new MethodParametersViewFlowComponent(currentPath, method, instance, this, null));
                 } else {
 
                     if (Query.class.equals(method.getReturnType())) {

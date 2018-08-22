@@ -15246,6 +15246,22 @@ div.v-layout.v-horizontal.v-widget {
 	background-color: #73a5d7;
 }
 
+.mytheme .miapp .v-widget .nopadding {
+	padding: 0px;
+}
+
+.mytheme .miapp .v-widget .labelconlink {
+	margin-top: 7px;
+}
+
+.mytheme .miapp .viewcontainer .nopadding {
+	padding: 0px;
+}
+
+.mytheme .miapp .methodresultflowcomponent .nopadding {
+	padding: 0px;
+}
+
 .mytheme .miapp .embedded {
 	padding: 0px;
 }

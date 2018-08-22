@@ -129,40 +129,48 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
         List<TabSheet.Tab> tabsStack = new ArrayList<>();
         List<Layout> containersStack = new ArrayList<>();
 
+
+        boolean createTabs = !(contentContainer instanceof FiltersComponent);
+
+
         for (FieldInterfaced f : fields) {
 
+            if (createTabs) {
 
-            if (f.isAnnotationPresent(StartTabs.class)) { //todo: comprobar que también existe una etiqueta @Tab en este campo
-                if (tabs != null) {
-                    tabSheetsStack.add(0, tabs);
-                    tabsStack.add(0, tab);
-                    containersStack.add(0, currentContentContainer);
-                }
-                tabs = new TabSheet();
-                currentContentContainer.addComponent(tabs);
-            }
-            if (f.isAnnotationPresent(EndTabs.class)) {
-                if (tabSheetsStack.size() > 0) {
-                    tab = tabsStack.remove(0);
-                    tabs = tabSheetsStack.remove(0);
-                    currentContentContainer = containersStack.remove(0);
-                } else {
-                    tab = null;
-                    tabs = null;
-                    currentContentContainer = contentContainer;
-                }
-            }
-
-            if (f.isAnnotationPresent(Tab.class)) {
-                Tab ta = f.getAnnotation(Tab.class);
-                if (tabs == null) {
+                if (f.isAnnotationPresent(StartTabs.class)) { //todo: comprobar que también existe una etiqueta @Tab en este campo
+                    if (tabs != null) {
+                        tabSheetsStack.add(0, tabs);
+                        tabsStack.add(0, tab);
+                        containersStack.add(0, currentContentContainer);
+                    }
                     tabs = new TabSheet();
                     currentContentContainer.addComponent(tabs);
-                    //tabs.setCaption(ta.value());
                 }
-                tab = tabs.addTab(currentContentContainer = new FormLayout());
-                tab.setCaption(ta.value());
+                if (f.isAnnotationPresent(EndTabs.class)) {
+                    if (tabSheetsStack.size() > 0) {
+                        tab = tabsStack.remove(0);
+                        tabs = tabSheetsStack.remove(0);
+                        currentContentContainer = containersStack.remove(0);
+                    } else {
+                        tab = null;
+                        tabs = null;
+                        currentContentContainer = contentContainer;
+                    }
+                }
+
+                if (f.isAnnotationPresent(Tab.class)) {
+                    Tab ta = f.getAnnotation(Tab.class);
+                    if (tabs == null) {
+                        tabs = new TabSheet();
+                        currentContentContainer.addComponent(tabs);
+                        //tabs.setCaption(ta.value());
+                    }
+                    tab = tabs.addTab(currentContentContainer = new FormLayout());
+                    tab.setCaption(ta.value());
+                }
+
             }
+
             if (f.isAnnotationPresent(FieldBuilder.class)) {
                 try {
                     (f.getAnnotation(FieldBuilder.class).value().newInstance()).build(f, model, currentContentContainer, binder, validators, stylist, allFieldContainers, forSearchFilters);
