@@ -39,6 +39,23 @@
 
   // Insert your own theme rules here
 
+  .mobileapp {
+    padding: 0px;
+
+    .componentwrapper {
+      padding: 10px;
+
+      .section {
+        padding: 0px;
+      }
+
+      .filterscomponent {
+        padding: 0px;
+      }
+
+    }
+  }
+
   .miapp {
 
       width: 100%;
@@ -272,7 +289,16 @@
       .labelconlink {
         margin-top: 7px;
       }
+
+      .botondeicono {
+        padding: 0px;
+        height: inherit;
+        opacity: 1;
+      }
     }
+
+
+
 
     .viewcontainer {
       .nopadding {
@@ -298,10 +324,9 @@
 
     .sum {
       padding: 5px 19px;
-      background-color: darkred;
+      background-color: darkgray;
       font-weight: bold;
       color: white;
-      border: 1px solid black;
       border-radius: 3px;
     }
 

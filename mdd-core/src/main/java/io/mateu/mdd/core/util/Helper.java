@@ -17,13 +17,13 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 import io.mateu.mdd.core.asciiart.Painter;
-import io.mateu.mdd.core.data.Data;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.MiURLConverter;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.mail.DefaultAuthenticator;
 import org.apache.commons.mail.EmailException;
@@ -33,14 +33,12 @@ import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.eclipse.persistence.internal.security.JCEEncryptor;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.xml.sax.SAXException;
 
-import javax.crypto.CipherInputStream;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
@@ -57,13 +55,10 @@ import javax.xml.transform.*;
 import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -71,7 +66,6 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.Executors;
 
 /**
  * Created by miguel on 13/9/16.
@@ -460,6 +454,45 @@ public class Helper {
     }
 
 
+    public static File writeExcel(List data, List<FieldInterfaced> colFields) throws IOException, InvalidFormatException {
+        String archivo = UUID.randomUUID().toString();
+
+        File temp = (System.getProperty("tmpdir") == null)?File.createTempFile(archivo, ".xlsx"):new File(new File(System.getProperty("tmpdir")), archivo + ".xlsx");
+
+
+        System.out.println("java.io.tmpdir=" + System.getProperty("java.io.tmpdir"));
+        System.out.println("Temp file : " + temp.getAbsolutePath());
+
+        Workbook wb = new XSSFWorkbook();
+        CreationHelper createHelper = wb.getCreationHelper();
+            Sheet sheet = wb.createSheet();
+            for (int posfila = 0; posfila < data.size(); posfila++) {
+                Object l2 = data.get(posfila);
+                Row row = sheet.createRow(posfila);
+                for (int poscol = 0; poscol < colFields.size(); poscol++) {
+                    Cell cell = row.createCell(poscol);
+
+                    Object v = null;
+                    try {
+                        v = (l2 instanceof Object[])?((Object[])l2)[poscol + 2]:ReflectionHelper.getValue(colFields.get(poscol), l2);
+
+                        fillCell(wb, createHelper, cell, v);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+
+                }
+            }
+
+        FileOutputStream fileOut = new FileOutputStream(temp);
+        wb.write(fileOut);
+        fileOut.close();
+
+        return temp;
+    }
+
+
     public static File writeExcel(Object[][][] data) throws IOException, InvalidFormatException {
         String archivo = UUID.randomUUID().toString();
 
@@ -482,42 +515,8 @@ public class Helper {
 
                     Object v = l2[poscol];
 
-                    if (v == null) {
-                        cell.setCellType(CellType.BLANK);
-                    } else if (v instanceof Double || v instanceof Integer || v instanceof Long) {
-                        cell.setCellType(CellType.NUMERIC);
-                        cell.setCellValue(Double.parseDouble("" + v));
-                    } else if (v instanceof Date || v instanceof LocalDate || v instanceof LocalDateTime  || v instanceof LocalTime) {
-                        cell.setCellType(CellType.NUMERIC);
-                        if (v instanceof LocalTime) {
-                            CellStyle cellStyle = wb.createCellStyle();
-                            cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("HH:mm"));
-                            cell.setCellStyle(cellStyle);
-                            cell.setCellValue(HSSFDateUtil.convertTime(((LocalTime)v).format(DateTimeFormatter.ofPattern("HH:mm"))));
-                        } else if (v instanceof Date) {
-                            CellStyle cellStyle = wb.createCellStyle();
-                            cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("d/m/yy"));
-                            cell.setCellStyle(cellStyle);
-                            cell.setCellValue(HSSFDateUtil.getExcelDate((Date) v));
-                        } else if (v instanceof LocalDate) {
-                            CellStyle cellStyle = wb.createCellStyle();
-                            cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("d/m/yy"));
-                            cell.setCellStyle(cellStyle);
-                            cell.setCellValue(HSSFDateUtil.getExcelDate(Date.from((((LocalDate)v).atStartOfDay()).atZone(ZoneId.systemDefault()).toInstant())));
-                        } else if (v instanceof LocalDateTime) {
-                            CellStyle cellStyle = wb.createCellStyle();
-                            cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("d/m/yy HH:mm"));
-                            cell.setCellStyle(cellStyle);
-                            cell.setCellValue(HSSFDateUtil.getExcelDate(Date.from(((LocalDateTime)v).atZone(ZoneId.systemDefault()).toInstant())));
-                        }
+                    fillCell(wb, createHelper, cell, v);
 
-                    } else if (v instanceof Boolean) {
-                        cell.setCellType(CellType.BOOLEAN);
-                        cell.setCellValue((Boolean) v);
-                    } else {
-                        cell.setCellType(CellType.STRING);
-                        cell.setCellValue("" + v);
-                    }
                 }
             }
         }
@@ -529,6 +528,44 @@ public class Helper {
         return temp;
     }
 
+    private static void fillCell(Workbook wb, CreationHelper createHelper, Cell cell, Object v) {
+        if (v == null) {
+            cell.setCellType(CellType.BLANK);
+        } else if (v instanceof Double || v instanceof Integer || v instanceof Long) {
+            cell.setCellType(CellType.NUMERIC);
+            cell.setCellValue(Double.parseDouble("" + v));
+        } else if (v instanceof Date || v instanceof LocalDate || v instanceof LocalDateTime  || v instanceof LocalTime) {
+            cell.setCellType(CellType.NUMERIC);
+            if (v instanceof LocalTime) {
+                CellStyle cellStyle = wb.createCellStyle();
+                cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("HH:mm"));
+                cell.setCellStyle(cellStyle);
+                cell.setCellValue(HSSFDateUtil.convertTime(((LocalTime)v).format(DateTimeFormatter.ofPattern("HH:mm"))));
+            } else if (v instanceof Date) {
+                CellStyle cellStyle = wb.createCellStyle();
+                cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("d/m/yy"));
+                cell.setCellStyle(cellStyle);
+                cell.setCellValue(HSSFDateUtil.getExcelDate((Date) v));
+            } else if (v instanceof LocalDate) {
+                CellStyle cellStyle = wb.createCellStyle();
+                cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("d/m/yy"));
+                cell.setCellStyle(cellStyle);
+                cell.setCellValue(HSSFDateUtil.getExcelDate(Date.from((((LocalDate)v).atStartOfDay()).atZone(ZoneId.systemDefault()).toInstant())));
+            } else if (v instanceof LocalDateTime) {
+                CellStyle cellStyle = wb.createCellStyle();
+                cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("d/m/yy HH:mm"));
+                cell.setCellStyle(cellStyle);
+                cell.setCellValue(HSSFDateUtil.getExcelDate(Date.from(((LocalDateTime)v).atZone(ZoneId.systemDefault()).toInstant())));
+            }
+
+        } else if (v instanceof Boolean) {
+            cell.setCellType(CellType.BOOLEAN);
+            cell.setCellValue((Boolean) v);
+        } else {
+            cell.setCellType(CellType.STRING);
+            cell.setCellValue("" + v);
+        }
+    }
 
 
     public static void resend(String host, int port, String user, String password, Message m, String subject, String to) throws MessagingException, EmailException, IOException {
@@ -1041,7 +1078,17 @@ public class Helper {
 
     }
 
+    public static Object listViewComponentToPdf(ListViewComponent listViewComponent, Object filters) throws Throwable {
+        return listToPdf(listViewComponent.findAll(filters, null, 0, Integer.MAX_VALUE), listViewComponent.getColumnFields(listViewComponent.getColumnType()));
+    }
+
     public static URL listToPdf(List list)throws Throwable {
+
+        return listToPdf(list, null);
+
+    }
+
+    public static URL listToPdf(List list, List<FieldInterfaced> colFields)throws Throwable {
 
         String[] xslfo = {""};
 
@@ -1069,7 +1116,7 @@ public class Helper {
 
             if (Object[].class.equals(rowClass)) {
 
-                List<FieldInterfaced> rowFields = getColumnFields(rowClass);
+                List<FieldInterfaced> rowFields = (colFields != null)?colFields:getColumnFields(rowClass);
 
 
                 int xx = 1;
@@ -1102,11 +1149,12 @@ public class Helper {
                     Element linea = new Element("line");
                     lineas.addContent(linea);
 
+                    int col = 2;
                     for (FieldInterfaced c : rowFields){
 
                         Element cell = new Element("cell");
                         linea.addContent(cell);
-                        Object v = ReflectionHelper.getValue(c, x);
+                        Object v = ((Object[])x)[col++];
                         String text = "";
                         if (v != null) text += v;
                         if (v instanceof Double){
@@ -1230,6 +1278,55 @@ public class Helper {
         return cols;
     }
 
+
+
+
+    public static URL queryToExcel(Query query)throws Throwable {
+
+        return Helper.listToExcel(query.getResultList());
+
+    }
+
+
+    public static URL viewToExcel(RpcView view, Object filters)throws Throwable {
+
+        return listToExcel(view.rpc(filters, 0, Integer.MAX_VALUE));
+
+    }
+
+    public static Object listViewComponentToExcel(ListViewComponent listViewComponent, Object filters) throws Throwable {
+        return listToExcel(listViewComponent.findAll(filters, null, 0, Integer.MAX_VALUE), listViewComponent.getColumnFields(listViewComponent.getColumnType()));
+    }
+
+    public static URL listToExcel(List list)throws Throwable {
+
+        return listToExcel(list, null);
+
+    }
+
+    public static URL listToExcel(List list, List<FieldInterfaced> colFields)throws Throwable {
+
+        long t0 = new Date().getTime();
+
+
+        try {
+
+            File temp = writeExcel(list, colFields);
+
+            String baseUrl = System.getProperty("tmpurl");
+            if (baseUrl == null) {
+                return temp.toURI().toURL();
+            }
+            return new URL(baseUrl + "/" + temp.getName());
+
+        } catch (Exception e1) {
+            e1.printStackTrace();
+        }
+
+
+        return null;
+
+    }
 
 
 }

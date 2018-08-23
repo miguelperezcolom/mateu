@@ -37,6 +37,8 @@ public class FieldEditorComponent extends VerticalLayout {
 
         addStyleName("methodresultflowcomponent");
 
+        if (!MDD.isMobile()) setSizeFull();
+
 
         //todo: quitar código duplicado
 
@@ -108,7 +110,8 @@ public class FieldEditorComponent extends VerticalLayout {
             t.setSizeFull();
             t.focus();
             try {
-                t.setValue((String) ReflectionHelper.getValue(field, binder.getBean()));
+                String v = (String) ReflectionHelper.getValue(field, binder.getBean());
+                t.setValue((v != null)?v:"");
             } catch (Exception e) {
                 MDD.alert(e);
             }

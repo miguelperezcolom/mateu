@@ -87,7 +87,11 @@
 
 
 
-
+        <dependency>
+            <groupId>org.vaadin.addons</groupId>
+            <artifactId>fontawesomelabel</artifactId>
+            <version>1.4.0</version>
+        </dependency>
 
 
 

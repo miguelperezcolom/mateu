@@ -15,7 +15,7 @@ public class MobileMenuComponent extends VerticalLayout {
 
     @Override
     public String toString() {
-        return "Welcome to " + area.getName() + " menu.";
+        return "" + area.getName();
     }
 
     public MobileMenuComponent(MenuEntry area) {

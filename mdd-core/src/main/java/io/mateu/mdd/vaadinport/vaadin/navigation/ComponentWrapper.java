@@ -12,6 +12,8 @@ public class ComponentWrapper extends VerticalLayout {
     private Label titleLabel;
 
     public ComponentWrapper(ViewStack stack, Component component) {
+
+        addStyleName("componentwrapper");
         
         this.stack = stack;
 

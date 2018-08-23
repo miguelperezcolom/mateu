@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class FiltersComponent extends CssLayout {
+public class FiltersComponent extends Composite {
 
     private final ListViewComponent listViewComponent;
     private final Class modelType;
@@ -45,6 +45,10 @@ public class FiltersComponent extends CssLayout {
 
     private void build() {
 
+        Layout l = (MDD.isMobile())?new VerticalLayout():new CssLayout();
+        setCompositionRoot(l);
+        l.addStyleName("nopadding");
+
 
         addStyleName("filterscomponent");
 
@@ -62,6 +66,8 @@ public class FiltersComponent extends CssLayout {
 
         List<FieldInterfaced> allFilterFields = getAllFilterFields();
 
+        HorizontalLayout botones = new HorizontalLayout();
+
 
         if (allFilterFields.size() > 0) {
 
@@ -71,7 +77,35 @@ public class FiltersComponent extends CssLayout {
                 else mainFilterFields = allFilterFields;
             }
 
-            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(this, binder, modelType, binder.getBean(), validators, mainFilterFields, false, true);
+            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(l, binder, modelType, binder.getBean(), validators, mainFilterFields, false, true);
+
+
+            Button b;
+            botones.addComponent(b = new Button(VaadinIcons.CLOSE));
+            b.setDescription("Reset all filters");
+            b.addStyleName(ValoTheme.BUTTON_QUIET);
+            b.addStyleName("buttonlink");
+            b.addClickListener(new Button.ClickListener() {
+                @Override
+                public void buttonClick(Button.ClickEvent clickEvent) {
+                    try {
+                        Object filters = modelType.newInstance();
+                        for (FieldInterfaced f : listViewComponent.getFilterFields()) {
+                            try {
+                                ReflectionHelper.setValue(f, filters, null);
+                            } catch (Exception e) {
+                                MDD.alert(e);
+                            }
+                        }
+                        listViewComponent.setModelForSearchFilters(filters);
+                        listViewComponent.search(listViewComponent.getModelForSearchFilters());
+                    } catch (Throwable throwable) {
+                        MDD.alert(throwable);
+                    }
+                }
+            });
+
+
 
             if (mainFilterFields.size() < allFilterFields.size()) { // hay filtros que no son los
 
@@ -80,8 +114,7 @@ public class FiltersComponent extends CssLayout {
                 allFiltersComponent = r.getKey();
 
 
-                Button b;
-                addComponent(b = new Button(VaadinIcons.FILTER));
+                botones.addComponent(b = new Button(VaadinIcons.FILTER));
                 b.setDescription("All filters. Click Ctrl + F to fire");
                 b.addStyleName(ValoTheme.BUTTON_QUIET);
                 b.addStyleName("buttonlink");
@@ -107,7 +140,7 @@ public class FiltersComponent extends CssLayout {
 
             if (stringFieldNames.size() > 0) {
                 TextField f;
-                addComponent(f = new TextField("Text"));
+                botones.addComponent(f = new TextField("Text"));
                 String ph = "";
                 for (String s : stringFieldNames) {
                     if (!"".equals(ph)) ph += "/";
@@ -120,7 +153,7 @@ public class FiltersComponent extends CssLayout {
         }
 
         Button b;
-        addComponent(b = new Button(VaadinIcons.SEARCH));
+        botones.addComponent(b = new Button(VaadinIcons.SEARCH));
         b.setDescription("Search. Click ENTER to fire");
         b.addStyleName(ValoTheme.BUTTON_QUIET);
         b.addStyleName("buttonlink");
@@ -137,6 +170,9 @@ public class FiltersComponent extends CssLayout {
         });
         b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
         b.setStyleName(ValoTheme.BUTTON_PRIMARY);
+
+        l.addComponent(botones);
+
 
     }
 

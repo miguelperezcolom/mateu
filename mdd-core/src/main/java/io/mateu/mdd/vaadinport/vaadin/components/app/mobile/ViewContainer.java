@@ -8,9 +8,9 @@ import io.mateu.mdd.vaadinport.vaadin.navigation.ComponentWrapper;
 public class ViewContainer extends VerticalLayout {
 
     public ViewContainer() {
-        VerticalLayout l = new VerticalLayout();
-        l.addStyleName("viewcontainer");
-        if (!MDD.getPort().isMobile()) l.setSizeFull();
+        addStyleName("viewcontainer");
+        if (MDD.getPort().isMobile()) addStyleName("nopadding");
+        else setSizeFull();
     }
 
 

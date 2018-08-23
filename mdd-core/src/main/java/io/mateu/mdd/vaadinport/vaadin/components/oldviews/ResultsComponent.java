@@ -117,7 +117,7 @@ public class ResultsComponent extends VerticalLayout {
         grid.addItemClickListener(new ItemClickListener<Object>() {
             @Override
             public void itemClick(Grid.ItemClick<Object> itemClick) {
-                if (itemClick.getMouseEventDetails().isDoubleClick()) {
+                if (MDD.isMobile() || itemClick.getMouseEventDetails().isDoubleClick()) {
                     Object i = itemClick.getItem();
                     if (i != null) {
                         edit(listViewComponent.toId(i));

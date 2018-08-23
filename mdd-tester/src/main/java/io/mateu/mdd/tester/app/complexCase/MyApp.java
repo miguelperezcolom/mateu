@@ -14,6 +14,6 @@ public class MyApp extends BaseMDDApp {
     }
 
     public List<AbstractArea> buildAreas() {
-        return Arrays.asList(new MainArea(), new UseCasesArea(), new PrivateArea());
+        return Arrays.asList(new UseCasesArea(), new ShowcaseArea(), new PrivateArea());
     }
 }

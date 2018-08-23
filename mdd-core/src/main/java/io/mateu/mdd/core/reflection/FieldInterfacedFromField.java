@@ -68,6 +68,8 @@ public class FieldInterfacedFromField implements io.mateu.mdd.core.reflection.Fi
                 return genericClass;
             } else return null;
 
+        } else if (f.getGenericType() != null) {
+            return (Class<?>) f.getGenericType();
         } else return null;
     }
 

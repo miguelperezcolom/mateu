@@ -8,10 +8,10 @@ import io.mateu.mdd.tester.model.entities.basic.BasicFieldsDemoEntity;
 import java.util.Arrays;
 import java.util.List;
 
-public class MainArea extends AbstractArea {
+public class ShowcaseArea extends AbstractArea {
 
-    public MainArea() {
-        super("Main area");
+    public ShowcaseArea() {
+        super("Showcase area");
         defaultAction = new MDDOpenCRUDAction("Welcome page",
                 BasicFieldsDemoEntity.class);
     }

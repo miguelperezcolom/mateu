@@ -17,6 +17,7 @@ public abstract class AbstractFieldBuilder {
 
     public static List<AbstractFieldBuilder> builders = Lists.newArrayList(
             new FromDataProviderFieldBuilder()
+            , new JPAAuditFieldBuilder()
             , new JPAWizardFieldBuilder()
             , new JPAWeekDaysFieldBuilder()
             , new JPAIFrameFieldBuilder()

@@ -2,6 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
+import com.vaadin.server.Sizeable;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
@@ -82,7 +83,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
             AbstractStylist finalStylist1 = stylist;
             sections.forEach(s -> {
-                FormLayout form = new FormLayout();
+                Layout form = (MDD.isMobile())?new VerticalLayout():new FormLayout();
                 form.setSizeUndefined();
                 form.addStyleName("section");
                 if (s.isCard()) form.addStyleName("sectioncard");
@@ -98,6 +99,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
                 buildAndAddFields(ofb, model, form, binder, validators, finalStylist1, allFieldContainers, s.getFields(), forSearchFilters);
                 contentContainer.addComponent(form);
+                if (form.getWidth() == 100 && Sizeable.Unit.PERCENTAGE.equals(form.getWidthUnits())) contentContainer.setWidth("100%");
             });
         } else {
             buildAndAddFields(ofb, model, contentContainer, binder, validators, stylist, allFieldContainers, allFields, forSearchFilters);
@@ -134,6 +136,11 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
 
         for (FieldInterfaced f : fields) {
+
+            if (f.isAnnotationPresent(FullWidth.class)) {
+                contentContainer.setWidth("100%");
+                if (!currentContentContainer.equals(contentContainer)) currentContentContainer.setWidth("100%");
+            }
 
             if (createTabs) {
 

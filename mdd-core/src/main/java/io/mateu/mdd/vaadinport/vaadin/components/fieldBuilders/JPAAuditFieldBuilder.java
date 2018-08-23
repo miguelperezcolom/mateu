@@ -10,20 +10,23 @@ import com.vaadin.ui.Layout;
 import com.vaadin.ui.TextField;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Help;
+import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
+import io.mateu.mdd.core.interfaces.AuditRecord;
+import io.mateu.mdd.core.model.authentication.Audit;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.data.MDDBinder;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 
-public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
+public class JPAAuditFieldBuilder extends AbstractFieldBuilder {
 
 
     public boolean isSupported(FieldInterfaced field) {
-        return String.class.equals(field.getType());
+        return AuditRecord.class.isAssignableFrom(field.getType());
     }
 
     public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {

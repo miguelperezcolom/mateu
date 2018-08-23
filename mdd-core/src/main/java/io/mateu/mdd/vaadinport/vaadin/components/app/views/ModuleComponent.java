@@ -14,7 +14,7 @@ public class ModuleComponent extends VerticalLayout {
 
     @Override
     public String toString() {
-        return "Welcome to " + area.getName() + " area.";
+        return "" + area.getName();
     }
 
     public ModuleComponent(AbstractModule area) {
@@ -23,14 +23,19 @@ public class ModuleComponent extends VerticalLayout {
 
         addStyleName("methodresultflowcomponent");
 
-        area.getMenu().stream().forEach(a -> {
+        if (MDD.isMobile()) {
 
-            Button b;
-            addComponent(b = new Button(a.getName()));
-            b.addClickListener(e -> MDDUI.get().getNavegador().goTo(a));
-            b.addStyleName(ValoTheme.BUTTON_QUIET);
+            area.getMenu().stream().forEach(a -> {
 
-        });
+                Button b;
+                addComponent(b = new Button(a.getName()));
+                b.addClickListener(e -> MDDUI.get().getNavegador().goTo(a));
+                b.addStyleName(ValoTheme.BUTTON_QUIET);
+
+            });
+
+        }
+
 
 
         if (!MDD.isMobile()) addComponentsAndExpand(new Label(""));

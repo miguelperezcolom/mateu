@@ -30,6 +30,11 @@ public class PublicMenuFlowComponent extends VerticalLayout {
 
         });
 
+        Button b;
+        addComponent(b = new Button("Login"));
+        b.addClickListener(e -> MDDUI.get().getNavegador().goTo("login"));
+        b.addStyleName(ValoTheme.BUTTON_QUIET);
+
 
        if (!MDD.isMobile()) addComponentsAndExpand(new Label(""));
     }

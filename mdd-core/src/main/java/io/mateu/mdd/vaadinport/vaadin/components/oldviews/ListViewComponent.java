@@ -5,35 +5,45 @@ import com.byteowls.vaadin.chartjs.config.DonutChartConfig;
 import com.byteowls.vaadin.chartjs.data.Dataset;
 import com.byteowls.vaadin.chartjs.data.PieDataset;
 import com.google.common.base.Strings;
+import com.kbdunn.vaadin.addons.fontawesome.FontAwesome;
+import com.kbdunn.vaadin.addons.fontawesome.FontAwesomeLabel;
 import com.vaadin.data.HasDataProvider;
 import com.vaadin.data.ValueProvider;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
+import com.vaadin.server.ExternalResource;
 import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.SortOrderProvider;
+import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.data.ChartData;
 import io.mateu.mdd.core.data.ChartValue;
 import io.mateu.mdd.core.data.SumData;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
+import io.mateu.mdd.core.interfaces.AbstractJPQLListView;
 import io.mateu.mdd.core.interfaces.ICellStyleGenerator;
+import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.interfaces.StyledEnum;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components.WeekDaysComponent;
+import org.javamoney.moneta.FastMoney;
 
+import javax.money.MonetaryAmount;
 import javax.persistence.GeneratedValue;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -51,6 +61,8 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     public FiltersComponent filtersComponent;
     private HorizontalLayout sumsComponent;
     private HorizontalLayout chartsComponent;
+    private Button excelButton;
+    private Button pdfButton;
 
     @Override
     public ListViewComponent build() throws InstantiationException, IllegalAccessException {
@@ -69,12 +81,35 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         addComponent(chartsComponent = new HorizontalLayout());
         chartsComponent.setVisible(false);
 
-        addComponent(countLabel = new Label());
+        HorizontalLayout hcl;
+        addComponent(hcl = new HorizontalLayout(excelButton = new Button(FontAwesome.FILE_EXCEL_O, e -> excel()), pdfButton = new Button(FontAwesome.FILE_PDF_O, e -> pdf()), countLabel = new Label()));
         countLabel.addStyleName("resultsmessage");
+
+        excelButton.addStyleName(ValoTheme.BUTTON_LINK);
+        excelButton.addStyleName("botondeicono");
+
+        pdfButton.addStyleName(ValoTheme.BUTTON_LINK);
+        pdfButton.addStyleName("botondeicono");
+
 
         addComponentsAndExpand(resultsComponent = buildResultsComponent());
         return this;
     }
+
+    private void pdf() {
+        try {
+            getUI().getPage().open(Helper.listViewComponentToPdf(this, getModelForSearchFilters()).toString(), "_blank");
+        } catch (Throwable throwable) {
+            MDD.alert(throwable);
+        }
+    }
+
+    private void excel() {
+        try {
+            getUI().getPage().open(Helper.listViewComponentToExcel(this, getModelForSearchFilters()).toString(), "_blank");
+        } catch (Throwable throwable) {
+            MDD.alert(throwable);
+        }    }
 
     private ResultsComponent buildResultsComponent() {
         return new ResultsComponent(this);
@@ -169,6 +204,8 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             if (Integer.class.equals(f.getType()) || int.class.equals(f.getType())
                 || Long.class.equals(f.getType()) || long.class.equals(f.getType())
                 || Double.class.equals(f.getType()) || double.class.equals(f.getType())
+                    || BigInteger.class.equals(f.getType()) || BigDecimal.class.equals(f.getType()) || Number.class.equals(f.getType())
+                    || FastMoney.class.equals(f.getType()) || MonetaryAmount.class.equals(f.getType())
                 ) {
                 col.setStyleGenerator(c -> "v-align-right");
         }
@@ -329,22 +366,32 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     private static double getColumnWidth(FieldInterfaced f) {
-        Class t = f.getType();
-        if (
-                int.class.equals(t)
-                        || Integer.class.equals(t)
-                        || long.class.equals(t)
-                        || Long.class.equals(t)
-                        || float.class.equals(t)
-                        || Float.class.equals(t)
-                        || double.class.equals(t)
-                        || Double.class.equals(t)
-                        || boolean.class.equals(t)
-                        || Boolean.class.equals(t)
-                ) return 80;
-        else if (LocalDate.class.equals(t)) return 120;
-        else if (LocalDateTime.class.equals(t)) return 220;
-        else return 250;
+
+        if (f.isAnnotationPresent(ColumnWidth.class)) return f.getAnnotation(ColumnWidth.class).value();
+        else {
+
+            Class t = f.getType();
+            if (
+                    int.class.equals(t)
+                            || Integer.class.equals(t)
+                            || long.class.equals(t)
+                            || Long.class.equals(t)
+                            || float.class.equals(t)
+                            || Float.class.equals(t)
+                            || double.class.equals(t)
+                            || Double.class.equals(t)
+                            || boolean.class.equals(t)
+                            || Boolean.class.equals(t)
+                            || BigInteger.class.equals(t)
+                            || BigDecimal.class.equals(t)
+                            || Number.class.equals(t)
+                    ) return 120;
+            else if (LocalDate.class.equals(t)) return 120;
+            else if (LocalDateTime.class.equals(t)) return 220;
+            else return 250;
+
+        }
+
     }
 
     public void search(Object filters) throws Throwable {
@@ -415,14 +462,16 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
         String s = "";
 
-        if (filters != null) for (FieldInterfaced f : ReflectionHelper.getAllFields(filters.getClass())) if (!f.isAnnotationPresent(Ignored.class)) {
+        if (filters != null) for (FieldInterfaced f : getFilterFields()) if (!f.isAnnotationPresent(Ignored.class)) {
             try {
                 Object v = f.getValue(filters);
 
                 if (v != null) {
-                    if (!"".equals(s)) s += ", ";
-                    s += Helper.capitalize(f.getName()) + " = " + v;
-                    s += "";
+                    if (!(v instanceof  String) || !Strings.isNullOrEmpty((String) v)) {
+                        if (!"".equals(s)) s += ", ";
+                        s += ReflectionHelper.getCaption(f) + " = " + v;
+                        s += "";
+                    }
                 }
 
             } catch (Exception e) {

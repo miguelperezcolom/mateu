@@ -16,6 +16,7 @@ public class MobileAppComponent extends VerticalLayout implements AppComponent {
     public MobileAppComponent(AbstractApplication app, ViewContainer viewContainer) {
         this.app = app;
         this.viewContainer = viewContainer;
+        addStyleName("mobileapp");
         
         addComponent(viewContainer);
     }

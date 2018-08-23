@@ -195,13 +195,15 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
             AbstractArea area = MDD.getApp().getArea(state);
 
-            if (!MDD.isMobile()) stack.clear();
+            stack.clear();
 
             AbstractAction action = area.getDefaultAction();
             if (!MDD.isMobile() && action != null) {
                 action.run(this);
                 if (stack.size() > 0) v = stack.getLast();
             } else if (MDD.isMobile()) {
+                String[] ts = currentPath.split("/");
+                stack.push(ts[0], ("private".equals(ts[0]))?new PrivateMenuFlowComponent():new PublicMenuFlowComponent());
                 stack.push(currentPath, new AreaComponent(area));
                 v = stack.get(currentPath);
             } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new AreaComponent(area));
@@ -270,16 +272,22 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     if (!"".equals(auxPath)) auxPath += "/";
                     auxPath += steps[pos];
 
-                    menuPassed = menuPassed || stack.get(auxPath) != null || (MDD.getApp().getMenu(auxPath) != null && MDD.getApp().getMenu(auxPath) instanceof AbstractAction);
+                    if (MDD.isMobile()) {
+                        menuPassed = menuPassed || (MDD.getApp().getMenu(auxPath) != null && MDD.getApp().getMenu(auxPath) instanceof AbstractAction);
+                        coincide = stack.get(auxPath) != null;
+                    } else {
+                        menuPassed = menuPassed || stack.get(auxPath) != null || (MDD.getApp().getMenu(auxPath) != null && MDD.getApp().getMenu(auxPath) instanceof AbstractAction);
 
-                    if (menuPassed) {
-                        io.mateu.mdd.vaadinport.vaadin.navigation.View auxV = stack.get(auxPath);
-                        coincide = auxV != null || (MDD.getApp().getMenu(auxPath) != null && !(MDD.getApp().getMenu(auxPath) instanceof AbstractAction));
+                        if (menuPassed) {
+                            io.mateu.mdd.vaadinport.vaadin.navigation.View auxV = stack.get(auxPath);
+                            coincide = auxV != null || (!MDD.isMobile() && (MDD.getApp().getMenu(auxPath) != null && !(MDD.getApp().getMenu(auxPath) instanceof AbstractAction)));
 
-                        if (coincide) {
-                            path = auxPath;
-                            lastIndexInStack = stack.indexOf(auxV);
-                            lastView = auxV;
+                            if (coincide) {
+                                path = auxPath;
+                                lastIndexInStack = stack.indexOf(auxV);
+                                lastView = auxV;
+                            }
+
                         }
 
                     }
@@ -352,11 +360,9 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                             }
 
 
-
                             // step es filters, add o el id del objeto a editar
 
                             Method method = lvc.getMethod(step);
-
 
 
                             if (method != null) {
@@ -535,11 +541,42 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                 e.printStackTrace();
                             }
 
+                        }
 
-                            //crud.loadInEditor(sid);
+                    } else if (currentStepIndex == 0) {
 
+                        if ("public".equals(step)) { // caso "login"
+
+                            if (MDD.isMobile()) {
+                                stack.push(currentPath, new PublicMenuFlowComponent());
+                                v = stack.get(currentPath);
+                            } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PublicMenuFlowComponent());
+
+                        } else if ("private".equals(step)) { // caso "login"
+
+                            if (MDD.isMobile()) {
+                                stack.push(currentPath, new PrivateMenuFlowComponent());
+                                v = stack.get(currentPath);
+                            } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PrivateMenuFlowComponent());
 
                         }
+
+
+                    } else if (currentStepIndex == 1) {
+
+                        AbstractArea area = MDD.getApp().getArea(currentPath);
+
+                        AbstractAction action = area.getDefaultAction();
+                        if (!MDD.isMobile() && action != null) {
+                            action.run(this);
+                            if (stack.size() > 0) v = stack.getLast();
+                        } else if (MDD.isMobile()) {
+                            stack.push(currentPath, new AreaComponent(area));
+                            v = stack.get(currentPath);
+                        } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new AreaComponent(area));
+
+                        MDDUI.get().getAppComponent().setArea(area);
+
 
                     } else if (MDD.getApp().getModule(currentPath) != null) {
 
@@ -609,7 +646,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
         if (v == null) v = new VoidView();
 
-        if (v != null && v instanceof io.mateu.mdd.vaadinport.vaadin.navigation.View && ((io.mateu.mdd.vaadinport.vaadin.navigation.View)v).getComponent() instanceof CRUDViewComponent) Notification.show("Double click on matches to edit", Notification.Type.TRAY_NOTIFICATION);
+        if (v != null && v instanceof io.mateu.mdd.vaadinport.vaadin.navigation.View && ((io.mateu.mdd.vaadinport.vaadin.navigation.View)v).getComponent() instanceof CRUDViewComponent) Notification.show(((MDD.isMobile())?"Click":"Double click") + " on matches to edit", Notification.Type.TRAY_NOTIFICATION);
 
         return v;
 

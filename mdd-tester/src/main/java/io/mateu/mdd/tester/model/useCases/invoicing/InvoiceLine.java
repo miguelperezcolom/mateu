@@ -24,5 +24,10 @@ public class InvoiceLine {
     private double amount;
 
 
+    public void setAmount(double amount) {
+        this.amount = amount;
+        if (invoice != null) invoice.updateTotals();
+    }
+
 
 }

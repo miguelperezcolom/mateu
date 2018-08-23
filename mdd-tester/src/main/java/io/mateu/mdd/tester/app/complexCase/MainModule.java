@@ -155,7 +155,7 @@ public class MainModule extends AbstractModule {
         });
 
 
-        m.add(new AbstractMenu("Field use cases") {
+        m.add(new AbstractMenu("Fields") {
             @Override
             public List<MenuEntry> buildEntries() {
                 List<MenuEntry> l = new ArrayList<>();

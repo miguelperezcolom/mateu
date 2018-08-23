@@ -3,12 +3,11 @@ package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 import com.google.common.base.Strings;
 import com.vaadin.data.*;
 import com.vaadin.data.validator.BeanValidator;
+import com.vaadin.server.Sizeable;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
-import io.mateu.mdd.core.annotations.DataProvider;
-import io.mateu.mdd.core.annotations.Help;
-import io.mateu.mdd.core.annotations.Password;
-import io.mateu.mdd.core.annotations.UseRadioButtons;
+import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -159,6 +158,20 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
             TextField tf;
             container.addComponent(tf = (field.isAnnotationPresent(Password.class)) ? new PasswordField() : new TextField());
             tf.setValueChangeMode(ValueChangeMode.BLUR);
+
+
+
+            if (String.class.equals(field.getType())) {
+                if (!forSearchFilter) {
+                    if (field.isAnnotationPresent(FullWidth.class)) tf.setWidth("100%");
+                    else tf.setWidth(300, Sizeable.Unit.PIXELS);
+                }
+            } else {
+                tf.setWidth(100, Sizeable.Unit.PIXELS);
+                tf.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
+            }
+
+
 
             if (allFieldContainers.size() == 0) tf.focus();
 

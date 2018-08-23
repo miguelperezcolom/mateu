@@ -9,10 +9,7 @@ import com.vaadin.shared.Registration;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.DataProvider;
-import io.mateu.mdd.core.annotations.UseCheckboxes;
-import io.mateu.mdd.core.annotations.UseLinkToListView;
-import io.mateu.mdd.core.annotations.UseTwinCols;
+import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.*;
@@ -85,6 +82,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             tf.setRows(10);
             tf.setLeftColumnCaption("Available options");
             tf.setRightColumnCaption("Selected options");
+
+            if (field.isAnnotationPresent(FullWidth.class)) tf.setWidth("100%");
 
             //tf.addValueChangeListener(event -> Notification.show("Value changed:", String.valueOf(event.getValue()), Type.TRAY_NOTIFICATION));
 
@@ -199,6 +198,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             Grid g = new Grid();
 
+            if (field.isAnnotationPresent(FullWidth.class)) g.setWidth("100%");
+
             ListViewComponent.buildColumns(g, getColumnFields(field), false, owned);
 
             g.setSelectionMode(Grid.SelectionMode.MULTI);
@@ -278,6 +279,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         Class valueType = ReflectionHelper.getGenericClass(field, Map.class, "V");
 
         Grid g = new Grid();
+
+        if (field.isAnnotationPresent(FullWidth.class)) g.setWidth("100%");
 
         ListViewComponent.buildColumns(g, getColumnFields(field), false, true);
 

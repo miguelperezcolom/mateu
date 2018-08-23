@@ -52,8 +52,10 @@ public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvi
             return em.createQuery(field.getAnnotation(QLForCombo.class).ql());
         } else if (field.isAnnotationPresent(QLFilter.class) && !Strings.isNullOrEmpty(field.getAnnotation(QLFilter.class).value())) {
             return buildQuery(em, field.getGenericClass(), field.getAnnotation(QLFilter.class).value());
-        } else {
+        } else if (field.getGenericClass() != null) {
             return buildQuery(em, field.getGenericClass(), null);
+        } else {
+            return buildQuery(em, field.getType(), null);
         }
     }
 

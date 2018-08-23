@@ -89,6 +89,18 @@ public class LoginFlowComponent extends VerticalLayout {
             layouts.add(dcha);
         }
 
+        if (MDD.isMobile()) {
+
+            VerticalLayout l;
+            layouts.add(l = new VerticalLayout());
+
+            Button b;
+            l.addComponent(b = new Button("Go back to menu"));
+            b.addClickListener(e -> MDDUI.get().getNavegador().goTo("public"));
+            b.addStyleName(ValoTheme.BUTTON_QUIET);
+
+        }
+
         if (layouts.size() > 1) {
 
             CssLayout cl = new CssLayout();
