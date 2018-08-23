@@ -1,9 +1,8 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.desktop;
 
 import com.google.common.base.Strings;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.server.ExternalResource;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
@@ -19,7 +18,7 @@ public class NavigationComponent extends VerticalLayout {
 
     private final AbstractApplication app;
     private AbstractArea area;
-    private Map<MenuEntry, Button> botones;
+    private Map<MenuEntry, Component> botones;
     private MenuEntry menu;
 
     public NavigationComponent(AbstractApplication app) {
@@ -52,7 +51,8 @@ public class NavigationComponent extends VerticalLayout {
 
                 if (app.getAreas().size() > 1) {
 
-                    Button b = new Button(a.getName() + ((app.getAreas().size() > 1)?"<span class=\"menu-badge\">+" + (app.getAreas().size() - 1) + "</span>":""), a.getIcon());
+                    Link b = new Link(a.getName() + ((app.getAreas().size() > 1)?"<span class=\"menu-badge\">+" + (app.getAreas().size() - 1) + "</span>":"")
+                            , new ExternalResource("/" + ((a.isPublicAccess())?"public":"private"))); //, a.getIcon());
                     //b.setIcon(FontAwesome.TH_LIST);
                     b.setPrimaryStyleName(ValoTheme.BUTTON_QUIET);
                     b.setCaptionAsHtml(true);
@@ -65,7 +65,7 @@ public class NavigationComponent extends VerticalLayout {
 
                     addComponent(b);
 
-                    b.addClickListener(e -> MDDUI.get().getNavegador().goTo((a.isPublicAccess())?"public":"private"));
+                    //b.addClickListener(e -> MDDUI.get().getNavegador().goTo((a.isPublicAccess())?"public":"private"));
 
                 }
 
@@ -94,7 +94,8 @@ public class NavigationComponent extends VerticalLayout {
     private void addMenu(MenuEntry e) {
 
 
-        Button b = new Button(e.getName() + ((e instanceof  AbstractMenu)?"<span class=\"menu-badge\">" + ((AbstractMenu) e).getEntries().size() + "</span>":""));
+        Link b = new Link(e.getName() + ((e instanceof  AbstractMenu)?"<span class=\"menu-badge\">" + ((AbstractMenu) e).getEntries().size() + "</span>":"")
+        , new ExternalResource("/" + MDDUI.get().getNavegador().getPath(e)));
         //b.setIcon(FontAwesome.TH_LIST);
         b.setPrimaryStyleName(ValoTheme.BUTTON_QUIET);
         b.addStyleName("opcionmenu");
@@ -102,6 +103,7 @@ public class NavigationComponent extends VerticalLayout {
         b.setCaptionAsHtml(true);
         addComponent(b);
 
+        /*
         b.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -110,6 +112,7 @@ public class NavigationComponent extends VerticalLayout {
 
             }
         });
+        */
 
 
         botones.put(e, b);

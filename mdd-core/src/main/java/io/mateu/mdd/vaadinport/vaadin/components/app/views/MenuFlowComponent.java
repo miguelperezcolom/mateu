@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.views;
 
+import com.vaadin.server.ExternalResource;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
@@ -83,12 +84,9 @@ public class MenuFlowComponent extends Panel {
 
         } else if (e instanceof AbstractAction) {
 
-            Button b;
-            l.addComponent(b = new Button(e.getName(), x ->{
-                String path = MDD.getApp().getMenuId(e);
-                MDDUI.get().getNavegador().goTo(path);
-            }));
-
+            Link b;
+            String path = MDD.getApp().getMenuId(e);
+            l.addComponent(b = new Link(e.getName(), new ExternalResource("/" + path)));
             b.setPrimaryStyleName(ValoTheme.BUTTON_QUIET);
             b.addStyleName("submenuoption");
 

@@ -147,6 +147,12 @@
               font-weight: bold;
               text-align: center;
               cursor: pointer;
+
+              a {
+                text-decoration: none;
+                color: #191919 !important;
+              }
+
             }
 
             .v-slot-tituloarea {
@@ -259,6 +265,12 @@
               padding: 3px 10px 3px 10px;
               cursor: pointer;
 
+              a {
+                text-decoration: none;
+                color: #191919 !important;
+              }
+
+
             }
 
             .opcionmenu.selected {
@@ -267,6 +279,15 @@
 
             .v-slot-opcionmenu:hover {
               background-color: #73a5d7;
+            }
+
+            .submenuoption {
+
+              a {
+                text-decoration: none;
+                color: #191919 !important;
+              }
+
             }
 
 

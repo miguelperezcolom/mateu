@@ -18108,6 +18108,11 @@ div.v-layout.v-horizontal.v-widget {
 	cursor: pointer;
 }
 
+.mytheme .miapp .leftside .navegacion .tituloarea a {
+	text-decoration: none;
+	color: #191919 !important;
+}
+
 .mytheme .miapp .leftside .navegacion .v-slot-tituloarea {
 	background-color: slategray;
 }
@@ -18209,12 +18214,22 @@ div.v-layout.v-horizontal.v-widget {
 	cursor: pointer;
 }
 
+.mytheme .miapp .leftside .navegacion .opcionmenu a {
+	text-decoration: none;
+	color: #191919 !important;
+}
+
 .mytheme .miapp .leftside .navegacion .opcionmenu.selected {
 	background-color: whitesmoke;
 }
 
 .mytheme .miapp .leftside .navegacion .v-slot-opcionmenu:hover {
 	background-color: #73a5d7;
+}
+
+.mytheme .miapp .leftside .navegacion .submenuoption a {
+	text-decoration: none;
+	color: #191919 !important;
 }
 
 .mytheme .miapp .v-widget .nopadding {
