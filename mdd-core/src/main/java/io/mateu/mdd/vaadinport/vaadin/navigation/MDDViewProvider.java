@@ -275,6 +275,14 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     if (MDD.isMobile()) {
                         menuPassed = menuPassed || (MDD.getApp().getMenu(auxPath) != null && MDD.getApp().getMenu(auxPath) instanceof AbstractAction);
                         coincide = stack.get(auxPath) != null;
+
+                        if (coincide) {
+                            path = auxPath;
+                            io.mateu.mdd.vaadinport.vaadin.navigation.View auxV = stack.get(auxPath);
+                            lastIndexInStack = stack.indexOf(auxV);
+                            lastView = auxV;
+                        }
+
                     } else {
                         menuPassed = menuPassed || stack.get(auxPath) != null || (MDD.getApp().getMenu(auxPath) != null && MDD.getApp().getMenu(auxPath) instanceof AbstractAction);
 
