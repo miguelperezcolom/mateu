@@ -43,7 +43,7 @@
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>mdd-core</artifactId>
-      <version>0.0.2-SNAPSHOT</version>
+      <version>0.0.3-SNAPSHOT</version>
       <!-- exclude eclipselink -->
       <!--
       <exclusions>
@@ -68,7 +68,7 @@
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>mdd-vaadin</artifactId>
-      <version>0.0.2-SNAPSHOT</version>
+      <version>0.0.3-SNAPSHOT</version>
       <type>war</type>
     </dependency>
 
@@ -147,7 +147,7 @@
               <groupId>io.mateu</groupId>
               <artifactId>mdd-vaadin</artifactId>
               <excludes>
-                <exclude>WEB-INF/lib/mdd-tester-0.0.2-SNAPSHOT.jar</exclude>
+                <exclude>WEB-INF/lib/mdd-tester-0.0.3-SNAPSHOT.jar</exclude>
               </excludes>
             </overlay>
           </overlays>

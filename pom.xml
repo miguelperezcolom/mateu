@@ -4,7 +4,7 @@
 
   <groupId>io.mateu</groupId>
   <artifactId>mdd-parent</artifactId>
-  <version>0.0.2-SNAPSHOT</version>
+  <version>0.0.3-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <url>http://maven.apache.org</url>
