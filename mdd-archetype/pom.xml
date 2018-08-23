@@ -11,7 +11,7 @@
   -->
   <groupId>io.mateu.archetypes</groupId>
   <artifactId>mdd-archetype</artifactId>
-  <version>0.0.24</version>
+  <version>0.0.25</version>
   <name>mdd-archetype</name>
   <url>http://mateu.io</url>
 
