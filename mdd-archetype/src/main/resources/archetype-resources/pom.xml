@@ -67,7 +67,7 @@
 
     <dependency>
       <groupId>io.mateu</groupId>
-      <artifactId>mdd-vaadin</artifactId>
+      <artifactId>mdd-showcase</artifactId>
       <version>0.0.3-SNAPSHOT</version>
       <type>war</type>
     </dependency>
@@ -145,7 +145,7 @@
             <overlay></overlay>
             <overlay>
               <groupId>io.mateu</groupId>
-              <artifactId>mdd-vaadin</artifactId>
+              <artifactId>mdd-showcase</artifactId>
               <excludes>
                 <exclude>WEB-INF/lib/mdd-tester-0.0.3-SNAPSHOT.jar</exclude>
               </excludes>
