@@ -13,6 +13,7 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.navigation.MDDViewComponentCreator;
 
 import javax.persistence.Entity;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.List;
 
@@ -156,7 +157,7 @@ public class OwnedCollectionComponent extends VerticalLayout {
         return s;
     }
 
-    public void setIndex(int index) throws InstantiationException, IllegalAccessException {
+    public void setIndex(int index) throws Exception {
 
         Object v = getElementAt(index);
 
@@ -164,11 +165,18 @@ public class OwnedCollectionComponent extends VerticalLayout {
 
     }
 
-    private Object getElementAt(int index) throws IllegalAccessException, InstantiationException {
+    private Object getElementAt(int index) throws Exception {
         Object v = null;
 
         if (index == collection.size()) {
             v = ReflectionHelper.getGenericClass(field.getGenericType()).newInstance();
+
+            if (field.getType().isAnnotationPresent(Entity.class)) {
+
+                ReflectionHelper.reverseMap(parentBinder, field, parentBinder.getBean(), v);
+
+            }
+
         } else {
             if (collection instanceof List) {
                 v = ((List) collection).get(index);

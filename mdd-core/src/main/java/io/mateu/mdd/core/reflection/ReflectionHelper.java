@@ -833,6 +833,38 @@ public class ReflectionHelper {
                 !(f.isAnnotationPresent(Ignored.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))
         ).collect(Collectors.toList());
 
+
+        List<FieldInterfaced> manytoones = allFields.stream().filter(f -> f.isAnnotationPresent(ManyToOne.class)).collect(Collectors.toList());
+
+        for (FieldInterfaced manytoonefield : manytoones) {
+
+            for (FieldInterfaced parentField : ReflectionHelper.getAllFields(manytoonefield.getType())) {
+                // quitamos el campo mappedBy de las columnas, ya que se supone que siempre seremos nosotros
+                OneToMany aa;
+                if ((aa = parentField.getAnnotation(OneToMany.class)) != null) {
+
+                    String mb = parentField.getAnnotation(OneToMany.class).mappedBy();
+
+                    if (!Strings.isNullOrEmpty(mb)) {
+                        FieldInterfaced mbf = null;
+                        for (FieldInterfaced f : allFields) {
+                            if (f.getName().equals(mb)) {
+                                mbf = f;
+                                break;
+                            }
+                        }
+                        if (mbf != null) {
+                            allFields.remove(mbf);
+                            break;
+                        }
+                    }
+
+                }
+            }
+
+        }
+
+
         return allFields;
     }
 
