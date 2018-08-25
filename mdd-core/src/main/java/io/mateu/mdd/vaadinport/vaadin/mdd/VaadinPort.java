@@ -4,6 +4,7 @@ import com.vaadin.server.Page;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServletRequest;
 import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.MDDPort;
 import io.mateu.mdd.core.app.*;
@@ -151,15 +152,25 @@ public class VaadinPort implements MDDPort {
 
         l.addComponent(new Label(msg));
 
-        Button b;
-        l.addComponent(b = new Button("Yes, do it", e -> {
+        Button buttonYes;
+        Button buttonNo;
+        HorizontalLayout hl;
+        l.addComponent(hl = new HorizontalLayout(buttonYes = new Button("Yes, do it", e -> {
             try {
                 onOk.run();
             } catch (Throwable t) {
                 MDD.alert(t);
             }
             w.close();
-        }));
+        }), buttonNo = new Button("No, thanks", e -> {
+            w.close();
+        })));
+
+        hl.setDefaultComponentAlignment(Alignment.MIDDLE_RIGHT);
+
+        buttonNo.addStyleName(ValoTheme.BUTTON_FRIENDLY);
+        buttonYes.addStyleName(ValoTheme.BUTTON_DANGER);
+
 
         w.setContent(l);
 

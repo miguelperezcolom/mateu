@@ -42,6 +42,9 @@ public class OneToManyParentEntity {
     @JoinTable(name = "onetomanyowned")
     private List<OneToManyChildEntity> ownedChildren = new ArrayList<>();
 
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OneToManyComplexChildEntity> ownedComplexChildren = new ArrayList<>();
+
     @OneToMany
     @UseTwinCols
     @JoinTable(name = "onetomanytwincols")

@@ -7,6 +7,7 @@ import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.MethodResultViewFlowComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 
 import java.lang.reflect.Method;
 
@@ -14,25 +15,28 @@ public class MDDNavigator {
 
     private final Navigator navigator;
     private final ViewStack stack;
+    private final MDDViewProvider viewProvider;
 
 
-
-    public MDDNavigator(ViewStack stack, Navigator navigator) {
+    public MDDNavigator(ViewStack stack, Navigator navigator, MDDViewProvider viewProvider) {
         this.stack = stack;
         this.navigator = navigator;
+        this.viewProvider = viewProvider;
     }
 
 
+    public ViewStack getStack() {
+        return stack;
+    }
+
+    public Navigator getNavigator() {
+        return navigator;
+    }
 
 
-
-
-
-
-
-
-
-
+    public MDDViewProvider getViewProvider() {
+        return viewProvider;
+    }
 
     public String getPath(MenuEntry action, Class viewClass) {
         String u = MDD.getApp().getState(action);
@@ -146,6 +150,14 @@ public class MDDNavigator {
 
 
     public void goBack() {
+        if (stack.getLast().getComponent() instanceof EditorViewComponent && ((EditorViewComponent)stack.getLast().getComponent()).isModificado()) {
+            MDD.confirm("There are unsaved changes. Are you sure you want to exit?", () -> yesGoBack());
+        } else {
+            yesGoBack();
+        }
+    }
+
+    private void yesGoBack() {
         String u = stack.getState(stack.getLast());
         u = u.substring(0, u.lastIndexOf("/"));
 

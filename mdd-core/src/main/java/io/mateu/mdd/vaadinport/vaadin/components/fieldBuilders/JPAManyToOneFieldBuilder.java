@@ -2,6 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.vaadin.data.*;
 import com.vaadin.data.validator.BeanValidator;
+import com.vaadin.server.ExternalResource;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.annotations.DataProvider;
@@ -15,6 +16,7 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.core.data.MDDBinder;
 
+import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
@@ -129,16 +131,14 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
         } else {
 
             ComboBox cb;
-            container.addComponent(tf = cb = new ComboBox());
+            HorizontalLayout hl;
+            container.addComponent(tf = hl = new HorizontalLayout(cb = new ComboBox()));
 
             if (allFieldContainers.size() == 0) cb.focus();
 
             hv = cb;
 
 
-            //AbstractBackendDataProvider
-            //FetchItemsCallback
-            //newItemProvider
 
             if (field.isAnnotationPresent(DataProvider.class)) {
 
@@ -180,7 +180,20 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
             }
 
-            if (!forSearchFilter) cb.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
+            if (!forSearchFilter) {
+                cb.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
+
+                if (field.getType().isAnnotationPresent(Entity.class)) {
+
+                    Button b = new Button("Edit");
+                    b.addStyleName(ValoTheme.BUTTON_LINK);
+                    b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+
+                    hl.addComponent(b);
+
+                }
+
+            }
 
         }
 

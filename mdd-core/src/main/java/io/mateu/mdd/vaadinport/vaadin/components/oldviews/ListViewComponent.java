@@ -22,6 +22,7 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.data.ChartData;
 import io.mateu.mdd.core.data.ChartValue;
+import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.SumData;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.AbstractJPQLListView;
@@ -127,6 +128,10 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     public static void buildColumns(Grid grid, List<FieldInterfaced> colFields, boolean isJPAListViewComponent, boolean editable) {
+        buildColumns(grid, colFields, isJPAListViewComponent, editable, null);
+    }
+
+    public static void buildColumns(Grid grid, List<FieldInterfaced> colFields, boolean isJPAListViewComponent, boolean editable, MDDBinder binder) {
 
         int pos = 0;
         for (FieldInterfaced f : colFields) {
@@ -215,6 +220,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     col.setEditorComponent(new CheckBox(), (o, v) -> {
                         try {
                             ReflectionHelper.setValue(f, o, v);
+                            if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -224,18 +230,21 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     col.setEditorComponent(new TextField(), (o, v) -> {
                         try {
                             ReflectionHelper.setValue(f, o, v);
+                            if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
                     });
                     col.setEditable(true);
-                } else if (Integer.class.equals(f.getType()) || int.class.equals(f.getType())) {
+                } else if (Integer.class.equals(f.getType()) || int.class.equals(f.getType())
+                    || Long.class.equals(f.getType()) || long.class.equals(f.getType())) {
 
                     TextField nf = new TextField();
                     col.setEditorComponent(nf, (o, v) -> {
                         try {
                             //todo: validar entero
                             ReflectionHelper.setValue(f, o, v);
+                            if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -249,6 +258,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                             //todo: validar doble
                             //todo: falta float y long
                             ReflectionHelper.setValue(f, o, v);
+                            if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -263,6 +273,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     col.setEditorComponent(tf, (o, v) -> {
                         try {
                             ReflectionHelper.setValue(f, o, v);
+                            if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -338,6 +349,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     col.setEditorComponent(cb, (o, v) -> {
                         try {
                                 ReflectionHelper.setValue(f, o, v);
+                            if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -675,12 +687,12 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             });
 
 
-            i.setDescription("Click Ctrl + N to fire");
+            i.setDescription("Click Ctrl + ALt + N to fire");
             Button b;
             addComponent(b = new Button());
             b.addStyleName("hidden");
             b.addClickListener(e -> cmd.menuSelected(i));
-            b.setClickShortcut(ShortcutAction.KeyCode.N, ShortcutAction.ModifierKey.CTRL);
+            b.setClickShortcut(ShortcutAction.KeyCode.N, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
         }
 
         if (isDeleteEnabled()) {
@@ -726,6 +738,10 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
     public Object toId(Object row) {
         return ReflectionHelper.getId(row);
+    }
+
+    public Grid getGrid() {
+        return resultsComponent.getGrid();
     }
 
     public void decorateGridMain(Grid grid) {

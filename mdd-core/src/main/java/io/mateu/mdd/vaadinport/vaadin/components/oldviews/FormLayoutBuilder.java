@@ -41,6 +41,10 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
     }
 
     public Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, boolean createSections, boolean forSearchFilters) {
+        return build(contentContainer, binder, modelType, model, validators, allFields, createSections, forSearchFilters, true);
+    }
+
+    public Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, boolean createSections, boolean forSearchFilters, boolean createTabs) {
 
 
         AbstractStylist stylist = new VoidStylist();
@@ -102,7 +106,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                 if (form.getWidth() == 100 && Sizeable.Unit.PERCENTAGE.equals(form.getWidthUnits())) contentContainer.setWidth("100%");
             });
         } else {
-            buildAndAddFields(ofb, model, contentContainer, binder, validators, stylist, allFieldContainers, allFields, forSearchFilters);
+            buildAndAddFields(ofb, model, contentContainer, binder, validators, stylist, allFieldContainers, allFields, forSearchFilters, createTabs);
         }
 
         binder.setBean(model);
@@ -121,6 +125,10 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
     }
 
     private void buildAndAddFields(JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters) {
+        buildAndAddFields(ofb, model, contentContainer, binder, validators, stylist, allFieldContainers, fields, forSearchFilters, true);
+    }
+
+    private void buildAndAddFields(JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean createTabs) {
 
         TabSheet tabs = null;
         TabSheet.Tab tab = null;
@@ -130,10 +138,6 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
         List<TabSheet> tabSheetsStack = new ArrayList<>();
         List<TabSheet.Tab> tabsStack = new ArrayList<>();
         List<Layout> containersStack = new ArrayList<>();
-
-
-        boolean createTabs = !(contentContainer instanceof FiltersComponent);
-
 
         for (FieldInterfaced f : fields) {
 

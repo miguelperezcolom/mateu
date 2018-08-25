@@ -89,7 +89,7 @@ public class WizardComponent extends VerticalLayout {
 
     private void setPage(WizardPage page) throws IllegalAccessException, InstantiationException {
 
-        editorViewComponent = MDDViewComponentCreator.createEditorViewComponent(page.getClass());
+        editorViewComponent = MDDViewComponentCreator.createEditorViewComponent(page.getClass(), false);
         editorViewComponent.setModel(page);
         editorViewComponent.addStyleName("nopadding");
 

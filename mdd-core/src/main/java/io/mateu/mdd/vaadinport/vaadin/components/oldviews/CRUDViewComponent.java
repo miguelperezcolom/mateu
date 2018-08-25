@@ -18,7 +18,6 @@ public class CRUDViewComponent extends AbstractViewComponent implements ListView
 
         listViewComponent.addListener(this);
 
-
     }
 
     public CRUDViewComponent build() {

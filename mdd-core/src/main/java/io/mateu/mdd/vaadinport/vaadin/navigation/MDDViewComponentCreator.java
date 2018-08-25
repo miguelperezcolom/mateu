@@ -73,7 +73,11 @@ public class MDDViewComponentCreator {
     }
 
     public static EditorViewComponent createEditorViewComponent(Class modelType) throws InstantiationException, IllegalAccessException {
-        EditorViewComponent v = new EditorViewComponent(modelType).build();
+        return createEditorViewComponent(modelType, true);
+    }
+
+    public static EditorViewComponent createEditorViewComponent(Class modelType, boolean createSaveBUtton) throws InstantiationException, IllegalAccessException {
+        EditorViewComponent v = new EditorViewComponent(modelType, createSaveBUtton).build();
         return v;
     }
 

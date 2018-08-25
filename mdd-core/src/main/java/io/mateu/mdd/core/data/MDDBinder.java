@@ -130,4 +130,8 @@ public class MDDBinder extends Binder {
     public Class getBeanType() {
         return beanType;
     }
+
+    public void refresh() {
+        setBean(getBean(), false);
+    }
 }

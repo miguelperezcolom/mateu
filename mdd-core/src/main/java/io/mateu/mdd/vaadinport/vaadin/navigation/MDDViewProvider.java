@@ -55,6 +55,14 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
     private final ViewStack stack;
     private String currentPath;
 
+    public ViewStack getStack() {
+        return stack;
+    }
+
+    public String getCurrentPath() {
+        return currentPath;
+    }
+
     public MDDViewProvider(ViewStack stack) {
         this.stack = stack;
     }
@@ -409,12 +417,14 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                 }
                             }
 
-                        } else if (lastViewComponent instanceof EditorViewComponent || lastViewComponent instanceof WizardComponent) {
+                        } else if (lastViewComponent instanceof EditorViewComponent || lastViewComponent instanceof WizardComponent || lastViewComponent instanceof OwnedCollectionComponent) {
 
                             EditorViewComponent auxevfc = null;
 
                             if (lastViewComponent instanceof WizardComponent) {
                                 auxevfc = ((WizardComponent) lastViewComponent).getEditorViewComponent();
+                            } else if (lastViewComponent instanceof OwnedCollectionComponent) {
+                                    auxevfc = ((OwnedCollectionComponent) lastViewComponent).getEditorViewComponent();
                             } else {
                                 auxevfc = (EditorViewComponent) lastViewComponent;
                             }
@@ -431,6 +441,9 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                 stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, evfc.getModel(), this, evfc.getBinder()));
 
                             } else if (field != null) {
+
+
+                                boolean ownedCollection = ReflectionHelper.isOwnedCollection(field);
 
                                 if (field.isAnnotationPresent(ManyToOne.class) && field.isAnnotationPresent(UseLinkToListView.class)) {
                                     try {
@@ -506,6 +519,15 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                     } catch (Exception e) {
                                         MDD.alert(e);
                                     }
+                                } else if (ownedCollection) {
+
+                                    try {
+                                        stack.push(currentPath, new OwnedCollectionComponent(evfc.getBinder(), field));
+                                    } catch (Exception e) {
+                                        MDD.alert(e);
+                                    }
+
+
                                 } else if (field.isAnnotationPresent(OneToMany.class) || field.isAnnotationPresent(ManyToMany.class)) {
 
                                     ListViewComponent lvc = null;
@@ -526,6 +548,15 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                                 } else {
                                     stack.push(currentPath, new FieldEditorComponent(evfc.getBinder(), field));
+                                }
+
+                            } else if (lastViewComponent instanceof OwnedCollectionComponent) {
+
+                                int index = Integer.parseInt(step);
+                                try {
+                                    ((OwnedCollectionComponent) lastViewComponent).setIndex(index);
+                                } catch (Exception e) {
+                                    MDD.alert(e);
                                 }
 
                             }

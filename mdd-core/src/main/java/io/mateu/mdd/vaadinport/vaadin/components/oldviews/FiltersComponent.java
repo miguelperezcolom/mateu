@@ -73,11 +73,11 @@ public class FiltersComponent extends Composite {
 
             List<FieldInterfaced> mainFilterFields = allFilterFields.stream().filter(f -> f.isAnnotationPresent(MainSearchFilter.class)).collect(Collectors.toList());
             if (mainFilterFields.size() == 0) {
-                if (allFilterFields.size() > 2) mainFilterFields = allFilterFields.subList(0, (allFilterFields.size() > 1)?2:allFilterFields.size());
+                if (allFilterFields.size() > 1) mainFilterFields = allFilterFields.subList(0, (allFilterFields.size() > 1)?1:allFilterFields.size());
                 else mainFilterFields = allFilterFields;
             }
 
-            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(l, binder, modelType, binder.getBean(), validators, mainFilterFields, false, true);
+            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(l, binder, modelType, binder.getBean(), validators, mainFilterFields, false, true, false);
 
 
             Button b;

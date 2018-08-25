@@ -2,6 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.*;
+import com.vaadin.data.Converter;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.icons.VaadinIcons;
@@ -15,14 +16,13 @@ import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.*;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.OwnedCollectionComponent;
+import io.mateu.mdd.vaadinport.vaadin.navigation.MDDViewProvider;
 import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.core.data.MDDBinder;
 
-import javax.persistence.CascadeType;
-import javax.persistence.ElementCollection;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
@@ -30,7 +30,15 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
 
     public boolean isSupported(FieldInterfaced field) {
-        return field.isAnnotationPresent(OneToMany.class) || field.isAnnotationPresent(ElementCollection.class) || field.isAnnotationPresent(ManyToMany.class);
+        boolean ok = field.isAnnotationPresent(OneToMany.class) || field.isAnnotationPresent(ElementCollection.class) || field.isAnnotationPresent(ManyToMany.class);
+        if (!ok) {
+            ok = Collection.class.isAssignableFrom(field.getType());
+            if (ok) {
+                Class gc = ReflectionHelper.getGenericClass(field, Collection.class, "E");
+                ok &= !(String.class.equals(gc) || Integer.class.equals(gc) || Long.class.equals(gc) || Float.class.equals(gc) || Double.class.equals(gc) || Boolean.class.equals(gc));
+            }
+        }
+        return ok;
     }
 
     public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
@@ -42,21 +50,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
         } else {
 
-            OneToMany aa = field.getAnnotation(OneToMany.class);
-            ManyToMany mm = field.getAnnotation(ManyToMany.class);
-
-            boolean owned = false;
-            if (aa != null && aa.cascade() != null) for (CascadeType ct : aa.cascade()) {
-                if (CascadeType.ALL.equals(ct) || CascadeType.REMOVE.equals(ct)) {
-                    owned = true;
-                    break;
-                }
-            } else if (mm != null && mm.cascade() != null) for (CascadeType ct : mm.cascade()) {
-                if (CascadeType.ALL.equals(ct) || CascadeType.REMOVE.equals(ct)) {
-                    owned = true;
-                    break;
-                }
-            } else if (field.isAnnotationPresent(ElementCollection.class)) owned = true;
+           boolean owned = ReflectionHelper.isOwnedCollection(field);
 
 
             if (Map.class.isAssignableFrom(field.getType())) {
@@ -200,7 +194,27 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             if (field.isAnnotationPresent(FullWidth.class)) g.setWidth("100%");
 
-            ListViewComponent.buildColumns(g, getColumnFields(field), false, owned);
+
+            List<FieldInterfaced> colFields = getColumnFields(field);
+            List<FieldInterfaced> editableFields = ReflectionHelper.getAllEditableFields(ReflectionHelper.getGenericClass(field.getGenericType()));
+
+
+            boolean inline = false;
+
+            if (owned) {
+                inline = editableFields.size() <= colFields.size();
+
+                if (inline) for (FieldInterfaced f : editableFields) {
+                    if (!isEditableInline(f)) {
+                        inline = false;
+                        break;
+                    }
+                }
+
+            }
+
+
+            ListViewComponent.buildColumns(g, colFields, false, inline, binder);
 
             g.setSelectionMode(Grid.SelectionMode.MULTI);
 
@@ -220,22 +234,54 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             if (owned) {
 
-                g.getEditor().setEnabled(true);
-                g.getEditor().setBuffered(false);
                 g.setHeightByRows(5);
 
-                hl.addComponent(b = new Button("Add", VaadinIcons.PLUS));
-                b.addClickListener(e -> {
-                    try {
-                        Object bean = binder.getBean();
+                if (inline) {
 
-                        ReflectionHelper.addToCollection(binder, field, bean, field.getGenericClass().newInstance());
+                    g.getEditor().setEnabled(true);
+                    g.getEditor().setBuffered(false);
 
-                        binder.setBean(bean);
-                    } catch (Exception e1) {
-                        MDD.alert(e1);
-                    }
-                });
+                    hl.addComponent(b = new Button("Add", VaadinIcons.PLUS));
+                    b.addClickListener(e -> {
+                        try {
+                            Object bean = binder.getBean();
+
+                            ReflectionHelper.addToCollection(binder, field, bean, field.getGenericClass().newInstance());
+
+                            binder.setBean(bean, false);
+                        } catch (Exception e1) {
+                            MDD.alert(e1);
+                        }
+                    });
+
+                } else {
+
+                    g.addItemClickListener(e -> {
+                        if (MDD.isMobile() || e.getMouseEventDetails().isDoubleClick()) {
+                            Object i = e.getItem();
+                            if (i != null) {
+
+                                String state = MDDUI.get().getNavegador().getViewProvider().getCurrentPath();
+                                if (!state.endsWith("/")) state += "/";
+                                state += field.getName();
+
+                                try {
+                                    OwnedCollectionComponent occ;
+                                    MDDUI.get().getNavegador().getStack().push(state, occ = new OwnedCollectionComponent(binder, field, e.getRowIndex()));
+                                    MDDUI.get().getNavegador().goTo(state);
+                                } catch (Exception e1) {
+                                    e1.printStackTrace();
+                                }
+
+                            }
+                        }
+                    });
+
+
+                    hl.addComponent(b = new Button("Add", VaadinIcons.PLUS));
+                    b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+
+                }
 
                 hl.addComponent(b = new Button("Remove", VaadinIcons.MINUS));
                 b.addClickListener(e -> {
@@ -246,31 +292,72 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                         ReflectionHelper.removeFromCollection(binder, field, bean, l);
 
 
-                        binder.setBean(bean);
+                        binder.setBean(bean, false);
                     } catch (Exception e1) {
                         MDD.alert(e1);
                     }
                 });
 
+                //todo: faltan botones para ordenar la lista
+
+
             } else {
 
                 g.addItemClickListener(e -> {
-                    if (e.getMouseEventDetails().isDoubleClick()) {
+                    if (MDD.isMobile() || e.getMouseEventDetails().isDoubleClick()) {
                         Object i = e.getItem();
                         if (i != null) {
-                            //edit(listViewComponent.toId(i));
                             MDDUI.get().getNavegador().go(field.getName());
                         }
                     }
                 });
 
-                hl.addComponent(b = new Button("Edit list", VaadinIcons.EDIT));
+                hl.addComponent(b = new Button("Add items", VaadinIcons.PLUS));
                 b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+
+                hl.addComponent(b = new Button("Remove selection", VaadinIcons.MINUS));
+                b.addClickListener(e -> {
+                    try {
+                        Object bean = binder.getBean();
+                        Set l = g.getSelectedItems();
+
+                        ReflectionHelper.removeFromCollection(binder, field, bean, l);
+
+
+                        binder.setBean(bean, false);
+                    } catch (Exception e1) {
+                        MDD.alert(e1);
+                    }
+                });
             }
 
             container.addComponent(hl);
 
         }
+
+    }
+
+    private boolean isEditableInline(FieldInterfaced f) {
+
+        boolean editable = false;
+
+        if (Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) {
+            editable = true;
+        } else if (String.class.equals(f.getType())) {
+            editable = true;
+        } else if (Integer.class.equals(f.getType()) || int.class.equals(f.getType())) {
+            editable = true;
+        } else if (Long.class.equals(f.getType()) || long.class.equals(f.getType())) {
+            editable = true;
+        } else if (Double.class.equals(f.getType()) || double.class.equals(f.getType())) {
+            editable = true;
+        } else if (f.getType().isEnum()) {
+            editable = true;
+        } else if (f.isAnnotationPresent(ManyToOne.class)) {
+            editable = true;
+        }
+
+        return editable;
 
     }
 

@@ -13,6 +13,8 @@ import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.data.MDDBinder;
+import io.mateu.mdd.core.data.Pair;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.interfaces.PersistentPOJO;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -21,8 +23,6 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.ClassOption;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.data.Pair;
 import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 
 import javax.persistence.Entity;
@@ -33,6 +33,7 @@ import java.util.*;
 
 public class EditorViewComponent extends AbstractViewComponent {
 
+    private final boolean createSaveButton;
     private Map<HasValue, List<Validator>> validators = new HashMap<>();
 
     protected boolean newRecord;
@@ -43,6 +44,18 @@ public class EditorViewComponent extends AbstractViewComponent {
     private AbstractStylist stylist;
     private Panel panel;
 
+    private List<EditorListener> listeners = new ArrayList<>();
+    private boolean modificado;
+
+    public boolean isModificado() {
+        return modificado;
+    }
+
+    public void addEditorListener(EditorListener listener) {
+        listeners.add(listener);
+    }
+
+
     public MDDBinder getBinder() {
         return binder;
     }
@@ -52,12 +65,21 @@ public class EditorViewComponent extends AbstractViewComponent {
     }
 
     public EditorViewComponent(Class modelType) {
-        this.modelType = modelType;
+        this(modelType, true);
     }
 
+    public EditorViewComponent(Class modelType, boolean createSaveButton) {
+        this.modelType = modelType;
+        this.createSaveButton = createSaveButton;
+    }
 
     public EditorViewComponent(Object model) {
+        this(model, true);
+    }
+
+    public EditorViewComponent(Object model, boolean createSaveButton) {
         this.modelType = model.getClass();
+        this.createSaveButton = createSaveButton;
         setModel(model);
     }
 
@@ -68,6 +90,14 @@ public class EditorViewComponent extends AbstractViewComponent {
     public void setModel(Object model) {
 
         binder = new MDDBinder(model.getClass());
+
+        if (createSaveButton) {
+            
+            binder.addValueChangeListener(e -> {
+                modificado = true;
+            });
+
+        }
 
         binder.setBean(model);
 
@@ -152,9 +182,7 @@ public class EditorViewComponent extends AbstractViewComponent {
     @Override
     public void addViewActionsMenuItems(MenuBar bar) {
 
-        super.addViewActionsMenuItems(bar);
-
-        if (modelType.isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(modelType)) {
+        if (createSaveButton && (modelType.isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(modelType))) {
             MenuBar.Command cmd;
             MenuBar.MenuItem i = bar.addItem("Save", VaadinIcons.DOWNLOAD, cmd = new MenuBar.Command() {
                 @Override
@@ -210,6 +238,8 @@ public class EditorViewComponent extends AbstractViewComponent {
             b.addClickListener(e -> cmd.menuSelected(i));
             b.setClickShortcut(ShortcutAction.KeyCode.S, ShortcutAction.ModifierKey.CTRL);
         }
+
+        super.addViewActionsMenuItems(bar);
 
     }
 
@@ -299,6 +329,10 @@ public class EditorViewComponent extends AbstractViewComponent {
             ppojo.save();
 
         }
+
+        modificado = false;
+
+        listeners.forEach(l -> l.onSave(getModel()));
     }
 
     public void load(Object id) throws Throwable {
@@ -354,4 +388,5 @@ public class EditorViewComponent extends AbstractViewComponent {
     public void clear() {
         panel.setContent(null);
     }
+
 }

@@ -1159,6 +1159,7 @@ public class ReflectionHelper {
 
     }
 
+
     public static Class<?> getGenericClass(Class type) {
         Class<?> gc = null;
         if (type.getGenericInterfaces() != null) for (Type gi : type.getGenericInterfaces()) {
@@ -1169,6 +1170,18 @@ public class ReflectionHelper {
                 gc = (Class<?>) gi;
             }
             break;
+        }
+        return gc;
+    }
+
+
+    public static Class<?> getGenericClass(Type type) {
+        Class<?> gc = null;
+        if (type instanceof ParameterizedType) {
+            ParameterizedType pt = (ParameterizedType) type;
+            gc = (Class<?>) pt.getActualTypeArguments()[0];
+        } else {
+            gc = (Class<?>) type;
         }
         return gc;
     }
@@ -1196,5 +1209,26 @@ public class ReflectionHelper {
     public static Method getMethod(Consumer methodReference) {
         //todo: pendiente!!!!
         return ReflectionHelper.getMethod(methodReference.getClass(), methodReference.toString());
+    }
+
+    public static boolean isOwnedCollection(FieldInterfaced field) {
+        boolean owned = false;
+
+        OneToMany aa = field.getAnnotation(OneToMany.class);
+        ManyToMany mm = field.getAnnotation(ManyToMany.class);
+
+        if (aa != null && aa.cascade() != null) for (CascadeType ct : aa.cascade()) {
+            if (CascadeType.ALL.equals(ct) || CascadeType.REMOVE.equals(ct)) {
+                owned = true;
+                break;
+            }
+        } else if (mm != null && mm.cascade() != null) for (CascadeType ct : mm.cascade()) {
+            if (CascadeType.ALL.equals(ct) || CascadeType.REMOVE.equals(ct)) {
+                owned = true;
+                break;
+            }
+        } else if (field.isAnnotationPresent(ElementCollection.class)) owned = true;
+        else if (!ReflectionHelper.getGenericClass(field.getGenericType()).isAnnotationPresent(Entity.class)) owned = true;
+        return owned;
     }
 }

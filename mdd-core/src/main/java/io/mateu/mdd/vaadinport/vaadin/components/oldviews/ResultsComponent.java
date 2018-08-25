@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
+import com.vaadin.data.provider.CallbackDataProvider;
 import com.vaadin.data.provider.DataProvider;
 import com.vaadin.data.provider.GridSortOrder;
 import com.vaadin.event.SortEvent;
@@ -17,6 +18,11 @@ public class ResultsComponent extends VerticalLayout {
     private final ListViewComponent listViewComponent;
     private Grid grid;
     private Object filters;
+    private CallbackDataProvider<Object,Object> dataProvider;
+
+    public CallbackDataProvider<Object, Object> getDataProvider() {
+        return dataProvider;
+    }
 
     public ResultsComponent(ListViewComponent listViewComponent) {
 
@@ -54,7 +60,7 @@ public class ResultsComponent extends VerticalLayout {
 
 
 
-        DataProvider p = DataProvider.fromFilteringCallbacks(query -> {
+        dataProvider = DataProvider.fromFilteringCallbacks(query -> {
             try {
                 return listViewComponent.findAll(listViewComponent.getModelForSearchFilters(), query.getSortOrders(), query.getOffset(), query.getLimit()).stream();
             } catch (Throwable e) {
@@ -70,7 +76,7 @@ public class ResultsComponent extends VerticalLayout {
             }
         });
 
-        grid.setDataProvider(p);
+        grid.setDataProvider(dataProvider);
         grid.setColumnReorderingAllowed(true);
 
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
@@ -160,5 +166,9 @@ public class ResultsComponent extends VerticalLayout {
 
     public void refresh() throws Throwable {
         search(listViewComponent.getModelForSearchFilters());
+    }
+
+    public Grid getGrid() {
+        return grid;
     }
 }

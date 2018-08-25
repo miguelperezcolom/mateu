@@ -156,10 +156,14 @@ public class MDDUI extends UI {
     private void addNavigator() {
 
         navigator = new Navigator(this, viewContainer);
-        navegador = new MDDNavigator(stack = new ViewStack(), navigator);
+
+        stack = stack = new ViewStack();
+        MDDViewProvider viewProvider = new MDDViewProvider(stack);
+
+        navegador = new MDDNavigator(stack, navigator, viewProvider);
 
         VoidView voidView = new VoidView();
-        navigator.addProvider(new MDDViewProvider(stack));
+        navigator.addProvider(viewProvider);
 
     }
 

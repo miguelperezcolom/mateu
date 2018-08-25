@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.mateu</groupId>
         <artifactId>mdd-parent</artifactId>
-        <version>0.0.3-SNAPSHOT</version>
+        <version>0.0.4-SNAPSHOT</version>
     </parent>
 
     <artifactId>mdd-tester</artifactId>
@@ -48,7 +48,7 @@
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>mdd-core</artifactId>
-            <version>0.0.3-SNAPSHOT</version>
+            <version>0.0.4-SNAPSHOT</version>
         </dependency>
 
     </dependencies>

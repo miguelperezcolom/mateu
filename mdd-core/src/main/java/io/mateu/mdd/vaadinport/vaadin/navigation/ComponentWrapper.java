@@ -42,7 +42,7 @@ public class ComponentWrapper extends VerticalLayout {
         titleLabel = new Label();
         titleLabel.addStyleName("viewTitle");
 
-        updateViewTitle(component.toString());
+        if (component != null) updateViewTitle(component.toString());
 
         return titleLabel;
     }
