@@ -29,10 +29,12 @@ public class PrivateMenuFlowComponent extends VerticalLayout {
 
         });
 
-        Button b;
-        addComponent(b = new Button("Logout"));
-        b.addClickListener(e -> MDDUI.get().getNavegador().goTo("bye"));
-        b.addStyleName(ValoTheme.BUTTON_QUIET);
+        if (MDD.isMobile()) {
+            Button b;
+            addComponent(b = new Button("Logout"));
+            b.addClickListener(e -> MDDUI.get().getNavegador().goTo("bye"));
+            b.addStyleName(ValoTheme.BUTTON_QUIET);
+        }
 
         addComponentsAndExpand(new Label(""));
 

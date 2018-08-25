@@ -417,9 +417,13 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                 }
                             }
 
-                        } else if (lastViewComponent instanceof EditorViewComponent || lastViewComponent instanceof WizardComponent || lastViewComponent instanceof OwnedCollectionComponent) {
+                        } else if (lastViewComponent instanceof EditorViewComponent || lastViewComponent instanceof MethodResultViewFlowComponent || lastViewComponent instanceof WizardComponent || lastViewComponent instanceof OwnedCollectionComponent) {
 
                             EditorViewComponent auxevfc = null;
+
+                            if (lastViewComponent instanceof MethodResultViewFlowComponent) {
+                                lastViewComponent = ((MethodResultViewFlowComponent)lastViewComponent).getComponent(0);
+                            }
 
                             if (lastViewComponent instanceof WizardComponent) {
                                 auxevfc = ((WizardComponent) lastViewComponent).getEditorViewComponent();

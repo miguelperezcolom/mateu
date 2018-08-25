@@ -1246,21 +1246,26 @@ public class ReflectionHelper {
     public static boolean isOwnedCollection(FieldInterfaced field) {
         boolean owned = false;
 
-        OneToMany aa = field.getAnnotation(OneToMany.class);
-        ManyToMany mm = field.getAnnotation(ManyToMany.class);
+        if (Collection.class.isAssignableFrom(field.getType())) {
 
-        if (aa != null && aa.cascade() != null) for (CascadeType ct : aa.cascade()) {
-            if (CascadeType.ALL.equals(ct) || CascadeType.REMOVE.equals(ct)) {
-                owned = true;
-                break;
-            }
-        } else if (mm != null && mm.cascade() != null) for (CascadeType ct : mm.cascade()) {
-            if (CascadeType.ALL.equals(ct) || CascadeType.REMOVE.equals(ct)) {
-                owned = true;
-                break;
-            }
-        } else if (field.isAnnotationPresent(ElementCollection.class)) owned = true;
-        else if (!ReflectionHelper.getGenericClass(field.getGenericType()).isAnnotationPresent(Entity.class)) owned = true;
+            OneToMany aa = field.getAnnotation(OneToMany.class);
+            ManyToMany mm = field.getAnnotation(ManyToMany.class);
+
+            if (aa != null && aa.cascade() != null) for (CascadeType ct : aa.cascade()) {
+                if (CascadeType.ALL.equals(ct) || CascadeType.REMOVE.equals(ct)) {
+                    owned = true;
+                    break;
+                }
+            } else if (mm != null && mm.cascade() != null) for (CascadeType ct : mm.cascade()) {
+                if (CascadeType.ALL.equals(ct) || CascadeType.REMOVE.equals(ct)) {
+                    owned = true;
+                    break;
+                }
+            } else if (field.isAnnotationPresent(ElementCollection.class)) owned = true;
+            else if (!ReflectionHelper.getGenericClass(field.getGenericType()).isAnnotationPresent(Entity.class)) owned = true;
+
+        }
+
         return owned;
     }
 }
