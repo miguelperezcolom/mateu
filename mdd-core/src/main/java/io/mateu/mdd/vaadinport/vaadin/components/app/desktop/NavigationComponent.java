@@ -51,10 +51,10 @@ public class NavigationComponent extends VerticalLayout {
 
                 if (app.getAreas().size() > 1) {
 
-                    Link b = new Link(a.getName() + ((app.getAreas().size() > 1)?"<span class=\"menu-badge\">+" + (app.getAreas().size() - 1) + "</span>":"")
-                            , new ExternalResource("/" + ((a.isPublicAccess())?"public":"private"))); //, a.getIcon());
+                    Button b = new Button(a.getName() + ((app.getAreas().size() > 1)?"<span class=\"menu-badge\">+" + (app.getAreas().size() - 1) + "</span>":"")
+                            , ev -> MDDUI.get().getNavegador().goTo(((a.isPublicAccess())?"public":"private"))); //, a.getIcon());
                     //b.setIcon(FontAwesome.TH_LIST);
-                    b.setPrimaryStyleName(ValoTheme.BUTTON_QUIET);
+                    b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
                     b.setCaptionAsHtml(true);
                     b.addStyleName("tituloarea");
                     b.setDescription("Click to change to another area");
@@ -94,10 +94,10 @@ public class NavigationComponent extends VerticalLayout {
     private void addMenu(MenuEntry e) {
 
 
-        Link b = new Link(e.getName() + ((e instanceof  AbstractMenu)?"<span class=\"menu-badge\">" + ((AbstractMenu) e).getEntries().size() + "</span>":"")
-        , new ExternalResource("/" + MDDUI.get().getNavegador().getPath(e)));
+        Button b = new Button(e.getName() + ((e instanceof  AbstractMenu)?"<span class=\"menu-badge\">" + ((AbstractMenu) e).getEntries().size() + "</span>":"")
+        , ev -> MDDUI.get().getNavegador().goTo(e));
         //b.setIcon(FontAwesome.TH_LIST);
-        b.setPrimaryStyleName(ValoTheme.BUTTON_QUIET);
+        b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
         b.addStyleName("opcionmenu");
         //b.addStyleName("selected");
         b.setCaptionAsHtml(true);

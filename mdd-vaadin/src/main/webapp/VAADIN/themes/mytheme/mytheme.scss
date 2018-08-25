@@ -281,14 +281,7 @@
               background-color: #73a5d7;
             }
 
-            .submenuoption {
 
-              a {
-                text-decoration: none;
-                color: #191919 !important;
-              }
-
-            }
 
 
           }
@@ -433,6 +426,18 @@
   }
 
 
+
+  .v-layout {
+
+    .submenuoption {
+      color: #197de1;
+    }
+
+    .submenuoption:hover {
+      color: red;
+    }
+
+  }
 
 
   .section {
@@ -620,9 +625,7 @@
     }
   }
 
-  .submenuoption:hover {
-    color: red;
-  }
+
 
   .flowcomponent {
 

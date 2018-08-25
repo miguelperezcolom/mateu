@@ -18227,11 +18227,6 @@ div.v-layout.v-horizontal.v-widget {
 	background-color: #73a5d7;
 }
 
-.mytheme .miapp .leftside .navegacion .submenuoption a {
-	text-decoration: none;
-	color: #191919 !important;
-}
-
 .mytheme .miapp .v-widget .nopadding {
 	padding: 0px;
 }
@@ -18330,6 +18325,14 @@ div.v-layout.v-horizontal.v-widget {
 
 .mytheme .viewHeader .viewTitle {
 	font-size: 2em;
+}
+
+.mytheme .v-layout .submenuoption {
+	color: #197de1;
+}
+
+.mytheme .v-layout .submenuoption:hover {
+	color: red;
 }
 
 .mytheme .section {
@@ -18473,10 +18476,6 @@ div.v-layout.v-horizontal.v-widget {
 
 .mytheme .actionparametersflowcomponent .editorviewcomponent .contentcontainer, .mytheme .methodresultflowcomponent .editorviewcomponent .contentcontainer {
 	padding: 0px;
-}
-
-.mytheme .submenuoption:hover {
-	color: red;
 }
 
 .mytheme .flowcomponent {

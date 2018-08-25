@@ -84,10 +84,9 @@ public class MenuFlowComponent extends Panel {
 
         } else if (e instanceof AbstractAction) {
 
-            Link b;
-            String path = MDD.getApp().getMenuId(e);
-            l.addComponent(b = new Link(e.getName(), new ExternalResource("/" + path)));
-            b.setPrimaryStyleName(ValoTheme.BUTTON_QUIET);
+            Button b;
+            l.addComponent(b = new Button(e.getName(), ev -> MDDUI.get().getNavegador().goTo(e)));
+            b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
             b.addStyleName("submenuoption");
 
         }
