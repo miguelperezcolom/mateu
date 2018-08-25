@@ -776,4 +776,10 @@
     background-color: blue !important;
   }
 
+
+
+  [class*="margin-top"] > tbody > [class*="firstrow"] > td {
+    padding-top: 0px;
+  }
+
 }
