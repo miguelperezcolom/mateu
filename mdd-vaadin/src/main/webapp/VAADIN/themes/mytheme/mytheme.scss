@@ -448,7 +448,8 @@
     background-color: white;
     border: 1px grey solid;
     border-radius: 4px;
-    padding: 20px;
+    padding-left: 20px;
+    padding-right: 20px;
   }
 
 
@@ -780,6 +781,15 @@
 
   [class*="margin-top"] > tbody > [class*="firstrow"] > td {
     padding-top: 0px;
+  }
+
+  .alinearderecha {
+    text-align: right;
+    width: 100%;
+  }
+
+  .v-slot-actionsbar {
+    margin-bottom: 20px;
   }
 
 }

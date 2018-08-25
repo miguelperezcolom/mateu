@@ -18343,7 +18343,8 @@ div.v-layout.v-horizontal.v-widget {
 	background-color: white;
 	border: 1px grey solid;
 	border-radius: 4px;
-	padding: 20px;
+	padding-left: 20px;
+	padding-right: 20px;
 }
 
 .mytheme .hidden {
@@ -18605,4 +18606,13 @@ div.v-layout.v-horizontal.v-widget {
 
 .mytheme [class*="margin-top"] > tbody > [class*="firstrow"] > td {
 	padding-top: 0px;
+}
+
+.mytheme .alinearderecha {
+	text-align: right;
+	width: 100%;
+}
+
+.mytheme .v-slot-actionsbar {
+	margin-bottom: 20px;
 }

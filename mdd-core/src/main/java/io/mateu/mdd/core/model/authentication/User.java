@@ -30,14 +30,22 @@ import java.util.List;
 @Getter@Setter
 public class User {
 
-    @Tab("Info")
+    @Section(value = "Info", card = true)
     @Embedded
     @Output
     private Audit audit = new Audit();
 
+    @Output
+    private LocalDateTime lastLogin;
+
+    @Output
+    private int failedLogins;
+
+
     /**
      * login must always be uppercase. It is the primary key.
      */
+    @Section("Data")
     @Id
     @ListColumn("Login")
     @NotNull
@@ -68,11 +76,7 @@ public class User {
 
     private LocalDate expiryDate;
 
-    @Output
-    private LocalDateTime lastLogin;
 
-    @Output
-    private int failedLogins;
 
     @NotInList
     @ManyToOne(cascade = CascadeType.ALL)
@@ -81,7 +85,6 @@ public class User {
     @TextArea
     private String comments;
 
-    @Tab("Permissions")
     @OneToMany
     private List<Permission> permissions = new ArrayList<Permission>();
 
