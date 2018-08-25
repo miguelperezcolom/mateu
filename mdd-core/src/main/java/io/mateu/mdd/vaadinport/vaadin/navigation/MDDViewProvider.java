@@ -292,14 +292,19 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                         }
 
                     } else {
-                        menuPassed = menuPassed || stack.get(auxPath) != null || (MDD.getApp().getMenu(auxPath) != null && MDD.getApp().getMenu(auxPath) instanceof AbstractAction);
+
+                        //menuPassed = menuPassed || stack.get(auxPath) != null || (MDD.getApp().getMenu(auxPath) != null && MDD.getApp().getMenu(auxPath) instanceof AbstractAction);
+
+                        menuPassed = menuPassed || MDD.getApp().getMenu(auxPath) != null;
+
 
                         if (menuPassed) {
-                            io.mateu.mdd.vaadinport.vaadin.navigation.View auxV = stack.get(auxPath);
-                            coincide = auxV != null || (!MDD.isMobile() && (MDD.getApp().getMenu(auxPath) != null && !(MDD.getApp().getMenu(auxPath) instanceof AbstractAction)));
+                            //coincide = auxV != null || (!MDD.isMobile() && (MDD.getApp().getMenu(auxPath) != null && !(MDD.getApp().getMenu(auxPath) instanceof AbstractAction)));
+                            coincide = stack.get(auxPath) != null;
 
                             if (coincide) {
                                 path = auxPath;
+                                io.mateu.mdd.vaadinport.vaadin.navigation.View auxV = stack.get(auxPath);
                                 lastIndexInStack = stack.indexOf(auxV);
                                 lastView = auxV;
                             }
@@ -633,6 +638,8 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                         if (e != null) {
                             if (e instanceof AbstractAction) {
                                 ((AbstractAction) e).run(this);
+                            } else if (e instanceof AbstractMenu) {
+                                stack.push(currentPath, new MenuFlowComponent((AbstractMenu) e));
                             }
                         }
 
