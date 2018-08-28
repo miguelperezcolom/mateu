@@ -113,6 +113,11 @@ public class FieldInterfacedFromType implements FieldInterfaced {
     }
 
     @Override
+    public Annotation[] getDeclaredAnnotations() {
+        return new Annotation[0];
+    }
+
+    @Override
     public String toString() {
         return getName();
     }

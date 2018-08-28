@@ -47,6 +47,7 @@
 
       .section {
         padding: 0px;
+        max-width: 100%;
       }
 
       .filterscomponent {
@@ -431,6 +432,7 @@
 
     .submenuoption {
       color: #197de1;
+      text-decoration: none;
     }
 
     .submenuoption:hover {
@@ -442,6 +444,7 @@
 
   .section {
     margin-right: 50px;
+    max-width: 500px;
   }
 
   .sectioncard {
@@ -790,6 +793,43 @@
 
   .v-slot-actionsbar {
     margin-bottom: 20px;
+  }
+
+
+  .rowyes {
+    position:relative;
+    text-align: center;
+  }
+
+  .rowyes:before {
+    font-family: FontAwesome;
+    top:0;
+    /*
+    left:-5px;
+    padding-right:10px;
+    */
+    content: "\f00c";
+  }
+
+  .rowno {
+    position:relative;
+    text-align: center;
+    color: lightgrey;
+  }
+
+  .rowno:before {
+    font-family: FontAwesome;
+    top:0;
+    /*
+    left:-5px;
+    padding-right:10px;
+    */
+    content: "\f00d";
+  }
+
+
+  .v-tabsheet-content {
+    margin-top: 20px;
   }
 
 }

@@ -141,7 +141,7 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
 
         Map<HasValue, List<Validator>> subvalidators = new HashMap<>();
 
-        FormLayoutBuilder.get().build(formLayout, subbinder, subType, o, subvalidators, ReflectionHelper.getAllEditableFields(subType));
+        FormLayoutBuilder.get().build(formLayout, subbinder, subType, o, subvalidators, ReflectionHelper.getAllEditableFields(subType, field.getType()));
 
 
         bind(binder, field, subbinder);

@@ -1,9 +1,12 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
+import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Layout;
 import io.mateu.mdd.core.annotations.Help;
@@ -27,7 +30,18 @@ public class JPABooleanFieldBuilder extends AbstractFieldBuilder {
 
         if (forSearchFilter) {
 
-            //todo: contemplar los casos si, no, indiferente
+            ComboBox<Object> cb;
+            container.addComponent(cb = new ComboBox<>());
+            cb.setDataProvider(new ListDataProvider<>(Lists.newArrayList(true, false)));
+
+            if (allFieldContainers.size() == 0) cb.focus();
+
+            cb.setCaption(Helper.capitalize(field.getName()));
+
+            if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) cb.setDescription(field.getAnnotation(Help.class).value());
+
+
+            bind(binder, cb, field);
 
         } else {
 
@@ -47,7 +61,7 @@ public class JPABooleanFieldBuilder extends AbstractFieldBuilder {
 
     }
 
-    protected void bind(MDDBinder binder, CheckBox cb, FieldInterfaced field) {
+    protected void bind(MDDBinder binder, HasValue cb, FieldInterfaced field) {
         binder.bind(cb, field.getName());
     }
 }

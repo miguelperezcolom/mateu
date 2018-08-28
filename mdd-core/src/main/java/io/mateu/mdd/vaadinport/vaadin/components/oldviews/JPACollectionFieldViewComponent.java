@@ -10,7 +10,9 @@ import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class JPACollectionFieldViewComponent extends JPAListViewComponent {
@@ -19,8 +21,14 @@ public class JPACollectionFieldViewComponent extends JPAListViewComponent {
     private final EditorViewComponent evfc;
     private final boolean addingToCollection;
 
-    public JPACollectionFieldViewComponent(Class entityClass, FieldInterfaced field, EditorViewComponent evfc, boolean addingToCollection) {
-        this(entityClass, new ExtraFilters(" x " + ((field.isAnnotationPresent(UseLinkToListView.class) && !addingToCollection) ? "" : " not ") + " in (select q from " + field.getDeclaringClass().getName() + " p join p." + field.getName() + " q where p = :z) ", "z", evfc.getModel()), field, evfc, addingToCollection);
+    public JPACollectionFieldViewComponent(Class entityClass, FieldInterfaced field, EditorViewComponent evfc, boolean addingToCollection) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        this(entityClass, new ExtraFilters(" x " + ((field.isAnnotationPresent(UseLinkToListView.class) && !addingToCollection) ? "" : " not ") + " in :z ", "z", getIds(evfc, field)), field, evfc, addingToCollection);
+    }
+
+    private static List getIds(EditorViewComponent evfc, FieldInterfaced field) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        List l = new ArrayList();
+        for (Object x : (Collection) ReflectionHelper.getValue(field, evfc.getModel())) l.add(ReflectionHelper.getId(x));
+        return l;
     }
 
     public JPACollectionFieldViewComponent(Class entityClass, ExtraFilters extraFilters, FieldInterfaced field, EditorViewComponent evfc, boolean addingToCollection) {

@@ -8,16 +8,15 @@ import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.interfaces.App;
 import io.mateu.mdd.core.interfaces.View;
 import io.mateu.mdd.core.model.authentication.User;
+import io.mateu.mdd.core.model.config.AppConfig;
+import io.mateu.mdd.core.model.population.Populator;
 import io.mateu.mdd.core.model.ui.EditedRecord;
 import io.mateu.mdd.core.nose.MemorizadorRegistroEditado;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 
 import javax.persistence.EntityManager;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by miguel on 8/8/16.
@@ -38,6 +37,17 @@ public abstract class AbstractApplication implements App {
     List<AbstractArea> areas = null;
 
     private MemorizadorRegistroEditado memorizador;
+
+    public static AbstractApplication get() {
+        Iterator<App> apps = ServiceLoader.load(App.class).iterator();
+        AbstractApplication app = null;
+        while (apps.hasNext()) {
+            app = (AbstractApplication) apps.next();
+            System.out.println("app " + app.getName() + " loaded");
+            break;
+        }
+        return app;
+    }
 
     public boolean isSearchAvailable() {
         return false;
@@ -195,7 +205,7 @@ public abstract class AbstractApplication implements App {
     }
 
     private void buildMenuIds(AbstractArea a, String prefijo, List<MenuEntry> incomingPath, MenuEntry e) {
-        String id = prefijo + "/" + e.getName().toLowerCase().replaceAll(" ", "");
+        String id = prefijo + "/" + e.getName().toLowerCase().replaceAll("/", "").replaceAll(" ", "");
 
         int pos = 0;
         String idbase = id;
@@ -342,6 +352,20 @@ public abstract class AbstractApplication implements App {
             }
         }
         return area;
+    }
+
+
+
+    public Class<? extends AppConfig> getAppConfigClass() {
+        return AppConfig.class;
+    }
+
+    public Class<? extends User> getUserClass() {
+        return User.class;
+    }
+
+    public Populator getPopulator() {
+        return new Populator();
     }
 
 }

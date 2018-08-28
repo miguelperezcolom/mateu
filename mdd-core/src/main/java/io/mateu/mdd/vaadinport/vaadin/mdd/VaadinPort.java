@@ -74,6 +74,16 @@ public class VaadinPort implements MDDPort {
         MDDUI.get().getAppComponent().updateTitle(title);
     }
 
+    @Override
+    public boolean isViewingOfficeCurrency() {
+        return "office".equalsIgnoreCase((String) UI.getCurrent().getSession().getAttribute("_viewcurrency"));
+    }
+
+    @Override
+    public boolean isViewingCentralCurrency() {
+        return "central".equalsIgnoreCase((String) UI.getCurrent().getSession().getAttribute("_viewcurrency"));
+    }
+
 
     @Override
     public void setUserData(UserData userData) {

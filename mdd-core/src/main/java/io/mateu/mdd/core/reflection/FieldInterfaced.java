@@ -45,4 +45,6 @@ public interface FieldInterfaced {
     int getModifiers();
 
     DataProvider getDataProvider();
+
+    Annotation[] getDeclaredAnnotations();
 }

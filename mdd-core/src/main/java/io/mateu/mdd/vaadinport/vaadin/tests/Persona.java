@@ -1,13 +1,18 @@
 package io.mateu.mdd.vaadinport.vaadin.tests;
 
+import io.mateu.mdd.core.annotations.FullWidth;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+
+import javax.validation.constraints.NotEmpty;
 
 @Data
 @Getter@Setter
 public class Persona {
 
+    @FullWidth
+    @NotEmpty
     private String nombre;
 
     private String apellidos;

@@ -50,10 +50,31 @@ import java.util.*;
 //private|public/area/modulo/menu/menu/accion/vista/id|add/field <-- rellenar seleccionado registros
 //private|public/area/modulo/menu/menu/accion/vista/id|add/methodName <-- rellenar seleccionado registros
 
+
+
 public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
     private final ViewStack stack;
     private String currentPath;
+
+    private EditorViewComponent currentEditor;
+    private String pendingPrivateState;
+
+    public String getPendingPrivateState() {
+        return pendingPrivateState;
+    }
+
+    public void setPendingPrivateState(String pendingPrivateState) {
+        this.pendingPrivateState = pendingPrivateState;
+    }
+
+    public EditorViewComponent getCurrentEditor() {
+        return currentEditor;
+    }
+
+    public void setCurrentEditor(EditorViewComponent currentEditor) {
+        this.currentEditor = currentEditor;
+    }
 
     public ViewStack getStack() {
         return stack;
@@ -76,6 +97,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
     public View getView(String state) {
         View v = null;
 
+
         if (Strings.isNullOrEmpty(state)) { // caso ""
 
             if (!MDD.getApp().hasPublicContent()) {
@@ -86,6 +108,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
             }
 
         }
+
 
         if ("oauth/github/callback".equalsIgnoreCase(state)) {
 
@@ -141,9 +164,24 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
         }
 
-            currentPath = state;
+        if ("welcome".equals(state) && MDD.getUserData() != null) { // caso "login"
+            if (!Strings.isNullOrEmpty(pendingPrivateState)) {
+                String newState = pendingPrivateState;
+                pendingPrivateState = null;
+                if (!newState.startsWith("/")) newState = "/" + newState;
+                Page.getCurrent().open(newState, null);
+            }
+        }
 
-        if ("login".equals(state)) { // caso "login"
+        currentPath = state;
+
+        if (state.startsWith("resetpassword")) { // caso "login"
+
+            stack.clear();
+
+            v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new ResetPasswordFlowComponent(state.split("/")[1]));
+
+        } else if ("login".equals(state)) { // caso "login"
 
             stack.clear();
 
@@ -169,6 +207,8 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
             stack.clear();
 
+            pendingPrivateState = state;
+
             v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new LoginFlowComponent());
 
 
@@ -179,6 +219,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
             v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new WelcomeComponent());
 
             MDDUI.get().getAppComponent().setArea(MDD.getApp().getDefaultPrivateArea());
+
 
         } else if ("public".equals(state)) { // caso "login"
 
@@ -422,18 +463,18 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                 }
                             }
 
-                        } else if (lastViewComponent instanceof EditorViewComponent || lastViewComponent instanceof MethodResultViewFlowComponent || lastViewComponent instanceof WizardComponent || lastViewComponent instanceof OwnedCollectionComponent) {
+                        } else if (lastViewComponent instanceof EditorViewComponent || lastViewComponent instanceof MethodResultViewFlowComponent || lastViewComponent instanceof WizardComponent || lastViewComponent instanceof OwnedCollectionComponent || lastViewComponent instanceof MethodParametersViewFlowComponent) {
 
                             EditorViewComponent auxevfc = null;
 
                             if (lastViewComponent instanceof MethodResultViewFlowComponent) {
-                                lastViewComponent = ((MethodResultViewFlowComponent)lastViewComponent).getComponent(0);
+                                lastViewComponent = ((MethodResultViewFlowComponent) lastViewComponent).getComponent(0);
                             }
 
                             if (lastViewComponent instanceof WizardComponent) {
                                 auxevfc = ((WizardComponent) lastViewComponent).getEditorViewComponent();
                             } else if (lastViewComponent instanceof OwnedCollectionComponent) {
-                                    auxevfc = ((OwnedCollectionComponent) lastViewComponent).getEditorViewComponent();
+                                auxevfc = ((OwnedCollectionComponent) lastViewComponent).getEditorViewComponent();
                             } else {
                                 auxevfc = (EditorViewComponent) lastViewComponent;
                             }
@@ -570,6 +611,16 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                             }
 
+                        } else if (lastViewComponent instanceof MethodParametersViewFlowComponent) {
+
+                            MethodParametersViewFlowComponent mpfvc = (MethodParametersViewFlowComponent) lastViewComponent;
+
+                            MethodParametersViewComponent mpvc = mpfvc.getComponent();
+
+
+                            System.out.println("aaaaa");
+
+
                         } else {
                             // step es el id de la vista
 
@@ -695,6 +746,8 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
         }
 
         if (v == null) v = new VoidView();
+
+        if (v != null && v instanceof io.mateu.mdd.vaadinport.vaadin.navigation.View && ((io.mateu.mdd.vaadinport.vaadin.navigation.View)v).getViewComponent() instanceof CRUDViewComponent) currentEditor = (EditorViewComponent) v.getViewComponent();
 
         if (v != null && v instanceof io.mateu.mdd.vaadinport.vaadin.navigation.View && ((io.mateu.mdd.vaadinport.vaadin.navigation.View)v).getComponent() instanceof CRUDViewComponent) Notification.show(((MDD.isMobile())?"Click":"Double click") + " on matches to edit", Notification.Type.TRAY_NOTIFICATION);
 
@@ -841,4 +894,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
     }
 
 
+    public boolean isEditingNewRecord() {
+        return currentEditor != null && currentEditor.isNewRecord();
+    }
 }

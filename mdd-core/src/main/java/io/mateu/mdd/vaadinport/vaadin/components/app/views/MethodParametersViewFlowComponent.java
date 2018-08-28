@@ -15,6 +15,7 @@ public class MethodParametersViewFlowComponent extends VerticalLayout {
     private final Object instance;
     private final MDDExecutionContext context;
     private final MDDBinder binder;
+    private final MethodParametersViewComponent component;
 
     @Override
     public String toString() {
@@ -33,8 +34,27 @@ public class MethodParametersViewFlowComponent extends VerticalLayout {
 
         addStyleName("actionparametersflowcomponent");
 
-        addComponent(new MethodParametersViewComponent(binder, instance, method, context));
+        addComponent(component = new MethodParametersViewComponent(binder, instance, method, context));
 
     }
 
+    public Method getMethod() {
+        return method;
+    }
+
+    public Object getInstance() {
+        return instance;
+    }
+
+    public MDDExecutionContext getContext() {
+        return context;
+    }
+
+    public MDDBinder getBinder() {
+        return binder;
+    }
+
+    public MethodParametersViewComponent getComponent() {
+        return component;
+    }
 }

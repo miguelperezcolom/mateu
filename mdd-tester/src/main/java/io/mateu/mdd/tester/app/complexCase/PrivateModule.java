@@ -1,10 +1,8 @@
 package io.mateu.mdd.tester.app.complexCase;
 
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.AbstractModule;
-import io.mateu.mdd.core.app.MDDExecutionContext;
-import io.mateu.mdd.core.app.MenuEntry;
+import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.model.config.AppConfig;
 
 import java.util.Arrays;
 import java.util.List;
@@ -17,11 +15,6 @@ public class PrivateModule extends AbstractModule {
 
     @Override
     public List<MenuEntry> buildMenu() {
-        return Arrays.asList(new AbstractAction("Test") {
-            @Override
-            public void run(MDDExecutionContext context) {
-                MDD.alert("Hello private");
-            }
-        });
+        return Arrays.asList(new MDDOpenEditorAction("AppConfig", AppConfig.class, 1l));
     }
 }

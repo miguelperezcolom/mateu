@@ -53,4 +53,8 @@ public interface MDDPort {
     void openWizard(Class firstPageClass);
 
     void updateTitle(String title);
+
+    boolean isViewingOfficeCurrency();
+
+    boolean isViewingCentralCurrency();
 }

@@ -118,7 +118,7 @@ public class FileComponent extends Composite implements HasValue<io.mateu.mdd.co
         h.addComponent(hyperLink = new Link());
 
         h.addComponent(image = new Image());
-        image.setWidth("200px");
+        image.setWidth("130px");
         image.setVisible(false);
         image.addClickListener(e -> {
             String u = null;
@@ -131,8 +131,12 @@ public class FileComponent extends Composite implements HasValue<io.mateu.mdd.co
         });
 
 
+        VerticalLayout v;
+        h.addComponent(v = new VerticalLayout());
+        v.addStyleName("nopadding");
 
-        h.addComponent(new Button("X", new Button.ClickListener() {
+
+        v.addComponent(new Button("X", new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent clickEvent) {
                 if (file != null) {
@@ -181,7 +185,7 @@ public class FileComponent extends Composite implements HasValue<io.mateu.mdd.co
 
 
         });
-        h.addComponent(cb);
+        v.addComponent(cb);
 
 
         url.setWidth("250px");
@@ -208,8 +212,8 @@ public class FileComponent extends Composite implements HasValue<io.mateu.mdd.co
 
         });
 
-        h.addComponent(upload);
-        h.addComponent(url);
+        v.addComponent(upload);
+        v.addComponent(url);
 
         // Open the URL in a new window/tab
         hyperLink.setTargetName("_blank");

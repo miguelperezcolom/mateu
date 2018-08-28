@@ -9,6 +9,7 @@ import lombok.NonNull;
 import lombok.Setter;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 
 @Entity
 @Getter@Setter
@@ -24,6 +25,7 @@ public class Payment {
 
     @ManyToOne(cascade = CascadeType.MERGE)
     @MainSearchFilter
+    @NotNull
     private BankAccount account;
 
     @Sum

@@ -15,6 +15,10 @@ public class EmailHelper {
 
     public static void sendEmail(String toEmail, String subject, String text, boolean noCC) throws Throwable {
 
+        System.out.println("Sending email to " + toEmail);
+        System.out.println("Subject: " + subject);
+        System.out.println("Text: " + text);
+
         Helper.transact(new JPATransaction() {
             @Override
             public void run(EntityManager em) throws Throwable {
@@ -35,8 +39,13 @@ public class EmailHelper {
                     email.setMsg(text);
                     email.addTo((!Strings.isNullOrEmpty(System.getProperty("allemailsto")))?System.getProperty("allemailsto"):toEmail);
                     email.send();
+
+                    System.out.println("******* Email sent");
+
                 } else {
+                    System.out.println("************************************");
                     System.out.println("Missing SMTP confirguration. Please go to admin > Appconfig and fill");
+                    System.out.println("************************************");
                 }
             }
         });

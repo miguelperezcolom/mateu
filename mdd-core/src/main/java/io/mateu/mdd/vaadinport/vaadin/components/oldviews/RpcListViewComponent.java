@@ -43,11 +43,6 @@ public class RpcListViewComponent extends ListViewComponent {
     }
 
     @Override
-    public Class getModelTypeForSearchFilters() {
-        return rpcListViewClass;
-    }
-
-    @Override
     public Object getModelForSearchFilters() throws InstantiationException, IllegalAccessException {
         return rpcListView;
     }

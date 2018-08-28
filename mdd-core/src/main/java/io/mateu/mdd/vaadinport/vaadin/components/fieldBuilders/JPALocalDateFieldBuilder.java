@@ -48,60 +48,7 @@ public class JPALocalDateFieldBuilder extends AbstractFieldBuilder {
 
             tf.setCaption(Helper.capitalize(field.getName()));
 
-            validators.put(tf, new ArrayList<>());
-
-            tf.addValueChangeListener(new HasValue.ValueChangeListener<LocalDate>() {
-                @Override
-                public void valueChange(HasValue.ValueChangeEvent<LocalDate> valueChangeEvent) {
-                    ValidationResult result = null;
-                    for (Validator v : validators.get(tf)) {
-                        result = v.apply(valueChangeEvent.getValue(), new ValueContext(tf));
-                        if (result.isError()) break;
-                    }
-                    if (result != null && result.isError()) {
-                        tf.setComponentError(new UserError(result.getErrorMessage()));
-                    } else {
-                        tf.setComponentError(null);
-                    }
-                }
-            });
-
             tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
-
-            if (field.isAnnotationPresent(NotNull.class)) validators.get(tf).add(new Validator() {
-                @Override
-                public ValidationResult apply(Object o, ValueContext valueContext) {
-                    if (o == null) return ValidationResult.create("Required field", ErrorLevel.ERROR);
-                    else return ValidationResult.ok();
-                }
-
-                @Override
-                public Object apply(Object o, Object o2) {
-                    return null;
-                }
-            });
-
-            BeanValidator bv = new BeanValidator(field.getDeclaringClass(), field.getName());
-
-            validators.get(tf).add(new Validator() {
-
-                @Override
-                public ValidationResult apply(Object o, ValueContext valueContext) {
-                    return bv.apply(o, valueContext);
-                }
-
-                @Override
-                public Object apply(Object o, Object o2) {
-                    return null;
-                }
-            });
-
-            addValidators(validators.get(tf));
-
-        /*
-        tf.setDescription();
-        tf.setPlaceholder();
-        */
 
             if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
 
@@ -113,9 +60,6 @@ public class JPALocalDateFieldBuilder extends AbstractFieldBuilder {
 
     }
 
-
-    public void addValidators(List<Validator> validators) {
-    }
 
     protected void bind(MDDBinder binder, DateField tf, FieldInterfaced field) {
         binder.bind(tf, field.getName());

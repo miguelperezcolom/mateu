@@ -14,6 +14,7 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractApplication;
 import io.mateu.mdd.core.app.BaseMDDApp;
 import io.mateu.mdd.core.interfaces.App;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.desktop.DesktopAppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.mobile.MobileAppComponent;
@@ -24,6 +25,8 @@ import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
 import io.mateu.mdd.vaadinport.vaadin.mdd.VaadinPort;
 import io.mateu.mdd.vaadinport.vaadin.navigation.VoidView;
 
+import java.net.URI;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 
@@ -60,6 +63,10 @@ public class MDDUI extends UI {
     private AppComponent appComponent;
     private AbstractApplication app;
 
+    public boolean isEditingNewRecord() {
+        return navegador.getViewProvider().isEditingNewRecord();
+    }
+
     public AbstractApplication getApp() {
         return app;
     }
@@ -76,25 +83,27 @@ public class MDDUI extends UI {
     protected void init(VaadinRequest vaadinRequest) {
 
 
+        String url = ((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getRequestURL().toString();
+        String uri = ((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getRequestURI();
+
+        String contextUrl = url.substring(0, url.length() - uri.length());
+        contextUrl += ((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getContextPath();
+        if (!contextUrl.endsWith("/")) contextUrl += "/";
+
         if (Strings.isNullOrEmpty(System.getProperty("tmpurl"))) {
-            String url = ((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getRequestURL().toString();
-            String uri = ((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getRequestURI();
-
-            String contextUrl = url.substring(0, url.length() - uri.length());
-            contextUrl += ((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getContextPath();
-
-            if (!contextUrl.endsWith("/")) contextUrl += "/";
-
             System.setProperty("tmpurl", contextUrl + "tmp");
             System.setProperty("tmpdir", ((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getServletContext().getRealPath("/tmp/"));
         }
 
 
         app = createApp();
+        app.setBaseUrl(contextUrl);
 
         MDD.setPort(new VaadinPort(vaadinRequest));
 
         MDD.setApp((BaseMDDApp) app);
+
+        if (MDD.getClassPool() == null) MDD.setClassPool(ReflectionHelper.createClassPool(((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getServletContext()));
 
         app.buildAreaAndMenuIds();
 
@@ -111,15 +120,14 @@ public class MDDUI extends UI {
 
     }
 
-    public AbstractApplication createApp() {
-        Iterator<App> apps = ServiceLoader.load(App.class).iterator();
-        AbstractApplication app = null;
-        while (apps.hasNext()) {
-            app = (AbstractApplication) apps.next();
-            System.out.println("app " + app.getName() + " loaded");
-            break;
-        }
-        return app;
+    private String getBaseUrl() {
+        URI u = getPage().getLocation();
+        String s = u.getScheme() + "://" + u.getHost() + ((u.getPort() != 80)?":" + u.getPort():"") + "/";
+        return s;
+    }
+
+    public static AbstractApplication createApp() {
+        return AbstractApplication.get();
     }
 
     private ViewContainer createViewContainer() {

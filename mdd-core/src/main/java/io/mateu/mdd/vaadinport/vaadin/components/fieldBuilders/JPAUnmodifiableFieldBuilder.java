@@ -1,33 +1,31 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.google.common.base.Strings;
-import com.vaadin.data.*;
-import com.vaadin.server.Setter;
+import com.vaadin.data.HasValue;
+import com.vaadin.data.Validator;
 import com.vaadin.shared.Registration;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Help;
+import io.mateu.mdd.core.annotations.Unmodifiable;
+import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import org.javamoney.moneta.FastMoney;
 
 import javax.money.MonetaryAmount;
+import javax.persistence.Id;
 import java.util.List;
 import java.util.Map;
 
-public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
+public class JPAUnmodifiableFieldBuilder extends AbstractFieldBuilder {
 
 
     public boolean isSupported(FieldInterfaced field) {
-        return String.class.equals(field.getType());
+        return field.isAnnotationPresent(Unmodifiable.class) || (MDDUI.get().getNavegador().getViewProvider().getCurrentEditor() != null && !MDDUI.get().isEditingNewRecord() && field.isAnnotationPresent(Id.class));
     }
 
     public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {

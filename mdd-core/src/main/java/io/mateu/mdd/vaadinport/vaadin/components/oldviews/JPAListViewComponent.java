@@ -12,13 +12,17 @@ import io.mateu.mdd.core.data.ChartValue;
 import io.mateu.mdd.core.data.SumData;
 import io.mateu.mdd.core.interfaces.GridDecorator;
 import io.mateu.mdd.core.interfaces.StyledEnum;
+import io.mateu.mdd.core.model.common.File;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
+import javassist.CannotCompileException;
+import javassist.NotFoundException;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -52,10 +56,6 @@ public class JPAListViewComponent extends ListViewComponent {
         return Helper.pluralize(Helper.capitalize(entityClass.getSimpleName()));
     }
 
-    @Override
-    public Class getModelTypeForSearchFilters() {
-        return entityClass;
-    }
 
     @Override
     public Object getModelForSearchFilters() throws InstantiationException, IllegalAccessException {
@@ -104,7 +104,17 @@ public class JPAListViewComponent extends ListViewComponent {
 
     public Object createNewInstance() throws IllegalAccessException, InstantiationException {
         if (filters == null) {
-            filters = entityClass.newInstance();
+            /*
+            if (Modifier.isAbstract(entityClass.getModifiers())) {
+                for (Class s : ReflectionHelper.getSubclasses(entityClass)) {
+                    if (!Modifier.isAbstract(s.getModifiers())) {
+                        filters = s.newInstance();
+                        break;
+                    };
+                }
+            } else {
+                filters = entityClass.newInstance();
+            }
             for (FieldInterfaced f : getFilterFields()) {
                 try {
                     ReflectionHelper.setValue(f, filters, null);
@@ -112,13 +122,20 @@ public class JPAListViewComponent extends ListViewComponent {
                     MDD.alert(e);
                 }
             }
+            */
+            filters = getFiltersType().newInstance();
         }
         return filters;
     }
 
     @Override
     public Class getFiltersType() {
-        return entityClass;
+        try {
+            return ReflectionHelper.createClass(entityClass.getName() + "000Filters", getFilterFields(entityClass), true);
+        } catch (Exception e) {
+            MDD.alert(e);
+        }
+        return null;
     }
 
 
@@ -160,7 +177,7 @@ public class JPAListViewComponent extends ListViewComponent {
                 // referencia y no obligatorio --> left outer join
 
                 if (!f.isAnnotationPresent(NotNull.class)) {
-                    alias.put(f, "x" + alias.size());
+                    if (!alias.containsKey(f)) alias.put(f, "x" + alias.size());
                 }
                 //todo: crear joins hasta el nivel que haga falta
             }
@@ -176,7 +193,7 @@ public class JPAListViewComponent extends ListViewComponent {
 
                 if (!f.isAnnotationPresent(NotNull.class)) {
                     if (!alias.containsKey(f.getType())) {
-                        alias.put(f, "x" + alias.size());
+                        if (!alias.containsKey(f)) alias.put(f, "x" + alias.size());
                     }
                 }
 
@@ -378,7 +395,6 @@ public class JPAListViewComponent extends ListViewComponent {
     }
 
 
-
     @Override
     public List<SumData> getSums(Object filters) {
         return sums;
@@ -388,7 +404,7 @@ public class JPAListViewComponent extends ListViewComponent {
     protected List<ChartData> getCharts(Object filters) {
         List<ChartData> l = new ArrayList<>();
 
-        ReflectionHelper.getAllFields(entityClass).stream().filter(f -> f.getType().isEnum()).forEach(f -> l.add(gatherChartData(filters, f)));
+        ReflectionHelper.getAllFields(entityClass).stream().filter(f -> f.getType().isEnum() || (!File.class.equals(f.getType()) && f.isAnnotationPresent(ManyToOne.class)) || boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType())).forEach(f -> l.add(gatherChartData(filters, f)));
 
         return l;
     }

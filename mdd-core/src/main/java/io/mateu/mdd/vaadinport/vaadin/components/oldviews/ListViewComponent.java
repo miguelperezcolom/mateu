@@ -29,6 +29,7 @@ import io.mateu.mdd.core.interfaces.AbstractJPQLListView;
 import io.mateu.mdd.core.interfaces.ICellStyleGenerator;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.interfaces.StyledEnum;
+import io.mateu.mdd.core.model.common.File;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
@@ -149,6 +150,20 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                 }
             }
 
+            if (boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType())) {
+                csg = new ICellStyleGenerator() {
+                    @Override
+                    public String getStyles(Object row, Object value) {
+                        return (value != null && ((Boolean)value))?"rowyes":"rowno";
+                    }
+
+                    @Override
+                    public boolean isContentShown() {
+                        return false;
+                    }
+                };
+            }
+
 
             ICellStyleGenerator finalCsg = csg;
             col = grid.addColumn(new ValueProvider() {
@@ -196,7 +211,24 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                 @Override
                 public String apply(Object o) {
                     try {
-                        return finalCsg.getStyles(o, ReflectionHelper.getValue(f, o));
+
+                        Object v = null;
+
+                        if (isJPAListViewComponent) {
+                            v = ((Object[]) o)[finalPos + 1];
+                        } else {
+                            try {
+                                v = ReflectionHelper.getValue(f, o);
+                            } catch (NoSuchMethodException e) {
+                                e.printStackTrace();
+                            } catch (IllegalAccessException e) {
+                                e.printStackTrace();
+                            } catch (InvocationTargetException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        return finalCsg.getStyles(o, v);
                     } catch (Exception e) {
                         MDD.alert(e);
                     }
@@ -584,10 +616,6 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         return "filters";
     }
 
-    public Class getModelTypeForSearchFilters() {
-        return this.getClass();
-    }
-
     public abstract Object getModelForSearchFilters() throws InstantiationException, IllegalAccessException;
 
     public abstract void setModelForSearchFilters(Object filters);
@@ -634,6 +662,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             } else
                 return ReflectionHelper.getAllFields(objectType).stream().filter(
                         (f) -> !f.isAnnotationPresent(Transient.class)
+                                && !f.isAnnotationPresent(NotInList.class)
                                 && !f.isAnnotationPresent(Ignored.class)
                                 && !Modifier.isTransient(f.getModifiers())
                                 && !Collection.class.isAssignableFrom(f.getType())
@@ -646,14 +675,18 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     public abstract Class getColumnType();
 
     public List<FieldInterfaced> getFilterFields() {
-        List<FieldInterfaced> explicitFilters = ReflectionHelper.getAllFields(getFiltersType()).stream().filter(
-                (f) -> f.isAnnotationPresent(SearchFilter.class) || f.isAnnotationPresent(MainSearchFilter.class)
+        return getFilterFields(getFiltersType());
+    }
+
+    public List<FieldInterfaced> getFilterFields(Class filtersType) {
+        List<FieldInterfaced> explicitFilters = ReflectionHelper.getAllFields(filtersType).stream().filter(
+                (f) -> !f.isAnnotationPresent(Ignored.class) && f.isAnnotationPresent(SearchFilter.class) || f.isAnnotationPresent(MainSearchFilter.class)
         ).collect(Collectors.toList());
         if (explicitFilters.size() > 0) {
             return explicitFilters;
         } else {
-            return ReflectionHelper.getAllFields(getFiltersType()).stream().filter(
-                    (f) ->  !f.isAnnotationPresent(Ignored.class) && ((String.class.equals(f.getType()) && !f.isAnnotationPresent(Output.class)) || f.getType().isEnum())
+            return ReflectionHelper.getAllFields(filtersType).stream().filter(
+                    (f) ->  !f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(Output.class) &&  !File.class.equals(f.getType()) && (String.class.equals(f.getType()) || boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType()) || f.getType().isEnum() || f.isAnnotationPresent(ManyToOne.class))
             ).collect(Collectors.toList());
         }
     }

@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ public class Invoice {
     private long id;
 
     @ColumnWidth(150)
+    @NotEmpty
     private String invoiceNumber;
 
     @ManyToOne

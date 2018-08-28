@@ -5,6 +5,7 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.AbstractMDDExecutionContext;
 
 import java.util.ArrayList;
@@ -150,19 +151,13 @@ public class SearchInMenuComponent extends AbstractViewComponent {
 
             if ("".equals(text) || e.getName().toLowerCase().contains(text)) {
 
-                Button b = new Button(e.getName(), new Button.ClickListener() {
-                    @Override
-                    public void buttonClick(Button.ClickEvent event) {
-                        //navigator.navigateTo(item.getKey());
-                        ((AbstractAction)e).setModifierPressed(event.isAltKey() || event.isCtrlKey()).run(new AbstractMDDExecutionContext());
-                    }
-                });
-                b.setCaption(b.getCaption()
-                        //        + " <span class=\"valo-menu-badge\">123</span>"
-                );
-                b.setCaptionAsHtml(true);
-                b.setPrimaryStyleName(ValoTheme.MENU_ITEM);
-                b.addStyleName("accionsubmenu");
+
+                Button b;
+                addComponent(b = new Button(e.getName()));
+                b.addClickListener(ev -> MDDUI.get().getNavegador().goTo(e));
+                b.addStyleName(ValoTheme.BUTTON_LINK);
+
+                b.addStyleName("submenuoption");
                 //b.setIcon(testIcon.get());  // sin iconos en el menú
                 c = b;
 

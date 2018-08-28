@@ -63,6 +63,8 @@ public class MainModule extends AbstractModule {
 
                 l.add(new MDDCallMethodAction("Returns String", Caller.class, "returnString"));
 
+                l.add(new MDDCallMethodAction("Returns String W/Parameters", Caller.class, "returnStringWithParameters"));
+
                 l.add(new MDDCallMethodAction("Returns Vaadin Component", Caller.class, "returnsComponent"));
 
                 l.add(new MDDCallMethodAction("Returns POJO (read only)", Caller.class, "returnsReadOnlyPojo"));

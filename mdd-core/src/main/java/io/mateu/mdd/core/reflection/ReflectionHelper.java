@@ -5,24 +5,43 @@ import com.google.common.collect.Lists;
 import com.vaadin.data.provider.DataProvider;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Caption;
+import io.mateu.mdd.core.annotations.FullWidth;
 import io.mateu.mdd.core.annotations.Ignored;
-import io.mateu.mdd.core.data.Data;
+import io.mateu.mdd.core.annotations.NotInEditor;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.interfaces.PushWriter;
 import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.vaadinport.vaadin.tests.Persona;
+import javassist.*;
+import javassist.bytecode.AnnotationsAttribute;
+import javassist.bytecode.ClassFile;
+import javassist.bytecode.ConstPool;
+import javassist.bytecode.annotation.*;
 import org.apache.commons.beanutils.BeanUtils;
 import org.reflections.Reflections;
+import org.reflections.util.ClasspathHelper;
 
 import javax.persistence.*;
+import javax.servlet.ServletContext;
+import javax.tools.*;
+import javax.validation.constraints.NotEmpty;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import static java.util.Collections.singletonList;
+import static javax.tools.JavaFileObject.Kind.SOURCE;
 
 public class ReflectionHelper {
 
@@ -171,11 +190,11 @@ public class ReflectionHelper {
     }
 
     public static String getGetter(Field f) {
-        return (("boolean".equals(f.getType().getName()) || Boolean.class.equals(f.getType()))?"is":"get") + f.getName().substring(0, 1).toUpperCase() + f.getName().substring(1);
+        return (boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType())?"is":"get") + f.getName().substring(0, 1).toUpperCase() + f.getName().substring(1);
     }
 
     public static String getGetter(io.mateu.mdd.core.reflection.FieldInterfaced f) {
-        return (("boolean".equals(f.getType().getName()) || Boolean.class.equals(f.getType()))?"is":"get") + f.getName().substring(0, 1).toUpperCase() + f.getName().substring(1);
+        return (boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType())?"is":"get") + f.getName().substring(0, 1).toUpperCase() + f.getName().substring(1);
     }
 
     public static String getGetter(String fn) {
@@ -827,43 +846,54 @@ public class ReflectionHelper {
     }
 
     public static List<FieldInterfaced> getAllEditableFields(Class modelType) {
+        return getAllEditableFields(modelType, null, true);
+    }
+
+    public static List<FieldInterfaced> getAllEditableFields(Class modelType, Class superType) {
+        return getAllEditableFields(modelType, superType, true);
+    }
+
+    public static List<FieldInterfaced> getAllEditableFields(Class modelType, Class superType, boolean includeReverseMappers) {
         List<FieldInterfaced> allFields = ReflectionHelper.getAllFields(modelType);
 
         allFields = allFields.stream().filter((f) ->
-                !(f.isAnnotationPresent(Ignored.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))
+                !(f.isAnnotationPresent(Ignored.class) || f.isAnnotationPresent(NotInEditor.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))
         ).collect(Collectors.toList());
 
 
-        List<FieldInterfaced> manytoones = allFields.stream().filter(f -> f.isAnnotationPresent(ManyToOne.class)).collect(Collectors.toList());
+        if (superType != null || !includeReverseMappers) {
 
-        for (FieldInterfaced manytoonefield : manytoones) {
+            List<FieldInterfaced> manytoones = allFields.stream().filter(f -> f.isAnnotationPresent(ManyToOne.class)).collect(Collectors.toList());
 
-            for (FieldInterfaced parentField : ReflectionHelper.getAllFields(manytoonefield.getType())) {
-                // quitamos el campo mappedBy de las columnas, ya que se supone que siempre seremos nosotros
-                OneToMany aa;
-                if ((aa = parentField.getAnnotation(OneToMany.class)) != null) {
+            for (FieldInterfaced manytoonefield : manytoones) if (!includeReverseMappers || superType.equals(manytoonefield.getType())) {
 
-                    String mb = parentField.getAnnotation(OneToMany.class).mappedBy();
+                for (FieldInterfaced parentField : ReflectionHelper.getAllFields(manytoonefield.getType())) {
+                    // quitamos el campo mappedBy de las columnas, ya que se supone que siempre seremos nosotros
+                    OneToMany aa;
+                    if ((aa = parentField.getAnnotation(OneToMany.class)) != null) {
 
-                    if (!Strings.isNullOrEmpty(mb)) {
-                        FieldInterfaced mbf = null;
-                        for (FieldInterfaced f : allFields) {
-                            if (f.getName().equals(mb)) {
-                                mbf = f;
+                        String mb = parentField.getAnnotation(OneToMany.class).mappedBy();
+
+                        if (!Strings.isNullOrEmpty(mb)) {
+                            FieldInterfaced mbf = null;
+                            for (FieldInterfaced f : allFields) {
+                                if (f.getName().equals(mb)) {
+                                    mbf = f;
+                                    break;
+                                }
+                            }
+                            if (mbf != null) {
+                                allFields.remove(mbf);
                                 break;
                             }
                         }
-                        if (mbf != null) {
-                            allFields.remove(mbf);
-                            break;
-                        }
-                    }
 
+                    }
                 }
+
             }
 
         }
-
 
         return allFields;
     }
@@ -1034,6 +1064,11 @@ public class ReflectionHelper {
             @Override
             public DataProvider getDataProvider() {
                 return null;
+            }
+
+            @Override
+            public Annotation[] getDeclaredAnnotations() {
+                return p.getDeclaredAnnotations();
             }
         };
     }
@@ -1267,5 +1302,253 @@ public class ReflectionHelper {
         }
 
         return owned;
+    }
+
+
+    public static Class createClassUsingJavac(String fullClassName, List<FieldInterfaced> fields) throws CannotCompileException, IOException, NoSuchFieldException, IllegalAccessException, ClassNotFoundException {
+
+        String java = "public class " + fullClassName + " {\n";
+        for (FieldInterfaced f : fields) {
+
+            java += "\n";
+            java += "\n";
+
+            java += "  private " + f.getType().getName() + " " + f.getName()+ ";";
+
+            java += "\n";
+            java += "\n";
+
+            java += "  private " + f.getType().getName() + " " + getGetter(f) + "() {\n";
+            java += "    return this." + f.getName() + ";\n";
+            java += "  }";
+
+        }
+
+        java += "\n";
+        java += "\n";
+
+        java += "}";
+
+        System.out.println(java);
+
+        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        String finalJava = java;
+        final SimpleJavaFileObject simpleJavaFileObject = new SimpleJavaFileObject(URI.create(fullClassName + ".java"), SOURCE) {
+
+            @Override
+            public CharSequence getCharContent(boolean ignoreEncodingErrors) {
+                return finalJava;
+            }
+
+            @Override
+            public OutputStream openOutputStream() throws IOException{
+                return byteArrayOutputStream;
+            }
+        };
+
+        final JavaFileManager javaFileManager = new ForwardingJavaFileManager(
+                ToolProvider.getSystemJavaCompiler().
+                        getStandardFileManager(null, null, null)) {
+
+            @Override
+            public JavaFileObject getJavaFileForOutput(
+                    Location location,String className,
+                    JavaFileObject.Kind kind,
+                    FileObject sibling) throws IOException {
+                return simpleJavaFileObject;
+            }
+        };
+
+        ToolProvider.getSystemJavaCompiler().getTask(null, javaFileManager, null, null, null, singletonList(simpleJavaFileObject)).call();
+
+
+        return Class.forName(fullClassName);
+
+    }
+
+    public static Class createClassUsingJavassist(String fullClassName, List<FieldInterfaced> fields) throws CannotCompileException, IOException, NoSuchFieldException, IllegalAccessException, ClassNotFoundException, NotFoundException {
+        ClassPool pool = ClassPool.getDefault();
+        CtClass cc = pool.get(FakeClass.class.getName());
+        cc.setName(fullClassName);
+
+
+
+
+        for (FieldInterfaced f : fields) {
+
+            CtField ctf;
+            cc.addField(ctf = new CtField(pool.get(f.getType().getName()), f.getName(), cc));
+            ctf.setModifiers(Modifier.PRIVATE);
+
+            CtMethod ctm;
+            cc.addMethod(ctm = new CtMethod(ctf.getType(), getGetter(f), new CtClass[0], cc));
+            ctm.setModifiers(Modifier.PUBLIC);
+            ctm.setBody(" return this."+ f.getName() + "; ");
+
+        }
+
+        cc.writeFile();
+        cc.detach();
+
+        cc.toClass(ReflectionHelper.class.getClassLoader(), ReflectionHelper.class.getProtectionDomain());
+        return Class.forName(fullClassName);
+    }
+
+    public static Class createClassUsingJavassist2(String fullClassName, List<FieldInterfaced> fields, boolean forFilters) throws CannotCompileException, IOException, NoSuchFieldException, IllegalAccessException, ClassNotFoundException, NotFoundException, InvocationTargetException {
+
+        System.out.println("creating class " + fullClassName);
+
+        ClassPool pool = MDD.getClassPool();
+
+        CtClass cc = pool.makeClass(fullClassName);
+        cc.setModifiers(Modifier.PUBLIC);
+
+        ClassFile cfile = cc.getClassFile();
+        ConstPool cpool = cfile.getConstPool();
+
+        for (FieldInterfaced f : fields) {
+
+
+            CtField ctf;
+            cc.addField(ctf = new CtField(pool.get(f.getType().getName()), f.getName(), cc));
+            ctf.setModifiers(Modifier.PRIVATE);
+
+            if (f.getDeclaredAnnotations().length > 0) {
+
+                boolean hay = !forFilters;
+
+                if (!hay) {
+                    for (Annotation a : f.getDeclaredAnnotations()) {
+                        String n = a.annotationType().getSimpleName();
+                        if (!"NotNull".equals(n) && !"NotEmpty".equals(n)) {
+                            hay = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (hay) {
+                    AnnotationsAttribute attr = new AnnotationsAttribute(cpool, AnnotationsAttribute.visibleTag);
+                    for (Annotation a : f.getDeclaredAnnotations()) {
+                        String n = a.annotationType().getSimpleName();
+                        if (!forFilters || (!"NotNull".equals(n) && !"NotEmpty".equals(n))) {
+                            addAnnotation(cc, cfile, cpool, ctf, a, attr);
+                        }
+                    }
+                    ctf.getFieldInfo().addAttribute(attr);
+                }
+
+            }
+
+            cc.addMethod(CtNewMethod.getter(getGetter(f), ctf));
+            cc.addMethod(CtNewMethod.setter(getSetter(f), ctf));
+
+        }
+
+        return cc.toClass();
+    }
+
+    private static void addAnnotation(CtClass cc, ClassFile cfile, ConstPool cpool, CtField ctf, Annotation a, AnnotationsAttribute attr) throws InvocationTargetException, IllegalAccessException {
+        javassist.bytecode.annotation.Annotation annot = new javassist.bytecode.annotation.Annotation(a.annotationType().getName(), cpool);
+        for (Method m : a.annotationType().getDeclaredMethods()) {
+            System.out.println("" + m.getName());
+            Object v = m.invoke(a);
+            MemberValue mv = getAnnotationMemberValue(cpool, m.getReturnType(), v);
+            annot.addMemberValue(m.getName(), mv);
+            //annot.addMemberValue(m.getName(), new IntegerMemberValue(cfile.getConstPool(), 0));
+        }
+        attr.addAnnotation(annot);
+    }
+
+    private static MemberValue getAnnotationMemberValue(ConstPool cpool, Class t, Object v) {
+        MemberValue mv = null;
+        if (v != null) {
+            if (int.class.equals(t)) mv = new IntegerMemberValue(cpool, (Integer) v);
+            else if (long.class.equals(t)) mv = new LongMemberValue((Long) v, cpool);
+            else if (double.class.equals(t)) mv = new DoubleMemberValue((Double) v, cpool);
+            else if (boolean.class.equals(t)) mv = new BooleanMemberValue((Boolean) v, cpool);
+            else if (t.isEnum()) {
+                EnumMemberValue emv;
+                mv = emv = new EnumMemberValue(cpool);
+                emv.setType(t.getName());
+                emv.setValue(v.toString());
+            }
+            else if (String.class.equals(t)) mv = new StringMemberValue((String) v, cpool);
+            else if (Class.class.equals(t)) mv = new ClassMemberValue(((Class)v).getName(), cpool);
+            else if (t.isArray()) {
+                ArrayMemberValue amv;
+                mv = amv = new ArrayMemberValue(cpool);
+
+                List<MemberValue> mvs = new ArrayList<>();
+
+                for (Object c : (Object[])v) {
+
+                    MemberValue mvx = getAnnotationMemberValue(cpool, c.getClass(), c);
+                    mvs.add(mvx);
+
+                }
+
+                amv.setValue(mvs.toArray(new MemberValue[0]));
+            } else {
+                System.out.println("ups");
+            }
+        }
+        return mv;
+    }
+
+    public static Class createClass(String fullClassName, List<FieldInterfaced> fields, boolean forFilters) throws CannotCompileException, IOException, NoSuchFieldException, IllegalAccessException, ClassNotFoundException, NotFoundException, InvocationTargetException {
+
+        try {
+            Class c = Class.forName(fullClassName);
+            System.out.println("class " + fullClassName + " already exists");
+            return c;
+        } catch (ClassNotFoundException e) {
+            Class c = createClassUsingJavassist2(fullClassName, fields, forFilters);
+            return c;
+        }
+    }
+
+
+    public static void main(String[] args) throws CannotCompileException, IOException, IllegalAccessException, InstantiationException, NoSuchFieldException, ClassNotFoundException, NotFoundException, InvocationTargetException {
+
+        ClassPool cpool = ClassPool.getDefault();
+        cpool.appendClassPath(new ClassClassPath(Persona.class));
+        MDD.setClassPool(cpool);
+
+        Class c = createClass("test.TestXX", getAllFields(Persona.class), false);
+        try {
+
+            Field f = c.getDeclaredField("nombre");
+
+            for (Annotation a : f.getDeclaredAnnotations()) {
+                System.out.println(a.toString());
+            }
+
+            System.out.println(f.isAnnotationPresent(FullWidth.class));
+            System.out.println(f.isAnnotationPresent(NotEmpty.class));
+
+            Object i = c.newInstance();
+            System.out.println(Helper.toJson(i));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        c = createClass("test.TestXX", getAllFields(Persona.class), false);
+        try {
+            Object i = c.newInstance();
+            System.out.println(Helper.toJson(i));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public static ClassPool createClassPool(ServletContext servletContext) {
+        ClassPool pool = new ClassPool();
+        //pool.appendClassPath(new URLClassPath());
+        pool.appendClassPath(new ClassClassPath(MDD.getApp().getClass()));
+        return pool;
     }
 }

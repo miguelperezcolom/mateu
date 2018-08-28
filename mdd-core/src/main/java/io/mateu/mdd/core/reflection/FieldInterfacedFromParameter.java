@@ -4,6 +4,8 @@ import com.vaadin.data.provider.DataProvider;
 import io.mateu.mdd.core.annotations.ValueClass;
 import io.mateu.mdd.core.annotations.ValueQL;
 
+import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.ArrayList;
@@ -55,6 +57,7 @@ public class FieldInterfacedFromParameter implements FieldInterfaced {
         if (extraAnnotations.size() > 0) {
             for (Annotation a : extraAnnotations) if (a.getClass().equals(annotationClass)) return true;
         }
+        if (ManyToOne.class.equals(annotationClass) && p.getType().isAnnotationPresent(Entity.class)) return true;
         return (ff != null)?ff.isAnnotationPresent(annotationClass): p.isAnnotationPresent(annotationClass);
     }
 
@@ -66,7 +69,9 @@ public class FieldInterfacedFromParameter implements FieldInterfaced {
     @Override
     public Class<?> getGenericClass() {
         if (ff != null) return ff.getGenericClass();
-        else if (p.getParameterizedType() != null) {
+        else if (p.getType().isAnnotationPresent(Entity.class)) {
+            return p.getType();
+        } else if (p.getParameterizedType() != null) {
 
             ParameterizedType genericType = (ParameterizedType) p.getParameterizedType();
             if (genericType != null && genericType.getActualTypeArguments().length > 0) {
@@ -134,6 +139,11 @@ public class FieldInterfacedFromParameter implements FieldInterfaced {
     @Override
     public DataProvider getDataProvider() {
         return null;
+    }
+
+    @Override
+    public Annotation[] getDeclaredAnnotations() {
+        return (ff != null)?ff.getDeclaredAnnotations(): p.getDeclaredAnnotations();
     }
 
     @Override

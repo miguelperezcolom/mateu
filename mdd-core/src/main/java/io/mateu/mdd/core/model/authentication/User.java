@@ -2,6 +2,7 @@ package io.mateu.mdd.core.model.authentication;
 
 import com.Ostermiller.util.RandPass;
 import com.google.common.base.Strings;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.model.common.File;
 import io.mateu.mdd.core.model.util.EmailHelper;
@@ -18,6 +19,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * holder for users of our common. It can be an internal user or a user created for a customer or a supplier
@@ -40,6 +42,13 @@ public class User {
 
     @Output
     private int failedLogins;
+
+
+    @Ignored
+    private String passwordResetKey;
+
+    @Ignored
+    private LocalDateTime passwordResetExpiryDateTime;
 
 
     /**
@@ -85,28 +94,33 @@ public class User {
     @TextArea
     private String comments;
 
+
+    @Section("Access")
     @OneToMany
     private List<Permission> permissions = new ArrayList<Permission>();
 
 
     @PrePersist
+    public void prePersist() {
+        if (password == null) resetPassword();
+    }
+
+
     public void resetPassword() {
         String password = new RandPass().getPass(6);
-        //setPassword(MD5.getHashString(password));
         setPassword(Helper.md5(password.toLowerCase().trim()));
     }
 
-    public void sendForgottenPasswordEmail() throws Throwable {
-        if (Strings.isNullOrEmpty(getPassword())) throw new Exception("Missing password for user " + login);
+    @Action
+    public String sendForgottenPasswordEmail() throws Throwable {
         if (Strings.isNullOrEmpty(getEmail())) throw new Exception("Missing email for user " + login);
         if (USER_STATUS.INACTIVE.equals(getStatus())) throw new Exception("Deactivated user");
-        EmailHelper.sendEmail(getEmail(), "Your password", getPassword(), true);
+        setPasswordResetKey(UUID.randomUUID().toString());
+        setPasswordResetExpiryDateTime(LocalDateTime.now().plusHours(4));
+        EmailHelper.sendEmail(getEmail(), "Password reset instructions", "" + MDD.getApp().getBaseUrl() + "resetpassword/" + getPasswordResetKey(), true);
+        return "An email with instructions has been sent to " + getEmail();
     }
 
-    public boolean validatePassword(String text) {
-        //return getPassword().equals(MD5.getHashString(text)) || getPassword().equals(text);
-        return getPassword().equals(Helper.md5(text.toLowerCase().trim()));
-    }
 
     @PostPersist
     public void post() {

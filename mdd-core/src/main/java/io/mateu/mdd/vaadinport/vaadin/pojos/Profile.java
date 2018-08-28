@@ -3,6 +3,7 @@ package io.mateu.mdd.vaadinport.vaadin.pojos;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Ignored;
+import io.mateu.mdd.core.annotations.Password;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.interfaces.PersistentPOJO;
 import io.mateu.mdd.core.model.authentication.Permission;
@@ -31,7 +32,7 @@ public class Profile implements PersistentPOJO {
 
 
     @Action(value = "Change password")
-    public void changePassword(@NotNull String currentPassword, @NotNull String newPassword, @NotNull String newPasswordAgain) throws Throwable {
+    public void changePassword(@NotNull @Password String currentPassword, @NotNull @Password String newPassword, @NotNull @Password String newPasswordAgain) throws Throwable {
 
         Helper.transact(new JPATransaction() {
             @Override

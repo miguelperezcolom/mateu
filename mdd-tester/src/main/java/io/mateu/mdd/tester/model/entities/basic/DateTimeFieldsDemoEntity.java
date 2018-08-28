@@ -11,6 +11,7 @@ import javax.persistence.Id;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Entity
 @Getter@Setter
@@ -32,5 +33,7 @@ public class DateTimeFieldsDemoEntity {
     private LocalDate today = LocalDate.now();
 
     private LocalDateTime now = LocalDateTime.now();
+
+    private Date javaUtilDate = new Date();
 
 }

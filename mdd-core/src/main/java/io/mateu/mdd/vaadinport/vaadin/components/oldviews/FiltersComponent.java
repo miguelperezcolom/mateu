@@ -38,7 +38,7 @@ public class FiltersComponent extends Composite {
 
         this.listViewComponent = listViewComponent;
 
-        this.modelType = listViewComponent.getModelTypeForSearchFilters();
+        this.modelType = listViewComponent.getFiltersType();
 
         build();
     }

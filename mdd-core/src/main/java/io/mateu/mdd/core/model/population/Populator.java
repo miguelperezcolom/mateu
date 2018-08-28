@@ -23,11 +23,11 @@ public class Populator {
 
     public static void main(String... args) throws Throwable {
 
-        populate(AppConfig.class);
+        new Populator().populate(AppConfig.class);
 
     }
 
-    public static void populate(Class appConfigClass) throws Throwable {
+    public void populate(Class appConfigClass) throws Throwable {
 
         System.out.println("Populating database...");
 

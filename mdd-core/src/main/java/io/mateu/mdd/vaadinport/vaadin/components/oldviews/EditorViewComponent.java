@@ -51,6 +51,10 @@ public class EditorViewComponent extends AbstractViewComponent {
         return modificado;
     }
 
+    public boolean isNewRecord() {
+        return newRecord;
+    }
+
     public void addEditorListener(EditorListener listener) {
         listeners.add(listener);
     }
@@ -106,10 +110,12 @@ public class EditorViewComponent extends AbstractViewComponent {
 
     private void build(Object model) {
 
+        MDDUI.get().getNavegador().getViewProvider().setCurrentEditor(this);
+
         try {
             if (panel == null) build();
 
-            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, model.getClass(), model, validators, ReflectionHelper.getAllEditableFields(model.getClass()), false);
+            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, model.getClass(), model, validators, ReflectionHelper.getAllEditableFields(model.getClass()));
 
             stylist = r.getValue();
 

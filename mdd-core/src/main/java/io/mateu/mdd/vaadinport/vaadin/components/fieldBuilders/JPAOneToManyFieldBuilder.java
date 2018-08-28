@@ -196,7 +196,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
 
             List<FieldInterfaced> colFields = getColumnFields(field);
-            List<FieldInterfaced> editableFields = ReflectionHelper.getAllEditableFields(ReflectionHelper.getGenericClass(field.getGenericType()));
+            List<FieldInterfaced> editableFields = ReflectionHelper.getAllEditableFields(ReflectionHelper.getGenericClass(field.getGenericType()), field.getDeclaringClass());
 
 
             boolean inline = false;

@@ -2,12 +2,13 @@ package io.mateu.mdd.core.model.config;
 
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.NotInEditor;
-import io.mateu.mdd.core.annotations.Tab;
+import io.mateu.mdd.core.annotations.Section;
 import io.mateu.mdd.core.annotations.TextArea;
+import io.mateu.mdd.core.app.AbstractApplication;
 import io.mateu.mdd.core.model.common.File;
-import io.mateu.mdd.core.model.population.Populator;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -26,18 +27,18 @@ import java.time.format.DateTimeFormatter;
 @Setter
 public class AppConfig {
 
+    @Section("General")
     @Id
     @NotInEditor
     private long id;
 
-    @Tab("General")
     private String businessName;
 
     @ManyToOne
     private File logo;
 
 
-    @Tab("Email")
+    @Section("Email")
     private String adminEmailSmtpHost;
 
     private int adminEmailSmtpPort;
@@ -58,12 +59,18 @@ public class AppConfig {
 
     private String pop3ReboundToEmail;
 
-    @Tab("SMS")
+    @Section("SMS")
     private boolean clickatellEnabled;
     private String clickatellApiKey;
 
+    @Section("CMS")
+    private String nginxConfigDirectory = "/etc/nginx/conf.d";
 
-    @Tab("Templates")
+    private String nginxReloadCommand = "service nginx reload";
+
+
+
+    @Section("Templates")
     @TextArea
     private String xslfoForList;
 
@@ -71,7 +78,7 @@ public class AppConfig {
     private String xslfoForObject;
 
 
-    //@Tab("Currency exchange")
+    //@Section("Currency exchange")
     //@Convert(converter = CurrencyExchangeConverter.class)
     //private CurrencyExchange currencyExchange = new CurrencyExchange();
 
@@ -79,7 +86,7 @@ public class AppConfig {
         AppConfig c = em.find(AppConfig.class, 1l);
         if (c == null) {
             try {
-                Populator.populate(AppConfig.class);
+                AbstractApplication.get().getPopulator().populate(MDDUI.createApp().getClass());
                 c = em.find(AppConfig.class, 1l);
             } catch (Throwable throwable) {
                 throwable.printStackTrace();

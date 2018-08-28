@@ -4,7 +4,7 @@
 
   <groupId>io.mateu</groupId>
   <artifactId>mdd-parent</artifactId>
-  <version>0.0.4-SNAPSHOT</version>
+  <version>0.0.5-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <url>http://maven.apache.org</url>
@@ -70,6 +70,7 @@
 
   <build>
     <plugins>
+
       <plugin>
         <artifactId>kotlin-maven-plugin</artifactId>
         <groupId>org.jetbrains.kotlin</groupId>
@@ -117,6 +118,15 @@
         <configuration>
           <source>1.8</source>
           <target>1.8</target>
+
+          <compilerArgs>
+            <!--
+            <arg>-verbose</arg>
+            <arg>-Xlint:all,-options,-path</arg>
+            -->
+            <arg>-parameters</arg>
+          </compilerArgs>
+
         </configuration>
         <executions>
           <!-- Replacing default-compile as it is treated specially by maven -->

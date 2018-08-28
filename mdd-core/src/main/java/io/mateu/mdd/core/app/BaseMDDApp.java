@@ -68,14 +68,22 @@ public abstract class BaseMDDApp extends AbstractApplication {
             public void run(EntityManager em)throws Throwable {
 
                 if (em.createQuery("select x.login from " + User.class.getName() + " x").getResultList().size() == 0) {
-                    Populator.populate(AppConfig.class);
+                    getPopulator().populate(getAppConfigClass());
                 }
 
                 User u = em.find(User.class, login.toLowerCase().trim());
                 if (u != null) {
                     if (u.getPassword() == null) throw new Exception("Missing password for user " + login);
-                    if (!Helper.md5(password.toLowerCase().trim()).equalsIgnoreCase(u.getPassword().trim())) throw new Exception("Wrong password");
+                    if (!u.checkPassword(password)) {
+                        u.setFailedLogins(u.getFailedLogins() + 1);
+                        if (u.getFailedLogins() >= 10) u.setStatus(USER_STATUS.BLOCKED);
+                        em.flush();
+                        throw new Exception("Wrong password. User will be blocked after 10 attempts");
+                    }
                     if (USER_STATUS.INACTIVE.equals(u.getStatus())) throw new Exception("Deactivated user");
+
+                    if (u.getFailedLogins() > 0) u.setFailedLogins(0);
+
                     d.setName(u.getName());
                     d.setEmail(u.getEmail());
                     d.setLogin(login);
@@ -125,8 +133,12 @@ public abstract class BaseMDDApp extends AbstractApplication {
         return null;
     }
 
-    public String recoverPassword(String s) throws Throwable {
-        throw new Exception("Not implemented. You mus override the recoverPassword method of your aplication class.");
+    public String recoverPassword(String login) throws Throwable {
+        Helper.transact(em -> {
+            em.find(User.class, login).sendForgottenPasswordEmail();
+        });
+        return "An email with instructions has been sent to you. Please check you inbox.";
+        //throw new Exception("Not implemented. You mus override the recoverPassword method of your aplication class.");
     }
 
 

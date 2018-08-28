@@ -18015,6 +18015,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .mytheme .mobileapp .componentwrapper .section {
 	padding: 0px;
+	max-width: 100%;
 }
 
 .mytheme .mobileapp .componentwrapper .filterscomponent {
@@ -18329,6 +18330,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .mytheme .v-layout .submenuoption {
 	color: #197de1;
+	text-decoration: none;
 }
 
 .mytheme .v-layout .submenuoption:hover {
@@ -18337,6 +18339,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .mytheme .section {
 	margin-right: 50px;
+	max-width: 500px;
 }
 
 .mytheme .sectioncard {
@@ -18615,4 +18618,31 @@ div.v-layout.v-horizontal.v-widget {
 
 .mytheme .v-slot-actionsbar {
 	margin-bottom: 20px;
+}
+
+.mytheme .rowyes {
+	position: relative;
+	text-align: center;
+}
+
+.mytheme .rowyes:before {
+	font-family: FontAwesome;
+	top: 0;
+	content: "\f00c";
+}
+
+.mytheme .rowno {
+	position: relative;
+	text-align: center;
+	color: lightgrey;
+}
+
+.mytheme .rowno:before {
+	font-family: FontAwesome;
+	top: 0;
+	content: "\f00d";
+}
+
+.mytheme .v-tabsheet-content {
+	margin-top: 20px;
 }

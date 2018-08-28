@@ -3,10 +3,12 @@ package io.mateu.mdd.core;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.interfaces.WizardPage;
+import javassist.ClassPool;
 
 public class MDD {
 
     private static MDDPort port;
+    private static ClassPool classPool;
 
 
     public static MDDPort getPort() {
@@ -86,5 +88,22 @@ public class MDD {
 
     public static void updateTitle(String title) {
         getPort().updateTitle(title);
+    }
+
+    public static boolean isViewingOfficeCurrency() {
+        return getPort().isViewingOfficeCurrency();
+    }
+
+    public static boolean isViewingCentralCurrency() {
+        return getPort().isViewingCentralCurrency();
+    }
+
+
+    public static void setClassPool(ClassPool classPool) {
+        MDD.classPool = classPool;
+    }
+
+    public static ClassPool getClassPool() {
+        return classPool;
     }
 }

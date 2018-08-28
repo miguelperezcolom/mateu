@@ -4,6 +4,7 @@ import io.mateu.mdd.core.annotations.DataProvider;
 import io.mateu.mdd.core.annotations.ValueClass;
 import io.mateu.mdd.core.annotations.ValueQL;
 
+import javax.persistence.ManyToOne;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -130,6 +131,11 @@ public class FieldInterfacedFromField implements io.mateu.mdd.core.reflection.Fi
     @Override
     public com.vaadin.data.provider.DataProvider getDataProvider() {
         return null;
+    }
+
+    @Override
+    public Annotation[] getDeclaredAnnotations() {
+        return (ff != null)?ff.getDeclaredAnnotations():f.getDeclaredAnnotations();
     }
 
     @Override

@@ -11,6 +11,8 @@ import io.mateu.mdd.core.app.MDDOpenListViewAction;
 import io.mateu.mdd.core.interfaces.PushWriter;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.interfaces.WizardPage;
+import io.mateu.mdd.tester.model.entities.basic.BasicFieldsDemoEntity;
+import io.mateu.mdd.tester.model.entities.basic.DateTimeFieldsDemoEntity;
 import io.mateu.mdd.tester.model.entities.groups.Person;
 import io.mateu.mdd.tester.model.rpc.SampleCustomizedRPCListView;
 import io.mateu.mdd.tester.model.wizards.Wizard1Page1;
@@ -18,6 +20,7 @@ import io.mateu.mdd.tester.model.wizards.Wizard1Page1;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -38,6 +41,10 @@ public class Caller {
 
     public static String returnString(@NotEmpty String yourName) {
         return "Hello " + yourName;
+    }
+
+    public static String returnStringWithParameters(@NotNull BasicFieldsDemoEntity entity1, DateTimeFieldsDemoEntity entity2) {
+        return "Hello " + entity1.getStringField();
     }
 
 
