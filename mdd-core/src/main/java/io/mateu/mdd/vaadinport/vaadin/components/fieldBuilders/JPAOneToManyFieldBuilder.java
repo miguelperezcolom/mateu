@@ -72,7 +72,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
     private void buildList(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue,List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced,Component> allFieldContainers, boolean forSearchFilter, boolean owned) {
         if (field.isAnnotationPresent(UseTwinCols.class)) {
 
-            TwinColSelect<Object> tf = new TwinColSelect(Helper.capitalize(field.getName()));
+            TwinColSelect<Object> tf = new TwinColSelect((container.getComponentCount() > 0)?ReflectionHelper.getCaption(field):null);
             tf.setRows(10);
             tf.setLeftColumnCaption("Available options");
             tf.setRightColumnCaption("Selected options");
@@ -128,7 +128,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             allFieldContainers.put(field, tf);
 
-            tf.setCaption(Helper.capitalize(field.getName()));
+            if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
 
             bind(binder, tf, field);
 
@@ -145,7 +145,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             b.addStyleName(ValoTheme.BUTTON_LINK);
             b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
 
-            hl.setCaption(Helper.capitalize(field.getName()));
+            if (container.getComponentCount() > 0) hl.setCaption(ReflectionHelper.getCaption(field));
 
             container.addComponent(hl);
 
@@ -182,7 +182,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             cbg.addValueChangeListener(e -> updateReferences(binder, field, e));
 
-            cbg.setCaption(Helper.capitalize(field.getName()));
+            if (container.getComponentCount() > 0) cbg.setCaption(ReflectionHelper.getCaption(field));
 
             container.addComponent(cbg);
 
@@ -222,7 +222,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             if (g.getColumns().size() == 1) ((Grid.Column)g.getColumns().get(0)).setExpandRatio(1);
             else g.addColumn((d) -> null).setWidthUndefined().setCaption("");
 
-            g.setCaption(Helper.capitalize(field.getName()));
+            if (container.getComponentCount() > 0) g.setCaption(ReflectionHelper.getCaption(field));
 
             container.addComponent(g);
 
@@ -377,7 +377,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         if (g.getColumns().size() == 1) ((Grid.Column)g.getColumns().get(0)).setExpandRatio(1);
         else g.addColumn((d) -> null).setWidthUndefined().setCaption("");
 
-        g.setCaption(Helper.capitalize(field.getName()));
+        if (container.getComponentCount() > 0) g.setCaption(ReflectionHelper.getCaption(field));
 
         container.addComponent(g);
 

@@ -2,12 +2,15 @@ package io.mateu.mdd.tester.model.entities.basic;
 
 import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.annotations.Action;
+import io.mateu.mdd.core.annotations.Caption;
 import io.mateu.mdd.core.annotations.Parameter;
 import io.mateu.mdd.core.annotations.SearchFilter;
+import io.mateu.mdd.tester.model.useCases.bankAccount.Payment;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
@@ -33,12 +36,17 @@ public class ActionsDemoEntity {
     }
 
     @Action(value = "Action on all w/params")
-    public static void action3(@Parameter(name = "Name") String name, @Parameter(name = "Ageº") int age) {
+    public static void action3(@Caption("Name from caption") String name, int age) {
         System.out.println("action 3 " + name + "/" + age);
     }
 
+    @Action(value = "Action on all w/etity params")
+    public static String action10(@Caption("Name from caption") String name, @NotNull Payment payment) {
+        return "action 4 " + name + "/" + payment.getAmount();
+    }
+
     @Action(value = "Action on all w/params+result")
-    public static String action5(@Parameter(name = "Name") String name, @Parameter(name = "Ageº") int age) {
+    public static String action5(String name, int age) {
         String msg = "action 5 " + name + "/" + age;
         System.out.println(msg);
         return msg;

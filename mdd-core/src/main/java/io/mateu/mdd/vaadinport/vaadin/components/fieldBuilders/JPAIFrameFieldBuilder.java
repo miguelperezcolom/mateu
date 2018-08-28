@@ -14,6 +14,7 @@ import io.mateu.mdd.core.annotations.IFrame;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 
 import java.util.List;
@@ -40,7 +41,7 @@ public class JPAIFrameFieldBuilder extends AbstractFieldBuilder {
 
             allFieldContainers.put(field, tf);
 
-            tf.setCaption(Helper.capitalize(field.getName()));
+            if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
 
             if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
 

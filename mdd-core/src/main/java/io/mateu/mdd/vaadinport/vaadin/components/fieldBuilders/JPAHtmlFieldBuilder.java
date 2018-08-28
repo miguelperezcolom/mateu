@@ -16,6 +16,7 @@ import io.mateu.mdd.core.annotations.Html;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
@@ -51,7 +52,7 @@ public class JPAHtmlFieldBuilder extends JPAStringFieldBuilder {
 
             allFieldContainers.put(field, tf);
 
-            l.setCaption(Helper.capitalize(field.getName()));
+            if (container.getComponentCount() > 0) l.setCaption(ReflectionHelper.getCaption(field));
 
             validators.put(tf, new ArrayList<>());
 

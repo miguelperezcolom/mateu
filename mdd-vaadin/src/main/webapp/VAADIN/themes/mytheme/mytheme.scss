@@ -832,4 +832,22 @@
     margin-top: 20px;
   }
 
+  .botonerafiltros {
+    margin-top: 2em;
+
+    .v-button {
+      font-size: 1.4em;
+      color: grey;
+    }
+
+    .v-button:hover {
+      color: inherit;
+    }
+
+    .principal {
+      color: #197de1;
+    }
+
+  }
+
 }

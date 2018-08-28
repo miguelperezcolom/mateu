@@ -15,6 +15,7 @@ import com.vaadin.ui.Layout;
 import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.data.MDDBinder;
 
@@ -42,7 +43,7 @@ public class JPAEnumerationFieldBuilder extends AbstractFieldBuilder {
 
         allFieldContainers.put(field, tf);
 
-        tf.setCaption(Helper.capitalize(field.getName()));
+        if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
 
         validators.put(tf, new ArrayList<>());
 

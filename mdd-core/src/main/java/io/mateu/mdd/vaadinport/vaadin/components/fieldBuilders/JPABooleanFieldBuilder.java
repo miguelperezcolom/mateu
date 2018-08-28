@@ -12,6 +12,7 @@ import com.vaadin.ui.Layout;
 import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.data.MDDBinder;
 
@@ -36,7 +37,7 @@ public class JPABooleanFieldBuilder extends AbstractFieldBuilder {
 
             if (allFieldContainers.size() == 0) cb.focus();
 
-            cb.setCaption(Helper.capitalize(field.getName()));
+            if (container.getComponentCount() > 0) cb.setCaption(ReflectionHelper.getCaption(field));
 
             if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) cb.setDescription(field.getAnnotation(Help.class).value());
 
@@ -50,7 +51,7 @@ public class JPABooleanFieldBuilder extends AbstractFieldBuilder {
 
             if (allFieldContainers.size() == 0) cb.focus();
 
-            cb.setCaption(Helper.capitalize(field.getName()));
+            if (container.getComponentCount() > 0) cb.setCaption(ReflectionHelper.getCaption(field));
 
             if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) cb.setDescription(field.getAnnotation(Help.class).value());
 

@@ -83,7 +83,7 @@ public class JPAOneToOneFieldBuilder extends AbstractFieldBuilder {
 
             allFieldContainers.put(field, tf);
 
-            tf.setCaption(Helper.capitalize(field.getName()));
+            if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
 
             validators.put(tf, new ArrayList<>());
 

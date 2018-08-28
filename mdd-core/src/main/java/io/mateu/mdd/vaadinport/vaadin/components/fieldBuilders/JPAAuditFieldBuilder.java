@@ -38,7 +38,7 @@ public class JPAAuditFieldBuilder extends AbstractFieldBuilder {
 
             allFieldContainers.put(field, tf);
 
-            tf.setCaption(Helper.capitalize(field.getName()));
+            if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
 
             if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
 

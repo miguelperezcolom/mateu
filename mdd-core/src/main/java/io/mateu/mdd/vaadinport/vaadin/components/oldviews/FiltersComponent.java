@@ -49,7 +49,6 @@ public class FiltersComponent extends Composite {
         setCompositionRoot(l);
         l.addStyleName("nopadding");
 
-
         addStyleName("filterscomponent");
 
 
@@ -67,6 +66,11 @@ public class FiltersComponent extends Composite {
         List<FieldInterfaced> allFilterFields = getAllFilterFields();
 
         HorizontalLayout botones = new HorizontalLayout();
+
+        if (!MDD.isMobile() && allFilterFields.size() > 0) {
+            botones.addStyleName("botonerafiltros");
+            botones.setSpacing(false);
+        }
 
 
         if (allFilterFields.size() > 0) {
@@ -90,13 +94,6 @@ public class FiltersComponent extends Composite {
                 public void buttonClick(Button.ClickEvent clickEvent) {
                     try {
                         Object filters = modelType.newInstance();
-                        for (FieldInterfaced f : listViewComponent.getFilterFields()) {
-                            try {
-                                ReflectionHelper.setValue(f, filters, null);
-                            } catch (Exception e) {
-                                MDD.alert(e);
-                            }
-                        }
                         listViewComponent.setModelForSearchFilters(filters);
                         listViewComponent.search(listViewComponent.getModelForSearchFilters());
                     } catch (Throwable throwable) {
@@ -169,7 +166,8 @@ public class FiltersComponent extends Composite {
             }
         });
         b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
-        b.setStyleName(ValoTheme.BUTTON_PRIMARY);
+        b.addStyleName("principal");
+        //b.setStyleName(ValoTheme.BUTTON_PRIMARY);
 
         l.addComponent(botones);
 

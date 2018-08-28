@@ -686,7 +686,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             return explicitFilters;
         } else {
             return ReflectionHelper.getAllFields(filtersType).stream().filter(
-                    (f) ->  !f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(Output.class) &&  !File.class.equals(f.getType()) && (String.class.equals(f.getType()) || boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType()) || f.getType().isEnum() || f.isAnnotationPresent(ManyToOne.class))
+                    (f) ->  !f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(Output.class) &&  !File.class.equals(f.getType()) && (String.class.equals(f.getType()) || LocalDate.class.equals(f.getType()) || LocalDateTime.class.equals(f.getType()) || Date.class.equals(f.getType()) || boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType()) || f.getType().isEnum() || f.isAnnotationPresent(ManyToOne.class))
             ).collect(Collectors.toList());
         }
     }

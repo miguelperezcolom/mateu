@@ -203,7 +203,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
         allFieldContainers.put(field, tf);
 
-        tf.setCaption(Helper.capitalize(field.getName()));
+        if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
 
 
         bind(binder, hv, field, forSearchFilter);

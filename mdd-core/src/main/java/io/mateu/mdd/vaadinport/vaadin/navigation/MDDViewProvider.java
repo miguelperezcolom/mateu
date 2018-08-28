@@ -463,7 +463,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                 }
                             }
 
-                        } else if (lastViewComponent instanceof EditorViewComponent || lastViewComponent instanceof MethodResultViewFlowComponent || lastViewComponent instanceof WizardComponent || lastViewComponent instanceof OwnedCollectionComponent || lastViewComponent instanceof MethodParametersViewFlowComponent) {
+                        } else if (lastViewComponent instanceof EditorViewComponent || lastViewComponent instanceof FieldEditorComponent || lastViewComponent instanceof MethodResultViewFlowComponent || lastViewComponent instanceof WizardComponent || lastViewComponent instanceof OwnedCollectionComponent || lastViewComponent instanceof MethodParametersViewFlowComponent) {
 
                             IEditorViewComponent auxevfc = null;
 
@@ -473,6 +473,8 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                             if (lastViewComponent instanceof WizardComponent) {
                                 auxevfc = ((WizardComponent) lastViewComponent).getEditorViewComponent();
+                            } else if (lastViewComponent instanceof FieldEditorComponent) {
+                                auxevfc = (IEditorViewComponent) ((FieldEditorComponent) lastViewComponent).getComponent(0);
                             } else if (lastViewComponent instanceof OwnedCollectionComponent) {
                                 auxevfc = ((OwnedCollectionComponent) lastViewComponent).getEditorViewComponent();
                             } else if (lastViewComponent instanceof MethodParametersViewFlowComponent) {

@@ -11,6 +11,7 @@ import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 
 import javax.validation.constraints.NotEmpty;
@@ -46,7 +47,7 @@ public class JPAURLFieldBuilder extends AbstractFieldBuilder {
 
         allFieldContainers.put(field, tf);
 
-        hl.setCaption(Helper.capitalize(field.getName()));
+        if (container.getComponentCount() > 0) hl.setCaption(ReflectionHelper.getCaption(field));
 
         if (!forSearchFilter) {
 

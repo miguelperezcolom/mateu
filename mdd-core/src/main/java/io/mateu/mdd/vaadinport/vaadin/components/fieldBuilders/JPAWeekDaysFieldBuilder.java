@@ -12,6 +12,7 @@ import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.model.multilanguage.Literal;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components.WeekDaysComponent;
 
@@ -38,7 +39,7 @@ public class JPAWeekDaysFieldBuilder extends AbstractFieldBuilder {
 
         allFieldContainers.put(field, c);
 
-        c.setCaption(Helper.capitalize(field.getName()));
+        if (container.getComponentCount() > 0) c.setCaption(ReflectionHelper.getCaption(field));
 
         if (!forSearchFilter) {
 

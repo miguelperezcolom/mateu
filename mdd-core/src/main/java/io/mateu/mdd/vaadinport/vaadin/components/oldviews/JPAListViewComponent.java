@@ -28,6 +28,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -283,6 +285,27 @@ public class JPAListViewComponent extends ListViewComponent {
                         ql += " lower(x." + f.getName() + ") like :" + f.getName() + " ";
                         parameterValues.put(f.getName(), "%" + ((String) v).toLowerCase() + "%");
                     }
+                } else if (Boolean.class.equals(v.getClass()) || boolean.class.equals(v.getClass())) {
+
+                    boolean b = (Boolean) v;
+
+                    if (!"".equals(ql)) ql += " and ";
+
+                    if (!b) ql += " not ";
+
+                    ql += " x." + f.getName() + " ";
+
+                    if (b) ql += " = true ";
+
+                } else if (LocalDate.class.equals(v.getClass()) || LocalDateTime.class.equals(v.getClass()) || Date.class.equals(v.getClass())) {
+
+                    String fname = f.getName();
+                    if (fname.endsWith("From")) fname = fname.substring(0, fname.lastIndexOf("From"));
+                    if (fname.endsWith("To")) fname = fname.substring(0, fname.lastIndexOf("To"));
+
+                    if (!"".equals(ql)) ql += " and ";
+                    ql += " x." + fname + " " + ((f.getName().endsWith("From"))?">=":"<=") + " :" + f.getName() + " ";
+                    parameterValues.put(f.getName(), v);
 
                 } else {
 

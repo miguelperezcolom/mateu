@@ -18646,3 +18646,20 @@ div.v-layout.v-horizontal.v-widget {
 .mytheme .v-tabsheet-content {
 	margin-top: 20px;
 }
+
+.mytheme .botonerafiltros {
+	margin-top: 2em;
+}
+
+.mytheme .botonerafiltros .v-button {
+	font-size: 1.4em;
+	color: grey;
+}
+
+.mytheme .botonerafiltros .v-button:hover {
+	color: inherit;
+}
+
+.mytheme .botonerafiltros .principal {
+	color: #197de1;
+}

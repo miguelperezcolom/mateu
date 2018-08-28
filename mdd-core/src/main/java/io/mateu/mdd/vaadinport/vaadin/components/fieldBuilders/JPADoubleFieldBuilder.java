@@ -12,6 +12,7 @@ import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.data.MDDBinder;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 
 import javax.validation.constraints.*;
@@ -34,7 +35,7 @@ public class JPADoubleFieldBuilder extends JPAStringFieldBuilder {
 
             allFieldContainers.put(field, tf);
 
-            tf.setCaption(Helper.capitalize(field.getName()));
+            if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
 
             if (!forSearchFilter) {
 

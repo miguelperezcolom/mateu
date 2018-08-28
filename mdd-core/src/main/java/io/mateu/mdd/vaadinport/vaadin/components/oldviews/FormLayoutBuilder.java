@@ -9,7 +9,9 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.interfaces.VoidStylist;
+import io.mateu.mdd.core.layout.MiFormLayout;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.FieldBuilder;
@@ -88,7 +90,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
             AbstractStylist finalStylist1 = stylist;
             sections.forEach(s -> {
-                Layout form = (MDD.isMobile())?new VerticalLayout():new FormLayout();
+                Layout form = (MDD.isMobile())?new VerticalLayout():new MiFormLayout();
                 form.setSizeUndefined();
                 form.addStyleName("section");
                 if (s.isCard()) form.addStyleName("sectioncard");
@@ -135,6 +137,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
         TabSheet.Tab tab = null;
 
         Layout currentContentContainer = contentContainer;
+        Layout currentFieldContainer = null;
 
         List<TabSheet> tabSheetsStack = new ArrayList<>();
         List<TabSheet.Tab> tabsStack = new ArrayList<>();
@@ -177,26 +180,36 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                         currentContentContainer.addComponent(tabs);
                         //tabs.setCaption(ta.value());
                     }
-                    tab = tabs.addTab(currentContentContainer = new FormLayout());
+                    tab = tabs.addTab(currentContentContainer = new MiFormLayout());
                     tab.setCaption(ta.value());
                 }
 
             }
 
+            if (currentFieldContainer == null || !f.isAnnotationPresent(SameLine.class)) {
+                HorizontalLayout wrap;
+                currentFieldContainer = wrap = new HorizontalLayout();
+                wrap.setSpacing(true);
+                wrap.setDefaultComponentAlignment(Alignment.MIDDLE_LEFT);
+                //currentFieldContainer.setCaption(ReflectionHelper.getCaption(f));
+            }
+
             if (f.isAnnotationPresent(FieldBuilder.class)) {
                 try {
-                    (f.getAnnotation(FieldBuilder.class).value().newInstance()).build(f, model, currentContentContainer, binder, validators, stylist, allFieldContainers, forSearchFilters);
+                    (f.getAnnotation(FieldBuilder.class).value().newInstance()).build(f, model, currentFieldContainer, binder, validators, stylist, allFieldContainers, forSearchFilters);
                 } catch (Exception e) {
                     MDD.alert(e);
                 }
             } else if (f.isAnnotationPresent(GeneratedValue.class) || (MDDUI.get().getNavegador().getViewProvider().getCurrentEditor() != null && f.isAnnotationPresent(Output.class))) {
-                ofb.build(f, model, currentContentContainer, binder, validators, stylist, allFieldContainers, forSearchFilters);
+                ofb.build(f, model, currentFieldContainer, binder, validators, stylist, allFieldContainers, forSearchFilters);
             } else {
                 for (AbstractFieldBuilder fieldBuilder : AbstractFieldBuilder.builders) if (fieldBuilder.isSupported(f)) {
-                    fieldBuilder.build(f, model, currentContentContainer, binder, validators, stylist, allFieldContainers, forSearchFilters);
+                    fieldBuilder.build(f, model, currentFieldContainer, binder, validators, stylist, allFieldContainers, forSearchFilters);
                     break;
                 }
             }
+
+            if (currentFieldContainer != null && currentFieldContainer.getComponentCount() > 0) currentContentContainer.addComponent(currentFieldContainer);
 
         }
 

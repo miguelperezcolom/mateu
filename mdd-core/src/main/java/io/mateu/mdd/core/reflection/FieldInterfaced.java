@@ -11,7 +11,7 @@ import java.lang.reflect.Type;
  * Created by miguel on 22/2/17.
  */
 public interface FieldInterfaced {
-    public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass);
+    boolean isAnnotationPresent(Class<? extends Annotation> annotationClass);
 
     Class<?> getType();
 

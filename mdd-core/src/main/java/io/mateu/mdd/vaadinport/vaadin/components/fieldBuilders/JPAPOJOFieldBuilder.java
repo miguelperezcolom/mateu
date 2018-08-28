@@ -6,6 +6,7 @@ import com.vaadin.shared.Registration;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
+import io.mateu.mdd.core.layout.MiFormLayout;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
@@ -19,7 +20,7 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
 
     MDDBinder subbinder;
     private FieldInterfaced field;
-    private FormLayout formLayout;
+    private Layout formLayout;
     private MDDBinder binder;
     private Set<Class> subClasses;
     private ComboBox<ClassOption> cb;
@@ -31,11 +32,6 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
     @Override
     public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
 
-        /*
-        Label tl;
-        container.addComponent(tl = new Label(Helper.capitalize(field.getName())));
-        tl.addStyleName(ValoTheme.LABEL_H3);
-*/
         this.field = field;
         this.binder = binder;
 
@@ -94,9 +90,9 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
         }
 
 
-        container.addComponent(formLayout = new FormLayout());
+        container.addComponent(formLayout = new MiFormLayout());
         formLayout.addStyleName("embedded");
-        formLayout.setCaption(Helper.capitalize(field.getName()));
+        if (container.getComponentCount() > 0) formLayout.setCaption(ReflectionHelper.getCaption(field));
 
         subBuild();
     }

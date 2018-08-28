@@ -14,6 +14,7 @@ import com.vaadin.ui.Layout;
 import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.data.MDDBinder;
 
@@ -32,29 +33,21 @@ public class JPALocalDateTimeFieldBuilder extends AbstractFieldBuilder {
 
     public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
 
-        if (forSearchFilter) {
+        DateTimeField tf;
+        container.addComponent(tf = new DateTimeField());
 
-            //todo: desde, hasta
+        if (allFieldContainers.size() == 0) tf.focus();
 
-        } else {
+        allFieldContainers.put(field, tf);
 
-            DateTimeField tf;
-            container.addComponent(tf = new DateTimeField());
+        if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
 
-            if (allFieldContainers.size() == 0) tf.focus();
+        tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
 
-            allFieldContainers.put(field, tf);
-
-            tf.setCaption(Helper.capitalize(field.getName()));
-
-            tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
-
-            if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
+        if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
 
 
-            bind(binder, tf, field);
-
-        }
+        bind(binder, tf, field);
 
     }
 

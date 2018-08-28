@@ -4,10 +4,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.vaadin.data.provider.DataProvider;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.Caption;
-import io.mateu.mdd.core.annotations.FullWidth;
-import io.mateu.mdd.core.annotations.Ignored;
-import io.mateu.mdd.core.annotations.NotInEditor;
+import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.interfaces.PushWriter;
@@ -190,11 +187,15 @@ public class ReflectionHelper {
     }
 
     public static String getGetter(Field f) {
-        return (boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType())?"is":"get") + f.getName().substring(0, 1).toUpperCase() + f.getName().substring(1);
+        return getGetter(f.getType(), f.getName());
     }
 
     public static String getGetter(io.mateu.mdd.core.reflection.FieldInterfaced f) {
-        return (boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType())?"is":"get") + f.getName().substring(0, 1).toUpperCase() + f.getName().substring(1);
+        return getGetter(f.getType(), f.getName());
+    }
+
+    public static String getGetter(Class c, String fieldName) {
+        return (boolean.class.equals(c)?"is":"get") + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
     }
 
     public static String getGetter(String fn) {
@@ -202,12 +203,16 @@ public class ReflectionHelper {
     }
 
     public static String getSetter(Field f) {
-        return "set" + f.getName().substring(0, 1).toUpperCase() + f.getName().substring(1);
+        return getSetter(f.getType(), f.getName());
     }
     public static String getSetter(io.mateu.mdd.core.reflection.FieldInterfaced f) {
-        return "set" + f.getName().substring(0, 1).toUpperCase() + f.getName().substring(1);
+        return getSetter(f.getType(), f.getName());
     }
 
+
+    public static String getSetter(Class c, String fieldName) {
+        return "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+    }
 
 
 
@@ -1395,9 +1400,11 @@ public class ReflectionHelper {
         return Class.forName(fullClassName);
     }
 
-    public static Class createClassUsingJavassist2(String fullClassName, List<FieldInterfaced> fields, boolean forFilters) throws CannotCompileException, IOException, NoSuchFieldException, IllegalAccessException, ClassNotFoundException, NotFoundException, InvocationTargetException {
+    public static Class createClassUsingJavassist2(String fullClassName, List<FieldInterfaced> fields, boolean forFilters) throws Exception {
 
         System.out.println("creating class " + fullClassName);
+
+        List<String> avoidedAnnotationNames = Lists.newArrayList("NotNull", "NotEmpty", "SameLine");
 
         ClassPool pool = MDD.getClassPool();
 
@@ -1410,43 +1417,80 @@ public class ReflectionHelper {
         for (FieldInterfaced f : fields) {
 
 
-            CtField ctf;
-            cc.addField(ctf = new CtField(pool.get(f.getType().getName()), f.getName(), cc));
-            ctf.setModifiers(Modifier.PRIVATE);
+            Class t = f.getType();
 
-            if (f.getDeclaredAnnotations().length > 0) {
+            if (forFilters && boolean.class.equals(t)) t = Boolean.class;
 
-                boolean hay = !forFilters;
 
-                if (!hay) {
-                    for (Annotation a : f.getDeclaredAnnotations()) {
-                        String n = a.annotationType().getSimpleName();
-                        if (!"NotNull".equals(n) && !"NotEmpty".equals(n)) {
-                            hay = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (hay) {
-                    AnnotationsAttribute attr = new AnnotationsAttribute(cpool, AnnotationsAttribute.visibleTag);
-                    for (Annotation a : f.getDeclaredAnnotations()) {
-                        String n = a.annotationType().getSimpleName();
-                        if (!forFilters || (!"NotNull".equals(n) && !"NotEmpty".equals(n))) {
-                            addAnnotation(cc, cfile, cpool, ctf, a, attr);
-                        }
-                    }
-                    ctf.getFieldInfo().addAttribute(attr);
-                }
-
-            }
-
-            cc.addMethod(CtNewMethod.getter(getGetter(f), ctf));
-            cc.addMethod(CtNewMethod.setter(getSetter(f), ctf));
+            if (LocalDate.class.equals(t) || LocalDateTime.class.equals(t) || Date.class.equals(t)) {
+                addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName() + "From", f.getDeclaredAnnotations(), false);
+                addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName() + "To", f.getDeclaredAnnotations(), true);
+            } else addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName(), f.getDeclaredAnnotations(), false);
 
         }
 
         return cc.toClass();
+    }
+
+    private static void addField(List<String> avoidedAnnotationNames, ClassPool pool, ClassFile cfile, ConstPool cpool, CtClass cc, boolean forFilters, Class t, String fieldName, Annotation[] declaredAnnotations, boolean forceSameLine) throws Exception {
+
+        CtField ctf;
+
+
+        cc.addField(ctf = new CtField(pool.get(t.getName()), fieldName, cc));
+        ctf.setModifiers(Modifier.PRIVATE);
+
+        if (forceSameLine) {
+
+            boolean yaEsta = false;
+            for (Annotation a : declaredAnnotations) if (SameLine.class.equals(a.annotationType())) {
+                yaEsta = true;
+                break;
+            }
+
+            if (!yaEsta) {
+                declaredAnnotations = Arrays.copyOf(declaredAnnotations, declaredAnnotations.length + 1);
+                declaredAnnotations[declaredAnnotations.length - 1] = new SameLine() {
+
+                    @Override
+                    public Class<? extends Annotation> annotationType() {
+                        return SameLine.class;
+                    }
+                };
+            }
+        }
+
+        if (declaredAnnotations.length > 0) {
+
+            boolean hay = !forFilters;
+
+            if (!hay) {
+                for (Annotation a : declaredAnnotations) {
+                    String n = a.annotationType().getSimpleName();
+                    if (!avoidedAnnotationNames.contains(n) || (forceSameLine && "SameLine".equals(n))) {
+                        hay = true;
+                        break;
+                    }
+                }
+            }
+
+            if (hay) {
+                AnnotationsAttribute attr = new AnnotationsAttribute(cpool, AnnotationsAttribute.visibleTag);
+                for (Annotation a : declaredAnnotations) {
+                    String n = a.annotationType().getSimpleName();
+                    if (!forFilters || !avoidedAnnotationNames.contains(n) || (forceSameLine && "SameLine".equals(n))) {
+                        addAnnotation(cc, cfile, cpool, ctf, a, attr);
+                    }
+                }
+                ctf.getFieldInfo().addAttribute(attr);
+            }
+
+        }
+
+        cc.addMethod(CtNewMethod.getter(getGetter(t, fieldName), ctf));
+        cc.addMethod(CtNewMethod.setter(getSetter(t, fieldName), ctf));
+
+
     }
 
     private static void addAnnotation(CtClass cc, ClassFile cfile, ConstPool cpool, CtField ctf, Annotation a, AnnotationsAttribute attr) throws InvocationTargetException, IllegalAccessException {
@@ -1497,7 +1541,7 @@ public class ReflectionHelper {
         return mv;
     }
 
-    public static Class createClass(String fullClassName, List<FieldInterfaced> fields, boolean forFilters) throws CannotCompileException, IOException, NoSuchFieldException, IllegalAccessException, ClassNotFoundException, NotFoundException, InvocationTargetException {
+    public static Class createClass(String fullClassName, List<FieldInterfaced> fields, boolean forFilters) throws Exception {
 
         try {
             Class c = Class.forName(fullClassName);
@@ -1510,7 +1554,7 @@ public class ReflectionHelper {
     }
 
 
-    public static void main(String[] args) throws CannotCompileException, IOException, IllegalAccessException, InstantiationException, NoSuchFieldException, ClassNotFoundException, NotFoundException, InvocationTargetException {
+    public static void main(String[] args) throws Exception {
 
         ClassPool cpool = ClassPool.getDefault();
         cpool.appendClassPath(new ClassClassPath(Persona.class));
