@@ -7,10 +7,10 @@ import java.lang.reflect.InvocationTargetException;
 public class JPACollectionFieldCRUDViewComponent extends CRUDViewComponent {
 
     private final FieldInterfaced field;
-    private final EditorViewComponent evfc;
+    private final IEditorViewComponent evfc;
     private final boolean addingToCollection;
 
-    public JPACollectionFieldCRUDViewComponent(FieldInterfaced field, EditorViewComponent evfc, boolean addingToCollection) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
+    public JPACollectionFieldCRUDViewComponent(FieldInterfaced field, IEditorViewComponent evfc, boolean addingToCollection) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         super(new JPACollectionFieldViewComponent(field.getGenericClass(), field, evfc, addingToCollection).build(), new EditorViewComponent(field.getGenericClass()).build());
         this.field = field;
         this.evfc = evfc;
@@ -21,7 +21,7 @@ public class JPACollectionFieldCRUDViewComponent extends CRUDViewComponent {
         return field;
     }
 
-    public EditorViewComponent getEvfc() {
+    public IEditorViewComponent getEvfc() {
         return evfc;
     }
 

@@ -465,7 +465,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                         } else if (lastViewComponent instanceof EditorViewComponent || lastViewComponent instanceof MethodResultViewFlowComponent || lastViewComponent instanceof WizardComponent || lastViewComponent instanceof OwnedCollectionComponent || lastViewComponent instanceof MethodParametersViewFlowComponent) {
 
-                            EditorViewComponent auxevfc = null;
+                            IEditorViewComponent auxevfc = null;
 
                             if (lastViewComponent instanceof MethodResultViewFlowComponent) {
                                 lastViewComponent = ((MethodResultViewFlowComponent) lastViewComponent).getComponent(0);
@@ -475,11 +475,13 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                 auxevfc = ((WizardComponent) lastViewComponent).getEditorViewComponent();
                             } else if (lastViewComponent instanceof OwnedCollectionComponent) {
                                 auxevfc = ((OwnedCollectionComponent) lastViewComponent).getEditorViewComponent();
+                            } else if (lastViewComponent instanceof MethodParametersViewFlowComponent) {
+                                auxevfc = ((MethodParametersViewFlowComponent)lastViewComponent).getComponent();
                             } else {
                                 auxevfc = (EditorViewComponent) lastViewComponent;
                             }
 
-                            EditorViewComponent evfc = auxevfc;
+                            IEditorViewComponent evfc = auxevfc;
 
 
                             Method method = evfc.getMethod(step);

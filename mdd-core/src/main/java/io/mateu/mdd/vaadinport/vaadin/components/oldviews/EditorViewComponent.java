@@ -31,7 +31,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-public class EditorViewComponent extends AbstractViewComponent {
+public class EditorViewComponent extends AbstractViewComponent implements IEditorViewComponent {
 
     private final boolean createSaveButton;
     private Map<HasValue, List<Validator>> validators = new HashMap<>();

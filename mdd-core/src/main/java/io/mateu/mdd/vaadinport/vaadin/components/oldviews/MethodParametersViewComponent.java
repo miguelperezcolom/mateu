@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class MethodParametersViewComponent extends AbstractViewComponent {
+public class MethodParametersViewComponent extends AbstractViewComponent implements IEditorViewComponent {
 
     private final Method method;
     private final Object bean;
@@ -192,4 +192,40 @@ public class MethodParametersViewComponent extends AbstractViewComponent {
     }
 
 
+    @Override
+    public Method getMethod(String name) {
+        return null;
+    }
+
+    @Override
+    public FieldInterfaced getField(String name) {
+        FieldInterfaced f = null;
+        for (FieldInterfaced x : getAllFields()) {
+            if (name.equals(x.getName())) {
+                f = x;
+                break;
+            }
+        }
+        return f;
+    }
+
+    @Override
+    public Object getModel() {
+        return binder.getBean();
+    }
+
+    @Override
+    public MDDBinder getBinder() {
+        return binder;
+    }
+
+    @Override
+    public void updateModel(Object m) {
+        binder.setBean(m, false);
+    }
+
+    @Override
+    public void save(boolean b) {
+
+    }
 }

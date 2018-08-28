@@ -5,6 +5,8 @@ import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.app.MDDExecutionContext;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.IEditorViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.MethodParametersViewComponent;
 
 import java.lang.reflect.Method;
@@ -57,4 +59,5 @@ public class MethodParametersViewFlowComponent extends VerticalLayout {
     public MethodParametersViewComponent getComponent() {
         return component;
     }
+
 }

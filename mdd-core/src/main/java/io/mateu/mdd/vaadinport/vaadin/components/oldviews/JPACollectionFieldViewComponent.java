@@ -18,20 +18,20 @@ import java.util.List;
 public class JPACollectionFieldViewComponent extends JPAListViewComponent {
 
     private final FieldInterfaced field;
-    private final EditorViewComponent evfc;
+    private final IEditorViewComponent evfc;
     private final boolean addingToCollection;
 
-    public JPACollectionFieldViewComponent(Class entityClass, FieldInterfaced field, EditorViewComponent evfc, boolean addingToCollection) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    public JPACollectionFieldViewComponent(Class entityClass, FieldInterfaced field, IEditorViewComponent evfc, boolean addingToCollection) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         this(entityClass, new ExtraFilters(" x " + ((field.isAnnotationPresent(UseLinkToListView.class) && !addingToCollection) ? "" : " not ") + " in :z ", "z", getIds(evfc, field)), field, evfc, addingToCollection);
     }
 
-    private static List getIds(EditorViewComponent evfc, FieldInterfaced field) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    private static List getIds(IEditorViewComponent evfc, FieldInterfaced field) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         List l = new ArrayList();
         for (Object x : (Collection) ReflectionHelper.getValue(field, evfc.getModel())) l.add(ReflectionHelper.getId(x));
         return l;
     }
 
-    public JPACollectionFieldViewComponent(Class entityClass, ExtraFilters extraFilters, FieldInterfaced field, EditorViewComponent evfc, boolean addingToCollection) {
+    public JPACollectionFieldViewComponent(Class entityClass, ExtraFilters extraFilters, FieldInterfaced field, IEditorViewComponent evfc, boolean addingToCollection) {
         super(entityClass, extraFilters);
         this.field = field;
         this.evfc = evfc;
