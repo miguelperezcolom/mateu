@@ -1400,7 +1400,7 @@ public class ReflectionHelper {
 
         System.out.println("creating class " + fullClassName);
 
-        List<String> avoidedAnnotationNames = Lists.newArrayList("NotNull", "NotEmpty", "SameLine");
+        List<String> avoidedAnnotationNames = Lists.newArrayList("NotNull", "NotEmpty", "SameLine", "Unmodifiable");
 
         ClassPool pool = MDD.getClassPool();
 

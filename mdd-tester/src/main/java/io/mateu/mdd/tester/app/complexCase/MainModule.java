@@ -14,6 +14,7 @@ import io.mateu.mdd.tester.model.entities.relations.*;
 import io.mateu.mdd.tester.model.entities.specialFields.FileFieldEntity;
 import io.mateu.mdd.tester.model.entities.specialFields.MultilanguageFieldEntity;
 import io.mateu.mdd.tester.model.entities.specialFields.WeekdaysFieldEntity;
+import io.mateu.mdd.tester.model.entities.subclassed.SuperUser;
 import io.mateu.mdd.tester.model.entities.subclassed.Superclass;
 import io.mateu.mdd.tester.model.jpql.SampleJPQLCrudView;
 import io.mateu.mdd.tester.model.jpql.SampleJPQLLIstView;
@@ -252,6 +253,8 @@ public class MainModule extends AbstractModule {
                         l.add(new MDDOpenCRUDAction("Subclasses", Superclass.class));
 
                         l.add(new MDDOpenCRUDAction("Users CRUD", User.class));
+
+                        l.add(new MDDOpenCRUDAction("Super users CRUD", SuperUser.class));
 
                         return l;
                     }

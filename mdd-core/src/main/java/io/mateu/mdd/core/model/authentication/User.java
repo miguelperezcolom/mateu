@@ -179,7 +179,7 @@ public class User {
             data.put("postscript", postscript);
             data.put("username", getName());
             data.put("useremail", getEmail());
-            EmailHelper.sendEmail(getEmail(), (Strings.isNullOrEmpty(subject))?subject:template.getSubject(), Helper.freemark(template.getFreemarker(), data), false);
+            EmailHelper.sendEmail(getEmail(), (!Strings.isNullOrEmpty(subject))?subject:template.getSubject(), Helper.freemark(template.getFreemarker(), data), false);
         } else {
             EmailHelper.sendEmail(getEmail(), subject, postscript, false);
         }
@@ -194,7 +194,7 @@ public class User {
                 data.put("postscript", postscript);
                 data.put("username", u.getName());
                 data.put("useremail", u.getEmail());
-                EmailHelper.sendEmail(u.getEmail(), (Strings.isNullOrEmpty(subject))?subject:template.getSubject(), Helper.freemark(template.getFreemarker(), data), false);
+                EmailHelper.sendEmail(u.getEmail(), (!Strings.isNullOrEmpty(subject))?subject:template.getSubject(), Helper.freemark(template.getFreemarker(), data), false);
             } else {
                 EmailHelper.sendEmail(u.getEmail(), subject, postscript, false);
             }
