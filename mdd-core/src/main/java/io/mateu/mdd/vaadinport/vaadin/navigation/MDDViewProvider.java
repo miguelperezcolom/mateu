@@ -174,6 +174,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
             }
         }
 
+        currentEditor = null;
         currentPath = state;
 
         if (state.startsWith("resetpassword")) { // caso "login"
