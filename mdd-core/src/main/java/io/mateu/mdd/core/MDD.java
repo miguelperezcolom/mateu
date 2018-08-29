@@ -9,6 +9,7 @@ public class MDD {
 
     private static MDDPort port;
     private static ClassPool classPool;
+    private static BaseMDDApp app;
 
 
     public static MDDPort getPort() {
@@ -19,9 +20,10 @@ public class MDD {
     }
 
     public static AbstractApplication getApp() {
-        return port.getApp();
+        return app;
     }
-    public static void setApp(BaseMDDApp app) {
+    public static void setApp(BaseMDDApp theApp) {
+        app = theApp;
         port.setApp(app);
     }
 

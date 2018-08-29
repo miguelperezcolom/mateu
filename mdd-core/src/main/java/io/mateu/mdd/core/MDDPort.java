@@ -7,6 +7,7 @@ import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 
 import java.lang.reflect.Method;
+import java.util.Set;
 
 public interface MDDPort {
 
@@ -35,6 +36,8 @@ public interface MDDPort {
     void open(AbstractModule m);
 
     void open(Method m);
+
+    void open(Method m, Set selection);
 
     void open(FieldInterfaced f);
 

@@ -15,6 +15,7 @@ import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Set;
 
 public class VaadinPort implements MDDPort {
 
@@ -146,6 +147,11 @@ public class VaadinPort implements MDDPort {
     @Override
     public void open(Method m) {
         MDDUI.get().getNavegador().goTo(m);
+    }
+
+    @Override
+    public void open(Method m, Set selection) {
+        MDDUI.get().getNavegador().goTo(m, selection);
     }
 
     @Override

@@ -19,6 +19,7 @@ import io.mateu.mdd.core.util.Utils;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -83,6 +84,8 @@ public abstract class BaseMDDApp extends AbstractApplication {
                     if (USER_STATUS.INACTIVE.equals(u.getStatus())) throw new Exception("Deactivated user");
 
                     if (u.getFailedLogins() > 0) u.setFailedLogins(0);
+
+                    u.setLastLogin(LocalDateTime.now());
 
                     d.setName(u.getName());
                     d.setEmail(u.getEmail());

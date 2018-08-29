@@ -10,6 +10,7 @@ import io.mateu.mdd.vaadinport.vaadin.components.app.views.MethodResultViewFlowC
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 
 import java.lang.reflect.Method;
+import java.util.Set;
 
 public class MDDNavigator {
 
@@ -119,6 +120,13 @@ public class MDDNavigator {
     }
 
     public void goTo(Method m) {
+        String state = stack.getState(stack.getLast());
+        state += "/" + m.getName();
+        goTo(state);
+    }
+
+    public void goTo(Method m, Set selection) {
+        viewProvider.pendingSelection = selection;
         String state = stack.getState(stack.getLast());
         state += "/" + m.getName();
         goTo(state);

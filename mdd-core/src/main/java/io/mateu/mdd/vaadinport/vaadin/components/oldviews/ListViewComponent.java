@@ -634,7 +634,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         Method a = null;
 
         for (Method m : ReflectionHelper.getAllMethods(getModelType())) {
-            if (m.getName().equals(methodName)) {
+            if (Modifier.isStatic(m.getModifiers()) && m.getName().equals(methodName)) {
                 a = m;
                 break;
             }

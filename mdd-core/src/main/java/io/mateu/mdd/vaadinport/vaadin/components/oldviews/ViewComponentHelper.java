@@ -6,6 +6,7 @@ import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDExecutionContext;
 import io.mateu.mdd.core.data.UserData;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 
@@ -13,6 +14,7 @@ import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.*;
 
@@ -27,77 +29,90 @@ public class ViewComponentHelper {
 
                 boolean allInjectable = true;
                 boolean needsTransaction = false;
+                boolean needsSelection = false;
                 for (Parameter p : m.getParameters()) {
                     if (EntityManager.class.equals(p.getType())) {
                         needsTransaction = true;
                     } else if (UserData.class.equals(p.getType())) {
-                    } else if (Set.class.isAssignableFrom(p.getType())) {
+                    } else if (Modifier.isStatic(m.getModifiers()) && Set.class.isAssignableFrom(p.getType()) && m.getDeclaringClass().equals(ReflectionHelper.getGenericClass(p.getParameterizedType()))) {
+                        needsSelection = true;
                     } else {
                         allInjectable = false;
                     }
                 }
 
-                if (!allInjectable) { // si necesita rellenar parámetros
-                    MDD.getPort().open(m);
-                } else { // si no tiene parámetros o si todos son inyectables
+                try {
 
-                    try {
-                        // necesita transacción?
-
-                        Object instance = null;
-
-                        if (viewComponent instanceof EditorViewComponent) {
-                            EditorViewComponent evc = (EditorViewComponent) viewComponent;
-                            instance = evc.getModel();
-                        }
-
-                        Set selection = new HashSet();
-                        if (viewComponent instanceof ListViewComponent) {
-                            ListViewComponent lvc = (ListViewComponent) viewComponent;
-                            Helper.notransact(em -> {
-                                boolean jpa = lvc.getColumnType().isAnnotationPresent(Entity.class);
-                                lvc.getSelection().forEach(o -> {
-                                    if (jpa && o instanceof Object[]) {
-                                        selection.add(em.find(lvc.getColumnType(), lvc.deserializeId("" + lvc.toId(o))));
-                                    } else {
-                                        selection.add(o);
-                                    }
-                                });
-                            });
-                        }
-
-
-                        if (needsTransaction) {
-
-                            Object finalInstance = instance;
-                            Set finalSelection = selection;
-                            Helper.transact(new JPATransaction() {
-                                @Override
-                                public void run(EntityManager em) throws Throwable {
-
-                                    invoke(m, finalInstance, finalSelection, em, null);
-
-                                }
-                            });
-
-                        } else {
-
-                            invoke(m, instance, selection, null, null);
-
-                        }
-
-                    } catch (Throwable throwable) {
-                        MDD.alert(throwable);
-                    }
-
+                    Set selection = new HashSet();
                     if (viewComponent instanceof ListViewComponent) {
                         ListViewComponent lvc = (ListViewComponent) viewComponent;
+
+                        Helper.notransact(em -> {
+                            boolean jpa = lvc.getColumnType().isAnnotationPresent(Entity.class);
+                            lvc.getSelection().forEach(o -> {
+                                if (jpa && o instanceof Object[]) {
+                                    selection.add(em.find(lvc.getColumnType(), lvc.deserializeId("" + lvc.toId(o))));
+                                } else {
+                                    selection.add(o);
+                                }
+                            });
+                        });
+
+
+                    }
+
+                    if (needsSelection && selection.size() == 0) throw new Exception("You must first select some records.");
+
+                    if (!allInjectable) { // si necesita rellenar parámetros
+                        MDD.getPort().open(m, selection);
+                    } else { // si no tiene parámetros o si todos son inyectables
+
                         try {
-                            lvc.search(lvc.getModelForSearchFilters());
+                            // necesita transacción?
+
+                            Object instance = null;
+
+                            if (viewComponent instanceof EditorViewComponent) {
+                                EditorViewComponent evc = (EditorViewComponent) viewComponent;
+                                instance = evc.getModel();
+                            }
+
+
+                            if (needsTransaction) {
+
+                                Object finalInstance = instance;
+                                Set finalSelection = selection;
+                                Helper.transact(new JPATransaction() {
+                                    @Override
+                                    public void run(EntityManager em) throws Throwable {
+
+                                        invoke(m, finalInstance, finalSelection, em, null);
+
+                                    }
+                                });
+
+                            } else {
+
+                                invoke(m, instance, selection, null, null);
+
+                            }
+
                         } catch (Throwable throwable) {
                             MDD.alert(throwable);
                         }
+
+                        if (viewComponent instanceof ListViewComponent) {
+                            ListViewComponent lvc = (ListViewComponent) viewComponent;
+                            try {
+                                lvc.search(lvc.getModelForSearchFilters());
+                            } catch (Throwable throwable) {
+                                MDD.alert(throwable);
+                            }
+                        }
                     }
+
+                } catch (Throwable throwable) {
+                    MDD.alert(throwable);
                 }
 
 
@@ -115,7 +130,7 @@ public class ViewComponentHelper {
                 vs.add(em);
             } else if (UserData.class.equals(p.getType())) {
                 vs.add(MDD.getUserData());
-            } else if (Set.class.isAssignableFrom(p.getType())) {
+            } else if (Modifier.isStatic(m.getModifiers()) && Set.class.isAssignableFrom(p.getType()) && m.getDeclaringClass().equals(ReflectionHelper.getGenericClass(p.getType()))) {
                 vs.add(selection);
             } else {
                 vs.add((parameterValues != null)?parameterValues.get(p.getName()):null);

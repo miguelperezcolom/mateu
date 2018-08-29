@@ -8,6 +8,7 @@ import io.mateu.mdd.core.model.authentication.USER_STATUS;
 import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.model.common.File;
 import io.mateu.mdd.core.model.config.AppConfig;
+import io.mateu.mdd.core.model.config.TemplateUseCase;
 import io.mateu.mdd.core.model.util.Constants;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
@@ -38,9 +39,16 @@ public class Populator {
             AppConfig c = (AppConfig) appConfigClass.newInstance();
             c.setId(1);
             c.setXslfoForList(Resources.toString(Resources.getResource("/xsl/listing.xsl"), Charsets.UTF_8));
+            c.setXslfoForObject(Resources.toString(Resources.getResource("/xsl/object.xsl"), Charsets.UTF_8));
             em.persist(c);
 
             //c.createDummyDates();
+
+            {
+                TemplateUseCase tuc = new TemplateUseCase();
+                tuc.setName("User");
+                em.persist(tuc);
+            }
 
 
             // create super admin permission

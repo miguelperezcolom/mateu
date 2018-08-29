@@ -5,13 +5,16 @@ import com.Ostermiller.util.CSVParser;
 import com.Ostermiller.util.CSVPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.api.client.http.*;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonObjectParser;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
 import com.google.common.hash.Hashing;
+import com.google.common.io.Files;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -59,6 +62,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -88,9 +92,11 @@ public class Helper {
     private static ThreadLocal<EntityManager> tlem = new ThreadLocal<>();
 
     private static ObjectMapper mapper = new ObjectMapper();
+    private static ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
 
     static {
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        yamlMapper.enable(SerializationFeature.INDENT_OUTPUT);
     }
 
     // Create your Configuration instance, and specify if up to what FreeMarker
@@ -120,6 +126,11 @@ public class Helper {
     }
 
 
+
+
+
+
+
     public static Map<String, Object> fromJson(String json) throws IOException {
         if (json == null || "".equals(json)) json = "{}";
         return mapper.readValue(json, Map.class);
@@ -133,6 +144,26 @@ public class Helper {
     public static String toJson(Object o) throws IOException {
         return mapper.writeValueAsString(o);
     }
+
+
+
+
+
+
+    public static Map<String, Object> fromYaml(String yaml) throws IOException {
+        if (yaml == null) yaml = "";
+        return yamlMapper.readValue(yaml, Map.class);
+    }
+
+    public static <T> T fromYaml(String yaml, Class<T> c) throws IOException {
+        if (yaml == null) yaml = "";
+        return yamlMapper.readValue(yaml, c);
+    }
+
+    public static String toYaml(Object o) throws IOException {
+        return yamlMapper.writeValueAsString(o);
+    }
+
 
 
 
@@ -1328,5 +1359,69 @@ public class Helper {
 
     }
 
+    public static Object get(Map<String, Object> data, String key) {
+        return get(data, key, null);
+    }
+
+    public static Object get(Map<String, Object> data, String key, Object defaultValue) {
+        if (data == null) {
+            return defaultValue;
+        } else {
+            Object v = defaultValue;
+
+            Map<String, Object> d = data;
+
+            String[] ks = key.split("/");
+            int pos = 0;
+            for (String k : ks) {
+                if (d.containsKey(k)) {
+                    if (pos == ks.length - 1) {
+                        v = d.get(k);
+                    } else {
+                        Object aux = d.get(k);
+                        if (aux instanceof Map) {
+                            d = (Map<String, Object>) aux;
+                            pos++;
+                        } else break;
+                    }
+                } else break;
+            }
+
+
+            return v;
+        }
+    }
+
+    public static Map<String, Object> getGeneralData() throws Throwable {
+        Map<String, Object> data = new HashMap<>();
+
+        Helper.notransact(em -> {
+
+            AppConfig c = AppConfig.get(em);
+
+            data.put("businessname", c.getBusinessName());
+            if (c.getLogo() != null) data.put("logourl", c.getLogo().toFileLocator().getUrl());
+
+
+        });
+
+        return data;
+    }
+
+
+    public static void main(String[] args) {
+        try {
+            System.out.println(Helper.toJson(Helper.fromYaml(Files.toString(new File("/home/miguel/work/initialdata.yml"), Charset.defaultCharset()))));
+
+            Map<String, Object> o = Helper.fromYaml(Files.toString(new File("/home/miguel/work/initialdata.yml"), Charset.defaultCharset()));
+
+
+            System.out.println(Helper.get(o, "smtp/host"));
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 }

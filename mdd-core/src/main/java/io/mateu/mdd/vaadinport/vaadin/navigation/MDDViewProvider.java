@@ -55,6 +55,7 @@ import java.util.*;
 public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
     private final ViewStack stack;
+    public Set pendingSelection;
     private String currentPath;
 
     private EditorViewComponent currentEditor;
@@ -429,7 +430,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                             if (method != null) {
 
-                                stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, null, this, null));
+                                stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, null, this, null, pendingSelection));
 
                             } else if ("filters".equals(step)) {
 
@@ -492,7 +493,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                             if (method != null) {
 
-                                stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, evfc.getModel(), this, evfc.getBinder()));
+                                stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, evfc.getModel(), this, evfc.getBinder(), pendingSelection));
 
                             } else if (field != null) {
 
@@ -860,7 +861,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
 
                 if (hasNonInjectedParameters) {
-                    stack.push(currentPath, new MethodParametersViewFlowComponent(currentPath, method, instance, this, null));
+                    stack.push(currentPath, new MethodParametersViewFlowComponent(currentPath, method, instance, this, null, pendingSelection));
                 } else {
 
                     if (Query.class.equals(method.getReturnType())) {

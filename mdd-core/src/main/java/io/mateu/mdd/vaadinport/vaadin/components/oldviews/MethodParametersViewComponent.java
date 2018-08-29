@@ -28,6 +28,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class MethodParametersViewComponent extends AbstractViewComponent implements IEditorViewComponent {
@@ -36,6 +37,7 @@ public class MethodParametersViewComponent extends AbstractViewComponent impleme
     private final Object bean;
     private final MDDExecutionContext context;
     private final MDDBinder parentBinder;
+    private final Set pendingSelection;
     private Map<HasValue, List<Validator>> validators = new HashMap<>();
 
     private Map<String, Object> model = new HashMap<>();
@@ -48,12 +50,13 @@ public class MethodParametersViewComponent extends AbstractViewComponent impleme
         return binder.getMergeables();
     }
 
-    public MethodParametersViewComponent(MDDBinder parentBinder, Object bean, Method method, MDDExecutionContext context) {
+    public MethodParametersViewComponent(MDDBinder parentBinder, Object bean, Method method, MDDExecutionContext context, Set pendingSelection) {
 
         this.parentBinder = parentBinder;
         this.context = context;
         this.bean = bean;
         this.method = method;
+        this.pendingSelection = pendingSelection;
 
         //setViewTitle(stylist.getViewTitle(newRecord, entities));
 
@@ -148,7 +151,7 @@ public class MethodParametersViewComponent extends AbstractViewComponent impleme
                         System.out.println(binder.getBean());
 
 
-                        Object r = ReflectionHelper.execute(MDD.getUserData(), method, binder, bean);
+                        Object r = ReflectionHelper.execute(MDD.getUserData(), method, binder, bean, pendingSelection);
 
                         if (parentBinder != null) {
                             parentBinder.setBean(null, false);

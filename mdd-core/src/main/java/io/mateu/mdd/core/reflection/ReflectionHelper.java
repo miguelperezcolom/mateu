@@ -17,7 +17,6 @@ import javassist.bytecode.ConstPool;
 import javassist.bytecode.annotation.*;
 import org.apache.commons.beanutils.BeanUtils;
 import org.reflections.Reflections;
-import org.reflections.util.ClasspathHelper;
 
 import javax.persistence.*;
 import javax.servlet.ServletContext;
@@ -905,11 +904,11 @@ public class ReflectionHelper {
 
 
     public static Object invokeInjectableParametersOnly(Method method, Object instance) throws Throwable {
-        return execute(MDD.getUserData(), method, new MDDBinder(new ArrayList<>()), instance);
+        return execute(MDD.getUserData(), method, new MDDBinder(new ArrayList<>()), instance, null);
     }
 
 
-    public static Object execute(UserData user, Method m, MDDBinder parameters, Object instance) throws Throwable {
+    public static Object execute(UserData user, Method m, MDDBinder parameters, Object instance, Set pendingSelection) throws Throwable {
         Map<String, Object> params = (Map<String, Object>) parameters.getBean();
 
         int posEM = -1;
@@ -917,6 +916,7 @@ public class ReflectionHelper {
         List<Object> vs = new ArrayList<>();
         int pos = 0;
         for (Parameter p : m.getParameters()) {
+
             if (UserData.class.equals(p.getType())) {
                 vs.add(user);
             } else if (EntityManager.class.equals(p.getType())) {
@@ -933,12 +933,8 @@ public class ReflectionHelper {
                         MDD.getPort().pushDone(message);
                     }
                 });
-            } else if (p.isAnnotationPresent(io.mateu.mdd.core.annotations.Selection.class)) {
-                vs.add(params.get("_selection"));
-            } else if (p.isAnnotationPresent(io.mateu.mdd.core.annotations.Wizard.class)) {
-                vs.add(parameters);
-            } else if (UserData.class.equals(p.getType())) {
-                vs.add(user);
+            } else if (Modifier.isStatic(m.getModifiers()) && Set.class.isAssignableFrom(p.getType()) && m.getDeclaringClass().equals(ReflectionHelper.getGenericClass(p.getParameterizedType()))) {
+                vs.add(pendingSelection);
             } else if (params.containsKey(p.getName())) {
                 vs.add(params.get(p.getName()));
             } else {
