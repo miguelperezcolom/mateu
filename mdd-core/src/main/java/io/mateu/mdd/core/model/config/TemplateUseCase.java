@@ -20,4 +20,9 @@ public class TemplateUseCase {
     @NotEmpty
     private String name;
 
+
+    @Override
+    public String toString() {
+        return getName();
+    }
 }

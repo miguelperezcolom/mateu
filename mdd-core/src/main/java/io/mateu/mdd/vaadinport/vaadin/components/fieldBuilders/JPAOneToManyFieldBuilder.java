@@ -128,7 +128,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             allFieldContainers.put(field, tf);
 
-            if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
+            tf.setCaption(ReflectionHelper.getCaption(field));
 
             bind(binder, tf, field);
 
@@ -145,7 +145,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             b.addStyleName(ValoTheme.BUTTON_LINK);
             b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
 
-            if (container.getComponentCount() > 0) hl.setCaption(ReflectionHelper.getCaption(field));
+            hl.setCaption(ReflectionHelper.getCaption(field));
 
             container.addComponent(hl);
 
@@ -182,7 +182,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             cbg.addValueChangeListener(e -> updateReferences(binder, field, e));
 
-            if (container.getComponentCount() > 0) cbg.setCaption(ReflectionHelper.getCaption(field));
+            cbg.setCaption(ReflectionHelper.getCaption(field));
 
             container.addComponent(cbg);
 
@@ -222,9 +222,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             if (g.getColumns().size() == 1) ((Grid.Column)g.getColumns().get(0)).setExpandRatio(1);
             else g.addColumn((d) -> null).setWidthUndefined().setCaption("");
 
-            if (container.getComponentCount() > 0) g.setCaption(ReflectionHelper.getCaption(field));
-
-            container.addComponent(g);
+            g.setCaption(ReflectionHelper.getCaption(field));
 
             bind(binder, g, field);
 
@@ -301,6 +299,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                 //todo: faltan botones para ordenar la lista
 
 
+
             } else {
 
                 g.addItemClickListener(e -> {
@@ -331,8 +330,9 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                 });
             }
 
-            container.addComponent(hl);
-
+            VerticalLayout vl;
+            container.addComponent(vl = new VerticalLayout(g, hl));
+            vl.addStyleName("nopadding");
         }
 
     }
@@ -377,7 +377,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         if (g.getColumns().size() == 1) ((Grid.Column)g.getColumns().get(0)).setExpandRatio(1);
         else g.addColumn((d) -> null).setWidthUndefined().setCaption("");
 
-        if (container.getComponentCount() > 0) g.setCaption(ReflectionHelper.getCaption(field));
+        g.setCaption(ReflectionHelper.getCaption(field));
 
         container.addComponent(g);
 

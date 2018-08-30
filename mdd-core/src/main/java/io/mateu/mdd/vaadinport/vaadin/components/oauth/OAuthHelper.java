@@ -14,6 +14,7 @@ import okhttp3.*;
 import javax.persistence.EntityManager;
 import java.io.IOException;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 public class OAuthHelper {
@@ -176,6 +177,7 @@ grant_type=authorization_code
 
                             if (u == null) {
                                 u = new User();
+                                u.setOauth(true);
                                 u.setLogin(login);
                                 u.setEmail((email != null)?email:"");
                                 u.setName((name != null)?name:"");
@@ -183,6 +185,8 @@ grant_type=authorization_code
                                 u.setStatus(USER_STATUS.ACTIVE);
                                 em.persist(u);
                             }
+                            u.setLastLogin(LocalDateTime.now());
+
 
                             d.setName(u.getName());
                             d.setEmail(u.getEmail());
@@ -363,6 +367,7 @@ grant_type=authorization_code
 
                             if (u == null) {
                                 u = new User();
+                                u.setOauth(true);
                                 u.setLogin(login);
                                 u.setEmail((email != null)?email:"");
                                 u.setName((name != null)?name:"");
@@ -370,6 +375,8 @@ grant_type=authorization_code
                                 u.setStatus(USER_STATUS.ACTIVE);
                                 em.persist(u);
                             }
+                            u.setLastLogin(LocalDateTime.now());
+
 
                             d.setName(u.getName());
                             d.setEmail(u.getEmail());
@@ -524,6 +531,7 @@ grant_type=authorization_code
 
                             if (u == null) {
                                 u = new User();
+                                u.setOauth(true);
                                 u.setLogin(login);
                                 u.setEmail((email != null)?email:"");
                                 u.setName((name != null)?name:"");
@@ -531,6 +539,7 @@ grant_type=authorization_code
                                 u.setStatus(USER_STATUS.ACTIVE);
                                 em.persist(u);
                             }
+                            u.setLastLogin(LocalDateTime.now());
 
                             d.setName(u.getName());
                             d.setEmail(u.getEmail());

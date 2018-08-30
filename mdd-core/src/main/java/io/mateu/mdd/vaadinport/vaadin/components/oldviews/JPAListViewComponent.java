@@ -73,12 +73,12 @@ public class JPAListViewComponent extends ListViewComponent {
 
     @Override
     public boolean isAddEnabled() {
-        return true;
+        return !entityClass.isAnnotationPresent(NewNotAllowed.class);
     }
 
     @Override
     public boolean isDeleteEnabled() {
-        return true;
+        return !entityClass.isAnnotationPresent(Indelible.class);
     }
 
     @Override

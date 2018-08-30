@@ -22,7 +22,16 @@ public class JPACollectionFieldViewComponent extends JPAListViewComponent {
     private final boolean addingToCollection;
 
     public JPACollectionFieldViewComponent(Class entityClass, FieldInterfaced field, IEditorViewComponent evfc, boolean addingToCollection) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        this(entityClass, new ExtraFilters(" x " + ((field.isAnnotationPresent(UseLinkToListView.class) && !addingToCollection) ? "" : " not ") + " in :z ", "z", getIds(evfc, field)), field, evfc, addingToCollection);
+        this(entityClass, createExtraFields(field, evfc, addingToCollection), field, evfc, addingToCollection);
+    }
+
+    private static ExtraFilters createExtraFields(FieldInterfaced field, IEditorViewComponent evfc, boolean addingToCollection) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        ExtraFilters ef = null;
+        List ids;
+        if ((ids =  getIds(evfc, field)).size() > 0) {
+            ef = new ExtraFilters(" x " + ((field.isAnnotationPresent(UseLinkToListView.class) && !addingToCollection) ? "" : " not ") + " in :z ", "z", getIds(evfc, field));
+        }
+        return ef;
     }
 
     private static List getIds(IEditorViewComponent evfc, FieldInterfaced field) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {

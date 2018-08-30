@@ -61,6 +61,9 @@ public class User {
     @NotNull
     private String login;
 
+    @Output
+    private boolean oauth;
+
     @ListColumn("Name")
     @NotNull
     private String name;
@@ -117,6 +120,7 @@ public class User {
     public String sendForgottenPasswordEmail() throws Throwable {
         if (Strings.isNullOrEmpty(getEmail())) throw new Exception("Missing email for user " + login);
         if (USER_STATUS.INACTIVE.equals(getStatus())) throw new Exception("Deactivated user");
+        if (isOauth()) throw new Exception("This users is from OAuth");
 
         setPasswordResetKey(UUID.randomUUID().toString());
         setPasswordResetExpiryDateTime(LocalDateTime.now().plusHours(4));
@@ -154,7 +158,9 @@ public class User {
         if (Strings.isNullOrEmpty(getEmail())) throw new Exception("Missing email for user " + login);
         if (USER_STATUS.INACTIVE.equals(getStatus())) throw new Exception("Deactivated user");
 
-        if (getPassword() == null) {
+        if (isOauth()) {
+            EmailHelper.sendEmail(getEmail(), "Welcome " + getName(), "Thanks for joining us ;)", false);
+        } else if (getPassword() == null) {
             setPasswordResetKey(UUID.randomUUID().toString());
             setPasswordResetExpiryDateTime(LocalDateTime.now().plusHours(4));
             EmailHelper.sendEmail(getEmail(), "Welcome " + getName(), "To set your password please go to " + MDD.getApp().getBaseUrl() + "resetpassword/" + getPasswordResetKey(), true);
