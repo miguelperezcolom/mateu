@@ -849,6 +849,17 @@ public class ReflectionHelper {
         return o;
     }
 
+    public static List<FieldInterfaced> getKpiFields(Class modelType) {
+        List<FieldInterfaced> allFields = ReflectionHelper.getAllFields(modelType);
+
+        allFields = allFields.stream().filter((f) ->
+                f.isAnnotationPresent(KPI.class)
+        ).collect(Collectors.toList());
+
+        return allFields;
+    }
+
+
     public static List<FieldInterfaced> getAllEditableFields(Class modelType) {
         return getAllEditableFields(modelType, null, true);
     }
@@ -861,7 +872,7 @@ public class ReflectionHelper {
         List<FieldInterfaced> allFields = ReflectionHelper.getAllFields(modelType);
 
         allFields = allFields.stream().filter((f) ->
-                !(f.isAnnotationPresent(Ignored.class) || f.isAnnotationPresent(NotInEditor.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))
+                !(f.isAnnotationPresent(Ignored.class) || f.isAnnotationPresent(KPI.class) || f.isAnnotationPresent(NotInEditor.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))
         ).collect(Collectors.toList());
 
 
@@ -1085,13 +1096,18 @@ public class ReflectionHelper {
 
         Object v = ReflectionHelper.getValue(field, bean);
 
+        boolean added = false;
+
         if (Collection.class.isAssignableFrom(field.getType())) {
 
             if (v == null) {
                 ReflectionHelper.setValue(field, bean, v = new ArrayList());
             }
 
-            ((Collection)v).add(i);
+            if (!((Collection)v).contains(i)) {
+                ((Collection)v).add(i);
+                added = true;
+            }
 
         } else if (Set.class.isAssignableFrom(field.getType())) {
 
@@ -1099,15 +1115,22 @@ public class ReflectionHelper {
                 ReflectionHelper.setValue(field, bean, v = new HashSet());
             }
 
-            ((Set)v).add(i);
+            if (!((Set)v).contains(i)) {
+                ((Set)v).add(i);
+                added = true;
+            }
 
         }
 
-        reverseMap(binder, field, bean, i);
+        if (added) reverseMap(binder, field, bean, i);
 
     }
 
     public static void removeFromCollection(MDDBinder binder, FieldInterfaced field, Object bean, Set l) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        removeFromCollection(binder, field, bean, l, true);
+    }
+
+    public static void removeFromCollection(MDDBinder binder, FieldInterfaced field, Object bean, Set l, boolean unreverseMap) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
         Object v = ReflectionHelper.getValue(field, bean);
 
@@ -1130,17 +1153,19 @@ public class ReflectionHelper {
         }
 
 
-        final FieldInterfaced mbf = ReflectionHelper.getMapper(field);
-        if (mbf != null) {
-            l.forEach(o -> {
-                try {
+        if (unreverseMap) {
+            final FieldInterfaced mbf = ReflectionHelper.getMapper(field);
+            if (mbf != null) {
+                l.forEach(o -> {
+                    try {
 
-                    unReverseMap(binder, field, bean, o, mbf);
+                        unReverseMap(binder, field, bean, o, mbf);
 
-                } catch (Throwable e1) {
-                    MDD.alert(e1);
-                }
-            });
+                    } catch (Throwable e1) {
+                        MDD.alert(e1);
+                    }
+                });
+            }
         }
 
     }
@@ -1591,4 +1616,5 @@ public class ReflectionHelper {
         pool.appendClassPath(new ClassClassPath(MDD.getApp().getClass()));
         return pool;
     }
+
 }

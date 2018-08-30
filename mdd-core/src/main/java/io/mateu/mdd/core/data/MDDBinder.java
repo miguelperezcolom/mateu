@@ -18,7 +18,7 @@ public class MDDBinder extends Binder {
 
     private final Class beanType;
     private List<Object> mergeables = new ArrayList<>();
-
+    private List<Object> removables = new ArrayList<>();
 
     public MDDBinder(List<FieldInterfaced> fields) {
         super(new PropertySet() {
@@ -116,6 +116,10 @@ public class MDDBinder extends Binder {
         return mergeables;
     }
 
+    public List<Object> getRemovables() {
+        return removables;
+    }
+
     @Override
     public void setBean(Object bean) {
         setBean(bean, true);
@@ -124,7 +128,10 @@ public class MDDBinder extends Binder {
     public void setBean(Object bean, boolean reset) {
         super.setBean(bean);
 
-        if (reset) mergeables.clear();
+        if (reset) {
+            mergeables.clear();
+            removables.clear();
+        }
     }
 
     public Class getBeanType() {

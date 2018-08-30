@@ -7,6 +7,8 @@ import com.vaadin.data.ValueContext;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.ErrorMessage;
+import com.vaadin.shared.Registration;
+import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.shared.ui.ErrorLevel;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
@@ -34,6 +36,7 @@ import java.util.*;
 public class EditorViewComponent extends AbstractViewComponent implements IEditorViewComponent {
 
     private final boolean createSaveButton;
+    private Object owner = null;
     private Map<HasValue, List<Validator>> validators = new HashMap<>();
 
     protected boolean newRecord;
@@ -46,6 +49,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
     private List<EditorListener> listeners = new ArrayList<>();
     private boolean modificado;
+    private Layout kpisContainer;
 
     public boolean isModificado() {
         return modificado;
@@ -68,8 +72,18 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         return binder.getMergeables();
     }
 
+    public List<Object> getRemovables() {
+        return binder.getRemovables();
+    }
+
     public EditorViewComponent(Class modelType) {
         this(modelType, true);
+    }
+
+    public EditorViewComponent(Object owner, Class modelType, boolean createSaveButton) {
+        this.owner = owner;
+        this.modelType = modelType;
+        this.createSaveButton = createSaveButton;
     }
 
     public EditorViewComponent(Class modelType, boolean createSaveButton) {
@@ -115,7 +129,30 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         try {
             if (panel == null) build();
 
-            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, model.getClass(), model, validators, ReflectionHelper.getAllEditableFields(model.getClass()));
+
+            List<FieldInterfaced> kpis = ReflectionHelper.getKpiFields(model.getClass());
+            if (kpis.size() > 0) {
+                if (kpisContainer == null) {
+                    kpisContainer = new CssLayout();
+                    kpisContainer.addStyleName("nopadding");
+                } else {
+                    kpisContainer.removeAllComponents();
+                }
+
+                for (FieldInterfaced kpi : kpis) {
+
+                    kpisContainer.addComponent(createKpi(binder, kpi));
+
+                }
+
+                addComponent(kpisContainer, getComponentIndex(panel));
+            } else if (kpisContainer != null) {
+                removeComponent(kpisContainer);
+                kpisContainer = null;
+            }
+
+
+            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, model.getClass(), model, validators, ReflectionHelper.getAllEditableFields(model.getClass(), (owner != null)?owner.getClass():null, owner == null));
 
             stylist = r.getValue();
 
@@ -135,6 +172,63 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         } catch (Exception e) {
             MDD.alert(e);
         }
+
+    }
+
+    private Component createKpi(MDDBinder binder, FieldInterfaced kpi) {
+
+        VerticalLayout vl = new VerticalLayout();
+        vl.addStyleName("kpi");
+        vl.setWidthUndefined();
+
+        vl.addComponent(new Label(ReflectionHelper.getCaption(kpi)));
+
+        Label l;
+        vl.addComponent(l = new Label());
+        l.addStyleName("valor");
+        l.setContentMode(ContentMode.HTML);
+        binder.forField(new HasValue() {
+
+            Object v = null;
+
+            @Override
+            public void setValue(Object o) {
+                v = o;
+                l.setValue((o != null)?"" + o:"");
+            }
+
+            @Override
+            public Object getValue() {
+                return v;
+            }
+
+            @Override
+            public Registration addValueChangeListener(ValueChangeListener valueChangeListener) {
+                return null;
+            }
+
+            @Override
+            public void setRequiredIndicatorVisible(boolean b) {
+
+            }
+
+            @Override
+            public boolean isRequiredIndicatorVisible() {
+                return false;
+            }
+
+            @Override
+            public void setReadOnly(boolean b) {
+
+            }
+
+            @Override
+            public boolean isReadOnly() {
+                return false;
+            }
+        }).bind(kpi.getName());
+
+        return vl;
 
     }
 
@@ -318,6 +412,16 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             Helper.transact(new JPATransaction() {
                 @Override
                 public void run(EntityManager em) throws Throwable {
+                    for (Object o : getRemovables()) {
+                        if (getMergeables().contains(o)) getMergeables().remove(o);
+
+                        if (!em.contains(o)) {
+                            o = em.merge(o);
+                        }
+                        if (em.contains(o)) {
+                            em.remove(o);
+                        }
+                    }
                     for (Object o : getMergeables()) em.merge(o);
                     Object m = getModel();
                     setModel(em.merge(m));

@@ -18337,6 +18337,21 @@ div.v-layout.v-horizontal.v-widget {
 	color: red;
 }
 
+.mytheme .kpi {
+	padding: 5px 19px;
+	background-color: lightgrey;
+	border-radius: 2px;
+	margin-right: 10px;
+	height: 84px;
+}
+
+.mytheme .kpi .valor {
+	font-size: 1.5em;
+	font-weight: bold;
+	width: 100%;
+	text-align: right;
+}
+
 .mytheme .section {
 	margin-right: 50px;
 	max-width: 500px;
@@ -18662,4 +18677,8 @@ div.v-layout.v-horizontal.v-widget {
 
 .mytheme .botonerafiltros .principal {
 	color: #197de1;
+}
+
+.mytheme .contentcontainer {
+	overflow: initial;
 }

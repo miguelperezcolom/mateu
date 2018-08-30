@@ -81,6 +81,11 @@ public class MDDViewComponentCreator {
         return v;
     }
 
+    public static EditorViewComponent createEditorViewComponent(Object owner, Class modelType, boolean createSaveBUtton) throws InstantiationException, IllegalAccessException {
+        EditorViewComponent v = new EditorViewComponent(owner, modelType, createSaveBUtton).build();
+        return v;
+    }
+
     private static ListViewComponent createListViewComponent(Class modelType) throws IllegalAccessException, InstantiationException {
         ListViewComponent v = null;
         if (modelType.isAnnotationPresent(Entity.class)) {

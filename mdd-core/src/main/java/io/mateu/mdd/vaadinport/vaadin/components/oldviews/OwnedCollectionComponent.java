@@ -109,16 +109,30 @@ public class OwnedCollectionComponent extends VerticalLayout {
 
         modificado = false;
 
-        editorViewComponent = MDDViewComponentCreator.createEditorViewComponent(value.getClass(), false);
+        editorViewComponent = MDDViewComponentCreator.createEditorViewComponent(parentBinder.getBean(), value.getClass(), false);
         editorViewComponent.setModel(value);
         editorViewComponent.addStyleName("nopadding");
 
         editorViewComponent.getBinder().addValueChangeListener(e -> {
+            try {
+                ReflectionHelper.addToCollection(parentBinder, field, parentBinder.getBean(), editorViewComponent.getModel());
+                MDD.updateTitle(toString());
+            } catch (Exception e1) {
+                MDD.alert(e1);
+            }
+            /*
             if (value.getClass().isAnnotationPresent(Entity.class)) parentBinder.getMergeables().add(value);
             if (index == collection.size()) {
-                collection.add(editorViewComponent.getModel());
+                Object i;
+                collection.add(i = editorViewComponent.getModel());
+                try {
+                    ReflectionHelper.reverseMap(editorViewComponent.getBinder(), field, parentBinder.getBean(), i);
+                } catch (Exception e1) {
+                    MDD.alert(e1);
+                }
                 MDD.updateTitle(toString());
             }
+            */
             modificado = true;
             updateButtons();
         });

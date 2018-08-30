@@ -33,15 +33,14 @@ import java.util.*;
 @Getter@Setter
 public class User {
 
-    @Section(value = "Info", card = true)
     @Embedded
-    @Output
+    @KPI
     private Audit audit = new Audit();
 
-    @Output
+    @KPI
     private LocalDateTime lastLogin;
 
-    @Output
+    @KPI
     private int failedLogins;
 
 

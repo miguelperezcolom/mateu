@@ -23,6 +23,8 @@ import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.core.data.MDDBinder;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
@@ -204,7 +206,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             if (owned) {
                 inline = editableFields.size() <= colFields.size();
 
-                if (inline) for (FieldInterfaced f : editableFields) {
+                if (inline) for (FieldInterfaced f : colFields) {
                     if (!isEditableInline(f)) {
                         inline = false;
                         break;
@@ -287,7 +289,11 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                         Object bean = binder.getBean();
                         Set l = g.getSelectedItems();
 
-                        ReflectionHelper.removeFromCollection(binder, field, bean, l);
+                        if (field.isAnnotationPresent(OneToMany.class) && field.getAnnotation(OneToMany.class).orphanRemoval()) {
+                        } else {
+                            binder.getRemovables().addAll(l);
+                        }
+                        ReflectionHelper.removeFromCollection(binder, field, bean, l, false);
 
 
                         binder.setBean(bean, false);
@@ -341,21 +347,26 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
         boolean editable = false;
 
-        if (Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) {
-            editable = true;
-        } else if (String.class.equals(f.getType())) {
-            editable = true;
-        } else if (Integer.class.equals(f.getType()) || int.class.equals(f.getType())) {
-            editable = true;
-        } else if (Long.class.equals(f.getType()) || long.class.equals(f.getType())) {
-            editable = true;
-        } else if (Double.class.equals(f.getType()) || double.class.equals(f.getType())) {
-            editable = true;
-        } else if (f.getType().isEnum()) {
-            editable = true;
-        } else if (f.isAnnotationPresent(ManyToOne.class)) {
-            editable = true;
+        if (!f.isAnnotationPresent(NotNull.class) && !f.isAnnotationPresent(NotEmpty.class)) {
+
+            if (Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) {
+                editable = true;
+            } else if (String.class.equals(f.getType())) {
+                editable = true;
+            } else if (Integer.class.equals(f.getType()) || int.class.equals(f.getType())) {
+                editable = true;
+            } else if (Long.class.equals(f.getType()) || long.class.equals(f.getType())) {
+                editable = true;
+            } else if (Double.class.equals(f.getType()) || double.class.equals(f.getType())) {
+                editable = true;
+            } else if (f.getType().isEnum()) {
+                editable = true;
+            } else if (f.isAnnotationPresent(ManyToOne.class)) {
+                editable = true;
+            }
+
         }
+
 
         return editable;
 
