@@ -13,6 +13,7 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
+import io.mateu.mdd.core.model.common.File;
 import io.mateu.mdd.core.reflection.*;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
@@ -362,7 +363,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             } else if (f.getType().isEnum()) {
                 editable = true;
             } else if (f.isAnnotationPresent(ManyToOne.class)) {
-                editable = true;
+                editable = !File.class.equals(f.getType());
             }
 
         }
