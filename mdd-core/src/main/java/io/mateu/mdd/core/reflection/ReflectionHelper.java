@@ -1519,9 +1519,10 @@ public class ReflectionHelper {
         for (Method m : a.annotationType().getDeclaredMethods()) {
             System.out.println("" + m.getName());
             Object v = m.invoke(a);
-            MemberValue mv = getAnnotationMemberValue(cpool, m.getReturnType(), v);
-            annot.addMemberValue(m.getName(), mv);
-            //annot.addMemberValue(m.getName(), new IntegerMemberValue(cfile.getConstPool(), 0));
+            if (v != null) {
+                MemberValue mv = getAnnotationMemberValue(cpool, m.getReturnType(), v);
+                if (mv != null) annot.addMemberValue(m.getName(), mv);
+            }
         }
         attr.addAnnotation(annot);
     }
@@ -1541,6 +1542,10 @@ public class ReflectionHelper {
             }
             else if (String.class.equals(t)) mv = new StringMemberValue((String) v, cpool);
             else if (Class.class.equals(t)) mv = new ClassMemberValue(((Class)v).getName(), cpool);
+            else if (v instanceof javassist.bytecode.annotation.Annotation) mv = new AnnotationMemberValue((javassist.bytecode.annotation.Annotation) v, cpool);
+            else if (byte.class.equals(t)) mv = new ByteMemberValue((Byte) v, cpool);
+            else if (float.class.equals(t)) mv = new FloatMemberValue((Float) v, cpool);
+            else if (short.class.equals(t)) mv = new ShortMemberValue((Short) v, cpool);
             else if (t.isArray()) {
                 ArrayMemberValue amv;
                 mv = amv = new ArrayMemberValue(cpool);
@@ -1550,7 +1555,7 @@ public class ReflectionHelper {
                 for (Object c : (Object[])v) {
 
                     MemberValue mvx = getAnnotationMemberValue(cpool, c.getClass(), c);
-                    mvs.add(mvx);
+                    if (mvx != null) mvs.add(mvx);
 
                 }
 

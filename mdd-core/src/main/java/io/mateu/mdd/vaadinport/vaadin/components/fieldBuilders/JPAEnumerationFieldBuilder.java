@@ -1,10 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.google.common.base.Strings;
-import com.vaadin.data.HasValue;
-import com.vaadin.data.ValidationResult;
-import com.vaadin.data.Validator;
-import com.vaadin.data.ValueContext;
+import com.vaadin.data.*;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.server.UserError;
@@ -43,84 +40,21 @@ public class JPAEnumerationFieldBuilder extends AbstractFieldBuilder {
 
         allFieldContainers.put(field, tf);
 
-        if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
+        tf.setCaption(ReflectionHelper.getCaption(field));
 
-        validators.put(tf, new ArrayList<>());
-
-        tf.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
-            @Override
-            public void valueChange(HasValue.ValueChangeEvent<String> valueChangeEvent) {
-                    ValidationResult result = null;
-                for (Validator v : validators.get(tf)) {
-                    result = v.apply(valueChangeEvent.getValue(), new ValueContext(tf));
-                    if (result.isError()) break;
-                }
-                if (result != null && result.isError()) {
-                    tf.setComponentError(new UserError(result.getErrorMessage()));
-                } else {
-                    tf.setComponentError(null);
-                }
-            }
-        });
-
-        if (!forSearchFilter) {
-
-            tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
-
-            if (field.isAnnotationPresent(NotNull.class)) validators.get(tf).add(new Validator() {
-                @Override
-                public ValidationResult apply(Object o, ValueContext valueContext) {
-                    if (o == null) return ValidationResult.create("Required field", ErrorLevel.ERROR);
-                    else return ValidationResult.ok();
-                }
-
-                @Override
-                public Object apply(Object o, Object o2) {
-                    return null;
-                }
-            });
-
-            BeanValidator bv = new BeanValidator(field.getDeclaringClass(), field.getName());
-
-            validators.get(tf).add(new Validator() {
-
-                @Override
-                public ValidationResult apply(Object o, ValueContext valueContext) {
-                    return bv.apply(o, valueContext);
-                }
-
-                @Override
-                public Object apply(Object o, Object o2) {
-                    return null;
-                }
-            });
-
-            addValidators(validators.get(tf));
-
-        }
-
-
+        tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
 
         if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
 
 
-
-        /*
-        tf.setDescription();
-        tf.setPlaceholder();
-        */
-
-        bind(binder, tf, field);
+        bind(binder, tf, field, forSearchFilter);
     }
 
-    public Object convert(String s) {
-        return s;
-    }
-
-    public void addValidators(List<Validator> validators) {
-    }
-
-    protected void bind(MDDBinder binder, ComboBox tf, FieldInterfaced field) {
-        binder.bind(tf, field.getName());
+    protected void bind(MDDBinder binder, ComboBox tf, FieldInterfaced field, boolean forSearchFilter) {
+        Binder.BindingBuilder aux = binder.forField(tf);
+        if (!forSearchFilter && field.getDeclaringClass() != null) {
+            aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+        }
+        aux.bind(field.getName());
     }
 }

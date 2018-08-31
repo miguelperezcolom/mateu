@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
+import com.google.common.base.Strings;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.ValidationResult;
 import com.vaadin.data.Validator;
@@ -19,6 +20,8 @@ import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Pair;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.interfaces.PersistentPOJO;
+import io.mateu.mdd.core.model.authentication.Audit;
+import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
@@ -29,6 +32,7 @@ import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -424,6 +428,11 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                     }
                     for (Object o : getMergeables()) em.merge(o);
                     Object m = getModel();
+
+
+                    auditar(em, m);
+
+
                     setModel(em.merge(m));
                 }
             });
@@ -443,6 +452,20 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         modificado = false;
 
         listeners.forEach(l -> l.onSave(getModel()));
+    }
+
+    private void auditar(EntityManager em, Object bean) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+
+        for (FieldInterfaced f : ReflectionHelper.getAllFields(bean.getClass())) if (Audit.class.equals(f.getType())) {
+            Audit a = (Audit) ReflectionHelper.getValue(f, bean);
+            if (a == null) {
+                a = new Audit((MDD.getUserData() != null)?em.find(User.class, MDD.getUserData().getLogin()):null);
+                ReflectionHelper.setValue(f, bean, a);
+            } else {
+                a.touch((MDD.getUserData() != null)?em.find(User.class, MDD.getUserData().getLogin()):null);
+            }
+        }
+
     }
 
     public void load(Object id) throws Throwable {

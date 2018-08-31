@@ -617,6 +617,8 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                             }
 
+                            if (evfc != null && evfc instanceof EditorViewComponent) currentEditor = (EditorViewComponent) evfc;
+
                         } else if (lastViewComponent instanceof MethodParametersViewFlowComponent) {
 
                             MethodParametersViewFlowComponent mpfvc = (MethodParametersViewFlowComponent) lastViewComponent;

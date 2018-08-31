@@ -26,7 +26,7 @@ public class JPAUnmodifiableFieldBuilder extends AbstractFieldBuilder {
 
 
     public boolean isSupported(FieldInterfaced field) {
-        return field.isAnnotationPresent(Unmodifiable.class) || (MDDUI.get().getNavegador().getViewProvider().getCurrentEditor() != null && !MDDUI.get().isEditingNewRecord() && field.isAnnotationPresent(Id.class));
+        return (field.isAnnotationPresent(Unmodifiable.class) || field.isAnnotationPresent(Id.class)) && (MDDUI.get().getNavegador().getViewProvider().getCurrentEditor() != null && !MDDUI.get().isEditingNewRecord());
     }
 
     public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {

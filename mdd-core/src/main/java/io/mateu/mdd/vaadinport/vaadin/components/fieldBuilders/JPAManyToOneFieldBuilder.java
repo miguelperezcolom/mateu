@@ -5,6 +5,7 @@ import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.DataProvider;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
 import io.mateu.mdd.core.annotations.UseRadioButtons;
@@ -188,6 +189,26 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                     Button b = new Button("Edit");
                     b.addStyleName(ValoTheme.BUTTON_LINK);
                     b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+
+                    hl.addComponent(b);
+
+                    b = new Button("Add");
+                    b.addStyleName(ValoTheme.BUTTON_LINK);
+                    b.addClickListener(e -> {
+
+                        Object bean = binder.getBean();
+                        try {
+                            ReflectionHelper.setValue(field, bean, null);
+                            binder.setBean(bean, false);
+
+                            MDDUI.get().getNavegador().go(field.getName());
+
+
+                        } catch (Exception e1) {
+                            MDD.alert(e1);
+                        }
+
+                    });
 
                     hl.addComponent(b);
 
