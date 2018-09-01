@@ -1,5 +1,6 @@
 package io.mateu.mdd.core.interfaces;
 
+import com.vaadin.ui.MenuBar;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
@@ -63,10 +64,10 @@ public abstract class AbstractStylist<S> {
 
 
     public List<String> style(FieldInterfaced field, S model) {
-        Method m = ReflectionHelper.getMethod(getClass(), ReflectionHelper.getGetter(field) + "Styles");
+        Method m = ReflectionHelper.getMethod(getStylistClass(), ReflectionHelper.getGetter(field) + "Styles");
         if (m != null) {
             try {
-                return (List<String>) m.invoke(this, model);
+                return (getStylistClass().equals(getClass()))?(List<String>) m.invoke(this, model):(List<String>) m.invoke(model);
             } catch (Exception e) {
                 MDD.alert(e);
             }
@@ -117,14 +118,31 @@ public abstract class AbstractStylist<S> {
     }
 
     public boolean isVisible(FieldInterfaced f, Object model) {
-        Method m = ReflectionHelper.getMethod(getClass(), ReflectionHelper.getGetter(f).replaceFirst("get", "is") + "Visible");
+        Method m = ReflectionHelper.getMethod(getStylistClass(), ReflectionHelper.getGetter(f).replaceFirst("get", "is") + "Visible");
         if (m != null) {
             try {
-                return (boolean) m.invoke(this, model);
+                return (getStylistClass().equals(getClass()))?(boolean) m.invoke(this, model):(boolean) m.invoke(model);
             } catch (Exception e) {
                 MDD.alert(e);
             }
         }
         return true;
+    }
+
+    public boolean isActionEnabled(String k, Object model) {
+        boolean enabled = true;
+        Method m = ReflectionHelper.getMethod(getStylistClass(), "is" + (k.substring(0, 1).toUpperCase() + k.substring(1)) + "Enabled");
+        if (m != null) {
+            try {
+                return (getStylistClass().equals(getClass()))?(boolean) m.invoke(this, model):(boolean) m.invoke(model);
+            } catch (Exception e) {
+                MDD.alert(e);
+            }
+        }
+        return enabled;
+    }
+
+    public Class getStylistClass() {
+        return getClass();
     }
 }

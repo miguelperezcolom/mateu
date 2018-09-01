@@ -8,10 +8,9 @@ import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.core.interfaces.VoidStylist;
+import io.mateu.mdd.core.interfaces.NakedObjectStylist;
 import io.mateu.mdd.core.layout.MiFormLayout;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.FieldBuilder;
@@ -50,7 +49,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
     public Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, boolean createSections, boolean forSearchFilters, boolean createTabs) {
 
 
-        AbstractStylist stylist = new VoidStylist();
+        AbstractStylist stylist = new NakedObjectStylist(modelType);
 
         if (modelType.isAnnotationPresent(Stylist.class)) {
             try {

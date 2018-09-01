@@ -270,14 +270,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             Object model = binder.getBean();
 
             for (String k : (Set<String>) menuItemsById.keySet()) {
-                Method m = ReflectionHelper.getMethod(stylist.getClass(), "is" + (k.substring(0, 1).toUpperCase() + k.substring(1)) + "Enabled");
-                if (m != null) {
-                    try {
-                        ((MenuBar.MenuItem)menuItemsById.get(k)).setEnabled((Boolean) m.invoke(stylist, model));
-                    } catch (Exception e) {
-                        MDD.alert(e);
-                    }
-                }
+                ((MenuBar.MenuItem)menuItemsById.get(k)).setEnabled(stylist.isActionEnabled(k, model));
             }
         }
     }
