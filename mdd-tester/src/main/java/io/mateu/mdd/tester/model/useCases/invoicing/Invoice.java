@@ -49,6 +49,12 @@ public class Invoice {
     private BigDecimal total;
 
 
+    public void setVatPercent(double vatPercent) {
+        this.vatPercent = vatPercent;
+        updateTotals();
+    }
+
+
     public void updateTotals() {
         double t = 0;
         for (InvoiceLine l :lines) t += l.getAmount();

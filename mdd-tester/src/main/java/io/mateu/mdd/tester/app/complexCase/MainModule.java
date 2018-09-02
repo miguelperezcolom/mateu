@@ -192,7 +192,7 @@ public class MainModule extends AbstractModule {
 
                         l.add(new MDDMenu("One to one", "Referenced", OneToOneReferenced.class, "Referencer", OneToOneReferencer.class));
 
-                        l.add(new MDDMenu("Many to one", "Destination", ManyToOneFieldDemoDestinationEntity.class, "Source", ManyToOneFieldDemoEntity.class));
+                        l.add(new MDDMenu("Many to one", "Destination", ManyToOneFieldDemoDestinationEntity.class, "Source", ManyToOneFieldDemoEntity.class, "Use id to select destination", UseIdToSelectDemoEntity.class));
 
                         l.add(new MDDMenu("One to many", "Parent", OneToManyParentEntity.class, "Children", OneToManyChildEntity.class));
 

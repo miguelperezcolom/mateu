@@ -424,6 +424,21 @@ public class ReflectionHelper {
         } else return model;
     }
 
+    public static FieldInterfaced getIdField(Class type) {
+        if (type.isAnnotationPresent(Entity.class)) {
+            FieldInterfaced idField = null;
+
+            for (FieldInterfaced f : ReflectionHelper.getAllFields(type)) {
+                if (f.isAnnotationPresent(Id.class)) {
+                    idField = f;
+                    break;
+                }
+            }
+
+            return idField;
+        } else return null;
+    }
+
     public static FieldInterfaced getNameField(Class entityClass) {
         FieldInterfaced fName = null;
         Method toStringMethod = getMethod(entityClass, "toString");

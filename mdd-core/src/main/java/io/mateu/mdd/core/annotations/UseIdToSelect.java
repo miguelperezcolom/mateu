@@ -11,5 +11,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.PARAMETER}) //can use in method only.
 public @interface UseIdToSelect {
-    String ql();
+
 }

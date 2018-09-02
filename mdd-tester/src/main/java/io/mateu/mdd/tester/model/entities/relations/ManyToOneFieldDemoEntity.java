@@ -47,6 +47,9 @@ public class ManyToOneFieldDemoEntity {
     @ManyToOne
     private ManyToOneFieldDemoDestinationEntity usingCustomListView;
 
+    @ManyToOne
+    private UseIdToSelectDemoEntity useIdToSelect;
+
 
 
     @Override
