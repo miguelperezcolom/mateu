@@ -1,9 +1,7 @@
 package io.mateu.mdd.tester.model.entities.dependant;
 
-import com.vaadin.data.Binder;
 import com.vaadin.data.provider.DataProvider;
-import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.SelectionFilter;
+import io.mateu.mdd.core.annotations.DependsOn;
 import io.mateu.mdd.core.annotations.TextArea;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
@@ -51,8 +49,10 @@ public class Address {
 
     public void setCity(City city) {
         this.city = city;
-        setState((city != null)?city.getState():null);
-        setCountry((city != null)?city.getState().getCountry():null);
+        if (city != null) {
+            setState(city.getState());
+            setCountry(city.getState().getCountry());
+        }
     }
 
 
@@ -61,10 +61,17 @@ public class Address {
         DataProvider dp = new JPQLListDataProvider("select x from " + State.class.getName() + " x " + ((getCountry() != null)?" where x.country.id = " + getCountry().getId():""));
         binder.addValueChangeListener(e -> {
             if (e.isUserOriginated() && e.getValue() != null && e.getValue() instanceof Country) {
-                ((JPQLListDataProvider) dp).refresh("select x from " + State.class.getName() + " x " + ((getCountry() != null)?" where x.country.id = " + ((Country)e.getValue()).getId():""));
+                ((JPQLListDataProvider) dp).refresh("select x from " + State.class.getName() + " x " + ((e.getValue() != null)?" where x.country.id = " + ((Country)e.getValue()).getId():""));
                 setState(null);
             }
         });
         return dp;
+    }
+
+
+
+    @DependsOn("state")
+    public DataProvider getCityDataProvider() throws Throwable {
+        return new JPQLListDataProvider("select x from " + City.class.getName() + " x " + ((getState() != null)?" where x.state.id = " + getState().getId():""));
     }
 }

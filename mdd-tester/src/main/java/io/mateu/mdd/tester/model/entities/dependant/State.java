@@ -1,6 +1,6 @@
 package io.mateu.mdd.tester.model.entities.dependant;
 
-import io.mateu.mdd.core.annotations.SelectionFilter;
+import io.mateu.mdd.core.annotations.DependsOn;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,7 +19,6 @@ public class State {
 
     @ManyToOne
     @NotNull
-    @SelectionFilter
     private Country country;
 
 
@@ -30,4 +29,16 @@ public class State {
     public String toString() {
         return getName();
     }
+
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return this == obj || (obj != null && obj instanceof State && id == ((State)obj).id);
+    }
+
 }

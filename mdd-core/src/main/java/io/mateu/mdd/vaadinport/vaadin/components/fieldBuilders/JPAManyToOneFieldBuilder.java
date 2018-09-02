@@ -9,10 +9,7 @@ import com.vaadin.shared.Registration;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.DataProvider;
-import io.mateu.mdd.core.annotations.UseIdToSelect;
-import io.mateu.mdd.core.annotations.UseLinkToListView;
-import io.mateu.mdd.core.annotations.UseRadioButtons;
+import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -304,6 +301,33 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
                     dp = (com.vaadin.data.provider.DataProvider) ((mdp.getParameterCount() == 0)?mdp.invoke(binder.getBean()):mdp.invoke(binder.getBean(), binder));
 
+                    if (mdp.isAnnotationPresent(DependsOn.class)) {
+                        for (String fn : mdp.getAnnotation(DependsOn.class).value().split(",")) {
+                            binder.getBinding(fn).ifPresent(b -> ((Binder.Binding)b).getField().addValueChangeListener(e -> {
+
+                                com.vaadin.data.provider.DataProvider dpx = null;
+                                try {
+                                    dpx = (com.vaadin.data.provider.DataProvider) ((mdp.getParameterCount() == 0) ? mdp.invoke(binder.getBean()) : mdp.invoke(binder.getBean(), binder));
+
+                                    if (hdp instanceof RadioButtonGroup) {
+                                        ((RadioButtonGroup)hdp).setDataProvider(dpx);
+                                    } else if (hdp instanceof ComboBox) {
+                                        ((ComboBox)hdp).setDataProvider(dpx);
+                                    }
+
+                                    Object bean = binder.getBean();
+                                    ReflectionHelper.setValue(field, bean, null);
+                                    binder.setBean(bean, false);
+
+                                } catch (Exception e1) {
+                                    MDD.alert(e1);
+                                }
+
+                            }));
+                        }
+                    }
+
+
                 } else if (dpa != null) {
 
                     try {
@@ -391,7 +415,6 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
             JPQLListDataProvider ldp = (JPQLListDataProvider) dp;
             binding.getField().addValueChangeListener(e -> {
                 ldp.refresh();
-                if (tf instanceof HasDataProvider) ((HasDataProvider)tf).setDataProvider(ldp);
             });
         }
     }

@@ -1,6 +1,6 @@
 package io.mateu.mdd.tester.model.entities.dependant;
 
-import io.mateu.mdd.core.annotations.SelectionFilter;
+import io.mateu.mdd.core.annotations.DependsOn;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,7 +19,6 @@ public class City {
 
 
     @ManyToOne@NotNull
-    @SelectionFilter
     private State state;
 
 
