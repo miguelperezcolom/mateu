@@ -7,6 +7,11 @@ import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.tester.model.callMethods.Caller;
 import io.mateu.mdd.tester.model.customComponents.CustomComponent;
+import io.mateu.mdd.tester.model.entities.converter.WithConverterDemoEntity;
+import io.mateu.mdd.tester.model.entities.dependant.Address;
+import io.mateu.mdd.tester.model.entities.dependant.City;
+import io.mateu.mdd.tester.model.entities.dependant.Country;
+import io.mateu.mdd.tester.model.entities.dependant.State;
 import io.mateu.mdd.tester.model.entities.dynamicContent.WithDynamicContent;
 import io.mateu.mdd.tester.model.entities.embedded.WithEmbeddedEntity;
 import io.mateu.mdd.tester.model.entities.groups.Person;
@@ -184,6 +189,23 @@ public class MainModule extends AbstractModule {
                         , "Tabs", TabsDemoEntity.class
                 ));
 
+                l.add(new AbstractMenu("Dependant fields") {
+                    @Override
+                    public List<MenuEntry> buildEntries() {
+                        List<MenuEntry> l = new ArrayList<>();
+
+                        l.add(new MDDOpenCRUDAction("Countries", Country.class));
+
+                        l.add(new MDDOpenCRUDAction("States", State.class));
+
+                        l.add(new MDDOpenCRUDAction("Cities", City.class));
+
+                        l.add(new MDDOpenCRUDAction("Addresses", Address.class));
+
+                        return l;
+                    }
+                });
+
 
                 l.add(new AbstractMenu("Relations") {
                     @Override
@@ -229,6 +251,8 @@ public class MainModule extends AbstractModule {
                         l.add(new MDDOpenCRUDAction("Primitive arrays", PrimitiveArraysFieldDemoEntity.class));
 
                         l.add(new MDDOpenCRUDAction("Data providers", DataProviderFieldDemoEntity.class));
+
+                        l.add(new MDDOpenCRUDAction("With converter", WithConverterDemoEntity.class));
 
                         return l;
                     }

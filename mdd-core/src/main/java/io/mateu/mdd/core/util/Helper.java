@@ -38,6 +38,8 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jdom2.Document;
 import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.xml.sax.SAXException;
@@ -249,7 +251,7 @@ public class Helper {
     private static EntityManagerFactory getEMF(String persistenceUnit) {
         EntityManagerFactory v;
         if ((v = emf.get(persistenceUnit)) == null) {
-            emf.put(persistenceUnit, v = Persistence.createEntityManagerFactory(persistenceUnit));
+            emf.put(persistenceUnit, v = Persistence.createEntityManagerFactory(persistenceUnit, System.getProperties()));
         }
         return v;
     }
@@ -779,6 +781,8 @@ public class Helper {
                         System.getProperties().remove("javax.persistence.jdbc.password");
 
 
+                    } else if (System.getProperty("javax.persistence.jdbc.url", "").contains("postgres")) {
+                        System.setProperty("eclipselink.target-database", "io.mateu.common.model.util.MiPostgreSQLPlatform");
                     }
 
                 } else {
@@ -1424,4 +1428,67 @@ public class Helper {
         }
     }
 
+    public static Element toXml(Object o) {
+        return toXml(o, new ArrayList<>());
+    }
+
+    public static Element toXml(Object o, List visited) {
+        if (o == null) {
+            return null;
+        } else {
+            if (!visited.contains(o)) {
+                visited.add(o);
+            }
+            Element e = new Element(o.getClass().getSimpleName());
+            e.setAttribute("className", o.getClass().getName());
+            for (FieldInterfaced f : ReflectionHelper.getAllFields(o.getClass())) {
+                try {
+                    Object i = ReflectionHelper.getValue(f, o);
+
+                    if (i != null) {
+                        if (ReflectionHelper.isBasico(i)) {
+                            e.setAttribute(f.getName(), "" + i);
+                        } else {
+
+                            //todo: añadir casos collection y map
+
+                            e.addContent(toXml(i, visited));
+                        }
+                    }
+
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+            }
+            return e;
+        }
+    }
+
+
+    public static Object fromXml(String s) {
+        if (Strings.isNullOrEmpty(s)) return null;
+        else {
+            try {
+                Document doc = new SAXBuilder().build(new StringReader(s));
+
+                Element root = doc.getRootElement();
+
+                Object o = null;
+
+                //todo: acabar
+
+                if (root.getAttribute("className") != null && !Strings.isNullOrEmpty(root.getAttributeValue("className"))) {
+                    o = Class.forName(root.getAttributeValue("className")).newInstance();
+                } else {
+                    o = new HashMap<>();
+                }
+
+                return o;
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+    }
 }

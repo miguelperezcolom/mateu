@@ -9,17 +9,19 @@ import lombok.Setter;
 
 import javax.persistence.Embeddable;
 import javax.persistence.ManyToOne;
+import java.io.Serializable;
 
 @Getter@Setter
-@Embeddable
-public class CollectionElement {
+public class CollectionElement implements Serializable {
 
     private String description;
 
     private DemoEnumeration tag;
 
-    @ManyToOne
-    private BasicFieldsDemoEntity referenced;
+
+    // when filled this will throw an exception as BasicFieldsDemoEntity is not serializable itself
+    //@ManyToOne
+    //private BasicFieldsDemoEntity referenced;
 
     private int units;
 

@@ -43,7 +43,7 @@ public class ReflectionHelper {
 
     static List<Class> basicos = new ArrayList<>();
 
-    {
+    static {
         basicos.add(String.class);
         basicos.add(Integer.class);
         basicos.add(Long.class);
@@ -53,6 +53,16 @@ public class ReflectionHelper {
         basicos.add(LocalDateTime.class);
         basicos.add(String.class);
     }
+
+
+    public static boolean isBasico(Class c) {
+        return basicos.contains(c);
+    }
+
+    public static boolean isBasico(Object o) {
+        return isBasico(o.getClass());
+    }
+
 
 
     public static Object getValue(Field f, Object o) {
@@ -194,11 +204,11 @@ public class ReflectionHelper {
     }
 
     public static String getGetter(Class c, String fieldName) {
-        return (boolean.class.equals(c)?"is":"get") + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+        return (boolean.class.equals(c)?"is":"get") + getFirstUpper(fieldName);
     }
 
     public static String getGetter(String fn) {
-        return "get" + fn.substring(0, 1).toUpperCase() + fn.substring(1);
+        return "get" + getFirstUpper(fn);
     }
 
     public static String getSetter(Field f) {
@@ -210,7 +220,7 @@ public class ReflectionHelper {
 
 
     public static String getSetter(Class c, String fieldName) {
-        return "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+        return "set" + getFirstUpper(fieldName);
     }
 
 
@@ -1637,4 +1647,7 @@ public class ReflectionHelper {
         return pool;
     }
 
+    public static String getFirstUpper(String fieldName) {
+        return fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+    }
 }

@@ -1,6 +1,7 @@
 package io.mateu.mdd.core.dataProviders;
 
 import com.google.common.base.Strings;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.QLFilter;
 import io.mateu.mdd.core.annotations.QLForCombo;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -10,15 +11,22 @@ import io.mateu.mdd.core.util.Helper;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvider implements com.vaadin.data.provider.DataProvider {
+
+    private FieldInterfaced field;
+    private Class entityClass;
+    private String jpql;
+
     public JPQLListDataProvider(Collection items) {
         super(items);
     }
 
     public JPQLListDataProvider(String jpql) throws Throwable {
         super(Helper.selectObjects(jpql));
+        this.jpql = jpql;
     }
 
     public JPQLListDataProvider(EntityManager em, String jpql) {
@@ -31,10 +39,12 @@ public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvi
 
     public JPQLListDataProvider(EntityManager em, Class entityClass) {
         this(buildQuery(em, entityClass, null));
+        this.entityClass = entityClass;
     }
 
     public JPQLListDataProvider(EntityManager em, FieldInterfaced field) {
         this(buildQuery(em, field));
+        this.field = field;
     }
 
     private Class getType(FieldInterfaced f) {
@@ -73,4 +83,41 @@ public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvi
 
     }
 
+
+    public void refresh() {
+        if (field != null) {
+            try {
+                Helper.transact(em -> refresh(buildQuery(em, field)));
+            } catch (Throwable throwable) {
+                MDD.alert(throwable);
+            }
+        } else if (entityClass != null) {
+            try {
+                Helper.transact(em -> refresh(buildQuery(em, entityClass, null)));
+            } catch (Throwable throwable) {
+                MDD.alert(throwable);
+            }
+        } else if (jpql != null) {
+            try {
+                Helper.transact(em -> refresh(em.createQuery(jpql)));
+            } catch (Throwable throwable) {
+                MDD.alert(throwable);
+            }
+        }
+    }
+
+    private void refresh(Query query) {
+        List newItems = query.getResultList();
+        getItems().clear();
+        getItems().addAll(newItems);
+        refreshAll();
+    }
+
+    public void refresh(String s) {
+        try {
+            Helper.notransact(em -> refresh(em.createQuery(s)));
+        } catch (Throwable throwable) {
+            MDD.alert(throwable);
+        }
+    }
 }

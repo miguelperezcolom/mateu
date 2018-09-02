@@ -2,6 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.*;
+import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.shared.Registration;
@@ -26,6 +27,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Query;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +43,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
         Component tf = null;
         HasValue hv = null;
+        com.vaadin.data.provider.DataProvider dp = null;
 
 
         if (field.isAnnotationPresent(UseLinkToListView.class)) {
@@ -81,60 +84,6 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
             tf = wrap;
 
             if (!forSearchFilter) l.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
-
-        } else if (field.isAnnotationPresent(UseRadioButtons.class)) {
-
-            RadioButtonGroup rbg;
-            container.addComponent(tf = rbg = new RadioButtonGroup());
-
-            hv = rbg;
-
-            //AbstractBackendDataProvider
-            //FetchItemsCallback
-            //newItemProvider
-
-            if (field.isAnnotationPresent(DataProvider.class)) {
-
-                try {
-
-                    DataProvider a = field.getAnnotation(DataProvider.class);
-
-                    ((HasDataProvider) tf).setDataProvider(a.dataProvider().newInstance());
-
-                    rbg.setItemCaptionGenerator(a.itemCaptionGenerator().newInstance());
-
-                } catch (InstantiationException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-
-            } else {
-
-                try {
-                    Helper.notransact((em) -> rbg.setDataProvider(new JPQLListDataProvider(em, field)));
-                } catch (Throwable throwable) {
-                    throwable.printStackTrace();
-                }
-
-                FieldInterfaced fName = ReflectionHelper.getNameField(field.getType());
-                if (fName != null) rbg.setItemCaptionGenerator((i) -> {
-                    try {
-                        return "" + ReflectionHelper.getValue(fName, i);
-                    } catch (NoSuchMethodException e) {
-                        e.printStackTrace();
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    } catch (InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
-                    return "Error";
-                });
-
-            }
-
-            if (!forSearchFilter) rbg.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
-
 
         } else {
 
@@ -252,54 +201,43 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
             } else {
 
-                ComboBox cb;
-                container.addComponent(tf = hl = new HorizontalLayout(cb = new ComboBox()));
-
-                if (allFieldContainers.size() == 0) cb.focus();
-
-                hv = cb;
+                tf = hl = new HorizontalLayout();
+                container.addComponent(hl);
 
 
 
-                if (field.isAnnotationPresent(DataProvider.class)) {
+                if (field.isAnnotationPresent(UseRadioButtons.class)) {
 
-                    try {
+                    RadioButtonGroup rbg;
+                    hl.addComponent(rbg = new RadioButtonGroup());
 
-                        DataProvider a = field.getAnnotation(DataProvider.class);
+                    hv = rbg;
 
-                        cb.setDataProvider(a.dataProvider().newInstance());
+                    //AbstractBackendDataProvider
+                    //FetchItemsCallback
+                    //newItemProvider
 
-                        cb.setItemCaptionGenerator(a.itemCaptionGenerator().newInstance());
+                    setDataProvider(rbg, field, binder);
 
-                    } catch (InstantiationException e) {
-                        e.printStackTrace();
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    }
+
+                    if (!forSearchFilter) rbg.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
+
 
                 } else {
 
-                    try {
-                        Helper.notransact((em) -> cb.setDataProvider(new JPQLListDataProvider(em, field)));
-                    } catch (Throwable throwable) {
-                        throwable.printStackTrace();
-                    }
+                    ComboBox cb;
+                    hl.addComponent(cb = new ComboBox());
 
-                    FieldInterfaced fName = ReflectionHelper.getNameField(field.getType());
-                    if (fName != null) cb.setItemCaptionGenerator((i) -> {
-                        try {
-                            return "" + ReflectionHelper.getValue(fName, i);
-                        } catch (NoSuchMethodException e) {
-                            e.printStackTrace();
-                        } catch (IllegalAccessException e) {
-                            e.printStackTrace();
-                        } catch (InvocationTargetException e) {
-                            e.printStackTrace();
-                        }
-                        return "Error";
-                    });
+                    if (allFieldContainers.size() == 0) cb.focus();
+
+                    hv = cb;
+
+
+                    setDataProvider(cb, field, binder);
+
 
                 }
+
 
             }
 
@@ -342,15 +280,99 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
         }
 
 
-
-
-
         allFieldContainers.put(field, tf);
 
         tf.setCaption(ReflectionHelper.getCaption(field));
 
 
-        bind(binder, hv, field, forSearchFilter);
+        bind(binder, hv, field, forSearchFilter, dp);
+    }
+
+    private void setDataProvider(HasItems hdp, FieldInterfaced field, MDDBinder binder) {
+
+        try {
+            Helper.notransact((em) -> {
+
+                com.vaadin.data.provider.DataProvider dp = null;
+                ItemCaptionGenerator icg = null;
+
+                DataProvider dpa = (field.isAnnotationPresent(DataProvider.class))?field.getAnnotation(DataProvider.class):null;
+
+                Method mdp = ReflectionHelper.getMethod(field.getDeclaringClass(), ReflectionHelper.getGetter(field.getName()) + "DataProvider");
+
+                if (mdp != null) {
+
+                    dp = (com.vaadin.data.provider.DataProvider) ((mdp.getParameterCount() == 0)?mdp.invoke(binder.getBean()):mdp.invoke(binder.getBean(), binder));
+
+                } else if (dpa != null) {
+
+                    try {
+
+                        dp = dpa.dataProvider().newInstance();
+
+                    } catch (InstantiationException e) {
+                        e.printStackTrace();
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+
+                } else {
+
+                    dp = new JPQLListDataProvider(em, field);
+
+                }
+
+
+                Method micg = ReflectionHelper.getMethod(field.getDeclaringClass(), ReflectionHelper.getGetter(field.getName()) + "ItemCaptionGenerator");
+
+                if (micg != null) {
+
+                    icg = (ItemCaptionGenerator) micg.invoke(binder.getBean());
+
+                } else if (dpa != null) {
+
+                    try {
+
+                        icg = dpa.itemCaptionGenerator().newInstance();
+
+                    } catch (InstantiationException e) {
+                        e.printStackTrace();
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+
+                } else {
+
+                    FieldInterfaced fName = ReflectionHelper.getNameField(field.getType());
+                    if (fName != null) icg = (i) -> {
+                        try {
+                            return "" + ReflectionHelper.getValue(fName, i);
+                        } catch (NoSuchMethodException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        } catch (InvocationTargetException e) {
+                            e.printStackTrace();
+                        }
+                        return "Error";
+                    };
+
+                }
+
+                if (hdp instanceof RadioButtonGroup) {
+                    if (dp != null) ((RadioButtonGroup)hdp).setDataProvider(dp);
+                    if (icg != null) ((RadioButtonGroup)hdp).setItemCaptionGenerator(icg);
+                } else if (hdp instanceof ComboBox) {
+                    if (dp != null) ((ComboBox)hdp).setDataProvider(dp);
+                    if (icg != null) ((ComboBox)hdp).setItemCaptionGenerator(icg);
+                }
+
+
+            });
+        } catch (Throwable t) {
+            MDD.alert(t);
+        }
+
     }
 
     public Object convert(String s) {
@@ -360,10 +382,18 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
     public void addValidators(List<Validator> validators) {
     }
 
-    protected void bind(MDDBinder binder, HasValue tf, FieldInterfaced field, boolean forSearchFilter) {
+    protected void bind(MDDBinder binder, HasValue tf, FieldInterfaced field, boolean forSearchFilter, com.vaadin.data.provider.DataProvider dp) {
         Binder.BindingBuilder aux = binder.forField(tf);
         if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
-        aux.bind(field.getName());
+        Binder.Binding binding = aux.bind(field.getName());
+
+        if (dp != null && dp instanceof JPQLListDataProvider) {
+            JPQLListDataProvider ldp = (JPQLListDataProvider) dp;
+            binding.getField().addValueChangeListener(e -> {
+                ldp.refresh();
+                if (tf instanceof HasDataProvider) ((HasDataProvider)tf).setDataProvider(ldp);
+            });
+        }
     }
 
 }

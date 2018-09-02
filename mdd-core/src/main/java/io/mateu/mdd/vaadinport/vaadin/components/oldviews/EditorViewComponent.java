@@ -498,14 +498,14 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 });
 
             } else if (PersistentPOJO.class.isAssignableFrom(modelType)) {
-                PersistentPOJO ppojo = (PersistentPOJO) modelType.newInstance();
+                PersistentPOJO ppojo = (PersistentPOJO) id;
 
                 ppojo.load(id);
 
                 setModel(ppojo);
 
             } else {
-                setModel(modelType.newInstance());
+                setModel(id);
             }
 
         }

@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.views;
 
+import com.vaadin.data.Binder;
 import com.vaadin.data.HasValue;
 import com.vaadin.shared.Registration;
 import com.vaadin.ui.Component;
@@ -176,20 +177,38 @@ public class FieldEditorComponent extends VerticalLayout {
                     }
                 }
             });
-        } else if (field.getType().isAnnotationPresent(Entity.class)) {
+        //} else if (field.getType().isAnnotationPresent(Entity.class)) {
+        } else if (true) {
 
             EditorViewComponent editor;
             addComponent(editor = new EditorViewComponent(field.getType()));
             try {
                 Object v = ReflectionHelper.getValue(field, binder.getBean());
-                editor.load((v != null)?ReflectionHelper.getId(v):null);
+                editor.load((v != null)?((v.getClass().isAnnotationPresent(Entity.class))?ReflectionHelper.getId(v):v):null);
+
+                editor.getBinder().addValueChangeListener(l -> {
+                    Object m = binder.getBean();
+                    try {
+                        ReflectionHelper.setValue(field, m, editor.getBinder().getBean());
+                        binder.setBean(m, false);
+                    } catch (Exception e) {
+                        MDD.alert(e);
+                    }
+                });
+
             } catch (Throwable throwable) {
                 MDD.alert(throwable);
             }
+
+
             editor.addEditorListener(v -> {
                 try {
                     Object m = binder.getBean();
                     ReflectionHelper.setValue(field, m, v);
+                    binder.getBinding(field.getName()).ifPresent(b -> {
+                        ((Binder.Binding)b).getField().setValue(null);
+                        ((Binder.Binding)b).getField().setValue(v);
+                    });
                     binder.setBean(m, false);
                 } catch (Exception e) {
                     MDD.alert(e);

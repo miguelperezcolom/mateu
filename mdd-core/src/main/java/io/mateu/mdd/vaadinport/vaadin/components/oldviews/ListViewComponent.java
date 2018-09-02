@@ -38,6 +38,7 @@ import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components.WeekDa
 import org.javamoney.moneta.FastMoney;
 
 import javax.money.MonetaryAmount;
+import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
@@ -668,6 +669,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                                 && !Collection.class.isAssignableFrom(f.getType())
                                 && !Map.class.isAssignableFrom(f.getType())
                                 && !f.isAnnotationPresent(GeneratedValue.class)
+                                && (ReflectionHelper.isBasico(f.getType()) || f.getType().isEnum() || f.getType().isAnnotationPresent(Entity.class))
                 ).collect(Collectors.toList());
 
     }

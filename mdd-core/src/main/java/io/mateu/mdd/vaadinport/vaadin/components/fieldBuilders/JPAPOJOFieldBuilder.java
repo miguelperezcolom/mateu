@@ -1,19 +1,30 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
+import com.google.common.base.Strings;
+import com.vaadin.data.Binder;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
+import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.shared.Registration;
+import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.annotations.UseIdToSelect;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.layout.MiFormLayout;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.data.MDDBinder;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.ClassOption;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.FormLayoutBuilder;
 
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.Query;
+import javax.validation.constraints.NotNull;
 import java.util.*;
 
 public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
@@ -35,66 +46,171 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
         this.field = field;
         this.binder = binder;
 
-        binder.addValueChangeListener(e -> subBuild());
 
-        subClasses = ReflectionHelper.getSubclasses(field.getType());
-        if (subClasses.size() > 1) {
+        if (field.isAnnotationPresent(Embedded.class)) {
+
+            binder.addValueChangeListener(e -> subBuild());
+
+            subClasses = ReflectionHelper.getSubclasses(field.getType());
+            if (subClasses.size() > 1) {
 
 
-            Set<ClassOption> subClassesOptions = new LinkedHashSet<>();
-            subClasses.forEach(c -> subClassesOptions.add(new ClassOption(c)));
+                Set<ClassOption> subClassesOptions = new LinkedHashSet<>();
+                subClasses.forEach(c -> subClassesOptions.add(new ClassOption(c)));
 
-            container.addComponent(cb = new ComboBox<>("Type", subClassesOptions));
+                container.addComponent(cb = new ComboBox<>("Type", subClassesOptions));
 
-            cb.addValueChangeListener(e -> {
+                cb.addValueChangeListener(e -> {
 
-               if (e.getValue() != null && !e.getValue().equals(e.getOldValue())) {
-                   Object bean = binder.getBean();
+                    if (e.getValue() != null && !e.getValue().equals(e.getOldValue())) {
+                        Object bean = binder.getBean();
 
-                   Object i = null;
-                   try {
-                       i = ReflectionHelper.getValue(field, binder.getBean());
+                        Object i = null;
+                        try {
+                            i = ReflectionHelper.getValue(field, binder.getBean());
 
-                       if (i == null || !i.getClass().equals(e.getValue().get_class())) {
+                            if (i == null || !i.getClass().equals(e.getValue().get_class())) {
 
-                           i = e.getValue().get_class().newInstance();
+                                i = e.getValue().get_class().newInstance();
 
-                           try {
-                               ReflectionHelper.setValue(field, bean, i);
-                           } catch (Exception e1) {
-                               MDD.alert(e1);
-                           }
+                                try {
+                                    ReflectionHelper.setValue(field, bean, i);
+                                } catch (Exception e1) {
+                                    MDD.alert(e1);
+                                }
 
-                           subBuild((i != null)?i.getClass():field.getType(), i);
-                           binder.setBean(bean);
+                                subBuild((i != null)?i.getClass():field.getType(), i);
+                                binder.setBean(bean);
 
-                       }
+                            }
 
-                   } catch (Exception e1) {
-                       MDD.alert(e1);
-                   }
+                        } catch (Exception e1) {
+                            MDD.alert(e1);
+                        }
 
-               } else if (e.getValue() == null && e.getOldValue() != null) {
-                   Object bean = binder.getBean();
-                   try {
-                       ReflectionHelper.setValue(field, bean, null);
-                   } catch (Exception e1) {
-                       MDD.alert(e1);
-                   }
-                   binder.setBean(bean);
-                   formLayout.removeAllComponents();
-               }
+                    } else if (e.getValue() == null && e.getOldValue() != null) {
+                        Object bean = binder.getBean();
+                        try {
+                            ReflectionHelper.setValue(field, bean, null);
+                        } catch (Exception e1) {
+                            MDD.alert(e1);
+                        }
+                        binder.setBean(bean);
+                        formLayout.removeAllComponents();
+                    }
 
-           });
+                });
+
+            }
+
+
+            container.addComponent(formLayout = new MiFormLayout());
+            formLayout.addStyleName("embedded");
+            if (container.getComponentCount() > 0) formLayout.setCaption(ReflectionHelper.getCaption(field));
+
+            subBuild();
+
+        } else {
+
+            HorizontalLayout hl;
+            Component tf = null;
+            HasValue hv = null;
+
+
+            if (true) {
+
+                tf = hl = new HorizontalLayout();
+                container.addComponent(hl);
+
+
+                Label l;
+                hl.addComponent(l = new Label());
+                l.setContentMode(ContentMode.HTML);
+
+
+                List<HasValue.ValueChangeListener> listeners = new ArrayList<>();
+
+                hv = new HasValue() {
+                    private Object value;
+
+                    @Override
+                    public void setValue(Object o) {
+                        Object oldValue = value;
+                        value = o;
+                        l.setValue((o != null) ? "" + o : "No value");
+                        HasValue finalHv = this;
+                        listeners.forEach(l -> l.valueChange(new ValueChangeEvent(hl, finalHv, oldValue, false)));
+                    }
+
+                    @Override
+                    public Object getValue() {
+                        return value;
+                    }
+
+                    @Override
+                    public Registration addValueChangeListener(ValueChangeListener valueChangeListener) {
+                        listeners.add(valueChangeListener);
+                        return new Registration() {
+                            @Override
+                            public void remove() {
+                                listeners.remove(valueChangeListener);
+                            }
+                        };
+                    }
+
+                    @Override
+                    public void setRequiredIndicatorVisible(boolean b) {
+
+                    }
+
+                    @Override
+                    public boolean isRequiredIndicatorVisible() {
+                        return false;
+                    }
+
+                    @Override
+                    public void setReadOnly(boolean b) {
+
+                    }
+
+                    @Override
+                    public boolean isReadOnly() {
+                        return false;
+                    }
+                };
+
+            }
+
+
+            if (!forSearchFilter) {
+                hv.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
+
+                Button b = new Button("Edit");
+                b.addStyleName(ValoTheme.BUTTON_LINK);
+                b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+
+                hl.addComponent(b);
+
+            }
+
+
+            allFieldContainers.put(field, tf);
+
+            tf.setCaption(ReflectionHelper.getCaption(field));
+
+
+            bind(binder, hv, field, forSearchFilter);
+
 
         }
 
 
-        container.addComponent(formLayout = new MiFormLayout());
-        formLayout.addStyleName("embedded");
-        if (container.getComponentCount() > 0) formLayout.setCaption(ReflectionHelper.getCaption(field));
+    }
 
-        subBuild();
+    protected void bind(MDDBinder binder, HasValue tf, FieldInterfaced field, boolean forSearchFilter) {
+        Binder.BindingBuilder aux = binder.forField(tf);
+        if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+        aux.bind(field.getName());
     }
 
 
@@ -131,6 +247,18 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
     private void subBuild(Class subType, Object o) {
 
         formLayout.removeAllComponents();
+
+
+        if (o == null) {
+            try {
+                o = subType.newInstance();
+                Object bean = binder.getBean();
+                ReflectionHelper.setValue(field, bean, o);
+                binder.setBean(bean, false);
+            } catch (Exception e) {
+                MDD.alert(e);
+            }
+        }
 
         subbinder = new MDDBinder(subType);
         subbinder.setBean(o);

@@ -35,8 +35,7 @@ public class DatesRange implements Serializable, io.mateu.mdd.core.util.XMLSeria
     }
 
     public DatesRange(Element e) {
-        if (e.getAttribute("start") != null) setStart(LocalDate.parse(e.getAttributeValue("start")));
-        if (e.getAttribute("end") != null) setEnd(LocalDate.parse(e.getAttributeValue("end")));
+        fromXml(e);
     }
 
     @Override
@@ -48,6 +47,14 @@ public class DatesRange implements Serializable, io.mateu.mdd.core.util.XMLSeria
         if (getEnd() != null) e.setAttribute("end", getEnd().toString());
 
         return e;
+    }
+
+    @Override
+    public void fromXml(Element e) {
+        if (e != null) {
+            if (e.getAttribute("start") != null) setStart(LocalDate.parse(e.getAttributeValue("start")));
+            if (e.getAttribute("end") != null) setEnd(LocalDate.parse(e.getAttributeValue("end")));
+        }
     }
 
 }
