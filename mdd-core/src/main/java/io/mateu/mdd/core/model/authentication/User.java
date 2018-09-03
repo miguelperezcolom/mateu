@@ -2,10 +2,9 @@ package io.mateu.mdd.core.model.authentication;
 
 import com.Ostermiller.util.RandPass;
 import com.google.common.base.Strings;
-import freemarker.template.TemplateException;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
-import io.mateu.mdd.core.model.common.File;
+import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.model.config.Template;
 import io.mateu.mdd.core.model.util.EmailHelper;
 import io.mateu.mdd.core.util.Helper;
@@ -17,7 +16,6 @@ import lombok.Setter;
 import javax.persistence.*;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -92,7 +90,7 @@ public class User {
 
     @NotInList
     @ManyToOne(cascade = CascadeType.ALL)
-    private File photo;
+    private Resource photo;
 
     @TextArea
     private String comments;

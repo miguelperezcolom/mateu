@@ -9,11 +9,10 @@ import com.vaadin.ui.Layout;
 import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.core.model.common.File;
+import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.model.multilanguage.Literal;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components.FileComponent;
 
 import javax.validation.constraints.NotEmpty;
@@ -27,7 +26,7 @@ public class JPAFileFieldBuilder extends AbstractFieldBuilder {
     private Literal literal;
 
     public boolean isSupported(FieldInterfaced field) {
-        return File.class.equals(field.getType());
+        return Resource.class.equals(field.getType());
     }
 
     public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {

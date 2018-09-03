@@ -8,15 +8,12 @@ import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.model.authentication.Permission;
 import io.mateu.mdd.core.model.authentication.USER_STATUS;
 import io.mateu.mdd.core.model.authentication.User;
-import io.mateu.mdd.core.model.common.File;
+import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.model.config.AppConfig;
-import io.mateu.mdd.core.model.population.Populator;
 import io.mateu.mdd.core.model.ui.EditedRecord;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.core.util.Utils;
-import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.AbstractFieldBuilder;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -165,9 +162,9 @@ public abstract class BaseMDDApp extends AbstractApplication {
             public void run(EntityManager em)throws Throwable {
                 User u = em.find(User.class, login.toLowerCase().trim());
                 if (u != null) {
-                    File p = u.getPhoto();
+                    Resource p = u.getPhoto();
                     if (p == null) {
-                        u.setPhoto(p = new File());
+                        u.setPhoto(p = new Resource());
                         em.persist(p);
                     }
                     p.setName(fileLocator.getFileName());

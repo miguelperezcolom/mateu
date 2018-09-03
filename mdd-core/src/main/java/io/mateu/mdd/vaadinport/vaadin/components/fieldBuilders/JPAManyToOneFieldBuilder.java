@@ -244,10 +244,20 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
                 if (field.getType().isAnnotationPresent(Entity.class)) {
 
-                    Button b = new Button("Edit");
+                    Button b = null;
+
+                    com.vaadin.data.provider.DataProvider dpx = (hv instanceof ComboBox)?((ComboBox)hv).getDataProvider():((hv instanceof RadioButtonGroup)?((RadioButtonGroup)hv).getDataProvider():null);
+
+                    if (dpx != null && dpx instanceof JPQLListDataProvider) {
+                        b = new Button("Refresh");
+                        b.addStyleName(ValoTheme.BUTTON_LINK);
+                        b.addClickListener(e -> ((JPQLListDataProvider)dpx).refresh());
+                        hl.addComponent(b);
+                    }
+
+                    b = new Button("Edit");
                     b.addStyleName(ValoTheme.BUTTON_LINK);
                     b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
-
                     hl.addComponent(b);
 
                     b = new Button("Add");
@@ -267,7 +277,6 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                         }
 
                     });
-
                     hl.addComponent(b);
 
                 }

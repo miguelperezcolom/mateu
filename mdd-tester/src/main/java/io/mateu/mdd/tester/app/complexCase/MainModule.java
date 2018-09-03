@@ -177,7 +177,7 @@ public class MainModule extends AbstractModule {
                         , "Enumeration field", EnumerationFieldDemoEntity.class
                         , "TextArea", TextAreaFieldDemoEntity.class
                         , "Search filters", SearchFiltersDemoEntity.class
-                        , "File field", FileFieldEntity.class
+                        , "Resource field", FileFieldEntity.class
                         , "Multilanguage", MultilanguageFieldEntity.class
                         , "URL", URLFieldDemoEntity.class
                         , "IFrame", IFrameFieldDemoEntity.class

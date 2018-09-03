@@ -8,7 +8,7 @@ import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.interfaces.PersistentPOJO;
 import io.mateu.mdd.core.model.authentication.Permission;
 import io.mateu.mdd.core.model.authentication.User;
-import io.mateu.mdd.core.model.common.File;
+import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import lombok.Getter;
@@ -24,7 +24,7 @@ public class Profile implements PersistentPOJO {
     @Ignored
     private UserData userData;
 
-    private File photo;
+    private Resource photo;
 
     private String name;
 

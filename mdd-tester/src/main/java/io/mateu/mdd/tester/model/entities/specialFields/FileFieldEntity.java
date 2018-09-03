@@ -1,6 +1,6 @@
 package io.mateu.mdd.tester.model.entities.specialFields;
 
-import io.mateu.mdd.core.model.common.File;
+import io.mateu.mdd.core.model.common.Resource;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,6 +19,6 @@ public class FileFieldEntity {
     private String name;
 
     @ManyToOne
-    private File file;
+    private Resource file;
 
 }

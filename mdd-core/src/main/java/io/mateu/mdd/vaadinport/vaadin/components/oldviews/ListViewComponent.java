@@ -6,14 +6,12 @@ import com.byteowls.vaadin.chartjs.data.Dataset;
 import com.byteowls.vaadin.chartjs.data.PieDataset;
 import com.google.common.base.Strings;
 import com.kbdunn.vaadin.addons.fontawesome.FontAwesome;
-import com.kbdunn.vaadin.addons.fontawesome.FontAwesomeLabel;
 import com.vaadin.data.HasDataProvider;
 import com.vaadin.data.ValueProvider;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.server.ExternalResource;
 import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.SortOrderProvider;
@@ -25,11 +23,9 @@ import io.mateu.mdd.core.data.ChartValue;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.SumData;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
-import io.mateu.mdd.core.interfaces.AbstractJPQLListView;
 import io.mateu.mdd.core.interfaces.ICellStyleGenerator;
-import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.interfaces.StyledEnum;
-import io.mateu.mdd.core.model.common.File;
+import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
@@ -688,7 +684,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             return explicitFilters;
         } else {
             return ReflectionHelper.getAllFields(filtersType).stream().filter(
-                    (f) ->  !f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(Output.class) &&  !File.class.equals(f.getType()) && (String.class.equals(f.getType()) || LocalDate.class.equals(f.getType()) || LocalDateTime.class.equals(f.getType()) || Date.class.equals(f.getType()) || boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType()) || f.getType().isEnum() || f.isAnnotationPresent(ManyToOne.class))
+                    (f) ->  !f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(Output.class) &&  !Resource.class.equals(f.getType()) && (String.class.equals(f.getType()) || LocalDate.class.equals(f.getType()) || LocalDateTime.class.equals(f.getType()) || Date.class.equals(f.getType()) || boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType()) || f.getType().isEnum() || f.isAnnotationPresent(ManyToOne.class))
             ).collect(Collectors.toList());
         }
     }

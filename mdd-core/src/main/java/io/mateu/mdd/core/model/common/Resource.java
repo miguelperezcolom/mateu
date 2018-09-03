@@ -18,7 +18,7 @@ import java.net.URL;
  * Created by miguel on 27/3/17.
  */
 @Entity@Getter@Setter
-public class File {
+public class Resource {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,11 +37,11 @@ public class File {
     private String url;
 
 
-    public File() {
+    public Resource() {
 
     }
 
-    public File(URL url) {
+    public Resource(URL url) {
         this.type = FileType.URL;
         this.url = url.toString();
         this.name = url.getFile();

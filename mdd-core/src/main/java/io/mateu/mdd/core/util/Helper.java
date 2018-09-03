@@ -1049,12 +1049,12 @@ public class Helper {
         builder.setBreakIndentInheritanceOnReferenceAreaBoundary(true);
         builder.setSourceResolution(96); // =96dpi (dots/pixels per Inch)
         FopFactory fopFactory = builder.build();
-        //FopFactory fopFactory = FopFactory.newInstance(new File("C:/Temp/fop.xconf"));
+        //FopFactory fopFactory = FopFactory.newInstance(new Resource("C:/Temp/fop.xconf"));
 
 
         // Step 2: Set up output stream.
 // Note: Using BufferedOutputStream for performance reasons (helpful with FileOutputStreams).
-        //OutputStream out = new BufferedOutputStream(new FileOutputStream(new File("C:/Temp/myfile.pdf")));
+        //OutputStream out = new BufferedOutputStream(new FileOutputStream(new Resource("C:/Temp/myfile.pdf")));
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         try {

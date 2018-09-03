@@ -9,6 +9,7 @@ import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.model.common.FileType;
+import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 
 import java.io.File;
@@ -21,14 +22,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class FileComponent extends Composite implements HasValue<io.mateu.mdd.core.model.common.File>, Component.Focusable {
+public class FileComponent extends Composite implements HasValue<Resource>, Component.Focusable {
     private final MDDBinder binder;
     private final Link hyperLink;
     private final Upload upload;
     private final Image image;
     private final ComboBox<FileType> cb;
     private final TextField url;
-    private io.mateu.mdd.core.model.common.File file;
+    private Resource file;
     private Map<UUID, ValueChangeListener> listeners = new HashMap<>();
 
 
@@ -85,7 +86,7 @@ public class FileComponent extends Composite implements HasValue<io.mateu.mdd.co
 
                 try {
 
-                    if (file == null) file = new io.mateu.mdd.core.model.common.File();
+                    if (file == null) file = new Resource();
 
                     file.set(filex.getName(), filex.getAbsolutePath());
 
@@ -167,7 +168,7 @@ public class FileComponent extends Composite implements HasValue<io.mateu.mdd.co
         cb.setEmptySelectionAllowed(false);
         cb.addValueChangeListener(e -> {
 
-            if (file == null) file = new io.mateu.mdd.core.model.common.File();
+            if (file == null) file = new Resource();
 
             if (FileType.BYTES.equals(e.getValue())) {
                 upload.setVisible(true);
@@ -192,7 +193,7 @@ public class FileComponent extends Composite implements HasValue<io.mateu.mdd.co
         url.setVisible(false);
         url.addValueChangeListener(e -> {
 
-            if (file == null) file = new io.mateu.mdd.core.model.common.File();
+            if (file == null) file = new Resource();
 
             if (FileType.URL.equals(cb.getValue())) {
 
@@ -232,7 +233,7 @@ public class FileComponent extends Composite implements HasValue<io.mateu.mdd.co
     }
 
     @Override
-    public void setValue(io.mateu.mdd.core.model.common.File o) {
+    public void setValue(Resource o) {
         file = o;
 
         try {
@@ -267,7 +268,7 @@ public class FileComponent extends Composite implements HasValue<io.mateu.mdd.co
     }
 
     @Override
-    public io.mateu.mdd.core.model.common.File getValue() {
+    public Resource getValue() {
         //if (file != null && file.getName() == null) file = null;
         return file;
     }
@@ -295,7 +296,7 @@ public class FileComponent extends Composite implements HasValue<io.mateu.mdd.co
     }
 
     @Override
-    public Registration addValueChangeListener(ValueChangeListener<io.mateu.mdd.core.model.common.File> valueChangeListener) {
+    public Registration addValueChangeListener(ValueChangeListener<Resource> valueChangeListener) {
         UUID _id = UUID.randomUUID();
         listeners.put(_id, valueChangeListener);
         return new Registration() {

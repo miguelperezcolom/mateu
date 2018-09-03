@@ -5,7 +5,7 @@ import io.mateu.mdd.core.annotations.NotInEditor;
 import io.mateu.mdd.core.annotations.Section;
 import io.mateu.mdd.core.annotations.TextArea;
 import io.mateu.mdd.core.app.AbstractApplication;
-import io.mateu.mdd.core.model.common.File;
+import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
@@ -35,7 +35,7 @@ public class AppConfig {
     private String businessName;
 
     @ManyToOne
-    private File logo;
+    private Resource logo;
 
 
     @Section("Email")

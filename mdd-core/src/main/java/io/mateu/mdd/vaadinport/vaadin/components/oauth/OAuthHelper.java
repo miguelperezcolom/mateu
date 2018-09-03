@@ -6,7 +6,7 @@ import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.model.authentication.Permission;
 import io.mateu.mdd.core.model.authentication.USER_STATUS;
 import io.mateu.mdd.core.model.authentication.User;
-import io.mateu.mdd.core.model.common.File;
+import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import okhttp3.*;
@@ -181,7 +181,7 @@ grant_type=authorization_code
                                 u.setLogin(login);
                                 u.setEmail((email != null)?email:"");
                                 u.setName((name != null)?name:"");
-                                if (!Strings.isNullOrEmpty(avatarUrl)) u.setPhoto(new File(new URL(avatarUrl)));
+                                if (!Strings.isNullOrEmpty(avatarUrl)) u.setPhoto(new Resource(new URL(avatarUrl)));
                                 u.setStatus(USER_STATUS.ACTIVE);
                                 em.persist(u);
                             }
@@ -371,7 +371,7 @@ grant_type=authorization_code
                                 u.setLogin(login);
                                 u.setEmail((email != null)?email:"");
                                 u.setName((name != null)?name:"");
-                                if (!Strings.isNullOrEmpty(avatarUrl)) u.setPhoto(new File(new URL(avatarUrl)));
+                                if (!Strings.isNullOrEmpty(avatarUrl)) u.setPhoto(new Resource(new URL(avatarUrl)));
                                 u.setStatus(USER_STATUS.ACTIVE);
                                 em.persist(u);
                             }
@@ -535,7 +535,7 @@ grant_type=authorization_code
                                 u.setLogin(login);
                                 u.setEmail((email != null)?email:"");
                                 u.setName((name != null)?name:"");
-                                if (!Strings.isNullOrEmpty(avatarUrl)) u.setPhoto(new File(new URL(avatarUrl)));
+                                if (!Strings.isNullOrEmpty(avatarUrl)) u.setPhoto(new Resource(new URL(avatarUrl)));
                                 u.setStatus(USER_STATUS.ACTIVE);
                                 em.persist(u);
                             }
