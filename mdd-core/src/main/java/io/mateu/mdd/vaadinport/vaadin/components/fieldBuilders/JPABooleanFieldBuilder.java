@@ -5,10 +5,7 @@ import com.google.common.collect.Lists;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
 import com.vaadin.data.provider.ListDataProvider;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Layout;
+import com.vaadin.ui.*;
 import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -46,12 +43,16 @@ public class JPABooleanFieldBuilder extends AbstractFieldBuilder {
 
         } else {
 
+            HorizontalLayout hl;
+            container.addComponent(hl = new HorizontalLayout());
+            hl.addStyleName("nopadding");
+
             CheckBox cb;
-            container.addComponent(cb = new CheckBox());
+            hl.addComponent(cb = new CheckBox());
 
             if (allFieldContainers.size() == 0) cb.focus();
 
-            if (container.getComponentCount() > 0) cb.setCaption(ReflectionHelper.getCaption(field));
+            hl.setCaption(ReflectionHelper.getCaption(field));
 
             if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) cb.setDescription(field.getAnnotation(Help.class).value());
 

@@ -15,6 +15,7 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
+import io.mateu.mdd.core.annotations.Keep;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Pair;
@@ -173,10 +174,28 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             if (getView() != null) getView().updateViewTitle(toString());
 
 
+            focusFirstField(panel.getContent());
+
         } catch (Exception e) {
             MDD.alert(e);
         }
 
+    }
+
+    private boolean focusFirstField(Component c) {
+        if (c instanceof AbstractField) {
+            if (c instanceof TextField) ((TextField)c).selectAll();
+            ((AbstractField) c).focus();
+            return true;
+        } else if (c instanceof HasComponents) {
+            HasComponents l = (HasComponents) c;
+            for (Component ch : l) {
+                if (focusFirstField(ch)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private Component createKpi(MDDBinder binder, FieldInterfaced kpi) {
@@ -286,32 +305,6 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 public void menuSelected(MenuBar.MenuItem menuItem) {
                     try {
 
-                        //binder.writeBean(entities);
-
-                        ValueContext vc = new ValueContext();
-                        for (HasValue h : validators.keySet())
-                            for (Validator v : validators.get(h)) {
-                                ValidationResult r = v.apply(h.getValue(), vc);
-                                if (h instanceof AbstractComponent) {
-                                    AbstractComponent c = (AbstractComponent) h;
-                                    if (r.isError()) {
-                                        c.setComponentError(new ErrorMessage() {
-                                            @Override
-                                            public ErrorLevel getErrorLevel() {
-                                                return r.getErrorLevel().get();
-                                            }
-
-                                            @Override
-                                            public String getFormattedHtmlMessage() {
-                                                return r.getErrorMessage();
-                                            }
-                                        });
-                                    } else {
-                                        c.setComponentError(null);
-                                    }
-                                }
-                            }
-
                         if (binder.validate().isOk()) {
 
                             save();
@@ -328,12 +321,43 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             });
             i.setStyleName(ValoTheme.BUTTON_PRIMARY);
 
-            i.setDescription("Click Ctrl + S to fire");
+            i.setDescription("Click Ctrl + S to fire. Ctrl + Alt + S to duplicate.");
             Button b;
             addComponent(b = new Button());
             b.addStyleName("hidden");
             b.addClickListener(e -> cmd.menuSelected(i));
             b.setClickShortcut(ShortcutAction.KeyCode.S, ShortcutAction.ModifierKey.CTRL);
+
+            addComponent(b = new Button());
+            b.addStyleName("hidden");
+            b.addClickListener(e -> {
+                if (binder.validate().isOk()) {
+
+                    try {
+                        save();
+
+                        Object old = getBinder().getBean();
+
+                        load(null);
+
+                        Object current = getBinder().getBean();
+                        for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(old.getClass())) {
+                            if (f.isAnnotationPresent(Keep.class)) {
+                                ReflectionHelper.setValue(f, current, ReflectionHelper.getValue(f, old));
+                            }
+                        }
+                        getBinder().setBean(current, false);
+
+
+                    } catch (Throwable throwable) {
+                        throwable.printStackTrace();
+                    }
+
+
+                } else Notification.show("There are errors", Notification.Type.ERROR_MESSAGE);
+
+            });
+            b.setClickShortcut(ShortcutAction.KeyCode.S, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
         }
 
         super.addViewActionsMenuItems(bar);

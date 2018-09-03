@@ -18356,6 +18356,7 @@ div.v-layout.v-horizontal.v-widget {
 .mytheme .section {
 	margin-right: 50px;
 	max-width: 500px;
+	min-width: 400px;
 }
 
 .mytheme .section-fullwidth {

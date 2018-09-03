@@ -1,5 +1,6 @@
 package io.mateu.mdd.tester.model.useCases.bankAccount;
 
+import io.mateu.mdd.core.annotations.Keep;
 import io.mateu.mdd.core.annotations.Output;
 import io.mateu.mdd.core.annotations.Sum;
 import io.mateu.mdd.core.model.authentication.Audit;
@@ -28,6 +29,7 @@ public class BankAccount {
 
     @ManyToOne
     @NotNull
+    @Keep
     private User owner;
 
     @Output
