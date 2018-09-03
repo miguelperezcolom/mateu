@@ -29,4 +29,6 @@ public @interface Action {
 
     int order() default 0;
 
+    String attachToField() default "";
+
 }

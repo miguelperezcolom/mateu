@@ -1,9 +1,6 @@
 package io.mateu.mdd.tester.model.entities.basic;
 
-import io.mateu.mdd.core.annotations.FullWidth;
-import io.mateu.mdd.core.annotations.Help;
-import io.mateu.mdd.core.annotations.SearchFilter;
-import io.mateu.mdd.core.annotations.Sum;
+import io.mateu.mdd.core.annotations.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,16 +21,18 @@ public class BasicFieldsDemoEntity {
 
     @SearchFilter
     @Help("This is a simple field 1")
+    @Order(priority = 1)
     private String stringField = "zzzz";
 
     @FullWidth
+    @Order(priority = 2)
     private String fullWidthField;
 
     @Sum
     @Help("This is a simple field 2")
     private int intField;
 
-    @Sum
+    @Sum@Position(0)
     @Help("This is a simple field 3")
     private long longField;
 

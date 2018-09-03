@@ -17,12 +17,9 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
-import javassist.CannotCompileException;
-import javassist.NotFoundException;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -150,7 +147,7 @@ public class JPAListViewComponent extends ListViewComponent {
                 @Override
                 public void run(EntityManager em) throws Throwable {
 
-                    Query q = buildQuery(em, (alias) -> buildFieldsPart(alias), filters, sortOrders, offset, limit);
+                    Query q = buildQuery(em, (alias) -> buildFieldsPart(alias), filters, sortOrders, null, offset, limit, true);
 
                     l.addAll(q.getResultList());
 
@@ -164,10 +161,10 @@ public class JPAListViewComponent extends ListViewComponent {
     }
 
     private Query buildQuery(EntityManager em, Function<Map<FieldInterfaced, String>, Object> fieldsPartBuilderFunction, Object filters, List<QuerySortOrder> sortOrders, int offset, int limit) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        return buildQuery(em, fieldsPartBuilderFunction, filters, sortOrders, null, offset, limit);
+        return buildQuery(em, fieldsPartBuilderFunction, filters, sortOrders, null, offset, limit, false);
     }
 
-    private Query buildQuery(EntityManager em, Function<Map<FieldInterfaced, String>, Object> fieldsPartBuilderFunction, Object filters, List<QuerySortOrder> sortOrders, String groupClause, int offset, int limit) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    private Query buildQuery(EntityManager em, Function<Map<FieldInterfaced, String>, Object> fieldsPartBuilderFunction, Object filters, List<QuerySortOrder> sortOrders, String groupClause, int offset, int limit, boolean addOrderClause) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
         List<FieldInterfaced> columnFields = getSelectFields(getColumnType());
         List<FieldInterfaced> filterFields = getFilterFields();
@@ -215,12 +212,24 @@ public class JPAListViewComponent extends ListViewComponent {
 
         if (!Strings.isNullOrEmpty(groupClause)) jpql += " " + groupClause + " ";
 
-        String oc = "";
-        if (sortOrders != null) for (QuerySortOrder qso : sortOrders) {
-            if (!"".equals(oc)) oc += ", ";
-            oc += alias + "." + qso.getSorted() + " " + ((SortDirection.DESCENDING.equals(qso.getDirection()))?"desc":"asc");
+        if (addOrderClause) {
+            String oc = "";
+            if (sortOrders != null) for (QuerySortOrder qso : sortOrders) {
+                if (!"".equals(oc)) oc += ", ";
+                oc += "x" + "." + qso.getSorted() + " " + ((SortDirection.DESCENDING.equals(qso.getDirection()))?"desc":"asc");
+            }
+            List<FieldInterfaced> orderCols = new ArrayList<>();
+            for (FieldInterfaced f : columnFields) {
+                if (f.isAnnotationPresent(Order.class)) orderCols.add(f);
+            }
+            Collections.sort(orderCols, (f1, f2) -> f1.getAnnotation(Order.class).priority() - f2.getAnnotation(Order.class).priority());
+            for (FieldInterfaced f : orderCols) {
+                if (!"".equals(oc)) oc += ", ";
+                oc += "x" + "." + f.getName() + " " + (f.getAnnotation(Order.class).desc()?"desc":"asc");
+            }
+            if ("".equals(oc)) oc += "x" + "." + columnFields.get(0).getName() + " desc";
+            if (!"".equals(oc)) jpql += " order by " + oc;
         }
-        if (!"".equals(oc)) jpql += " order by " + oc;
 
         Query q = em.createQuery(jpql).setFirstResult(offset).setMaxResults(limit);
         for (String k : parameterValues.keySet()) q.setParameter(k, parameterValues.get(k));
@@ -442,7 +451,7 @@ public class JPAListViewComponent extends ListViewComponent {
                 @Override
                 public void run(EntityManager em) throws Throwable {
 
-                    Query q = buildQuery(em, (alias) ->  "x." + f.getName() + ", count(x)" , filters, null, "group by x." + f.getName(), 0, 1000);
+                    Query q = buildQuery(em, (alias) ->  "x." + f.getName() + ", count(x)" , filters, null, "group by x." + f.getName(), 0, 1000, false);
                     System.out.println(q.toString());
 
                     List<Object[]> r = q.getResultList();
