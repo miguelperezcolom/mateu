@@ -70,7 +70,6 @@ public class OwnedCollectionComponent extends VerticalLayout {
                 MDD.alert(e1);
             }
         });
-        goToPreviousButton.setClickShortcut(ShortcutAction.KeyCode.ARROW_LEFT, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
 
 
         goToNextButton.addClickListener(e -> {
@@ -80,7 +79,6 @@ public class OwnedCollectionComponent extends VerticalLayout {
                 MDD.alert(e1);
             }
         });
-        goToNextButton.setClickShortcut(ShortcutAction.KeyCode.ARROW_RIGHT, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
 
         addButton.addClickListener(e -> {
             try {
@@ -91,7 +89,6 @@ public class OwnedCollectionComponent extends VerticalLayout {
                 MDD.alert(throwable);
             }
         });
-        addButton.setClickShortcut(107, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
 
         // incrustamos un nuevo elemento
         //setIndex(collection.size());
@@ -165,6 +162,11 @@ public class OwnedCollectionComponent extends VerticalLayout {
         goToPreviousButton.setEnabled(valid && currentIndex > 0);
         goToNextButton.setEnabled(valid && currentIndex < collection.size() - 1);
         addButton.setEnabled(valid && (modificado || currentIndex < collection.size()));
+
+        goToPreviousButton.setClickShortcut(ShortcutAction.KeyCode.B, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
+        goToNextButton.setClickShortcut(ShortcutAction.KeyCode.N, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
+        addButton.setClickShortcut(ShortcutAction.KeyCode.M, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
+
     }
 
     @Override

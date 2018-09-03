@@ -12,8 +12,10 @@ import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.model.population.Populator;
 import io.mateu.mdd.core.model.ui.EditedRecord;
 import io.mateu.mdd.core.nose.MemorizadorRegistroEditado;
+import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
+import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.AbstractFieldBuilder;
 
 import javax.persistence.EntityManager;
 import java.util.*;
@@ -366,6 +368,16 @@ public abstract class AbstractApplication implements App {
 
     public Populator getPopulator() {
         return new Populator();
+    }
+
+
+    public AbstractFieldBuilder getFieldBuilder(FieldInterfaced field) {
+        AbstractFieldBuilder r = null;
+        for (AbstractFieldBuilder b : AbstractFieldBuilder.builders) if (b.isSupported(field)) {
+            r = b;
+            break;
+        }
+        return r;
     }
 
 }
