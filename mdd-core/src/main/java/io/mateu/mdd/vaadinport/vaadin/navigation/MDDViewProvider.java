@@ -56,6 +56,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
     private final ViewStack stack;
     public Set pendingSelection;
+    public Object pendingResult;
     private String currentPath;
 
     private EditorViewComponent currentEditor;
@@ -431,7 +432,11 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                             if (method != null) {
 
-                                stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, null, this, null, pendingSelection));
+                                if (pendingResult != null) {
+                                    stack.push(currentPath, new MethodResultViewFlowComponent(state, method, pendingResult));
+                                } else {
+                                    stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, null, this, null, pendingSelection));
+                                }
 
                             } else if ("filters".equals(step)) {
 
@@ -494,7 +499,11 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                             if (method != null) {
 
-                                stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, evfc.getModel(), this, evfc.getBinder(), pendingSelection));
+                                if (pendingResult != null) {
+                                    stack.push(currentPath, new MethodResultViewFlowComponent(state, method, pendingResult));
+                                } else {
+                                    stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, evfc.getModel(), this, evfc.getBinder(), pendingSelection));
+                                }
 
                             } else if (field != null) {
 

@@ -39,6 +39,8 @@ public interface MDDPort {
 
     void open(Method m, Set selection);
 
+    void open(Method m, Object result);
+
     void open(FieldInterfaced f);
 
     void confirm(String msg, Runnable onOk);

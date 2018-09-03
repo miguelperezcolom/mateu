@@ -11,6 +11,8 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
@@ -29,6 +31,11 @@ public class ActionsDemoEntity {
 
     private int intField;
 
+
+    @Action(value = "Returns pdf", icon = VaadinIcons.AIRPLANE, order = 1)
+    public static URL action0() throws MalformedURLException {
+        return new URL("https://elpais.com");
+    }
 
     @Action(value = "Action on all", icon = VaadinIcons.AIRPLANE)
     public static void action1() {

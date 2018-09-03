@@ -132,6 +132,13 @@ public class MDDNavigator {
         goTo(state);
     }
 
+    public void goTo(Method m, Object result) {
+        viewProvider.pendingResult = result;
+        String state = stack.getState(stack.getLast());
+        state += "/" + m.getName();
+        goTo(state);
+    }
+
     public void goTo(Object id) {
         String state = stack.getState(stack.getLast());
         if (!state.endsWith("/" + id)) {

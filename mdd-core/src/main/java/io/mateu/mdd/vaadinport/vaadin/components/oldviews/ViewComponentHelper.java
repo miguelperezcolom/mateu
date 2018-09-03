@@ -86,14 +86,14 @@ public class ViewComponentHelper {
                                     @Override
                                     public void run(EntityManager em) throws Throwable {
 
-                                        invoke(m, finalInstance, finalSelection, em, null);
+                                        invoke(viewComponent, m, finalInstance, finalSelection, em, null);
 
                                     }
                                 });
 
                             } else {
 
-                                invoke(m, instance, selection, null, null);
+                                invoke(viewComponent, m, instance, selection, null, null);
 
                             }
 
@@ -101,14 +101,6 @@ public class ViewComponentHelper {
                             MDD.alert(throwable);
                         }
 
-                        if (viewComponent instanceof ListViewComponent) {
-                            ListViewComponent lvc = (ListViewComponent) viewComponent;
-                            try {
-                                lvc.search(lvc.getModelForSearchFilters());
-                            } catch (Throwable throwable) {
-                                MDD.alert(throwable);
-                            }
-                        }
                     }
 
                 } catch (Throwable throwable) {
@@ -123,7 +115,8 @@ public class ViewComponentHelper {
 
     }
 
-    private static void invoke(Method m, Object instance, Set selection, EntityManager em, Map<String, Object> parameterValues) throws InvocationTargetException, IllegalAccessException {
+    private static void invoke(AbstractViewComponent viewComponent, Method m, Object instance, Set selection, EntityManager em, Map<String, Object> parameterValues) throws InvocationTargetException, IllegalAccessException {
+
         List<Object> vs = new ArrayList<>();
         for (Parameter p : m.getParameters()) {
             if (EntityManager.class.equals(p.getType())) {
@@ -138,6 +131,22 @@ public class ViewComponentHelper {
         }
         Object[] args = vs.toArray();
 
-        m.invoke(instance, args);
+        Object r = m.invoke(instance, args);
+
+        if (void.class.equals(m.getReturnType())) {
+
+            if (viewComponent instanceof ListViewComponent) {
+                ListViewComponent lvc = (ListViewComponent) viewComponent;
+                try {
+                    lvc.search(lvc.getModelForSearchFilters());
+                } catch (Throwable throwable) {
+                    MDD.alert(throwable);
+                }
+            }
+
+        } else {
+            MDD.getPort().open(m, r);
+        }
+
     }
 }

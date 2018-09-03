@@ -27,7 +27,7 @@ public @interface Action {
 
     boolean keepOpened() default false;
 
-    int order() default 0;
+    int order() default 1000;
 
     String attachToField() default "";
 

@@ -155,6 +155,11 @@ public class VaadinPort implements MDDPort {
     }
 
     @Override
+    public void open(Method m, Object result) {
+        MDDUI.get().getNavegador().goTo(m, result);
+    }
+
+    @Override
     public void open(FieldInterfaced f) {
         MDDUI.get().getNavegador().goTo(f);
     }
