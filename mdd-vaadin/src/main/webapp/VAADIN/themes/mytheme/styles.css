@@ -18358,12 +18358,21 @@ div.v-layout.v-horizontal.v-widget {
 	max-width: 500px;
 }
 
+.mytheme .section-fullwidth {
+	margin-right: inherit !important;
+	max-width: inherit !important;
+}
+
 .mytheme .sectioncard {
 	background-color: white;
 	border: 1px grey solid;
 	border-radius: 4px;
 	padding-left: 20px;
 	padding-right: 20px;
+}
+
+.mytheme .v-widget .miformlayout {
+	margin-bottom: 20px;
 }
 
 .mytheme .hidden {

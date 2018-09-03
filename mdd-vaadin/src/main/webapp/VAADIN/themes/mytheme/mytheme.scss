@@ -463,6 +463,11 @@
     max-width: 500px;
   }
 
+  .section-fullwidth {
+    margin-right: inherit !important;
+    max-width: inherit !important;
+  }
+
   .sectioncard {
     background-color: white;
     border: 1px grey solid;
@@ -471,6 +476,12 @@
     padding-right: 20px;
   }
 
+
+  .v-widget {
+    .miformlayout {
+      margin-bottom: 20px;
+    }
+  }
 
   .hidden {
     display: none;

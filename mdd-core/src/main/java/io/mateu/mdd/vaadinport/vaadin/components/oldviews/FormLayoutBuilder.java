@@ -144,9 +144,13 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
         for (FieldInterfaced f : fields) {
 
-            if (f.isAnnotationPresent(FullWidth.class)) {
+            if (f.isAnnotationPresent(FullWidth.class) || (f.isAnnotationPresent(Tab.class) && f.getAnnotation(Tab.class).fullWith()) || (f.isAnnotationPresent(StartTabs.class) && f.getAnnotation(StartTabs.class).fullWith())) {
                 contentContainer.setWidth("100%");
-                if (!currentContentContainer.equals(contentContainer)) currentContentContainer.setWidth("100%");
+                contentContainer.addStyleName("section-fullwidth");
+                if (!currentContentContainer.equals(contentContainer)) {
+                    currentContentContainer.setWidth("100%");
+                    currentContentContainer.addStyleName("section-fullwidth");
+                }
             }
 
             if (createTabs) {
@@ -158,6 +162,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                         containersStack.add(0, currentContentContainer);
                     }
                     tabs = new TabSheet();
+                    tabs.setWidth("100%");
                     currentContentContainer.addComponent(tabs);
                 }
                 if (f.isAnnotationPresent(EndTabs.class)) {
@@ -176,6 +181,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                     Tab ta = f.getAnnotation(Tab.class);
                     if (tabs == null) {
                         tabs = new TabSheet();
+                        tabs.setWidth("100%");
                         currentContentContainer.addComponent(tabs);
                         //tabs.setCaption(ta.value());
                     }

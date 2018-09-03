@@ -6,6 +6,7 @@ public class MiFormLayout extends VerticalLayout {
 
     public MiFormLayout() {
         addStyleName("nopadding");
+        addStyleName("miformlayout");
     }
 
 }

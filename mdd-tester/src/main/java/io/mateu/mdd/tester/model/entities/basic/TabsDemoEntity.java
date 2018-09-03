@@ -24,7 +24,7 @@ public class TabsDemoEntity {
     private String name;
 
 
-    @Tab("First tab")
+    @Tab(value = "First tab", fullWith = true)
     private String field1;
 
     private int field2;

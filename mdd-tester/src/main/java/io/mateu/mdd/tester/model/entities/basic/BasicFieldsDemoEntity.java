@@ -32,7 +32,7 @@ public class BasicFieldsDemoEntity {
     @Help("This is a simple field 2")
     private int intField;
 
-    @Sum@Position(0)
+    @Sum@Position(1)
     @Help("This is a simple field 3")
     private long longField;
 
@@ -52,9 +52,10 @@ public class BasicFieldsDemoEntity {
     private double doubleRangeField;
 
 
-
+    @Position(2)
     private Integer nonPrimitiveIntegerField;
 
+    @Position(3)
     private Long nonPrimitiveLongField;
 
     private Double nonPrimitiveDoubleField;
