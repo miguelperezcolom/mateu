@@ -51,7 +51,10 @@ public class ReflectionHelper {
         basicos.add(Boolean.class);
         basicos.add(LocalDate.class);
         basicos.add(LocalDateTime.class);
-        basicos.add(String.class);
+        basicos.add(int.class);
+        basicos.add(long.class);
+        basicos.add(double.class);
+        basicos.add(boolean.class);
     }
 
 

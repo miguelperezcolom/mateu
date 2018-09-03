@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
+import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.HorizontalLayout;
@@ -69,6 +70,7 @@ public class OwnedCollectionComponent extends VerticalLayout {
                 MDD.alert(e1);
             }
         });
+        goToPreviousButton.setClickShortcut(ShortcutAction.KeyCode.ARROW_LEFT, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
 
 
         goToNextButton.addClickListener(e -> {
@@ -78,6 +80,7 @@ public class OwnedCollectionComponent extends VerticalLayout {
                 MDD.alert(e1);
             }
         });
+        goToNextButton.setClickShortcut(ShortcutAction.KeyCode.ARROW_RIGHT, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
 
         addButton.addClickListener(e -> {
             try {
@@ -88,6 +91,7 @@ public class OwnedCollectionComponent extends VerticalLayout {
                 MDD.alert(throwable);
             }
         });
+        addButton.setClickShortcut(107, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
 
         // incrustamos un nuevo elemento
         //setIndex(collection.size());
