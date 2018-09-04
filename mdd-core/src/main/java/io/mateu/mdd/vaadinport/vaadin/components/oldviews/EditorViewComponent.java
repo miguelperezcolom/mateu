@@ -455,8 +455,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
 
                     auditar(em, m);
-
-
+                    
                     setModel(em.merge(m));
                 }
             });

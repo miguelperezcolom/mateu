@@ -426,6 +426,19 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                 ldp.refresh();
             });
         }
+
+        if (!forSearchFilter && field.getDeclaringClass() != null && field.getType().isAnnotationPresent(Entity.class)) {
+            binding.getField().addValueChangeListener(e -> {
+                Object bean = binder.getBean();
+                try {
+                    if (e.getOldValue() != null) ReflectionHelper.unReverseMap(binder, field, bean, e.getOldValue());
+                    if (e.getValue() != null) ReflectionHelper.reverseMap(binder, field, bean, e.getValue());
+                } catch (Exception e1) {
+                    MDD.alert(e1);
+                }
+            });
+        }
+
     }
 
 }

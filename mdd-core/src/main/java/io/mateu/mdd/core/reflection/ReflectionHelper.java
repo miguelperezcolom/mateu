@@ -493,6 +493,18 @@ public class ReflectionHelper {
         if (field.isAnnotationPresent(OneToOne.class)) mfn = field.getAnnotation(OneToOne.class).mappedBy();
         else if (field.isAnnotationPresent(OneToMany.class)) mfn = field.getAnnotation(OneToMany.class).mappedBy();
         else if (field.isAnnotationPresent(ManyToMany.class)) mfn = field.getAnnotation(ManyToMany.class).mappedBy();
+        else if (field.isAnnotationPresent(ManyToOne.class)) {
+            for (FieldInterfaced f : ReflectionHelper.getAllFields(field.getType())) {
+                String z = null;
+                if (f.isAnnotationPresent(OneToOne.class)) z = f.getAnnotation(OneToOne.class).mappedBy();
+                else if (f.isAnnotationPresent(OneToMany.class)) z = f.getAnnotation(OneToMany.class).mappedBy();
+                else if (f.isAnnotationPresent(ManyToMany.class)) z = f.getAnnotation(ManyToMany.class).mappedBy();
+                if (field.getName().equals(z) && (field.getType().equals(f.getType()) || field.getType().equals(ReflectionHelper.getGenericClass(field.getGenericType())))) {
+                    mfn = f.getName();
+                    break;
+                }
+            }
+        }
 
         if (!Strings.isNullOrEmpty(mfn)) {
 
@@ -1262,10 +1274,10 @@ public class ReflectionHelper {
 
         if (Collection.class.isAssignableFrom(mbf.getType())) {
             Collection col = (Collection) ReflectionHelper.getValue(mbf, i);
-            col.remove(i);
+            col.remove(bean);
         } else if (Set.class.isAssignableFrom(mbf.getType())) {
             Set col = (Set) ReflectionHelper.getValue(mbf, i);
-            col.remove(i);
+            col.remove(bean);
         } else {
             ReflectionHelper.setValue(mbf, i, null);
         }
