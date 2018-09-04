@@ -5,24 +5,44 @@ import com.Ostermiller.util.CSVParser;
 import com.Ostermiller.util.CSVPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.api.client.http.*;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonObjectParser;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
 import com.google.common.hash.Hashing;
+import com.google.common.io.Files;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
+import io.mateu.mdd.core.asciiart.Painter;
+import io.mateu.mdd.core.interfaces.RpcView;
+import io.mateu.mdd.core.model.config.AppConfig;
+import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.core.reflection.MiURLConverter;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
+import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.mail.DefaultAuthenticator;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
+import org.apache.fop.apps.*;
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
+import org.xml.sax.SAXException;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -32,15 +52,20 @@ import javax.mail.internet.MimeMultipart;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import javax.persistence.Query;
 import javax.sql.DataSource;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
+import javax.xml.transform.*;
+import javax.xml.transform.sax.SAXResult;
+import javax.xml.transform.stream.StreamSource;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.Statement;
+import java.nio.charset.Charset;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -69,9 +94,11 @@ public class Helper {
     private static ThreadLocal<EntityManager> tlem = new ThreadLocal<>();
 
     private static ObjectMapper mapper = new ObjectMapper();
+    private static ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
 
     static {
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        yamlMapper.enable(SerializationFeature.INDENT_OUTPUT);
     }
 
     // Create your Configuration instance, and specify if up to what FreeMarker
@@ -101,6 +128,11 @@ public class Helper {
     }
 
 
+
+
+
+
+
     public static Map<String, Object> fromJson(String json) throws IOException {
         if (json == null || "".equals(json)) json = "{}";
         return mapper.readValue(json, Map.class);
@@ -114,6 +146,26 @@ public class Helper {
     public static String toJson(Object o) throws IOException {
         return mapper.writeValueAsString(o);
     }
+
+
+
+
+
+
+    public static Map<String, Object> fromYaml(String yaml) throws IOException {
+        if (yaml == null) yaml = "";
+        return yamlMapper.readValue(yaml, Map.class);
+    }
+
+    public static <T> T fromYaml(String yaml, Class<T> c) throws IOException {
+        if (yaml == null) yaml = "";
+        return yamlMapper.readValue(yaml, c);
+    }
+
+    public static String toYaml(Object o) throws IOException {
+        return yamlMapper.writeValueAsString(o);
+    }
+
 
 
 
@@ -158,7 +210,7 @@ public class Helper {
             StringBuffer sb = new StringBuffer();
             for (ConstraintViolation v : e.getConstraintViolations()) {
                 if (sb.length() > 0) sb.append("\n");
-                sb.append(v.toString());
+                sb.append("" + v.getPropertyPath() + " " + v.getMessage());
             }
             System.out.println(sb.toString());
             if (em.getTransaction().isActive()) em.getTransaction().rollback();
@@ -171,7 +223,7 @@ public class Helper {
                 StringBuffer sb = new StringBuffer();
                 for (ConstraintViolation v : cve.getConstraintViolations()) {
                     if (sb.length() > 0) sb.append("\n");
-                    sb.append(v.toString());
+                    sb.append(v.getMessage());
                 }
                 System.out.println(sb.toString());
                 if (em.getTransaction().isActive()) em.getTransaction().rollback();
@@ -199,7 +251,7 @@ public class Helper {
     private static EntityManagerFactory getEMF(String persistenceUnit) {
         EntityManagerFactory v;
         if ((v = emf.get(persistenceUnit)) == null) {
-            emf.put(persistenceUnit, v = Persistence.createEntityManagerFactory(persistenceUnit));
+            emf.put(persistenceUnit, v = Persistence.createEntityManagerFactory(persistenceUnit, System.getProperties()));
         }
         return v;
     }
@@ -221,6 +273,57 @@ public class Helper {
         em.close();
 
     }
+
+
+    public static List<Object> selectObjects(String jpql) throws Throwable {
+        List<Object> l = new ArrayList<>();
+
+        Helper.notransact(em -> {
+
+            l.addAll(em.createQuery(jpql).getResultList());
+
+        });
+
+        return l;
+    }
+
+
+    //todo: sql nativo
+    public static List<Object[]> sqlSelectPage(String jpql, int offset, int limit) throws Throwable {
+        List<Object[]> list = new ArrayList<>();
+
+        Helper.notransact(em -> {
+
+            Query q = em.createQuery(jpql);
+
+            q.setFirstResult(offset);
+            q.setMaxResults(limit);
+
+
+            list.addAll(q.getResultList());
+
+        });
+
+        return list;
+    }
+
+    //todo: sql nativo
+    public static int sqlCount(String sql) throws Throwable {
+        int[] count = {0};
+
+        Helper.notransact(em -> {
+
+            String countjpql = "select count(*) from (" + sql + ") xxx";
+
+            count[0] = ((Long)em.createQuery(countjpql).getSingleResult()).intValue();
+
+
+        });
+
+        return count[0];
+    }
+
+
 
     public static String md5(String s) {
         return Hashing.sha256().newHasher().putString(s, Charsets.UTF_8).hash().toString();
@@ -305,6 +408,22 @@ public class Helper {
         return request.execute().parseAsString(); //.parseAs(VideoFeed.class);
     }
 
+    public static String httpPost(String url, Map<String, String> parameters) throws IOException {
+        System.out.println("HTTP POST " + url);
+        HttpRequestFactory requestFactory =
+                HTTP_TRANSPORT.createRequestFactory(new HttpRequestInitializer() {
+                    @Override
+                    public void initialize(HttpRequest request) {
+                        request.setParser(new JsonObjectParser(JSON_FACTORY));
+                    }
+                });
+
+
+
+        HttpRequest request = requestFactory.buildPostRequest(new GenericUrl(url), new UrlEncodedContent(""));
+        return request.execute().parseAsString(); //.parseAs(VideoFeed.class);
+    }
+
     public static Object[][][] parseExcel(File f) throws IOException, InvalidFormatException {
 
         List<Object[][]> l0 = new ArrayList<Object[][]>();
@@ -368,6 +487,45 @@ public class Helper {
     }
 
 
+    public static File writeExcel(List data, List<FieldInterfaced> colFields) throws IOException, InvalidFormatException {
+        String archivo = UUID.randomUUID().toString();
+
+        File temp = (System.getProperty("tmpdir") == null)?File.createTempFile(archivo, ".xlsx"):new File(new File(System.getProperty("tmpdir")), archivo + ".xlsx");
+
+
+        System.out.println("java.io.tmpdir=" + System.getProperty("java.io.tmpdir"));
+        System.out.println("Temp file : " + temp.getAbsolutePath());
+
+        Workbook wb = new XSSFWorkbook();
+        CreationHelper createHelper = wb.getCreationHelper();
+            Sheet sheet = wb.createSheet();
+            for (int posfila = 0; posfila < data.size(); posfila++) {
+                Object l2 = data.get(posfila);
+                Row row = sheet.createRow(posfila);
+                for (int poscol = 0; poscol < colFields.size(); poscol++) {
+                    Cell cell = row.createCell(poscol);
+
+                    Object v = null;
+                    try {
+                        v = (l2 instanceof Object[])?((Object[])l2)[poscol + 2]:ReflectionHelper.getValue(colFields.get(poscol), l2);
+
+                        fillCell(wb, createHelper, cell, v);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+
+                }
+            }
+
+        FileOutputStream fileOut = new FileOutputStream(temp);
+        wb.write(fileOut);
+        fileOut.close();
+
+        return temp;
+    }
+
+
     public static File writeExcel(Object[][][] data) throws IOException, InvalidFormatException {
         String archivo = UUID.randomUUID().toString();
 
@@ -390,42 +548,8 @@ public class Helper {
 
                     Object v = l2[poscol];
 
-                    if (v == null) {
-                        cell.setCellType(CellType.BLANK);
-                    } else if (v instanceof Double || v instanceof Integer || v instanceof Long) {
-                        cell.setCellType(CellType.NUMERIC);
-                        cell.setCellValue(Double.parseDouble("" + v));
-                    } else if (v instanceof Date || v instanceof LocalDate || v instanceof LocalDateTime  || v instanceof LocalTime) {
-                        cell.setCellType(CellType.NUMERIC);
-                        if (v instanceof LocalTime) {
-                            CellStyle cellStyle = wb.createCellStyle();
-                            cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("HH:mm"));
-                            cell.setCellStyle(cellStyle);
-                            cell.setCellValue(HSSFDateUtil.convertTime(((LocalTime)v).format(DateTimeFormatter.ofPattern("HH:mm"))));
-                        } else if (v instanceof Date) {
-                            CellStyle cellStyle = wb.createCellStyle();
-                            cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("d/m/yy"));
-                            cell.setCellStyle(cellStyle);
-                            cell.setCellValue(HSSFDateUtil.getExcelDate((Date) v));
-                        } else if (v instanceof LocalDate) {
-                            CellStyle cellStyle = wb.createCellStyle();
-                            cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("d/m/yy"));
-                            cell.setCellStyle(cellStyle);
-                            cell.setCellValue(HSSFDateUtil.getExcelDate(Date.from((((LocalDate)v).atStartOfDay()).atZone(ZoneId.systemDefault()).toInstant())));
-                        } else if (v instanceof LocalDateTime) {
-                            CellStyle cellStyle = wb.createCellStyle();
-                            cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("d/m/yy HH:mm"));
-                            cell.setCellStyle(cellStyle);
-                            cell.setCellValue(HSSFDateUtil.getExcelDate(Date.from(((LocalDateTime)v).atZone(ZoneId.systemDefault()).toInstant())));
-                        }
+                    fillCell(wb, createHelper, cell, v);
 
-                    } else if (v instanceof Boolean) {
-                        cell.setCellType(CellType.BOOLEAN);
-                        cell.setCellValue((Boolean) v);
-                    } else {
-                        cell.setCellType(CellType.STRING);
-                        cell.setCellValue("" + v);
-                    }
                 }
             }
         }
@@ -437,6 +561,44 @@ public class Helper {
         return temp;
     }
 
+    private static void fillCell(Workbook wb, CreationHelper createHelper, Cell cell, Object v) {
+        if (v == null) {
+            cell.setCellType(CellType.BLANK);
+        } else if (v instanceof Double || v instanceof Integer || v instanceof Long) {
+            cell.setCellType(CellType.NUMERIC);
+            cell.setCellValue(Double.parseDouble("" + v));
+        } else if (v instanceof Date || v instanceof LocalDate || v instanceof LocalDateTime  || v instanceof LocalTime) {
+            cell.setCellType(CellType.NUMERIC);
+            if (v instanceof LocalTime) {
+                CellStyle cellStyle = wb.createCellStyle();
+                cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("HH:mm"));
+                cell.setCellStyle(cellStyle);
+                cell.setCellValue(HSSFDateUtil.convertTime(((LocalTime)v).format(DateTimeFormatter.ofPattern("HH:mm"))));
+            } else if (v instanceof Date) {
+                CellStyle cellStyle = wb.createCellStyle();
+                cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("d/m/yy"));
+                cell.setCellStyle(cellStyle);
+                cell.setCellValue(HSSFDateUtil.getExcelDate((Date) v));
+            } else if (v instanceof LocalDate) {
+                CellStyle cellStyle = wb.createCellStyle();
+                cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("d/m/yy"));
+                cell.setCellStyle(cellStyle);
+                cell.setCellValue(HSSFDateUtil.getExcelDate(Date.from((((LocalDate)v).atStartOfDay()).atZone(ZoneId.systemDefault()).toInstant())));
+            } else if (v instanceof LocalDateTime) {
+                CellStyle cellStyle = wb.createCellStyle();
+                cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("d/m/yy HH:mm"));
+                cell.setCellStyle(cellStyle);
+                cell.setCellValue(HSSFDateUtil.getExcelDate(Date.from(((LocalDateTime)v).atZone(ZoneId.systemDefault()).toInstant())));
+            }
+
+        } else if (v instanceof Boolean) {
+            cell.setCellType(CellType.BOOLEAN);
+            cell.setCellValue((Boolean) v);
+        } else {
+            cell.setCellType(CellType.STRING);
+            cell.setCellValue("" + v);
+        }
+    }
 
 
     public static void resend(String host, int port, String user, String password, Message m, String subject, String to) throws MessagingException, EmailException, IOException {
@@ -555,6 +717,18 @@ public class Helper {
 
     public static void loadProperties() {
         if (!propertiesLoaded) {
+
+
+
+            Painter.paint("Hello");
+            System.out.println();
+            Painter.paint("MATEU");
+
+
+
+            System.out.println("Registrando concerters beanutils...");
+            ConvertUtils.register(new MiURLConverter(), URL.class);
+
             System.out.println("Loading properties...");
             propertiesLoaded = true;
             InputStream s = null;
@@ -580,6 +754,35 @@ public class Helper {
                         } else {
                             System.out.println("property " + e.getKey() + " is already set with value " + System.getProperty("" + e.getKey()));
                         }
+                    }
+
+                    if (System.getProperty("heroku.database.url") != null) {
+
+                        System.out.println("adjusting jdbc properties for Heroku...");
+
+                        URI dbUri = null;
+                        try {
+                            dbUri = new URI(System.getProperty("heroku.database.url"));
+                        } catch (URISyntaxException e) {
+                            e.printStackTrace();
+                        }
+
+
+                        System.setProperty("eclipselink.target-database", "io.mateu.common.model.util.MiPostgreSQLPlatform");
+                        System.setProperty("javax.persistence.jdbc.driver", "org.postgresql.Driver");
+
+                        String username = dbUri.getUserInfo().split(":")[0];
+                        String password = dbUri.getUserInfo().split(":")[1];
+                        String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ':' + dbUri.getPort() + dbUri.getPath() + "?sslmode=require&user=" + username + "&password=" + password;
+
+
+                        System.setProperty("javax.persistence.jdbc.url", dbUrl);
+                        System.getProperties().remove("javax.persistence.jdbc.user");
+                        System.getProperties().remove("javax.persistence.jdbc.password");
+
+
+                    } else if (System.getProperty("javax.persistence.jdbc.url", "").contains("postgres")) {
+                        System.setProperty("eclipselink.target-database", "io.mateu.common.model.util.MiPostgreSQLPlatform");
                     }
 
                 } else {
@@ -791,5 +994,501 @@ public class Helper {
             e.printStackTrace();
         }
         return v;
+    }
+
+    public static Map<String,String> parseQueryString(String query) {
+        Map<String,String> params = new HashMap<>();
+
+        if (!Strings.isNullOrEmpty(query)) {
+
+            for (String t : query.split("&")) if (!Strings.isNullOrEmpty(t)) {
+                String[] q = t.split("=");
+                params.put(q[0], (q.length > 1)?q[1]:null);
+            }
+
+        }
+
+
+        return params;
+    }
+
+
+    public static String runCommand(String command) throws IOException {
+
+        String homeDirectory = System.getProperty("user.home");
+        Process process = Runtime.getRuntime().exec(command);
+        String r = Helper.leerInputStream(process.getInputStream(), "utf-8");
+
+        //StreamGobbler streamGobbler = new StreamGobbler(process.getInputStream(), System.out::println);
+        //Executors.newSingleThreadExecutor().submit(streamGobbler);
+        //int exitCode = process.waitFor();
+        //assert exitCode == 0;
+
+        return r;
+    }
+
+    public static String toHtml(String s) {
+        if (!Strings.isNullOrEmpty(s)) return s.replaceAll("\\\n", "<br/>");
+        else return s;
+    }
+
+    public static String getMemInfo() {
+        return new MemInfo().toString();
+    }
+
+
+    public static byte[] fop(Source xslfo, Source xml) throws IOException, SAXException {
+        long t0 = new Date().getTime();
+
+
+// Step 1: Construct a FopFactory by specifying a reference to the configuration file
+// (reuse if you plan to render multiple documents!)
+
+        FopFactoryBuilder builder = new FopFactoryBuilder(new File(".").toURI());
+        builder.setStrictFOValidation(false);
+        builder.setBreakIndentInheritanceOnReferenceAreaBoundary(true);
+        builder.setSourceResolution(96); // =96dpi (dots/pixels per Inch)
+        FopFactory fopFactory = builder.build();
+        //FopFactory fopFactory = FopFactory.newInstance(new Resource("C:/Temp/fop.xconf"));
+
+
+        // Step 2: Set up output stream.
+// Note: Using BufferedOutputStream for performance reasons (helpful with FileOutputStreams).
+        //OutputStream out = new BufferedOutputStream(new FileOutputStream(new Resource("C:/Temp/myfile.pdf")));
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        try {
+            // Step 3: Construct fop with desired output format
+            Fop fop = fopFactory.newFop(MimeConstants.MIME_PDF, out);
+
+            // Step 4: Setup JAXP using identity transformer
+            TransformerFactory factory = TransformerFactory.newInstance();
+            Transformer transformer = factory.newTransformer(xslfo); // identity transformer
+
+		    /*
+		    StreamResult xmlOutput = new StreamResult(new StringWriter());
+		    //transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+		    //transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+		    transformer.transform(src, xmlOutput);
+
+		    System.out.println(xmlOutput.getWriter().toString());
+		    */
+
+            // Step 5: Setup input and output for XSLT transformation
+            // Setup input stream
+            //Source src = new StreamSource(new StringReader(xml));
+
+            // Resulting SAX events (the generated FO) must be piped through to FOP
+            Result res = new SAXResult(fop.getDefaultHandler());
+
+            // Step 6: Start XSLT transformation and FOP processing
+            transformer.transform(xml, res);
+
+        } catch (FOPException e) {
+            e.printStackTrace();
+        } catch (TransformerConfigurationException e) {
+            e.printStackTrace();
+        } catch (TransformerException e) {
+            e.printStackTrace();
+        } finally {
+            //Clean-up
+            out.close();
+        }
+
+        return out.toByteArray();
+    }
+
+
+
+    public static URL queryToPdf(Query query)throws Throwable {
+
+        return Helper.listToPdf(query.getResultList());
+
+    }
+
+
+    public static URL viewToPdf(RpcView view, Object filters)throws Throwable {
+
+        return listToPdf(view.rpc(filters, 0, Integer.MAX_VALUE));
+
+    }
+
+    public static Object listViewComponentToPdf(ListViewComponent listViewComponent, Object filters) throws Throwable {
+        return listToPdf(listViewComponent.findAll(filters, null, 0, Integer.MAX_VALUE), listViewComponent.getColumnFields(listViewComponent.getColumnType()));
+    }
+
+    public static URL listToPdf(List list)throws Throwable {
+
+        return listToPdf(list, null);
+
+    }
+
+    public static URL listToPdf(List list, List<FieldInterfaced> colFields)throws Throwable {
+
+        String[] xslfo = {""};
+
+        Helper.notransact(em -> xslfo[0] = AppConfig.get(em).getXslfoForList());
+
+        long t0 = new Date().getTime();
+
+
+        try {
+
+
+            Class rowClass =(list.size() > 0)?list.get(0).getClass():EmptyRow.class;
+
+            Document xml = new Document();
+            Element arrel = new Element("root");
+            xml.addContent(arrel);
+
+
+            Element cab = new Element("header");
+            arrel.addContent(cab);
+
+            Element lineas = new Element("lines");
+            arrel.addContent(lineas);
+
+
+            if (Object[].class.equals(rowClass)) {
+
+                List<FieldInterfaced> rowFields = (colFields != null)?colFields:getColumnFields(rowClass);
+
+
+                int xx = 1;
+                int pixels = 0;
+
+                for (FieldInterfaced c : rowFields){
+                    String alineado = "left";
+                    Element aux = new Element("column");
+                    cab.addContent(aux);
+                    aux.setAttribute("label", ReflectionHelper.getCaption(c));
+                    int ancho = 200;
+                    aux.setAttribute("width", "" +  ancho / 1.5);
+                    //if (ColumnAlignment.CENTER.equals(c.getAlignment())) alineado = "center";
+                    //if (ColumnAlignment.RIGHT.equals(c.getAlignment())) alineado = "right";
+                    aux.setAttribute("align", alineado);
+                    pixels += ancho;
+                }
+
+                String ancho = "21cm";
+                String alto = "29.7cm";
+                if (pixels > 750){
+                    alto = "21cm";
+                    ancho = "29.7cm";
+                }
+                arrel.setAttribute("width", ancho);
+                arrel.setAttribute("height", alto);
+
+                for (Object x : list){
+
+                    Element linea = new Element("line");
+                    lineas.addContent(linea);
+
+                    int col = 2;
+                    for (FieldInterfaced c : rowFields){
+
+                        Element cell = new Element("cell");
+                        linea.addContent(cell);
+                        Object v = ((Object[])x)[col++];
+                        String text = "";
+                        if (v != null) text += v;
+                        if (v instanceof Double){
+                            DecimalFormat dfm = new DecimalFormat("#0.00");
+                            text = dfm.format(((Double)v));
+                        }
+                        cell.setText(text);
+
+                    }
+
+                }
+
+            } else {
+
+                List<FieldInterfaced> rowFields = getColumnFields(rowClass);
+
+
+                int xx = 1;
+                int pixels = 0;
+
+                for (FieldInterfaced c : rowFields){
+                    String alineado = "left";
+                    Element aux = new Element("column");
+                    cab.addContent(aux);
+                    aux.setAttribute("label", ReflectionHelper.getCaption(c));
+                    int ancho = 200;
+                    aux.setAttribute("width", "" +  ancho / 1.5);
+                    //if (ColumnAlignment.CENTER.equals(c.getAlignment())) alineado = "center";
+                    //if (ColumnAlignment.RIGHT.equals(c.getAlignment())) alineado = "right";
+                    aux.setAttribute("align", alineado);
+                    pixels += ancho;
+                }
+
+                String ancho = "21cm";
+                String alto = "29.7cm";
+                if (pixels > 750){
+                    alto = "21cm";
+                    ancho = "29.7cm";
+                }
+                arrel.setAttribute("width", ancho);
+                arrel.setAttribute("height", alto);
+
+                for (Object x : list){
+
+                    Element linea = new Element("line");
+                    lineas.addContent(linea);
+
+                    for (FieldInterfaced c : rowFields){
+
+                        Element cell = new Element("cell");
+                        linea.addContent(cell);
+                        Object v = ReflectionHelper.getValue(c, x);
+                        String text = "";
+                        if (v != null) text += v;
+                        if (v instanceof Double){
+                            DecimalFormat dfm = new DecimalFormat("#0.00");
+                            text = dfm.format(((Double)v));
+                        }
+                        cell.setText(text);
+
+                    }
+
+                }
+
+            }
+
+
+            if (list.size() >= 5000) {
+                Element linea = new Element("line");
+                lineas.addContent(linea);
+
+                Element txt = new Element("cell");
+                linea.addContent(txt);
+
+                txt.setText("HAY MAS DE 5000 LINEAS. CONTACTA CON EL DEPARTAMENTO DE DESARROLLO SI QUIERES EL EXCEL COMPLETO...");
+            }
+
+            try {
+                String archivo = UUID.randomUUID().toString();
+
+                File temp = (System.getProperty("tmpdir") == null)?File.createTempFile(archivo, ".pdf"):new File(new File(System.getProperty("tmpdir")), archivo + ".pdf");
+
+
+                System.out.println("java.io.tmpdir=" + System.getProperty("java.io.tmpdir"));
+                System.out.println("Temp file : " + temp.getAbsolutePath());
+
+                FileOutputStream fileOut = new FileOutputStream(temp);
+                String sxml = new XMLOutputter(Format.getPrettyFormat()).outputString(xml);
+                System.out.println("xslfo=" + xslfo);
+                System.out.println("xml=" + sxml);
+                fileOut.write(fop(new StreamSource(new StringReader(xslfo[0])), new StreamSource(new StringReader(sxml))));
+                fileOut.close();
+
+                String baseUrl = System.getProperty("tmpurl");
+                if (baseUrl == null) {
+                    return temp.toURI().toURL();
+                }
+                return new URL(baseUrl + "/" + temp.getName());
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+        } catch (Exception e1) {
+            e1.printStackTrace();
+        }
+
+
+        return null;
+    }
+
+
+    private static List<FieldInterfaced> getColumnFields(RpcView view, Class rowClass) {
+        List<FieldInterfaced> cols = ReflectionHelper.getAllFields(rowClass);
+        return cols;
+    }
+
+    private static List<FieldInterfaced> getColumnFields(Class rowClass) {
+        List<FieldInterfaced> cols = ReflectionHelper.getAllFields(rowClass);
+        return cols;
+    }
+
+
+
+
+    public static URL queryToExcel(Query query)throws Throwable {
+
+        return Helper.listToExcel(query.getResultList());
+
+    }
+
+
+    public static URL viewToExcel(RpcView view, Object filters)throws Throwable {
+
+        return listToExcel(view.rpc(filters, 0, Integer.MAX_VALUE));
+
+    }
+
+    public static Object listViewComponentToExcel(ListViewComponent listViewComponent, Object filters) throws Throwable {
+        return listToExcel(listViewComponent.findAll(filters, null, 0, Integer.MAX_VALUE), listViewComponent.getColumnFields(listViewComponent.getColumnType()));
+    }
+
+    public static URL listToExcel(List list)throws Throwable {
+
+        return listToExcel(list, null);
+
+    }
+
+    public static URL listToExcel(List list, List<FieldInterfaced> colFields)throws Throwable {
+
+        long t0 = new Date().getTime();
+
+
+        try {
+
+            File temp = writeExcel(list, colFields);
+
+            String baseUrl = System.getProperty("tmpurl");
+            if (baseUrl == null) {
+                return temp.toURI().toURL();
+            }
+            return new URL(baseUrl + "/" + temp.getName());
+
+        } catch (Exception e1) {
+            e1.printStackTrace();
+        }
+
+
+        return null;
+
+    }
+
+    public static Object get(Map<String, Object> data, String key) {
+        return get(data, key, null);
+    }
+
+    public static Object get(Map<String, Object> data, String key, Object defaultValue) {
+        if (data == null) {
+            return defaultValue;
+        } else {
+            Object v = defaultValue;
+
+            Map<String, Object> d = data;
+
+            String[] ks = key.split("/");
+            int pos = 0;
+            for (String k : ks) {
+                if (d.containsKey(k)) {
+                    if (pos == ks.length - 1) {
+                        v = d.get(k);
+                    } else {
+                        Object aux = d.get(k);
+                        if (aux instanceof Map) {
+                            d = (Map<String, Object>) aux;
+                            pos++;
+                        } else break;
+                    }
+                } else break;
+            }
+
+
+            return v;
+        }
+    }
+
+    public static Map<String, Object> getGeneralData() throws Throwable {
+        Map<String, Object> data = new HashMap<>();
+
+        Helper.notransact(em -> {
+
+            AppConfig c = AppConfig.get(em);
+
+            data.put("businessname", c.getBusinessName());
+            if (c.getLogo() != null) data.put("logourl", c.getLogo().toFileLocator().getUrl());
+
+
+        });
+
+        return data;
+    }
+
+
+    public static void main(String[] args) {
+        try {
+            System.out.println(Helper.toJson(Helper.fromYaml(Files.toString(new File("/home/miguel/work/initialdata.yml"), Charset.defaultCharset()))));
+
+            Map<String, Object> o = Helper.fromYaml(Files.toString(new File("/home/miguel/work/initialdata.yml"), Charset.defaultCharset()));
+
+
+            System.out.println(Helper.get(o, "smtp/host"));
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Element toXml(Object o) {
+        return toXml(o, new ArrayList<>());
+    }
+
+    public static Element toXml(Object o, List visited) {
+        if (o == null) {
+            return null;
+        } else {
+            if (!visited.contains(o)) {
+                visited.add(o);
+            }
+            Element e = new Element(o.getClass().getSimpleName());
+            e.setAttribute("className", o.getClass().getName());
+            for (FieldInterfaced f : ReflectionHelper.getAllFields(o.getClass())) {
+                try {
+                    Object i = ReflectionHelper.getValue(f, o);
+
+                    if (i != null) {
+                        if (ReflectionHelper.isBasico(i)) {
+                            e.setAttribute(f.getName(), "" + i);
+                        } else {
+
+                            //todo: añadir casos collection y map
+
+                            e.addContent(toXml(i, visited));
+                        }
+                    }
+
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+            }
+            return e;
+        }
+    }
+
+
+    public static Object fromXml(String s) {
+        if (Strings.isNullOrEmpty(s)) return null;
+        else {
+            try {
+                Document doc = new SAXBuilder().build(new StringReader(s));
+
+                Element root = doc.getRootElement();
+
+                Object o = null;
+
+                //todo: acabar
+
+                if (root.getAttribute("className") != null && !Strings.isNullOrEmpty(root.getAttributeValue("className"))) {
+                    o = Class.forName(root.getAttributeValue("className")).newInstance();
+                } else {
+                    o = new HashMap<>();
+                }
+
+                return o;
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
     }
 }

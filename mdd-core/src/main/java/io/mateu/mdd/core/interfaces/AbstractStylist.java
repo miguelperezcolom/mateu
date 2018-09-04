@@ -1,9 +1,11 @@
 package io.mateu.mdd.core.interfaces;
 
+import com.vaadin.ui.MenuBar;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
-import javafx.util.Pair;
+import io.mateu.mdd.core.data.Pair;
 
 import javax.persistence.Id;
 import java.lang.reflect.InvocationTargetException;
@@ -13,7 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractStylist {
+public abstract class AbstractStylist<S> {
 
     private String viewTitle;
 
@@ -51,7 +53,7 @@ public abstract class AbstractStylist {
         return new Pair<>(removed, added);
     }
 
-    public Pair<Map<FieldInterfaced, List<String>>, Map<FieldInterfaced, List<String>>> process(Object model) {
+    public Pair<Map<FieldInterfaced, List<String>>, Map<FieldInterfaced, List<String>>> process(S model) {
         Map<FieldInterfaced, List<String>> newStyles = new HashMap<>();
         styles.keySet().forEach((f) -> newStyles.put(f, new ArrayList<>()));
         for (FieldInterfaced f : styles.keySet()) {
@@ -61,13 +63,24 @@ public abstract class AbstractStylist {
     }
 
 
-    public abstract List<String> style(FieldInterfaced field, Object model);
+    public List<String> style(FieldInterfaced field, S model) {
+        Method m = ReflectionHelper.getMethod(getStylistClass(), ReflectionHelper.getGetter(field) + "Styles");
+        if (m != null) {
+            try {
+                return (getStylistClass().equals(getClass()))?(List<String>) m.invoke(this, model):(List<String>) m.invoke(model);
+            } catch (Exception e) {
+                MDD.alert(e);
+            }
+        }
+        return null;
+    };
+
 
     public String getViewTitle() {
         return Helper.pluralize(Helper.capitalize(viewTitle));
     }
 
-    public String getViewTitle(boolean newRecord, Object model) {
+    public String getViewTitle(boolean newRecord, S model) {
         if (newRecord || model == null) return "New " + viewTitle;
         else {
             String id = "";
@@ -102,5 +115,34 @@ public abstract class AbstractStylist {
 
     public void setViewTitle(String viewTitle) {
         this.viewTitle = viewTitle;
+    }
+
+    public boolean isVisible(FieldInterfaced f, Object model) {
+        Method m = ReflectionHelper.getMethod(getStylistClass(), ReflectionHelper.getGetter(f).replaceFirst("get", "is") + "Visible");
+        if (m != null) {
+            try {
+                return (getStylistClass().equals(getClass()))?(boolean) m.invoke(this, model):(boolean) m.invoke(model);
+            } catch (Exception e) {
+                MDD.alert(e);
+            }
+        }
+        return true;
+    }
+
+    public boolean isActionEnabled(String k, Object model) {
+        boolean enabled = true;
+        Method m = ReflectionHelper.getMethod(getStylistClass(), "is" + (k.substring(0, 1).toUpperCase() + k.substring(1)) + "Enabled");
+        if (m != null) {
+            try {
+                return (getStylistClass().equals(getClass()))?(boolean) m.invoke(this, model):(boolean) m.invoke(model);
+            } catch (Exception e) {
+                MDD.alert(e);
+            }
+        }
+        return enabled;
+    }
+
+    public Class getStylistClass() {
+        return getClass();
     }
 }

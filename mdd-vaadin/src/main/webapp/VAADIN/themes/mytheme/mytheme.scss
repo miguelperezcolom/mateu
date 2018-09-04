@@ -39,99 +39,847 @@
 
   // Insert your own theme rules here
 
+  .mobileapp {
+    padding: 0px;
 
+    .componentwrapper {
+      padding: 10px;
 
-  /* Various general settings */
-  .miapp{
+      .section {
+        padding: 0px;
+        max-width: 100%;
+      }
 
-    background: white;
+      .filterscomponent {
+        padding: 0px;
+      }
 
-    .v-slot-hidden {
-      display: none;
     }
+  }
 
-    .v-readonly {
-      border: none;
-    }
+  .miapp {
 
-
-    #app {
-      display: flex;
       width: 100%;
       height: 100%;
+      padding: 0px !important;
 
+        .appheader {
+          width: 100%;
+          height: 50px;
+          background-color: darkslategray;
+          padding: 8px;
+          vertical-align: center;
 
-      .contenedornavegacion {
-        display: flex;
-        float: left;
+          color: white;
 
-
-        .navegacion {
-
-          .tituloarea {
-
+          .burguer {
+            color: white;
+            display: none;
+            margin-top: 7px;
           }
 
-          .titulomodulo {
-
+          .tabs {
+            color: white;
           }
 
-          .opcionmenu {
+          .navigate {
+            color: white;
+          }
 
-            background: none;
-            color: inherit;
-            font-weight: inherit;
+          .apptitle {
+            font-weight: bold;
+            text-decoration: none;
+            color: white;
+          }
 
-            .valo-menu-badge {
-              padding: 2px 6px;
-              background-color: orangered;
-              background-image: none;
+          .signingbutton {
+            text-decoration: none;
+            color: white;
+          }
+
+          .greeting {
+            margin-top: 7px;
+          }
+
+        }
+
+
+        .leftside {
+
+          background-color: lightslategrey;
+          width: 250px;
+          height: 100%;
+          padding:  0px;
+
+          .sesion {
+            padding: 0px;
+
+            .foto {
+              padding: 0px;
+              margin-left: 50px;
+              width: 150px;
+              height: 150px;
+              border-radius: 50%;
+              border: 3px solid transparent;
+              cursor: pointer;
+            }
+
+            .foto:hover {
+              border-color: whitesmoke;
             }
 
           }
 
-          .opcionmenu:hover {
 
-            color: darkorange;
 
-            .valo-menu-badge {
-              color: orange;
+          .v-slot-tituloarea {
+            margin-top: 14px;
+            margin-bottom: 20px;
+          }
+
+          .navegacion {
+
+            width: 100%;
+            padding: 0px;
+
+            .tituloarea {
+              padding: 10px;
+              width: 100%;
+              font-weight: bold;
+              text-align: center;
+              cursor: pointer;
+
+              a {
+                text-decoration: none;
+                color: #191919 !important;
+              }
+
             }
 
+            .v-slot-tituloarea {
+              background-color: slategray;
+            }
+
+            .area-1 {
+              background-color: slategrey;
+            }
+
+            .area-1:hover {
+              background-color: #73a5d7;
+            }
+
+            .area-2 {
+              background-color: lightyellow;
+            }
+
+            .area-2:hover {
+              background-color: #73a5d7;
+            }
+
+            .area-3 {
+              background-color: lightcoral;
+            }
+
+            .area-3:hover {
+              background-color: #73a5d7;
+            }
+
+
+            .area-4 {
+              background-color: lightblue;
+            }
+
+            .area-4:hover {
+              background-color: #73a5d7;
+            }
+
+
+            .area-5 {
+              background-color: lightgreen;
+            }
+
+            .area-5:hover {
+              background-color: #73a5d7;
+            }
+
+
+            .area-6 {
+              background-color: lightpink;
+            }
+
+            .area-6:hover {
+              background-color: #73a5d7;
+            }
+
+
+            .area-7 {
+              background-color: lightseagreen;
+            }
+
+            .area-7:hover {
+              background-color: #73a5d7;
+            }
+
+
+            .area-8 {
+              background-color: lightcyan;
+            }
+
+            .area-8:hover {
+              background-color: #73a5d7;
+            }
+
+
+            .area-9 {
+              background-color: sandybrown;
+            }
+
+            .area-9:hover {
+              background-color: #73a5d7;
+            }
+
+
+            .area-10 {
+              background-color: indianred;
+            }
+
+            .area-10:hover {
+              background-color: #73a5d7;
+            }
+
+
+            .v-slot-tituloarea:hover {
+              background-color: #73a5d7;
+            }
+
+
+            .titulomodulo {
+              padding: 10px 10px 3px 10px;
+              width: 100%;
+              font-weight: bold;
+              border-bottom: 1px solid slategray;
+            }
+
+            .opcionmenu {
+
+              width: 100%;
+              padding: 3px 10px 3px 10px;
+              cursor: pointer;
+
+              a {
+                text-decoration: none;
+                color: #191919 !important;
+              }
+
+
+            }
+
+            .opcionmenu.selected {
+              background-color: whitesmoke;
+            }
+
+            .v-slot-opcionmenu:hover {
+              background-color: #73a5d7;
+            }
+
+
+
+
           }
+
+
+        }
+
+      .center {
+
+      }
+
+
+    .v-widget {
+      .nopadding {
+        padding: 0px;
+      }
+
+
+      .labelconlink {
+        margin-top: 7px;
+      }
+
+      .botondeicono {
+        padding: 0px;
+        height: inherit;
+        opacity: 1;
+      }
+    }
+
+
+
+
+    .viewcontainer {
+      .nopadding {
+        padding: 0px;
+      }
+    }
+
+    .methodresultflowcomponent {
+      .nopadding {
+        padding: 0px;
+      }
+    }
+
+    .embedded {
+      padding: 0px;
+
+      table tbody tr td {
+        padding-top: 0px;
+        padding-bottom: 7px;
+      }
+
+    }
+
+    .sum {
+      padding: 5px 19px;
+      background-color: darkgray;
+      font-weight: bold;
+      color: white;
+      border-radius: 3px;
+    }
+
+    .searchinmenucomponent {
+
+      .contentcontainer {
+        padding: 0px;
+        margin-top: 30px;
+
+        .listaopcionesmenu {
+          padding: 0px;
+        }
+
+        .submenu {
+          padding: 0px;
+        }
+
+        .contenedorsubmenu {
+          padding: 0px;
+        }
+
+        .contenedor {
+          padding: 0px;
+        }
+
+      }
+
+    }
+    .accionsubmenu:hover {
+      color: red;
+    }
+
+  }
+
+  .miapp[width-range~="0-800px"] {
+
+        .appheader {
+          .burguer {
+            display: block;
+          }
+
+          .tabs {
+            display: none;
+          }
+
+          .navigate {
+            display: none;
+          }
+
+        }
+
+
+    .loginilayoutdcha {
+      border-left: inherit;
+      padding-left: inherit;
+      margin-left: inherit;
+    }
+
+    .v-slot-leftside {
+      position:relative;
+      float: left;
+
+        display: none;
+      }
+
+  }
+
+  .miapp[width-range~="0-800px"].menuvisible {
+
+    .v-slot-leftside {
+      display: block;
+    }
+
+  }
+
+  .viewHeader {
+    padding: 0px;
+
+    .viewTitle {
+      font-size: 2em;
+    }
+
+  }
+
+
+
+  .v-layout {
+
+    .submenuoption {
+      color: #197de1;
+      text-decoration: none;
+    }
+
+    .submenuoption:hover {
+      color: red;
+    }
+
+  }
+
+
+  .kpi {
+    padding: 5px 19px;
+    background-color: lightgrey;
+    border-radius: 2px;
+    margin-right: 10px;
+    margin-bottom: 7px;
+    height: 84px;
+
+    .valor {
+      font-size: 1.5em;
+      font-weight: bold;
+      width: 100%;
+      text-align: right;
+    }
+  }
+
+  .section {
+    margin-right: 50px;
+    max-width: 500px;
+    min-width: 400px;
+  }
+
+  .section-fullwidth {
+    margin-right: inherit !important;
+    max-width: inherit !important;
+  }
+
+  .sectioncard {
+    background-color: white;
+    border: 1px grey solid;
+    border-radius: 4px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+
+  .v-widget {
+    .miformlayout {
+      margin-bottom: 20px;
+    }
+  }
+
+  .hidden {
+    display: none;
+  }
+
+
+  .logincomponent {
+    padding: 0px;
+  }
+
+  .backlink {
+    font-size: 1.7em;
+    margin: 0px;
+    padding: 0px;
+    margin-top: 5px;
+  }
+
+  .buttonlink {
+    font-size: 1.7em;
+
+    .v-icon {
+      margin-top: -10px;
+    }
+
+  }
+
+  .viewcomponent {
+    padding: 0px;
+  }
+
+  .crudviewcomponent {
+    padding: 0px;
+  }
+
+  .resultsmessage {
+    /* margin-top: 40px; */
+  }
+
+  .resultscomponent {
+    padding: 0px;
+  }
+
+  .filtersflowcomponent {
+    padding: 0px;
+  }
+
+  .submenupanel {
+    padding: 0px;
+    margin-right: 70px;
+  }
+
+  .submenulayout {
+    padding: 0px;
+  }
+
+
+  .loginilayoutizda {
+    min-width: 300px;
+    padding: 0px;
+  }
+
+  .loginilayoutdcha {
+    min-width: 300px;
+    border-left: 1px solid grey;
+    padding: 0px;
+    padding-left: 80px;
+    /* margin-left: 80px; */
+  }
+
+
+
+  .filterscomponent {
+
+    > * {
+      margin-right: 20px;
+    }
+
+    .v-caption {
+      margin-top: 0.65em;
+      margin-right: 10px;
+    }
+
+    .v-button {
+      margin-right: 5px;
+    }
+
+  }
+
+  .menu-badge {
+    width: 20px;
+    background-color: orange;
+    border-radius: 2px;
+    float: right;
+    text-align: center;
+  }
+
+
+  .viewHeader {
+    /* margin-bottom: 40px; */
+  }
+
+  .filterscomponent {
+    /* margin-bottom: 40px; */
+  }
+
+  .applicationactions {
+    padding: 0px;
+  }
+
+  .actionsbar {
+    padding: 0px;
+  }
+
+  .v-menubar.actionsbar {
+
+    border: none;
+    background-image: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+
+    .v-menubar-menuitem {
+      border: none;
+      margin-right: 5px;
+
+/*
+      background-color: lightgray;
+      border-radius: 5px;
+*/
+
+      border-radius: 4px;
+      border: 1px solid #c5c5c5;
+      border-top-color: #c5c5c5;
+      border-bottom-color: #bcbcbc;
+      background-color: #fafafa;
+      background-image: -webkit-linear-gradient(top, #fafafa 2%, #efefef 98%);
+      background-image: linear-gradient(to bottom,#fafafa 2%, #efefef 98%);
+      -webkit-box-shadow: inset 0 1px 0 white, inset 0 -1px 0 #e7e7e7, 0 2px 3px rgba(0, 0, 0, 0.05);
+      box-shadow: inset 0 1px 0 white, inset 0 -1px 0 #e7e7e7, 0 2px 3px rgba(0, 0, 0, 0.05);
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+
+    /*
+    .v-menubar-menuitem:hover {
+      background-color: gray;
+    }
+    */
+
+  }
+
+  .signinbutton {
+    img {
+      width: 30px;
+      margin-top: -4px;
+    }
+  }
+
+  .viewcontainer {
+    padding: 0px;
+  }
+
+
+  .actionparametersflowcomponent, .methodresultflowcomponent {
+    padding: 0px;
+
+    .editorviewcomponent {
+      padding: 0px;
+
+      .contentcontainer {
+        padding: 0px;
+      }
+    }
+  }
+
+
+
+  .flowcomponent {
+
+    padding: 0px;
+
+
+
+    .areaflowcomponent {
+      padding: 0px;
+    }
+
+    .editorflowcomponent {
+      padding: 0px;
+
+
+
+      .editorviewcomponent {
+        padding: 0px;
+
+        .contentcontainer {
+          padding: 0px;
+        }
+
+      }
+
+    }
+
+    .filtersflowcomponent {
+      padding: 0px;
+
+        .contentcontainer {
+          padding: 0px;
+        }
+
+    }
+
+    .menuflowcomponent {
+      padding: 0px;
+    }
+
+    .moduleflowcomponent {
+      padding: 0px;
+    }
+    .privatemenuflowcomponent {
+      padding: 0px;
+    }
+    .publicmenuflowcomponent {
+      padding: 0px;
+    }
+
+    .viewflowcomponent {
+      padding: 0px;
+
+
+      .listviewcomponent {
+        padding: 0px;
+
+        .filterscomponent {
+          padding: 0px;
+
+          .contentcontainer {
+            padding: 0px;
+          }
+
+        }
+
+        .resultscomponent {
+          padding: 0px;
 
         }
 
       }
 
-
-      @include views;
-
     }
-
-
-
 
 
   }
 
-  .miapp[width-range~="0-499px"] {
 
-    #app {
 
-      .contenedornavegacion {
-        display: none;
+  .flowwrapperpanel {
+
+    .v-panel-content {
+
+      padding: 0px;
+
+      .v-verticallayout {
+
+        padding: 0px;
+
       }
 
     }
+  }
+
+  .collectionlinklabel {
+    margin-top: 6px;
+  }
+
+  .green {
+    background-color: green !important;
+  }
+
+  .v-menubar-menuitem.v-menubar-menuitem-primary.primary {
+    color: #ecf2f8;
+    border: 1px solid #1362b1;
+    border-top-color: #156ab3;
+    border-bottom-color: #1156a8;
+    background-color: #197de1;
+    background-image: -webkit-linear-gradient(top, #1b87e3 2%, #166ed5 98%);
+    background-image: linear-gradient(to bottom,#1b87e3 2%, #166ed5 98%);
+    -webkit-box-shadow: inset 0 1px 0 #4d98e6, inset 0 -1px 0 #166bca, 0 2px 3px rgba(0, 0, 0, 0.05);
+    box-shadow: inset 0 1px 0 #4d98e6, inset 0 -1px 0 #166bca, 0 2px 3px rgba(0, 0, 0, 0.05);
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.05);
+  }
+
+
+
+  .mdd-green-bgd {
+    background-color: green !important;
+  }
+
+  .mdd-orange-bgd {
+    background-color: orange !important;
+  }
+
+  .mdd-red-bgd {
+    background-color: red !important;
+  }
+
+  .mdd-yellow-bgd {
+    background-color: yellow !important;
+  }
+
+  .mdd-brown-bgd {
+    background-color: brown !important;
+  }
+
+  .mdd-grey-bgd {
+    background-color: grey !important;
+  }
+
+  .mdd-white-bgd {
+    background-color: white !important;
+  }
+
+  .mdd-blue-bgd {
+    background-color: blue !important;
+  }
+
+
+
+  [class*="margin-top"] > tbody > [class*="firstrow"] > td {
+    padding-top: 0px;
+  }
+
+  .alinearderecha {
+    text-align: right;
+    width: 100%;
+  }
+
+  .v-slot-actionsbar {
+    margin-bottom: 20px;
+  }
+
+
+  .rowyes {
+    position:relative;
+    text-align: center;
+  }
+
+  .rowyes:before {
+    font-family: FontAwesome;
+    top:0;
+    /*
+    left:-5px;
+    padding-right:10px;
+    */
+    content: "\f00c";
+  }
+
+  .rowno {
+    position:relative;
+    text-align: center;
+    color: lightgrey;
+  }
+
+  .rowno:before {
+    font-family: FontAwesome;
+    top:0;
+    /*
+    left:-5px;
+    padding-right:10px;
+    */
+    content: "\f00d";
+  }
+
+
+  .v-tabsheet-content {
+    margin-top: 20px;
+  }
+
+  .botonerafiltros {
+    margin-top: 2em;
+
+    .v-button {
+      font-size: 1.4em;
+      color: grey;
+    }
+
+    .v-button:hover {
+      color: inherit;
+    }
+
+    .principal {
+      color: #197de1;
+    }
 
   }
 
-  .miapp[width-range~="500px-"] {
-
+  .contentcontainer {
+    overflow: initial;
   }
-
-
-
 
 }

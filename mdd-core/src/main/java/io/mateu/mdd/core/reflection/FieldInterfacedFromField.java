@@ -1,8 +1,10 @@
 package io.mateu.mdd.core.reflection;
 
+import io.mateu.mdd.core.annotations.DataProvider;
 import io.mateu.mdd.core.annotations.ValueClass;
 import io.mateu.mdd.core.annotations.ValueQL;
 
+import javax.persistence.ManyToOne;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -67,6 +69,8 @@ public class FieldInterfacedFromField implements io.mateu.mdd.core.reflection.Fi
                 return genericClass;
             } else return null;
 
+        } else if (f.getGenericType() != null) {
+            return (Class<?>) f.getGenericType();
         } else return null;
     }
 
@@ -125,7 +129,27 @@ public class FieldInterfacedFromField implements io.mateu.mdd.core.reflection.Fi
     }
 
     @Override
+    public com.vaadin.data.provider.DataProvider getDataProvider() {
+        return null;
+    }
+
+    @Override
+    public Annotation[] getDeclaredAnnotations() {
+        return (ff != null)?ff.getDeclaredAnnotations():f.getDeclaredAnnotations();
+    }
+
+    @Override
     public String toString() {
         return getName();
+    }
+
+    @Override
+    public int hashCode() {
+        return ("" + getField().getDeclaringClass().getName() + "/" + getField().getName() + "").hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return hashCode() == obj.hashCode();
     }
 }

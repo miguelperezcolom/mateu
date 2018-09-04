@@ -35,15 +35,21 @@ public class Data extends HashMap<String, Object> {
 
     public Data(Object... args) {
         super();
-        int pos = 0;
-        String n = null;
-        if (args != null) for (Object x : args) {
-            if (pos % 2 == 0) {
-                n = (String) x;
-            } else {
-                put(n, x);
+
+        if (args != null && args.length == 1 && args[0] != null && Map.class.isAssignableFrom(args[0].getClass())) {
+            copy((Map<String, Object>) args[0]);
+            put("__id", "" + UUID.randomUUID());
+        } else {
+            int pos = 0;
+            String n = null;
+            if (args != null) for (Object x : args) {
+                if (pos % 2 == 0) {
+                    n = (String) x;
+                } else {
+                    put(n, x);
+                }
+                pos++;
             }
-            pos++;
         }
     }
 
@@ -121,7 +127,7 @@ public class Data extends HashMap<String, Object> {
         return get(property);
     }
 
-    public void copy(Data original) {
+    public void copy(Map<String, Object> original) {
         clear();
         if (original != null) for (Map.Entry<String, Object> e : original.entrySet()) {
             if (e.getValue() instanceof List) {
@@ -152,7 +158,7 @@ public class Data extends HashMap<String, Object> {
     }
 
     public <X> X get(String property) {
-        return (X) get(property);
+        return (X) super.get(property);
     }
 
     public <X> X get(String property, X valueWhenNull) {

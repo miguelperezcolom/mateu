@@ -1,12 +1,22 @@
 package io.mateu.mdd.core.interfaces;
 
-import io.mateu.mdd.core.data.GridData;
-import io.mateu.mdd.core.data.UserData;
+import com.vaadin.ui.Grid;
+import io.mateu.mdd.core.data.SumData;
 
-import javax.persistence.EntityManager;
+import java.util.List;
 
-public interface RpcView<T, S> {
+public interface RpcView<F, C> {
 
-    GridData<S> rpc(EntityManager em, UserData user, T parameters);
+    List<C> rpc(F filters, int offset, int limit) throws Throwable;
+
+    default List<SumData> getSums(F filters) {
+        return null;
+    };
+
+    int gatherCount(F filters) throws Throwable;
+
+    default void decorateGrid(Grid<C> grid) {
+
+    };
 
 }

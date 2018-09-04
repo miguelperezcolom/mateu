@@ -14,5 +14,5 @@ public @interface Order {
 
     boolean desc() default false;
 
-    int priority() default 0;
+    int priority() default 1000;
 }

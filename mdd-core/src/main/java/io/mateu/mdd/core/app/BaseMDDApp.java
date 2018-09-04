@@ -1,15 +1,15 @@
 package io.mateu.mdd.core.app;
 
 import com.google.common.base.Strings;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.Data;
 import io.mateu.mdd.core.data.FileLocator;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.model.authentication.Permission;
 import io.mateu.mdd.core.model.authentication.USER_STATUS;
 import io.mateu.mdd.core.model.authentication.User;
-import io.mateu.mdd.core.model.common.File;
+import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.model.config.AppConfig;
-import io.mateu.mdd.core.model.population.Populator;
 import io.mateu.mdd.core.model.ui.EditedRecord;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
@@ -18,6 +18,7 @@ import io.mateu.mdd.core.util.Utils;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,15 +68,24 @@ public abstract class BaseMDDApp extends AbstractApplication {
             public void run(EntityManager em)throws Throwable {
 
                 if (em.createQuery("select x.login from " + User.class.getName() + " x").getResultList().size() == 0) {
-                    Populator.populate(AppConfig.class);
+                    getPopulator().populate(getAppConfigClass());
                 }
-
 
                 User u = em.find(User.class, login.toLowerCase().trim());
                 if (u != null) {
                     if (u.getPassword() == null) throw new Exception("Missing password for user " + login);
-                    if (!password.trim().equalsIgnoreCase(u.getPassword().trim())) throw new Exception("Wrong password");
+                    if (!u.checkPassword(password)) {
+                        u.setFailedLogins(u.getFailedLogins() + 1);
+                        if (u.getFailedLogins() >= 10) u.setStatus(USER_STATUS.BLOCKED);
+                        em.flush();
+                        throw new Exception("Wrong password. User will be blocked after 10 attempts");
+                    }
                     if (USER_STATUS.INACTIVE.equals(u.getStatus())) throw new Exception("Deactivated user");
+
+                    if (u.getFailedLogins() > 0) u.setFailedLogins(0);
+
+                    u.setLastLogin(LocalDateTime.now());
+
                     d.setName(u.getName());
                     d.setEmail(u.getEmail());
                     d.setLogin(login);
@@ -84,6 +94,9 @@ public abstract class BaseMDDApp extends AbstractApplication {
                 } else throw new Exception("No user with login " + login);
             }
         });
+
+        MDD.setUserData(d);
+
         return d;
     }
 
@@ -97,7 +110,7 @@ public abstract class BaseMDDApp extends AbstractApplication {
             public void run(EntityManager em)throws Throwable {
                 User u = em.find(User.class, login.toLowerCase().trim());
                 if (u != null) {
-                    if (!oldPassword.trim().equalsIgnoreCase(u.getPassword().trim())) throw new Exception("Wrong old password");
+                    if (!oldPassword.trim().equalsIgnoreCase(u.getPassword().trim())) throw new Exception("Wrong desktop password");
                     u.setPassword(newPassword);
                 } else throw new Exception("No user with login " + login);
             }
@@ -122,8 +135,12 @@ public abstract class BaseMDDApp extends AbstractApplication {
         return null;
     }
 
-    public String recoverPassword(String s) throws Throwable {
-        return null;
+    public String recoverPassword(String login) throws Throwable {
+        Helper.transact(em -> {
+            em.find(User.class, login).sendForgottenPasswordEmail();
+        });
+        return "An email with instructions has been sent to you. Please check you inbox.";
+        //throw new Exception("Not implemented. You mus override the recoverPassword method of your aplication class.");
     }
 
 
@@ -145,9 +162,9 @@ public abstract class BaseMDDApp extends AbstractApplication {
             public void run(EntityManager em)throws Throwable {
                 User u = em.find(User.class, login.toLowerCase().trim());
                 if (u != null) {
-                    File p = u.getPhoto();
+                    Resource p = u.getPhoto();
                     if (p == null) {
-                        u.setPhoto(p = new File());
+                        u.setPhoto(p = new Resource());
                         em.persist(p);
                     }
                     p.setName(fileLocator.getFileName());
@@ -221,5 +238,13 @@ public abstract class BaseMDDApp extends AbstractApplication {
             callback.onFailure(e);
         }
     }
+
+
+    public boolean isOAuthAllowed() {
+        return true;
+    }
+
+
+
 
 }

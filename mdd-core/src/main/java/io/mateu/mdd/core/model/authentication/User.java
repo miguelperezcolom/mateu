@@ -2,8 +2,10 @@ package io.mateu.mdd.core.model.authentication;
 
 import com.Ostermiller.util.RandPass;
 import com.google.common.base.Strings;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
-import io.mateu.mdd.core.model.common.File;
+import io.mateu.mdd.core.model.common.Resource;
+import io.mateu.mdd.core.model.config.Template;
 import io.mateu.mdd.core.model.util.EmailHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
@@ -16,8 +18,7 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * holder for users of our common. It can be an internal user or a user created for a customer or a supplier
@@ -30,18 +31,35 @@ import java.util.List;
 @Getter@Setter
 public class User {
 
-    @Tab("Info")
     @Embedded
-    @Output
+    @KPI
     private Audit audit = new Audit();
+
+    @KPI
+    private LocalDateTime lastLogin;
+
+    @KPI
+    private int failedLogins;
+
+
+    @Ignored
+    private String passwordResetKey;
+
+    @Ignored
+    private LocalDateTime passwordResetExpiryDateTime;
+
 
     /**
      * login must always be uppercase. It is the primary key.
      */
+    @Section("Data")
     @Id
     @ListColumn("Login")
     @NotNull
     private String login;
+
+    @Output
+    private boolean oauth;
 
     @ListColumn("Name")
     @NotNull
@@ -52,10 +70,14 @@ public class User {
     private String email;
 
     @Ignored
-    private String password = "1";
+    private String password;
 
     public void setPassword(String password) {
-        this.password = Helper.md5(password.toLowerCase().trim());
+        this.password = (password != null)?Helper.md5(password.toLowerCase().trim()):null;
+    }
+
+    public boolean checkPassword(String password) {
+        return password != null && Helper.md5(password.toLowerCase().trim()).equals(this.password);
     }
 
     @ListColumn("Status")
@@ -64,42 +86,46 @@ public class User {
 
     private LocalDate expiryDate;
 
-    @Output
-    private LocalDateTime lastLogin;
 
-    @Output
-    private int failedLogins;
 
     @NotInList
-    @ManyToOne
-    private File photo;
+    @ManyToOne(cascade = CascadeType.ALL)
+    private Resource photo;
 
     @TextArea
     private String comments;
 
-    @Tab("Permissions")
+
+    @Section("Access")
     @OneToMany
     private List<Permission> permissions = new ArrayList<Permission>();
 
 
-    @PrePersist
-    public void resetPassword() {
-        String password = new RandPass().getPass(6);
-        //setPassword(MD5.getHashString(password));
-        setPassword(Helper.md5(password.toLowerCase().trim()));
+    //@PrePersist
+    public void prePersist() {
+        if (password == null) resetPassword();
     }
 
-    public void sendForgottenPasswordEmail() throws Throwable {
-        if (Strings.isNullOrEmpty(getPassword())) throw new Exception("Missing password for user " + login);
+
+    public void resetPassword() {
+        String password = new RandPass().getPass(6).toLowerCase().trim();
+        System.out.println("resetting password for " + getLogin());
+        setPassword(password);
+    }
+
+    @Action
+    public String sendForgottenPasswordEmail() throws Throwable {
         if (Strings.isNullOrEmpty(getEmail())) throw new Exception("Missing email for user " + login);
         if (USER_STATUS.INACTIVE.equals(getStatus())) throw new Exception("Deactivated user");
-        EmailHelper.sendEmail(getEmail(), "Your password", getPassword(), true);
+        if (isOauth()) throw new Exception("This users is from OAuth");
+
+        setPasswordResetKey(UUID.randomUUID().toString());
+        setPasswordResetExpiryDateTime(LocalDateTime.now().plusHours(4));
+
+        EmailHelper.sendEmail(getEmail(), "Password reset instructions", "" + MDD.getApp().getBaseUrl() + "resetpassword/" + getPasswordResetKey(), true);
+        return "An email with instructions has been sent to " + getEmail();
     }
 
-    public boolean validatePassword(String text) {
-        //return getPassword().equals(MD5.getHashString(text)) || getPassword().equals(text);
-        return getPassword().equals(Helper.md5(text.toLowerCase().trim()));
-    }
 
     @PostPersist
     public void post() {
@@ -126,13 +152,56 @@ public class User {
     }
 
     public void sendWelcomeEmail() throws Throwable {
-        if (Strings.isNullOrEmpty(getPassword())) throw new Exception("Missing password for user " + login);
         if (Strings.isNullOrEmpty(getEmail())) throw new Exception("Missing email for user " + login);
         if (USER_STATUS.INACTIVE.equals(getStatus())) throw new Exception("Deactivated user");
-        EmailHelper.sendEmail(getEmail(), "Welcome " + getName(), "Your password is " + getPassword(), true);
+
+        if (isOauth()) {
+            EmailHelper.sendEmail(getEmail(), "Welcome " + getName(), "Thanks for joining us ;)", false);
+        } else if (getPassword() == null) {
+            setPasswordResetKey(UUID.randomUUID().toString());
+            setPasswordResetExpiryDateTime(LocalDateTime.now().plusHours(4));
+            EmailHelper.sendEmail(getEmail(), "Welcome " + getName(), "To set your password please go to " + MDD.getApp().getBaseUrl() + "resetpassword/" + getPasswordResetKey(), true);
+        } else {
+            EmailHelper.sendEmail(getEmail(), "Welcome " + getName(), "You should already know your password.", true);
+        }
+
+    }
+
+
+    @Override
+    public String toString() {
+        return getLogin();
     }
 
 
 
+    @Action
+    public void sendEmail(@Help("If blank the postscript will be sent as the email body") Template template, @Help("If blank, the subject from the templaet will be used") String subject, @TextArea String postscript) throws Throwable {
+        if (template != null) {
+            Map<String, Object> data = Helper.getGeneralData();
+            data.put("postscript", postscript);
+            data.put("username", getName());
+            data.put("useremail", getEmail());
+            EmailHelper.sendEmail(getEmail(), (!Strings.isNullOrEmpty(subject))?subject:template.getSubject(), Helper.freemark(template.getFreemarker(), data), false);
+        } else {
+            EmailHelper.sendEmail(getEmail(), subject, postscript, false);
+        }
+    }
 
+
+    @Action
+    public static void sendEmail(@Help("If blank the postscript will be sent as the email body") Template template, @Help("If blank, the subject from the templaet will be used") String subject, @TextArea String postscript, Set<User> selectedUsers) throws Throwable {
+        for (User u : selectedUsers) {
+            if (template != null) {
+                Map<String, Object> data = Helper.getGeneralData();
+                data.put("postscript", postscript);
+                data.put("username", u.getName());
+                data.put("useremail", u.getEmail());
+                EmailHelper.sendEmail(u.getEmail(), (!Strings.isNullOrEmpty(subject))?subject:template.getSubject(), Helper.freemark(template.getFreemarker(), data), false);
+            } else {
+                EmailHelper.sendEmail(u.getEmail(), subject, postscript, false);
+            }
+
+        }
+    }
 }

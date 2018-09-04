@@ -6,8 +6,9 @@ import com.google.common.io.Resources;
 import io.mateu.mdd.core.model.authentication.Permission;
 import io.mateu.mdd.core.model.authentication.USER_STATUS;
 import io.mateu.mdd.core.model.authentication.User;
-import io.mateu.mdd.core.model.common.File;
+import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.model.config.AppConfig;
+import io.mateu.mdd.core.model.config.TemplateUseCase;
 import io.mateu.mdd.core.model.util.Constants;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
@@ -23,11 +24,11 @@ public class Populator {
 
     public static void main(String... args) throws Throwable {
 
-        populate(AppConfig.class);
+        new Populator().populate(AppConfig.class);
 
     }
 
-    public static void populate(Class appConfigClass) throws Throwable {
+    public void populate(Class appConfigClass) throws Throwable {
 
         System.out.println("Populating database...");
 
@@ -38,9 +39,16 @@ public class Populator {
             AppConfig c = (AppConfig) appConfigClass.newInstance();
             c.setId(1);
             c.setXslfoForList(Resources.toString(Resources.getResource("/xsl/listing.xsl"), Charsets.UTF_8));
+            c.setXslfoForObject(Resources.toString(Resources.getResource("/xsl/object.xsl"), Charsets.UTF_8));
             em.persist(c);
 
-            c.createDummyDates();
+            //c.createDummyDates();
+
+            {
+                TemplateUseCase tuc = new TemplateUseCase();
+                tuc.setName("User");
+                em.persist(tuc);
+            }
 
 
             // create super admin permission
@@ -58,8 +66,8 @@ public class Populator {
                 u.setEmail("miguelperezclom@gmail.com");
                 u.setStatus(USER_STATUS.ACTIVE);
                 u.getPermissions().add(p);
-                File f;
-                u.setPhoto(f = new File());
+                Resource f;
+                u.setPhoto(f = new Resource());
                 f.setName("foto-perfil-ejemplo.png");
                 f.setBytes(ByteStreams.toByteArray(Populator.class.getResourceAsStream("/images/" + f.getName())));
                 em.persist(f);

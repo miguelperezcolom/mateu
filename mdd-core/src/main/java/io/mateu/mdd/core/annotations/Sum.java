@@ -12,4 +12,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD) //can use in method only.
 public @interface Sum {
 
+    String caption() default "";
 }

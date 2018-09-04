@@ -4,5 +4,7 @@ import org.jdom2.Element;
 
 public interface XMLSerializable {
 
-    public Element toXml();
+    Element toXml();
+
+    void fromXml(Element xml);
 }

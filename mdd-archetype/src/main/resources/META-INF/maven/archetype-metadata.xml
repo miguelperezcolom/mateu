@@ -120,5 +120,13 @@
         <include>**/*.*</include>
       </includes>
     </fileSet>
+    <fileSet filtered="false"  encoding="UTF-8">
+      <directory/>
+      <includes>
+        <include>Procfile</include>
+        <include>system.properties</include>
+        <include>.gitignore</include>
+      </includes>
+    </fileSet>
   </fileSets>
 </archetype-descriptor>
