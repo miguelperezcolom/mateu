@@ -131,6 +131,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
     private void build(Object model) {
 
+        long t0 = System.currentTimeMillis();
+
         MDDUI.get().getNavegador().getViewProvider().setCurrentEditor(this);
 
         try {
@@ -181,6 +183,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         } catch (Exception e) {
             MDD.alert(e);
         }
+
+
+        System.out.println("editor component built in " + (System.currentTimeMillis() - t0) + " ms.");
 
     }
 
@@ -524,7 +529,10 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 });
 
             } else if (PersistentPOJO.class.isAssignableFrom(modelType)) {
-                PersistentPOJO ppojo = (PersistentPOJO) id;
+                PersistentPOJO ppojo = null;
+
+                if (id != null && modelType.equals(id.getClass())) ppojo = (PersistentPOJO) id;
+                else ppojo = (PersistentPOJO) modelType.newInstance();
 
                 ppojo.load(id);
 

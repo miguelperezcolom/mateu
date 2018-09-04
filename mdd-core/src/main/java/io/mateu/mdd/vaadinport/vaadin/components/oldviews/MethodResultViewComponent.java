@@ -62,6 +62,8 @@ public class MethodResultViewComponent extends AbstractViewComponent {
     @Override
     public MethodResultViewComponent build() throws IllegalAccessException, InstantiationException {
 
+        long t0 = System.currentTimeMillis();
+
         super.build();
 
         addStyleName("editorviewcomponent");
@@ -182,6 +184,8 @@ public class MethodResultViewComponent extends AbstractViewComponent {
             }
 
         }
+
+        System.out.println("method result view component built in " + (System.currentTimeMillis() - t0) + " ms.");
 
 
         return this;

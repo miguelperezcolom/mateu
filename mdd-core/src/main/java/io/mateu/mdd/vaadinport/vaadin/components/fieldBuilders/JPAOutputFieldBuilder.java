@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.vaadin.data.*;
 import com.vaadin.server.Setter;
 import com.vaadin.shared.Registration;
+import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
@@ -20,6 +21,7 @@ import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import org.javamoney.moneta.FastMoney;
 
 import javax.money.MonetaryAmount;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -36,6 +38,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
             Label tf;
             container.addComponent(tf = new Label());
+            tf.setContentMode(ContentMode.HTML);
 
             if (Integer.class.equals(field.getType()) || int.class.equals(field.getType())
                     || Long.class.equals(field.getType()) || long.class.equals(field.getType())
@@ -64,7 +67,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
             @Override
             public void setValue(Object o) {
                 v = o;
-                tf.setValue((o != null)?o.toString():"");
+                tf.setValue((o != null)?objectToString(o):"");
             }
 
             @Override
@@ -97,5 +100,19 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
                 return false;
             }
         }).bind(field.getName());
+    }
+
+    private String objectToString(Object o) {
+        if (o instanceof Collection) {
+            String s = "";
+            for (Object x : (Collection) o) {
+                if (!"".equals(s)) s += "<br/>";
+                s += x.toString();
+            }
+            if ("".equals(s)) s += "Empty list";
+            return s;
+        } else {
+            return o.toString();
+        }
     }
 }

@@ -45,6 +45,8 @@ public class FiltersComponent extends Composite {
 
     private void build() {
 
+        long t0 = System.currentTimeMillis();
+
         Layout l = (MDD.isMobile())?new VerticalLayout():new CssLayout();
         setCompositionRoot(l);
         l.addStyleName("nopadding");
@@ -172,6 +174,7 @@ public class FiltersComponent extends Composite {
         l.addComponent(botones);
 
 
+        System.out.println("filters component built in " + (System.currentTimeMillis() - t0) + " ms.");
     }
 
     private List<FieldInterfaced> getAllFilterFields() {

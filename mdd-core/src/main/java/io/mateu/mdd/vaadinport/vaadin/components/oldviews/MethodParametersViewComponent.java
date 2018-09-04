@@ -79,6 +79,8 @@ public class MethodParametersViewComponent extends AbstractViewComponent impleme
     @Override
     public MethodParametersViewComponent build() throws IllegalAccessException, InstantiationException {
 
+        long t0 = System.currentTimeMillis();
+
         super.build();
 
         addStyleName("editorviewcomponent");
@@ -94,6 +96,9 @@ public class MethodParametersViewComponent extends AbstractViewComponent impleme
 
 
         addComponentsAndExpand(new Label(""));
+
+        System.out.println("method parameters component built in " + (System.currentTimeMillis() - t0) + " ms.");
+
 
         return this;
     }

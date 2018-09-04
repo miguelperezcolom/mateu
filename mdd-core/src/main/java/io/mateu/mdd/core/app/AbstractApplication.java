@@ -16,6 +16,7 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.AbstractFieldBuilder;
+import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.FieldBuilder;
 
 import javax.persistence.EntityManager;
 import java.util.*;
@@ -371,13 +372,23 @@ public abstract class AbstractApplication implements App {
     }
 
 
+    private static Map<String, AbstractFieldBuilder> fieldBuildersCache = new HashMap<>();
+
+
     public AbstractFieldBuilder getFieldBuilder(FieldInterfaced field) {
-        AbstractFieldBuilder r = null;
-        for (AbstractFieldBuilder b : AbstractFieldBuilder.builders) if (b.isSupported(field)) {
-            r = b;
-            break;
+
+        String k = field.getDeclaringClass().getName() + "/" + field.getName();
+
+        if (fieldBuildersCache.containsKey(k)) return fieldBuildersCache.get(k);
+        else {
+            AbstractFieldBuilder r = null;
+            for (AbstractFieldBuilder b : AbstractFieldBuilder.builders) if (b.isSupported(field)) {
+                r = b;
+                break;
+            }
+            fieldBuildersCache.put(k, r);
+            return r;
         }
-        return r;
     }
 
 }
