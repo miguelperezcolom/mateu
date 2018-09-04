@@ -436,7 +436,7 @@ public class JPAListViewComponent extends ListViewComponent {
     protected List<ChartData> getCharts(Object filters) {
         List<ChartData> l = new ArrayList<>();
 
-        ReflectionHelper.getAllFields(entityClass).stream().filter(f -> f.getType().isEnum() || (!Resource.class.equals(f.getType()) && f.isAnnotationPresent(ManyToOne.class)) || boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType())).forEach(f -> l.add(gatherChartData(filters, f)));
+        getColumnFields(entityClass).stream().filter(f -> f.getType().isEnum() || (!Resource.class.equals(f.getType()) && f.isAnnotationPresent(ManyToOne.class)) || boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType())).forEach(f -> l.add(gatherChartData(filters, f)));
 
         return l;
     }

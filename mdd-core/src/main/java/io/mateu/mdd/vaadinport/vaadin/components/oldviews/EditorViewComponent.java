@@ -112,6 +112,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
     public void setModel(Object model) {
 
+        modelType = model.getClass();
+
         binder = new MDDBinder(model.getClass());
 
         if (createSaveButton) {

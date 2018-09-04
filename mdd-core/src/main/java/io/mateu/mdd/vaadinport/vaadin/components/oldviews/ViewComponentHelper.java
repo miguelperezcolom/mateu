@@ -117,13 +117,26 @@ public class ViewComponentHelper {
 
     private static void invoke(AbstractViewComponent viewComponent, Method m, Object instance, Set selection, EntityManager em, Map<String, Object> parameterValues) throws InvocationTargetException, IllegalAccessException {
 
+        boolean needsEm = false;
+        for (Parameter p : m.getParameters()) {
+            if (EntityManager.class.equals(p.getType())) {
+                needsEm = true;
+                break;
+            }
+        }
+
         List<Object> vs = new ArrayList<>();
         for (Parameter p : m.getParameters()) {
             if (EntityManager.class.equals(p.getType())) {
                 vs.add(em);
             } else if (UserData.class.equals(p.getType())) {
                 vs.add(MDD.getUserData());
-            } else if (Modifier.isStatic(m.getModifiers()) && Set.class.isAssignableFrom(p.getType()) && m.getDeclaringClass().equals(ReflectionHelper.getGenericClass(p.getType()))) {
+            } else if (Modifier.isStatic(m.getModifiers()) && Set.class.isAssignableFrom(p.getType()) && m.getDeclaringClass().equals(ReflectionHelper.getGenericClass(p.getParameterizedType()))) {
+                if (needsEm && ReflectionHelper.getGenericClass(p.getParameterizedType()).isAnnotationPresent(Entity.class)) {
+                    Set aux = new HashSet();
+                    for (Object o : selection) aux.add(em.merge(o));
+                    selection = aux;
+                }
                 vs.add(selection);
             } else {
                 vs.add((parameterValues != null)?parameterValues.get(p.getName()):null);
