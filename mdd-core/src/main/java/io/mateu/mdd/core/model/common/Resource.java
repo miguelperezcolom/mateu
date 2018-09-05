@@ -130,4 +130,11 @@ public class Resource {
         setType(FileType.BYTES);
     }
 
+
+    @Override
+    public String toString() {
+        String s = "Empty";
+        if (getName() != null) s = getName();
+        return s;
+    }
 }

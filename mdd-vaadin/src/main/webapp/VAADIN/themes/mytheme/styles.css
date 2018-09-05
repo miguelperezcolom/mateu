@@ -18693,3 +18693,186 @@ div.v-layout.v-horizontal.v-widget {
 .mytheme .contentcontainer {
 	overflow: initial;
 }
+
+.mytheme .o-closed {
+	background-color: #ef786f !important;
+}
+
+.mytheme .o-partial {
+	background-color: #fea65d !important;
+}
+
+.mytheme .o-open {
+	background-color: #a5bfa5 !important;
+}
+
+.mytheme .o-closed.o-weekend {
+	background-color: #da1616 !important;
+}
+
+.mytheme .o-partial.o-weekend {
+	background-color: #d18100 !important;
+}
+
+.mytheme .o-open.o-weekend {
+	background-color: #80af82 !important;
+}
+
+.mytheme .o-today {
+	border-top: 3px solid black !important;
+	border-bottom: 3px solid black !important;
+}
+
+.mytheme .dia {
+	width: 30px;
+	height: 30px;
+	padding-top: 6px;
+	text-align: center;
+	-moz-user-select: none !important;
+	-ms-user-select: none !important;
+	-webkit-user-select: none !important;
+	user-select: none !important;
+}
+
+.mytheme .dia .v-label {
+	-moz-user-select: none !important;
+	-ms-user-select: none !important;
+	-webkit-user-select: none !important;
+	user-select: none !important;
+}
+
+.mytheme .dia.v-csslayout-drag-center {
+	background-color: lightgrey;
+}
+
+.mytheme .dia.seleccionado {
+	border: 1px solid blue;
+}
+
+.mytheme .semana .v-spacing {
+	width: 1px;
+}
+
+.mytheme .random-0 {
+	background-color: #c2ccbd;
+}
+
+.mytheme .random-1 {
+	background-color: #879182;
+}
+
+.mytheme .random-2 {
+	background-color: #d6ddd2;
+}
+
+.mytheme .random-3 {
+	background-color: #ede9d5;
+}
+
+.mytheme .random-4 {
+	background-color: #d8d7d0;
+}
+
+.mytheme .random-5 {
+	background-color: #f7f1c5;
+}
+
+.mytheme .random-6 {
+	background-color: #f4d8cd;
+}
+
+.mytheme .random-7 {
+	background-color: #dbac99;
+}
+
+.mytheme .random-8 {
+	background-color: #c9e2e8;
+}
+
+.mytheme .random-9 {
+	background-color: #abc9d1;
+}
+
+.mytheme .random-10 {
+	background-color: #dcf1f7;
+}
+
+.mytheme .random-11 {
+	background-color: #bab1c9;
+}
+
+.mytheme .random-12 {
+	background-color: #dacbf2;
+}
+
+.mytheme .random-13 {
+	background-color: #dfdce5;
+}
+
+.mytheme .random-14 {
+	background-color: #f9dbf4;
+}
+
+.mytheme .random-15 {
+	background-color: #d1b1cb;
+}
+
+.mytheme .random-16 {
+	background-color: #d6c5d2;
+}
+
+.mytheme .random-17 {
+	background-color: #f2d0d8;
+}
+
+.mytheme .random-18 {
+	background-color: #a57f88;
+}
+
+.mytheme .random-19 {
+	background-color: #c4cec8;
+}
+
+.mytheme .random-20 {
+	background-color: #93a59a;
+}
+
+.mytheme .random-21 {
+	background-color: #83af95;
+}
+
+.mytheme .random-22 {
+	background-color: #c3ccc7;
+}
+
+.mytheme .random-23 {
+	background-color: #d8d7c5;
+}
+
+.mytheme .random-24 {
+	background-color: #f7f5d7;
+}
+
+.mytheme .random-25 {
+	background-color: #cec765;
+}
+
+.mytheme .random-26 {
+	background-color: #8c8170;
+}
+
+.mytheme .random-27 {
+	background-color: #ceba9a;
+}
+
+.mytheme .random-28 {
+	background-color: #f9d8a2;
+}
+
+.mytheme .random-29 {
+	background-color: #f4a422;
+}
+
+.mytheme .random-30 {
+	background-color: #b57001;
+}

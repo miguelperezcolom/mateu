@@ -434,8 +434,10 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                                 if (pendingResult != null) {
                                     stack.push(currentPath, new MethodResultViewFlowComponent(state, method, pendingResult));
+                                    pendingResult = null;
                                 } else {
                                     stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, null, this, null, pendingSelection));
+                                    pendingSelection = null;
                                 }
 
                             } else if ("filters".equals(step)) {
@@ -449,7 +451,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                                     EditorViewComponent evc = vfc.getEditorViewComponent();
                                     evc.clear();
-
+                                    evc.setModelType(vfc.getListViewComponent().getModelType());
                                     try {
 
                                         if (Strings.isNullOrEmpty(step) || "new".equals(step)) { // estamos añadiendo un nuevo registro
@@ -501,8 +503,10 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                                 if (pendingResult != null) {
                                     stack.push(currentPath, new MethodResultViewFlowComponent(state, method, pendingResult));
+                                    pendingResult = null;
                                 } else {
                                     stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, evfc.getModel(), this, evfc.getBinder(), pendingSelection));
+                                    pendingSelection = null;
                                 }
 
                             } else if (field != null) {

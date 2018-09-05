@@ -11,6 +11,7 @@ import com.vaadin.ui.Layout;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.MDDPort;
 import io.mateu.mdd.core.app.AbstractApplication;
 import io.mateu.mdd.core.app.BaseMDDApp;
 import io.mateu.mdd.core.interfaces.App;
@@ -62,6 +63,7 @@ public class MDDUI extends UI {
 
     private AppComponent appComponent;
     private AbstractApplication app;
+    private VaadinPort port;
 
     public boolean isEditingNewRecord() {
         return navegador.getViewProvider().isEditingNewRecord();
@@ -95,24 +97,24 @@ public class MDDUI extends UI {
             System.setProperty("tmpdir", ((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getServletContext().getRealPath("/tmp/"));
         }
 
+        port = new VaadinPort(vaadinRequest);
 
-        app = createApp();
-        app.setBaseUrl(contextUrl);
+        if (app == null) {
 
-        MDD.setPort(new VaadinPort(vaadinRequest));
+            app = createApp();
+            app.setBaseUrl(contextUrl);
 
-        MDD.setApp((BaseMDDApp) app);
+            if (MDD.getClassPool() == null) MDD.setClassPool(ReflectionHelper.createClassPool(((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getServletContext()));
 
-        if (MDD.getClassPool() == null) MDD.setClassPool(ReflectionHelper.createClassPool(((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getServletContext()));
+            app.buildAreaAndMenuIds();
 
-        app.buildAreaAndMenuIds();
+        }
+
 
         viewContainer = createViewContainer();
 
 
         addNavigator();
-
-
 
         //setContent(flowComponent);
 
@@ -178,5 +180,9 @@ public class MDDUI extends UI {
 
     public MDDNavigator getNavegador() {
         return navegador;
+    }
+
+    public MDDPort getPort() {
+        return port;
     }
 }

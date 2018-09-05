@@ -64,6 +64,10 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         return newRecord;
     }
 
+    public void setModelType(Class modelType) {
+        this.modelType = modelType;
+    }
+
     public void addEditorListener(EditorListener listener) {
         listeners.add(listener);
     }
@@ -455,7 +459,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
 
                     auditar(em, m);
-                    
+
                     setModel(em.merge(m));
                 }
             });

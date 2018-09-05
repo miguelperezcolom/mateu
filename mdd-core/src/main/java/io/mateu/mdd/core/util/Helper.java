@@ -275,8 +275,8 @@ public class Helper {
     }
 
 
-    public static List<Object> selectObjects(String jpql) throws Throwable {
-        List<Object> l = new ArrayList<>();
+    public static List selectObjects(String jpql) throws Throwable {
+        List l = new ArrayList<>();
 
         Helper.notransact(em -> {
 

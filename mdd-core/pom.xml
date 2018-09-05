@@ -310,10 +310,9 @@
 
 
         <dependency>
-            <groupId>org.javamoney</groupId>
-            <artifactId>moneta</artifactId>
+            <groupId>org.javamoney.moneta</groupId>
+            <artifactId>moneta-core</artifactId>
             <version>1.3</version>
-            <type>pom</type>
         </dependency>
 
 

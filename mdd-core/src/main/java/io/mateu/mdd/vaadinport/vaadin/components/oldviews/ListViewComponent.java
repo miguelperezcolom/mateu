@@ -15,6 +15,7 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.SortOrderProvider;
+import com.vaadin.ui.renderers.HtmlRenderer;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
@@ -234,6 +235,8 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             });
 
 
+            if (f.isAnnotationPresent(HtmlCol.class)) col.setRenderer(new HtmlRenderer(""));
+
 
             if (Integer.class.equals(f.getType()) || int.class.equals(f.getType())
                 || Long.class.equals(f.getType()) || long.class.equals(f.getType())
@@ -242,7 +245,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     || FastMoney.class.equals(f.getType()) || MonetaryAmount.class.equals(f.getType())
                 ) {
                 col.setStyleGenerator(c -> "v-align-right");
-        }
+            }
 
             if (editable) {
                 if (Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) {

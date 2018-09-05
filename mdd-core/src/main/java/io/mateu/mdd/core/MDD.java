@@ -3,28 +3,20 @@ package io.mateu.mdd.core;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.interfaces.WizardPage;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import javassist.ClassPool;
 
 public class MDD {
 
-    private static MDDPort port;
     private static ClassPool classPool;
-    private static BaseMDDApp app;
 
 
     public static MDDPort getPort() {
-        return port;
-    }
-    public static void setPort(MDDPort port) {
-        MDD.port = port;
+        return MDDUI.get().getPort();
     }
 
     public static AbstractApplication getApp() {
-        return app;
-    }
-    public static void setApp(BaseMDDApp theApp) {
-        app = theApp;
-        port.setApp(app);
+        return MDDUI.get().getApp();
     }
 
 
