@@ -109,7 +109,7 @@ public class ViewComponentHelper {
 
 
             }
-        }.setIcon(aa.icon()).setConfirmationMessage(aa.confirmationMessage());
+        }.setStyle(aa.style()).setIcon(aa.icon()).setConfirmationMessage(aa.confirmationMessage());
 
         return action;
 

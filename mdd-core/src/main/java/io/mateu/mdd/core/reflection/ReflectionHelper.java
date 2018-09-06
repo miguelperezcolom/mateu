@@ -10,6 +10,7 @@ import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.interfaces.PushWriter;
 import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.tests.Persona;
 import javafx.beans.binding.Binding;
 import javassist.*;
@@ -916,8 +917,14 @@ public class ReflectionHelper {
     public static List<FieldInterfaced> getAllEditableFields(Class modelType, Class superType, boolean includeReverseMappers) {
         List<FieldInterfaced> allFields = ReflectionHelper.getAllFields(modelType);
 
+
+        boolean isEditingNewRecord = MDDUI.get().isEditingNewRecord();
+
+
         allFields = allFields.stream().filter((f) ->
-                !(f.isAnnotationPresent(Ignored.class) || f.isAnnotationPresent(KPI.class) || f.isAnnotationPresent(NotInEditor.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))
+                !(f.isAnnotationPresent(Ignored.class) || f.isAnnotationPresent(KPI.class) || f.isAnnotationPresent(NotInEditor.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class))
+                || (f.isAnnotationPresent(NotWhenCreating.class) && isEditingNewRecord)
+                        || (f.isAnnotationPresent(NotWhenEditing.class) && !isEditingNewRecord))
         ).collect(Collectors.toList());
 
 
@@ -1352,7 +1359,9 @@ public class ReflectionHelper {
 
         Set<Class> subs = reflections.getSubTypesOf(c);
 
-        return subs;
+        Set<Class> subsFiltered = subs.stream().filter(s -> Modifier.isAbstract(s.getModifiers())).collect(Collectors.toSet());
+
+        return subsFiltered;
     }
 
     public static Class<?> getGenericClass(Method m) {

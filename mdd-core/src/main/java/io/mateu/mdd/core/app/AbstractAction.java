@@ -10,6 +10,7 @@ import java.util.UUID;
 public abstract class AbstractAction implements MenuEntry {
 
     private VaadinIcons icon = VaadinIcons.BOLT;
+    private String style = "";
     private String confirmationMessage;
     private String name;
     private boolean callOnEnterKeyPressed = false;
@@ -79,6 +80,15 @@ public abstract class AbstractAction implements MenuEntry {
 
     public AbstractAction setConfirmationMessage(String confirmationMessage) {
         this.confirmationMessage = confirmationMessage;
+        return this;
+    }
+
+    public String getStyle() {
+        return style;
+    }
+
+    public AbstractAction setStyle(String style) {
+        this.style = style;
         return this;
     }
 }

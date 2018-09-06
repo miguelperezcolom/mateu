@@ -95,6 +95,8 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
             menuItemsById.put(a.getId(), i);
 
+            if (!Strings.isNullOrEmpty(a.getStyle())) i.setStyleName(a.getStyle());
+
         }
 
     }

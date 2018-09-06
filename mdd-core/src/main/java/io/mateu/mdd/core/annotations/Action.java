@@ -31,4 +31,5 @@ public @interface Action {
 
     String attachToField() default "";
 
+    String style() default "";
 }
