@@ -1,6 +1,8 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.vaadin.data.*;
 import com.vaadin.data.Converter;
 import com.vaadin.data.provider.ListDataProvider;
@@ -72,7 +74,32 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
     }
 
     private void buildList(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue,List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced,Component> allFieldContainers, boolean forSearchFilter, boolean owned) {
-        if (field.isAnnotationPresent(UseTwinCols.class)) {
+
+        if (field.isAnnotationPresent(UseChips.class)) {
+
+
+
+
+            HorizontalLayout hl = new HorizontalLayout();
+            hl.addStyleName("nopadding");
+
+            CssLayout l = new CssLayout();
+            l.addStyleName("nopadding");
+            hl.addComponent(l);
+
+            Button b;
+            l.addComponent(b = new Button("Add"));
+            b.addStyleName(ValoTheme.BUTTON_LINK);
+            b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+
+            hl.setCaption(ReflectionHelper.getCaption(field));
+
+            container.addComponent(hl);
+
+            bind(binder, l, field);
+
+
+        } else if (field.isAnnotationPresent(UseTwinCols.class)) {
 
             TwinColSelect<Object> tf = new TwinColSelect((container.getComponentCount() > 0)?ReflectionHelper.getCaption(field):null);
             tf.setRows(10);
@@ -520,6 +547,82 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         Binder.BindingBuilder aux = binder.forField(cbg);
         aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
         aux.bind(field.getName());
+    }
+
+
+    private void bind(MDDBinder binder, CssLayout l, FieldInterfaced field) {
+        Binder.BindingBuilder aux = binder.forField(new HasValue() {
+
+            Object value;
+
+            @Override
+            public void setValue(Object o) {
+                value = o;
+
+                Button b = (Button) l.getComponent(l.getComponentCount() - 1);
+
+                l.removeAllComponents();
+                if (o == null || ((Collection)o).size() == 0) l.addComponent(new Label("Empty list"));
+                else {
+                    for (Object x : (Collection)o) l.addComponent(createChip(binder, field, x));
+                }
+
+                l.addComponent(b);
+            }
+
+            @Override
+            public Object getValue() {
+                return value;
+            }
+
+            @Override
+            public Registration addValueChangeListener(ValueChangeListener valueChangeListener) {
+                return null;
+            }
+
+            @Override
+            public void setRequiredIndicatorVisible(boolean b) {
+
+            }
+
+            @Override
+            public boolean isRequiredIndicatorVisible() {
+                return false;
+            }
+
+            @Override
+            public void setReadOnly(boolean b) {
+
+            }
+
+            @Override
+            public boolean isReadOnly() {
+                return false;
+            }
+        });
+        aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+        aux.bind(field.getName());
+    }
+
+    private Component createChip(MDDBinder binder, FieldInterfaced field, Object x) {
+        HorizontalLayout hl = new HorizontalLayout();
+        hl.addStyleName("chip");
+
+        Label l;
+        hl.addComponent(l = new Label(x.toString()));
+
+        Button b;
+        hl.addComponent(b = new Button(null, VaadinIcons.CLOSE_SMALL));
+
+        b.addClickListener(e -> {
+            try {
+                ReflectionHelper.removeFromCollection(binder, field, binder.getBean(), Sets.newHashSet(x));
+            } catch (Exception e1) {
+                MDD.alert(e1);
+            }
+        });
+
+        return hl;
     }
 
     private void bind(MDDBinder binder, Label l, FieldInterfaced field) {

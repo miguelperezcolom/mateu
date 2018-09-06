@@ -2,6 +2,7 @@ package io.mateu.mdd.core.reflection;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.vaadin.data.Binder;
 import com.vaadin.data.provider.DataProvider;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
@@ -10,6 +11,7 @@ import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.interfaces.PushWriter;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.tests.Persona;
+import javafx.beans.binding.Binding;
 import javassist.*;
 import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ClassFile;
@@ -100,7 +102,10 @@ public class ReflectionHelper {
                 o = getInstance(o, fn.substring(0, fn.indexOf(".")));
                 setValue(fn.substring(fn.indexOf(".") + 1), o, v);
             } else {
-                if (v instanceof Collection) v = new ArrayList((Collection) v);
+                if (v instanceof Collection) {
+                    if (v instanceof List) v = new ArrayList((Collection) v);
+                    else if (v instanceof  Set) v = new HashSet((Collection) v);
+                }
                 BeanUtils.setProperty(o, fn, v);
             }
         }
@@ -1177,7 +1182,11 @@ public class ReflectionHelper {
 
         }
 
-        if (added) reverseMap(binder, field, bean, i);
+        if (added) {
+            reverseMap(binder, field, bean, i);
+            Object finalV = v;
+            binder.getBinding(field.getName()).ifPresent(b -> ((Binder.Binding)b).getField().setValue(finalV));
+        }
 
     }
 
@@ -1222,6 +1231,10 @@ public class ReflectionHelper {
                 });
             }
         }
+
+        Object finalV = v;
+        binder.getBinding(field.getName()).ifPresent(b -> ((Binder.Binding)b).getField().setValue(finalV));
+
 
     }
 

@@ -18694,6 +18694,25 @@ div.v-layout.v-horizontal.v-widget {
 	overflow: initial;
 }
 
+.mytheme .chip {
+	background-color: lightgray;
+	border-radius: 1.5em;
+	padding-left: 1em;
+	margin-right: 4px;
+}
+
+.mytheme .chip .v-label {
+	padding-top: 4px;
+}
+
+.mytheme .chip .v-button {
+	border-radius: 1.5em;
+	width: 2em;
+	padding-left: 8px;
+	height: 2em;
+	padding-top: 3px;
+}
+
 .mytheme .o-closed {
 	background-color: #ef786f !important;
 }

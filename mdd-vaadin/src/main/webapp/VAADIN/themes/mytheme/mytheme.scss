@@ -884,7 +884,24 @@
 
 
 
+  .chip {
+    background-color: lightgray;
+    border-radius: 1.5em;
+    padding-left: 1em;
+    margin-right: 4px;
 
+    .v-label {
+      padding-top: 4px;
+    }
+
+    .v-button {
+      border-radius: 1.5em;
+      width: 2em;
+      padding-left: 8px;
+      height: 2em;
+      padding-top: 3px;
+    }
+  }
 
 
 
