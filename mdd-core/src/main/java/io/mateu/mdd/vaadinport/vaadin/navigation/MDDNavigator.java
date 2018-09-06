@@ -6,6 +6,7 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import io.mateu.mdd.vaadinport.vaadin.components.app.views.FieldEditorComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.MethodResultViewFlowComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 
@@ -173,6 +174,14 @@ public class MDDNavigator {
     }
 
     private void yesGoBack() {
+
+        if (stack.getLast().getComponent() instanceof EditorViewComponent) {
+            ((EditorViewComponent) stack.getLast().getComponent()).onGoBack();
+        } else if (stack.getLast().getComponent() instanceof FieldEditorComponent) {
+            EditorViewComponent editor = ((FieldEditorComponent) stack.getLast().getComponent()).getEditor();
+            if (editor != null) editor.onGoBack();
+        }
+
         String u = stack.getState(stack.getLast());
         u = u.substring(0, u.lastIndexOf("/"));
 

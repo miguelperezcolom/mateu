@@ -569,4 +569,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         panel.setContent(null);
     }
 
+    public void onGoBack() {
+        for (EditorListener l : listeners) l.onGoBack(binder.getBean());
+    }
 }

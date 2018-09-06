@@ -4,4 +4,5 @@ public interface EditorListener {
 
     void onSave(Object model);
 
+    void onGoBack(Object model);
 }

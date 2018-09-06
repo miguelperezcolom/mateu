@@ -1,5 +1,6 @@
 package io.mateu.mdd.tester.model.entities.converter;
 
+import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.XMLSerializable;
 import lombok.Getter;
 import lombok.Setter;
@@ -46,5 +47,10 @@ public class XmlSerializableContent implements XMLSerializable {
     @Override
     public String toString() {
         return getName();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return Helper.areXmlSerializableEqual(this, (XMLSerializable) obj);
     }
 }

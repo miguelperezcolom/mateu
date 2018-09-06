@@ -1703,4 +1703,17 @@ public class ReflectionHelper {
     public static String getFirstUpper(String fieldName) {
         return fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
     }
+
+    public static Object clone(Object original) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
+        if (original == null) return null;
+        else {
+            Object copy = original.getClass().newInstance();
+
+            for (FieldInterfaced f : ReflectionHelper.getAllFields(original.getClass())) {
+                ReflectionHelper.setValue(f, copy, ReflectionHelper.getValue(f, original));
+            }
+
+            return copy;
+        }
+    }
 }

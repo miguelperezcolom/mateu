@@ -17,15 +17,18 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.data.MDDBinder;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorListener;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.WizardComponent;
 import org.vaadin.aceeditor.AceEditor;
 
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import java.lang.reflect.InvocationTargetException;
 
 public class FieldEditorComponent extends VerticalLayout {
 
+    private EditorViewComponent editor;
     private FieldInterfaced field;
     private MDDBinder binder;
 
@@ -180,38 +183,43 @@ public class FieldEditorComponent extends VerticalLayout {
         //} else if (field.getType().isAnnotationPresent(Entity.class)) {
         } else if (true) {
 
-            EditorViewComponent editor;
             addComponent(editor = new EditorViewComponent(field.getType()));
             try {
                 Object v = ReflectionHelper.getValue(field, binder.getBean());
-                editor.load((v != null)?((v.getClass().isAnnotationPresent(Entity.class))?ReflectionHelper.getId(v):v):null);
-
-                editor.getBinder().addValueChangeListener(l -> {
-                    Object m = binder.getBean();
-                    try {
-                        ReflectionHelper.setValue(field, m, editor.getBinder().getBean());
-                        binder.setBean(m, false);
-                    } catch (Exception e) {
-                        MDD.alert(e);
-                    }
-                });
-
+                editor.load((v != null)?((v.getClass().isAnnotationPresent(Entity.class))?ReflectionHelper.getId(v):ReflectionHelper.clone(v)):null);
             } catch (Throwable throwable) {
                 MDD.alert(throwable);
             }
 
 
-            editor.addEditorListener(v -> {
-                try {
-                    Object m = binder.getBean();
-                    ReflectionHelper.setValue(field, m, v);
-                    binder.getBinding(field.getName()).ifPresent(b -> {
-                        ((Binder.Binding)b).getField().setValue(null);
-                        ((Binder.Binding)b).getField().setValue(v);
-                    });
-                    binder.setBean(m, false);
-                } catch (Exception e) {
-                    MDD.alert(e);
+            editor.addEditorListener(new EditorListener() {
+                @Override
+                public void onSave(Object v) {
+                    try {
+                        Object m = binder.getBean();
+                        ReflectionHelper.setValue(field, m, v);
+                        binder.getBinding(field.getName()).ifPresent(b -> {
+                            ((Binder.Binding)b).getField().setValue(null);
+                            ((Binder.Binding)b).getField().setValue(v);
+                        });
+                        binder.setBean(m, false);
+                    } catch (Exception e) {
+                        MDD.alert(e);
+                    }
+                }
+
+                @Override
+                public void onGoBack(Object model) {
+                    if (field.getDeclaringClass().isAnnotationPresent(Entity.class) && field.isAnnotationPresent(Convert.class)) {
+                        Object m = binder.getBean();
+                        try {
+                            Object value = editor.getBinder().getBean();
+                            ReflectionHelper.setValue(field, m, value);
+                            binder.setBean(m, false);
+                        } catch (Exception e) {
+                            MDD.alert(e);
+                        }
+                    }
                 }
             });
 
@@ -223,4 +231,7 @@ public class FieldEditorComponent extends VerticalLayout {
 
     }
 
+    public EditorViewComponent getEditor() {
+        return editor;
+    }
 }

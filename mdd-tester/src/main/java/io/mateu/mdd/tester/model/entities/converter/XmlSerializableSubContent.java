@@ -8,7 +8,7 @@ import org.jdom2.Element;
 @Getter@Setter
 public class XmlSerializableSubContent implements XMLSerializable {
 
-    private String name;
+    private String name = "";
 
     private int age;
 

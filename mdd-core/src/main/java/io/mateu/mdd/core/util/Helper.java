@@ -1491,4 +1491,13 @@ public class Helper {
             }
         }
     }
+
+    public static String toString(Element element) {
+        if (element == null) return "";
+        else return new XMLOutputter(Format.getPrettyFormat()).outputString(element);
+    }
+
+    public static boolean areXmlSerializableEqual(XMLSerializable a, XMLSerializable b) {
+        return a == b || (b != null && Helper.toString(a.toXml()).equals(Helper.toString((b.toXml()))));
+    }
 }
