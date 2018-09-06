@@ -396,7 +396,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         List<Method> ms = new ArrayList<>();
         for (Method m : ReflectionHelper.getAllMethods(modelType)) {
-            if (!(Modifier.isStatic(m.getModifiers()) && m.isAnnotationPresent(Action.class)
+            if (m.isAnnotationPresent(Action.class) && !(Modifier.isStatic(m.getModifiers())
                     || (m.isAnnotationPresent(NotWhenCreating.class) && isEditingNewRecord)
                     || (m.isAnnotationPresent(NotWhenEditing.class) && !isEditingNewRecord)
             )) {
