@@ -1359,7 +1359,7 @@ public class ReflectionHelper {
 
         Set<Class> subs = reflections.getSubTypesOf(c);
 
-        Set<Class> subsFiltered = subs.stream().filter(s -> Modifier.isAbstract(s.getModifiers())).collect(Collectors.toSet());
+        Set<Class> subsFiltered = subs.stream().filter(s -> !Modifier.isAbstract(s.getModifiers())).collect(Collectors.toSet());
 
         return subsFiltered;
     }
