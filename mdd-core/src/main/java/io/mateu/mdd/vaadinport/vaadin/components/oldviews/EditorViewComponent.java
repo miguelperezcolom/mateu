@@ -14,8 +14,7 @@ import com.vaadin.shared.ui.ErrorLevel;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.Action;
-import io.mateu.mdd.core.annotations.Keep;
+import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Pair;
@@ -33,10 +32,13 @@ import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class EditorViewComponent extends AbstractViewComponent implements IEditorViewComponent {
 
@@ -388,9 +390,16 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     public List<AbstractAction> getActions() {
         List<AbstractAction> l = new ArrayList<>();
 
+
+        boolean isEditingNewRecord = MDDUI.get().isEditingNewRecord();
+
+
         List<Method> ms = new ArrayList<>();
         for (Method m : ReflectionHelper.getAllMethods(modelType)) {
-            if (!Modifier.isStatic(m.getModifiers()) && m.isAnnotationPresent(Action.class)) {
+            if (!(Modifier.isStatic(m.getModifiers()) && m.isAnnotationPresent(Action.class)
+                    || (m.isAnnotationPresent(NotWhenCreating.class) && isEditingNewRecord)
+                    || (m.isAnnotationPresent(NotWhenEditing.class) && !isEditingNewRecord)
+            )) {
                 ms.add(m);
             }
         }
