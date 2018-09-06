@@ -190,6 +190,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             MDD.alert(e);
         }
 
+        rebuildActions();
 
         System.out.println("editor component built in " + (System.currentTimeMillis() - t0) + " ms.");
 
@@ -555,6 +556,13 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             }
 
         }
+
+    }
+
+    private void rebuildActions() {
+        bar.removeItems();
+        addViewActionsMenuItems(bar);
+        updateActions();
     }
 
     public void clear() {

@@ -1359,7 +1359,8 @@ public class ReflectionHelper {
 
         Set<Class> subs = reflections.getSubTypesOf(c);
 
-        Set<Class> subsFiltered = subs.stream().filter(s -> !Modifier.isAbstract(s.getModifiers())).collect(Collectors.toSet());
+        Set<Class> subsFiltered = new TreeSet<>((a,b) -> a.getSimpleName().compareTo(b.getSimpleName()));
+        subsFiltered.addAll(subs.stream().filter(s -> !Modifier.isAbstract(s.getModifiers())).collect(Collectors.toSet()));
 
         return subsFiltered;
     }
