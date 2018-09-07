@@ -175,11 +175,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
             AbstractStylist finalStylist = stylist;
             binder.addValueChangeListener(e -> {
-                updateActions();
+                rebuildActions();
                 binder.setBean(binder.getBean(), false); // para campos calculados
             });
-
-            updateActions();
 
             if (getView() != null) getView().updateViewTitle(toString());
 
@@ -407,6 +405,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     public List<AbstractAction> getActions() {
         List<AbstractAction> l = new ArrayList<>();
 
+        Object bean = (binder != null)?binder.getBean():null;
+
 
         boolean isEditingNewRecord = MDDUI.get().isEditingNewRecord();
 
@@ -417,7 +417,15 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                     || (m.isAnnotationPresent(NotWhenCreating.class) && isEditingNewRecord)
                     || (m.isAnnotationPresent(NotWhenEditing.class) && !isEditingNewRecord)
             )) {
-                ms.add(m);
+
+                Method mv = ReflectionHelper.getMethod(modelType, ReflectionHelper.getGetter(m.getName()).replaceFirst("get", "is") + "Visible");
+                try {
+                    if (mv == null || bean == null || (Boolean) mv.invoke(bean)) {
+                        ms.add(m);
+                    }
+                } catch (Exception e) {
+                    MDD.alert(e);
+                }
             }
         }
 
