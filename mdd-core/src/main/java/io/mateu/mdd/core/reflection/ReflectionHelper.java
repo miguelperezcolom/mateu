@@ -493,19 +493,29 @@ public class ReflectionHelper {
     }
 
     public static FieldInterfaced getMapper(FieldInterfaced field) {
+
+        // field es el campo original
+
+
+        // mapper será la contraparte en el destino
         FieldInterfaced mapper = null;
 
+        // buscamos el nombre del campo mapper en el campo original
         String mfn = null;
         if (field.isAnnotationPresent(OneToOne.class)) mfn = field.getAnnotation(OneToOne.class).mappedBy();
         else if (field.isAnnotationPresent(OneToMany.class)) mfn = field.getAnnotation(OneToMany.class).mappedBy();
         else if (field.isAnnotationPresent(ManyToMany.class)) mfn = field.getAnnotation(ManyToMany.class).mappedBy();
         else if (field.isAnnotationPresent(ManyToOne.class)) {
+
+            // si es un campo many to one, entonces no tenemos atributo mappedBy en el origen y debemos buscar un campo en la contraparte con el atributo mappedBy
+
             for (FieldInterfaced f : ReflectionHelper.getAllFields(field.getType())) {
                 String z = null;
                 if (f.isAnnotationPresent(OneToOne.class)) z = f.getAnnotation(OneToOne.class).mappedBy();
                 else if (f.isAnnotationPresent(OneToMany.class)) z = f.getAnnotation(OneToMany.class).mappedBy();
                 else if (f.isAnnotationPresent(ManyToMany.class)) z = f.getAnnotation(ManyToMany.class).mappedBy();
-                if (field.getName().equals(z) && (field.getType().equals(f.getType()) || field.getType().equals(ReflectionHelper.getGenericClass(field.getGenericType())))) {
+                // debe coincidir el nombre y el tipo
+                if (field.getName().equals(z) && (field.getDeclaringClass().equals(f.getType()) || field.getDeclaringClass().equals(ReflectionHelper.getGenericClass(f.getGenericType())))) {
                     mfn = f.getName();
                     break;
                 }
