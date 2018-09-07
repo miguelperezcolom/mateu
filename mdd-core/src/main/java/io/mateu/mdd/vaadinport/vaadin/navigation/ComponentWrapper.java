@@ -2,6 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.navigation;
 
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
+import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
@@ -39,7 +40,7 @@ public class ComponentWrapper extends VerticalLayout {
     }
 
     private Component createTitleLabel(Component component) {
-        titleLabel = new Label();
+        titleLabel = new Label("", ContentMode.HTML);
         titleLabel.addStyleName("viewTitle");
 
         if (component != null) updateViewTitle(component.toString());
