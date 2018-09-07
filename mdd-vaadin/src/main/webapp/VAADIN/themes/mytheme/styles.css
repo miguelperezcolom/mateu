@@ -18353,6 +18353,10 @@ div.v-layout.v-horizontal.v-widget {
 	text-align: right;
 }
 
+.mytheme .kpi .v-label-centered {
+	text-align: center;
+}
+
 .mytheme .section {
 	margin-right: 50px;
 	max-width: 500px;

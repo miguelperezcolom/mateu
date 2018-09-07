@@ -11,4 +11,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD}) //can use in method only.
 public @interface KPI {
+
+    boolean reversed() default false;
+
 }

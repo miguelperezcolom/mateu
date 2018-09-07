@@ -235,7 +235,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 if (v == null) s = "";
                 else {
                     if (v instanceof Boolean) {
-                        if ((Boolean)v) {
+                        if ((Boolean)v && !kpi.getAnnotation(KPI.class).reversed()) {
                             s = VaadinIcons.CHECK.getHtml();
                             l.addStyleName(ValoTheme.BUTTON_FRIENDLY);
                         } else {
