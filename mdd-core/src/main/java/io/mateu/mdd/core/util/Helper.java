@@ -223,7 +223,7 @@ public class Helper {
                 StringBuffer sb = new StringBuffer();
                 for (ConstraintViolation v : cve.getConstraintViolations()) {
                     if (sb.length() > 0) sb.append("\n");
-                    sb.append(v.getMessage());
+                    sb.append("" + v.getPropertyPath() + " " + v.getMessage());
                 }
                 System.out.println(sb.toString());
                 if (em.getTransaction().isActive()) em.getTransaction().rollback();
