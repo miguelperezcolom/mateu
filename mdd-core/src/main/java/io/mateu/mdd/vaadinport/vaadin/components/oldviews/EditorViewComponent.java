@@ -242,6 +242,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                             s = VaadinIcons.CLOSE.getHtml();
                             l.addStyleName(ValoTheme.BUTTON_DANGER);
                         }
+                        l.addStyleName("centered");
                     } else {
                         s = "" + v;
                     }
