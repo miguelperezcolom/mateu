@@ -231,7 +231,22 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             @Override
             public void setValue(Object o) {
                 v = o;
-                l.setValue((o != null)?"" + o:"");
+                String s = "";
+                if (v == null) s = "";
+                else {
+                    if (v instanceof Boolean) {
+                        if ((Boolean)v) {
+                            s = VaadinIcons.CHECK.getHtml();
+                            l.addStyleName(ValoTheme.BUTTON_FRIENDLY);
+                        } else {
+                            s = VaadinIcons.CLOSE.getHtml();
+                            l.addStyleName(ValoTheme.BUTTON_DANGER);
+                        }
+                    } else {
+                        s = "" + v;
+                    }
+                }
+                l.setValue(s);
             }
 
             @Override

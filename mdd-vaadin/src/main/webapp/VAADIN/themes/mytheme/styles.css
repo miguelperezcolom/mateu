@@ -18833,6 +18833,22 @@ div.v-layout.v-horizontal.v-widget {
 	background-color: rgba(146, 12, 2, 0.2);
 }
 
+.mytheme .v-label-danger {
+	color: darkred;
+}
+
+.mytheme .v-label-friendly {
+	color: darkgreen;
+}
+
+.mytheme .v-label-primary {
+	color: blue;
+}
+
+.mytheme .v-label-centered {
+	text-align: center;
+}
+
 .mytheme .o-closed {
 	background-color: #ef786f !important;
 }
