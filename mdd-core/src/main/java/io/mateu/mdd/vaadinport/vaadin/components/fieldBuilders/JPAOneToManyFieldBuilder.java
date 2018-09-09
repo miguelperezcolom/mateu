@@ -7,6 +7,8 @@ import com.vaadin.data.*;
 import com.vaadin.data.Converter;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.validator.BeanValidator;
+import com.vaadin.event.selection.SelectionEvent;
+import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.Registration;
 import com.vaadin.ui.*;
@@ -28,6 +30,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 
 public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
@@ -77,9 +80,6 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
         if (field.isAnnotationPresent(UseChips.class)) {
 
-
-
-
             HorizontalLayout hl = new HorizontalLayout();
             hl.addStyleName("nopadding");
 
@@ -112,31 +112,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             container.addComponent(tf);
 
-            if (field.isAnnotationPresent(DataProvider.class)) {
-
-                try {
-
-                    DataProvider a = field.getAnnotation(DataProvider.class);
-
-                    ((HasDataProvider)tf).setDataProvider(a.dataProvider().newInstance());
-
-                    tf.setItemCaptionGenerator(a.itemCaptionGenerator().newInstance());
-
-                } catch (InstantiationException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-
-            } else {
-
-                try {
-                    Helper.notransact((em) -> tf.setDataProvider(new JPQLListDataProvider(em, field)));
-                } catch (Throwable throwable) {
-                    throwable.printStackTrace();
-                }
-
-            }
+            JPAManyToOneFieldBuilder.setDataProvider(tf, field, binder);
 
             tf.addValueChangeListener(e -> updateReferences(binder, field, e));
 
@@ -184,30 +160,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             CheckBoxGroup cbg = new CheckBoxGroup();
 
-
-            if (field.isAnnotationPresent(DataProvider.class)) {
-
-                try {
-
-                    DataProvider a = field.getAnnotation(DataProvider.class);
-
-                    ((HasDataProvider)cbg).setDataProvider(a.dataProvider().newInstance());
-
-                    cbg.setItemCaptionGenerator(a.itemCaptionGenerator().newInstance());
-
-                } catch (InstantiationException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-
-            } else {
-                try {
-                    Helper.notransact(em -> cbg.setDataProvider((new JPQLListDataProvider(em, field))));
-                } catch (Throwable throwable) {
-                    MDD.alert(throwable);
-                }
-            }
+            JPAManyToOneFieldBuilder.setDataProvider(cbg, field, binder);
 
             cbg.addValueChangeListener(e -> updateReferences(binder, field, e));
 
@@ -253,8 +206,6 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             g.setCaption(ReflectionHelper.getCaption(field));
 
-            bind(binder, g, field);
-
             HorizontalLayout hl = new HorizontalLayout();
 
             Button b;
@@ -262,6 +213,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             if (owned) {
 
                 g.setHeightByRows(5);
+
+                bind(binder, g, field);
 
                 if (inline) {
 
@@ -335,40 +288,81 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             } else {
 
-                g.addItemClickListener(e -> {
-                    if (MDD.isMobile() || e.getMouseEventDetails().isDoubleClick()) {
-                        Object i = e.getItem();
-                        if (i != null) {
-                            MDDUI.get().getNavegador().go(field.getName());
+
+                io.mateu.mdd.core.annotations.DataProvider dpa = (field.isAnnotationPresent(io.mateu.mdd.core.annotations.DataProvider.class)) ? field.getAnnotation(io.mateu.mdd.core.annotations.DataProvider.class) : null;
+
+                boolean seleccion = false;
+
+                if (dpa == null) {
+
+                    Method mdp = ReflectionHelper.getMethod(field.getDeclaringClass(), ReflectionHelper.getGetter(field.getName()) + "DataProvider");
+
+                    seleccion = mdp != null;
+
+                } else seleccion = true;
+
+
+                if (seleccion) { // queremos seleccionar valores de entre una lista
+
+
+                    JPAManyToOneFieldBuilder.setDataProvider(g, field, binder);
+
+
+                    bindSelection(binder, g, field);
+
+
+                } else {
+
+                    bind(binder, g, field);
+
+
+                    g.addItemClickListener(e -> {
+                        if (MDD.isMobile() || e.getMouseEventDetails().isDoubleClick()) {
+                            Object i = e.getItem();
+                            if (i != null) {
+                                MDDUI.get().getNavegador().go(field.getName());
+                            }
                         }
-                    }
-                });
+                    });
 
-                hl.addComponent(b = new Button("Add items", VaadinIcons.PLUS));
-                b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+                    hl.addComponent(b = new Button("Add items", VaadinIcons.PLUS));
+                    b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
 
-                hl.addComponent(b = new Button("Remove selection", VaadinIcons.MINUS));
-                b.addClickListener(e -> {
-                    try {
-                        Object bean = binder.getBean();
-                        Set l = g.getSelectedItems();
+                    hl.addComponent(b = new Button("Remove selection", VaadinIcons.MINUS));
+                    b.addClickListener(e -> {
+                        try {
+                            Object bean = binder.getBean();
+                            Set l = g.getSelectedItems();
 
-                        ReflectionHelper.removeFromCollection(binder, field, bean, l);
+                            ReflectionHelper.removeFromCollection(binder, field, bean, l);
 
 
-                        binder.setBean(bean, false);
-                    } catch (Exception e1) {
-                        MDD.alert(e1);
-                    }
-                });
+                            binder.setBean(bean, false);
+                        } catch (Exception e1) {
+                            MDD.alert(e1);
+                        }
+                    });
+
+                }
+
             }
 
-            VerticalLayout vl;
-            container.addComponent(vl = new VerticalLayout(g, hl));
-            vl.addStyleName("nopadding");
+            if (hl.getComponentCount() > 0) {
+
+                VerticalLayout vl;
+                container.addComponent(vl = new VerticalLayout(g, hl));
+                vl.addStyleName("nopadding");
+
+            } else {
+
+                container.addComponent(g);
+
+            }
+
         }
 
     }
+
 
     private boolean isEditableInline(FieldInterfaced f) {
 
@@ -548,6 +542,70 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
         aux.bind(field.getName());
     }
+
+    private void bindSelection(MDDBinder binder, Grid g, FieldInterfaced field) {
+        Binder.BindingBuilder aux = binder.forField(new HasValue() {
+
+            List<ValueChangeListener> valueChangeListeners = new ArrayList<>();
+
+            {
+                g.getSelectionModel().addSelectionListener(e -> {
+                    ValueChangeEvent vce = new ValueChangeEvent(g,  this, null, e.isUserOriginated());
+                    valueChangeListeners.forEach(l -> l.valueChange(vce));
+                });
+            }
+
+
+            @Override
+            public void setValue(Object o) {
+                g.deselectAll();
+                if (o != null) {
+                    if (o instanceof Collection) ((Collection)o).forEach(i -> g.select(i));
+                    else g.select(o);
+                }
+            }
+
+            @Override
+            public Object getValue() {
+                return g.getSelectedItems();
+            }
+
+            @Override
+            public Registration addValueChangeListener(ValueChangeListener valueChangeListener) {
+                valueChangeListeners.add(valueChangeListener);
+                return new Registration() {
+                    @Override
+                    public void remove() {
+                        valueChangeListeners.remove(valueChangeListener);
+                    }
+                };
+            }
+
+            @Override
+            public void setRequiredIndicatorVisible(boolean b) {
+
+            }
+
+            @Override
+            public boolean isRequiredIndicatorVisible() {
+                return false;
+            }
+
+            @Override
+            public void setReadOnly(boolean b) {
+
+            }
+
+            @Override
+            public boolean isReadOnly() {
+                return false;
+            }
+        });
+
+        aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+        aux.bind(field.getName());
+    }
+
 
 
     private void bind(MDDBinder binder, CssLayout l, FieldInterfaced field) {

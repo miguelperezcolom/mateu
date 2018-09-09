@@ -16,8 +16,10 @@ import java.util.Set;
 
 public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvider implements com.vaadin.data.provider.DataProvider {
 
+
     private FieldInterfaced field;
     private Class entityClass;
+    private Class targetClass;
     private String jpql;
 
     public JPQLListDataProvider(Collection items) {
@@ -27,6 +29,12 @@ public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvi
     public JPQLListDataProvider(String jpql) throws Throwable {
         super(Helper.selectObjects(jpql));
         this.jpql = jpql;
+    }
+
+    public JPQLListDataProvider(String jpql, Class targetClass) throws Throwable {
+        super(Helper.selectObjects(jpql, targetClass));
+        this.jpql = jpql;
+        this.targetClass = targetClass;
     }
 
     public JPQLListDataProvider(EntityManager em, String jpql) {
@@ -99,7 +107,11 @@ public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvi
             }
         } else if (jpql != null) {
             try {
-                Helper.transact(em -> refresh(em.createQuery(jpql)));
+                if (targetClass != null) {
+                    Helper.transact(em -> refresh(em.createQuery(jpql, targetClass)));
+                } else {
+                    Helper.transact(em -> refresh(em.createQuery(jpql)));
+                }
             } catch (Throwable throwable) {
                 MDD.alert(throwable);
             }

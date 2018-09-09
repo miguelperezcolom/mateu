@@ -28,6 +28,11 @@ public class Wizard2Page1 implements WizardPage {
     }
 
     @Override
+    public boolean hasNext() {
+        return true;
+    }
+
+    @Override
     public WizardPage getNext() {
         return null;
     }

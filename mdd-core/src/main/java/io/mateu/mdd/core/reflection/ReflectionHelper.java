@@ -1413,6 +1413,20 @@ public class ReflectionHelper {
             } else if (field.isAnnotationPresent(ElementCollection.class)) owned = true;
             else if (!ReflectionHelper.getGenericClass(field.getGenericType()).isAnnotationPresent(Entity.class)) owned = true;
 
+
+            if (owned) {
+
+                io.mateu.mdd.core.annotations.DataProvider dpa = (field.isAnnotationPresent(io.mateu.mdd.core.annotations.DataProvider.class)) ? field.getAnnotation(io.mateu.mdd.core.annotations.DataProvider.class) : null;
+
+                if (dpa == null) {
+
+                    Method mdp = ReflectionHelper.getMethod(field.getDeclaringClass(), ReflectionHelper.getGetter(field.getName()) + "DataProvider");
+
+                    owned = mdp == null;
+
+                } else owned = false;
+
+            }
         }
 
         return owned;

@@ -112,8 +112,8 @@ public class WizardComponent extends VerticalLayout {
 
     private void updateButtons() {
         goToPreviousButton.setVisible(stack.size() > 0);
-        goToNextButton.setVisible(currentPage.getNext() != null);
-        okButton.setVisible(currentPage.getNext() == null);
+        goToNextButton.setVisible(currentPage.hasNext());
+        okButton.setVisible(!currentPage.hasNext());
 
         boolean valid = editorViewComponent.getBinder().validate().isOk() && currentPage.isValid();
 

@@ -294,7 +294,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
         bind(binder, hv, field, forSearchFilter, dp);
     }
 
-    private void setDataProvider(HasItems hdp, FieldInterfaced field, MDDBinder binder) {
+    public static void setDataProvider(HasItems hdp, FieldInterfaced field, MDDBinder binder) {
 
         try {
             Helper.notransact((em) -> {
@@ -398,6 +398,8 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                 } else if (hdp instanceof ComboBox) {
                     if (dp != null) ((ComboBox)hdp).setDataProvider(dp);
                     if (icg != null) ((ComboBox)hdp).setItemCaptionGenerator(icg);
+                } else if (hdp instanceof Grid) {
+                    if (dp != null) ((Grid)hdp).setDataProvider(dp);
                 }
 
 

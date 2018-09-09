@@ -288,6 +288,18 @@ public class Helper {
     }
 
 
+    public static List selectObjects(String jpql, Class targetClass) throws Throwable {
+        List l = new ArrayList<>();
+
+        Helper.notransact(em -> {
+
+            l.addAll(em.createQuery(jpql, targetClass).getResultList());
+
+        });
+
+        return l;
+    }
+
     //todo: sql nativo
     public static List<Object[]> sqlSelectPage(String jpql, int offset, int limit) throws Throwable {
         List<Object[]> list = new ArrayList<>();

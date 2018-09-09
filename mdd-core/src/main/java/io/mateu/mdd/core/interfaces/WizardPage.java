@@ -6,6 +6,8 @@ public interface WizardPage {
 
     WizardPage getPrevious();
 
+    boolean hasNext();
+
     WizardPage getNext();
 
     default boolean isValid() {
