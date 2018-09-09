@@ -98,7 +98,7 @@ public class OwnedCollectionComponent extends VerticalLayout {
 
         // incrustamos un nuevo elemento
         //setIndex(collection.size());
-        if (index < 0) setElement(ReflectionHelper.getGenericClass(field.getGenericType()).newInstance(), collection.size());
+        if (index < 0) setIndex(collection.size());
         else getElementAt(index, v -> {
             try {
                 setElement(v, index);
