@@ -893,6 +893,7 @@
     background-color: lightgray;
     border-radius: 1.5em;
     padding-left: 1em;
+    margin: 1px;
     margin-right: 4px;
 
     .v-label {
@@ -1256,4 +1257,9 @@
 
 
 
+
+
+  .cancelled {
+    text-decoration: line-through;
+  }
 }

@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,6 +33,9 @@ public class ManyToOneFieldDemoEntity {
     @ManyToOne
     private ManyToOneFieldDemoDestinationEntity mapped;
 
+    @ManyToOne
+    @NotNull
+    private ManyToOneFieldDemoDestinationEntity simpleNotNull;
 
     @UseRadioButtons
     @ManyToOne

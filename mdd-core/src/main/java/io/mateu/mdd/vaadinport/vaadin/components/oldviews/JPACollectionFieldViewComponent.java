@@ -47,6 +47,11 @@ public class JPACollectionFieldViewComponent extends JPAListViewComponent {
         this.addingToCollection = addingToCollection;
     }
 
+    @Override
+    public void updateExtraFilters() throws Exception {
+        setExtraFilters(createExtraFields(field, evfc, addingToCollection));
+    }
+
     public FieldInterfaced getField() {
         return field;
     }
@@ -82,7 +87,18 @@ public class JPACollectionFieldViewComponent extends JPAListViewComponent {
                         MDD.alert(e1);
                     }
 
-                    MDDUI.get().getNavegador().goBack();
+                    if (field.isAnnotationPresent(UseLinkToListView.class)) {
+                        try {
+
+                            evfc.save(false);
+
+                            MDDUI.get().getNavegador().goBack();
+
+                        } catch (Throwable throwable) {
+                            MDD.alert(throwable);
+                        }
+                    }
+
                 }
             });
         } else l.add(new AbstractAction("Add selected") {
@@ -95,22 +111,9 @@ public class JPACollectionFieldViewComponent extends JPAListViewComponent {
 
                         getSelection().forEach(o -> {
                             Object m = evfc.getModel();
-                            Object oid = o;
-
-
-                            Object e = null;
-
-                            if (oid instanceof Object[]) {
-                                e = em.find(field.getGenericClass(), ((Object[]) oid)[0]);
-                            } else if (oid instanceof EntityProvider) {
-                                e = ((EntityProvider) oid).toEntity(em);
-                            } else {
-                                e = em.find(field.getGenericClass(), oid);
-                            }
-
 
                             try {
-                                ReflectionHelper.addToCollection(evfc.getBinder(), field, m, e);
+                                ReflectionHelper.addToCollection(evfc.getBinder(), field, m, o);
                             } catch (Exception e1) {
                                 MDD.alert(e1);
                             }

@@ -10,9 +10,7 @@ import io.mateu.mdd.core.util.Helper;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvider implements com.vaadin.data.provider.DataProvider {
 
@@ -43,6 +41,21 @@ public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvi
 
     public JPQLListDataProvider(Query q) {
         super(q.getResultList());
+    }
+
+    public JPQLListDataProvider(Class entityClass) {
+        super(getInstances(entityClass));
+        this.entityClass = entityClass;
+    }
+
+    private static Collection getInstances(Class entityClass) {
+        List col = new ArrayList();
+        try {
+            Helper.notransact(em -> col.addAll(buildQuery(em, entityClass, null).getResultList()));
+        } catch (Throwable throwable) {
+            MDD.alert(throwable);
+        }
+        return col;
     }
 
     public JPQLListDataProvider(EntityManager em, Class entityClass) {

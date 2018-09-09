@@ -181,10 +181,16 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             List<FieldInterfaced> editableFields = ReflectionHelper.getAllEditableFields(ReflectionHelper.getGenericClass(field.getGenericType()), field.getDeclaringClass());
 
 
+            Class targetClass = field.getGenericClass();
+
+
+            Set<Class> subclasses = ReflectionHelper.getSubclasses(targetClass);
+
+
             boolean inline = false;
 
             if (owned) {
-                inline = editableFields.size() <= colFields.size();
+                inline = editableFields.size() <= colFields.size() && subclasses.size() == 0;
 
                 if (inline) for (FieldInterfaced f : colFields) {
                     if (!isEditableInline(f)) {
@@ -192,6 +198,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                         break;
                     }
                 }
+
+
 
             }
 

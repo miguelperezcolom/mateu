@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.vaadin.data.*;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.validator.BeanValidator;
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.shared.Registration;
 import com.vaadin.ui.*;
@@ -33,7 +34,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
 
     public boolean isSupported(FieldInterfaced field) {
-        return field.isAnnotationPresent(ManyToOne.class);
+        return field.isAnnotationPresent(ManyToOne.class) || field.getType().isAnnotationPresent(Entity.class);
     }
 
     public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
@@ -111,7 +112,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                         if (o != null) {
                             Object id = ReflectionHelper.getId(o);
                             stf.setValue((id != null)?"" + id:"");
-                        }
+                        } else stf.setValue("");
                         l.setValue((o != null)?"" + o:"No value");
                     }
 
@@ -155,7 +156,12 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
                 HasValue finalHv = hv;
                 stf.addValueChangeListener(s -> {
-                    if (Strings.isNullOrEmpty(s.getValue())) finalHv.setValue(null);
+                    if (Strings.isNullOrEmpty(s.getValue())) {
+                        Object oldValue = finalHv.getValue();
+                        finalHv.setValue(null);
+                        HasValue.ValueChangeEvent vce = new HasValue.ValueChangeEvent(stf, finalHv, oldValue, true);
+                        listeners.forEach(listener -> listener.valueChange(vce));
+                    }
                     else {
                         try {
                             Helper.notransact(em -> {
@@ -249,19 +255,22 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                     com.vaadin.data.provider.DataProvider dpx = (hv instanceof ComboBox)?((ComboBox)hv).getDataProvider():((hv instanceof RadioButtonGroup)?((RadioButtonGroup)hv).getDataProvider():null);
 
                     if (dpx != null && dpx instanceof JPQLListDataProvider) {
-                        b = new Button("Refresh");
-                        b.addStyleName(ValoTheme.BUTTON_LINK);
+                        b = new Button(null, VaadinIcons.REFRESH);
+                        b.addStyleName(ValoTheme.BUTTON_QUIET);
+                        b.addStyleName("nopadding");
                         b.addClickListener(e -> ((JPQLListDataProvider)dpx).refresh());
                         hl.addComponent(b);
                     }
 
-                    b = new Button("Edit");
-                    b.addStyleName(ValoTheme.BUTTON_LINK);
+                    b = new Button(null, VaadinIcons.EDIT);
+                    b.addStyleName(ValoTheme.BUTTON_QUIET);
+                    b.addStyleName("nopadding");
                     b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
                     hl.addComponent(b);
 
-                    b = new Button("Add");
-                    b.addStyleName(ValoTheme.BUTTON_LINK);
+                    b = new Button(null, VaadinIcons.PLUS);
+                    b.addStyleName(ValoTheme.BUTTON_QUIET);
+                    b.addStyleName("nopadding");
                     b.addClickListener(e -> {
 
                         Object bean = binder.getBean();
@@ -320,12 +329,25 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
                                     if (hdp instanceof RadioButtonGroup) {
                                         ((RadioButtonGroup)hdp).setDataProvider(dpx);
+                                    } else if (hdp instanceof CheckBoxGroup) {
+                                        ((CheckBoxGroup)hdp).setDataProvider(dpx);
                                     } else if (hdp instanceof ComboBox) {
                                         ((ComboBox)hdp).setDataProvider(dpx);
+                                    } else if (hdp instanceof TwinColSelect) {
+                                        ((TwinColSelect)hdp).setDataProvider(dpx);
+                                    } else if (hdp instanceof Grid) {
+                                        ((Grid)hdp).setDataProvider(dpx);
+                                    }
+
+                                    Object v = null;
+                                    if (hdp instanceof ComboBox && field.isAnnotationPresent(NotNull.class)) {
+                                        if (((ComboBox)hdp).getDataProvider().size(null) == 1) {
+                                            v = ((ComboBox)hdp).getDataProvider().fetch(null).findFirst().get();
+                                        }
                                     }
 
                                     Object bean = binder.getBean();
-                                    ReflectionHelper.setValue(field, bean, null);
+                                    ReflectionHelper.setValue(field, bean, v);
                                     binder.setBean(bean, false);
 
                                 } catch (Exception e1) {
@@ -395,11 +417,30 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                 if (hdp instanceof RadioButtonGroup) {
                     if (dp != null) ((RadioButtonGroup)hdp).setDataProvider(dp);
                     if (icg != null) ((RadioButtonGroup)hdp).setItemCaptionGenerator(icg);
+                } else if (hdp instanceof CheckBoxGroup) {
+                    if (dp != null) ((CheckBoxGroup)hdp).setDataProvider(dp);
+                    if (icg != null) ((CheckBoxGroup)hdp).setItemCaptionGenerator(icg);
                 } else if (hdp instanceof ComboBox) {
                     if (dp != null) ((ComboBox)hdp).setDataProvider(dp);
                     if (icg != null) ((ComboBox)hdp).setItemCaptionGenerator(icg);
+                } else if (hdp instanceof TwinColSelect) {
+                    if (dp != null) ((TwinColSelect)hdp).setDataProvider(dp);
+                    if (icg != null) ((TwinColSelect)hdp).setItemCaptionGenerator(icg);
                 } else if (hdp instanceof Grid) {
                     if (dp != null) ((Grid)hdp).setDataProvider(dp);
+                }
+
+
+                if (hdp instanceof ComboBox && field.isAnnotationPresent(NotNull.class)) {
+                    com.vaadin.data.provider.Query q = new com.vaadin.data.provider.Query();
+                    if (((ComboBox)hdp).getDataProvider().size(q) == 1) {
+                        Object v = null;
+                        v = ((ComboBox)hdp).getDataProvider().fetch(q).findFirst().get();
+
+                        Object bean = binder.getBean();
+                        ReflectionHelper.setValue(field, bean, v);
+                        binder.setBean(bean, false);
+                    }
                 }
 
 

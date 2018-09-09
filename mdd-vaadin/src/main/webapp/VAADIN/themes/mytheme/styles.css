@@ -18702,6 +18702,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-color: lightgray;
 	border-radius: 1.5em;
 	padding-left: 1em;
+	margin: 1px;
 	margin-right: 4px;
 }
 
@@ -19034,4 +19035,8 @@ div.v-layout.v-horizontal.v-widget {
 
 .mytheme .random-30 {
 	background-color: #b57001;
+}
+
+.mytheme .cancelled {
+	text-decoration: line-through;
 }

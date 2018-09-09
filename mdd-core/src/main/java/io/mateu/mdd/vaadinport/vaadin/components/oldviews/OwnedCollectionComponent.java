@@ -11,12 +11,18 @@ import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import io.mateu.mdd.vaadinport.vaadin.components.ClassOption;
 import io.mateu.mdd.vaadinport.vaadin.navigation.MDDViewComponentCreator;
+import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 
 import javax.persistence.Entity;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
 
 public class OwnedCollectionComponent extends VerticalLayout {
 
@@ -93,7 +99,13 @@ public class OwnedCollectionComponent extends VerticalLayout {
         // incrustamos un nuevo elemento
         //setIndex(collection.size());
         if (index < 0) setElement(ReflectionHelper.getGenericClass(field.getGenericType()).newInstance(), collection.size());
-        else setElement(getElementAt(index), index);
+        else getElementAt(index, v -> {
+            try {
+                setElement(v, index);
+            } catch (Exception e) {
+                MDD.alert(e);
+            }
+        });
 
         addAttachListener(x -> {
             System.out.println("attached!");
@@ -179,21 +191,46 @@ public class OwnedCollectionComponent extends VerticalLayout {
 
     public void setIndex(int index) throws Exception {
 
-        Object v = getElementAt(index);
-
-        setElement(v, index);
+        getElementAt(index, v -> {
+            try {
+                setElement(v, index);
+            } catch (Exception e) {
+                MDD.alert(e);
+            }
+        });
 
     }
 
-    private Object getElementAt(int index) throws Exception {
+    private void getElementAt(int index, Consumer consumer) throws Exception {
         Object v = null;
 
         if (index == collection.size()) {
-            v = ReflectionHelper.getGenericClass(field.getGenericType()).newInstance();
 
-            if (field.getType().isAnnotationPresent(Entity.class)) {
+            Set<Class> subClasses = ReflectionHelper.getSubclasses(ReflectionHelper.getGenericClass(field.getGenericType()));
 
-                ReflectionHelper.reverseMap(parentBinder, field, parentBinder.getBean(), v);
+            if (subClasses.size() > 1) {
+
+                Set<ClassOption> subClassesOptions = new LinkedHashSet<>();
+                subClasses.forEach(c -> subClassesOptions.add(new ClassOption(c)));
+
+                VaadinHelper.choose("Please choose type", subClassesOptions, c -> {
+                    try {
+                        consumer.accept(((ClassOption)c).get_class().newInstance());
+                    } catch (Exception e) {
+                        MDD.alert(e);
+                    }
+                }, () -> MDDUI.get().getNavegador().goBack());
+            } else if (subClasses.size() == 1) {
+                v = subClasses.iterator().next().newInstance();
+            } else {
+
+                v = ReflectionHelper.getGenericClass(field.getGenericType()).newInstance();
+
+                if (field.getType().isAnnotationPresent(Entity.class)) {
+
+                    ReflectionHelper.reverseMap(parentBinder, field, parentBinder.getBean(), v);
+
+                }
 
             }
 
@@ -211,6 +248,6 @@ public class OwnedCollectionComponent extends VerticalLayout {
             }
         }
 
-        return v;
+        consumer.accept(v);
     }
 }

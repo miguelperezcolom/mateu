@@ -137,6 +137,9 @@ public class JPAListViewComponent extends ListViewComponent {
         return null;
     }
 
+    public Object getFilters() {
+        return filters;
+    }
 
     @Override
     public List findAll(Object filters, List<QuerySortOrder> sortOrders, int offset, int limit) {
@@ -147,7 +150,7 @@ public class JPAListViewComponent extends ListViewComponent {
                 @Override
                 public void run(EntityManager em) throws Throwable {
 
-                    Query q = buildQuery(em, (alias) -> buildFieldsPart(alias), filters, sortOrders, null, offset, limit, true);
+                    Query q = buildQuery(em, (alias) -> buildFieldsPart(alias), getFilters(), sortOrders, null, offset, limit, true);
 
                     l.addAll(q.getResultList());
 
@@ -257,6 +260,11 @@ public class JPAListViewComponent extends ListViewComponent {
 
         String ql = "";
 
+        try {
+            updateExtraFilters();
+        } catch (Exception e) {
+            MDD.alert(e);
+        }
 
         if (extraFilters != null && !Strings.isNullOrEmpty(extraFilters.getQl())) {
 
@@ -330,6 +338,9 @@ public class JPAListViewComponent extends ListViewComponent {
         }
 
         return ql;
+    }
+
+    public void updateExtraFilters() throws Exception {
     }
 
     private String buildFieldsPart(Map<FieldInterfaced, String> alias) {
@@ -528,12 +539,25 @@ public class JPAListViewComponent extends ListViewComponent {
 
     @Override
     public void decorateGrid(Grid grid) {
-        if (GridDecorator.class.isAssignableFrom(entityClass)) {
-            try {
-                ((GridDecorator)ReflectionHelper.newInstance(entityClass)).decorateGrid(grid);
-            } catch (Exception e) {
-                MDD.alert(e);
+        GridDecorator d = null;
+        try {
+            Method m = ReflectionHelper.getMethod(entityClass, "getGridDecorator");
+            if (m != null) {
+                if (Modifier.isStatic(m.getModifiers())) {
+                    d = (GridDecorator) m.invoke(null);
+                } else {
+                    d = (GridDecorator) m.invoke(ReflectionHelper.newInstance(entityClass));
+                }
+            } else {
+                if (GridDecorator.class.isAssignableFrom(entityClass)) {
+                    d = (GridDecorator)ReflectionHelper.newInstance(entityClass);
+                }
             }
+            if (d != null) {
+                d.decorateGrid(grid);
+            }
+        } catch (Exception e) {
+            MDD.alert(e);
         }
     }
 
@@ -543,5 +567,19 @@ public class JPAListViewComponent extends ListViewComponent {
 
     public void setExtraFilters(ExtraFilters extraFilters) {
         this.extraFilters = extraFilters;
+    }
+
+
+    @Override
+    public Set getSelection() {
+        Set sel = new HashSet();
+
+        try {
+            Helper.notransact(em -> super.getSelection().forEach(o -> sel.add(em.find(entityClass, toId(o)))));
+        } catch (Throwable throwable) {
+            MDD.alert(throwable);
+        }
+
+        return sel;
     }
 }
