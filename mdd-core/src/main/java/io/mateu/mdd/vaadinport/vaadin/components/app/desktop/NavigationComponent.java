@@ -53,7 +53,7 @@ public class NavigationComponent extends VerticalLayout {
 
                     Button b = new Button(a.getName() + ((app.getAreas().size() > 1)?"<span class=\"menu-badge\">+" + (app.getAreas().size() - 1) + "</span>":"")
                             , ev -> MDDUI.get().getNavegador().goTo(((a.isPublicAccess())?"public":"private"))); //, a.getIcon());
-                    //b.setIcon(FontAwesome.TH_LIST);
+                    b.setIcon(a.getIcon());
                     b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
                     b.setCaptionAsHtml(true);
                     b.addStyleName("tituloarea");

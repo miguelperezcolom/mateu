@@ -938,11 +938,11 @@ public class ReflectionHelper {
         ).collect(Collectors.toList());
 
 
-        if (superType != null || !includeReverseMappers) {
+        if (superType != null && !includeReverseMappers) {
 
             List<FieldInterfaced> manytoones = allFields.stream().filter(f -> f.isAnnotationPresent(ManyToOne.class)).collect(Collectors.toList());
 
-            for (FieldInterfaced manytoonefield : manytoones) if (!includeReverseMappers || superType.equals(manytoonefield.getType())) {
+            for (FieldInterfaced manytoonefield : manytoones) if (superType.equals(manytoonefield.getType())) {
 
                 for (FieldInterfaced parentField : ReflectionHelper.getAllFields(manytoonefield.getType())) {
                     // quitamos el campo mappedBy de las columnas, ya que se supone que siempre seremos nosotros

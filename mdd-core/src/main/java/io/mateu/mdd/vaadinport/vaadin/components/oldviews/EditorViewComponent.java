@@ -1,10 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.google.common.base.Strings;
-import com.vaadin.data.HasValue;
-import com.vaadin.data.ValidationResult;
-import com.vaadin.data.Validator;
-import com.vaadin.data.ValueContext;
+import com.vaadin.data.*;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.ErrorMessage;
@@ -167,7 +164,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             }
 
 
-            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, model.getClass(), model, validators, ReflectionHelper.getAllEditableFields(model.getClass(), (owner != null)?owner.getClass():null, owner == null));
+            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, model.getClass(), model, validators, ReflectionHelper.getAllEditableFields(model.getClass(), (owner != null)?owner.getClass():null, false));
 
             stylist = r.getValue();
 
@@ -222,7 +219,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         vl.addComponent(l = new Label());
         l.addStyleName("valor");
         l.setContentMode(ContentMode.HTML);
-        binder.forField(new HasValue() {
+        Binder.Binding binding = binder.forField(new HasValue() {
 
             Object v = null;
 
@@ -233,7 +230,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 if (v == null) s = "";
                 else {
                     if (v instanceof Boolean) {
-                        if ((Boolean)v && !kpi.getAnnotation(KPI.class).reversed()) {
+                        if ((Boolean) v && !kpi.getAnnotation(KPI.class).reversed()) {
                             s = VaadinIcons.CHECK.getHtml();
                             l.addStyleName(ValoTheme.BUTTON_FRIENDLY);
                         } else {

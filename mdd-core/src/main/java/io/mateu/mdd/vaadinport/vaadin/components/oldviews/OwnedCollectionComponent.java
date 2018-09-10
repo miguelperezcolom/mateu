@@ -49,6 +49,10 @@ public class OwnedCollectionComponent extends VerticalLayout {
         this(parentBinder, field, -1);
     }
 
+    public MDDBinder getParentBinder() {
+        return parentBinder;
+    }
+
     public OwnedCollectionComponent(MDDBinder parentBinder, FieldInterfaced field, int index) throws Exception {
 
         this.parentBinder = parentBinder;
@@ -222,6 +226,7 @@ public class OwnedCollectionComponent extends VerticalLayout {
                 }, () -> MDDUI.get().getNavegador().goBack());
             } else if (subClasses.size() == 1) {
                 v = subClasses.iterator().next().newInstance();
+                consumer.accept(v);
             } else {
 
                 v = ReflectionHelper.getGenericClass(field.getGenericType()).newInstance();
@@ -231,6 +236,8 @@ public class OwnedCollectionComponent extends VerticalLayout {
                     ReflectionHelper.reverseMap(parentBinder, field, parentBinder.getBean(), v);
 
                 }
+
+                consumer.accept(v);
 
             }
 
@@ -246,8 +253,9 @@ public class OwnedCollectionComponent extends VerticalLayout {
                     }
                 }
             }
+            consumer.accept(v);
         }
 
-        consumer.accept(v);
+
     }
 }
