@@ -150,7 +150,7 @@ public class MDDNavigator {
         goTo(state);
     }
 
-    public void showResult(String currentState, Method m, Object r, MDDExecutionContext context, boolean addStep) {
+    public void showResult(String currentState, Method m, Object r, MDDExecutionContext context, boolean addStep) throws InstantiationException, IllegalAccessException {
 
         if (addStep) {
             if (!currentState.endsWith("/")) currentState += "/";

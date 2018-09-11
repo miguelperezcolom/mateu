@@ -19,4 +19,17 @@ public interface RpcView<F, C> {
 
     };
 
+    default boolean isDoubleClickHandled() { return false; }
+
+    default Object onDoubleClick(String id) {
+        return null;
+    }
+
+
+    default boolean isClickHandled() { return false; }
+
+    default Object onClick(String id) {
+        return null;
+    }
+
 }

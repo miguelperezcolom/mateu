@@ -10,9 +10,7 @@ import io.mateu.mdd.core.interfaces.PersistentPOJO;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.MethodResultViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.WizardComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
 
 import javax.persistence.Entity;
 import javax.persistence.Query;
@@ -27,6 +25,14 @@ public class MethodResultViewFlowComponent extends VerticalLayout {
     private final Method method;
     private final Object result;
 
+    public Method getMethod() {
+        return method;
+    }
+
+    public Object getResult() {
+        return result;
+    }
+
     @Override
     public String toString() {
         if (result != null && result instanceof WizardPage) {
@@ -38,7 +44,7 @@ public class MethodResultViewFlowComponent extends VerticalLayout {
         }
     }
 
-    public MethodResultViewFlowComponent(String state, Method method, Object result) {
+    public MethodResultViewFlowComponent(String state, Method method, Object result) throws IllegalAccessException, InstantiationException {
         this.result = result;
         this.method = method;
 
@@ -47,16 +53,17 @@ public class MethodResultViewFlowComponent extends VerticalLayout {
 
         addStyleName("methodresultflowcomponent");
 
-        if (result instanceof Component) addComponent((Component) result);
-        else if (!method.isAnnotationPresent(Output.class) && isPOJO(result)) addComponent(new EditorViewComponent(result));
+        if (result instanceof AbstractViewComponent) addComponent(((AbstractViewComponent) result).build());
+        else if (result instanceof Component) addComponent((Component) result);
+        else if (!method.isAnnotationPresent(Output.class) && isPOJO(result))
+            addComponent(new EditorViewComponent(result));
         else if (result instanceof WizardPage) {
             try {
                 addComponent(new WizardComponent((WizardPage) result));
             } catch (Exception e) {
                 MDD.alert(e);
             }
-        }
-        else addComponent(new MethodResultViewComponent(method, result));
+        } else addComponent(new MethodResultViewComponent(method, result));
 
     }
 

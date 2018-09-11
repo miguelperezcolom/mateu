@@ -38,6 +38,10 @@ public class MethodResultViewComponent extends AbstractViewComponent {
         return binder.getMergeables();
     }
 
+    public Object getResult() {
+        return result;
+    }
+
     public MethodResultViewComponent(Method method, Object result) {
 
         this.result = result;

@@ -10,6 +10,7 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.interfaces.EntityProvider;
+import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
@@ -400,6 +401,8 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                         Component lastViewComponent = lastView.getComponent();
 
+                        if (lastViewComponent instanceof  MethodResultViewFlowComponent && ((MethodResultViewFlowComponent)lastViewComponent).getResult() instanceof AbstractViewComponent) lastViewComponent = (Component) ((MethodResultViewFlowComponent)lastViewComponent).getResult();
+
 
                         if (lastViewComponent instanceof JPACollectionFieldCRUDViewComponent && "add".equals(step)) {
 
@@ -429,11 +432,23 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                             Method method = lvc.getMethod(step);
 
+                            if (method == null && !"filters".equals(step) && lastViewComponent instanceof RpcListViewComponent) {
+                                try {
+                                    method = ((RpcListViewComponent)lastViewComponent).getRpcListView().getClass().getMethod("onDoubleClick", String.class);
+                                    pendingResult = ((RpcListViewComponent)lastViewComponent).getRpcListView().onDoubleClick(step);
+                                } catch (NoSuchMethodException e) {
+                                    MDD.alert(e);
+                                }
+                            }
 
                             if (method != null) {
 
                                 if (pendingResult != null) {
-                                    stack.push(currentPath, new MethodResultViewFlowComponent(state, method, pendingResult));
+                                    try {
+                                        stack.push(currentPath, new MethodResultViewFlowComponent(state, method, pendingResult));
+                                    } catch (Exception e) {
+                                        MDD.alert(e);
+                                    }
                                     pendingResult = null;
                                 } else {
                                     stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, null, this, null, pendingSelection));
@@ -499,10 +514,23 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                             FieldInterfaced field = evfc.getField(step);
 
+                            if (method == null && field == null && lastViewComponent instanceof RpcListViewComponent) {
+                                try {
+                                    method = ((RpcListViewComponent)lastViewComponent).getRpcListView().getClass().getMethod("onDoubleClick", String.class);
+                                    pendingResult = ((RpcListViewComponent)lastViewComponent).getRpcListView().onDoubleClick(step);
+                                } catch (NoSuchMethodException e) {
+                                    MDD.alert(e);
+                                }
+                            }
+
                             if (method != null) {
 
                                 if (pendingResult != null) {
-                                    stack.push(currentPath, new MethodResultViewFlowComponent(state, method, pendingResult));
+                                    try {
+                                        stack.push(currentPath, new MethodResultViewFlowComponent(state, method, pendingResult));
+                                    } catch (Exception e) {
+                                        MDD.alert(e);
+                                    }
                                     pendingResult = null;
                                 } else {
                                     stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, evfc.getModel(), this, evfc.getBinder(), pendingSelection));

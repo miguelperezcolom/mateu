@@ -10,6 +10,7 @@ import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -23,10 +24,25 @@ public class RpcListViewComponent extends ListViewComponent {
     private RpcView rpcListView;
     private final Class columnType;
 
+    public RpcView getRpcListView() {
+        return rpcListView;
+    }
+
     public RpcListViewComponent(RpcView rpcListView) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         this.rpcListViewClass = rpcListView.getClass();
         this.rpcListView = rpcListView;
         this.columnType = ReflectionHelper.getGenericClass(rpcListViewClass, RpcView.class, "C");
+        addListener(new ListViewComponentListener() {
+            @Override
+            public void onEdit(Object id) {
+                rpcListView.onDoubleClick("" + id);
+            }
+
+            @Override
+            public void onSelect(Object id) {
+                rpcListView.onClick("" + id);
+            }
+        });
     }
 
 
@@ -34,7 +50,17 @@ public class RpcListViewComponent extends ListViewComponent {
         this.rpcListViewClass = rpcListViewClass;
         this.rpcListView = (RpcView) ReflectionHelper.newInstance(rpcListViewClass);
         this.columnType = ReflectionHelper.getGenericClass(rpcListViewClass, RpcView.class, "C");
+        addListener(new ListViewComponentListener() {
+            @Override
+            public void onEdit(Object id) {
+                if (rpcListView.isDoubleClickHandled()) MDDUI.get().getNavegador().go("" + id);
+            }
 
+            @Override
+            public void onSelect(Object id) {
+                if (rpcListView.isClickHandled()) MDDUI.get().getNavegador().go("" + id);
+            }
+        });
     }
 
     @Override

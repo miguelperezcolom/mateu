@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 
 public class JPAListViewComponent extends ListViewComponent {
 
+    private final Map<String,Object> initialValues;
     private ExtraFilters extraFilters;
 
     private final Class entityClass;
@@ -42,12 +43,17 @@ public class JPAListViewComponent extends ListViewComponent {
     private List<SumData> sums;
 
     public JPAListViewComponent(Class entityClass) {
-        this.entityClass = entityClass;
+        this(entityClass, null, null);
     }
 
     public JPAListViewComponent(Class entityClass, ExtraFilters extraFilters) {
+        this(entityClass, extraFilters, null);
+    }
+
+    public JPAListViewComponent(Class entityClass, ExtraFilters extraFilters, Map<String, Object> initialValues) {
         this.entityClass = entityClass;
         this.extraFilters = extraFilters;
+        this.initialValues = initialValues;
     }
 
     @Override
@@ -123,6 +129,15 @@ public class JPAListViewComponent extends ListViewComponent {
             }
             */
             filters = getFiltersType().newInstance();
+            if (initialValues != null) {
+                for (String k : initialValues.keySet()) {
+                    try {
+                        ReflectionHelper.setValue(k, filters, initialValues.get(k));
+                    } catch (Exception e) {
+                        MDD.alert(e);
+                    }
+                }
+            }
         }
         return filters;
     }
