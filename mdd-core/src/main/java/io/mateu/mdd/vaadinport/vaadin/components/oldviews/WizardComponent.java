@@ -5,6 +5,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
+import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.util.Helper;
@@ -30,15 +31,15 @@ public class WizardComponent extends VerticalLayout {
 
     public WizardComponent(WizardPage page) throws IllegalAccessException, InstantiationException {
 
-        addStyleName("nopadding");
+        addStyleName(CSS.NOPADDING);
 
         addComponent(container = new VerticalLayout());
-        container.addStyleName("nopadding");
+        container.addStyleName(CSS.NOPADDING);
 
 
         HorizontalLayout hl;
         addComponent(hl = new HorizontalLayout(goToPreviousButton = new Button(VaadinIcons.ARROW_LEFT), goToNextButton = new Button(VaadinIcons.ARROW_RIGHT), okButton = new Button(VaadinIcons.CHECK)));
-        hl.addStyleName("nopadding");
+        hl.addStyleName(CSS.NOPADDING);
 
         addComponentsAndExpand(new Label(""));
 
@@ -91,7 +92,7 @@ public class WizardComponent extends VerticalLayout {
 
         editorViewComponent = MDDViewComponentCreator.createEditorViewComponent(page.getClass(), false);
         editorViewComponent.setModel(page);
-        editorViewComponent.addStyleName("nopadding");
+        editorViewComponent.addStyleName(CSS.NOPADDING);
 
         editorViewComponent.getBinder().addValueChangeListener(e -> {
             updateButtons();

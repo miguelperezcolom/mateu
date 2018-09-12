@@ -13,6 +13,7 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.Registration;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
@@ -81,10 +82,10 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         if (field.isAnnotationPresent(UseChips.class)) {
 
             HorizontalLayout hl = new HorizontalLayout();
-            hl.addStyleName("nopadding");
+            hl.addStyleName(CSS.NOPADDING);
 
             CssLayout l = new CssLayout();
-            l.addStyleName("nopadding");
+            l.addStyleName(CSS.NOPADDING);
             hl.addComponent(l);
 
             Button b;
@@ -359,7 +360,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                 VerticalLayout vl;
                 container.addComponent(vl = new VerticalLayout(g, hl));
-                vl.addStyleName("nopadding");
+                vl.addStyleName(CSS.NOPADDING);
 
             } else {
 

@@ -6,6 +6,7 @@ import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.ui.*;
+import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -45,7 +46,7 @@ public class JPABooleanFieldBuilder extends AbstractFieldBuilder {
 
             HorizontalLayout hl;
             container.addComponent(hl = new HorizontalLayout());
-            hl.addStyleName("nopadding");
+            hl.addStyleName(CSS.NOPADDING);
 
             CheckBox cb;
             hl.addComponent(cb = new CheckBox());

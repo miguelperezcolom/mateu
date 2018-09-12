@@ -10,6 +10,7 @@ import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.shared.ui.ErrorLevel;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.AbstractAction;
@@ -146,7 +147,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             if (kpis.size() > 0) {
                 if (kpisContainer == null) {
                     kpisContainer = new CssLayout();
-                    kpisContainer.addStyleName("nopadding");
+                    kpisContainer.addStyleName(CSS.NOPADDING);
                 } else {
                     kpisContainer.removeAllComponents();
                 }

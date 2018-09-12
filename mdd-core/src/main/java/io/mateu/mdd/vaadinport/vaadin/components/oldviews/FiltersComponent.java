@@ -6,6 +6,7 @@ import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.MainSearchFilter;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
@@ -49,7 +50,7 @@ public class FiltersComponent extends Composite {
 
         Layout l = (MDD.isMobile())?new VerticalLayout():new CssLayout();
         setCompositionRoot(l);
-        l.addStyleName("nopadding");
+        l.addStyleName(CSS.NOPADDING);
 
         addStyleName("filterscomponent");
 

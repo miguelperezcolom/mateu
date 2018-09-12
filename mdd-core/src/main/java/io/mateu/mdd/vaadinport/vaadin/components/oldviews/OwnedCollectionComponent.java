@@ -6,6 +6,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
+import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -61,15 +62,15 @@ public class OwnedCollectionComponent extends VerticalLayout {
 
         collection = (Collection) ReflectionHelper.getValue(field, parentBinder.getBean());
 
-        addStyleName("nopadding");
+        addStyleName(CSS.NOPADDING);
 
         addComponent(container = new VerticalLayout());
-        container.addStyleName("nopadding");
+        container.addStyleName(CSS.NOPADDING);
 
 
         HorizontalLayout hl;
         addComponent(hl = new HorizontalLayout(goToPreviousButton = new Button(VaadinIcons.ARROW_LEFT), goToNextButton = new Button(VaadinIcons.ARROW_RIGHT), addButton = new Button(VaadinIcons.PLUS)));
-        hl.addStyleName("nopadding");
+        hl.addStyleName(CSS.NOPADDING);
 
         addComponentsAndExpand(new Label(""));
 
@@ -128,7 +129,7 @@ public class OwnedCollectionComponent extends VerticalLayout {
 
         editorViewComponent = MDDViewComponentCreator.createEditorViewComponent(parentBinder.getBean(), value.getClass(), false);
         editorViewComponent.setModel(value);
-        editorViewComponent.addStyleName("nopadding");
+        editorViewComponent.addStyleName(CSS.NOPADDING);
 
         editorViewComponent.getBinder().addValueChangeListener(e -> {
             try {

@@ -12,6 +12,15 @@ public class CSS {
     public static final String WHITEBGD = "mdd-white-bgd";
     public static final String BLUEBGD = "mdd-blue-bgd";
 
+
+    public static final String CANCELLED = "cancelled";
+
+
+    public static final String NOPADDING = "nopadding";
+
+
+
+
     static String[] round = {
             GREENBGD,
             ORANGEBGD,

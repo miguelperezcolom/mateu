@@ -9,6 +9,7 @@ import com.vaadin.server.ExternalResource;
 import com.vaadin.shared.Registration;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
@@ -257,20 +258,20 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                     if (dpx != null && dpx instanceof JPQLListDataProvider) {
                         b = new Button(null, VaadinIcons.REFRESH);
                         b.addStyleName(ValoTheme.BUTTON_QUIET);
-                        b.addStyleName("nopadding");
+                        b.addStyleName(CSS.NOPADDING);
                         b.addClickListener(e -> ((JPQLListDataProvider)dpx).refresh());
                         hl.addComponent(b);
                     }
 
                     b = new Button(null, VaadinIcons.EDIT);
                     b.addStyleName(ValoTheme.BUTTON_QUIET);
-                    b.addStyleName("nopadding");
+                    b.addStyleName(CSS.NOPADDING);
                     b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
                     hl.addComponent(b);
 
                     b = new Button(null, VaadinIcons.PLUS);
                     b.addStyleName(ValoTheme.BUTTON_QUIET);
-                    b.addStyleName("nopadding");
+                    b.addStyleName(CSS.NOPADDING);
                     b.addClickListener(e -> {
 
                         Object bean = binder.getBean();

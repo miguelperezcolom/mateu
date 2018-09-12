@@ -2,6 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.app.mobile;
 
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
+import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.vaadinport.vaadin.navigation.ComponentWrapper;
 
@@ -9,7 +10,7 @@ public class ViewContainer extends VerticalLayout {
 
     public ViewContainer() {
         addStyleName("viewcontainer");
-        if (MDD.getPort().isMobile()) addStyleName("nopadding");
+        if (MDD.getPort().isMobile()) addStyleName(CSS.NOPADDING);
         else setSizeFull();
     }
 

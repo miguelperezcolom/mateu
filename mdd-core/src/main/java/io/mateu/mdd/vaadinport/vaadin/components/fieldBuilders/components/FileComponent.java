@@ -6,6 +6,7 @@ import com.vaadin.data.HasValue;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.shared.Registration;
 import com.vaadin.ui.*;
+import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.model.common.FileType;
@@ -134,7 +135,7 @@ public class FileComponent extends Composite implements HasValue<Resource>, Comp
 
         VerticalLayout v;
         h.addComponent(v = new VerticalLayout());
-        v.addStyleName("nopadding");
+        v.addStyleName(CSS.NOPADDING);
 
 
         v.addComponent(new Button("X", new Button.ClickListener() {
