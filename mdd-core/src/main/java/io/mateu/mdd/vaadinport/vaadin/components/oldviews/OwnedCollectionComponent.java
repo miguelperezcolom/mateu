@@ -261,7 +261,6 @@ public class OwnedCollectionComponent extends VerticalLayout {
     }
 
     private Object newInstance(Class c) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-
         Object parent = parentBinder.getBean();
 
         Object i = c.newInstance();

@@ -527,7 +527,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
     }
 
-    public void load(Object id) throws Throwable {
+    public void load(Object id, Object parent, FieldInterfaced field) throws Throwable {
         if (id == null) {
             newRecord = true;
 
@@ -540,15 +540,15 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                 VaadinHelper.choose("Please choose type", subClassesOptions, c -> {
                     try {
-                        setModel(((ClassOption)c).get_class().newInstance());
+                        setModel(newInstance(((ClassOption)c).get_class(), parent, field));
                     } catch (Exception e) {
                         MDD.alert(e);
                     }
                 }, () -> MDDUI.get().getNavegador().goBack());
             } else if (subClasses.size() == 1) {
-                setModel(subClasses.iterator().next().newInstance());
+                setModel(newInstance(subClasses.iterator().next(), parent, field));
             } else {
-                setModel(modelType.newInstance());
+                setModel(newInstance(modelType, parent, field));
             }
 
         } else {
@@ -579,6 +579,21 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         }
 
+    }
+
+    private Object newInstance(Class c, Object parent, FieldInterfaced field) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+        Object i = c.newInstance();
+        if (parent != null) {
+            for (FieldInterfaced f : ReflectionHelper.getAllFields(c)) if (f.getType().equals(parent.getClass())) {
+                ReflectionHelper.setValue(f, i, parent);
+                break;
+            }
+        }
+        return i;
+    }
+
+    public void load(Object id) throws Throwable {
+        load(id, null, null);
     }
 
     private void rebuildActions() {
