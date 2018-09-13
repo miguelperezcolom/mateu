@@ -220,17 +220,17 @@ public class OwnedCollectionComponent extends VerticalLayout {
 
                 VaadinHelper.choose("Please choose type", subClassesOptions, c -> {
                     try {
-                        consumer.accept(((ClassOption)c).get_class().newInstance());
+                        consumer.accept(newInstance(((ClassOption)c).get_class()));
                     } catch (Exception e) {
                         MDD.alert(e);
                     }
                 }, () -> MDDUI.get().getNavegador().goBack());
             } else if (subClasses.size() == 1) {
-                v = subClasses.iterator().next().newInstance();
+                v = newInstance(subClasses.iterator().next());
                 consumer.accept(v);
             } else {
 
-                v = ReflectionHelper.getGenericClass(field.getGenericType()).newInstance();
+                v = newInstance(ReflectionHelper.getGenericClass(field.getGenericType()));
 
                 if (field.getType().isAnnotationPresent(Entity.class)) {
 
@@ -258,5 +258,17 @@ public class OwnedCollectionComponent extends VerticalLayout {
         }
 
 
+    }
+
+    private Object newInstance(Class c) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+
+        Object parent = parentBinder.getBean();
+
+        Object i = c.newInstance();
+        for (FieldInterfaced f : ReflectionHelper.getAllFields(c)) if (f.getType().equals(parent.getClass())) {
+            ReflectionHelper.setValue(f, i, parent);
+            break;
+        }
+        return i;
     }
 }
