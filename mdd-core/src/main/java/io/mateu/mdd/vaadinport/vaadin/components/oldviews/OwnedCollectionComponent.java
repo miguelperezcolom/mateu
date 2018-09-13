@@ -18,6 +18,7 @@ import io.mateu.mdd.vaadinport.vaadin.navigation.MDDViewComponentCreator;
 import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 
 import javax.persistence.Entity;
+import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -264,7 +265,7 @@ public class OwnedCollectionComponent extends VerticalLayout {
         Object parent = parentBinder.getBean();
 
         Object i = c.newInstance();
-        for (FieldInterfaced f : ReflectionHelper.getAllFields(c)) if (f.getType().equals(parent.getClass())) {
+        for (FieldInterfaced f : ReflectionHelper.getAllFields(c)) if (f.getType().equals(parent.getClass()) && f.isAnnotationPresent(NotNull.class)) {
             ReflectionHelper.setValue(f, i, parent);
             break;
         }

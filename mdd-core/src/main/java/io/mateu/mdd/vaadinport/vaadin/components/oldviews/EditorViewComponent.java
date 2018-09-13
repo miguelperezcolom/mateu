@@ -32,6 +32,7 @@ import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -584,7 +585,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private Object newInstance(Class c, Object parent, FieldInterfaced field) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
         Object i = c.newInstance();
         if (parent != null) {
-            for (FieldInterfaced f : ReflectionHelper.getAllFields(c)) if (f.getType().equals(parent.getClass())) {
+            for (FieldInterfaced f : ReflectionHelper.getAllFields(c)) if (f.getType().equals(parent.getClass()) && f.isAnnotationPresent(NotNull.class)) {
                 ReflectionHelper.setValue(f, i, parent);
                 break;
             }
