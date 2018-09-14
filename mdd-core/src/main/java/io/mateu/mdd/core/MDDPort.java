@@ -5,6 +5,7 @@ import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ExtraFilters;
 
 import java.lang.reflect.Method;
 import java.util.Set;
@@ -15,7 +16,7 @@ public interface MDDPort {
 
     void alert(String msg);
 
-    void openCRUD(AbstractAction action, Class entityClass, String queryFilters, boolean modifierPressed);
+    void openCRUD(AbstractAction action, Class entityClass, String queryFilters, ExtraFilters extraFilters, boolean modifierPressed);
 
     void openEditor(AbstractAction action, Class viewClass, Object id, boolean modifierPressed);
 

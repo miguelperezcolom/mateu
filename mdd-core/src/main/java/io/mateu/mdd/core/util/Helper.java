@@ -169,7 +169,13 @@ public class Helper {
 
 
 
-
+    public static <T> T find(Class<T> type, Object id) throws Throwable {
+        Object[] o = {null};
+        Helper.transact(em -> {
+            o[0] = em.find(type, id);
+        });
+        return (T) o[0];
+    }
 
 
 

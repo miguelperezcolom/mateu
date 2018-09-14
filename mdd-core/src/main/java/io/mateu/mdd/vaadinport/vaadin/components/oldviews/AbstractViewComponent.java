@@ -19,7 +19,16 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     private View view;
     protected MenuBar bar;
     protected Map<String, MenuBar.MenuItem> menuItemsById = new HashMap<>();
+    private String title;
 
+    public String getTitle() {
+        return title != null?title:toString();
+    }
+
+    public A setTitle(String title) {
+        this.title = title;
+        return (A) this;
+    }
 
     public View getView() {
         return view;

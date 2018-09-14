@@ -5,6 +5,7 @@ import com.vaadin.data.Validator;
 import com.vaadin.server.Sizeable;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
@@ -196,23 +197,35 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                 currentFieldContainer = wrap = new HorizontalLayout();
                 wrap.setSpacing(true);
                 wrap.setDefaultComponentAlignment(Alignment.MIDDLE_LEFT);
+                wrap.setWidth("100%");
                 //currentFieldContainer.setCaption(ReflectionHelper.getCaption(f));
             }
 
+            Layout wrapper = currentFieldContainer;
+
+            if (f.isAnnotationPresent(Width.class)) {
+                currentFieldContainer.addComponent(wrapper = new VerticalLayout());
+                ((VerticalLayout)wrapper).setSpacing(false);
+                wrapper.setWidth(f.getAnnotation(Width.class).value());
+                wrapper.addStyleName(CSS.NOPADDING);
+                wrapper.addStyleName("widthwrapper");
+            }
+
+
             if (f.isAnnotationPresent(FieldBuilder.class)) {
                 try {
-                    (f.getAnnotation(FieldBuilder.class).value().newInstance()).build(f, model, currentFieldContainer, binder, validators, stylist, allFieldContainers, forSearchFilters);
+                    (f.getAnnotation(FieldBuilder.class).value().newInstance()).build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters);
                 } catch (Exception e) {
                     MDD.alert(e);
                 }
             } else if (f.isAnnotationPresent(GeneratedValue.class) || (MDDUI.get().getNavegador().getViewProvider().getCurrentEditor() != null && f.isAnnotationPresent(Output.class))) {
-                ofb.build(f, model, currentFieldContainer, binder, validators, stylist, allFieldContainers, forSearchFilters);
+                ofb.build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters);
             } else {
                 AbstractFieldBuilder b = MDD.getApp().getFieldBuilder(f);
-                if (b != null) b.build(f, model, currentFieldContainer, binder, validators, stylist, allFieldContainers, forSearchFilters);
+                if (b != null) b.build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters);
             }
 
-            if (currentFieldContainer != null && currentFieldContainer.getComponentCount() > 0) currentContentContainer.addComponent(currentFieldContainer);
+            if (wrapper != null && wrapper.getComponentCount() > 0) currentContentContainer.addComponent(currentFieldContainer);
 
         }
 

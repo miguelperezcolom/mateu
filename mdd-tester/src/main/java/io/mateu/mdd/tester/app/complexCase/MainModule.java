@@ -6,6 +6,7 @@ import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.tester.model.callMethods.Caller;
+import io.mateu.mdd.tester.model.charts.AllCharts;
 import io.mateu.mdd.tester.model.customComponents.CustomComponent;
 import io.mateu.mdd.tester.model.entities.converter.WithConverterDemoEntity;
 import io.mateu.mdd.tester.model.entities.dependant.Address;
@@ -144,6 +145,19 @@ public class MainModule extends AbstractModule {
         });
 
         m.add(new MDDOpenCustomComponentAction("Custom component", CustomComponent.class));
+
+
+        m.add(new AbstractMenu("Charts") {
+            @Override
+            public List<MenuEntry> buildEntries() {
+                List<MenuEntry> l = new ArrayList<>();
+
+                l.add(new MDDOpenEditorAction("All Charts", AllCharts.class));
+
+                return l;
+            }
+        });
+
 
         m.add(new AbstractMenu("Styling") {
             @Override

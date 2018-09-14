@@ -463,6 +463,30 @@
 
   }
 
+
+  .superkpi {
+    padding: 20px;
+    background-color: lightgrey;
+    border-radius: 2px;
+    margin-right: 10px;
+    margin-bottom: 7px;
+    height: 160px;
+    width: 100%;
+    text-align: center;
+
+    .valor {
+      font-size: 2.5em;
+      font-weight: bold;
+      width: 100%;
+      text-align: center;
+    }
+
+    .v-label-centered {
+      text-align: center;
+    }
+
+  }
+
   .section {
     margin-right: 50px;
     max-width: 500px;
@@ -818,6 +842,40 @@
   [class*="margin-top"] > tbody > [class*="firstrow"] > td {
     padding-top: 0px;
   }
+
+
+
+  .success {
+    background-color: #b2f0ab !important;
+  }
+
+  .info {
+    background-color: #9df7e8 !important;
+  }
+
+  .warning {
+    background-color: #fcfa7c !important;
+  }
+
+  .danger {
+    background-color: #f27469 !important;
+  }
+
+
+  .cell-valid {
+    border-right: 10px solid darkseagreen !important;
+  }
+
+  .cell-warning {
+    border-right: 10px solid orange !important;
+  }
+
+  .cell-invalid {
+    border-right: 10px solid red !important;
+  }
+
+
+
 
   .alinearderecha {
     text-align: right;

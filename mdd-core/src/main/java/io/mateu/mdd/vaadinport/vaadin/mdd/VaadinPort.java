@@ -11,6 +11,7 @@ import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ExtraFilters;
 
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.InvocationTargetException;
@@ -49,7 +50,7 @@ public class VaadinPort implements MDDPort {
     }
 
     @Override
-    public void openCRUD(AbstractAction action, Class viewClass, String queryFilters, boolean modifierPressed) {
+    public void openCRUD(AbstractAction action, Class viewClass, String queryFilters, ExtraFilters extraFilters, boolean modifierPressed) {
         System.out.println("open crud");
 
         MDDUI.get().getNavegador().goTo(action, viewClass);

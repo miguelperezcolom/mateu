@@ -185,8 +185,9 @@ public class FieldEditorComponent extends VerticalLayout {
 
             addComponent(editor = new EditorViewComponent(field.getType()));
             try {
-                Object v = ReflectionHelper.getValue(field, binder.getBean());
-                editor.load((v != null)?((v.getClass().isAnnotationPresent(Entity.class))?ReflectionHelper.getId(v):ReflectionHelper.clone(v)):null);
+                Object parent = binder.getBean();
+                Object v = ReflectionHelper.getValue(field, parent);
+                editor.load((v != null)?((v.getClass().isAnnotationPresent(Entity.class))?ReflectionHelper.getId(v):ReflectionHelper.clone(v)):null, parent, field);
             } catch (Throwable throwable) {
                 MDD.alert(throwable);
             }

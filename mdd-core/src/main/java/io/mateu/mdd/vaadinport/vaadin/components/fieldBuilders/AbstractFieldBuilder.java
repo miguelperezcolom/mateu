@@ -16,7 +16,8 @@ import java.util.Map;
 public abstract class AbstractFieldBuilder {
 
     public static List<AbstractFieldBuilder> builders = Lists.newArrayList(
-            new JPAUnmodifiableFieldBuilder()
+            new KPIInlineFieldBuilder()
+            , new JPAUnmodifiableFieldBuilder()
             , new FromDataProviderFieldBuilder()
             , new JPAAuditFieldBuilder()
             , new JPAWizardFieldBuilder()
@@ -45,6 +46,7 @@ public abstract class AbstractFieldBuilder {
             , new JPADateFieldBuilder()
             , new JPALocalDateFieldBuilder()
             , new JPALocalDateTimeFieldBuilder()
+            , new ComponentFieldBuilder()
             , new JPAPOJOFieldBuilder()
     );
 

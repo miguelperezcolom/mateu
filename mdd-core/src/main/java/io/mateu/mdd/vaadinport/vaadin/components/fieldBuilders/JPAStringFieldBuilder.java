@@ -7,6 +7,7 @@ import com.vaadin.server.Sizeable;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
@@ -18,6 +19,7 @@ import io.mateu.mdd.core.data.MDDBinder;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
@@ -30,7 +32,9 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
 
     public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
 
-        if (field.isAnnotationPresent(DataProvider.class)) {
+        Method mdp = ReflectionHelper.getMethod(field.getDeclaringClass(), ReflectionHelper.getGetter(field.getName()) + "DataProvider");
+
+        if (field.isAnnotationPresent(DataProvider.class) || mdp != null) {
 
             Component tf = null;
             HasValue hv = null;
@@ -46,7 +50,17 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
                 //FetchItemsCallback
                 //newItemProvider
 
-                if (field.isAnnotationPresent(DataProvider.class)) {
+
+
+                if (mdp != null) {
+
+                    try {
+                        ((HasDataProvider)tf).setDataProvider((com.vaadin.data.provider.DataProvider) mdp.invoke(object));
+                    } catch (Exception e) {
+                        MDD.alert(e);
+                    }
+
+                } else if (field.isAnnotationPresent(DataProvider.class)) {
 
                     try {
 
@@ -102,7 +116,16 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
                 //FetchItemsCallback
                 //newItemProvider
 
-                if (field.isAnnotationPresent(DataProvider.class)) {
+
+                if (mdp != null) {
+
+                    try {
+                        cb.setDataProvider((com.vaadin.data.provider.DataProvider) mdp.invoke(object));
+                    } catch (Exception e) {
+                        MDD.alert(e);
+                    }
+
+                } else if (field.isAnnotationPresent(DataProvider.class)) {
 
                     try {
 

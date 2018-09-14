@@ -18,6 +18,10 @@ public class CSS {
 
     public static final String NOPADDING = "nopadding";
 
+    public static final String RIGHTALIGN = "alinearderecha";
+
+
+    public static final String SUPERKPI = "superkpi";
 
 
 

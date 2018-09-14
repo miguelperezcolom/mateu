@@ -7,6 +7,7 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.OwnedCollectionComponent;
 
 public class ComponentWrapper extends VerticalLayout {
@@ -47,7 +48,7 @@ public class ComponentWrapper extends VerticalLayout {
         titleLabel = new Label("", ContentMode.HTML);
         titleLabel.addStyleName("viewTitle");
 
-        if (component != null) updateViewTitle(component.toString());
+        if (component != null) updateViewTitle((component instanceof AbstractViewComponent)?((AbstractViewComponent)component).getTitle():component.toString());
 
         return titleLabel;
     }

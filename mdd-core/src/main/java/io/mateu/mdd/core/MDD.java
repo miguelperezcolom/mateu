@@ -4,6 +4,7 @@ import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ExtraFilters;
 import javassist.ClassPool;
 
 public class MDD {
@@ -48,8 +49,8 @@ public class MDD {
     public static void openView(MDDOpenListViewAction mddOpenListViewAction, Class listViewClass, boolean modifierPressed) {
         getPort().openView(mddOpenListViewAction, listViewClass, modifierPressed);
     }
-    public static void openCRUD(AbstractAction action, Class entityClass, String queryFilters, boolean modifierPressed) {
-        getPort().openCRUD(action, entityClass, queryFilters, modifierPressed);
+    public static void openCRUD(AbstractAction action, Class entityClass, String queryFilters, ExtraFilters extraFilters, boolean modifierPressed) {
+        getPort().openCRUD(action, entityClass, queryFilters, extraFilters, modifierPressed);
     }
     public static void openEditor(AbstractAction action, Class viewClass, Object object, boolean modifierPressed) {
         getPort().openEditor(action, viewClass, object, modifierPressed);

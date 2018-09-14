@@ -56,13 +56,13 @@ public class MDDViewComponentCreator {
         return v;
     }
 
-    public static Component createComponent(MDDOpenCRUDAction mddOpenCRUDAction, Class entityClass, String queryFilters, boolean modifierPressed) {
+    public static Component createComponent(MDDOpenCRUDAction mddOpenCRUDAction, Class entityClass, String queryFilters, ExtraFilters extraFilters, boolean modifierPressed) {
         Component v = null;
         Class modelType = null;
         try {
 
             modelType = entityClass;
-            v = new CRUDViewComponent(createListViewComponent(modelType), createEditorViewComponent(modelType)).build();
+            v = new CRUDViewComponent(createListViewComponent(modelType, queryFilters, extraFilters), createEditorViewComponent(modelType)).build();
 
         } catch (IllegalAccessException e) {
             e.printStackTrace();
@@ -86,10 +86,10 @@ public class MDDViewComponentCreator {
         return v;
     }
 
-    private static ListViewComponent createListViewComponent(Class modelType) throws IllegalAccessException, InstantiationException {
+    private static ListViewComponent createListViewComponent(Class modelType, String queryFilters, ExtraFilters extraFilters) throws IllegalAccessException, InstantiationException {
         ListViewComponent v = null;
         if (modelType.isAnnotationPresent(Entity.class)) {
-            v = new JPAListViewComponent(modelType).build();
+            v = new JPAListViewComponent(modelType, extraFilters).build();
         } else {
 
         }

@@ -2,6 +2,7 @@ package io.mateu.mdd.core.app;
 
 import com.vaadin.ui.Component;
 import io.mateu.mdd.core.interfaces.WizardPage;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ExtraFilters;
 
 import java.lang.reflect.Method;
 
@@ -13,7 +14,7 @@ public interface MDDExecutionContext {
 
     void openListView(MDDOpenListViewAction mddOpenListViewAction, Class viewClass, boolean modifierPressed);
 
-    void openCRUD(MDDOpenCRUDAction mddOpenCRUDAction, Class entityClass, String queryFilters, boolean modifierPressed);
+    void openCRUD(MDDOpenCRUDAction mddOpenCRUDAction, Class entityClass, String queryFilters, ExtraFilters extraFilters, boolean modifierPressed);
 
     void openComponent(AbstractAction action, Class componentClass, boolean modifierPressed);
 

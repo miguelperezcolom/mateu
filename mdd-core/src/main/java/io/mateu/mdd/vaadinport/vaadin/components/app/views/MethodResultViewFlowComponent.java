@@ -37,6 +37,8 @@ public class MethodResultViewFlowComponent extends VerticalLayout {
     public String toString() {
         if (result != null && result instanceof WizardPage) {
             return Helper.capitalize(result.getClass().getSimpleName());
+        } else if (result != null && result instanceof AbstractViewComponent) {
+            return ((AbstractViewComponent) result).getTitle();
         } else {
             String t = Helper.capitalize(method.getName());
             if (method.isAnnotationPresent(Action.class) && !Strings.isNullOrEmpty(method.getAnnotation(Action.class).value())) t = method.getAnnotation(Action.class).value();

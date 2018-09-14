@@ -850,8 +850,8 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
     }
 
     @Override
-    public void openCRUD(MDDOpenCRUDAction action, Class entityClass, String queryFilters, boolean modifierPressed) {
-        stack.push(currentPath, MDDViewComponentCreator.createComponent(action, entityClass, queryFilters, modifierPressed));
+    public void openCRUD(MDDOpenCRUDAction action, Class entityClass, String queryFilters, ExtraFilters extraFilters, boolean modifierPressed) {
+        stack.push(currentPath, MDDViewComponentCreator.createComponent(action, entityClass, queryFilters, extraFilters, modifierPressed));
     }
 
     @Override
