@@ -9,6 +9,8 @@ import com.byteowls.vaadin.chartjs.options.InteractionMode;
 import com.byteowls.vaadin.chartjs.options.Position;
 import com.byteowls.vaadin.chartjs.options.scale.Axis;
 import com.byteowls.vaadin.chartjs.options.scale.LinearScale;
+import com.byteowls.vaadin.chartjs.options.types.PieChartOptions;
+import com.google.common.base.Strings;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.provider.Query;
 import com.vaadin.ui.Composite;
@@ -23,6 +25,10 @@ public class PieChart extends Composite {
 
     private final String title;
     private ListDataProvider<ChartData> dataProvider;
+
+    public PieChart(ListDataProvider<ChartData> dataProvider) {
+        this(null, dataProvider);
+    }
 
     public PieChart(String title, ListDataProvider<ChartData> dataProvider) {
         this.title = title;
@@ -89,19 +95,23 @@ public class PieChart extends Composite {
                 .and();
                 */
 
-        barConfig.
-                options()
-                .responsive(true)
+        PieChartOptions options = barConfig.
+                options();
+
+
+        options.responsive(true)
                 .hover()
                 .mode(InteractionMode.INDEX)
                 .intersect(true)
                 .animationDuration(400)
-                .and()
-                .title()
+                .and();
+
+        if (!Strings.isNullOrEmpty(title)) options.title()
                 .display(true)
                 .text(title)
-                .and()
-                .done();
+                .and();
+
+        options.done();
 
         for (Object k : keys) {
             PieDataset lds = dataSets.get(k);

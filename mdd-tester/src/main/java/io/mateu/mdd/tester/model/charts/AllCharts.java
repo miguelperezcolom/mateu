@@ -27,15 +27,15 @@ public class AllCharts {
     private int totalBookings = 300;
 
 
-    private BarChart barChart = new BarChart("Bar chart", new RandomDataProvider(3, 12));
+    private BarChart barChart = new BarChart(new RandomDataProvider(3, 12));
 
     @SameLine
-    private PieChart pieChart = new PieChart("Pie chart", new RandomDataProvider(2, 5));
+    private PieChart pieChart = new PieChart(new RandomDataProvider(2, 5));
 
     @FullWidth
-    private LineChart lineChart = new LineChart("Line chart", new RandomDataProvider(3, 12));
+    private LineChart lineChart = new LineChart(new RandomDataProvider(3, 12));
 
-    //    private BarChart barChartFromJPQL = new BarChart("JPQL bar chart", new JPQLListDataProvider(""));
+    //private BarChart barChartFromJPQL = new BarChart("JPQL bar chart", new JPQLListDataProvider(""));
 
 
     public AllCharts() throws Throwable {

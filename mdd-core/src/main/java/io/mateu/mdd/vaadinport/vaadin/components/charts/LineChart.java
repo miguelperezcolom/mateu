@@ -9,6 +9,8 @@ import com.byteowls.vaadin.chartjs.options.InteractionMode;
 import com.byteowls.vaadin.chartjs.options.Position;
 import com.byteowls.vaadin.chartjs.options.scale.Axis;
 import com.byteowls.vaadin.chartjs.options.scale.LinearScale;
+import com.byteowls.vaadin.chartjs.options.types.LineChartOptions;
+import com.google.common.base.Strings;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.provider.Query;
 import com.vaadin.ui.Composite;
@@ -22,6 +24,10 @@ public class LineChart extends Composite {
 
     private final String title;
     private ListDataProvider<ChartData> dataProvider;
+
+    public LineChart(ListDataProvider<ChartData> dataProvider) {
+        this(null, dataProvider);
+    }
 
     public LineChart(String title, ListDataProvider<ChartData> dataProvider) {
         this.title = title;
@@ -92,19 +98,23 @@ public class LineChart extends Composite {
                 .and();
                 */
 
-        barConfig
-                .options()
-                .responsive(true)
+        LineChartOptions options = barConfig
+                .options();
+
+
+        options.responsive(true)
                 .hover()
                 .mode(InteractionMode.INDEX)
                 .intersect(true)
                 .animationDuration(400)
-                .and()
-                .title()
+                .and();
+
+        if (!Strings.isNullOrEmpty(title)) options.title()
                 .display(true)
                 .text(title)
-                .and()
-                .scales()
+                .and();
+
+        options.scales()
                 .add(Axis.Y, new LinearScale().display(true).position(Position.LEFT)) //.id("y-axis-1"))
                 .and()
                 .done();
