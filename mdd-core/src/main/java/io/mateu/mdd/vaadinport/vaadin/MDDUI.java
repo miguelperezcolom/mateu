@@ -20,11 +20,9 @@ import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.desktop.DesktopAppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.mobile.MobileAppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.mobile.ViewContainer;
-import io.mateu.mdd.vaadinport.vaadin.navigation.MDDNavigator;
-import io.mateu.mdd.vaadinport.vaadin.navigation.MDDViewProvider;
-import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.navigation.*;
 import io.mateu.mdd.vaadinport.vaadin.mdd.VaadinPort;
-import io.mateu.mdd.vaadinport.vaadin.navigation.VoidView;
 
 import java.net.URI;
 import java.net.URL;
@@ -184,5 +182,15 @@ public class MDDUI extends UI {
 
     public MDDPort getPort() {
         return port;
+    }
+
+    public void refreshUI() {
+        View v = stack.getLast();
+
+        if (v != null && v.getComponent() != null && v.getComponent() instanceof EditorViewComponent) {
+            EditorViewComponent evc = (EditorViewComponent) v.getComponent();
+            evc.getBinder().refresh();
+        }
+
     }
 }

@@ -203,6 +203,17 @@ public class MainModule extends AbstractModule {
                         , "Tabs", TabsDemoEntity.class
                 ));
 
+                l.add(new AbstractMenu("More fields") {
+                    @Override
+                    public List<MenuEntry> buildEntries() {
+                        List<MenuEntry> l = new ArrayList<>();
+
+                        l.add(new MDDOpenEditorAction("Vaadin component fields", CustomFieldsPOJO.class));
+
+                        return l;
+                    }
+                });
+
                 l.add(new AbstractMenu("Dependant fields") {
                     @Override
                     public List<MenuEntry> buildEntries() {

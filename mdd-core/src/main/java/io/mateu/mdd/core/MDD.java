@@ -101,4 +101,8 @@ public class MDD {
     public static ClassPool getClassPool() {
         return classPool;
     }
+
+    public static void refreshUI() {
+        MDDUI.get().refreshUI();
+    }
 }
