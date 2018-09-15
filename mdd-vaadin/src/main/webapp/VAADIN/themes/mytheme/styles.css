@@ -18727,13 +18727,13 @@ div.v-layout.v-horizontal.v-widget {
 	margin-top: 20px;
 }
 
-.mytheme .botonerafiltros {
-	margin-top: 2em;
-}
-
 .mytheme .botonerafiltros .v-button {
 	font-size: 1.4em;
 	color: grey;
+}
+
+.mytheme .botonerafiltros .v-button .v-icon {
+	margin-top: inherit;
 }
 
 .mytheme .botonerafiltros .v-button:hover {

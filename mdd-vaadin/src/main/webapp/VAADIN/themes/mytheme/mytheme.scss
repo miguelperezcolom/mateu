@@ -924,11 +924,14 @@
   }
 
   .botonerafiltros {
-    margin-top: 2em;
 
     .v-button {
       font-size: 1.4em;
       color: grey;
+
+      .v-icon {
+        margin-top: inherit;
+      }
     }
 
     .v-button:hover {

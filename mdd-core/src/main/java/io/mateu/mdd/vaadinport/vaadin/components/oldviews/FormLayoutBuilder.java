@@ -145,71 +145,82 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
         for (FieldInterfaced f : fields) {
 
-            if (f.isAnnotationPresent(FullWidth.class) || (f.isAnnotationPresent(Tab.class) && f.getAnnotation(Tab.class).fullWith()) || (f.isAnnotationPresent(StartTabs.class) && f.getAnnotation(StartTabs.class).fullWith())) {
-                contentContainer.setWidth("100%");
-                contentContainer.addStyleName("section-fullwidth");
-                if (!currentContentContainer.equals(contentContainer)) {
-                    currentContentContainer.setWidth("100%");
-                    currentContentContainer.addStyleName("section-fullwidth");
-                }
-            }
+            Layout wrapper = null;
 
-            if (createTabs) {
+            if (forSearchFilters) {
 
-                if (f.isAnnotationPresent(StartTabs.class)) { //todo: comprobar que también existe una etiqueta @Tab en este campo
-                    if (tabs != null) {
-                        tabSheetsStack.add(0, tabs);
-                        tabsStack.add(0, tab);
-                        containersStack.add(0, currentContentContainer);
-                    }
-                    tabs = new TabSheet();
-                    tabs.setWidth("100%");
-                    currentContentContainer.addComponent(tabs);
-                }
-                if (f.isAnnotationPresent(EndTabs.class)) {
-                    if (tabSheetsStack.size() > 0) {
-                        tab = tabsStack.remove(0);
-                        tabs = tabSheetsStack.remove(0);
-                        currentContentContainer = containersStack.remove(0);
-                    } else {
-                        tab = null;
-                        tabs = null;
-                        currentContentContainer = contentContainer;
+                wrapper = contentContainer;
+
+            } else {
+
+                if (f.isAnnotationPresent(FullWidth.class) || (f.isAnnotationPresent(Tab.class) && f.getAnnotation(Tab.class).fullWith()) || (f.isAnnotationPresent(StartTabs.class) && f.getAnnotation(StartTabs.class).fullWith())) {
+                    contentContainer.setWidth("100%");
+                    contentContainer.addStyleName("section-fullwidth");
+                    if (!currentContentContainer.equals(contentContainer)) {
+                        currentContentContainer.setWidth("100%");
+                        currentContentContainer.addStyleName("section-fullwidth");
                     }
                 }
 
-                if (f.isAnnotationPresent(Tab.class)) {
-                    Tab ta = f.getAnnotation(Tab.class);
-                    if (tabs == null) {
+                if (createTabs) {
+
+                    if (f.isAnnotationPresent(StartTabs.class)) { //todo: comprobar que también existe una etiqueta @Tab en este campo
+                        if (tabs != null) {
+                            tabSheetsStack.add(0, tabs);
+                            tabsStack.add(0, tab);
+                            containersStack.add(0, currentContentContainer);
+                        }
                         tabs = new TabSheet();
                         tabs.setWidth("100%");
                         currentContentContainer.addComponent(tabs);
-                        //tabs.setCaption(ta.value());
                     }
-                    tab = tabs.addTab(currentContentContainer = new MiFormLayout());
-                    tab.setCaption(ta.value());
+                    if (f.isAnnotationPresent(EndTabs.class)) {
+                        if (tabSheetsStack.size() > 0) {
+                            tab = tabsStack.remove(0);
+                            tabs = tabSheetsStack.remove(0);
+                            currentContentContainer = containersStack.remove(0);
+                        } else {
+                            tab = null;
+                            tabs = null;
+                            currentContentContainer = contentContainer;
+                        }
+                    }
+
+                    if (f.isAnnotationPresent(Tab.class)) {
+                        Tab ta = f.getAnnotation(Tab.class);
+                        if (tabs == null) {
+                            tabs = new TabSheet();
+                            tabs.setWidth("100%");
+                            currentContentContainer.addComponent(tabs);
+                            //tabs.setCaption(ta.value());
+                        }
+                        tab = tabs.addTab(currentContentContainer = new MiFormLayout());
+                        tab.setCaption(ta.value());
+                    }
+
+                }
+
+                if (currentFieldContainer == null || !f.isAnnotationPresent(SameLine.class)) {
+                    HorizontalLayout wrap;
+                    currentFieldContainer = wrap = new HorizontalLayout();
+                    wrap.setSpacing(true);
+                    wrap.setDefaultComponentAlignment(Alignment.MIDDLE_LEFT);
+                    wrap.setWidth("100%");
+                    //currentFieldContainer.setCaption(ReflectionHelper.getCaption(f));
+                }
+
+                wrapper = currentFieldContainer;
+
+                if (f.isAnnotationPresent(Width.class)) {
+                    currentFieldContainer.addComponent(wrapper = new VerticalLayout());
+                    ((VerticalLayout)wrapper).setSpacing(false);
+                    wrapper.setWidth(f.getAnnotation(Width.class).value());
+                    wrapper.addStyleName(CSS.NOPADDING);
+                    wrapper.addStyleName("widthwrapper");
                 }
 
             }
 
-            if (currentFieldContainer == null || !f.isAnnotationPresent(SameLine.class)) {
-                HorizontalLayout wrap;
-                currentFieldContainer = wrap = new HorizontalLayout();
-                wrap.setSpacing(true);
-                wrap.setDefaultComponentAlignment(Alignment.MIDDLE_LEFT);
-                wrap.setWidth("100%");
-                //currentFieldContainer.setCaption(ReflectionHelper.getCaption(f));
-            }
-
-            Layout wrapper = currentFieldContainer;
-
-            if (f.isAnnotationPresent(Width.class)) {
-                currentFieldContainer.addComponent(wrapper = new VerticalLayout());
-                ((VerticalLayout)wrapper).setSpacing(false);
-                wrapper.setWidth(f.getAnnotation(Width.class).value());
-                wrapper.addStyleName(CSS.NOPADDING);
-                wrapper.addStyleName("widthwrapper");
-            }
 
 
             if (f.isAnnotationPresent(FieldBuilder.class)) {
@@ -225,7 +236,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                 if (b != null) b.build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters);
             }
 
-            if (wrapper != null && wrapper.getComponentCount() > 0) currentContentContainer.addComponent(currentFieldContainer);
+            if (!forSearchFilters) if (wrapper != null && wrapper.getComponentCount() > 0) currentContentContainer.addComponent(currentFieldContainer);
 
         }
 

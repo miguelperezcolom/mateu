@@ -7,10 +7,7 @@ import io.mateu.mdd.core.annotations.KPIInline;
 import io.mateu.mdd.core.annotations.SameLine;
 import io.mateu.mdd.core.annotations.Width;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
-import io.mateu.mdd.vaadinport.vaadin.components.charts.BarChart;
-import io.mateu.mdd.vaadinport.vaadin.components.charts.ChartData;
-import io.mateu.mdd.vaadinport.vaadin.components.charts.LineChart;
-import io.mateu.mdd.vaadinport.vaadin.components.charts.PieChart;
+import io.mateu.mdd.vaadinport.vaadin.components.charts.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,40 +27,18 @@ public class AllCharts {
     private int totalBookings = 300;
 
 
-    private BarChart barChart = new BarChart("Bar chart", createRandomData(3, 12));
+    private BarChart barChart = new BarChart("Bar chart", new RandomDataProvider(3, 12));
 
     @SameLine
-    private PieChart pieChart = new PieChart("Pie chart", createRandomData(2, 5));
+    private PieChart pieChart = new PieChart("Pie chart", new RandomDataProvider(2, 5));
 
     @FullWidth
-    private LineChart lineChart = new LineChart("Line chart", createRandomData(3, 12));
+    private LineChart lineChart = new LineChart("Line chart", new RandomDataProvider(3, 12));
 
     //    private BarChart barChartFromJPQL = new BarChart("JPQL bar chart", new JPQLListDataProvider(""));
 
 
     public AllCharts() throws Throwable {
     }
-
-
-
-
-    private ListDataProvider<ChartData> createRandomData(int maxI, int maxJ) {
-        Collection<ChartData> l = new ArrayList<>();
-
-        Random rand = new Random(100);
-
-        for (int i = 0; i < maxI; i++) {
-
-            for (int j = 0; j < maxJ; j++) {
-
-                ((ArrayList<ChartData>) l).add(new ChartData("" + i, "" + j, Math.abs(100d * rand.nextDouble())));
-
-            }
-
-        }
-
-        return new ListDataProvider<>(l);
-    }
-
 
 }
