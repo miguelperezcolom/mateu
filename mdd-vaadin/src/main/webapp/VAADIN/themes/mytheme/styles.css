@@ -1627,6 +1627,18 @@ div.v-layout.v-horizontal.v-widget {
 	vertical-align: top;
 }
 
+@media print {
+	.v-slot-appheader {
+		display: none;
+	}
+	.horizontallayout .v-expand {
+		padding-left: inherit;
+	}
+	.horizontallayout .v-expand .v-slot-leftside {
+		dispaly: none;
+	}
+}
+
 @font-face {
 	font-family: "FontAwesomeLabelAddon";
 	src: url(../../../VAADIN/addons/font-awesome-label/fontawesome-webfont.eot?v=4.7.0);
@@ -18351,6 +18363,7 @@ div.v-layout.v-horizontal.v-widget {
 	font-weight: bold;
 	width: 100%;
 	text-align: right;
+	background-color: inherit !important;
 }
 
 .mytheme .kpi .v-label-centered {
@@ -18373,6 +18386,7 @@ div.v-layout.v-horizontal.v-widget {
 	font-weight: bold;
 	width: 100%;
 	text-align: center;
+	background-color: inherit !important;
 }
 
 .mytheme .superkpi .v-label-centered {
@@ -18477,7 +18491,6 @@ div.v-layout.v-horizontal.v-widget {
 
 .mytheme .menu-badge {
 	width: 20px;
-	background-color: orange;
 	border-radius: 2px;
 	float: right;
 	text-align: center;
@@ -18766,6 +18779,10 @@ div.v-layout.v-horizontal.v-widget {
 	padding-left: 8px;
 	height: 2em;
 	padding-top: 3px;
+}
+
+.mytheme .audit {
+	white-space: inherit;
 }
 
 .mytheme .v-slot-actionsbar .v-menubar .v-menubar-menuitem-primary {

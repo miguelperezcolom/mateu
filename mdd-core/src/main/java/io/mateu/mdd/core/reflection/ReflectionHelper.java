@@ -972,19 +972,11 @@ public class ReflectionHelper {
 
         }
 
-        List<FieldInterfaced> fieldsBefore = new ArrayList<>(allFields);
 
-        List<FieldInterfaced> finalAllFields = allFields;
-        Collections.sort(allFields, new Comparator<FieldInterfaced>() {
-            @Override
-            public int compare(FieldInterfaced o1, FieldInterfaced o2) {
-                double pos1 = finalAllFields.indexOf(o1) + 0.5;
-                if (o1.isAnnotationPresent(Position.class)) pos1 = o1.getAnnotation(Position.class).value();
-                double pos2 = finalAllFields.indexOf(o2) + 0.5;
-                if (o2.isAnnotationPresent(Position.class)) pos2 = o2.getAnnotation(Position.class).value();
-                return new Double((pos1 - pos2) * 10d).intValue();
-            }
-        });
+        for (FieldInterfaced f : new ArrayList<>(allFields)) if (f.isAnnotationPresent(Position.class)) {
+            allFields.remove(f);
+            allFields.add(f.getAnnotation(Position.class).value(), f);
+        }
 
 
         return allFields;

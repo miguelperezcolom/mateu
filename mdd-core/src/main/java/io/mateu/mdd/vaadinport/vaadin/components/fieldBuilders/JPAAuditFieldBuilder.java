@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.vaadin.data.*;
 import com.vaadin.server.Setter;
 import com.vaadin.shared.Registration;
+import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
@@ -34,7 +35,8 @@ public class JPAAuditFieldBuilder extends AbstractFieldBuilder {
         if (!forSearchFilter) {
 
             Label tf;
-            container.addComponent(tf = new Label());
+            container.addComponent(tf = new Label("", ContentMode.HTML));
+            tf.addStyleName("audit");
 
             allFieldContainers.put(field, tf);
 

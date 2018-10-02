@@ -56,6 +56,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private List<EditorListener> listeners = new ArrayList<>();
     private boolean modificado;
     private Layout kpisContainer;
+    private boolean shortcutsCreated;
 
     public boolean isModificado() {
         return modificado;
@@ -349,42 +350,52 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             i.setStyleName(ValoTheme.BUTTON_PRIMARY);
 
             i.setDescription("Click Ctrl + S to fire. Ctrl + Alt + S to duplicate.");
-            Button b;
-            addComponent(b = new Button());
-            b.addStyleName("hidden");
-            b.addClickListener(e -> cmd.menuSelected(i));
-            b.setClickShortcut(ShortcutAction.KeyCode.S, ShortcutAction.ModifierKey.CTRL);
 
-            addComponent(b = new Button());
-            b.addStyleName("hidden");
-            b.addClickListener(e -> {
-                if (binder.validate().isOk()) {
 
-                    try {
-                        save();
 
-                        Object old = getBinder().getBean();
+            if (!shortcutsCreated) {
 
-                        load(null);
+                Button b;
+                addComponent(b = new Button());
+                b.addStyleName("hidden");
+                b.addClickListener(e -> cmd.menuSelected(i));
+                b.setClickShortcut(ShortcutAction.KeyCode.S, ShortcutAction.ModifierKey.CTRL);
 
-                        Object current = getBinder().getBean();
-                        for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(old.getClass())) {
-                            if (f.isAnnotationPresent(Keep.class)) {
-                                ReflectionHelper.setValue(f, current, ReflectionHelper.getValue(f, old));
+                addComponent(b = new Button());
+                b.addStyleName("hidden");
+                b.addClickListener(e -> {
+                    if (binder.validate().isOk()) {
+
+                        try {
+                            save();
+
+                            Object old = getBinder().getBean();
+
+                            load(null);
+
+                            Object current = getBinder().getBean();
+                            for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(old.getClass())) {
+                                if (f.isAnnotationPresent(Keep.class)) {
+                                    ReflectionHelper.setValue(f, current, ReflectionHelper.getValue(f, old));
+                                }
                             }
+                            getBinder().setBean(current, false);
+
+
+                        } catch (Throwable throwable) {
+                            throwable.printStackTrace();
                         }
-                        getBinder().setBean(current, false);
 
 
-                    } catch (Throwable throwable) {
-                        throwable.printStackTrace();
-                    }
+                    } else Notification.show("There are errors", Notification.Type.ERROR_MESSAGE);
+
+                });
+                b.setClickShortcut(ShortcutAction.KeyCode.S, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
 
 
-                } else Notification.show("There are errors", Notification.Type.ERROR_MESSAGE);
+                shortcutsCreated = true;
+            }
 
-            });
-            b.setClickShortcut(ShortcutAction.KeyCode.S, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
         }
 
         super.addViewActionsMenuItems(bar);

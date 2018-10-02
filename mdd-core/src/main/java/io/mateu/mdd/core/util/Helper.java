@@ -171,7 +171,7 @@ public class Helper {
 
     public static <T> T find(Class<T> type, Object id) throws Throwable {
         Object[] o = {null};
-        Helper.transact(em -> {
+        Helper.notransact(em -> {
             o[0] = em.find(type, id);
         });
         return (T) o[0];
@@ -535,6 +535,7 @@ public class Helper {
 
                 }
             }
+            wb.close();
 
         FileOutputStream fileOut = new FileOutputStream(temp);
         wb.write(fileOut);
@@ -571,7 +572,7 @@ public class Helper {
                 }
             }
         }
-
+        wb.close();
         FileOutputStream fileOut = new FileOutputStream(temp);
         wb.write(fileOut);
         fileOut.close();
@@ -802,7 +803,7 @@ public class Helper {
                     } else if (System.getProperty("javax.persistence.jdbc.url", "").contains("postgres")) {
                         System.setProperty("eclipselink.target-database", "io.mateu.common.model.util.MiPostgreSQLPlatform");
                     }
-
+                    s.close();
                 } else {
                     System.out.println("No appconf. Either set -Dappconf=xxxxxx.properties or place an appconf.properties file in your classpath.");
                 }
@@ -908,6 +909,7 @@ public class Helper {
         try {
             f = new BufferedInputStream(new FileInputStream(fn));
             f.read(buffer);
+            f.close();
             s = new String(buffer, encoding);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -920,10 +922,9 @@ public class Helper {
     public static String leerFichero(String fn) {
         String s = "";
         byte[] buffer = new byte[(int) new File(fn).length()];
-        BufferedInputStream f;
-        try {
-            f = new BufferedInputStream(new FileInputStream(fn));
+        try (BufferedInputStream f = new BufferedInputStream(new FileInputStream(fn))) {
             f.read(buffer);
+            f.close();
             s = new String(buffer);
         } catch (FileNotFoundException e) {
             e.printStackTrace();

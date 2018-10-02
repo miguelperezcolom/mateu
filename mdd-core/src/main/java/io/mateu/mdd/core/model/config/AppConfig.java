@@ -86,7 +86,7 @@ public class AppConfig {
         AppConfig c = em.find(AppConfig.class, 1l);
         if (c == null) {
             try {
-                AbstractApplication.get().getPopulator().populate(MDDUI.createApp().getClass());
+                AbstractApplication.get().getPopulator().populate(MDDUI.createApp().getAppConfigClass());
                 c = em.find(AppConfig.class, 1l);
             } catch (Throwable throwable) {
                 throwable.printStackTrace();

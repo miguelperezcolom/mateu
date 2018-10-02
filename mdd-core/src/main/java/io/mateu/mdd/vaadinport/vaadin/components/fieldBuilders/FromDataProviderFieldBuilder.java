@@ -10,6 +10,8 @@ import com.vaadin.shared.ui.ErrorLevel;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Layout;
+import com.vaadin.ui.RadioButtonGroup;
+import io.mateu.mdd.core.annotations.UseRadioButtons;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -30,89 +32,87 @@ public class FromDataProviderFieldBuilder extends AbstractFieldBuilder {
 
     public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
 
-        ComboBox tf;
-        container.addComponent(tf = new ComboBox());
 
-        if (allFieldContainers.size() == 0) tf.focus();
+        if (field.isAnnotationPresent(UseRadioButtons.class)) {
 
-        tf.setDataProvider(field.getDataProvider());
+            RadioButtonGroup tf;
+            container.addComponent(tf = new RadioButtonGroup());
 
-        allFieldContainers.put(field, tf);
+            if (allFieldContainers.size() == 0) tf.focus();
 
-        if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
+            tf.setDataProvider(field.getDataProvider());
 
-        validators.put(tf, new ArrayList<>());
+            allFieldContainers.put(field, tf);
 
-        tf.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
-            @Override
-            public void valueChange(HasValue.ValueChangeEvent<String> valueChangeEvent) {
+            if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
+
+            validators.put(tf, new ArrayList<>());
+
+            tf.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
+                @Override
+                public void valueChange(HasValue.ValueChangeEvent<String> valueChangeEvent) {
                     ValidationResult result = null;
-                for (Validator v : validators.get(tf)) {
-                    result = v.apply(valueChangeEvent.getValue(), new ValueContext(tf));
-                    if (result.isError()) break;
+                    for (Validator v : validators.get(tf)) {
+                        result = v.apply(valueChangeEvent.getValue(), new ValueContext(tf));
+                        if (result.isError()) break;
+                    }
+                    if (result != null && result.isError()) {
+                        tf.setComponentError(new UserError(result.getErrorMessage()));
+                    } else {
+                        tf.setComponentError(null);
+                    }
                 }
-                if (result != null && result.isError()) {
-                    tf.setComponentError(new UserError(result.getErrorMessage()));
-                } else {
-                    tf.setComponentError(null);
-                }
+            });
+
+            if (!forSearchFilter) {
+
+                tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
+
             }
-        });
 
-        if (!forSearchFilter) {
+            binder.bind(tf, field.getName());
 
-            tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
 
-            if (field.isAnnotationPresent(NotNull.class)) validators.get(tf).add(new Validator() {
+        } else {
+
+            ComboBox tf;
+            container.addComponent(tf = new ComboBox());
+
+            if (allFieldContainers.size() == 0) tf.focus();
+
+            tf.setDataProvider(field.getDataProvider());
+
+            allFieldContainers.put(field, tf);
+
+            if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
+
+            validators.put(tf, new ArrayList<>());
+
+            tf.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
                 @Override
-                public ValidationResult apply(Object o, ValueContext valueContext) {
-                    if (o == null) return ValidationResult.create("Required field", ErrorLevel.ERROR);
-                    else return ValidationResult.ok();
-                }
-
-                @Override
-                public Object apply(Object o, Object o2) {
-                    return null;
+                public void valueChange(HasValue.ValueChangeEvent<String> valueChangeEvent) {
+                    ValidationResult result = null;
+                    for (Validator v : validators.get(tf)) {
+                        result = v.apply(valueChangeEvent.getValue(), new ValueContext(tf));
+                        if (result.isError()) break;
+                    }
+                    if (result != null && result.isError()) {
+                        tf.setComponentError(new UserError(result.getErrorMessage()));
+                    } else {
+                        tf.setComponentError(null);
+                    }
                 }
             });
 
-            BeanValidator bv = new BeanValidator(binder.getBeanType(), field.getName());
+            if (!forSearchFilter) {
 
-            validators.get(tf).add(new Validator() {
+                tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
 
-                @Override
-                public ValidationResult apply(Object o, ValueContext valueContext) {
-                    return bv.apply(o, valueContext);
-                }
+            }
 
-                @Override
-                public Object apply(Object o, Object o2) {
-                    return null;
-                }
-            });
-
-            addValidators(validators.get(tf));
-
+            binder.bind(tf, field.getName());
         }
 
-
-
-        /*
-        tf.setDescription();
-        tf.setPlaceholder();
-        */
-
-        bind(binder, tf, field);
     }
 
-    public Object convert(String s) {
-        return s;
-    }
-
-    public void addValidators(List<Validator> validators) {
-    }
-
-    protected void bind(MDDBinder binder, ComboBox tf, FieldInterfaced field) {
-        binder.bind(tf, field.getName());
-    }
 }

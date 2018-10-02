@@ -455,6 +455,7 @@
       font-weight: bold;
       width: 100%;
       text-align: right;
+      background-color: inherit !important;
     }
 
     .v-label-centered {
@@ -479,6 +480,7 @@
       font-weight: bold;
       width: 100%;
       text-align: center;
+      background-color: inherit !important;
     }
 
     .v-label-centered {
@@ -602,7 +604,7 @@
 
   .menu-badge {
     width: 20px;
-    background-color: orange;
+    /* background-color: orange; */
     border-radius: 2px;
     float: right;
     text-align: center;
@@ -971,6 +973,9 @@
   }
 
 
+  .audit {
+    white-space: inherit;
+  }
 
 
 
@@ -1323,4 +1328,25 @@
   .cancelled {
     text-decoration: line-through;
   }
+
+}
+
+
+@media print {
+
+  .v-slot-appheader {
+    display: none;
+  }
+
+
+  .horizontallayout {
+    .v-expand {
+      padding-left: inherit;
+
+      .v-slot-leftside {
+        dispaly:none;
+      }
+    }
+  }
+
 }

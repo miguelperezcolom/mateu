@@ -6,6 +6,7 @@ import com.vaadin.data.Validator;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.annotations.UseRadioButtons;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Value;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -13,6 +14,7 @@ import io.mateu.mdd.core.reflection.FieldInterfacedFromType;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.JPAOutputFieldBuilder;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.FormLayoutBuilder;
 
+import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +29,13 @@ public class VaadinHelper {
         Map<FieldInterfaced, Component> allFieldContainers = new HashMap<>();
         JPAOutputFieldBuilder ofb = new JPAOutputFieldBuilder();
 
-        FieldInterfaced field = new FieldInterfacedFromType(Object.class, "value", new ListDataProvider(possibleValues));
+        FieldInterfaced field = new FieldInterfacedFromType(Object.class, "value", new ListDataProvider(possibleValues)) {
+            @Override
+            public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
+                if (UseRadioButtons.class.equals(annotationClass) && possibleValues.size() < 15) return true;
+                else return super.isAnnotationPresent(annotationClass);
+            }
+        };
 
         List<FieldInterfaced> fields = Lists.newArrayList(field);
 

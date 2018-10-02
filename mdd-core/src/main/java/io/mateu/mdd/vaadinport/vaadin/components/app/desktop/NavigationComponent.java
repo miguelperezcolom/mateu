@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.desktop;
 
 import com.google.common.base.Strings;
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
@@ -51,7 +52,7 @@ public class NavigationComponent extends VerticalLayout {
 
                 if (app.getAreas().size() > 1) {
 
-                    Button b = new Button(a.getName() + ((app.getAreas().size() > 1)?"<span class=\"menu-badge\">+" + (app.getAreas().size() - 1) + "</span>":"")
+                    Button b = new Button(a.getName() + ((app.getAreas().size() > 1)?"<span class=\"menu-badge\">" + VaadinIcons.ELLIPSIS_DOTS_H.getHtml() + "</span>":"")
                             , ev -> MDDUI.get().getNavegador().goTo(((a.isPublicAccess())?"public":"private"))); //, a.getIcon());
                     b.setIcon(a.getIcon());
                     b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
@@ -94,7 +95,7 @@ public class NavigationComponent extends VerticalLayout {
     private void addMenu(MenuEntry e) {
 
 
-        Button b = new Button(e.getName() + ((e instanceof  AbstractMenu)?"<span class=\"menu-badge\">" + ((AbstractMenu) e).getEntries().size() + "</span>":"")
+        Button b = new Button(e.getName() + ((e instanceof  AbstractMenu)?"<span class=\"menu-badge\">" + VaadinIcons.ELLIPSIS_DOTS_H.getHtml() + "</span>":"")
         , ev -> MDDUI.get().getNavegador().goTo(e));
         //b.setIcon(FontAwesome.TH_LIST);
         b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);

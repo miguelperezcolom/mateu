@@ -204,8 +204,8 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                     HorizontalLayout wrap;
                     currentFieldContainer = wrap = new HorizontalLayout();
                     wrap.setSpacing(true);
-                    wrap.setDefaultComponentAlignment(Alignment.MIDDLE_LEFT);
-                    wrap.setWidth("100%");
+                    wrap.setDefaultComponentAlignment(Alignment.TOP_LEFT);
+                    if (f.isAnnotationPresent(FullWidth.class)) wrap.setWidth("100%");
                     //currentFieldContainer.setCaption(ReflectionHelper.getCaption(f));
                 }
 

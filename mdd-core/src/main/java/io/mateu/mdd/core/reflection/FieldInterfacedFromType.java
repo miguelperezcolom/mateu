@@ -1,6 +1,7 @@
 package io.mateu.mdd.core.reflection;
 
 import com.vaadin.data.provider.DataProvider;
+import com.vaadin.data.provider.Query;
 import io.mateu.mdd.core.annotations.KeyClass;
 import io.mateu.mdd.core.annotations.KeyQL;
 

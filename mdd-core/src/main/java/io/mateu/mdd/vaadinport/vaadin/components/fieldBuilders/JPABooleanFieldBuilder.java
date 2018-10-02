@@ -47,9 +47,11 @@ public class JPABooleanFieldBuilder extends AbstractFieldBuilder {
             HorizontalLayout hl;
             container.addComponent(hl = new HorizontalLayout());
             hl.addStyleName(CSS.NOPADDING);
+            hl.addStyleName("checkboxcontainer");
 
             CheckBox cb;
             hl.addComponent(cb = new CheckBox());
+            hl.setDefaultComponentAlignment(Alignment.TOP_LEFT);
 
             if (allFieldContainers.size() == 0) cb.focus();
 
