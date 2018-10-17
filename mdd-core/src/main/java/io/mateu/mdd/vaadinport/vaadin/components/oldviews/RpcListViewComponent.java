@@ -80,6 +80,12 @@ public class RpcListViewComponent extends ListViewComponent {
     }
 
     @Override
+    public void buildColumns(Grid grid) {
+        rpcListView.buildColumns(grid);
+        if (grid.getColumns().size() == 0) super.buildColumns(grid);
+    }
+
+    @Override
     public Class getColumnType() {
         return columnType;
     }

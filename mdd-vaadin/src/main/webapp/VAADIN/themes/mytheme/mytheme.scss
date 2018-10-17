@@ -283,6 +283,17 @@
             }
 
 
+            .opcionmenu:active {
+              outline: none;
+            }
+
+            .opcionmenu:focus {
+              outline: none;
+            }
+
+            .opcionmenu.v-pressed {
+              outline: none;
+            }
 
 
           }
@@ -433,10 +444,23 @@
     .submenuoption {
       color: #197de1;
       text-decoration: none;
+      cursor: pointer;
     }
 
     .submenuoption:hover {
       color: red;
+    }
+
+    .submenuoption:active {
+      outline: none;
+    }
+
+    .submenuoption:focus {
+      outline: none;
+    }
+
+    .submenuoption.v-pressed {
+      outline: none;
     }
 
   }
@@ -807,6 +831,10 @@
 
 
 
+  .mdd-seagreen-bgd {
+    background-color: seagreen !important;
+  }
+
   .mdd-green-bgd {
     background-color: green !important;
   }
@@ -863,6 +891,10 @@
     background-color: #f27469 !important;
   }
 
+
+  .cell-void {
+    border-right: 10px solid transparent !important;
+  }
 
   .cell-valid {
     border-right: 10px solid darkseagreen !important;
@@ -1327,6 +1359,33 @@
 
   .cancelled {
     text-decoration: line-through;
+  }
+
+
+
+
+
+  .celdacalendario {
+
+    padding: 0px;
+
+    button {
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+      vertical-align: unset;
+      background-color: transparent;
+    }
+
+    button:active {
+      outline: none;
+    }
+
+    button:focus {
+      outline: none;
+    }
+
   }
 
 }

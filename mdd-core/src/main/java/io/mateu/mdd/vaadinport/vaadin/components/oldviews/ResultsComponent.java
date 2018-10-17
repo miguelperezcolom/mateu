@@ -38,12 +38,14 @@ public class ResultsComponent extends VerticalLayout {
 
         if (!MDD.isMobile()) setSizeFull();
 
+
         grid = new Grid<>();
 
         listViewComponent.buildColumns(grid);
 
         // añadimos columna para que no haga feo
         grid.addColumn((d) -> null).setWidthUndefined().setCaption("");
+
 
         grid.addSortListener(new SortEvent.SortListener<GridSortOrder<Object>>() {
             @Override

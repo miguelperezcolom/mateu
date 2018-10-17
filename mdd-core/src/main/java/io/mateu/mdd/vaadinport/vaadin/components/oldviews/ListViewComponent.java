@@ -96,6 +96,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         return this;
     }
 
+
     private void pdf() {
         try {
             getUI().getPage().open(Helper.listViewComponentToPdf(this, getModelForSearchFilters()).toString(), "_blank");

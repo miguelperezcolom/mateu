@@ -18240,6 +18240,18 @@ div.v-layout.v-horizontal.v-widget {
 	background-color: #73a5d7;
 }
 
+.mytheme .miapp .leftside .navegacion .opcionmenu:active {
+	outline: none;
+}
+
+.mytheme .miapp .leftside .navegacion .opcionmenu:focus {
+	outline: none;
+}
+
+.mytheme .miapp .leftside .navegacion .opcionmenu.v-pressed {
+	outline: none;
+}
+
 .mytheme .miapp .v-widget .nopadding {
 	padding: 0px;
 }
@@ -18343,10 +18355,23 @@ div.v-layout.v-horizontal.v-widget {
 .mytheme .v-layout .submenuoption {
 	color: #197de1;
 	text-decoration: none;
+	cursor: pointer;
 }
 
 .mytheme .v-layout .submenuoption:hover {
 	color: red;
+}
+
+.mytheme .v-layout .submenuoption:active {
+	outline: none;
+}
+
+.mytheme .v-layout .submenuoption:focus {
+	outline: none;
+}
+
+.mytheme .v-layout .submenuoption.v-pressed {
+	outline: none;
 }
 
 .mytheme .kpi {
@@ -18640,6 +18665,10 @@ div.v-layout.v-horizontal.v-widget {
 	text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.05);
 }
 
+.mytheme .mdd-seagreen-bgd {
+	background-color: seagreen !important;
+}
+
 .mytheme .mdd-green-bgd {
 	background-color: green !important;
 }
@@ -18690,6 +18719,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .mytheme .danger {
 	background-color: #f27469 !important;
+}
+
+.mytheme .cell-void {
+	border-right: 10px solid transparent !important;
 }
 
 .mytheme .cell-valid {
@@ -19106,4 +19139,25 @@ div.v-layout.v-horizontal.v-widget {
 
 .mytheme .cancelled {
 	text-decoration: line-through;
+}
+
+.mytheme .celdacalendario {
+	padding: 0px;
+}
+
+.mytheme .celdacalendario button {
+	border: none;
+	cursor: pointer;
+	width: 100%;
+	height: 100%;
+	vertical-align: unset;
+	background-color: transparent;
+}
+
+.mytheme .celdacalendario button:active {
+	outline: none;
+}
+
+.mytheme .celdacalendario button:focus {
+	outline: none;
 }

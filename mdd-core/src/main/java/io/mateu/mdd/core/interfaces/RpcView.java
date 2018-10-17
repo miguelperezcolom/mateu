@@ -2,6 +2,8 @@ package io.mateu.mdd.core.interfaces;
 
 import com.vaadin.ui.Grid;
 import io.mateu.mdd.core.data.SumData;
+import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.JPAListViewComponent;
 
 import java.util.List;
 
@@ -16,6 +18,11 @@ public interface RpcView<F, C> {
     int gatherCount(F filters) throws Throwable;
 
     default void decorateGrid(Grid<C> grid) {
+
+    };
+
+
+    default void buildColumns(Grid<C> grid) {
 
     };
 
