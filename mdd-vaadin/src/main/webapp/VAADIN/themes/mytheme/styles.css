@@ -18701,6 +18701,46 @@ div.v-layout.v-horizontal.v-widget {
 	background-color: blue !important;
 }
 
+.mytheme .mdd-seagreen-fgd {
+	color: seagreen !important;
+}
+
+.mytheme .mdd-green-fgd {
+	color: green !important;
+}
+
+.mytheme .mdd-orange-fgd {
+	color: orange !important;
+}
+
+.mytheme .mdd-red-fgd {
+	color: red !important;
+}
+
+.mytheme .mdd-yellow-fgd {
+	color: yellow !important;
+}
+
+.mytheme .mdd-brown-fgd {
+	color: brown !important;
+}
+
+.mytheme .mdd-grey-fgd {
+	color: grey !important;
+}
+
+.mytheme .mdd-white-fgd {
+	color: white !important;
+}
+
+.mytheme .mdd-blue-fgd {
+	color: blue !important;
+}
+
+.mytheme .total {
+	font-weight: bold;
+}
+
 .mytheme [class*="margin-top"] > tbody > [class*="firstrow"] > td {
 	padding-top: 0px;
 }

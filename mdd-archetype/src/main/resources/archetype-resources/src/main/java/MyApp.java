@@ -33,13 +33,13 @@ public class MyApp extends SimpleMDDApplication {
     }
 
     @Action(order = 5)
-    public String ls() throws IOException {
+    public String ls() throws Exception {
         return Helper.toHtml(Helper.runCommand("ls -lh"));
     }
 
 
     @Action(order = 6)
-    public String df() throws IOException {
+    public String df() throws Exception {
         return Helper.toHtml(Helper.runCommand("df -h"));
     }
 

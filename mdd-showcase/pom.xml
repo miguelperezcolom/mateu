@@ -4,7 +4,7 @@
   <parent>
     <artifactId>mdd-parent</artifactId>
     <groupId>io.mateu</groupId>
-    <version>0.0.5-SNAPSHOT</version>
+    <version>0.0.6-SNAPSHOT</version>
   </parent>
   <artifactId>mdd-showcase</artifactId>
 
@@ -44,8 +44,9 @@
 
     <dependency>
       <groupId>io.mateu</groupId>
-      <artifactId>mdd-core</artifactId>
+      <artifactId>mdd-vaadin</artifactId>
       <version>${parent.version}</version>
+      <scope>provided</scope>
       <!-- exclude eclipselink -->
       <!--
       <exclusions>
@@ -72,14 +73,9 @@
       <artifactId>mdd-vaadin</artifactId>
       <version>${parent.version}</version>
       <type>war</type>
+      <classifier>tester</classifier>
     </dependency>
 
-
-    <dependency>
-      <groupId>io.mateu</groupId>
-      <artifactId>mdd-tester</artifactId>
-      <version>${parent.version}</version>
-    </dependency>
 
   </dependencies>
 
@@ -120,6 +116,7 @@
             <overlay>
               <groupId>io.mateu</groupId>
               <artifactId>mdd-vaadin</artifactId>
+              <classifier>tester</classifier>
             </overlay>
           </overlays>
         </configuration>

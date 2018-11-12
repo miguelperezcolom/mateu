@@ -40,20 +40,22 @@
       <scope>test</scope>
     </dependency>
 
+    <!--
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>mdd-core</artifactId>
-      <version>0.0.5-SNAPSHOT</version>
-      <!-- exclude eclipselink -->
-      <!--
+      <version>0.0.6-SNAPSHOT</version>
+      <// exclude eclipselink //>
+      <//
       <exclusions>
         <exclusion>
           <groupId>org.eclipse.persistence</groupId>
           <artifactId>eclipselink</artifactId>
         </exclusion>
       </exclusions>
-      -->
+      //>
     </dependency>
+  -->
 
     <!-- add your desired jpa provider -->
     <!--
@@ -67,10 +69,18 @@
 
     <dependency>
       <groupId>io.mateu</groupId>
-      <artifactId>mdd-showcase</artifactId>
-      <version>0.0.5-SNAPSHOT</version>
+      <artifactId>mdd-vaadin</artifactId>
+      <version>0.0.6-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>io.mateu</groupId>
+      <artifactId>mdd-vaadin</artifactId>
+      <version>0.0.6-SNAPSHOT</version>
       <type>war</type>
     </dependency>
+
 
   </dependencies>
 
@@ -131,10 +141,7 @@
             <overlay></overlay>
             <overlay>
               <groupId>io.mateu</groupId>
-              <artifactId>mdd-showcase</artifactId>
-              <excludes>
-                <exclude>WEB-INF/lib/mdd-tester-0.0.5-SNAPSHOT.jar</exclude>
-              </excludes>
+              <artifactId>mdd-vaadin</artifactId>
             </overlay>
           </overlays>
         </configuration>

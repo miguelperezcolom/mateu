@@ -4,7 +4,7 @@
 
   <groupId>io.mateu</groupId>
   <artifactId>mdd-parent</artifactId>
-  <version>0.0.5-SNAPSHOT</version>
+  <version>0.0.6-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <url>http://maven.apache.org</url>
@@ -16,8 +16,6 @@
 
   <modules>
     <module>mdd-addon</module>
-    <module>mdd-core</module>
-    <module>mdd-tester</module>
     <module>mdd-vaadin</module>
     <module>mdd-showcase</module>
   </modules>
