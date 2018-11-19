@@ -1,6 +1,9 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.vaadin.data.provider.QuerySortOrder;
+import com.vaadin.ui.Grid;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
 import io.mateu.mdd.core.app.AbstractAction;
@@ -138,8 +141,21 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
     }
 
     public void saved(Object o) throws Throwable {
-        list.add(o);
+        //list.add(o);
         evfc.getBinder().setBean(evfc.getModel(), false);
         evfc.save(false);
+    }
+
+
+    @Override
+    public void decorateGrid(Grid grid) {
+        if (field.getAnnotation(UseLinkToListView.class) != null && !Strings.isNullOrEmpty(field.getAnnotation(UseLinkToListView.class).fields())) {
+            List<String> fns = Lists.newArrayList(field.getAnnotation(UseLinkToListView.class).fields().replaceAll(" ", "").split(","));
+            for (Grid.Column col : (List<Grid.Column>) grid.getColumns()) {
+                if (col.getId() != null && !fns.contains(col.getId())) col.setHidden(true);
+            }
+        } else {
+            super.decorateGrid(grid);
+        }
     }
 }

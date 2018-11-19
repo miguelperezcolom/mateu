@@ -43,7 +43,7 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
         this.binder = binder;
 
 
-        if (field.isAnnotationPresent(Embedded.class)) {
+        if (false && field.isAnnotationPresent(Embedded.class)) {
 
             binder.addValueChangeListener(e -> subBuild());
 

@@ -70,7 +70,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private List<EditorListener> listeners = new ArrayList<>();
     private boolean modificado;
     private Layout kpisContainer;
-    private boolean shortcutsCreated;
+    private List<String> shortcutsCreated = new ArrayList<>();
+    private Object modelId;
 
     public boolean isModificado() {
         return modificado;
@@ -345,6 +346,42 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     @Override
     public void addViewActionsMenuItems(MenuBar bar) {
 
+        if (modelType.isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(modelType)) {
+            if (!isActionPresent("refresh")) {
+
+                MenuBar.Command cmd;
+                MenuBar.MenuItem i = bar.addItem("Refresh", VaadinIcons.REFRESH, cmd = new MenuBar.Command() {
+                    @Override
+                    public void menuSelected(MenuBar.MenuItem menuItem) {
+                        try {
+
+                            load(modelId);
+
+                        } catch (Throwable throwable) {
+                            MDD.alert(throwable);
+                        }
+                    }
+                });
+                //i.setStyleName(ValoTheme.butt);
+
+                i.setDescription("Click Ctrl + R to refresh.");
+
+                addAction("refresh", i);
+
+
+                if (!shortcutsCreated.contains("refresh")) {
+
+                    Button b;
+                    addComponent(b = new Button());
+                    b.addStyleName("hidden");
+                    b.addClickListener(e -> cmd.menuSelected(i));
+                    b.setClickShortcut(ShortcutAction.KeyCode.R, ShortcutAction.ModifierKey.CTRL);
+
+                    shortcutsCreated.add("refresh");
+                }
+            }
+        }
+
         if (createSaveButton && (modelType.isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(modelType))) {
             if (!isActionPresent("save")) {
 
@@ -375,7 +412,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 addAction("save", i);
 
 
-                if (!shortcutsCreated) {
+                if (!shortcutsCreated.contains("save")) {
 
                     Button b;
                     addComponent(b = new Button());
@@ -415,7 +452,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                     b.setClickShortcut(ShortcutAction.KeyCode.S, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
 
 
-                    shortcutsCreated = true;
+                    shortcutsCreated.add("save");
                 }
             }
 
@@ -476,7 +513,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         Method a = null;
 
         for (Method m : ReflectionHelper.getAllMethods(getModelType())) {
-            if (m.getName().equals(methodName)) {
+            if (!Modifier.isStatic(m.getModifiers()) && m.getName().equals(methodName)) {
                 a = m;
                 break;
             }
@@ -563,6 +600,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     }
 
     public void load(Object id, Object parent, FieldInterfaced field) throws Throwable {
+        this.modelId = id;
+        this.modificado = false;
         if (id == null) {
             newRecord = true;
 

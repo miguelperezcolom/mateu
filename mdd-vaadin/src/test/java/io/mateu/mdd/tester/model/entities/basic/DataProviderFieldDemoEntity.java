@@ -3,6 +3,8 @@ package io.mateu.mdd.tester.model.entities.basic;
 import io.mateu.mdd.core.annotations.DataProvider;
 import io.mateu.mdd.core.annotations.TextArea;
 import io.mateu.mdd.core.annotations.UseTwinCols;
+import io.mateu.mdd.core.annotations.ValueClass;
+import io.mateu.mdd.core.model.authentication.User;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -36,4 +38,16 @@ public class DataProviderFieldDemoEntity {
     @UseTwinCols
     @OneToMany
     private Set<BasicFieldsDemoEntity> collectionField = new HashSet<>();
+
+
+    @ValueClass(User.class)
+    private String currencyCode;
+
+    @ValueClass(BasicFieldsDemoEntity.class)
+    private long entityId;
+
+
+    @ValueClass(User.class)
+    private List<String> users = new ArrayList<>();
+
 }

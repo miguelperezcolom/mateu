@@ -42,6 +42,8 @@ import java.net.URI;
 @StyleSheet("//cdn.muicss.com/mui-0.9.39/css/mui.min.css")
 @JavaScript("//cdn.muicss.com/mui-0.9.39/js/mui.min.js")
 
+@StyleSheet("https://use.fontawesome.com/releases/v5.5.0/css/all.css")
+
 //@StyleSheet("https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css")
 @Viewport("width=device-width, initial-scale=1")
 @PushStateNavigation // para urls sin #!

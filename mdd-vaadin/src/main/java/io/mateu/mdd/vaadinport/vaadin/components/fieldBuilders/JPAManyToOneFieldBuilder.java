@@ -190,6 +190,8 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                                     id = Integer.parseInt(s.getValue());
                                 } else if (long.class.equals(fid.getType()) || Long.class.equals(fid.getType())) {
                                     id = Long.parseLong(s.getValue());
+                                } else if (String.class.equals(fid.getType())) {
+                                    id = s.getValue();
                                 } else id = s;
 
                                 Query q = em.createQuery(sql).setParameter("i", id);
@@ -362,8 +364,8 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
                                     Object v = null;
                                     if (hdp instanceof ComboBox && field.isAnnotationPresent(NotNull.class)) {
-                                        if (((ComboBox)hdp).getDataProvider().size(null) == 1) {
-                                            v = ((ComboBox)hdp).getDataProvider().fetch(null).findFirst().get();
+                                        if (((ComboBox)hdp).getDataProvider().size(new com.vaadin.data.provider.Query()) == 1) {
+                                            v = ((ComboBox)hdp).getDataProvider().fetch(new com.vaadin.data.provider.Query()).findFirst().get();
                                         }
                                     }
 

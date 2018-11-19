@@ -15,6 +15,7 @@ import io.mateu.mdd.core.nose.MemorizadorRegistroEditado;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.AbstractFieldBuilder;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.Data;
@@ -194,7 +195,7 @@ public abstract class AbstractApplication implements App {
             String areaName = a.getName();
             if (Strings.isNullOrEmpty(areaName)) areaName = "noname";
 
-            String id = ((a.isPublicAccess())?"public":"private") + "/" + areaName.toLowerCase().replaceAll(" ", "");
+            String id = ((a.isPublicAccess())?"public":"private") + "/" + areaName.toLowerCase().replaceAll(" ", "").replaceAll("&", "");
             int pos = 0;
             String idbase = id;
             while (areaIdsReversed.containsKey(id)) id = idbase + pos++;
@@ -206,7 +207,7 @@ public abstract class AbstractApplication implements App {
                 String moduleName = m.getName();
                 if (Strings.isNullOrEmpty(moduleName)) moduleName = "noname";
 
-                String idm = id + "/" + moduleName.toLowerCase().replaceAll(" ", "");
+                String idm = id + "/" + moduleName.toLowerCase().replaceAll(" ", "").replaceAll("&", "");
                 int posm = 0;
                 String idbasem = idm;
                 while (moduleIdsReversed.containsKey(idm)) idm = idbasem + posm++;
@@ -221,7 +222,7 @@ public abstract class AbstractApplication implements App {
     }
 
     private void buildMenuIds(AbstractArea a, String prefijo, List<MenuEntry> incomingPath, MenuEntry e) {
-        String id = prefijo + "/" + e.getName().toLowerCase().replaceAll("/", "").replaceAll(" ", "");
+        String id = prefijo + "/" + e.getName().toLowerCase().replaceAll("/", "").replaceAll(" ", "").replaceAll("&", "");
 
         int pos = 0;
         String idbase = id;
@@ -390,7 +391,7 @@ public abstract class AbstractApplication implements App {
 
     public AbstractFieldBuilder getFieldBuilder(FieldInterfaced field) {
 
-        String k = ((field.getDeclaringClass() != null)?field.getDeclaringClass().getName():"--") + "/" + field.getName();
+        String k = ((field.getDeclaringClass() != null)?field.getDeclaringClass().getName():"--") + "/" + field.getName() + "/" + (MDDUI.get().isEditingNewRecord()?"newrecord":"editing");
 
         if (fieldBuildersCache.containsKey(k)) return fieldBuildersCache.get(k);
         else {

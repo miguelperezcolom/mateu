@@ -21,6 +21,7 @@ import io.mateu.mdd.vaadinport.vaadin.components.oldviews.WizardComponent;
 import org.vaadin.aceeditor.AceEditor;
 
 import javax.persistence.Convert;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 
 public class FieldEditorComponent extends VerticalLayout {
@@ -208,7 +209,7 @@ public class FieldEditorComponent extends VerticalLayout {
 
                 @Override
                 public void onGoBack(Object model) {
-                    if (field.getDeclaringClass().isAnnotationPresent(Entity.class) && field.isAnnotationPresent(Convert.class)) {
+                    if ((field.isAnnotationPresent(Embedded.class)) || (field.getDeclaringClass().isAnnotationPresent(Entity.class) && field.isAnnotationPresent(Convert.class))) {
                         Object m = binder.getBean();
                         try {
                             Object value = editor.getBinder().getBean();

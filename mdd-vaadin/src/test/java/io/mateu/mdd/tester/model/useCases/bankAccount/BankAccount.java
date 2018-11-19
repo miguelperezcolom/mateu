@@ -1,9 +1,6 @@
 package io.mateu.mdd.tester.model.useCases.bankAccount;
 
-import io.mateu.mdd.core.annotations.Keep;
-import io.mateu.mdd.core.annotations.ListColumn;
-import io.mateu.mdd.core.annotations.Output;
-import io.mateu.mdd.core.annotations.Sum;
+import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.model.authentication.Audit;
 import io.mateu.mdd.core.model.authentication.User;
 import lombok.Getter;
@@ -26,6 +23,7 @@ public class BankAccount {
     private Audit audit;
 
     @ManyToOne@NotNull
+    @Unmodifiable
     private Bank bank;
 
     @NotEmpty

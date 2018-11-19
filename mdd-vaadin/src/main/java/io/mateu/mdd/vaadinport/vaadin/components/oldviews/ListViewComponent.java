@@ -225,7 +225,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
                         Object v = null;
 
-                        if (isJPAListViewComponent) {
+                        if (o instanceof Object[]) {
                             v = ((Object[]) o)[finalPos + 1];
                         } else {
                             try {

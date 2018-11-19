@@ -27,6 +27,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class JPAStringFieldBuilder extends AbstractFieldBuilder {
 
@@ -39,7 +40,7 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
 
         Method mdp = ReflectionHelper.getMethod(field.getDeclaringClass(), ReflectionHelper.getGetter(field.getName()) + "DataProvider");
 
-        if (field.isAnnotationPresent(DataProvider.class) || mdp != null) {
+        if (field.isAnnotationPresent(ValueClass.class) || field.isAnnotationPresent(DataProvider.class) || mdp != null) {
 
             Component tf = null;
             HasValue hv = null;
@@ -64,6 +65,12 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
                     } catch (Exception e) {
                         MDD.alert(e);
                     }
+
+                } else if (field.isAnnotationPresent(ValueClass.class)) {
+
+                    ValueClass a = field.getAnnotation(ValueClass.class);
+
+                    ((HasDataProvider)tf).setDataProvider(new JPQLListDataProvider(a.value()));
 
                 } else if (field.isAnnotationPresent(DataProvider.class)) {
 
@@ -135,6 +142,12 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
                     } catch (Exception e) {
                         MDD.alert(e);
                     }
+
+                } else if (field.isAnnotationPresent(ValueClass.class)) {
+
+                    ValueClass a = field.getAnnotation(ValueClass.class);
+
+                    cb.setDataProvider(new JPQLListDataProvider(a.value()));
 
                 } else if (field.isAnnotationPresent(DataProvider.class)) {
 
@@ -242,23 +255,67 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
 
 
     protected void bind(MDDBinder binder, TextField tf, FieldInterfaced field, boolean forSearchFilter) {
-        Binder.BindingBuilder aux = binder.forField(tf).withConverter(new Converter() {
-            @Override
-            public Result convertToModel(Object o, ValueContext valueContext) {
-                return Result.ok(o);
-            }
+        Binder.BindingBuilder aux = binder.forField(tf);
 
-            @Override
-            public Object convertToPresentation(Object o, ValueContext valueContext) {
-                return (o != null) ? o : "";
-            }
-        });
+        if (field.isAnnotationPresent(ValueClass.class)) {
+            aux.withConverter(new Converter() {
+                @Override
+                public Result convertToModel(Object o, ValueContext valueContext) {
+                    return Result.ok(o);
+                }
+
+                @Override
+                public Object convertToPresentation(Object o, ValueContext valueContext) {
+                    return (o != null) ? o : "";
+                }
+            });
+        } else {
+            aux.withConverter(new Converter() {
+                @Override
+                public Result convertToModel(Object o, ValueContext valueContext) {
+                    return Result.ok(o);
+                }
+
+                @Override
+                public Object convertToPresentation(Object o, ValueContext valueContext) {
+                    return (o != null) ? o : "";
+                }
+            });
+        }
+
         if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
         aux.bind(field.getName());
     }
 
     protected void bind(MDDBinder binder, HasValue tf, FieldInterfaced field, boolean forSearchFilter) {
         Binder.BindingBuilder aux = binder.forField(tf);
+
+        aux.withConverter(new Converter() {
+            @Override
+            public Result convertToModel(Object o, ValueContext valueContext) {
+                if (o != null && !"".equals(o)) {
+                    return Result.ok((o.getClass().equals(field.getType()))?o:ReflectionHelper.getId(o));
+                } else return Result.ok(null);
+            }
+
+            @Override
+            public Object convertToPresentation(Object o, ValueContext valueContext) {
+                if (o == null) return "";
+
+                com.vaadin.data.provider.DataProvider dp = null;
+                if (tf instanceof HasDataProvider) {
+                    dp = ((HasDataProvider)tf).getDataProvider();
+                } else if (tf instanceof ComboBox) {
+                    dp = ((ComboBox)tf).getDataProvider();
+                }
+                if (dp != null) {
+                    Optional optional = dp.fetch(new com.vaadin.data.provider.Query()).filter(x -> (x.getClass().equals(o.getClass()))?x.equals(o):ReflectionHelper.getId(x).equals(o)).findFirst();
+                    if (optional.isPresent()) return optional.get();
+                    else return "";
+                } else return o;
+            }
+        });
+
         if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
         aux.bind(field.getName());
     }

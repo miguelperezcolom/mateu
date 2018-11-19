@@ -4,6 +4,7 @@ import org.jdom2.Element;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class DatesRange implements Serializable, XMLSerializable {
 
@@ -57,4 +58,17 @@ public class DatesRange implements Serializable, XMLSerializable {
         }
     }
 
+
+    @Override
+    public String toString() {
+        DateTimeFormatter f = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String s = "";
+        if (start != null) s += "from " + start.format(f);
+        if (end != null) {
+            if (!"".equals(s)) s = " ";
+            s += "to " + end.format(f);
+        }
+
+        return s;
+    }
 }

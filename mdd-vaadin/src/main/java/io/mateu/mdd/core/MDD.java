@@ -5,6 +5,8 @@ import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.AbstractModule;
 import io.mateu.mdd.core.app.MDDOpenListViewAction;
 import io.mateu.mdd.core.data.UserData;
+import io.mateu.mdd.core.model.authentication.User;
+import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import javassist.ClassPool;
 import io.mateu.mdd.core.app.*;
@@ -35,7 +37,15 @@ public class MDD {
         return getPort().getUserData();
     }
 
-
+    public static User getCurrentUser() {
+        try {
+            User[] u = {null};
+            Helper.notransact(em -> u[0] = em.find(User.class, MDD.getUserData().getLogin()));
+            return u[0];
+        } catch (Throwable e) {
+            return null;
+        }
+    }
 
 
 

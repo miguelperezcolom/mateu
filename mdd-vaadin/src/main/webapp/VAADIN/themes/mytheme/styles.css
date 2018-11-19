@@ -19201,3 +19201,7 @@ div.v-layout.v-horizontal.v-widget {
 .mytheme .celdacalendario button:focus {
 	outline: none;
 }
+
+.mytheme .outputlabel {
+	white-space: inherit;
+}
