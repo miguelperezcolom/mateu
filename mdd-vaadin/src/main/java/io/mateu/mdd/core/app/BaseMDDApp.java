@@ -143,7 +143,7 @@ public abstract class BaseMDDApp extends AbstractApplication {
 
     public String recoverPassword(String login) throws Throwable {
         Helper.transact(em -> {
-            em.find(User.class, login).sendForgottenPasswordEmail();
+            em.find(User.class, login).sendForgottenPasswordEmail(em);
         });
         return "An email with instructions has been sent to you. Please check you inbox.";
         //throw new Exception("Not implemented. You mus override the recoverPassword method of your aplication class.");

@@ -158,10 +158,15 @@ public class MethodParametersViewComponent extends AbstractViewComponent impleme
 
                         Object r = ReflectionHelper.execute(MDD.getUserData(), method, binder, bean, pendingSelection);
 
+                        if (method.isAnnotationPresent(Action.class) && method.getAnnotation(Action.class).saveAfter() && binder.getViewComponent() != null && binder.getViewComponent() instanceof EditorViewComponent) {
+                            ((EditorViewComponent) binder.getViewComponent()).save(false);
+                        }
+
                         if (parentBinder != null) {
                             parentBinder.setBean(null, false);
                             parentBinder.setBean(bean, false);
                         }
+
 
                         if (void.class.equals(method.getReturnType())) {
                             MDDUI.get().getNavegador().goBack();

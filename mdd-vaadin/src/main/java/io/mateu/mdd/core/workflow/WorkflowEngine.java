@@ -2,6 +2,7 @@ package io.mateu.mdd.core.workflow;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class WorkflowEngine {
 
@@ -9,8 +10,21 @@ public class WorkflowEngine {
     private static ThreadLocal<Boolean> uselocalRunners = new ThreadLocal<>();
     private static ThreadLocal<ConcurrentLinkedQueue> localQueues = new ThreadLocal<>();
 
+    public static AtomicBoolean running = new AtomicBoolean();
+
     static {
         start();
+    }
+
+    public static void exit(int status) {
+        while (queue.size() > 0 || running.get()) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        System.exit(status);
     }
 
     public static void activateLocalRunner() {
@@ -72,6 +86,7 @@ public class WorkflowEngine {
 
                         while (queue.size() > 0) {
                             try {
+                                running.set(true);
                                 Object o = queue.poll();
                                 System.out.println("Runing task " + o.getClass().getName());
                                 Runnable task = (Runnable) o;
@@ -79,6 +94,8 @@ public class WorkflowEngine {
                             } catch (Throwable e) {
                                 e.printStackTrace();
                             }
+
+                            running.set(false);
                         }
                     }
 

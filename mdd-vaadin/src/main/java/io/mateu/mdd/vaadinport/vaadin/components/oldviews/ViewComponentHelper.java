@@ -30,6 +30,11 @@ public class ViewComponentHelper {
             @Override
             public void run(MDDExecutionContext context) {
 
+                try {
+                if (m.isAnnotationPresent(Action.class) && m.getAnnotation(Action.class).saveBefore() && viewComponent instanceof EditorViewComponent) {
+                        ((EditorViewComponent) viewComponent).save(false);
+                }
+
                 boolean allInjectable = true;
                 boolean needsTransaction = false;
                 boolean needsSelection = false;
@@ -100,6 +105,11 @@ public class ViewComponentHelper {
 
                             }
 
+
+                            if (m.isAnnotationPresent(Action.class) && m.getAnnotation(Action.class).saveAfter() && viewComponent instanceof EditorViewComponent) {
+                                ((EditorViewComponent) viewComponent).save(false);
+                            }
+
                         } catch (Throwable throwable) {
                             MDD.alert(throwable);
                         }
@@ -110,6 +120,9 @@ public class ViewComponentHelper {
                     MDD.alert(throwable);
                 }
 
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
+                }
 
             }
         }.setStyle(aa.style()).setIcon(aa.icon()).setConfirmationMessage(aa.confirmationMessage());

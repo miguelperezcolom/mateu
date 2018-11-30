@@ -1,12 +1,14 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.vaadin.data.*;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.Registration;
+import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
@@ -184,11 +186,11 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             Grid g = new Grid();
 
             if (field.isAnnotationPresent(FullWidth.class)) g.setWidth("100%");
+            g.setHeightMode(HeightMode.UNDEFINED);
 
 
             List<FieldInterfaced> colFields = getColumnFields(field);
-            List<FieldInterfaced> editableFields = ReflectionHelper.getAllEditableFields(ReflectionHelper.getGenericClass(field.getGenericType()), field.getDeclaringClass());
-
+            List<FieldInterfaced> editableFields = ReflectionHelper.getAllEditableFields(ReflectionHelper.getGenericClass(field.getGenericType()), field.getDeclaringClass(), true, field);
 
             Class targetClass = field.getGenericClass();
 
@@ -229,7 +231,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             if (owned) {
 
-                g.setHeightByRows(5);
+                //g.setHeightByRows(5);
 
                 bind(binder, g, field);
 
@@ -243,7 +245,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                         try {
                             Object bean = binder.getBean();
 
-                            ReflectionHelper.addToCollection(binder, field, bean, field.getGenericClass().newInstance());
+                            ReflectionHelper.addToCollection(binder, field, bean);
 
                             binder.setBean(bean, false);
                         } catch (Exception e1) {
@@ -440,7 +442,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         g.getEditor().setEnabled(true);
         ((Grid.Column)g.getColumns().get(0)).setEditable(false);
         g.getEditor().setBuffered(false);
-        g.setHeightByRows(5);
+        g.setHeightMode(HeightMode.UNDEFINED);
+        //g.setHeightByRows(5);
 
         hl.addComponent(b = new Button("Add", VaadinIcons.PLUS));
         b.addClickListener(e -> {
@@ -493,7 +496,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                 MDD.alert(e1);
             }
         });
-        e.getValue().stream().filter(i -> !e.getValue().contains(i)).forEach(i -> {
+        e.getValue().stream().filter(i -> !e.getOldValue().contains(i)).forEach(i -> {
             try {
                 ReflectionHelper.reverseMap(binder, field, bean, i);
             } catch (Exception e1) {
@@ -538,6 +541,20 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                     }
                     if (mbf != null) l.remove(mbf);
                 }
+
+            }
+
+            if (field.isAnnotationPresent(FieldsFilter.class)) {
+
+                List<String> fns = Arrays.asList(field.getAnnotation(FieldsFilter.class).value().split(","));
+
+                List<FieldInterfaced> borrar = new ArrayList<>();
+                for (FieldInterfaced f : l) {
+                    if (!fns.contains(f.getName())) {
+                        borrar.add(f);
+                    }
+                }
+                l.removeAll(borrar);
 
             }
 

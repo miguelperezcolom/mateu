@@ -7,6 +7,7 @@ import io.mateu.mdd.core.app.MDDOpenEditorAction;
 import io.mateu.mdd.core.app.MDDOpenListViewAction;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.core.interfaces.WizardPage;
+import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
 import io.mateu.mdd.core.MDD;
@@ -89,8 +90,8 @@ public class MDDViewComponentCreator {
         return v;
     }
 
-    public static EditorViewComponent createEditorViewComponent(Object owner, Class modelType, boolean createSaveBUtton) throws InstantiationException, IllegalAccessException {
-        EditorViewComponent v = new EditorViewComponent(owner, modelType, createSaveBUtton).build();
+    public static EditorViewComponent createEditorViewComponent(Object owner, FieldInterfaced field, Class modelType, boolean createSaveBUtton) throws InstantiationException, IllegalAccessException {
+        EditorViewComponent v = new EditorViewComponent(owner, field, modelType, createSaveBUtton).build();
         return v;
     }
 

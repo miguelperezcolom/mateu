@@ -1,20 +1,29 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.google.common.base.Strings;
-import com.vaadin.data.HasValue;
-import com.vaadin.data.Validator;
+import com.vaadin.data.*;
+import com.vaadin.data.validator.BeanValidator;
+import com.vaadin.server.SerializablePredicate;
 import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
-import io.mateu.mdd.core.annotations.Help;
+import com.vaadin.ui.TextArea;
+import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.data.MDDBinder;
+import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.mdd.core.util.Helper;
 
+import javax.persistence.Entity;
+import javax.validation.constraints.NotNull;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 
 public class JPAPrimitiveCollectionsFieldBuilder extends JPAStringFieldBuilder {
@@ -33,23 +42,112 @@ public class JPAPrimitiveCollectionsFieldBuilder extends JPAStringFieldBuilder {
 
         if (!forSearchFilter) {
 
-            AbstractTextField tf = (field.isAnnotationPresent(io.mateu.mdd.core.annotations.TextArea.class))?new TextArea():new TextField();
-            container.addComponent(tf);
-            tf.setValueChangeMode(ValueChangeMode.BLUR);
 
-            if (allFieldContainers.size() == 0) tf.focus();
+            Method mdp = ReflectionHelper.getMethod(field.getDeclaringClass(), ReflectionHelper.getGetter(field.getName()) + "DataProvider");
 
-            allFieldContainers.put(field, tf);
+            if (field.isAnnotationPresent(ValueClass.class) || field.isAnnotationPresent(DataProvider.class) || mdp != null) {
 
-            if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
+                Component tf = null;
+                HasValue hv = null;
+
+                CheckBoxGroup rbg;
+                container.addComponent(tf = rbg = new CheckBoxGroup());
+
+                hv = rbg;
+
+                //AbstractBackendDataProvider
+                //FetchItemsCallback
+                //newItemProvider
+
+
+                if (mdp != null) {
+
+                    try {
+                        ((HasDataProvider) tf).setDataProvider((com.vaadin.data.provider.DataProvider) mdp.invoke(object));
+                    } catch (Exception e) {
+                        MDD.alert(e);
+                    }
+
+                } else if (field.isAnnotationPresent(ValueClass.class)) {
+
+                    ValueClass a = field.getAnnotation(ValueClass.class);
+
+                    ((HasDataProvider) tf).setDataProvider(new JPQLListDataProvider(a.value()));
+
+                } else if (field.isAnnotationPresent(DataProvider.class)) {
+
+                    try {
+
+                        DataProvider a = field.getAnnotation(DataProvider.class);
+
+                        ((HasDataProvider) tf).setDataProvider(a.dataProvider().newInstance());
+
+                        rbg.setItemCaptionGenerator(a.itemCaptionGenerator().newInstance());
+
+                    } catch (InstantiationException e) {
+                        e.printStackTrace();
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+
+                } else {
+
+                    try {
+                        Helper.notransact((em) -> rbg.setDataProvider(new JPQLListDataProvider(em, field)));
+                    } catch (Throwable throwable) {
+                        throwable.printStackTrace();
+                    }
+
+                    FieldInterfaced fName = ReflectionHelper.getNameField(field.getType());
+                    if (fName != null) rbg.setItemCaptionGenerator((i) -> {
+                        try {
+                            return "" + ReflectionHelper.getValue(fName, i);
+                        } catch (NoSuchMethodException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        } catch (InvocationTargetException e) {
+                            e.printStackTrace();
+                        }
+                        return "Error";
+                    });
+
+                }
+
+                if (!forSearchFilter) rbg.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
+
+
+                allFieldContainers.put(field, tf);
+
+                if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
+
+
+                bind(binder, hv, field, forSearchFilter);
+
+            } else {
+
+
+                AbstractTextField tf = (field.isAnnotationPresent(io.mateu.mdd.core.annotations.TextArea.class))?new TextArea():new TextField();
+                container.addComponent(tf);
+                tf.setValueChangeMode(ValueChangeMode.BLUR);
+
+                if (allFieldContainers.size() == 0) tf.focus();
+
+                allFieldContainers.put(field, tf);
+
+                if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
         /*
         tf.setDescription();
         tf.setPlaceholder();
         */
 
-            if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
+                if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
 
-            bind(binder, tf, field);
+                bind(binder, tf, field);
+
+            }
+
+
 
         }
 
@@ -118,5 +216,48 @@ public class JPAPrimitiveCollectionsFieldBuilder extends JPAStringFieldBuilder {
                 return tf.isReadOnly();
             }
         }, field.getName());
+    }
+
+
+    public void bind(MDDBinder binder, HasValue tf, FieldInterfaced field, boolean forSearchFilter) {
+
+        Binder.BindingBuilder aux = binder.forField(tf);
+
+        aux.withConverter(new Converter() {
+            @Override
+            public Result convertToModel(Object o, ValueContext valueContext) {
+                if (o != null) {
+                    List s = new ArrayList<>();
+                    for (Object x : ((Collection)o)) {
+                        s.add((x.getClass().isAnnotationPresent(Entity.class))?ReflectionHelper.getId(x):x);
+                    }
+                    return Result.ok(s);
+                } else return Result.ok(null);
+            }
+
+            @Override
+            public Object convertToPresentation(Object o, ValueContext valueContext) {
+                if (o == null) return new HashSet<>();
+
+                com.vaadin.data.provider.DataProvider dp = null;
+                if (tf instanceof HasDataProvider) {
+                    dp = ((HasDataProvider)tf).getDataProvider();
+                } else if (tf instanceof ComboBox) {
+                    dp = ((ComboBox)tf).getDataProvider();
+                }
+                if (dp != null) {
+                    Collection col = (Collection) o;
+                    Set s = new HashSet();
+                    for (Object z : col) {
+                        Optional optional = dp.fetch(new com.vaadin.data.provider.Query()).filter(x -> (x.getClass().equals(z.getClass()))?x.equals(z):ReflectionHelper.getId(x).equals(z)).findFirst();
+                        if (optional.isPresent()) s.add(optional.get());
+                    }
+                    return s;
+                } else return o;
+            }
+        });
+
+        if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+        aux.bind(field.getName());
     }
 }

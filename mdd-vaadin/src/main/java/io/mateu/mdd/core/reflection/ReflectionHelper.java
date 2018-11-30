@@ -6,8 +6,7 @@ import com.vaadin.data.Binder;
 import com.vaadin.data.provider.DataProvider;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.data.UserData;
+import io.mateu.mdd.core.data.*;
 import io.mateu.mdd.core.interfaces.PushWriter;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
@@ -99,7 +98,7 @@ public class ReflectionHelper {
     }
 
     public static void setValue(FieldInterfaced f, Object o, Object v) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
-        setValue(f.getId(), o, v);
+       setValue(f.getId(), o, v);
     }
 
     public static void setValue(String fn, Object o, Object v) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
@@ -427,6 +426,8 @@ public class ReflectionHelper {
 
     public static Object getId(Object model) {
         if (model instanceof Object[]) return ((Object[]) model)[0];
+        else if (model instanceof io.mateu.mdd.core.util.Pair) return ((io.mateu.mdd.core.util.Pair)model).getA();
+        else if (model instanceof Pair) return ((Pair)model).getKey();
         else if (model.getClass().isAnnotationPresent(Entity.class)) {
             Object id = null;
             try {
@@ -534,18 +535,43 @@ public class ReflectionHelper {
             }
         }
 
+        Class targetClass = null;
+        if (Collection.class.isAssignableFrom(field.getType()) || Set.class.isAssignableFrom(field.getType())) {
+            targetClass = field.getGenericClass();
+        } else if (Map.class.isAssignableFrom(field.getType())) {
+            targetClass = ReflectionHelper.getGenericClass(field, Map.class, "V");
+        } else {
+            targetClass = field.getType();
+        }
+
         if (!Strings.isNullOrEmpty(mfn)) {
-
-            Class targetClass = null;
-            if (Collection.class.isAssignableFrom(field.getType()) || Set.class.isAssignableFrom(field.getType())) {
-                targetClass = field.getGenericClass();
-            } else if (Map.class.isAssignableFrom(field.getType())) {
-                targetClass = ReflectionHelper.getGenericClass(field, Map.class, "V");
-            } else {
-                targetClass = field.getType();
-            }
-
             mapper = getFieldByName(targetClass, mfn);
+
+        } else {
+
+            if (targetClass.isAnnotationPresent(Entity.class)) for (FieldInterfaced f : ReflectionHelper.getAllFields(targetClass)) {
+                mfn = null;
+                if (f.isAnnotationPresent(OneToOne.class)) mfn = f.getAnnotation(OneToOne.class).mappedBy();
+                else if (f.isAnnotationPresent(OneToMany.class)) mfn = f.getAnnotation(OneToMany.class).mappedBy();
+                else if (f.isAnnotationPresent(ManyToMany.class)) mfn = f.getAnnotation(ManyToMany.class).mappedBy();
+
+                if (field.getName().equals(mfn)) {
+
+                    Class reverseClass = null;
+                    if (Collection.class.isAssignableFrom(f.getType()) || Set.class.isAssignableFrom(f.getType())) {
+                        reverseClass = f.getGenericClass();
+                    } else if (Map.class.isAssignableFrom(field.getType())) {
+                        reverseClass = ReflectionHelper.getGenericClass(f, Map.class, "V");
+                    } else {
+                        reverseClass = f.getType();
+                    }
+
+                    if (reverseClass != null && field.getDeclaringClass().isAssignableFrom(reverseClass)) {
+                        mapper = f;
+                        break;
+                    }
+                }
+            }
 
         }
 
@@ -937,7 +963,26 @@ public class ReflectionHelper {
     }
 
     public static List<FieldInterfaced> getAllEditableFields(Class modelType, Class superType, boolean includeReverseMappers) {
+        return getAllEditableFields(modelType, superType, includeReverseMappers, null);
+    }
+
+    public static List<FieldInterfaced> getAllEditableFields(Class modelType, Class superType, boolean includeReverseMappers, FieldInterfaced field) {
         List<FieldInterfaced> allFields = ReflectionHelper.getAllFields(modelType);
+
+
+        if (field != null && field.isAnnotationPresent(FieldsFilter.class)) {
+
+            List<String> fns = Arrays.asList(field.getAnnotation(FieldsFilter.class).value().split(","));
+
+            List<FieldInterfaced> borrar = new ArrayList<>();
+            for (FieldInterfaced f : allFields) {
+                if (!fns.contains(f.getName())) {
+                    borrar.add(f);
+                }
+            }
+            allFields.removeAll(borrar);
+
+        }
 
 
         boolean isEditingNewRecord = MDDUI.get().isEditingNewRecord();
@@ -1171,6 +1216,22 @@ public class ReflectionHelper {
         if (f.isAnnotationPresent(Caption.class)) {
             return f.getAnnotation(Caption.class).value();
         } else return Helper.capitalize(f.getName());
+    }
+
+
+    public static void addToCollection(MDDBinder binder, FieldInterfaced field, Object bean) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+
+        Method m = ReflectionHelper.getMethod(bean.getClass(), "create" + getFirstUpper(field.getName()) + "Instance");
+
+        Object i = null;
+
+        if (m != null) {
+            i = m.invoke(bean);
+        } else {
+            i = field.getGenericClass().newInstance();
+        }
+
+        addToCollection(binder, field, bean, i);
     }
 
     public static void addToCollection(MDDBinder binder, FieldInterfaced field, Object bean, Object i) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
@@ -1735,13 +1796,18 @@ public class ReflectionHelper {
     public static Object clone(Object original) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         if (original == null) return null;
         else {
-            Object copy = original.getClass().newInstance();
 
-            for (FieldInterfaced f : ReflectionHelper.getAllFields(original.getClass())) {
-                ReflectionHelper.setValue(f, copy, ReflectionHelper.getValue(f, original));
+            Method m = ReflectionHelper.getMethod(original.getClass(), "cloneAsConverted");
+            if (m != null) return m.invoke(original);
+            else {
+                Object copy = original.getClass().newInstance();
+
+                for (FieldInterfaced f : ReflectionHelper.getAllFields(original.getClass())) {
+                    ReflectionHelper.setValue(f, copy, ReflectionHelper.getValue(f, original));
+                }
+                return copy;
             }
 
-            return copy;
         }
     }
 }

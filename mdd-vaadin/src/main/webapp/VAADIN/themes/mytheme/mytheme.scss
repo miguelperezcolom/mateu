@@ -994,6 +994,45 @@
   }
 
 
+
+
+
+
+  .sale {
+    position:relative;
+    text-align: center;
+    color: green;
+  }
+
+  .sale:before {
+    font-family: FontAwesome;
+    top:0;
+    /*
+    left:-5px;
+    padding-right:10px;
+    */
+    content: "\f153";
+  }
+
+
+  .purchase {
+    position:relative;
+    text-align: center;
+    color: brown;
+  }
+
+  .purchase:before {
+    font-family: FontAwesome;
+    top:0;
+    /*
+    left:-5px;
+    padding-right:10px;
+    */
+    content: "\f07a";
+  }
+
+
+
   .v-tabsheet-content {
     margin-top: 20px;
   }
@@ -1432,10 +1471,219 @@
 
 
 
+  .combo.v-filterselect {
+    width: 370px;
+  }
+
+
 
   .outputlabel {
     white-space: inherit;
   }
+
+
+
+
+
+
+  .navegadorcalendario {
+    .titulo {
+      width: 275px;
+      padding-top: 6px;
+      text-align: center;
+    }
+  }
+
+
+  .calendariocupo {
+
+    width: 100%;
+
+    .mes.weekly {
+      border: 1px solid darkgray;
+      background-color: white;
+      padding: 0px;
+      width: 645px;
+
+      .titulo {
+        text-align: center;
+        width: 100%;
+        border-bottom: 2px solid darkmagenta;
+      }
+
+
+      .semana {
+        height: 80px;
+        padding: 0px;
+        border-bottom: 1px solid darkolivegreen;
+
+        .dia {
+
+          padding: 0px;
+          width: 90px;
+
+          .v-spacing {
+            height: 0px;
+          }
+
+
+          .titulo {
+            text-align: center;
+            width: 100%;
+            border-bottom: 1px solid darkolivegreen;
+          }
+
+          .infoCupo {
+
+            padding: 0px;
+            width: 100%;
+
+            .desviado {
+              font-size: 12px;
+              float: left;
+              position: relative;
+              left: -90px;
+              top: 37px;
+            }
+
+            .v-slot-disponible {
+
+              width: 55px;
+
+              .disponible {
+
+                padding: 0px;
+                font-size: 30px;
+                font-weight: bold;
+                color: black;
+                width: 100%;
+                text-align: center;
+                padding-top: 4px;
+              }
+
+              .disponible.cerrado {
+                background-color: indianred;
+              }
+
+            }
+
+            .v-slot-dcha {
+
+              width: 35px;
+
+              .dcha {
+
+                padding: 0px;
+                width: 100%;
+                border-left: 1px dotted red;
+
+                .contratado {
+                  padding: 0px;
+                  background-color: lightcyan;
+                  color: black;
+                  width: 100%;
+                  text-align: center;
+                  height: 27px;
+                }
+
+                .v-spacing {
+                  height: 1px;
+                }
+
+                .vendido {
+                  padding: 0px;
+                  background-color: lightblue;
+                  color: black;
+                  width: 100%;
+                  text-align: center;
+                  height: 26px;
+                }
+
+              }
+
+
+            }
+
+          }
+
+        }
+
+        .v-slot-notfirst {
+          border-left: 1px solid darkolivegreen;
+        }
+
+        .v-slot-last {
+          border-right: 1px solid darkolivegreen;
+
+          .infoCupo {
+
+            .v-slot-dcha {
+              width: 34px;
+            }
+
+          }
+        }
+
+      }
+
+
+    }
+
+    .mes.monthly {
+
+      padding: 0px;
+
+      .v-spacing {
+        height: 1px;
+      }
+
+      .titulo {
+        margin-top: 20px;
+      }
+
+      .fila {
+
+        .titulo {
+          margin-top: inherit;
+        }
+
+        .dia {
+          width: 20px;
+        }
+
+        .dia.finde {
+          border-bottom: 1px solid darkred;
+        }
+
+        .dia.domingo {
+          border-right: 1px solid darkgray;
+        }
+
+      }
+
+      .fila.calendario {
+        background-color: lightcoral;
+      }
+
+      .fila.contratado {
+        background-color: lightpink;
+      }
+
+      .fila.disponible {
+        background-color: lightsalmon;
+      }
+
+      .fila.reservado {
+        background-color: lightgreen;
+      }
+
+      .fila.reservadoagencia {
+        background-color: lightcyan;
+      }
+
+    }
+  }
+
 
 }
 

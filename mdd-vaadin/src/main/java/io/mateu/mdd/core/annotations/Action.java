@@ -31,4 +31,8 @@ public @interface Action {
     String attachToField() default "";
 
     String style() default "";
+
+    boolean saveBefore() default false;
+
+    boolean saveAfter() default false;
 }

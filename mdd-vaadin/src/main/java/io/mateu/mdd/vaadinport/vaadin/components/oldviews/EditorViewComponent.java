@@ -57,6 +57,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
     private final boolean createSaveButton;
     private Object owner = null;
+    private FieldInterfaced field = null;
     private Map<HasValue, List<Validator>> validators = new HashMap<>();
 
     protected boolean newRecord;
@@ -106,8 +107,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         this(modelType, true);
     }
 
-    public EditorViewComponent(Object owner, Class modelType, boolean createSaveButton) {
+    public EditorViewComponent(Object owner, FieldInterfaced field, Class modelType, boolean createSaveButton) {
         this.owner = owner;
+        this.field = field;
         this.modelType = modelType;
         this.createSaveButton = createSaveButton;
     }
@@ -135,7 +137,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         modelType = model.getClass();
 
-        binder = new MDDBinder(model.getClass());
+        binder = new MDDBinder(model.getClass(), this);
 
         if (createSaveButton) {
             
@@ -182,7 +184,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             }
 
 
-            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, model.getClass(), model, validators, ReflectionHelper.getAllEditableFields(model.getClass(), (owner != null)?owner.getClass():null, false));
+            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, model.getClass(), model, validators, ReflectionHelper.getAllEditableFields(model.getClass(), (owner != null)?owner.getClass():null, false, field));
 
             stylist = r.getValue();
 

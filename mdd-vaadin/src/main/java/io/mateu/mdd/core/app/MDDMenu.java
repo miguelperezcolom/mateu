@@ -1,6 +1,10 @@
 package io.mateu.mdd.core.app;
 
 
+import com.vaadin.ui.Component;
+import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +20,11 @@ public class MDDMenu extends AbstractMenu {
                 if (args[pos - 1] instanceof String && args[pos] instanceof Class) {
                     String n = (String) args[pos - 1];
                     Class c = (Class) args[pos];
-                    m.add(new MDDOpenCRUDAction(n, c));
+                    if (Component.class.isAssignableFrom(c)) {
+                        m.add(new MDDOpenCustomComponentAction(n, c));
+                    } else {
+                        m.add(new MDDOpenCRUDAction(n, c));
+                    }
                 } else System.out.println("Wrong class parameters. Found " + args[pos - 1].getClass().getName() + ", " + args[pos].getClass().getName() + " while expected String, Class");
             }
         }

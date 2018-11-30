@@ -25,6 +25,7 @@ import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 import javax.persistence.Entity;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -90,7 +91,7 @@ public class OwnedCollectionComponent extends VerticalLayout {
 
 
         goToNextButton.addClickListener(e -> {
-           try {
+            try {
                 setIndex(currentIndex + 1);
             } catch (Exception e1) {
                 MDD.alert(e1);
@@ -133,7 +134,7 @@ public class OwnedCollectionComponent extends VerticalLayout {
 
         modificado = false;
 
-        editorViewComponent = MDDViewComponentCreator.createEditorViewComponent(parentBinder.getBean(), value.getClass(), false);
+        editorViewComponent = MDDViewComponentCreator.createEditorViewComponent(parentBinder.getBean(), field, value.getClass(), false);
         editorViewComponent.setModel(value);
         editorViewComponent.addStyleName(CSS.NOPADDING);
 
@@ -269,11 +270,22 @@ public class OwnedCollectionComponent extends VerticalLayout {
     private Object newInstance(Class c) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
         Object parent = parentBinder.getBean();
 
-        Object i = c.newInstance();
-        for (FieldInterfaced f : ReflectionHelper.getAllFields(c)) if (f.getType().equals(parent.getClass()) && f.isAnnotationPresent(NotNull.class)) {
-            ReflectionHelper.setValue(f, i, parent);
-            break;
+        Method m = ReflectionHelper.getMethod(parent.getClass(), "create" + ReflectionHelper.getFirstUpper(field.getName()) + "Instance");
+
+        Object i = null;
+
+        if (m != null) {
+            i = m.invoke(parent);
+        } else {
+            i = c.newInstance();
+            for (FieldInterfaced f : ReflectionHelper.getAllFields(c))
+                if (f.getType().equals(parent.getClass()) && f.isAnnotationPresent(NotNull.class)) {
+                    ReflectionHelper.setValue(f, i, parent);
+                    break;
+                }
         }
+
+
         return i;
     }
 }

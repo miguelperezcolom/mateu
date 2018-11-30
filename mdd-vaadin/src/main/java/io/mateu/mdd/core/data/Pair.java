@@ -74,7 +74,7 @@ public class Pair<K,V> implements Serializable{
      */
     @Override
     public String toString() {
-        return key + "=" + value;
+        return "" + value;
     }
 
     /**

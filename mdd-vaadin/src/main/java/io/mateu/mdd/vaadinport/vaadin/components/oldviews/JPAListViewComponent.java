@@ -12,6 +12,7 @@ import io.mateu.mdd.core.data.ChartValue;
 import io.mateu.mdd.core.data.SumData;
 import io.mateu.mdd.core.interfaces.GridDecorator;
 import io.mateu.mdd.core.model.common.Resource;
+import io.mateu.mdd.core.model.multilanguage.Literal;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
@@ -474,7 +475,7 @@ public class JPAListViewComponent extends ListViewComponent {
     protected List<ChartData> getCharts(Object filters) {
         List<ChartData> l = new ArrayList<>();
 
-        getColumnFields(entityClass).stream().filter(f -> !f.isAnnotationPresent(NoChart.class) && (f.getType().isEnum() || (!Resource.class.equals(f.getType()) && f.isAnnotationPresent(ManyToOne.class)) || boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType()))).forEach(f -> l.add(gatherChartData(filters, f)));
+        getColumnFields(entityClass).stream().filter(f -> !f.isAnnotationPresent(NoChart.class) && !Literal.class.equals(f.getType()) && (f.getType().isEnum() || (!Resource.class.equals(f.getType()) && f.isAnnotationPresent(ManyToOne.class)) || boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType()))).forEach(f -> l.add(gatherChartData(filters, f)));
 
         return l;
     }

@@ -864,6 +864,24 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
         if (v != null && v instanceof io.mateu.mdd.vaadinport.vaadin.navigation.View && ((io.mateu.mdd.vaadinport.vaadin.navigation.View)v).getComponent() instanceof CRUDViewComponent) Notification.show(((MDD.isMobile())?"Click":"Double click") + " on matches to edit", Notification.Type.TRAY_NOTIFICATION);
 
+        if (v != null && v instanceof io.mateu.mdd.vaadinport.vaadin.navigation.View) {
+            Component c = ((io.mateu.mdd.vaadinport.vaadin.navigation.View) v).getViewComponent();
+            if (c != null && c instanceof ComponentWrapper) c = ((ComponentWrapper)c).getWrapped();
+            if (c == null) {
+                System.out.println("No limpiamos selección. c es null");
+            } else if (c instanceof CRUDViewComponent) {
+                System.out.println("Limpiamos selección " + ((CRUDViewComponent)c).getListViewComponent().resultsComponent.getGrid().getSelectedItems().size());
+                ((CRUDViewComponent)c).getListViewComponent().resultsComponent.getGrid().getSelectionModel().deselectAll();
+                System.out.println("Ha quedado en " + ((CRUDViewComponent)c).getListViewComponent().resultsComponent.getGrid().getSelectedItems().size());
+            } else if (c instanceof ListViewComponent) {
+                System.out.println("Limpiamos selección " + ((ListViewComponent)c).resultsComponent.getGrid().getSelectedItems().size());
+                ((ListViewComponent)c).resultsComponent.getGrid().getSelectionModel().deselectAll();
+                System.out.println("Ha quedado en " + ((ListViewComponent)c).resultsComponent.getGrid().getSelectedItems().size());
+            } else {
+                System.out.println("No limpiamos selección. clase = " + c.getClass().getName());
+            }
+        }
+
         return v;
 
     }

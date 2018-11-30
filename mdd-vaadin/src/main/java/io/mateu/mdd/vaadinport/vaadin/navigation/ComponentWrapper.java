@@ -16,6 +16,10 @@ public class ComponentWrapper extends VerticalLayout {
     private final Component wrapped;
     private Label titleLabel;
 
+    public Component getWrapped() {
+        return wrapped;
+    }
+
     public ComponentWrapper(ViewStack stack, Component component) {
 
         this.wrapped = component;

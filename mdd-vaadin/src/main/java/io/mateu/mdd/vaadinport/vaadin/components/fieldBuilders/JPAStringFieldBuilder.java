@@ -118,6 +118,7 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
 
                 ComboBox cb;
                 container.addComponent(tf = cb = new ComboBox());
+                cb.addStyleName("combo");
 
                 if (allFieldContainers.size() == 0) cb.focus();
 
@@ -219,11 +220,10 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
             tf.setValueChangeMode(ValueChangeMode.BLUR);
 
 
-
             if (String.class.equals(field.getType())) {
                 if (!forSearchFilter) {
                     if (field.isAnnotationPresent(FullWidth.class)) tf.setWidth("100%");
-                    else tf.setWidth(300, Sizeable.Unit.PIXELS);
+                    else tf.setWidth(370, Sizeable.Unit.PIXELS);
                 }
             } else {
                 tf.setWidth(100, Sizeable.Unit.PIXELS);

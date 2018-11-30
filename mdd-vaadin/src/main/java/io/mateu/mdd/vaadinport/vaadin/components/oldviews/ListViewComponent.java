@@ -444,8 +444,8 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                             || BigDecimal.class.equals(t)
                             || Number.class.equals(t)
                     ) return 120;
-            else if (LocalDate.class.equals(t)) return 120;
-            else if (LocalDateTime.class.equals(t)) return 220;
+            else if (LocalDate.class.equals(t)) return 125;
+            else if (LocalDateTime.class.equals(t)) return 225;
             else return 250;
 
         }

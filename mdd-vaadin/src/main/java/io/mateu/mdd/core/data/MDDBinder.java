@@ -8,12 +8,15 @@ import com.vaadin.server.Setter;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 
 import java.util.*;
 import java.util.stream.Stream;
 
 public class MDDBinder extends Binder {
 
+    private AbstractViewComponent viewComponent;
     private final Class beanType;
     private List<Object> mergeables = new ArrayList<>();
     private List<Object> removables = new ArrayList<>();
@@ -35,6 +38,7 @@ public class MDDBinder extends Binder {
         });
         this.beanType = new HashMap<String, Object>().getClass();
     }
+
 
     public static Map<String,PropertyDefinition> createDefinitions(PropertySet propertySet, List<FieldInterfaced> fields) {
         Map<String,PropertyDefinition> defs = new HashMap<>();
@@ -108,6 +112,21 @@ public class MDDBinder extends Binder {
     public MDDBinder(Class beanType) {
         super(beanType);
         this.beanType = beanType;
+    }
+
+
+    public MDDBinder(Class beanType, EditorViewComponent component) {
+        super(beanType);
+        this.beanType = beanType;
+        this.viewComponent = component;
+    }
+
+    public AbstractViewComponent getViewComponent() {
+        return viewComponent;
+    }
+
+    public void setViewComponent(AbstractViewComponent viewComponent) {
+        this.viewComponent = viewComponent;
     }
 
     public List<Object> getMergeables() {

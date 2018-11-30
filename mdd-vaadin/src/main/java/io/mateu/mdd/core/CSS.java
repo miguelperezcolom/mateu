@@ -23,6 +23,9 @@ public class CSS {
 
     public static final String CANCELLED = "cancelled";
 
+    public static final String SALE = "sale";
+    public static final String PURCHASE = "purchase";
+
     public static final String TOTAL = "total";
 
 

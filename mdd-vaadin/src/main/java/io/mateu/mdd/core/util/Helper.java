@@ -28,6 +28,8 @@ import io.mateu.mdd.core.workflow.WorkflowEngine;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
+import org.apache.avalon.framework.configuration.ConfigurationException;
+import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.mail.DefaultAuthenticator;
 import org.apache.commons.mail.EmailException;
@@ -82,9 +84,22 @@ import java.util.*;
 public class Helper {
 
     public static boolean propertiesLoaded = false;
+    private static org.apache.avalon.framework.configuration.Configuration fopConfig;
 
     static {
         loadProperties();
+        DefaultConfigurationBuilder cfgBuilder = new DefaultConfigurationBuilder();
+        try {
+            if (!Strings.isNullOrEmpty(System.getProperty("fopconfig"))) {
+                System.out.println("Loading fop config from " + System.getProperty("fopconfig"));
+                fopConfig = cfgBuilder.buildFromFile(new File(System.getProperty("fopconfig")));
+            } else {
+                System.out.println("Loading fop config from classpath: /xsl/fop.xml");
+                fopConfig = cfgBuilder.build(Helper.class.getResourceAsStream("/xsl/fop.xml"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
@@ -391,6 +406,10 @@ public class Helper {
         return Math.round(value * 100d) / 100d;
     }
 
+    public static String formatEuros(double value) {
+        return new DecimalFormat("##,###,###,###,###,###.00").format(value);
+    }
+
     public static String capitalize(String s) {
         if (s == null || "".equals(s)) return s;
         s = s.replaceAll("\\.", " ");
@@ -567,7 +586,7 @@ public class Helper {
 
                 }
             }
-            wb.close();
+            //wb.close();
 
         FileOutputStream fileOut = new FileOutputStream(temp);
         wb.write(fileOut);
@@ -1105,9 +1124,12 @@ public class Helper {
 // (reuse if you plan to render multiple documents!)
 
         FopFactoryBuilder builder = new FopFactoryBuilder(new File(".").toURI());
-        builder.setStrictFOValidation(false);
-        builder.setBreakIndentInheritanceOnReferenceAreaBoundary(true);
-        builder.setSourceResolution(96); // =96dpi (dots/pixels per Inch)
+        if (fopConfig != null) builder.setConfiguration(fopConfig);
+        else {
+            builder.setStrictFOValidation(false);
+            builder.setBreakIndentInheritanceOnReferenceAreaBoundary(true);
+            builder.setSourceResolution(96); // =96dpi (dots/pixels per Inch)
+        }
         FopFactory fopFactory = builder.build();
         //FopFactory fopFactory = FopFactory.newInstance(new Resource("C:/Temp/fop.xconf"));
 

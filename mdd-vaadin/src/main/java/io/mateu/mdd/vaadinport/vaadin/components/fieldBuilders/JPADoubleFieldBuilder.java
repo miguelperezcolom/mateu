@@ -1,10 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.google.common.base.Strings;
-import com.vaadin.data.Binder;
-import com.vaadin.data.HasValue;
-import com.vaadin.data.Validator;
-import com.vaadin.data.ValueContext;
+import com.vaadin.data.*;
 import com.vaadin.data.converter.StringToDoubleConverter;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.ui.Component;
@@ -66,11 +63,20 @@ public class JPADoubleFieldBuilder extends JPAStringFieldBuilder {
 
     @Override
     protected void bind(MDDBinder binder, TextField tf, FieldInterfaced field, boolean forSearchFilter) {
-        Binder.BindingBuilder aux = binder.forField(tf).withConverter(new StringToDoubleConverter((double.class.equals(field.getType()))?0d:null,"Must be an number") {
+        Binder.BindingBuilder aux = binder.forField(tf).withConverter(new StringToDoubleConverter((double.class.equals(field.getType()))?0d:null,"Must be a number") {
             @Override
             public String convertToPresentation(Double value, ValueContext context) {
                 if (value == null) return "";
                 else return super.convertToPresentation(value, context);
+            }
+
+            @Override
+            public Result<Double> convertToModel(String value, ValueContext context) {
+                if (value != null) {
+                    if (value.contains(".") && value.contains(",")) value = value.replaceAll("\\.", "");
+                    value = value.replaceAll("\\.", ",");
+                }
+                return super.convertToModel(value, context);
             }
         });
         if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));

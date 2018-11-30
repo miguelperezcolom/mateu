@@ -120,8 +120,21 @@ public class User {
         setPassword(password);
     }
 
-    @Action
-    public String sendForgottenPasswordEmail() throws Throwable {
+    @Action(saveAfter = true)
+    public String sendWelcomeEmail(EntityManager em) throws Throwable {
+        if (Strings.isNullOrEmpty(getEmail())) throw new Exception("Missing email for user " + login);
+        if (USER_STATUS.INACTIVE.equals(getStatus())) throw new Exception("Deactivated user");
+        if (isOauth()) throw new Exception("This users is from OAuth");
+
+        setPasswordResetKey(UUID.randomUUID().toString());
+        setPasswordResetExpiryDateTime(LocalDateTime.now().plusHours(4));
+
+        EmailHelper.sendEmail(getEmail(), "Welcome to " + MDD.getApp().getName(), "Hi " + getName() + ", \n\nwelcome to " + MDD.getApp().getName() + ".\n\nPlease go to " + MDD.getApp().getBaseUrl() + "resetpassword/" + getPasswordResetKey() + " for setting your password.\n\n\nBest regards,\n\n" + MDD.getApp().getName() + " team.", true);
+        return "An email with instructions has been sent to " + getEmail();
+    }
+
+    @Action(saveAfter = true)
+    public String sendForgottenPasswordEmail(EntityManager em) throws Throwable {
         if (Strings.isNullOrEmpty(getEmail())) throw new Exception("Missing email for user " + login);
         if (USER_STATUS.INACTIVE.equals(getStatus())) throw new Exception("Deactivated user");
         if (isOauth()) throw new Exception("This users is from OAuth");

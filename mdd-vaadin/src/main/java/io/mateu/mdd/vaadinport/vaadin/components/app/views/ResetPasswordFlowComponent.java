@@ -46,7 +46,7 @@ public class ResetPasswordFlowComponent extends VerticalLayout {
                     User u =  l.get(0);
                     if (USER_STATUS.EXPIRED.equals(u.getStatus())) {
                         setError("User expired. Can not reset password.");
-                    } else if (u.getPasswordResetExpiryDateTime() == null || u.getPasswordResetExpiryDateTime().isBefore(LocalDateTime.now())) {
+                    } else if (u.getLastLogin() != null && (u.getPasswordResetExpiryDateTime() == null || u.getPasswordResetExpiryDateTime().isBefore(LocalDateTime.now()))) {
                         setError("Password reset key expired. Remember it is only valid for 4 hours. Ask for password reset again");
                     } else {
 
