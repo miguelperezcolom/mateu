@@ -1810,4 +1810,42 @@ public class ReflectionHelper {
 
         }
     }
+
+    public static void delete(EntityManager em, Object o) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        if (o != null) {
+            for (FieldInterfaced f : ReflectionHelper.getAllFields(o.getClass())) {
+
+                Object t = ReflectionHelper.getValue(f, o);
+
+                if (t != null) {
+
+                    if (f.isAnnotationPresent(ManyToOne.class) || f.isAnnotationPresent(OneToMany.class) || f.isAnnotationPresent(ManyToMany.class)) {
+
+                        FieldInterfaced mbf = ReflectionHelper.getMapper(f);
+
+                        if (mbf != null) {
+
+                            Object r = ReflectionHelper.getValue(mbf, t);
+
+                            if (r != null) {
+                                if (Collection.class.isAssignableFrom(r.getClass())) {
+                                    ((Collection)r).remove(o);
+                                } else {
+                                    ReflectionHelper.setValue(mbf, t, null);
+                                }
+
+                                em.merge(t);
+                            }
+
+
+                        }
+
+                    }
+
+                }
+
+            }
+            em.remove(o);
+        }
+    }
 }

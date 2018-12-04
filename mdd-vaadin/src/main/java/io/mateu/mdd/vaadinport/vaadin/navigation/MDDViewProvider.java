@@ -423,9 +423,14 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                             JPACollectionFieldListViewComponent cfcvc = (JPACollectionFieldListViewComponent) lastViewComponent;
 
                             try {
-                                EditorViewComponent evc = new EditorViewComponent(cfcvc.addNew()).build();
+                                EditorViewComponent evc = new EditorViewComponent(cfcvc.addNew());
 
                                 evc.addEditorListener(new EditorListener() {
+                                    @Override
+                                    public void preSave(Object model) throws Throwable {
+                                        cfcvc.preSave(model);
+                                    }
+
                                     @Override
                                     public void onSave(Object model) {
                                         try {

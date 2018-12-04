@@ -395,6 +395,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                             if (binder.validate().isOk()) {
 
+                                preSave();
+
                                 save();
 
                                 MDDUI.get().getNavegador().goBack();
@@ -545,6 +547,14 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     }
 
     public void save(boolean goBack) throws Throwable {
+        save(goBack, true);
+    }
+
+    public void preSave() throws Throwable {
+        for (EditorListener l : listeners) l.preSave(getModel());
+    }
+
+    public void save(boolean goBack, boolean notify) throws Throwable {
         if (modelType.isAnnotationPresent(Entity.class)) {
 
             Helper.transact(new JPATransaction() {
@@ -584,7 +594,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         modificado = false;
 
-        listeners.forEach(l -> l.onSave(getModel()));
+        if (notify) listeners.forEach(l -> l.onSave(getModel()));
     }
 
     private void auditar(EntityManager em, Object bean) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {

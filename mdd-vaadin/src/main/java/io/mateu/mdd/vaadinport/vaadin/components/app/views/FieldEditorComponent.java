@@ -193,6 +193,11 @@ public class FieldEditorComponent extends VerticalLayout {
 
             editor.addEditorListener(new EditorListener() {
                 @Override
+                public void preSave(Object model) {
+
+                }
+
+                @Override
                 public void onSave(Object v) {
                     try {
                         Object m = binder.getBean();

@@ -17,5 +17,10 @@ public interface IEditorViewComponent {
 
     void updateModel(Object m);
 
-    void save(boolean b) throws Throwable;
+    void preSave() throws Throwable;
+
+    void save(boolean goBack) throws Throwable;
+
+    void save(boolean goBack, boolean notify) throws Throwable;
+
 }

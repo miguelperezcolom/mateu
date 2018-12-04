@@ -6,6 +6,10 @@ import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.tester.model.useCases.bankAccount.BankAccount;
 import io.mateu.mdd.tester.model.useCases.bankAccount.Payment;
+import io.mateu.mdd.tester.model.useCases.hotel.Contract;
+import io.mateu.mdd.tester.model.useCases.hotel.Hotel;
+import io.mateu.mdd.tester.model.useCases.hotel.Offer;
+import io.mateu.mdd.tester.model.useCases.hotel.Room;
 import io.mateu.mdd.tester.model.useCases.invoicing.Customer;
 import io.mateu.mdd.tester.model.useCases.invoicing.Invoice;
 
@@ -54,6 +58,24 @@ public class UseCasesModule extends AbstractModule {
             }
         });
 
+
+        l.add(new AbstractMenu("Hotel") {
+            @Override
+            public List<MenuEntry> buildEntries() {
+                List<MenuEntry> l = new ArrayList<>();
+
+
+                l.add(new MDDOpenCRUDAction("Hotels", Hotel.class));
+
+                l.add(new MDDOpenCRUDAction("Rooms", Room.class));
+
+                l.add(new MDDOpenCRUDAction("Offers", Offer.class));
+
+                l.add(new MDDOpenCRUDAction("Contracts", Contract.class));
+
+                return l;
+            }
+        });
 
         l.add(new MDDCallMethodAction("Populate database", UseCasesModule.class, "populate"));
 

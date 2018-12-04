@@ -87,7 +87,7 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
 
                                 evfc.getBinder().setBean(evfc.getModel(), false);
 
-                                //evfc.getBinder().getRemovables().addAll(borrar);
+                                evfc.getBinder().getRemovables().addAll(borrar);
 
                                 evfc.save(false);
 
@@ -126,7 +126,8 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
 
     public Object addNew() throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         Object o = getModelType().newInstance();
-        ReflectionHelper.reverseMap(evfc.getBinder(), field, evfc.getModel(), o);
+        //ReflectionHelper.reverseMap(evfc.getBinder(), field, evfc.getModel(), o);
+        /// lo hemos movido al onsave
         return o;
     }
 
@@ -143,7 +144,8 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
     public void saved(Object o) throws Throwable {
         //list.add(o);
         evfc.getBinder().setBean(evfc.getModel(), false);
-        evfc.save(false);
+        //evfc.save(false, false);
+        search(this);
     }
 
 
@@ -157,5 +159,9 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
         } else {
             super.decorateGrid(grid);
         }
+    }
+
+    public void preSave(Object model) throws Throwable {
+        ReflectionHelper.addToCollection(evfc.getBinder(), field, this.evfc.getModel(), model);
     }
 }

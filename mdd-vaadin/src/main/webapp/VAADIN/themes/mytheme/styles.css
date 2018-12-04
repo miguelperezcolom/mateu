@@ -19365,6 +19365,10 @@ div.v-layout.v-horizontal.v-widget {
 	margin-top: 20px;
 }
 
+.mytheme .calendariocupo .mes.monthly .fila {
+	border: 1px solid transparent;
+}
+
 .mytheme .calendariocupo .mes.monthly .fila .titulo {
 	margin-top: inherit;
 }
@@ -19379,6 +19383,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .mytheme .calendariocupo .mes.monthly .fila .dia.domingo {
 	border-right: 1px solid darkgray;
+}
+
+.mytheme .calendariocupo .mes.monthly .fila:hover {
+	border: 1px solid darkgray;
 }
 
 .mytheme .calendariocupo .mes.monthly .fila.calendario {

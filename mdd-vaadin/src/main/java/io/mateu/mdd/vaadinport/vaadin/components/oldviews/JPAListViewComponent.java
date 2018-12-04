@@ -82,7 +82,7 @@ public class JPAListViewComponent extends ListViewComponent {
 
     @Override
     public void setModelForSearchFilters(Object filters) {
-        filtersComponent.getBinder().setBean(filters);
+        if (filtersComponent != null) filtersComponent.getBinder().setBean(filters);
         this.filters = filters;
     }
 
@@ -556,7 +556,8 @@ public class JPAListViewComponent extends ListViewComponent {
                 @Override
                 public void run(EntityManager em) throws Throwable {
 
-                    selection.forEach(o -> em.remove(em.find(entityClass, toId(o))));
+                    //selection.forEach(o -> em.remove(em.find(entityClass, toId(o))));
+                    for (Object o : selection) ReflectionHelper.delete(em, em.find(entityClass, toId(o)));
 
                 }
             });

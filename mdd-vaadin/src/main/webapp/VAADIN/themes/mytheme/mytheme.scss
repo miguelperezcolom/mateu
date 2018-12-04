@@ -1643,6 +1643,8 @@
 
       .fila {
 
+        border: 1px solid transparent;
+
         .titulo {
           margin-top: inherit;
         }
@@ -1659,6 +1661,10 @@
           border-right: 1px solid darkgray;
         }
 
+      }
+
+      .fila:hover {
+        border: 1px solid darkgray;
       }
 
       .fila.calendario {

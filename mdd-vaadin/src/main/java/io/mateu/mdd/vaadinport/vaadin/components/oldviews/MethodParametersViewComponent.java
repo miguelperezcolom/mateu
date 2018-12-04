@@ -238,7 +238,19 @@ public class MethodParametersViewComponent extends AbstractViewComponent impleme
     }
 
     @Override
-    public void save(boolean b) {
+    public void preSave() throws Throwable {
 
     }
+
+    @Override
+    public void save(boolean goBack) {
+
+    }
+
+    @Override
+    public void save(boolean goBack, boolean notify) throws Throwable {
+
+    }
+
+
 }

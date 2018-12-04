@@ -2,10 +2,8 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
@@ -71,15 +69,21 @@ public class OwnedCollectionComponent extends VerticalLayout {
 
         addStyleName(CSS.NOPADDING);
 
-        addComponent(container = new VerticalLayout());
-        container.addStyleName(CSS.NOPADDING);
+        setSizeFull();
 
+        Panel panel;
+        addComponent(panel = new Panel(container = new VerticalLayout()));
+        panel.addStyleName(ValoTheme.PANEL_BORDERLESS);
+        addComponentsAndExpand(panel);
+        container.addStyleName(CSS.NOPADDING);
 
         HorizontalLayout hl;
         addComponent(hl = new HorizontalLayout(goToPreviousButton = new Button(VaadinIcons.ARROW_LEFT), goToNextButton = new Button(VaadinIcons.ARROW_RIGHT), addButton = new Button(VaadinIcons.PLUS)));
         hl.addStyleName(CSS.NOPADDING);
 
-        addComponentsAndExpand(new Label(""));
+        //addComponentsAndExpand(new Label(""));
+        setExpandRatio(panel, 1);
+
 
         goToPreviousButton.addClickListener(e -> {
             try {
