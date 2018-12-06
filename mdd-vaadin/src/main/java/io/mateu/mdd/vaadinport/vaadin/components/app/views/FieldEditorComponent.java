@@ -32,7 +32,7 @@ public class FieldEditorComponent extends VerticalLayout {
 
     @Override
     public String toString() {
-        return "Editing field " + ReflectionHelper.getCaption(field);
+        return "Editing field " + ReflectionHelper.getCaption(field) + " of " + binder.getBean();
     }
 
     public FieldEditorComponent(MDDBinder binder, FieldInterfaced field) {

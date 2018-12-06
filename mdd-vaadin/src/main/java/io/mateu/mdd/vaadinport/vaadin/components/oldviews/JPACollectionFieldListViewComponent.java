@@ -34,6 +34,11 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
         this.list = (List) ReflectionHelper.getValue(field, model);
     }
 
+    @Override
+    public String getTitle() {
+        return "" + (model != null?model.toString():"--") + ":" + super.getTitle();
+    }
+
     public FieldInterfaced getField() {
         return field;
     }

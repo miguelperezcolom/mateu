@@ -1,7 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.vaadin.data.*;
 import com.vaadin.data.provider.ListDataProvider;
@@ -16,23 +15,16 @@ import io.mateu.mdd.core.annotations.FullWidth;
 import io.mateu.mdd.core.annotations.UseCheckboxes;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
 import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.reflection.FieldInterfacedFromType;
+import io.mateu.mdd.core.reflection.*;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
-import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
-import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.model.common.Resource;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.FieldInterfacedFromType;
-import io.mateu.mdd.core.reflection.MapEntry;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.OwnedCollectionComponent;
-import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 
 import javax.persistence.ElementCollection;
 import javax.persistence.ManyToMany;
@@ -42,6 +34,8 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
@@ -185,15 +179,11 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             Grid g = new Grid();
 
-            if (field.isAnnotationPresent(FullWidth.class)) g.setWidth("100%");
-            g.setHeightMode(HeightMode.UNDEFINED);
-
-
             List<FieldInterfaced> colFields = getColumnFields(field);
-            List<FieldInterfaced> editableFields = ReflectionHelper.getAllEditableFields(ReflectionHelper.getGenericClass(field.getGenericType()), field.getDeclaringClass(), true, field);
+            List<FieldInterfaced> editableFields = ReflectionHelper.getAllEditableFields(ReflectionHelper.getGenericClass(field.getGenericType()), field.getDeclaringClass(), false, field);
+            List<FieldInterfaced> originalEditableFields = editableFields;
 
             Class targetClass = field.getGenericClass();
-
 
             Set<Class> subclasses = ReflectionHelper.getSubclasses(targetClass);
 
@@ -201,6 +191,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             boolean inline = false;
 
             if (owned) {
+
                 inline = editableFields.size() <= colFields.size() && subclasses.size() == 0;
 
                 if (inline) for (FieldInterfaced f : colFields) {
@@ -210,7 +201,34 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                     }
                 }
 
+                if (inline) {
 
+                    boolean needsProxy = false;
+                    for (FieldInterfaced f : editableFields) if (f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline()) {
+                        needsProxy = true;
+                        break;
+                    }
+
+                    if (needsProxy) {
+
+                        targetClass = ReflectionHelper.getProxy(field.isAnnotationPresent(FieldsFilter.class)?field.getAnnotation(FieldsFilter.class).value():null, targetClass, field, object, editableFields);
+                        //si hemos creado una clase proxy, entonces cambian las columnas y los campos editables
+                        if (ProxyClass.class.isAssignableFrom(targetClass)) {
+                            colFields = getColumnFields(field, targetClass);
+                            editableFields = ReflectionHelper.getAllEditableFields(targetClass);
+                        }
+
+                        inline = editableFields.size() <= colFields.size() && subclasses.size() == 0;
+
+                        if (inline) for (FieldInterfaced f : colFields) {
+                            if (!isEditableInline(f)) {
+                                inline = false;
+                                break;
+                            }
+                        }
+
+                    }
+                }
 
             }
 
@@ -219,11 +237,30 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             g.setSelectionMode(Grid.SelectionMode.MULTI);
 
-            // añadimos columna para que no haga feo
-            if (g.getColumns().size() == 1) ((Grid.Column)g.getColumns().get(0)).setExpandRatio(1);
-            else g.addColumn((d) -> null).setWidthUndefined().setCaption("");
-
             g.setCaption(ReflectionHelper.getCaption(field));
+
+
+            int ancho = 0;
+            for (Grid.Column col : (List<Grid.Column>)g.getColumns()) ancho += col.getWidth();
+            if (ancho <= 0) ancho = 500;
+
+
+            boolean anchoCompleto = field.isAnnotationPresent(FullWidth.class) || ancho > 900;
+
+            if (anchoCompleto) g.setWidth("100%");
+            else {
+                g.setWidth("" + (ancho + 50) + "px");
+            }
+
+            // añadimos columna para que no haga feo
+            if (anchoCompleto) {
+                if (g.getColumns().size() == 1) ((Grid.Column)g.getColumns().get(0)).setExpandRatio(1);
+                else g.addColumn((d) -> null).setWidthUndefined().setCaption("");
+            }
+
+            g.setHeightMode(HeightMode.UNDEFINED);
+
+
 
             HorizontalLayout hl = new HorizontalLayout();
 
@@ -233,7 +270,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                 //g.setHeightByRows(5);
 
-                bind(binder, g, field);
+                bind(binder, g, field, targetClass, originalEditableFields, object);
 
                 if (inline) {
 
@@ -246,6 +283,24 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                             Object bean = binder.getBean();
 
                             ReflectionHelper.addToCollection(binder, field, bean);
+
+                            binder.setBean(bean, false);
+                        } catch (Exception e1) {
+                            MDD.alert(e1);
+                        }
+                    });
+
+                    hl.addComponent(b = new Button("Duplicate", VaadinIcons.COPY));
+                    b.addClickListener(e -> {
+                        try {
+
+                            Object bean = binder.getBean();
+
+                            for (Object o : g.getSelectedItems()) {
+
+                                ReflectionHelper.addToCollection(binder, field, bean, ReflectionHelper.clone(o));
+
+                            }
 
                             binder.setBean(bean, false);
                         } catch (Exception e1) {
@@ -332,7 +387,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                 } else {
 
-                    bind(binder, g, field);
+                    bind(binder, g, field, targetClass, null);
 
 
                     g.addItemClickListener(e -> {
@@ -387,7 +442,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
         boolean editable = false;
 
-        if (!f.isAnnotationPresent(NotNull.class) && !f.isAnnotationPresent(NotEmpty.class)) {
+        if (true || !f.isAnnotationPresent(NotNull.class) && !f.isAnnotationPresent(NotEmpty.class)) {
 
             if (Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) {
                 editable = true;
@@ -399,10 +454,14 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                 editable = true;
             } else if (Double.class.equals(f.getType()) || double.class.equals(f.getType())) {
                 editable = true;
+            } else if (LocalDate.class.equals(f.getType()) || LocalDateTime.class.equals(f.getType())) {
+                editable = true;
             } else if (f.getType().isEnum()) {
                 editable = true;
             } else if (f.isAnnotationPresent(ManyToOne.class)) {
                 editable = !Resource.class.equals(f.getType());
+            } else if (f.isAnnotationPresent(UseCheckboxes.class)) {
+                editable = f.getAnnotation(UseCheckboxes.class).editableInline();
             }
 
         }
@@ -419,6 +478,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         Grid g = new Grid();
 
         if (field.isAnnotationPresent(FullWidth.class)) g.setWidth("100%");
+        else g.setWidthUndefined();
 
         ListViewComponent.buildColumns(g, getColumnFields(field), false, true);
 
@@ -431,8 +491,9 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         g.setCaption(ReflectionHelper.getCaption(field));
 
         container.addComponent(g);
+        //if (!field.isAnnotationPresent(FullWidth.class)) container.setWidthUndefined();
 
-        bind(binder, g, field);
+        bind(binder, g, field, null, null);
 
         HorizontalLayout hl = new HorizontalLayout();
 
@@ -523,45 +584,55 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
         } else {
 
-            l = ListViewComponent.getColumnFields(field.getGenericClass());
-
-            // quitamos el campo mappedBy de las columnas, ya que se supone que siempre seremos nosotros
-            OneToMany aa;
-            if ((aa = field.getAnnotation(OneToMany.class)) != null) {
-
-                String mb = field.getAnnotation(OneToMany.class).mappedBy();
-
-                if (!Strings.isNullOrEmpty(mb)) {
-                    FieldInterfaced mbf = null;
-                    for (FieldInterfaced f : l) {
-                        if (f.getName().equals(mb)) {
-                            mbf = f;
-                            break;
-                        }
-                    }
-                    if (mbf != null) l.remove(mbf);
-                }
-
-            }
-
-            if (field.isAnnotationPresent(FieldsFilter.class)) {
-
-                List<String> fns = Arrays.asList(field.getAnnotation(FieldsFilter.class).value().split(","));
-
-                List<FieldInterfaced> borrar = new ArrayList<>();
-                for (FieldInterfaced f : l) {
-                    if (!fns.contains(f.getName())) {
-                        borrar.add(f);
-                    }
-                }
-                l.removeAll(borrar);
-
-            }
+            l = getColumnFields(field, field.getGenericClass());
 
         }
 
         return l;
     }
+
+    public static List<FieldInterfaced> getColumnFields(FieldInterfaced field, Class rowType) {
+
+        List<FieldInterfaced> l = null;
+
+        l = ListViewComponent.getColumnFields(rowType, true);
+
+        // quitamos el campo mappedBy de las columnas, ya que se supone que siempre seremos nosotros
+        OneToMany aa;
+        if ((aa = field.getAnnotation(OneToMany.class)) != null) {
+
+            String mb = field.getAnnotation(OneToMany.class).mappedBy();
+
+            if (!Strings.isNullOrEmpty(mb)) {
+                FieldInterfaced mbf = null;
+                for (FieldInterfaced f : l) {
+                    if (f.getName().equals(mb)) {
+                        mbf = f;
+                        break;
+                    }
+                }
+                if (mbf != null) l.remove(mbf);
+            }
+
+        }
+
+        if (field.isAnnotationPresent(FieldsFilter.class)) {
+
+            List<String> fns = Arrays.asList(field.getAnnotation(FieldsFilter.class).value().split(","));
+
+            List<FieldInterfaced> borrar = new ArrayList<>();
+            for (FieldInterfaced f : l) {
+                if (!fns.contains(f.getName())) {
+                    borrar.add(f);
+                }
+            }
+            l.removeAll(borrar);
+
+        }
+
+        return l;
+    }
+
 
     public Object convert(String s) {
         return s;
@@ -759,113 +830,239 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         aux.bind(field.getName());
     }
 
-    public static void bind(MDDBinder binder, Grid g, FieldInterfaced field) {
-        Binder.BindingBuilder aux = binder.forField(new HasValue() {
-            @Override
-            public void setValue(Object o) {
-                Collection items = null;
-                if (o == null) {
-                    items = new ArrayList();
-                } else {
+    public static void bind(MDDBinder binder, Grid g, FieldInterfaced field, Class targetClass, List<FieldInterfaced> originalEditableFields) {
+        bind(binder, g, field, targetClass, originalEditableFields, null);
+    }
 
-                    if (o instanceof Map) {
+    public static void bind(MDDBinder binder, Grid g, FieldInterfaced field, Class targetClass, List<FieldInterfaced> originalEditableFields, Object owner) {
 
-                        Class keyType = ReflectionHelper.getGenericClass(field, Map.class, "K");
+        if (ProxyClass.class.isAssignableFrom(targetClass)) {
 
-                        if (keyType != null && keyType.isEnum()) {
-                            //todo: prefill
-                            //todo: añadir anotación @Prefill
-                        }
-
-                        items = ((Map) o).entrySet();
+            Binder.BindingBuilder aux = binder.forField(new HasValue() {
+                @Override
+                public void setValue(Object o) {
+                    Collection items = null;
+                    if (o == null) {
+                        items = new ArrayList();
                     } else {
-                        items = (Collection) o;
+
+                        if (o instanceof Map) {
+                            items = new ArrayList();
+                            Class keyType = ReflectionHelper.getGenericClass(field, Map.class, "K");
+
+                            if (keyType != null && keyType.isEnum()) {
+                                //todo: prefill
+                                //todo: añadir anotación @Prefill
+                            }
+
+                            items = ((Map) o).entrySet();
+                        } else {
+                            items = new ArrayList();
+
+                            Map<String, Map> valoresPosiblesPorCampo = new HashMap<>();
+
+                            for (FieldInterfaced f : originalEditableFields) {
+                                if (f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline()) {
+
+                                    Collection possibleValues = null;
+
+                                    String vmn = ReflectionHelper.getGetter(field.getName() + ReflectionHelper.getFirstUpper(f.getName())) + "Values";
+
+                                    Method mdp = ReflectionHelper.getMethod(field.getDeclaringClass(), vmn);
+
+                                    if (mdp != null) {
+                                        try {
+                                            possibleValues = (Collection) mdp.invoke(owner);
+                                        } catch (Exception e) {
+                                            MDD.alert(e);
+                                        }
+                                    } else {
+                                        MDD.alert("Missing " + vmn + " method at " + field.getDeclaringClass().getName());
+                                    }
+
+
+                                    int pos = 0;
+                                    if (possibleValues != null) {
+                                        Map l = valoresPosiblesPorCampo.get(f.getName());
+                                        if (l == null) valoresPosiblesPorCampo.put(f.getName(), l = new HashMap());
+                                        for (Object v : possibleValues) if (v != null) {
+                                            l.put(pos, v);
+                                            pos++;
+                                        }
+                                    }
+
+                                }
+                            }
+
+                            for (Object x : (Collection) o) {
+                                //binder.getMergeables().add(x);
+                                try {
+                                    items.add(targetClass.getConstructor(x.getClass(), Map.class, MDDBinder.class).newInstance(x, valoresPosiblesPorCampo, binder));
+                                } catch (InstantiationException e) {
+                                    e.printStackTrace();
+                                } catch (IllegalAccessException e) {
+                                    e.printStackTrace();
+                                } catch (NoSuchMethodException e) {
+                                    e.printStackTrace();
+                                } catch (InvocationTargetException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
                     }
-                }
-                g.setDataProvider(new ListDataProvider(items));
-            }
-
-            @Override
-            public Object getValue() {
-                return ((ListDataProvider) g.getDataProvider()).getItems();
-            }
-
-            @Override
-            public Registration addValueChangeListener(ValueChangeListener valueChangeListener) {
-                return null;
-            }
-
-            @Override
-            public void setRequiredIndicatorVisible(boolean b) {
-
-            }
-
-            @Override
-            public boolean isRequiredIndicatorVisible() {
-                return false;
-            }
-
-            @Override
-            public void setReadOnly(boolean b) {
-
-            }
-
-            @Override
-            public boolean isReadOnly() {
-                return false;
-            }
-        });
-
-        if (Map.class.isAssignableFrom(field.getType())) aux.withConverter(new Converter() {
-            @Override
-            public Result convertToModel(Object o, ValueContext valueContext) {
-                Map m = new HashMap();
-                if (o != null) {
-                    ((Collection)o).forEach(e -> m.put(((MapEntry)e).getKey(), ((MapEntry)e).getValue()));
+                    g.setDataProvider(new ListDataProvider(items));
                 }
 
-                Object bean = binder.getBean();
-                try {
+                @Override
+                public Object getValue() {
+                    Collection items = new ArrayList();
+                    for (Object o : ((ListDataProvider) g.getDataProvider()).getItems()) {
+                        ((ArrayList) items).add(((ProxyClass)o).toObject());
+                    }
+                    return items;
+                }
 
-                    Map old = (Map) ReflectionHelper.getValue(field, bean);
+                @Override
+                public Registration addValueChangeListener(ValueChangeListener valueChangeListener) {
+                    return null;
+                }
 
-                    old.values().forEach(e -> {
-                        Object target = e;
-                        if (!m.containsValue(target)) {
-                            try {
-                                ReflectionHelper.unReverseMap(binder, field, bean, target);
-                            } catch (Exception e1) {
-                                MDD.alert(e1);
+                @Override
+                public void setRequiredIndicatorVisible(boolean b) {
+
+                }
+
+                @Override
+                public boolean isRequiredIndicatorVisible() {
+                    return false;
+                }
+
+                @Override
+                public void setReadOnly(boolean b) {
+
+                }
+
+                @Override
+                public boolean isReadOnly() {
+                    return false;
+                }
+            });
+
+            aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+            aux.bind(field.getName());
+
+
+        } else {
+
+            Binder.BindingBuilder aux = binder.forField(new HasValue() {
+                @Override
+                public void setValue(Object o) {
+                    Collection items = null;
+                    if (o == null) {
+                        items = new ArrayList();
+                    } else {
+
+                        if (o instanceof Map) {
+
+                            Class keyType = ReflectionHelper.getGenericClass(field, Map.class, "K");
+
+                            if (keyType != null && keyType.isEnum()) {
+                                //todo: prefill
+                                //todo: añadir anotación @Prefill
                             }
+
+                            items = ((Map) o).entrySet();
+                        } else {
+                            items = (Collection) o;
                         }
-                    });
-                    m.values().forEach(e -> {
-                        Object target = e;
-                        if (!old.containsValue(target)) {
-                            try {
-                                ReflectionHelper.reverseMap(binder, field, bean, target);
-                            } catch (Exception e1) {
-                                MDD.alert(e1);
-                            }
-                        }
-                    });
-                    ReflectionHelper.setValue(field, bean, (o != null)?m:null);
-                } catch (Exception e) {
-                    MDD.alert(e);
+                    }
+                    g.setDataProvider(new ListDataProvider(items));
                 }
-                binder.setBean(bean, false);
 
-                return Result.ok((o != null)?m:null);
-            }
+                @Override
+                public Object getValue() {
+                    return ((ListDataProvider) g.getDataProvider()).getItems();
+                }
 
-            @Override
-            public Object convertToPresentation(Object o, ValueContext valueContext) {
-                return (o != null)?toList((Map) o):null;
-            }
-        });
+                @Override
+                public Registration addValueChangeListener(ValueChangeListener valueChangeListener) {
+                    return null;
+                }
 
-        aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
-        aux.bind(field.getName());
+                @Override
+                public void setRequiredIndicatorVisible(boolean b) {
+
+                }
+
+                @Override
+                public boolean isRequiredIndicatorVisible() {
+                    return false;
+                }
+
+                @Override
+                public void setReadOnly(boolean b) {
+
+                }
+
+                @Override
+                public boolean isReadOnly() {
+                    return false;
+                }
+            });
+
+            if (Map.class.isAssignableFrom(field.getType())) aux.withConverter(new Converter() {
+                @Override
+                public Result convertToModel(Object o, ValueContext valueContext) {
+                    Map m = new HashMap();
+                    if (o != null) {
+                        ((Collection)o).forEach(e -> m.put(((MapEntry)e).getKey(), ((MapEntry)e).getValue()));
+                    }
+
+                    Object bean = binder.getBean();
+                    try {
+
+                        Map old = (Map) ReflectionHelper.getValue(field, bean);
+
+                        old.values().forEach(e -> {
+                            Object target = e;
+                            if (!m.containsValue(target)) {
+                                try {
+                                    ReflectionHelper.unReverseMap(binder, field, bean, target);
+                                } catch (Exception e1) {
+                                    MDD.alert(e1);
+                                }
+                            }
+                        });
+                        m.values().forEach(e -> {
+                            Object target = e;
+                            if (!old.containsValue(target)) {
+                                try {
+                                    ReflectionHelper.reverseMap(binder, field, bean, target);
+                                } catch (Exception e1) {
+                                    MDD.alert(e1);
+                                }
+                            }
+                        });
+                        ReflectionHelper.setValue(field, bean, (o != null)?m:null);
+                    } catch (Exception e) {
+                        MDD.alert(e);
+                    }
+                    binder.setBean(bean, false);
+
+                    return Result.ok((o != null)?m:null);
+                }
+
+                @Override
+                public Object convertToPresentation(Object o, ValueContext valueContext) {
+                    return (o != null)?toList((Map) o):null;
+                }
+            });
+
+            aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+            aux.bind(field.getName());
+
+        }
+
     }
 
     private static List<MapEntry> toList(Map m) {

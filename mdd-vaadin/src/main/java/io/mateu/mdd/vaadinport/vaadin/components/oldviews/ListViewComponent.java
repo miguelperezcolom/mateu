@@ -6,17 +6,19 @@ import com.byteowls.vaadin.chartjs.data.Dataset;
 import com.byteowls.vaadin.chartjs.data.PieDataset;
 import com.google.common.base.Strings;
 import com.kbdunn.vaadin.addons.fontawesome.FontAwesome;
-import com.vaadin.data.HasDataProvider;
-import com.vaadin.data.ValueProvider;
+import com.vaadin.data.*;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
+import com.vaadin.server.Setter;
 import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.SortOrderProvider;
 import com.vaadin.ui.renderers.HtmlRenderer;
+import com.vaadin.ui.renderers.TextRenderer;
 import com.vaadin.ui.themes.ValoTheme;
+import elemental.json.JsonValue;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.data.ChartData;
@@ -181,7 +183,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                 @Override
                 public Object apply(Object o) {
 
-                    if (finalCsg != null && !finalCsg.isContentShown()) return null;
+                    //if (finalCsg != null && !finalCsg.isContentShown()) return null;
 
                     Object v = null;
 
@@ -205,13 +207,16 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
                         String s = "";
 
-                        for (int i = 0; i < wds.length; i++) if (wds[i]) {
-                            if (!"".equals(s)) s += ",";
-                            s += WeekDaysComponent.days.get(i);
-                        }
+                        for (int i = 0; i < wds.length; i++)
+                            if (wds[i]) {
+                                if (!"".equals(s)) s += ",";
+                                s += WeekDaysComponent.days.get(i);
+                            }
 
                         return s;
 
+                    } else if (LocalDate.class.equals(f.getType()) || LocalDateTime.class.equals(f.getType()) || Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) {
+                        return v;
                     } else {
                         return (v != null)?"" + v:null;
                     }
@@ -244,6 +249,13 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                         MDD.alert(e);
                     }
                     return null;
+                }
+            });
+
+            if (finalCsg != null && !finalCsg.isContentShown()) col.setRenderer(new TextRenderer() {
+                @Override
+                public JsonValue encode(Object value) {
+                    return super.encode(null);
                 }
             });
 
@@ -299,6 +311,32 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                 } else if (Double.class.equals(f.getType()) || double.class.equals(f.getType())) {
 
                     TextField nf = new TextField();
+                    col.setEditorComponent(nf, (o, v) -> {
+                        try {
+                            //todo: validar doble
+                            //todo: falta float y long
+                            ReflectionHelper.setValue(f, o, v);
+                            if (binder != null) binder.refresh();
+                        } catch (Exception e) {
+                            MDD.alert(e);
+                        }
+                    });
+                    col.setEditable(true);
+                } else if (LocalDate.class.equals(f.getType())) {
+
+                    DateField nf = new DateField();
+                    col.setEditorComponent(nf, (o, v) -> {
+                        try {
+                            ReflectionHelper.setValue(f, o, v);
+                            if (binder != null) binder.refresh();
+                        } catch (Exception e) {
+                            MDD.alert(e);
+                        }
+                    });
+                    col.setEditable(true);
+                } else if (LocalDateTime.class.equals(f.getType())) {
+
+                    DateTimeField nf = new DateTimeField();
                     col.setEditorComponent(nf, (o, v) -> {
                         try {
                             //todo: validar doble
@@ -408,6 +446,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             }
 
             col.setCaption(Helper.capitalize(f.getName()));
+            if (f.isAnnotationPresent(Caption.class)) col.setCaption(f.getAnnotation(Caption.class).value());
 
             if (colFields.size() == 1) col.setExpandRatio(1);
             else col.setWidth(getColumnWidth(f));
@@ -663,9 +702,11 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
 
-    
-
     public static List<FieldInterfaced> getColumnFields(Class objectType) {
+        return getColumnFields(objectType, false);
+    }
+
+    public static List<FieldInterfaced> getColumnFields(Class objectType, boolean forGrid) {
 
             List<FieldInterfaced> explicitColumns = ReflectionHelper.getAllFields(objectType).stream().filter(
                     (f) -> f.isAnnotationPresent(ListColumn.class)
@@ -675,14 +716,17 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                 return explicitColumns;
             } else
                 return ReflectionHelper.getAllFields(objectType).stream().filter(
-                        (f) -> !f.isAnnotationPresent(Transient.class)
+                        (f) -> !"_proxied".equalsIgnoreCase(f.getName()) && !"_possibleValues".equalsIgnoreCase(f.getName()) && !"_binder".equalsIgnoreCase(f.getName()) && !"_field".equalsIgnoreCase(f.getName())
+                                && !f.isAnnotationPresent(Transient.class)
                                 && !f.isAnnotationPresent(NotInList.class)
                                 && !f.isAnnotationPresent(Ignored.class)
                                 && !Modifier.isTransient(f.getModifiers())
-                                && !Collection.class.isAssignableFrom(f.getType())
+                                && (!Collection.class.isAssignableFrom(f.getType()) || (forGrid && f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline()))
                                 && !Map.class.isAssignableFrom(f.getType())
                                 && !f.isAnnotationPresent(GeneratedValue.class)
-                                && (ReflectionHelper.isBasico(f.getType()) || f.getType().isEnum() || f.getType().isAnnotationPresent(Entity.class))
+                                && (ReflectionHelper.isBasico(f.getType()) || f.getType().isEnum() || f.getType().isAnnotationPresent(Entity.class)
+                                || (forGrid && f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline())
+                        )
                 ).collect(Collectors.toList());
 
     }

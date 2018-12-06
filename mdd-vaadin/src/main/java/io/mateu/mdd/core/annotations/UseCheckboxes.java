@@ -11,4 +11,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.PARAMETER}) //can use in method only.
 public @interface UseCheckboxes {
+
+    boolean editableInline() default false;
 }

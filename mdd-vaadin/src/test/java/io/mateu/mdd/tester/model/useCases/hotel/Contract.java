@@ -27,13 +27,17 @@ public class Contract {
     private String name;
 
     @ManyToMany(mappedBy = "contracts")
-    @UseCheckboxes
+    @UseCheckboxes(editableInline = true)
     private Set<Offer> offers = new HashSet<>();
-
 
     @Override
     public boolean equals(Object obj) {
         return this == obj || id == ((Contract)obj).getId();
+    }
+
+    @Override
+    public String toString() {
+        return name != null?name:"Contract " + getId();
     }
 
 }

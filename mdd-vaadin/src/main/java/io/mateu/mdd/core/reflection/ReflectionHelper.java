@@ -16,14 +16,8 @@ import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ClassFile;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.annotation.*;
-import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.UserData;
-import io.mateu.mdd.core.interfaces.PushWriter;
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.tests.Persona;
 import org.apache.commons.beanutils.BeanUtils;
 import org.reflections.Reflections;
 
@@ -288,7 +282,7 @@ public class ReflectionHelper {
         List<String> vistos = new ArrayList<>();
         Map<String, Field> originales = new HashMap<>();
         for (Field f : c.getDeclaredFields()) {
-            if (!f.getName().contains("$")) originales.put(f.getName(), f);
+            if (!f.getName().contains("$") && !"_proxied".equalsIgnoreCase(f.getName()) && !"_possibleValues".equalsIgnoreCase(f.getName()) && !"_binder".equalsIgnoreCase(f.getName()) && !"_field".equalsIgnoreCase(f.getName())) originales.put(f.getName(), f);
         }
 
         List<FieldInterfaced> l = new ArrayList<>();
@@ -301,7 +295,7 @@ public class ReflectionHelper {
             }
         }
 
-        for (Field f : c.getDeclaredFields()) if (!vistos.contains(f.getName())) if (!f.getName().contains("$")) {
+        for (Field f : c.getDeclaredFields()) if (!vistos.contains(f.getName())) if (!f.getName().contains("$") && !"_proxied".equalsIgnoreCase(f.getName()) && !"_possibleValues".equalsIgnoreCase(f.getName()) && !"_binder".equalsIgnoreCase(f.getName()) && !"_field".equalsIgnoreCase(f.getName())) {
             l.add(new FieldInterfacedFromField(f));
         }
 
@@ -955,7 +949,18 @@ public class ReflectionHelper {
 
 
     public static List<FieldInterfaced> getAllEditableFields(Class modelType) {
-        return getAllEditableFields(modelType, null, true);
+        return getAllEditableFilteredFields(modelType, null, null);
+    }
+
+    public static List<FieldInterfaced> getAllEditableFilteredFields(Class modelType, String fieldsFilter, List<FieldInterfaced> editableFields) {
+        List<FieldInterfaced> l = editableFields != null?editableFields:getAllEditableFields(modelType, null, true);
+        if (!Strings.isNullOrEmpty(fieldsFilter)) {
+            List<FieldInterfaced> borrar = new ArrayList<>();
+            List<String> ts = Arrays.asList(fieldsFilter.replaceAll(" ", "").split(","));
+            for (FieldInterfaced f : l) if (!ts.contains(f.getName())) borrar.add(f);
+            l.removeAll(borrar);
+        }
+        return l;
     }
 
     public static List<FieldInterfaced> getAllEditableFields(Class modelType, Class superType) {
@@ -1356,6 +1361,16 @@ public class ReflectionHelper {
     }
 
 
+    /**
+     *
+     * @param binder el binder del objeto padre
+     * @param field el campo en el objeto padre
+     * @param bean el objeto padre
+     * @param i el tercero que queremos actualizar
+     * @throws IllegalAccessException
+     * @throws NoSuchMethodException
+     * @throws InvocationTargetException
+     */
     public static void unReverseMap(MDDBinder binder, FieldInterfaced field, Object bean, Object i) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
 
         final FieldInterfaced mbf = ReflectionHelper.getMapper(field);
@@ -1381,7 +1396,16 @@ public class ReflectionHelper {
     }
 
 
-
+    /**
+     *
+     * @param binder el binder del objeto padre
+     * @param field el campo en el objeto padre
+     * @param bean el objeto padre
+     * @param i el tercero que queremos actualizar
+     * @throws IllegalAccessException
+     * @throws NoSuchMethodException
+     * @throws InvocationTargetException
+     */
     public static void reverseMap(MDDBinder binder, FieldInterfaced field, Object bean, Object i) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         FieldInterfaced mbf = ReflectionHelper.getMapper(field);
 
@@ -1589,6 +1613,10 @@ public class ReflectionHelper {
     }
 
     public static Class createClassUsingJavassist2(String fullClassName, List<FieldInterfaced> fields, boolean forFilters) throws Exception {
+        return createClassUsingJavassist2(fullClassName, fields, forFilters, false, null, null);
+    }
+
+    public static Class createClassUsingJavassist2(String fullClassName, List<FieldInterfaced> fields, boolean forFilters, boolean forInlineEditing, FieldInterfaced collectionField, Object owner) throws Exception {
 
         System.out.println("creating class " + fullClassName);
 
@@ -1599,6 +1627,38 @@ public class ReflectionHelper {
         CtClass cc = pool.makeClass(fullClassName);
         cc.setModifiers(Modifier.PUBLIC);
 
+        if (forInlineEditing) {
+
+            cc.addInterface(pool.get(ProxyClass.class.getName()));
+
+
+            CtField ctf;
+            cc.addField(ctf = new CtField(pool.get(collectionField.getGenericClass().getName()), "_proxied", cc));
+            ctf.setModifiers(Modifier.PRIVATE);
+
+
+            cc.addField(ctf = new CtField(pool.get(Map.class.getName()), "_possibleValues", cc));
+            ctf.setModifiers(Modifier.PRIVATE);
+
+            cc.addField(ctf = new CtField(pool.get(MDDBinder.class.getName()), "_binder", cc));
+            ctf.setModifiers(Modifier.PRIVATE);
+
+
+            CtConstructor cons;
+            cc.addConstructor(cons = new CtConstructor(new CtClass[] {pool.get(collectionField.getGenericClass().getName())}, cc));
+            //cons.setBody("{super();this._proxied = $1;}");
+            cons.setBody("this._proxied = $1;");
+
+
+            cc.addConstructor(cons = new CtConstructor(new CtClass[] {pool.get(collectionField.getGenericClass().getName()), pool.get(Map.class.getName())}, cc));
+            cons.setBody("{super();this._proxied = $1;this._possibleValues = $2;}");
+
+            cc.addConstructor(cons = new CtConstructor(new CtClass[] {pool.get(collectionField.getGenericClass().getName()), pool.get(Map.class.getName()), pool.get(MDDBinder.class.getName())}, cc));
+            cons.setBody("{super();this._proxied = $1;this._possibleValues = $2;this._binder = $3;}");
+
+            cc.addMethod(CtNewMethod.make("public Object toObject() { return this._proxied; }", cc));
+        }
+
         ClassFile cfile = cc.getClassFile();
         ConstPool cpool = cfile.getConstPool();
 
@@ -1607,13 +1667,46 @@ public class ReflectionHelper {
 
             Class t = f.getType();
 
-            if (forFilters && boolean.class.equals(t)) t = Boolean.class;
+            if (forFilters) {
+
+                if (forFilters && boolean.class.equals(t)) t = Boolean.class;
 
 
-            if (LocalDate.class.equals(t) || LocalDateTime.class.equals(t) || Date.class.equals(t)) {
-                addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName() + "From", f.getDeclaredAnnotations(), false);
-                addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName() + "To", f.getDeclaredAnnotations(), true);
-            } else addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName(), f.getDeclaredAnnotations(), false);
+                if (LocalDate.class.equals(t) || LocalDateTime.class.equals(t) || Date.class.equals(t)) {
+                    addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName() + "From", f.getDeclaredAnnotations(), false);
+                    addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName() + "To", f.getDeclaredAnnotations(), true);
+                } else addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName(), f.getDeclaredAnnotations(), false);
+
+            } else if (forInlineEditing) {
+
+                if (f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline()) {
+
+                    Collection possibleValues = null;
+
+                    String vmn = ReflectionHelper.getGetter(collectionField.getName() + getFirstUpper(f.getName())) + "Values";
+
+                    Method mdp = ReflectionHelper.getMethod(collectionField.getDeclaringClass(), vmn);
+
+                    if (mdp != null) {
+                        possibleValues = (Collection) mdp.invoke(owner);
+                    } else {
+                        MDD.alert("Missing " + vmn + " method at " + collectionField.getDeclaringClass().getName());
+                    }
+
+
+                    int pos = 0;
+                    if (possibleValues != null) for (Object v : possibleValues) if (v != null) {
+                        addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, boolean.class, f.getName() + "" + pos, f.getDeclaredAnnotations(), false, true, "" + v, pos, f);
+                        pos++;
+                    }
+
+
+                } else addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName(), f.getDeclaredAnnotations(), false, forInlineEditing, null, -1, null);
+
+            } else {
+                addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName(), f.getDeclaredAnnotations(), false);
+            }
+
 
         }
 
@@ -1621,6 +1714,10 @@ public class ReflectionHelper {
     }
 
     private static void addField(List<String> avoidedAnnotationNames, ClassPool pool, ClassFile cfile, ConstPool cpool, CtClass cc, boolean forFilters, Class t, String fieldName, Annotation[] declaredAnnotations, boolean forceSameLine) throws Exception {
+        addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, fieldName, declaredAnnotations, forceSameLine, false, null, -1, null);
+    }
+
+    private static void addField(List<String> avoidedAnnotationNames, ClassPool pool, ClassFile cfile, ConstPool cpool, CtClass cc, boolean forFilters, Class t, String fieldName, Annotation[] declaredAnnotations, boolean forceSameLine, boolean forInlineEditing, String caption, int valueKey, FieldInterfaced collectionField) throws Exception {
 
         CtField ctf;
 
@@ -1648,6 +1745,33 @@ public class ReflectionHelper {
             }
         }
 
+        if (caption != null) {
+
+            boolean yaEsta = false;
+            for (Annotation a : declaredAnnotations) if (Caption.class.equals(a.annotationType())) {
+                yaEsta = true;
+                break;
+            }
+
+            if (!yaEsta) {
+                declaredAnnotations = Arrays.copyOf(declaredAnnotations, declaredAnnotations.length + 1);
+                declaredAnnotations[declaredAnnotations.length - 1] = new Caption() {
+
+                    @Override
+                    public String value() {
+                        return caption;
+                    }
+
+                    @Override
+                    public Class<? extends Annotation> annotationType() {
+                        return Caption.class;
+                    }
+                };
+            }
+
+        }
+
+
         if (declaredAnnotations.length > 0) {
 
             boolean hay = !forFilters;
@@ -1655,7 +1779,7 @@ public class ReflectionHelper {
             if (!hay) {
                 for (Annotation a : declaredAnnotations) {
                     String n = a.annotationType().getSimpleName();
-                    if (!avoidedAnnotationNames.contains(n) || (forceSameLine && "SameLine".equals(n))) {
+                    if (!avoidedAnnotationNames.contains(n) || (forceSameLine && "SameLine".equals(n)) || (caption != null && "Caption".equals(n))) {
                         hay = true;
                         break;
                     }
@@ -1666,7 +1790,7 @@ public class ReflectionHelper {
                 AnnotationsAttribute attr = new AnnotationsAttribute(cpool, AnnotationsAttribute.visibleTag);
                 for (Annotation a : declaredAnnotations) {
                     String n = a.annotationType().getSimpleName();
-                    if (!forFilters || !avoidedAnnotationNames.contains(n) || (forceSameLine && "SameLine".equals(n))) {
+                    if (!forFilters || !avoidedAnnotationNames.contains(n) || (forceSameLine && "SameLine".equals(n)) || (caption != null && "Caption".equals(n))) {
                         addAnnotation(cc, cfile, cpool, ctf, a, attr);
                     }
                 }
@@ -1675,8 +1799,39 @@ public class ReflectionHelper {
 
         }
 
-        cc.addMethod(CtNewMethod.getter(getGetter(t, fieldName), ctf));
-        cc.addMethod(CtNewMethod.setter(getSetter(t, fieldName), ctf));
+        if (forInlineEditing) {
+            CtMethod g;
+            cc.addMethod(g = CtNewMethod.getter(getGetter(t, fieldName), ctf));
+            if (valueKey >= 0) {
+                String b = "return this._proxied." + getGetter(collectionField) + "().contains(((" + Map.class.getName() + ")this._possibleValues.get(\"" + collectionField.getName() + "\")).get(new Integer(" + valueKey + ")));";
+                //g.setBody("{System.out.println(\"Hola getter!!! " + b.replaceAll("\"", "'") + "\");" + b + "}");
+                g.setBody("{" + b + "}");
+            } else g.setBody("return this._proxied." + g.getName() + "();");
+            CtMethod s;
+            cc.addMethod(s = CtNewMethod.setter(getSetter(t, fieldName), ctf));
+            if (valueKey >= 0) {
+                String b = "if ($1) {" +
+                        "Object tercero = ((" + Map.class.getName() + ")this._possibleValues.get(\"" + collectionField.getName() + "\")).get(new Integer(" + valueKey + "));" +
+                        "this._proxied." + getGetter(collectionField) + "().add(tercero); " +
+                        "this._binder.getMergeables().add(tercero);" +
+                        FieldInterfaced.class.getName() + " field = " + ReflectionHelper.class.getName() + ".getFieldByName(this._proxied.getClass(), \"" + collectionField.getName() + "\");" +
+                        "this._binder.getMergeables().add(tercero);" +
+                        "" + ReflectionHelper.class.getName() + ".reverseMap(this._binder, field, this._proxied, tercero);" +
+                        "} else {" +
+                        "Object tercero = ((" + Map.class.getName() + ")this._possibleValues.get(\"" + collectionField.getName() + "\")).get(new Integer(" + valueKey + "));" +
+                        "this._proxied." + getGetter(collectionField) + "().remove(tercero);" +
+                        FieldInterfaced.class.getName() + " field = " + ReflectionHelper.class.getName() + ".getFieldByName(this._proxied.getClass(), \"" + collectionField.getName() + "\");" +
+                        "this._binder.getMergeables().add(tercero);" +
+                        "" + ReflectionHelper.class.getName() + ".unReverseMap(this._binder, field, this._proxied, tercero);" +
+                        "}";
+                System.out.println(b);
+                //s.setBody("{System.out.println(\"Hola setter!!! " + b.replaceAll("\"", "'") + "\");" + b + "}");
+                s.setBody("{" + b + "}");
+            } else s.setBody("this._proxied." + s.getName() + "($1);");
+        } else {
+            cc.addMethod(CtNewMethod.getter(getGetter(t, fieldName), ctf));
+            cc.addMethod(CtNewMethod.setter(getSetter(t, fieldName), ctf));
+        }
 
 
     }
@@ -1747,6 +1902,23 @@ public class ReflectionHelper {
     }
 
 
+    public static Class createClass(String fullClassName, List<FieldInterfaced> fields, boolean forFilters, boolean forInlineEditing, FieldInterfaced collectionField, Object owner) throws Exception {
+
+        if (forInlineEditing) {
+            Class c = createClassUsingJavassist2(fullClassName, fields, forFilters, forInlineEditing, collectionField, owner);
+            return c;
+        } else {
+            try {
+                Class c = Class.forName(fullClassName);
+                System.out.println("class " + fullClassName + " already exists");
+                return c;
+            } catch (ClassNotFoundException e) {
+                Class c = createClassUsingJavassist2(fullClassName, fields, forFilters, forInlineEditing, collectionField, owner);
+                return c;
+            }
+        }
+    }
+
     public static void main(String[] args) throws Exception {
 
         ClassPool cpool = ClassPool.getDefault();
@@ -1802,7 +1974,7 @@ public class ReflectionHelper {
             else {
                 Object copy = original.getClass().newInstance();
 
-                for (FieldInterfaced f : ReflectionHelper.getAllFields(original.getClass())) {
+                for (FieldInterfaced f : ReflectionHelper.getAllFields(original.getClass())) if (!f.isAnnotationPresent(Id.class)) {
                     ReflectionHelper.setValue(f, copy, ReflectionHelper.getValue(f, original));
                 }
                 return copy;
@@ -1847,5 +2019,14 @@ public class ReflectionHelper {
             }
             em.remove(o);
         }
+    }
+
+    public static Class getProxy(String fieldsFilter, Class sourceClass, FieldInterfaced collectionField, Object owner, List<FieldInterfaced> editableFields) {
+        try {
+            return ReflectionHelper.createClass(sourceClass.getName() + "000EditableInline" + UUID.randomUUID().toString(), getAllEditableFilteredFields(sourceClass, fieldsFilter, editableFields), false, true, collectionField, owner);
+        } catch (Exception e) {
+            MDD.alert(e);
+        }
+        return null;
     }
 }

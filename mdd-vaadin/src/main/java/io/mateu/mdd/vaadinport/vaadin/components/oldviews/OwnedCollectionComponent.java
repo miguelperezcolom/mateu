@@ -200,8 +200,11 @@ public class OwnedCollectionComponent extends VerticalLayout {
     @Override
     public String toString() {
         String s = "";
-        if (currentIndex < collection.size()) s = Helper.capitalize(field.getName() + " " + (currentIndex + 1) + " of " + collection.size());
-        else s = Helper.capitalize("New " + field.getName());
+        Object b = (parentBinder != null)?parentBinder.getBean():null;
+        s += b != null?b:"---";
+        s += ": ";
+        if (currentIndex < collection.size()) s += Helper.capitalize(field.getName() + " " + (currentIndex + 1) + " of " + collection.size());
+        else s += Helper.capitalize("New " + field.getName());
         return s;
     }
 

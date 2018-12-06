@@ -1,6 +1,7 @@
 package io.mateu.mdd.tester.model.useCases.hotel;
 
 import io.mateu.mdd.core.annotations.UseCheckboxes;
+import io.mateu.mdd.core.util.DatesRange;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -27,6 +28,9 @@ public class Offer {
     private String name;
 
 
+    private List<DatesRange> dates = new ArrayList<>();
+
+
     @ManyToMany
     @UseCheckboxes
     private Set<Contract> contracts = new HashSet<>();
@@ -35,5 +39,11 @@ public class Offer {
     @Override
     public boolean equals(Object obj) {
         return this == obj || id == ((Offer)obj).getId();
+    }
+
+
+    @Override
+    public String toString() {
+        return name != null?name:"Offer " + getId();
     }
 }

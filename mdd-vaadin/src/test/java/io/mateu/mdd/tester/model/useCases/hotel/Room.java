@@ -21,5 +21,12 @@ public class Room {
     private String name;
 
 
+    private int maxPax;
 
+    private boolean active = true;
+
+    @Override
+    public String toString() {
+        return name != null?name:"Room " + id;
+    }
 }

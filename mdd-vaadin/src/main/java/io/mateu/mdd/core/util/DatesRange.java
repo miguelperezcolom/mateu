@@ -62,11 +62,16 @@ public class DatesRange implements Serializable, XMLSerializable {
     @Override
     public String toString() {
         DateTimeFormatter f = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter fm = DateTimeFormatter.ofPattern("MM-dd");
+        DateTimeFormatter fd = DateTimeFormatter.ofPattern("dd");
         String s = "";
         if (start != null) s += "from " + start.format(f);
         if (end != null) {
-            if (!"".equals(s)) s = " ";
-            s += "to " + end.format(f);
+            if (!"".equals(s)) s += " ";
+            DateTimeFormatter fx = f;
+            if (start != null && start.getYear() == end.getYear() && start.getMonthValue() == end.getMonthValue()) fx = fd;
+            else if (start != null && start.getYear() == end.getYear()) fx = fm;
+            s += "to " + end.format(fx);
         }
 
         return s;
