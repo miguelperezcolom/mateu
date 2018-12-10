@@ -17,7 +17,7 @@ public class WeekDaysComponent extends Composite implements HasValue<boolean[]>,
     private final CheckBoxGroup<String> g;
     private boolean[] array;
     private Map<UUID, ValueChangeListener> listeners = new HashMap<>();
-    public static final List<String> days = Lists.newArrayList("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su");;
+    public static final List<String> days = Lists.newArrayList("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su");
 
 
     public WeekDaysComponent(FieldInterfaced field, MDDBinder binder) {

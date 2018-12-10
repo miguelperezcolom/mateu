@@ -5,15 +5,24 @@ import com.byteowls.vaadin.chartjs.config.DonutChartConfig;
 import com.byteowls.vaadin.chartjs.data.Dataset;
 import com.byteowls.vaadin.chartjs.data.PieDataset;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.kbdunn.vaadin.addons.fontawesome.FontAwesome;
 import com.vaadin.data.*;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.provider.QuerySortOrder;
+import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.event.ShortcutAction;
+import com.vaadin.event.selection.SelectionEvent;
+import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.icons.VaadinIcons;
+import com.vaadin.server.SerializablePredicate;
 import com.vaadin.server.Setter;
+import com.vaadin.shared.Registration;
 import com.vaadin.shared.data.sort.SortDirection;
+import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
+import com.vaadin.ui.components.grid.EditorOpenEvent;
+import com.vaadin.ui.components.grid.EditorOpenListener;
 import com.vaadin.ui.components.grid.SortOrderProvider;
 import com.vaadin.ui.renderers.HtmlRenderer;
 import com.vaadin.ui.renderers.TextRenderer;
@@ -21,18 +30,17 @@ import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonValue;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
-import io.mateu.mdd.core.data.ChartData;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.data.SumData;
+import io.mateu.mdd.core.data.*;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.ICellStyleGenerator;
+import io.mateu.mdd.core.reflection.FieldInterfacedForCheckboxColumn;
+import io.mateu.mdd.core.reflection.FieldInterfacedFromType;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components.WeekDaysComponent;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.data.ChartData;
-import io.mateu.mdd.core.data.ChartValue;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.SumData;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
@@ -51,6 +59,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
+import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -146,6 +155,49 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     public static void buildColumns(Grid grid, List<FieldInterfaced> colFields, boolean isJPAListViewComponent, boolean editable, MDDBinder binder) {
+        buildColumns(grid, colFields, isJPAListViewComponent, editable, binder, null);
+    }
+
+    public static void buildColumns(Grid grid, List<FieldInterfaced> colFields, boolean isJPAListViewComponent, boolean editable, MDDBinder binder, FieldInterfaced collectionField) {
+
+        // descomponemos los campos que tienen usecheckbox
+
+        List<FieldInterfaced> descFields = new ArrayList<>();
+
+        Object bean = binder != null?binder.getBean():null;
+
+        for (FieldInterfaced f : colFields) {
+
+            if (f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline()) {
+
+                Collection possibleValues = null;
+
+                String vmn = ReflectionHelper.getGetter(collectionField.getName() + ReflectionHelper.getFirstUpper(f.getName())) + "Values";
+
+                Method mdp = ReflectionHelper.getMethod(collectionField.getDeclaringClass(), vmn);
+
+                if (mdp != null) {
+                    try {
+                        possibleValues = (Collection) mdp.invoke(bean);
+                    } catch (Exception e) {
+                        MDD.alert(e);
+                    }
+                } else {
+                    MDD.alert("Missing " + vmn + " method at " + collectionField.getDeclaringClass().getName());
+                }
+
+
+                int pos = 0;
+                if (possibleValues != null) for (Object v : possibleValues) if (v != null) {
+                    descFields.add(new FieldInterfacedForCheckboxColumn(f.getName() + "" + pos, f, v, binder));
+                    pos++;
+                }
+
+            } else descFields.add(f);
+
+        }
+
+        colFields = descFields;
 
         int pos = 0;
         for (FieldInterfaced f : colFields) {
@@ -207,11 +259,10 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
                         String s = "";
 
-                        for (int i = 0; i < wds.length; i++)
-                            if (wds[i]) {
-                                if (!"".equals(s)) s += ",";
-                                s += WeekDaysComponent.days.get(i);
-                            }
+                        if (wds != null) for (int i = 0; i < wds.length; i++) {
+                            if (!"".equals(s)) s += ",";
+                            s += wds[i]?WeekDaysComponent.days.get(i):"-";
+                        }
 
                         return s;
 
@@ -274,7 +325,135 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             }
 
             if (editable) {
-                if (Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) {
+
+                Method mdp = ReflectionHelper.getMethod(f.getDeclaringClass(), ReflectionHelper.getGetter(f.getName()) + "DataProvider");
+
+                if (f.isAnnotationPresent(ValueClass.class) || f.isAnnotationPresent(DataProvider.class) || mdp != null || f.isAnnotationPresent(ManyToOne.class)) {
+
+                    ComboBox cb = new ComboBox();
+
+                    //AbstractBackendDataProvider
+                    //FetchItemsCallback
+                    //newItemProvider
+
+                    boolean necesitaCaptionGenerator = false;
+
+                    if (mdp != null) {
+                        // en este punto no hacemos nada
+                    } else if (f.isAnnotationPresent(ValueClass.class)) {
+
+                        ValueClass a = f.getAnnotation(ValueClass.class);
+
+                        cb.setDataProvider(new JPQLListDataProvider(a.value()));
+
+                    } else if (f.isAnnotationPresent(DataProvider.class)) {
+
+                        necesitaCaptionGenerator = true;
+
+                        try {
+
+                            DataProvider a = f.getAnnotation(DataProvider.class);
+
+                            ((HasDataProvider)cb).setDataProvider(a.dataProvider().newInstance());
+
+                            cb.setItemCaptionGenerator(a.itemCaptionGenerator().newInstance());
+
+                        } catch (InstantiationException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        }
+
+                    } else {
+
+                        necesitaCaptionGenerator = true;
+
+                        try {
+                            Helper.notransact((em) -> cb.setDataProvider(new JPQLListDataProvider(em, f)));
+                        } catch (Throwable throwable) {
+                            throwable.printStackTrace();
+                        }
+                    }
+
+                    if (necesitaCaptionGenerator) {
+                        FieldInterfaced fName = ReflectionHelper.getNameField(f.getType());
+                        if (fName != null) cb.setItemCaptionGenerator((i) -> {
+                            try {
+                                return "" + ReflectionHelper.getValue(fName, i);
+                            } catch (NoSuchMethodException e) {
+                                e.printStackTrace();
+                            } catch (IllegalAccessException e) {
+                                e.printStackTrace();
+                            } catch (InvocationTargetException e) {
+                                e.printStackTrace();
+                            }
+                            return "Error";
+                        });
+                    }
+
+
+                    if (mdp != null) {
+                        grid.getEditor().addOpenListener(new EditorOpenListener() {
+                            @Override
+                            public void onEditorOpen(EditorOpenEvent editorOpenEvent) {
+                                try {
+                                    Object object = editorOpenEvent.getBean();
+                                    cb.setDataProvider((com.vaadin.data.provider.DataProvider) mdp.invoke(object), fx -> new SerializablePredicate() {
+                                        @Override
+                                        public boolean test(Object o) {
+                                            String s = (String) fx;
+                                            return  o != null && (Strings.isNullOrEmpty(s) || cb.getItemCaptionGenerator().apply(o).toLowerCase().contains(((String) s).toLowerCase()));
+                                        }
+                                    });
+                                } catch (Exception e) {
+                                    MDD.alert(e);
+                                }
+
+                            }
+                        });
+                    }
+
+                    col.setEditorComponent(cb, (o, v) -> {
+                        try {
+                            ReflectionHelper.setValue(f, o, v);
+                            if (binder != null) binder.refresh();
+                        } catch (Exception e) {
+                            MDD.alert(e);
+                        }
+                    });
+
+                    col.setEditable(true);
+
+                } else if (FareValue.class.equals(f.getType())) {
+                    TextField nf = new TextField();
+                    col.setEditorComponent(nf, (o, v) -> {
+                        try {
+                            //todo: validar entero
+                            ReflectionHelper.setValue(f, o, (v != null)?new FareValue((String) v):null);
+                            if (binder != null) binder.refresh();
+                        } catch (Exception e) {
+                            MDD.alert(e);
+                        }
+                    });
+                    col.setEditable(true);
+                } else if (f.isAnnotationPresent(WeekDays.class)) {
+
+                    List<String> days = Lists.newArrayList("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su");
+
+                    col.setEditorComponent(new WeekDaysGridEditor(), (o, v) -> {
+                        try {
+                            boolean array[] = {false, false, false, false, false, false, false};
+                            if (v != null) {
+                                for (int i = 0; i < days.size(); i++) if (i < array.length) array[i] = ((String)v).contains(days.get(i));
+                            }
+                            ReflectionHelper.setValue(f, o, v != null?array:null);
+                            if (binder != null) binder.refresh();
+                        } catch (Exception e) {
+                            MDD.alert(e);
+                        }
+                    });
+                    col.setEditable(true);
+                } else if (Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) {
                     col.setEditorComponent(new CheckBox(), (o, v) -> {
                         try {
                             ReflectionHelper.setValue(f, o, v);
@@ -364,88 +543,13 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     });
                     col.setEditable(true);
 
-                } else if (f.isAnnotationPresent(ManyToOne.class)) {
-
-                    ComboBox cb = new ComboBox();
-
-                    //AbstractBackendDataProvider
-                    //FetchItemsCallback
-                    //newItemProvider
-
-                    if (f.isAnnotationPresent(DataProvider.class)) {
-
-                        try {
-
-                            DataProvider a = f.getAnnotation(DataProvider.class);
-
-                            cb.setDataProvider(a.dataProvider().newInstance());
-
-                            cb.setItemCaptionGenerator(a.itemCaptionGenerator().newInstance());
-
-                        } catch (InstantiationException e) {
-                            e.printStackTrace();
-                        } catch (IllegalAccessException e) {
-                            e.printStackTrace();
-                        }
-
-                    } else {
-
-                        if (f.isAnnotationPresent(DataProvider.class)) {
-
-                            try {
-
-                                DataProvider a = f.getAnnotation(DataProvider.class);
-
-                                ((HasDataProvider)cb).setDataProvider(a.dataProvider().newInstance());
-
-                                cb.setItemCaptionGenerator(a.itemCaptionGenerator().newInstance());
-
-                            } catch (InstantiationException e) {
-                                e.printStackTrace();
-                            } catch (IllegalAccessException e) {
-                                e.printStackTrace();
-                            }
-
-                        } else {
-                            try {
-                                Helper.notransact((em) -> cb.setDataProvider(new JPQLListDataProvider(em, f)));
-                            } catch (Throwable throwable) {
-                                throwable.printStackTrace();
-                            }
-                        }
-
-                        FieldInterfaced fName = ReflectionHelper.getNameField(f.getType());
-                        if (fName != null) cb.setItemCaptionGenerator((i) -> {
-                            try {
-                                return "" + ReflectionHelper.getValue(fName, i);
-                            } catch (NoSuchMethodException e) {
-                                e.printStackTrace();
-                            } catch (IllegalAccessException e) {
-                                e.printStackTrace();
-                            } catch (InvocationTargetException e) {
-                                e.printStackTrace();
-                            }
-                            return "Error";
-                        });
-
-                    }
-
-                    col.setEditorComponent(cb, (o, v) -> {
-                        try {
-                                ReflectionHelper.setValue(f, o, v);
-                            if (binder != null) binder.refresh();
-                        } catch (Exception e) {
-                            MDD.alert(e);
-                        }
-                    });
-                    col.setEditable(true);
-
                 }
 
                 //todo: acabar
             }
 
             col.setCaption(Helper.capitalize(f.getName()));
+            if (f instanceof FieldInterfacedForCheckboxColumn) col.setCaption(((FieldInterfacedForCheckboxColumn)f).getCaption());
             if (f.isAnnotationPresent(Caption.class)) col.setCaption(f.getAnnotation(Caption.class).value());
 
             if (colFields.size() == 1) col.setExpandRatio(1);
@@ -485,6 +589,8 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     ) return 120;
             else if (LocalDate.class.equals(t)) return 125;
             else if (LocalDateTime.class.equals(t)) return 225;
+            else if (FareValue.class.equals(t)) return 125;
+            else if (f.isAnnotationPresent(WeekDays.class)) return 200;
             else return 250;
 
         }
@@ -509,7 +615,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         for (ListViewComponentListener l : listeners) l.onSelect(id);
     };
 
-    public abstract List findAll(Object filters, List<QuerySortOrder> sortOrders, int offset, int limit);
+    public abstract Collection findAll(Object filters, List<QuerySortOrder> sortOrders, int offset, int limit);
 
     public int count(Object filters) throws Throwable {
         count = gatherCount(filters);
@@ -725,6 +831,8 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                                 && !Map.class.isAssignableFrom(f.getType())
                                 && !f.isAnnotationPresent(GeneratedValue.class)
                                 && (ReflectionHelper.isBasico(f.getType()) || f.getType().isEnum() || f.getType().isAnnotationPresent(Entity.class)
+                                || FareValue.class.equals(f.getType())
+                                || f.isAnnotationPresent(WeekDays.class)
                                 || (forGrid && f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline())
                         )
                 ).collect(Collectors.toList());

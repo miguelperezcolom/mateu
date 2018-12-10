@@ -56,6 +56,8 @@ import java.util.*;
 public class EditorViewComponent extends AbstractViewComponent implements IEditorViewComponent {
 
     private final boolean createSaveButton;
+    private final List<FieldInterfaced> visibleFields;
+    private final List<FieldInterfaced> hiddenFields;
     private Object owner = null;
     private FieldInterfaced field = null;
     private Map<HasValue, List<Validator>> validators = new HashMap<>();
@@ -107,24 +109,39 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         this(modelType, true);
     }
 
-    public EditorViewComponent(Object owner, FieldInterfaced field, Class modelType, boolean createSaveButton) {
+    public EditorViewComponent(Object owner, FieldInterfaced field, Class modelType, List<FieldInterfaced> visibleFields, List<FieldInterfaced> hiddenFields, boolean createSaveButton) {
         this.owner = owner;
         this.field = field;
         this.modelType = modelType;
+        this.visibleFields = visibleFields;
+        this.hiddenFields = hiddenFields;
         this.createSaveButton = createSaveButton;
     }
 
+    public EditorViewComponent(Object owner, FieldInterfaced field, Class modelType, boolean createSaveButton) {
+        this(owner, field, modelType, new ArrayList<>(), new ArrayList<>(), createSaveButton);
+    }
+
     public EditorViewComponent(Class modelType, boolean createSaveButton) {
-        this.modelType = modelType;
-        this.createSaveButton = createSaveButton;
+        this(null, null, modelType, createSaveButton);
     }
 
     public EditorViewComponent(Object model) {
         this(model, true);
     }
 
+    public EditorViewComponent(Object model, List<FieldInterfaced> visibleFields, List<FieldInterfaced> hiddenFields) {
+        this(model, visibleFields, hiddenFields, true);
+    }
+
     public EditorViewComponent(Object model, boolean createSaveButton) {
+        this(model, new ArrayList<>(), new ArrayList<>(), createSaveButton);
+    }
+
+    public EditorViewComponent(Object model, List<FieldInterfaced> visibleFields, List<FieldInterfaced> hiddenFields, boolean createSaveButton) {
         this.modelType = model.getClass();
+        this.visibleFields = visibleFields;
+        this.hiddenFields = hiddenFields;
         this.createSaveButton = createSaveButton;
         setModel(model);
     }
@@ -184,7 +201,17 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             }
 
 
-            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, model.getClass(), model, validators, ReflectionHelper.getAllEditableFields(model.getClass(), (owner != null)?owner.getClass():null, false, field));
+            List<FieldInterfaced> fields = ReflectionHelper.getAllEditableFields(model.getClass(), (owner != null) ? owner.getClass() : null, false, field);
+
+            if (visibleFields != null && visibleFields.size() > 0) {
+                fields.removeIf(f -> !visibleFields.contains(f));
+            }
+
+            if (hiddenFields != null && hiddenFields.size() > 0) {
+                fields.removeIf(f -> hiddenFields.contains(f));
+            }
+
+            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, model.getClass(), model, validators, fields);
 
             stylist = r.getValue();
 
@@ -626,15 +653,15 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                 VaadinHelper.choose("Please choose type", subClassesOptions, c -> {
                     try {
-                        setModel(newInstance(((ClassOption)c).get_class(), parent, field));
+                        setModel(newInstance(((ClassOption)c).get_class(), parent));
                     } catch (Exception e) {
                         MDD.alert(e);
                     }
                 }, () -> MDDUI.get().getNavegador().goBack());
             } else if (subClasses.size() == 1) {
-                setModel(newInstance(subClasses.iterator().next(), parent, field));
+                setModel(newInstance(subClasses.iterator().next(), parent));
             } else {
-                setModel(newInstance(modelType, parent, field));
+                setModel(newInstance(modelType, parent));
             }
 
         } else {
@@ -684,7 +711,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
     }
 
-    private Object newInstance(Class c, Object parent, FieldInterfaced field) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+    public static Object newInstance(Class c, Object parent) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
         Object i = c.newInstance();
         if (parent != null) {
             for (FieldInterfaced f : ReflectionHelper.getAllFields(c)) if (f.getType().equals(parent.getClass()) && f.isAnnotationPresent(NotNull.class)) {

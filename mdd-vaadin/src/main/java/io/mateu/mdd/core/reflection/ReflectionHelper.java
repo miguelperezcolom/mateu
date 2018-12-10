@@ -92,7 +92,9 @@ public class ReflectionHelper {
     }
 
     public static void setValue(FieldInterfaced f, Object o, Object v) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
-       setValue(f.getId(), o, v);
+        if (f instanceof FieldInterfacedForCheckboxColumn) {
+            f.setValue(o, v);
+        } else setValue(f.getId(), o, v);
     }
 
     public static void setValue(String fn, Object o, Object v) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
@@ -118,6 +120,8 @@ public class ReflectionHelper {
 
         if (Map.class.isAssignableFrom(o.getClass())) {
             return ((Map) o).get(f.getName());
+        } else if (f instanceof FieldInterfacedForCheckboxColumn) {
+            return f.getValue(o);
         } else {
 
             if (f.getId().contains(".")) {
@@ -161,7 +165,7 @@ public class ReflectionHelper {
 
     public static Method getMethod(Class<?> c, String methodName) {
         Method m = null;
-        for (Method q : getAllMethods(c)) {
+        if (c != null) for (Method q : getAllMethods(c)) {
             if (methodName.equals(q.getName())) {
                 m = q;
                 break;

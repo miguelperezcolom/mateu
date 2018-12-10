@@ -17,6 +17,7 @@ public abstract class AbstractFieldBuilder {
 
     public static List<AbstractFieldBuilder> builders = Lists.newArrayList(
             new KPIInlineFieldBuilder()
+            , new FareValueFieldBuilder()
             , new JPAUnmodifiableFieldBuilder()
             , new FromDataProviderFieldBuilder()
             , new JPAAuditFieldBuilder()

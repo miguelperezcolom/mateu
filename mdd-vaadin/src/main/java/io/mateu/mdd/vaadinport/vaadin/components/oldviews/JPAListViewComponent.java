@@ -17,19 +17,7 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
-import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.*;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.data.ChartData;
-import io.mateu.mdd.core.data.ChartValue;
-import io.mateu.mdd.core.data.SumData;
-import io.mateu.mdd.core.interfaces.GridDecorator;
 import io.mateu.mdd.core.interfaces.StyledEnum;
-import io.mateu.mdd.core.model.common.Resource;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.util.JPATransaction;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -170,7 +158,7 @@ public class JPAListViewComponent extends ListViewComponent {
     }
 
     @Override
-    public List findAll(Object filters, List<QuerySortOrder> sortOrders, int offset, int limit) {
+    public Collection findAll(Object filters, List<QuerySortOrder> sortOrders, int offset, int limit) {
         List l = new ArrayList();
 
         try {

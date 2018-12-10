@@ -137,7 +137,7 @@ public class CollectionFieldViewComponent extends JPAListViewComponent {
 
 
     @Override
-    public List findAll(Object filters, List<QuerySortOrder> sortOrders, int offset, int limit) {
+    public Collection findAll(Object filters, List<QuerySortOrder> sortOrders, int offset, int limit) {
         return list;
     }
 

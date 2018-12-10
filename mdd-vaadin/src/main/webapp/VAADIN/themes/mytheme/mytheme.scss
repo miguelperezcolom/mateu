@@ -1691,6 +1691,51 @@
   }
 
 
+
+
+
+
+  .condicionescontratopreview {
+    .numero {
+      text-align: center;
+
+      td {
+        width: 80px;
+      }
+    }
+
+    .calendarioprecios {
+      display: flex;
+      max-width: 800px;
+
+      .mes {
+        padding: 2px;
+
+        .cabecerames td {
+          text-align: center;
+        }
+
+        .semana td {
+          min-width: 24px;
+        }
+
+      }
+
+    }
+  }
+
+
+  .v-select-optiongroup.weekdaysinlineeditor {
+    span {
+      margin: 0px;
+    }
+
+    label {
+      /* display: none; */
+    }
+  }
+
+
 }
 
 

@@ -1,5 +1,6 @@
 package io.mateu.mdd.tester.model.useCases.hotel;
 
+import io.mateu.mdd.core.annotations.WeekDays;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,6 +31,9 @@ public class Allotment {
     private LocalDate end;
 
     private int available;
+
+    @WeekDays
+    private boolean[] weekDays = {true, true, true, true, true, true, true};
 
 
 

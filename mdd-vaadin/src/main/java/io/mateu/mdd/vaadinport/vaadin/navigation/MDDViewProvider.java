@@ -423,7 +423,33 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                             JPACollectionFieldListViewComponent cfcvc = (JPACollectionFieldListViewComponent) lastViewComponent;
 
                             try {
-                                EditorViewComponent evc = new EditorViewComponent(cfcvc.addNew());
+
+                                Class targetType = cfcvc.getModelType();
+                                if (pendingResult != null) targetType = pendingResult.getClass();
+                                Object parent = cfcvc.getEvfc().getModel();
+
+                                FieldInterfaced mf = ReflectionHelper.getMapper(cfcvc.getField());
+
+                                List<FieldInterfaced> parentFields = ReflectionHelper.getAllFields(parent.getClass());
+
+                                List<FieldInterfaced> hiddenFields = new ArrayList<>();
+
+                                for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(targetType)) {
+
+                                    boolean hide = false;
+                                    for (FieldInterfaced pf : parentFields) {
+                                        if (f.equals(mf)
+                                                ||
+                                                (pf.isAnnotationPresent(ManyToOne.class) && f.isAnnotationPresent(ManyToOne.class) && pf.getType().equals(f.getType()) && pf.getName().equals(f.getName()))) {
+                                            hide = true;
+                                            break;
+                                        }
+                                    }
+
+                                    if (hide) hiddenFields.add(f);
+                                }
+
+                                EditorViewComponent evc = new EditorViewComponent(pendingResult != null?pendingResult:cfcvc.addNew(), null, hiddenFields);
 
                                 evc.addEditorListener(new EditorListener() {
                                     @Override
@@ -533,7 +559,32 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                                     JPACollectionFieldListViewComponent cflvc = (JPACollectionFieldListViewComponent) lastViewComponent;
 
-                                    EditorViewComponent evc = new EditorViewComponent(cflvc.getItem(step));
+                                    Class targetType = cflvc.getModelType();
+                                    if (pendingResult != null) targetType = pendingResult.getClass();
+                                    Object parent = cflvc.getEvfc().getModel();
+
+                                    FieldInterfaced mf = ReflectionHelper.getMapper(cflvc.getField());
+
+                                    List<FieldInterfaced> parentFields = ReflectionHelper.getAllFields(parent.getClass());
+
+                                    List<FieldInterfaced> hiddenFields = new ArrayList<>();
+
+                                    for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(targetType)) {
+
+                                        boolean hide = false;
+                                        for (FieldInterfaced pf : parentFields) {
+                                            if (f.equals(mf)
+                                                    ||
+                                                    (pf.isAnnotationPresent(ManyToOne.class) && f.isAnnotationPresent(ManyToOne.class) && pf.getType().equals(f.getType()) && pf.getName().equals(f.getName()))) {
+                                                hide = true;
+                                                break;
+                                            }
+                                        }
+
+                                        if (hide) hiddenFields.add(f);
+                                    }
+
+                                    EditorViewComponent evc = new EditorViewComponent(cflvc.getItem(step), null, hiddenFields);
 
                                     stack.push(currentPath, evc);
 

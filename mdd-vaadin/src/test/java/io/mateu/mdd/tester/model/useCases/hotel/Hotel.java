@@ -1,6 +1,5 @@
 package io.mateu.mdd.tester.model.useCases.hotel;
 
-import io.mateu.mdd.core.annotations.FullWidth;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -26,13 +25,13 @@ public class Hotel {
     private List<Room> rooms = new ArrayList<>();
 
     @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL)
-    private List<Offer> offers = new ArrayList<>();
+    private List<AbstractOffer> offers = new ArrayList<>();
 
 
     @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL)
     private List<Contract> contracts = new ArrayList<>();
 
-    public List<Offer> getContractsOffersValues() {
+    public List<AbstractOffer> getContractsOffersValues() {
         return getOffers();
     }
 

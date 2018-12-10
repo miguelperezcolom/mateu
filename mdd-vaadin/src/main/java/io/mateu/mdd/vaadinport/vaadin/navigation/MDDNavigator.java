@@ -73,7 +73,9 @@ public class MDDNavigator {
 
 
 
-
+    public void setPendingResult(Object pendingResult) {
+        viewProvider.pendingResult = pendingResult;
+    }
 
 
 

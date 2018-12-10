@@ -14,6 +14,7 @@ import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.annotations.FullWidth;
 import io.mateu.mdd.core.annotations.UseCheckboxes;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
+import io.mateu.mdd.core.data.FareValue;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.reflection.*;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
@@ -37,6 +38,7 @@ import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
@@ -192,7 +194,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             if (owned) {
 
-                inline = editableFields.size() <= colFields.size() && subclasses.size() == 0;
+                inline = editableFields.size() <= colFields.size() && subclasses.size() == 0 && !field.isAnnotationPresent(NotInlineEditable.class);
 
                 if (inline) for (FieldInterfaced f : colFields) {
                     if (!isEditableInline(f)) {
@@ -209,7 +211,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                         break;
                     }
 
-                    if (needsProxy) {
+                    if (false && needsProxy) {
 
                         targetClass = ReflectionHelper.getProxy(field.isAnnotationPresent(FieldsFilter.class)?field.getAnnotation(FieldsFilter.class).value():null, targetClass, field, object, editableFields);
                         //si hemos creado una clase proxy, entonces cambian las columnas y los campos editables
@@ -233,7 +235,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             }
 
 
-            ListViewComponent.buildColumns(g, colFields, false, inline, binder);
+            ListViewComponent.buildColumns(g, colFields, false, inline, binder, field);
 
             g.setSelectionMode(Grid.SelectionMode.MULTI);
 
@@ -246,6 +248,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
 
             boolean anchoCompleto = field.isAnnotationPresent(FullWidth.class) || ancho > 900;
+            anchoCompleto = false;
 
             if (anchoCompleto) g.setWidth("100%");
             else {
@@ -290,24 +293,6 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                         }
                     });
 
-                    hl.addComponent(b = new Button("Duplicate", VaadinIcons.COPY));
-                    b.addClickListener(e -> {
-                        try {
-
-                            Object bean = binder.getBean();
-
-                            for (Object o : g.getSelectedItems()) {
-
-                                ReflectionHelper.addToCollection(binder, field, bean, ReflectionHelper.clone(o));
-
-                            }
-
-                            binder.setBean(bean, false);
-                        } catch (Exception e1) {
-                            MDD.alert(e1);
-                        }
-                    });
-
                 } else {
 
                     g.addItemClickListener(e -> {
@@ -337,11 +322,31 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                 }
 
+                hl.addComponent(b = new Button("Duplicate", VaadinIcons.COPY));
+                b.addClickListener(e -> {
+                    try {
+
+                        Object bean = binder.getBean();
+
+                        for (Object o : g.getSelectedItems()) {
+
+                            if (o instanceof ProxyClass) o = ((ProxyClass)o).toObject();
+
+                            ReflectionHelper.addToCollection(binder, field, bean, ReflectionHelper.clone(o));
+
+                        }
+
+                        binder.setBean(bean, false);
+                    } catch (Exception e1) {
+                        MDD.alert(e1);
+                    }
+                });
+
                 hl.addComponent(b = new Button("Remove", VaadinIcons.MINUS));
                 b.addClickListener(e -> {
                     try {
                         Object bean = binder.getBean();
-                        Set l = g.getSelectedItems();
+                        Set l = (Set) g.getSelectedItems().stream().map(o -> o != null && o instanceof ProxyClass?((ProxyClass)o).toObject():o).collect(Collectors.toSet());
 
                         if (field.isAnnotationPresent(OneToMany.class) && field.getAnnotation(OneToMany.class).orphanRemoval()) {
                         } else {
@@ -462,6 +467,10 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                 editable = !Resource.class.equals(f.getType());
             } else if (f.isAnnotationPresent(UseCheckboxes.class)) {
                 editable = f.getAnnotation(UseCheckboxes.class).editableInline();
+            } else if (f.isAnnotationPresent(WeekDays.class)) {
+                editable = true;
+            } else if (FareValue.class.equals(f.getType())) {
+                editable = true;
             }
 
         }

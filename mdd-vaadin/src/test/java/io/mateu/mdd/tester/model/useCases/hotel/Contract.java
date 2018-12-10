@@ -1,14 +1,13 @@
 package io.mateu.mdd.tester.model.useCases.hotel;
 
 
-import io.mateu.mdd.core.annotations.UseCheckboxes;
+import io.mateu.mdd.core.annotations.UseLinkToListView;
+import io.mateu.mdd.core.data.FareValue;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -26,9 +25,12 @@ public class Contract {
 
     private String name;
 
+    private FareValue markup;
+
     @ManyToMany(mappedBy = "contracts")
-    @UseCheckboxes(editableInline = true)
-    private Set<Offer> offers = new HashSet<>();
+    //@UseCheckboxes(editableInline = true)
+    @UseLinkToListView(addEnabled = true, deleteEnabled = true)
+    private Set<AbstractOffer> offers = new HashSet<>();
 
     @Override
     public boolean equals(Object obj) {

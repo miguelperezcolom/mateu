@@ -1,6 +1,7 @@
 package io.mateu.mdd.tester.model.useCases.hotel;
 
 import io.mateu.mdd.core.annotations.UseCheckboxes;
+import io.mateu.mdd.core.data.FareValue;
 import io.mateu.mdd.core.util.DatesRange;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,7 +15,7 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
-public class Offer {
+public abstract class AbstractOffer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,7 +39,7 @@ public class Offer {
 
     @Override
     public boolean equals(Object obj) {
-        return this == obj || id == ((Offer)obj).getId();
+        return this == obj || id == ((AbstractOffer)obj).getId();
     }
 
 

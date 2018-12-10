@@ -299,6 +299,8 @@ public class Helper {
     }
 
 
+
+
     public static List selectObjects(String jpql) throws Throwable {
         List l = new ArrayList<>();
 
@@ -556,7 +558,7 @@ public class Helper {
     }
 
 
-    public static File writeExcel(List data, List<FieldInterfaced> colFields) throws IOException, InvalidFormatException {
+    public static File writeExcel(Collection data, List<FieldInterfaced> colFields) throws IOException, InvalidFormatException {
         String archivo = UUID.randomUUID().toString();
 
         File temp = (System.getProperty("tmpdir") == null)?File.createTempFile(archivo, ".xlsx"):new File(new File(System.getProperty("tmpdir")), archivo + ".xlsx");
@@ -568,8 +570,9 @@ public class Helper {
         Workbook wb = new XSSFWorkbook();
         CreationHelper createHelper = wb.getCreationHelper();
             Sheet sheet = wb.createSheet();
-            for (int posfila = 0; posfila < data.size(); posfila++) {
-                Object l2 = data.get(posfila);
+            int posfila = 0;
+            for (Iterator i = data.iterator(); i.hasNext(); posfila++) {
+                Object l2 = i.next();
                 Row row = sheet.createRow(posfila);
                 for (int poscol = 0; poscol < colFields.size(); poscol++) {
                     Cell cell = row.createCell(poscol);
@@ -1199,13 +1202,13 @@ public class Helper {
         return listToPdf(listViewComponent.getTitle(), listViewComponent.findAll(filters, null, 0, Integer.MAX_VALUE), listViewComponent.getColumnFields(listViewComponent.getColumnType()));
     }
 
-    public static URL listToPdf(List list)throws Throwable {
+    public static URL listToPdf(Collection list)throws Throwable {
 
         return listToPdf(null, list, null);
 
     }
 
-    public static URL listToPdf(String title, List list, List<FieldInterfaced> colFields)throws Throwable {
+    public static URL listToPdf(String title, Collection list, List<FieldInterfaced> colFields)throws Throwable {
 
         String[] xslfo = {""};
 
@@ -1217,7 +1220,7 @@ public class Helper {
         try {
 
 
-            Class rowClass =(list.size() > 0)?list.get(0).getClass():EmptyRow.class;
+            Class rowClass =(list.size() > 0)?list.iterator().next().getClass():EmptyRow.class;
 
             Document xml = new Document();
             Element arrel = new Element("root");
@@ -1430,13 +1433,13 @@ public class Helper {
         return listToExcel(listViewComponent.findAll(filters, null, 0, Integer.MAX_VALUE), listViewComponent.getColumnFields(listViewComponent.getColumnType()));
     }
 
-    public static URL listToExcel(List list)throws Throwable {
+    public static URL listToExcel(Collection list)throws Throwable {
 
         return listToExcel(list, null);
 
     }
 
-    public static URL listToExcel(List list, List<FieldInterfaced> colFields)throws Throwable {
+    public static URL listToExcel(Collection list, List<FieldInterfaced> colFields)throws Throwable {
 
         long t0 = new Date().getTime();
 

@@ -10,20 +10,20 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDExecutionContext;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import io.mateu.mdd.vaadinport.vaadin.components.ClassOption;
+import io.mateu.mdd.vaadinport.vaadin.navigation.MDDViewProvider;
+import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 
+import javax.persistence.ManyToOne;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
 
     private final FieldInterfaced field;
     private final IEditorViewComponent evfc;
-    private List list;
+    private Collection list;
     private Object model;
 
     public JPACollectionFieldListViewComponent(Class entityClass, FieldInterfaced field, IEditorViewComponent evfc) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
@@ -31,12 +31,12 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
         this.field = field;
         this.evfc = evfc;
         this.model = evfc.getModel();
-        this.list = (List) ReflectionHelper.getValue(field, model);
+        this.list = (Collection) ReflectionHelper.getValue(field, model);
     }
 
     @Override
     public String getTitle() {
-        return "" + (model != null?model.toString():"--") + ":" + super.getTitle();
+        return "" + (model != null?model.toString():"--") + ": " + super.getTitle();
     }
 
     public FieldInterfaced getField() {
@@ -72,7 +72,35 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
             if (canAdd()) l.add(new AbstractAction("Add") {
                 @Override
                 public void run(MDDExecutionContext context) {
-                    MDDUI.get().getNavegador().go("add");
+
+                    Set<Class> subClasses = ReflectionHelper.getSubclasses(getModelType());
+
+                    if (subClasses.size() > 1) {
+
+                        Set<ClassOption> subClassesOptions = new LinkedHashSet<>();
+                        subClasses.forEach(c -> subClassesOptions.add(new ClassOption(c)));
+
+                        VaadinHelper.choose("Please choose type", subClassesOptions, c -> {
+                            try {
+                                MDDUI.get().getNavegador().setPendingResult(EditorViewComponent.newInstance(((ClassOption)c).get_class(), model));
+                                MDDUI.get().getNavegador().go("add");
+                            } catch (Exception e) {
+                                MDD.alert(e);
+                            }
+                        }, () -> MDDUI.get().getNavegador().goBack());
+                    } else if (subClasses.size() == 1) {
+                        try {
+                            MDDUI.get().getNavegador().setPendingResult(EditorViewComponent.newInstance(subClasses.iterator().next(), model));
+
+                            MDDUI.get().getNavegador().go("add");
+
+                        } catch (Exception e) {
+                            MDD.alert(e);
+                        }
+                    } else {
+                        MDDUI.get().getNavegador().go("add");
+                    }
+
                 }
             });
             if (canDelete()) l.add(new AbstractAction("Remove selected items") {
@@ -114,7 +142,7 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
     }
 
     @Override
-    public List findAll(Object filters, List<QuerySortOrder> sortOrders, int offset, int limit) {
+    public Collection findAll(Object filters, List<QuerySortOrder> sortOrders, int offset, int limit) {
         return list;
     }
 
@@ -167,6 +195,23 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
     }
 
     public void preSave(Object model) throws Throwable {
-        ReflectionHelper.addToCollection(evfc.getBinder(), field, this.evfc.getModel(), model);
+        Object parent = this.evfc.getModel();
+
+        ReflectionHelper.addToCollection(evfc.getBinder(), field, parent, model);
+
+        Class targetType = model.getClass();
+
+        List<FieldInterfaced> parentFields = ReflectionHelper.getAllFields(parent.getClass());
+
+        for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(targetType)) {
+
+            for (FieldInterfaced pf : parentFields) {
+                if (pf.isAnnotationPresent(ManyToOne.class) && f.isAnnotationPresent(ManyToOne.class) && pf.getType().equals(f.getType()) && pf.getName().equals(f.getName())) {
+                    ReflectionHelper.setValue(f, model, ReflectionHelper.getValue(pf, parent));
+                }
+            }
+
+        }
+
     }
 }

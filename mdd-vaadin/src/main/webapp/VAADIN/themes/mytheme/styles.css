@@ -19408,3 +19408,32 @@ div.v-layout.v-horizontal.v-widget {
 .mytheme .calendariocupo .mes.monthly .fila.reservadoagencia {
 	background-color: lightcyan;
 }
+
+.mytheme .condicionescontratopreview .numero {
+	text-align: center;
+}
+
+.mytheme .condicionescontratopreview .numero td {
+	width: 80px;
+}
+
+.mytheme .condicionescontratopreview .calendarioprecios {
+	display: flex;
+	max-width: 800px;
+}
+
+.mytheme .condicionescontratopreview .calendarioprecios .mes {
+	padding: 2px;
+}
+
+.mytheme .condicionescontratopreview .calendarioprecios .mes .cabecerames td {
+	text-align: center;
+}
+
+.mytheme .condicionescontratopreview .calendarioprecios .mes .semana td {
+	min-width: 24px;
+}
+
+.mytheme .v-select-optiongroup.weekdaysinlineeditor span {
+	margin: 0px;
+}
