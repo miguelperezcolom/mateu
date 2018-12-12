@@ -1,5 +1,6 @@
 package io.mateu.mdd.tester.model.useCases.hotel;
 
+import io.mateu.mdd.core.annotations.UseLinkToListView;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -23,6 +24,10 @@ public class Hotel {
 
     @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL)
     private List<Room> rooms = new ArrayList<>();
+
+    @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL)
+    @UseLinkToListView(addEnabled = true, deleteEnabled = true)
+    private List<Board> boards = new ArrayList<>();
 
     @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL)
     private List<AbstractOffer> offers = new ArrayList<>();

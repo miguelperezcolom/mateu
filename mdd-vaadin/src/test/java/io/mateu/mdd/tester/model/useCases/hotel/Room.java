@@ -34,6 +34,7 @@ public class Room {
 
     private boolean active = true;
 
+    @Column(name = "_order")
     private int order;
 
     @Override

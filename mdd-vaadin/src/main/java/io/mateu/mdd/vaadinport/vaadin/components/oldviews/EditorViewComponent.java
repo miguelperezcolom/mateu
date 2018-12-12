@@ -27,23 +27,8 @@ import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.ClassOption;
 import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
-import io.mateu.mdd.core.CSS;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.data.Pair;
-import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.core.interfaces.PersistentPOJO;
-import io.mateu.mdd.core.model.authentication.Audit;
-import io.mateu.mdd.core.model.authentication.User;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.util.JPATransaction;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.ClassOption;
-import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
@@ -75,6 +60,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private Layout kpisContainer;
     private List<String> shortcutsCreated = new ArrayList<>();
     private Object modelId;
+
+    private Map<Method, Optional<Method>> mvs = new HashMap<>();
 
     public boolean isModificado() {
         return modificado;
@@ -155,7 +142,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         modelType = model.getClass();
 
         binder = new MDDBinder(model.getClass(), this);
-
+        
         if (createSaveButton) {
             
             binder.addValueChangeListener(e -> {
@@ -167,6 +154,36 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         binder.setBean(model);
 
         build(model);
+
+        for (Optional<Method> omv : mvs.values()) {
+            if (omv.isPresent()) {
+
+                Method mv = omv.get();
+
+                if (mv.isAnnotationPresent(DependsOn.class)) {
+                    String fns = mv.getAnnotation(DependsOn.class).value();
+
+                    if (fns != null) {
+                        for (String fn : fns.split(",")) {
+                            getBinder().getBinding(fn).ifPresent(b -> ((Binder.Binding)b).getField().addValueChangeListener(e -> {
+
+                                if (getBinder().getBean() != null) { // puede pasar que llamemos a este método cuando todavía no hayamos bindeado nada
+
+                                    rebuildActions();
+
+                                }
+
+                            }));
+                        }
+                    }
+                }
+
+
+            }
+
+        }
+
+
     }
 
     private void build(Object model) {
@@ -376,7 +393,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     public void addViewActionsMenuItems(MenuBar bar) {
 
         if (modelType.isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(modelType)) {
-            if (!isActionPresent("refresh")) {
+            if (field == null && !isActionPresent("refresh")) {
 
                 MenuBar.Command cmd;
                 MenuBar.MenuItem i = bar.addItem("Refresh", VaadinIcons.REFRESH, cmd = new MenuBar.Command() {
@@ -395,7 +412,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                 i.setDescription("Click Ctrl + R to refresh.");
 
-                addAction("refresh", i);
+                addMenuItem("refresh", i);
 
 
                 if (!shortcutsCreated.contains("refresh")) {
@@ -440,7 +457,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                 i.setDescription("Click Ctrl + S to fire. Ctrl + Alt + S to duplicate.");
 
-                addAction("save", i);
+                addMenuItem("save", i);
 
 
                 if (!shortcutsCreated.contains("save")) {
@@ -519,11 +536,25 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                     || (m.isAnnotationPresent(NotWhenEditing.class) && !isEditingNewRecord)
             )) {
 
-                Method mv = ReflectionHelper.getMethod(modelType, ReflectionHelper.getGetter(m.getName()).replaceFirst("get", "is") + "Visible");
+                Optional<Method> omv = mvs.get(m);
+
+                if (omv == null) {
+
+                    Method mv = ReflectionHelper.getMethod(modelType, ReflectionHelper.getGetter(m.getName()).replaceFirst("get", "is") + "Visible");
+
+                    omv = mv != null?Optional.of(mv):Optional.empty();
+
+                    mvs.put(m, omv);
+                }
+
+                Method mv = null;
+                if (omv.isPresent()) mv = omv.get();
                 try {
+
                     if (mv == null || bean == null || (Boolean) mv.invoke(bean)) {
                         ms.add(m);
                     }
+
                 } catch (Exception e) {
                     MDD.alert(e);
                 }
@@ -726,7 +757,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         load(id, null, null);
     }
 
-    private void rebuildActions() {
+    public void rebuildActions() {
         markAllAsUnseen();
         addViewActionsMenuItems(bar);
         removeUnseen();

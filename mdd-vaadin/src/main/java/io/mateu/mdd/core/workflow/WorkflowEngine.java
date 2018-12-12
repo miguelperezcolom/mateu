@@ -45,20 +45,21 @@ public class WorkflowEngine {
     }
 
     public static void runAndWaitThreadLocalTasks() {
-        CountDownLatch latch = new CountDownLatch(localQueues.get().size());
         while (localQueues.get().size() > 0) {
+            CountDownLatch latch = new CountDownLatch(1);
             Runnable task = (Runnable) localQueues.get().poll();
             try {
-                queue.add(task);
+                task.run();
+                System.out.println("tarea local ejecutada en queue local");
+                latch.countDown();
             } catch (Throwable e) {
                 e.printStackTrace();
             }
-            latch.countDown();
-        }
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 

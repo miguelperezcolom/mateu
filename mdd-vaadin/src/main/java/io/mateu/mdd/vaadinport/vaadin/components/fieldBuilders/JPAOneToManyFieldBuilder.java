@@ -7,6 +7,7 @@ import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.Registration;
+import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
@@ -85,6 +86,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
     private void buildList(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue,List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced,Component> allFieldContainers, boolean forSearchFilter, boolean owned) {
 
+        Method mh;
         if (field.isAnnotationPresent(UseChips.class)) {
 
             HorizontalLayout hl = new HorizontalLayout();
@@ -161,7 +163,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             container.addComponent(hl);
 
-            bind(binder, l, field);
+            bind(binder, l, field, null);
 
         } else if (field.isAnnotationPresent(UseCheckboxes.class)) {
 
@@ -176,6 +178,26 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             container.addComponent(cbg);
 
             bind(binder, cbg, field);
+
+        } else if ((mh = ReflectionHelper.getMethod(field.getDeclaringClass(), ReflectionHelper.getGetter(field.getName()) + "Html")) != null) {
+
+            VerticalLayout hl = new VerticalLayout();
+
+            Label l;
+            hl.addComponent(l = new Label("", ContentMode.HTML));
+            l.addStyleName("collectionlinklabel");
+            hl.addStyleName(CSS.NOPADDING);
+
+            Button b;
+            hl.addComponent(b = new Button("Edit"));
+            b.addStyleName(ValoTheme.BUTTON_LINK);
+            b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+
+            hl.setCaption(ReflectionHelper.getCaption(field));
+
+            container.addComponent(hl);
+
+            bind(binder, l, field, mh);
 
         } else {
 
@@ -797,12 +819,18 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         return hl;
     }
 
-    private void bind(MDDBinder binder, Label l, FieldInterfaced field) {
+    private void bind(MDDBinder binder, Label l, FieldInterfaced field, Method htmlGetter) {
         Binder.BindingBuilder aux = binder.forField(new HasValue() {
             @Override
             public void setValue(Object o) {
                 if (o == null || ((Collection)o).size() == 0) l.setValue("Empty list");
-                else l.setValue("" + ((Collection)o).size() + " items");
+                else {
+                    try {
+                        l.setValue(htmlGetter != null? (String) htmlGetter.invoke(binder.getBean()) :"" + ((Collection)o).size() + " items");
+                    } catch (Exception e) {
+                        MDD.alert(e);
+                    }
+                }
             }
 
             @Override

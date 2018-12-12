@@ -19394,6 +19394,10 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .mytheme .calendariocupo .mes.monthly .fila.contratado {
+	background-color: lightblue;
+}
+
+.mytheme .calendariocupo .mes.monthly .fila.derivado {
 	background-color: lightpink;
 }
 
@@ -19436,4 +19440,9 @@ div.v-layout.v-horizontal.v-widget {
 
 .mytheme .v-select-optiongroup.weekdaysinlineeditor span {
 	margin: 0px;
+}
+
+.mytheme .collectionlinklabel {
+	padding: 0px;
+	white-space: normal;
 }

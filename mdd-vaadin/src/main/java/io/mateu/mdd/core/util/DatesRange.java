@@ -1,12 +1,19 @@
 package io.mateu.mdd.core.util;
 
+import io.mateu.mdd.core.annotations.Ignored;
+import lombok.Getter;
+import lombok.Setter;
 import org.jdom2.Element;
 
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+@Getter@Setter
 public class DatesRange implements Serializable, XMLSerializable {
+
+    @Ignored
+    private static final long serialVersionUID = 1L;
 
     private LocalDate start;
     private LocalDate end;
@@ -16,22 +23,6 @@ public class DatesRange implements Serializable, XMLSerializable {
 
     public DatesRange(LocalDate start, LocalDate end) {
         this.start = start;
-        this.end = end;
-    }
-
-    public LocalDate getStart() {
-        return start;
-    }
-
-    public void setStart(LocalDate start) {
-        this.start = start;
-    }
-
-    public LocalDate getEnd() {
-        return end;
-    }
-
-    public void setEnd(LocalDate end) {
         this.end = end;
     }
 
@@ -64,7 +55,7 @@ public class DatesRange implements Serializable, XMLSerializable {
         DateTimeFormatter f = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         DateTimeFormatter fm = DateTimeFormatter.ofPattern("MM-dd");
         DateTimeFormatter fd = DateTimeFormatter.ofPattern("dd");
-        String s = "";
+        String s = "[";
         if (start != null) s += "from " + start.format(f);
         if (end != null) {
             if (!"".equals(s)) s += " ";
@@ -73,7 +64,19 @@ public class DatesRange implements Serializable, XMLSerializable {
             else if (start != null && start.getYear() == end.getYear()) fx = fm;
             s += "to " + end.format(fx);
         }
+        s += "]";
 
         return s;
+    }
+
+
+    @Override
+    public int hashCode() {
+        return getClass().getName().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return this == obj;
     }
 }

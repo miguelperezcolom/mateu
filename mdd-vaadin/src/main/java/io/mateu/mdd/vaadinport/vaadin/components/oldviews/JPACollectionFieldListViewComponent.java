@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.ui.Grid;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.annotations.FieldsFilter;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDExecutionContext;
@@ -184,8 +185,11 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
 
     @Override
     public void decorateGrid(Grid grid) {
-        if (field.getAnnotation(UseLinkToListView.class) != null && !Strings.isNullOrEmpty(field.getAnnotation(UseLinkToListView.class).fields())) {
-            List<String> fns = Lists.newArrayList(field.getAnnotation(UseLinkToListView.class).fields().replaceAll(" ", "").split(","));
+        String fields = "";
+        if (field.getAnnotation(UseLinkToListView.class) != null) fields = field.getAnnotation(UseLinkToListView.class).fields();
+        if (Strings.isNullOrEmpty(fields) && field.isAnnotationPresent(FieldsFilter.class)) fields = field.getAnnotation(FieldsFilter.class).value();
+        if (!Strings.isNullOrEmpty(fields)) {
+            List<String> fns = Lists.newArrayList(fields.replaceAll(" ", "").split(","));
             for (Grid.Column col : (List<Grid.Column>) grid.getColumns()) {
                 if (col.getId() != null && !fns.contains(col.getId())) col.setHidden(true);
             }
@@ -195,9 +199,22 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
     }
 
     public void preSave(Object model) throws Throwable {
+
+        System.out.println("******PRESAVE******");
+
         Object parent = this.evfc.getModel();
 
+        System.out.println("******MODEL=" + model);
+        System.out.println("******PARENT=" + parent);
+
+        Collection col = (Collection) ReflectionHelper.getValue(field, parent);
+        System.out.println("******RESULT=" + col.size());
+
         ReflectionHelper.addToCollection(evfc.getBinder(), field, parent, model);
+
+        col = (Collection) ReflectionHelper.getValue(field, parent);
+        System.out.println("******RESULT=" + col.size());
+
 
         Class targetType = model.getClass();
 

@@ -112,7 +112,7 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
 
                 }
 
-                if (!forSearchFilter) rbg.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
+                if (!forSearchFilter) rbg.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class) || field.isAnnotationPresent(NotEmpty.class));
 
             } else {
 
@@ -202,7 +202,7 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
 
                 }
 
-                if (!forSearchFilter) cb.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
+                if (!forSearchFilter) cb.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class) || field.isAnnotationPresent(NotEmpty.class));
 
             }
 

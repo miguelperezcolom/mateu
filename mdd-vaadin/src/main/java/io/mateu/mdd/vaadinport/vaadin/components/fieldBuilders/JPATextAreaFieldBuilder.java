@@ -28,6 +28,7 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
@@ -86,7 +87,7 @@ public class JPATextAreaFieldBuilder extends JPAStringFieldBuilder {
 
             tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
 
-            if (field.isAnnotationPresent(NotNull.class)) validators.get(tf).add(new StringLengthValidator("Required field", 1, Integer.MAX_VALUE));
+            if (field.isAnnotationPresent(NotNull.class) || field.isAnnotationPresent(NotEmpty.class)) validators.get(tf).add(new StringLengthValidator("Required field", 1, Integer.MAX_VALUE));
 
             BeanValidator bv = new BeanValidator(field.getDeclaringClass(), field.getName());
 

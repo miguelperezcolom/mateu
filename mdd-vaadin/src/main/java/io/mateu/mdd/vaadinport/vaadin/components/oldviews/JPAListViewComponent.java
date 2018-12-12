@@ -257,8 +257,17 @@ public class JPAListViewComponent extends ListViewComponent {
         return q;
     }
 
+    public static List<FieldInterfaced> getJPQLColumnFields(Class targetType) {
+        return ListViewComponent.getColumnFields(targetType).stream().filter( f -> !Modifier.isTransient(f.getModifiers())).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<FieldInterfaced> getColumnFields() {
+        return getJPQLColumnFields(getColumnType());
+    }
+
     public static List<FieldInterfaced> getSelectFields(Class targetType) {
-        List<FieldInterfaced> cols = getColumnFields(targetType);
+        List<FieldInterfaced> cols = getJPQLColumnFields(targetType);
 
         FieldInterfaced idField = null;
 
@@ -463,7 +472,7 @@ public class JPAListViewComponent extends ListViewComponent {
     protected List<ChartData> getCharts(Object filters) {
         List<ChartData> l = new ArrayList<>();
 
-        getColumnFields(entityClass).stream().filter(f -> !f.isAnnotationPresent(NoChart.class) && !Literal.class.equals(f.getType()) && (f.getType().isEnum() || (!Resource.class.equals(f.getType()) && f.isAnnotationPresent(ManyToOne.class)) || boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType()))).forEach(f -> l.add(gatherChartData(filters, f)));
+        getJPQLColumnFields(entityClass).stream().filter(f -> !f.isAnnotationPresent(NoChart.class) && !Literal.class.equals(f.getType()) && (f.getType().isEnum() || (!Resource.class.equals(f.getType()) && f.isAnnotationPresent(ManyToOne.class)) || boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType()))).forEach(f -> l.add(gatherChartData(filters, f)));
 
         return l;
     }

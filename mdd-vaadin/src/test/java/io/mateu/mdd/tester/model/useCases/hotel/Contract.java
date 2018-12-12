@@ -3,11 +3,14 @@ package io.mateu.mdd.tester.model.useCases.hotel;
 
 import io.mateu.mdd.core.annotations.UseLinkToListView;
 import io.mateu.mdd.core.data.FareValue;
+import io.mateu.mdd.core.util.DatesRange;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -24,6 +27,11 @@ public class Contract {
     private Hotel hotel;
 
     private String name;
+
+
+
+    List<DatesRange> dates = new ArrayList<>();
+
 
     private FareValue markup;
 

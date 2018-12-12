@@ -139,9 +139,13 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         return new ResultsComponent(this);
     }
 
+    public List<FieldInterfaced> getColumnFields() {
+        return getColumnFields(getColumnType());
+    }
+
     public void buildColumns(Grid grid) {
 
-        List<FieldInterfaced> colFields = getColumnFields(getColumnType());
+        List<FieldInterfaced> colFields = getColumnFields();
 
         buildColumns(grid, colFields, this instanceof JPAListViewComponent);
     }
@@ -416,7 +420,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     col.setEditorComponent(cb, (o, v) -> {
                         try {
                             ReflectionHelper.setValue(f, o, v);
-                            if (binder != null) binder.refresh();
+                            //if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -430,7 +434,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                         try {
                             //todo: validar entero
                             ReflectionHelper.setValue(f, o, (v != null)?new FareValue((String) v):null);
-                            if (binder != null) binder.refresh();
+                            //if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -447,7 +451,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                                 for (int i = 0; i < days.size(); i++) if (i < array.length) array[i] = ((String)v).contains(days.get(i));
                             }
                             ReflectionHelper.setValue(f, o, v != null?array:null);
-                            if (binder != null) binder.refresh();
+                            //if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -457,7 +461,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     col.setEditorComponent(new CheckBox(), (o, v) -> {
                         try {
                             ReflectionHelper.setValue(f, o, v);
-                            if (binder != null) binder.refresh();
+                            //if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -467,7 +471,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     col.setEditorComponent(new TextField(), (o, v) -> {
                         try {
                             ReflectionHelper.setValue(f, o, v);
-                            if (binder != null) binder.refresh();
+                            //if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -481,7 +485,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                         try {
                             //todo: validar entero
                             ReflectionHelper.setValue(f, o, v);
-                            if (binder != null) binder.refresh();
+                            //if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -495,7 +499,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                             //todo: validar doble
                             //todo: falta float y long
                             ReflectionHelper.setValue(f, o, v);
-                            if (binder != null) binder.refresh();
+                            //if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -507,7 +511,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     col.setEditorComponent(nf, (o, v) -> {
                         try {
                             ReflectionHelper.setValue(f, o, v);
-                            if (binder != null) binder.refresh();
+                            //if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -521,7 +525,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                             //todo: validar doble
                             //todo: falta float y long
                             ReflectionHelper.setValue(f, o, v);
-                            if (binder != null) binder.refresh();
+                            //if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -536,7 +540,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     col.setEditorComponent(tf, (o, v) -> {
                         try {
                             ReflectionHelper.setValue(f, o, v);
-                            if (binder != null) binder.refresh();
+                            //if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -826,7 +830,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                                 && !f.isAnnotationPresent(Transient.class)
                                 && !f.isAnnotationPresent(NotInList.class)
                                 && !f.isAnnotationPresent(Ignored.class)
-                                && !Modifier.isTransient(f.getModifiers())
+                                //&& !Modifier.isTransient(f.getModifiers())
                                 && (!Collection.class.isAssignableFrom(f.getType()) || (forGrid && f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline()))
                                 && !Map.class.isAssignableFrom(f.getType())
                                 && !f.isAnnotationPresent(GeneratedValue.class)

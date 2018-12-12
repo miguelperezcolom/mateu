@@ -6,10 +6,7 @@ import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.tester.model.useCases.bankAccount.BankAccount;
 import io.mateu.mdd.tester.model.useCases.bankAccount.Payment;
-import io.mateu.mdd.tester.model.useCases.hotel.Contract;
-import io.mateu.mdd.tester.model.useCases.hotel.Hotel;
-import io.mateu.mdd.tester.model.useCases.hotel.AbstractOffer;
-import io.mateu.mdd.tester.model.useCases.hotel.Room;
+import io.mateu.mdd.tester.model.useCases.hotel.*;
 import io.mateu.mdd.tester.model.useCases.invoicing.Customer;
 import io.mateu.mdd.tester.model.useCases.invoicing.Invoice;
 
@@ -72,6 +69,8 @@ public class UseCasesModule extends AbstractModule {
                 l.add(new MDDOpenCRUDAction("Offers", AbstractOffer.class));
 
                 l.add(new MDDOpenCRUDAction("Contracts", Contract.class));
+
+                l.add(new MDDOpenCRUDAction("Bookings", Booking.class));
 
                 return l;
             }

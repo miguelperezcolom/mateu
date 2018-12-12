@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
+import com.google.common.collect.Lists;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.*;
@@ -34,8 +35,11 @@ public class OwnedCollectionComponent extends VerticalLayout {
 
     private final Button goToPreviousButton;
     private final Button goToNextButton;
-    private final VerticalLayout container;
     private final Button addButton;
+    private final Button removeButton;
+
+    private final VerticalLayout container;
+
     private final MDDBinder parentBinder;
     private final FieldInterfaced field;
     private final Collection collection;
@@ -78,7 +82,7 @@ public class OwnedCollectionComponent extends VerticalLayout {
         container.addStyleName(CSS.NOPADDING);
 
         HorizontalLayout hl;
-        addComponent(hl = new HorizontalLayout(goToPreviousButton = new Button(VaadinIcons.ARROW_LEFT), goToNextButton = new Button(VaadinIcons.ARROW_RIGHT), addButton = new Button(VaadinIcons.PLUS)));
+        addComponent(hl = new HorizontalLayout(goToPreviousButton = new Button(VaadinIcons.ARROW_LEFT), goToNextButton = new Button(VaadinIcons.ARROW_RIGHT), addButton = new Button(VaadinIcons.PLUS), removeButton = new Button(VaadinIcons.MINUS)));
         hl.addStyleName(CSS.NOPADDING);
 
         //addComponentsAndExpand(new Label(""));
@@ -110,6 +114,27 @@ public class OwnedCollectionComponent extends VerticalLayout {
             } catch (Throwable throwable) {
                 MDD.alert(throwable);
             }
+        });
+
+        removeButton.addClickListener(e -> {
+            if (currentIndex >= 0 && currentIndex < collection.size()) MDD.confirm("Are you sure you want to delete this item?", () -> {
+                try {
+                    Object m = editorViewComponent.getModel();
+                    ReflectionHelper.removeFromCollection(parentBinder, field, parentBinder.getBean(), Lists.newArrayList(m));
+                    parentBinder.getRemovables().add(m);
+
+                    try {
+                        if (currentIndex == collection.size()) setIndex(collection.size() - 1);
+                        else setIndex(currentIndex);
+                    } catch (Throwable throwable) {
+                        MDD.alert(throwable);
+                    }
+
+                } catch (Exception ex) {
+                    MDD.alert(ex);
+                }
+            });
+            else MDD.alert("Can not remove this item");
         });
 
         // incrustamos un nuevo elemento

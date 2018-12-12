@@ -1672,6 +1672,10 @@
       }
 
       .fila.contratado {
+        background-color: lightblue;
+      }
+
+      .fila.derivado {
         background-color: lightpink;
       }
 
@@ -1732,6 +1736,19 @@
 
     label {
       /* display: none; */
+    }
+  }
+
+
+  .collectionlinklabel {
+
+    padding: 0px;
+    white-space: normal;
+
+    .lines {
+      .line {
+
+      }
     }
   }
 

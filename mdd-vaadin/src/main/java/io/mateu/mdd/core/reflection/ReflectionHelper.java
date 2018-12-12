@@ -1281,11 +1281,11 @@ public class ReflectionHelper {
 
     }
 
-    public static void removeFromCollection(MDDBinder binder, FieldInterfaced field, Object bean, Set l) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    public static void removeFromCollection(MDDBinder binder, FieldInterfaced field, Object bean, Collection l) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         removeFromCollection(binder, field, bean, l, true);
     }
 
-    public static void removeFromCollection(MDDBinder binder, FieldInterfaced field, Object bean, Set l, boolean unreverseMap) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    public static void removeFromCollection(MDDBinder binder, FieldInterfaced field, Object bean, Collection l, boolean unreverseMap) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
         Object v = ReflectionHelper.getValue(field, bean);
 
@@ -1989,30 +1989,57 @@ public class ReflectionHelper {
 
     public static void delete(EntityManager em, Object o) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         if (o != null) {
+            // no quitamos las relaciones, por precaución. Así saltará a nivel de base de datos si queremos borrar un objeto que esté referenciado
             for (FieldInterfaced f : ReflectionHelper.getAllFields(o.getClass())) {
 
                 Object t = ReflectionHelper.getValue(f, o);
 
                 if (t != null) {
 
-                    if (f.isAnnotationPresent(ManyToOne.class) || f.isAnnotationPresent(OneToMany.class) || f.isAnnotationPresent(ManyToMany.class)) {
+                    boolean owner = false;
+
+                    if (f.isAnnotationPresent(ManyToOne.class)) {
+                        CascadeType[] c = f.getAnnotation(ManyToOne.class).cascade();
+                        if (c != null) for (CascadeType cx : c) if (CascadeType.ALL.equals(cx) || CascadeType.REMOVE.equals(cx)) {
+                            owner = true;
+                            break;
+                        }
+                    }
+
+                    if (f.isAnnotationPresent(OneToMany.class)) {
+                        CascadeType[] c = f.getAnnotation(OneToMany.class).cascade();
+                        if (c != null) for (CascadeType cx : c) if (CascadeType.ALL.equals(cx) || CascadeType.REMOVE.equals(cx)) {
+                            owner = true;
+                            break;
+                        }
+                    }
+
+
+                    if (f.isAnnotationPresent(ManyToMany.class)) {
+                        CascadeType[] c = f.getAnnotation(ManyToMany.class).cascade();
+                        if (c != null) for (CascadeType cx : c) if (CascadeType.ALL.equals(cx) || CascadeType.REMOVE.equals(cx)) {
+                            owner = true;
+                            break;
+                        }
+                    }
+
+
+                    if (!owner && (f.isAnnotationPresent(ManyToOne.class) || f.isAnnotationPresent(OneToMany.class) || f.isAnnotationPresent(ManyToMany.class))) {
+
 
                         FieldInterfaced mbf = ReflectionHelper.getMapper(f);
 
-                        if (mbf != null) {
+                        if (Collection.class.isAssignableFrom(t.getClass())) {
+                            Collection col = (Collection) t;
+                            if (col.size() >  0) {
+                                t = col.iterator().next();
+                            } else t = null;
+                        }
 
-                            Object r = ReflectionHelper.getValue(mbf, t);
 
-                            if (r != null) {
-                                if (Collection.class.isAssignableFrom(r.getClass())) {
-                                    ((Collection)r).remove(o);
-                                } else {
-                                    ReflectionHelper.setValue(mbf, t, null);
-                                }
+                        if (mbf != null && t != null) {
 
-                                em.merge(t);
-                            }
-
+                                throw new Error("" + o + " is referenced from " + t);
 
                         }
 

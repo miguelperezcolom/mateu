@@ -472,6 +472,8 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                     }
                                 });
 
+                                pendingResult = null;
+
                                 stack.push(currentPath, evc);
 
                             } catch (Exception e) {
@@ -739,7 +741,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                 } else if (ownedCollection) {
 
                                     try {
-                                        stack.push(currentPath, new OwnedCollectionComponent(evfc.getBinder(), field));
+                                        stack.push(currentPath, new OwnedCollectionComponent(evfc.getBinder(), field, field.isAnnotationPresent(UseLinkToListView.class)?-1:0));
                                     } catch (Exception e) {
                                         MDD.alert(e);
                                     }
