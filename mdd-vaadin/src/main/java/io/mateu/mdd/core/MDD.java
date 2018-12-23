@@ -20,7 +20,7 @@ public class MDD {
 
 
     public static MDDPort getPort() {
-        return MDDUI.get().getPort();
+        return (MDDUI.get() != null)?MDDUI.get().getPort():null;
     }
 
     public static AbstractApplication getApp() {
@@ -40,7 +40,7 @@ public class MDD {
     public static User getCurrentUser() {
         try {
             User[] u = {null};
-            Helper.notransact(em -> u[0] = em.find(User.class, MDD.getUserData().getLogin()));
+            Helper.notransact(em -> u[0] = em.find(User.class, (MDD.getPort() != null)?MDD.getUserData().getLogin():"sistema"));
             return u[0];
         } catch (Throwable e) {
             return null;

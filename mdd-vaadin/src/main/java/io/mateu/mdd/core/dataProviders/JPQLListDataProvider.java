@@ -9,6 +9,8 @@ import io.mateu.mdd.core.annotations.QLForCombo;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
+import org.eclipse.persistence.config.CacheUsage;
+import org.eclipse.persistence.config.QueryHints;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -45,7 +47,7 @@ public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvi
     }
 
     public JPQLListDataProvider(Query q) {
-        super(q.getResultList());
+        super(q.setHint(QueryHints.CACHE_USAGE, CacheUsage.DoNotCheckCache).getResultList());
     }
 
     public JPQLListDataProvider(Class entityClass) {

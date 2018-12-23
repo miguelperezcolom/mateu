@@ -8,6 +8,7 @@ public class WorkflowEngine {
 
     private static ConcurrentLinkedQueue queue;
     private static ThreadLocal<Boolean> uselocalRunners = new ThreadLocal<>();
+    private static ThreadLocal<Boolean> waitingForLocalRunners = new ThreadLocal<>();
     private static ThreadLocal<ConcurrentLinkedQueue> localQueues = new ThreadLocal<>();
 
     public static AtomicBoolean running = new AtomicBoolean();
@@ -28,8 +29,11 @@ public class WorkflowEngine {
     }
 
     public static void activateLocalRunner() {
-        uselocalRunners.set(true);
-        localQueues.set(new ConcurrentLinkedQueue());
+        if (uselocalRunners.get() == null || !uselocalRunners.get()) {
+            uselocalRunners.set(true);
+            localQueues.set(new ConcurrentLinkedQueue());
+            waitingForLocalRunners.set(false);
+        }
     }
 
     public static void add(Runnable task) {
@@ -45,21 +49,25 @@ public class WorkflowEngine {
     }
 
     public static void runAndWaitThreadLocalTasks() {
-        while (localQueues.get().size() > 0) {
-            CountDownLatch latch = new CountDownLatch(1);
-            Runnable task = (Runnable) localQueues.get().poll();
-            try {
-                task.run();
-                System.out.println("tarea local ejecutada en queue local");
-                latch.countDown();
-            } catch (Throwable e) {
-                e.printStackTrace();
+        if (!uselocalRunners.get()) {
+            uselocalRunners.set(true);
+            while (localQueues.get().size() > 0) {
+                CountDownLatch latch = new CountDownLatch(1);
+                Runnable task = (Runnable) localQueues.get().poll();
+                try {
+                    task.run();
+                    System.out.println("tarea local ejecutada en queue local");
+                    latch.countDown();
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+                try {
+                    latch.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
-            try {
-                latch.await();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            uselocalRunners.set(false);
         }
     }
 

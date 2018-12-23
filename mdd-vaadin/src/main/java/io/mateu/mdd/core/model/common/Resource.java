@@ -2,6 +2,7 @@ package io.mateu.mdd.core.model.common;
 
 import com.google.common.base.Strings;
 import io.mateu.mdd.core.data.FileLocator;
+import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.Utils;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,6 +14,9 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.validation.constraints.NotNull;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 
@@ -41,6 +45,12 @@ public class Resource {
 
     public Resource() {
 
+    }
+
+    public Resource(File file) throws FileNotFoundException {
+        this.type = FileType.BYTES;
+        this.bytes = Helper.leerByteArray(new FileInputStream(file));
+        this.name = file.getName();
     }
 
     public Resource(URL url) {

@@ -26,6 +26,7 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.ClassOption;
+import io.mateu.mdd.vaadinport.vaadin.components.app.AbstractMDDExecutionContext;
 import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
@@ -165,6 +166,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                     if (fns != null) {
                         for (String fn : fns.split(",")) {
+                            fn = fn.trim();
                             getBinder().getBinding(fn).ifPresent(b -> ((Binder.Binding)b).getField().addValueChangeListener(e -> {
 
                                 if (getBinder().getBean() != null) { // puede pasar que llamemos a este método cuando todavía no hayamos bindeado nada
@@ -234,6 +236,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
             panel.setContent(r.getKey());
 
+
             AbstractStylist finalStylist = stylist;
             binder.addValueChangeListener(e -> {
                 MDDUI.get().access(new Runnable() {
@@ -255,6 +258,28 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         }
 
         rebuildActions();
+
+        System.out.println("******* añadiendo listeners para lanzar acciones: actionsByMethod.size() = " + actionsByMethod.size());
+        actionsByMethod.keySet().forEach(x -> {
+            Method m = (Method) x;
+            if (m.isAnnotationPresent(DependsOn.class)) {
+                System.out.println("******* añadiendo listeners para lanzar acciones: m = " + m.getName());
+                for (String fn : m.getAnnotation(DependsOn.class).value().split(",")) {
+                    fn = fn.trim();
+                    System.out.println("******* añadiendo listeners para lanzar acciones: fn = " + fn);
+                    String finalFn = fn;
+                    binder.getBinding(fn).ifPresent(b -> ((Binder.Binding)b).getField().addValueChangeListener(e -> {
+
+                        System.out.println("******* lanzando acción para método " + m.getName() + "porque ha cambiado " + finalFn);
+
+                        ((AbstractAction)actionsByMethod.get(m)).run(new AbstractMDDExecutionContext());
+
+                        rebuildActions();
+
+                    }));
+                }
+            }
+        });
 
         System.out.println("editor component built in " + (System.currentTimeMillis() - t0) + " ms.");
 
@@ -565,7 +590,10 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             return a.getAnnotation(Action.class).order() - b.getAnnotation(Action.class).order();
         });
 
-        ms.forEach(m -> l.add(ViewComponentHelper.createAction(m, this)));
+        ms.forEach(m -> {
+            AbstractAction a;
+            l.add(a = ViewComponentHelper.createAction(m, this));
+        });
 
         return l;
     }

@@ -341,6 +341,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
                     if (mdp.isAnnotationPresent(DependsOn.class)) {
                         for (String fn : mdp.getAnnotation(DependsOn.class).value().split(",")) {
+                            fn = fn.trim();
                             binder.getBinding(fn).ifPresent(b -> ((Binder.Binding)b).getField().addValueChangeListener(e -> {
 
                                 if (binder.getBean() != null) { // puede pasar que llamemos a este método cuando todavía no hayamos bindeado nada

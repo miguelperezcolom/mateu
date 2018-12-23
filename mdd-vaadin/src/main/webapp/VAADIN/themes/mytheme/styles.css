@@ -19240,15 +19240,27 @@ div.v-layout.v-horizontal.v-widget {
 	text-align: center;
 }
 
+.mytheme .calendariocupoocierres .formulario {
+	padding: 5px;
+	border-radius: 5px;
+	background-color: lightgray;
+}
+
+.mytheme .calendariocupoocierres .panelcalendario {
+	overflow: auto !important;
+	height: 100%;
+}
+
 .mytheme .calendariocupo {
 	width: 100%;
 }
 
 .mytheme .calendariocupo .mes.weekly {
-	border: 1px solid darkgray;
+	border: 1px solid darkslateblue;
 	background-color: white;
 	padding: 0px;
 	width: 645px;
+	zoom: 0.6;
 }
 
 .mytheme .calendariocupo .mes.weekly .titulo {
@@ -19264,6 +19276,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .mytheme .calendariocupo .mes.weekly .semana .dia {
+	cursor: pointer;
 	padding: 0px;
 	width: 90px;
 }
@@ -19283,6 +19296,30 @@ div.v-layout.v-horizontal.v-widget {
 	width: 100%;
 }
 
+.mytheme .calendariocupo .mes.weekly .semana .dia .infoCupo .v-slot.v-slot-cierre {
+	width: 91px;
+	height: 54px;
+}
+
+.mytheme .calendariocupo .mes.weekly .semana .dia .infoCupo .cierre {
+	width: 100%;
+	height: 100%;
+	background-color: darkseagreen;
+	font-size: 30px;
+	font-weight: bold;
+	color: black;
+	text-align: center;
+	padding-top: 4px;
+}
+
+.mytheme .calendariocupo .mes.weekly .semana .dia .infoCupo .cierre.cerrado {
+	background-color: indianred;
+}
+
+.mytheme .calendariocupo .mes.weekly .semana .dia .infoCupo .cierre.cierreparcial {
+	color: aliceblue;
+}
+
 .mytheme .calendariocupo .mes.weekly .semana .dia .infoCupo .desviado {
 	font-size: 12px;
 	float: left;
@@ -19293,6 +19330,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .mytheme .calendariocupo .mes.weekly .semana .dia .infoCupo .v-slot-disponible {
 	width: 55px;
+	height: 54px;
 }
 
 .mytheme .calendariocupo .mes.weekly .semana .dia .infoCupo .v-slot-disponible .disponible {
@@ -19303,6 +19341,7 @@ div.v-layout.v-horizontal.v-widget {
 	width: 100%;
 	text-align: center;
 	padding-top: 4px;
+	height: 100%;
 }
 
 .mytheme .calendariocupo .mes.weekly .semana .dia .infoCupo .v-slot-disponible .disponible.cerrado {
@@ -19339,6 +19378,10 @@ div.v-layout.v-horizontal.v-widget {
 	width: 100%;
 	text-align: center;
 	height: 26px;
+}
+
+.mytheme .calendariocupo .mes.weekly .semana .dia:hover {
+	opacity: 0.5;
 }
 
 .mytheme .calendariocupo .mes.weekly .semana .v-slot-notfirst {
@@ -19389,28 +19432,24 @@ div.v-layout.v-horizontal.v-widget {
 	border: 1px solid darkgray;
 }
 
-.mytheme .calendariocupo .mes.monthly .fila.calendario {
-	background-color: lightcoral;
-}
-
 .mytheme .calendariocupo .mes.monthly .fila.contratado {
-	background-color: lightblue;
+	background-color: #B9D4BE;
 }
 
 .mytheme .calendariocupo .mes.monthly .fila.derivado {
-	background-color: lightpink;
+	background-color: #B9D4CC;
 }
 
 .mytheme .calendariocupo .mes.monthly .fila.disponible {
-	background-color: lightsalmon;
+	background-color: #B9C1D4;
 }
 
 .mytheme .calendariocupo .mes.monthly .fila.reservado {
-	background-color: lightgreen;
+	background-color: #D4B9CE;
 }
 
 .mytheme .calendariocupo .mes.monthly .fila.reservadoagencia {
-	background-color: lightcyan;
+	background-color: #D4BEB9;
 }
 
 .mytheme .condicionescontratopreview .numero {

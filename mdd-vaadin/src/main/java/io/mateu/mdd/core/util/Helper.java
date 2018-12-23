@@ -39,6 +39,8 @@ import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.eclipse.persistence.config.CacheUsage;
+import org.eclipse.persistence.config.QueryHints;
 import org.javamoney.moneta.FastMoney;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -53,10 +55,7 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMultipart;
 import javax.money.MonetaryAmount;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import javax.persistence.Query;
+import javax.persistence.*;
 import javax.sql.DataSource;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
@@ -302,24 +301,48 @@ public class Helper {
 
 
     public static List selectObjects(String jpql) throws Throwable {
+        return selectObjects(jpql, new HashMap<>());
+    }
+
+
+    public static List selectObjects(String jpql, Map<String, Object> params) throws Throwable {
         List l = new ArrayList<>();
 
         Helper.notransact(em -> {
 
-            l.addAll(em.createQuery(jpql).getResultList());
+            Query q = em.createQuery(jpql);
+            q.setHint(QueryHints.CACHE_USAGE, CacheUsage.DoNotCheckCache);
+
+            if (params != null) {
+                for (String k : params.keySet()) q.setParameter(k, params.get(k));
+            }
+
+            l.addAll(q.getResultList());
+
 
         });
 
         return l;
     }
 
-
     public static List selectObjects(String jpql, Class targetClass) throws Throwable {
+        return selectObjects(jpql, new HashMap<>(), targetClass);
+    }
+
+    public static List selectObjects(String jpql, Map<String, Object> params, Class targetClass) throws Throwable {
         List l = new ArrayList<>();
 
         Helper.notransact(em -> {
 
-            l.addAll(em.createQuery(jpql, targetClass).getResultList());
+            Query q = em.createQuery(jpql, targetClass);
+            q.setHint(QueryHints.CACHE_USAGE, CacheUsage.DoNotCheckCache);
+
+            if (params != null) {
+                for (String k : params.keySet()) q.setParameter(k, params.get(k));
+            }
+
+
+            l.addAll(q.getResultList());
 
         });
 
@@ -336,6 +359,7 @@ public class Helper {
 
             q.setFirstResult(offset);
             q.setMaxResults(limit);
+            q.setHint(QueryHints.CACHE_USAGE, CacheUsage.DoNotCheckCache);
 
 
             list.addAll(q.getResultList());
@@ -352,8 +376,9 @@ public class Helper {
         Helper.notransact(em -> {
 
             String countjpql = "select count(*) from (" + sql + ") xxx";
-
-            count[0] = ((Long)em.createQuery(countjpql).getSingleResult()).intValue();
+            Query q = em.createQuery(countjpql);
+            q.setHint(QueryHints.CACHE_USAGE, CacheUsage.DoNotCheckCache);
+            count[0] = ((Long)q.getSingleResult()).intValue();
 
 
         });
