@@ -216,7 +216,7 @@ public class Helper {
 
             tlem.set(em);
 
-            WorkflowEngine.activateLocalRunner();
+            boolean atTop = WorkflowEngine.activateLocalRunner();
 
             t.run(em);
 
@@ -226,7 +226,7 @@ public class Helper {
 
             System.out.println("commited");
 
-            WorkflowEngine.runAndWaitThreadLocalTasks();
+            WorkflowEngine.runAndWaitThreadLocalTasks(atTop);
 
         } catch (ConstraintViolationException e) {
             e.printStackTrace();

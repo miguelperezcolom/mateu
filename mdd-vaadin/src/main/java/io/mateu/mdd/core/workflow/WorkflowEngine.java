@@ -28,12 +28,15 @@ public class WorkflowEngine {
         System.exit(status);
     }
 
-    public static void activateLocalRunner() {
+    public static boolean activateLocalRunner() {
+        boolean alreadyActive = true;
         if (uselocalRunners.get() == null || !uselocalRunners.get()) {
             uselocalRunners.set(true);
             localQueues.set(new ConcurrentLinkedQueue());
             waitingForLocalRunners.set(false);
+            alreadyActive = false;
         }
+        return !alreadyActive;
     }
 
     public static void add(Runnable task) {
@@ -49,7 +52,11 @@ public class WorkflowEngine {
     }
 
     public static void runAndWaitThreadLocalTasks() {
-        if (!uselocalRunners.get()) {
+        runAndWaitThreadLocalTasks(false);
+    }
+
+    public static void runAndWaitThreadLocalTasks(boolean force) {
+        if (force || !uselocalRunners.get()) {
             uselocalRunners.set(true);
             while (localQueues.get().size() > 0) {
                 CountDownLatch latch = new CountDownLatch(1);

@@ -90,4 +90,9 @@ public class Literal implements Translated {
         return d;
     }
 
+    public String get(String language) {
+        Data d = get();
+        return d.containsKey(language)?d.getString(language):d.getString("en");
+    }
+
 }

@@ -13,7 +13,6 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.ClassOption;
-import io.mateu.mdd.vaadinport.vaadin.navigation.MDDViewProvider;
 import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 
 import javax.persistence.ManyToOne;
@@ -68,7 +67,7 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
 
     @Override
     public List<AbstractAction> getActions() {
-        List<AbstractAction> l = new ArrayList<>();
+        List<AbstractAction> l = super.getActions();
 
             if (canAdd()) l.add(new AbstractAction("Add") {
                 @Override
