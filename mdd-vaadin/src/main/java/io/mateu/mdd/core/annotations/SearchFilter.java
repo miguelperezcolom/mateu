@@ -11,14 +11,6 @@ import java.lang.annotation.*;
 @Target(ElementType.FIELD) //can use in method only.
 public @interface SearchFilter {
 
-    String value() default "";
-
-    String ql() default "";
-
     String field() default "";
-
-    boolean exactMatch() default false;
-
-    boolean required() default false;
 
 }

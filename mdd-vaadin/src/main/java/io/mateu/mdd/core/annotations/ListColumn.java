@@ -13,11 +13,5 @@ public @interface ListColumn {
 
     String value() default "";
 
-    String ql() default "";
-
     String field() default "";
-
-    boolean order() default false;
-
-    int width() default -1;
 }
