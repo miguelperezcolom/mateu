@@ -1625,4 +1625,13 @@ public class Helper {
     public static boolean areXmlSerializableEqual(XMLSerializable a, XMLSerializable b) {
         return a == b || (b != null && Helper.toString(a.toXml()).equals(Helper.toString((b.toXml()))));
     }
+
+
+    public static boolean equals(Object a, Object b) {
+        if (a == b) return true;
+        else if (a == null && b != null) return false;
+        else if (a != null && b == null) return false;
+        else return a.equals(b);
+    }
+
 }
