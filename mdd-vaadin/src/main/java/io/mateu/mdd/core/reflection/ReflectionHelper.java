@@ -1275,6 +1275,7 @@ public class ReflectionHelper {
 
         if (added) {
             reverseMap(binder, field, bean, i);
+            ReflectionHelper.setValue(field, bean, ReflectionHelper.getValue(field, bean));
             Object finalV = v;
             binder.getBinding(field.getName()).ifPresent(b -> ((Binder.Binding)b).getField().setValue(finalV));
         }
@@ -1323,6 +1324,7 @@ public class ReflectionHelper {
             }
         }
 
+        ReflectionHelper.setValue(field, bean, ReflectionHelper.getValue(field, bean));
         Object finalV = v;
         binder.getBinding(field.getName()).ifPresent(b -> ((Binder.Binding)b).getField().setValue(finalV));
 

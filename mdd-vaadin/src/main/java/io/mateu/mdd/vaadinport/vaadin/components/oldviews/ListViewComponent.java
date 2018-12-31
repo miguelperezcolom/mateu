@@ -21,9 +21,7 @@ import com.vaadin.shared.Registration;
 import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
-import com.vaadin.ui.components.grid.EditorOpenEvent;
-import com.vaadin.ui.components.grid.EditorOpenListener;
-import com.vaadin.ui.components.grid.SortOrderProvider;
+import com.vaadin.ui.components.grid.*;
 import com.vaadin.ui.renderers.HtmlRenderer;
 import com.vaadin.ui.renderers.TextRenderer;
 import com.vaadin.ui.themes.ValoTheme;
@@ -420,7 +418,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     col.setEditorComponent(cb, (o, v) -> {
                         try {
                             ReflectionHelper.setValue(f, o, v);
-                            //if (binder != null) binder.refresh();
+                            if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -430,11 +428,12 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
                 } else if (FareValue.class.equals(f.getType())) {
                     TextField nf = new TextField();
+                    nf.setValueChangeMode(ValueChangeMode.EAGER);
                     col.setEditorComponent(nf, (o, v) -> {
                         try {
                             //todo: validar entero
                             ReflectionHelper.setValue(f, o, (v != null)?new FareValue((String) v):null);
-                            //if (binder != null) binder.refresh();
+                            if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -451,7 +450,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                                 for (int i = 0; i < days.size(); i++) if (i < array.length) array[i] = ((String)v).contains(days.get(i));
                             }
                             ReflectionHelper.setValue(f, o, v != null?array:null);
-                            //if (binder != null) binder.refresh();
+                            if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -461,17 +460,19 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     col.setEditorComponent(new CheckBox(), (o, v) -> {
                         try {
                             ReflectionHelper.setValue(f, o, v);
-                            //if (binder != null) binder.refresh();
+                            if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
                     });
                     col.setEditable(true);
                 } else if (String.class.equals(f.getType())) {
-                    col.setEditorComponent(new TextField(), (o, v) -> {
+                    TextField nf = new TextField();
+                    nf.setValueChangeMode(ValueChangeMode.EAGER);
+                    col.setEditorComponent(nf, (o, v) -> {
                         try {
                             ReflectionHelper.setValue(f, o, v);
-                            //if (binder != null) binder.refresh();
+                            if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -481,11 +482,12 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     || Long.class.equals(f.getType()) || long.class.equals(f.getType())) {
 
                     TextField nf = new TextField();
+                    nf.setValueChangeMode(ValueChangeMode.EAGER);
                     col.setEditorComponent(nf, (o, v) -> {
                         try {
                             //todo: validar entero
                             ReflectionHelper.setValue(f, o, v);
-                            //if (binder != null) binder.refresh();
+                            if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -494,12 +496,13 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                 } else if (Double.class.equals(f.getType()) || double.class.equals(f.getType())) {
 
                     TextField nf = new TextField();
+                    nf.setValueChangeMode(ValueChangeMode.EAGER);
                     col.setEditorComponent(nf, (o, v) -> {
                         try {
                             //todo: validar doble
                             //todo: falta float y long
                             ReflectionHelper.setValue(f, o, v);
-                            //if (binder != null) binder.refresh();
+                            if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -511,7 +514,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     col.setEditorComponent(nf, (o, v) -> {
                         try {
                             ReflectionHelper.setValue(f, o, v);
-                            //if (binder != null) binder.refresh();
+                            if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -525,7 +528,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                             //todo: validar doble
                             //todo: falta float y long
                             ReflectionHelper.setValue(f, o, v);
-                            //if (binder != null) binder.refresh();
+                            if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -540,7 +543,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     col.setEditorComponent(tf, (o, v) -> {
                         try {
                             ReflectionHelper.setValue(f, o, v);
-                            //if (binder != null) binder.refresh();
+                            if (binder != null) binder.refresh();
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
