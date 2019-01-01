@@ -161,7 +161,7 @@ Note how Mateu-MDD has also inferred a combo box for the PurchaseOrderSendingMet
 
 If we annotate the currency field with the @NotNull annotation then Mateu MDD will add a required indicator to the combo box and will check if it has some value before saving.
 
-![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd05.png?raw=true)
+![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd10b.png?raw=true)
 
 
 Everything in Mateu-MDD works in this way. It looks at our java classes using java reflection and infers the right component for each field.
@@ -271,7 +271,7 @@ Please let me repeat a previous example:
 
 This becomes the typical nested combo boxes:
 
-![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd10.png?raw=true)
+![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd11.png?raw=true)
 
 Whenever we change the state value, the city combo is updated.
 
