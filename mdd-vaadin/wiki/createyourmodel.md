@@ -192,7 +192,7 @@ With Mateu MDD it is easy to achive this just by adding a method to our class:
 
 This will limit the possible values as shown in this screenshot:
 
-![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd10.png?raw=true)
+![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd10c.png?raw=true)
 
 And here you have another sample code, this time limiting the values we get from a database table by using JPQL:
 
