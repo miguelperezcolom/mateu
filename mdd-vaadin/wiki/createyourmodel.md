@@ -194,14 +194,92 @@ This will limit the possible values as shown in this screenshot:
 
 ![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd10.png?raw=true)
 
+And here you have another sample code, this time limiting the values we get from a database table by using JPQL:
 
+````java
+
+    @ManyToOne
+    private State state;
+
+    @ManyToOne
+    private City city;
+    
+    @DependsOn("state")
+    public DataProvider getCityDataProvider() throws Throwable {
+        return new JPQLListDataProvider("select x from " + 
+          City.class.getName() + " x " + 
+          ((getState() != null)?" where x.state.id = " + getState().getId():""));
+    }
+
+````
+
+Please note that in the code above we are telling Mateu MDD to filter the city field possible values depending on the state field value.
+
+The @DependsOn annotation tells Mateu MDD that he must look at state field value changes and update the city field combo accordingly.
+
+This way our city field combo will always only show the cities which belong to the selected state.
 
 ## Decide if a field (or action) is visible or not
+
+In our model we usually have fields (or actions) which must be shown to the user or not depending on some values.
+
+With Mateu MDD we would usually achive this by adding a new method to our model class, which will tell Mateu MDD if the field (or action) must be visile or not.
+
+Here comes an example:
+
+````java
+
+    @Action
+    public void confirm(EntityManager em) {
+        setActive(true);
+    }
+
+    @DependsOn("active")
+    public boolean isConfirmVisible() {
+        return !isActive();
+    }
+
+````
+
+In the example above the button for the "Confirm" action will be visible only when the active field is false.
+
+Please note the @DependsOn annotation which tells Mateu MDD that the "Confirm" action visibility must be checked whenever the active field value changes.
 
 
 ## Nested (dependant on other) values
 
+So far we have already seen the @DependsOn anotation, which we can use to annotate any method which we want to be called when a field or set of fields change.
+
+Please let me repeat a previous example:
+
+````java
+
+    @ManyToOne
+    private State state;
+
+    @ManyToOne
+    private City city;
+    
+    @DependsOn("state")
+    public DataProvider getCityDataProvider() throws Throwable {
+        return new JPQLListDataProvider("select x from " + 
+          City.class.getName() + " x " + 
+          ((getState() != null)?" where x.state.id = " + getState().getId():""));
+    }
+
+````
+
+This becomes the typical nested combo boxes:
+
+![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd10.png?raw=true)
+
+Whenever we change the state value, the city combo is updated.
+
+
 ## Changing the default component of a field
+
+
+
 
 ## Refining the presentation
 
