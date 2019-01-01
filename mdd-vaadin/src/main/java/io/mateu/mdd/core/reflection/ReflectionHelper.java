@@ -1981,6 +1981,7 @@ public class ReflectionHelper {
                 for (FieldInterfaced f : ReflectionHelper.getAllFields(original.getClass())) if (!f.isAnnotationPresent(Id.class)) {
                     ReflectionHelper.setValue(f, copy, ReflectionHelper.getValue(f, original));
                 }
+
                 return copy;
             }
 

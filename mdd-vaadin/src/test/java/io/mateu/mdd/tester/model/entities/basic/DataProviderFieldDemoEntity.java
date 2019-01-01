@@ -1,5 +1,7 @@
 package io.mateu.mdd.tester.model.entities.basic;
 
+import com.google.common.collect.Lists;
+import com.vaadin.data.provider.ListDataProvider;
 import io.mateu.mdd.core.annotations.DataProvider;
 import io.mateu.mdd.core.annotations.TextArea;
 import io.mateu.mdd.core.annotations.UseTwinCols;
@@ -24,8 +26,12 @@ public class DataProviderFieldDemoEntity {
 
     private String name;
 
-    @DataProvider(dataProvider = MyDataProvider.class)
+    //@DataProvider(dataProvider = MyDataProvider.class)
     private String stringField;
+
+    public com.vaadin.data.provider.DataProvider getStringFieldDataProvider() {
+        return new ListDataProvider(Lists.newArrayList("Rojo", "Verde", "Azul", "Amarillo"));
+    }
 
     @DataProvider(dataProvider = MyIntDataProvider.class)
     private int intField;
