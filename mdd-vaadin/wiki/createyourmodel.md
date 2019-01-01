@@ -36,25 +36,18 @@ import lombok.Setter;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
-/**
- * holder for currencies
- *
- * Created by miguel on 13/9/16.
- */
 @Entity
 @Getter@Setter
-public class Currency {
+public class Person {
 
-    @Id
-    @NotNull
-    private String isoCode;
+    @Id@GeneratedValue
+    private long id;
 
-    private String iso4217Code;
-
-    @NotNull
+    @MainSearchFilter
     private String name;
 
-    private int decimals;
+    private Gender gender;
+
 }
 
 ```
@@ -76,8 +69,8 @@ public class MyApp extends SimpleMDDApplication {
 
 
     @Action
-    public AbstractAction mascotas() {
-        return new MDDOpenCRUDAction("Mis mascotas", Mascota.class);
+    public AbstractAction people() {
+        return new MDDOpenCRUDAction(Person.class);
     }
 
 
@@ -92,13 +85,13 @@ Now we can run our app by issuing
 
     mvn jetty:run
 
-And now we show the result when we run Mateu-MDD against our model. First, the list view which is accesible by a link `Currencies` shown in the `Admin` menu:
+And now we show the result when we run Mateu-MDD against our model. First, the list view which is accesible by a link `People` shown in the menu:
 
-![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd02.png?raw=true)
+![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd17.png?raw=true)
 
 And now the editor view, which is shown when we click on the link to edit a record:
 
-![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd03.png?raw=true)
+![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd18.png?raw=true)
 
 
 Quite easy and straightforward, isn't it?
@@ -210,9 +203,20 @@ We can also limit which columns are shown by using the [@FieldsFilter](Supported
 
 
 
-## Map
+## Maps
 
 For map containers Mateu-MDD infers a table with the map key as the first column and the map value fields inside the rest of columns.
+
+We can populate the grid with all possible key values by using the [@PrePopulate](Supported-annotations-list#prepopulate) annotation as shown below:
+
+````java
+
+````
+
+Which would result in :
+
+![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd08.png?raw=true)
+
 
 ## Ignore fields
 
@@ -291,6 +295,8 @@ And there are some return values which are treated in an special way:
 - **URL** return type will open the result in a new navigator tab
 - **Any Object** return type will open an editor for that object
 
+
+You can also check [the "expose your methods" chapter at MDD](https://github.com/miguelperezcolom/mateu-mdd/wiki/MDD#expose-your-methods)
 
 ## Limiting possible values for a field
 
@@ -400,6 +406,36 @@ This becomes the typical nested combo boxes:
 
 Whenever we change the state value, the city combo is updated.
 
+Please note that for calculated fields we do not need to annotate them. We just need to override setters as below:
+
+````java
+
+    private double vatPercent;
+
+    @Output
+    private BigDecimal total;
+
+
+    public void setVatPercent(double vatPercent) {
+        this.vatPercent = vatPercent;
+        updateTotals();
+    }
+
+
+    public void updateTotals() {
+        double t = 0;
+        for (InvoiceLine l :lines) t += l.getAmount();
+
+        setVat(new BigDecimal("" + Helper.roundEuros(t * vatPercent / 100d)));
+
+        setTotal(new BigDecimal("" + Helper.roundEuros(t + vat.doubleValue())));
+    }
+
+
+````
+
+With the code above, each time we modify the **vatPercent** value the **total** will be updated and its new value will be shown to the user.
+
 
 ## Changing the default component for a field
 
@@ -440,7 +476,7 @@ The code above will be inferred as:
 
 Another options that are available for collection fields are using twin cols component (by using the [@UseTwinCols](Supported-annotations-list#usetwincols) annotation), or showing only a little text (e.g. something like "2 items") plus an "edit" button by using the [@UseLinkToListView](Supported-annotations-list#uselinktolistview) annotation.
 
-Here follows a [@UseLinkToListView](Supported-annotations-list#uselinktolistview) annotated @OneToMany collection:
+Here follows a [@UseTwinCols](Supported-annotations-list#usetwincols) annotated @OneToMany collection:
 
 ![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd14.png?raw=true)
 
