@@ -1,6 +1,7 @@
 package io.mateu.mdd.tester.model.entities.groups;
 
 import io.mateu.mdd.core.annotations.MainSearchFilter;
+import io.mateu.mdd.core.annotations.NoChart;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,9 +16,9 @@ public class Person {
     @Id@GeneratedValue
     private long id;
 
-    @MainSearchFilter
     private String name;
 
+    @NoChart
     private Gender gender;
 
 }

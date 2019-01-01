@@ -89,7 +89,7 @@ And now we show the result when we run Mateu-MDD against our model. First, the l
 
 ![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd17.png?raw=true)
 
-And now the editor view, which is shown when we click on the link to edit a record:
+And now the editor view, which is shown when we double click on one of the rows to edit a record:
 
 ![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd18.png?raw=true)
 
@@ -98,37 +98,21 @@ Quite easy and straightforward, isn't it?
 
 ## Non basic fields
 
-Now, let's see what happens when we reference the entity Currency from another entity.
+Now, let's see what happens when we reference an entity named **Bank** from another entity.
 
-Let's have a look at this other class which references our Currency class in a ManyToOne relationship:
+Let's have a look at this other class which references our **Bank** class in a @ManyToOne relationship:
 
 ```java
 
-/**
- * holder for customers (e.g. a touroperator, a travel agency, ...)
- *
- * Created by miguel on 13/9/16.
- */
 @Entity
-@Getter
-@Setter
-public class Actor {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
-
-    @Required
-    private String name;
-
-    private String businessName;
-
-    private String address;
+@Getter@Setter
+public class BankAccount {
+    
+    ...
 
     @ManyToOne
-    private Currency currency;
-
-    private PurchaseOrderSendingMethod ordersSendingMethod;
+    @NotNull
+    private Bank bank;
     
     ...
 
@@ -140,19 +124,19 @@ public class Actor {
 
 The result is quite convenient:
 
-![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd04.png?raw=true)
+![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd19.png?raw=true)
 
 
-Mateu-MDD has been clever enough to detect that we are referencing a Currency entity and is showing a combo box to let us choose which Currency is the right one.
+Mateu-MDD has been clever enough to detect that we are referencing a **Bank** entity and is showing a combo box to let us choose which **Bank** is the right one.
 
 Perfect. This is exactly what I expect to see.
 
-Note how Mateu-MDD has also inferred a combo box for the PurchaseOrderSendingMethod enumeration:
+Note how Mateu-MDD has also inferred a combo box for an enumeration:
 
-![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd05.png?raw=true)
+![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd20.png?raw=true)
 
 
-If we annotate the currency field with the @NotNull annotation then Mateu MDD will add a required indicator to the combo box and will check if it has some value before saving.
+If we annotate any field with the @NotNull annotation then Mateu MDD will add a required indicator to the combo box and will check if it has some value before saving.
 
 ![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd10b.png?raw=true)
 

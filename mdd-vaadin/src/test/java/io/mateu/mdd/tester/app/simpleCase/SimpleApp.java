@@ -9,6 +9,7 @@ import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.tester.model.entities.basic.BasicFieldsDemoEntity;
+import io.mateu.mdd.tester.model.entities.groups.Person;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.AbstractFieldBuilder;
 
 import java.io.IOException;
@@ -22,6 +23,12 @@ public class SimpleApp extends SimpleMDDApplication {
     @Action(value = "Say hello", order = 1)
     public String hello(String name) {
         return "Hello " + name + "!";
+    }
+
+
+    @Action(order = 1)
+    public AbstractAction people() {
+        return new MDDOpenCRUDAction(Person.class);
     }
 
 
@@ -80,7 +87,7 @@ public class SimpleApp extends SimpleMDDApplication {
 
     @Override
     public boolean isAuthenticationNeeded() {
-        return true;
+        return false;
     }
 
     @Override
