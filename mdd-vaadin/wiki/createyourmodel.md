@@ -278,8 +278,26 @@ Whenever we change the state value, the city combo is updated.
 
 ## Changing the default component of a field
 
+We could think that radio buttons would be a better choice for a @ManyToOne field (e.g. if we know that the number of possible values is limited).
+
+This is easily accomplished by using the @useRadioButtons annotation:
+
+````java
+
+    @UseRadioButtons
+    @ManyToOne
+    private ManyToOneFieldDemoDestinationEntity usingRadioButtons;
 
 
+````
+
+The result for the code above is this:
+
+![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd12.png?raw=true)
+
+
+
+    
 
 ## Refining the presentation
 
