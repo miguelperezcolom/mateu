@@ -4,7 +4,6 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Caption;
-import io.mateu.mdd.core.annotations.Parameter;
 import io.mateu.mdd.core.annotations.SearchFilter;
 import io.mateu.mdd.tester.model.useCases.bankAccount.Payment;
 import lombok.Getter;

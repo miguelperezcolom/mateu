@@ -3,6 +3,8 @@ package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.vaadin.data.*;
+import com.vaadin.data.provider.DataChangeEvent;
+import com.vaadin.data.provider.DataProviderListener;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.icons.VaadinIcons;
@@ -301,6 +303,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                     g.getEditor().setEnabled(true);
                     g.getEditor().setBuffered(false);
+
+
 
                     hl.addComponent(b = new Button("Add", VaadinIcons.PLUS));
                     b.addClickListener(e -> {

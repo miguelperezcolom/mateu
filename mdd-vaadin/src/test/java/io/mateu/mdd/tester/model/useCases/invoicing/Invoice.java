@@ -37,6 +37,11 @@ public class Invoice {
     @FullWidth
     private List<InvoiceLine> lines = new ArrayList<>();
 
+    public void setLines(List<InvoiceLine> lines) {
+        this.lines = lines;
+        updateTotals();
+    }
+
 
     private double vatPercent;
 
@@ -59,8 +64,8 @@ public class Invoice {
         double t = 0;
         for (InvoiceLine l :lines) t += l.getAmount();
 
-        setVat(new BigDecimal(Helper.roundEuros(t * vatPercent / 100d)));
+        setVat(new BigDecimal("" + Helper.roundEuros(t * vatPercent / 100d)));
 
-        setTotal(new BigDecimal(Helper.roundEuros(t + vat.doubleValue())));
+        setTotal(new BigDecimal("" + Helper.roundEuros(t + vat.doubleValue())));
     }
 }

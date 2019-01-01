@@ -116,7 +116,11 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
 
                                 Set borrar = resultsComponent.getSelection();
 
-                                ((List) ReflectionHelper.getValue(field, model)).removeAll(borrar);
+                                Collection col = ((Collection) ReflectionHelper.getValue(field, model));
+
+                                col.removeAll(borrar);
+
+                                ReflectionHelper.setValue(field, model, col);
 
                                 evfc.getBinder().setBean(evfc.getModel(), false);
 
@@ -176,7 +180,9 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
 
     public void saved(Object o) throws Throwable {
         //list.add(o);
-        evfc.getBinder().setBean(evfc.getModel(), false);
+        Object bean = evfc.getModel();
+        ReflectionHelper.setValue(field, bean, ReflectionHelper.getValue(field, bean));
+        evfc.getBinder().setBean(bean, false);
         //evfc.save(false, false);
         search(this);
     }
