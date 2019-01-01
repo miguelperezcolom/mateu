@@ -6,8 +6,10 @@ import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Caption;
 import io.mateu.mdd.core.annotations.SubApp;
 import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.tester.model.entities.basic.BasicFieldsDemoEntity;
+import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.AbstractFieldBuilder;
 
 import java.io.IOException;
 import java.util.List;
@@ -84,5 +86,10 @@ public class SimpleApp extends SimpleMDDApplication {
     @Override
     public boolean isOAuthAllowed() {
         return false;
+    }
+
+    @Override
+    public AbstractFieldBuilder getFieldBuilder(FieldInterfaced field) {
+        return super.getFieldBuilder(field);
     }
 }
