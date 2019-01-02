@@ -93,6 +93,10 @@ public abstract class AbstractApplication implements App {
 
     public abstract String getName();
 
+    public boolean isChartsEnabled() {
+        return false;
+    }
+
     public boolean isAuthenticationNeeded() {
 
         boolean hasPrivateContent = false;

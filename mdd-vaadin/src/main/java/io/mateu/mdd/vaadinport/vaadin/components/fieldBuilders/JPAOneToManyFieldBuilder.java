@@ -519,16 +519,14 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
         g.setSelectionMode(Grid.SelectionMode.MULTI);
 
-        // añadimos columna para que no haga feo
-        if (g.getColumns().size() == 1) ((Grid.Column)g.getColumns().get(0)).setExpandRatio(1);
-        else g.addColumn((d) -> null).setWidthUndefined().setCaption("");
-
         g.setCaption(ReflectionHelper.getCaption(field));
 
-        container.addComponent(g);
-        //if (!field.isAnnotationPresent(FullWidth.class)) container.setWidthUndefined();
+        VerticalLayout vl = new VerticalLayout();
+        vl.addStyleName(CSS.NOPADDING);
 
-        bind(binder, g, field, null, null);
+        vl.addComponent(g);
+
+        bindMap(binder, g, field);
 
         HorizontalLayout hl = new HorizontalLayout();
 
@@ -536,10 +534,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         Button b;
 
         g.getEditor().setEnabled(true);
-        ((Grid.Column)g.getColumns().get(0)).setEditable(false);
         g.getEditor().setBuffered(false);
         g.setHeightMode(HeightMode.UNDEFINED);
-        //g.setHeightByRows(5);
 
         hl.addComponent(b = new Button("Add", VaadinIcons.PLUS));
         b.addClickListener(e -> {
@@ -579,8 +575,119 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
         });
 
-        container.addComponent(hl);
+        vl.addComponent(hl);
 
+        container.addComponent(vl);
+
+    }
+
+    private void bindMap(MDDBinder binder, Grid g, FieldInterfaced field) {
+        Binder.BindingBuilder aux = binder.forField(new HasValue() {
+            @Override
+            public void setValue(Object o) {
+                Collection items = null;
+                if (o == null) {
+                    items = new ArrayList();
+                } else {
+
+                    if (o instanceof Map) {
+
+                        Class keyType = ReflectionHelper.getGenericClass(field, Map.class, "K");
+
+                        if (keyType != null && keyType.isEnum()) {
+                            //todo: prefill
+                            //todo: añadir anotación @Prefill
+                        }
+
+                        items = ((Map) o).entrySet();
+                    } else {
+                        items = (Collection) o;
+                    }
+                }
+                g.setDataProvider(new ListDataProvider(items));
+            }
+
+            @Override
+            public Object getValue() {
+                return ((ListDataProvider) g.getDataProvider()).getItems();
+            }
+
+            @Override
+            public Registration addValueChangeListener(ValueChangeListener valueChangeListener) {
+                return null;
+            }
+
+            @Override
+            public void setRequiredIndicatorVisible(boolean b) {
+
+            }
+
+            @Override
+            public boolean isRequiredIndicatorVisible() {
+                return false;
+            }
+
+            @Override
+            public void setReadOnly(boolean b) {
+
+            }
+
+            @Override
+            public boolean isReadOnly() {
+                return false;
+            }
+        });
+
+        if (Map.class.isAssignableFrom(field.getType())) aux.withConverter(new Converter() {
+            @Override
+            public Result convertToModel(Object o, ValueContext valueContext) {
+                Map m = new HashMap();
+                if (o != null) {
+                    ((Collection)o).forEach(e -> m.put(((MapEntry)e).getKey(), ((MapEntry)e).getValue()));
+                }
+
+                Object bean = binder.getBean();
+                try {
+
+                    Map old = (Map) ReflectionHelper.getValue(field, bean);
+
+                    old.values().forEach(e -> {
+                        Object target = e;
+                        if (!m.containsValue(target)) {
+                            try {
+                                ReflectionHelper.unReverseMap(binder, field, bean, target);
+                            } catch (Exception e1) {
+                                MDD.alert(e1);
+                            }
+                        }
+                    });
+                    m.values().forEach(e -> {
+                        Object target = e;
+                        if (!old.containsValue(target)) {
+                            try {
+                                ReflectionHelper.reverseMap(binder, field, bean, target);
+                            } catch (Exception e1) {
+                                MDD.alert(e1);
+                            }
+                        }
+                    });
+                    ReflectionHelper.setValue(field, bean, (o != null)?m:null);
+                } catch (Exception e) {
+                    MDD.alert(e);
+                }
+                binder.setBean(bean, false);
+
+                return Result.ok((o != null)?m:null);
+            }
+
+            @Override
+            public Object convertToPresentation(Object o, ValueContext valueContext) {
+                return (o != null)?toList((Map) o):null;
+            }
+        });
+
+        aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+        aux.bind(field.getName());
     }
 
     private void updateReferences(MDDBinder binder, FieldInterfaced field, HasValue.ValueChangeEvent<Set<Object>> e) {
@@ -1048,54 +1155,6 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                 @Override
                 public boolean isReadOnly() {
                     return false;
-                }
-            });
-
-            if (Map.class.isAssignableFrom(field.getType())) aux.withConverter(new Converter() {
-                @Override
-                public Result convertToModel(Object o, ValueContext valueContext) {
-                    Map m = new HashMap();
-                    if (o != null) {
-                        ((Collection)o).forEach(e -> m.put(((MapEntry)e).getKey(), ((MapEntry)e).getValue()));
-                    }
-
-                    Object bean = binder.getBean();
-                    try {
-
-                        Map old = (Map) ReflectionHelper.getValue(field, bean);
-
-                        old.values().forEach(e -> {
-                            Object target = e;
-                            if (!m.containsValue(target)) {
-                                try {
-                                    ReflectionHelper.unReverseMap(binder, field, bean, target);
-                                } catch (Exception e1) {
-                                    MDD.alert(e1);
-                                }
-                            }
-                        });
-                        m.values().forEach(e -> {
-                            Object target = e;
-                            if (!old.containsValue(target)) {
-                                try {
-                                    ReflectionHelper.reverseMap(binder, field, bean, target);
-                                } catch (Exception e1) {
-                                    MDD.alert(e1);
-                                }
-                            }
-                        });
-                        ReflectionHelper.setValue(field, bean, (o != null)?m:null);
-                    } catch (Exception e) {
-                        MDD.alert(e);
-                    }
-                    binder.setBean(bean, false);
-
-                    return Result.ok((o != null)?m:null);
-                }
-
-                @Override
-                public Object convertToPresentation(Object o, ValueContext valueContext) {
-                    return (o != null)?toList((Map) o):null;
                 }
             });
 

@@ -98,8 +98,10 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             addComponent(sumsComponent = new HorizontalLayout());
             sumsComponent.setVisible(false);
 
-            addComponent(chartsComponent = new HorizontalLayout());
-            chartsComponent.setVisible(false);
+            if (MDD.getApp().isChartsEnabled()) {
+                addComponent(chartsComponent = new HorizontalLayout());
+                chartsComponent.setVisible(false);
+            }
 
             HorizontalLayout hcl;
             addComponent(hcl = new HorizontalLayout(excelButton = new Button(FontAwesome.FILE_EXCEL_O, e -> excel()), pdfButton = new Button(FontAwesome.FILE_PDF_O, e -> pdf()), countLabel = new Label()));
@@ -650,19 +652,21 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             sumsComponent.setVisible(false);
         }
 
-        List<ChartData> charts = getCharts(filters);
+        if (MDD.getApp().isChartsEnabled()) {
+            List<ChartData> charts = getCharts(filters);
 
-        if (charts != null && charts.size() > 0) {
+            if (charts != null && charts.size() > 0) {
 
-            chartsComponent.removeAllComponents();
+                chartsComponent.removeAllComponents();
 
-            for (ChartData d : charts) {
-                chartsComponent.addComponent(buildChart(d));
+                for (ChartData d : charts) {
+                    chartsComponent.addComponent(buildChart(d));
+                }
+
+                chartsComponent.setVisible(true);
+            } else {
+                chartsComponent.setVisible(false);
             }
-
-            chartsComponent.setVisible(true);
-        } else {
-            chartsComponent.setVisible(false);
         }
 
         return count;

@@ -17,8 +17,17 @@ public class MapMapperEntity {
     private String name;
 
 
+
     @OneToMany(mappedBy = "mapper")
     private Map<MapKeyEntity, MapValueEntity> map = new HashMap<>();
+
+
+
+    private Map<Integer, String> map1 = new HashMap<>();
+
+    private Map<String, String> map2 = new HashMap<>();
+
+    private Map<MapKeysEnum, String> map3 = new HashMap<>();
 
 
 
