@@ -21,21 +21,6 @@ import io.mateu.mdd.vaadinport.vaadin.components.app.views.AreaComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.OAuthHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
 import io.mateu.mdd.vaadinport.vaadin.pojos.Profile;
-import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.UseLinkToListView;
-import io.mateu.mdd.core.app.*;
-import io.mateu.mdd.core.interfaces.EntityProvider;
-import io.mateu.mdd.core.interfaces.WizardPage;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.util.Pair;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.app.views.AreaComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
-import io.mateu.mdd.vaadinport.vaadin.components.oauth.OAuthHelper;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
-import io.mateu.mdd.vaadinport.vaadin.pojos.Profile;
 
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
@@ -508,12 +493,8 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                             Method method = lvc.getMethod(step);
 
                             if (method == null && !"filters".equals(step) && lastViewComponent instanceof RpcListViewComponent) {
-                                try {
-                                    method = ((RpcListViewComponent)lastViewComponent).getRpcListView().getClass().getMethod("onDoubleClick", String.class);
-                                    pendingResult = ((RpcListViewComponent)lastViewComponent).getRpcListView().onDoubleClick(step);
-                                } catch (NoSuchMethodException e) {
-                                    MDD.alert(e);
-                                }
+                                method = ReflectionHelper.getMethod(((RpcListViewComponent)lastViewComponent).getRpcListView().getClass(), "onEdit");
+                                //pendingResult = ((RpcListViewComponent)lastViewComponent).getRpcListView().onEdit(step);
                             }
 
                             if (method != null) {
@@ -625,8 +606,8 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                             if (method == null && field == null && lastViewComponent instanceof RpcListViewComponent) {
                                 try {
-                                    method = ((RpcListViewComponent)lastViewComponent).getRpcListView().getClass().getMethod("onDoubleClick", String.class);
-                                    pendingResult = ((RpcListViewComponent)lastViewComponent).getRpcListView().onDoubleClick(step);
+                                    method = ((RpcListViewComponent)lastViewComponent).getRpcListView().getClass().getMethod("onEdit", String.class);
+                                    pendingResult = ((RpcListViewComponent)lastViewComponent).getRpcListView().onEdit(step);
                                 } catch (NoSuchMethodException e) {
                                     MDD.alert(e);
                                 }

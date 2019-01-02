@@ -61,7 +61,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
                 if (container.getComponentCount() > 0) hl.setCaption(ReflectionHelper.getCaption(field));
 
-                if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) hl.setDescription(field.getAnnotation(Help.class).value());
+                //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) hl.setDescription(field.getAnnotation(Help.class).value());
 
                 botonLink = new Button(null, VaadinIcons.EDIT);
                 botonLink.addStyleName(ValoTheme.BUTTON_QUIET);
@@ -77,7 +77,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
                 if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
 
-                if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
+                //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
 
             }
 

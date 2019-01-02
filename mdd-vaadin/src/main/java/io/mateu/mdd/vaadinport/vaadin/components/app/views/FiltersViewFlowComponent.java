@@ -30,7 +30,7 @@ public class FiltersViewFlowComponent extends VerticalLayout {
 
         Button b;
         addComponent(b = new Button(VaadinIcons.SEARCH));
-        b.setDescription("Search. Click ENTER to fire");
+        //b.setDescription("Search. Click ENTER to fire");
         b.addStyleName(ValoTheme.BUTTON_QUIET);
         b.addStyleName("buttonlink");
 

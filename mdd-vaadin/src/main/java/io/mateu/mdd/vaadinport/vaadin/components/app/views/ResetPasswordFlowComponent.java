@@ -61,7 +61,7 @@ public class ResetPasswordFlowComponent extends VerticalLayout {
                         addComponent(hl = new HorizontalLayout());
                         Button b;
                         hl.addComponent(b = new Button("Update password and sign in", e -> login()));
-                        b.setDescription("Click ENTER to update password and sign in");
+                        //b.setDescription("Click ENTER to update password and sign in");
                         b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
                         b.addStyleName(ValoTheme.BUTTON_PRIMARY);
 

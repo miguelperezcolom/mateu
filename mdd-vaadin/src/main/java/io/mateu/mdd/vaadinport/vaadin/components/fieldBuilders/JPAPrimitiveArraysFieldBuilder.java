@@ -59,7 +59,7 @@ public class JPAPrimitiveArraysFieldBuilder extends JPAStringFieldBuilder {
         tf.setPlaceholder();
         */
 
-            if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
+            //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
 
 
             bind(binder, tf, field);

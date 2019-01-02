@@ -20,7 +20,7 @@ public class SessionComponent extends VerticalLayout {
         addComponent(foto = new Image("", new ClassResource("/images/profile.jpg")));
         setVisible(false);
         foto.addStyleName("foto");
-        foto.setDescription("Click to change your profile");
+        //foto.setDescription("Click to change your profile");
         foto.addClickListener(e -> MDDUI.get().getNavegador().goTo("private/profile"));
 
 

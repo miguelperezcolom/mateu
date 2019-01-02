@@ -27,15 +27,6 @@ So, you must first create your entities. For instance:
 
 ```java
 
-package com.example.model;
-
-import javax.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
-
-import javax.persistence.Entity;
-import javax.persistence.Id;
-
 @Entity
 @Getter@Setter
 public class Person {
@@ -43,7 +34,6 @@ public class Person {
     @Id@GeneratedValue
     private long id;
 
-    @MainSearchFilter
     private String name;
 
     private Gender gender;
@@ -58,7 +48,7 @@ JPA will create the database table for us. We do not need to do anything else.
 
 ## Add the menu option
 
-The only thing left for us is to show a menu option so the user can create, modify or delete currencies.
+The only thing left for us is to show a menu option so the user can create, modify or delete people.
 
 To do it we must just add the option in our application menu:
 
@@ -177,7 +167,9 @@ For collections annotated with @ElementCollection and for owned collections (e.g
 
 If the collection target type is a more complex one (e.g. it has collection fields) Mateu MDD will infer a non editable grid with **add* and **remove** buttons, so when we choose to add a new item, or when we edit an item by double clicking it on the grid, a new screen will be shown where we can edit our items and navigate the collection.
 
-If the collection target type holds entities (e.g. we are talking about a @OneToMany or @ManyToMany annotated collection field) then a non editable will also be inferred, but the **add** button will offer a CRUD list view so we can search and select which entities we want to add to our collection (or even create them if we need to). If our parent entity owns the child entity (the @OneToMany or @ManyToMany annotation cascade parameter is set to ALL) then an editable grid will be inferred if possible (if all child fields are primitive, enumeration or @ManyToOne) or a non editable grid which takes us to a navigable editor.
+If the collection target type holds entities (e.g. we are talking about a @OneToMany or @ManyToMany annotated collection field) then a non editable will also be inferred, but the **add** button will offer a CRUD list view so we can search and select which entities we want to add to our collection (or even create them if we need to). 
+
+If our parent entity owns the child entity (the @OneToMany or @ManyToMany annotation cascade parameter is set to ALL) then an editable grid will be inferred if possible (if all child fields are primitive, enumeration or @ManyToOne) or a non editable grid which takes us to a navigable editor.
 
 Please note that reverse map fields (those marked with the **mappedBy** parameter of the @OneToMany and @ManyToMany annotations) are not shown as we aleady know who is that value.
 

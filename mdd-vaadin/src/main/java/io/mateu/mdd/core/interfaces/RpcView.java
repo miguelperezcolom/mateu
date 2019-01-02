@@ -24,16 +24,16 @@ public interface RpcView<F, C> {
 
     };
 
-    default boolean isDoubleClickHandled() { return false; }
+    default boolean isEditHandled() { return false; }
 
-    default Object onDoubleClick(String id) {
+    default Object onEdit(C row) {
         return null;
     }
 
 
-    default boolean isClickHandled() { return false; }
+    default boolean isSelectHandled() { return false; }
 
-    default Object onClick(String id) {
+    default Object onSelect(C row) {
         return null;
     }
 

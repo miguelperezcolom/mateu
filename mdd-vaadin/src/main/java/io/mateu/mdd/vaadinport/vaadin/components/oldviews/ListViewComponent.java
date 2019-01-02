@@ -894,7 +894,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             });
 
 
-            i.setDescription("Click Ctrl + ALt + N to fire");
+            //i.setDescription("Click Ctrl + ALt + N to fire");
             Button b;
             addComponent(b = new Button());
             b.addStyleName("hidden");
@@ -927,7 +927,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
             });
 
-            i.setDescription("Click Ctrl + DELETE to fire");
+            //i.setDescription("Click Ctrl + DELETE to fire");
             Button b;
             addComponent(b = new Button());
             b.addStyleName("hidden");

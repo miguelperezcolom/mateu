@@ -8,14 +8,9 @@ import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.core.annotations.Action;
-import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.ChartData;
-import io.mateu.mdd.core.data.SumData;
-import io.mateu.mdd.core.interfaces.RpcCrudView;
-import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -40,12 +35,12 @@ public class RpcListViewComponent extends ListViewComponent {
         addListener(new ListViewComponentListener() {
             @Override
             public void onEdit(Object id) {
-                rpcListView.onDoubleClick("" + id);
+                rpcListView.onEdit(id);
             }
 
             @Override
             public void onSelect(Object id) {
-                rpcListView.onClick("" + id);
+                rpcListView.onSelect(id);
             }
         });
     }
@@ -58,12 +53,18 @@ public class RpcListViewComponent extends ListViewComponent {
         addListener(new ListViewComponentListener() {
             @Override
             public void onEdit(Object id) {
-                if (rpcListView.isDoubleClickHandled()) MDDUI.get().getNavegador().go("" + id);
+                if (rpcListView.isEditHandled()) {
+                    MDDUI.get().getNavegador().setPendingResult(rpcListView.onEdit(id));
+                    MDDUI.get().getNavegador().go("" + id);
+                }
             }
 
             @Override
             public void onSelect(Object id) {
-                if (rpcListView.isClickHandled()) MDDUI.get().getNavegador().go("" + id);
+                if (rpcListView.isSelectHandled()) {
+                    MDDUI.get().getNavegador().setPendingResult(rpcListView.onSelect(id));
+                    MDDUI.get().getNavegador().go("" + id);
+                }
             }
         });
     }

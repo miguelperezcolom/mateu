@@ -84,7 +84,7 @@ public class JPACodeFieldBuilder extends JPAStringFieldBuilder {
 
             tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
 
-            if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
+            //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
 
 
             if (field.isAnnotationPresent(NotNull.class)) validators.get(tf).add(new StringLengthValidator("Required field", 1, Integer.MAX_VALUE));

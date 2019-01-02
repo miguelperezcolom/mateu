@@ -40,7 +40,7 @@ public class HeaderComponent extends HorizontalLayout {
         appTitle.addStyleName(ValoTheme.BUTTON_LINK);
         appTitle.addStyleName("apptitle");
         appTitle.addClickListener(e -> MDDUI.get().getNavegador().goTo(""));
-        appTitle.setDescription("Go home");
+        //appTitle.setDescription("Go home");
 
         Label spacing;
         addComponent(spacing = new Label(""));

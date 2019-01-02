@@ -244,8 +244,7 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
 
             }
 
-            if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value()))
-                tf.setDescription(field.getAnnotation(Help.class).value());
+            //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
 
             bind(binder, tf, field, forSearchFilter);
 

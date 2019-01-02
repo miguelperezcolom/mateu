@@ -21,6 +21,9 @@ public class Booking {
 
     private String leadName;
 
+    @ManyToOne
+    private Hotel hotel;
+
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "booking")
     private List<HotelBookingLine> lines = new ArrayList<>();
 

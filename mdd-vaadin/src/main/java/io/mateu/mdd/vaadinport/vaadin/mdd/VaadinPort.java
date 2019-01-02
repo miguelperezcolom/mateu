@@ -27,10 +27,12 @@ import java.util.Set;
 public class VaadinPort implements MDDPort {
 
     private boolean mobile;
+    private boolean ipad;
 
     public VaadinPort(VaadinRequest vaadinRequest) {
 
         mobile = Page.getCurrent().getWebBrowser().isAndroid() || Page.getCurrent().getWebBrowser().isIOS() || Page.getCurrent().getWebBrowser().isWindowsPhone();
+        ipad = Page.getCurrent().getWebBrowser().isIPad();
 
         if (vaadinRequest instanceof VaadinServletRequest) {
             HttpServletRequest httpRequest = ((VaadinServletRequest) vaadinRequest).getHttpServletRequest();
@@ -90,6 +92,11 @@ public class VaadinPort implements MDDPort {
     @Override
     public boolean isViewingCentralCurrency() {
         return "central".equalsIgnoreCase((String) UI.getCurrent().getSession().getAttribute("_viewcurrency"));
+    }
+
+    @Override
+    public boolean isIpad() {
+        return ipad;
     }
 
 

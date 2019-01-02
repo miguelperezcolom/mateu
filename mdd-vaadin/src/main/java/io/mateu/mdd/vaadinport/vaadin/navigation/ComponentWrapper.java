@@ -62,7 +62,7 @@ public class ComponentWrapper extends VerticalLayout {
     private Component createBackLink() {
 
         Button b = new Button(null, VaadinIcons.ARROW_CIRCLE_LEFT);
-        b.setDescription("Back to " + stack.get(stack.size() - 1) + ". Click Ctrl + B to fire");
+        //b.setDescription("Back to " + stack.get(stack.size() - 1) + ". Click Ctrl + B to fire");
         b.addClickListener(e -> {
             if (wrapped instanceof OwnedCollectionComponent) {
                 OwnedCollectionComponent cc = (OwnedCollectionComponent) wrapped;

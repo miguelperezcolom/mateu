@@ -120,4 +120,8 @@ public class MDD {
     public static void refreshUI() {
         MDDUI.get().refreshUI();
     }
+
+    public static boolean isIpad() {
+        return getPort().isIpad();
+    }
 }

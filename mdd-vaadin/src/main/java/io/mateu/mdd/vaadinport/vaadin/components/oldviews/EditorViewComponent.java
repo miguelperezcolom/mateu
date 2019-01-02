@@ -435,7 +435,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 });
                 //i.setStyleName(ValoTheme.butt);
 
-                i.setDescription("Click Ctrl + R to refresh.");
+                //i.setDescription("Click Ctrl + R to refresh.");
 
                 addMenuItem("refresh", i);
 
@@ -480,7 +480,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 });
                 i.setStyleName(ValoTheme.BUTTON_PRIMARY);
 
-                i.setDescription("Click Ctrl + S to fire. Ctrl + Alt + S to duplicate.");
+                //i.setDescription("Click Ctrl + S to fire. Ctrl + Alt + S to duplicate.");
 
                 addMenuItem("save", i);
 

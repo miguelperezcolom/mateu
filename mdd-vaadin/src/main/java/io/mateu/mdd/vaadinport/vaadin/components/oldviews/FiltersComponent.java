@@ -92,7 +92,7 @@ public class FiltersComponent extends Composite {
 
             Button b;
             botones.addComponent(b = new Button(VaadinIcons.CLOSE));
-            b.setDescription("Reset all filters");
+            //b.setDescription("Reset all filters");
             b.addStyleName(ValoTheme.BUTTON_QUIET);
             b.addStyleName("buttonlink");
             b.addClickListener(new Button.ClickListener() {
@@ -118,7 +118,7 @@ public class FiltersComponent extends Composite {
 
 
                 botones.addComponent(b = new Button(VaadinIcons.FILTER));
-                b.setDescription("All filters. Click Ctrl + F to fire");
+                //b.setDescription("All filters. Click Ctrl + F to fire");
                 b.addStyleName(ValoTheme.BUTTON_QUIET);
                 b.addStyleName("buttonlink");
                 b.addClickListener(new Button.ClickListener() {
@@ -157,7 +157,7 @@ public class FiltersComponent extends Composite {
 
         Button b;
         botones.addComponent(b = new Button(VaadinIcons.SEARCH));
-        b.setDescription("Search. Click ENTER to fire");
+        //b.setDescription("Search. Click ENTER to fire");
         b.addStyleName(ValoTheme.BUTTON_QUIET);
         b.addStyleName("buttonlink");
         b.addClickListener(new Button.ClickListener() {

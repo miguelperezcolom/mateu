@@ -65,4 +65,6 @@ public interface MDDPort {
     boolean isViewingOfficeCurrency();
 
     boolean isViewingCentralCurrency();
+
+    boolean isIpad();
 }

@@ -54,7 +54,7 @@ public class KPIInlineFieldBuilder extends AbstractFieldBuilder {
 
         //if (container.getComponentCount() > 0) vl.setCaption(ReflectionHelper.getCaption(field));
 
-        if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) vl.setDescription(field.getAnnotation(Help.class).value());
+        //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) vl.setDescription(field.getAnnotation(Help.class).value());
 
         bind(binder, vl, l, field);
 

@@ -63,7 +63,7 @@ public class NavigationComponent extends VerticalLayout {
                     b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
                     b.setCaptionAsHtml(true);
                     b.addStyleName("tituloarea");
-                    b.setDescription("Click to change to another area");
+                    //b.setDescription("Click to change to another area");
 
                     String estiloArea = a.getStyle();
                     if (Strings.isNullOrEmpty(estiloArea)) estiloArea = estilosAreas[app.getAreas().indexOf(a) % estilosAreas.length];

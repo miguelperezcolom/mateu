@@ -3,6 +3,8 @@ package io.mateu.mdd.tester.model.tests;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.tester.model.entities.relations.OneToManyChildEntity;
 import io.mateu.mdd.tester.model.entities.relations.OneToManyParentEntity;
+import io.mateu.mdd.tester.model.entities.relations.OneToOneReferenced;
+import io.mateu.mdd.tester.model.useCases.hotel.Booking;
 
 import javax.persistence.Query;
 import java.util.List;
@@ -12,7 +14,36 @@ public class TesterJPQL {
     public static void main(String[] args) throws Throwable {
 
 
-        test2();
+        test3();
+
+    }
+
+    private static void test3() throws Throwable {
+
+        Helper.notransact(em -> {
+
+            String ql = "";
+
+            ql += " select h.id, h.name, count(*) ";
+
+            ql+= " from booking b inner join hotel h on h.id = b.hotel_id ";
+
+            ql += " group by h.id, h.name ";
+            ql += " order by h.name ";
+
+            if (true) {
+                ql = " select count(*) from (" + ql + ")";
+            }
+
+            Query q = em.createNativeQuery(ql);
+
+
+            List l = q.getResultList();
+
+
+            System.out.println("l.size() = " + l.size());
+
+        });
 
     }
 
@@ -20,7 +51,7 @@ public class TesterJPQL {
         Helper.transact(em -> {
 
             Query q = em.createQuery("select  x.id, x.id, x.name, x0.name, x1.name " +
-                    " from io.mateu.mdd.tester.entities.relations.OneToOneReferenced x  " +
+                    " from " + OneToOneReferenced.class.getName() + " x  " +
                     " left join x.referencer x1 " +
                     " left join x.referencerMapper x0 " +
                     "");

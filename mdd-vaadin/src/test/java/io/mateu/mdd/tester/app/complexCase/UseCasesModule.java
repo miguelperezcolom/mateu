@@ -72,6 +72,8 @@ public class UseCasesModule extends AbstractModule {
 
                 l.add(new MDDOpenCRUDAction("Bookings", Booking.class));
 
+                l.add(new MDDOpenListViewAction("Roomings", RoomingListView.class));
+
                 return l;
             }
         });
