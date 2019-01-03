@@ -37,9 +37,9 @@ public class JPAIntegerFieldBuilder extends JPAStringFieldBuilder {
             Slider tf;
             container.addComponent(tf = new Slider(new Long(field.getAnnotation(Min.class).value()).intValue(), new Long(field.getAnnotation(Max.class).value()).intValue()));
 
-            if (allFieldContainers.size() == 0) tf.focus();
+            if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
 
-            allFieldContainers.put(field, tf);
+            if (allFieldContainers != null) allFieldContainers.put(field, tf);
 
             if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
 

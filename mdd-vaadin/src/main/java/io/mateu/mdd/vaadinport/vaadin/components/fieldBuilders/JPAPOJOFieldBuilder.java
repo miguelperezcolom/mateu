@@ -205,7 +205,7 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
             }
 
 
-            allFieldContainers.put(field, tf);
+            if (allFieldContainers != null) allFieldContainers.put(field, tf);
 
             tf.setCaption(ReflectionHelper.getCaption(field));
 

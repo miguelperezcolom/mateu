@@ -3,8 +3,6 @@ package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.vaadin.data.*;
-import com.vaadin.data.provider.DataChangeEvent;
-import com.vaadin.data.provider.DataProviderListener;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.icons.VaadinIcons;
@@ -14,19 +12,14 @@ import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
-import io.mateu.mdd.core.annotations.FullWidth;
-import io.mateu.mdd.core.annotations.UseCheckboxes;
-import io.mateu.mdd.core.annotations.UseLinkToListView;
-import io.mateu.mdd.core.data.FareValue;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.reflection.*;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
+import io.mateu.mdd.core.data.FareValue;
+import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.model.common.Resource;
-import io.mateu.mdd.core.reflection.FieldInterfacedFromType;
+import io.mateu.mdd.core.reflection.*;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.OwnedCollectionComponent;
 
@@ -38,6 +31,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -54,6 +48,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                 Class gc = ReflectionHelper.getGenericClass(field, Collection.class, "E");
                 ok &= !(String.class.equals(gc) || Integer.class.equals(gc) || Long.class.equals(gc) || Float.class.equals(gc) || Double.class.equals(gc) || Boolean.class.equals(gc));
             }
+            if (!ok) ok = Map.class.isAssignableFrom(field.getType());
         }
         return ok;
     }
@@ -142,7 +137,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                 return "Error";
             });
 
-            allFieldContainers.put(field, tf);
+            if (allFieldContainers != null) allFieldContainers.put(field, tf);
 
             tf.setCaption(ReflectionHelper.getCaption(field));
 
@@ -512,10 +507,28 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
         Grid g = new Grid();
 
-        if (field.isAnnotationPresent(FullWidth.class)) g.setWidth("100%");
-        else g.setWidthUndefined();
-
         ListViewComponent.buildColumns(g, getColumnFields(field), false, true);
+
+        int ancho = 0;
+        for (Grid.Column col : (List<Grid.Column>)g.getColumns()) ancho += col.getWidth();
+        if (ancho <= 0) ancho = 500;
+
+
+        boolean anchoCompleto = field.isAnnotationPresent(FullWidth.class) || ancho > 900;
+        anchoCompleto = false;
+
+        if (anchoCompleto) g.setWidth("100%");
+        else {
+            g.setWidth("" + (ancho + 50) + "px");
+        }
+
+        // añadimos columna para que no haga feo
+        if (anchoCompleto) {
+            if (g.getColumns().size() == 1) ((Grid.Column)g.getColumns().get(0)).setExpandRatio(1);
+            else g.addColumn((d) -> null).setWidthUndefined().setCaption("");
+        }
+
+        g.setHeightMode(HeightMode.UNDEFINED);
 
         g.setSelectionMode(Grid.SelectionMode.MULTI);
 
@@ -528,37 +541,58 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
         bindMap(binder, g, field);
 
+
+        Layout lx = new VerticalLayout();
+        lx.addStyleName(CSS.NOPADDING);
+
+
+        List<FieldInterfaced> auxFields = new ArrayList<>();
+        auxFields.add(new FieldInterfacedFromType(ReflectionHelper.getGenericClass((ParameterizedType) field.getGenericType(), Map.class, "K"), "key"));
+        auxFields.add(new FieldInterfacedFromType(ReflectionHelper.getGenericClass((ParameterizedType) field.getGenericType(), Map.class, "V"), "value"));
+        MDDBinder auxbinder = new MDDBinder(auxFields);
+        Map<String, Object> m = new HashMap<>();
+        auxbinder.setBean(m);
+        Layout finalHl = lx;
+        auxFields.forEach(f -> {
+            AbstractFieldBuilder b = MDD.getApp().getFieldBuilder(f);
+            if (b != null) b.build(f, m, finalHl, auxbinder, null, null, null, false);
+        });
+
+        vl.addComponent(lx);
+
         HorizontalLayout hl = new HorizontalLayout();
-
-
         Button b;
 
         g.getEditor().setEnabled(true);
+        ((Grid.Column)g.getColumns().get(0)).setEditable(false);
         g.getEditor().setBuffered(false);
         g.setHeightMode(HeightMode.UNDEFINED);
 
-        hl.addComponent(b = new Button("Add", VaadinIcons.PLUS));
+        hl.addComponent(b = new Button("Put", VaadinIcons.PLUS));
         b.addClickListener(e -> {
 
+            Object bean = binder.getBean();
 
-            VaadinHelper.getPair("Please provide key and value", keyType, valueType, (k, v) -> {
+            Map<String, Object> aux = (Map<String, Object>) auxbinder.getBean();
+            Object k = aux.get("key");
+            Object v = aux.get("value");
 
-                try {
-                    Object bean = binder.getBean();
+            try {
 
+                if (k != null) {
                     ReflectionHelper.addToMap(binder, field, bean, k, v);
 
                     binder.setBean(bean, false);
-                } catch (Exception e1) {
-                    MDD.alert(e1);
                 }
 
+            } catch (Exception e1) {
+                MDD.alert(e1);
+            }
 
-            });
 
         });
 
-        hl.addComponent(b = new Button("Remove", VaadinIcons.MINUS));
+        hl.addComponent(b = new Button("Remove selected lines", VaadinIcons.MINUS));
         b.addClickListener(e -> {
 
 

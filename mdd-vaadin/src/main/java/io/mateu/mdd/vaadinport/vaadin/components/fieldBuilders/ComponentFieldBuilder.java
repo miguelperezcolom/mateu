@@ -34,7 +34,7 @@ public class ComponentFieldBuilder extends AbstractFieldBuilder {
         container.addComponent(tf = new VerticalLayout());
         tf.addStyleName(CSS.NOPADDING);
 
-        allFieldContainers.put(field, tf);
+        if (allFieldContainers != null) allFieldContainers.put(field, tf);
 
         if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
 

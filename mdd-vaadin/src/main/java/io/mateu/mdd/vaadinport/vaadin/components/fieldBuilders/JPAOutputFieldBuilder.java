@@ -57,7 +57,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
                 hl.addComponent(tf);
 
-                allFieldContainers.put(field, hl);
+                if (allFieldContainers != null) allFieldContainers.put(field, hl);
 
                 if (container.getComponentCount() > 0) hl.setCaption(ReflectionHelper.getCaption(field));
 
@@ -73,7 +73,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
                 container.addComponent(tf);
 
-                allFieldContainers.put(field, tf);
+                if (allFieldContainers != null) if (allFieldContainers != null) allFieldContainers.put(field, tf);
 
                 if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
 

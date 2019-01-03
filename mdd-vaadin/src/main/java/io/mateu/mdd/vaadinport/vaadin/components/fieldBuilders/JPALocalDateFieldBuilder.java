@@ -32,9 +32,9 @@ public class JPALocalDateFieldBuilder extends AbstractFieldBuilder {
         DateField tf;
         container.addComponent(tf = new DateField());
 
-        if (allFieldContainers.size() == 0) tf.focus();
+        if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
 
-        allFieldContainers.put(field, tf);
+        if (allFieldContainers != null) allFieldContainers.put(field, tf);
 
         if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
 

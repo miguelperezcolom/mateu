@@ -41,7 +41,7 @@ public class JPAOneToOneFieldBuilder extends AbstractFieldBuilder {
             ComboBox tf;
             container.addComponent(tf = new ComboBox());
 
-            if (allFieldContainers.size() == 0) tf.focus();
+            if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
 
             if (field.isAnnotationPresent(DataProvider.class)) {
 
@@ -82,7 +82,7 @@ public class JPAOneToOneFieldBuilder extends AbstractFieldBuilder {
                 return "Error";
             });
 
-            allFieldContainers.put(field, tf);
+            if (allFieldContainers != null) allFieldContainers.put(field, tf);
 
             if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
 

@@ -45,7 +45,7 @@ public class JPAUnmodifiableFieldBuilder extends AbstractFieldBuilder {
                 tf.addStyleName("alinearderecha");
             }
 
-            allFieldContainers.put(field, tf);
+            if (allFieldContainers != null) allFieldContainers.put(field, tf);
 
             if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
 

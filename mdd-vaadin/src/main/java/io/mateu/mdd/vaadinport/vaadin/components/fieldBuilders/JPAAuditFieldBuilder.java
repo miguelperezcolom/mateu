@@ -35,7 +35,7 @@ public class JPAAuditFieldBuilder extends AbstractFieldBuilder {
             container.addComponent(tf = new Label("", ContentMode.HTML));
             tf.addStyleName("audit");
 
-            allFieldContainers.put(field, tf);
+            if (allFieldContainers != null) allFieldContainers.put(field, tf);
 
             if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
 

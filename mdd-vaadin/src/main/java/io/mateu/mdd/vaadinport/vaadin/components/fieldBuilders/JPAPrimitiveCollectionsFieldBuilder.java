@@ -117,7 +117,7 @@ public class JPAPrimitiveCollectionsFieldBuilder extends JPAStringFieldBuilder {
                 if (!forSearchFilter) rbg.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
 
 
-                allFieldContainers.put(field, tf);
+                if (allFieldContainers != null) allFieldContainers.put(field, tf);
 
                 if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
 
@@ -131,9 +131,9 @@ public class JPAPrimitiveCollectionsFieldBuilder extends JPAStringFieldBuilder {
                 container.addComponent(tf);
                 tf.setValueChangeMode(ValueChangeMode.BLUR);
 
-                if (allFieldContainers.size() == 0) tf.focus();
+                if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
 
-                allFieldContainers.put(field, tf);
+                if (allFieldContainers != null) allFieldContainers.put(field, tf);
 
                 if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
         /*

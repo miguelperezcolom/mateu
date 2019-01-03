@@ -40,7 +40,7 @@ public class JPAHtmlFieldBuilder extends JPAStringFieldBuilder {
             RichTextArea tf;
             l.addComponent(tf = new RichTextArea());
 
-            if (allFieldContainers.size() == 0) tf.focus();
+            if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
 
             Button b;
             l.addComponent(b = new Button(VaadinIcons.EXPAND_SQUARE));
@@ -49,7 +49,7 @@ public class JPAHtmlFieldBuilder extends JPAStringFieldBuilder {
 
             container.addComponent(l);
 
-            allFieldContainers.put(field, tf);
+            if (allFieldContainers != null) allFieldContainers.put(field, tf);
 
             if (container.getComponentCount() > 0) l.setCaption(ReflectionHelper.getCaption(field));
 

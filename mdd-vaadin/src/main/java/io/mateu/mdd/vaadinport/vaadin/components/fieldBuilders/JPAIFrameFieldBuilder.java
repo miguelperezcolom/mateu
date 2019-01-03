@@ -41,7 +41,7 @@ public class JPAIFrameFieldBuilder extends AbstractFieldBuilder {
             container.addComponent(tf);
 
 
-            allFieldContainers.put(field, tf);
+            if (allFieldContainers != null) allFieldContainers.put(field, tf);
 
             if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
 

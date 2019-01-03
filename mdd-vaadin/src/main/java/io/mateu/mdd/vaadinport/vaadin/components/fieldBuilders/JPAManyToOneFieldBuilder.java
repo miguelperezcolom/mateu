@@ -251,7 +251,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                     cb.addStyleName("combo");
 
 
-                    if (allFieldContainers.size() == 0) cb.focus();
+                    if (allFieldContainers != null && allFieldContainers.size() == 0) cb.focus();
 
                     hv = cb;
 
@@ -315,7 +315,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
         }
 
 
-        allFieldContainers.put(field, tf);
+        if (allFieldContainers != null) if (allFieldContainers != null) allFieldContainers.put(field, tf);
 
         tf.setCaption(ReflectionHelper.getCaption(field));
 

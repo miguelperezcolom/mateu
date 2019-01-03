@@ -37,11 +37,11 @@ public class FromDataProviderFieldBuilder extends AbstractFieldBuilder {
             RadioButtonGroup tf;
             container.addComponent(tf = new RadioButtonGroup());
 
-            if (allFieldContainers.size() == 0) tf.focus();
+            if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
 
             tf.setDataProvider(field.getDataProvider());
 
-            allFieldContainers.put(field, tf);
+            if (allFieldContainers != null) allFieldContainers.put(field, tf);
 
             if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
 
@@ -77,11 +77,11 @@ public class FromDataProviderFieldBuilder extends AbstractFieldBuilder {
             ComboBox tf;
             container.addComponent(tf = new ComboBox());
 
-            if (allFieldContainers.size() == 0) tf.focus();
+            if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
 
             tf.setDataProvider(field.getDataProvider());
 
-            allFieldContainers.put(field, tf);
+            if (allFieldContainers != null) allFieldContainers.put(field, tf);
 
             if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
 

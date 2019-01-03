@@ -395,7 +395,7 @@ public abstract class AbstractApplication implements App {
 
     public AbstractFieldBuilder getFieldBuilder(FieldInterfaced field) {
 
-        String k = ((field.getDeclaringClass() != null)?field.getDeclaringClass().getName():"--") + "/" + field.getName() + "/" + (MDDUI.get().isEditingNewRecord()?"newrecord":"editing");
+        String k = ((field.getDeclaringClass() != null)?field.getDeclaringClass().getName() + "/" + field.getName() + "/" + (MDDUI.get().isEditingNewRecord()?"newrecord":"editing"):field.getType().getName());
 
         if (fieldBuildersCache.containsKey(k)) return fieldBuildersCache.get(k);
         else {

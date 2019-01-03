@@ -34,11 +34,11 @@ public class JPAEnumerationFieldBuilder extends AbstractFieldBuilder {
         ComboBox tf;
         container.addComponent(tf = new ComboBox());
 
-        if (allFieldContainers.size() == 0) tf.focus();
+        if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
 
         tf.setDataProvider(new ListDataProvider(Arrays.asList(field.getType().getEnumConstants())));
 
-        allFieldContainers.put(field, tf);
+        if (allFieldContainers != null) allFieldContainers.put(field, tf);
 
         tf.setCaption(ReflectionHelper.getCaption(field));
 

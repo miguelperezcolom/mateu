@@ -44,9 +44,9 @@ public class JPAURLFieldBuilder extends AbstractFieldBuilder {
         container.addComponent(hl = new HorizontalLayout(tf, b));
 
 
-        if (allFieldContainers.size() == 0) tf.focus();
+        if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
 
-        allFieldContainers.put(field, tf);
+        if (allFieldContainers != null) allFieldContainers.put(field, tf);
 
         if (container.getComponentCount() > 0) hl.setCaption(ReflectionHelper.getCaption(field));
 

@@ -43,7 +43,7 @@ public class JPAWizardFieldBuilder extends AbstractFieldBuilder {
             b.addStyleName(ValoTheme.BUTTON_LINK);
             b.addClickListener(e -> MDDUI.get().getNavegador().goTo(field));
 
-            allFieldContainers.put(field, tf);
+            if (allFieldContainers != null) allFieldContainers.put(field, tf);
 
             if (container.getComponentCount() > 0) hl.setCaption(ReflectionHelper.getCaption(field));
 

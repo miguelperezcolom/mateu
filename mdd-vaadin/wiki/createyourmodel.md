@@ -181,17 +181,25 @@ We can also limit which columns are shown by using the [@FieldsFilter](Supported
 
 ## Maps
 
-For map containers Mateu-MDD infers a table with the map key as the first column and the map value fields inside the rest of columns.
+For map containers Mateu-MDD infers a table with the map key as the first column and the map value as the second column.
 
-We can populate the grid with all possible key values by using the [@PrePopulate](Supported-annotations-list#prepopulate) annotation as shown below:
+The second column is editable inline for modifying values.
+
+Also a little form is added for inserting new entries to the map.
+
+E.g.:
 
 ````java
+
+    @OneToMany(mappedBy = "mapper")
+    private Map<MapKeyEntity, MapValueEntity> map = new HashMap<>();
+
 
 ````
 
 Which would result in :
 
-![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd08.png?raw=true)
+![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd21.png?raw=true)
 
 
 ## Ignore fields
