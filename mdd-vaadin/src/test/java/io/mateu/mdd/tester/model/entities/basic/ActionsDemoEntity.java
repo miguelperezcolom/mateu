@@ -32,7 +32,7 @@ public class ActionsDemoEntity {
     private int intField;
 
 
-    @Action(value = "Returns pdf", icon = VaadinIcons.AIRPLANE, order = 1)
+    @Action(value = "Open new tab", icon = VaadinIcons.AIRPLANE, order = 1)
     public static URL action0() throws MalformedURLException {
         return new URL("https://elpais.com");
     }

@@ -225,21 +225,16 @@ For instance
 
 ```java
 
-    @Action(name = "Purchase")
-    public void checkPurchase(EntityManager em) throws Throwable {
-        if (!isAlreadyPurchasedBefore() && isAlreadyPurchased()) {
-...
-
-        } else {
-            throw new Throwable("Nothing changed. No need to purchase again");
-        }
+    @Action(value = "Open new tab", icon = VaadinIcons.AIRPLANE, order = 1)
+    public static URL action0() throws MalformedURLException {
+        return new URL("https://elpais.com");
     }
 
 ```
 
 Will generate:
 
-![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd08.png?raw=true)
+![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd22.png?raw=true)
 
 
 Note that if the method throws an exception an error message will be shown to the user.
@@ -251,21 +246,16 @@ For instance:
 
 ```java
 
-    @Action(name = "Send pickup times")
-    public static void sendPickupTimes(
-              EntityManager em, 
-              @Parameter(name = "Email")@Required String toEmail, 
-              @Parameter(name = "Msg") String msg
-         ) throws Throwable {
-        
-        ...
-
+    @Action(value = "Action on all w/params", order = 3, style = ValoTheme.BUTTON_DANGER)
+    public static void action3(@Caption("Name from caption") String name, int age) {
+        System.out.println("action 3 " + name + "/" + age);
     }
+    
 ```
 
 Will result in:
 
-![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd09.png?raw=true)
+![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd23.png?raw=true)
 
 
 There are some special parameters that Mateu-MDD treats in an special way:
