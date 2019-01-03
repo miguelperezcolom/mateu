@@ -575,6 +575,8 @@ public class MyApp extends SimpleMDDApplication {
 
 ````
 
+We can also change the default field builder by using the [@FieldBuilder](Supported-annotations-list#fieldbuilder) annotation on any field.
+
 Remember that we can also show or open our custom Vaadin components as shown at [custom vaadin components](Custom-Vaadin-components).
 
 ## When we do not want to pollute our entities
