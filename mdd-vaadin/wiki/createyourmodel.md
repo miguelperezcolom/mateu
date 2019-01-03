@@ -590,6 +590,8 @@ This is explained at the ["Create POJOs" chapter of MDD](https://github.com/migu
 
 ## POJOS
 
+Mateu MDD is not only about creating CRUDs for our JPA entities, but we can also generate a user interface for any POJO.
+
 E.g.:
 
 ````java
@@ -624,6 +626,7 @@ Our POJO will be shown as:
 
 ![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd24.png?raw=true)
 
+As we write text inside the **operations** field it will be javacript evaluated and the result will be shown.
 
 This is a very much simple example but, instead of running our text as javascript, we can call a web service, run a system command at the server, or whatever.
 
