@@ -16,7 +16,7 @@ Basically you use one object (an instance of EntityManager) to save and restore 
 You define which objects are persistible by annotating their class with the @Entity annotation, and you can refine the mapping by annotating your class fields.
 
 
-## Create our JPA entities
+### Create our JPA entities
 
 If you are still here it means that you want to create views to maintain your JPA entities.
 
@@ -46,7 +46,7 @@ So far we have our first model entity.
 
 JPA will create the database table for us. We do not need to do anything else.
 
-## Add the menu option
+### Add the menu option
 
 The only thing left for us is to show a menu option so the user can create, modify or delete people.
 
@@ -69,7 +69,7 @@ public class MyApp extends SimpleMDDApplication {
 ```
 
 
-## Run our app
+### Run our app
 
 Now we can run our app by issuing
 
@@ -86,7 +86,7 @@ And now the editor view, which is shown when we double click on one of the rows 
 
 Quite easy and straightforward, isn't it?
 
-## Non basic fields
+### Non basic fields
 
 Now, let's see what happens when we reference an entity named **Bank** from another entity.
 
@@ -135,7 +135,7 @@ Everything in Mateu-MDD works in this way. It looks at our java classes using ja
 
 
 
-## Collection fields
+### Collection fields
 
 Besides single value fields we can have collection fields. E.g. a List, Set or Map.
 
@@ -179,7 +179,7 @@ We can also limit which columns are shown by using the [@FieldsFilter](Supported
 
 
 
-## Maps
+### Maps
 
 For map containers Mateu-MDD infers a table with the map key as the first column and the map value as the second column.
 
@@ -202,7 +202,7 @@ Which would result in :
 ![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd21.png?raw=true)
 
 
-## Ignore fields
+### Ignore fields
 
 If you want Mateu-MDD to ignore a field you just need to annotate it with the [@Ignored](Supported-annotations-list#ignored) annotation.
 
@@ -213,7 +213,7 @@ So, [@Ignored](Supported-annotations-list#ignored) is the same as using both [@N
 Please note that you can also make a field not editable by annotating it with [@Output](Supported-annotations-list#output) or by annotating it with [@KPI](Supported-annotations-list#kpi) if you want it to be present at the KPIs section of the editor (enhanced at the top of the editor).
 
 
-## Exposing methods
+### Exposing methods
 
 Another special and interesting use case is when you want to publish a method so the user can call it.
 
@@ -272,7 +272,7 @@ And there are some return values which are treated in an special way:
 
 You can also check [the "expose your methods" chapter at MDD](https://github.com/miguelperezcolom/mateu-mdd/wiki/MDD#expose-your-methods)
 
-## Limiting possible values for a field
+### Limiting possible values for a field
 
 By default Mateu MDD will fill combo boxes for us with all the possible values.
 
@@ -324,7 +324,7 @@ The [@DependsOn](Supported-annotations-list#dependson) annotation tells Mateu MD
 
 This way our city field combo will always only show the cities which belong to the selected state.
 
-## Decide if a field (or action) is visible or not
+### Decide if a field (or action) is visible or not
 
 In our model we usually have fields (or actions) which must be shown to the user or not depending on some values.
 
@@ -351,7 +351,7 @@ In the example above the button for the "Confirm" action will be visible only wh
 Please note the [@DependsOn](Supported-annotations-list#dependson) annotation which tells Mateu MDD that the "Confirm" action visibility must be checked whenever the active field value changes.
 
 
-## Nested (dependant on other) values
+### Nested (dependant on other) values
 
 So far we have already seen the [@DependsOn](Supported-annotations-list#dependson) anotation, which we can use to annotate any method which we want to be called when a field or set of fields change.
 
@@ -411,7 +411,7 @@ Please note that for calculated fields we do not need to annotate them. We just 
 With the code above, each time we modify the **vatPercent** value the **total** will be updated and its new value will be shown to the user.
 
 
-## Changing the default component for a field
+### Changing the default component for a field
 
 We could think that radio buttons would be a better choice for a @ManyToOne field (e.g. if we know that the number of possible values is limited).
 
@@ -534,7 +534,7 @@ This is the result for the code above:
 ![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd16.png?raw=true)
 
 
-## Change our form fields disposition
+### Change our form fields disposition
 
 Mateu MDD will by default show all of our editor form fields in a vertical layour.
 
@@ -547,7 +547,7 @@ We can also use tabs for grouping our fields. We only need to add the [@Tab](Sup
 If we want to change the order for fields we just need to use the [@Position](Supported-annotations-list#position) annotation.
 
 
-## Change the default field editor component
+### Change the default field editor component
 
 We can change the default field editor component (e.g. a text field for strings, or a combo box for @ManyToOne fields) for the whole application or for a particular field of a particular class.
 
@@ -579,14 +579,57 @@ We can also change the default field builder by using the [@FieldBuilder](Suppor
 
 Remember that we can also show or open our custom Vaadin components as shown at [custom vaadin components](Custom-Vaadin-components).
 
-## When we do not want to pollute our entities
+### When we do not want to pollute our entities
 
 Perhaps we do not want to pollute our model entities with so many annotations, or we can not modify our entities because they come from a different project, or perhaps we think that our model classes do not have to hold presentation related annotations, or perhaps what we want to show to our users is so much different from our model than if becomes too much complicated to achieve the desired presentation just by annotating our model class.
 
-For such cases we can create our persistent pojos adapted to our presentation and code by hand the way they modify our model classes.
+For such cases we can create our [persistent pojos](https://miguelperezcolom.github.io/mateu-mdd/javadoc/mdd-vaadin/io/mateu/mdd/core/interfaces/PersistentPOJO.html) adapted to our presentation and code by hand the way they modify our model classes.
 
 This is explained at the ["Create POJOs" chapter of MDD](https://github.com/miguelperezcolom/mateu-mdd/wiki/MDD#create-pojos).
 
+
+## POJOS
+
+E.g.:
+
+````java
+
+@Getter@Setter
+public class Calculator {
+
+    @TextArea
+    private String operations;
+
+    public void setOperations(String operations) {
+        this.operations = operations;
+        result = Helper.eval(operations); // javascript eval
+    }
+
+    @Output
+    private String result;
+
+}
+
+````
+
+And for opening our POJO in our app:
+
+````java
+
+    l.add(new MDDOpenEditorAction("Calculator", Calculator.class));
+
+````
+
+Our POJO will be shown as:
+
+![](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mdd24.png?raw=true)
+
+
+This is a very much simple example but, instead of running our text as javascript, we can call a web service, run a system command at the server, or whatever.
+
+Please note that our POJO's methods can be exposed as buttons if we annotate them with [@Action](Supported-annotations-list#action).
+
+For further reading go back at This is explained to the ["Create POJOs" chapter of MDD](https://github.com/miguelperezcolom/mateu-mdd/wiki/MDD#create-pojos).
   
 ## End
 

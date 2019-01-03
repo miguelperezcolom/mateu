@@ -56,6 +56,10 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMultipart;
 import javax.money.MonetaryAmount;
 import javax.persistence.*;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import javax.sql.DataSource;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
@@ -1634,4 +1638,20 @@ public class Helper {
         else return a.equals(b);
     }
 
+    public static String eval(String operations) {
+
+        ScriptEngine engine = new ScriptEngineManager().getEngineByName("javascript");
+        ScriptContext context = engine.getContext();
+        StringWriter writer = new StringWriter();
+        context.setWriter(writer);
+
+        try {
+            writer.append("" + engine.eval(operations));
+        } catch (ScriptException e) {
+            writer.append(e.getMessage());
+        }
+
+        String output = writer.toString();
+        return output;
+    }
 }
