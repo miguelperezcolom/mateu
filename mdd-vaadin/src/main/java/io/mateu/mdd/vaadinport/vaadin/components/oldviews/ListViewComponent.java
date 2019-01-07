@@ -28,6 +28,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonValue;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
+import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.*;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.ICellStyleGenerator;

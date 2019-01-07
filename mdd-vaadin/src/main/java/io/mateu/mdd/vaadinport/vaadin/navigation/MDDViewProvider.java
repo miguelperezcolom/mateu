@@ -507,7 +507,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                     }
                                     pendingResult = null;
                                 } else {
-                                    stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, null, this, null, pendingSelection));
+                                    stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, lvc instanceof RpcListViewComponent?((RpcListViewComponent)lvc).getRpcListView():null, this, null, pendingSelection));
                                     pendingSelection = null;
                                 }
 

@@ -1,5 +1,6 @@
 package io.mateu.mdd.tester.model.useCases.hotel;
 
+import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.NotInList;
 import io.mateu.mdd.core.interfaces.AbstractJPQLListView;
 import lombok.Getter;
@@ -9,6 +10,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Getter@Setter
 public class RoomingListView extends AbstractJPQLListView<RoomingListView.Row> {
@@ -56,4 +58,10 @@ public class RoomingListView extends AbstractJPQLListView<RoomingListView.Row> {
     public Object onEdit(Row row) {
         return new RoomingForm(row);
     }
+
+    @Action
+    public static void send(String email, String text, Set<Row> selection) {
+        System.out.println("send rooming to " + email + " for " + selection.size() + " bookings");
+    }
+
 }

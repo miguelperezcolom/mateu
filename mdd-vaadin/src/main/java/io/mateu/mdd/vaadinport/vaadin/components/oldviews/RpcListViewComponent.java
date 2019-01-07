@@ -165,4 +165,9 @@ public class RpcListViewComponent extends ListViewComponent {
     public void decorateGrid(Grid grid) {
         rpcListView.decorateGrid(grid);
     }
+
+    @Override
+    public Class getModelType() {
+        return rpcListView.getClass();
+    }
 }

@@ -8,6 +8,7 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.data.*;
 import io.mateu.mdd.core.interfaces.PushWriter;
+import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.tests.Persona;
@@ -1062,6 +1063,7 @@ public class ReflectionHelper {
         List<Object> vs = new ArrayList<>();
         int pos = 0;
         for (Parameter p : m.getParameters()) {
+            Class<?> pgc = ReflectionHelper.getGenericClass(p.getParameterizedType());
 
             if (UserData.class.equals(p.getType())) {
                 vs.add(user);
@@ -1079,7 +1081,7 @@ public class ReflectionHelper {
                         MDD.getPort().pushDone(message);
                     }
                 });
-            } else if (Modifier.isStatic(m.getModifiers()) && Set.class.isAssignableFrom(p.getType()) && m.getDeclaringClass().equals(ReflectionHelper.getGenericClass(p.getParameterizedType()))) {
+            } else if (Modifier.isStatic(m.getModifiers()) && Set.class.isAssignableFrom(p.getType()) && (m.getDeclaringClass().equals(pgc) || (instance instanceof RpcView && ReflectionHelper.getGenericClass(instance.getClass(), RpcView.class, "C").equals(pgc)))) {
                 vs.add(pendingSelection);
             } else if (params.containsKey(p.getName())) {
                 vs.add(params.get(p.getName()));
