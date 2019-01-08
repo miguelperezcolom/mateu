@@ -3,6 +3,7 @@ package io.mateu.mdd.tester.model.useCases.hotel;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.NotInList;
 import io.mateu.mdd.core.interfaces.AbstractJPQLListView;
+import io.mateu.mdd.core.workflow.WorkflowEngine;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -40,11 +41,9 @@ public class RoomingListView extends AbstractJPQLListView<RoomingListView.Row> {
         ql += " group by h.id, h.name ";
         ql += " order by h.name ";
 
-        if (forCount) {
-            ql = " select count(*) from (" + ql + ")";
-        }
-
         Query q = em.createNativeQuery(ql);
+
+        if (forCount) q = getCountQueryForEclipseLink(em, q);
 
         return q;
     }
@@ -62,6 +61,15 @@ public class RoomingListView extends AbstractJPQLListView<RoomingListView.Row> {
     @Action
     public static void send(String email, String text, Set<Row> selection) {
         System.out.println("send rooming to " + email + " for " + selection.size() + " bookings");
+    }
+
+
+    public static void main(String[] args) {
+        try {
+            test(new RoomingListView());
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
     }
 
 }

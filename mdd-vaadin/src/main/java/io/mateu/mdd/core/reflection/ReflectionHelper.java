@@ -447,6 +447,8 @@ public class ReflectionHelper {
                 e.printStackTrace();
             }
             return id;
+        } else if (model.getClass().isEnum()) {
+            return ((Enum)model).ordinal();
         } else return model;
     }
 

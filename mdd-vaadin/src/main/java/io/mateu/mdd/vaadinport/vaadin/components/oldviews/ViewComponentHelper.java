@@ -8,6 +8,7 @@ import com.vaadin.ui.*;
 import io.mateu.mdd.core.annotations.DependsOn;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.UserData;
+import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.core.MDD;
@@ -46,10 +47,11 @@ public class ViewComponentHelper {
                         boolean needsTransaction = false;
                         boolean needsSelection = false;
                         for (Parameter p : m.getParameters()) {
+                            Class<?> pgc = ReflectionHelper.getGenericClass(p.getParameterizedType());
                             if (EntityManager.class.equals(p.getType())) {
                                 needsTransaction = true;
                             } else if (UserData.class.equals(p.getType())) {
-                            } else if (Modifier.isStatic(m.getModifiers()) && Set.class.isAssignableFrom(p.getType()) && m.getDeclaringClass().equals(ReflectionHelper.getGenericClass(p.getParameterizedType()))) {
+                            } else if (Modifier.isStatic(m.getModifiers()) && Set.class.isAssignableFrom(p.getType()) && (m.getDeclaringClass().equals(pgc) || (viewComponent instanceof RpcListViewComponent && ReflectionHelper.getGenericClass(((RpcListViewComponent)viewComponent).getRpcListView().getClass(), RpcView.class, "C").equals(pgc)))) {
                                 needsSelection = true;
                             } else {
                                 allInjectable = false;
@@ -153,11 +155,12 @@ public class ViewComponentHelper {
 
         List<Object> vs = new ArrayList<>();
         for (Parameter p : m.getParameters()) {
+            Class<?> pgc = ReflectionHelper.getGenericClass(p.getParameterizedType());
             if (EntityManager.class.equals(p.getType())) {
                 vs.add(em);
             } else if (UserData.class.equals(p.getType())) {
                 vs.add(MDD.getUserData());
-            } else if (Modifier.isStatic(m.getModifiers()) && Set.class.isAssignableFrom(p.getType()) && m.getDeclaringClass().equals(ReflectionHelper.getGenericClass(p.getParameterizedType()))) {
+            } else if (Modifier.isStatic(m.getModifiers()) && Set.class.isAssignableFrom(p.getType()) && (m.getDeclaringClass().equals(pgc) || (viewComponent instanceof RpcListViewComponent && ReflectionHelper.getGenericClass(((RpcListViewComponent)viewComponent).getRpcListView().getClass(), RpcView.class, "C").equals(pgc)))) {
                 if (needsEm && ReflectionHelper.getGenericClass(p.getParameterizedType()).isAnnotationPresent(Entity.class)) {
                     Set aux = new HashSet();
                     for (Object o : selection) aux.add(em.merge(o));
