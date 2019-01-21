@@ -922,9 +922,13 @@ public class ReflectionHelper {
     public static <T> T fillQueryResult(Object[] o, Class<T> rowClass) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         T t = null;
         t = (T) ReflectionHelper.newInstance(rowClass);
+        return fillQueryResult(o, t);
+    }
+
+    public static <T> T fillQueryResult(Object[] o, T t) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         int pos = 0;
-        for (FieldInterfaced f : getAllFields(rowClass)) {
-            if (pos < o.length) rowClass.getMethod(getSetter(f), f.getType()).invoke(t, o[pos]);
+        for (FieldInterfaced f : getAllFields(t.getClass())) {
+            if (pos < o.length) t.getClass().getMethod(getSetter(f), f.getType()).invoke(t, o[pos]);
             else break;
             pos++;
         }

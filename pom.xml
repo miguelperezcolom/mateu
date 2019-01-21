@@ -18,6 +18,7 @@
     <module>mdd-addon</module>
     <module>mdd-vaadin</module>
     <module>mdd-showcase</module>
+      <module>mdd-core</module>
   </modules>
 
   <dependencies>

@@ -215,7 +215,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                 inline = editableFields.size() <= colFields.size() && subclasses.size() == 0 && !field.isAnnotationPresent(NotInlineEditable.class);
 
-                if (inline) for (FieldInterfaced f : colFields) {
+                if (inline) for (FieldInterfaced f : editableFields) {
                     if (!isEditableInline(f)) {
                         inline = false;
                         break;

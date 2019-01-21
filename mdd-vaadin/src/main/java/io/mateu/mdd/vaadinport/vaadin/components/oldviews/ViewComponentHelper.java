@@ -20,6 +20,7 @@ import io.mateu.mdd.core.util.Helper;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -52,7 +53,8 @@ public class ViewComponentHelper {
                                 needsTransaction = true;
                             } else if (UserData.class.equals(p.getType())) {
                             } else if (Modifier.isStatic(m.getModifiers()) && Set.class.isAssignableFrom(p.getType()) && (m.getDeclaringClass().equals(pgc) || (viewComponent instanceof RpcListViewComponent && ReflectionHelper.getGenericClass(((RpcListViewComponent)viewComponent).getRpcListView().getClass(), RpcView.class, "C").equals(pgc)))) {
-                                needsSelection = true;
+                                if (!p.isAnnotationPresent(Size.class) || p.getAnnotation(Size.class).min() > 0)
+                                    needsSelection = true;
                             } else {
                                 allInjectable = false;
                             }

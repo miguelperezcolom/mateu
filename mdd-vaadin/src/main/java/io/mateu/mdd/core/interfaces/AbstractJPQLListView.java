@@ -17,6 +17,7 @@ import org.eclipse.persistence.sessions.Session;
 import javax.persistence.EntityManager;
 import javax.persistence.Parameter;
 import javax.persistence.Query;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,9 +39,7 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
                     q.setFirstResult(offset);
                     q.setMaxResults(limit);
 
-                    Class rowClass = getRowClass();
-                    
-                    for (Object o : q.getResultList()) l.add((R) ReflectionHelper.fillQueryResult((Object[]) o, rowClass));
+                    for (Object o : q.getResultList()) l.add((R) ReflectionHelper.fillQueryResult((Object[]) o, getNewRowInstance()));
 
 
                 }
@@ -51,6 +50,11 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
         }
 
         return l;
+    }
+
+    public R getNewRowInstance() throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
+        Class rowClass = getRowClass();
+        return (R) ReflectionHelper.newInstance(rowClass);
     }
 
     @Override

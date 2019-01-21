@@ -63,6 +63,10 @@ public class RoomingListView extends AbstractJPQLListView<RoomingListView.Row> {
         System.out.println("send rooming to " + email + " for " + selection.size() + " bookings");
     }
 
+    @Action
+    public void sendInstance(Set<Row> selection) {
+        System.out.println("send rooming for " + selection.size() + " bookings");
+    }
 
     public static void main(String[] args) {
         try {

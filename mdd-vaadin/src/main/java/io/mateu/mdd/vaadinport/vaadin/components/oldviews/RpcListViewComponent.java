@@ -109,7 +109,7 @@ public class RpcListViewComponent extends ListViewComponent {
         List<Method> ms = new ArrayList<>();
 
         for (Method m : ReflectionHelper.getAllMethods(rpcListViewClass)) {
-            if (Modifier.isStatic(m.getModifiers()) && m.isAnnotationPresent(Action.class)) {
+            if (m.isAnnotationPresent(Action.class)) {
                 ms.add(m);
             }
         }

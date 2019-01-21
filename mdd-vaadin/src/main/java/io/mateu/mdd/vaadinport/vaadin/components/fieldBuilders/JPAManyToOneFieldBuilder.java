@@ -376,7 +376,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                                         }
 
                                         Object bean = binder.getBean();
-                                        if (bean != null) {
+                                        if (bean != null && ReflectionHelper.getValue(field, bean) == null) {
                                             ReflectionHelper.setValue(field, bean, v);
                                             binder.setBean(bean, false);
                                         }
@@ -479,7 +479,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                         v = ((ComboBox)hdp).getDataProvider().fetch(q).findFirst().get();
 
                         Object bean = binder.getBean();
-                        if (bean != null) {
+                        if (bean != null && ReflectionHelper.getValue(field, bean) == null) {
                             ReflectionHelper.setValue(field, bean, v);
                             binder.setBean(bean, false);
                         }
