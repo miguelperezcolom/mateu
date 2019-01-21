@@ -3,6 +3,8 @@ package io.mateu.mdd.tester.app.club;
 
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Caption;
+import io.mateu.mdd.core.annotations.Private;
+import io.mateu.mdd.core.annotations.Public;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.app.MDDOpenEditorAction;
@@ -37,10 +39,16 @@ public class MyApp extends SimpleMDDApplication {
     }
 
     @Action(order = 5)
+    @Private(permissions = {1})
     public AbstractAction configuracion() {
         return new MDDOpenEditorAction("", AppConfig.class, 1l);
     }
 
+    @Action(order = 6)
+    @Public
+    public String saludar(String tuNombre) {
+        return "Hola " + tuNombre;
+    }
 
 
     @Override
