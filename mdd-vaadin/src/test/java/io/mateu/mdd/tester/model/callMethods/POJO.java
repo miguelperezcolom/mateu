@@ -4,7 +4,7 @@ import io.mateu.mdd.core.annotations.Action;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter@Setter
+@Getter
 public class POJO {
 
     private String name;
@@ -26,4 +26,8 @@ public class POJO {
     }
 
 
+    @Override
+    public String toString() {
+        return "A read only pojo";
+    }
 }

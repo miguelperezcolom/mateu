@@ -206,7 +206,7 @@ E.g.:
 
 ## How to implement triggers in OOP / JPA
 
-I think the most important thing to note is that you can not update other objects from inside @PrePersist/Update methods, and that you can not update anything from @PostPersist/Update/Remove methods. this is due to the way change sets are handled by EclipseLink.
+I think the most important thing to note is that you can not update other objects from inside @PrePersist/Update methods, and that you can not update anything from @PostPersist/Update/Remove methods UNLESS THEY ARE MARKED AS MERGE CASCADE. This is due to the way change sets are handled by EclipseLink.
 
 Once it is clear for you, you can deal with the problem.
 
@@ -251,5 +251,11 @@ E.g.:
 
 
 ````
+
+
+
+***
+
+Continue with the manual at [Mateu MDD at SonarQube](Sonar).
 
 

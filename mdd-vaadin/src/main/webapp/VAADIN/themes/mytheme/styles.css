@@ -18210,6 +18210,22 @@ div.v-layout.v-horizontal.v-widget {
 	background-color: #73a5d7;
 }
 
+.mytheme .miapp .leftside .navegacion .tituloarea.selected {
+	background-color: whitesmoke;
+}
+
+.mytheme .miapp .leftside .navegacion .tituloarea:active {
+	outline: none;
+}
+
+.mytheme .miapp .leftside .navegacion .tituloarea:focus {
+	outline: none;
+}
+
+.mytheme .miapp .leftside .navegacion .tituloarea.v-pressed {
+	outline: none;
+}
+
 .mytheme .miapp .leftside .navegacion .v-slot-tituloarea:hover {
 	background-color: #73a5d7;
 }

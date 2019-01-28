@@ -247,6 +247,22 @@
               background-color: #73a5d7;
             }
 
+            .tituloarea.selected {
+              background-color: whitesmoke;
+            }
+
+            .tituloarea:active {
+              outline: none;
+            }
+
+            .tituloarea:focus {
+              outline: none;
+            }
+
+            .tituloarea.v-pressed {
+              outline: none;
+            }
+
 
             .v-slot-tituloarea:hover {
               background-color: #73a5d7;

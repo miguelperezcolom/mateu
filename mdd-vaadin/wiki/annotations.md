@@ -879,6 +879,67 @@ None
 
 
 
+
+## @Private
+
+### Description
+
+Use it when you want to state some actions as private, when extending a `SimpleMDDApplication` where `isAuthenticationNeeded()` returns false.
+
+### Scope
+
+METHOD
+
+### Parameters
+
+|Name|Type|Description|
+|---|---|---|
+|permissions|int[]|Only users with one of these persmissions can see this menu option|
+|users|String[]|Users who can see this menu option|
+
+### Example
+
+```java
+
+    @Action(order = 5)
+    @Private(permissions = {1})
+    public AbstractAction configuracion() {
+        return new MDDOpenEditorAction("", AppConfig.class, 1l);
+    }
+
+```
+
+
+
+
+## @Public
+
+### Description
+
+Use it when you want to state some actions as public, when extending a `SimpleMDDApplication` where `isAuthenticationNeeded()` returns true.
+
+### Scope
+
+METHOD
+
+### Parameters
+
+None
+
+### Example
+
+```java
+
+    @Action(order = 6)
+    @Public
+    public String saludar(String tuNombre) {
+        return "Hola " + tuNombre;
+    }
+
+```
+
+
+
 ## @Order
 
 ### Description

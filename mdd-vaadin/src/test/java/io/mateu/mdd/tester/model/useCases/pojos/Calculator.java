@@ -6,7 +6,7 @@ import io.mateu.mdd.core.util.Helper;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter@Setter
+@Getter
 public class Calculator {
 
     @TextArea
@@ -17,7 +17,6 @@ public class Calculator {
         result = Helper.eval(operations);
     }
 
-    @Output
     private String result;
 
 }

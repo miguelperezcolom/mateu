@@ -2,4 +2,4 @@
 target
 overlays
 *.iml
-src/main/webapp/tmp
+mdd-vaadin/src/main/webapp/tmp
