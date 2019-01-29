@@ -168,6 +168,8 @@ public class MDDNavigator {
 
         if (r instanceof AbstractAction) {
             ((AbstractAction) r).run(context);
+        } else if (r instanceof Class && (((Class) r).isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom((Class<?>) r))) {
+            stack.push(currentState, MDDViewComponentCreator.createComponent(null, (Class) r, null, null, false));
         } else stack.push(currentState, new MethodResultViewFlowComponent(currentState, m, r));
 
         goTo(currentState);

@@ -27,8 +27,8 @@ public class SimpleApp extends SimpleMDDApplication {
 
 
     @Action(order = 1)
-    public AbstractAction people() {
-        return new MDDOpenCRUDAction(Person.class);
+    public Class people() {
+        return Person.class;
     }
 
 

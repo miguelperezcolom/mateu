@@ -14,11 +14,13 @@ import io.mateu.mdd.core.app.MDDExecutionContext;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Pair;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
+import io.mateu.mdd.core.interfaces.PersistentPOJO;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
+import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import java.lang.reflect.Method;
@@ -137,21 +139,30 @@ public class MethodParametersViewComponent extends AbstractViewComponent impleme
 
                 Object r = ReflectionHelper.execute(MDD.getUserData(), method, binder, bean, pendingSelection);
 
-                if (method.isAnnotationPresent(Action.class) && method.getAnnotation(Action.class).saveAfter() && binder.getViewComponent() != null && binder.getViewComponent() instanceof EditorViewComponent) {
-                    ((EditorViewComponent) binder.getViewComponent()).save(false);
-                }
+                if (r instanceof Class && (((Class) r).isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom((Class<?>) r))) {
 
-                if (parentBinder != null) {
-                    parentBinder.setBean(null, false);
-                    parentBinder.setBean(bean, false);
-                }
+                    MDDUI.get().getNavegador().getViewProvider().openCRUD(null, (Class) r, null, null, false);
 
 
-                if (void.class.equals(method.getReturnType())) {
-                    MDDUI.get().getNavegador().goBack();
-                    MDD.info("Done");
                 } else {
-                    MDDUI.get().getNavegador().showResult(context.getCurrentState(), method, r, context, true);
+
+                    if (method.isAnnotationPresent(Action.class) && method.getAnnotation(Action.class).saveAfter() && binder.getViewComponent() != null && binder.getViewComponent() instanceof EditorViewComponent) {
+                        ((EditorViewComponent) binder.getViewComponent()).save(false);
+                    }
+
+                    if (parentBinder != null) {
+                        parentBinder.setBean(null, false);
+                        parentBinder.setBean(bean, false);
+                    }
+
+
+                    if (void.class.equals(method.getReturnType())) {
+                        MDDUI.get().getNavegador().goBack();
+                        MDD.info("Done");
+                    } else {
+                        MDDUI.get().getNavegador().showResult(context.getCurrentState(), method, r, context, true);
+                    }
+
                 }
 
                 // cambiamos la url, para reflejar el cambio

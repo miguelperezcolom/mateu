@@ -6,6 +6,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractArea;
+import io.mateu.mdd.core.app.AbstractModule;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 public class AreaComponent extends VerticalLayout {
@@ -25,14 +26,32 @@ public class AreaComponent extends VerticalLayout {
 
         if (MDD.isMobile()) {
 
-            area.getModules().stream().forEach(a -> {
+            if (area.getModules().size() == 1) {
 
-                Button b;
-                addComponent(b = new Button(a.getName()));
-                b.addClickListener(e -> MDDUI.get().getNavegador().goTo(a));
-                b.addStyleName(ValoTheme.BUTTON_QUIET);
+                AbstractModule m = area.getModules().get(0);
 
-            });
+                m.getMenu().stream().forEach(a -> {
+
+                    Button b;
+                    addComponent(b = new Button(a.getName()));
+                    b.addClickListener(e -> MDDUI.get().getNavegador().goTo(a));
+                    b.addStyleName(ValoTheme.BUTTON_QUIET);
+
+                });
+
+
+            } else {
+
+                area.getModules().stream().forEach(a -> {
+
+                    Button b;
+                    addComponent(b = new Button(a.getName()));
+                    b.addClickListener(e -> MDDUI.get().getNavegador().goTo(a));
+                    b.addStyleName(ValoTheme.BUTTON_QUIET);
+
+                });
+
+            }
 
         }
 

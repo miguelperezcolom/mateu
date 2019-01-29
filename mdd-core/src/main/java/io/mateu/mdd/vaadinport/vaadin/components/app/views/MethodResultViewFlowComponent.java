@@ -57,7 +57,7 @@ public class MethodResultViewFlowComponent extends VerticalLayout {
             if (result != null) {
                 if (result.getClass().isAnnotationPresent(Caption.class)) {
                     c = result.getClass().getAnnotation(Caption.class).value();
-                } else {
+                } else if (!ReflectionHelper.isBasico(result)) {
 
                     Method toStringMethod = ReflectionHelper.getMethod(result.getClass(), "toString");
                     boolean toStringIsOverriden = toStringMethod != null && toStringMethod.getDeclaringClass().equals(result.getClass());
