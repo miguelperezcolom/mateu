@@ -33,7 +33,7 @@ public class GoogleButton extends Button {
             callbackUrl += "";
 
             if (!callbackUrl.endsWith("/")) callbackUrl += "/";
-            callbackUrl += "oauth/google/callback";
+            callbackUrl += "app/oauth/google/callback";
 
 
             try {

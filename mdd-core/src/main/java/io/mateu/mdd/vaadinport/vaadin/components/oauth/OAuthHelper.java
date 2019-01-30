@@ -2,6 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.oauth;
 
 import com.google.common.base.Strings;
 import com.vaadin.server.Page;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.core.data.UserData;
@@ -47,15 +48,7 @@ grant_type=authorization_code
 
             Page p = Page.getCurrent();
 
-            String callbackUrl = p.getLocation().toString();
-
-            if (!Strings.isNullOrEmpty(p.getLocation().getQuery())) callbackUrl = callbackUrl.substring(0, callbackUrl.length() - (p.getLocation().getQuery().length() + 1));
-            if (!Strings.isNullOrEmpty(p.getLocation().getPath())) callbackUrl = callbackUrl.substring(0, callbackUrl.length() - p.getLocation().getPath().length());
-            callbackUrl += "";
-
-            if (!callbackUrl.endsWith("/")) callbackUrl += "/";
-            callbackUrl += "oauth/google/callback";
-
+            String callbackUrl = MDD.getApp().getBaseUrl() + "oauth/microsoft/callback";
 
             OkHttpClient client = new OkHttpClient();
 
@@ -236,17 +229,9 @@ grant_type=authorization_code
             String access_token = null;
 
 
-            Page p = Page.getCurrent();
+            String callbackUrl = MDD.getApp().getBaseUrl() + "oauth/google/callback";
 
-            String callbackUrl = p.getLocation().toString();
-
-            if (!Strings.isNullOrEmpty(p.getLocation().getQuery())) callbackUrl = callbackUrl.substring(0, callbackUrl.length() - (p.getLocation().getQuery().length() + 1));
-            if (!Strings.isNullOrEmpty(p.getLocation().getPath())) callbackUrl = callbackUrl.substring(0, callbackUrl.length() - p.getLocation().getPath().length());
-            callbackUrl += "";
-
-            if (!callbackUrl.endsWith("/")) callbackUrl += "/";
-            callbackUrl += "oauth/google/callback";
-
+            System.out.println("callbackurl = " + callbackUrl);
 
             OkHttpClient client = new OkHttpClient();
 

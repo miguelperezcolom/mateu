@@ -50,6 +50,7 @@ public abstract class AbstractApplication implements App {
     private Map<String, MenuEntry> menuIdsReversed;
     private Map<AbstractModule, String> moduleIds;
     private Map<String, AbstractModule> moduleIdsReversed;
+    private Map<AbstractModule, AbstractArea> moduleToArea;
     private Map<MenuEntry, List<MenuEntry>> menuPaths;
     List<AbstractArea> areas = null;
 
@@ -137,6 +138,11 @@ public abstract class AbstractApplication implements App {
         return moduleIds.get(m);
     }
 
+    public AbstractArea getArea(AbstractModule m) {
+        if (moduleToArea == null) buildAreaAndMenuIds();
+        return moduleToArea.get(m);
+    }
+
     public AbstractModule getModule(String id) {
         if (moduleIdsReversed == null) buildAreaAndMenuIds();
         return moduleIdsReversed.get(id);
@@ -193,6 +199,7 @@ public abstract class AbstractApplication implements App {
         moduleIdsReversed = new HashMap<>();
         menuPaths = new HashMap<>();
         menuToArea = new HashMap<>();
+        moduleToArea = new HashMap<>();
 
         for (AbstractArea a : getAreas()) {
 
@@ -217,6 +224,7 @@ public abstract class AbstractApplication implements App {
                 while (moduleIdsReversed.containsKey(idm)) idm = idbasem + posm++;
                 moduleIds.put(m, idm);
                 moduleIdsReversed.put(idm, m);
+                moduleToArea.put(m, a);
 
                 for (MenuEntry e : m.getMenu()) {
                     buildMenuIds(a, idm, new ArrayList<>(), e);

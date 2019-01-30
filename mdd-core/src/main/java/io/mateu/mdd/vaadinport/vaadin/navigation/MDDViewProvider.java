@@ -30,6 +30,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.net.URI;
 import java.util.*;
 
 
@@ -99,14 +100,20 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
     public View getView(String state) {
         View v = null;
 
+        if (state.startsWith("app/")) state = state.substring("app/".length());
+
 
         if (Strings.isNullOrEmpty(state)) { // caso ""
 
             if (!MDD.getApp().hasPublicContent()) {
                 if (MDD.getUserData() == null) state = "login";
-                else state = MDD.getApp().getState(MDD.getApp().getDefaultPrivateArea());
+                else {
+                    if (MDD.isMobile()) state = "private";
+                    else state = MDD.getApp().getState(MDD.getApp().getDefaultPrivateArea());
+                }
             } else {
-                state = MDD.getApp().getState(MDD.getApp().getDefaultPublicArea());
+                if (MDD.isMobile()) state = "public";
+                else state = MDD.getApp().getState(MDD.getApp().getDefaultPublicArea());
             }
 
         }
@@ -167,11 +174,15 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
         }
 
         if ("welcome".equals(state) && MDD.getUserData() != null) { // caso "login"
+            System.out.println("-->welcome (" + pendingPrivateState + ")");
             if (!Strings.isNullOrEmpty(pendingPrivateState)) {
                 String newState = pendingPrivateState;
                 pendingPrivateState = null;
-                if (!newState.startsWith("/")) newState = "/" + newState;
-                Page.getCurrent().open(newState, null);
+                if (newState.startsWith("/")) newState = newState.substring(1);
+
+                System.out.println("-->going to (" + MDD.getApp().getBaseUrl() + newState + ")");
+
+                Page.getCurrent().open(MDD.getApp().getBaseUrl() + newState, null);
             }
         }
 

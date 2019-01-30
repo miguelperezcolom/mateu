@@ -9,7 +9,7 @@ import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import javax.servlet.annotation.WebServlet;
 import java.util.Properties;
 
-@WebServlet(urlPatterns = "/*", name = "MyUIServlet", asyncSupported = true, loadOnStartup = 500)
+@WebServlet(urlPatterns = {"/app", "/app/*", "/VAADIN", "/VAADIN/*"}, name = "MyUIServlet", asyncSupported = true, loadOnStartup = 500)
 @VaadinServletConfiguration(ui = MDDUI.class, productionMode = false)
 public class MDDVaadinServlet extends VaadinServlet {
 

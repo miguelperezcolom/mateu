@@ -39,8 +39,8 @@ import java.net.URI;
 //<link href="//cdn.muicss.com/mui-0.9.39/css/mui.min.css" rel="stylesheet" type="text/css" />
 //<script src="//cdn.muicss.com/mui-0.9.39/js/mui.min.js"></script>
 
-@StyleSheet("//cdn.muicss.com/mui-0.9.39/css/mui.min.css")
-@JavaScript("//cdn.muicss.com/mui-0.9.39/js/mui.min.js")
+//@StyleSheet("//cdn.muicss.com/mui-0.9.39/css/mui.min.css")
+//@JavaScript("//cdn.muicss.com/mui-0.9.39/js/mui.min.js")
 
 @StyleSheet("https://use.fontawesome.com/releases/v5.5.0/css/all.css")
 
@@ -87,6 +87,10 @@ public class MDDUI extends UI {
         String contextUrl = url.substring(0, url.length() - uri.length());
         contextUrl += ((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getContextPath();
         if (!contextUrl.endsWith("/")) contextUrl += "/";
+        String sp = ((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getServletPath();
+        if (sp.startsWith("/")) sp = sp.substring(1);
+        contextUrl += sp;
+        if (!contextUrl.endsWith("/")) contextUrl += "/";
 
         if (Strings.isNullOrEmpty(System.getProperty("tmpurl"))) {
             System.setProperty("tmpurl", contextUrl + "tmp");
@@ -99,6 +103,8 @@ public class MDDUI extends UI {
 
             app = createApp();
             app.setBaseUrl(contextUrl);
+
+            System.out.println("baseurl=" + app.getBaseUrl());
 
             if (MDD.getClassPool() == null) MDD.setClassPool(ReflectionHelper.createClassPool(((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getServletContext()));
 
@@ -137,6 +143,8 @@ public class MDDUI extends UI {
     protected void refresh(VaadinRequest request) {
         super.refresh(request);
         String state = getPage().getLocation().getPath();
+        if (state.startsWith("/")) state = state.substring(1);
+        if (state.startsWith("app")) state = state.substring("app".length());
         if (state.startsWith("/")) state = state.substring(1);
         System.out.println("MDDUI.refresh: new state = " + state);
         navigator.navigateTo(state);

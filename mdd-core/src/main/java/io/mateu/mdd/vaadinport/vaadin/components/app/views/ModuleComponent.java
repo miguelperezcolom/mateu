@@ -10,22 +10,22 @@ import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 public class ModuleComponent extends VerticalLayout {
 
-    private final AbstractModule area;
+    private final AbstractModule module;
 
     @Override
     public String toString() {
-        return "" + area.getName();
+        return "" + module.getName();
     }
 
-    public ModuleComponent(AbstractModule area) {
+    public ModuleComponent(AbstractModule module) {
 
-        this.area = area;
+        this.module = module;
 
         addStyleName("methodresultflowcomponent");
 
         if (MDD.isMobile()) {
 
-            area.getMenu().stream().forEach(a -> {
+            module.getMenu().stream().forEach(a -> {
 
                 Button b;
                 addComponent(b = new Button(a.getName()));
@@ -43,4 +43,7 @@ public class ModuleComponent extends VerticalLayout {
 
     }
 
+    public AbstractModule getModule() {
+        return module;
+    }
 }

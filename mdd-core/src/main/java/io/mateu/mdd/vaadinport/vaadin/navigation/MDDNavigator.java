@@ -6,14 +6,12 @@ import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.PersistentPOJO;
-import io.mateu.mdd.vaadinport.vaadin.components.app.views.FieldEditorComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.FieldEditorComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.app.views.MenuFlowComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.app.views.MethodResultViewFlowComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 
 import javax.persistence.Entity;
@@ -200,7 +198,29 @@ public class MDDNavigator {
             u = u.substring(0, u.lastIndexOf("/"));
         }
 
+        if (MDD.isMobile()) {
+            if (esInutil(u)) while (esInutil(u)) {
+                u = u.substring(0, u.lastIndexOf("/"));
+            }
+        }
+
         MDDUI.get().getNavegador().goTo(u);
+    }
+
+    private boolean esInutil(String u) {
+        if (!Strings.isNullOrEmpty(u)) {
+            View v = stack.get(u);
+            if (v != null) {
+                Component c = v.getComponent();
+                if (c instanceof ModuleComponent) {
+                    return MDD.getApp().getArea(((ModuleComponent)c).getModule()).getModules().size() <= 1;
+                }
+                if (c instanceof AreaComponent) {
+                    return MDD.getApp().getAreas().size() <= 1;
+                }
+            }
+        }
+        return false;
     }
 
     private boolean esMenu(String u) {

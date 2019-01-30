@@ -41,13 +41,13 @@ public class MDD {
         getPort().setUserData(userData);
     }
     public static UserData getUserData() {
-        return getPort().getUserData();
+        return (getPort() != null)?getPort().getUserData():null;
     }
 
     public static User getCurrentUser() {
         try {
             User[] u = {null};
-            Helper.notransact(em -> u[0] = em.find(User.class, (MDD.getPort() != null)?MDD.getUserData().getLogin():"sistema"));
+            Helper.notransact(em -> u[0] = em.find(User.class, (MDD.getPort() != null && MDD.getUserData() != null)?MDD.getUserData().getLogin():"sistema"));
             return u[0];
         } catch (Throwable e) {
             return null;

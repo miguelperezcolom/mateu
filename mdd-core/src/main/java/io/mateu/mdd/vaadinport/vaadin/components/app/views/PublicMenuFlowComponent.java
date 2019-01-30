@@ -15,7 +15,7 @@ public class PublicMenuFlowComponent extends VerticalLayout {
 
     @Override
     public String toString() {
-        return "Public areas for " + MDD.getApp().getName();
+        return "" + MDD.getApp().getName();
     }
 
 
@@ -65,7 +65,7 @@ public class PublicMenuFlowComponent extends VerticalLayout {
 
         });
 
-        if (MDD.isMobile()) {
+        if (MDD.isMobile() && (MDD.getApp().isAuthenticationNeeded() || MDD.getApp().hasPrivateContent())) {
             Button b;
             addComponent(b = new Button("Login"));
             b.addClickListener(e -> MDDUI.get().getNavegador().goTo("login"));
