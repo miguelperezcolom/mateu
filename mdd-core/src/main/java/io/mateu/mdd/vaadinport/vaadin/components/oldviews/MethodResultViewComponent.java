@@ -6,6 +6,8 @@ import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.annotations.IFrame;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.MDD;
@@ -129,22 +131,50 @@ public class MethodResultViewComponent extends AbstractViewComponent {
 
                 } else {
 
-                    Grid g = new Grid();
+                    if (MDD.isMobile()) {
 
-                    ListViewComponent.buildColumns(g, ListViewComponent.getColumnFields(col.iterator().next().getClass()), false, false);
+                        boolean primero = true;
+                        for (Object o : col) {
 
-                    //g.setSelectionMode(Grid.SelectionMode.MULTI);
+                            if (primero) primero = false;
+                            else addComponent(new Label("--------------"));
 
-                    // añadimos columna para que no haga feo
-                    if (g.getColumns().size() == 1) ((Grid.Column)g.getColumns().get(0)).setExpandRatio(1);
-                    else g.addColumn((d) -> null).setWidthUndefined().setCaption("");
+                            if (ReflectionHelper.isBasico(o)) {
+                                addComponent(new Label("" + o));
+                            } else {
+                                for (FieldInterfaced f : ReflectionHelper.getAllFields(o.getClass())) {
+                                    Label l;
+                                    addComponent(l = new Label("" + ReflectionHelper.getCaption(f)));
+                                    l.addStyleName(ValoTheme.LABEL_BOLD);
+                                    l.addStyleName(CSS.NOPADDING);
+                                    addComponent(l = new Label("" + ReflectionHelper.getValue(f, o)));
+                                    l.addStyleName(CSS.NOPADDING);
+                                }
+                            }
 
-                    addComponent(g);
+                        }
 
-                    g.setWidth("100%");
-                    g.setHeightByRows(col.size());
 
-                    g.setDataProvider(new ListDataProvider((Collection) result));
+                    } else {
+
+                        Grid g = new Grid();
+
+                        ListViewComponent.buildColumns(g, ListViewComponent.getColumnFields(col.iterator().next().getClass()), false, false);
+
+                        //g.setSelectionMode(Grid.SelectionMode.MULTI);
+
+                        // añadimos columna para que no haga feo
+                        if (g.getColumns().size() == 1) ((Grid.Column)g.getColumns().get(0)).setExpandRatio(1);
+                        else g.addColumn((d) -> null).setWidthUndefined().setCaption("");
+
+                        addComponent(g);
+
+                        g.setWidth("100%");
+                        g.setHeightByRows(col.size());
+
+                        g.setDataProvider(new ListDataProvider((Collection) result));
+
+                    }
 
                 }
 
