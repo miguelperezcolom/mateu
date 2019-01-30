@@ -18,8 +18,8 @@ public class MyApp extends SimpleMDDApplication {
 
 
     @Action(order = 2)
-    public AbstractAction persons() {
-        return new MDDOpenCRUDAction(Person.class);
+    public Class people() {
+        return Person.class;
     }
 
     @Action(order = 3)
