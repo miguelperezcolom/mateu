@@ -6,26 +6,31 @@ import com.vaadin.data.Validator;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ContentMode;
+import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.Help;
+import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.core.reflection.ProxyClass;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
 import org.javamoney.moneta.FastMoney;
 
 import javax.money.MonetaryAmount;
 import javax.persistence.Entity;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
@@ -38,51 +43,110 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
         if (!forSearchFilter) {
 
-            Button botonLink = null;
-            Label tf = new Label();
-            tf.setContentMode(ContentMode.HTML);
-            tf.addStyleName("outputlabel");
+            if (Collection.class.isAssignableFrom(field.getType())) {
 
-            if (Integer.class.equals(field.getType()) || int.class.equals(field.getType())
-                    || Long.class.equals(field.getType()) || long.class.equals(field.getType())
-                    || Double.class.equals(field.getType()) || double.class.equals(field.getType())
-                    || FastMoney.class.equals(field.getType()) || MonetaryAmount.class.equals(field.getType())) {
-                tf.addStyleName("alinearderecha");
-            }
 
-            if (field.getType().isAnnotationPresent(Entity.class)) {
+                Grid g = new Grid();
 
-                HorizontalLayout hl = new HorizontalLayout();
-                container.addComponent(hl);
+                List<FieldInterfaced> colFields = JPAOneToManyFieldBuilder.getColumnFields(field);
 
-                hl.addComponent(tf);
+                Class targetClass = field.getGenericClass();
 
-                if (allFieldContainers != null) allFieldContainers.put(field, hl);
+                boolean inline = false;
 
-                if (container.getComponentCount() > 0) hl.setCaption(ReflectionHelper.getCaption(field));
+                ListViewComponent.buildColumns(g, colFields, false, inline, binder, field);
 
-                //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) hl.setDescription(field.getAnnotation(Help.class).value());
+                g.setSelectionMode(Grid.SelectionMode.MULTI);
 
-                botonLink = new Button(null, VaadinIcons.EDIT);
-                botonLink.addStyleName(ValoTheme.BUTTON_QUIET);
-                botonLink.addStyleName(CSS.NOPADDING);
-                botonLink.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
-                hl.addComponent(botonLink);
+                g.setCaption(ReflectionHelper.getCaption(field));
 
+
+                int ancho = 0;
+                for (Grid.Column col : (List<Grid.Column>) g.getColumns()) ancho += col.getWidth();
+                if (ancho <= 0) ancho = 500;
+
+
+                boolean anchoCompleto = field.isAnnotationPresent(FullWidth.class) || ancho > 900;
+                anchoCompleto = false;
+
+                if (anchoCompleto) g.setWidth("100%");
+                else {
+                    g.setWidth("" + (ancho + 60) + "px");
+                }
+
+                // añadimos columna para que no haga feo
+                if (anchoCompleto) {
+                    if (g.getColumns().size() == 1) ((Grid.Column) g.getColumns().get(0)).setExpandRatio(1);
+                    else g.addColumn((d) -> null).setWidthUndefined().setCaption("");
+                }
+
+                g.setHeightMode(HeightMode.UNDEFINED);
+
+
+                DataProvider dpa = (field.isAnnotationPresent(DataProvider.class)) ? field.getAnnotation(DataProvider.class) : null;
+
+                if (dpa == null) {
+
+                    Method mdp = ReflectionHelper.getMethod(field.getDeclaringClass(), ReflectionHelper.getGetter(field.getName()) + "DataProvider");
+
+                }
+
+
+                JPAOneToManyFieldBuilder.bind(binder, g, field, targetClass, null);
+
+                container.addComponent(g);
+
+                if (allFieldContainers != null) if (allFieldContainers != null) allFieldContainers.put(field, g);
             } else {
 
-                container.addComponent(tf);
+                Button botonLink = null;
+                Label tf = new Label();
+                tf.setContentMode(ContentMode.HTML);
+                tf.addStyleName("outputlabel");
 
-                if (allFieldContainers != null) if (allFieldContainers != null) allFieldContainers.put(field, tf);
+                if (Integer.class.equals(field.getType()) || int.class.equals(field.getType())
+                        || Long.class.equals(field.getType()) || long.class.equals(field.getType())
+                        || Double.class.equals(field.getType()) || double.class.equals(field.getType())
+                        || FastMoney.class.equals(field.getType()) || MonetaryAmount.class.equals(field.getType())) {
+                    tf.addStyleName("alinearderecha");
+                }
 
-                if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
 
-                //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
+                if (field.getType().isAnnotationPresent(Entity.class)) {
 
+                    HorizontalLayout hl = new HorizontalLayout();
+                    container.addComponent(hl);
+
+                    hl.addComponent(tf);
+
+                    if (allFieldContainers != null) allFieldContainers.put(field, hl);
+
+                    if (container.getComponentCount() > 0) hl.setCaption(ReflectionHelper.getCaption(field));
+
+                    //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) hl.setDescription(field.getAnnotation(Help.class).value());
+
+                    botonLink = new Button(null, VaadinIcons.EDIT);
+                    botonLink.addStyleName(ValoTheme.BUTTON_QUIET);
+                    botonLink.addStyleName(CSS.NOPADDING);
+                    botonLink.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+                    hl.addComponent(botonLink);
+
+                } else {
+
+                    container.addComponent(tf);
+
+                    if (allFieldContainers != null) if (allFieldContainers != null) allFieldContainers.put(field, tf);
+
+                    if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
+
+                    //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
+
+                    bind(binder, tf, botonLink, field);
+
+                }
             }
 
 
-            bind(binder, tf, botonLink, field);
 
         }
 

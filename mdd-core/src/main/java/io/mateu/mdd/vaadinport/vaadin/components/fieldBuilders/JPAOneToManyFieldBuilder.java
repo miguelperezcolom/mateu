@@ -41,15 +41,13 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
 
     public boolean isSupported(FieldInterfaced field) {
-        boolean ok = field.isAnnotationPresent(OneToMany.class) || field.isAnnotationPresent(ElementCollection.class) || field.isAnnotationPresent(ManyToMany.class);
-        if (!ok) {
-            ok = Collection.class.isAssignableFrom(field.getType());
-            if (ok) {
-                Class gc = ReflectionHelper.getGenericClass(field, Collection.class, "E");
-                ok &= !(String.class.equals(gc) || Integer.class.equals(gc) || Long.class.equals(gc) || Float.class.equals(gc) || Double.class.equals(gc) || Boolean.class.equals(gc));
-            }
-            if (!ok) ok = Map.class.isAssignableFrom(field.getType());
+        //boolean ok = field.isAnnotationPresent(OneToMany.class) || field.isAnnotationPresent(ElementCollection.class) || field.isAnnotationPresent(ManyToMany.class);
+        boolean ok = Collection.class.isAssignableFrom(field.getType());
+        if (ok) {
+            Class gc = ReflectionHelper.getGenericClass(field, Collection.class, "E");
+            ok &= !(String.class.equals(gc) || Integer.class.equals(gc) || Long.class.equals(gc) || Float.class.equals(gc) || Double.class.equals(gc) || Boolean.class.equals(gc));
         }
+        if (!ok) ok = Map.class.isAssignableFrom(field.getType());
         return ok;
     }
 

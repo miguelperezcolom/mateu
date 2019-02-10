@@ -31,7 +31,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-public class MethodResultViewFlowComponent extends VerticalLayout {
+public class MethodResultViewFlowComponent extends AbstractViewComponent {
 
     private final Method method;
     private final Object result;

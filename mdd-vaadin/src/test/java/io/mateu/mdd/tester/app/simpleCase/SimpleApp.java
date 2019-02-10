@@ -85,6 +85,12 @@ public class SimpleApp extends SimpleMDDApplication {
         return Helper.toHtml(Helper.runCommand("df -h"));
     }
 
+    @Action
+    public Vista vista() {
+        return new Vista();
+    }
+
+
     @Override
     public boolean isAuthenticationNeeded() {
         return false;

@@ -2,6 +2,8 @@ package io.mateu.mdd.vaadinport.vaadin.navigation;
 
 import com.vaadin.navigator.View;
 import com.vaadin.ui.Component;
+import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,6 +26,11 @@ public class ViewStack {
 
     public void push(String state, Component component) {
         io.mateu.mdd.vaadinport.vaadin.navigation.View v;
+
+        if (MDD.getApp().getMenu(state) != null && component != null && component instanceof AbstractViewComponent) {
+            ((AbstractViewComponent)component).setTitle(MDD.getApp().getMenu(state).getName());
+        }
+
         viewByState.put(state, v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(this, component));
         stateByView.put(v, state);
         stack.add(v);
