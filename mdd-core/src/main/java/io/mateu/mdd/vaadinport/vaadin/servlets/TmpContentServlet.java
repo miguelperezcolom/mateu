@@ -11,7 +11,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-@WebServlet(value = "/tmp/*", loadOnStartup = 10)
+@WebServlet(value = {"/tmp/*", "/app/tmp/*"}, loadOnStartup = 10)
 public class TmpContentServlet extends HttpServlet {
 
     protected void doGet(HttpServletRequest request,
