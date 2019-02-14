@@ -19,9 +19,9 @@ public interface MDDExecutionContext {
 
     void open(AbstractAction action, Component component, boolean modifierPressed);
 
-    void callMethod(AbstractAction action, Class entityClass, String methodName);
+    void callMethod(String state, Class entityClass, String methodName);
 
-    void callMethod(AbstractAction action, Method method, Object instance);
+    void callMethod(String state, Method method, Object instance);
 
     String getCurrentState();
 

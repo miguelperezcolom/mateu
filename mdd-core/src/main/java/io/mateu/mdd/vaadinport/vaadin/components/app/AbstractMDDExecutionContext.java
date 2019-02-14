@@ -44,12 +44,12 @@ public class AbstractMDDExecutionContext implements MDDExecutionContext {
     }
 
     @Override
-    public void callMethod(AbstractAction action, Class entityClass, String methodName) {
+    public void callMethod(String state, Class entityClass, String methodName) {
 
     }
 
     @Override
-    public void callMethod(AbstractAction action, Method method, Object instance) {
+    public void callMethod(String state, Method method, Object instance) {
 
     }
 

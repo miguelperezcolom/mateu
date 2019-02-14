@@ -39,7 +39,11 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
                     q.setFirstResult(offset);
                     q.setMaxResults(limit);
 
-                    for (Object o : q.getResultList()) l.add((R) ReflectionHelper.fillQueryResult((Object[]) o, getNewRowInstance()));
+                    for (Object o : q.getResultList()) {
+
+                        if (o instanceof Object[]) l.add((R) ReflectionHelper.fillQueryResult((Object[]) o, getNewRowInstance()));
+                        else l.add((R) o);
+                    }
 
 
                 }

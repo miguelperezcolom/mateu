@@ -26,7 +26,7 @@ public interface RpcView<F, C> {
 
     default boolean isEditHandled() { return false; }
 
-    default Object onEdit(C row) {
+    default Object onEdit(C row) throws Throwable {
         return null;
     }
 

@@ -108,6 +108,7 @@ public class NavigationComponent extends VerticalLayout {
         Button b = new Button(e.getName() + ((e instanceof AbstractMenu)?"<span class=\"menu-badge\">" + VaadinIcons.ELLIPSIS_DOTS_H.getHtml() + "</span>":"")
         , ev -> MDDUI.get().getNavegador().goTo(e));
         //b.setIcon(FontAwesome.TH_LIST);
+        if (e.getIcon() != null) b.setIcon(e.getIcon());
         b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
         b.addStyleName("opcionmenu");
         //b.addStyleName("selected");

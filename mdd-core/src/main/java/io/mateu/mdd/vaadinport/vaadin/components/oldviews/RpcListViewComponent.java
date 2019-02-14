@@ -2,6 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.ui.Grid;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.SumData;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
@@ -35,12 +36,22 @@ public class RpcListViewComponent extends ListViewComponent {
         addListener(new ListViewComponentListener() {
             @Override
             public void onEdit(Object id) {
-                rpcListView.onEdit(id);
+                if (rpcListView.isEditHandled()) {
+                    try {
+                        MDDUI.get().getNavegador().setPendingResult(rpcListView.onEdit(id));
+                        MDDUI.get().getNavegador().go("" + id);
+                    } catch (Throwable throwable) {
+                        MDD.alert(throwable);
+                    }
+                }
             }
 
             @Override
             public void onSelect(Object id) {
-                rpcListView.onSelect(id);
+                if (rpcListView.isSelectHandled()) {
+                    MDDUI.get().getNavegador().setPendingResult(rpcListView.onSelect(id));
+                    MDDUI.get().getNavegador().go("" + id);
+                }
             }
         });
     }
@@ -54,8 +65,12 @@ public class RpcListViewComponent extends ListViewComponent {
             @Override
             public void onEdit(Object id) {
                 if (rpcListView.isEditHandled()) {
-                    MDDUI.get().getNavegador().setPendingResult(rpcListView.onEdit(id));
-                    MDDUI.get().getNavegador().go("" + id);
+                    try {
+                        MDDUI.get().getNavegador().setPendingResult(rpcListView.onEdit(id));
+                        MDDUI.get().getNavegador().go("" + id);
+                    } catch (Throwable throwable) {
+                        MDD.alert(throwable);
+                    }
                 }
             }
 

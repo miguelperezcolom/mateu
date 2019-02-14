@@ -22,6 +22,11 @@ public abstract class AbstractAction implements MenuEntry {
         this.name = name;
     }
 
+    public AbstractAction(VaadinIcons icon, String name) {
+        this.icon = icon;
+        this.name = name;
+    }
+
     public AbstractAction(String name) {
         this.name = name;
     }

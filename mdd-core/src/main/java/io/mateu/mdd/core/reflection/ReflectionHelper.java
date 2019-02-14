@@ -1107,7 +1107,7 @@ public class ReflectionHelper {
                         MDD.getPort().pushDone(message);
                     }
                 });
-            } else if (Modifier.isStatic(m.getModifiers()) && Set.class.isAssignableFrom(p.getType()) && (m.getDeclaringClass().equals(pgc) || (instance instanceof RpcView && ReflectionHelper.getGenericClass(instance.getClass(), RpcView.class, "C").equals(pgc)))) {
+            } else if ((instance instanceof RpcView || Modifier.isStatic(m.getModifiers())) && Set.class.isAssignableFrom(p.getType()) && (m.getDeclaringClass().equals(pgc) || (instance instanceof RpcView && ReflectionHelper.getGenericClass(instance.getClass(), RpcView.class, "C").equals(pgc)))) {
                 vs.add(pendingSelection);
             } else if (params != null && params.containsKey(p.getName())) {
                 vs.add(params.get(p.getName()));

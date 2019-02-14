@@ -1,5 +1,7 @@
 package io.mateu.mdd.core.app;
 
+import com.vaadin.icons.VaadinIcons;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -10,10 +12,16 @@ public abstract class AbstractMenu implements MenuEntry {
 
     private final String id = UUID.randomUUID().toString();
 
+    private VaadinIcons icon;
     private String name;
     private List<MenuEntry> entries;
 
     public AbstractMenu(String name) {
+        this.name = name;
+    }
+
+    public AbstractMenu(VaadinIcons icon, String name) {
+        this.icon = icon;
         this.name = name;
     }
 
@@ -37,5 +45,10 @@ public abstract class AbstractMenu implements MenuEntry {
 
     public String getId() {
         return id;
+    }
+
+    @Override
+    public VaadinIcons getIcon() {
+        return icon;
     }
 }

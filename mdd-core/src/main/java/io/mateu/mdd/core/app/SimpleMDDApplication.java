@@ -1,6 +1,7 @@
 package io.mateu.mdd.core.app;
 
 import com.google.common.base.Strings;
+import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Caption;
@@ -142,9 +143,11 @@ public class SimpleMDDApplication extends BaseMDDApp {
                 String caption = (m.isAnnotationPresent(SubApp.class))?m.getAnnotation(SubApp.class).value():m.getAnnotation(Action.class).value();
                 if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(m.getName());
 
+                VaadinIcons icon = (m.isAnnotationPresent(SubApp.class))?m.getAnnotation(SubApp.class).icon():m.getAnnotation(Action.class).icon();
+
                 if (m.isAnnotationPresent(SubApp.class)) {
 
-                    l.add(new AbstractMenu(caption) {
+                    l.add(new AbstractMenu(icon, caption) {
                         @Override
                         public List<MenuEntry> buildEntries() {
                             try {
@@ -160,7 +163,7 @@ public class SimpleMDDApplication extends BaseMDDApp {
 
                     if (List.class.isAssignableFrom(m.getReturnType()) && MenuEntry.class.equals(ReflectionHelper.getGenericClass(m))) {
 
-                        l.add(new AbstractMenu(caption) {
+                        l.add(new AbstractMenu(icon, caption) {
                             @Override
                             public List<MenuEntry> buildEntries() {
                                 List<MenuEntry> l = new ArrayList<>();
@@ -178,7 +181,7 @@ public class SimpleMDDApplication extends BaseMDDApp {
 
                     } else {
 
-                        l.add(new AbstractAction(caption) {
+                        l.add(new AbstractAction(icon, caption) {
                             @Override
                             public void run(MDDExecutionContext context) {
                                 try {

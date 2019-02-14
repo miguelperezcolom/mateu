@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.views;
 
+import com.google.common.base.Strings;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.app.AbstractAction;
@@ -39,7 +40,7 @@ public class MenuFlowComponent extends Panel {
         List<MenuEntry> plainActions = menu.getEntries().stream().filter(e -> e instanceof AbstractAction).collect(Collectors.toList());
 
         if (plainActions.size() > 0) {
-            cssLayout.addComponent(createMenuComponent(new AbstractMenu("Options") {
+            cssLayout.addComponent(createMenuComponent(new AbstractMenu(menu.getEntries().stream().filter(e -> e instanceof AbstractMenu).count() > 0?"Options":"") {
                 @Override
                 public List<MenuEntry> buildEntries() {
                     return plainActions;
@@ -73,11 +74,13 @@ public class MenuFlowComponent extends Panel {
 
             q.addStyleName("submenulayout");
 
-            Label t;
-            q.addComponent(t = new Label(m.getName()));
-            if (nivel == 0) t.addStyleName(ValoTheme.LABEL_H2);
-            else if (nivel == 1) t.addStyleName(ValoTheme.LABEL_H3);
-            else t.addStyleName(ValoTheme.LABEL_H4);
+            if (!Strings.isNullOrEmpty(m.getName())) {
+                Label t;
+                q.addComponent(t = new Label(m.getName()));
+                if (nivel == 0) t.addStyleName(ValoTheme.LABEL_H2);
+                else if (nivel == 1) t.addStyleName(ValoTheme.LABEL_H3);
+                else t.addStyleName(ValoTheme.LABEL_H4);
+            }
 
             m.getEntries().forEach(s -> fill(q, s, nivel + 1));
 

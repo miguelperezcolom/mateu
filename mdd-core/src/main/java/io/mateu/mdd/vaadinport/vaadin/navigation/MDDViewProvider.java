@@ -9,7 +9,9 @@ import com.vaadin.ui.Notification;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
 import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.EntityProvider;
+import io.mateu.mdd.core.interfaces.PersistentPOJO;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
@@ -22,10 +24,7 @@ import io.mateu.mdd.vaadinport.vaadin.components.oauth.OAuthHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
 import io.mateu.mdd.vaadinport.vaadin.pojos.Profile;
 
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Query;
+import javax.persistence.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -505,22 +504,43 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                             if (method == null && !"filters".equals(step) && lastViewComponent instanceof RpcListViewComponent) {
                                 method = ReflectionHelper.getMethod(((RpcListViewComponent)lastViewComponent).getRpcListView().getClass(), "onEdit");
-                                //pendingResult = ((RpcListViewComponent)lastViewComponent).getRpcListView().onEdit(step);
+                                if (pendingResult == null) {
+                                    try {
+                                        method = ((RpcListViewComponent)lastViewComponent).getRpcListView().getClass().getMethod("onEdit", String.class);
+                                        if (method != null) {
+                                            pendingResult = method.invoke(((RpcListViewComponent)lastViewComponent).getRpcListView(), step);
+                                        }
+                                    } catch (Exception e) {
+                                        MDD.alert(e);
+                                    }
+                                }
                             }
 
                             if (method != null) {
 
+                                callMethod(state, method, lvc instanceof RpcListViewComponent?((RpcListViewComponent)lvc).getRpcListView():null);
+
+                                /*
+
+
+xxxxxxxxxxxxxxxx
+
                                 if (pendingResult != null) {
-                                    try {
-                                        stack.push(currentPath, new MethodResultViewFlowComponent(state, method, pendingResult));
-                                    } catch (Exception e) {
-                                        MDD.alert(e);
+                                    if (pendingResult.getClass().isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(pendingResult.getClass())) {
+                                        stack.push(currentPath, new EditorViewComponent(pendingResult));
+                                    } else {
+                                        try {
+                                            stack.push(currentPath, new MethodResultViewFlowComponent(state, method, pendingResult));
+                                        } catch (Exception e) {
+                                            MDD.alert(e);
+                                        }
                                     }
                                     pendingResult = null;
                                 } else {
                                     stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, lvc instanceof RpcListViewComponent?((RpcListViewComponent)lvc).getRpcListView():null, this, null, pendingSelection));
                                     pendingSelection = null;
                                 }
+                                */
 
                             } else if ("filters".equals(step)) {
 
@@ -592,8 +612,11 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                             IEditorViewComponent auxevfc = null;
 
+                            MethodResultViewFlowComponent mrvfc = null;
                             if (lastViewComponent instanceof MethodResultViewFlowComponent) {
+                                mrvfc = (MethodResultViewFlowComponent) lastViewComponent;
                                 lastViewComponent = ((MethodResultViewFlowComponent) lastViewComponent).getComponent(0);
+                                if (lastViewComponent instanceof MethodResultViewComponent) lastViewComponent = ((MethodResultViewComponent) lastViewComponent).getComponent(0);
                             }
 
                             if (lastViewComponent instanceof WizardComponent) {
@@ -604,39 +627,54 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                 auxevfc = ((OwnedCollectionComponent) lastViewComponent).getEditorViewComponent();
                             } else if (lastViewComponent instanceof MethodParametersViewFlowComponent) {
                                 auxevfc = ((MethodParametersViewFlowComponent)lastViewComponent).getComponent();
-                            } else {
+                            } else if (lastViewComponent instanceof MethodResultViewComponent) {
+                            } else if (lastViewComponent instanceof EditorViewComponent) {
                                 auxevfc = (EditorViewComponent) lastViewComponent;
                             }
 
                             IEditorViewComponent evfc = auxevfc;
 
+                            Method method = null;
+                            FieldInterfaced field = null;
 
-                            Method method = evfc.getMethod(step);
-
-                            FieldInterfaced field = evfc.getField(step);
+                            if (auxevfc != null) {
+                                method = evfc.getMethod(step);
+                                field = evfc.getField(step);
+                            } else if (lastViewComponent instanceof RpcListViewComponent) {
+                                method = ReflectionHelper.getMethod(((RpcListViewComponent)lastViewComponent).getRpcListView().getClass(), step);
+                            }
 
                             if (method == null && field == null && lastViewComponent instanceof RpcListViewComponent) {
-                                try {
-                                    method = ((RpcListViewComponent)lastViewComponent).getRpcListView().getClass().getMethod("onEdit", String.class);
-                                    pendingResult = ((RpcListViewComponent)lastViewComponent).getRpcListView().onEdit(step);
-                                } catch (NoSuchMethodException e) {
-                                    MDD.alert(e);
+                                if (pendingResult == null) {
+                                    try {
+                                        method = ((RpcListViewComponent)lastViewComponent).getRpcListView().getClass().getMethod("onEdit", String.class);
+                                        try {
+                                            pendingResult = method.invoke(((RpcListViewComponent)lastViewComponent).getRpcListView(), step);
+                                        } catch (Throwable throwable) {
+                                            MDD.alert(throwable);
+                                        }
+                                    } catch (NoSuchMethodException e) {
+                                        MDD.alert(e);
+                                    }
+                                } else {
+                                    if (pendingResult instanceof String) {
+                                        try {
+                                            method = ((RpcListViewComponent)lastViewComponent).getRpcListView().getClass().getMethod("onEdit", String.class);
+                                        } catch (NoSuchMethodException e) {
+                                            MDD.alert(e);
+                                        }
+                                        if (method == null) {
+                                            method = ReflectionHelper.getMethod(((RpcListViewComponent)lastViewComponent).getRpcListView().getClass(), "onEdit");
+                                        }
+                                    } else {
+                                        method = ReflectionHelper.getMethod(((RpcListViewComponent)lastViewComponent).getRpcListView().getClass(), "onEdit");
+                                    }
                                 }
                             }
 
                             if (method != null) {
 
-                                if (pendingResult != null) {
-                                    try {
-                                        stack.push(currentPath, new MethodResultViewFlowComponent(state, method, pendingResult));
-                                    } catch (Exception e) {
-                                        MDD.alert(e);
-                                    }
-                                    pendingResult = null;
-                                } else {
-                                    stack.push(currentPath, new MethodParametersViewFlowComponent(state, method, evfc.getModel(), this, evfc.getBinder(), pendingSelection));
-                                    pendingSelection = null;
-                                }
+                                callMethod(state, method, lastViewComponent instanceof RpcListViewComponent?((RpcListViewComponent)lastViewComponent).getRpcListView():evfc.getModel());
 
                             } else if (field != null) {
 
@@ -677,6 +715,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                                             if (field.isAnnotationPresent(ManyToOne.class)) {
 
+                                                FieldInterfaced finalField = field;
                                                 lvc.addListener(new ListViewComponentListener() {
                                                     @Override
                                                     public void onEdit(Object id) {
@@ -700,14 +739,14 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                                                     Object e = null;
 
                                                                     if (oid instanceof Object[]) {
-                                                                        e = em.find(field.getType(), ((Object[]) oid)[0]);
+                                                                        e = em.find(finalField.getType(), ((Object[]) oid)[0]);
                                                                     } else if (oid instanceof EntityProvider) {
                                                                         e = ((EntityProvider) oid).toEntity(em);
                                                                     } else {
-                                                                        e = em.find(field.getType(), oid);
+                                                                        e = em.find(finalField.getType(), oid);
                                                                     }
 
-                                                                    ReflectionHelper.setValue(field, m, e);
+                                                                    ReflectionHelper.setValue(finalField, m, e);
                                                                     evfc.updateModel(m);
 
                                                                     MDDUI.get().getNavegador().goBack();
@@ -1013,12 +1052,12 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
     }
 
     @Override
-    public void callMethod(AbstractAction action, Class entityClass, String methodName) {
+    public void callMethod(String state, Class entityClass, String methodName) {
         Method method = ReflectionHelper.getMethod(entityClass, methodName);
 
         if (method != null) {
             try {
-                callMethod(action, method, Modifier.isStatic(method.getModifiers())?null:entityClass.newInstance());
+                callMethod(state, method, Modifier.isStatic(method.getModifiers())?null:entityClass.newInstance());
             } catch (Exception e) {
                 MDD.alert(e);
             }
@@ -1026,32 +1065,50 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
     }
 
     @Override
-    public void callMethod(AbstractAction action, Method method, Object instance) {
+    public void callMethod(String state, Method method, Object instance) {
         if (method != null) {
             try {
 
-                boolean hasNonInjectedParameters = false;
+                if (pendingResult != null) {
 
-                for (Parameter p : method.getParameters()) if (!ReflectionHelper.isInjectable(p)) {
-                    hasNonInjectedParameters = true;
-                    break;
-                }
+                    if (pendingResult.getClass().isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(pendingResult.getClass())) {
+                        stack.push(currentPath, new EditorViewComponent(pendingResult));
+                    } else {
+                        try {
+                            stack.push(currentPath, new MethodResultViewFlowComponent(state, method, pendingResult));
+                        } catch (Exception e) {
+                            MDD.alert(e);
+                        }
+                    }
+                    pendingResult = null;
 
 
-
-                if (hasNonInjectedParameters) {
-                    stack.push(currentPath, new MethodParametersViewFlowComponent(currentPath, method, instance, this, null, pendingSelection));
                 } else {
 
-                    if (Query.class.equals(method.getReturnType())) {
+                    boolean hasNonInjectedParameters = false;
 
-                        MDDUI.get().getNavegador().showResult(currentPath, method, ReflectionHelper.invokeInjectableParametersOnly(method, instance), this, false);
+                    for (Parameter p : method.getParameters()) if (!ReflectionHelper.isInjectable(p)) {
+                        hasNonInjectedParameters = true;
+                        break;
+                    }
 
+
+
+                    if (hasNonInjectedParameters) {
+                        stack.push(currentPath, new MethodParametersViewFlowComponent(currentPath, method, instance, this, null, pendingSelection));
                     } else {
 
-                        MDDUI.get().getNavegador().showResult(currentPath, method, ReflectionHelper.invokeInjectableParametersOnly(method, instance), this, false);
+                        if (Query.class.equals(method.getReturnType())) {
 
+                            MDDUI.get().getNavegador().showResult(currentPath, method, ReflectionHelper.execute(MDD.getUserData(), method, new MDDBinder(new ArrayList<>()), instance, pendingSelection), this, false);
+
+                        } else {
+
+                            MDDUI.get().getNavegador().showResult(currentPath, method, ReflectionHelper.execute(MDD.getUserData(), method, new MDDBinder(new ArrayList<>()), instance, pendingSelection), this, false);
+
+                        }
                     }
+
                 }
 
             } catch (Throwable e) {

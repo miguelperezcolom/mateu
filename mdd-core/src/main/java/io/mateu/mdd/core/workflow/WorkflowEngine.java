@@ -18,6 +18,11 @@ public class WorkflowEngine {
     }
 
     public static void exit(int status) {
+        shutdown();
+        System.exit(status);
+    }
+
+    public static void shutdown() {
         while (queue.size() > 0 || running.get()) {
             try {
                 Thread.sleep(100);
@@ -25,7 +30,6 @@ public class WorkflowEngine {
                 e.printStackTrace();
             }
         }
-        System.exit(status);
     }
 
     public static boolean activateLocalRunner() {

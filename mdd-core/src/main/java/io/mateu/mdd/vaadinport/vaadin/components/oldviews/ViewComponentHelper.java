@@ -94,6 +94,8 @@ public class ViewComponentHelper {
                                     if (viewComponent instanceof EditorViewComponent) {
                                         EditorViewComponent evc = (EditorViewComponent) viewComponent;
                                         instance = evc.getModel();
+                                    } else if (viewComponent instanceof RpcListViewComponent) {
+                                        instance = ((RpcListViewComponent)viewComponent).getRpcListView();
                                     }
 
 
