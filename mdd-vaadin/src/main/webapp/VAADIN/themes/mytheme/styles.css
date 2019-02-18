@@ -18853,6 +18853,10 @@ div.v-layout.v-horizontal.v-widget {
 	margin-top: 20px;
 }
 
+.mytheme .botonerafiltros {
+	vertical-align: bottom;
+}
+
 .mytheme .botonerafiltros .v-button {
 	font-size: 1.4em;
 	color: grey;

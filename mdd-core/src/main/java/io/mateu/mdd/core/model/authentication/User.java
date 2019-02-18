@@ -42,22 +42,8 @@ public class User {
     @KPI
     private Audit audit = new Audit();
 
-    @KPI
-    private LocalDateTime lastLogin;
-
-    @KPI
-    private int failedLogins;
-
-
-    @Ignored
-    private String passwordResetKey;
-
-    @Ignored
-    private LocalDateTime passwordResetExpiryDateTime;
-
-
     /**
-     * login must always be uppercase. It is the primary key.
+     * login must always be lowercase. It is the primary key.
      */
     @Section("Data")
     @Id
@@ -107,6 +93,22 @@ public class User {
     @OneToMany
     private List<Permission> permissions = new ArrayList<Permission>();
 
+    @KPI
+    private LocalDateTime lastLogin;
+
+    @KPI
+    private int failedLogins;
+
+
+    @Output
+    private String passwordResetKey;
+
+    @Output
+    private LocalDateTime passwordResetExpiryDateTime;
+
+    public void setLogin(String login) {
+        this.login = login != null?login.toLowerCase().trim():null;
+    }
 
     //@PrePersist
     public void prePersist() {

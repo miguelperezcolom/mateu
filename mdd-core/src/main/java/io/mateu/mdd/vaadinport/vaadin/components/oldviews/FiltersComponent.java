@@ -51,9 +51,11 @@ public class FiltersComponent extends Composite {
 
         long t0 = System.currentTimeMillis();
 
-        Layout l = (MDD.isMobile())?new VerticalLayout():new CssLayout();
-        setCompositionRoot(l);
+        Layout l = (MDD.isMobile())?new VerticalLayout():new HorizontalLayout();
+        Layout pl = MDD.isMobile()?l:new CssLayout(l);
+        setCompositionRoot(pl);
         l.addStyleName(CSS.NOPADDING);
+        pl.addStyleName(CSS.NOPADDING);
 
         addStyleName("filterscomponent");
 
@@ -175,7 +177,7 @@ public class FiltersComponent extends Composite {
         b.addStyleName("principal");
         //b.setStyleName(ValoTheme.BUTTON_PRIMARY);
 
-        l.addComponent(botones);
+        pl.addComponent(botones);
 
 
         System.out.println("filters component built in " + (System.currentTimeMillis() - t0) + " ms.");

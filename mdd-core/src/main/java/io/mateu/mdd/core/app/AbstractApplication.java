@@ -57,6 +57,14 @@ public abstract class AbstractApplication implements App {
     private MemorizadorRegistroEditado memorizador;
 
     public static AbstractApplication get() {
+        if (!Strings.isNullOrEmpty(System.getProperty("appClassName"))) {
+            try {
+                return (AbstractApplication) Class.forName(System.getProperty("appClassName")).newInstance();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         Iterator<App> apps = ServiceLoader.load(App.class).iterator();
         AbstractApplication app = null;
         while (apps.hasNext()) {

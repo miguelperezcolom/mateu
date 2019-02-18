@@ -130,6 +130,8 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
                     botonLink.addStyleName(CSS.NOPADDING);
                     botonLink.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
                     hl.addComponent(botonLink);
+                    hl.setComponentAlignment(tf, Alignment.MIDDLE_LEFT);
+                    hl.setComponentAlignment(botonLink, Alignment.MIDDLE_LEFT);
 
                 } else {
 
@@ -141,9 +143,12 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
                     //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
 
-                    bind(binder, tf, botonLink, field);
-
                 }
+
+
+
+                bind(binder, tf, botonLink, field);
+
             }
 
 

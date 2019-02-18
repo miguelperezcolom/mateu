@@ -32,7 +32,7 @@ public class BankAccount {
     private String searchableContent;
 
     @ManyToOne
-    @NotNull
+    @NotNull@Output
     @Keep
     private User owner;
 
