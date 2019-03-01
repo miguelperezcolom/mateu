@@ -19251,7 +19251,8 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .mytheme .outputlabel {
-	white-space: inherit;
+	white-space: normal;
+	max-width: 300px;
 }
 
 .mytheme .navegadorcalendario .titulo {

@@ -1,21 +1,18 @@
 package io.mateu.mdd.core.interfaces;
 
+import com.vaadin.data.provider.QuerySortOrder;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
-import io.mateu.mdd.core.workflow.WorkflowEngine;
 import org.eclipse.persistence.internal.helper.DatabaseField;
-import org.eclipse.persistence.internal.jpa.EJBQueryImpl;
 import org.eclipse.persistence.jpa.JpaEntityManager;
 import org.eclipse.persistence.jpa.JpaQuery;
 import org.eclipse.persistence.queries.DatabaseQuery;
 import org.eclipse.persistence.sessions.DatabaseRecord;
-import org.eclipse.persistence.sessions.Record;
 import org.eclipse.persistence.sessions.Session;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Parameter;
 import javax.persistence.Query;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -24,7 +21,7 @@ import java.util.List;
 public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLListView, R> {
 
     @Override
-    public List<R> rpc(AbstractJPQLListView filters, int offset, int limit) {
+    public List<R> rpc(AbstractJPQLListView filters, List<QuerySortOrder> sortOrders, int offset, int limit) {
 
         List<R> l = new ArrayList<>();
 
@@ -34,7 +31,7 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
                 @Override
                 public void run(EntityManager em) throws Throwable {
 
-                    Query q = buildQuery(em, false);
+                    Query q = buildQuery(em, sortOrders, false);
 
                     q.setFirstResult(offset);
                     q.setMaxResults(limit);
@@ -72,7 +69,7 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
                 @Override
                 public void run(EntityManager em) throws Throwable {
 
-                    Query q = buildQuery(em, true);
+                    Query q = buildQuery(em, null, true);
 
                     c[0] = ((Long) q.getSingleResult()).intValue();
 
@@ -85,7 +82,7 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
         return c[0];
     }
 
-    public abstract Query buildQuery(EntityManager em, boolean forCount) throws Throwable;
+    public abstract Query buildQuery(EntityManager em, List<QuerySortOrder> sortOrders, boolean forCount) throws Throwable;
 
     public Class getRowClass() {
         return ReflectionHelper.getGenericClass(this.getClass(), RpcView.class, "C");
@@ -130,7 +127,7 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
 
         try {
             Helper.notransact(em -> {
-                Query q = view.buildQuery(em, false);
+                Query q = view.buildQuery(em, null, false);
                 System.out.println(q.getResultList());
                 Query qt = em.createNativeQuery("select count(*) from (" + q.unwrap(JpaQuery.class).getDatabaseQuery().getSQLString() + ") x");
                 q.getParameters().forEach(p -> qt.setParameter(p.getName(), q.getParameterValue(p)));
@@ -143,7 +140,7 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
 
         try {
             Helper.notransact(em -> {
-                System.out.println(view.buildQuery(em, true).getResultList());
+                System.out.println(view.buildQuery(em, null, true).getResultList());
             });
         } catch (Throwable throwable) {
             throwable.printStackTrace();

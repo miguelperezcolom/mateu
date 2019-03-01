@@ -143,7 +143,7 @@ public class RpcListViewComponent extends ListViewComponent {
     @Override
     public List findAll(Object filters, List<QuerySortOrder> sortOrders, int offset, int limit) {
         try {
-            return rpcListView.rpc(filters, offset, limit);
+            return rpcListView.rpc(filters, sortOrders, offset, limit);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
             return null;

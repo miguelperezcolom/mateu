@@ -47,4 +47,8 @@ public interface FieldInterfaced {
     DataProvider getDataProvider();
 
     Annotation[] getDeclaredAnnotations();
+
+    default boolean forceInput() {
+        return false;
+    }
 }

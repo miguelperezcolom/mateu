@@ -1,5 +1,6 @@
 package io.mateu.mdd.core.interfaces;
 
+import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.ui.Grid;
 import io.mateu.mdd.core.data.SumData;
 
@@ -7,7 +8,7 @@ import java.util.List;
 
 public interface RpcView<F, C> {
 
-    List<C> rpc(F filters, int offset, int limit) throws Throwable;
+    List<C> rpc(F filters, List<QuerySortOrder> sortOrders, int offset, int limit) throws Throwable;
 
     default List<SumData> getSums(F filters) {
         return null;

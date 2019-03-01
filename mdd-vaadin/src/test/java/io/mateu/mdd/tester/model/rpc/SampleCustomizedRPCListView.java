@@ -1,11 +1,11 @@
 package io.mateu.mdd.tester.model.rpc;
 
+import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.StyleGenerator;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.annotations.MainSearchFilter;
-import io.mateu.mdd.core.data.Just1StringColumn;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.data.Pair;
 import lombok.Getter;
@@ -52,7 +52,7 @@ public class SampleCustomizedRPCListView implements RpcView<SampleCustomizedRPCL
 
 
     @Override
-    public List<Row> rpc(SampleCustomizedRPCListView filters, int offset, int limit) {
+    public List<Row> rpc(SampleCustomizedRPCListView filters, List<QuerySortOrder> sortOrders, int offset, int limit) {
         doRpcCall();
         return result.getValue().subList(offset, (result.getValue().size() > offset + limit)?offset + limit:result.getValue().size());
     }

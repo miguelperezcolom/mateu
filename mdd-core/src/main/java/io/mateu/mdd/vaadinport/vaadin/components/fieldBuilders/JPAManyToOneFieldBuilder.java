@@ -107,20 +107,21 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
             if (field.getType().isAnnotationPresent(UseIdToSelect.class)) {
 
-                CssLayout fl;
-                tf = fl = new CssLayout();
+                VerticalLayout fl;
+                tf = fl = new VerticalLayout();
                 hl = new HorizontalLayout();
                 fl.addComponent(hl);
                 hl.setDefaultComponentAlignment(Alignment.BOTTOM_LEFT);
                 container.addComponent(fl);
 
+                fl.addStyleName(CSS.NOPADDING);
 
                 TextField stf;
                 hl.addComponent(stf = new TextField());
                 Label l;
                 fl.addComponent(l = new Label());
 
-                captionOwner = hl;
+                captionOwner = stf;
 
 
                 List<HasValue.ValueChangeListener> listeners = new ArrayList<>();

@@ -1,6 +1,7 @@
 package io.mateu.mdd.tester.model.rpc;
 
 import com.google.common.base.Strings;
+import com.vaadin.data.provider.QuerySortOrder;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
@@ -62,7 +63,7 @@ public class SampleRPCToJPAListView implements RpcCrudView<SampleRPCToJPAListVie
 
 
     @Override
-    public List<Row> rpc(SampleRPCToJPAListView filters, int offset, int limit) {
+    public List<Row> rpc(SampleRPCToJPAListView filters, List<QuerySortOrder> sortOrders, int offset, int limit) {
         doRpcCall();
         return result.getValue().subList(offset, (result.getValue().size() > offset + limit)?offset + limit:result.getValue().size());
     }

@@ -30,14 +30,16 @@ public class VaadinHelper {
 
     public static void choose(String caption, Set possibleValues, Consumer onOk, Runnable onClose) {
 
-        Map<FieldInterfaced, Component> allFieldContainers = new HashMap<>();
-        JPAOutputFieldBuilder ofb = new JPAOutputFieldBuilder();
-
         FieldInterfaced field = new FieldInterfacedFromType(Object.class, "value", new ListDataProvider(possibleValues)) {
             @Override
             public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
                 if (UseRadioButtons.class.equals(annotationClass) && possibleValues.size() < 15) return true;
                 else return super.isAnnotationPresent(annotationClass);
+            }
+
+            @Override
+            public boolean forceInput() {
+                return true;
             }
         };
 

@@ -248,6 +248,7 @@ public class FileComponent extends Composite implements HasValue<Resource>, Comp
                             || file.getName().toLowerCase().endsWith(".gif")
                             || file.getName().toLowerCase().endsWith(".png")
                             || file.getName().toLowerCase().endsWith(".svg")
+                            || file.getName().toLowerCase().endsWith(".webp")
                     )) {
                 hyperLink.setVisible(false);
                 image.setVisible(true);

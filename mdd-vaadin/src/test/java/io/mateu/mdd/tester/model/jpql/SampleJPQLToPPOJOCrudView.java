@@ -1,6 +1,7 @@
 package io.mateu.mdd.tester.model.jpql;
 
 import com.google.common.base.Strings;
+import com.vaadin.data.provider.QuerySortOrder;
 import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.interfaces.AbstractJPQLCrudView;
 import io.mateu.mdd.tester.model.entities.basic.BasicFieldsDemoEntity;
@@ -11,6 +12,7 @@ import lombok.Setter;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Getter@Setter
@@ -41,7 +43,7 @@ public class SampleJPQLToPPOJOCrudView extends AbstractJPQLCrudView<SampleJPQLTo
 
 
     @Override
-    public Query buildQuery(EntityManager em, boolean forCount) {
+    public Query buildQuery(EntityManager em, List<QuerySortOrder> sortOrders, boolean forCount) {
 
         String ql = "select ";
 

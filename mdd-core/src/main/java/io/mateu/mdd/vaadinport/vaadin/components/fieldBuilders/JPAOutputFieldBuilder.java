@@ -115,6 +115,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
                 if (field.getType().isAnnotationPresent(Entity.class)) {
 
                     HorizontalLayout hl = new HorizontalLayout();
+                    hl.setDefaultComponentAlignment(Alignment.BOTTOM_LEFT);
                     container.addComponent(hl);
 
                     hl.addComponent(tf);

@@ -1,6 +1,7 @@
 package io.mateu.mdd.core.model.common;
 
 import com.google.common.base.Strings;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.FileLocator;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.Utils;
@@ -106,7 +107,11 @@ public class Resource {
                 String baseUrl = System.getProperty("tmpurl");
                 URL url = null;
                 if (baseUrl == null) {
-                    url = temp.toURI().toURL();
+                    if (MDD.getApp() != null && !Strings.isNullOrEmpty(MDD.getApp().getBaseUrl())) {
+                        url = new URL(MDD.getApp().getBaseUrl() + "/tmp/" + temp.getName());
+                    } else {
+                        url = temp.toURI().toURL();
+                    }
                 } else url = new URL(baseUrl + "/" + temp.getName());
 
 

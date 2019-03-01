@@ -230,8 +230,8 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                 } catch (Exception e) {
                     MDD.alert(e);
                 }
-            } else if (f.isAnnotationPresent(GeneratedValue.class) || (MDDUI.get().getNavegador().getViewProvider().getCurrentEditor() != null && f.isAnnotationPresent(Output.class))
-                    || (!Component.class.isAssignableFrom(f.getType()) && ReflectionHelper.getMethod(model.getClass(), ReflectionHelper.getSetter(f)) == null)) {
+            } else if (!f.forceInput() && (f.isAnnotationPresent(GeneratedValue.class) || (MDDUI.get().getNavegador().getViewProvider().getCurrentEditor() != null && f.isAnnotationPresent(Output.class))
+                    || (!Component.class.isAssignableFrom(f.getType()) && ReflectionHelper.getMethod(model.getClass(), ReflectionHelper.getSetter(f)) == null))) {
                 ofb.build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters);
             } else {
                 AbstractFieldBuilder b = MDD.getApp().getFieldBuilder(f);

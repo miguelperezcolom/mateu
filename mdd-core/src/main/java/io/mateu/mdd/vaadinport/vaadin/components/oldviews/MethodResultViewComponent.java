@@ -15,7 +15,6 @@ import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Pair;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
@@ -191,7 +190,7 @@ public class MethodResultViewComponent extends AbstractViewComponent {
 
                 if (method.isAnnotationPresent(Output.class)) {
                     try {
-                        addComponent(new PdfComponent((RpcView) result, result));
+                        addComponent(new PdfComponent((RpcView) result, result, null));
                     } catch (Throwable throwable) {
                         MDD.alert(throwable);
                     }

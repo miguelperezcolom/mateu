@@ -20,6 +20,7 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
+import com.vaadin.data.provider.QuerySortOrder;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -33,7 +34,6 @@ import io.mateu.mdd.core.workflow.WorkflowEngine;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
-import org.apache.avalon.framework.configuration.ConfigurationException;
 import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.mail.DefaultAuthenticator;
@@ -272,11 +272,19 @@ public class Helper {
 
     }
 
-    private static EntityManagerFactory getEMF() {
+    public static void closeEMFs() {
+        emf.values().forEach(x -> {
+            if (x.isOpen()) x.close();
+        });
+        emf.clear();
+    }
+
+
+    public static EntityManagerFactory getEMF() {
         return getEMF(System.getProperty("defaultpuname", "default"));
     }
 
-    private static EntityManagerFactory getEMF(String persistenceUnit) {
+    public static EntityManagerFactory getEMF(String persistenceUnit) {
         EntityManagerFactory v;
         if ((v = emf.get(persistenceUnit)) == null) {
             emf.put(persistenceUnit, v = Persistence.createEntityManagerFactory(persistenceUnit, System.getProperties()));
@@ -1222,9 +1230,9 @@ public class Helper {
     }
 
 
-    public static URL viewToPdf(RpcView view, Object filters)throws Throwable {
+    public static URL viewToPdf(RpcView view, Object filters, List<QuerySortOrder> sortOrders)throws Throwable {
 
-        return listToPdf(view.rpc(filters, 0, Integer.MAX_VALUE));
+        return listToPdf(view.rpc(filters, sortOrders, 0, Integer.MAX_VALUE));
 
     }
 
@@ -1453,9 +1461,9 @@ public class Helper {
     }
 
 
-    public static URL viewToExcel(RpcView view, Object filters)throws Throwable {
+    public static URL viewToExcel(RpcView view, Object filters, List<QuerySortOrder> sortOrders)throws Throwable {
 
-        return listToExcel(view.rpc(filters, 0, Integer.MAX_VALUE));
+        return listToExcel(view.rpc(filters, sortOrders, 0, Integer.MAX_VALUE));
 
     }
 

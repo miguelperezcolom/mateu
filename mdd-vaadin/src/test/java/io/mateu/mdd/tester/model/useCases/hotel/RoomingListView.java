@@ -1,16 +1,19 @@
 package io.mateu.mdd.tester.model.useCases.hotel;
 
+import com.vaadin.data.provider.QuerySortOrder;
+import com.vaadin.ui.Grid;
+import com.vaadin.ui.StyleGenerator;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.NotInList;
 import io.mateu.mdd.core.interfaces.AbstractJPQLListView;
-import io.mateu.mdd.core.workflow.WorkflowEngine;
+import io.mateu.mdd.core.interfaces.GridDecorator;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Getter@Setter
@@ -31,7 +34,7 @@ public class RoomingListView extends AbstractJPQLListView<RoomingListView.Row> {
 
 
     @Override
-    public Query buildQuery(EntityManager em, boolean forCount) throws Throwable {
+    public Query buildQuery(EntityManager em, List<QuerySortOrder> sortOrders, boolean forCount) throws Throwable {
         String ql = "";
 
         ql += " select h.id, h.name, count(*) ";
@@ -66,6 +69,27 @@ public class RoomingListView extends AbstractJPQLListView<RoomingListView.Row> {
     @Action
     public void sendInstance(Set<Row> selection) {
         System.out.println("send rooming for " + selection.size() + " bookings");
+    }
+
+    @Override
+    public void decorateGrid(Grid<Row> grid) {
+        grid.getColumns().forEach(col -> {
+
+            StyleGenerator old = ((Grid.Column) col).getStyleGenerator();
+
+            ((Grid.Column)col).setStyleGenerator(new StyleGenerator() {
+                @Override
+                public String apply(Object o) {
+                    String s = null;
+                    if (old != null) s = old.apply(o);
+
+                    if (o instanceof Row) {
+                        if (((Row)o).getName().contains("x")) s = (s != null)?s + " cancelled":"cancelled";
+                    }
+                    return s;
+                }
+            });
+        });
     }
 
     public static void main(String[] args) {

@@ -1,10 +1,10 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 
+import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
-import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.util.Helper;
 
@@ -33,15 +33,15 @@ public class PdfComponent extends VerticalLayout {
     }
 
 
-    public PdfComponent(RpcView view, Object filters) throws Throwable {
+    public PdfComponent(RpcView view, Object filters, List<QuerySortOrder> sortOrders) throws Throwable {
 
-        addComponent(new Link("Click me to view the pdf", new ExternalResource(build(view, filters))));
+        addComponent(new Link("Click me to view the pdf", new ExternalResource(build(view, filters, sortOrders))));
 
     }
 
-    private URL build(RpcView view, Object filters) throws Throwable {
+    private URL build(RpcView view, Object filters, List<QuerySortOrder> sortOrders) throws Throwable {
 
-        return Helper.viewToPdf(view, filters);
+        return Helper.viewToPdf(view, filters, sortOrders);
 
     }
 

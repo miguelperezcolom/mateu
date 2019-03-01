@@ -31,7 +31,7 @@ public class MDD {
     }
 
     public static AbstractApplication getApp() {
-        return MDDUI.get().getApp();
+        return MDDUI.get() != null?MDDUI.get().getApp():MDDUI.createApp();
     }
 
 

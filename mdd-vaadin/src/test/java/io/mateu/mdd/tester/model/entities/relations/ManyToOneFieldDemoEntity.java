@@ -1,6 +1,7 @@
 package io.mateu.mdd.tester.model.entities.relations;
 
 import com.google.common.base.Strings;
+import com.vaadin.data.provider.QuerySortOrder;
 import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.annotations.SearchFilter;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
@@ -13,6 +14,7 @@ import lombok.Setter;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Entity
@@ -89,7 +91,7 @@ public class ManyToOneFieldDemoEntity {
         }
 
         @Override
-        public Query buildQuery(EntityManager em, boolean forCount) throws Throwable {
+        public Query buildQuery(EntityManager em, List<QuerySortOrder> sortOrders, boolean forCount) throws Throwable {
 
             String ql = "select ";
 

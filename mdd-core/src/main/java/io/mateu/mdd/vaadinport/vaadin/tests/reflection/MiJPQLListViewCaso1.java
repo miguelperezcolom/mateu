@@ -1,27 +1,25 @@
 package io.mateu.mdd.vaadinport.vaadin.tests.reflection;
 
+import com.vaadin.data.provider.QuerySortOrder;
+
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.util.List;
 
 public class MiJPQLListViewCaso1 extends SubclaseAbstractJPQLListView {
+
     @Override
-    public Query buildQuery(EntityManager em, boolean forCount) {
+    public Query buildQuery(EntityManager em, List list, boolean forCount) throws Throwable {
         return null;
     }
 
     @Override
-    public Class getRowClass() {
+    public List rpc(Object filters, List list, int offset, int limit) throws Throwable {
         return null;
     }
 
     @Override
-    public List rpc(Object filters, int offset, int limit) {
-        return null;
-    }
-
-    @Override
-    public int gatherCount(Object filters) {
+    public int gatherCount(Object filters) throws Throwable {
         return 0;
     }
 }
