@@ -1,5 +1,6 @@
 package io.mateu.mdd.core.servlet;
 
+import io.mateu.mdd.core.model.util.EmailHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.Helper;
 
@@ -13,6 +14,8 @@ public class MDDContextListener implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent servletContextEvent) {
         Helper.loadProperties();
+
+        if ("false".equalsIgnoreCase(System.getProperty("sendemails")) || "no".equalsIgnoreCase(System.getProperty("sendemails")) || "not".equalsIgnoreCase(System.getProperty("sendemails"))) EmailHelper.setTesting(true);
     }
 
     @Override
