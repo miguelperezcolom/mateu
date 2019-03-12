@@ -31,7 +31,7 @@ import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.*;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
-import io.mateu.mdd.core.interfaces.ICellStyleGenerator;
+import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.core.reflection.FieldInterfacedForCheckboxColumn;
 import io.mateu.mdd.core.reflection.FieldInterfacedFromType;
 import io.mateu.mdd.core.util.Helper;
@@ -44,7 +44,6 @@ import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.SumData;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.ICellStyleGenerator;
-import io.mateu.mdd.core.interfaces.StyledEnum;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
@@ -805,7 +804,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         Method a = null;
 
         for (Method m : ReflectionHelper.getAllMethods(getModelType())) {
-            if (Modifier.isStatic(m.getModifiers()) && m.getName().equals(methodName)) {
+            if ((RpcView.class.isAssignableFrom(getModelType()) || Modifier.isStatic(m.getModifiers())) && m.getName().equals(methodName)) {
                 a = m;
                 break;
             }

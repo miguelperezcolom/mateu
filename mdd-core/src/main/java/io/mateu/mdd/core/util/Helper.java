@@ -236,6 +236,9 @@ public class Helper {
             WorkflowEngine.runAndWaitThreadLocalTasks(atTop);
 
         } catch (ConstraintViolationException e) {
+
+            WorkflowEngine.cancelLocalRunner();
+
             e.printStackTrace();
             StringBuffer sb = new StringBuffer();
             for (ConstraintViolation v : e.getConstraintViolations()) {
@@ -247,6 +250,8 @@ public class Helper {
             em.close();
             throw new Exception(sb.toString());
         } catch (Exception e) {
+
+            WorkflowEngine.cancelLocalRunner();
 
             if (e.getCause() != null && e.getCause() instanceof ConstraintViolationException) {
                 ConstraintViolationException cve = (ConstraintViolationException) e.getCause();
