@@ -1,6 +1,7 @@
 package io.mateu.mdd.core.model.util;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.util.Helper;
@@ -9,6 +10,8 @@ import org.apache.commons.mail.*;
 
 import javax.mail.internet.InternetAddress;
 import javax.persistence.EntityManager;
+import java.net.URL;
+import java.util.List;
 
 public class EmailHelper {
 
@@ -23,6 +26,15 @@ public class EmailHelper {
     }
 
     public static void sendEmail(String toEmail, String subject, String text, boolean noCC) throws Throwable {
+        sendEmail(toEmail, subject, text, noCC, (URL) null);
+    }
+
+    public static void sendEmail(String toEmail, String subject, String text, boolean noCC, URL attachment) throws Throwable {
+        sendEmail(toEmail, subject, text, noCC, attachment != null?Lists.newArrayList(attachment):null);
+    }
+
+
+    public static void sendEmail(String toEmail, String subject, String text, boolean noCC, List<URL> attachments) throws Throwable {
 
         System.out.println("Sending email to " + toEmail);
         System.out.println("Subject: " + subject);
@@ -44,7 +56,7 @@ public class EmailHelper {
                     AppConfig c = AppConfig.get(em);
 
                     if (checkAppConfigForSMTP(c)) {
-                        Email email = new HtmlEmail();
+                        HtmlEmail email = new HtmlEmail();
                         email.setHostName(c.getAdminEmailSmtpHost());
                         email.setSmtpPort(c.getAdminEmailSmtpPort());
                         email.setAuthenticator(new DefaultAuthenticator(c.getAdminEmailUser(), c.getAdminEmailPassword()));
@@ -54,8 +66,11 @@ public class EmailHelper {
 
                         email.setSubject(subject);
                         //email.setMsg(io.mateu.ui.mdd.server.util.Helper.freemark(template, getData()));
-                        email.setMsg(text);
+                        email.setHtmlMsg(text);
                         email.addTo((!Strings.isNullOrEmpty(System.getProperty("allemailsto")))?System.getProperty("allemailsto"):toEmail);
+
+                        if (attachments != null) for (URL u : attachments) email.attach(u, u.toString().substring(u.toString().lastIndexOf("/") + 1), "");
+
                         email.send();
 
                         System.out.println("******* Email sent");
