@@ -50,6 +50,8 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
     public Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, boolean createSections, boolean forSearchFilters, boolean createTabs) {
 
+        long t0 = System.currentTimeMillis();
+
 
         AbstractStylist stylist = new NakedObjectStylist(modelType);
 
@@ -69,6 +71,8 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
 
         stylist.setUp(allFields);
+
+        System.out.println("editor component E.1 in " + (System.currentTimeMillis() - t0) + " ms.");
 
         Map<FieldInterfaced, Component> allFieldContainers = new HashMap<>();
 
@@ -113,6 +117,8 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
             buildAndAddFields(ofb, model, contentContainer, binder, validators, stylist, allFieldContainers, allFields, forSearchFilters, createTabs);
         }
 
+        System.out.println("editor component E.2 in " + (System.currentTimeMillis() - t0) + " ms.");
+
         binder.setBean(model);
 
         AbstractStylist finalStylist = stylist;
@@ -125,6 +131,8 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
         AbstractFieldBuilder.applyStyles(stylist, model, allFieldContainers, stylist.process(binder.getBean()));
 
+        System.out.println("editor component E.3 in " + (System.currentTimeMillis() - t0) + " ms.");
+
         return new Pair(contentContainer, stylist);
     }
 
@@ -133,6 +141,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
     }
 
     public void buildAndAddFields(JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean createTabs) {
+
 
         TabSheet tabs = null;
         TabSheet.Tab tab = null;
@@ -145,6 +154,8 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
         List<Layout> containersStack = new ArrayList<>();
 
         for (FieldInterfaced f : fields) {
+
+            long t0 = System.currentTimeMillis();
 
             Layout wrapper = null;
 
@@ -239,6 +250,9 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
             }
 
             if (!forSearchFilters) if (wrapper != null && wrapper.getComponentCount() > 0) currentContentContainer.addComponent(currentFieldContainer);
+
+
+            System.out.println("editor component field " + f + " in " + (System.currentTimeMillis() - t0) + " ms.");
 
         }
 

@@ -198,6 +198,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         try {
             if (panel == null) build();
 
+            System.out.println("editor component A in " + (System.currentTimeMillis() - t0) + " ms.");
 
             List<FieldInterfaced> kpis = ReflectionHelper.getKpiFields(model.getClass());
             if (kpis.size() > 0) {
@@ -221,7 +222,11 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             }
 
 
+            System.out.println("editor component B in " + (System.currentTimeMillis() - t0) + " ms.");
+
             List<FieldInterfaced> fields = ReflectionHelper.getAllEditableFields(model.getClass(), (owner != null) ? owner.getClass() : null, false, field);
+
+            System.out.println("editor component C in " + (System.currentTimeMillis() - t0) + " ms.");
 
             if (visibleFields != null && visibleFields.size() > 0) {
                 fields.removeIf(f -> !visibleFields.contains(f));
@@ -231,7 +236,12 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 fields.removeIf(f -> hiddenFields.contains(f));
             }
 
+            System.out.println("editor component D in " + (System.currentTimeMillis() - t0) + " ms.");
+
+
             Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, model.getClass(), model, validators, fields);
+
+            System.out.println("editor component E in " + (System.currentTimeMillis() - t0) + " ms.");
 
             stylist = r.getValue();
 
@@ -257,6 +267,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         } catch (Exception e) {
             MDD.alert(e);
         }
+
+        System.out.println("editor component F in " + (System.currentTimeMillis() - t0) + " ms.");
 
         rebuildActions();
 
