@@ -45,6 +45,12 @@ import static javax.tools.JavaFileObject.Kind.SOURCE;
 
 public class ReflectionHelper {
 
+
+    static Map<Class, List<FieldInterfaced>> allFieldsCache = new HashMap<>();
+    static Map<Class, List<Method>> allMethodsCache = new HashMap<>();
+    static Map<String, Method> methodCache = new HashMap<>();
+
+
     static List<Class> basicos = new ArrayList<>();
 
     static {
@@ -165,6 +171,14 @@ public class ReflectionHelper {
     }
 
     public static Method getMethod(Class<?> c, String methodName) {
+        Method l = methodCache.get(c.getName() + "-" + methodName);
+        if (l == null) {
+            methodCache.put(c.getName() + "-" + methodName, l = buildMethod(c, methodName));
+        }
+        return l;
+    }
+
+    public static Method buildMethod(Class<?> c, String methodName) {
         Method m = null;
         if (c != null) for (Method q : getAllMethods(c)) {
             if (methodName.equals(q.getName())) {
@@ -261,8 +275,18 @@ public class ReflectionHelper {
 
 
 
-
     public static List<Method> getAllMethods(Class c) {
+        List<Method> l = allMethodsCache.get(c);
+
+        if (l == null) {
+            allMethodsCache.put(c, l = buildAllMethods(c));
+        }
+
+        return l;
+    }
+
+
+    public static List<Method> buildAllMethods(Class c) {
         List<Method> l = new ArrayList<>();
 
         if (c.getSuperclass() != null && (!c.isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class)))
@@ -299,7 +323,16 @@ public class ReflectionHelper {
     }
 
     public static List<FieldInterfaced> getAllFields(Class c) {
+        List<FieldInterfaced> l = allFieldsCache.get(c);
 
+        if (l == null) {
+            allFieldsCache.put(c, l = buildAllFields(c));
+        }
+
+        return l;
+    }
+
+    private static List<FieldInterfaced> buildAllFields(Class c) {
         List<String> vistos = new ArrayList<>();
         Map<String, Field> originales = new HashMap<>();
         for (Field f : c.getDeclaredFields()) {
