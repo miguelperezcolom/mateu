@@ -33,6 +33,10 @@
 
 @import "views/editor.scss";
 
+body {
+  zoom: 0.66;
+}
+
 
 @mixin mytheme {
   @include valo;
@@ -66,7 +70,7 @@
         .appheader {
           width: 100%;
           height: 50px;
-          background-color: darkslategray;
+          background-color: #6c9090;
           padding: 8px;
           vertical-align: center;
 
@@ -106,7 +110,7 @@
 
         .leftside {
 
-          background-color: lightslategrey;
+          background-color: #a4b1bd;
           width: 250px;
           height: 100%;
           padding:  0px;
@@ -248,7 +252,7 @@
             }
 
             .tituloarea.selected {
-              background-color: whitesmoke;
+              background-color: #fafafa;
             }
 
             .tituloarea:active {
@@ -291,7 +295,7 @@
             }
 
             .opcionmenu.selected {
-              background-color: whitesmoke;
+              background-color: #fafafa;
             }
 
             .v-slot-opcionmenu:hover {
