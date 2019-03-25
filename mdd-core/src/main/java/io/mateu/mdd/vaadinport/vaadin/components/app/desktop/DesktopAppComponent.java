@@ -18,7 +18,6 @@ import io.mateu.mdd.vaadinport.vaadin.components.app.mobile.ViewContainer;
 public class DesktopAppComponent extends VerticalLayout implements AppComponent {
     private final AbstractApplication app;
     private final LeftSideComponent left;
-    private final HeaderComponent top;
     private final ViewContainer viewContainer;
 
     public DesktopAppComponent(AbstractApplication app, ViewContainer viewContainer) {
@@ -33,8 +32,6 @@ public class DesktopAppComponent extends VerticalLayout implements AppComponent 
 
         setSpacing(false);
 
-
-        addComponent(top = new HeaderComponent(this, app));
 
         HorizontalLayout h = new HorizontalLayout();
         h.setSpacing(false);
@@ -80,7 +77,6 @@ public class DesktopAppComponent extends VerticalLayout implements AppComponent 
 
     @Override
     public void updateSession() {
-        top.updateSession();
         left.updateSession();
     }
 

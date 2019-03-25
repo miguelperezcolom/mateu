@@ -900,8 +900,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
             //i.setDescription("Click Ctrl + ALt + N to fire");
             Button b;
-            addComponent(b = new Button());
-            b.addStyleName("hidden");
+            getHiddens().addComponent(b = new Button());
             b.addClickListener(e -> cmd.menuSelected(i));
             b.setClickShortcut(ShortcutAction.KeyCode.N, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
         }
@@ -933,8 +932,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
             //i.setDescription("Click Ctrl + DELETE to fire");
             Button b;
-            addComponent(b = new Button());
-            b.addStyleName("hidden");
+            getHiddens().addComponent(b = new Button());
             b.addClickListener(e -> cmd.menuSelected(i));
             b.setClickShortcut(ShortcutAction.KeyCode.DELETE, ShortcutAction.ModifierKey.CTRL);
 

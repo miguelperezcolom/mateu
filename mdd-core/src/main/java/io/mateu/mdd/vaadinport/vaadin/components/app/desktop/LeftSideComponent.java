@@ -1,9 +1,13 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.desktop;
 
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.app.AbstractApplication;
 import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.MenuEntry;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 public class LeftSideComponent extends VerticalLayout {
     private final AbstractApplication app;
@@ -19,6 +23,11 @@ public class LeftSideComponent extends VerticalLayout {
 
         setSizeUndefined();
 
+        Button appTitle;
+        addComponent(appTitle = new Button(app.getName()));
+        appTitle.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
+        appTitle.addStyleName("appTitle");
+        appTitle.addClickListener(e -> MDDUI.get().getNavegador().goTo(""));
 
         addComponent(ses = new SessionComponent());
 

@@ -45,6 +45,8 @@ public class Booking {
     @KPI
     private double total;
 
+
+    @Section("Prices")
     private boolean overrideValue;
 
     private double overridedValue;

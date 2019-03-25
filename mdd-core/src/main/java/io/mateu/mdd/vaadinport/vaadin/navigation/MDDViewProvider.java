@@ -5,6 +5,7 @@ import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewProvider;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Notification;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
@@ -12,6 +13,7 @@ import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.EntityProvider;
 import io.mateu.mdd.core.interfaces.PersistentPOJO;
+import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
@@ -552,7 +554,6 @@ xxxxxxxxxxxxxxxx
                                     CRUDViewComponent vfc = (CRUDViewComponent) lastViewComponent;
 
                                     EditorViewComponent evc = vfc.getEditorViewComponent();
-                                    evc.clear();
                                     evc.setModelType(vfc.getListViewComponent().getModelType());
                                     try {
 
@@ -615,8 +616,10 @@ xxxxxxxxxxxxxxxx
                             MethodResultViewFlowComponent mrvfc = null;
                             if (lastViewComponent instanceof MethodResultViewFlowComponent) {
                                 mrvfc = (MethodResultViewFlowComponent) lastViewComponent;
-                                lastViewComponent = ((MethodResultViewFlowComponent) lastViewComponent).getComponent(0);
-                                if (lastViewComponent instanceof MethodResultViewComponent) lastViewComponent = ((MethodResultViewComponent) lastViewComponent).getComponent(0);
+                                lastViewComponent = mrvfc.getComponent(0);
+                                if (lastViewComponent instanceof MethodResultViewComponent) {
+                                    if (((MethodResultViewComponent) lastViewComponent).getComponent(0) instanceof AbstractViewComponent) lastViewComponent = ((MethodResultViewComponent) lastViewComponent).getComponent(0);
+                                }
                             }
 
                             if (lastViewComponent instanceof WizardComponent) {
@@ -634,22 +637,30 @@ xxxxxxxxxxxxxxxx
 
                             IEditorViewComponent evfc = auxevfc;
 
+                            Object r = null;
                             Method method = null;
                             FieldInterfaced field = null;
 
                             if (auxevfc != null) {
+                                r = evfc.getModel();
                                 method = evfc.getMethod(step);
                                 field = evfc.getField(step);
                             } else if (lastViewComponent instanceof RpcListViewComponent) {
-                                method = ReflectionHelper.getMethod(((RpcListViewComponent)lastViewComponent).getRpcListView().getClass(), step);
+                                r = ((RpcListViewComponent) lastViewComponent).getRpcListView();
+                            } else if (auxevfc == null && lastViewComponent instanceof MethodResultViewComponent) {
+                                r = ((MethodResultViewComponent)lastViewComponent).getResult();
+                            }
+                            if (r != null) {
+                                method = ReflectionHelper.getMethod(r.getClass(), step);
+                                field = ReflectionHelper.getFieldByName(r.getClass(), step);
                             }
 
-                            if (method == null && field == null && lastViewComponent instanceof RpcListViewComponent) {
+                            if (method == null && field == null && lastViewComponent instanceof MethodResultViewComponent && r != null && r instanceof RpcView) {
                                 if (pendingResult == null) {
                                     try {
-                                        method = ((RpcListViewComponent)lastViewComponent).getRpcListView().getClass().getMethod("onEdit", String.class);
+                                        method = r.getClass().getMethod("onEdit", String.class);
                                         try {
-                                            pendingResult = method.invoke(((RpcListViewComponent)lastViewComponent).getRpcListView(), step);
+                                            pendingResult = method.invoke(r, step);
                                         } catch (Throwable throwable) {
                                             MDD.alert(throwable);
                                         }
@@ -659,22 +670,22 @@ xxxxxxxxxxxxxxxx
                                 } else {
                                     if (pendingResult instanceof String) {
                                         try {
-                                            method = ((RpcListViewComponent)lastViewComponent).getRpcListView().getClass().getMethod("onEdit", String.class);
+                                            method = r.getClass().getMethod("onEdit", String.class);
                                         } catch (NoSuchMethodException e) {
                                             MDD.alert(e);
                                         }
                                         if (method == null) {
-                                            method = ReflectionHelper.getMethod(((RpcListViewComponent)lastViewComponent).getRpcListView().getClass(), "onEdit");
+                                            method = ReflectionHelper.getMethod(r.getClass(), "onEdit");
                                         }
                                     } else {
-                                        method = ReflectionHelper.getMethod(((RpcListViewComponent)lastViewComponent).getRpcListView().getClass(), "onEdit");
+                                        method = ReflectionHelper.getMethod(r.getClass(), "onEdit");
                                     }
                                 }
                             }
 
                             if (method != null) {
 
-                                callMethod(state, method, lastViewComponent instanceof RpcListViewComponent?((RpcListViewComponent)lastViewComponent).getRpcListView():evfc.getModel());
+                                callMethod(state, method, r);
 
                             } else if (field != null) {
 

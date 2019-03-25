@@ -12,12 +12,6 @@ public class MDDCallMethodAction extends AbstractAction {
     private final Method method;
     private final String error;
 
-    public MDDCallMethodAction(String name, Consumer methodReference) {
-        super(name);
-        this.error = "";
-        method = ReflectionHelper.getMethod(methodReference);
-    }
-
     public MDDCallMethodAction(String name, Class type, String methodName) {
         super(name);
         this.method = ReflectionHelper.getMethod(type, methodName);

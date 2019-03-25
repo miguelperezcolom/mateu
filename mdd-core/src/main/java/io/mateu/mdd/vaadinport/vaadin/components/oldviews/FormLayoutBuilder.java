@@ -105,6 +105,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                     Label section = new Label(s.getCaption());
                     section.addStyleName(ValoTheme.LABEL_H2);
                     section.addStyleName(ValoTheme.LABEL_COLORED);
+                    section.addStyleName("sectionHeader");
                     form.addComponent(section);
                 }
 

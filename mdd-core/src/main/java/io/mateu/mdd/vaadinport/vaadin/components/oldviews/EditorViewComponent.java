@@ -56,10 +56,11 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
     private AbstractStylist stylist;
     private Panel panel;
+    private Layout kpisContainer;
+    private Panel panelContenido;
 
     private List<EditorListener> listeners = new ArrayList<>();
     private boolean modificado;
-    private Layout kpisContainer;
     private List<String> shortcutsCreated = new ArrayList<>();
     private Object modelId;
 
@@ -193,40 +194,41 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         long t0 = System.currentTimeMillis();
 
+        clear();
+
         MDDUI.get().getNavegador().getViewProvider().setCurrentEditor(this);
 
         try {
             if (panel == null) build();
 
-            System.out.println("editor component A in " + (System.currentTimeMillis() - t0) + " ms.");
+            panelContenido = new Panel();
+            panelContenido.addStyleName(ValoTheme.PANEL_BORDERLESS);
+            panelContenido.addStyleName("panelContenido");
 
             List<FieldInterfaced> kpis = ReflectionHelper.getKpiFields(model.getClass());
             if (kpis.size() > 0) {
-                if (kpisContainer == null) {
-                    kpisContainer = new CssLayout();
-                    kpisContainer.addStyleName(CSS.NOPADDING);
-                } else {
-                    kpisContainer.removeAllComponents();
-                }
+                kpisContainer = new CssLayout();
+                kpisContainer.addStyleName(CSS.NOPADDING);
+                kpisContainer.addStyleName("kpisContainer");
+
+                CssLayout hl = new CssLayout(kpisContainer, panelContenido);
+                hl.addStyleName(CSS.NOPADDING);
+                panel.setContent(hl);
 
                 for (FieldInterfaced kpi : kpis) {
-
                     kpisContainer.addComponent(createKpi(binder, kpi));
-
                 }
 
-                addComponent(kpisContainer, getComponentIndex(panel));
-            } else if (kpisContainer != null) {
-                removeComponent(kpisContainer);
-                kpisContainer = null;
+                panelContenido.setWidthUndefined();
+                panelContenido.addStyleName("panelContenidoConKpi");
+
+            } else {
+                panel.setContent(panelContenido);
+                panelContenido.removeStyleName("panelContenidoConKpi");
             }
 
 
-            System.out.println("editor component B in " + (System.currentTimeMillis() - t0) + " ms.");
-
             List<FieldInterfaced> fields = ReflectionHelper.getAllEditableFields(model.getClass(), (owner != null) ? owner.getClass() : null, false, field);
-
-            System.out.println("editor component C in " + (System.currentTimeMillis() - t0) + " ms.");
 
             if (visibleFields != null && visibleFields.size() > 0) {
                 fields.removeIf(f -> !visibleFields.contains(f));
@@ -236,16 +238,11 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 fields.removeIf(f -> hiddenFields.contains(f));
             }
 
-            System.out.println("editor component D in " + (System.currentTimeMillis() - t0) + " ms.");
-
-
             Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, model.getClass(), model, validators, fields);
-
-            System.out.println("editor component E in " + (System.currentTimeMillis() - t0) + " ms.");
 
             stylist = r.getValue();
 
-            panel.setContent(r.getKey());
+            panelContenido.setContent(r.getKey());
 
 
             AbstractStylist finalStylist = stylist;
@@ -262,28 +259,21 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             if (getView() != null) getView().updateViewTitle(toString());
 
 
-            focusFirstField(panel.getContent());
+            focusFirstField(panelContenido.getContent());
 
         } catch (Exception e) {
             MDD.alert(e);
         }
 
-        System.out.println("editor component F in " + (System.currentTimeMillis() - t0) + " ms.");
-
         rebuildActions();
 
-        System.out.println("******* añadiendo listeners para lanzar acciones: actionsByMethod.size() = " + actionsByMethod.size());
         actionsByMethod.keySet().forEach(x -> {
             Method m = (Method) x;
             if (m.isAnnotationPresent(DependsOn.class)) {
-                System.out.println("******* añadiendo listeners para lanzar acciones: m = " + m.getName());
                 for (String fn : m.getAnnotation(DependsOn.class).value().split(",")) {
                     fn = fn.trim();
-                    System.out.println("******* añadiendo listeners para lanzar acciones: fn = " + fn);
                     String finalFn = fn;
                     binder.getBinding(fn).ifPresent(b -> ((Binder.Binding)b).getField().addValueChangeListener(e -> {
-
-                        System.out.println("******* lanzando acción para método " + m.getName() + "porque ha cambiado " + finalFn);
 
                         ((AbstractAction)actionsByMethod.get(m)).run(new AbstractMDDExecutionContext());
 
@@ -403,15 +393,16 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
     @Override
     public EditorViewComponent build() throws Exception {
-
         super.build();
+
+        System.out.println("*******BUILD***************");
 
         addStyleName("editorviewcomponent");
 
         panel = new Panel();
         panel.addStyleName(ValoTheme.PANEL_BORDERLESS);
+        panel.addStyleName("panelContenedor");
         addComponentsAndExpand(panel);
-
 
         return this;
     }
@@ -456,8 +447,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 if (!shortcutsCreated.contains("refresh")) {
 
                     Button b;
-                    addComponent(b = new Button());
-                    b.addStyleName("hidden");
+                    getHiddens().addComponent(b = new Button());
                     b.addClickListener(e -> cmd.menuSelected(i));
                     b.setClickShortcut(ShortcutAction.KeyCode.R, ShortcutAction.ModifierKey.CTRL);
 
@@ -503,13 +493,11 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 if (!shortcutsCreated.contains("save")) {
 
                     Button b;
-                    addComponent(b = new Button());
-                    b.addStyleName("hidden");
+                    getHiddens().addComponent(b = new Button());
                     b.addClickListener(e -> cmd.menuSelected(i));
                     b.setClickShortcut(ShortcutAction.KeyCode.S, ShortcutAction.ModifierKey.CTRL);
 
-                    addComponent(b = new Button());
-                    b.addStyleName("hidden");
+                    getHiddens().addComponent(b = new Button());
                     b.addClickListener(e -> {
                         BinderValidationStatus v = binder.validate();
 
@@ -809,7 +797,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     }
 
     public void clear() {
-        panel.setContent(null);
+        System.out.println("*********CLEAR PANEL***********");
+        if (panel != null) panel.setContent(null);
     }
 
     public void onGoBack() {

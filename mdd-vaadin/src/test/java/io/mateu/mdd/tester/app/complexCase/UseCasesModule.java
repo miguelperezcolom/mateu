@@ -10,6 +10,7 @@ import io.mateu.mdd.tester.model.useCases.hotel.*;
 import io.mateu.mdd.tester.model.useCases.invoicing.Customer;
 import io.mateu.mdd.tester.model.useCases.invoicing.Invoice;
 import io.mateu.mdd.tester.model.useCases.pojos.Calculator;
+import io.mateu.mdd.tester.model.views.BookingsView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +72,7 @@ public class UseCasesModule extends AbstractModule {
 
                 l.add(new MDDOpenCRUDAction("Contracts", Contract.class));
 
-                l.add(new MDDOpenCRUDAction("Bookings", Booking.class));
+                l.add(new MDDOpenListViewAction("Bookings view", BookingsView.class));
 
                 l.add(new MDDOpenListViewAction("Roomings", RoomingListView.class));
 

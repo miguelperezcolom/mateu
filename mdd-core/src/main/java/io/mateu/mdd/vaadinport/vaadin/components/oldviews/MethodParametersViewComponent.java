@@ -177,30 +177,6 @@ public class MethodParametersViewComponent extends AbstractViewComponent impleme
     }
 
 
-    /*
-    @Override
-    public void addViewActionsMenuItems(MenuBar bar) {
-
-        super.addViewActionsMenuItems(bar);
-
-        MenuBar.Command cmd;
-        MenuBar.MenuItem i = bar.addItem("Run", VaadinIcons.BOLT, cmd = new MenuBar.Command() {
-            @Override
-            public void menuSelected(MenuBar.MenuItem menuItem) {
-
-            }
-        });
-        i.setStyleName(ValoTheme.BUTTON_PRIMARY);
-
-        //i.setDescription("Click ENTER to fire");
-        Button b;
-        addComponent(b = new Button());
-        b.addStyleName("hidden");
-        b.addClickListener(e -> cmd.menuSelected(i));
-        b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
-    }
-    */
-
     public AbstractStylist getStylist() {
         return stylist;
     }

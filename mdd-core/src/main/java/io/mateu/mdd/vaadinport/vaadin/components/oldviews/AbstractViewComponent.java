@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.google.common.base.Strings;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.app.AbstractAction;
@@ -23,6 +24,11 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     protected Map<String, MenuBar.MenuItem> menuItemsById = new HashMap<>();
     protected List<String> menuItemIdsUnseen = new ArrayList<>();
     private String title;
+    private HorizontalLayout hiddens;
+
+    public HorizontalLayout getHiddens() {
+        return hiddens;
+    }
 
     public String getTitle() {
         return title != null?title:toString();
@@ -47,6 +53,10 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
         if (!MDD.isMobile()) setSizeFull();
 
+        hiddens = new HorizontalLayout();
+        hiddens.addStyleName("hidden");
+
+        addComponent(hiddens);
 
         bar = new MenuBar();
         bar.addStyleName("actionsbar");

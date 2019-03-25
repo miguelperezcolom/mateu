@@ -2,6 +2,7 @@ package io.mateu.mdd.tester.app.simpleCase;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Caption;
 import io.mateu.mdd.core.annotations.SubApp;
@@ -10,6 +11,7 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.tester.model.entities.basic.BasicFieldsDemoEntity;
 import io.mateu.mdd.tester.model.entities.groups.Person;
+import io.mateu.mdd.tester.model.views.BookingsView;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.AbstractFieldBuilder;
 
 import java.io.IOException;
@@ -83,6 +85,11 @@ public class SimpleApp extends SimpleMDDApplication {
     @Action(order = 9)
     public String df() throws IOException, InterruptedException {
         return Helper.toHtml(Helper.runCommand("df -h"));
+    }
+
+    @Action(order = 10, icon = VaadinIcons.CART)
+    public BookingsView bookings() {
+        return new BookingsView();
     }
 
     @Action

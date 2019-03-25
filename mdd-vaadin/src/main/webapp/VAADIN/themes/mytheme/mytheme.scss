@@ -29,12 +29,22 @@
 // For more information, see: https://vaadin.com/book/-/page/themes.valo.html
 // Example variants can be copy/pasted from https://vaadin.com/wiki/-/wiki/Main/Valo+Examples
 
+
+$blanco: #f5f6f7;
+$kpi: #d2d8dd;
+$izquierda: #a4b1bd;
+$cabecera: #778b9d;
+$masoscuro: #526d85;
+
+$v-background-color: $blanco;
+
+
 @import "../valo/valo.scss";
 
 @import "views/editor.scss";
 
 body {
-  zoom: 0.66;
+  /* zoom: 0.66; */
 }
 
 
@@ -42,6 +52,13 @@ body {
   @include valo;
 
   // Insert your own theme rules here
+
+  // customized spinner
+  .v-app-loading::before {
+    width: 200px;
+    height: 200px;
+    background: url(img/Spinner-1s-200px.gif) no-repeat 50%;
+  }
 
   .mobileapp {
     padding: 0px;
@@ -59,6 +76,12 @@ body {
       }
 
     }
+
+    .publicmenuflowcomponent, .privatemenuflowcomponent {
+      .areabutton {
+        margin-left: inherit;
+      }
+    }
   }
 
   .miapp {
@@ -70,7 +93,7 @@ body {
         .appheader {
           width: 100%;
           height: 50px;
-          background-color: #6c9090;
+          background-color: $cabecera;
           padding: 8px;
           vertical-align: center;
 
@@ -99,6 +122,11 @@ body {
           .signingbutton {
             text-decoration: none;
             color: white;
+            cursor: pointer;
+          }
+
+          .signingbutton:hover {
+            color: red;
           }
 
           .greeting {
@@ -107,20 +135,79 @@ body {
 
         }
 
+    .publicmenuflowcomponent, .privatemenuflowcomponent {
+      .areabutton {
+        margin-left: -15px;
+      }
+    }
 
-        .leftside {
+    .leftside {
 
-          background-color: #a4b1bd;
+          background-color: $izquierda;
           width: 250px;
           height: 100%;
           padding:  0px;
 
+
+          .appTitle {
+
+            width: 100%;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+
+            padding: 0px;
+            cursor: pointer;
+
+            text-decoration: none;
+
+            outline: none !important;
+            box-shadow: none !important;
+            box-sizing: inherit;
+
+          }
+
+          .appTitle:hover {
+            color: $masoscuro !important;
+          }
+
+
+          .appTitle:active {
+            outline: none;
+          }
+
+          .appTitle:focus {
+            outline: none;
+          }
+
+
+          .appTitle.v-pressed {
+            outline: none;
+            outline-color: inherit;
+            outline-style: inherit;
+
+            .v-button-wrap {
+              outline: none;
+              outline-color: inherit;
+              outline-style: inherit;
+
+              .v-button-caption {
+                outline: none;
+                outline-color: inherit;
+                outline-style: inherit;
+              }
+
+            }
+          }
+
+
           .sesion {
             padding: 0px;
+            width: 100%;
+            text-align: center;
 
             .foto {
               padding: 0px;
-              margin-left: 50px;
               width: 150px;
               height: 150px;
               border-radius: 50%;
@@ -128,8 +215,25 @@ body {
               cursor: pointer;
             }
 
+            .v-slot-foto {
+              .v-captiontext {
+                text-align: center;
+                width: 100%;
+              }
+            }
+
             .foto:hover {
               border-color: whitesmoke;
+            }
+
+
+            .signingbutton {
+              text-decoration: none;
+              cursor: pointer;
+            }
+
+            .signingbutton:hover {
+              color: $masoscuro;
             }
 
           }
@@ -252,7 +356,8 @@ body {
             }
 
             .tituloarea.selected {
-              background-color: #fafafa;
+              background-color: $v-background-color;
+              border-left: 5px solid $izquierda;
             }
 
             .tituloarea:active {
@@ -295,7 +400,8 @@ body {
             }
 
             .opcionmenu.selected {
-              background-color: #fafafa;
+              background-color: $v-background-color;
+              border-left: 5px solid $izquierda;
             }
 
             .v-slot-opcionmenu:hover {
@@ -370,7 +476,7 @@ body {
 
     .sum {
       padding: 5px 19px;
-      background-color: darkgray;
+      background-color: $cabecera;
       font-weight: bold;
       color: white;
       border-radius: 3px;
@@ -486,13 +592,31 @@ body {
   }
 
 
+  .miformlayout .v-slot-sectionHeader .v-label.v-label-sectionHeader {
+    margin-top: 0px !important;
+  }
+
+  .panelContenidoConKpi {
+    min-width: 460px;
+    width: calc(100% - 180px);
+  }
+
+  .kpisContainer {
+    margin-right: 30px;
+    width: 150px;
+    .v-spacing {
+      height: 4px;
+    }
+  }
+
   .kpi {
-    padding: 5px 19px;
-    background-color: lightgrey;
+    padding: 2px 9px;
+    background-color: $kpi;
     border-radius: 2px;
     margin-right: 10px;
-    margin-bottom: 7px;
-    height: 84px;
+    /* margin-bottom: 7px; */
+    height: 62px;
+    width: 100%;
 
     .valor {
       font-size: 1.5em;
@@ -506,12 +630,16 @@ body {
       text-align: center;
     }
 
+    .v-spacing {
+      display: none;
+    }
+
   }
 
 
   .superkpi {
     padding: 20px;
-    background-color: lightgrey;
+    background-color: $kpi;
     border-radius: 2px;
     margin-right: 10px;
     margin-bottom: 7px;
@@ -691,9 +819,9 @@ body {
       border: 1px solid #c5c5c5;
       border-top-color: #c5c5c5;
       border-bottom-color: #bcbcbc;
-      background-color: #fafafa;
-      background-image: -webkit-linear-gradient(top, #fafafa 2%, #efefef 98%);
-      background-image: linear-gradient(to bottom,#fafafa 2%, #efefef 98%);
+      background-color: $v-background-color;
+      background-image: -webkit-linear-gradient(top, $v-background-color 2%, #efefef 98%);
+      background-image: linear-gradient(to bottom, $v-background-color 2%, #efefef 98%);
       -webkit-box-shadow: inset 0 1px 0 white, inset 0 -1px 0 #e7e7e7, 0 2px 3px rgba(0, 0, 0, 0.05);
       box-shadow: inset 0 1px 0 white, inset 0 -1px 0 #e7e7e7, 0 2px 3px rgba(0, 0, 0, 0.05);
       text-shadow: 0 1px 0 rgba(255, 255, 255, 0.05);

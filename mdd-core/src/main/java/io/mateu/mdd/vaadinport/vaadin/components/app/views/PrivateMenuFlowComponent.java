@@ -4,6 +4,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.AbstractModule;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
@@ -14,12 +15,13 @@ public class PrivateMenuFlowComponent extends VerticalLayout {
 
     @Override
     public String toString() {
-        return "Private areas for " + MDD.getApp().getName();
+        return "Change work area";
     }
 
     public PrivateMenuFlowComponent() {
 
         addStyleName("privatemenuflowcomponent");
+        addStyleName(CSS.NOPADDING);
 
 
 
@@ -37,6 +39,7 @@ public class PrivateMenuFlowComponent extends VerticalLayout {
                     addComponent(b = new Button(a.getName()));
                     b.addClickListener(e -> MDDUI.get().getNavegador().goTo(a));
                     b.addStyleName(ValoTheme.BUTTON_QUIET);
+                    b.addStyleName("areabutton");
 
                 });
 
@@ -49,6 +52,7 @@ public class PrivateMenuFlowComponent extends VerticalLayout {
                     addComponent(b = new Button(a.getName()));
                     b.addClickListener(e -> MDDUI.get().getNavegador().goTo(a));
                     b.addStyleName(ValoTheme.BUTTON_QUIET);
+                    b.addStyleName("areabutton");
 
                 });
 
@@ -60,6 +64,7 @@ public class PrivateMenuFlowComponent extends VerticalLayout {
             addComponent(b = new Button(a.getName(), a.getIcon()));
             b.addClickListener(e -> MDDUI.get().getNavegador().goTo(a));
             b.addStyleName(ValoTheme.BUTTON_QUIET);
+            b.addStyleName("areabutton");
 
 
         });
@@ -69,6 +74,7 @@ public class PrivateMenuFlowComponent extends VerticalLayout {
             addComponent(b = new Button("Logout"));
             b.addClickListener(e -> MDDUI.get().getNavegador().goTo("bye"));
             b.addStyleName(ValoTheme.BUTTON_QUIET);
+            b.addStyleName("areabutton");
         }
 
         addComponentsAndExpand(new Label(""));
