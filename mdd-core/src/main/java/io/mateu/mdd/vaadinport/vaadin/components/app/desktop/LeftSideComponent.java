@@ -51,4 +51,9 @@ public class LeftSideComponent extends VerticalLayout {
     public void setMenu(MenuEntry menu) {
         nav.setMenu(menu);
     }
+
+    public void searching() {
+        nav.searching();
+    }
+
 }

@@ -171,6 +171,10 @@ public class ReflectionHelper {
     }
 
     public static Method getMethod(Class<?> c, String methodName) {
+        if (c == null) {
+            System.out.println("getMethod(" + null + ", " + methodName + ") devolverá null!");
+            return null;
+        }
         Method l = methodCache.get(c.getName() + "-" + methodName);
         if (l == null) {
             methodCache.put(c.getName() + "-" + methodName, l = buildMethod(c, methodName));

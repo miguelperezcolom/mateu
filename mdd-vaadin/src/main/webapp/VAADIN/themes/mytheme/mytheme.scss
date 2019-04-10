@@ -37,6 +37,7 @@ $cabecera: #778b9d;
 $masoscuro: #526d85;
 
 $v-background-color: $blanco;
+$v-font-size: 14px;
 
 
 @import "../valo/valo.scss";
@@ -144,7 +145,7 @@ body {
     .leftside {
 
           background-color: $izquierda;
-          width: 250px;
+          width: 210px;
           height: 100%;
           padding:  0px;
 
@@ -208,8 +209,8 @@ body {
 
             .foto {
               padding: 0px;
-              width: 150px;
-              height: 150px;
+              width: 120px;
+              height: 120px;
               border-radius: 50%;
               border: 3px solid transparent;
               cursor: pointer;
@@ -422,6 +423,48 @@ body {
             }
 
 
+
+            .espaciobotonbuscar {
+              height: 30px;
+            }
+
+
+            .botonbuscar {
+
+              width: 100%;
+              padding: 3px 10px 3px 10px;
+              cursor: pointer;
+              text-align: center;
+
+              a {
+                text-decoration: none;
+                color: #191919 !important;
+              }
+
+            }
+            
+            .botonbuscar.selected {
+              background-color: $v-background-color;
+              border-left: 5px solid $izquierda;
+            }
+
+            .v-slot-botonbuscar:hover {
+              background-color: #73a5d7;
+            }
+
+
+            .botonbuscar:active {
+              outline: none;
+            }
+
+            .botonbuscar:focus {
+              outline: none;
+            }
+
+            .botonbuscar.v-pressed {
+              outline: none;
+            }
+
           }
 
 
@@ -555,6 +598,7 @@ body {
   }
 
   .viewHeader {
+    margin-top: -15px;
     padding: 0px;
 
     .viewTitle {
@@ -614,12 +658,13 @@ body {
     background-color: $kpi;
     border-radius: 2px;
     margin-right: 10px;
-    /* margin-bottom: 7px; */
-    height: 62px;
+    margin-bottom: 2px;
+    min-height: 62px;
     width: 100%;
 
     .valor {
-      font-size: 1.5em;
+      white-space: normal;
+      font-size: 1.2em;
       font-weight: bold;
       width: 100%;
       text-align: right;

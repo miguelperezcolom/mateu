@@ -202,7 +202,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
             v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new LoginFlowComponent());
 
-        } else if ("menu".equals(state)) { // caso "login"
+        } else if ("search".equals(state)) { // caso "login"
 
             stack.clear();
 

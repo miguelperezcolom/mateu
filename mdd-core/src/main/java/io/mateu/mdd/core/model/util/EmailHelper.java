@@ -5,7 +5,6 @@ import com.google.common.collect.Lists;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.util.JPATransaction;
 import org.apache.commons.mail.*;
 
 import javax.mail.internet.InternetAddress;
@@ -17,12 +16,23 @@ public class EmailHelper {
 
     private static boolean testing;
 
+    private static EmailMock mock;
+
     public static boolean isTesting() {
         return testing;
     }
 
     public static void setTesting(boolean testing) {
         EmailHelper.testing = testing;
+    }
+
+    public static void setMock(EmailMock mock) {
+        EmailHelper.mock = mock;
+        setTesting(mock != null);
+    }
+
+    public static EmailMock getMock() {
+        return mock;
     }
 
     public static void sendEmail(String toEmail, String subject, String text, boolean noCC) throws Throwable {
@@ -40,49 +50,56 @@ public class EmailHelper {
         System.out.println("Subject: " + subject);
         System.out.println("Text: " + text);
 
+
+        Helper.transact(new JPATransaction() {
+            @Override
+            public void run(EntityManager em) throws Throwable {
+
+                AppConfig c = AppConfig.get(em);
+
+                if (checkAppConfigForSMTP(c)) {
+                    HtmlEmail email = new HtmlEmail();
+                    email.setHostName(c.getAdminEmailSmtpHost());
+                    email.setSmtpPort(c.getAdminEmailSmtpPort());
+                    email.setAuthenticator(new DefaultAuthenticator(c.getAdminEmailUser(), c.getAdminEmailPassword()));
+                    email.setSSLOnConnect(c.isAdminEmailSSLOnConnect());
+                    email.setFrom(c.getAdminEmailFrom());
+                    if (!noCC && !Strings.isNullOrEmpty(c.getAdminEmailCC())) email.getCcAddresses().add(new InternetAddress(c.getAdminEmailCC()));
+
+                    email.setSubject(subject);
+                    //email.setMsg(io.mateu.ui.mdd.server.util.Helper.freemark(template, getData()));
+                    email.setHtmlMsg(text);
+                    email.addTo((!Strings.isNullOrEmpty(System.getProperty("allemailsto")))?System.getProperty("allemailsto"):toEmail);
+
+                    if (attachments != null) for (URL u : attachments) email.attach(u, u.toString().substring(u.toString().lastIndexOf("/") + 1), "");
+
+                    EmailHelper.send(email);
+
+
+                } else {
+                    System.out.println("************************************");
+                    System.out.println("Missing SMTP confirguration. Please go to admin > Appconfig and fill");
+                    System.out.println("************************************");
+                }
+            }
+        });
+
+    }
+
+    public static void send(Email email) throws EmailException {
+
         if (isTesting()) {
 
             System.out.println("************************************");
             System.out.println("Mail not sent as we are TESTING");
             System.out.println("************************************");
 
+            if (mock != null) mock.send(email);
 
         } else {
+            email.send();
 
-            Helper.transact(new JPATransaction() {
-                @Override
-                public void run(EntityManager em) throws Throwable {
-
-                    AppConfig c = AppConfig.get(em);
-
-                    if (checkAppConfigForSMTP(c)) {
-                        HtmlEmail email = new HtmlEmail();
-                        email.setHostName(c.getAdminEmailSmtpHost());
-                        email.setSmtpPort(c.getAdminEmailSmtpPort());
-                        email.setAuthenticator(new DefaultAuthenticator(c.getAdminEmailUser(), c.getAdminEmailPassword()));
-                        //email.setSSLOnConnect(true);
-                        email.setFrom(c.getAdminEmailFrom());
-                        if (!noCC && !Strings.isNullOrEmpty(c.getAdminEmailCC())) email.getCcAddresses().add(new InternetAddress(c.getAdminEmailCC()));
-
-                        email.setSubject(subject);
-                        //email.setMsg(io.mateu.ui.mdd.server.util.Helper.freemark(template, getData()));
-                        email.setHtmlMsg(text);
-                        email.addTo((!Strings.isNullOrEmpty(System.getProperty("allemailsto")))?System.getProperty("allemailsto"):toEmail);
-
-                        if (attachments != null) for (URL u : attachments) email.attach(u, u.toString().substring(u.toString().lastIndexOf("/") + 1), "");
-
-                        email.send();
-
-                        System.out.println("******* Email sent");
-
-                    } else {
-                        System.out.println("************************************");
-                        System.out.println("Missing SMTP confirguration. Please go to admin > Appconfig and fill");
-                        System.out.println("************************************");
-                    }
-                }
-            });
-
+            System.out.println("******* Email sent");
         }
 
     }
