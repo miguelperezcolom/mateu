@@ -18511,8 +18511,8 @@ div.v-layout.v-horizontal.v-widget {
 	margin-top: 0px !important;
 }
 
-.mytheme .v-slot-hidden {
-	display: none;
+.mytheme .v-slot .v-slot-hidden {
+	height: 0px;
 }
 
 .mytheme .panelContenidoConKpi {

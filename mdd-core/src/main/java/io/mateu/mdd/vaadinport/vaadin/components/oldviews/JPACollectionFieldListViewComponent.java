@@ -58,11 +58,11 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
     }
 
     public boolean canAdd() {
-        return ReflectionHelper.isOwnedCollection(field) || (field.isAnnotationPresent(UseLinkToListView.class) && field.getAnnotation(UseLinkToListView.class).addEnabled());
+        return ReflectionHelper.isOwnedCollection(field) && (!field.isAnnotationPresent(UseLinkToListView.class) || field.getAnnotation(UseLinkToListView.class).addEnabled());
     }
 
     public boolean canDelete() {
-        return ReflectionHelper.isOwnedCollection(field) || (field.isAnnotationPresent(UseLinkToListView.class) && field.getAnnotation(UseLinkToListView.class).deleteEnabled());
+        return ReflectionHelper.isOwnedCollection(field) && (!field.isAnnotationPresent(UseLinkToListView.class) || field.getAnnotation(UseLinkToListView.class).deleteEnabled());
     }
 
     @Override

@@ -134,7 +134,7 @@ public class ViewComponentHelper {
                         }
 
                     } catch (Throwable throwable) {
-                        throwable.printStackTrace();
+                        MDD.alert(throwable);
                     }
 
                 }

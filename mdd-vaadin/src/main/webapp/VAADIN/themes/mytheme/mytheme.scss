@@ -640,8 +640,8 @@ body {
     margin-top: 0px !important;
   }
 
-  .v-slot-hidden {
-    display: none;
+  .v-slot .v-slot-hidden {
+    height: 0px;
   }
 
   .panelContenidoConKpi {
