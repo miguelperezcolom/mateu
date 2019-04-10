@@ -18512,7 +18512,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .mytheme .v-slot .v-slot-hidden {
-	height: 0px;
+	height: 0px !important;
 }
 
 .mytheme .panelContenidoConKpi {
