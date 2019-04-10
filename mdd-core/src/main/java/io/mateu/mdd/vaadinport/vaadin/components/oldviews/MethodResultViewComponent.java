@@ -112,6 +112,9 @@ public class MethodResultViewComponent extends AbstractViewComponent {
 
                 }
 
+                Label l;
+                addComponent(l = new Label(""));
+
             } else if (Collection.class.isAssignableFrom(c)) {
 
                 Collection col = (Collection) result;

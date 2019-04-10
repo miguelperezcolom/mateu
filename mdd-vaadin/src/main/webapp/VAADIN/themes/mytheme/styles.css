@@ -18511,6 +18511,10 @@ div.v-layout.v-horizontal.v-widget {
 	margin-top: 0px !important;
 }
 
+.mytheme .v-slot-hidden {
+	display: none;
+}
+
 .mytheme .panelContenidoConKpi {
 	min-width: 460px;
 	width: calc(100% - 180px);

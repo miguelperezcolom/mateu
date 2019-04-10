@@ -640,6 +640,10 @@ body {
     margin-top: 0px !important;
   }
 
+  .v-slot-hidden {
+    display: none;
+  }
+
   .panelContenidoConKpi {
     min-width: 460px;
     width: calc(100% - 180px);
