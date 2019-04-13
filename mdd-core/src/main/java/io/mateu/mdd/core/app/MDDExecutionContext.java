@@ -21,7 +21,7 @@ public interface MDDExecutionContext {
 
     void callMethod(String state, Class entityClass, String methodName);
 
-    void callMethod(String state, Method method, Object instance);
+    void callMethod(String state, Method method, Object instance, Component lastViewComponent);
 
     String getCurrentState();
 

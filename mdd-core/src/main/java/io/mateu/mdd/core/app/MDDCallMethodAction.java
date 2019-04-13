@@ -22,6 +22,6 @@ public class MDDCallMethodAction extends AbstractAction {
     @Override
     public void run(MDDExecutionContext context) {
         if (method == null) MDD.alert(error);
-        else context.callMethod(getName(), method, null);
+        else context.callMethod(getName(), method, null, null);
     }
 }

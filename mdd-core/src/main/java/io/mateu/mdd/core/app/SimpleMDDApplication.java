@@ -186,7 +186,7 @@ public class SimpleMDDApplication extends BaseMDDApp {
                             public void run(MDDExecutionContext context) {
                                 try {
 
-                                    context.callMethod(null, m, app);
+                                    context.callMethod(null, m, app, null);
 
                                 } catch (Throwable e) {
                                     MDD.alert(e);

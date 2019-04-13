@@ -520,7 +520,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                             if (method != null) {
 
-                                callMethod(state, method, lvc instanceof RpcListViewComponent?((RpcListViewComponent)lvc).getRpcListView():null);
+                                callMethod(state, method, lvc instanceof RpcListViewComponent?((RpcListViewComponent)lvc).getRpcListView():null, lastViewComponent);
 
                                 /*
 
@@ -685,7 +685,7 @@ xxxxxxxxxxxxxxxx
 
                             if (method != null) {
 
-                                callMethod(state, method, r);
+                                callMethod(state, method, r, lastViewComponent);
 
                             } else if (field != null) {
 
@@ -1068,7 +1068,7 @@ xxxxxxxxxxxxxxxx
 
         if (method != null) {
             try {
-                callMethod(state, method, Modifier.isStatic(method.getModifiers())?null:entityClass.newInstance());
+                callMethod(state, method, Modifier.isStatic(method.getModifiers())?null:entityClass.newInstance(), null);
             } catch (Exception e) {
                 MDD.alert(e);
             }
@@ -1076,7 +1076,7 @@ xxxxxxxxxxxxxxxx
     }
 
     @Override
-    public void callMethod(String state, Method method, Object instance) {
+    public void callMethod(String state, Method method, Object instance, Component lastViewComponent) {
         if (method != null) {
             try {
 
@@ -1106,7 +1106,7 @@ xxxxxxxxxxxxxxxx
 
 
                     if (hasNonInjectedParameters) {
-                        stack.push(currentPath, new MethodParametersViewFlowComponent(currentPath, method, instance, this, null, pendingSelection));
+                        stack.push(currentPath, new MethodParametersViewFlowComponent(currentPath, method, instance, this, lastViewComponent != null && lastViewComponent instanceof  EditorViewComponent?((EditorViewComponent) lastViewComponent).getBinder():null, pendingSelection));
                     } else {
 
                         if (Query.class.equals(method.getReturnType())) {

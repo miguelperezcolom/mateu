@@ -146,8 +146,8 @@ public class MethodParametersViewComponent extends AbstractViewComponent impleme
 
                 } else {
 
-                    if (method.isAnnotationPresent(Action.class) && method.getAnnotation(Action.class).saveAfter() && binder.getViewComponent() != null && binder.getViewComponent() instanceof EditorViewComponent) {
-                        ((EditorViewComponent) binder.getViewComponent()).save(false);
+                    if (method.isAnnotationPresent(Action.class) && method.getAnnotation(Action.class).saveAfter() && parentBinder.getViewComponent() != null && parentBinder.getViewComponent() instanceof EditorViewComponent) {
+                        ((EditorViewComponent) parentBinder.getViewComponent()).save(false);
                     }
 
                     if (parentBinder != null) {

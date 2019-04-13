@@ -666,7 +666,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                     auditar(em, m);
 
-                    setModel(em.merge(m));
+                    em.merge(m);
                 }
             });
 
@@ -685,6 +685,10 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         modificado = false;
 
         if (notify) listeners.forEach(l -> l.onSave(getModel()));
+
+        if (!goBack && (modelType.isAnnotationPresent(Entity.class)) || PersistentPOJO.class.isAssignableFrom(modelType)) {
+            load(modelId);
+        }
     }
 
     private void auditar(EntityManager em, Object bean) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {

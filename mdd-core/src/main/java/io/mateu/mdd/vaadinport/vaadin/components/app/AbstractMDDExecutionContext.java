@@ -49,7 +49,7 @@ public class AbstractMDDExecutionContext implements MDDExecutionContext {
     }
 
     @Override
-    public void callMethod(String state, Method method, Object instance) {
+    public void callMethod(String state, Method method, Object instance, Component lastViewComponent) {
 
     }
 
