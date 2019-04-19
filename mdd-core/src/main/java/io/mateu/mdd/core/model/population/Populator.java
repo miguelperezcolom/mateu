@@ -3,6 +3,7 @@ package io.mateu.mdd.core.model.population;
 import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Resources;
+import io.mateu.mdd.core.model.authentication.AdminUser;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.core.model.authentication.Permission;
@@ -62,7 +63,7 @@ public class Populator {
 
             {
                 // create user admin
-                User u = new User();
+                User u = new AdminUser();
                 u.setLogin(USER_ADMIN);
                 u.setName("Admin");
                 u.setEmail("miguelperezclom@gmail.com");
@@ -79,7 +80,7 @@ public class Populator {
 
             {
                 // create user admin
-                User u = new User();
+                User u = new AdminUser();
                 u.setLogin(Constants.SYSTEM_USER_LOGIN);
                 u.setName("System");
                 u.setEmail("miguelperezclom@gmail.com");
@@ -91,7 +92,7 @@ public class Populator {
 
             {
                 // create user admin
-                User u = new User();
+                User u = new AdminUser();
                 u.setLogin(Constants.IMPORTING_USER_LOGIN);
                 u.setName("Importing User");
                 u.setEmail("miguelperezclom@gmail.com");

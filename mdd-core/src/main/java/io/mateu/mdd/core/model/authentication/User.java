@@ -131,7 +131,7 @@ public class User {
         setPasswordResetKey(UUID.randomUUID().toString());
         setPasswordResetExpiryDateTime(LocalDateTime.now().plusHours(4));
 
-        EmailHelper.sendEmail(getEmail(), "Welcome to " + MDD.getApp().getName(), "Hi " + getName() + ", \n\nwelcome to " + MDD.getApp().getName() + ".\n\nPlease go to " + MDD.getApp().getBaseUrl() + "resetpassword/" + getPasswordResetKey() + " for setting your password.\n\n\nBest regards,\n\n" + MDD.getApp().getName() + " team.", true);
+        EmailHelper.sendEmail(getEmail(), "Welcome to " + MDD.getApp().getName(), "<p>Hi " + getName() + ",</p><p>welcome to " + MDD.getApp().getName() + ".</p><p>Please go to " + MDD.getApp().getBaseUrl() + "resetpassword/" + getPasswordResetKey() + " for setting your password.</p><p>Best regards,</p><p>" + MDD.getApp().getName() + " team.</p>", true);
         return "An email with instructions has been sent to " + getEmail();
     }
 
@@ -144,7 +144,7 @@ public class User {
         setPasswordResetKey(UUID.randomUUID().toString());
         setPasswordResetExpiryDateTime(LocalDateTime.now().plusHours(4));
 
-        EmailHelper.sendEmail(getEmail(), "Password reset instructions", "" + MDD.getApp().getBaseUrl() + "resetpassword/" + getPasswordResetKey(), true);
+        EmailHelper.sendEmail(getEmail(), "Password reset instructions", "<p>" + MDD.getApp().getBaseUrl() + "resetpassword/" + getPasswordResetKey() + "</p>", true);
         return "An email with instructions has been sent to " + getEmail();
     }
 
@@ -178,13 +178,13 @@ public class User {
         if (USER_STATUS.INACTIVE.equals(getStatus())) throw new Exception("Deactivated user");
 
         if (isOauth()) {
-            EmailHelper.sendEmail(getEmail(), "Welcome " + getName(), "Thanks for joining us ;)", false);
+            EmailHelper.sendEmail(getEmail(), "Welcome " + getName(), "<p>Thanks for joining us ;)<p>", false);
         } else if (getPassword() == null) {
             setPasswordResetKey(UUID.randomUUID().toString());
             setPasswordResetExpiryDateTime(LocalDateTime.now().plusHours(4));
-            EmailHelper.sendEmail(getEmail(), "Welcome " + getName(), "To set your password please go to " + MDD.getApp().getBaseUrl() + "resetpassword/" + getPasswordResetKey(), true);
+            EmailHelper.sendEmail(getEmail(), "Welcome " + getName(), "<p>To set your password please go to " + MDD.getApp().getBaseUrl() + "resetpassword/" + getPasswordResetKey() + "</p>", true);
         } else {
-            EmailHelper.sendEmail(getEmail(), "Welcome " + getName(), "You should already know your password.", true);
+            EmailHelper.sendEmail(getEmail(), "Welcome " + getName(), "<p>You should already know your password.</p>", true);
         }
 
     }
