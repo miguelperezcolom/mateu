@@ -44,6 +44,8 @@ public class AppConfig {
 
     private int adminEmailSmtpPort;
 
+    private boolean adminEmailStartTLS;
+
     private boolean adminEmailSSLOnConnect;
 
     private String adminEmailUser;

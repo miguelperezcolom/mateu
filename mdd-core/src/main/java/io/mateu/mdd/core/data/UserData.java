@@ -25,7 +25,7 @@ public class UserData extends Data implements Serializable {
     }
 
     public void setLogin(String login) {
-        set("login", login);
+        set("login", login != null?login.toLowerCase():null);
     }
 
     public String getEmail() {

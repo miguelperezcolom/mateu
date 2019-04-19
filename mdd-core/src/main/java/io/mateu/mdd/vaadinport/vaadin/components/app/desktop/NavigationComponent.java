@@ -161,7 +161,9 @@ public class NavigationComponent extends VerticalLayout {
     }
 
     public void setMenu(MenuEntry menu) {
-        bBuscar.removeStyleName("selected");
+        if (bBuscar != null) {
+            bBuscar.removeStyleName("selected");
+        }
         if (this.menu != null) {
             bArea.removeStyleName("selected");
             botones.get(this.menu).removeStyleName("selected");

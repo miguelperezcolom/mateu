@@ -63,6 +63,7 @@ public class EmailHelper {
                     email.setSmtpPort(c.getAdminEmailSmtpPort());
                     email.setAuthenticator(new DefaultAuthenticator(c.getAdminEmailUser(), c.getAdminEmailPassword()));
                     email.setSSLOnConnect(c.isAdminEmailSSLOnConnect());
+                    email.setStartTLSEnabled(c.isAdminEmailStartTLS());
                     email.setFrom(c.getAdminEmailFrom());
                     if (!noCC && !Strings.isNullOrEmpty(c.getAdminEmailCC())) email.getCcAddresses().add(new InternetAddress(c.getAdminEmailCC()));
 
@@ -119,13 +120,12 @@ public class EmailHelper {
     public static void main(String[] args) throws EmailException {
 
 
-        send("miguelperezcolom@gmail.com", "demo@quotravel.eu", "antonia123", "mail.quotravel.eu", 25);
         //send("miguel@quotravel.eu", "demo@quotravel.eu", "antonia123", "mail.quotravel.eu", 25);
 
 
     }
 
-    private static void send(String a, String de, String pwd, String host, int port) throws EmailException {
+    private static void send(String a, String de, String pwd, String host, int port, boolean ssl) throws EmailException {
 
         System.out.println("Sending email to " + a);
         System.out.println("Subject: " + de);
@@ -146,7 +146,8 @@ public class EmailHelper {
             email.setHostName(host);
             email.setSmtpPort(port);
             email.setAuthenticator(new DefaultAuthenticator(de, pwd));
-            //email.setSSLOnConnect(true);
+            //email.setSSLOnConnect(ssl);
+            email.setStartTLSEnabled(true);
             email.setFrom(de);
             email.setSubject("TestMail 2");
             email.setMsg("This is a test mail ... :-)");
