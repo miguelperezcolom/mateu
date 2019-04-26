@@ -38,6 +38,7 @@ import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.text.DecimalFormat;
 import java.util.*;
 
 public class EditorViewComponent extends AbstractViewComponent implements IEditorViewComponent {
@@ -323,20 +324,27 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             @Override
             public void setValue(Object o) {
                 v = o;
+
                 String s = "";
-                if (v == null) s = "";
-                else {
-                    if (v instanceof Boolean) {
-                        if ((Boolean) v && !kpi.getAnnotation(KPI.class).reversed()) {
-                            s = VaadinIcons.CHECK.getHtml();
-                            l.addStyleName(ValoTheme.BUTTON_FRIENDLY);
+
+                if (double.class.equals(kpi.getType()) && kpi.isAnnotationPresent(Money.class)) {
+                    DecimalFormat df = new DecimalFormat("##,###,###,###,##0.00");
+                    s = df.format(v != null?v:0);
+                } else {
+                    if (v == null) s = "";
+                    else {
+                        if (v instanceof Boolean) {
+                            if ((Boolean) v && !kpi.getAnnotation(KPI.class).reversed()) {
+                                s = VaadinIcons.CHECK.getHtml();
+                                l.addStyleName(ValoTheme.BUTTON_FRIENDLY);
+                            } else {
+                                s = VaadinIcons.CLOSE.getHtml();
+                                l.addStyleName(ValoTheme.BUTTON_DANGER);
+                            }
+                            l.addStyleName("centered");
                         } else {
-                            s = VaadinIcons.CLOSE.getHtml();
-                            l.addStyleName(ValoTheme.BUTTON_DANGER);
+                            s = "" + v;
                         }
-                        l.addStyleName("centered");
-                    } else {
-                        s = "" + v;
                     }
                 }
                 l.setValue(s);
@@ -666,7 +674,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                     auditar(em, m);
 
-                    em.merge(m);
+                    setModel(em.merge(m));
                 }
             });
 

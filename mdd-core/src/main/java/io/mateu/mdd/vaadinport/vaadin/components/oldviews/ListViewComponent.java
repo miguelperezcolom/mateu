@@ -63,6 +63,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -233,6 +234,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                 };
             }
 
+            DecimalFormat df = new DecimalFormat("##,###,###,###,##0.00");
 
             ICellStyleGenerator finalCsg = csg;
             col = grid.addColumn(new ValueProvider() {
@@ -257,7 +259,9 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                         }
                     }
 
-                    if (boolean[].class.equals(f.getType()) && f.isAnnotationPresent(WeekDays.class)) {
+                    if (double.class.equals(f.getType()) && f.isAnnotationPresent(Money.class)) {
+                        return (v != null)?df.format(v):df.format(0);
+                    } else if (boolean[].class.equals(f.getType()) && f.isAnnotationPresent(WeekDays.class)) {
                         if (o == null) return null;
                         boolean[] wds = (boolean[]) v;
 

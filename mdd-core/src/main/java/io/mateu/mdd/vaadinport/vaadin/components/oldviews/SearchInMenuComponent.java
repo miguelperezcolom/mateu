@@ -3,15 +3,14 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 import com.vaadin.data.HasValue;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.AbstractMenu;
 import io.mateu.mdd.core.app.AbstractModule;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,14 +72,55 @@ public class SearchInMenuComponent extends AbstractViewComponent {
         if (text == null) text = "";
         text = text.toLowerCase();
 
-        boolean autentico = MDD.getUserData() != null;
-
         menu.removeAllComponents();
 
-        CssLayout contenedor;
-        menu.addComponent(contenedor = new CssLayout());
-        contenedor.setWidth("100%");
+
+        List<Found> found = find(text);
+
+
+        VerticalLayout contenedor;
+        menu.addComponent(contenedor = new VerticalLayout());
         contenedor.addStyleName("contenedor");
+
+        if (found.size() == 0) {
+
+            Label l;
+            contenedor.addComponent(l = new Label("No match"));
+
+            l.addStyleName(ValoTheme.LABEL_H3);
+
+        } else {
+
+            for (Found f : found) {
+
+                HorizontalLayout hl;
+                contenedor.addComponent(hl = new HorizontalLayout());
+                hl.setDefaultComponentAlignment(Alignment.MIDDLE_LEFT);
+                hl.addStyleName(CSS.NOPADDING);
+                Button b;
+                hl.addComponent(b = new Button(f.getName()));
+                b.addClickListener(ev -> MDDUI.get().getNavegador().goTo(f.getPath()));
+                b.addStyleName(ValoTheme.BUTTON_LINK);
+
+                Label l;
+                hl.addComponent(l = new Label(f.getDescription()));
+                //l.addStyleName(ValoTheme.la);
+
+                b.addStyleName("submenuoption");
+                //b.setIcon(testIcon.get());  // sin iconos en el menú
+
+            }
+
+        }
+    }
+
+    private List<Found> find(String text) {
+
+        long t0 = System.currentTimeMillis();
+
+        List<Found> found = new ArrayList<>();
+
+        boolean autentico = MDD.getUserData() != null;
 
         List<AbstractArea> areas = new ArrayList<>();
 
@@ -97,81 +137,36 @@ public class SearchInMenuComponent extends AbstractViewComponent {
         }
         for (AbstractArea a : areas) {
 
-            CssLayout la = new CssLayout();
-            la.addStyleName("contenedor");
             for (AbstractModule m : a.getModules()) {
                 for (MenuEntry e : m.getMenu()) {
-                    addMenuEntry(la, a, e, text);
+                    addMenuEntry(found, a, e, text);
                 }
             }
 
-            if (la.getComponentCount() > 0) {
-                VerticalLayout vl = new VerticalLayout();
-                vl.addStyleName("contenedor");
-                Label l;
-                vl.addComponent(l = new Label("In " + a.getName() + ":"));
-                l.addStyleName("tituloarea");
-                vl.addComponent(la);
-                vl.setSizeUndefined();
-                contenedor.addComponent(vl);
-            }
-
         }
+
+        System.out.println("Search of " + text + " took " + (System.currentTimeMillis() - t0) + "ms.");
+
+        return found;
     }
 
-    private void addMenuEntry(Layout contenedor, AbstractArea a, MenuEntry e, String text) {
-        VerticalLayout l = new VerticalLayout();
-        l.addStyleName("listaopcionesmenu");
-        l.setWidthUndefined();
-
-        Component c = null;
+    private void addMenuEntry(List<Found> found, AbstractArea a, MenuEntry e, String text) {
 
         if (e instanceof AbstractMenu) {
-            VerticalLayout lx = new VerticalLayout();
-            lx.addStyleName("submenu");
-            lx.setWidthUndefined();
-
-            VerticalLayout lz = new VerticalLayout();
-
-            lz.addStyleName("contenedorsubmenu");
-            lz.setWidthUndefined();
 
             for (MenuEntry ez : ((AbstractMenu) e).getEntries()) {
-                addMenuEntry(lz, a, ez, ("".equals(text) || e.getName().toLowerCase().contains(text))?"":text);
-            }
-
-            if (lz.getComponentCount() > 0) lx.addComponent(lz);
-
-            if (lx.getComponentCount() > 0) {
-                Label lab;
-                lx.addComponent(lab = new Label(e.getName()));
-                lab.addStyleName((contenedor instanceof CssLayout)?"titulosubmenuprincipal":"titulosubmenu");
-
-                lx.addComponent(lz);
-
-                c = lx;
+                addMenuEntry(found, a, ez, text); //("".equals(text) || e.getName().toLowerCase().contains(text))?"":text);
             }
 
         } else if (e instanceof AbstractAction) {
 
             if ("".equals(text) || e.getName().toLowerCase().contains(text)) {
 
-
-                Button b;
-                addComponent(b = new Button(e.getName()));
-                b.addClickListener(ev -> MDDUI.get().getNavegador().goTo(e));
-                b.addStyleName(ValoTheme.BUTTON_LINK);
-
-                b.addStyleName("submenuoption");
-                //b.setIcon(testIcon.get());  // sin iconos en el menú
-                c = b;
+                found.add(new Found(MDDUI.get().getNavegador().getPath(e), e.getName(), "" + a.getName() + " -> " + e.getName()));
 
             }
 
         }
 
-        if (c != null) l.addComponent(c);
-
-        if (l.getComponentCount() > 0) contenedor.addComponent(l);
     }
 }

@@ -123,7 +123,7 @@ public class JPAPrimitiveArraysFieldBuilder extends JPAStringFieldBuilder {
 
 
                 if (!Strings.isNullOrEmpty(tf.getValue())) {
-                    String[] tokens = tf.getValue().split((tf instanceof TextArea) ? "\\\n" : ",");
+                    String[] tokens = tf.getValue().split((tf instanceof TextArea) ? "\\\n" : "[, ]");
 
                     if (Integer[].class.equals(field.getType())) {
                         Integer[] x = new Integer[tokens.length];

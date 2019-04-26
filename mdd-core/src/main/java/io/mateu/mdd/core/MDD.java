@@ -24,6 +24,7 @@ import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ExtraFilters;
 public class MDD {
 
     private static ClassPool classPool;
+    private static AbstractApplication app;
 
 
     public static MDDPort getPort() {
@@ -31,7 +32,12 @@ public class MDD {
     }
 
     public static AbstractApplication getApp() {
-        return MDDUI.get() != null?MDDUI.get().getApp():MDDUI.createApp();
+        try {
+            app = MDDUI.get() != null?MDDUI.get().getApp():MDDUI.createApp();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return app;
     }
 
 
@@ -47,7 +53,7 @@ public class MDD {
     public static User getCurrentUser() {
         try {
             User[] u = {null};
-            Helper.notransact(em -> u[0] = em.find(User.class, (MDD.getPort() != null && MDD.getUserData() != null)?MDD.getUserData().getLogin():"sistema"));
+            Helper.notransact(em -> u[0] = em.find(User.class, (MDD.getPort() != null && MDD.getUserData() != null)?MDD.getUserData().getLogin():"system"));
             return u[0];
         } catch (Throwable e) {
             return null;
