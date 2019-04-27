@@ -23,6 +23,7 @@ import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Version;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
@@ -120,7 +121,7 @@ public class MethodParametersViewComponent extends AbstractViewComponent impleme
         List<FieldInterfaced> allFields = ReflectionHelper.getAllFields(method);
 
         allFields = allFields.stream().filter((f) ->
-                !(f.isAnnotationPresent(Ignored.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))
+                !(f.isAnnotationPresent(Version.class) || f.isAnnotationPresent(Ignored.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))
         ).collect(Collectors.toList());
 
         return allFields;

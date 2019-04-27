@@ -11,6 +11,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.time.LocalTime;
 
 @Entity
 @Getter@Setter
@@ -36,6 +37,9 @@ public class Payment {
     @ListColumn
     private double amount;
 
+
+    @ListColumn
+    private LocalTime time;
 
 
 

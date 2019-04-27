@@ -33,7 +33,7 @@ public class Invoice {
     @NotNull
     private Customer customer;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "invoice")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "invoice", orphanRemoval = true)
     @FullWidth
     private List<InvoiceLine> lines = new ArrayList<>();
 

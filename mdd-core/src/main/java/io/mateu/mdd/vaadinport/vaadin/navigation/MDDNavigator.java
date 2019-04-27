@@ -207,6 +207,48 @@ public class MDDNavigator {
         MDDUI.get().getNavegador().goTo(u);
     }
 
+    public void goSibling(Object id) {
+        if (stack.getLast().getComponent() instanceof EditorViewComponent && ((PersistentPOJO.class.isAssignableFrom(((EditorViewComponent)stack.getLast().getComponent()).getModelType()) || ((EditorViewComponent)stack.getLast().getComponent()).getModelType().isAnnotationPresent(Entity.class)) && ((EditorViewComponent)stack.getLast().getComponent()).isModificado())) {
+            MDD.confirm("There are unsaved changes. Do you want to save before?", () -> {
+                try {
+                    ((EditorViewComponent) stack.getLast().getComponent()).save(false);
+                    yesGoSibling(id);
+                } catch (Throwable throwable) {
+                    MDD.alert(throwable);
+                }
+            });
+        } else {
+            yesGoSibling(id);
+        }
+    }
+
+    private void yesGoSibling(Object id) {
+
+        if (stack.getLast().getComponent() instanceof EditorViewComponent) {
+            ((EditorViewComponent) stack.getLast().getComponent()).onGoBack();
+        } else if (stack.getLast().getComponent() instanceof FieldEditorComponent) {
+            EditorViewComponent editor = ((FieldEditorComponent) stack.getLast().getComponent()).getEditor();
+            if (editor != null) editor.onGoBack();
+        }
+
+        String u = stack.getState(stack.getLast());
+        u = u.substring(0, u.lastIndexOf("/"));
+
+        if (!MDD.isMobile() && esMenu(u)) while (esMenu(u.substring(0, u.lastIndexOf("/")))) {
+            u = u.substring(0, u.lastIndexOf("/"));
+        }
+
+        if (MDD.isMobile()) {
+            if (esInutil(u)) while (esInutil(u)) {
+                u = u.substring(0, u.lastIndexOf("/"));
+            }
+        }
+
+        u += "/" + id;
+
+        MDDUI.get().getNavegador().goTo(u);
+    }
+
     private boolean esInutil(String u) {
         if (!Strings.isNullOrEmpty(u)) {
             View v = stack.get(u);

@@ -79,7 +79,11 @@ public class ComponentWrapper extends VerticalLayout {
 
     public void updateViewTitle(String newTitle) {
         titleLabel.setValue(newTitle);
-        UI.getCurrent().getPage().setTitle((newTitle != null)?newTitle:"No title");
+        updatePageTitle();
+    }
+
+    public void updatePageTitle() {
+        UI.getCurrent().getPage().setTitle((titleLabel.getValue() != null)?titleLabel.getValue():"No title");
     }
 
 }

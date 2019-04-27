@@ -1,5 +1,6 @@
 package io.mateu.mdd.core.workflow;
 
+import java.time.LocalDateTime;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -53,13 +54,13 @@ public class WorkflowEngine {
 
 
     public static void add(Runnable task) {
-        System.out.println("añadiendo tarea " + task.getClass().getName());
+        //System.out.println("añadiendo tarea " + task.getClass().getName());
 
         if (uselocalRunners.get() != null && uselocalRunners.get()) {
-            System.out.println("va al runner del thread");
+            //System.out.println("va al runner del thread");
             localQueues.get().add(task);
         } else {
-            System.out.println("va al workflow global");
+            //System.out.println("va al workflow global");
             queue.add(task);
         }
     }
@@ -69,7 +70,7 @@ public class WorkflowEngine {
     }
 
     public static void runAndWaitThreadLocalTasks(boolean force) {
-        System.out.println("runAndWaitThreadLocalTasks(" + force + ")");
+        //System.out.println("runAndWaitThreadLocalTasks(" + force + ")");
         if (force || !uselocalRunners.get()) {
             uselocalRunners.set(true);
             while (localQueues.get().size() > 0) {
@@ -77,7 +78,7 @@ public class WorkflowEngine {
                 Runnable task = (Runnable) localQueues.get().poll();
                 try {
                     task.run();
-                    System.out.println("tarea local ejecutada en queue local");
+                    //System.out.println("tarea local ejecutada en queue local");
                     latch.countDown();
                 } catch (Throwable e) {
                     e.printStackTrace();
@@ -87,7 +88,7 @@ public class WorkflowEngine {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                System.out.println("localQueues empty");
+                //System.out.println("localQueues empty");
             }
             uselocalRunners.set(false);
         }
@@ -119,7 +120,7 @@ public class WorkflowEngine {
                             try {
                                 running.set(true);
                                 Object o = queue.poll();
-                                System.out.println("Runing task " + o.getClass().getName());
+                                System.out.println("" + LocalDateTime.now() + ": Runing task " + o.getClass().getName());
                                 Runnable task = (Runnable) o;
                                 task.run();
                             } catch (Throwable e) {

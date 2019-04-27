@@ -36,6 +36,7 @@ public abstract class AbstractFieldBuilder {
             , new JPAMoneyFieldBuilder()
             , new JPATextAreaFieldBuilder()
             , new JPAStringFieldBuilder()
+            , new JPATimeFieldBuilder()
             , new JPAIntegerFieldBuilder()
             , new JPALongFieldBuilder()
             , new JPADoubleFieldBuilder()

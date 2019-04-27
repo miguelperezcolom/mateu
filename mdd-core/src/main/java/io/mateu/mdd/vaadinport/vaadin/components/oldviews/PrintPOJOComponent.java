@@ -7,6 +7,7 @@ import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 
+import javax.persistence.Version;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,7 +40,7 @@ public class PrintPOJOComponent extends FormLayout {
         List<FieldInterfaced> allFields = ReflectionHelper.getAllFields(beanType);
 
         allFields = allFields.stream().filter((f) ->
-                !(f.isAnnotationPresent(Ignored.class))
+                !(f.isAnnotationPresent(Version.class) || f.isAnnotationPresent(Ignored.class))
         ).collect(Collectors.toList());
 
         return allFields;

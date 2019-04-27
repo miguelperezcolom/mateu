@@ -16,6 +16,8 @@ public class CRUDViewComponent extends AbstractViewComponent implements ListView
         this.listViewComponent = listViewComponent;
         this.editorViewComponent = editorViewComponent;
 
+        editorViewComponent.setListViewComponent(listViewComponent);
+
         listViewComponent.addListener(this);
 
     }

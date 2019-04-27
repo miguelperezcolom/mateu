@@ -3,6 +3,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 import com.vaadin.data.provider.CallbackDataProvider;
 import com.vaadin.data.provider.DataProvider;
 import com.vaadin.data.provider.GridSortOrder;
+import com.vaadin.data.provider.Query;
 import com.vaadin.event.SortEvent;
 import com.vaadin.event.selection.SelectionEvent;
 import com.vaadin.event.selection.SelectionListener;
@@ -10,8 +11,8 @@ import com.vaadin.ui.Grid;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.components.grid.ItemClickListener;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.MDD;
 
+import java.util.Optional;
 import java.util.Set;
 
 public class ResultsComponent extends VerticalLayout {
@@ -20,6 +21,52 @@ public class ResultsComponent extends VerticalLayout {
     private Grid grid;
     private Object filters;
     private CallbackDataProvider<Object,Object> dataProvider;
+    private int lastClickedRowIndex = -1;
+    private Query<Object,Object> lastQuery;
+
+    public int getLastClickedRowIndex() {
+        return lastClickedRowIndex;
+    }
+
+    public void setLastClickedRowIndex(int lastClickedRowIndex) {
+        this.lastClickedRowIndex = lastClickedRowIndex;
+    }
+
+    private void setLastQuery(Query<Object,Object> query) {
+        this.lastQuery = query;
+    }
+
+    public Query<Object, Object> getLastQuery() {
+        return lastQuery;
+    }
+
+    public Object getNext() {
+        Optional o;
+        if (listViewComponent instanceof JPACollectionFieldListViewComponent) {
+            o = listViewComponent.findAll(null, null, 0, 0).stream().skip(getLastClickedRowIndex() + 1).findFirst();
+        } else {
+            Query q = new Query(getLastClickedRowIndex() + 1, 1, getLastQuery().getSortOrders(), getLastQuery().getInMemorySorting(), getLastQuery().getFilter());
+            o = grid.getDataProvider().fetch(q).findFirst();
+        }
+        if (o.isPresent()) {
+            setLastClickedRowIndex(getLastClickedRowIndex() + 1);
+            return o.get();
+        } else throw new Error("No more items");
+    }
+
+    public Object getPrevious() {
+        Optional o;
+        if (listViewComponent instanceof JPACollectionFieldListViewComponent) {
+            o = getLastClickedRowIndex() <= 0?Optional.empty():listViewComponent.findAll(null, null, 0, 0).stream().skip(getLastClickedRowIndex() - 1).findFirst();
+        } else {
+            Query q = new Query(getLastClickedRowIndex() - 1, 1, getLastQuery().getSortOrders(), getLastQuery().getInMemorySorting(), getLastQuery().getFilter());
+            o = grid.getDataProvider().fetch(q).findFirst();
+        }
+        if (o.isPresent()) {
+            setLastClickedRowIndex(getLastClickedRowIndex() - 1);
+            return o.get();
+        } else throw new Error("No items before");
+    }
 
     public CallbackDataProvider<Object, Object> getDataProvider() {
         return dataProvider;
@@ -65,6 +112,7 @@ public class ResultsComponent extends VerticalLayout {
 
         dataProvider = DataProvider.fromFilteringCallbacks(query -> {
             try {
+                setLastQuery(query);
                 return listViewComponent.findAll(listViewComponent.getModelForSearchFilters(), query.getSortOrders(), query.getOffset(), query.getLimit()).stream();
             } catch (Throwable e) {
                 MDD.alert(e);
@@ -127,6 +175,7 @@ public class ResultsComponent extends VerticalLayout {
             @Override
             public void itemClick(Grid.ItemClick<Object> itemClick) {
                 if (MDD.isMobile() || MDD.isIpad() || itemClick.getMouseEventDetails().isDoubleClick()) {
+                    setLastClickedRowIndex(itemClick.getRowIndex());
                     Object i = itemClick.getItem();
                     if (i != null) {
                         edit(listViewComponent.toId(i));
@@ -140,6 +189,7 @@ public class ResultsComponent extends VerticalLayout {
         addComponentsAndExpand(grid);
 
     }
+
 
     private void edit(Object id) {
         try {

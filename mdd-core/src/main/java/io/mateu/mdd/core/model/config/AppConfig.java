@@ -1,6 +1,10 @@
 package io.mateu.mdd.core.model.config;
 
+import com.google.common.base.Strings;
+import com.vaadin.ui.Button;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
+import io.mateu.mdd.core.model.util.EmailHelper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import lombok.Getter;
@@ -12,11 +16,12 @@ import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import org.apache.commons.mail.DefaultAuthenticator;
+import org.apache.commons.mail.HtmlEmail;
 
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.mail.internet.InternetAddress;
+import javax.persistence.*;
+import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -56,6 +61,36 @@ public class AppConfig {
     private String adminEmailFrom;
 
     private String adminEmailCC;
+
+    @Transient
+    private Button check = new Button("Test", e -> {
+
+        try {
+
+            HtmlEmail email = new HtmlEmail();
+            email.setHostName(adminEmailSmtpHost);
+            email.setSmtpPort(adminEmailSmtpPort);
+            email.setAuthenticator(new DefaultAuthenticator(adminEmailUser, adminEmailPassword));
+            email.setSSLOnConnect(adminEmailSSLOnConnect);
+            email.setStartTLSEnabled(adminEmailStartTLS);
+            email.setFrom(adminEmailFrom);
+            if (!Strings.isNullOrEmpty(adminEmailCC)) email.getCcAddresses().add(new InternetAddress(adminEmailCC));
+
+            email.setSubject("Test email");
+            email.setHtmlMsg("This is a test email");
+            email.addTo((!Strings.isNullOrEmpty(System.getProperty("allemailsto")))?System.getProperty("allemailsto"):"miguelperezcolom@gmail.com");
+
+            EmailHelper.send(email);
+
+
+            MDD.info("Email sent OK");
+
+        } catch (Exception ex) {
+            MDD.alert(ex);
+        }
+
+    });
+
 
     private String pop3Host;
 

@@ -1059,7 +1059,7 @@ public class ReflectionHelper {
 
 
         allFields = allFields.stream().filter((f) ->
-                !(f.isAnnotationPresent(Ignored.class) || f.isAnnotationPresent(KPI.class) || f.isAnnotationPresent(NotInEditor.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class))
+                !(f.isAnnotationPresent(Version.class) || f.isAnnotationPresent(Ignored.class) || f.isAnnotationPresent(KPI.class) || f.isAnnotationPresent(NotInEditor.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class))
                 || (f.isAnnotationPresent(NotWhenCreating.class) && isEditingNewRecord)
                         || (f.isAnnotationPresent(NotWhenEditing.class) && !isEditingNewRecord))
         ).collect(Collectors.toList());

@@ -22,6 +22,7 @@ import io.mateu.mdd.core.util.Helper;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Query;
+import javax.persistence.Version;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.Collection;
@@ -234,7 +235,7 @@ public class MethodResultViewComponent extends AbstractViewComponent {
         List<FieldInterfaced> allFields = ReflectionHelper.getAllFields(method);
 
         allFields = allFields.stream().filter((f) ->
-                !(f.isAnnotationPresent(Ignored.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))
+                !(f.isAnnotationPresent(Version.class) || f.isAnnotationPresent(Ignored.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))
         ).collect(Collectors.toList());
 
         return allFields;

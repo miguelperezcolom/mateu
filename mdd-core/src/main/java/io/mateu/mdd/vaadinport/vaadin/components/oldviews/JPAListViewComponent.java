@@ -306,7 +306,7 @@ public class JPAListViewComponent extends ListViewComponent {
         List<FieldInterfaced> allFields = getFilterFields();
 
         allFields = allFields.stream().filter((f) ->
-                !(f.isAnnotationPresent(Ignored.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))
+                !(f.isAnnotationPresent(Version.class) || f.isAnnotationPresent(Ignored.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))
         ).collect(Collectors.toList());
 
         //todo: contemplar caso varias anttaciones @SearchFilter para un mismo campo

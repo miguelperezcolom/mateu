@@ -53,10 +53,7 @@ import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components.WeekDa
 import org.javamoney.moneta.FastMoney;
 
 import javax.money.MonetaryAmount;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.ManyToOne;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -628,6 +625,16 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         for (ListViewComponentListener l : listeners) l.onSelect(id);
     };
 
+
+    public Object getPrevious(Object current) {
+        return toId(resultsComponent.getPrevious());
+    }
+
+    public Object getNext(Object current) {
+        return toId(resultsComponent.getNext());
+    }
+
+
     public abstract Collection findAll(Object filters, List<QuerySortOrder> sortOrders, int offset, int limit);
 
     public int count(Object filters) throws Throwable {
@@ -680,7 +687,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
         String s = "";
 
-        if (filters != null) for (FieldInterfaced f : getFilterFields()) if (!f.isAnnotationPresent(Ignored.class)) {
+        if (filters != null) for (FieldInterfaced f : getFilterFields()) if (!f.isAnnotationPresent(Version.class) && !f.isAnnotationPresent(Ignored.class)) {
             try {
                 Object v = f.getValue(filters);
 
@@ -840,12 +847,13 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                         (f) -> !"_proxied".equalsIgnoreCase(f.getName()) && !"_possibleValues".equalsIgnoreCase(f.getName()) && !"_binder".equalsIgnoreCase(f.getName()) && !"_field".equalsIgnoreCase(f.getName())
                                 && !f.isAnnotationPresent(Transient.class)
                                 && !f.isAnnotationPresent(NotInList.class)
+                                && !f.isAnnotationPresent(Version.class)
                                 && !f.isAnnotationPresent(Ignored.class)
                                 //&& !Modifier.isTransient(f.getModifiers())
                                 && (!Collection.class.isAssignableFrom(f.getType()) || (forGrid && f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline()))
                                 && !Map.class.isAssignableFrom(f.getType())
                                 && !f.isAnnotationPresent(GeneratedValue.class)
-                                && (ReflectionHelper.isBasico(f.getType()) || f.getType().isEnum() || f.getType().isAnnotationPresent(Entity.class)
+                                && (ReflectionHelper.isBasico(f.getType()) || BigDecimal.class.equals(f.getType()) || f.getType().isEnum() || f.getType().isAnnotationPresent(Entity.class)
                                 || FareValue.class.equals(f.getType())
                                 || f.isAnnotationPresent(WeekDays.class)
                                 || (forGrid && f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline())
@@ -862,13 +870,13 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
     public List<FieldInterfaced> getFilterFields(Class filtersType) {
         List<FieldInterfaced> explicitFilters = ReflectionHelper.getAllFields(filtersType).stream().filter(
-                (f) -> !f.isAnnotationPresent(Ignored.class) && f.isAnnotationPresent(SearchFilter.class) || f.isAnnotationPresent(MainSearchFilter.class)
+                (f) -> !f.isAnnotationPresent(Version.class) && !f.isAnnotationPresent(Ignored.class) && f.isAnnotationPresent(SearchFilter.class) || f.isAnnotationPresent(MainSearchFilter.class)
         ).collect(Collectors.toList());
         if (explicitFilters.size() > 0) {
             return explicitFilters;
         } else {
             return ReflectionHelper.getAllFields(filtersType).stream().filter(
-                    (f) ->  !f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(Output.class) &&  !Resource.class.equals(f.getType()) && (String.class.equals(f.getType()) || LocalDate.class.equals(f.getType()) || LocalDateTime.class.equals(f.getType()) || Date.class.equals(f.getType()) || boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType()) || f.getType().isEnum() || f.isAnnotationPresent(ManyToOne.class) || f.getType().isAnnotationPresent(Entity.class))
+                    (f) ->  !f.isAnnotationPresent(Version.class) && !f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(Output.class) &&  !Resource.class.equals(f.getType()) && (String.class.equals(f.getType()) || LocalDate.class.equals(f.getType()) || LocalDateTime.class.equals(f.getType()) || Date.class.equals(f.getType()) || boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType()) || f.getType().isEnum() || f.isAnnotationPresent(ManyToOne.class) || f.getType().isAnnotationPresent(Entity.class))
             ).collect(Collectors.toList());
         }
     }

@@ -34,6 +34,7 @@ import io.mateu.mdd.core.reflection.ReflectionHelper;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
+import javax.persistence.OptimisticLockException;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -46,6 +47,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private final boolean createSaveButton;
     private final List<FieldInterfaced> visibleFields;
     private final List<FieldInterfaced> hiddenFields;
+    private ListViewComponent listViewComponent;
     private Object owner = null;
     private FieldInterfaced field = null;
     private Map<HasValue, List<Validator>> validators = new HashMap<>();
@@ -66,6 +68,14 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private Object modelId;
 
     private Map<Method, Optional<Method>> mvs = new HashMap<>();
+
+    public ListViewComponent getListViewComponent() {
+        return listViewComponent;
+    }
+
+    public void setListViewComponent(ListViewComponent listViewComponent) {
+        this.listViewComponent = listViewComponent;
+    }
 
     public boolean isModificado() {
         return modificado;
@@ -100,7 +110,12 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         this(modelType, true);
     }
 
-    public EditorViewComponent(Object owner, FieldInterfaced field, Class modelType, List<FieldInterfaced> visibleFields, List<FieldInterfaced> hiddenFields, boolean createSaveButton) {
+    public EditorViewComponent(ListViewComponent listViewComponent, Class modelType) {
+        this(listViewComponent, modelType, true);
+    }
+
+    public EditorViewComponent(ListViewComponent listViewComponent, Object owner, FieldInterfaced field, Class modelType, List<FieldInterfaced> visibleFields, List<FieldInterfaced> hiddenFields, boolean createSaveButton) {
+        this.listViewComponent = listViewComponent;
         this.owner = owner;
         this.field = field;
         this.modelType = modelType;
@@ -110,11 +125,15 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     }
 
     public EditorViewComponent(Object owner, FieldInterfaced field, Class modelType, boolean createSaveButton) {
-        this(owner, field, modelType, new ArrayList<>(), new ArrayList<>(), createSaveButton);
+        this(null, owner, field, modelType, new ArrayList<>(), new ArrayList<>(), createSaveButton);
     }
 
     public EditorViewComponent(Class modelType, boolean createSaveButton) {
         this(null, null, modelType, createSaveButton);
+    }
+
+    public EditorViewComponent(ListViewComponent listViewComponent, Class modelType, boolean createSaveButton) {
+        this(null, null, null, modelType, new ArrayList<>(), new ArrayList<>(), createSaveButton);
     }
 
     public EditorViewComponent(Object model) {
@@ -125,17 +144,27 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         this(model, visibleFields, hiddenFields, true);
     }
 
+    public EditorViewComponent(ListViewComponent listViewComponent, Object model, List<FieldInterfaced> visibleFields, List<FieldInterfaced> hiddenFields) {
+        this(listViewComponent, model, visibleFields, hiddenFields, true);
+    }
+
     public EditorViewComponent(Object model, boolean createSaveButton) {
         this(model, new ArrayList<>(), new ArrayList<>(), createSaveButton);
     }
 
     public EditorViewComponent(Object model, List<FieldInterfaced> visibleFields, List<FieldInterfaced> hiddenFields, boolean createSaveButton) {
+        this(null, model, visibleFields, hiddenFields, createSaveButton);
+    }
+
+    public EditorViewComponent(ListViewComponent listViewComponent, Object model, List<FieldInterfaced> visibleFields, List<FieldInterfaced> hiddenFields, boolean createSaveButton) {
+        this.listViewComponent = listViewComponent;
         this.modelType = model.getClass();
         this.visibleFields = visibleFields;
         this.hiddenFields = hiddenFields;
         this.createSaveButton = createSaveButton;
         setModel(model);
     }
+
 
     public Object getModel() {
         return (binder != null)?binder.getBean():null;
@@ -429,6 +458,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     @Override
     public void addViewActionsMenuItems(MenuBar bar) {
 
+        boolean isEditingNewRecord = newRecord;
+
         if (modelType.isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(modelType)) {
             if (field == null && !isActionPresent("refresh")) {
 
@@ -464,6 +495,84 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             }
         }
 
+        if (!isEditingNewRecord && listViewComponent != null) {
+
+            {
+                MenuBar.Command cmd;
+                MenuBar.MenuItem i = bar.addItem("Prev", VaadinIcons.ARROW_LEFT, cmd = new MenuBar.Command() {
+                    @Override
+                    public void menuSelected(MenuBar.MenuItem menuItem) {
+                        try {
+
+                            Object xid = listViewComponent.getPrevious(modelId);
+
+                            if (xid != null) {
+                                MDDUI.get().getNavegador().goSibling(xid);
+                            }
+
+
+                        } catch (Throwable throwable) {
+                            MDD.alert(throwable);
+                        }
+                    }
+                });
+                //i.setStyleName(ValoTheme.butt);
+
+                //i.setDescription("Click Ctrl + R to refresh.");
+
+                addMenuItem("prev", i);
+
+
+                if (!shortcutsCreated.contains("prev")) {
+
+                    Button b;
+                    getHiddens().addComponent(b = new Button());
+                    b.addClickListener(e -> cmd.menuSelected(i));
+                    b.setClickShortcut(ShortcutAction.KeyCode.ARROW_LEFT, ShortcutAction.ModifierKey.CTRL);
+
+                    shortcutsCreated.add("prev");
+                }
+
+            }
+
+            {
+                MenuBar.Command cmd;
+                MenuBar.MenuItem i = bar.addItem("Next", VaadinIcons.ARROW_RIGHT, cmd = new MenuBar.Command() {
+                    @Override
+                    public void menuSelected(MenuBar.MenuItem menuItem) {
+                        try {
+
+                            Object xid = listViewComponent.getNext(modelId);
+
+                            if (xid != null) {
+                                MDDUI.get().getNavegador().goSibling(xid);
+                            }
+
+                        } catch (Throwable throwable) {
+                            MDD.alert(throwable);
+                        }
+                    }
+                });
+                //i.setStyleName(ValoTheme.butt);
+
+                //i.setDescription("Click Ctrl + R to refresh.");
+
+                addMenuItem("next", i);
+
+
+                if (!shortcutsCreated.contains("next")) {
+
+                    Button b;
+                    getHiddens().addComponent(b = new Button());
+                    b.addClickListener(e -> cmd.menuSelected(i));
+                    b.setClickShortcut(ShortcutAction.KeyCode.ARROW_RIGHT, ShortcutAction.ModifierKey.CTRL);
+
+                    shortcutsCreated.add("next");
+                }
+
+            }
+        }
+
         if (createSaveButton && (modelType.isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(modelType))) {
             if (!isActionPresent("save")) {
 
@@ -481,7 +590,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                                 save();
 
-                                MDDUI.get().getNavegador().goBack();
+                                //MDDUI.get().getNavegador().goBack();
 
                             } else MDD.alert(v);
 
@@ -653,50 +762,99 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     }
 
     public void save(boolean goBack, boolean notify) throws Throwable {
-        if (modelType.isAnnotationPresent(Entity.class)) {
+        save(goBack, notify, false);
+    }
 
-            Helper.transact(new JPATransaction() {
-                @Override
-                public void run(EntityManager em) throws Throwable {
-                    for (Object o : getRemovables()) {
-                        if (getMergeables().contains(o)) getMergeables().remove(o);
+    public void save(boolean goBack, boolean notify, boolean copyEditableValues) throws Throwable {
 
-                        if (!em.contains(o)) {
-                            o = em.merge(o);
+        try {
+
+            if (modelType.isAnnotationPresent(Entity.class)) {
+
+                Helper.transact(new JPATransaction() {
+                    @Override
+                    public void run(EntityManager em) throws Throwable {
+
+                        if (copyEditableValues) {
+                            Object m = getModel();
+                            Object d = em.find(m.getClass(), ReflectionHelper.getId(m));
+                            if (d != null) {
+                                for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(m.getClass()))
+                                    if (!f.isAnnotationPresent(Output.class) && !f.isAnnotationPresent(KPI.class) && !f.isAnnotationPresent(KPIInline.class)) {
+                                        Object v = ReflectionHelper.getValue(f, m);
+                                        if (v instanceof Collection) {
+                                            Collection aux = new ArrayList();
+                                            if (v instanceof Collection) {
+                                                if (v instanceof Set) aux = new HashSet();
+                                            }
+                                            Collection finalAux = aux;
+                                            ((Collection) v).forEach(x -> {
+                                                finalAux.add(x.getClass().isAnnotationPresent(Entity.class) && !em.contains(x) ? em.merge(x) : x);
+                                            });
+                                            v = aux;
+                                        }
+                                        ReflectionHelper.setValue(f, d, v);
+                                    }
+                            } else {
+                                d = m;
+                                em.persist(d);
+                            }
+
+                            auditar(em, d);
+                            setModel(d);
+                        } else {
+                            for (Object o : getRemovables()) {
+                                if (getMergeables().contains(o)) getMergeables().remove(o);
+
+                                if (!em.contains(o)) {
+                                    o = em.merge(o);
+                                }
+                                if (em.contains(o)) {
+                                    em.remove(o);
+                                }
+                            }
+                            for (Object o : getMergeables()) em.merge(o);
+                            Object m = getModel();
+
+
+                            auditar(em, m);
+
+                            setModel(em.merge(m));
                         }
-                        if (em.contains(o)) {
-                            em.remove(o);
-                        }
+
                     }
-                    for (Object o : getMergeables()) em.merge(o);
-                    Object m = getModel();
+                });
 
+                //todo: ver que hacemos aquí. Volvemos y ya está?
+                // cambiamos la url, para reflejar el cambio
+                //if (goBack) MDDUI.get().getNavegador().goTo(ReflectionHelper.getId(getModel()));
 
-                    auditar(em, m);
+            } else if (PersistentPOJO.class.isAssignableFrom(modelType)) {
 
-                    setModel(em.merge(m));
+                PersistentPOJO ppojo = (PersistentPOJO) getModel();
+
+                ppojo.save();
+
+            }
+
+            modificado = false;
+
+            if (notify) listeners.forEach(l -> l.onSave(getModel()));
+
+            if (!goBack && (modelType.isAnnotationPresent(Entity.class)) || PersistentPOJO.class.isAssignableFrom(modelType)) {
+                load(modelId);
+            }
+
+        } catch (OptimisticLockException ole) {
+            MDD.confirm("Some objects have been modified by someone else. You should refresh and recover any modification you have done. Do you want to go ahead and overwrite instead?", () -> {
+                try {
+                    save(goBack, notify, true);
+                } catch (Throwable throwable) {
+                    MDD.alert(throwable);
                 }
             });
-
-            //todo: ver que hacemos aquí. Volvemos y ya está?
-            // cambiamos la url, para reflejar el cambio
-            //if (goBack) MDDUI.get().getNavegador().goTo(ReflectionHelper.getId(getModel()));
-
-        } else if (PersistentPOJO.class.isAssignableFrom(modelType)) {
-
-            PersistentPOJO ppojo = (PersistentPOJO) getModel();
-
-            ppojo.save();
-
         }
 
-        modificado = false;
-
-        if (notify) listeners.forEach(l -> l.onSave(getModel()));
-
-        if (!goBack && (modelType.isAnnotationPresent(Entity.class)) || PersistentPOJO.class.isAssignableFrom(modelType)) {
-            load(modelId);
-        }
     }
 
     private void auditar(EntityManager em, Object bean) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {

@@ -184,6 +184,8 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                 System.out.println("-->going to (" + MDD.getApp().getBaseUrl() + newState + ")");
 
                 Page.getCurrent().open(MDD.getApp().getBaseUrl() + newState, null);
+            } else if (MDD.getApp().getDefaultPrivateArea().getDefaultAction() != null) {
+                Page.getCurrent().open(MDD.getApp().getBaseUrl(), null);
             }
         }
 
@@ -446,7 +448,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                     if (hide) hiddenFields.add(f);
                                 }
 
-                                EditorViewComponent evc = new EditorViewComponent(pendingResult != null?pendingResult:cfcvc.addNew(), null, hiddenFields);
+                                EditorViewComponent evc = new EditorViewComponent(cfcvc, pendingResult != null?pendingResult:cfcvc.addNew(), null, hiddenFields);
 
                                 evc.addEditorListener(new EditorListener() {
                                     @Override
@@ -599,7 +601,7 @@ xxxxxxxxxxxxxxxx
                                         if (hide) hiddenFields.add(f);
                                     }
 
-                                    EditorViewComponent evc = new EditorViewComponent(cflvc.getItem(step), null, hiddenFields);
+                                    EditorViewComponent evc = new EditorViewComponent(cflvc, cflvc.getItem(step), null, hiddenFields);
 
                                     stack.push(currentPath, evc);
 
@@ -712,7 +714,7 @@ xxxxxxxxxxxxxxxx
 
                                                     lvc = new JPAListViewComponent(field.getType()).build();
 
-                                                    vc = new CRUDViewComponent(lvc, new EditorViewComponent(field.getType()).build()).build();
+                                                    vc = new CRUDViewComponent(lvc, new EditorViewComponent(lvc, field.getType()).build()).build();
 
                                                 } else {
 
@@ -841,7 +843,8 @@ xxxxxxxxxxxxxxxx
                             try {
 
                                 modelType = Class.forName(step);
-                                CRUDViewComponent cv = new CRUDViewComponent(new JPAListViewComponent(modelType).build(), new EditorViewComponent(modelType).build()).build();
+                                ListViewComponent lvc = new JPAListViewComponent(modelType);
+                                CRUDViewComponent cv = new CRUDViewComponent(lvc.build(), new EditorViewComponent(lvc, modelType).build()).build();
 
                                 stack.push(currentPath, cv);
 
@@ -962,7 +965,10 @@ xxxxxxxxxxxxxxxx
 
         if (v != null && v instanceof io.mateu.mdd.vaadinport.vaadin.navigation.View) {
             Component c = ((io.mateu.mdd.vaadinport.vaadin.navigation.View) v).getViewComponent();
-            if (c != null && c instanceof ComponentWrapper) c = ((ComponentWrapper)c).getWrapped();
+            if (c != null && c instanceof ComponentWrapper) {
+                ((ComponentWrapper)c).updatePageTitle();
+                c = ((ComponentWrapper)c).getWrapped();
+            }
             if (c == null) {
                 System.out.println("No limpiamos selección. c es null");
             } else if (c instanceof CRUDViewComponent) {
@@ -976,7 +982,9 @@ xxxxxxxxxxxxxxxx
             } else {
                 System.out.println("No limpiamos selección. clase = " + c.getClass().getName());
             }
+
         }
+
 
         return v;
 

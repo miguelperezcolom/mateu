@@ -368,6 +368,41 @@ public class Helper {
     }
 
     //todo: sql nativo
+
+    public static List<Object[]> nativeSelect(String sql) throws Throwable {
+        List<Object[]> list = new ArrayList<>();
+
+        Helper.notransact(em -> {
+
+            Query q = em.createNativeQuery(sql);
+
+            q.setHint(QueryHints.CACHE_USAGE, CacheUsage.DoNotCheckCache);
+
+
+            list.addAll(q.getResultList());
+
+        });
+
+        return list;
+    }
+
+    public static Object nativeSelectValue(String sql) throws Throwable {
+        List<Object[]> list = new ArrayList<>();
+
+        Helper.notransact(em -> {
+
+            Query q = em.createNativeQuery(sql);
+
+            q.setHint(QueryHints.CACHE_USAGE, CacheUsage.DoNotCheckCache);
+
+
+            list.addAll(q.getResultList());
+
+        });
+
+        return list.size() > 0?list.get(0)[0]:null;
+    }
+
     public static List<Object[]> sqlSelectPage(String jpql, int offset, int limit) throws Throwable {
         List<Object[]> list = new ArrayList<>();
 

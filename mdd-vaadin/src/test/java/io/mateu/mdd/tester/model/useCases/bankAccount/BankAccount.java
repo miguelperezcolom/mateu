@@ -2,6 +2,7 @@ package io.mateu.mdd.tester.model.useCases.bankAccount;
 
 import com.google.common.base.Strings;
 import com.vaadin.icons.VaadinIcons;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.model.authentication.Audit;
 import io.mateu.mdd.core.model.authentication.User;
@@ -12,6 +13,7 @@ import org.apache.commons.collections.ArrayStack;
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +24,9 @@ public class BankAccount {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
+    @Version
+    private int version;
 
     @Embedded
     @Output
@@ -34,12 +39,8 @@ public class BankAccount {
     @NotEmpty
     private String name;
 
-    private String searchableContent;
-
-    @ManyToOne
-    @NotNull@Output
     @Keep
-    private User owner;
+    private String searchableContent;
 
     @Output
     @Sum
