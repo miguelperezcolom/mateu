@@ -958,7 +958,8 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     public Object toId(Object row) {
-        return ReflectionHelper.getId(row);
+        if (row != null && row.getClass().isAnnotationPresent(NativeJPQLResult.class)) return row;
+        else return ReflectionHelper.getId(row);
     }
 
     public Grid getGrid() {

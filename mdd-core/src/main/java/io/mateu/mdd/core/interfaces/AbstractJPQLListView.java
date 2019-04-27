@@ -71,7 +71,9 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
 
                     Query q = buildQuery(em, null, true);
 
-                    c[0] = ((Long) q.getSingleResult()).intValue();
+                    Object r = q.getSingleResult();
+
+                    c[0] = ((Long) (r instanceof Object[]?((Object[])r)[0]:r)).intValue();
 
                 }
             });
