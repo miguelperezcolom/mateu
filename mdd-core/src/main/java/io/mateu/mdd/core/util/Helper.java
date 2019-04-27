@@ -375,10 +375,6 @@ public class Helper {
         Helper.notransact(em -> {
 
             Query q = em.createNativeQuery(sql);
-
-            q.setHint(QueryHints.CACHE_USAGE, CacheUsage.DoNotCheckCache);
-
-
             list.addAll(q.getResultList());
 
         });
@@ -392,15 +388,11 @@ public class Helper {
         Helper.notransact(em -> {
 
             Query q = em.createNativeQuery(sql);
-
-            q.setHint(QueryHints.CACHE_USAGE, CacheUsage.DoNotCheckCache);
-
-
             list.addAll(q.getResultList());
 
         });
 
-        return list.size() > 0?list.get(0)[0]:null;
+        return list.size() > 0?(list.get(0) instanceof Object[]?list.get(0)[0]:list.get(0)):null;
     }
 
     public static List<Object[]> sqlSelectPage(String jpql, int offset, int limit) throws Throwable {
