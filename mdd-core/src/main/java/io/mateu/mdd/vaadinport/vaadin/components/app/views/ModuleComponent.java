@@ -21,7 +21,7 @@ public class ModuleComponent extends VerticalLayout {
 
         this.module = module;
 
-        addStyleName("methodresultflowcomponent");
+        addStyleName("moduleflowcomponent");
 
         if (MDD.isMobile()) {
 
@@ -30,7 +30,8 @@ public class ModuleComponent extends VerticalLayout {
                 Button b;
                 addComponent(b = new Button(a.getName()));
                 b.addClickListener(e -> MDDUI.get().getNavegador().goTo(a));
-                b.addStyleName(ValoTheme.BUTTON_QUIET);
+                b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
+                b.addStyleName("submenuoption");
 
             });
 

@@ -103,7 +103,8 @@ public class LoginFlowComponent extends VerticalLayout {
             Button b;
             l.addComponent(b = new Button("Go back to menu"));
             b.addClickListener(e -> MDDUI.get().getNavegador().goTo("public"));
-            b.addStyleName(ValoTheme.BUTTON_QUIET);
+            b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
+            b.addStyleName("submenuoption");
 
         }
 

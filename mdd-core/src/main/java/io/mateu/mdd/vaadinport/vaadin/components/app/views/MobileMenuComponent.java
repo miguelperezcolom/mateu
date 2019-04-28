@@ -25,7 +25,7 @@ public class MobileMenuComponent extends VerticalLayout {
 
         this.area = area;
 
-        addStyleName("methodresultflowcomponent");
+        addStyleName("menuflowcomponent");
 
 
         if (area instanceof AbstractMenu) {

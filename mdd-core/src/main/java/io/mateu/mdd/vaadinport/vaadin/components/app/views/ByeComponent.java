@@ -18,7 +18,7 @@ public class ByeComponent extends VerticalLayout {
 
     public ByeComponent() {
 
-        addStyleName("methodresultflowcomponent");
+        addStyleName("byeflowcomponent");
 
         addComponent(new Label("It's been nice to see you."));
         addComponent(new Label("Hace a nice day ;)"));
@@ -28,8 +28,8 @@ public class ByeComponent extends VerticalLayout {
             Button b;
             addComponent(b = new Button("Go to menu"));
             b.addClickListener(e -> MDDUI.get().getNavegador().goTo("public"));
-            b.addStyleName(ValoTheme.BUTTON_QUIET);
-
+            b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
+            b.addStyleName("submenuoption");
         }
 
         addComponentsAndExpand(new Label(""));

@@ -79,10 +79,55 @@ body {
     }
 
     .publicmenuflowcomponent, .privatemenuflowcomponent {
+      text-align: center;
       .areabutton {
         margin-left: inherit;
       }
     }
+
+    .areaflowcomponent, .moduleflowcomponent, .menuflowcomponent, .welcomeflowcomponent, .byeflowcomponent {
+      text-align: center;
+      width: 100%;
+
+      .submenupanel {
+        margin-right: inherit;
+        padding: inherit;
+      }
+
+      .submenulayout {
+        text-align:  center;
+        padding: inherit;
+      }
+    }
+
+    .logincomponent {
+      width: 100%;
+      text-align: center;
+
+      .v-slot-submenuoption {
+        text-align: center;
+      }
+    }
+
+    .loginilayoutizda, .loginilayoutdcha {
+      text-align: center;
+      
+      .v-caption {
+        text-align: center;
+      }
+    }
+
+    .loginilayoutdcha {
+      padding-left: inherit;
+      border-left: inherit;
+      
+    }
+
+    .combo.v-filterselect {
+      width: 100%;
+    }
+
+
   }
 
   .miapp {
@@ -142,13 +187,22 @@ body {
       }
     }
 
-    .leftside {
+
+      .leftside {
 
           background-color: $izquierda;
           width: 210px;
           height: 100%;
           padding:  0px;
 
+      .botonampliar {
+        cursor: pointer;
+        margin-left: 2px;
+      }
+
+      .botonminimizar {
+        cursor: pointer;
+      }
 
           .appTitle {
 
@@ -156,6 +210,9 @@ body {
             text-align: center;
             font-size: 1.5em;
             font-weight: bold;
+
+            -webkit-transform: translateX(-50%);
+            transform: translateX(-50%);
 
             padding: 0px;
             cursor: pointer;
@@ -470,6 +527,9 @@ body {
 
         }
 
+    .leftside.minimizada {
+      width: 20px;
+    }
       .center {
 
       }
@@ -584,7 +644,10 @@ body {
       position:relative;
       float: left;
 
-        display: none;
+        /* display: none; */
+
+      width: 20px;
+
       }
 
   }

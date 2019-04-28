@@ -222,8 +222,10 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
 
             if (String.class.equals(field.getType())) {
                 if (!forSearchFilter) {
-                    if (field.isAnnotationPresent(FullWidth.class)) tf.setWidth("100%");
+                    if (MDD.isMobile() || field.isAnnotationPresent(FullWidth.class)) tf.setWidth("100%");
                     else tf.setWidth(370, Sizeable.Unit.PIXELS);
+                } else {
+                    if (MDD.isMobile() || field.isAnnotationPresent(FullWidth.class)) tf.setWidth("100%");
                 }
             } else {
                 tf.setWidth(100, Sizeable.Unit.PIXELS);

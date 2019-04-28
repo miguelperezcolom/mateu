@@ -22,7 +22,7 @@ public class AreaComponent extends VerticalLayout {
 
         this.area = area;
 
-        addStyleName("methodresultflowcomponent");
+        addStyleName("areaflowcomponent");
 
         if (MDD.isMobile()) {
 
@@ -35,7 +35,8 @@ public class AreaComponent extends VerticalLayout {
                     Button b;
                     addComponent(b = new Button(a.getName()));
                     b.addClickListener(e -> MDDUI.get().getNavegador().goTo(a));
-                    b.addStyleName(ValoTheme.BUTTON_QUIET);
+                    b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
+                    b.addStyleName("submenuoption");
 
                 });
 
@@ -47,7 +48,8 @@ public class AreaComponent extends VerticalLayout {
                     Button b;
                     addComponent(b = new Button(a.getName()));
                     b.addClickListener(e -> MDDUI.get().getNavegador().goTo(a));
-                    b.addStyleName(ValoTheme.BUTTON_QUIET);
+                    b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
+                    b.addStyleName("submenuoption");
 
                 });
 

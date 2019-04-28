@@ -60,7 +60,7 @@ public class NavigationComponent extends VerticalLayout {
 
                 if (app.getAreas().size() > 1) {
 
-                    Button b = bArea = new Button(a.getName() + ((app.getAreas().size() > 1)?"<span class=\"menu-badge\">" + VaadinIcons.RETWEET.getHtml() + "</span>":"")
+                    Button b = bArea = new Button(a.getName().toUpperCase() + ((app.getAreas().size() > 1)?"<span class=\"menu-badge\">" + VaadinIcons.RETWEET.getHtml() + "</span>":"")
                             , ev -> {
                         setMenu(null);
                         bArea.addStyleName("selected");

@@ -17,7 +17,7 @@ public class WelcomeComponent extends VerticalLayout {
 
     public WelcomeComponent() {
 
-        addStyleName("methodresultflowcomponent");
+        addStyleName("welcomeflowcomponent");
 
         addComponent(new Label("It's nice to see you."));
         addComponent(new Label("Let's have some fun ;)"));
@@ -28,7 +28,8 @@ public class WelcomeComponent extends VerticalLayout {
             Button b;
             addComponent(b = new Button("Go to menu"));
             b.addClickListener(e -> MDDUI.get().getNavegador().goTo("private"));
-            b.addStyleName(ValoTheme.BUTTON_QUIET);
+            b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
+            b.addStyleName("submenuoption");
 
         }
 
