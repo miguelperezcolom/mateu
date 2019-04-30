@@ -32,9 +32,7 @@ import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.OptimisticLockException;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -797,30 +795,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                         if (copyEditableValues) {
                             Object m = getModel();
-                            Object d = em.find(m.getClass(), ReflectionHelper.getId(m));
-                            if (d != null) {
-                                for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(m.getClass()))
-                                    if (!f.isAnnotationPresent(Output.class) && !f.isAnnotationPresent(KPI.class) && !f.isAnnotationPresent(KPIInline.class)) {
-                                        Object v = ReflectionHelper.getValue(f, m);
-                                        if (v instanceof Collection) {
-                                            Collection aux = new ArrayList();
-                                            if (v instanceof Collection) {
-                                                if (v instanceof Set) aux = new HashSet();
-                                            }
-                                            Collection finalAux = aux;
-                                            ((Collection) v).forEach(x -> {
-                                                finalAux.add(x.getClass().isAnnotationPresent(Entity.class) && !em.contains(x) ? em.merge(x) : x);
-                                            });
-                                            v = aux;
-                                        }
-                                        ReflectionHelper.setValue(f, d, v);
-                                    }
-                            } else {
-                                d = m;
-                                em.persist(d);
-                            }
-
-                            auditar(em, d);
+                            Object d = transferirValores(em, m, new ArrayList<>());
                             setModel(d);
                         } else {
                             for (Object o : getRemovables()) {
@@ -877,6 +852,37 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             });
         }
 
+    }
+
+    private Object transferirValores(EntityManager em, Object m, List<Object> transferidos) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        Object d = em.find(m.getClass(), ReflectionHelper.getId(m));
+        if (d != null) {
+            for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(m.getClass()))
+                if (!f.isAnnotationPresent(Output.class) && !f.isAnnotationPresent(KPI.class) && !f.isAnnotationPresent(KPIInline.class)) {
+                    Object v = ReflectionHelper.getValue(f, m);
+                    boolean transferir = true;
+                    if (v instanceof Collection) {
+                        if (ReflectionHelper.isOwnedCollection(f)) {
+                            Collection aux = new ArrayList();
+                            if (v instanceof Collection) {
+                                if (v instanceof Set) aux = new HashSet();
+                            }
+                            Collection finalAux = aux;
+                            for (Object x : ((Collection)v)) {
+                                finalAux.add(x.getClass().isAnnotationPresent(Entity.class) && !transferidos.contains(x)? transferirValores(em, x, transferidos) : x);
+                            };
+                            v = aux;
+                        } else transferir = false;
+                    }
+                    if (transferir) ReflectionHelper.setValue(f, d, v);
+                }
+        } else {
+            d = m;
+            em.persist(d);
+        }
+
+        auditar(em, d);
+        return d;
     }
 
     private void auditar(EntityManager em, Object bean) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
