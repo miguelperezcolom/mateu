@@ -79,7 +79,8 @@ public class MethodResultViewFlowComponent extends AbstractViewComponent {
         }
     }
 
-    public MethodResultViewFlowComponent(String state, Method method, Object result) throws Exception {
+
+    public MethodResultViewFlowComponent(String state, Method method, Object result, Component lastViewComponent) throws Exception {
         this.result = result;
         this.method = method;
 
@@ -91,7 +92,7 @@ public class MethodResultViewFlowComponent extends AbstractViewComponent {
         if (result instanceof AbstractViewComponent) addComponent(((AbstractViewComponent) result).build());
         else if (result instanceof Component) addComponent((Component) result);
         else if (!method.isAnnotationPresent(Output.class) && isPOJO(result))
-            addComponent(new EditorViewComponent(result));
+            addComponent(new EditorViewComponent(result, lastViewComponent));
         else if (result instanceof WizardPage) {
             try {
                 addComponent(new WizardComponent((WizardPage) result));

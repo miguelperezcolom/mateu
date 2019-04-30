@@ -11,6 +11,7 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.tester.model.entities.basic.BasicFieldsDemoEntity;
 import io.mateu.mdd.tester.model.entities.groups.Person;
+import io.mateu.mdd.tester.model.useCases.hotel.Booking;
 import io.mateu.mdd.tester.model.views.BookingsView;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.AbstractFieldBuilder;
 
@@ -88,7 +89,12 @@ public class SimpleApp extends SimpleMDDApplication {
     }
 
     @Action(order = 10, icon = VaadinIcons.CART)
-    public BookingsView bookings() {
+    public Class bookings() {
+        return Booking.class;
+    }
+
+    @Action(order = 11, icon = VaadinIcons.CART)
+    public BookingsView bookingsView() {
         return new BookingsView();
     }
 

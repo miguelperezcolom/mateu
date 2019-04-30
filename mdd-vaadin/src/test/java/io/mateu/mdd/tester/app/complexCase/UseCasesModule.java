@@ -3,6 +3,7 @@ package io.mateu.mdd.tester.app.complexCase;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.model.authentication.User;
+import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.tester.model.useCases.bankAccount.BankAccount;
 import io.mateu.mdd.tester.model.useCases.bankAccount.Payment;
@@ -72,6 +73,8 @@ public class UseCasesModule extends AbstractModule {
 
                 l.add(new MDDOpenCRUDAction("Contracts", Contract.class));
 
+                l.add(new MDDOpenCRUDAction("Bookings", Booking.class));
+
                 l.add(new MDDOpenListViewAction("Bookings view", BookingsView.class));
 
                 l.add(new MDDOpenListViewAction("Roomings", RoomingListView.class));
@@ -91,6 +94,8 @@ public class UseCasesModule extends AbstractModule {
                 return l;
             }
         });
+
+        l.add(new MDDOpenEditorAction("App config", AppConfig.class, 1l));
 
         l.add(new MDDCallMethodAction("Populate database", UseCasesModule.class, "populate"));
 

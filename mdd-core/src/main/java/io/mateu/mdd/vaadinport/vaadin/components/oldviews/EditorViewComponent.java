@@ -140,6 +140,10 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         this(model, true);
     }
 
+    public EditorViewComponent(Object model, Component lastViewComponent) {
+        this(lastViewComponent instanceof ListViewComponent? (ListViewComponent) lastViewComponent :null, model, null, null, true);
+    }
+
     public EditorViewComponent(Object model, List<FieldInterfaced> visibleFields, List<FieldInterfaced> hiddenFields) {
         this(model, visibleFields, hiddenFields, true);
     }
@@ -171,7 +175,6 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     }
 
     public void setModel(Object model) {
-
         modelType = model.getClass();
 
         binder = new MDDBinder(model.getClass(), this);
@@ -182,6 +185,10 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 modificado = true;
             });
 
+        }
+
+        if (model != null && model.getClass().isAnnotationPresent(Entity.class)) {
+            modelId = ReflectionHelper.getId(model);
         }
 
         binder.setBean(model);
@@ -223,6 +230,19 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private void build(Object model) {
 
         long t0 = System.currentTimeMillis();
+
+        if (model != null && model.getClass().isAnnotationPresent(Entity.class)) {
+            Object id = ReflectionHelper.getId(model);
+            boolean esNuevo = false;
+            if (id instanceof Long) {
+                esNuevo = ((Long) id) == 0;
+            } else if (id instanceof Integer) {
+                esNuevo = ((Integer)id) == 0;
+            } else {
+                esNuevo = id == null;
+            }
+            newRecord = esNuevo;
+        }
 
         clear();
 
@@ -495,9 +515,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             }
         }
 
-        if (!isEditingNewRecord && listViewComponent != null) {
-
-            {
+        if (!isEditingNewRecord && (listViewComponent != null || (modelType != null && modelType.isAnnotationPresent(Entity.class)))) {
+            if (!isActionPresent("prev")) {
                 MenuBar.Command cmd;
                 MenuBar.MenuItem i = bar.addItem("Prev", VaadinIcons.ARROW_LEFT, cmd = new MenuBar.Command() {
                     @Override
@@ -535,7 +554,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
             }
 
-            {
+            if (!isActionPresent("next")) {
                 MenuBar.Command cmd;
                 MenuBar.MenuItem i = bar.addItem("Next", VaadinIcons.ARROW_RIGHT, cmd = new MenuBar.Command() {
                     @Override
@@ -589,8 +608,6 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                                 preSave();
 
                                 save();
-
-                                //MDDUI.get().getNavegador().goBack();
 
                             } else MDD.alert(v);
 
@@ -651,6 +668,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             }
 
         }
+
+        if (getMenuItemById("prev") != null) getMenuItemById("prev").setVisible(listViewComponent != null);
+        if (getMenuItemById("next") != null) getMenuItemById("next").setVisible(listViewComponent != null);
 
         super.addViewActionsMenuItems(bar);
 
@@ -825,9 +845,11 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                     }
                 });
 
+                modificado = false;
+
                 //todo: ver que hacemos aquí. Volvemos y ya está?
                 // cambiamos la url, para reflejar el cambio
-                //if (goBack) MDDUI.get().getNavegador().goTo(ReflectionHelper.getId(getModel()));
+                if (goBack) MDDUI.get().getNavegador().goBack();
 
             } else if (PersistentPOJO.class.isAssignableFrom(modelType)) {
 

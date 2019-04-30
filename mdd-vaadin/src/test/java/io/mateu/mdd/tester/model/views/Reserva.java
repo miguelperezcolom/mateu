@@ -14,4 +14,14 @@ public class Reserva {
         this.id = id;
         this.leadName = leadName;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        return this == obj || (id > 0 && obj instanceof Reserva && id == ((Reserva) obj).getId());
+    }
+
+    @Override
+    public String toString() {
+        return "" + id;
+    }
 }

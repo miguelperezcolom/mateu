@@ -55,12 +55,14 @@ public class ResultsComponent extends VerticalLayout {
     }
 
     public Object getPrevious() {
-        Optional o;
-        if (listViewComponent instanceof JPACollectionFieldListViewComponent) {
-            o = getLastClickedRowIndex() <= 0?Optional.empty():listViewComponent.findAll(null, null, 0, 0).stream().skip(getLastClickedRowIndex() - 1).findFirst();
-        } else {
-            Query q = new Query(getLastClickedRowIndex() - 1, 1, getLastQuery().getSortOrders(), getLastQuery().getInMemorySorting(), getLastQuery().getFilter());
-            o = grid.getDataProvider().fetch(q).findFirst();
+        Optional o = Optional.empty();
+        if (getLastClickedRowIndex() > 0) {
+            if (listViewComponent instanceof JPACollectionFieldListViewComponent) {
+                o = listViewComponent.findAll(null, null, 0, 0).stream().skip(getLastClickedRowIndex() - 1).findFirst();
+            } else {
+                Query q = new Query(getLastClickedRowIndex() - 1, 1, getLastQuery().getSortOrders(), getLastQuery().getInMemorySorting(), getLastQuery().getFilter());
+                o = grid.getDataProvider().fetch(q).findFirst();
+            }
         }
         if (o.isPresent()) {
             setLastClickedRowIndex(getLastClickedRowIndex() - 1);

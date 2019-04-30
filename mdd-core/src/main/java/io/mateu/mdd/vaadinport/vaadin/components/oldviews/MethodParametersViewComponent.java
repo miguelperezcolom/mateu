@@ -161,7 +161,7 @@ public class MethodParametersViewComponent extends AbstractViewComponent impleme
                         MDDUI.get().getNavegador().goBack();
                         MDD.info("Done");
                     } else {
-                        MDDUI.get().getNavegador().showResult(context.getCurrentState(), method, r, context, true);
+                        MDDUI.get().getNavegador().showResult(context.getCurrentState(), method, r, context, true, null);
                     }
 
                 }

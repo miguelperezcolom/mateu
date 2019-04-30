@@ -107,7 +107,18 @@ public class ViewComponentHelper {
                                             @Override
                                             public void run(EntityManager em) throws Throwable {
 
-                                                invoke(viewComponent, m, finalInstance, finalSelection, em, null);
+                                                if (viewComponent instanceof EditorViewComponent) {
+                                                    Object ni = em.merge(finalInstance);
+
+                                                    invoke(viewComponent, m, ni, finalSelection, em, null);
+
+                                                    EditorViewComponent evc = (EditorViewComponent) viewComponent;
+                                                    evc.setModel(ni);
+                                                } else {
+
+                                                    invoke(viewComponent, m, finalInstance, finalSelection, em, null);
+
+                                                }
 
                                             }
                                         });

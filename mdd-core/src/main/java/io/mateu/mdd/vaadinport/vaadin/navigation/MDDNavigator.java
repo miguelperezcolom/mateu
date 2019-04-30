@@ -157,7 +157,7 @@ public class MDDNavigator {
         goTo(state);
     }
 
-    public void showResult(String currentState, Method m, Object r, MDDExecutionContext context, boolean addStep) throws Exception {
+    public void showResult(String currentState, Method m, Object r, MDDExecutionContext context, boolean addStep, Component lastViewComponent) throws Exception {
 
         if (addStep) {
             if (!currentState.endsWith("/")) currentState += "/";
@@ -168,7 +168,7 @@ public class MDDNavigator {
             ((AbstractAction) r).run(context);
         } else if (r instanceof Class && (((Class) r).isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom((Class<?>) r))) {
             stack.push(currentState, MDDViewComponentCreator.createComponent(null, (Class) r, null, null, false));
-        } else stack.push(currentState, new MethodResultViewFlowComponent(currentState, m, r));
+        } else stack.push(currentState, new MethodResultViewFlowComponent(currentState, m, r, lastViewComponent));
 
         goTo(currentState);
     }

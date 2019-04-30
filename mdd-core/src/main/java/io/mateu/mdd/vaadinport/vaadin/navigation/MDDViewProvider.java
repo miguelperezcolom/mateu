@@ -11,10 +11,7 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.interfaces.EntityProvider;
-import io.mateu.mdd.core.interfaces.PersistentPOJO;
-import io.mateu.mdd.core.interfaces.RpcView;
-import io.mateu.mdd.core.interfaces.WizardPage;
+import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
@@ -1091,10 +1088,10 @@ xxxxxxxxxxxxxxxx
                 if (pendingResult != null) {
 
                     if (pendingResult.getClass().isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(pendingResult.getClass())) {
-                        stack.push(currentPath, new EditorViewComponent(pendingResult));
+                        stack.push(currentPath, new EditorViewComponent(pendingResult, lastViewComponent));
                     } else {
                         try {
-                            stack.push(currentPath, new MethodResultViewFlowComponent(state, method, pendingResult));
+                            stack.push(currentPath, new MethodResultViewFlowComponent(state, method, pendingResult, lastViewComponent));
                         } catch (Exception e) {
                             MDD.alert(e);
                         }
@@ -1119,11 +1116,11 @@ xxxxxxxxxxxxxxxx
 
                         if (Query.class.equals(method.getReturnType())) {
 
-                            MDDUI.get().getNavegador().showResult(currentPath, method, ReflectionHelper.execute(MDD.getUserData(), method, new MDDBinder(new ArrayList<>()), instance, pendingSelection), this, false);
+                            MDDUI.get().getNavegador().showResult(currentPath, method, ReflectionHelper.execute(MDD.getUserData(), method, new MDDBinder(new ArrayList<>()), instance, pendingSelection), this, false, lastViewComponent);
 
                         } else {
 
-                            MDDUI.get().getNavegador().showResult(currentPath, method, ReflectionHelper.execute(MDD.getUserData(), method, new MDDBinder(new ArrayList<>()), instance, pendingSelection), this, false);
+                            MDDUI.get().getNavegador().showResult(currentPath, method, ReflectionHelper.execute(MDD.getUserData(), method, new MDDBinder(new ArrayList<>()), instance, pendingSelection), this, false, lastViewComponent);
 
                         }
                     }
