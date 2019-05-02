@@ -306,6 +306,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                     b.addStyleName(CSS.NOPADDING);
                     b.addClickListener(e -> {
 
+                        /*
                         Object bean = binder.getBean();
                         try {
                             ReflectionHelper.setValue(field, bean, null);
@@ -317,6 +318,8 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                         } catch (Exception e1) {
                             MDD.alert(e1);
                         }
+                        */
+                        MDDUI.get().getNavegador().go(field.getName() + "_new");
 
                     });
                     hl.addComponent(b);

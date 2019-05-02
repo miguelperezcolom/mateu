@@ -20,8 +20,23 @@ import java.util.Map;
 public class BookingsView extends AbstractJPQLListView<Reserva> {
 
 
-    @MainSearchFilter
     private String leadName;
+
+
+    private String filtro1;
+
+    private String filtro2;
+
+    private String filtro3;
+
+    private String filtro4;
+
+    private String filtro5;
+
+    private String filtro6;
+
+
+
 
 
     @Override

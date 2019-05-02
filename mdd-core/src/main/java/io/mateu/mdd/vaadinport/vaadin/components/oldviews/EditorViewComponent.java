@@ -758,7 +758,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         FieldInterfaced a = null;
 
         for (FieldInterfaced m : ReflectionHelper.getAllFields(getModelType())) {
-            if (m.getName().equals(fieldName)) {
+            if (m.getName().equals(fieldName) || (m.getName() + "_new").equals(fieldName)) {
                 a = m;
                 break;
             }

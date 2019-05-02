@@ -16,6 +16,7 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter@Setter
@@ -68,4 +69,10 @@ public class BankAccount {
             //setComments(new ArrayList<>(getComments()));
         }
     }
+
+    @Action(order = 4, icon = VaadinIcons.EDIT, saveAfter = true)
+    public static Set<BankAccount> testLista(Set<BankAccount> seleccion) {
+        return seleccion;
+    }
+
 }

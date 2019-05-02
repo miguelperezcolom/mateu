@@ -603,7 +603,13 @@ xxxxxxxxxxxxxxxx
                                     stack.push(currentPath, evc);
 
 
-                                } else {
+                                } else if (lastViewComponent instanceof CollectionListViewComponent) {
+
+                                    CollectionListViewComponent cflvc = (CollectionListViewComponent) lastViewComponent;
+
+                                    EditorViewComponent evc = new EditorViewComponent(cflvc, cflvc.deserializeId(step), null, null);
+
+                                    stack.push(currentPath, evc);
 
                                 }
                             }
@@ -651,7 +657,7 @@ xxxxxxxxxxxxxxxx
                             }
                             if (r != null) {
                                 method = ReflectionHelper.getMethod(r.getClass(), step);
-                                field = ReflectionHelper.getFieldByName(r.getClass(), step);
+                                field = ReflectionHelper.getFieldByName(r.getClass(), step.endsWith("_new")?step.replaceAll("_new", ""):step);
                             }
 
                             if (method == null && field == null && lastViewComponent instanceof MethodResultViewComponent && r != null && r instanceof RpcView) {
@@ -807,7 +813,7 @@ xxxxxxxxxxxxxxxx
 
 
                                 } else {
-                                    stack.push(currentPath, new FieldEditorComponent(evfc.getBinder(), field));
+                                    stack.push(currentPath, new FieldEditorComponent(evfc.getBinder(), field, step.endsWith("_new")));
                                 }
 
                             } else if (lastViewComponent instanceof OwnedCollectionComponent) {
@@ -973,9 +979,11 @@ xxxxxxxxxxxxxxxx
                 ((CRUDViewComponent)c).getListViewComponent().resultsComponent.getGrid().getSelectionModel().deselectAll();
                 System.out.println("Ha quedado en " + ((CRUDViewComponent)c).getListViewComponent().resultsComponent.getGrid().getSelectedItems().size());
             } else if (c instanceof ListViewComponent) {
-                System.out.println("Limpiamos selección " + ((ListViewComponent)c).resultsComponent.getGrid().getSelectedItems().size());
-                ((ListViewComponent)c).resultsComponent.getGrid().getSelectionModel().deselectAll();
-                System.out.println("Ha quedado en " + ((ListViewComponent)c).resultsComponent.getGrid().getSelectedItems().size());
+                if (((ListViewComponent)c).resultsComponent != null) {
+                    System.out.println("Limpiamos selección " + ((ListViewComponent)c).resultsComponent.getGrid().getSelectedItems().size());
+                    ((ListViewComponent)c).resultsComponent.getGrid().getSelectionModel().deselectAll();
+                    System.out.println("Ha quedado en " + ((ListViewComponent)c).resultsComponent.getGrid().getSelectedItems().size());
+                }
             } else {
                 System.out.println("No limpiamos selección. clase = " + c.getClass().getName());
             }
@@ -1090,11 +1098,19 @@ xxxxxxxxxxxxxxxx
                     if (pendingResult.getClass().isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(pendingResult.getClass())) {
                         stack.push(currentPath, new EditorViewComponent(pendingResult, lastViewComponent));
                     } else {
-                        try {
-                            stack.push(currentPath, new MethodResultViewFlowComponent(state, method, pendingResult, lastViewComponent));
-                        } catch (Exception e) {
-                            MDD.alert(e);
+
+                        if (pendingResult instanceof Collection && ((Collection) pendingResult).size() > 0 && ((Collection) pendingResult).iterator().next() != null && ((Collection) pendingResult).iterator().next().getClass().isAnnotationPresent(Entity.class)) {
+                            CollectionListViewComponent clvc;
+                            stack.push(currentPath, clvc = new CollectionListViewComponent((Collection) pendingResult, ((Collection) pendingResult).iterator().next().getClass()));
+                            clvc.build();
+                        } else {
+                            try {
+                                stack.push(currentPath, new MethodResultViewFlowComponent(state, method, pendingResult, lastViewComponent));
+                            } catch (Exception e) {
+                                MDD.alert(e);
+                            }
                         }
+
                     }
                     pendingResult = null;
 

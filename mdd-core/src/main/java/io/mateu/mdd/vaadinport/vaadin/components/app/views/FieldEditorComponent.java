@@ -26,6 +26,7 @@ import javax.persistence.Entity;
 
 public class FieldEditorComponent extends VerticalLayout {
 
+    private final boolean adding;
     private EditorViewComponent editor;
     private FieldInterfaced field;
     private MDDBinder binder;
@@ -35,9 +36,10 @@ public class FieldEditorComponent extends VerticalLayout {
         return "Editing field " + ReflectionHelper.getCaption(field) + " of " + binder.getBean();
     }
 
-    public FieldEditorComponent(MDDBinder binder, FieldInterfaced field) {
+    public FieldEditorComponent(MDDBinder binder, FieldInterfaced field, boolean adding) {
         this.binder = binder;
         this.field = field;
+        this.adding = adding;
 
         addStyleName("methodresultflowcomponent");
 
@@ -68,7 +70,7 @@ public class FieldEditorComponent extends VerticalLayout {
                 @Override
                 public Object getValue() {
                     try {
-                        return ReflectionHelper.getValue(field, binder.getBean());
+                        return adding?ReflectionHelper.newInstance(field.getType()):ReflectionHelper.getValue(field, binder.getBean());
                     } catch (Exception e) {
                         MDD.alert(e);
                     }
@@ -184,8 +186,12 @@ public class FieldEditorComponent extends VerticalLayout {
             addComponent(editor = new EditorViewComponent(field.getType()));
             try {
                 Object parent = binder.getBean();
-                Object v = ReflectionHelper.getValue(field, parent);
-                editor.load((v != null)?((v.getClass().isAnnotationPresent(Entity.class))?ReflectionHelper.getId(v):ReflectionHelper.clone(v)):null, parent, field);
+                if (!adding) {
+                    Object v = ReflectionHelper.getValue(field, parent);
+                    editor.load((v != null)?((v.getClass().isAnnotationPresent(Entity.class))?ReflectionHelper.getId(v):ReflectionHelper.clone(v)):null, parent, field);
+                } else {
+                    editor.load(null);
+                }
             } catch (Throwable throwable) {
                 MDD.alert(throwable);
             }

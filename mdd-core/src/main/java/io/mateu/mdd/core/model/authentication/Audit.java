@@ -42,7 +42,7 @@ public class Audit implements AuditRecord {
     @Override
     public String toString() {
 
-        DateTimeFormatter f = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss");
+        DateTimeFormatter f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
         String s = "";
         String s1 = "";

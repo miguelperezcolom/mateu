@@ -19,10 +19,7 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Query;
-import javax.persistence.Version;
+import javax.persistence.*;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.Collection;
@@ -157,12 +154,13 @@ public class MethodResultViewComponent extends AbstractViewComponent {
 
                         }
 
-
                     } else {
+
+                        Object primerElemento = col.iterator().next();
 
                         Grid g = new Grid();
 
-                        ListViewComponent.buildColumns(g, ListViewComponent.getColumnFields(col.iterator().next().getClass()), false, false);
+                        ListViewComponent.buildColumns(g, ListViewComponent.getColumnFields(primerElemento.getClass()), false, false);
 
                         //g.setSelectionMode(Grid.SelectionMode.MULTI);
 

@@ -59,4 +59,8 @@ public class Payment {
     }
 
 
+    @Override
+    public boolean equals(Object obj) {
+        return this == obj || (id > 0 && obj instanceof Payment && id == ((Payment) obj).getId());
+    }
 }
