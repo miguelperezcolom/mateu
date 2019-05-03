@@ -1,7 +1,9 @@
 package io.mateu.mdd.tester.model.rpc;
 
 import com.vaadin.data.provider.QuerySortOrder;
+import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.annotations.MainSearchFilter;
 import io.mateu.mdd.core.data.Just1StringColumn;
@@ -16,14 +18,18 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Getter@Setter
 public class SampleRPCListView implements RpcView<SampleRPCListView, Just1StringColumn> {
 
     @MainSearchFilter
     private String url = "https://jsonplaceholder.typicode.com/comments";
+
+    private LocalDate date;
 
     private String dummyFilter = "This does nothing";
 
@@ -33,6 +39,7 @@ public class SampleRPCListView implements RpcView<SampleRPCListView, Just1String
 
     @Override
     public List<Just1StringColumn> rpc(SampleRPCListView filters, List<QuerySortOrder> sortOrders, int offset, int limit) {
+        System.out.println(filters.getDate());
         doRpcCall();
         return result.getValue().subList(offset, (result.getValue().size() > offset + limit)?offset + limit:result.getValue().size());
     }
@@ -70,6 +77,17 @@ public class SampleRPCListView implements RpcView<SampleRPCListView, Just1String
 
         }
     }
+
+    @Action(order = 3, icon = VaadinIcons.ARROW_LEFT)
+    public void prev() throws Throwable {
+        if (date != null) date = date.minusDays(1); else date = LocalDate.now().minusDays(1);
+    }
+
+    @Action(order = 4, icon = VaadinIcons.ARROW_RIGHT)
+    public void next() throws Throwable {
+        if (date != null) date = date.plusDays(1); else date = LocalDate.now().plusDays(1);
+    }
+
 
 
     public static void main(String[] args) {

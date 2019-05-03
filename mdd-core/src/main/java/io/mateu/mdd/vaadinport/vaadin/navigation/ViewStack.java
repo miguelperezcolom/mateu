@@ -98,4 +98,8 @@ public class ViewStack {
     public void clear() {
         popTo(-1);
     }
+
+    public List<io.mateu.mdd.vaadinport.vaadin.navigation.View> getStack() {
+        return stack;
+    }
 }

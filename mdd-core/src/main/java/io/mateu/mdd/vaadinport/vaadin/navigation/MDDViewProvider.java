@@ -61,6 +61,23 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
     private EditorViewComponent currentEditor;
     private String pendingPrivateState;
 
+    public void search(RpcView rpcView) {
+        RpcListViewComponent x = null;
+        for (io.mateu.mdd.vaadinport.vaadin.navigation.View v : stack.getStack()) {
+            Component c = v.getComponent();
+            if (c instanceof RpcListViewComponent) {
+                if (((RpcListViewComponent) c).getRpcListView().equals(rpcView)) x = (RpcListViewComponent) c;
+            }
+        }
+        if (x != null) {
+            try {
+                x.search(x.getModelForSearchFilters());
+            } catch (Throwable throwable) {
+                MDD.alert(throwable);
+            }
+        }
+    }
+
     public String getPendingPrivateState() {
         return pendingPrivateState;
     }

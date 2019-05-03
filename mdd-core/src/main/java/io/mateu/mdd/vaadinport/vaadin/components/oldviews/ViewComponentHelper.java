@@ -52,7 +52,7 @@ public class ViewComponentHelper {
                             if (EntityManager.class.equals(p.getType())) {
                                 needsTransaction = true;
                             } else if (UserData.class.equals(p.getType())) {
-                            } else if (Modifier.isStatic(m.getModifiers()) && Set.class.isAssignableFrom(p.getType()) && (m.getDeclaringClass().equals(pgc) || (viewComponent instanceof RpcListViewComponent && ReflectionHelper.getGenericClass(((RpcListViewComponent)viewComponent).getRpcListView().getClass(), RpcView.class, "C").equals(pgc)))) {
+                            } else if (viewComponent instanceof ListViewComponent && Set.class.isAssignableFrom(p.getType()) && (m.getDeclaringClass().equals(pgc) || (viewComponent instanceof RpcListViewComponent && ReflectionHelper.getGenericClass(((RpcListViewComponent)viewComponent).getRpcListView().getClass(), RpcView.class, "C").equals(pgc)))) {
                                 if (!p.isAnnotationPresent(Size.class) || p.getAnnotation(Size.class).min() > 0)
                                     needsSelection = true;
                             } else {
@@ -175,7 +175,7 @@ public class ViewComponentHelper {
                 vs.add(em);
             } else if (UserData.class.equals(p.getType())) {
                 vs.add(MDD.getUserData());
-            } else if (Modifier.isStatic(m.getModifiers()) && Set.class.isAssignableFrom(p.getType()) && (m.getDeclaringClass().equals(pgc) || (viewComponent instanceof RpcListViewComponent && ReflectionHelper.getGenericClass(((RpcListViewComponent)viewComponent).getRpcListView().getClass(), RpcView.class, "C").equals(pgc)))) {
+            } else if (viewComponent instanceof ListViewComponent && Set.class.isAssignableFrom(p.getType()) && (m.getDeclaringClass().equals(pgc) || (viewComponent instanceof RpcListViewComponent && ReflectionHelper.getGenericClass(((RpcListViewComponent)viewComponent).getRpcListView().getClass(), RpcView.class, "C").equals(pgc)))) {
                 if (needsEm && ReflectionHelper.getGenericClass(p.getParameterizedType()).isAnnotationPresent(Entity.class)) {
                     Set aux = new HashSet();
                     for (Object o : selection) aux.add(em.merge(o));

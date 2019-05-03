@@ -2,7 +2,10 @@ package io.mateu.mdd.core.interfaces;
 
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.ui.Grid;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.SumData;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import io.mateu.mdd.vaadinport.vaadin.navigation.MDDViewProvider;
 
 import java.util.List;
 
@@ -36,6 +39,10 @@ public interface RpcView<F, C> {
 
     default Object onSelect(C row) {
         return null;
+    }
+
+    default void search() {
+        if (MDDUI.get() != null) MDDUI.get().getNavegador().getViewProvider().search(this);
     }
 
 }
