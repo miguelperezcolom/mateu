@@ -47,7 +47,8 @@ public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvi
     }
 
     public JPQLListDataProvider(Query q) {
-        super(q.setHint(QueryHints.CACHE_USAGE, CacheUsage.DoNotCheckCache).getResultList());
+        super(q.getResultList());
+        //super(q.setHint(QueryHints.CACHE_USAGE, CacheUsage.DoNotCheckCache).getResultList());
     }
 
     public JPQLListDataProvider(Class entityClass) {

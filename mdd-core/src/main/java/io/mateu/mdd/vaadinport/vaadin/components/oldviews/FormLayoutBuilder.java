@@ -236,15 +236,15 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
 
 
-            if (f.isAnnotationPresent(FieldBuilder.class)) {
+            if (!f.forceInput() && (f.isAnnotationPresent(GeneratedValue.class) || (MDDUI.get().getNavegador().getViewProvider().getCurrentEditor() != null && (f.isAnnotationPresent(Output.class) || (!MDDUI.get().getNavegador().getViewProvider().getCurrentEditor().isNewRecord() && f.getDeclaringClass().isAnnotationPresent(Unmodifiable.class))))
+                    || (!Component.class.isAssignableFrom(f.getType()) && ReflectionHelper.getMethod(model.getClass(), ReflectionHelper.getSetter(f)) == null))) {
+                ofb.build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters);
+            } else if (f.isAnnotationPresent(FieldBuilder.class)) {
                 try {
                     (f.getAnnotation(FieldBuilder.class).value().newInstance()).build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters);
                 } catch (Exception e) {
                     MDD.alert(e);
                 }
-            } else if (!f.forceInput() && (f.isAnnotationPresent(GeneratedValue.class) || (MDDUI.get().getNavegador().getViewProvider().getCurrentEditor() != null && f.isAnnotationPresent(Output.class))
-                    || (!Component.class.isAssignableFrom(f.getType()) && ReflectionHelper.getMethod(model.getClass(), ReflectionHelper.getSetter(f)) == null))) {
-                ofb.build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters);
             } else {
                 AbstractFieldBuilder b = MDD.getApp().getFieldBuilder(f);
                 if (b != null) b.build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters);

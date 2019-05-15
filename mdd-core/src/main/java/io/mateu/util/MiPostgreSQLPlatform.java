@@ -17,6 +17,7 @@ import javax.naming.NamingException;
 import javax.naming.Reference;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Hashtable;
 
 /**
@@ -113,6 +114,7 @@ public class MiPostgreSQLPlatform extends PostgreSQLPlatform {
         t.put(String.class, new FieldTypeDefinition("TEXT", false));
         t.put(LocalDate.class, new FieldTypeDefinition("DATE", false));
         t.put(LocalDateTime.class, new FieldTypeDefinition("TIMESTAMP WITHOUT TIME ZONE", false));
+        t.put(LocalTime.class, new FieldTypeDefinition("TIMESTAMP WITHOUT TIME ZONE", false));
         t.put(String.class, new FieldTypeDefinition("TEXT", false));
 
         return t;

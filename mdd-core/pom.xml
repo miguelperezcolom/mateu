@@ -430,7 +430,6 @@
 
 
 
-
         <dependency>
             <groupId>com.vaadin.pontus</groupId>
             <artifactId>vizcomponent</artifactId>

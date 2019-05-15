@@ -17,7 +17,9 @@ public class TmpContentServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request,
                          HttpServletResponse response) throws ServletException, IOException {
         // reads input file from an absolute path
-        File downloadFile = new File(request.getServletContext().getRealPath("/tmp/") + request.getPathInfo());
+        String path = System.getProperty("tmpdir", request.getServletContext().getRealPath("/tmp/"));
+        if (!path.endsWith("/")) path += "/";
+        File downloadFile = new File(path + request.getPathInfo());
         FileInputStream inStream = new FileInputStream(downloadFile);
 
         // if you want to use a relative path to context root:

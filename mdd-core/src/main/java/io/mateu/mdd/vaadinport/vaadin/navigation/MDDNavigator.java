@@ -6,6 +6,7 @@ import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.PersistentPOJO;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
@@ -16,6 +17,7 @@ import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 
 import javax.persistence.Entity;
 import java.lang.reflect.Method;
+import java.util.Base64;
 import java.util.Set;
 
 public class MDDNavigator {
@@ -282,5 +284,18 @@ public class MDDNavigator {
 
         Page.getCurrent().open(Page.getCurrent().getLocation().toString(), "_blank");
 
+    }
+
+    public void edit(Object o) {
+        if (o != null) {
+            String state = stack.getState(stack.getLast());
+            state += "/" + getObjectUrl(o);
+            goTo(state);
+        }
+    }
+
+    public static String getObjectUrl(Object o) {
+        String u = "obj___" + Base64.getEncoder().encodeToString((o.getClass().getName() + "#" + ReflectionHelper.getId(o)).getBytes());
+        return u;
     }
 }

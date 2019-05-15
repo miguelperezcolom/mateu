@@ -326,7 +326,44 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     || FastMoney.class.equals(f.getType()) || MonetaryAmount.class.equals(f.getType())
                     || f.isAnnotationPresent(RightAlignedCol.class)
                 ) {
-                col.setStyleGenerator(c -> "v-align-right");
+                if (f.isAnnotationPresent(Balance.class)) {
+
+                    col.setStyleGenerator(new StyleGenerator() {
+                        @Override
+                        public String apply(Object o) {
+                            try {
+
+                                Object v = null;
+
+                                if (o instanceof Object[]) {
+                                    v = ((Object[]) o)[finalPos + 1];
+                                } else {
+                                    try {
+                                        v = ReflectionHelper.getValue(f, o);
+                                    } catch (NoSuchMethodException e) {
+                                        e.printStackTrace();
+                                    } catch (IllegalAccessException e) {
+                                        e.printStackTrace();
+                                    } catch (InvocationTargetException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+
+                                String s = "v-align-right";
+                                if (v != null && ((double)v) < 0) {
+                                    s += " negativo";
+                                } else {
+                                    s += " positivo";
+                                }
+
+                                return s;
+                            } catch (Exception e) {
+                                MDD.alert(e);
+                            }
+                            return null;
+                        }
+                    });
+                } else col.setStyleGenerator(c -> "v-align-right");
             }
 
             if (editable) {

@@ -374,9 +374,18 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                 String s = "";
 
-                if (double.class.equals(kpi.getType()) && kpi.isAnnotationPresent(Money.class)) {
+                if (double.class.equals(kpi.getType()) && (kpi.isAnnotationPresent(Money.class) || kpi.isAnnotationPresent(Balance.class))) {
                     DecimalFormat df = new DecimalFormat("##,###,###,###,##0.00");
                     s = df.format(v != null?v:0);
+                    if (kpi.isAnnotationPresent(Balance.class)) {
+                        if (v != null && ((double)v) < 0) {
+                            l.addStyleName("negativo");
+                            l.removeStyleName("positivo");
+                        } else {
+                            l.addStyleName("positivo");
+                            l.removeStyleName("negativo");
+                        }
+                    }
                 } else {
                     if (v == null) s = "";
                     else {
@@ -590,7 +599,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             }
         }
 
-        if (createSaveButton && (modelType.isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(modelType))) {
+        if (createSaveButton && (modelType.isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(modelType)) && (isNewRecord() || !modelType.isAnnotationPresent(Unmodifiable.class))) {
             if (!isActionPresent("save")) {
 
                 MenuBar.Command cmd;
@@ -635,11 +644,11 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                         if (v.isOk()) {
                             try {
-                                save();
+                                save(false);
 
                                 Object old = getBinder().getBean();
 
-                                load(null);
+                                //load(null);
 
                                 Object current = getBinder().getBean();
                                 for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(old.getClass())) {
@@ -662,6 +671,50 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
 
                     shortcutsCreated.add("save");
+                }
+
+                if (!shortcutsCreated.contains("new")) {
+
+                    Button b;
+                    getHiddens().addComponent(b = new Button());
+                    b.addClickListener(e -> cmd.menuSelected(i));
+                    b.setClickShortcut(ShortcutAction.KeyCode.S, ShortcutAction.ModifierKey.CTRL);
+
+                    getHiddens().addComponent(b = new Button());
+                    b.addClickListener(e -> {
+                        BinderValidationStatus v = binder.validate();
+
+                        if (v.isOk()) {
+                            try {
+                                save(false);
+
+                                Object old = getBinder().getBean();
+
+                                //load(null);
+
+                                Object current = modelType.newInstance();
+                                for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(old.getClass())) {
+                                    if (f.isAnnotationPresent(Keep.class)) {
+                                        ReflectionHelper.setValue(f, current, ReflectionHelper.getValue(f, old));
+                                    }
+                                }
+                                getBinder().setBean(current, false);
+
+                                if (getView() != null) getView().updateViewTitle(toString());
+
+
+                            } catch (Throwable throwable) {
+                                throwable.printStackTrace();
+                            }
+
+
+                        } else MDD.alert(v);
+
+                    });
+                    b.setClickShortcut(ShortcutAction.KeyCode.N, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
+
+
+                    shortcutsCreated.add("new");
                 }
             }
 
@@ -820,6 +873,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                     }
                 });
 
+                modelId = ReflectionHelper.getId(getModel());
+
                 modificado = false;
 
                 //todo: ver que hacemos aquí. Volvemos y ya está?
@@ -841,6 +896,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             if (!goBack && (modelType.isAnnotationPresent(Entity.class)) || PersistentPOJO.class.isAssignableFrom(modelType)) {
                 load(modelId);
             }
+
+            if (getView() != null) getView().updateViewTitle(toString());
 
         } catch (OptimisticLockException ole) {
             MDD.confirm("Some objects have been modified by someone else. You should refresh and recover any modification you have done. Do you want to go ahead and overwrite instead?", () -> {

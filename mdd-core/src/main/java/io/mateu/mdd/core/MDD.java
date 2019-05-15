@@ -3,6 +3,7 @@ package io.mateu.mdd.core;
 import com.vaadin.data.BinderValidationStatus;
 import com.vaadin.data.BindingValidationStatus;
 import com.vaadin.data.ValidationResult;
+import com.vaadin.server.Page;
 import com.vaadin.ui.AbstractComponent;
 import com.vaadin.ui.AbstractField;
 import com.vaadin.ui.ComboBox;
@@ -13,6 +14,7 @@ import io.mateu.mdd.core.app.AbstractModule;
 import io.mateu.mdd.core.app.MDDOpenListViewAction;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.model.authentication.User;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import javassist.ClassPool;
@@ -20,6 +22,8 @@ import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ExtraFilters;
+
+import java.util.Base64;
 
 public class MDD {
 
@@ -84,7 +88,9 @@ public class MDD {
         getPort().openEditor(action, viewClass, object, modifierPressed);
     }
 
-
+    public static void edit(Object o) {
+        MDDUI.get().getNavegador().edit(o);
+    }
 
 
 

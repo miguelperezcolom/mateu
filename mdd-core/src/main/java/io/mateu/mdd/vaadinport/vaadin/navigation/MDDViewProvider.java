@@ -12,6 +12,7 @@ import io.mateu.mdd.core.annotations.UseLinkToListView;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.*;
+import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
@@ -251,7 +252,6 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
             MDDUI.get().getAppComponent().setArea(MDD.getApp().getDefaultPrivateArea());
 
-
         } else if ("public".equals(state)) { // caso "login"
 
             stack.clear();
@@ -405,7 +405,6 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                 // aquí el stack está limpio hasta el último contenido que coincide
 
-
                 // vamos creando el stack hasta que terminemos los steps
 
                 int currentStepIndex = lastPos;
@@ -428,10 +427,39 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                         Component lastViewComponent = lastView.getComponent();
 
-                        if (lastViewComponent instanceof MethodResultViewFlowComponent && ((MethodResultViewFlowComponent)lastViewComponent).getResult() instanceof AbstractViewComponent) lastViewComponent = (Component) ((MethodResultViewFlowComponent)lastViewComponent).getResult();
+                        if (lastViewComponent instanceof MethodResultViewFlowComponent && ((MethodResultViewFlowComponent) lastViewComponent).getResult() instanceof AbstractViewComponent)
+                            lastViewComponent = (Component) ((MethodResultViewFlowComponent) lastViewComponent).getResult();
 
 
-                        if (lastViewComponent instanceof JPACollectionFieldListViewComponent && "add".equals(step)) {
+                    if (step.startsWith("obj___")) {
+
+                        String decoded = new String(Base64.getDecoder().decode(step.replaceFirst("obj___", "")));
+
+                        String cn = decoded.split("#")[0];
+                        String id = decoded.substring(cn.length() + 1);
+
+                        try {
+                            Object o = null;
+
+                            if (pendingResult != null) {
+                                o = pendingResult;
+                            } else {
+                                Class c = Class.forName(cn);
+                                o = Helper.find(c, ReflectionHelper.toId(c, id));
+                            }
+
+                            if (o instanceof User) throw new Exception("Users are not accesible this way!");
+
+                            EditorViewComponent evc = new EditorViewComponent(o);
+
+                            stack.push(currentPath, evc);
+
+
+                        } catch (Throwable e) {
+                            MDD.alert(e);
+                        }
+
+                    } else if (lastViewComponent instanceof JPACollectionFieldListViewComponent && "add".equals(step)) {
 
                             JPACollectionFieldListViewComponent cfcvc = (JPACollectionFieldListViewComponent) lastViewComponent;
 
@@ -462,7 +490,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                     if (hide) hiddenFields.add(f);
                                 }
 
-                                EditorViewComponent evc = new EditorViewComponent(cfcvc, pendingResult != null?pendingResult:cfcvc.addNew(), null, hiddenFields);
+                                EditorViewComponent evc = new EditorViewComponent(cfcvc, pendingResult != null ? pendingResult : cfcvc.addNew(), null, hiddenFields);
 
                                 evc.addEditorListener(new EditorListener() {
                                     @Override
@@ -521,12 +549,12 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                             Method method = lvc.getMethod(step);
 
                             if (method == null && !"filters".equals(step) && lastViewComponent instanceof RpcListViewComponent) {
-                                method = ReflectionHelper.getMethod(((RpcListViewComponent)lastViewComponent).getRpcListView().getClass(), "onEdit");
+                                method = ReflectionHelper.getMethod(((RpcListViewComponent) lastViewComponent).getRpcListView().getClass(), "onEdit");
                                 if (pendingResult == null) {
                                     try {
-                                        method = ((RpcListViewComponent)lastViewComponent).getRpcListView().getClass().getMethod("onEdit", String.class);
+                                        method = ((RpcListViewComponent) lastViewComponent).getRpcListView().getClass().getMethod("onEdit", String.class);
                                         if (method != null) {
-                                            pendingResult = method.invoke(((RpcListViewComponent)lastViewComponent).getRpcListView(), step);
+                                            pendingResult = method.invoke(((RpcListViewComponent) lastViewComponent).getRpcListView(), step);
                                         }
                                     } catch (Exception e) {
                                         MDD.alert(e);
@@ -536,7 +564,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                             if (method != null) {
 
-                                callMethod(state, method, lvc instanceof RpcListViewComponent?((RpcListViewComponent)lvc).getRpcListView():null, lastViewComponent);
+                                callMethod(state, method, lvc instanceof RpcListViewComponent ? ((RpcListViewComponent) lvc).getRpcListView() : null, lastViewComponent);
 
                                 /*
 
@@ -640,7 +668,8 @@ xxxxxxxxxxxxxxxx
                                 mrvfc = (MethodResultViewFlowComponent) lastViewComponent;
                                 lastViewComponent = mrvfc.getComponent(0);
                                 if (lastViewComponent instanceof MethodResultViewComponent) {
-                                    if (((MethodResultViewComponent) lastViewComponent).getComponent(0) instanceof AbstractViewComponent) lastViewComponent = ((MethodResultViewComponent) lastViewComponent).getComponent(0);
+                                    if (((MethodResultViewComponent) lastViewComponent).getComponent(0) instanceof AbstractViewComponent)
+                                        lastViewComponent = ((MethodResultViewComponent) lastViewComponent).getComponent(0);
                                 }
                             }
 
@@ -651,7 +680,7 @@ xxxxxxxxxxxxxxxx
                             } else if (lastViewComponent instanceof OwnedCollectionComponent) {
                                 auxevfc = ((OwnedCollectionComponent) lastViewComponent).getEditorViewComponent();
                             } else if (lastViewComponent instanceof MethodParametersViewFlowComponent) {
-                                auxevfc = ((MethodParametersViewFlowComponent)lastViewComponent).getComponent();
+                                auxevfc = ((MethodParametersViewFlowComponent) lastViewComponent).getComponent();
                             } else if (lastViewComponent instanceof MethodResultViewComponent) {
                             } else if (lastViewComponent instanceof EditorViewComponent) {
                                 auxevfc = (EditorViewComponent) lastViewComponent;
@@ -670,11 +699,11 @@ xxxxxxxxxxxxxxxx
                             } else if (lastViewComponent instanceof RpcListViewComponent) {
                                 r = ((RpcListViewComponent) lastViewComponent).getRpcListView();
                             } else if (auxevfc == null && lastViewComponent instanceof MethodResultViewComponent) {
-                                r = ((MethodResultViewComponent)lastViewComponent).getResult();
+                                r = ((MethodResultViewComponent) lastViewComponent).getResult();
                             }
                             if (r != null) {
                                 method = ReflectionHelper.getMethod(r.getClass(), step);
-                                field = ReflectionHelper.getFieldByName(r.getClass(), step.endsWith("_new")?step.replaceAll("_new", ""):step);
+                                field = ReflectionHelper.getFieldByName(r.getClass(), step.endsWith("_new") ? step.replaceAll("_new", "") : step);
                             }
 
                             if (method == null && field == null && lastViewComponent instanceof MethodResultViewComponent && r != null && r instanceof RpcView) {
@@ -743,7 +772,6 @@ xxxxxxxxxxxxxxxx
                                                 }
 
 
-
                                             }
 
                                             if (field.isAnnotationPresent(ManyToOne.class)) {
@@ -805,7 +833,7 @@ xxxxxxxxxxxxxxxx
                                 } else if (ownedCollection) {
 
                                     try {
-                                        stack.push(currentPath, new OwnedCollectionComponent(evfc.getBinder(), field, field.isAnnotationPresent(UseLinkToListView.class)?-1:0));
+                                        stack.push(currentPath, new OwnedCollectionComponent(evfc.getBinder(), field, field.isAnnotationPresent(UseLinkToListView.class) ? -1 : 0));
                                     } catch (Exception e) {
                                         MDD.alert(e);
                                     }
@@ -844,7 +872,8 @@ xxxxxxxxxxxxxxxx
 
                             }
 
-                            if (evfc != null && evfc instanceof EditorViewComponent) currentEditor = (EditorViewComponent) evfc;
+                            if (evfc != null && evfc instanceof EditorViewComponent)
+                                currentEditor = (EditorViewComponent) evfc;
 
                         } else if (lastViewComponent instanceof MethodParametersViewFlowComponent) {
 
@@ -894,6 +923,7 @@ xxxxxxxxxxxxxxxx
 
 
                     } else if (currentStepIndex == 1) {
+
 
                         AbstractArea area = MDD.getApp().getArea(currentPath);
 
@@ -1006,7 +1036,6 @@ xxxxxxxxxxxxxxxx
             }
 
         }
-
 
         return v;
 

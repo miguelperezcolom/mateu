@@ -2131,4 +2131,12 @@ public class ReflectionHelper {
         }
         return null;
     }
+
+    public static Object toId(Class c, String s) {
+        Object id = s;
+        FieldInterfaced f = ReflectionHelper.getIdField(c);
+        if (Long.class.equals(f.getType()) || long.class.equals(f.getType())) id = Long.parseLong(s);
+        if (Integer.class.equals(f.getType()) || int.class.equals(f.getType())) id = Integer.parseInt(s);
+        return id;
+    }
 }

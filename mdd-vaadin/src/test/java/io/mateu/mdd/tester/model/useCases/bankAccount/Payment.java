@@ -44,6 +44,9 @@ public class Payment {
 
 
 
+
+
+
     public void setAmount(double amount) {
         System.out.println("setAmount(" + amount + ")");
         double previousAmount = this.amount;

@@ -2,15 +2,18 @@ package io.mateu.mdd.tester.model.useCases.bankAccount;
 
 import com.google.common.base.Strings;
 import com.vaadin.icons.VaadinIcons;
+import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.model.authentication.Audit;
 import io.mateu.mdd.core.model.authentication.User;
+import io.mateu.mdd.core.util.Helper;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.collections.ArrayStack;
 
 import javax.persistence.*;
+import javax.persistence.Embedded;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.time.LocalTime;
@@ -68,6 +71,21 @@ public class BankAccount {
             getComments().add(c);
             //setComments(new ArrayList<>(getComments()));
         }
+    }
+
+    @Action(order = 5, icon = VaadinIcons.EDIT, saveAfter = true)
+    public Component testComponente() {
+        return new VerticalLayout(
+                new Label("Hola!")
+                , new Button("Abrir", e -> {
+            try {
+                MDD.edit(Helper.find(BankAccount.class, 1l));
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
+            }
+        })
+        )
+                ;
     }
 
     @Action(order = 4, icon = VaadinIcons.EDIT, saveAfter = true)
