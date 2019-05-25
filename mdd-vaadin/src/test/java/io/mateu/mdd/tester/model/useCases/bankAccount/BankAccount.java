@@ -46,7 +46,7 @@ public class BankAccount {
     @Keep
     private String searchableContent;
 
-    @Output
+    @KPI
     @Sum
     private double balance;
 

@@ -1,6 +1,7 @@
 package io.mateu.mdd.core.model.population;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Resources;
 import io.mateu.mdd.core.model.authentication.AdminUser;
@@ -15,6 +16,8 @@ import io.mateu.mdd.core.model.config.TemplateUseCase;
 import io.mateu.mdd.core.model.util.Constants;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
+
+import java.io.InputStream;
 
 /**
  * used to populate a database with initial values
@@ -107,7 +110,45 @@ public class Populator {
         // multilanguage
 
 
+        createViews();
+
         System.out.println("Database populated.");
 
     }
+
+    private static void createViews() throws Throwable {
+        Helper.transact(em -> {
+            InputStream r = io.mateu.mdd.core.model.population.Populator.class.getResourceAsStream("/sql/vistas.sql");
+
+            if (r != null) {
+                String s = Helper.leerFichero(r);
+                if (s != null) {
+                    for (String t : s.split(";")) {
+                        t = t.trim();
+                        String sql = "";
+                        for (String l : t.split("\n")) {
+                            String lx = l.trim();
+                            if (!Strings.isNullOrEmpty(lx) && !lx.startsWith("--") && !lx.startsWith("#") && !lx.startsWith("//")) {
+                                try {
+                                    if ("".equals(sql)) sql += "\n";
+                                    sql += l;
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                        if (!Strings.isNullOrEmpty(sql)) {
+                            try {
+                                System.out.println("executing sql:" + sql);
+                                em.createNativeQuery(sql).executeUpdate();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
 }

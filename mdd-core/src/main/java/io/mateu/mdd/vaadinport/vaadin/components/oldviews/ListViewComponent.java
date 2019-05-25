@@ -890,7 +890,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                                 && (!Collection.class.isAssignableFrom(f.getType()) || (forGrid && f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline()))
                                 && !Map.class.isAssignableFrom(f.getType())
                                 && !f.isAnnotationPresent(GeneratedValue.class)
-                                && (ReflectionHelper.isBasico(f.getType()) || BigDecimal.class.equals(f.getType()) || f.getType().isEnum() || f.getType().isAnnotationPresent(Entity.class)
+                                && (ReflectionHelper.isBasico(f.getType()) || BigDecimal.class.equals(f.getType()) || f.getType().isEnum() || f.getType().isAnnotationPresent(Entity.class) || java.sql.Date.class.equals(f.getType())
                                 || FareValue.class.equals(f.getType())
                                 || f.isAnnotationPresent(WeekDays.class)
                                 || (forGrid && f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline())

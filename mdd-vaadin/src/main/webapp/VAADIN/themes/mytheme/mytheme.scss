@@ -83,6 +83,24 @@ body {
       .areabutton {
         margin-left: inherit;
       }
+      .huge-wrap {
+        height: 51px;
+        padding: 0 22px;
+
+        .v-icon {
+          font-size: 60px;
+        }
+        .huge-caption {
+          display: block;
+          text-align: center;
+          font-size: 14px;
+        }
+
+
+        font-size: 23px;
+
+        border-radius: 4px;
+      }
     }
 
     .areaflowcomponent, .moduleflowcomponent, .menuflowcomponent, .welcomeflowcomponent, .byeflowcomponent {
@@ -185,6 +203,25 @@ body {
       .areabutton {
         margin-left: -15px;
       }
+      .huge-wrap {
+        height: 51px;
+        padding: 0 22px;
+
+        .v-icon {
+          font-size: 60px;
+        }
+        .huge-caption {
+          display: block;
+          text-align: center;
+          font-size: 14px;
+        }
+
+
+        font-size: 23px;
+
+        border-radius: 4px;
+      }
+
     }
 
 
@@ -864,8 +901,8 @@ body {
     min-width: 300px;
     border-left: 1px solid grey;
     padding: 0px;
-    padding-left: 80px;
-    /* margin-left: 80px; */
+    padding-left: 60px;
+    /* margin-left: 60px; */
   }
 
 
@@ -1019,9 +1056,46 @@ body {
     }
     .privatemenuflowcomponent {
       padding: 0px;
+      .huge-wrap {
+        height: 51px;
+        padding: 0 22px;
+
+        .v-icon {
+          font-size: 60px;
+        }
+        .huge-caption {
+          display: block;
+          text-align: center;
+          font-size: 14px;
+        }
+
+
+        font-size: 23px;
+
+        border-radius: 4px;
+      }
+
     }
     .publicmenuflowcomponent {
       padding: 0px;
+      .huge-wrap {
+        height: 51px;
+        padding: 0 22px;
+
+        .v-icon {
+          font-size: 60px;
+        }
+        .huge-caption {
+          display: block;
+          text-align: center;
+          font-size: 14px;
+        }
+
+        font-size: 23px;
+
+        border-radius: 4px;
+      }
+
     }
 
     .viewflowcomponent {
@@ -1125,6 +1199,18 @@ body {
 
   .mdd-grey-bgd {
     background-color: grey !important;
+  }
+
+  .mdd-lightgrey-bgd {
+    background-color: lightgrey !important;
+  }
+
+  .mdd-aliceblue-bgd {
+    background-color: aliceblue !important;
+  }
+
+  .mdd-lightsteelblue-bgd {
+    background-color: lightsteelblue !important;
   }
 
   .mdd-white-bgd {
@@ -1802,7 +1888,7 @@ body {
 
 
       .semana {
-        height: 80px;
+        height: 60px;
         padding: 0px;
         border-bottom: 1px solid darkolivegreen;
 
@@ -2030,7 +2116,7 @@ body {
       text-align: center;
 
       td {
-        width: 80px;
+        width: 60px;
       }
     }
 

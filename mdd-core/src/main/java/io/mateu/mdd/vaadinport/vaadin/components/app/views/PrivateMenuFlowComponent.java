@@ -1,9 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.views;
 
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Image;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.app.AbstractArea;
@@ -18,7 +15,7 @@ public class PrivateMenuFlowComponent extends VerticalLayout {
 
     @Override
     public String toString() {
-        return MDD.isMobile()?MDD.getApp().getName():"Change work area";
+        return MDD.isMobile()?MDD.getApp().getName():"Please select work area";
     }
 
     public PrivateMenuFlowComponent() {
@@ -75,16 +72,22 @@ public class PrivateMenuFlowComponent extends VerticalLayout {
 
             }
 
-        } else MDD.getApp().getAreas().stream().forEach(a -> {
+        } else {
 
-            Button b;
-            addComponent(b = new Button(a.getName(), a.getIcon()));
-            b.addClickListener(e -> MDDUI.get().getNavegador().goTo(a));
-            b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
-            b.addStyleName("submenuoption");
+            CssLayout lx;
+            addComponent(lx = new CssLayout());
+
+            MDD.getApp().getAreas().stream().forEach(a -> {
+
+                Button b;
+                lx.addComponent(b = new Button(a.getName(), a.getIcon()));
+                b.addClickListener(e -> MDDUI.get().getNavegador().goTo(a));
+                b.setPrimaryStyleName(ValoTheme.BUTTON_HUGE);
+                b.addStyleName("submenuoption");
 
 
-        });
+            });
+        }
 
         if (MDD.isMobile()) {
             Button b;

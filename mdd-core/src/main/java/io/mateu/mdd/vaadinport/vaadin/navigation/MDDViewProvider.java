@@ -125,11 +125,11 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                 if (MDD.getUserData() == null) state = "login";
                 else {
                     if (MDD.isMobile()) state = "private";
-                    else state = MDD.getApp().getState(MDD.getApp().getDefaultPrivateArea());
+                    else state = state.split("/").length > 1?MDD.getApp().getState(MDD.getApp().getDefaultPrivateArea()):"private";
                 }
             } else {
                 if (MDD.isMobile()) state = "public";
-                else state = MDD.getApp().getState(MDD.getApp().getDefaultPublicArea());
+                else state = state.split("/").length > 1?MDD.getApp().getState(MDD.getApp().getDefaultPublicArea()):"public";
             }
 
         }
@@ -250,7 +250,8 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
             v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new WelcomeComponent());
 
-            MDDUI.get().getAppComponent().setArea(MDD.getApp().getDefaultPrivateArea());
+            if (MDD.getApp().getAreas().size() == 1) MDDUI.get().getAppComponent().setArea(MDD.getApp().getDefaultPrivateArea());
+            else MDDUI.get().getAppComponent().setArea(null);
 
         } else if ("public".equals(state)) { // caso "login"
 
@@ -288,13 +289,13 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                 v = stack.get(currentPath);
             } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new AreaComponent(area));
 
-            MDDUI.get().getAppComponent().setArea(area);
+            if (area != null) MDDUI.get().getAppComponent().setArea(area);
 
         } else { // cualquier otro caso
 
             Pair<AbstractArea, MenuEntry> coordinates = getCoordinates(state);
 
-            MDDUI.get().getAppComponent().setCoordinates(coordinates);
+            if (!"private/profile".equals(state) && !"welcome".equals(state)) MDDUI.get().getAppComponent().setCoordinates(coordinates);
 
 
 

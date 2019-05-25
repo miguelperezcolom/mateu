@@ -45,84 +45,112 @@ public class NavigationComponent extends VerticalLayout {
     private void build() {
         botones = new HashMap<>();
         menu = null;
-        for (AbstractArea a : app.getAreas()) {
 
-            boolean valid = false;
+        if (area != null) {
 
-            if (area != null) {
-                valid = a.equals(area);
-            } else {
-                if (MDD.getUserData() == null) valid = a.isPublicAccess();
-                else valid = !a.isPublicAccess();
-            }
+            for (AbstractArea a : app.getAreas()) {
 
-            if (valid) {
+                boolean valid = false;
 
-                if (app.getAreas().size() > 1) {
-
-                    Button b = bArea = new Button(a.getName().toUpperCase() + ((app.getAreas().size() > 1)?"<span class=\"menu-badge\">" + VaadinIcons.RETWEET.getHtml() + "</span>":"")
-                            , ev -> {
-                        setMenu(null);
-                        bArea.addStyleName("selected");
-                        MDDUI.get().getNavegador().goTo(((a.isPublicAccess())?"public":"private"));
-                    }); //, a.getIcon());
-                    b.setIcon(a.getIcon());
-                    b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
-                    b.setCaptionAsHtml(true);
-                    b.addStyleName("tituloarea");
-                    //b.setDescription("Click to change to another area");
-
-                    String estiloArea = a.getStyle();
-                    if (Strings.isNullOrEmpty(estiloArea)) estiloArea = estilosAreas[app.getAreas().indexOf(a) % estilosAreas.length];
-                    b.addStyleName(estiloArea);
-
-                    addComponent(b);
-
-                    //b.addClickListener(e -> MDDUI.get().getNavegador().goTo((a.isPublicAccess())?"public":"private"));
-
+                if (area != null) {
+                    valid = a.equals(area);
+                } else {
+                    if (MDD.getUserData() == null) valid = a.isPublicAccess();
+                    else valid = !a.isPublicAccess();
                 }
 
+                if (valid) {
 
-                for (AbstractModule m : a.getModules()) {
+                    if (app.getAreas().size() > 1) {
 
-                    Label l;
-                    addComponent(l = new Label(m.getName()));
-                    l.addStyleName("titulomodulo");
+                        Button b = bArea = new Button(a.getName().toUpperCase() + ((app.getAreas().size() > 1)?"<span class=\"menu-badge\">" + VaadinIcons.RETWEET.getHtml() + "</span>":"")
+                                , ev -> {
+                            setMenu(null);
+                            bArea.addStyleName("selected");
+                            bArea.setIcon(null);
+                            bArea.setCaption("CHOOSE AN AREA <span class=\"menu-badge\">" + VaadinIcons.ARROW_RIGHT.getHtml() + "</span>");
+                            MDDUI.get().getNavegador().goTo(((a.isPublicAccess())?"public":"private"));
+                        }); //, a.getIcon());
+                        b.setIcon(a.getIcon());
+                        b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
+                        b.setCaptionAsHtml(true);
+                        b.addStyleName("tituloarea");
+                        //b.setDescription("Click to change to another area");
 
-                    for (MenuEntry e : m.getMenu()) {
+                        String estiloArea = a.getStyle();
+                        if (Strings.isNullOrEmpty(estiloArea)) estiloArea = estilosAreas[app.getAreas().indexOf(a) + 1 % estilosAreas.length];
+                        b.addStyleName(estiloArea);
 
-                        addMenu(e);
+                        addComponent(b);
+
+                        //b.addClickListener(e -> MDDUI.get().getNavegador().goTo((a.isPublicAccess())?"public":"private"));
 
                     }
 
+
+                    for (AbstractModule m : a.getModules()) {
+
+                        Label l;
+                        addComponent(l = new Label(m.getName()));
+                        l.addStyleName("titulomodulo");
+
+                        for (MenuEntry e : m.getMenu()) {
+
+                            addMenu(e);
+
+                        }
+
+                    }
+
+
+                    VerticalLayout l;
+                    addComponent(l = new VerticalLayout());
+                    l.addStyleName(CSS.NOPADDING);
+                    l.addStyleName("espaciobotonbuscar");
+
+                    Button b = bBuscar = new Button("Search"
+                            , ev -> {
+                        setMenu(null);
+                        bBuscar.addStyleName("selected");
+                        MDDUI.get().getNavegador().goTo("search");
+                    }); //, a.getIcon());
+                    b.setIcon(VaadinIcons.SEARCH);
+                    b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
+                    b.setCaptionAsHtml(true);
+                    b.addStyleName("botonbuscar");
+                    //b.setDescription("Click to change to another area");
+
+                    addComponent(b);
+
+
+                    break;
+
                 }
-
-
-                VerticalLayout l;
-                addComponent(l = new VerticalLayout());
-                l.addStyleName(CSS.NOPADDING);
-                l.addStyleName("espaciobotonbuscar");
-
-                Button b = bBuscar = new Button("Search"
-                        , ev -> {
-                    setMenu(null);
-                    bBuscar.addStyleName("selected");
-                    MDDUI.get().getNavegador().goTo("search");
-                }); //, a.getIcon());
-                b.setIcon(VaadinIcons.SEARCH);
-                b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
-                b.setCaptionAsHtml(true);
-                b.addStyleName("botonbuscar");
-                //b.setDescription("Click to change to another area");
-
-                addComponent(b);
-
-
-                break;
 
             }
 
+        } else {
+
+            if (app.getAreas().size() > 1) {
+                Button b = bArea = new Button("CHOOSE AN AREA" + ((app.getAreas().size() > 1)?"<span class=\"menu-badge\">" + VaadinIcons.ARROW_RIGHT.getHtml() + "</span>":"")
+                        , ev -> {
+                    setMenu(null);
+                    bArea.addStyleName("selected");
+                    MDDUI.get().getNavegador().goTo(MDD.getUserData() == null?"public":"private");
+                });
+                b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
+                b.addStyleName("selected");
+                b.setCaptionAsHtml(true);
+                b.addStyleName("tituloarea");
+
+                String estiloArea = estilosAreas[0];
+                b.addStyleName(estiloArea);
+
+                addComponent(b);
+            }
+
         }
+
     }
 
     private void addMenu(MenuEntry e) {

@@ -144,6 +144,7 @@ public class SimpleMDDApplication extends BaseMDDApp {
                 if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(m.getName());
 
                 VaadinIcons icon = (m.isAnnotationPresent(SubApp.class))?m.getAnnotation(SubApp.class).icon():m.getAnnotation(Action.class).icon();
+                if (VaadinIcons.ADOBE_FLASH.equals(icon)) icon = null;
 
                 if (m.isAnnotationPresent(SubApp.class)) {
 

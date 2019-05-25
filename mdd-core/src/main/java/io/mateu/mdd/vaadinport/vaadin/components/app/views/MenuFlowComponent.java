@@ -40,7 +40,7 @@ public class MenuFlowComponent extends Panel {
         List<MenuEntry> plainActions = menu.getEntries().stream().filter(e -> e instanceof AbstractAction).collect(Collectors.toList());
 
         if (plainActions.size() > 0) {
-            cssLayout.addComponent(createMenuComponent(new AbstractMenu(menu.getEntries().stream().filter(e -> e instanceof AbstractMenu).count() > 0?"Options":"") {
+            cssLayout.addComponent(createMenuComponent(new AbstractMenu(menu.getEntries().stream().filter(e -> e instanceof AbstractMenu).count() > 0?"Main":"") {
                 @Override
                 public List<MenuEntry> buildEntries() {
                     return plainActions;

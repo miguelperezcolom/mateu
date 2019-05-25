@@ -9,7 +9,7 @@ import java.util.UUID;
  */
 public abstract class AbstractAction implements MenuEntry {
 
-    private VaadinIcons icon = VaadinIcons.BOLT;
+    private VaadinIcons icon;
     private String style = "";
     private String confirmationMessage;
     private String name;

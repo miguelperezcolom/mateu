@@ -55,6 +55,10 @@ public class AreaComponent extends VerticalLayout {
 
             }
 
+        } else {
+
+            addComponentsAndExpand(new Label("You are now in the " + area.getName() + " area. Please look at the menu at the left side and choose an option."));
+
         }
 
         if (!MDD.isMobile()) addComponentsAndExpand(new Label(""));

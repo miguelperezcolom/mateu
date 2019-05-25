@@ -3,6 +3,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 import com.google.common.base.Strings;
 import com.vaadin.data.Binder;
 import com.vaadin.data.HasValue;
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.SerializablePredicate;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.annotations.DependsOn;
@@ -149,7 +150,7 @@ public class ViewComponentHelper {
                     }
 
                 }
-            }.setStyle(aa.style()).setIcon(aa.icon()).setConfirmationMessage(aa.confirmationMessage());
+            }.setStyle(aa.style()).setIcon(VaadinIcons.ADOBE_FLASH.equals(aa.icon())?null:aa.icon()).setConfirmationMessage(aa.confirmationMessage());
 
             viewComponent.setAction(m, action);
         }

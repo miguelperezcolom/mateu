@@ -135,7 +135,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                         if (o != null) {
                             Object id = ReflectionHelper.getId(o);
                             stf.setValue((id != null)?"" + id:"");
-                        } else stf.setValue("");
+                        } // else stf.setValue("");
                         l.setValue((o != null)?"" + o:"No value");
                     }
 

@@ -16,7 +16,7 @@ public @interface Action {
 
     String value() default "";
 
-    VaadinIcons icon() default VaadinIcons.BOLT;
+    VaadinIcons icon() default VaadinIcons.ADOBE_FLASH;
 
     boolean callOnEnterKeyPressed() default false;
 

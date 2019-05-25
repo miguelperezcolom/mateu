@@ -66,6 +66,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private Object modelId;
 
     private Map<Method, Optional<Method>> mvs = new HashMap<>();
+    private Object parent;
 
     public ListViewComponent getListViewComponent() {
         return listViewComponent;
@@ -692,7 +693,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                                 //load(null);
 
-                                Object current = modelType.newInstance();
+                                Object current = newInstance(modelType, parent);
+                                newRecord = true;
                                 for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(old.getClass())) {
                                     if (f.isAnnotationPresent(Keep.class)) {
                                         ReflectionHelper.setValue(f, current, ReflectionHelper.getValue(f, old));
@@ -700,8 +702,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                                 }
                                 getBinder().setBean(current, false);
 
-                                if (getView() != null) getView().updateViewTitle(toString());
-
+                                MDD.updateTitle(getTitle());
 
                             } catch (Throwable throwable) {
                                 throwable.printStackTrace();
@@ -717,6 +718,65 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                     shortcutsCreated.add("new");
                 }
             }
+
+            if (!isActionPresent("duplicate")) {
+
+                MenuBar.Command cmd;
+                MenuBar.MenuItem i = bar.addItem("Duplicate", VaadinIcons.COPY, cmd = new MenuBar.Command() {
+                    @Override
+                    public void menuSelected(MenuBar.MenuItem menuItem) {
+                        try {
+
+                            BinderValidationStatus v = binder.validate();
+
+                            if (v.isOk()) {
+                                try {
+                                    save(false);
+
+                                    Object old = getBinder().getBean();
+
+                                    //load(null);
+
+                                    Object current = newInstance(modelType, parent);
+                                    newRecord = true;
+                                    for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(old.getClass())) {
+                                        ReflectionHelper.setValue(f, current, ReflectionHelper.getValue(f, old));
+                                    }
+                                    getBinder().setBean(current, false);
+
+                                    MDD.updateTitle(getTitle());
+
+                                } catch (Throwable throwable) {
+                                    throwable.printStackTrace();
+                                }
+
+
+                            } else MDD.alert(v);
+
+
+                        } catch (Throwable throwable) {
+                            MDD.alert(throwable);
+                        }
+                    }
+                });
+
+                //i.setDescription("Click Ctrl + S to fire. Ctrl + Alt + S to duplicate.");
+
+                addMenuItem("duplicate", i);
+
+
+                if (!shortcutsCreated.contains("duplicate")) {
+
+                    Button b;
+                    getHiddens().addComponent(b = new Button());
+                    b.addClickListener(e -> cmd.menuSelected(i));
+                    b.setClickShortcut(ShortcutAction.KeyCode.D, ShortcutAction.ModifierKey.CTRL);
+
+                    shortcutsCreated.add("duplicate");
+                }
+
+            }
+
 
         }
 
@@ -865,7 +925,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                             Object m = getModel();
 
 
-                            auditar(em, m);
+                            auditar(m);
 
                             setModel(em.merge(m));
                         }
@@ -938,19 +998,19 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             em.persist(d);
         }
 
-        auditar(em, d);
+        auditar(d);
         return d;
     }
 
-    private void auditar(EntityManager em, Object bean) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    private static void auditar(Object bean) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
         for (FieldInterfaced f : ReflectionHelper.getAllFields(bean.getClass())) if (Audit.class.equals(f.getType())) {
             Audit a = (Audit) ReflectionHelper.getValue(f, bean);
             if (a == null) {
-                a = new Audit((MDD.getUserData() != null)?em.find(User.class, MDD.getUserData().getLogin()):null);
+                a = new Audit(MDD.getCurrentUser());
                 ReflectionHelper.setValue(f, bean, a);
             } else {
-                a.touch((MDD.getUserData() != null)?em.find(User.class, MDD.getUserData().getLogin()):null);
+                a.touch(MDD.getCurrentUser());
             }
         }
 
@@ -959,6 +1019,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     public void load(Object id, Object parent, FieldInterfaced field) throws Throwable {
         this.modelId = id;
         this.modificado = false;
+        this.parent = parent;
         if (id == null) {
             newRecord = true;
 
@@ -1037,6 +1098,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 break;
             }
         }
+        auditar(i);
         return i;
     }
 
