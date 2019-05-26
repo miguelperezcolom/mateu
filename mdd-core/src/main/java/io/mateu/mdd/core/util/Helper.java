@@ -238,43 +238,51 @@ public class Helper {
         } catch (ConstraintViolationException e) {
 
             WorkflowEngine.cancelLocalRunner();
-
-            e.printStackTrace();
-            StringBuffer sb = new StringBuffer();
-            for (ConstraintViolation v : e.getConstraintViolations()) {
-                if (sb.length() > 0) sb.append("\n");
-                sb.append("" + v.getPropertyPath() + " " + v.getMessage() + " at " + Helper.capitalize(v.getRootBeanClass().getSimpleName()));
-            }
-            System.out.println(sb.toString());
             if (em.getTransaction().isActive()) em.getTransaction().rollback();
             em.close();
-            throw new Exception(sb.toString());
+
+            rethrow(e);
         } catch (Exception e) {
 
             WorkflowEngine.cancelLocalRunner();
 
             if (e.getCause() != null && e.getCause() instanceof ConstraintViolationException) {
-                ConstraintViolationException cve = (ConstraintViolationException) e.getCause();
-                StringBuffer sb = new StringBuffer();
-                for (ConstraintViolation v : cve.getConstraintViolations()) {
-                    if (sb.length() > 0) sb.append("\n");
-                    sb.append("" + v.getPropertyPath() + " " + v.getMessage() + " at " + Helper.capitalize(v.getRootBeanClass().getSimpleName()));
-                }
-                System.out.println(sb.toString());
                 if (em.getTransaction().isActive()) em.getTransaction().rollback();
                 em.close();
-                throw new Exception(sb.toString());
+                rethrow(e.getCause());
             } else {
-                e.printStackTrace();
                 if (em.getTransaction().isActive()) em.getTransaction().rollback();
                 em.close();
-                throw e;
+                rethrow(e);
             }
 
         }
 
         em.close();
 
+    }
+
+    public static void rethrow(Throwable e) throws Throwable {
+        if (e instanceof ConstraintViolationException) {
+            StringBuffer sb = new StringBuffer();
+            for (ConstraintViolation v : ((ConstraintViolationException)e).getConstraintViolations()) {
+                if (sb.length() > 0) sb.append("\n");
+                sb.append("" + v.getPropertyPath() + " " + v.getMessage() + " at " + Helper.capitalize(v.getRootBeanClass().getSimpleName()));
+            }
+            throw new Exception(sb.toString());
+        } else throw e;
+    }
+
+    public static void printStackTrace(Throwable e) {
+        e.printStackTrace();
+        if (e instanceof ConstraintViolationException) {
+            StringBuffer sb = new StringBuffer();
+            for (ConstraintViolation v : ((ConstraintViolationException)e).getConstraintViolations()) {
+                if (sb.length() > 0) sb.append("\n");
+                sb.append("" + v.getPropertyPath() + " " + v.getMessage() + " at " + Helper.capitalize(v.getRootBeanClass().getSimpleName()));
+            }
+            System.out.println(sb.toString());
+        }
     }
 
     public static void closeEMFs() {
