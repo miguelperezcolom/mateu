@@ -106,7 +106,7 @@ public class SimpleApp extends SimpleMDDApplication {
 
     @Override
     public boolean isAuthenticationNeeded() {
-        return false;
+        return true;
     }
 
     @Override

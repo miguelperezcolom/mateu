@@ -17,7 +17,7 @@ public class PublicMenuFlowComponent extends VerticalLayout {
 
     @Override
     public String toString() {
-        return MDD.isMobile()?"":"Please select work area";
+        return MDD.isMobile() || MDD.getApp().getAreas().size() <= 1?"":"Please select work area";
     }
 
 
@@ -41,56 +41,57 @@ public class PublicMenuFlowComponent extends VerticalLayout {
             } catch (Throwable throwable) {
                 throwable.printStackTrace();
             }
-        }
 
-        if (MDD.getApp().getAreas().size() == 1) {
+            if (MDD.getApp().getAreas().size() == 1) {
 
-            AbstractArea area = MDD.getApp().getAreas().get(0);
+                AbstractArea area = MDD.getApp().getAreas().get(0);
 
-            if (area.getModules().size() == 1) {
+                if (area.getModules().size() == 1) {
 
-                AbstractModule m = area.getModules().get(0);
+                    AbstractModule m = area.getModules().get(0);
 
-                m.getMenu().stream().forEach(a -> {
+                    m.getMenu().stream().forEach(a -> {
 
-                    Button b;
-                    addComponent(b = new Button(a.getName()));
-                    b.addClickListener(e -> MDDUI.get().getNavegador().goTo(a));
-                    b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
-                    b.addStyleName("submenuoption");
+                        Button b;
+                        addComponent(b = new Button(a.getName()));
+                        b.addClickListener(e -> MDDUI.get().getNavegador().goTo(a));
+                        b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
+                        b.addStyleName("submenuoption");
 
-                });
+                    });
 
 
-            } else {
+                } else {
 
-                area.getModules().stream().forEach(a -> {
+                    area.getModules().stream().forEach(a -> {
 
-                    Button b;
-                    addComponent(b = new Button(a.getName()));
-                    b.addClickListener(e -> MDDUI.get().getNavegador().goTo(a));
-                    b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
-                    b.addStyleName("submenuoption");
+                        Button b;
+                        addComponent(b = new Button(a.getName()));
+                        b.addClickListener(e -> MDDUI.get().getNavegador().goTo(a));
+                        b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
+                        b.addStyleName("submenuoption");
 
-                });
+                    });
 
+                }
             }
 
-        } else {
-            CssLayout lx;
-            addComponent(lx = new CssLayout());
+            } else if (MDD.getApp().getAreas().size() > 1) {
+                CssLayout lx;
+                addComponent(lx = new CssLayout());
 
-            MDD.getApp().getAreas().stream().forEach(a -> {
+                MDD.getApp().getAreas().stream().forEach(a -> {
 
-                Button b;
-                lx.addComponent(b = new Button(a.getName(), a.getIcon()));
-                b.addClickListener(e -> MDDUI.get().getNavegador().goTo(a));
-                b.setPrimaryStyleName(ValoTheme.BUTTON_HUGE);
-                b.addStyleName("submenuoption");
+                    Button b;
+                    lx.addComponent(b = new Button(a.getName(), a.getIcon()));
+                    b.addClickListener(e -> MDDUI.get().getNavegador().goTo(a));
+                    b.setPrimaryStyleName(ValoTheme.BUTTON_HUGE);
+                    b.addStyleName("submenuoption");
 
 
-            });
-        }
+                });
+            }
+
 
         if (MDD.isMobile() && (MDD.getApp().isAuthenticationNeeded() || MDD.getApp().hasPrivateContent())) {
             Button b;

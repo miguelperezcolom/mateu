@@ -50,7 +50,7 @@ public class WelcomeComponent extends VerticalLayout {
 
     @Override
     public String toString() {
-        return "Hello " + MDD.getUserData().getName() + ". Please select work area";
+        return "Hello " + MDD.getUserData().getName() + "." + (MDD.getApp().getAreas().size() > 1?" Please select work area":"");
     }
 
     public WelcomeComponent() {
@@ -71,7 +71,6 @@ public class WelcomeComponent extends VerticalLayout {
             } catch (Throwable throwable) {
                 throwable.printStackTrace();
             }
-        }
 
         if (MDD.getApp().getAreas().size() == 1) {
 
@@ -106,8 +105,9 @@ public class WelcomeComponent extends VerticalLayout {
                 });
 
             }
+        }
 
-        } else {
+        } else if (MDD.getApp().getAreas().size() > 1) {
 
             CssLayout lx;
             addComponent(lx = new CssLayout());

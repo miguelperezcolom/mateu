@@ -262,6 +262,10 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                 v = stack.get(currentPath);
             } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PublicMenuFlowComponent());
 
+            if (MDD.getApp().getAreas().size() == 1) {
+                MDDUI.get().getAppComponent().setArea(MDD.getApp().getAreas().get(0));
+            }
+
         } else if ("private".equals(state)) { // caso "login"
 
             stack.clear();

@@ -15,7 +15,7 @@ public class PrivateMenuFlowComponent extends VerticalLayout {
 
     @Override
     public String toString() {
-        return MDD.isMobile()?MDD.getApp().getName():"Please select work area";
+        return MDD.isMobile()?MDD.getApp().getName():(MDD.getApp().getAreas().size() > 1?"Please select work area":"");
     }
 
     public PrivateMenuFlowComponent() {
@@ -36,7 +36,6 @@ public class PrivateMenuFlowComponent extends VerticalLayout {
             } catch (Throwable throwable) {
                 throwable.printStackTrace();
             }
-        }
 
         if (MDD.getApp().getAreas().size() == 1) {
 
@@ -71,8 +70,9 @@ public class PrivateMenuFlowComponent extends VerticalLayout {
                 });
 
             }
+        }
 
-        } else {
+        } else if (MDD.getApp().getAreas().size() > 1) {
 
             CssLayout lx;
             addComponent(lx = new CssLayout());
