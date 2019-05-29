@@ -223,7 +223,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
             stack.clear();
 
-            v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new SearchInMenuComponent());
+            v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new SearchInMenuComponent(MDD.getApp().getSearcher()));
 
         } else if ("bye".equals(state)) { // caso "login"
 

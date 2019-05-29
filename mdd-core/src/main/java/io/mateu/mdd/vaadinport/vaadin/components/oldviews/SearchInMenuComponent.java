@@ -9,22 +9,28 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.AbstractMenu;
 import io.mateu.mdd.core.app.AbstractModule;
+import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.core.app.*;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SearchInMenuComponent extends AbstractViewComponent {
 
-    private final CssLayout menu = new CssLayout();
+    private final VerticalLayout resultsLayout = new VerticalLayout();
+    private final Searcher searcher;
 
     @Override
     public String toString() {
-        return "Search in menu";
+        return "Search in " + MDD.getApp().getName();
     }
 
-    public SearchInMenuComponent() {
+    public SearchInMenuComponent(Searcher searcher) {
+        this.searcher = searcher;
         try {
             build();
         } catch (Exception e) {
@@ -39,47 +45,71 @@ public class SearchInMenuComponent extends AbstractViewComponent {
 
         addStyleName("searchinmenucomponent");
 
+        CssLayout marco = new CssLayout();
+        addComponent(marco);
 
-        TextField t;
-        addComponent(t = new TextField(""));
-        //t.setIcon(VaadinIcons.SEARCH);
-        t.setPlaceholder("Type to search");
-        t.focus();
+        VerticalLayout form;
+        marco.addComponent(form = new VerticalLayout());
+        form.addStyleName(CSS.NOPADDING);
+        form.setWidth("300px");
 
-        t.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
-            @Override
-            public void valueChange(HasValue.ValueChangeEvent<String> e) {
-                search(e.getValue());
-            }
-        });
+        boolean primero = true;
+        for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(searcher.getClass())) {
+            TextField t;
+            form.addComponent(t = new TextField(Helper.capitalize(f.getName())));
+            //t.setIcon(VaadinIcons.SEARCH);
+            t.setPlaceholder("Type to search");
+            t.setValueChangeTimeout(100);
+            if (primero &= false) t.focus();
+
+            t.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
+                @Override
+                public void valueChange(HasValue.ValueChangeEvent<String> e) {
+                    search(f, e.getValue());
+                }
+            });
+        }
 
         Panel contentContainer = new Panel();
         contentContainer.addStyleName(ValoTheme.PANEL_BORDERLESS);
         contentContainer.addStyleName("contentcontainer");
+        contentContainer.addStyleName(CSS.NOPADDING);
 
-        contentContainer.setContent(menu);
+        contentContainer.setContent(resultsLayout);
+        resultsLayout.addStyleName(CSS.NOPADDING);
+        contentContainer.setWidth("400px");
+        contentContainer.setHeight("100%");
 
-        addComponentsAndExpand(contentContainer);
+        marco.addComponent(contentContainer);
 
-        search(null);
+        addComponentsAndExpand(marco);
+
+        search(ReflectionHelper.getFieldByName(searcher.getClass(), "menu"), null);
 
         return this;
     }
 
 
-    private void search(String text) {
+    private void search(FieldInterfaced field, String text) {
 
         if (text == null) text = "";
         text = text.toLowerCase();
 
-        menu.removeAllComponents();
+        resultsLayout.removeAllComponents();
 
 
-        List<Found> found = find(text);
+        List<Found> found = new ArrayList<>();
+
+        try {
+            Method m = ReflectionHelper.getMethod(searcher.getClass(), ReflectionHelper.getGetter(field).replaceFirst("get", "findBy"));
+            found = (List<Found>) m.invoke(searcher, text);
+        } catch (Exception e) {
+            MDD.alert(e);
+        }
 
 
         VerticalLayout contenedor;
-        menu.addComponent(contenedor = new VerticalLayout());
+        resultsLayout.addComponent(contenedor = new VerticalLayout());
         contenedor.addStyleName("contenedor");
 
         if (found.size() == 0) {
@@ -114,59 +144,4 @@ public class SearchInMenuComponent extends AbstractViewComponent {
         }
     }
 
-    private List<Found> find(String text) {
-
-        long t0 = System.currentTimeMillis();
-
-        List<Found> found = new ArrayList<>();
-
-        boolean autentico = MDD.getUserData() != null;
-
-        List<AbstractArea> areas = new ArrayList<>();
-
-        for (AbstractArea a : MDD.getApp().getAreas()) {
-            if (autentico) {
-                if (!a.isPublicAccess()) {
-                    areas.add(a);
-                }
-            } else {
-                if (!MDD.getApp().isAuthenticationNeeded() || a.isPublicAccess()) {
-                    areas.add(a);
-                }
-            }
-        }
-        for (AbstractArea a : areas) {
-
-            for (AbstractModule m : a.getModules()) {
-                for (MenuEntry e : m.getMenu()) {
-                    addMenuEntry(found, a, e, text);
-                }
-            }
-
-        }
-
-        System.out.println("Search of " + text + " took " + (System.currentTimeMillis() - t0) + "ms.");
-
-        return found;
-    }
-
-    private void addMenuEntry(List<Found> found, AbstractArea a, MenuEntry e, String text) {
-
-        if (e instanceof AbstractMenu) {
-
-            for (MenuEntry ez : ((AbstractMenu) e).getEntries()) {
-                addMenuEntry(found, a, ez, text); //("".equals(text) || e.getName().toLowerCase().contains(text))?"":text);
-            }
-
-        } else if (e instanceof AbstractAction) {
-
-            if ("".equals(text) || e.getName().toLowerCase().contains(text)) {
-
-                found.add(new Found(MDDUI.get().getNavegador().getPath(e), e.getName(), "" + a.getName() + " -> " + e.getName()));
-
-            }
-
-        }
-
-    }
 }

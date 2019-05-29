@@ -436,4 +436,8 @@ public abstract class AbstractApplication implements App {
         }
     }
 
+    public Searcher getSearcher() {
+        return new Searcher();
+    }
+
 }

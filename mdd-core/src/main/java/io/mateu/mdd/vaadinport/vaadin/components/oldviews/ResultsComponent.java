@@ -45,7 +45,7 @@ public class ResultsComponent extends VerticalLayout {
         if (listViewComponent instanceof JPACollectionFieldListViewComponent) {
             o = listViewComponent.findAll(null, null, 0, 0).stream().skip(getLastClickedRowIndex() + 1).findFirst();
         } else {
-            Query q = new Query(getLastClickedRowIndex() + 1, 1, getLastQuery().getSortOrders(), getLastQuery().getInMemorySorting(), getLastQuery().getFilter());
+            Query q = new Query(getLastClickedRowIndex() + 1, 1, getLastQuery() != null?getLastQuery().getSortOrders():null, getLastQuery() != null?getLastQuery().getInMemorySorting():null, getLastQuery() != null?getLastQuery().getFilter():null);
             o = grid.getDataProvider().fetch(q).findFirst();
         }
         if (o.isPresent()) {
