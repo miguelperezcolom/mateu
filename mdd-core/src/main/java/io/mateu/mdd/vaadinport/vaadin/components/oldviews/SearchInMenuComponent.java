@@ -60,7 +60,7 @@ public class SearchInMenuComponent extends AbstractViewComponent {
             //t.setIcon(VaadinIcons.SEARCH);
             t.setPlaceholder("Type to search");
             t.setValueChangeTimeout(100);
-            if (primero &= false) t.focus();
+            if (primero ^= false) t.focus();
 
             t.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
                 @Override
