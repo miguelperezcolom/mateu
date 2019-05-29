@@ -36,18 +36,24 @@ public class SessionComponent extends VerticalLayout {
         greeting.setIcon(VaadinIcons.USER);
         greeting.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
         greeting.addStyleName("signingbutton");
-        greeting.addClickListener(e -> MDDUI.get().getNavegador().goTo("private/profile"));
+        greeting.addClickListener(e -> {
+            MDDUI.get().getNavegador().doAfterCheckSaved(() -> {
+                MDDUI.get().getNavegador().goTo("private/profile");
+            });
+        });
 
         addComponent(signingButton = new Button("Login"));
         signingButton.setIcon(VaadinIcons.SIGN_IN);
         signingButton.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
         signingButton.addStyleName("signingbutton");
         signingButton.addClickListener(e -> {
-            if (MDD.getUserData() != null) {
-                MDDUI.get().getNavegador().goTo("bye");
-            } else {
-                MDDUI.get().getNavegador().goTo("login");
-            }
+            MDDUI.get().getNavegador().doAfterCheckSaved(() -> {
+                if (MDD.getUserData() != null) {
+                    MDDUI.get().getNavegador().goTo("bye");
+                } else {
+                    MDDUI.get().getNavegador().goTo("login");
+                }
+            });
         });
 
         if (MDD.getUserData() != null) signingButton.setVisible(true);

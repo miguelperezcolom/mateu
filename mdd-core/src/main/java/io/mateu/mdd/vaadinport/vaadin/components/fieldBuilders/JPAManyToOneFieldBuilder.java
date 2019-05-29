@@ -331,7 +331,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
         }
 
 
-        if (allFieldContainers != null) if (allFieldContainers != null) allFieldContainers.put(field, tf);
+        if (allFieldContainers != null) allFieldContainers.put(field, tf);
 
         captionOwner.setCaption(ReflectionHelper.getCaption(field));
 

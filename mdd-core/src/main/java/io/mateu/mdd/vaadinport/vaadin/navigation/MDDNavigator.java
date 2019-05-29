@@ -288,7 +288,7 @@ public class MDDNavigator {
 
     public void edit(Object o) {
         if (o != null) {
-            String state = stack.getState(stack.getLast());
+            String state = stack.size() > 0?stack.getState(stack.getLast()):"";
             state += "/" + getObjectUrl(o);
             goTo(state);
         }
@@ -297,5 +297,13 @@ public class MDDNavigator {
     public static String getObjectUrl(Object o) {
         String u = "obj___" + Base64.getEncoder().encodeToString((o.getClass().getName() + "#" + ReflectionHelper.getId(o)).getBytes());
         return u;
+    }
+
+    public void doAfterCheckSaved(Runnable r) {
+        if (stack.size() > 0 && stack.getLast().getComponent() instanceof EditorViewComponent && ((PersistentPOJO.class.isAssignableFrom(((EditorViewComponent)stack.getLast().getComponent()).getModelType()) || ((EditorViewComponent)stack.getLast().getComponent()).getModelType().isAnnotationPresent(Entity.class)) && ((EditorViewComponent)stack.getLast().getComponent()).isModificado())) {
+            MDD.confirm("There are unsaved changes. Are you sure you want to exit?", () -> r.run());
+        } else {
+            r.run();
+        }
     }
 }

@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
+import com.google.api.client.util.Maps;
 import com.vaadin.data.Binder;
 import com.vaadin.data.BinderValidationStatus;
 import com.vaadin.data.HasValue;
@@ -61,12 +62,12 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private Panel panelContenido;
 
     private List<EditorListener> listeners = new ArrayList<>();
-    private boolean modificado;
     private List<String> shortcutsCreated = new ArrayList<>();
     private Object modelId;
 
     private Map<Method, Optional<Method>> mvs = new HashMap<>();
     private Object parent;
+    private Map<String, Object> initialValues;
 
     public ListViewComponent getListViewComponent() {
         return listViewComponent;
@@ -77,6 +78,18 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     }
 
     public boolean isModificado() {
+        boolean modificado = false;
+        if (initialValues != null) {
+            Map<String, Object> currentValues = buildSignature();
+            for (String k : initialValues.keySet()) {
+                Object v0 = initialValues.get(k);
+                Object v = currentValues.get(k);
+                if ((v0 == null && v != null) || (v0 != null && !v0.equals(v))) {
+                    modificado = true;
+                    break;
+                }
+            }
+        }
         return modificado;
     }
 
@@ -178,20 +191,12 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         binder = new MDDBinder(model.getClass(), this);
         
-        if (createSaveButton) {
-            
-            binder.addValueChangeListener(e -> {
-                modificado = true;
-            });
-
-        }
-
         if (model != null && model.getClass().isAnnotationPresent(Entity.class)) {
             modelId = ReflectionHelper.getId(model);
         }
 
         binder.setBean(model);
-
+        
         build(model);
 
         for (Optional<Method> omv : mvs.values()) {
@@ -223,7 +228,22 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         }
 
+        
+        initialValues = buildSignature();
 
+    }
+
+    private Map<String,Object> buildSignature() {
+        Map<String, Object> s = new HashMap<>();
+        Object m = getModel();
+        for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(modelType)) {
+            try {
+                s.put(f.getName(), ReflectionHelper.getValue(f, m));
+            } catch (Exception e) {
+                s.put(f.getName(), null);
+            }
+        }
+        return s;
     }
 
     private void build(Object model) {
@@ -341,6 +361,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         if (c instanceof AbstractField) {
             if (c instanceof TextField) ((TextField)c).selectAll();
             ((AbstractField) c).focus();
+            return true;
+        } else if (c instanceof ComboBox) {
+            ((ComboBox) c).focus();
             return true;
         } else if (c instanceof HasComponents) {
             HasComponents l = (HasComponents) c;
@@ -523,7 +546,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             }
         }
 
-        if (!isEditingNewRecord && (listViewComponent != null || (modelType != null && modelType.isAnnotationPresent(Entity.class)))) {
+        if (!isNewRecord() && (listViewComponent != null || (modelType != null && modelType.isAnnotationPresent(Entity.class)))) {
             if (!isActionPresent("prev")) {
                 MenuBar.Command cmd;
                 MenuBar.MenuItem i = bar.addItem("Prev", VaadinIcons.ARROW_LEFT, cmd = new MenuBar.Command() {
@@ -719,7 +742,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 }
             }
 
-            if (!isActionPresent("duplicate")) {
+            if (!isActionPresent("duplicate") && !isNewRecord()) {
 
                 MenuBar.Command cmd;
                 MenuBar.MenuItem i = bar.addItem("Duplicate", VaadinIcons.COPY, cmd = new MenuBar.Command() {
@@ -740,10 +763,13 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                                     Object current = newInstance(modelType, parent);
                                     newRecord = true;
                                     for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(old.getClass())) {
-                                        ReflectionHelper.setValue(f, current, ReflectionHelper.getValue(f, old));
+                                        if (Collection.class.isAssignableFrom(f.getType())) {
+                                            //todo: clonar colecciones y mapas
+                                        } else ReflectionHelper.setValue(f, current, ReflectionHelper.getValue(f, old));
                                     }
                                     getBinder().setBean(current, false);
-
+                                    setModel(current);
+                                    modelId = null;
                                     MDD.updateTitle(getTitle());
 
                                 } catch (Throwable throwable) {
@@ -780,8 +806,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         }
 
-        if (getMenuItemById("prev") != null) getMenuItemById("prev").setVisible(listViewComponent != null);
-        if (getMenuItemById("next") != null) getMenuItemById("next").setVisible(listViewComponent != null);
+        if (getMenuItemById("prev") != null) getMenuItemById("prev").setVisible(!isNewRecord() && listViewComponent != null);
+        if (getMenuItemById("next") != null) getMenuItemById("next").setVisible(!isNewRecord() && listViewComponent != null);
+        if (getMenuItemById("duplicate") != null) getMenuItemById("duplicate").setVisible(!isNewRecord());
 
         super.addViewActionsMenuItems(bar);
 
@@ -935,8 +962,6 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                 modelId = ReflectionHelper.getId(getModel());
 
-                modificado = false;
-
                 //todo: ver que hacemos aquí. Volvemos y ya está?
                 // cambiamos la url, para reflejar el cambio
                 if (goBack) MDDUI.get().getNavegador().goBack();
@@ -948,8 +973,6 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 ppojo.save();
 
             }
-
-            modificado = false;
 
             if (notify) listeners.forEach(l -> l.onSave(getModel()));
 
@@ -1018,7 +1041,6 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
     public void load(Object id, Object parent, FieldInterfaced field) throws Throwable {
         this.modelId = id;
-        this.modificado = false;
         this.parent = parent;
         if (id == null) {
             newRecord = true;

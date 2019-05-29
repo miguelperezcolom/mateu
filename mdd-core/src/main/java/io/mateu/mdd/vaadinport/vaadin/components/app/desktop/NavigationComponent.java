@@ -65,11 +65,15 @@ public class NavigationComponent extends VerticalLayout {
 
                         Button b = bArea = new Button(a.getName().toUpperCase() + ((app.getAreas().size() > 1)?"<span class=\"menu-badge\">" + VaadinIcons.RETWEET.getHtml() + "</span>":"")
                                 , ev -> {
-                            setMenu(null);
-                            bArea.addStyleName("selected");
-                            bArea.setIcon(null);
-                            bArea.setCaption("CHOOSE AN AREA <span class=\"menu-badge\">" + VaadinIcons.ARROW_RIGHT.getHtml() + "</span>");
-                            MDDUI.get().getNavegador().goTo(((a.isPublicAccess())?"public":"private"));
+
+                            MDDUI.get().getNavegador().doAfterCheckSaved(() -> {
+                                setMenu(null);
+                                bArea.addStyleName("selected");
+                                bArea.setIcon(null);
+                                bArea.setCaption("CHOOSE AN AREA <span class=\"menu-badge\">" + VaadinIcons.ARROW_RIGHT.getHtml() + "</span>");
+                                MDDUI.get().getNavegador().goTo(((a.isPublicAccess())?"public":"private"));
+                            });
+
                         }); //, a.getIcon());
                         b.setIcon(a.getIcon());
                         b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
@@ -110,9 +114,13 @@ public class NavigationComponent extends VerticalLayout {
 
                     Button b = bBuscar = new Button("Search"
                             , ev -> {
-                        setMenu(null);
-                        bBuscar.addStyleName("selected");
-                        MDDUI.get().getNavegador().goTo("search");
+
+                        MDDUI.get().getNavegador().doAfterCheckSaved(() -> {
+                            setMenu(null);
+                            bBuscar.addStyleName("selected");
+                            MDDUI.get().getNavegador().goTo("search");
+                        });
+
                     }); //, a.getIcon());
                     b.setIcon(VaadinIcons.SEARCH);
                     b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
@@ -157,7 +165,13 @@ public class NavigationComponent extends VerticalLayout {
 
 
         Button b = new Button(e.getName() + ((e instanceof AbstractMenu)?"<span class=\"menu-badge\">" + VaadinIcons.ELLIPSIS_DOTS_H.getHtml() + "</span>":"")
-        , ev -> MDDUI.get().getNavegador().goTo(e));
+        , ev -> {
+
+            MDDUI.get().getNavegador().doAfterCheckSaved(() -> {
+                MDDUI.get().getNavegador().goTo(e);
+            });
+
+        });
         //b.setIcon(FontAwesome.TH_LIST);
         if (e.getIcon() != null) b.setIcon(e.getIcon());
         b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);

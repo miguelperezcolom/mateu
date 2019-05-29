@@ -50,7 +50,11 @@ public class LeftSideComponent extends VerticalLayout {
         al.addComponent(appTitle = new Button(app.getName()), "left: 50%; top: 0px;");
         appTitle.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
         appTitle.addStyleName("appTitle");
-        appTitle.addClickListener(e -> MDDUI.get().getNavegador().goTo(""));
+        appTitle.addClickListener(e -> {
+            MDDUI.get().getNavegador().doAfterCheckSaved(() -> {
+                MDDUI.get().getNavegador().goTo("");
+            });
+        });
 
         al.addComponent(botonMinimizar = new Button(VaadinIcons.MINUS, e -> minimizar()), "left: 190px; top: 0px;");
         botonMinimizar.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
