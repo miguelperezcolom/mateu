@@ -263,6 +263,8 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
                     cb.addStyleName("combo");
 
+                    if (field.isAnnotationPresent(Width.class)) cb.setWidth(field.getAnnotation(Width.class).value());
+
 
                     if (allFieldContainers != null && allFieldContainers.size() == 0) cb.focus();
 

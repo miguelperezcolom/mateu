@@ -238,7 +238,7 @@ public class JPAListViewComponent extends ListViewComponent {
                 oc += "x" + "." + qso.getSorted() + " " + ((SortDirection.DESCENDING.equals(qso.getDirection()))?"desc":"asc");
             }
             List<FieldInterfaced> orderCols = new ArrayList<>();
-            for (FieldInterfaced f : columnFields) {
+            for (FieldInterfaced f : ReflectionHelper.getAllFields(getColumnType())) {
                 if (f.isAnnotationPresent(Order.class)) orderCols.add(f);
             }
             Collections.sort(orderCols, (f1, f2) -> f1.getAnnotation(Order.class).priority() - f2.getAnnotation(Order.class).priority());
