@@ -1729,4 +1729,12 @@ and returns the QR Code in the form of a byte array.
         byte[] pngData = pngOutputStream.toByteArray();
         return pngData;
     }
+
+
+
+    public static <T> List<T> extend(List<T> list, T o) {
+        List<T> l = new ArrayList<T>(list);
+        l.add(o);
+        return l;
+    }
 }
