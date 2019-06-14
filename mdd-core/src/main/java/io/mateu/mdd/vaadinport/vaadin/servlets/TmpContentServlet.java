@@ -37,6 +37,8 @@ public class TmpContentServlet extends HttpServlet {
         }
         System.out.println("MIME type: " + mimeType);
 
+        if ("text/html".equalsIgnoreCase(mimeType)) response.setCharacterEncoding("utf-8");
+
         // modifies response
         response.setContentType(mimeType);
         response.setContentLength((int) downloadFile.length());

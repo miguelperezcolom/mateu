@@ -569,6 +569,8 @@ body {
     .leftside.minimizada {
       width: 20px;
     }
+    
+    
       .center {
 
       }
@@ -2171,19 +2173,9 @@ body {
 
 @media print {
 
-  .v-slot-appheader {
-    display: none;
+  .v-slot-leftside {
+    dispaly:none;
   }
 
-
-  .horizontallayout {
-    .v-expand {
-      padding-left: inherit;
-
-      .v-slot-leftside {
-        dispaly:none;
-      }
-    }
-  }
 
 }

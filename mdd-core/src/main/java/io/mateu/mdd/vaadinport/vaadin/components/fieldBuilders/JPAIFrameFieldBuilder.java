@@ -9,8 +9,7 @@ import com.vaadin.shared.Registration;
 import com.vaadin.ui.BrowserFrame;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Layout;
-import io.mateu.mdd.core.annotations.Help;
-import io.mateu.mdd.core.annotations.IFrame;
+import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.annotations.IFrame;
@@ -35,7 +34,7 @@ public class JPAIFrameFieldBuilder extends AbstractFieldBuilder {
 
             BrowserFrame tf;
             container.addComponent(tf = new BrowserFrame());
-            tf.setWidth("600px");
+            tf.setWidth(field.isAnnotationPresent(Width.class)?field.getAnnotation(Width.class).value():"600px");
             tf.setHeight("400px");
 
             container.addComponent(tf);
