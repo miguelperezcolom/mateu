@@ -8,6 +8,7 @@ import io.mateu.mdd.core.model.config.Template;
 import io.mateu.mdd.core.model.util.EmailHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
+import io.mateu.mdd.core.workflow.Task;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
 import lombok.Getter;
 import lombok.Setter;
@@ -151,7 +152,7 @@ public class User {
 
     @PostPersist
     public void post() {
-        WorkflowEngine.add(new Runnable() {
+        WorkflowEngine.add(new Task() {
 
             String xid = getLogin();
 

@@ -33,9 +33,14 @@ public class WorkflowEngine {
         }
     }
 
+
+    public static boolean isLocalRunnerActive() {
+        return !(uselocalRunners.get() == null || !uselocalRunners.get());
+    }
+
     public static boolean activateLocalRunner() {
-        boolean alreadyActive = true;
-        if (uselocalRunners.get() == null || !uselocalRunners.get()) {
+        boolean alreadyActive = isLocalRunnerActive();
+        if (!alreadyActive) {
             uselocalRunners.set(true);
             localQueues.set(new ConcurrentLinkedQueue());
             waitingForLocalRunners.set(false);
@@ -53,7 +58,7 @@ public class WorkflowEngine {
     }
 
 
-    public static void add(Runnable task) {
+    public static void add(Task task) {
         //System.out.println("añadiendo tarea " + task.getClass().getName());
 
         if (uselocalRunners.get() != null && uselocalRunners.get()) {
@@ -70,12 +75,12 @@ public class WorkflowEngine {
     }
 
     public static void runAndWaitThreadLocalTasks(boolean force) {
-        //System.out.println("runAndWaitThreadLocalTasks(" + force + ")");
+        System.out.println("runAndWaitThreadLocalTasks(" + force + ")");
         if (force || !uselocalRunners.get()) {
             uselocalRunners.set(true);
             while (localQueues.get().size() > 0) {
                 CountDownLatch latch = new CountDownLatch(1);
-                Runnable task = (Runnable) localQueues.get().poll();
+                Task task = (Task) localQueues.get().poll();
                 try {
                     task.run();
                     //System.out.println("tarea local ejecutada en queue local");

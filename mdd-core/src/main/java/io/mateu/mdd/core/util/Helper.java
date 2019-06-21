@@ -235,26 +235,14 @@ public class Helper {
 
             WorkflowEngine.runAndWaitThreadLocalTasks(atTop);
 
-        } catch (ConstraintViolationException e) {
+        } catch (Throwable e) {
+
+            e.printStackTrace();
 
             WorkflowEngine.cancelLocalRunner();
             if (em.getTransaction().isActive()) em.getTransaction().rollback();
             em.close();
-
-            rethrow(e);
-        } catch (Exception e) {
-
-            WorkflowEngine.cancelLocalRunner();
-
-            if (e.getCause() != null && e.getCause() instanceof ConstraintViolationException) {
-                if (em.getTransaction().isActive()) em.getTransaction().rollback();
-                em.close();
-                rethrow(e.getCause());
-            } else {
-                if (em.getTransaction().isActive()) em.getTransaction().rollback();
-                em.close();
-                rethrow(e);
-            }
+            rethrow(e.getCause() != null && e.getCause() instanceof ConstraintViolationException?e.getCause():e);
 
         }
 

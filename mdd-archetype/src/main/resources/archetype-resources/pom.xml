@@ -115,7 +115,7 @@
       <plugin>
         <groupId>io.mateu.jpa-utils</groupId>
         <artifactId>pujoiner-plugin</artifactId>
-        <version>0.0.1</version>
+        <version>0.0.2</version>
 
         <configuration>
           <puname>yourapp</puname>

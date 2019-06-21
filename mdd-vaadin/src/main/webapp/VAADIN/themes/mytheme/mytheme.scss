@@ -2173,8 +2173,12 @@ body {
 
 @media print {
 
+  .horizontallayout > .v-expand  {
+    padding-left: 0px !important;
+  }
+
   .v-slot-leftside {
-    dispaly:none;
+    display: none;
   }
 
 
