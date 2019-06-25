@@ -20,7 +20,7 @@
     <properties>
         <vaadin.version>8.8.3</vaadin.version>
         <vaadin.plugin.version>8.8.3</vaadin.plugin.version>
-        <jetty.plugin.version>9.4.11.v20180605</jetty.plugin.version>
+        <jetty.plugin.version>9.4.19.v20190610</jetty.plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
@@ -56,6 +56,12 @@
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <!-- if your container implements Servlet API older than 3.0, use "jersey-container-servlet-core"  -->
+            <artifactId>jersey-container-servlet</artifactId>
+            <version>2.27</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -172,6 +178,14 @@
 
         <profile>
             <id>with-mdd-tester</id>
+
+            <dependencies>
+                <dependency>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                    <version>4.12</version>
+                </dependency>
+            </dependencies>
 
             <build>
 

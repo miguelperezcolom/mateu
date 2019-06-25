@@ -28,6 +28,25 @@
     </dependency>
 
 
+
+    <!-- 11 -->
+    <dependency>
+      <groupId>com.sun.xml.bind</groupId>
+      <artifactId>jaxb-impl</artifactId>
+      <version>2.4.0-b180830.0438</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.xml.ws</groupId>
+      <artifactId>jaxws-rt</artifactId>
+      <version>2.3.1</version>
+      <type>pom</type>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.xml.ws</groupId>
+      <artifactId>rt</artifactId>
+      <version>2.3.1</version>
+    </dependency>
+
   </dependencies>
 
   <distributionManagement>
@@ -52,6 +71,12 @@
     </repository>
   </repositories>
 
+  <pluginRepositories>
+    <pluginRepository>
+      <id>mateu-central</id>
+      <url>http://nexus.mateu.io/repository/mateu-central</url>
+    </pluginRepository>
+  </pluginRepositories>
 
   <build>
     <plugins>
