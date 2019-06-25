@@ -6,6 +6,7 @@ import io.mateu.mdd.test.model.Entidad;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 import static junit.framework.TestCase.*;
 
@@ -13,17 +14,17 @@ public class WorkflowTest {
 
 
     @Test
-    public void test() throws Throwable {
+    public void test1() throws Throwable {
+
+
+
+
 
         Helper.transact(em -> {
-
-            assertEquals(true, WorkflowEngine.isLocalRunnerActive());
 
             em.persist(new Entidad());
 
         });
-
-        assertEquals(false, WorkflowEngine.isLocalRunnerActive());
 
         assertEquals(1, Helper.selectObjects("select x from Entidad x").size());
 
@@ -41,4 +42,86 @@ public class WorkflowTest {
 
     }
 
+
+
+    @Test
+    public void test2() throws Throwable {
+
+
+        Helper.transact(em -> {
+
+            em.persist(new Entidad());
+
+        });
+
+        int entidades = Helper.selectObjects("select x from Entidad x").size();
+
+        System.out.println(entidades + " entidades");
+
+        assertEquals(entidades, Helper.selectObjects("select x from Evento x").size());
+
+        assertEquals(entidades, Helper.selectObjects("select x from Tarea x").size());
+
+
+    }
+
+
+    @Test
+    public void test3() throws Throwable {
+
+        {
+            CountDownLatch l = new CountDownLatch(10);
+            for (int i = 0; i < 10; i++) {
+                Thread t = new Thread(() -> {
+
+                    try {
+                        Helper.transact(em -> {
+
+                            em.persist(new Entidad());
+
+                        });
+                    } catch (Throwable throwable) {
+                        throwable.printStackTrace();
+                    }
+                    l.countDown();
+                });
+                t.start();
+            }
+
+            l.await();
+        }
+
+        {
+            CountDownLatch l = new CountDownLatch(10);
+            for (int i = 0; i < 10; i++) {
+                Thread t = new Thread(() -> {
+
+                    try {
+                        Helper.transact(em -> {
+
+                            em.persist(new Entidad());
+
+                        });
+                    } catch (Throwable throwable) {
+                        throwable.printStackTrace();
+                    }
+                    l.countDown();
+                });
+                t.start();
+            }
+
+            l.await();
+        }
+
+
+        int entidades = Helper.selectObjects("select x from Entidad x").size();
+
+        System.out.println(entidades + " entidades");
+
+        assertEquals(entidades, Helper.selectObjects("select x from Evento x").size());
+
+        assertEquals(entidades, Helper.selectObjects("select x from Tarea x").size());
+
+
+    }
 }
