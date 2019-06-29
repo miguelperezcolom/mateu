@@ -75,26 +75,20 @@ public class WorkflowEngine {
     }
 
     public static void runAndWaitThreadLocalTasks(boolean force) {
-        System.out.println("runAndWaitThreadLocalTasks(" + force + ")");
+        //System.out.println("runAndWaitThreadLocalTasks(" + force + ")");
         if (force || !uselocalRunners.get()) {
+            //System.out.println("ejecutando tareas thread local. localQueues.get().size() = " + localQueues.get().size());
             uselocalRunners.set(true);
             while (localQueues.get().size() > 0) {
-                CountDownLatch latch = new CountDownLatch(1);
+                //System.out.println("ejecutando tarea thread local. localQueues.get().size() = " + localQueues.get().size());
                 Task task = (Task) localQueues.get().poll();
                 try {
                     task.run();
-                    //System.out.println("tarea local ejecutada en queue local");
-                    latch.countDown();
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }
-                try {
-                    latch.await();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                //System.out.println("localQueues empty");
             }
+            //System.out.println("localQueues empty");
             uselocalRunners.set(false);
         }
     }
