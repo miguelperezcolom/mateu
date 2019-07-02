@@ -44,10 +44,6 @@ public class DateTimeService {
      * Creates a new date time service with the application default locale.
      */
     public DateTimeService() {
-
-        //MIGUEL
-        getLogger().log(Level.SEVERE, "MIGUEL!!!");
-
         locale = LocaleService.getDefaultLocale();
     }
 
@@ -59,10 +55,6 @@ public class DateTimeService {
      * @throws LocaleNotLoadedException
      */
     public DateTimeService(String locale) throws LocaleNotLoadedException {
-
-        //MIGUEL
-        getLogger().log(Level.SEVERE, "MIGUEL!!!");
-
         setLocale(locale);
     }
 
@@ -598,9 +590,6 @@ public class DateTimeService {
     public Date parseDate(String dateString, String formatString,
                           boolean lenient) throws IllegalArgumentException {
 
-        //MIGUEL
-        getLogger().log(Level.SEVERE, "MIGUEL!!!");
-
 
         /* DateTimeFormat uses the browser's locale */
         DateTimeFormat format = DateTimeFormat.getFormat(formatString);
@@ -633,12 +622,8 @@ public class DateTimeService {
 
         if ("h".equalsIgnoreCase(dateString) || "t".equalsIgnoreCase(dateString)) {
 
-
             //todo: recordar fechas especiales, para conversión inversa
-
             date = new Date();
-
-
 
         } else {
 
@@ -648,6 +633,7 @@ public class DateTimeService {
             if (z.indexOf("m") < z.indexOf("d")) inverso = true;
 
             Date h = new Date();
+            h = new Date(h.getTime() - 7l * 24l * 60l * 60l * 1000l); // restamos 1 semana, para que no añada un año si indicamos el día de hoy
 
             if (dateString == null) {
             } else {
