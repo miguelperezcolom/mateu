@@ -219,35 +219,41 @@ public class Helper {
 
     public static void transact(String persistenceUnit, JPATransaction t) throws Throwable {
 
-        EntityManager em = getEMF().createEntityManager();
+        boolean atTop = WorkflowEngine.activateLocalRunner();
 
         try {
 
-            em.getTransaction().begin();
+            EntityManager em = getEMF().createEntityManager();
 
-            tlem.set(em);
+            try {
 
-            boolean atTop = WorkflowEngine.activateLocalRunner();
+                em.getTransaction().begin();
 
-            t.run(em);
+                tlem.set(em);
 
-            em.getTransaction().commit();
+                t.run(em);
 
-            WorkflowEngine.runAndWaitThreadLocalTasks(atTop);
+                em.getTransaction().commit();
+
+            } catch (Throwable e) {
+
+                e.printStackTrace();
+
+                WorkflowEngine.cancelLocalRunner();
+                if (em.getTransaction().isActive()) em.getTransaction().rollback();
+                em.close();
+                rethrow(e.getCause() != null && e.getCause() instanceof ConstraintViolationException?e.getCause():e);
+
+            }
+
+            em.close();
 
         } catch (Throwable e) {
-
-            e.printStackTrace();
-
             WorkflowEngine.cancelLocalRunner();
-            if (em.getTransaction().isActive()) em.getTransaction().rollback();
-            em.close();
             rethrow(e.getCause() != null && e.getCause() instanceof ConstraintViolationException?e.getCause():e);
-
         }
 
-        em.close();
-
+        WorkflowEngine.runAndWaitThreadLocalTasks(atTop);
     }
 
     public static void rethrow(Throwable e) throws Throwable {

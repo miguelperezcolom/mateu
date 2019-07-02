@@ -46,11 +46,16 @@ public class EmailHelper {
 
     public static void sendEmail(String toEmail, String subject, String text, boolean noCC, List<URL> attachments) throws Throwable {
 
+        if (subject == null) subject = "";
+        if (text == null) text = "";
+
         System.out.println("Sending email to " + toEmail);
         System.out.println("Subject: " + subject);
         System.out.println("Text: " + text);
 
 
+        String finalSubject = subject;
+        String finalText = text;
         Helper.transact(new JPATransaction() {
             @Override
             public void run(EntityManager em) throws Throwable {
@@ -67,9 +72,9 @@ public class EmailHelper {
                     email.setFrom(c.getAdminEmailFrom());
                     if (!noCC && !Strings.isNullOrEmpty(c.getAdminEmailCC())) email.getCcAddresses().add(new InternetAddress(c.getAdminEmailCC()));
 
-                    email.setSubject(subject);
+                    email.setSubject(finalSubject);
                     //email.setMsg(io.mateu.ui.mdd.server.util.Helper.freemark(template, getData()));
-                    email.setHtmlMsg(text);
+                    email.setHtmlMsg(finalText);
                     email.addTo((!Strings.isNullOrEmpty(System.getProperty("allemailsto")))?System.getProperty("allemailsto"):toEmail);
 
                     if (attachments != null) for (URL u : attachments) email.attach(u, u.toString().substring(u.toString().lastIndexOf("/") + 1), "");

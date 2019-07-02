@@ -50,7 +50,7 @@ public class WorkflowEngine {
     }
 
     public static void cancelLocalRunner() {
-        if (uselocalRunners.get() == null) {
+        if (uselocalRunners.get() != null) {
             uselocalRunners.set(false);
             localQueues.set(new ConcurrentLinkedQueue());
             waitingForLocalRunners.set(false);
