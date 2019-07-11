@@ -5,6 +5,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
+import io.mateu.mdd.tester.model.useCases.bankAccount.Payment;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,11 +18,14 @@ import java.util.List;
 public class Booking {
 
     @Id@GeneratedValue(strategy = GenerationType.IDENTITY)
+    @ListColumn
     private long id;
 
+    @ListColumn
     private String leadName;
 
     @ManyToOne
+    @ListColumn
     private Hotel hotel;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "booking")
@@ -41,14 +45,24 @@ public class Booking {
     }
 
 
+    @OneToMany(cascade = CascadeType.ALL)@UseLinkToListView(addEnabled = true)
+    private List<Payment> payments = new ArrayList<>();
 
-    @KPI
+    @ListColumn
+    private int pax;
+
+    private double doble;
+
+    @KPI@Money@Balance
+    @ListColumn
     private double total;
 
-
     @Section("Prices")
+    @ListColumn
     private boolean overrideValue;
 
+    @Money
+    @ListColumn
     private double overridedValue;
 
     @DependsOn("overrideValue")
@@ -56,8 +70,13 @@ public class Booking {
         return overrideValue;
     }
 
-
+    @ListColumn
     private boolean active;
+
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @UseLinkToListView
+    private List<BookingLog> log = new ArrayList<>();
 
 
     @Ignored

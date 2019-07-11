@@ -7,10 +7,12 @@ import com.vaadin.data.provider.DataProvider;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.data.*;
+import io.mateu.mdd.core.interfaces.AbstractJPQLListView;
 import io.mateu.mdd.core.interfaces.PushWriter;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.tests.Persona;
 import javassist.*;
 import javassist.bytecode.AnnotationsAttribute;
@@ -980,7 +982,8 @@ public class ReflectionHelper {
 
     public static <T> T fillQueryResult(Object[] o, T t) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         int pos = 0;
-        for (FieldInterfaced f : getAllFields(t.getClass())) {
+        List<FieldInterfaced> fields = t.getClass().isAnnotationPresent(Entity.class)?AbstractJPQLListView.getSelectFields(t.getClass()):getAllFields(t.getClass());
+        for (FieldInterfaced f : fields) {
             if (pos < o.length) {
                 if (o[pos] != null) t.getClass().getMethod(getSetter(f), f.getType()).invoke(t, o[pos]);
             } else break;
@@ -1296,7 +1299,7 @@ public class ReflectionHelper {
     }
 
 
-    public static void addToCollection(MDDBinder binder, FieldInterfaced field, Object bean) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    public static Collection addToCollection(MDDBinder binder, FieldInterfaced field, Object bean) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
 
         Method m = ReflectionHelper.getMethod(bean.getClass(), "create" + getFirstUpper(field.getName()) + "Instance");
 
@@ -1308,74 +1311,56 @@ public class ReflectionHelper {
             i = field.getGenericClass().newInstance();
         }
 
-        addToCollection(binder, field, bean, i);
+        return addToCollection(binder, field, bean, i);
     }
 
-    public static void addToCollection(MDDBinder binder, FieldInterfaced field, Object bean, Object i) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    public static Collection addToCollection(MDDBinder binder, FieldInterfaced field, Object bean, Object i) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
         Object v = ReflectionHelper.getValue(field, bean);
 
         boolean added = false;
 
-        if (Collection.class.isAssignableFrom(field.getType())) {
-
-            if (v == null) {
-                ReflectionHelper.setValue(field, bean, v = new ArrayList());
+        if (v == null) {
+            if (Set.class.isAssignableFrom(field.getType())) {
+                v = new HashSet();
+            } else if (Collection.class.isAssignableFrom(field.getType())) {
+                v = new ArrayList();
             }
+        }
 
-            if (!((Collection)v).contains(i)) {
-                ((Collection)v).add(i);
-                added = true;
-            }
-
-        } else if (Set.class.isAssignableFrom(field.getType())) {
-
-            if (v == null) {
-                ReflectionHelper.setValue(field, bean, v = new HashSet());
-            }
-
-            if (!((Set)v).contains(i)) {
-                ((Set)v).add(i);
-                added = true;
-            }
-
+        Collection col = new ArrayList((Collection) v);
+        if (!col.contains(i)) {
+            col.add(i);
+            added = true;
         }
 
         if (added) {
             reverseMap(binder, field, bean, i);
-            ReflectionHelper.setValue(field, bean, ReflectionHelper.getValue(field, bean));
-            Object finalV = v;
-            binder.getBinding(field.getName()).ifPresent(b -> ((Binder.Binding)b).getField().setValue(finalV));
+            ReflectionHelper.setValue(field, bean, col);
+            binder.getBinding(field.getName()).ifPresent(b -> ((Binder.Binding)b).getField().setValue(col));
         }
-
+        return col;
     }
 
-    public static void removeFromCollection(MDDBinder binder, FieldInterfaced field, Object bean, Collection l) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        removeFromCollection(binder, field, bean, l, true);
+    public static Collection removeFromCollection(MDDBinder binder, FieldInterfaced field, Object bean, Collection l) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        return removeFromCollection(binder, field, bean, l, true);
     }
 
-    public static void removeFromCollection(MDDBinder binder, FieldInterfaced field, Object bean, Collection l, boolean unreverseMap) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    public static Collection removeFromCollection(MDDBinder binder, FieldInterfaced field, Object bean, Collection l, boolean unreverseMap) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
         Object v = ReflectionHelper.getValue(field, bean);
 
-        if (Collection.class.isAssignableFrom(field.getType())) {
-
-            if (v == null) {
-                ReflectionHelper.setValue(field, bean, v = new ArrayList());
+        if (v == null) {
+            if (Set.class.isAssignableFrom(field.getType())) {
+                v = new HashSet();
+            } else if (Collection.class.isAssignableFrom(field.getType())) {
+                v = new ArrayList();
             }
-
-            ((Collection)v).removeAll(l);
-
-        } else if (Set.class.isAssignableFrom(field.getType())) {
-
-            if (v == null) {
-                ReflectionHelper.setValue(field, bean, v = new HashSet());
-            }
-
-            ((Set)v).removeAll(l);
 
         }
 
+        Collection col = new ArrayList((Collection) v);
+        col.removeAll(l);
 
         if (unreverseMap) {
             final FieldInterfaced mbf = ReflectionHelper.getMapper(field);
@@ -1392,11 +1377,10 @@ public class ReflectionHelper {
             }
         }
 
-        ReflectionHelper.setValue(field, bean, ReflectionHelper.getValue(field, bean));
-        Object finalV = v;
-        binder.getBinding(field.getName()).ifPresent(b -> ((Binder.Binding)b).getField().setValue(finalV));
+        ReflectionHelper.setValue(field, bean, col);
+        binder.getBinding(field.getName()).ifPresent(b -> ((Binder.Binding)b).getField().setValue(col));
 
-
+        return col;
     }
 
     public static void addToMap(MDDBinder binder, FieldInterfaced field, Object bean, Object k, Object v) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {

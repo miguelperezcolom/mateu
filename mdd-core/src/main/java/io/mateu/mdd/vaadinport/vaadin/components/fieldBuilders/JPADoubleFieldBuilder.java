@@ -66,7 +66,12 @@ public class JPADoubleFieldBuilder extends JPAStringFieldBuilder {
             @Override
             public String convertToPresentation(Double value, ValueContext context) {
                 if (value == null) return "";
-                else return super.convertToPresentation(value, context);
+                else {
+                    //String s = super.convertToPresentation(value, context);
+                    String s = "" + value;
+                    if (s.endsWith(".0")) s = s.replaceAll("\\.0", "");
+                    return s;
+                }
             }
 
             @Override

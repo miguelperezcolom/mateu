@@ -712,6 +712,7 @@ xxxxxxxxxxxxxxxx
                                 if (lastViewComponent instanceof MethodResultViewComponent) {
                                     if (((MethodResultViewComponent) lastViewComponent).getComponent(0) instanceof AbstractViewComponent)
                                         lastViewComponent = ((MethodResultViewComponent) lastViewComponent).getComponent(0);
+                                    else if (((MethodResultViewComponent) lastViewComponent).getRpcListViewComponent() != null) lastViewComponent = ((MethodResultViewComponent) lastViewComponent).getRpcListViewComponent();
                                 }
                             }
 
@@ -748,8 +749,20 @@ xxxxxxxxxxxxxxxx
                                 field = ReflectionHelper.getFieldByName(r.getClass(), step.endsWith("_new") ? step.replaceAll("_new", "") : step);
                             }
 
-                            if (method == null && field == null && lastViewComponent instanceof MethodResultViewComponent && r != null && r instanceof RpcView) {
-                                if (pendingResult == null) {
+                            if (method == null && field == null && (lastViewComponent instanceof MethodResultViewComponent ||lastViewComponent instanceof RpcListViewComponent) && r != null && r instanceof RpcView) {
+
+                                if (r instanceof AbstractCrudView && "new".equals(step)) {
+
+                                    EditorViewComponent evc = new EditorViewComponent(((AbstractCrudView)r).getRowClass());
+                                    try {
+                                        evc.load(null);
+                                    } catch (Throwable throwable) {
+                                        MDD.alert(throwable);
+                                    }
+
+                                    stack.push(currentPath, evc);
+
+                                } else if (pendingResult == null) {
                                     try {
                                         method = r.getClass().getMethod("onEdit", String.class);
                                         try {

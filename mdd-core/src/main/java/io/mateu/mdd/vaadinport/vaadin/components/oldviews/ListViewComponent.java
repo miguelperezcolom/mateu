@@ -203,7 +203,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
         int pos = 0;
         for (FieldInterfaced f : colFields) {
-            int finalPos = 1 + pos++;
+            final int finalPos = (isJPAListViewComponent?1:0) + pos++;
 
             Grid.Column col;
 
@@ -242,8 +242,8 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
                     Object v = null;
 
-                    if (isJPAListViewComponent && o instanceof Object[]) {
-                        v = ((Object[]) o)[finalPos + 1];
+                    if (o instanceof Object[]) {
+                        v = ((Object[]) o)[finalPos];
                     } else {
                         try {
                             v = ReflectionHelper.getValue(f, o);
@@ -287,7 +287,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                         Object v = null;
 
                         if (o instanceof Object[]) {
-                            v = ((Object[]) o)[finalPos + 1];
+                            v = ((Object[]) o)[finalPos];
                         } else {
                             try {
                                 v = ReflectionHelper.getValue(f, o);
@@ -336,7 +336,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                                 Object v = null;
 
                                 if (o instanceof Object[]) {
-                                    v = ((Object[]) o)[finalPos + 1];
+                                    v = ((Object[]) o)[finalPos];
                                 } else {
                                     try {
                                         v = ReflectionHelper.getValue(f, o);

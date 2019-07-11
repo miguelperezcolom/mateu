@@ -150,6 +150,6 @@ public class FieldInterfacedFromField implements FieldInterfaced {
 
     @Override
     public boolean equals(Object obj) {
-        return hashCode() == obj.hashCode();
+        return this == obj || (obj != null && hashCode() == obj.hashCode());
     }
 }

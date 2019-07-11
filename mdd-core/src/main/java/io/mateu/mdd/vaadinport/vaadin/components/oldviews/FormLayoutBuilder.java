@@ -29,15 +29,23 @@ import java.util.Map;
 
 public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuilder {
 
-    public Pair<Component, AbstractStylist> build(MDDBinder binder, Class<?> modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, boolean forSearchFields) {
+    public Pair<Component, AbstractStylist> build(MDDBinder binder, Class<?> modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, boolean forSearchFields, CssLayout links) {
         CssLayout contentContainer = new CssLayout();
         contentContainer.addStyleName("contentcontainer");
-        return build(contentContainer, binder, modelType, model, validators, allFields, true, forSearchFields);
+        return build(contentContainer, binder, modelType, model, validators, allFields, true, forSearchFields, links);
+    }
+
+    public Pair<Component, AbstractStylist> build(MDDBinder binder, Class<?> modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, boolean forSearchFields) {
+        return build(binder, modelType, model, validators, allFields, forSearchFields, null);
     }
 
     @Override
     public Pair<Component, AbstractStylist> build(MDDBinder binder, Class<?> modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields) {
         return build(binder, modelType, model, validators, allFields, false);
+    }
+
+    public Pair<Component, AbstractStylist> build(MDDBinder binder, Class<?> modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, CssLayout links) {
+        return build(binder, modelType, model, validators, allFields, false, links);
     }
 
     public Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields) {
@@ -48,7 +56,16 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
         return build(contentContainer, binder, modelType, model, validators, allFields, createSections, forSearchFilters, true);
     }
 
+    public Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, boolean createSections, boolean forSearchFilters, CssLayout links) {
+        return build(contentContainer, binder, modelType, model, validators, allFields, createSections, forSearchFilters, true, links);
+    }
+
     public Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, boolean createSections, boolean forSearchFilters, boolean createTabs) {
+        return build(contentContainer, binder, modelType, model, validators, allFields, createSections, forSearchFilters, true, null);
+    }
+
+
+    public Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, boolean createSections, boolean forSearchFilters, boolean createTabs, CssLayout links) {
 
         long t0 = System.currentTimeMillis();
 
@@ -107,6 +124,15 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                     section.addStyleName(ValoTheme.LABEL_COLORED);
                     section.addStyleName("sectionHeader");
                     form.addComponent(section);
+
+                    if (links != null) {
+                        Button b;
+                        links.addComponent(b = new Button(s.getCaption(), (e) -> {
+                            UI.getCurrent().scrollIntoView(section);
+                        }));
+                        //b.addStyleName(ValoTheme.BUTTON_TINY);
+                        b.addStyleName(ValoTheme.BUTTON_LINK);
+                    }
                 }
 
 

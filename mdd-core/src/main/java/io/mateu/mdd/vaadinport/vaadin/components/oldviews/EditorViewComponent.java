@@ -68,6 +68,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private Map<Method, Optional<Method>> mvs = new HashMap<>();
     private Object parent;
     private Map<String, Object> initialValues;
+    private CssLayout links;
 
     public ListViewComponent getListViewComponent() {
         return listViewComponent;
@@ -270,6 +271,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         try {
             if (panel == null) build();
 
+            if (links != null) links.removeAllComponents();
+
             panelContenido = new Panel();
             panelContenido.addStyleName(ValoTheme.PANEL_BORDERLESS);
             panelContenido.addStyleName("panelContenido");
@@ -307,7 +310,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 fields.removeIf(f -> hiddenFields.contains(f));
             }
 
-            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, model.getClass(), model, validators, fields);
+            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, model.getClass(), model, validators, fields, links);
 
             stylist = r.getValue();
 
@@ -327,6 +330,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
             if (getView() != null) getView().updateViewTitle(toString());
 
+            if (links.getComponentCount() == 0) links.setVisible(false);
+            else links.setVisible(true);
 
             focusFirstField(panelContenido.getContent());
 
@@ -487,6 +492,11 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         addStyleName("editorviewcomponent");
 
+
+        links = new CssLayout();
+        links.addStyleName(CSS.NOPADDING);
+        addComponent(links);
+
         panel = new Panel();
         panel.addStyleName(ValoTheme.PANEL_BORDERLESS);
         panel.addStyleName("panelContenedor");
@@ -502,7 +512,11 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             for (String k : (Set<String>) menuItemsById.keySet()) {
                 ((MenuBar.MenuItem)menuItemsById.get(k)).setEnabled(stylist.isActionEnabled(k, model));
             }
+
         }
+        if (bar.getItems().size() == 0) bar.setVisible(false);
+        else bar.setVisible(true);
+        System.out.println("------------------>bar.getItems().size()=" + bar.getItems().size());
     }
 
 

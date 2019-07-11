@@ -42,7 +42,7 @@ public class OwnedCollectionComponent extends VerticalLayout {
 
     private final MDDBinder parentBinder;
     private final FieldInterfaced field;
-    private final Collection collection;
+    private Collection collection;
 
     private int currentIndex = 0;
 
@@ -76,9 +76,8 @@ public class OwnedCollectionComponent extends VerticalLayout {
         setSizeFull();
 
         Panel panel;
-        addComponent(panel = new Panel(container = new VerticalLayout()));
+        addComponentsAndExpand(panel = new Panel(container = new VerticalLayout()));
         panel.addStyleName(ValoTheme.PANEL_BORDERLESS);
-        addComponentsAndExpand(panel);
         container.addStyleName(CSS.NOPADDING);
 
         HorizontalLayout hl;
@@ -120,7 +119,7 @@ public class OwnedCollectionComponent extends VerticalLayout {
             if (currentIndex >= 0 && currentIndex < collection.size()) MDD.confirm("Are you sure you want to delete this item?", () -> {
                 try {
                     Object m = editorViewComponent.getModel();
-                    ReflectionHelper.removeFromCollection(parentBinder, field, parentBinder.getBean(), Lists.newArrayList(m));
+                    collection = ReflectionHelper.removeFromCollection(parentBinder, field, parentBinder.getBean(), Lists.newArrayList(m));
                     parentBinder.getRemovables().add(m);
 
                     try {
@@ -169,7 +168,7 @@ public class OwnedCollectionComponent extends VerticalLayout {
 
         editorViewComponent.getBinder().addValueChangeListener(e -> {
             try {
-                ReflectionHelper.addToCollection(parentBinder, field, parentBinder.getBean(), editorViewComponent.getModel());
+                collection = ReflectionHelper.addToCollection(parentBinder, field, parentBinder.getBean(), editorViewComponent.getModel());
                 MDD.updateTitle(toString());
             } catch (Exception e1) {
                 MDD.alert(e1);

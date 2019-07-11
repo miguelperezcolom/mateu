@@ -37,6 +37,7 @@ public class MethodResultViewComponent extends AbstractViewComponent {
     private MDDBinder binder;
 
     private AbstractStylist stylist;
+    private ListViewComponent rpcListViewComponent;
 
     public List<Object> getMergeables() {
         return binder.getMergeables();
@@ -44,6 +45,10 @@ public class MethodResultViewComponent extends AbstractViewComponent {
 
     public Object getResult() {
         return result;
+    }
+
+    public ListViewComponent getRpcListViewComponent() {
+        return rpcListViewComponent;
     }
 
     public MethodResultViewComponent(Method method, Object result) {
@@ -199,7 +204,7 @@ public class MethodResultViewComponent extends AbstractViewComponent {
                 } else {
                     try {
                         if (MDD.isMobile()) addComponent(new RpcListViewComponent((RpcView) result).build());
-                        else addComponentsAndExpand(new RpcListViewComponent((RpcView) result).build());
+                        else addComponentsAndExpand(rpcListViewComponent = new RpcListViewComponent((RpcView) result).build());
                     } catch (Throwable throwable) {
                         MDD.alert(throwable);
                     }

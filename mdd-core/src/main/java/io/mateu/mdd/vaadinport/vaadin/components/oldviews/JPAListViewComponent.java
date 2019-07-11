@@ -389,7 +389,7 @@ public class JPAListViewComponent extends ListViewComponent {
                     }
                 }
 
-                if (f.isAnnotationPresent(Id.class)) id = f;
+                if (false && f.isAnnotationPresent(Id.class)) id = f;
 
         }
 

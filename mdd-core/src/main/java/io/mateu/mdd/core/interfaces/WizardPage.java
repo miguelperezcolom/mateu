@@ -18,4 +18,6 @@ public interface WizardPage {
         System.out.println("wizard done");
     }
 
+    default boolean backOnOk() { return true; }
+
 }

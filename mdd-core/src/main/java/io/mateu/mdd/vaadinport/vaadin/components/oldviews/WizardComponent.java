@@ -1,10 +1,8 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.core.CSS;
@@ -35,15 +33,16 @@ public class WizardComponent extends VerticalLayout {
 
         addStyleName(CSS.NOPADDING);
 
-        addComponent(container = new VerticalLayout());
-        container.addStyleName(CSS.NOPADDING);
+        setSizeFull();
 
+        Panel panel;
+        addComponentsAndExpand(panel = new Panel(container = new VerticalLayout()));
+        panel.addStyleName(ValoTheme.PANEL_BORDERLESS);
+        container.addStyleName(CSS.NOPADDING);
 
         HorizontalLayout hl;
         addComponent(hl = new HorizontalLayout(goToPreviousButton = new Button(VaadinIcons.ARROW_LEFT), goToNextButton = new Button(VaadinIcons.ARROW_RIGHT), okButton = new Button(VaadinIcons.CHECK)));
         hl.addStyleName(CSS.NOPADDING);
-
-        addComponentsAndExpand(new Label(""));
 
         goToPreviousButton.addClickListener(e -> {
             WizardPage prevPage = stack.remove(0);
@@ -70,7 +69,7 @@ public class WizardComponent extends VerticalLayout {
 
                 currentPage.onOk();
 
-                MDDUI.get().getNavegador().goBack();
+                if (currentPage.backOnOk()) MDDUI.get().getNavegador().goBack();
 
             } catch (Throwable throwable) {
                 MDD.alert(throwable);

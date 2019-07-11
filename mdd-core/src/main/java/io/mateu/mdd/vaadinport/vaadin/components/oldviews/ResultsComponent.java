@@ -8,12 +8,16 @@ import com.vaadin.event.SortEvent;
 import com.vaadin.event.selection.SelectionEvent;
 import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.ui.Grid;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.components.grid.ItemClickListener;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 
-import java.util.Optional;
-import java.util.Set;
+import java.lang.reflect.InvocationTargetException;
+import java.text.DecimalFormat;
+import java.util.*;
 
 public class ResultsComponent extends VerticalLayout {
 
@@ -23,6 +27,7 @@ public class ResultsComponent extends VerticalLayout {
     private CallbackDataProvider<Object,Object> dataProvider;
     private int lastClickedRowIndex = -1;
     private Query<Object,Object> lastQuery;
+    private Label labelSelection;
 
     public int getLastClickedRowIndex() {
         return lastClickedRowIndex;
@@ -168,7 +173,6 @@ public class ResultsComponent extends VerticalLayout {
         grid.addSelectionListener(new SelectionListener() {
             @Override
             public void selectionChange(SelectionEvent selectionEvent) {
-                System.out.println("selected " + selectionEvent.getFirstSelectedItem());
                 select(listViewComponent.toId(selectionEvent.getFirstSelectedItem()));
             }
         });
@@ -186,7 +190,9 @@ public class ResultsComponent extends VerticalLayout {
             }
         });
 
+        labelSelection = new Label("No items selected");
 
+        addComponent(labelSelection);
 
         addComponentsAndExpand(grid);
 
@@ -204,9 +210,60 @@ public class ResultsComponent extends VerticalLayout {
     private void select(Object id) {
         try {
             listViewComponent.select(id);
+            refreshSelectionLabel();
         } catch (Throwable throwable) {
             MDD.alert(throwable);
         }
+    }
+
+    private void refreshSelectionLabel() {
+        String s = "No items selected";
+        Set sel = getSelection();
+        if (sel.size() > 0) {
+            s = sel.size() + " items selected";
+
+            Map<Integer, Object> sums = new LinkedHashMap<>();
+            Map<Integer, String> labels = new LinkedHashMap<>();
+
+            for (Object i : sel) if (i != null) {
+                if (i instanceof Object[]) {
+                    Object[] a = (Object[]) i;
+                    for (int j = 0; j < a.length; j++) {
+                        if (a[j] != null && a[j] instanceof Double) {
+                            sums.put(j, (Double) sums.getOrDefault(j, 0.0) + (Double) a[j]);
+                            if (!labels.containsKey(j)) labels.put(j, (j > 1 && grid.getColumns().size() > j - 1?((Grid.Column)grid.getColumns().get(j - 1)).getCaption():"" + j));
+                        } else if (a[j] != null && a[j] instanceof Integer) {
+                            sums.put(j, (Integer) sums.getOrDefault(j, 0) + (Integer) a[j]);
+                            if (!labels.containsKey(j)) labels.put(j, (j > 1 && grid.getColumns().size() > j - 1?((Grid.Column)grid.getColumns().get(j - 1)).getCaption():"" + j));
+                        }
+                    }
+                } else {
+                    List<FieldInterfaced> fields = ReflectionHelper.getAllFields(listViewComponent.getColumnType());
+                    try {
+                        for (int j = 0; j < fields.size(); j++) {
+                            FieldInterfaced f = fields.get(j);
+                            if (Double.class.equals(f.getType()) || double.class.equals(f.getType())) {
+                                sums.put(j, (Double) sums.getOrDefault(j, 0.0) + (Double) ReflectionHelper.getValue(f, i));
+                                if (!labels.containsKey(j)) labels.put(j, ReflectionHelper.getCaption(f));
+                            } else if (Integer.class.equals(f.getType()) || int.class.equals(f.getType())) {
+                                sums.put(j, (Integer) sums.getOrDefault(j, 0) + (Integer) ReflectionHelper.getValue(f, i));
+                                if (!labels.containsKey(j)) labels.put(j, ReflectionHelper.getCaption(f));
+                            }
+                        }
+                    } catch (Exception e) {
+                        MDD.alert(e);
+                    }
+                }
+            }
+
+            DecimalFormat df = new DecimalFormat("##,###,###,###,###,###.00");
+            for (int j : sums.keySet()) {
+                Object v = sums.get(j);
+                if (v instanceof Double) v = df.format(v);
+                s += ", Σ " + labels.get(j) + " = " + v;
+            }
+        }
+        labelSelection.setValue(s);
     }
 
     public void search(Object filters) throws Throwable {

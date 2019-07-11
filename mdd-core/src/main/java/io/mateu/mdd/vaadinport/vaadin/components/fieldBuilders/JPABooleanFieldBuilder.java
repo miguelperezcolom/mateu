@@ -29,7 +29,7 @@ public class JPABooleanFieldBuilder extends AbstractFieldBuilder {
     public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
 
 
-        if (forSearchFilter) {
+        if (forSearchFilter && object != null && object.getClass().getName().endsWith("000Filters")) {
 
             ComboBox<Object> cb;
             container.addComponent(cb = new ComboBox<>());

@@ -177,15 +177,16 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         } else if ((mh = ReflectionHelper.getMethod(field.getDeclaringClass(), ReflectionHelper.getGetter(field.getName()) + "Html")) != null) {
 
             VerticalLayout hl = new VerticalLayout();
+            hl.addStyleName("collectionlinklabel");
 
             Label l;
             hl.addComponent(l = new Label("", ContentMode.HTML));
-            l.addStyleName("collectionlinklabel");
             hl.addStyleName(CSS.NOPADDING);
 
             Button b;
             hl.addComponent(b = new Button("Edit"));
             b.addStyleName(ValoTheme.BUTTON_LINK);
+            b.addStyleName("linkeditar");
             b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
 
             hl.setCaption(ReflectionHelper.getCaption(field));
@@ -193,6 +194,21 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             container.addComponent(hl);
 
             bind(binder, l, field, mh);
+
+        } else if (Resource.class.equals(field.getGenericClass())) {
+
+            VerticalLayout hl = new VerticalLayout();
+
+            Label l;
+            hl.addComponent(l = new Label("", ContentMode.HTML));
+            l.addStyleName("collectionlinklabel");
+            hl.addStyleName(CSS.NOPADDING);
+
+            hl.setCaption(ReflectionHelper.getCaption(field));
+
+            container.addComponent(hl);
+
+            bindResourcesList(binder, l, field);
 
         } else {
 
@@ -960,6 +976,63 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         });
 
         return hl;
+    }
+
+    private void bindResourcesList(MDDBinder binder, Label l, FieldInterfaced field) {
+        Binder.BindingBuilder aux = binder.forField(new HasValue() {
+            @Override
+            public void setValue(Object o) {
+                if (o == null || ((Collection)o).size() == 0) l.setValue("Empty list");
+                else {
+                    try {
+
+                        String h = "<div class='freeTexts'>";
+                        for (Resource l : (Collection<Resource>)o) {
+                            h += "<div class='line'>";
+                            h += "<a href='" + l.toFileLocator().getUrl() + "'>" + l.getName() + "</a>";
+                            h += "</div>";
+                        }
+                        h += "</div>";
+
+                        l.setValue(h);
+                    } catch (Exception e) {
+                        MDD.alert(e);
+                    }
+                }
+            }
+
+            @Override
+            public Object getValue() {
+                return null;
+            }
+
+            @Override
+            public Registration addValueChangeListener(ValueChangeListener valueChangeListener) {
+                return null;
+            }
+
+            @Override
+            public void setRequiredIndicatorVisible(boolean b) {
+
+            }
+
+            @Override
+            public boolean isRequiredIndicatorVisible() {
+                return false;
+            }
+
+            @Override
+            public void setReadOnly(boolean b) {
+
+            }
+
+            @Override
+            public boolean isReadOnly() {
+                return false;
+            }
+        });
+        aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+        aux.bind(field.getName());
     }
 
     private void bind(MDDBinder binder, Label l, FieldInterfaced field, Method htmlGetter) {

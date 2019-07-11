@@ -599,13 +599,25 @@ body {
     .viewcontainer {
       .nopadding {
         padding: 0px;
+
+        .checkboxcontainer {
+          padding-top: 8px;
+        }
       }
     }
 
     .methodresultflowcomponent {
       .nopadding {
         padding: 0px;
+
+        .checkboxcontainer {
+          padding-top: 8px;
+        }
       }
+    }
+
+    .checkboxcontainer {
+      padding-top: 8px;
     }
 
     .embedded {
@@ -817,7 +829,7 @@ body {
   .section {
     margin-right: 50px;
     max-width: 500px;
-    min-width: 400px;
+    min-width: 500px;
   }
 
   .section-fullwidth {
@@ -1148,6 +1160,9 @@ body {
 
   .collectionlinklabel {
     margin-top: 6px;
+
+    margin-bottom: 10px;
+
   }
 
   .green {
