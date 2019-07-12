@@ -1,6 +1,7 @@
 package io.mateu.mdd.tester.model.useCases.hotel;
 
 import io.mateu.mdd.core.annotations.Action;
+import io.mateu.mdd.core.annotations.UseIdToSelect;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,6 +13,7 @@ import java.util.Set;
 
 @Entity
 @Getter@Setter
+@UseIdToSelect
 public class Hotel {
 
     @Id@GeneratedValue(strategy = GenerationType.IDENTITY)

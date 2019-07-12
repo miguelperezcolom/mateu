@@ -76,11 +76,16 @@ public class JPADoubleFieldBuilder extends JPAStringFieldBuilder {
 
             @Override
             public Result<Double> convertToModel(String value, ValueContext context) {
+                System.out.println("------------------>JPADoubleFieldBuilder.convertToModel(" + value + ")");
                 if (value != null) {
                     if (value.contains(".") && value.contains(",")) value = value.replaceAll("\\.", "");
                     value = value.replaceAll("\\.", ",");
                 }
-                return super.convertToModel(value, context);
+                Result<Double> r = null;
+                if (!Strings.isNullOrEmpty(value)) {
+                    r = Result.ok(Double.parseDouble(value.trim()));
+                }
+                return r;
             }
         });
         if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));

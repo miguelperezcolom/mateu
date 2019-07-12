@@ -8,6 +8,7 @@ import com.vaadin.data.Validator;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.SerializablePredicate;
+import com.vaadin.server.UserError;
 import com.vaadin.shared.Registration;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
@@ -184,6 +185,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                         finalHv.setValue(null);
                         HasValue.ValueChangeEvent vce = new HasValue.ValueChangeEvent(stf, finalHv, oldValue, true);
                         listeners.forEach(listener -> listener.valueChange(vce));
+                        stf.setComponentError(null);
                     }
                     else {
                         try {
@@ -210,8 +212,10 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
                                 if (r.size() == 1) {
                                     finalHv.setValue(r.get(0));
+                                    stf.setComponentError(null);
                                 } else {
                                     finalHv.setValue(null);
+                                    stf.setComponentError(new UserError("Not found"));
                                 }
 
 
@@ -220,6 +224,13 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
                             });
                         } catch (Throwable throwable) {
+                            if (throwable instanceof InvocationTargetException) {
+                                throwable = throwable.getCause();
+                            }
+
+                            String msg = (throwable.getMessage() != null)?throwable.getMessage():throwable.getClass().getName();
+
+                            stf.setComponentError(new UserError(msg));
                             MDD.alert(throwable);
                         }
                     }
