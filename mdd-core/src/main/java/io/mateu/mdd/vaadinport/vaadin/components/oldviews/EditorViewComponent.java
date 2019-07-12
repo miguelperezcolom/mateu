@@ -756,7 +756,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 }
             }
 
-            if (modelType.isAnnotationPresent(Entity.class) && !isActionPresent("duplicate") && !isNewRecord()) {
+            if ((modelType.isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(modelType)) && !isActionPresent("duplicate") && !isNewRecord()) {
 
                 MenuBar.Command cmd;
                 MenuBar.MenuItem i = bar.addItem("Duplicate", VaadinIcons.COPY, cmd = new MenuBar.Command() {
