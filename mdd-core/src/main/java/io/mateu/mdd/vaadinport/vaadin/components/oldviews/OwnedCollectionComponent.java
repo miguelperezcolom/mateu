@@ -25,10 +25,7 @@ import javax.persistence.Entity;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class OwnedCollectionComponent extends VerticalLayout {
@@ -37,6 +34,7 @@ public class OwnedCollectionComponent extends VerticalLayout {
     private final Button goToNextButton;
     private final Button addButton;
     private final Button removeButton;
+    private final Button copyButton;
 
     private final VerticalLayout container;
 
@@ -81,7 +79,7 @@ public class OwnedCollectionComponent extends VerticalLayout {
         container.addStyleName(CSS.NOPADDING);
 
         HorizontalLayout hl;
-        addComponent(hl = new HorizontalLayout(goToPreviousButton = new Button(VaadinIcons.ARROW_LEFT), goToNextButton = new Button(VaadinIcons.ARROW_RIGHT), addButton = new Button(VaadinIcons.PLUS), removeButton = new Button(VaadinIcons.MINUS)));
+        addComponent(hl = new HorizontalLayout(goToPreviousButton = new Button(VaadinIcons.ARROW_LEFT), goToNextButton = new Button(VaadinIcons.ARROW_RIGHT), addButton = new Button(VaadinIcons.PLUS), removeButton = new Button(VaadinIcons.MINUS), copyButton = new Button(VaadinIcons.COPY)));
         hl.addStyleName(CSS.NOPADDING);
 
         //addComponentsAndExpand(new Label(""));
@@ -134,6 +132,26 @@ public class OwnedCollectionComponent extends VerticalLayout {
                 }
             });
             else MDD.alert("Can not remove this item");
+        });
+
+        copyButton.addClickListener(e -> {
+            try {
+
+                if (currentIndex > 0) {
+                    getElementAt(currentIndex, v0 -> {
+                        try {
+                            getElementAt(currentIndex - 1, v -> {
+                                ReflectionHelper.copy(v0, v);
+                            });
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    });
+                }
+
+            } catch (Throwable throwable) {
+                MDD.alert(throwable);
+            }
         });
 
         // incrustamos un nuevo elemento

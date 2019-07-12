@@ -2123,4 +2123,16 @@ public class ReflectionHelper {
         if (Integer.class.equals(f.getType()) || int.class.equals(f.getType())) id = Integer.parseInt(s);
         return id;
     }
+
+    public static void copy(Object o1, Object o2) {
+        if (o1 != null && o2 != null && o1.getClass().equals(o2.getClass())) {
+            for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(o2.getClass())) {
+                try {
+                    ReflectionHelper.setValue(f, o2, ReflectionHelper.getValue(f, o1));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 }
