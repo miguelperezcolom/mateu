@@ -7,6 +7,7 @@ import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Caption;
 import io.mateu.mdd.core.annotations.SubApp;
 import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.tester.model.entities.basic.BasicFieldsDemoEntity;
@@ -21,6 +22,13 @@ import java.util.List;
 
 @Caption("My simple app")
 public class SimpleApp extends SimpleMDDApplication {
+
+
+
+    @Action(order = 0)
+    public Class appconfig() {
+        return AppConfig.class;
+    }
 
 
 

@@ -70,6 +70,7 @@ public class JPADoubleFieldBuilder extends JPAStringFieldBuilder {
                     //String s = super.convertToPresentation(value, context);
                     String s = "" + value;
                     if (s.endsWith(".0")) s = s.replaceAll("\\.0", "");
+                    System.out.println("------------------>JPADoubleFieldBuilder.convertToPresentation()=" + s);
                     return s;
                 }
             }

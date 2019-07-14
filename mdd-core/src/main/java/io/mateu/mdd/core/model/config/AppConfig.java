@@ -1,7 +1,11 @@
 package io.mateu.mdd.core.model.config;
 
 import com.google.common.base.Strings;
+import com.vaadin.server.ExternalResource;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Link;
+import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.model.util.EmailHelper;
@@ -91,6 +95,12 @@ public class AppConfig {
 
     });
 
+    @Transient
+    private VerticalLayout gmailRequiredLinks = new VerticalLayout(
+            new Link("https://myaccount.google.com/lesssecureapps", new ExternalResource("https://myaccount.google.com/lesssecureapps"))
+            , new Link("https://accounts.google.com/DisplayUnlockCaptcha", new ExternalResource("https://accounts.google.com/DisplayUnlockCaptcha"))
+    );
+
 
     private String pop3Host;
 
@@ -150,6 +160,35 @@ public class AppConfig {
                 }
             }
         });
+    }
+
+    public static void main(String[] args) {
+       testPureEmail();
+    }
+
+    private static void testPureEmail() {
+        try {
+
+            HtmlEmail email = new HtmlEmail();
+            email.setHostName("smtp.gmail.com");
+            email.setSmtpPort(587);
+            email.setAuthenticator(new DefaultAuthenticator("miguelperezcolom@gmail.com", ""));
+            email.setSSLOnConnect(false);
+            email.setStartTLSEnabled(true);
+            email.setFrom("miguelperezcolom@gmail.com");
+
+            email.setSubject("Test email");
+            email.setHtmlMsg("This is a test email");
+            email.addTo("miguelperezcolom@gmail.com");
+
+            EmailHelper.send(email);
+
+
+            System.out.println("Email sent OK");
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
 }

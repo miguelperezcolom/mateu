@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.pojos;
 
+import io.mateu.mdd.core.annotations.NonDuplicable;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.util.JPATransaction;
 import lombok.Getter;
@@ -20,7 +21,7 @@ import javax.persistence.EntityManager;
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
 
-@Getter@Setter
+@Getter@Setter@NonDuplicable
 public class Profile implements PersistentPOJO {
 
     @Ignored
