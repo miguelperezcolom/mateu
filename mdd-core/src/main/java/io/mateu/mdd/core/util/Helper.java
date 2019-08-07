@@ -52,6 +52,7 @@ import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
+import org.jinq.jpa.JinqJPAStreamProvider;
 import org.xml.sax.SAXException;
 
 import javax.mail.Message;
@@ -95,6 +96,7 @@ public class Helper {
 
     public static boolean propertiesLoaded = false;
     private static org.apache.avalon.framework.configuration.Configuration fopConfig;
+    private static Map<String, JinqJPAStreamProvider> streams = new HashMap<>();
 
     static {
         loadProperties();
@@ -286,10 +288,22 @@ public class Helper {
         emf.clear();
     }
 
+    public static JinqJPAStreamProvider getSstreams() {
+        return getStreams(System.getProperty("defaultpuname", "default"));
+    }
+
+    public static JinqJPAStreamProvider getStreams(String persistenceUnit) {
+        JinqJPAStreamProvider s = streams.get(persistenceUnit);
+        if (s == null) {
+            streams.put(persistenceUnit, s = new JinqJPAStreamProvider(getEMF(persistenceUnit)));
+        }
+        return s;
+    }
 
     public static EntityManagerFactory getEMF() {
         return getEMF(System.getProperty("defaultpuname", "default"));
     }
+
 
     public static EntityManagerFactory getEMF(String persistenceUnit) {
         EntityManagerFactory v;

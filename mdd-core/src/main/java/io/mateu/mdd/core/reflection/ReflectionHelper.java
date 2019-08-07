@@ -1728,6 +1728,9 @@ public class ReflectionHelper {
             if (forFilters) {
 
                 if (forFilters && boolean.class.equals(t)) t = Boolean.class;
+                if (forFilters && int.class.equals(t)) t = Integer.class;
+                if (forFilters && long.class.equals(t)) t = Long.class;
+                if (forFilters && double.class.equals(t)) t = Double.class;
 
 
                 if (LocalDate.class.equals(t) || LocalDateTime.class.equals(t) || Date.class.equals(t)) {

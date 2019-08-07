@@ -75,7 +75,7 @@ public class JPALongFieldBuilder extends JPAStringFieldBuilder {
             @Override
             public String convertToPresentation(Long value, ValueContext context) {
                 if (value == null) return "";
-                else return super.convertToPresentation(value, context);
+                else return "" + value;
             }
         });
         if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));

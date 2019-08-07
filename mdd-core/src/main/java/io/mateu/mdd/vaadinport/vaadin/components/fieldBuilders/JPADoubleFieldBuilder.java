@@ -21,7 +21,10 @@ import javax.validation.constraints.DecimalMax;
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class JPADoubleFieldBuilder extends JPAStringFieldBuilder {
@@ -84,7 +87,14 @@ public class JPADoubleFieldBuilder extends JPAStringFieldBuilder {
                 }
                 Result<Double> r = null;
                 if (!Strings.isNullOrEmpty(value)) {
-                    r = Result.ok(Double.parseDouble(value.trim()));
+                    NumberFormat format = NumberFormat.getInstance(Locale.FRANCE);
+                    Number number = null;
+                    try {
+                        number = format.parse(value.trim());
+                        double d = number.doubleValue();
+                        r = Result.ok(d);
+                    } catch (ParseException e) {
+                    }
                 }
                 return r;
             }

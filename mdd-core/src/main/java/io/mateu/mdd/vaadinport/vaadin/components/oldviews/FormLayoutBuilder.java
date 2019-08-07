@@ -262,8 +262,8 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
 
 
-            if (!f.forceInput() && (f.isAnnotationPresent(GeneratedValue.class) || (MDDUI.get().getNavegador().getViewProvider().getCurrentEditor() != null && (f.isAnnotationPresent(Output.class) || (!MDDUI.get().getNavegador().getViewProvider().getCurrentEditor().isNewRecord() && f.getDeclaringClass().isAnnotationPresent(Unmodifiable.class))))
-                    || (!Component.class.isAssignableFrom(f.getType()) && ReflectionHelper.getMethod(model.getClass(), ReflectionHelper.getSetter(f)) == null))) {
+            if (!forSearchFilters && (!f.forceInput() && (f.isAnnotationPresent(GeneratedValue.class) || (MDDUI.get().getNavegador().getViewProvider().getCurrentEditor() != null && (f.isAnnotationPresent(Output.class) || (!MDDUI.get().getNavegador().getViewProvider().getCurrentEditor().isNewRecord() && f.getDeclaringClass().isAnnotationPresent(Unmodifiable.class))))
+                    || (!Component.class.isAssignableFrom(f.getType()) && ReflectionHelper.getMethod(model.getClass(), ReflectionHelper.getSetter(f)) == null)))) {
                 ofb.build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters);
             } else if (f.isAnnotationPresent(FieldBuilder.class)) {
                 try {

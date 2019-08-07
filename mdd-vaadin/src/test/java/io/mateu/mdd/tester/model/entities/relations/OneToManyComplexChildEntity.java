@@ -1,7 +1,6 @@
 package io.mateu.mdd.tester.model.entities.relations;
 
 import io.mateu.mdd.core.annotations.ListColumn;
-import io.mateu.mdd.core.annotations.SearchFilter;
 import io.mateu.mdd.core.annotations.WeekDays;
 import lombok.Getter;
 import lombok.Setter;

@@ -1,12 +1,28 @@
 package io.mateu.mdd.tester.servicios;
 
-import org.glassfish.jersey.server.ResourceConfig;
+import io.mateu.mdd.core.rest.MateuRestApiResourceConfig;
+import io.swagger.annotations.Contact;
+import io.swagger.annotations.Info;
+import io.swagger.annotations.SwaggerDefinition;
 
 import javax.ws.rs.ApplicationPath;
 
 @ApplicationPath("rest")
-public class MiApp extends ResourceConfig {
-    public MiApp() {
-        packages("org.foo.rest;io.mateu.mdd.rest;io.mateu.mdd.tester.servicios");
+@SwaggerDefinition(info = @Info(
+        title = "Example Service",
+        description = "A simple example of apiee",
+        version = "1.0.0",
+        contact = @Contact(
+                name = "Miguel Pérez Colom",
+                email = "miguelperezcolom@gmail.com",
+                url = "http://mateu.io"
+        )
+)
+)
+public class MiApp extends MateuRestApiResourceConfig {
+
+    public String getPackagesToBeScanned() {
+        return "io.mateu.mdd.tester.servicios";
     }
+
 }

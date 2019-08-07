@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,10 +20,13 @@ public class Booking {
 
     @Id@GeneratedValue(strategy = GenerationType.IDENTITY)
     @ListColumn
+    @MainSearchFilter
     private long id;
 
     @ListColumn
     private String leadName;
+
+    private LocalDateTime ldt;
 
     @ManyToOne
     @ListColumn

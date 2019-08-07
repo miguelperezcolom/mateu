@@ -77,7 +77,8 @@ public class JPAIntegerFieldBuilder extends JPAStringFieldBuilder {
             @Override
             public String convertToPresentation(Integer value, ValueContext context) {
                 if (value == null) return "";
-                else return super.convertToPresentation(value, context);
+                else return "" + value;
+                //else return super.convertToPresentation(value, context);
             }
         });
         if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));

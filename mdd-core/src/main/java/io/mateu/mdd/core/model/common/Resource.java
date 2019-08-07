@@ -7,8 +7,6 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.Utils;
 import lombok.Getter;
 import lombok.Setter;
-import io.mateu.mdd.core.data.FileLocator;
-import io.mateu.mdd.core.util.Utils;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

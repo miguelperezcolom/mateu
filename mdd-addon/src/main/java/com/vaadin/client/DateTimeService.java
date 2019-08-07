@@ -689,6 +689,14 @@ public class DateTimeService {
         return date;
     }
 
+
+    public static void main(String[] args) {
+        String s = "2019 15:20";
+        System.out.println(s.split(" ")[1].replaceAll("[^\\d]", ""));
+        System.out.println(s.split(" ")[0].replaceAll("[^\\d]", ""));
+    }
+
+
     private static Logger getLogger() {
         return Logger.getLogger(DateTimeService.class.getName());
     }
