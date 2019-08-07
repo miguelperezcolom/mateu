@@ -52,26 +52,30 @@ public class GraphQLServlet extends GraphQLHttpServlet {
 
         Logger l = LoggerFactory.getLogger("graphql");
 
-        if (l instanceof ch.qos.logback.classic.Logger) ((ch.qos.logback.classic.Logger)l).setLevel(Level.ERROR);
+        if ("true".equalsIgnoreCase(System.getProperty("graphql"))) {
 
-        System.out.println(l.getClass().getName());
+            if (l instanceof ch.qos.logback.classic.Logger) ((ch.qos.logback.classic.Logger)l).setLevel(Level.ERROR);
 
-        try {
-            String schema = crearSchema();
+            System.out.println(l.getClass().getName());
 
-            System.out.println(schema);
+            try {
+                String schema = crearSchema();
+
+                System.out.println(schema);
 
 
-            SchemaParser schemaParser = new SchemaParser();
-            TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schema);
+                SchemaParser schemaParser = new SchemaParser();
+                TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schema);
 
-            RuntimeWiring runtimeWiring = crearRuntimeWiring();
+                RuntimeWiring runtimeWiring = crearRuntimeWiring();
 
-            SchemaGenerator schemaGenerator = new SchemaGenerator();
-            graphQLSchema = schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring);
+                SchemaGenerator schemaGenerator = new SchemaGenerator();
+                graphQLSchema = schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring);
 
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
+            }
+
         }
 
     }
