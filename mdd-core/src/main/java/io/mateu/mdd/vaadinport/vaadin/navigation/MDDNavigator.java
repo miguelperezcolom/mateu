@@ -4,15 +4,14 @@ import com.google.common.base.Strings;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.interfaces.PersistentPOJO;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.interfaces.PersistentPOJO;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.app.views.FieldEditorComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorListener;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 
 import javax.persistence.Entity;
@@ -191,6 +190,9 @@ public class MDDNavigator {
         } else if (stack.getLast().getComponent() instanceof FieldEditorComponent) {
             EditorViewComponent editor = ((FieldEditorComponent) stack.getLast().getComponent()).getEditor();
             if (editor != null) editor.onGoBack();
+        } else if (stack.getLast().getComponent() instanceof MethodResultViewFlowComponent) {
+            Object result = ((MethodResultViewFlowComponent)stack.getLast().getComponent()).getResult();
+            if (result != null && result instanceof EditorListener) ((EditorListener) result).onGoBack(result);
         }
 
         String u = stack.getState(stack.getLast());

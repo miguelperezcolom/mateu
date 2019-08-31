@@ -7,7 +7,6 @@ import com.vaadin.shared.ui.ErrorLevel;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Layout;
-import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.annotations.DataProvider;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;

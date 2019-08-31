@@ -7,14 +7,12 @@ import com.vaadin.server.ExternalResource;
 import com.vaadin.shared.Registration;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.CSS;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.model.common.FileType;
-import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.model.common.FileType;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -26,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+@Slf4j
 public class FileComponent extends Composite implements HasValue<Resource>, Component.Focusable {
     private final MDDBinder binder;
     private final Link hyperLink;
@@ -47,7 +46,7 @@ public class FileComponent extends Composite implements HasValue<Resource>, Comp
                                               String mimeType) {
                 // Create and return a file output stream
 
-                System.out.println("receiveUpload(" + fileName + "," + mimeType + ")");
+                log.debug("receiveUpload(" + fileName + "," + mimeType + ")");
 
                 FileOutputStream os = null;
                 if (fileName != null && !"".equals(fileName)) {
@@ -86,7 +85,7 @@ public class FileComponent extends Composite implements HasValue<Resource>, Comp
                 }
 
 
-                System.out.println("uploadSucceeded(" + filex.getAbsolutePath() + ")");
+                log.debug("uploadSucceeded(" + filex.getAbsolutePath() + ")");
 
                 try {
 
@@ -228,7 +227,7 @@ public class FileComponent extends Composite implements HasValue<Resource>, Comp
          upload.addChangeListener(e -> {
 
 
-             System.out.println("UPLOAD HA CAMBIADO!");
+             log.debug("UPLOAD HA CAMBIADO!");
 
 
          });

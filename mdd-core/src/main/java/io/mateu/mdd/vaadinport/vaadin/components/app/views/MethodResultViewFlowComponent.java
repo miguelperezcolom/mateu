@@ -2,19 +2,14 @@ package io.mateu.mdd.vaadinport.vaadin.components.app.views;
 
 import com.google.common.base.Strings;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.VerticalLayout;
-import io.mateu.mdd.core.annotations.Caption;
-import io.mateu.mdd.core.annotations.Output;
-import io.mateu.mdd.core.interfaces.RpcView;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.MethodResultViewComponent;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
+import io.mateu.mdd.core.annotations.Caption;
 import io.mateu.mdd.core.annotations.Output;
 import io.mateu.mdd.core.interfaces.PersistentPOJO;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.interfaces.WizardPage;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
@@ -22,7 +17,6 @@ import io.mateu.mdd.vaadinport.vaadin.components.oldviews.MethodResultViewCompon
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.WizardComponent;
 
 import javax.persistence.Entity;
-import javax.persistence.Id;
 import javax.persistence.Query;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

@@ -1,11 +1,13 @@
 package io.mateu.mdd.tester.model.tests;
 
 import io.mateu.mdd.core.util.Helper;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Query;
 import java.util.List;
 import java.util.Scanner;
 
+@Slf4j
 public class JPQLTester {
 
     public static void main(String[] args) {
@@ -15,7 +17,7 @@ public class JPQLTester {
         String previousLines = "";
         String s = null;
         while (!(s = in.next()).equals("\\q")) {
-            System.out.println("read:" + s);
+            log.debug("read:" + s);
             if (!s.contains(";")) {
                 if (!"".equals(previousLines)) previousLines += "\n";
                 previousLines += s;
@@ -28,7 +30,7 @@ public class JPQLTester {
                     Helper.transact(em -> {
                         Query q = em.createQuery(finalQl);
                         List l = q.getResultList();
-                        System.out.println("l.size() = " + l.size());
+                        log.debug("l.size() = " + l.size());
                     });
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();

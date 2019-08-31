@@ -1,12 +1,6 @@
 package io.mateu.mdd.core.app;
 
 import com.google.common.base.Strings;
-import io.mateu.mdd.core.data.FileLocator;
-import io.mateu.mdd.core.data.UserData;
-import io.mateu.mdd.core.model.config.AppConfig;
-import io.mateu.mdd.core.model.ui.EditedRecord;
-import io.mateu.mdd.core.util.JPATransaction;
-import io.mateu.mdd.core.util.Utils;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.Data;
 import io.mateu.mdd.core.data.FileLocator;
@@ -20,6 +14,7 @@ import io.mateu.mdd.core.model.ui.EditedRecord;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.core.util.Utils;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -30,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 public abstract class BaseMDDApp extends AbstractApplication {
 
 
@@ -45,14 +41,14 @@ public abstract class BaseMDDApp extends AbstractApplication {
 
         java.io.File temp = (System.getProperty("tmpdir") == null)? java.io.File.createTempFile(fileName, extension):new java.io.File(new java.io.File(System.getProperty("tmpdir")), fileName + extension);
 
-        System.out.println("java.io.tmpdir=" + System.getProperty("java.io.tmpdir"));
-        System.out.println("Temp file : " + temp.getAbsolutePath());
+        log.debug("java.io.tmpdir=" + System.getProperty("java.io.tmpdir"));
+        log.debug("Temp file : " + temp.getAbsolutePath());
 
         if (true || !temp.exists()) {
-            System.out.println("writing temp file to " + temp.getAbsolutePath());
+            log.debug("writing temp file to " + temp.getAbsolutePath());
             Utils.write(temp, bytes);
         } else {
-            System.out.println("temp file already exists");
+            log.debug("temp file already exists");
         }
 
         String baseUrl = System.getProperty("tmpurl");

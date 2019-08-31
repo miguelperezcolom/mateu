@@ -5,7 +5,6 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 
 import java.lang.reflect.Method;
-import java.util.function.Consumer;
 
 public class MDDCallMethodAction extends AbstractAction {
 

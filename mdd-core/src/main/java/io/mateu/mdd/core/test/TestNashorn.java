@@ -1,6 +1,7 @@
 package io.mateu.mdd.core.test;
 
 import io.mateu.mdd.core.data.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
@@ -10,6 +11,7 @@ import javax.script.ScriptException;
 /**
  * Created by miguel on 11/4/17.
  */
+@Slf4j
 public class TestNashorn {
 
     public static void main(String... args) throws ScriptException, NoSuchMethodException {
@@ -27,7 +29,7 @@ public class TestNashorn {
         inv.invokeFunction("hello", "Scripting!");
 
         Object r = nashorn.eval("n");
-        System.out.println("ha devuelto " + r);
+        log.debug("ha devuelto " + r);
 
 
         Data d = new Data("string", "Ajjeohwohqd", "int", 2, "bool", true, "double", 2.5);

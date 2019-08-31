@@ -7,54 +7,42 @@ import com.byteowls.vaadin.chartjs.data.PieDataset;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.kbdunn.vaadin.addons.fontawesome.FontAwesome;
-import com.vaadin.data.*;
+import com.vaadin.data.HasDataProvider;
+import com.vaadin.data.ValueProvider;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.provider.QuerySortOrder;
-import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.event.ShortcutAction;
-import com.vaadin.event.selection.SelectionEvent;
-import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.SerializablePredicate;
-import com.vaadin.server.Setter;
-import com.vaadin.shared.Registration;
 import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
-import com.vaadin.ui.components.grid.*;
+import com.vaadin.ui.components.grid.EditorOpenEvent;
+import com.vaadin.ui.components.grid.EditorOpenListener;
+import com.vaadin.ui.components.grid.SortOrderProvider;
 import com.vaadin.ui.renderers.HtmlRenderer;
 import com.vaadin.ui.renderers.TextRenderer;
 import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonValue;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
-import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.*;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
-import io.mateu.mdd.core.interfaces.*;
-import io.mateu.mdd.core.reflection.FieldInterfacedForCheckboxColumn;
-import io.mateu.mdd.core.reflection.FieldInterfacedFromType;
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components.WeekDaysComponent;
-import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.*;
-import io.mateu.mdd.core.data.ChartData;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.data.SumData;
-import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.ICellStyleGenerator;
+import io.mateu.mdd.core.interfaces.RpcView;
+import io.mateu.mdd.core.interfaces.StyledEnum;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.core.reflection.FieldInterfacedForCheckboxColumn;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components.WeekDaysComponent;
+import lombok.extern.slf4j.Slf4j;
 import org.javamoney.moneta.FastMoney;
 
 import javax.money.MonetaryAmount;
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -67,6 +55,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Slf4j
 public abstract class ListViewComponent extends AbstractViewComponent<ListViewComponent> {
 
     public ResultsComponent resultsComponent;
@@ -167,6 +156,9 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         List<FieldInterfaced> descFields = new ArrayList<>();
 
         Object bean = binder != null?binder.getBean():null;
+
+        List<Grid.Column> colBindings = new ArrayList<>();
+        Map<Grid.Column, FieldInterfaced> fieldByCol = new HashMap<>();
 
         for (FieldInterfaced f : colFields) {
 
@@ -368,232 +360,257 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
             if (editable) {
 
-                Method mdp = ReflectionHelper.getMethod(f.getDeclaringClass(), ReflectionHelper.getGetter(f.getName()) + "DataProvider");
+                boolean eager = false;
 
-                if (f.isAnnotationPresent(ValueClass.class) || f.isAnnotationPresent(DataProvider.class) || mdp != null || f.isAnnotationPresent(ManyToOne.class)) {
+                if (f.isAnnotationPresent(Output.class)) {
+                } else {
 
-                    ComboBox cb = new ComboBox();
+                    Method mdp = ReflectionHelper.getMethod(f.getDeclaringClass(), ReflectionHelper.getGetter(f.getName()) + "DataProvider");
 
-                    //AbstractBackendDataProvider
-                    //FetchItemsCallback
-                    //newItemProvider
-
-                    boolean necesitaCaptionGenerator = false;
-
-                    if (mdp != null) {
-                        // en este punto no hacemos nada
-                    } else if (f.isAnnotationPresent(ValueClass.class)) {
-
-                        ValueClass a = f.getAnnotation(ValueClass.class);
-
-                        cb.setDataProvider(new JPQLListDataProvider(a.value()));
-
-                    } else if (f.isAnnotationPresent(DataProvider.class)) {
-
-                        necesitaCaptionGenerator = true;
-
-                        try {
-
-                            DataProvider a = f.getAnnotation(DataProvider.class);
-
-                            ((HasDataProvider)cb).setDataProvider(a.dataProvider().newInstance());
-
-                            cb.setItemCaptionGenerator(a.itemCaptionGenerator().newInstance());
-
-                        } catch (InstantiationException e) {
-                            e.printStackTrace();
-                        } catch (IllegalAccessException e) {
-                            e.printStackTrace();
-                        }
-
-                    } else {
-
-                        necesitaCaptionGenerator = true;
-
-                        try {
-                            Helper.notransact((em) -> cb.setDataProvider(new JPQLListDataProvider(em, f)));
-                        } catch (Throwable throwable) {
-                            throwable.printStackTrace();
-                        }
-                    }
-
-                    if (necesitaCaptionGenerator) {
-                        FieldInterfaced fName = ReflectionHelper.getNameField(f.getType());
-                        if (fName != null) cb.setItemCaptionGenerator((i) -> {
+                    if (f.getType().isAnnotationPresent(UseIdToSelect.class)) {
+                        TextField nf = new TextField();
+                        if (eager) nf.setValueChangeMode(ValueChangeMode.EAGER);
+                        col.setEditorComponent(nf, (o, v) -> {
                             try {
-                                return "" + ReflectionHelper.getValue(fName, i);
-                            } catch (NoSuchMethodException e) {
+                                //todo: validar entero
+                                ReflectionHelper.setValue(f, o, (v != null)?new FareValue((String) v):null);
+                                refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                            } catch (Exception e) {
+                                MDD.alert(e);
+                            }
+                        });
+                        col.setEditable(true);
+
+                    } else if (f.isAnnotationPresent(ValueClass.class) || f.isAnnotationPresent(DataProvider.class) || mdp != null || f.isAnnotationPresent(ManyToOne.class)) {
+
+                        ComboBox cb = new ComboBox();
+
+                        //AbstractBackendDataProvider
+                        //FetchItemsCallback
+                        //newItemProvider
+
+                        boolean necesitaCaptionGenerator = false;
+
+                        if (mdp != null) {
+                            // en este punto no hacemos nada
+                        } else if (f.isAnnotationPresent(ValueClass.class)) {
+
+                            ValueClass a = f.getAnnotation(ValueClass.class);
+
+                            cb.setDataProvider(new JPQLListDataProvider(a.value()));
+
+                        } else if (f.isAnnotationPresent(DataProvider.class)) {
+
+                            necesitaCaptionGenerator = true;
+
+                            try {
+
+                                DataProvider a = f.getAnnotation(DataProvider.class);
+
+                                ((HasDataProvider)cb).setDataProvider(a.dataProvider().newInstance());
+
+                                cb.setItemCaptionGenerator(a.itemCaptionGenerator().newInstance());
+
+                            } catch (InstantiationException e) {
                                 e.printStackTrace();
                             } catch (IllegalAccessException e) {
                                 e.printStackTrace();
-                            } catch (InvocationTargetException e) {
-                                e.printStackTrace();
                             }
-                            return "Error";
-                        });
-                    }
 
+                        } else {
 
-                    if (mdp != null) {
-                        grid.getEditor().addOpenListener(new EditorOpenListener() {
-                            @Override
-                            public void onEditorOpen(EditorOpenEvent editorOpenEvent) {
+                            necesitaCaptionGenerator = true;
+
+                            try {
+                                Helper.notransact((em) -> cb.setDataProvider(new JPQLListDataProvider(em, f)));
+                            } catch (Throwable throwable) {
+                                throwable.printStackTrace();
+                            }
+                        }
+
+                        if (necesitaCaptionGenerator) {
+                            FieldInterfaced fName = ReflectionHelper.getNameField(f.getType());
+                            if (fName != null) cb.setItemCaptionGenerator((i) -> {
                                 try {
-                                    Object object = editorOpenEvent.getBean();
-                                    cb.setDataProvider((com.vaadin.data.provider.DataProvider) mdp.invoke(object), fx -> new SerializablePredicate() {
-                                        @Override
-                                        public boolean test(Object o) {
-                                            String s = (String) fx;
-                                            return  o != null && (Strings.isNullOrEmpty(s) || cb.getItemCaptionGenerator().apply(o).toLowerCase().contains(((String) s).toLowerCase()));
-                                        }
-                                    });
-                                } catch (Exception e) {
-                                    MDD.alert(e);
+                                    return "" + ReflectionHelper.getValue(fName, i);
+                                } catch (NoSuchMethodException e) {
+                                    e.printStackTrace();
+                                } catch (IllegalAccessException e) {
+                                    e.printStackTrace();
+                                } catch (InvocationTargetException e) {
+                                    e.printStackTrace();
                                 }
+                                return "Error";
+                            });
+                        }
 
+
+                        if (mdp != null) {
+                            grid.getEditor().addOpenListener(new EditorOpenListener() {
+                                @Override
+                                public void onEditorOpen(EditorOpenEvent editorOpenEvent) {
+                                    try {
+                                        Object object = editorOpenEvent.getBean();
+                                        cb.setDataProvider((com.vaadin.data.provider.DataProvider) mdp.invoke(object), fx -> new SerializablePredicate() {
+                                            @Override
+                                            public boolean test(Object o) {
+                                                String s = (String) fx;
+                                                return  o != null && (Strings.isNullOrEmpty(s) || cb.getItemCaptionGenerator().apply(o).toLowerCase().contains(((String) s).toLowerCase()));
+                                            }
+                                        });
+                                    } catch (Exception e) {
+                                        MDD.alert(e);
+                                    }
+
+                                }
+                            });
+                        }
+
+                        col.setEditorComponent(cb, (o, v) -> {
+                            try {
+                                ReflectionHelper.setValue(f, o, v);
+                                refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                            } catch (Exception e) {
+                                MDD.alert(e);
                             }
                         });
-                    }
 
-                    col.setEditorComponent(cb, (o, v) -> {
-                        try {
-                            ReflectionHelper.setValue(f, o, v);
-                            if (binder != null) binder.refresh();
-                        } catch (Exception e) {
-                            MDD.alert(e);
-                        }
-                    });
+                        col.setEditable(true);
 
-                    col.setEditable(true);
-
-                } else if (FareValue.class.equals(f.getType())) {
-                    TextField nf = new TextField();
-                    nf.setValueChangeMode(ValueChangeMode.EAGER);
-                    col.setEditorComponent(nf, (o, v) -> {
-                        try {
-                            //todo: validar entero
-                            ReflectionHelper.setValue(f, o, (v != null)?new FareValue((String) v):null);
-                            if (binder != null) binder.refresh();
-                        } catch (Exception e) {
-                            MDD.alert(e);
-                        }
-                    });
-                    col.setEditable(true);
-                } else if (f.isAnnotationPresent(WeekDays.class)) {
-
-                    List<String> days = Lists.newArrayList("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su");
-
-                    col.setEditorComponent(new WeekDaysGridEditor(), (o, v) -> {
-                        try {
-                            boolean array[] = {false, false, false, false, false, false, false};
-                            if (v != null) {
-                                for (int i = 0; i < days.size(); i++) if (i < array.length) array[i] = ((String)v).contains(days.get(i));
+                    } else if (FareValue.class.equals(f.getType())) {
+                        TextField nf = new TextField();
+                        nf.setValueChangeMode(ValueChangeMode.EAGER);
+                        col.setEditorComponent(nf, (o, v) -> {
+                            try {
+                                //todo: validar entero
+                                ReflectionHelper.setValue(f, o, (v != null)?new FareValue((String) v):null);
+                                refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                            } catch (Exception e) {
+                                MDD.alert(e);
                             }
-                            ReflectionHelper.setValue(f, o, v != null?array:null);
-                            if (binder != null) binder.refresh();
-                        } catch (Exception e) {
-                            MDD.alert(e);
-                        }
-                    });
-                    col.setEditable(true);
-                } else if (Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) {
-                    col.setEditorComponent(new CheckBox(), (o, v) -> {
-                        try {
-                            ReflectionHelper.setValue(f, o, v);
-                            if (binder != null) binder.refresh();
-                        } catch (Exception e) {
-                            MDD.alert(e);
-                        }
-                    });
-                    col.setEditable(true);
-                } else if (String.class.equals(f.getType())) {
-                    TextField nf = new TextField();
-                    nf.setValueChangeMode(ValueChangeMode.EAGER);
-                    col.setEditorComponent(nf, (o, v) -> {
-                        try {
-                            ReflectionHelper.setValue(f, o, v);
-                            if (binder != null) binder.refresh();
-                        } catch (Exception e) {
-                            MDD.alert(e);
-                        }
-                    });
-                    col.setEditable(true);
-                } else if (Integer.class.equals(f.getType()) || int.class.equals(f.getType())
-                    || Long.class.equals(f.getType()) || long.class.equals(f.getType())) {
+                        });
+                        col.setEditable(true);
+                    } else if (f.isAnnotationPresent(WeekDays.class)) {
 
-                    TextField nf = new TextField();
-                    nf.setValueChangeMode(ValueChangeMode.EAGER);
-                    col.setEditorComponent(nf, (o, v) -> {
-                        try {
-                            //todo: validar entero
-                            ReflectionHelper.setValue(f, o, v);
-                            if (binder != null) binder.refresh();
-                        } catch (Exception e) {
-                            MDD.alert(e);
-                        }
-                    });
-                    col.setEditable(true);
-                } else if (Double.class.equals(f.getType()) || double.class.equals(f.getType())) {
+                        List<String> days = Lists.newArrayList("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su");
 
-                    TextField nf = new TextField();
-                    nf.setValueChangeMode(ValueChangeMode.EAGER);
-                    col.setEditorComponent(nf, (o, v) -> {
-                        try {
-                            //todo: validar doble
-                            //todo: falta float y long
-                            ReflectionHelper.setValue(f, o, v);
-                            if (binder != null) binder.refresh();
-                        } catch (Exception e) {
-                            MDD.alert(e);
-                        }
-                    });
-                    col.setEditable(true);
-                } else if (LocalDate.class.equals(f.getType())) {
+                        col.setEditorComponent(new WeekDaysGridEditor(), (o, v) -> {
+                            try {
+                                boolean array[] = {false, false, false, false, false, false, false};
+                                if (v != null) {
+                                    for (int i = 0; i < days.size(); i++) if (i < array.length) array[i] = ((String)v).contains(days.get(i));
+                                }
+                                ReflectionHelper.setValue(f, o, v != null?array:null);
+                                if (binder != null) binder.refresh();
+                            } catch (Exception e) {
+                                MDD.alert(e);
+                            }
+                        });
+                        col.setEditable(true);
+                    } else if (Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) {
+                        col.setEditorComponent(new CheckBox(), (o, v) -> {
+                            try {
+                                ReflectionHelper.setValue(f, o, v);
+                                if (binder != null) binder.refresh();
+                            } catch (Exception e) {
+                                MDD.alert(e);
+                            }
+                        });
+                        col.setEditable(true);
+                    } else if (String.class.equals(f.getType())) {
+                        TextField nf = new TextField();
+                        if (eager) nf.setValueChangeMode(ValueChangeMode.EAGER);
+                        col.setEditorComponent(nf, (o, v) -> {
+                            try {
+                                ReflectionHelper.setValue(f, o, v);
+                                refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                            } catch (Exception e) {
+                                MDD.alert(e);
+                            }
+                        });
+                        col.setEditable(true);
+                    } else if (Integer.class.equals(f.getType()) || int.class.equals(f.getType())
+                            || Long.class.equals(f.getType()) || long.class.equals(f.getType())) {
 
-                    DateField nf = new DateField();
-                    col.setEditorComponent(nf, (o, v) -> {
-                        try {
-                            ReflectionHelper.setValue(f, o, v);
-                            if (binder != null) binder.refresh();
-                        } catch (Exception e) {
-                            MDD.alert(e);
-                        }
-                    });
-                    col.setEditable(true);
-                } else if (LocalDateTime.class.equals(f.getType())) {
+                        TextField nf = new TextField();
+                        if (eager) nf.setValueChangeMode(ValueChangeMode.EAGER);
+                        col.setEditorComponent(nf, (o, v) -> {
+                            try {
+                                //todo: validar entero
+                                ReflectionHelper.setValue(f, o, v);
+                                refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                            } catch (Exception e) {
+                                MDD.alert(e);
+                            }
+                        });
+                        col.setEditable(true);
+                    } else if (Double.class.equals(f.getType()) || double.class.equals(f.getType())) {
 
-                    DateTimeField nf = new DateTimeField();
-                    col.setEditorComponent(nf, (o, v) -> {
-                        try {
-                            //todo: validar doble
-                            //todo: falta float y long
-                            ReflectionHelper.setValue(f, o, v);
-                            if (binder != null) binder.refresh();
-                        } catch (Exception e) {
-                            MDD.alert(e);
-                        }
-                    });
-                    col.setEditable(true);
-                } else if (f.getType().isEnum()) {
+                        TextField nf = new TextField();
+                        if (eager) nf.setValueChangeMode(ValueChangeMode.EAGER);
+                        col.setEditorComponent(nf, (o, v) -> {
+                            try {
+                                //todo: validar doble
+                                //todo: falta float y long
+                                ReflectionHelper.setValue(f, o, v);
+                                refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                            } catch (Exception e) {
+                                MDD.alert(e);
+                            }
+                        });
+                        col.setEditable(true);
+                    } else if (LocalDate.class.equals(f.getType())) {
 
-                    ComboBox tf = new ComboBox();
+                        DateField nf = new DateField();
+                        col.setEditorComponent(nf, (o, v) -> {
+                            try {
+                                ReflectionHelper.setValue(f, o, v);
+                                refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                            } catch (Exception e) {
+                                MDD.alert(e);
+                            }
+                        });
+                        col.setEditable(true);
+                    } else if (LocalDateTime.class.equals(f.getType())) {
 
-                    tf.setDataProvider(new ListDataProvider(Arrays.asList(f.getType().getEnumConstants())));
+                        DateTimeField nf = new DateTimeField();
+                        col.setEditorComponent(nf, (o, v) -> {
+                            try {
+                                //todo: validar doble
+                                //todo: falta float y long
+                                ReflectionHelper.setValue(f, o, v);
+                                refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                            } catch (Exception e) {
+                                MDD.alert(e);
+                            }
+                        });
+                        col.setEditable(true);
+                    } else if (f.getType().isEnum()) {
 
-                    col.setEditorComponent(tf, (o, v) -> {
-                        try {
-                            ReflectionHelper.setValue(f, o, v);
-                            if (binder != null) binder.refresh();
-                        } catch (Exception e) {
-                            MDD.alert(e);
-                        }
-                    });
-                    col.setEditable(true);
+                        ComboBox tf = new ComboBox();
+
+                        tf.setDataProvider(new ListDataProvider(Arrays.asList(f.getType().getEnumConstants())));
+
+                        col.setEditorComponent(tf, (o, v) -> {
+                            try {
+                                ReflectionHelper.setValue(f, o, v);
+                                refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                            } catch (Exception e) {
+                                MDD.alert(e);
+                            }
+                        });
+                        col.setEditable(true);
+
+                    }
 
                 }
 
+
                 //todo: acabar
             }
+
+            colBindings.add(col);
+            fieldByCol.put(col, f);
 
             col.setCaption(Helper.capitalize(f.getName()));
             if (f instanceof FieldInterfacedForCheckboxColumn) col.setCaption(((FieldInterfacedForCheckboxColumn)f).getCaption());
@@ -611,6 +628,28 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         }
 
 
+    }
+
+    private static void refrescar(Grid.Column col, MDDBinder binder, FieldInterfaced f, Object o, Object v, List<Grid.Column> colBindings, Map<Grid.Column, FieldInterfaced> fieldByCol) {
+        if (binder != null) binder.refresh();
+        if (false) colBindings.stream().filter(e -> !e.equals(col)).forEach(b -> {
+            try {
+                Object w = ReflectionHelper.getValue(fieldByCol.get(b), o);
+                if (b.getEditorBinding() != null && b.getEditorBinding().getField() != null) {
+                    if (b.getEditorBinding().getField() instanceof TextField) b.getEditorBinding().getField().setValue(w != null?"" + w:"");
+                    else b.getEditorBinding().getField().setValue(w);
+                } else {
+                    log.debug("columna " + b.getId() + " no es editable");
+                    b.getValueProvider().apply(o);
+                }
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public static double getColumnWidth(FieldInterfaced f) {
@@ -931,59 +970,42 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     @Override
-    public void addViewActionsMenuItems(MenuBar bar) {
+    public void addViewActionsMenuItems(CssLayout bar) {
 
         if (isAddEnabled()) {
-            MenuBar.Command cmd;
-            MenuBar.MenuItem i = bar.addItem("New", VaadinIcons.PLUS, cmd = new MenuBar.Command() {
-                @Override
-                public void menuSelected(MenuBar.MenuItem menuItem) {
-                    try {
-                        MDDUI.get().getNavegador().go("new");
-                    } catch (Throwable throwable) {
-                        MDD.alert(throwable);
-                    }
+
+            Button i;
+            bar.addComponent(i = new Button("New", VaadinIcons.PLUS));
+            i.addClickListener(e -> {
+                try {
+                    MDDUI.get().getNavegador().go("new");
+                } catch (Throwable throwable) {
+                    MDD.alert(throwable);
                 }
             });
-
-
-            //i.setDescription("Click Ctrl + ALt + N to fire");
-            Button b;
-            getHiddens().addComponent(b = new Button());
-            b.addClickListener(e -> cmd.menuSelected(i));
-            b.setClickShortcut(ShortcutAction.KeyCode.N, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
+            i.setClickShortcut(ShortcutAction.KeyCode.N, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
         }
 
         if (isDeleteEnabled()) {
-            MenuBar.Command cmd;
-            MenuBar.MenuItem i = bar.addItem("Delete", VaadinIcons.MINUS, cmd = new MenuBar.Command() {
-                @Override
-                public void menuSelected(MenuBar.MenuItem menuItem) {
+            Button i;
+            bar.addComponent(i = new Button("Delete", VaadinIcons.MINUS));
+            i.addClickListener(e -> {
+                MDD.confirm("Are you sure you want to delete the selected items?", new Runnable() {
+                    @Override
+                    public void run() {
 
-                    MDD.confirm("Are you sure you want to delete the selected items?", new Runnable() {
-                        @Override
-                        public void run() {
+                        try {
+                            delete(getSelection());
 
-                            try {
-                                delete(getSelection());
-
-                                resultsComponent.refresh();
-                            } catch (Throwable throwable) {
-                                MDD.alert(throwable);
-                            }
-
+                            resultsComponent.refresh();
+                        } catch (Throwable throwable) {
+                            MDD.alert(throwable);
                         }
-                    });
 
-                }
-
+                    }
+                });
             });
-
-            //i.setDescription("Click Ctrl + DELETE to fire");
-            Button b;
-            getHiddens().addComponent(b = new Button());
-            b.addClickListener(e -> cmd.menuSelected(i));
-            b.setClickShortcut(ShortcutAction.KeyCode.DELETE, ShortcutAction.ModifierKey.CTRL);
+            i.setClickShortcut(ShortcutAction.KeyCode.DELETE, ShortcutAction.ModifierKey.CTRL);
 
         }
 

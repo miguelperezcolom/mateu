@@ -1,12 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.desktop;
 
-import com.google.common.base.Strings;
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.server.ClassResource;
-import com.vaadin.server.ExternalResource;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.Image;
-import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;

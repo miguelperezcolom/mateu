@@ -2,28 +2,15 @@ package io.mateu.mdd.core;
 
 import com.vaadin.data.BinderValidationStatus;
 import com.vaadin.data.BindingValidationStatus;
-import com.vaadin.data.ValidationResult;
-import com.vaadin.server.Page;
 import com.vaadin.ui.AbstractComponent;
-import com.vaadin.ui.AbstractField;
-import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Notification;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.AbstractArea;
-import io.mateu.mdd.core.app.AbstractModule;
-import io.mateu.mdd.core.app.MDDOpenListViewAction;
-import io.mateu.mdd.core.data.UserData;
-import io.mateu.mdd.core.model.authentication.User;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import javassist.ClassPool;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.UserData;
+import io.mateu.mdd.core.model.authentication.User;
+import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ExtraFilters;
-
-import java.util.Base64;
+import javassist.ClassPool;
 
 public class MDD {
 

@@ -5,10 +5,9 @@ import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.vaadinport.vaadin.navigation.ComponentWrapper;
-import io.mateu.mdd.core.CSS;
-import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.vaadinport.vaadin.navigation.ComponentWrapper;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class ViewContainer extends VerticalLayout {
 
     public ViewContainer() {
@@ -19,7 +18,7 @@ public class ViewContainer extends VerticalLayout {
 
 
     public void updateTitle(String title) {
-        System.out.println("updateTitle(" + title + ")");
+        log.debug("updateTitle(" + title + ")");
         if (getComponentCount() > 0) {
             Component c = getComponent(0);
             if (c instanceof ComponentWrapper) {

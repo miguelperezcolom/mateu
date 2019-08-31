@@ -10,6 +10,7 @@ import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.data.Pair;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -21,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@Getter@Setter
+@Getter@Setter@Slf4j
 public class SampleCustomizedRPCListView implements RpcView<SampleCustomizedRPCListView, SampleCustomizedRPCListView.Row> {
 
     @MainSearchFilter
@@ -77,10 +78,10 @@ public class SampleCustomizedRPCListView implements RpcView<SampleCustomizedRPCL
                 Response response = invocationBuilder.get();
 
 
-                System.out.println(response.toString());
+                log.debug(response.toString());
                 List z = response.readEntity(List.class);
                 z.forEach(o -> l.add(new Row((Map<String, Object>) o)));
-                System.out.println(l);
+                log.debug("" + l);
 
                 result = new Pair<>(getUrl(), l);
             } catch (Exception e) {

@@ -248,7 +248,7 @@ For instance:
 
     @Action(value = "Action on all w/params", order = 3, style = ValoTheme.BUTTON_DANGER)
     public static void action3(@Caption("Name from caption") String name, int age) {
-        System.out.println("action 3 " + name + "/" + age);
+        log.debug("action 3 " + name + "/" + age);
     }
     
 ```

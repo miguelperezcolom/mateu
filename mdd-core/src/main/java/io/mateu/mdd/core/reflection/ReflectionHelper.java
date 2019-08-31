@@ -6,23 +6,24 @@ import com.vaadin.data.Binder;
 import com.vaadin.data.provider.DataProvider;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
-import io.mateu.mdd.core.data.*;
+import io.mateu.mdd.core.data.MDDBinder;
+import io.mateu.mdd.core.data.Pair;
+import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.interfaces.AbstractJPQLListView;
 import io.mateu.mdd.core.interfaces.PushWriter;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.tests.Persona;
 import javassist.*;
 import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ClassFile;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.annotation.*;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.data.UserData;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
 import org.reflections.Reflections;
+import org.slf4j.Logger;
 
 import javax.persistence.*;
 import javax.servlet.ServletContext;
@@ -32,9 +33,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.*;
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -45,6 +46,7 @@ import java.util.stream.Collectors;
 import static java.util.Collections.singletonList;
 import static javax.tools.JavaFileObject.Kind.SOURCE;
 
+@Slf4j
 public class ReflectionHelper {
 
 
@@ -174,7 +176,7 @@ public class ReflectionHelper {
 
     public static Method getMethod(Class<?> c, String methodName) {
         if (c == null) {
-            System.out.println("getMethod(" + null + ", " + methodName + ") devolverá null!");
+            log.debug("getMethod(" + null + ", " + methodName + ") devolverá null!");
             return null;
         }
         Method l = methodCache.get(c.getName() + "-" + methodName);
@@ -341,7 +343,7 @@ public class ReflectionHelper {
     private static List<FieldInterfaced> buildAllFields(Class c) {
         List<String> vistos = new ArrayList<>();
         Map<String, Field> originales = new HashMap<>();
-        for (Field f : c.getDeclaredFields()) {
+        for (Field f : c.getDeclaredFields()) if (!Logger.class.isAssignableFrom(f.getType())) {
             if (!f.getName().contains("$") && !"_proxied".equalsIgnoreCase(f.getName()) && !"_possibleValues".equalsIgnoreCase(f.getName()) && !"_binder".equalsIgnoreCase(f.getName()) && !"_field".equalsIgnoreCase(f.getName())) originales.put(f.getName(), f);
         }
 
@@ -355,7 +357,7 @@ public class ReflectionHelper {
             }
         }
 
-        for (Field f : c.getDeclaredFields()) if (!vistos.contains(f.getName())) if (!f.getName().contains("$") && !"_proxied".equalsIgnoreCase(f.getName()) && !"_possibleValues".equalsIgnoreCase(f.getName()) && !"_binder".equalsIgnoreCase(f.getName()) && !"_field".equalsIgnoreCase(f.getName())) {
+        for (Field f : c.getDeclaredFields())  if (!Logger.class.isAssignableFrom(f.getType())) if (!vistos.contains(f.getName())) if (!f.getName().contains("$") && !"_proxied".equalsIgnoreCase(f.getName()) && !"_possibleValues".equalsIgnoreCase(f.getName()) && !"_binder".equalsIgnoreCase(f.getName()) && !"_field".equalsIgnoreCase(f.getName())) {
             l.add(new FieldInterfacedFromField(f));
         }
 
@@ -982,14 +984,24 @@ public class ReflectionHelper {
 
     public static <T> T fillQueryResult(Object[] o, T t) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         int pos = 0;
-        List<FieldInterfaced> fields = t.getClass().isAnnotationPresent(Entity.class)?AbstractJPQLListView.getSelectFields(t.getClass()):getAllFields(t.getClass());
+        List<FieldInterfaced> fields = t.getClass().isAnnotationPresent(Entity.class) && !t.getClass().isAnnotationPresent(NativeJPQLResult.class)?AbstractJPQLListView.getSelectFields(t.getClass()):getAllFields(t.getClass());
         for (FieldInterfaced f : fields) {
             if (pos < o.length) {
-                if (o[pos] != null) t.getClass().getMethod(getSetter(f), f.getType()).invoke(t, o[pos]);
+                if (o[pos] != null) set(t, f, o[pos]);
             } else break;
             pos++;
         }
         return t;
+    }
+
+    private static void set(Object o, FieldInterfaced f, Object v) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        Method m = null;
+        try {
+            m = o.getClass().getMethod(getSetter(f), v.getClass());
+        } catch (Exception e) {
+        }
+        if (m == null) m = getMethod(o.getClass(), getSetter(f));
+        if (m != null) m.invoke(o, v);
     }
 
     public static Object newInstance(Class c) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
@@ -1604,7 +1616,7 @@ public class ReflectionHelper {
 
         java += "}";
 
-        System.out.println(java);
+        log.debug(java);
 
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
@@ -1676,7 +1688,7 @@ public class ReflectionHelper {
 
     public static Class createClassUsingJavassist2(String fullClassName, List<FieldInterfaced> fields, boolean forFilters, boolean forInlineEditing, FieldInterfaced collectionField, Object owner) throws Exception {
 
-        System.out.println("creating class " + fullClassName);
+        log.debug("creating class " + fullClassName);
 
         List<String> avoidedAnnotationNames = forFilters?Lists.newArrayList("NotNull", "NotEmpty", "SameLine", "Unmodifiable"):new ArrayList<>();
 
@@ -1865,7 +1877,7 @@ public class ReflectionHelper {
             cc.addMethod(g = CtNewMethod.getter(getGetter(t, fieldName), ctf));
             if (valueKey >= 0) {
                 String b = "return this._proxied." + getGetter(collectionField) + "().contains(((" + Map.class.getName() + ")this._possibleValues.get(\"" + collectionField.getName() + "\")).get(new Integer(" + valueKey + ")));";
-                //g.setBody("{System.out.println(\"Hola getter!!! " + b.replaceAll("\"", "'") + "\");" + b + "}");
+                //g.setBody("{log.debug(\"Hola getter!!! " + b.replaceAll("\"", "'") + "\");" + b + "}");
                 g.setBody("{" + b + "}");
             } else g.setBody("return this._proxied." + g.getName() + "();");
             CtMethod s;
@@ -1885,8 +1897,8 @@ public class ReflectionHelper {
                         "this._binder.getMergeables().add(tercero);" +
                         "" + ReflectionHelper.class.getName() + ".unReverseMap(this._binder, field, this._proxied, tercero);" +
                         "}";
-                System.out.println(b);
-                //s.setBody("{System.out.println(\"Hola setter!!! " + b.replaceAll("\"", "'") + "\");" + b + "}");
+                log.debug(b);
+                //s.setBody("{log.debug(\"Hola setter!!! " + b.replaceAll("\"", "'") + "\");" + b + "}");
                 s.setBody("{" + b + "}");
             } else s.setBody("this._proxied." + s.getName() + "($1);");
         } else {
@@ -1900,7 +1912,7 @@ public class ReflectionHelper {
     private static void addAnnotation(CtClass cc, ClassFile cfile, ConstPool cpool, CtField ctf, Annotation a, AnnotationsAttribute attr) throws InvocationTargetException, IllegalAccessException {
         javassist.bytecode.annotation.Annotation annot = new javassist.bytecode.annotation.Annotation(a.annotationType().getName(), cpool);
         for (Method m : a.annotationType().getDeclaredMethods()) {
-            System.out.println("" + m.getName());
+            log.debug("" + m.getName());
             Object v = m.invoke(a);
             if (v != null) {
                 MemberValue mv = getAnnotationMemberValue(cpool, m.getReturnType(), v);
@@ -1944,7 +1956,7 @@ public class ReflectionHelper {
 
                 amv.setValue(mvs.toArray(new MemberValue[0]));
             } else {
-                System.out.println("ups");
+                log.debug("ups");
             }
         }
         return mv;
@@ -1954,7 +1966,7 @@ public class ReflectionHelper {
 
         try {
             Class c = Class.forName(fullClassName);
-            System.out.println("class " + fullClassName + " already exists");
+            log.debug("class " + fullClassName + " already exists");
             return c;
         } catch (ClassNotFoundException e) {
             Class c = createClassUsingJavassist2(fullClassName, fields, forFilters);
@@ -1971,7 +1983,7 @@ public class ReflectionHelper {
         } else {
             try {
                 Class c = Class.forName(fullClassName);
-                System.out.println("class " + fullClassName + " already exists");
+                log.debug("class " + fullClassName + " already exists");
                 return c;
             } catch (ClassNotFoundException e) {
                 Class c = createClassUsingJavassist2(fullClassName, fields, forFilters, forInlineEditing, collectionField, owner);
@@ -1992,14 +2004,14 @@ public class ReflectionHelper {
             Field f = c.getDeclaredField("nombre");
 
             for (Annotation a : f.getDeclaredAnnotations()) {
-                System.out.println(a.toString());
+                log.debug(a.toString());
             }
 
-            System.out.println(f.isAnnotationPresent(FullWidth.class));
-            System.out.println(f.isAnnotationPresent(NotEmpty.class));
+            log.debug("" + f.isAnnotationPresent(FullWidth.class));
+            log.debug("" + f.isAnnotationPresent(NotEmpty.class));
 
             Object i = c.newInstance();
-            System.out.println(Helper.toJson(i));
+            log.debug(Helper.toJson(i));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -2008,7 +2020,7 @@ public class ReflectionHelper {
         c = createClass("test.TestXX", getAllFields(Persona.class), false);
         try {
             Object i = c.newInstance();
-            System.out.println(Helper.toJson(i));
+            log.debug(Helper.toJson(i));
         } catch (Exception e) {
             e.printStackTrace();
         }

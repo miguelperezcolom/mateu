@@ -1,7 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 
 import java.lang.reflect.Method;

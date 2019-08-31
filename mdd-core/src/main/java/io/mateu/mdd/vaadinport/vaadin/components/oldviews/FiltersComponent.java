@@ -7,9 +7,6 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.MainSearchFilter;
 import io.mateu.mdd.core.data.MDDBinder;
@@ -18,6 +15,7 @@ import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class FiltersComponent extends Composite {
 
     private final ListViewComponent listViewComponent;
@@ -180,7 +179,7 @@ public class FiltersComponent extends Composite {
         pl.addComponent(botones);
 
 
-        System.out.println("filters component built in " + (System.currentTimeMillis() - t0) + " ms.");
+        log.debug("filters component built in " + (System.currentTimeMillis() - t0) + " ms.");
     }
 
     private List<FieldInterfaced> getAllFilterFields() {

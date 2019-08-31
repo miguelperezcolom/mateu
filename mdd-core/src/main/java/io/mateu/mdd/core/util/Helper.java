@@ -29,11 +29,12 @@ import io.mateu.mdd.core.annotations.RightAlignedCol;
 import io.mateu.mdd.core.asciiart.Painter;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.model.config.AppConfig;
-import io.mateu.mdd.core.reflection.MiURLConverter;
-import io.mateu.mdd.core.workflow.WorkflowEngine;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.core.reflection.MiURLConverter;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.mdd.core.workflow.WorkflowEngine;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.mail.DefaultAuthenticator;
@@ -61,7 +62,10 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMultipart;
 import javax.money.MonetaryAmount;
-import javax.persistence.*;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+import javax.persistence.Query;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -92,6 +96,7 @@ import java.util.*;
 /**
  * Created by miguel on 13/9/16.
  */
+@Slf4j
 public class Helper {
 
     public static boolean propertiesLoaded = false;
@@ -103,10 +108,10 @@ public class Helper {
         DefaultConfigurationBuilder cfgBuilder = new DefaultConfigurationBuilder();
         try {
             if (!Strings.isNullOrEmpty(System.getProperty("fopconfig"))) {
-                System.out.println("Loading fop config from " + System.getProperty("fopconfig"));
+                log.debug("Loading fop config from " + System.getProperty("fopconfig"));
                 fopConfig = cfgBuilder.buildFromFile(new File(System.getProperty("fopconfig")));
             } else {
-                System.out.println("Loading fop config from classpath: /xsl/fop.xml");
+                log.debug("Loading fop config from classpath: /xsl/fop.xml");
                 fopConfig = cfgBuilder.build(Helper.class.getResourceAsStream("/xsl/fop.xml"));
             }
         } catch (Exception e) {
@@ -277,7 +282,7 @@ public class Helper {
                 if (sb.length() > 0) sb.append("\n");
                 sb.append("" + v.getPropertyPath() + " " + v.getMessage() + " at " + Helper.capitalize(v.getRootBeanClass().getSimpleName()));
             }
-            System.out.println(sb.toString());
+            log.debug(sb.toString());
         }
     }
 
@@ -481,7 +486,7 @@ public class Helper {
         StringWriter out = new StringWriter(); //new OutputStreamWriter(System.out);
         temp.process(root, out);
 
-        System.out.println("freemarker template compiled and applied in " + (new Date().getTime() - t0) + " ms.");
+        log.debug("freemarker template compiled and applied in " + (new Date().getTime() - t0) + " ms.");
 
         return out.toString();
     }
@@ -553,7 +558,7 @@ public class Helper {
     }
 
     public static String httpGet(String url) throws IOException {
-        System.out.println("HTTP GET " + url);
+        log.debug("HTTP GET " + url);
         HttpRequestFactory requestFactory =
                 HTTP_TRANSPORT.createRequestFactory(new HttpRequestInitializer() {
                     @Override
@@ -566,7 +571,7 @@ public class Helper {
     }
 
     public static String httpPost(String url, Map<String, String> parameters) throws IOException {
-        System.out.println("HTTP POST " + url);
+        log.debug("HTTP POST " + url);
         HttpRequestFactory requestFactory =
                 HTTP_TRANSPORT.createRequestFactory(new HttpRequestInitializer() {
                     @Override
@@ -609,8 +614,8 @@ public class Helper {
                         Object v = null;
                         if (cell != null) {
 
-                            System.out.println(cell.getCellTypeEnum());
-                            System.out.println(cell.toString());
+                            log.debug("" + cell.getCellTypeEnum());
+                            log.debug(cell.toString());
 
                             switch (cell.getCellTypeEnum()) {
                                 case BLANK: break;
@@ -650,8 +655,8 @@ public class Helper {
         File temp = (System.getProperty("tmpdir") == null)?File.createTempFile(archivo, ".xlsx"):new File(new File(System.getProperty("tmpdir")), archivo + ".xlsx");
 
 
-        System.out.println("java.io.tmpdir=" + System.getProperty("java.io.tmpdir"));
-        System.out.println("Temp file : " + temp.getAbsolutePath());
+        log.debug("java.io.tmpdir=" + System.getProperty("java.io.tmpdir"));
+        log.debug("Temp file : " + temp.getAbsolutePath());
 
         Workbook wb = new XSSFWorkbook();
         CreationHelper createHelper = wb.getCreationHelper();
@@ -691,8 +696,8 @@ public class Helper {
         File temp = (System.getProperty("tmpdir") == null)?File.createTempFile(archivo, ".xlsx"):new File(new File(System.getProperty("tmpdir")), archivo + ".xlsx");
 
 
-        System.out.println("java.io.tmpdir=" + System.getProperty("java.io.tmpdir"));
-        System.out.println("Temp file : " + temp.getAbsolutePath());
+        log.debug("java.io.tmpdir=" + System.getProperty("java.io.tmpdir"));
+        log.debug("Temp file : " + temp.getAbsolutePath());
 
         Workbook wb = new XSSFWorkbook();
         CreationHelper createHelper = wb.getCreationHelper();
@@ -779,7 +784,7 @@ public class Helper {
 
 
 
-        System.out.println("EmailHelper-->resend : " + " , to : " + to + " , user : "+ user + "  , cc  : "  + cc );
+        log.debug("EmailHelper-->resend : " + " , to : " + to + " , user : "+ user + "  , cc  : "  + cc );
 
         if (subject == null) subject = "";
         if (!"".equals(subject)) subject += " / ";
@@ -794,7 +799,7 @@ public class Helper {
         email.setSubject(subject);
         email.setFrom(user);
 
-        System.out.println("Resending email to : " + to);
+        log.debug("Resending email to : " + to);
 
         if (!Strings.isNullOrEmpty(cc)) email.getCcAddresses().add(new InternetAddress(cc));
 
@@ -880,24 +885,23 @@ public class Helper {
 
 
             Painter.paint("Hello");
-            System.out.println();
             Painter.paint("MATEU");
 
 
 
-            System.out.println("Registrando concerters beanutils...");
+            log.debug("Registrando concerters beanutils...");
             ConvertUtils.register(new MiURLConverter(), URL.class);
 
-            System.out.println("Loading properties...");
+            log.debug("Loading properties...");
             propertiesLoaded = true;
             InputStream s = null;
             try {
                 if (System.getProperty("appconf") != null) {
-                    System.out.println("Loading properties from file " + System.getProperty("appconf"));
+                    log.debug("Loading properties from file " + System.getProperty("appconf"));
                     s = new FileInputStream(System.getProperty("appconf"));
                 } else {
                     s = Helper.class.getResourceAsStream("/appconf.properties");
-                    System.out.println("Loading properties classpath /appconf.properties");
+                    log.debug("Loading properties classpath /appconf.properties");
                 }
 
                 if (s != null) {
@@ -906,18 +910,18 @@ public class Helper {
                     p.load(s);
 
                     for (Map.Entry<Object, Object> e : p.entrySet()) {
-                        System.out.println("" + e.getKey() + "=" + e.getValue());
+                        log.debug("" + e.getKey() + "=" + e.getValue());
                         if (System.getProperty("" + e.getKey()) == null) {
                             System.setProperty("" + e.getKey(), "" + e.getValue());
-                            System.out.println("property fixed");
+                            log.debug("property fixed");
                         } else {
-                            System.out.println("property " + e.getKey() + " is already set with value " + System.getProperty("" + e.getKey()));
+                            log.debug("property " + e.getKey() + " is already set with value " + System.getProperty("" + e.getKey()));
                         }
                     }
 
                     if (System.getProperty("heroku.database.url") != null) {
 
-                        System.out.println("adjusting jdbc properties for Heroku...");
+                        log.debug("adjusting jdbc properties for Heroku...");
 
                         URI dbUri = null;
                         try {
@@ -945,7 +949,7 @@ public class Helper {
                     }
                     s.close();
                 } else {
-                    System.out.println("No appconf. Either set -Dappconf=xxxxxx.properties or place an appconf.properties file in your classpath.");
+                    log.debug("No appconf. Either set -Dappconf=xxxxxx.properties or place an appconf.properties file in your classpath.");
                 }
 
             } catch (FileNotFoundException e1) {
@@ -955,7 +959,7 @@ public class Helper {
             }
 
         } else {
-            System.out.println("Properties already loaded");
+            log.debug("Properties already loaded");
         }
     }
 
@@ -1242,7 +1246,7 @@ public class Helper {
 		    //transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
 		    transformer.transform(src, xmlOutput);
 
-		    System.out.println(xmlOutput.getWriter().toString());
+		    log.debug(xmlOutput.getWriter().toString());
 		    */
 
             // Step 5: Setup input and output for XSLT transformation
@@ -1464,13 +1468,13 @@ public class Helper {
                 File temp = (System.getProperty("tmpdir") == null)?File.createTempFile(archivo, ".pdf"):new File(new File(System.getProperty("tmpdir")), archivo + ".pdf");
 
 
-                System.out.println("java.io.tmpdir=" + System.getProperty("java.io.tmpdir"));
-                System.out.println("Temp file : " + temp.getAbsolutePath());
+                log.debug("java.io.tmpdir=" + System.getProperty("java.io.tmpdir"));
+                log.debug("Temp file : " + temp.getAbsolutePath());
 
                 FileOutputStream fileOut = new FileOutputStream(temp);
                 String sxml = new XMLOutputter(Format.getPrettyFormat()).outputString(xml);
-                System.out.println("xslfo=" + xslfo);
-                System.out.println("xml=" + sxml);
+                log.debug("xslfo=" + xslfo);
+                log.debug("xml=" + sxml);
                 fileOut.write(fop(new StreamSource(new StringReader(xslfo[0])), new StreamSource(new StringReader(sxml))));
                 fileOut.close();
 
@@ -1601,12 +1605,12 @@ public class Helper {
 
     public static void main(String[] args) {
         try {
-            System.out.println(Helper.toJson(Helper.fromYaml(Files.toString(new File("/home/miguel/work/initialdata.yml"), Charset.defaultCharset()))));
+            log.debug(Helper.toJson(Helper.fromYaml(Files.toString(new File("/home/miguel/work/initialdata.yml"), Charset.defaultCharset()))));
 
             Map<String, Object> o = Helper.fromYaml(Files.toString(new File("/home/miguel/work/initialdata.yml"), Charset.defaultCharset()));
 
 
-            System.out.println(Helper.get(o, "smtp/host"));
+            log.debug("" + Helper.get(o, "smtp/host"));
 
 
         } catch (IOException e) {

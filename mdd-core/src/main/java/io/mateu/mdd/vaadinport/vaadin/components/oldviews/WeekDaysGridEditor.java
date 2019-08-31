@@ -7,9 +7,11 @@ import com.vaadin.ui.CheckBoxGroup;
 import com.vaadin.ui.Composite;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components.WeekDaysComponent;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 
+@Slf4j
 public class WeekDaysGridEditor extends Composite implements HasValue<String> {
 
     List<String> days = Lists.newArrayList("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su");
@@ -44,7 +46,7 @@ public class WeekDaysGridEditor extends Composite implements HasValue<String> {
 
     @Override
     public void setValue(String o) {
-        System.out.println("setValue(" + o + ")");
+        log.debug("setValue(" + o + ")");
         for (int i = 0; i < array.length; i++) array[i] = false;
         if (o != null) {
             for (int i = 0; i < days.size(); i++) if (i < array.length) array[i] = o.contains(days.get(i));
@@ -56,7 +58,7 @@ public class WeekDaysGridEditor extends Composite implements HasValue<String> {
 
     @Override
     public String getValue() {
-        System.out.println("getValue()");
+        log.debug("getValue()");
         String s = "";
 
         for (int i = 0; i < array.length; i++) {
@@ -69,7 +71,7 @@ public class WeekDaysGridEditor extends Composite implements HasValue<String> {
 
     @Override
     public Registration addValueChangeListener(ValueChangeListener<String> valueChangeListener) {
-        System.out.println("addValueChangeListener(" + valueChangeListener + ")");
+        log.debug("addValueChangeListener(" + valueChangeListener + ")");
         UUID _id = UUID.randomUUID();
         listeners.put(_id, valueChangeListener);
         return new Registration() {

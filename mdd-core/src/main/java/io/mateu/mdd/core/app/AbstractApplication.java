@@ -17,20 +17,7 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.AbstractFieldBuilder;
-import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.data.Data;
-import io.mateu.mdd.core.data.UserData;
-import io.mateu.mdd.core.interfaces.App;
-import io.mateu.mdd.core.interfaces.View;
-import io.mateu.mdd.core.model.authentication.User;
-import io.mateu.mdd.core.model.config.AppConfig;
-import io.mateu.mdd.core.model.population.Populator;
-import io.mateu.mdd.core.model.ui.EditedRecord;
-import io.mateu.mdd.core.nose.MemorizadorRegistroEditado;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.util.JPATransaction;
-import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.AbstractFieldBuilder;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.EntityManager;
 import java.util.*;
@@ -38,6 +25,7 @@ import java.util.*;
 /**
  * Created by miguel on 8/8/16.
  */
+@Slf4j
 public abstract class AbstractApplication implements App {
 
 
@@ -69,7 +57,7 @@ public abstract class AbstractApplication implements App {
         AbstractApplication app = null;
         while (apps.hasNext()) {
             app = (AbstractApplication) apps.next();
-            System.out.println("app " + app.getName() + " loaded");
+            log.debug("app " + app.getName() + " loaded");
             break;
         }
         return app;

@@ -5,8 +5,6 @@ import com.google.common.base.Strings;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Resources;
 import io.mateu.mdd.core.model.authentication.AdminUser;
-import io.mateu.mdd.core.model.config.AppConfig;
-import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.core.model.authentication.Permission;
 import io.mateu.mdd.core.model.authentication.USER_STATUS;
 import io.mateu.mdd.core.model.authentication.User;
@@ -16,6 +14,7 @@ import io.mateu.mdd.core.model.config.TemplateUseCase;
 import io.mateu.mdd.core.model.util.Constants;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.InputStream;
 
@@ -24,6 +23,7 @@ import java.io.InputStream;
  *
  * Created by miguel on 13/9/16.
  */
+@Slf4j
 public class Populator {
 
     public static final String USER_ADMIN = "admin";
@@ -36,7 +36,7 @@ public class Populator {
 
     public void populate(Class appConfigClass) throws Throwable {
 
-        System.out.println("Populating database...");
+        log.debug("Populating database...");
 
 
         //authentication
@@ -112,7 +112,7 @@ public class Populator {
 
         createViews();
 
-        System.out.println("Database populated.");
+        log.debug("Database populated.");
 
     }
 
@@ -139,7 +139,7 @@ public class Populator {
                         }
                         if (!Strings.isNullOrEmpty(sql)) {
                             try {
-                                System.out.println("executing sql:" + sql);
+                                log.debug("executing sql:" + sql);
                                 em.createNativeQuery(sql).executeUpdate();
                             } catch (Exception e) {
                                 e.printStackTrace();

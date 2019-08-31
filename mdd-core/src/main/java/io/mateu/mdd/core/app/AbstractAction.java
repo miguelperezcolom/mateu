@@ -16,6 +16,7 @@ public abstract class AbstractAction implements MenuEntry {
     private boolean callOnEnterKeyPressed = false;
     private boolean modifierPressed;
     private String id = UUID.randomUUID().toString();
+    private String group = "";
 
     public AbstractAction(String id, String name) {
         this.id = id;
@@ -95,5 +96,13 @@ public abstract class AbstractAction implements MenuEntry {
     public AbstractAction setStyle(String style) {
         this.style = style;
         return this;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
     }
 }

@@ -6,6 +6,7 @@ import io.mateu.mdd.core.model.util.EmailHelper;
 import io.mateu.mdd.core.util.Helper;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
@@ -14,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-@Entity@Getter@Setter
+@Entity@Getter@Setter@Slf4j
 public class Socio {
 
     @Id
@@ -68,11 +69,11 @@ public class Socio {
 
 
     public void setSaldo(double saldo) {
-        System.out.println("***************");
-        System.out.println("saldo " + this + " de " + this.saldo);
+        log.debug("***************");
+        log.debug("saldo " + this + " de " + this.saldo);
         this.saldo = Helper.roundEuros(saldo);
-        System.out.println("saldo " + this + " a " + this.saldo);
-        System.out.println("***************");
+        log.debug("saldo " + this + " a " + this.saldo);
+        log.debug("***************");
     }
 
 

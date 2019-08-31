@@ -19,19 +19,21 @@ import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.reflection.*;
+import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.OwnedCollectionComponent;
 
-import javax.persistence.ElementCollection;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -149,10 +151,10 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             hl.addComponent(l = new Label(""));
             l.addStyleName("collectionlinklabel");
 
-            Button b;
-            hl.addComponent(b = new Button("Open"));
-            b.addStyleName(ValoTheme.BUTTON_LINK);
-            b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+            hl.addStyleName(CSS.CLICKABLE);
+            hl.addLayoutClickListener(e -> {
+                if (e.isDoubleClick()) MDDUI.get().getNavegador().go(field.getName());
+            });
 
             hl.setCaption(ReflectionHelper.getCaption(field));
 
@@ -183,11 +185,10 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             hl.addComponent(l = new Label("", ContentMode.HTML));
             hl.addStyleName(CSS.NOPADDING);
 
-            Button b;
-            hl.addComponent(b = new Button("Edit"));
-            b.addStyleName(ValoTheme.BUTTON_LINK);
-            b.addStyleName("linkeditar");
-            b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+            hl.addStyleName(CSS.CLICKABLE);
+            hl.addLayoutClickListener(e -> {
+                if (e.isDoubleClick()) MDDUI.get().getNavegador().go(field.getName());
+            });
 
             hl.setCaption(ReflectionHelper.getCaption(field));
 
@@ -209,6 +210,28 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             container.addComponent(hl);
 
             bindResourcesList(binder, l, field);
+
+        } else if (field.isAnnotationPresent(UseTable.class)) {
+
+            VerticalLayout hl = new VerticalLayout();
+            hl.addStyleName("onetomanytable");
+            hl.addStyleName(CSS.CLICKABLE);
+
+            Label l;
+            hl.addComponent(l = new Label("", ContentMode.HTML));
+            hl.addStyleName(CSS.NOPADDING);
+
+            hl.addLayoutClickListener(e -> {
+                if (e.isDoubleClick()) {
+                    MDDUI.get().getNavegador().go(field.getName());
+                }
+            });
+
+            hl.setCaption(ReflectionHelper.getCaption(field));
+
+            container.addComponent(hl);
+
+            bind(binder, l, field);
 
         } else {
 
@@ -308,19 +331,77 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                 bind(binder, g, field, targetClass, originalEditableFields, object);
 
-                if (inline) {
 
-                    g.getEditor().setEnabled(true);
-                    g.getEditor().setBuffered(false);
+                    if (inline) {
+
+                        g.getEditor().setEnabled(true);
+                        g.getEditor().setBuffered(false);
+
+                        if (!field.isAnnotationPresent(ModifyValuesOnly.class)) {
 
 
+                            hl.addComponent(b = new Button("Add", VaadinIcons.PLUS));
+                            b.addClickListener(e -> {
+                                try {
+                                    Object bean = binder.getBean();
 
-                    hl.addComponent(b = new Button("Add", VaadinIcons.PLUS));
+                                    ReflectionHelper.addToCollection(binder, field, bean);
+
+                                    binder.setBean(bean, false);
+                                } catch (Exception e1) {
+                                    MDD.alert(e1);
+                                }
+                            });
+
+                        }
+
+                    } else {
+
+                        g.addItemClickListener(e -> {
+                            if (MDD.isMobile() || e.getMouseEventDetails().isDoubleClick()) {
+                                Object i = e.getItem();
+                                if (i != null) {
+
+                                    String state = MDDUI.get().getNavegador().getViewProvider().getCurrentPath();
+                                    if (!state.endsWith("/")) state += "/";
+                                    state += field.getName();
+
+                                    try {
+                                        OwnedCollectionComponent occ;
+                                        MDDUI.get().getNavegador().getStack().push(state, occ = new OwnedCollectionComponent(binder, field, e.getRowIndex()));
+                                        MDDUI.get().getNavegador().goTo(state);
+                                    } catch (Exception e1) {
+                                        e1.printStackTrace();
+                                    }
+
+                                }
+                            }
+                        });
+
+
+                        if (!field.isAnnotationPresent(ModifyValuesOnly.class)) {
+
+                            hl.addComponent(b = new Button("Add", VaadinIcons.PLUS));
+                            b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+                        }
+
+                    }
+
+                if (!field.isAnnotationPresent(ModifyValuesOnly.class)) {
+
+                    hl.addComponent(b = new Button("Duplicate", VaadinIcons.COPY));
                     b.addClickListener(e -> {
                         try {
+
                             Object bean = binder.getBean();
 
-                            ReflectionHelper.addToCollection(binder, field, bean);
+                            for (Object o : g.getSelectedItems()) {
+
+                                if (o instanceof ProxyClass) o = ((ProxyClass) o).toObject();
+
+                                ReflectionHelper.addToCollection(binder, field, bean, ReflectionHelper.clone(o));
+
+                            }
 
                             binder.setBean(bean, false);
                         } catch (Exception e1) {
@@ -328,77 +409,28 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                         }
                     });
 
-                } else {
+                    hl.addComponent(b = new Button("Remove", VaadinIcons.MINUS));
+                    b.addClickListener(e -> {
+                        try {
+                            Object bean = binder.getBean();
+                            Set l = (Set) g.getSelectedItems().stream().map(o -> o != null && o instanceof ProxyClass ? ((ProxyClass) o).toObject() : o).collect(Collectors.toSet());
 
-                    g.addItemClickListener(e -> {
-                        if (MDD.isMobile() || e.getMouseEventDetails().isDoubleClick()) {
-                            Object i = e.getItem();
-                            if (i != null) {
-
-                                String state = MDDUI.get().getNavegador().getViewProvider().getCurrentPath();
-                                if (!state.endsWith("/")) state += "/";
-                                state += field.getName();
-
-                                try {
-                                    OwnedCollectionComponent occ;
-                                    MDDUI.get().getNavegador().getStack().push(state, occ = new OwnedCollectionComponent(binder, field, e.getRowIndex()));
-                                    MDDUI.get().getNavegador().goTo(state);
-                                } catch (Exception e1) {
-                                    e1.printStackTrace();
-                                }
-
+                            if (field.isAnnotationPresent(OneToMany.class) && field.getAnnotation(OneToMany.class).orphanRemoval()) {
+                            } else {
+                                binder.getRemovables().addAll(l);
                             }
+                            ReflectionHelper.removeFromCollection(binder, field, bean, l, false);
+
+
+                            binder.setBean(bean, false);
+                        } catch (Exception e1) {
+                            MDD.alert(e1);
                         }
                     });
 
-
-                    hl.addComponent(b = new Button("Add", VaadinIcons.PLUS));
-                    b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+                    //todo: faltan botones para ordenar la lista
 
                 }
-
-                hl.addComponent(b = new Button("Duplicate", VaadinIcons.COPY));
-                b.addClickListener(e -> {
-                    try {
-
-                        Object bean = binder.getBean();
-
-                        for (Object o : g.getSelectedItems()) {
-
-                            if (o instanceof ProxyClass) o = ((ProxyClass)o).toObject();
-
-                            ReflectionHelper.addToCollection(binder, field, bean, ReflectionHelper.clone(o));
-
-                        }
-
-                        binder.setBean(bean, false);
-                    } catch (Exception e1) {
-                        MDD.alert(e1);
-                    }
-                });
-
-                hl.addComponent(b = new Button("Remove", VaadinIcons.MINUS));
-                b.addClickListener(e -> {
-                    try {
-                        Object bean = binder.getBean();
-                        Set l = (Set) g.getSelectedItems().stream().map(o -> o != null && o instanceof ProxyClass?((ProxyClass)o).toObject():o).collect(Collectors.toSet());
-
-                        if (field.isAnnotationPresent(OneToMany.class) && field.getAnnotation(OneToMany.class).orphanRemoval()) {
-                        } else {
-                            binder.getRemovables().addAll(l);
-                        }
-                        ReflectionHelper.removeFromCollection(binder, field, bean, l, false);
-
-
-                        binder.setBean(bean, false);
-                    } catch (Exception e1) {
-                        MDD.alert(e1);
-                    }
-                });
-
-                //todo: faltan botones para ordenar la lista
-
-
 
             } else {
 
@@ -475,6 +507,155 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
         }
 
+    }
+
+    //usetable
+    public static void bind(MDDBinder binder, Label l, FieldInterfaced field) {
+
+        Binder.BindingBuilder aux = binder.forField(new HasValue() {
+            @Override
+            public void setValue(Object o) {
+
+                    try {
+
+                        Collection elems = (Collection) o;
+
+                        StringWriter sw;
+                        PrintWriter pw = new PrintWriter(sw = new StringWriter());
+
+                        String colsFilter = "";
+                        if (field.isAnnotationPresent(UseTable.class)) colsFilter = field.getAnnotation(UseTable.class).fields();
+
+                        List<FieldInterfaced> cols = getColumnFields(field, colsFilter);
+
+                        pw.println("<table class='onetomanytable'>");
+                        pw.println("<thead><tr>");
+                        cols.forEach(col -> pw.println("<th>" + Helper.capitalize(col.getName()) + "</th>"));
+                        pw.println("</tr></thead>");
+                        pw.println("<tbody>");
+                        if (o == null || ((Collection)o).size() == 0) {
+                            pw.println("<tr><td colspan='" + cols.size() + "'>----- Empty list -----</td></tr>");
+                        } else {
+                            for (Object e : elems) {
+                                pw.println("<tr>");
+                                for (FieldInterfaced col : cols) {
+                                    boolean num = false;
+                                    if (int.class.equals(col.getType()) || Integer.class.equals(col.getType())) {
+                                        num = true;
+                                    } else if (long.class.equals(col.getType()) || Long.class.equals(col.getType())) {
+                                        num = true;
+                                    } else if (double.class.equals(col.getType()) || Double.class.equals(col.getType())) {
+                                        num = true;
+                                    }
+                                    Object v = ReflectionHelper.getValue(col, e);
+                                    pw.println("<td " + (num?" class= 'numeric'":"") + ">" + (v != null?v:"---") + "</td>");
+                                }
+                                pw.println("</tr>");
+                            };
+                        }
+                        pw.println("</tbody>");
+                        pw.println("<tfoot><tr>");
+                        cols.forEach(col -> {
+                            boolean num = false;
+                            String s = "";
+                            if (int.class.equals(col.getType()) || Integer.class.equals(col.getType())) {
+                                int t = 0;
+                                if (elems != null) for (Object elem : elems) {
+                                    try {
+                                        Object w = ReflectionHelper.getValue(col, elem);
+                                        t += (Integer) w;
+                                    } catch (NoSuchMethodException e) {
+                                        e.printStackTrace();
+                                    } catch (IllegalAccessException e) {
+                                        e.printStackTrace();
+                                    } catch (InvocationTargetException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                                s += t;
+                                num = true;
+                            } else if (long.class.equals(col.getType()) || Long.class.equals(col.getType())) {
+                                long t = 0;
+                                if (elems != null) for (Object elem : elems) {
+                                    try {
+                                        Object w = ReflectionHelper.getValue(col, elem);
+                                        t += (Long) w;
+                                    } catch (NoSuchMethodException e) {
+                                        e.printStackTrace();
+                                    } catch (IllegalAccessException e) {
+                                        e.printStackTrace();
+                                    } catch (InvocationTargetException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                                s += t;
+                                num = true;
+                            } else if (double.class.equals(col.getType()) || Double.class.equals(col.getType())) {
+                                double t = 0;
+                                if (elems != null) for (Object elem : elems) {
+                                    try {
+                                        Object w = ReflectionHelper.getValue(col, elem);
+                                        if (w != null) t += (Double) w;
+                                    } catch (NoSuchMethodException e) {
+                                        e.printStackTrace();
+                                    } catch (IllegalAccessException e) {
+                                        e.printStackTrace();
+                                    } catch (InvocationTargetException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                                if (col.isAnnotationPresent(Money.class)) {
+                                    DecimalFormat df = new DecimalFormat("##,###,###,###,##0.00");
+                                    s = df.format(t);
+                                } else {
+                                    s += t;
+                                }
+                                num = true;
+                            }
+                            pw.println("<th " + (num?" class= 'numeric'":"") + ">" + s + "</th>");
+                        });
+                        pw.println("</tr></tfoot>");
+                        pw.println("</table>");
+
+                        l.setValue(sw.toString());
+
+                    } catch (Throwable e) {
+                        MDD.alert(e);
+                    }
+            }
+
+            @Override
+            public Object getValue() {
+                return null;
+            }
+
+            @Override
+            public Registration addValueChangeListener(ValueChangeListener valueChangeListener) {
+                return null;
+            }
+
+            @Override
+            public void setRequiredIndicatorVisible(boolean b) {
+
+            }
+
+            @Override
+            public boolean isRequiredIndicatorVisible() {
+                return false;
+            }
+
+            @Override
+            public void setReadOnly(boolean b) {
+
+            }
+
+            @Override
+            public boolean isReadOnly() {
+                return false;
+            }
+        });
+        aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+        aux.bind(field.getName());
     }
 
 
@@ -760,6 +941,15 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         return ReflectionHelper.getId(row);
     }
 
+
+    public static List<FieldInterfaced> getColumnFields(FieldInterfaced field, String filter) {
+        List<FieldInterfaced> l = getColumnFields(field);
+        if (!Strings.isNullOrEmpty(filter)) {
+            List<String> fns = Arrays.asList(filter.split(","));
+            l = l.stream().filter(c -> fns.contains(c.getName())).sorted((a,b) -> fns.indexOf(a.getName()) - fns.indexOf(b.getName())).collect(Collectors.toList());
+        }
+        return l;
+    }
 
     public static List<FieldInterfaced> getColumnFields(FieldInterfaced field) {
 

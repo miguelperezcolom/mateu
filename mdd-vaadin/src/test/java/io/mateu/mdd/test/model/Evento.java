@@ -4,6 +4,7 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -13,6 +14,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@Slf4j
 public class Evento {
 
     @Id
@@ -32,7 +34,7 @@ public class Evento {
 
             WorkflowEngine.add(() -> {
 
-                System.out.println("tarea creada desde evento.post()");
+                log.debug("tarea creada desde evento.post()");
 
                 Helper.transact(em -> {
 

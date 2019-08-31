@@ -1,8 +1,8 @@
 package io.mateu.mdd.core.model.monetary;
 
+import io.mateu.mdd.core.MDD;
 import lombok.Getter;
 import lombok.Setter;
-import io.mateu.mdd.core.MDD;
 import org.javamoney.moneta.FastMoney;
 
 import javax.persistence.Embeddable;

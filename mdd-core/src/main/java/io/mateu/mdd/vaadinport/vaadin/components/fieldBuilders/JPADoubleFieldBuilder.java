@@ -8,10 +8,6 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.Slider;
 import com.vaadin.ui.TextField;
-import io.mateu.mdd.core.annotations.Help;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -73,14 +69,12 @@ public class JPADoubleFieldBuilder extends JPAStringFieldBuilder {
                     //String s = super.convertToPresentation(value, context);
                     String s = "" + value;
                     if (s.endsWith(".0")) s = s.replaceAll("\\.0", "");
-                    System.out.println("------------------>JPADoubleFieldBuilder.convertToPresentation()=" + s);
                     return s;
                 }
             }
 
             @Override
             public Result<Double> convertToModel(String value, ValueContext context) {
-                System.out.println("------------------>JPADoubleFieldBuilder.convertToModel(" + value + ")");
                 if (value != null) {
                     if (value.contains(".") && value.contains(",")) value = value.replaceAll("\\.", "");
                     value = value.replaceAll("\\.", ",");

@@ -3,8 +3,8 @@ package io.mateu.common.model.util;
 import com.rabbitmq.jms.admin.RMQConnectionFactory;
 import com.rabbitmq.jms.admin.RMQDestination;
 import io.mateu.mdd.core.model.util.MiTopic;
-import io.mateu.mdd.core.model.util.MiTopic;
 import io.mateu.mdd.core.model.util.MiTopicConnectionFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.jndi.NamingUtil;
 import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
 import org.eclipse.persistence.platform.database.PostgreSQLPlatform;
@@ -23,6 +23,7 @@ import java.util.Hashtable;
 /**
  * Created by miguel on 13/10/16.
  */
+@Slf4j
 public class MiPostgreSQLPlatform extends PostgreSQLPlatform {
 
 
@@ -42,20 +43,20 @@ public class MiPostgreSQLPlatform extends PostgreSQLPlatform {
             Object o = new InitialContext().lookup("java:comp/env/jms/l2cache");
 
             if (o instanceof Reference) {
-                System.out.println("Reference.getFactoryClassName()=" + ((Reference) o).getFactoryClassName());
+                log.debug("Reference.getFactoryClassName()=" + ((Reference) o).getFactoryClassName());
             }
 
         } catch (NamingException e) {
 
-            System.out.println("" + e.getClass().getName() + ":" + e.getMessage());
+            log.debug("" + e.getClass().getName() + ":" + e.getMessage());
 
             if (e.getMessage() == null || e.getMessage().contains("inmutable")) {
 
-                System.out.println("No hay contexto inicial. Reintentamos...");
+                log.debug("No hay contexto inicial. Reintentamos...");
 
                 System.setProperty("java.naming.factory.initial", "org.osjava.sj.SimpleContextFactory");
 
-                System.out.println("INICIALIZANDO JMS...");
+                log.debug("INICIALIZANDO JMS...");
 
 
                 try {
@@ -101,14 +102,14 @@ public class MiPostgreSQLPlatform extends PostgreSQLPlatform {
     public MiPostgreSQLPlatform() {
         super();
 
-        System.out.println("" + getClass().getName() + "()");
+        log.debug("" + getClass().getName() + "()");
 
     }
 
     @Override
     protected Hashtable buildFieldTypes() {
 
-        System.out.println("" + getClass().getName() + ".buildFieldTypes()");
+        log.debug("" + getClass().getName() + ".buildFieldTypes()");
 
         Hashtable t = super.buildFieldTypes();
         t.put(String.class, new FieldTypeDefinition("TEXT", false));

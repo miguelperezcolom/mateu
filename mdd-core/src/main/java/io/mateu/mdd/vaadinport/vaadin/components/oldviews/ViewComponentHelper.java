@@ -1,30 +1,22 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.google.common.base.Strings;
-import com.vaadin.data.Binder;
-import com.vaadin.data.HasValue;
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.server.SerializablePredicate;
-import com.vaadin.ui.*;
-import io.mateu.mdd.core.annotations.DependsOn;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.data.UserData;
-import io.mateu.mdd.core.interfaces.RpcView;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
+import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDExecutionContext;
+import io.mateu.mdd.core.data.UserData;
+import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.core.util.JPATransaction;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.*;
 
@@ -133,6 +125,9 @@ public class ViewComponentHelper {
 
                                     if (m.isAnnotationPresent(Action.class) && m.getAnnotation(Action.class).saveAfter() && viewComponent instanceof EditorViewComponent) {
                                         ((EditorViewComponent) viewComponent).save(false);
+                                    } else if (viewComponent instanceof EditorViewComponent) {
+                                        EditorViewComponent evc = (EditorViewComponent) viewComponent;
+                                        evc.getBinder().setBean(evc.getModel());
                                     }
 
                                 } catch (Throwable throwable) {
@@ -152,6 +147,7 @@ public class ViewComponentHelper {
                 }
             }.setStyle(aa.style()).setIcon(VaadinIcons.ADOBE_FLASH.equals(aa.icon())?null:aa.icon()).setConfirmationMessage(aa.confirmationMessage());
 
+            action.setGroup(aa.group());
             viewComponent.setAction(m, action);
         }
 

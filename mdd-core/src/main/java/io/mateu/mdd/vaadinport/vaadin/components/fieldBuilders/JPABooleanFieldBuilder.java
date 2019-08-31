@@ -1,16 +1,11 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.CSS;
-import io.mateu.mdd.core.annotations.Help;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.CSS;
-import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;

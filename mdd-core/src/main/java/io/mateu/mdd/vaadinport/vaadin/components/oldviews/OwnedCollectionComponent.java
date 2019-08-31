@@ -3,13 +3,11 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 import com.google.common.collect.Lists;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.core.CSS;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.ClassOption;
-import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.MDDBinder;
@@ -20,14 +18,19 @@ import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.ClassOption;
 import io.mateu.mdd.vaadinport.vaadin.navigation.MDDViewComponentCreator;
 import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Entity;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
+@Slf4j
 public class OwnedCollectionComponent extends VerticalLayout {
 
     private final Button goToPreviousButton;
@@ -166,7 +169,7 @@ public class OwnedCollectionComponent extends VerticalLayout {
         });
 
         addAttachListener(x -> {
-            System.out.println("attached!");
+            log.debug("attached!");
             if (editorViewComponent != null) {
                 editorViewComponent.getBinder().addValueChangeListener(e -> {
                     updateButtons();

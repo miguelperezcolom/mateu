@@ -3,19 +3,18 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.ui.Grid;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.data.ChartData;
 import io.mateu.mdd.core.data.SumData;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.core.interfaces.RpcView;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.core.annotations.Action;
-import io.mateu.mdd.core.data.ChartData;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 

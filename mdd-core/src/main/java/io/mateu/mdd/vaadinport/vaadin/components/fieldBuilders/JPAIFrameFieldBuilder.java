@@ -1,6 +1,5 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
-import com.google.common.base.Strings;
 import com.vaadin.data.Binder;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
@@ -9,10 +8,8 @@ import com.vaadin.shared.Registration;
 import com.vaadin.ui.BrowserFrame;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Layout;
-import io.mateu.mdd.core.annotations.*;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.annotations.IFrame;
+import io.mateu.mdd.core.annotations.Width;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;

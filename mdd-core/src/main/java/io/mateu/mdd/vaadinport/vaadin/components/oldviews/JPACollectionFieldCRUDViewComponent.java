@@ -1,9 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-
-import java.lang.reflect.InvocationTargetException;
 
 public class JPACollectionFieldCRUDViewComponent extends CRUDViewComponent {
 

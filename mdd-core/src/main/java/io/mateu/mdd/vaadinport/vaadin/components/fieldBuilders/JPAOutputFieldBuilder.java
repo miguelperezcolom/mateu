@@ -1,6 +1,5 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
-import com.google.common.base.Strings;
 import com.vaadin.data.Binder;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
@@ -13,15 +12,13 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.*;
+import io.mateu.mdd.core.annotations.DataProvider;
+import io.mateu.mdd.core.annotations.FullWidth;
+import io.mateu.mdd.core.annotations.UseTable;
 import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.annotations.Help;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ProxyClass;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
@@ -33,7 +30,6 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
@@ -64,6 +60,20 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
         } else if (Collection.class.isAssignableFrom(field.getType())) {
 
+            if (field.isAnnotationPresent(UseTable.class)) {
+                VerticalLayout hl = new VerticalLayout();
+                hl.addStyleName("onetomanytable");
+
+                Label l;
+                hl.addComponent(l = new Label("", ContentMode.HTML));
+                hl.addStyleName(CSS.NOPADDING);
+
+                hl.setCaption(ReflectionHelper.getCaption(field));
+
+                container.addComponent(hl);
+
+                JPAOneToManyFieldBuilder.bind(binder, l, field);
+            } else {
 
                 Grid g = new Grid();
 
@@ -115,7 +125,8 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
                 container.addComponent(g);
 
-                //if (allFieldContainers != null) if (allFieldContainers != null) allFieldContainers.put(field, g);
+            }
+
             } else {
 
                 Button botonLink = null;

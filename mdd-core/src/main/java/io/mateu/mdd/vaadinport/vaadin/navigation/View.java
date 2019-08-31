@@ -2,7 +2,6 @@ package io.mateu.mdd.vaadinport.vaadin.navigation;
 
 import com.vaadin.ui.Component;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
 
 public class View implements com.vaadin.navigator.View {
 

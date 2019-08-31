@@ -2,6 +2,7 @@ package io.mateu.mdd.tester.model.useCases.triggers;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity@Getter@Setter
+@Slf4j
 public class Product {
 
     @Id@GeneratedValue
@@ -23,7 +25,7 @@ public class Product {
 
 
     @OrderBy("id")
-    private List<LogRecord> log = new ArrayList<>();
+    private List<LogRecord> _log = new ArrayList<>();
 
 
     private String aux;
@@ -49,6 +51,6 @@ public class Product {
     public void updateValue() {
         double total = parts.stream().mapToDouble(p -> p.getValue()).sum();
         setValue(total);
-        System.out.println("producto total ahora es " + value);
+        log.debug("producto total ahora es " + value);
     }
 }

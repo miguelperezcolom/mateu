@@ -8,6 +8,7 @@ import io.mateu.mdd.core.workflow.WorkflowEngine;
 import io.mateu.mdd.tester.model.useCases.bankAccount.Payment;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @Entity
 @Getter@Setter
+@Slf4j
 public class Booking {
 
     @Id@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,10 +34,20 @@ public class Booking {
     @ListColumn
     private Hotel hotel;
 
+    @SectionKPI
+    private double totalPax = 3;
+
+    @SectionKPI
+    private double adults = 3;
+
+    @SectionKPI
+    private double children = 0;
+
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "booking")
+    @UseTable(fields = "pax,room,active")
     private List<HotelBookingLine> lines = new ArrayList<>();
 
-    public String getLinesHtml() {
+    public String getXXLinesHtml() {
 
         String h = "<div class='lines'>";
         for (HotelBookingLine l : lines) {
@@ -80,7 +92,7 @@ public class Booking {
 
     @OneToMany(cascade = CascadeType.ALL)
     @UseLinkToListView
-    private List<BookingLog> log = new ArrayList<>();
+    private List<BookingLog> _log = new ArrayList<>();
 
 
     @Ignored
@@ -94,12 +106,12 @@ public class Booking {
     }
 
     public void askForUpdate() {
-        System.out.println("************askForUpdate(" + updatePending + ", " + updating + ")");
+        log.debug("************askForUpdate(" + updatePending + ", " + updating + ")");
         if (!updatePending && !updating) {
-            System.out.println("************askForUpdate(): passed");
+            log.debug("************askForUpdate(): passed");
             setUpdatePending(true);
             WorkflowEngine.add(() -> {
-                System.out.println("************askForUpdate(): running");
+                log.debug("************askForUpdate(): running");
                 try {
                     Helper.transact(em -> {
                         updateTotals(em);
@@ -110,12 +122,12 @@ public class Booking {
                 }
                 setUpdatePending(false);
                 setUpdating(false);
-                System.out.println("************askForUpdate(): done");
+                log.debug("************askForUpdate(): done");
             });
         } else {
-            System.out.println("************askForUpdate(): not passed");
+            log.debug("************askForUpdate(): not passed");
         }
-        System.out.println("************askForUpdate(): out");
+        log.debug("************askForUpdate(): out");
     }
 
     private void updateTotals(EntityManager em) {
@@ -133,7 +145,8 @@ public class Booking {
 
     @Action(order = 1)
     public void test() {
-        System.out.println("test()");
+        log.debug("test()");
+        totalPax+=10;
     }
 
 
@@ -165,13 +178,33 @@ public class Booking {
 
 
 
+    @Action(order = 1, section = "General")
+    public void subtest() {
+        log.debug("subtest()");
+        totalPax++;
+        pax++;
+    }
+
+    @Action(order = 2, section = "General")
+    public void subconfirm() {
+        log.debug("subconfirm()");
+        adults++;
+        leadName += "zz";
+    }
+
+    @Action(order = 3, section = "General", group = "subconfirm")
+    public void subconfirmz() {
+        log.debug("subconfirmz()");
+        adults++;
+        leadName += "zz";
+    }
 
 
 
 
     @Override
     public boolean equals(Object obj) {
-        return this == obj || id == ((Booking)obj).getId();
+        return this == obj || (obj != null && obj instanceof Booking && id > 0 && id == ((Booking)obj).getId());
     }
 
     @Override
@@ -185,7 +218,7 @@ public class Booking {
      */
     @PostPersist@PostUpdate
     public void post() {
-        System.out.println("**************** Booking.pre()");
+        log.debug("**************** Booking.pre()");
         askForUpdate();
     }
 }

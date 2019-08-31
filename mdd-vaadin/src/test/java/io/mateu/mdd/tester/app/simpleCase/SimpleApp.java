@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Caption;
+import io.mateu.mdd.core.annotations.IFrame;
 import io.mateu.mdd.core.annotations.SubApp;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.model.config.AppConfig;
@@ -12,15 +13,20 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.tester.model.entities.basic.BasicFieldsDemoEntity;
 import io.mateu.mdd.tester.model.entities.groups.Person;
+import io.mateu.mdd.tester.model.useCases.batches.Batch;
 import io.mateu.mdd.tester.model.useCases.hotel.Booking;
 import io.mateu.mdd.tester.model.views.BookingsCrudView;
 import io.mateu.mdd.tester.model.views.BookingsView;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.AbstractFieldBuilder;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 
 @Caption("My simple app")
+@Slf4j
 public class SimpleApp extends SimpleMDDApplication {
 
 
@@ -60,12 +66,12 @@ public class SimpleApp extends SimpleMDDApplication {
         return Lists.newArrayList(new AbstractAction("Say hello") {
             @Override
             public void run(MDDExecutionContext context) {
-                System.out.println("hello");
+                log.debug("hello");
             }
         }, new AbstractAction("Say bye") {
             @Override
             public void run(MDDExecutionContext context) {
-                System.out.println("bye");
+                log.debug("bye");
             }
         });
     }
@@ -112,15 +118,34 @@ public class SimpleApp extends SimpleMDDApplication {
         return new BookingsCrudView();
     }
 
-    @Action
+    @Action(order = 50)
     public Vista vista() {
         return new Vista();
     }
 
+    @Action(order = 60)
+    public Vista2 vista2() {
+        return new Vista2();
+    }
+
+    @Action(order = 90, icon = VaadinIcons.FILE)
+    public Class batches() {
+        return Batch.class;
+    }
+
+    @Action(order = 100, icon = VaadinIcons.CLOUD)@IFrame
+    public URL url() {
+        try {
+            return new URL("https://elpais.com/");
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     @Override
     public boolean isAuthenticationNeeded() {
-        return true;
+        return false;
     }
 
     @Override
@@ -132,4 +157,6 @@ public class SimpleApp extends SimpleMDDApplication {
     public AbstractFieldBuilder getFieldBuilder(FieldInterfaced field) {
         return super.getFieldBuilder(field);
     }
+
+
 }

@@ -3,10 +3,12 @@ package io.mateu.mdd.core.model.multilanguage;
 import com.google.cloud.translate.Translate;
 import com.google.cloud.translate.TranslateOptions;
 import com.google.cloud.translate.Translation;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 public class Translator {
 
     public static String translate(String sourceLanguage, String targetLanguage, String text) {
@@ -41,6 +43,6 @@ public class Translator {
     }
 
     public static void main(String[] args) {
-        System.out.println(translate("es", "en", "prueba"));
+        log.debug(translate("es", "en", "prueba"));
     }
 }

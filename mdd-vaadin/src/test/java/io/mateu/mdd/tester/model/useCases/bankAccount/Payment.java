@@ -8,6 +8,7 @@ import io.mateu.mdd.core.model.authentication.Audit;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -15,6 +16,7 @@ import java.time.LocalTime;
 
 @Entity
 @Getter@Setter
+@Slf4j
 public class Payment {
 
     @Id
@@ -48,10 +50,10 @@ public class Payment {
 
 
     public void setAmount(double amount) {
-        System.out.println("setAmount(" + amount + ")");
+        log.debug("setAmount(" + amount + ")");
         double previousAmount = this.amount;
         this.amount = amount;
-        System.out.println("updating account balance as we have changed the amount");
+        log.debug("updating account balance as we have changed the amount");
         if (previousAmount != amount) getAccount().setBalance(getAccount().getBalance() + amount - previousAmount);
     }
 

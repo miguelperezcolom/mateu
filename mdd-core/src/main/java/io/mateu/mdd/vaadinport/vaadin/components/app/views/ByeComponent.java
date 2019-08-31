@@ -6,8 +6,6 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 public class ByeComponent extends VerticalLayout {
 

@@ -9,7 +9,9 @@ import io.mateu.mdd.tester.model.rpc.SampleRPCListView;
 import io.mateu.mdd.tester.model.rpc.SampleRPCToJPAListView;
 import io.mateu.mdd.tester.tests.reflection.MiJPQLListViewCaso1;
 import io.mateu.mdd.tester.tests.reflection.MiJPQLListViewCaso2;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class ReflectionTester {
 
     public static void main(String[] args) {
@@ -18,17 +20,17 @@ public class ReflectionTester {
 
     private static void test1() {
 
-        System.out.println(ReflectionHelper.getGenericClass(SampleJPQLLIstView.class, AbstractJPQLListView.class, "R"));
+        log.debug("" + ReflectionHelper.getGenericClass(SampleJPQLLIstView.class, AbstractJPQLListView.class, "R"));
 
-        System.out.println(ReflectionHelper.getGenericClass(MiJPQLListViewCaso1.class, AbstractJPQLListView.class, "R"));
+        log.debug("" + ReflectionHelper.getGenericClass(MiJPQLListViewCaso1.class, AbstractJPQLListView.class, "R"));
 
-        System.out.println(ReflectionHelper.getGenericClass(MiJPQLListViewCaso2.class, AbstractJPQLListView.class, "R"));
+        log.debug("" + ReflectionHelper.getGenericClass(MiJPQLListViewCaso2.class, AbstractJPQLListView.class, "R"));
 
-        System.out.println(ReflectionHelper.getGenericClass(SampleJPQLLIstView.class, RpcView.class, "C"));
+        log.debug("" + ReflectionHelper.getGenericClass(SampleJPQLLIstView.class, RpcView.class, "C"));
 
-        System.out.println(ReflectionHelper.getGenericClass(SampleRPCListView.class, RpcView.class, "C"));
+        log.debug("" + ReflectionHelper.getGenericClass(SampleRPCListView.class, RpcView.class, "C"));
 
-        System.out.println(ReflectionHelper.getGenericClass(SampleRPCToJPAListView.class, RpcView.class, "C"));
+        log.debug("" + ReflectionHelper.getGenericClass(SampleRPCToJPAListView.class, RpcView.class, "C"));
 
     }
 

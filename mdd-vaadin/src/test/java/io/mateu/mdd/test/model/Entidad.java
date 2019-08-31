@@ -5,6 +5,7 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity@Getter@Setter
+@Slf4j
 public class Entidad {
 
     @Id@GeneratedValue
@@ -22,7 +24,7 @@ public class Entidad {
     private LocalDateTime trigger = LocalDateTime.now();
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Evento> log = new ArrayList<>();
+    private List<Evento> _log = new ArrayList<>();
 
 
     @PostPersist@PostUpdate
@@ -31,12 +33,12 @@ public class Entidad {
 
             WorkflowEngine.add(() -> {
 
-                System.out.println("tarea creada desde entidad.post()");
+                log.debug("tarea creada desde entidad.post()");
 
                 Helper.transact(em -> {
 
                         Entidad e = em.find(Entidad.class, getId()); // em.merge(Entidad.this);
-                        e.setLog(Helper.extend(log, new Evento()));
+                        e.set_log(Helper.extend(_log, new Evento()));
                         e.setTrigger(null);
 
                     });

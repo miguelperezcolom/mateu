@@ -4,14 +4,13 @@ import com.google.common.base.Strings;
 import com.vaadin.server.Page;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.UserData;
-import io.mateu.mdd.core.util.JPATransaction;
-import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.model.authentication.Permission;
 import io.mateu.mdd.core.model.authentication.USER_STATUS;
 import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 
 import javax.persistence.EntityManager;
@@ -20,6 +19,7 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+@Slf4j
 public class OAuthHelper {
 
 
@@ -66,7 +66,7 @@ grant_type=authorization_code
                         .post(formBody)
                         .build();
 
-                System.out.println("request=" + request);
+                log.debug("request=" + request);
 
 
 
@@ -75,15 +75,15 @@ grant_type=authorization_code
 
                     String rb = response.body().string();
 
-                    System.out.println("" + rb);
+                    log.debug("" + rb);
 
                     Map<String, Object> m = Helper.fromJson(rb);
 
-                    System.out.println("" + m);
+                    log.debug("" + m);
 
                     access_token = (String) m.get("access_token");
 
-                    System.out.println("access_token=" + access_token);
+                    log.debug("access_token=" + access_token);
                 }
 
             }
@@ -102,7 +102,7 @@ grant_type=authorization_code
                         .get()
                         .build();
 
-                System.out.println("request=" + request);
+                log.debug("request=" + request);
 
 
                 try (Response response = client.newCall(request).execute()) {
@@ -110,7 +110,7 @@ grant_type=authorization_code
 
                     String rb = response.body().string();
 
-                    System.out.println("response=" + rb);
+                    log.debug("response=" + rb);
 
                     Map<String, Object> m = Helper.fromJson(rb);
 
@@ -157,10 +157,10 @@ grant_type=authorization_code
                     String email = (String) m.get("email");
                     String login = (String) m.get("email");
 
-                    System.out.println("" + avatarUrl);
-                    System.out.println("" + name);
-                    System.out.println("" + email); // puede ser null
-                    System.out.println("" + login);
+                    log.debug("" + avatarUrl);
+                    log.debug("" + name);
+                    log.debug("" + email); // puede ser null
+                    log.debug("" + login);
 
                     Helper.transact(new JPATransaction() {
                         @Override
@@ -231,7 +231,7 @@ grant_type=authorization_code
 
             String callbackUrl = MDD.getApp().getBaseUrl() + "oauth/google/callback";
 
-            System.out.println("callbackurl = " + callbackUrl);
+            log.debug("callbackurl = " + callbackUrl);
 
             OkHttpClient client = new OkHttpClient();
 
@@ -249,7 +249,7 @@ grant_type=authorization_code
                         .post(formBody)
                         .build();
 
-                System.out.println("request=" + request);
+                log.debug("request=" + request);
 
 
                 try (Response response = client.newCall(request).execute()) {
@@ -257,15 +257,15 @@ grant_type=authorization_code
 
                     String rb = response.body().string();
 
-                    System.out.println("" + rb);
+                    log.debug("" + rb);
 
                     Map<String, Object> m = Helper.fromJson(rb);
 
-                    System.out.println("" + m);
+                    log.debug("" + m);
 
                     access_token = (String) m.get("access_token");
 
-                    System.out.println("access_token=" + access_token);
+                    log.debug("access_token=" + access_token);
                 }
 
             }
@@ -284,7 +284,7 @@ grant_type=authorization_code
                         .get()
                         .build();
 
-                System.out.println("request=" + request);
+                log.debug("request=" + request);
 
 
                 try (Response response = client.newCall(request).execute()) {
@@ -292,7 +292,7 @@ grant_type=authorization_code
 
                     String rb = response.body().string();
 
-                    System.out.println("response=" + rb);
+                    log.debug("response=" + rb);
 
                         Map<String, Object> m = Helper.fromJson(rb);
 
@@ -339,10 +339,10 @@ grant_type=authorization_code
                     String email = (String) m.get("email");
                     String login = (String) m.get("email");
 
-                    System.out.println("" + avatarUrl);
-                    System.out.println("" + name);
-                    System.out.println("" + email); // puede ser null
-                    System.out.println("" + login);
+                    log.debug("" + avatarUrl);
+                    log.debug("" + name);
+                    log.debug("" + email); // puede ser null
+                    log.debug("" + login);
 
                     Helper.transact(new JPATransaction() {
                         @Override
@@ -413,23 +413,23 @@ grant_type=authorization_code
                         .post(formBody)
                         .build();
 
-                System.out.println("request=" + request);
-                for (int i = 0; i < ((FormBody) formBody).size(); i++) System.out.println("" + ((FormBody) formBody).name(i) + "=" + ((FormBody) formBody).value(i));
+                log.debug("request=" + request);
+                for (int i = 0; i < ((FormBody) formBody).size(); i++) log.debug("" + ((FormBody) formBody).name(i) + "=" + ((FormBody) formBody).value(i));
 
                 try (Response response = client.newCall(request).execute()) {
                     if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
 
                     String rb = response.body().string();
 
-                    System.out.println("" + rb);
+                    log.debug("" + rb);
 
                     Map<String, String> m = Helper.parseQueryString(rb);
 
-                    System.out.println("" + m);
+                    log.debug("" + m);
 
                     access_token = m.get("access_token");
 
-                    System.out.println("access_token=" + access_token);
+                    log.debug("access_token=" + access_token);
                 }
 
             }
@@ -448,7 +448,7 @@ grant_type=authorization_code
                         .get()
                         .build();
 
-                System.out.println("request=" + request);
+                log.debug("request=" + request);
 
 
                 try (Response response = client.newCall(request).execute()) {
@@ -456,7 +456,7 @@ grant_type=authorization_code
 
                     String rb = response.body().string();
 
-                    System.out.println("response=" + rb);
+                    log.debug("response=" + rb);
 
                     Map<String, Object> m = Helper.fromJson(rb);
 
@@ -503,10 +503,10 @@ grant_type=authorization_code
                     String email = (String) m.get("email");
                     String login = (String) m.get("login");
 
-                    System.out.println("" + avatarUrl);
-                    System.out.println("" + name);
-                    System.out.println("" + email); // puede ser null
-                    System.out.println("" + login);
+                    log.debug("" + avatarUrl);
+                    log.debug("" + name);
+                    log.debug("" + email); // puede ser null
+                    log.debug("" + login);
 
                     Helper.transact(new JPATransaction() {
                         @Override
@@ -588,11 +588,11 @@ grant_type=authorization_code
 
                 Map<String, String> m = Helper.parseQueryString(rb);
 
-                System.out.println("" + m);
+                log.debug("" + m);
 
                 access_token = m.get("access_token");
 
-                System.out.println("access_token=" + access_token);
+                log.debug("access_token=" + access_token);
             }
 
         }
@@ -616,7 +616,7 @@ grant_type=authorization_code
 
                 String rb = response.body().string();
 
-                System.out.println("response=" + rb);
+                log.debug("response=" + rb);
 
                 Map<String, Object> m = Helper.fromJson(rb);
 
@@ -659,10 +659,10 @@ grant_type=authorization_code
                  */
 
 
-                System.out.println("" + m.get("avatar_url"));
-                System.out.println("" + m.get("name"));
-                System.out.println("" + m.get("email")); // puede ser null
-                System.out.println("" + m.get("login"));
+                log.debug("" + m.get("avatar_url"));
+                log.debug("" + m.get("name"));
+                log.debug("" + m.get("email")); // puede ser null
+                log.debug("" + m.get("login"));
 
             }
 

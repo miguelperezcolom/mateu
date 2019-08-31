@@ -2,11 +2,13 @@ package io.mateu.mdd.tester.model.useCases.triggers;
 
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+@Slf4j
 public class Tester {
 
     public static void main(String[] args) {
@@ -25,8 +27,8 @@ public class Tester {
                 Part p = ((List<Part>) Helper.selectObjects("select x from " + Part.class.getName() + " x")).stream().findFirst().get();
                 p = em.merge(p);
                 p.setValue(System.currentTimeMillis() % 1000);
-                System.out.println("antes del merge");
-                System.out.println("depués del merge");
+                log.debug("antes del merge");
+                log.debug("depués del merge");
 
             });
         } catch (Throwable throwable) {
@@ -61,7 +63,7 @@ public class Tester {
 
 
             Helper.transact(em -> {
-                System.out.println("aux=" + em.find(Product.class, id).getAux());
+                log.debug("aux=" + em.find(Product.class, id).getAux());
             });
         } catch (Throwable throwable) {
             throwable.printStackTrace();

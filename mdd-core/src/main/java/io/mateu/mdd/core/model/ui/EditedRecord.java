@@ -1,8 +1,8 @@
 package io.mateu.mdd.core.model.ui;
 
+import io.mateu.mdd.core.model.authentication.User;
 import lombok.Getter;
 import lombok.Setter;
-import io.mateu.mdd.core.model.authentication.User;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;

@@ -8,11 +8,12 @@ import io.mateu.mdd.core.util.Helper;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.constraints.NotEmpty;
 import java.io.IOException;
 
-@Getter@Setter@ToString
+@Getter@Setter@ToString@Slf4j
 public class Wizard1Page2 implements WizardPage {
 
     private String aux;
@@ -47,6 +48,6 @@ public class Wizard1Page2 implements WizardPage {
 
     @Override
     public void onOk() throws Throwable {
-        System.out.println(this);
+        log.debug("" + this);
     }
 }

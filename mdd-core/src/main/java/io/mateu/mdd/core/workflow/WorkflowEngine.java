@@ -1,10 +1,12 @@
 package io.mateu.mdd.core.workflow;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.time.LocalDateTime;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@Slf4j
 public class WorkflowEngine {
 
     private static ConcurrentLinkedQueue queue;
@@ -59,13 +61,13 @@ public class WorkflowEngine {
 
 
     public static void add(Task task) {
-        //System.out.println("añadiendo tarea " + task.getClass().getName());
+        //log.debug("añadiendo tarea " + task.getClass().getName());
 
         if (uselocalRunners.get() != null && uselocalRunners.get()) {
-            //System.out.println("va al runner del thread");
+            //log.debug("va al runner del thread");
             localQueues.get().add(task);
         } else {
-            //System.out.println("va al workflow global");
+            //log.debug("va al workflow global");
             queue.add(task);
         }
     }
@@ -75,12 +77,12 @@ public class WorkflowEngine {
     }
 
     public static void runAndWaitThreadLocalTasks(boolean force) {
-        //System.out.println("runAndWaitThreadLocalTasks(" + force + ")");
+        //log.debug("runAndWaitThreadLocalTasks(" + force + ")");
         if (force || !uselocalRunners.get()) {
-            //System.out.println("ejecutando tareas thread local. localQueues.get().size() = " + localQueues.get().size());
+            //log.debug("ejecutando tareas thread local. localQueues.get().size() = " + localQueues.get().size());
             uselocalRunners.set(true);
             while (localQueues.get().size() > 0) {
-                //System.out.println("ejecutando tarea thread local. localQueues.get().size() = " + localQueues.get().size());
+                //log.debug("ejecutando tarea thread local. localQueues.get().size() = " + localQueues.get().size());
                 Task task = (Task) localQueues.get().poll();
                 try {
                     task.run();
@@ -88,14 +90,14 @@ public class WorkflowEngine {
                     e.printStackTrace();
                 }
             }
-            //System.out.println("localQueues empty");
+            //log.debug("localQueues empty");
             uselocalRunners.set(false);
         }
     }
 
     private static synchronized void start() {
 
-        System.out.println("start workflowengine");
+        log.debug("start workflowengine");
 
         if (queue == null) {
 
@@ -119,8 +121,8 @@ public class WorkflowEngine {
                             try {
                                 running.set(true);
                                 Object o = queue.poll();
-                                System.out.println("" + LocalDateTime.now() + ": Runing task " + o.getClass().getName());
-                                Runnable task = (Runnable) o;
+                                log.debug("" + LocalDateTime.now() + ": Runing task " + o.getClass().getName());
+                                Task task = (Task) o;
                                 task.run();
                             } catch (Throwable e) {
                                 e.printStackTrace();

@@ -5,6 +5,7 @@ import io.mateu.mdd.core.annotations.UseIdToSelect;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.Set;
 @Entity
 @Getter@Setter
 @UseIdToSelect
+@Slf4j
 public class Hotel {
 
     @Id@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,13 +49,13 @@ public class Hotel {
 
     @Action
     public void sendRooming(String postscript) {
-        System.out.println("send rooming with " + postscript + " for " + getName());
+        log.debug("send rooming with " + postscript + " for " + getName());
     }
 
 
     @Action
     public static void sendRooming(String postscript, Set<Hotel> selection) {
-        System.out.println("send rooming with " + postscript + " for " + selection.size() + " hotels");
+        log.debug("send rooming with " + postscript + " for " + selection.size() + " hotels");
     }
 
 

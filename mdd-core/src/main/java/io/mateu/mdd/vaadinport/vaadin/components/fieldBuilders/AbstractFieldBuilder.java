@@ -71,7 +71,7 @@ public abstract class AbstractFieldBuilder {
         if (model != null) for (FieldInterfaced f : containers.keySet()) {
             Component c = containers.get(f);
             if (c != null) {
-                c.setVisible(stylist.isVisible(f, model));
+                c.getParent().setVisible(stylist.isVisible(f, model));
             }
         }
     }

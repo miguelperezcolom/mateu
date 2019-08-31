@@ -1,11 +1,9 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.google.common.base.Strings;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.MenuBar;
-import com.vaadin.ui.VerticalLayout;
-import io.mateu.mdd.core.app.AbstractAction;
+import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.vaadinport.vaadin.components.app.AbstractMDDExecutionContext;
 import io.mateu.mdd.vaadinport.vaadin.navigation.View;
 
@@ -19,9 +17,9 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
 
     private View view;
-    protected MenuBar bar;
+    protected CssLayout bar;
     protected Map<Method, AbstractAction> actionsByMethod = new HashMap<>();
-    protected Map<String, MenuBar.MenuItem> menuItemsById = new HashMap<>();
+    protected Map<String, Component> menuItemsById = new HashMap<>();
     protected List<String> menuItemIdsUnseen = new ArrayList<>();
     private String title;
     private HorizontalLayout hiddens;
@@ -58,60 +56,58 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
         addComponent(hiddens);
 
-        bar = new MenuBar();
+        bar = new CssLayout();
         bar.addStyleName("actionsbar");
-        bar.setWidth("100%");
         menuItemsById = new HashMap<>();
         addViewActionsMenuItems(bar);
-        if (bar.getItems().size() > 0) addComponent(bar);
+        if (bar.getComponentCount() > 0) addComponent(bar);
 
         return (A) this;
     }
 
-    public void addViewActionsMenuItems(MenuBar bar) {
+    public void addViewActionsMenuItems(CssLayout bar) {
 
         for (AbstractAction a : getActions()) {
-            MenuBar.MenuItem i = null;
+            Component i = null;
             if (!isActionPresent(a.getId())) {
-                i = bar.addItem(a.getName(), a.getIcon(), new MenuBar.Command() {
-                    @Override
-                    public void menuSelected(MenuBar.MenuItem menuItem) {
-                        try {
+                Button b;
+                bar.addComponent(i = b = new Button(a.getName(), a.getIcon()));
+                b.addClickListener(e -> {
+                    try {
 
-                            Runnable r = new Runnable() {
+                        Runnable r = new Runnable() {
+                            @Override
+                            public void run() {
+
+                                a.run(new AbstractMDDExecutionContext());
+
+                                if (AbstractViewComponent.this instanceof EditorViewComponent) {
+
+                                    EditorViewComponent evc = (EditorViewComponent) AbstractViewComponent.this;
+
+                                    evc.getBinder().setBean(evc.getModel());
+
+                                }
+
+
+                            }
+                        };
+
+                        if (!Strings.isNullOrEmpty(a.getConfirmationMessage())) {
+                            MDD.confirm(a.getConfirmationMessage(), new Runnable() {
                                 @Override
                                 public void run() {
 
-                                    a.run(new AbstractMDDExecutionContext());
+                                    r.run();
 
-                                    if (AbstractViewComponent.this instanceof EditorViewComponent) {
-
-                                        EditorViewComponent evc = (EditorViewComponent) AbstractViewComponent.this;
-
-                                        evc.setModel(evc.getModel());
-
-                                    }
-
+                                    //todo: actualizar vista con los cambios en el modelo
 
                                 }
-                            };
+                            });
+                        } else r.run();
 
-                            if (!Strings.isNullOrEmpty(a.getConfirmationMessage())) {
-                                MDD.confirm(a.getConfirmationMessage(), new Runnable() {
-                                    @Override
-                                    public void run() {
-
-                                        r.run();
-
-                                        //todo: actualizar vista con los cambios en el modelo
-
-                                    }
-                                });
-                            } else r.run();
-
-                        } catch (Throwable throwable) {
-                            MDD.alert(throwable);
-                        }
+                    } catch (Throwable throwable) {
+                        MDD.alert(throwable);
                     }
                 });
 
@@ -146,11 +142,11 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
         return found;
     }
 
-    public MenuBar.MenuItem getMenuItemById(String id) {
+    public Component getMenuItemById(String id) {
         return menuItemsById.get(id);
     }
 
-    public void addMenuItem(String id, MenuBar.MenuItem i) {
+    public void addMenuItem(String id, Component i) {
         menuItemsById.put(id, i);
     }
 

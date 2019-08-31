@@ -5,7 +5,6 @@ import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewProvider;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Notification;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
@@ -18,18 +17,18 @@ import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.Pair;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.AreaComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.OAuthHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
 import io.mateu.mdd.vaadinport.vaadin.pojos.Profile;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
-import java.net.URI;
 import java.util.*;
 
 
@@ -51,7 +50,7 @@ import java.util.*;
 //private|public/area/modulo/menu/menu/accion/vista/id|add/field <-- rellenar seleccionado registros
 //private|public/area/modulo/menu/menu/accion/vista/id|add/methodName <-- rellenar seleccionado registros
 
-
+@Slf4j
 public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
     private final ViewStack stack;
@@ -115,6 +114,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
     @Override
     public View getView(String state) {
         View v = null;
+        boolean nuevo = false;
 
         if (state.startsWith("app/")) state = state.substring("app/".length());
 
@@ -139,7 +139,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
             //http://localhost:8080/callback?code=c0324687fdcdf68fde05
 
-            System.out.println("state = " + state);
+            log.debug("state = " + state);
 
             Map<String, String> params = Helper.parseQueryString(Page.getCurrent().getLocation().getQuery());
 
@@ -156,7 +156,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
             //http://localhost:8080/callback?code=c0324687fdcdf68fde05
 
-            System.out.println("state = " + state);
+            log.debug("state = " + state);
 
             Map<String, String> params = Helper.parseQueryString(Page.getCurrent().getLocation().getQuery());
 
@@ -173,7 +173,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
             //http://localhost:8080/callback?code=c0324687fdcdf68fde05
 
-            System.out.println("state = " + state);
+            log.debug("state = " + state);
 
             Map<String, String> params = Helper.parseQueryString(Page.getCurrent().getLocation().getQuery());
 
@@ -190,13 +190,13 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
         }
 
         if ("welcome".equals(state) && MDD.getUserData() != null) { // caso "login"
-            System.out.println("-->welcome (" + pendingPrivateState + ")");
+            log.debug("-->welcome (" + pendingPrivateState + ")");
             if (!Strings.isNullOrEmpty(pendingPrivateState)) {
                 String newState = pendingPrivateState;
                 pendingPrivateState = null;
                 if (newState.startsWith("/")) newState = newState.substring(1);
 
-                System.out.println("-->going to (" + MDD.getApp().getBaseUrl() + newState + ")");
+                log.debug("-->going to (" + MDD.getApp().getBaseUrl() + newState + ")");
 
                 Page.getCurrent().open(MDD.getApp().getBaseUrl() + newState, null);
             } else if (MDD.getApp().getDefaultPrivateArea().getDefaultAction() != null) {
@@ -451,7 +451,10 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                 int currentStepIndex = lastPos;
                 currentPath = lastPath;
+                nuevo = false;
                 while (currentStepIndex < steps.length) { //vamos completando
+
+                    nuevo = true;
 
                     String step = steps[currentStepIndex];
 
@@ -840,7 +843,7 @@ xxxxxxxxxxxxxxxx
 
                                                     @Override
                                                     public void onSelect(Object id) {
-                                                        System.out.println("Han seleccionado " + id);
+                                                        log.debug("Han seleccionado " + id);
                                                         Optional o = (Optional) id;
                                                         if (o.isPresent()) {
 
@@ -937,7 +940,7 @@ xxxxxxxxxxxxxxxx
                             MethodParametersViewComponent mpvc = mpfvc.getComponent();
 
 
-                            System.out.println("aaaaa");
+                            log.debug("aaaaa");
 
 
                         } else {
@@ -1064,6 +1067,18 @@ xxxxxxxxxxxxxxxx
 
         if (v == null) v = new VoidView();
 
+        if (v != null && !nuevo) {
+            Component c = ((io.mateu.mdd.vaadinport.vaadin.navigation.View) v).getViewComponent();
+            if (c != null && c instanceof ComponentWrapper) {
+                ((ComponentWrapper)c).updatePageTitle();
+                c = ((ComponentWrapper)c).getWrapped();
+            }
+            if (c != null && c instanceof EditorViewComponent) {
+                    EditorViewComponent evc = (EditorViewComponent) c;
+                    evc.setModel(evc.getModel(), false);
+                }
+            }
+
         if (v != null && v instanceof io.mateu.mdd.vaadinport.vaadin.navigation.View && ((io.mateu.mdd.vaadinport.vaadin.navigation.View)v).getViewComponent() instanceof CRUDViewComponent) currentEditor = (EditorViewComponent) v.getViewComponent();
 
         if (v != null && v instanceof io.mateu.mdd.vaadinport.vaadin.navigation.View && ((io.mateu.mdd.vaadinport.vaadin.navigation.View)v).getComponent() instanceof CRUDViewComponent) Notification.show(((MDD.isMobile())?"Click":"Double click") + " on matches to edit", Notification.Type.TRAY_NOTIFICATION);
@@ -1075,19 +1090,19 @@ xxxxxxxxxxxxxxxx
                 c = ((ComponentWrapper)c).getWrapped();
             }
             if (c == null) {
-                System.out.println("No limpiamos selección. c es null");
+                log.debug("No limpiamos selección. c es null");
             } else if (c instanceof CRUDViewComponent) {
-                System.out.println("Limpiamos selección " + ((CRUDViewComponent)c).getListViewComponent().resultsComponent.getGrid().getSelectedItems().size());
+                log.debug("Limpiamos selección " + ((CRUDViewComponent)c).getListViewComponent().resultsComponent.getGrid().getSelectedItems().size());
                 ((CRUDViewComponent)c).getListViewComponent().resultsComponent.getGrid().getSelectionModel().deselectAll();
-                System.out.println("Ha quedado en " + ((CRUDViewComponent)c).getListViewComponent().resultsComponent.getGrid().getSelectedItems().size());
+                log.debug("Ha quedado en " + ((CRUDViewComponent)c).getListViewComponent().resultsComponent.getGrid().getSelectedItems().size());
             } else if (c instanceof ListViewComponent) {
                 if (((ListViewComponent)c).resultsComponent != null) {
-                    System.out.println("Limpiamos selección " + ((ListViewComponent)c).resultsComponent.getGrid().getSelectedItems().size());
+                    log.debug("Limpiamos selección " + ((ListViewComponent)c).resultsComponent.getGrid().getSelectedItems().size());
                     ((ListViewComponent)c).resultsComponent.getGrid().getSelectionModel().deselectAll();
-                    System.out.println("Ha quedado en " + ((ListViewComponent)c).resultsComponent.getGrid().getSelectedItems().size());
+                    log.debug("Ha quedado en " + ((ListViewComponent)c).resultsComponent.getGrid().getSelectedItems().size());
                 }
             } else {
-                System.out.println("No limpiamos selección. clase = " + c.getClass().getName());
+                log.debug("No limpiamos selección. clase = " + c.getClass().getName());
             }
 
         }

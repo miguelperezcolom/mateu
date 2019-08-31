@@ -1,16 +1,11 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
-import com.google.common.base.Strings;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
 import com.vaadin.shared.Registration;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
-import io.mateu.mdd.core.annotations.Unmodifiable;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.annotations.Unmodifiable;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;

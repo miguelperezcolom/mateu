@@ -6,24 +6,20 @@ import com.vaadin.server.VaadinServletRequest;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.AbstractArea;
-import io.mateu.mdd.core.app.AbstractModule;
-import io.mateu.mdd.core.data.UserData;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.MDDPort;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ExtraFilters;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Set;
 
+@Slf4j
 public class VaadinPort implements MDDPort {
 
     private boolean mobile;
@@ -59,21 +55,21 @@ public class VaadinPort implements MDDPort {
 
     @Override
     public void openCRUD(AbstractAction action, Class viewClass, String queryFilters, ExtraFilters extraFilters, boolean modifierPressed) {
-        System.out.println("open crud");
+        log.debug("open crud");
 
         MDDUI.get().getNavegador().goTo(action, viewClass);
     }
 
     @Override
     public void openEditor(AbstractAction action, Class viewClass, Object id, boolean modifierPressed) {
-        System.out.println("open editor");
+        log.debug("open editor");
 
         MDDUI.get().getNavegador().goTo(action, viewClass, id);
     }
 
     @Override
     public void openWizard(Class firstPageClass) {
-        System.out.println("open wizard");
+        log.debug("open wizard");
 
         //todo: ver que hacemos con esto
         MDDUI.get().getNavegador().goTo("error no tiene sentido");
@@ -236,14 +232,14 @@ public class VaadinPort implements MDDPort {
 
     @Override
     public void push(String msg) {
-        System.out.println("push(" + msg + ")");
+        log.debug("push(" + msg + ")");
         Notification.show(msg, Notification.Type.TRAY_NOTIFICATION);
         MDDUI.get().push();
     }
 
     @Override
     public void pushDone(String msg) {
-        System.out.println("pushDone(" + msg + ")");
+        log.debug("pushDone(" + msg + ")");
         Notification.show(msg, Notification.Type.HUMANIZED_MESSAGE);
         MDDUI.get().push();
     }

@@ -1,9 +1,9 @@
 package io.mateu.mdd.core.model.multilanguage;
 
-import lombok.Getter;
-import lombok.Setter;
 import io.mateu.mdd.core.data.Data;
 import io.mateu.mdd.core.interfaces.Translated;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

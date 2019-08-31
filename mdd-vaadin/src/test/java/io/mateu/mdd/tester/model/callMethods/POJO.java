@@ -3,8 +3,9 @@ package io.mateu.mdd.tester.model.callMethods;
 import io.mateu.mdd.core.annotations.Action;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
-@Getter
+@Getter@Slf4j
 public class POJO {
 
     private String name;
@@ -20,7 +21,7 @@ public class POJO {
     @Action
     public String someMethod() {
 
-        System.out.println("someMethod runs at server ;)");
+        log.debug("someMethod runs at server ;)");
 
         return "Done!";
     }

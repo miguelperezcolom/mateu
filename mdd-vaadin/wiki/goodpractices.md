@@ -217,10 +217,10 @@ E.g.:
 ````java
 
     public void setAmount(double amount) {
-        System.out.println("setAmount(" + amount + ")");
+        log.debug("setAmount(" + amount + ")");
         double previousAmount = this.amount;
         this.amount = amount;
-        System.out.println("updating account balance as we have " +
+        log.debug("updating account balance as we have " +
                                                   "changed the amount");
         if (previousAmount != amount) 
             getAccount().setBalance(getAccount().getBalance() 

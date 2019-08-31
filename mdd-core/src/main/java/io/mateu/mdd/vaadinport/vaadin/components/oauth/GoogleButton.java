@@ -7,8 +7,6 @@ import com.vaadin.server.Page;
 import com.vaadin.ui.Button;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;

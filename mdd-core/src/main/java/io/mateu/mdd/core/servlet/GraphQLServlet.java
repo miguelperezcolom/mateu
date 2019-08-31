@@ -1,7 +1,6 @@
 package io.mateu.mdd.core.servlet;
 
 import ch.qos.logback.classic.Level;
-import graphql.execution.ExecutionStrategy;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.RuntimeWiring;
@@ -56,12 +55,12 @@ public class GraphQLServlet extends GraphQLHttpServlet {
 
             if (l instanceof ch.qos.logback.classic.Logger) ((ch.qos.logback.classic.Logger)l).setLevel(Level.ERROR);
 
-            System.out.println(l.getClass().getName());
+            log.debug(l.getClass().getName());
 
             try {
                 String schema = crearSchema();
 
-                System.out.println(schema);
+                log.debug(schema);
 
 
                 SchemaParser schemaParser = new SchemaParser();

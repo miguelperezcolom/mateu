@@ -1,11 +1,13 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
-import com.vaadin.data.*;
+import com.vaadin.data.BinderValidationStatus;
+import com.vaadin.data.HasValue;
+import com.vaadin.data.Validator;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.server.ErrorMessage;
-import com.vaadin.shared.ui.ErrorLevel;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
@@ -19,6 +21,7 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -31,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class MethodParametersViewComponent extends AbstractViewComponent implements IEditorViewComponent {
 
     private final Method method;
@@ -111,7 +115,7 @@ public class MethodParametersViewComponent extends AbstractViewComponent impleme
 
         addComponentsAndExpand(new Label(""));
 
-        System.out.println("method parameters component built in " + (System.currentTimeMillis() - t0) + " ms.");
+        log.debug("method parameters component built in " + (System.currentTimeMillis() - t0) + " ms.");
 
 
         return this;
@@ -135,7 +139,7 @@ public class MethodParametersViewComponent extends AbstractViewComponent impleme
             if (v.isOk()) {
 
 
-                System.out.println(binder.getBean());
+                log.debug("" + binder.getBean());
 
 
                 Object r = ReflectionHelper.execute(MDD.getUserData(), method, binder, bean, pendingSelection);

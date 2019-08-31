@@ -2,9 +2,11 @@ package io.mateu.mdd.tester.model.useCases.bankAccount;
 
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.EntityManager;
 
+@Slf4j
 public class Tester {
 
     public static void main(String[] args) throws Throwable {
@@ -24,11 +26,11 @@ public class Tester {
                 Payment p = em.find(Payment.class, 1l);
 
 
-                System.out.println(p.getAccount().getBalance());
+                log.debug("" + p.getAccount().getBalance());
 
                 p.setAmount(100 + p.getAmount());
 
-                System.out.println(p.getAccount().getBalance());
+                log.debug("" + p.getAccount().getBalance());
 
                 em.merge(p);
                 em.merge(p.getAccount());

@@ -8,6 +8,7 @@ import io.mateu.mdd.core.annotations.SearchFilter;
 import io.mateu.mdd.tester.model.useCases.bankAccount.Payment;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -19,6 +20,7 @@ import java.util.UUID;
 
 @Entity
 @Getter@Setter
+@Slf4j
 public class ActionsDemoEntity {
 
     @Id
@@ -39,12 +41,12 @@ public class ActionsDemoEntity {
 
     @Action(value = "Action on all", icon = VaadinIcons.AIRPLANE, order = 2, style = ValoTheme.BUTTON_PRIMARY)
     public static void action1() {
-        System.out.println("action 1");
+        log.debug("action 1");
     }
 
     @Action(value = "Action on all w/params", order = 3, style = ValoTheme.BUTTON_DANGER)
     public static void action3(@Caption("Name from caption") String name, int age) {
-        System.out.println("action 3 " + name + "/" + age);
+        log.debug("action 3 " + name + "/" + age);
     }
 
     @Action(value = "Action on all w/etity params", order = 4, style = ValoTheme.BUTTON_FRIENDLY)
@@ -55,13 +57,13 @@ public class ActionsDemoEntity {
     @Action(value = "Action on all w/params+result", order = 5)
     public static String action5(String name, int age) {
         String msg = "action 5 " + name + "/" + age;
-        System.out.println(msg);
+        log.debug(msg);
         return msg;
     }
 
     @Action(value = "Action on all w/injected params", order = 6)
     public static void action4(EntityManager em, Set<ActionsDemoEntity> selection) {
-        System.out.println("action 4. selected items count: " + selection.size());
+        log.debug("action 4. selected items count: " + selection.size());
         String text = UUID.randomUUID().toString().substring(0, 10);
         selection.forEach(o -> {
             o.setStringField(text);
@@ -72,14 +74,14 @@ public class ActionsDemoEntity {
 
     @Action(value = "Action on item", icon = VaadinIcons.ALARM, confirmationMessage = "Are you sure you want to do it?", order = 7)
     public void action2() {
-        System.out.println("action 2");
+        log.debug("action 2");
         setStringField("" + getStringField() + " - " + new Date());
     }
 
 
     @Action(value = "Action on item w/params", order = 8)
     public void action6(String name) {
-        System.out.println("action 6 " + name);
+        log.debug("action 6 " + name);
         setStringField("" + getStringField() + "/6 - " + new Date());
     }
 
@@ -87,7 +89,7 @@ public class ActionsDemoEntity {
     @Action(value = "Action on item w/params + result", order = 9)
     public String action7(String name) {
         String msg = "action 7 " + name;
-        System.out.println(msg);
+        log.debug(msg);
         return msg;
     }
 

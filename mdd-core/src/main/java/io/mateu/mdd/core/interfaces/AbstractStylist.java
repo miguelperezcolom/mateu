@@ -1,8 +1,6 @@
 package io.mateu.mdd.core.interfaces;
 
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.Pair;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;

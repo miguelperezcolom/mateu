@@ -9,12 +9,14 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 @Entity
 @Getter@Setter
+@Slf4j
 public class HotelBookingLine {
 
     @Id@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -71,7 +73,7 @@ public class HotelBookingLine {
 
     @PostPersist@PostUpdate@PostRemove
     public void pre2() {
-        System.out.println("**************** HotelBookingLine.post()");
+        log.debug("**************** HotelBookingLine.post()");
 
         if (booking != null) booking.askForUpdate();
     }
@@ -83,7 +85,7 @@ desde aquí no podemos modificar valores de terceros (por ejemplo de booking)
  */
     //@PrePersist@PreUpdate
     public void pre() {
-        System.out.println("**************** HotelBookingLine.pre()");
+        log.debug("**************** HotelBookingLine.pre()");
 
         if (booking != null) booking.askForUpdate();
 

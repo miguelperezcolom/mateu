@@ -9,6 +9,7 @@ import io.mateu.mdd.core.interfaces.AbstractJPQLListView;
 import io.mateu.mdd.core.interfaces.GridDecorator;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -16,7 +17,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
-@Getter@Setter
+@Getter@Setter@Slf4j
 public class RoomingListView extends AbstractJPQLListView<RoomingListView.Row> {
 
     private LocalDate from;
@@ -63,12 +64,12 @@ public class RoomingListView extends AbstractJPQLListView<RoomingListView.Row> {
 
     @Action
     public static void send(String email, String text, Set<Row> selection) {
-        System.out.println("send rooming to " + email + " for " + selection.size() + " bookings");
+        log.debug("send rooming to " + email + " for " + selection.size() + " bookings");
     }
 
     @Action
     public void sendInstance(Set<Row> selection) {
-        System.out.println("send rooming for " + selection.size() + " bookings");
+        log.debug("send rooming for " + selection.size() + " bookings");
     }
 
     @Override

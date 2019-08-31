@@ -32,6 +32,10 @@ public @interface Action {
 
     String style() default "";
 
+    String section() default "";
+
+    String group() default "";
+
     boolean saveBefore() default false;
 
     boolean saveAfter() default false;

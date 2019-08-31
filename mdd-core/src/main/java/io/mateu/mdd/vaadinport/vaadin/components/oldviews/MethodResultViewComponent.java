@@ -8,18 +8,21 @@ import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
-import io.mateu.mdd.core.annotations.IFrame;
-import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Pair;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
+import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
+import lombok.extern.slf4j.Slf4j;
 
-import javax.persistence.*;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Query;
+import javax.persistence.Version;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.Collection;
@@ -28,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class MethodResultViewComponent extends AbstractViewComponent {
 
     private final Method method;
@@ -55,6 +59,8 @@ public class MethodResultViewComponent extends AbstractViewComponent {
 
         this.result = result;
         this.method = method;
+
+        setSizeFull();
 
         try {
             build();
@@ -105,9 +111,11 @@ public class MethodResultViewComponent extends AbstractViewComponent {
             } else if (URL.class.equals(c)) {
 
 
-                if (method.isAnnotationPresent(IFrame.class)) {
+                if (method.isAnnotationPresent(IFrame.class) || result.toString().endsWith("pdf")) {
 
-                    addComponent(new BrowserFrame("Click me to view the result", new ExternalResource(result.toString())));
+                    BrowserFrame b;
+                    addComponentsAndExpand(b = new BrowserFrame("Result", new ExternalResource(result.toString())));
+                    b.setSizeFull();
 
                 } else {
 
@@ -228,7 +236,7 @@ public class MethodResultViewComponent extends AbstractViewComponent {
 
         }
 
-        System.out.println("method result view component built in " + (System.currentTimeMillis() - t0) + " ms.");
+        log.debug("method result view component built in " + (System.currentTimeMillis() - t0) + " ms.");
 
 
         return this;

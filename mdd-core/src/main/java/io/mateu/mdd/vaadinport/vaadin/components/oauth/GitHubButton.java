@@ -5,7 +5,6 @@ import com.vaadin.server.ClassResource;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Button;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 public class GitHubButton extends Button {
 

@@ -4,10 +4,6 @@ import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ExtraFilters;
-import io.mateu.mdd.core.app.*;
-import io.mateu.mdd.core.data.UserData;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ExtraFilters;
 
 import java.lang.reflect.Method;
 import java.util.Set;

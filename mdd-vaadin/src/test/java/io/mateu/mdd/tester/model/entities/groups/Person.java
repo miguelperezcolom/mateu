@@ -2,6 +2,7 @@ package io.mateu.mdd.tester.model.entities.groups;
 
 import io.mateu.mdd.core.annotations.MainSearchFilter;
 import io.mateu.mdd.core.annotations.NoChart;
+import io.mateu.mdd.core.annotations.TextArea;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,5 +21,8 @@ public class Person {
 
     @NoChart
     private Gender gender;
+
+    @TextArea
+    private String comments;
 
 }

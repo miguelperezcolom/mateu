@@ -1,5 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.servlets;
 
+import lombok.extern.slf4j.Slf4j;
+
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -12,6 +14,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 @WebServlet(value = {"/tmp/*", "/app/tmp/*"}, loadOnStartup = 10)
+@Slf4j
 public class TmpContentServlet extends HttpServlet {
 
     protected void doGet(HttpServletRequest request,
@@ -24,7 +27,7 @@ public class TmpContentServlet extends HttpServlet {
 
         // if you want to use a relative path to context root:
         String relativePath = getServletContext().getRealPath("");
-        System.out.println("relativePath = " + relativePath);
+        log.debug("relativePath = " + relativePath);
 
         // obtains ServletContext
         ServletContext context = getServletContext();
@@ -35,7 +38,7 @@ public class TmpContentServlet extends HttpServlet {
             // set to binary type if MIME mapping not found
             mimeType = "application/octet-stream";
         }
-        System.out.println("MIME type: " + mimeType);
+        log.debug("MIME type: " + mimeType);
 
         if ("text/html".equalsIgnoreCase(mimeType)) response.setCharacterEncoding("utf-8");
 

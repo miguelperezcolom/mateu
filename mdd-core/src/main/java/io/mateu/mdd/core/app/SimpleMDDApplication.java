@@ -2,9 +2,8 @@ package io.mateu.mdd.core.app;
 
 import com.google.common.base.Strings;
 import com.vaadin.icons.VaadinIcons;
-import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.Caption;
+import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.model.authentication.Permission;
 import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.reflection.ReflectionHelper;

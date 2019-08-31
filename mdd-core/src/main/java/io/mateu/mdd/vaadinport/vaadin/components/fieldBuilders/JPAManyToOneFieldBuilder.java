@@ -22,16 +22,6 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.core.CSS;
-import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.*;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
-import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;

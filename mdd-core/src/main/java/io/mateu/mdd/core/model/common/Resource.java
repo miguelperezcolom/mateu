@@ -7,6 +7,7 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.Utils;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -23,6 +24,7 @@ import java.net.URL;
  * Created by miguel on 27/3/17.
  */
 @Entity@Getter@Setter
+@Slf4j
 public class Resource {
 
     @Id
@@ -92,14 +94,14 @@ public class Resource {
 
                 java.io.File temp = (System.getProperty("tmpdir") == null)? java.io.File.createTempFile(fileName, extension):new java.io.File(new java.io.File(System.getProperty("tmpdir")), fileName + extension);
 
-                System.out.println("java.io.tmpdir=" + System.getProperty("java.io.tmpdir"));
-                System.out.println("Temp file : " + temp.getAbsolutePath());
+                log.debug("java.io.tmpdir=" + System.getProperty("java.io.tmpdir"));
+                log.debug("Temp file : " + temp.getAbsolutePath());
 
                 if (System.getProperty("tmpdir") == null || !temp.exists()) {
-                    System.out.println("writing temp file to " + temp.getAbsolutePath());
+                    log.debug("writing temp file to " + temp.getAbsolutePath());
                     Utils.write(temp, bytes);
                 } else {
-                    System.out.println("temp file already exists");
+                    log.debug("temp file already exists");
                 }
 
                 String baseUrl = System.getProperty("tmpurl");

@@ -2,8 +2,6 @@ package io.mateu.mdd.core.reflection;
 
 import io.mateu.mdd.core.annotations.ValueClass;
 import io.mateu.mdd.core.annotations.ValueQL;
-import io.mateu.mdd.core.annotations.ValueClass;
-import io.mateu.mdd.core.annotations.ValueQL;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;

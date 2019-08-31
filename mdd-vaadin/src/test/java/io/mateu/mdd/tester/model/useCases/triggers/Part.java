@@ -3,6 +3,7 @@ package io.mateu.mdd.tester.model.useCases.triggers;
 import io.mateu.mdd.core.util.Helper;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.persistence.sessions.UnitOfWork;
 
 import javax.persistence.*;
@@ -10,6 +11,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 @Entity@Getter@Setter
+@Slf4j
 public class Part {
 
     @Id@GeneratedValue
@@ -31,7 +33,7 @@ public class Part {
     @PrePersist
     @PreUpdate
     public void preUpdate() {
-        System.out.println("Part.preUpdate()");
+        log.debug("Part.preUpdate()");
         /*
         UnitOfWork uow = Helper.getEMFromThreadLocal().unwrap(UnitOfWork.class);
         Product p = (Product) uow.registerObject(product);

@@ -14,11 +14,12 @@ import com.vaadin.ui.components.grid.ItemClickListener;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
+import lombok.extern.slf4j.Slf4j;
 
-import java.lang.reflect.InvocationTargetException;
 import java.text.DecimalFormat;
 import java.util.*;
 
+@Slf4j
 public class ResultsComponent extends VerticalLayout {
 
     private final ListViewComponent listViewComponent;
@@ -105,7 +106,7 @@ public class ResultsComponent extends VerticalLayout {
         grid.addSortListener(new SortEvent.SortListener<GridSortOrder<Object>>() {
             @Override
             public void sort(SortEvent<GridSortOrder<Object>> sortEvent) {
-                System.out.println("sort listener received " + sortEvent);
+                log.debug("sort listener received " + sortEvent);
             }
         });
 
@@ -152,7 +153,7 @@ public class ResultsComponent extends VerticalLayout {
                 grid.select(event.getItem());
             }
             else grid.deselectAll();
-            System.out.println("Focus moved to row " + event.getRow());
+            log.debug("Focus moved to row " + event.getRow());
         });
 
 */

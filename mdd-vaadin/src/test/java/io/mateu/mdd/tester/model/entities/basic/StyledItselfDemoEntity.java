@@ -4,6 +4,7 @@ import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Stylist;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -14,6 +15,7 @@ import java.util.List;
 
 @Entity
 @Getter@Setter
+@Slf4j
 public class StyledItselfDemoEntity {
 
     @Id
@@ -33,7 +35,7 @@ public class StyledItselfDemoEntity {
 
     @Action
     public void myAction() {
-        System.out.println("my action called");
+        log.debug("my action called");
     }
 
 

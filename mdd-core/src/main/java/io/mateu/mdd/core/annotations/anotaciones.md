@@ -32,7 +32,7 @@ METHOD
 ```java
     @Action(name = "test 2")
     public void test2() {
-        System.out.println("test 2!!!");
+        log.debug("test 2!!!");
     }
 ```
 
@@ -61,7 +61,7 @@ FIELD, PARAMETER
     @Action(name = "Test 1")
     public static void test1(@NotNull @Caption("First name") String a, 
                                            @Caption("Last name")String b) {
-        System.out.println("test1(" + a + ", " + b + ")");
+        log.debug("test1(" + a + ", " + b + ")");
     }
 ```
 
@@ -1517,7 +1517,7 @@ PARAMETER
 
     @Action(name = "Test wizard")
     public void testWizard(@Wizard(MiWizard.class) Data parametros) {
-        System.out.println("parametros = " + parametros);
+        log.debug("parametros = " + parametros);
     }
 
 ```

@@ -1,6 +1,5 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
-import com.google.common.base.Strings;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
 import com.vaadin.icons.VaadinIcons;
@@ -12,9 +11,6 @@ import com.vaadin.ui.Layout;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
-import io.mateu.mdd.core.annotations.KPIInline;
-import io.mateu.mdd.core.CSS;
-import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.annotations.KPI;
 import io.mateu.mdd.core.annotations.KPIInline;
 import io.mateu.mdd.core.data.MDDBinder;

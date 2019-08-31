@@ -1,16 +1,16 @@
 package io.mateu.mdd.vaadinport.vaadin;
 
 import com.google.common.base.Strings;
-import com.vaadin.annotations.*;
+import com.vaadin.annotations.PreserveOnRefresh;
+import com.vaadin.annotations.StyleSheet;
+import com.vaadin.annotations.Theme;
+import com.vaadin.annotations.Viewport;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.PushStateNavigation;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServletRequest;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
-import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
-import io.mateu.mdd.vaadinport.vaadin.navigation.MDDNavigator;
-import io.mateu.mdd.vaadinport.vaadin.navigation.VoidView;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.MDDPort;
 import io.mateu.mdd.core.app.AbstractApplication;
@@ -22,6 +22,7 @@ import io.mateu.mdd.vaadinport.vaadin.components.app.mobile.ViewContainer;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.mdd.VaadinPort;
 import io.mateu.mdd.vaadinport.vaadin.navigation.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
 
@@ -49,6 +50,7 @@ import java.net.URI;
 @PushStateNavigation // para urls sin #!
 //@Push // lo comentamos porque no funciona en Heroku
 @PreserveOnRefresh
+@Slf4j
 public class MDDUI extends UI {
 
     private MDDNavigator navegador;
@@ -104,7 +106,7 @@ public class MDDUI extends UI {
             app = createApp();
             app.setBaseUrl(contextUrl);
 
-            System.out.println("baseurl=" + app.getBaseUrl());
+            log.debug("baseurl=" + app.getBaseUrl());
 
             if (MDD.getClassPool() == null) MDD.setClassPool(ReflectionHelper.createClassPool(((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getServletContext()));
 
@@ -146,7 +148,7 @@ public class MDDUI extends UI {
         if (state.startsWith("/")) state = state.substring(1);
         if (state.startsWith("app")) state = state.substring("app".length());
         if (state.startsWith("/")) state = state.substring(1);
-        System.out.println("MDDUI.refresh: new state = " + state);
+        log.debug("MDDUI.refresh: new state = " + state);
         navigator.navigateTo(state);
     }
 

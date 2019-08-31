@@ -14,11 +14,16 @@ import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.ClassOption;
 import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.ManyToOne;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
+@Slf4j
 public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
 
     private final FieldInterfaced field;
@@ -205,20 +210,20 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
 
     public void preSave(Object model) throws Throwable {
 
-        System.out.println("******PRESAVE******");
+        log.debug("******PRESAVE******");
 
         Object parent = this.evfc.getModel();
 
-        System.out.println("******MODEL=" + model);
-        System.out.println("******PARENT=" + parent);
+        log.debug("******MODEL=" + model);
+        log.debug("******PARENT=" + parent);
 
         Collection col = (Collection) ReflectionHelper.getValue(field, parent);
-        System.out.println("******RESULT=" + col.size());
+        log.debug("******RESULT=" + col.size());
 
         ReflectionHelper.addToCollection(evfc.getBinder(), field, parent, model);
 
         col = (Collection) ReflectionHelper.getValue(field, parent);
-        System.out.println("******RESULT=" + col.size());
+        log.debug("******RESULT=" + col.size());
 
 
         Class targetType = model.getClass();

@@ -11,6 +11,7 @@ import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.data.Pair;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -23,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-@Getter@Setter
+@Getter@Setter@Slf4j
 public class SampleRPCListView implements RpcView<SampleRPCListView, Just1StringColumn> {
 
     @MainSearchFilter
@@ -39,7 +40,7 @@ public class SampleRPCListView implements RpcView<SampleRPCListView, Just1String
 
     @Override
     public List<Just1StringColumn> rpc(SampleRPCListView filters, List<QuerySortOrder> sortOrders, int offset, int limit) {
-        System.out.println(filters.getDate());
+        log.debug("" + filters.getDate());
         doRpcCall();
         return result.getValue().subList(offset, (result.getValue().size() > offset + limit)?offset + limit:result.getValue().size());
     }
@@ -64,10 +65,10 @@ public class SampleRPCListView implements RpcView<SampleRPCListView, Just1String
                 Response response = invocationBuilder.get();
 
 
-                System.out.println(response.toString());
+                log.debug(response.toString());
                 List z = response.readEntity(List.class);
                 z.forEach(o -> l.add(new Just1StringColumn("" + o)));
-                System.out.println(l);
+                log.debug("" + l);
 
                 result = new Pair<>(getUrl(), l);
             } catch (Exception e) {

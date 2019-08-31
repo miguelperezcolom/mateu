@@ -5,15 +5,11 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.AbstractArea;
-import io.mateu.mdd.core.app.AbstractMenu;
-import io.mateu.mdd.core.app.AbstractModule;
+import io.mateu.mdd.core.app.Searcher;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.core.app.*;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;

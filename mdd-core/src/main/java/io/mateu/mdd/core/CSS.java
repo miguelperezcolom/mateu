@@ -35,7 +35,7 @@ public class CSS {
 
 
     public static final String SUPERKPI = "superkpi";
-
+    public static final String CLICKABLE = "clickable";
 
 
     static String[] round = {

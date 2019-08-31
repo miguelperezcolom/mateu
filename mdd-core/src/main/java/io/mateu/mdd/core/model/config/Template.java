@@ -4,8 +4,6 @@ import io.mateu.mdd.core.annotations.TextArea;
 import io.mateu.mdd.core.annotations.UseCheckboxes;
 import lombok.Getter;
 import lombok.Setter;
-import io.mateu.mdd.core.annotations.TextArea;
-import io.mateu.mdd.core.annotations.UseCheckboxes;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;

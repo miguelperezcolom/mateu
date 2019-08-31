@@ -10,8 +10,6 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.themes.ValoTheme;
 import eu.maxschuster.vaadin.signaturefield.SignatureField;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.core.annotations.Signature;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;

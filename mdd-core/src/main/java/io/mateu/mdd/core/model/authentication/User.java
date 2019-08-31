@@ -4,6 +4,7 @@ import com.Ostermiller.util.RandPass;
 import com.google.common.base.Strings;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
+import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.model.config.Template;
 import io.mateu.mdd.core.model.util.EmailHelper;
 import io.mateu.mdd.core.util.Helper;
@@ -12,17 +13,9 @@ import io.mateu.mdd.core.workflow.Task;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
 import lombok.Getter;
 import lombok.Setter;
-import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.*;
-import io.mateu.mdd.core.model.common.Resource;
-import io.mateu.mdd.core.model.config.Template;
-import io.mateu.mdd.core.model.util.EmailHelper;
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.util.JPATransaction;
-import io.mateu.mdd.core.workflow.WorkflowEngine;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
-import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -37,6 +30,7 @@ import java.util.*;
 @Entity
 @Table(name = "_USER")
 @Getter@Setter
+@Slf4j
 public class User {
 
     @Embedded
@@ -119,7 +113,7 @@ public class User {
 
     public void resetPassword() {
         String password = new RandPass().getPass(6).toLowerCase().trim();
-        System.out.println("resetting password for " + getLogin());
+        log.debug("resetting password for " + getLogin());
         setPassword(password);
     }
 

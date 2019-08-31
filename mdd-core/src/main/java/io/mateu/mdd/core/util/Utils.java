@@ -2,6 +2,7 @@ package io.mateu.mdd.core.util;
 
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
 import java.net.URL;
@@ -9,6 +10,7 @@ import java.net.URL;
 /**
  * Created by miguel on 7/1/17.
  */
+@Slf4j
 public class Utils {
 
     public static boolean isEmpty(String s) {
@@ -49,7 +51,7 @@ public class Utils {
     }
 
     public static void write(File f, byte[] bytes) {
-        System.out.println("writing " + f.getAbsolutePath());
+        log.debug("writing " + f.getAbsolutePath());
         FileOutputStream w;
         try {
             if (!f.getParentFile().exists()) f.getParentFile().mkdirs();
@@ -66,7 +68,7 @@ public class Utils {
     }
 
     public static byte[] readBytes(File f) throws IOException {
-        System.out.println("reading " + f.getAbsolutePath());
+        log.debug("reading " + f.getAbsolutePath());
         return Files.asByteSource(f).read();
     }
 

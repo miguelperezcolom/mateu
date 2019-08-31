@@ -1,7 +1,6 @@
 package io.mateu.mdd.core.nose;
 
 import io.mateu.mdd.core.data.UserData;
-import io.mateu.mdd.core.data.UserData;
 
 public interface MemorizadorRegistroEditado {
 

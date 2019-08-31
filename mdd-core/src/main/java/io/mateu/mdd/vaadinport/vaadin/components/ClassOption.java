@@ -1,8 +1,8 @@
 package io.mateu.mdd.vaadinport.vaadin.components;
 
+import io.mateu.mdd.core.util.Helper;
 import lombok.Getter;
 import lombok.Setter;
-import io.mateu.mdd.core.util.Helper;
 
 @Getter@Setter
 public class ClassOption {

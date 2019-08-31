@@ -2,8 +2,6 @@ package io.mateu.mdd.vaadinport.vaadin.components.app.views;
 
 import com.google.common.base.Strings;
 import com.vaadin.ui.VerticalLayout;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.MethodParametersViewComponent;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.app.MDDExecutionContext;
 import io.mateu.mdd.core.data.MDDBinder;

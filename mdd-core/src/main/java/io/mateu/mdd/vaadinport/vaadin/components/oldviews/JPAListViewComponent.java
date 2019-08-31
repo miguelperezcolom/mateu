@@ -11,13 +11,14 @@ import io.mateu.mdd.core.data.ChartData;
 import io.mateu.mdd.core.data.ChartValue;
 import io.mateu.mdd.core.data.SumData;
 import io.mateu.mdd.core.interfaces.GridDecorator;
+import io.mateu.mdd.core.interfaces.StyledEnum;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.model.multilanguage.Literal;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
-import io.mateu.mdd.core.interfaces.StyledEnum;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -32,6 +33,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class JPAListViewComponent extends ListViewComponent {
 
     private final Map<String,Object> initialValues;
@@ -252,8 +254,8 @@ public class JPAListViewComponent extends ListViewComponent {
 
         Query q = em.createQuery(jpql).setFirstResult(offset).setMaxResults(limit);
         for (String k : parameterValues.keySet()) q.setParameter(k, parameterValues.get(k));
-        System.out.println(jpql);
-        System.out.println(q.toString());
+        log.debug(jpql);
+        log.debug(q.toString());
         return q;
     }
 
@@ -422,7 +424,7 @@ public class JPAListViewComponent extends ListViewComponent {
 
                         return ql;
                     }, filters, null, 0, 1000);
-                    System.out.println(q.toString());
+                    log.debug(q.toString());
 
                     Object r = q.getSingleResult();
 
@@ -488,7 +490,7 @@ public class JPAListViewComponent extends ListViewComponent {
                 public void run(EntityManager em) throws Throwable {
 
                     Query q = buildQuery(em, (alias) ->  "x." + f.getName() + ", count(x)" , filters, null, "group by x." + f.getName(), 0, 1000, false);
-                    System.out.println(q.toString());
+                    log.debug(q.toString());
 
                     List<Object[]> r = q.getResultList();
 

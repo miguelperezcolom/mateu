@@ -2,9 +2,10 @@ package io.mateu.mdd.core.model.util;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.core.util.JPATransaction;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.mail.*;
 
 import javax.mail.internet.InternetAddress;
@@ -12,6 +13,7 @@ import javax.persistence.EntityManager;
 import java.net.URL;
 import java.util.List;
 
+@Slf4j
 public class EmailHelper {
 
     private static boolean testing;
@@ -49,9 +51,9 @@ public class EmailHelper {
         if (subject == null) subject = "";
         if (text == null) text = "";
 
-        System.out.println("Sending email to " + toEmail);
-        System.out.println("Subject: " + subject);
-        System.out.println("Text: " + text);
+        log.debug("Sending email to " + toEmail);
+        log.debug("Subject: " + subject);
+        log.debug("Text: " + text);
 
 
         String finalSubject = subject;
@@ -83,9 +85,9 @@ public class EmailHelper {
 
 
                 } else {
-                    System.out.println("************************************");
-                    System.out.println("Missing SMTP confirguration. Please go to admin > Appconfig and fill");
-                    System.out.println("************************************");
+                    log.debug("************************************");
+                    log.debug("Missing SMTP confirguration. Please go to admin > Appconfig and fill");
+                    log.debug("************************************");
                 }
             }
         });
@@ -96,16 +98,16 @@ public class EmailHelper {
 
         if (isTesting()) {
 
-            System.out.println("************************************");
-            System.out.println("Mail not sent as we are TESTING");
-            System.out.println("************************************");
+            log.debug("************************************");
+            log.debug("Mail not sent as we are TESTING");
+            log.debug("************************************");
 
             if (mock != null) mock.send(email);
 
         } else {
             email.send();
 
-            System.out.println("******* Email sent");
+            log.debug("******* Email sent");
         }
 
     }
@@ -132,16 +134,16 @@ public class EmailHelper {
 
     private static void send(String a, String de, String pwd, String host, int port, boolean ssl) throws EmailException {
 
-        System.out.println("Sending email to " + a);
-        System.out.println("Subject: " + de);
-        System.out.println("Pwd: " + pwd);
+        log.debug("Sending email to " + a);
+        log.debug("Subject: " + de);
+        log.debug("Pwd: " + pwd);
 
 
         if (isTesting()) {
 
-            System.out.println("************************************");
-            System.out.println("Mail not sent as we are TESTING");
-            System.out.println("************************************");
+            log.debug("************************************");
+            log.debug("Mail not sent as we are TESTING");
+            log.debug("************************************");
 
 
         } else {
@@ -159,7 +161,7 @@ public class EmailHelper {
             email.addTo(a);
             email.send();
 
-            System.out.println("sent");
+            log.debug("sent");
         }
 
 

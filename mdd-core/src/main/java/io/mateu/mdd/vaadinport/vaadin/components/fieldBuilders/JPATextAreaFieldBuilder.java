@@ -1,6 +1,5 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
-import com.google.common.base.Strings;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.ValidationResult;
 import com.vaadin.data.Validator;
@@ -14,14 +13,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.annotations.TextArea;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -53,6 +45,7 @@ public class JPATextAreaFieldBuilder extends JPAStringFieldBuilder {
 
             com.vaadin.ui.TextArea tf;
             l.addComponent(tf = new com.vaadin.ui.TextArea());
+            tf.setWidth("370px");
 
             if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
 

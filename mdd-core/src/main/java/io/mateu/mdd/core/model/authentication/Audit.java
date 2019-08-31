@@ -1,8 +1,8 @@
 package io.mateu.mdd.core.model.authentication;
 
+import io.mateu.mdd.core.interfaces.AuditRecord;
 import lombok.Getter;
 import lombok.Setter;
-import io.mateu.mdd.core.interfaces.AuditRecord;
 
 import javax.persistence.Embeddable;
 import javax.persistence.EntityManager;

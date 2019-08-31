@@ -9,8 +9,6 @@ import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.ChartData;
 import io.mateu.mdd.core.data.SumData;
-import io.mateu.mdd.core.interfaces.RpcCrudView;
-import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;

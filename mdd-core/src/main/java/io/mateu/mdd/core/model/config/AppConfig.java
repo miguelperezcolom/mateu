@@ -3,29 +3,24 @@ package io.mateu.mdd.core.model.config;
 import com.google.common.base.Strings;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
+import io.mateu.mdd.core.app.AbstractApplication;
+import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.model.util.EmailHelper;
+import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import lombok.Getter;
 import lombok.Setter;
-import io.mateu.mdd.core.annotations.NotInEditor;
-import io.mateu.mdd.core.annotations.TextArea;
-import io.mateu.mdd.core.app.AbstractApplication;
-import io.mateu.mdd.core.model.common.Resource;
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.util.JPATransaction;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.mail.DefaultAuthenticator;
 import org.apache.commons.mail.HtmlEmail;
 
 import javax.mail.internet.InternetAddress;
 import javax.persistence.*;
-import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -35,6 +30,7 @@ import java.time.format.DateTimeFormatter;
 @Entity
 @Getter
 @Setter
+@Slf4j
 public class AppConfig {
 
     @Section("General")
@@ -184,7 +180,7 @@ public class AppConfig {
             EmailHelper.send(email);
 
 
-            System.out.println("Email sent OK");
+            log.debug("Email sent OK");
 
         } catch (Exception ex) {
             ex.printStackTrace();

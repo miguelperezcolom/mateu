@@ -4,7 +4,6 @@ import com.google.common.base.Strings;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.BaseMDDApp;
 import io.mateu.mdd.core.model.authentication.USER_STATUS;

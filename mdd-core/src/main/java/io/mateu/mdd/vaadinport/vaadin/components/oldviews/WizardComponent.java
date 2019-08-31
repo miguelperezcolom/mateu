@@ -1,20 +1,23 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.core.CSS;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.navigation.MDDViewComponentCreator;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class WizardComponent extends VerticalLayout {
 
     private final Button goToPreviousButton;
@@ -79,7 +82,7 @@ public class WizardComponent extends VerticalLayout {
         setPage(page);
 
         addAttachListener(x -> {
-            System.out.println("attached!");
+            log.debug("attached!");
             if (editorViewComponent != null) {
                 editorViewComponent.getBinder().addValueChangeListener(e -> {
                     updateButtons();

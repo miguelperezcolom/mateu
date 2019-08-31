@@ -2,12 +2,12 @@ package io.mateu.mdd.core.app;
 
 
 import com.vaadin.ui.Component;
-import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class MDDMenu extends AbstractMenu {
 
     private List<MenuEntry> m = new ArrayList<>();
@@ -25,7 +25,7 @@ public class MDDMenu extends AbstractMenu {
                     } else {
                         m.add(new MDDOpenCRUDAction(n, c));
                     }
-                } else System.out.println("Wrong class parameters. Found " + args[pos - 1].getClass().getName() + ", " + args[pos].getClass().getName() + " while expected String, Class");
+                } else log.debug("Wrong class parameters. Found " + args[pos - 1].getClass().getName() + ", " + args[pos].getClass().getName() + " while expected String, Class");
             }
         }
     }

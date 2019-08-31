@@ -3,6 +3,7 @@ package io.mateu.mdd.test;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
 import io.mateu.mdd.test.model.Entidad;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.concurrent.CountDownLatch;
 
 import static junit.framework.TestCase.*;
 
+@Slf4j
 public class WorkflowTest {
 
 
@@ -35,9 +37,9 @@ public class WorkflowTest {
 
         Entidad x = ((List<Entidad>)Helper.selectObjects("select x from Entidad x")).get(0);
 
-        System.out.println(x.getId() + " - " + x.getTrigger() + " - " + x.getLog().size());
+        log.debug(x.getId() + " - " + x.getTrigger() + " - " + x.get_log().size());
 
-        assertEquals(1, ((List<Entidad>)Helper.selectObjects("select x from Entidad x")).get(0).getLog().size());
+        assertEquals(1, ((List<Entidad>)Helper.selectObjects("select x from Entidad x")).get(0).get_log().size());
 
 
     }
@@ -56,7 +58,7 @@ public class WorkflowTest {
 
         int entidades = Helper.selectObjects("select x from Entidad x").size();
 
-        System.out.println(entidades + " entidades");
+        log.debug(entidades + " entidades");
 
         assertEquals(entidades, Helper.selectObjects("select x from Evento x").size());
 
@@ -116,7 +118,7 @@ public class WorkflowTest {
 
         int entidades = Helper.selectObjects("select x from Entidad x").size();
 
-        System.out.println(entidades + " entidades");
+        log.debug(entidades + " entidades");
 
         assertEquals(entidades, Helper.selectObjects("select x from Evento x").size());
 

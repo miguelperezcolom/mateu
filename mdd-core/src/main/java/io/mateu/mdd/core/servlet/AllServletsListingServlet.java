@@ -1,5 +1,6 @@
 package io.mateu.mdd.core.servlet;
 
+import lombok.extern.slf4j.Slf4j;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerConfig;
 import org.glassfish.jersey.server.model.Resource;
@@ -21,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 @WebServlet(name = "AllServletsListingServlet", urlPatterns = {"/allservlets/*"})
+@Slf4j
 public class AllServletsListingServlet extends HttpServlet {
 
 
@@ -56,7 +58,7 @@ public class AllServletsListingServlet extends HttpServlet {
         for (Map.Entry<String, ? extends ServletRegistration> entry : servletRegistrations.entrySet()) {
             String p = entry.getKey();
             ServletRegistration r = entry.getValue();
-            System.out.println(r.getClassName());
+            log.debug(r.getClassName());
 
             for (String mapping : r.getMappings()) {
                 resp.getWriter().println("<li>" + mapping + "</li>");

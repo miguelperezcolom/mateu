@@ -13,6 +13,7 @@ import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
 import io.mateu.mdd.tester.model.entities.dependant.Country;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Id;
 import javax.persistence.metamodel.EntityType;
@@ -22,6 +23,7 @@ import java.io.StringWriter;
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 import static graphql.schema.idl.TypeRuntimeWiring.newTypeWiring;
 
+@Slf4j
 public class GraphQLTester {
 
     public static void main(String[] args) {
@@ -42,12 +44,12 @@ public class GraphQLTester {
 
             Helper.notransact(em -> {
 
-                Helper.getSstreams().streamAll(em, Country.class).forEach(c -> System.out.println(c.getName()));
+                Helper.getSstreams().streamAll(em, Country.class).forEach(c -> log.debug(c.getName()));
 
 
                 String schema = crearSchema();
 
-                System.out.println(schema);
+                log.debug(schema);
 
 
                 SchemaParser schemaParser = new SchemaParser();
@@ -61,11 +63,11 @@ public class GraphQLTester {
                 GraphQL build = GraphQL.newGraphQL(graphQLSchema).build();
                 ExecutionResult executionResult = build.execute("{countryById(id: 1){id name}}");
 
-                System.out.println(executionResult.getData().toString());
+                log.debug(executionResult.getData().toString());
 
                 executionResult = build.execute("query Country{id name}");
 
-                System.out.println(executionResult.getData().toString());
+                log.debug(executionResult.getData().toString());
 
             });
         } catch (Throwable throwable) {

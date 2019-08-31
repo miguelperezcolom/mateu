@@ -1,7 +1,6 @@
 package io.mateu.mdd.core.app;
 
 import io.mateu.mdd.core.data.Data;
-import io.mateu.mdd.core.data.Data;
 
 /**
  * Created by miguel on 19/4/17.

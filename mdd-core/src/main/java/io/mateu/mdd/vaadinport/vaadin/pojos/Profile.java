@@ -1,13 +1,9 @@
 package io.mateu.mdd.vaadinport.vaadin.pojos;
 
-import io.mateu.mdd.core.annotations.NonDuplicable;
-import io.mateu.mdd.core.data.UserData;
-import io.mateu.mdd.core.util.JPATransaction;
-import lombok.Getter;
-import lombok.Setter;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Ignored;
+import io.mateu.mdd.core.annotations.NonDuplicable;
 import io.mateu.mdd.core.annotations.Password;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.interfaces.PersistentPOJO;
@@ -16,6 +12,8 @@ import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.EntityManager;
 import javax.validation.constraints.NotNull;

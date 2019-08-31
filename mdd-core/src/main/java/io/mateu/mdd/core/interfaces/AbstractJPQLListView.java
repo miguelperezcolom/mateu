@@ -11,6 +11,7 @@ import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.persistence.internal.helper.DatabaseField;
 import org.eclipse.persistence.jpa.JpaEntityManager;
 import org.eclipse.persistence.jpa.JpaQuery;
@@ -25,9 +26,9 @@ import java.lang.reflect.Modifier;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLListView, R> {
 
     @Override
@@ -164,8 +165,8 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
 
         Query q = em.createQuery(jpql);
         for (String k : parameterValues.keySet()) q.setParameter(k, parameterValues.get(k));
-        System.out.println(jpql);
-        System.out.println(q.toString());
+        log.debug(jpql);
+        log.debug(q.toString());
         return q;
     }
 
@@ -336,7 +337,7 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
         String bound = databaseQuery.getTranslatedSQLString(session, recordWithValues);
         String sqlString = databaseQuery.getSQLString();
 
-        System.out.println("bound=" + bound);
+        log.debug("bound=" + bound);
 
         /*
         JpaQuery xq = q.unwrap(JpaQuery.class);
@@ -359,15 +360,13 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
                 .getEnclosingClass();
                 */
         //Class ec = Class.forName(stackTrace[stackTrace.length - 1].getClassName());
-        //System.out.println("ec=" + ec.getName());
+        //log.debug("ec=" + ec.getName());
 
         try {
             Helper.notransact(em -> {
                 Query q = view.buildQuery(em, null, false);
-                System.out.println(q.getResultList());
                 Query qt = em.createNativeQuery("select count(*) from (" + q.unwrap(JpaQuery.class).getDatabaseQuery().getSQLString() + ") x");
                 q.getParameters().forEach(p -> qt.setParameter(p.getName(), q.getParameterValue(p)));
-                System.out.println(qt.getSingleResult());
             });
         } catch (Throwable throwable) {
             throwable.printStackTrace();
@@ -376,7 +375,7 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
 
         try {
             Helper.notransact(em -> {
-                System.out.println(view.buildQuery(em, null, true).getResultList());
+                log.debug("" + view.buildQuery(em, null, true).getResultList());
             });
         } catch (Throwable throwable) {
             throwable.printStackTrace();

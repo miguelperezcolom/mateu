@@ -8,9 +8,11 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
+import lombok.extern.slf4j.Slf4j;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 
+@Slf4j
 public class TestGraphQL {
 
     public static void main(String[] args) {
@@ -29,7 +31,7 @@ public class TestGraphQL {
         GraphQL build = GraphQL.newGraphQL(graphQLSchema).build();
         ExecutionResult executionResult = build.execute("{hello}");
 
-        System.out.println(executionResult.getData().toString());
+        log.debug(executionResult.getData().toString());
         // Prints: {hello=world}
     }
 }

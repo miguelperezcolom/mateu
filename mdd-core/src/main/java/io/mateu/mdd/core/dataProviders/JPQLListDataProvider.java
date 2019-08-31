@@ -1,16 +1,12 @@
 package io.mateu.mdd.core.dataProviders;
 
 import com.google.common.base.Strings;
-import com.vaadin.server.SerializablePredicate;
-import io.mateu.mdd.core.annotations.QLForCombo;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.QLFilter;
 import io.mateu.mdd.core.annotations.QLForCombo;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
-import org.eclipse.persistence.config.CacheUsage;
-import org.eclipse.persistence.config.QueryHints;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
