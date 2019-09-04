@@ -21,6 +21,9 @@ public class CSS {
     public static final String WHITEFGD = "mdd-white-fgd";
     public static final String BLUEFGD = "mdd-blue-fgd";
 
+    public static final String BOLD = "mdd-bold";
+    public static final String BOLDER = "mdd-bolder";
+
     public static final String CANCELLED = "cancelled";
 
     public static final String SALE = "sale";

@@ -1225,7 +1225,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         aux.bind(field.getName());
     }
 
-    private void bind(MDDBinder binder, Label l, FieldInterfaced field, Method htmlGetter) {
+    static void bind(MDDBinder binder, Label l, FieldInterfaced field, Method htmlGetter) {
         Binder.BindingBuilder aux = binder.forField(new HasValue() {
             @Override
             public void setValue(Object o) {

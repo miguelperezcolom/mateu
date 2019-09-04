@@ -3,6 +3,7 @@ package io.mateu.mdd.tester.app.simpleCase;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.vaadin.icons.VaadinIcons;
+import com.vaadin.ui.Component;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Caption;
 import io.mateu.mdd.core.annotations.IFrame;
@@ -15,6 +16,7 @@ import io.mateu.mdd.tester.model.entities.basic.BasicFieldsDemoEntity;
 import io.mateu.mdd.tester.model.entities.groups.Person;
 import io.mateu.mdd.tester.model.useCases.batches.Batch;
 import io.mateu.mdd.tester.model.useCases.hotel.Booking;
+import io.mateu.mdd.tester.model.useCases.hotel.HotelSalesControlView;
 import io.mateu.mdd.tester.model.views.BookingsCrudView;
 import io.mateu.mdd.tester.model.views.BookingsView;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.AbstractFieldBuilder;
@@ -141,6 +143,11 @@ public class SimpleApp extends SimpleMDDApplication {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @Action(order = 110, icon = VaadinIcons.TREE_TABLE)@IFrame
+    public Component misssionControl() {
+        return new HotelSalesControlView();
     }
 
     @Override

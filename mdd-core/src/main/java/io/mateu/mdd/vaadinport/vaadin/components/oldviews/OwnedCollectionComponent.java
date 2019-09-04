@@ -124,7 +124,8 @@ public class OwnedCollectionComponent extends VerticalLayout {
                     parentBinder.getRemovables().add(m);
 
                     try {
-                        if (currentIndex == collection.size()) setIndex(collection.size() - 1);
+                        if (collection.size() == 0) setIndex(collection.size());
+                        else if (currentIndex == collection.size()) setIndex(collection.size() - 1);
                         else setIndex(currentIndex);
                     } catch (Throwable throwable) {
                         MDD.alert(throwable);

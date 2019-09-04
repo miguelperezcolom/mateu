@@ -47,7 +47,13 @@ public class MDD {
             Helper.notransact(em -> u[0] = em.find(User.class, (MDD.getPort() != null && MDD.getUserData() != null)?MDD.getUserData().getLogin():"system"));
             return u[0];
         } catch (Throwable e) {
-            return null;
+            try {
+                User[] u = {null};
+                Helper.notransact(em -> u[0] = em.find(User.class, "system"));
+                return u[0];
+            } catch (Throwable ee) {
+                return null;
+            }
         }
     }
 

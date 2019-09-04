@@ -60,6 +60,8 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
         } else if (Collection.class.isAssignableFrom(field.getType())) {
 
+
+            Method mh;
             if (field.isAnnotationPresent(UseTable.class)) {
                 VerticalLayout hl = new VerticalLayout();
                 hl.addStyleName("onetomanytable");
@@ -73,6 +75,19 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
                 container.addComponent(hl);
 
                 JPAOneToManyFieldBuilder.bind(binder, l, field);
+            } else if ((mh = ReflectionHelper.getMethod(field.getDeclaringClass(), ReflectionHelper.getGetter(field.getName()) + "Html")) != null) {
+                VerticalLayout hl = new VerticalLayout();
+                hl.addStyleName("collectionlinklabel");
+
+                Label l;
+                hl.addComponent(l = new Label("", ContentMode.HTML));
+                hl.addStyleName(CSS.NOPADDING);
+
+                hl.setCaption(ReflectionHelper.getCaption(field));
+
+                container.addComponent(hl);
+
+                JPAOneToManyFieldBuilder.bind(binder, l, field, mh);
             } else {
 
                 Grid g = new Grid();
