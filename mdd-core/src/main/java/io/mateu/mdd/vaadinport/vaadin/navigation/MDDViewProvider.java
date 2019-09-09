@@ -17,6 +17,8 @@ import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.Pair;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.desktop.DesktopAppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.AreaComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.OAuthHelper;
@@ -113,7 +115,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
     @Override
     public View getView(String state) {
-        View v = null;
+        io.mateu.mdd.vaadinport.vaadin.navigation.View v = null;
         boolean nuevo = false;
 
         if (state.startsWith("app/")) state = state.substring("app/".length());
@@ -1065,7 +1067,7 @@ xxxxxxxxxxxxxxxx
 
         }
 
-        if (v == null) v = new VoidView();
+        if (v == null) v = new VoidView(stack);
 
         if (v != null && !nuevo) {
             Component c = ((io.mateu.mdd.vaadinport.vaadin.navigation.View) v).getViewComponent();
@@ -1105,6 +1107,16 @@ xxxxxxxxxxxxxxxx
                 log.debug("No limpiamos selección. clase = " + c.getClass().getName());
             }
 
+        }
+
+        AppComponent appComponent = MDDUI.get().getAppComponent();
+        if (appComponent instanceof DesktopAppComponent) {
+            DesktopAppComponent dac = (DesktopAppComponent) appComponent;
+            if (v.isMenuExpanded()) {
+                dac.maximizeLeftSide();
+            } else {
+                dac.minimizeLeftSide();
+            }
         }
 
         return v;

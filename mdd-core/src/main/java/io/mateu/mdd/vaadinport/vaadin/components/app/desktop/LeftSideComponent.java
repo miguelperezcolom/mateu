@@ -87,15 +87,19 @@ public class LeftSideComponent extends VerticalLayout {
     }
 
     public void minimizar() {
-        removeAllComponents();
-        addComponent(versionMinimizada);
-        addStyleName("minimizada");
+        if (!getStyleName().contains("minimizada")) {
+            removeAllComponents();
+            addComponent(versionMinimizada);
+            addStyleName("minimizada");
+        }
     }
 
     public void maximizar() {
-        removeAllComponents();
-        addComponent(versionFull);
-        removeStyleName("minimizada");
+        if (getStyleName().contains("minimizada")) {
+            removeAllComponents();
+            addComponent(versionFull);
+            removeStyleName("minimizada");
+        }
     }
 
 

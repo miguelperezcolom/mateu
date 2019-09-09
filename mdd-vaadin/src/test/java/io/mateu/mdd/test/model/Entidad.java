@@ -8,6 +8,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +23,11 @@ public class Entidad {
     private String nombre = "Entidad " + LocalDateTime.now();
 
     private LocalDateTime trigger = LocalDateTime.now();
+
+    private LocalDate fecha = LocalDate.now();
+
+    private LocalDateTime fechaYHora = LocalDateTime.now();
+
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Evento> _log = new ArrayList<>();

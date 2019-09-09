@@ -31,7 +31,7 @@
 
 
 $blanco: #f5f6f7;
-$kpi: #54595d;
+$kpi: #7b7e80;
 $izquierda: #a4b1bd;
 $cabecera: #778b9d;
 $masoscuro: #526d85;
@@ -799,6 +799,11 @@ body {
     //width: calc(100% - 180px);
   }
 
+  .botoneracollection {
+    padding-top: 66px !important;
+    margin-right: 20px;
+  }
+
   .kpisContainer {
     //margin-left: 30px;
     //margin-top: 30px;
@@ -813,7 +818,7 @@ body {
     background-color: $kpi;
     border-radius: 2px;
     margin-right: 10px;
-    margin-bottom: 2px;
+    margin-bottom: -2px;
     //min-height: 62px;
     width: 100%;
     color: whitesmoke;
@@ -832,6 +837,14 @@ body {
     }
 
     .valor.negativo {
+      color: #f38282 !important;
+    }
+
+    .valor.v-label-friendly {
+      color: #93f382 !important;
+    }
+
+    .valor.v-label-danger {
       color: #f38282 !important;
     }
 

@@ -47,6 +47,13 @@ public class DesktopAppComponent extends VerticalLayout implements AppComponent 
         return app;
     }
 
+    public void minimizeLeftSide() {
+        left.minimizar();
+    }
+
+    public void maximizeLeftSide() {
+        left.maximizar();
+    }
 
     public void toggleMenu() {
         if (getStyleName().contains("menuvisible")) removeStyleName("menuvisible");

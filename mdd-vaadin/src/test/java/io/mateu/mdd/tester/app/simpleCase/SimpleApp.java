@@ -12,6 +12,7 @@ import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.test.model.Entidad;
 import io.mateu.mdd.tester.model.entities.basic.BasicFieldsDemoEntity;
 import io.mateu.mdd.tester.model.entities.groups.Person;
 import io.mateu.mdd.tester.model.useCases.batches.Batch;
@@ -134,6 +135,12 @@ public class SimpleApp extends SimpleMDDApplication {
     public Class batches() {
         return Batch.class;
     }
+
+    @Action(order = 95, icon = VaadinIcons.TABLE)
+    public Class entidades() {
+        return Entidad.class;
+    }
+
 
     @Action(order = 100, icon = VaadinIcons.CLOUD)@IFrame
     public URL url() {

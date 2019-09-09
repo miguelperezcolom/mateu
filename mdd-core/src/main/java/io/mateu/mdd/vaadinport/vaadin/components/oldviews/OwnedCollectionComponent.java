@@ -31,7 +31,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 @Slf4j
-public class OwnedCollectionComponent extends VerticalLayout {
+public class OwnedCollectionComponent extends HorizontalLayout {
 
     private final Button goToPreviousButton;
     private final Button goToNextButton;
@@ -76,14 +76,18 @@ public class OwnedCollectionComponent extends VerticalLayout {
 
         setSizeFull();
 
+        VerticalLayout hl = new VerticalLayout(goToPreviousButton = new Button(VaadinIcons.ARROW_LEFT), goToNextButton = new Button(VaadinIcons.ARROW_RIGHT), addButton = new Button(VaadinIcons.PLUS), removeButton = new Button(VaadinIcons.MINUS), copyButton = new Button(VaadinIcons.COPY));
+        hl.addStyleName("botoneracollection");
+        hl.addStyleName(CSS.NOPADDING);
+        hl.setSizeUndefined();
+
+        addComponent(hl);
+
         Panel panel;
         addComponentsAndExpand(panel = new Panel(container = new VerticalLayout()));
         panel.addStyleName(ValoTheme.PANEL_BORDERLESS);
+        panel.setSizeFull();
         container.addStyleName(CSS.NOPADDING);
-
-        HorizontalLayout hl;
-        addComponent(hl = new HorizontalLayout(goToPreviousButton = new Button(VaadinIcons.ARROW_LEFT), goToNextButton = new Button(VaadinIcons.ARROW_RIGHT), addButton = new Button(VaadinIcons.PLUS), removeButton = new Button(VaadinIcons.MINUS), copyButton = new Button(VaadinIcons.COPY)));
-        hl.addStyleName(CSS.NOPADDING);
 
         //addComponentsAndExpand(new Label(""));
         setExpandRatio(panel, 1);

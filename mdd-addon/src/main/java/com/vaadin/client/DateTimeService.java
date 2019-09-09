@@ -636,6 +636,12 @@ public class DateTimeService {
             h = new Date(h.getTime() - 7l * 24l * 60l * 60l * 1000l); // restamos 1 semana, para que no añada un año si indicamos el día de hoy
 
             if (dateString == null) {
+            } else if (dateString.contains("/") || dateString.contains("-")) {
+                if (lenient) {
+                    date = format.parse(dateString);
+                } else {
+                    date = format.parseStrict(dateString);
+                }
             } else {
                 if (dateString.contains(" ")) {
                     String aux = dateString;
