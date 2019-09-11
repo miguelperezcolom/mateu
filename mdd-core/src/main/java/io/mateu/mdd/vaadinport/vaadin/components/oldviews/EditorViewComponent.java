@@ -382,7 +382,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                     String finalFn = fn;
                     binder.getBinding(fn).ifPresentOrElse(b -> ((Binder.Binding)b).getField().addValueChangeListener(e -> {
 
-                        ((AbstractAction)actionsByMethod.get(m)).run(new AbstractMDDExecutionContext());
+                        //((AbstractAction)actionsByMethod.get(m)).run(new AbstractMDDExecutionContext());
 
                         rebuildActions();
 
@@ -517,7 +517,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     }
 
     public void updateModel(Object model) {
-        binder.setBean(model, false);
+        binder.update(model);
     }
 
     @Override

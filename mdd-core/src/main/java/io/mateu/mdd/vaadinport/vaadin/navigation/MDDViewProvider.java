@@ -756,7 +756,11 @@ xxxxxxxxxxxxxxxx
 
                             if (method == null && field == null && (lastViewComponent instanceof MethodResultViewComponent ||lastViewComponent instanceof RpcListViewComponent) && r != null && r instanceof RpcView) {
 
-                                if (r instanceof AbstractCrudView && "new".equals(step)) {
+                                if (lastViewComponent instanceof ListViewComponent && "filters".equals(step)) {
+
+                                    stack.push(currentPath, new FiltersViewFlowComponent(currentPath, (ListViewComponent) lastViewComponent));
+
+                                } else if (r instanceof AbstractCrudView && "new".equals(step)) {
 
                                     EditorViewComponent evc = new EditorViewComponent(((AbstractCrudView)r).getRowClass());
                                     try {
@@ -1077,7 +1081,7 @@ xxxxxxxxxxxxxxxx
             }
             if (c != null && c instanceof EditorViewComponent) {
                     EditorViewComponent evc = (EditorViewComponent) c;
-                    evc.setModel(evc.getModel(), false);
+                    evc.updateModel(evc.getModel());
                 }
             }
 

@@ -670,7 +670,7 @@ public class Helper {
 
                     Object v = null;
                     try {
-                        v = (l2 instanceof Object[])?((Object[])l2)[poscol + 2]:ReflectionHelper.getValue(colFields.get(poscol), l2);
+                        v = (l2 instanceof Object[])?((Object[])l2)[poscol + 1]:ReflectionHelper.getValue(colFields.get(poscol), l2);
 
                         fillCell(wb, createHelper, cell, v);
                     } catch (Exception e) {
@@ -1370,7 +1370,7 @@ public class Helper {
                     Element linea = new Element("line");
                     lineas.addContent(linea);
 
-                    int col = 2;
+                    int col = 1;
                     for (FieldInterfaced c : rowFields){
 
                         Element cell = new Element("cell");

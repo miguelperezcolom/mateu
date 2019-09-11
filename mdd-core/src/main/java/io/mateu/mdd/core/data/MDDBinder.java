@@ -162,14 +162,19 @@ public class MDDBinder extends Binder {
             ReflectionHelper.getAllFields(model.getClass()).forEach(f -> {
                 getBinding(f.getId()).ifPresent(x -> {
                     Binding b = (Binding) x;
-                    try {
-                        b.getField().setValue(ReflectionHelper.getValue(f, model));
-                    } catch (NoSuchMethodException e) {
-                        e.printStackTrace();
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    } catch (InvocationTargetException e) {
-                        e.printStackTrace();
+                    b.read(model);
+                    if (false) {
+                        try {
+                            b.getField().setValue(ReflectionHelper.getValue(f, model));
+                        } catch (NoSuchMethodException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        } catch (InvocationTargetException e) {
+                            e.printStackTrace();
+                        } catch (ClassCastException e) {
+                            e.printStackTrace();
+                        }
                     }
                 });
             });
