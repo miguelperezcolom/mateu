@@ -543,7 +543,6 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                 }
             });
         }
-
     }
 
 }

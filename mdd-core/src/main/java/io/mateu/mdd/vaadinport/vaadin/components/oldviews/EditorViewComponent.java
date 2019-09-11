@@ -342,6 +342,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
 
             AbstractStylist finalStylist = stylist;
+            /*
             binder.addValueChangeListener(e -> {
                 MDDUI.get().access(new Runnable() {
                     @Override
@@ -351,6 +352,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                     }
                 });
             });
+             */
 
             if (getView() != null) getView().updateViewTitle(toString());
 
@@ -368,18 +370,36 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         rebuildActions();
 
         actionsByMethod.keySet().forEach(x -> {
+            List<DependsOn> as = new ArrayList<>();
             Method m = (Method) x;
-            if (m.isAnnotationPresent(DependsOn.class)) {
-                for (String fn : m.getAnnotation(DependsOn.class).value().split(",")) {
+            if (m.isAnnotationPresent(DependsOn.class)) as.add(m.getAnnotation(DependsOn.class));
+            Method mv = ReflectionHelper.getMethod(modelType, ReflectionHelper.getGetter(m.getName()).replaceFirst("get", "is") + "Visible");
+            if (mv != null && mv.isAnnotationPresent(DependsOn.class)) as.add(mv.getAnnotation(DependsOn.class));
+
+            for (DependsOn a : as) {
+                for (String fn : a.value().split(",")) {
                     fn = fn.trim();
                     String finalFn = fn;
-                    binder.getBinding(fn).ifPresent(b -> ((Binder.Binding)b).getField().addValueChangeListener(e -> {
+                    binder.getBinding(fn).ifPresentOrElse(b -> ((Binder.Binding)b).getField().addValueChangeListener(e -> {
 
                         ((AbstractAction)actionsByMethod.get(m)).run(new AbstractMDDExecutionContext());
 
                         rebuildActions();
 
-                    }));
+                    }), () -> {
+                        binder.forField(new AbstractField() {
+                            Object v = null;
+                            @Override
+                            protected void doSetValue(Object o) {
+                                v = o;
+                            }
+
+                            @Override
+                            public Object getValue() {
+                                return v;
+                            }
+                        }).bind(finalFn);
+                    });
                 }
             }
         });

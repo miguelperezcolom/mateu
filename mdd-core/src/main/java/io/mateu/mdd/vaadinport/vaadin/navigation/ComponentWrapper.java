@@ -8,9 +8,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.app.views.AreaComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.app.views.MenuFlowComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.app.views.ModuleComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.OwnedCollectionComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.SearchInMenuComponent;
@@ -48,7 +46,12 @@ public class ComponentWrapper extends VerticalLayout {
         l.addStyleName("viewHeader");
 
         if (stack.size() >= 0 && !(
-                component instanceof AreaComponent
+                component instanceof WelcomeComponent
+                        || component instanceof ByeComponent
+                        || component instanceof LoginFlowComponent
+                        || component instanceof PrivateMenuFlowComponent
+                        || component instanceof PublicMenuFlowComponent
+                        || component instanceof AreaComponent
                         || component instanceof ModuleComponent
                         || component instanceof MenuFlowComponent
                         || component instanceof SearchInMenuComponent

@@ -1,9 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.navigation;
 
 import com.vaadin.ui.Component;
-import io.mateu.mdd.vaadinport.vaadin.components.app.views.AreaComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.app.views.MenuFlowComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.app.views.ModuleComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.SearchInMenuComponent;
 
@@ -44,7 +42,7 @@ public class View implements com.vaadin.navigator.View {
 
 
     public boolean isMenuExpanded() {
-        boolean exp = component != null && (component instanceof AreaComponent || component instanceof ModuleComponent || component instanceof MenuFlowComponent || component instanceof SearchInMenuComponent);
+        boolean exp = component != null && (component instanceof PrivateMenuFlowComponent || component instanceof PublicMenuFlowComponent || component instanceof AreaComponent || component instanceof ModuleComponent || component instanceof MenuFlowComponent || component instanceof SearchInMenuComponent);
         return exp;
     }
 

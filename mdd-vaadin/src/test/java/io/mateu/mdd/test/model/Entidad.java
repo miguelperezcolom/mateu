@@ -1,6 +1,9 @@
 package io.mateu.mdd.test.model;
 
 import com.google.common.collect.Lists;
+import io.mateu.mdd.core.annotations.Code;
+import io.mateu.mdd.core.annotations.Html;
+import io.mateu.mdd.core.annotations.NotInList;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
 import lombok.Getter;
@@ -8,6 +11,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -29,9 +33,24 @@ public class Entidad {
     private LocalDateTime fechaYHora = LocalDateTime.now();
 
 
+    @Html
+    private String html;
+
+    @Code
+    private String codigo;
+
+
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Evento> _log = new ArrayList<>();
 
+    @NotNull
+    @OneToOne
+    private EntidadReferenciada unoAUno;
+
+
+    @NotNull
+    @OneToOne(mappedBy = "unoAUnoInverso")
+    private EntidadReferenciada unoAUnoBidireccional;
 
     @PostPersist@PostUpdate
     public void post() {
@@ -68,4 +87,8 @@ public class Entidad {
         return this == obj || (id > 0 && obj != null && obj instanceof Entidad && id == ((Entidad) obj).getId());
     }
 
+    @Override
+    public String toString() {
+        return nombre != null?nombre:"E " + id;
+    }
 }

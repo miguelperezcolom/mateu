@@ -85,7 +85,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
                                     EditorViewComponent evc = (EditorViewComponent) AbstractViewComponent.this;
 
-                                    evc.getBinder().setBean(evc.getModel());
+                                    evc.getBinder().update(evc.getModel());
 
                                 }
 

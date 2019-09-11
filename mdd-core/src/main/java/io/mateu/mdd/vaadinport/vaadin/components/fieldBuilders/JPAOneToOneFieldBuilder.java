@@ -2,11 +2,13 @@ package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.vaadin.data.*;
 import com.vaadin.data.validator.BeanValidator;
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.UserError;
 import com.vaadin.shared.ui.ErrorLevel;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Layout;
+import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.CSS;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.DataProvider;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
@@ -14,7 +16,9 @@ import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
+import javax.persistence.Entity;
 import javax.persistence.OneToOne;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
@@ -38,7 +42,10 @@ public class JPAOneToOneFieldBuilder extends AbstractFieldBuilder {
         } else {
 
             ComboBox tf;
-            container.addComponent(tf = new ComboBox());
+            HorizontalLayout hl = new HorizontalLayout(tf = new ComboBox());
+            hl.addStyleName(CSS.NOPADDING);
+            container.addComponent(hl);
+
 
             if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
 
@@ -83,7 +90,7 @@ public class JPAOneToOneFieldBuilder extends AbstractFieldBuilder {
 
             if (allFieldContainers != null) allFieldContainers.put(field, tf);
 
-            if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
+            hl.setCaption(ReflectionHelper.getCaption(field));
 
             validators.put(tf, new ArrayList<>());
 
@@ -137,12 +144,56 @@ public class JPAOneToOneFieldBuilder extends AbstractFieldBuilder {
 
             addValidators(validators.get(tf));
 
-        /*
-        tf.setDescription();
-        tf.setPlaceholder();
-        */
 
-            bind(binder, tf, field);
+
+            if (field.getType().isAnnotationPresent(Entity.class)) {
+
+                Button b = null;
+
+                com.vaadin.data.provider.DataProvider dpx = tf.getDataProvider();
+
+                if (dpx != null && dpx instanceof JPQLListDataProvider) {
+                    b = new Button(null, VaadinIcons.REFRESH);
+                    b.addStyleName(ValoTheme.BUTTON_QUIET);
+                    b.addStyleName(CSS.NOPADDING);
+                    b.addClickListener(e -> ((JPQLListDataProvider)dpx).refresh());
+                    hl.addComponent(b);
+                }
+
+                b = new Button(null, VaadinIcons.EDIT);
+                b.addStyleName(ValoTheme.BUTTON_QUIET);
+                b.addStyleName(CSS.NOPADDING);
+                b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+                hl.addComponent(b);
+
+                b = new Button(null, VaadinIcons.PLUS);
+                b.addStyleName(ValoTheme.BUTTON_QUIET);
+                b.addStyleName(CSS.NOPADDING);
+                b.addClickListener(e -> {
+
+                        /*
+                        Object bean = binder.getBean();
+                        try {
+                            ReflectionHelper.setValue(field, bean, null);
+                            binder.setBean(bean, false);
+
+                            MDDUI.get().getNavegador().go(field.getName());
+
+
+                        } catch (Exception e1) {
+                            MDD.alert(e1);
+                        }
+                        */
+                    MDDUI.get().getNavegador().go(field.getName() + "_new");
+
+                });
+                hl.addComponent(b);
+
+            }
+
+
+
+            bind(binder, tf, field, forSearchFilter, tf.getDataProvider());
 
 
         }
@@ -156,7 +207,30 @@ public class JPAOneToOneFieldBuilder extends AbstractFieldBuilder {
     public void addValidators(List<Validator> validators) {
     }
 
-    protected void bind(MDDBinder binder, ComboBox tf, FieldInterfaced field) {
+    protected void bind(MDDBinder binder, ComboBox tf, FieldInterfaced field, boolean forSearchFilter, com.vaadin.data.provider.DataProvider dp) {
         binder.bind(tf, field.getName());
+
+        Binder.BindingBuilder aux = binder.forField(tf);
+        if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+        Binder.Binding binding = aux.bind(field.getName());
+
+        if (dp != null && dp instanceof JPQLListDataProvider) {
+            JPQLListDataProvider ldp = (JPQLListDataProvider) dp;
+            binding.getField().addValueChangeListener(e -> {
+                ldp.refresh();
+            });
+        }
+
+        if (!forSearchFilter && field.getDeclaringClass() != null && field.getType().isAnnotationPresent(Entity.class)) {
+            binding.getField().addValueChangeListener(e -> {
+                Object bean = binder.getBean();
+                try {
+                    if (e.getOldValue() != null) ReflectionHelper.unReverseMap(binder, field, bean, e.getOldValue());
+                    if (e.getValue() != null) ReflectionHelper.reverseMap(binder, field, bean, e.getValue());
+                } catch (Exception e1) {
+                    MDD.alert(e1);
+                }
+            });
+        }
     }
 }

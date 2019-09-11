@@ -218,7 +218,13 @@ public class Booking {
      */
     @PostPersist@PostUpdate
     public void post() {
-        log.debug("**************** Booking.pre()");
+        log.debug("**************** Booking.post()");
         askForUpdate();
     }
-}
+
+    @PostRemove
+    public void postRemove() {
+        log.debug("**************** Booking.portRemove()");
+        updatePending = true;
+        updating = true;
+    }}

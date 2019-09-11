@@ -1,9 +1,6 @@
 package io.mateu.mdd.core.data;
 
-import com.vaadin.data.Binder;
-import com.vaadin.data.PropertyDefinition;
-import com.vaadin.data.PropertySet;
-import com.vaadin.data.ValueProvider;
+import com.vaadin.data.*;
 import com.vaadin.server.Setter;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -11,6 +8,7 @@ import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -157,5 +155,29 @@ public class MDDBinder extends Binder {
 
     public void refresh() {
         setBean(getBean(), false);
+    }
+
+    public void update(Object model) {
+        if (model != null) {
+            ReflectionHelper.getAllFields(model.getClass()).forEach(f -> {
+                getBinding(f.getId()).ifPresent(x -> {
+                    Binding b = (Binding) x;
+                    try {
+                        b.getField().setValue(ReflectionHelper.getValue(f, model));
+                    } catch (NoSuchMethodException e) {
+                        e.printStackTrace();
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+                });
+            });
+        } else {
+            getFields().forEach(f -> {
+                HasValue hv = (HasValue) f;
+                hv.setValue(null);
+            });
+        }
     }
 }

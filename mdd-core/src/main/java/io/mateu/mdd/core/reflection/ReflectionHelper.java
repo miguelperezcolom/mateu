@@ -1488,6 +1488,13 @@ public class ReflectionHelper {
                 Set col = (Set) ReflectionHelper.getValue(mbf, i);
                 if (!col.contains(i)) col.add(bean);
             } else {
+                if (field.isAnnotationPresent(OneToOne.class)) {
+                    Object old = ReflectionHelper.getValue(mbf, i);
+                    if (old != null) {
+                        ReflectionHelper.setValue(field, old, null);
+                        binder.getMergeables().add(old);
+                    }
+                }
                 ReflectionHelper.setValue(mbf, i, bean);
             }
             binder.getMergeables().add(i);

@@ -127,7 +127,7 @@ public class ViewComponentHelper {
                                         ((EditorViewComponent) viewComponent).save(false);
                                     } else if (viewComponent instanceof EditorViewComponent) {
                                         EditorViewComponent evc = (EditorViewComponent) viewComponent;
-                                        evc.getBinder().setBean(evc.getModel());
+                                        evc.getBinder().update(evc.getModel());
                                     }
 
                                 } catch (Throwable throwable) {

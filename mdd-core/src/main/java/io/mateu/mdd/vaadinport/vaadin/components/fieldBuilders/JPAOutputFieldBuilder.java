@@ -261,12 +261,10 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
     }
 
     protected void bind(MDDBinder binder, Label tf, Button botonLink, FieldInterfaced field) {
-        binder.forField(new HasValue() {
-
+        binder.forField(new AbstractField() {
             Object v;
-
             @Override
-            public void setValue(Object o) {
+            protected void doSetValue(Object o) {
                 v = o;
                 tf.setValue((o != null)?objectToString(o):"");
                 if (botonLink != null) botonLink.setVisible(o != null);
@@ -275,31 +273,6 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
             @Override
             public Object getValue() {
                 return v;
-            }
-
-            @Override
-            public Registration addValueChangeListener(ValueChangeListener valueChangeListener) {
-                return null;
-            }
-
-            @Override
-            public void setRequiredIndicatorVisible(boolean b) {
-
-            }
-
-            @Override
-            public boolean isRequiredIndicatorVisible() {
-                return false;
-            }
-
-            @Override
-            public void setReadOnly(boolean b) {
-
-            }
-
-            @Override
-            public boolean isReadOnly() {
-                return false;
             }
         }).bind(field.getName());
     }

@@ -221,4 +221,15 @@ public class User {
 
         }
     }
+
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return this == obj || (login != null && login != "" && obj instanceof User && login.equals(((User) obj).getLogin()));
+    }
 }

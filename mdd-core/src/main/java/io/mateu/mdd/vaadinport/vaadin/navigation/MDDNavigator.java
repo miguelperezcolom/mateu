@@ -10,6 +10,8 @@ import io.mateu.mdd.core.interfaces.PersistentPOJO;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.desktop.DesktopAppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorListener;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
@@ -196,19 +198,28 @@ public class MDDNavigator {
         }
 
         String u = stack.getState(stack.getLast());
-        u = u.substring(0, u.lastIndexOf("/"));
-
-        if (!MDD.isMobile() && esMenu(u)) while (esMenu(u.substring(0, u.lastIndexOf("/")))) {
+        if (!Strings.isNullOrEmpty(u) && u.contains("/")) {
             u = u.substring(0, u.lastIndexOf("/"));
-        }
 
-        if (MDD.isMobile()) {
-            if (esInutil(u)) while (esInutil(u)) {
+            if (!MDD.isMobile() && esMenu(u)) while (esMenu(u.substring(0, u.lastIndexOf("/")))) {
                 u = u.substring(0, u.lastIndexOf("/"));
             }
-        }
 
-        MDDUI.get().getNavegador().goTo(u);
+            if (MDD.isMobile()) {
+                if (esInutil(u)) while (esInutil(u)) {
+                    u = u.substring(0, u.lastIndexOf("/"));
+                }
+            }
+
+            MDDUI.get().getNavegador().goTo(u);
+        } else {
+
+            AppComponent appComponent = MDDUI.get().getAppComponent();
+            if (appComponent instanceof DesktopAppComponent) {
+                DesktopAppComponent dac = (DesktopAppComponent) appComponent;
+                dac.maximizeLeftSide();
+            }
+        }
     }
 
     public void goSibling(Object id) {
