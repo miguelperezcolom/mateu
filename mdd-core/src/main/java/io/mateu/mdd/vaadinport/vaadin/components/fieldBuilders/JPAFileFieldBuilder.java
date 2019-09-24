@@ -27,7 +27,7 @@ public class JPAFileFieldBuilder extends AbstractFieldBuilder {
         return Resource.class.equals(field.getType());
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
 
         FileComponent c;
         container.addComponent(c = new FileComponent(field, binder));
@@ -48,12 +48,16 @@ public class JPAFileFieldBuilder extends AbstractFieldBuilder {
 
 
         bind(binder, c, field, forSearchFilter);
+
+        addErrorHandler(c);
+
+        return c;
     }
 
 
     protected void bind(MDDBinder binder, FileComponent c, FieldInterfaced field, boolean forSearchFilter) {
         Binder.BindingBuilder aux = binder.forField(c);
         //if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
-        aux.bind(field.getName());
+        completeBinding(aux, binder, field);
     }
 }

@@ -13,12 +13,10 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.FieldInterfacedFromType;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.JPAOutputFieldBuilder;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.FormLayoutBuilder;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.FormLayoutBuilderParameters;
 
 import java.lang.annotation.Annotation;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -56,8 +54,8 @@ public class VaadinHelper {
 
         Map<HasValue, List<Validator>> validators = new HashMap<>();
 
-
-        FormLayoutBuilder.get().build(vl, binder, model.getClass(), model, validators, fields);
+        List<Component> componentsToLookForErrors = new ArrayList<>();
+        FormLayoutBuilder.get().build(vl, binder, model.getClass(), model, componentsToLookForErrors, FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).build());
 
         // Put some components in it
         subContent.addComponent(vl);
@@ -67,10 +65,12 @@ public class VaadinHelper {
         Value<Boolean> okd = new Value<>(false);
 
         b.addClickListener(e -> {
-            Object v = ((Map<String, Object>)binder.getBean()).get("value");
-            onOk.accept(v);
-            okd.set(true);
-            subWindow.close();
+            if (validate(componentsToLookForErrors)) {
+                Object v = ((Map<String, Object>)binder.getBean()).get("value");
+                onOk.accept(v);
+                okd.set(true);
+                subWindow.close();
+            }
         });
 
         // Center it in the browser window
@@ -86,6 +86,19 @@ public class VaadinHelper {
 
 
     }
+
+    private static boolean validate(List<Component> componentsToLookForErrors) {
+        boolean noerror = true;
+        for (Component c : componentsToLookForErrors) {
+            if (c instanceof AbstractComponent && ((AbstractComponent) c).getComponentError() != null) {
+                noerror = false;
+                MDD.alert("Please solve errors for all fields");
+                break;
+            }
+        }
+        return noerror;
+    }
+
 
     public static <T> void getValue(String caption, Class<T> type, Consumer<T> f) {
 
@@ -111,8 +124,8 @@ public class VaadinHelper {
 
         Map<HasValue, List<Validator>> validators = new HashMap<>();
 
-
-        FormLayoutBuilder.get().build(vl, binder, model.getClass(), model, validators, fields);
+        List<Component> componentsToLookForErrors = new ArrayList<>();
+        FormLayoutBuilder.get().build(vl, binder, model.getClass(), model, componentsToLookForErrors, FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).build());
 
         // Put some components in it
         subContent.addComponent(vl);
@@ -120,9 +133,11 @@ public class VaadinHelper {
         subContent.addComponent(b = new Button("OK"));
 
         b.addClickListener(e -> {
-            Object v = ((Map<String, Object>)binder.getBean()).get("value");
-            f.accept((T) v);
-            subWindow.close();
+            if (validate(componentsToLookForErrors)) {
+                Object v = ((Map<String, Object>) binder.getBean()).get("value");
+                f.accept((T) v);
+                subWindow.close();
+            }
         });
 
         // Center it in the browser window
@@ -161,8 +176,8 @@ public class VaadinHelper {
 
         Map<HasValue, List<Validator>> validators = new HashMap<>();
 
-
-        FormLayoutBuilder.get().build(vl, binder, model.getClass(), model, validators, fields);
+        List<Component> componentsToLookForErrors = new ArrayList<>();
+        FormLayoutBuilder.get().build(vl, binder, model.getClass(), model, componentsToLookForErrors, FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).build());
 
         // Put some components in it
         subContent.addComponent(vl);
@@ -170,14 +185,16 @@ public class VaadinHelper {
         subContent.addComponent(b = new Button("OK"));
 
         b.addClickListener(e -> {
-            Map<String, Object> bean = (Map<String, Object>) binder.getBean();
-            Object k = bean.get("key");
-            Object v = bean.get("value");
-            if (k != null) {
-                f.accept((K) k, (V)v);
-                subWindow.close();
-            } else {
-                MDD.alert("Key can not be empty");
+            if (validate(componentsToLookForErrors)) {
+                Map<String, Object> bean = (Map<String, Object>) binder.getBean();
+                Object k = bean.get("key");
+                Object v = bean.get("value");
+                if (k != null) {
+                    f.accept((K) k, (V) v);
+                    subWindow.close();
+                } else {
+                    MDD.alert("Key can not be empty");
+                }
             }
         });
 

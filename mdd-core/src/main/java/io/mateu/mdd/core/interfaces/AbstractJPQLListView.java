@@ -38,7 +38,7 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
 
         try {
 
-            Helper.transact(new JPATransaction() {
+            Helper.notransact(new JPATransaction() {
                 @Override
                 public void run(EntityManager em) throws Throwable {
 
@@ -76,7 +76,7 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
 
         try {
 
-            Helper.transact(new JPATransaction() {
+            Helper.notransact(new JPATransaction() {
                 @Override
                 public void run(EntityManager em) throws Throwable {
 

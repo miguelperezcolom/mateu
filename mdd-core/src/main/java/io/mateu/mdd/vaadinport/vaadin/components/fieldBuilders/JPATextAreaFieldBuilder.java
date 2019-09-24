@@ -33,11 +33,13 @@ public class JPATextAreaFieldBuilder extends JPAStringFieldBuilder {
         return field.isAnnotationPresent(TextArea.class);
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+
+        Component r = null;
 
         if (forSearchFilter) {
 
-            super.build(field, object, container, binder, validators, stylist, allFieldContainers, forSearchFilter);
+            r = super.build(field, object, container, binder, validators, stylist, allFieldContainers, forSearchFilter);
 
         } else {
 
@@ -46,6 +48,10 @@ public class JPATextAreaFieldBuilder extends JPAStringFieldBuilder {
             com.vaadin.ui.TextArea tf;
             l.addComponent(tf = new com.vaadin.ui.TextArea());
             tf.setWidth("370px");
+
+            addErrorHandler(tf);
+
+            r = tf;
 
             if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
 
@@ -111,12 +117,13 @@ public class JPATextAreaFieldBuilder extends JPAStringFieldBuilder {
 
         }
 
+        return r;
     }
 
     public void addValidators(List<Validator> validators) {
     }
 
     protected void bind(MDDBinder binder, com.vaadin.ui.TextArea tf, FieldInterfaced field) {
-        binder.bind(tf, field.getName());
+        completeBinding(tf, binder, field);
     }
 }

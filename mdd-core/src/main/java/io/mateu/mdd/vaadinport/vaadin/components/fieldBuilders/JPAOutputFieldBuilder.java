@@ -38,7 +38,9 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
         return String.class.equals(field.getType());
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+
+        Component r = null;
 
         if (!forSearchFilter) {
 
@@ -201,6 +203,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
         }
 
+        return  r;
     }
 
     private void bindResourcesList(MDDBinder binder, Label l, FieldInterfaced field) {

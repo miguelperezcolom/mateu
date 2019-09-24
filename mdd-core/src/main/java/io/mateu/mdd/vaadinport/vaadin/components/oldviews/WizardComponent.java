@@ -59,23 +59,27 @@ public class WizardComponent extends VerticalLayout {
 
 
         goToNextButton.addClickListener(e -> {
-           WizardPage nextPage = currentPage.getNext();
-            try {
-                setPage(nextPage);
-            } catch (Exception e1) {
-                MDD.alert(e1);
+            if (getEditorViewComponent().validate()) {
+                WizardPage nextPage = currentPage.getNext();
+                try {
+                    setPage(nextPage);
+                } catch (Exception e1) {
+                    MDD.alert(e1);
+                }
             }
         });
 
         okButton.addClickListener(e -> {
-            try {
+            if (getEditorViewComponent().validate()) {
+                try {
 
-                currentPage.onOk();
+                    currentPage.onOk();
 
-                if (currentPage.backOnOk()) MDDUI.get().getNavegador().goBack();
+                    if (currentPage.backOnOk()) MDDUI.get().getNavegador().goBack();
 
-            } catch (Throwable throwable) {
-                MDD.alert(throwable);
+                } catch (Throwable throwable) {
+                    MDD.alert(throwable);
+                }
             }
         });
 
@@ -83,7 +87,7 @@ public class WizardComponent extends VerticalLayout {
 
         addAttachListener(x -> {
             log.debug("attached!");
-            if (editorViewComponent != null) {
+            if (false && editorViewComponent != null) {
                 editorViewComponent.getBinder().addValueChangeListener(e -> {
                     updateButtons();
                 });
@@ -120,7 +124,7 @@ public class WizardComponent extends VerticalLayout {
         goToNextButton.setVisible(currentPage.hasNext());
         okButton.setVisible(!currentPage.hasNext());
 
-        boolean valid = editorViewComponent.getBinder().validate().isOk() && currentPage.isValid();
+        boolean valid = currentPage.isValid() && getEditorViewComponent().validate(true);
 
         goToNextButton.setEnabled(valid);
         okButton.setEnabled(valid);

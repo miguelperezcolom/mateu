@@ -25,7 +25,9 @@ public class JPAIFrameFieldBuilder extends AbstractFieldBuilder {
         return field.isAnnotationPresent(IFrame.class);
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+
+        Component r = null;
 
         if (!forSearchFilter) {
 
@@ -46,8 +48,12 @@ public class JPAIFrameFieldBuilder extends AbstractFieldBuilder {
 
             bind(binder, tf, field, forSearchFilter);
 
+            addErrorHandler(tf);
+
+            r = tf;
         }
 
+        return r;
     }
 
 

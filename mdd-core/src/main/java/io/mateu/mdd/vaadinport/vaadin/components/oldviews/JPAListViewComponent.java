@@ -164,7 +164,7 @@ public class JPAListViewComponent extends ListViewComponent {
         List l = new ArrayList();
 
         try {
-            Helper.transact(new JPATransaction() {
+            Helper.notransact(new JPATransaction() {
                 @Override
                 public void run(EntityManager em) throws Throwable {
 
@@ -311,7 +311,7 @@ public class JPAListViewComponent extends ListViewComponent {
                 !(f.isAnnotationPresent(Version.class) || f.isAnnotationPresent(Ignored.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class) && !f.isAnnotationPresent(MainSearchFilter.class) && !f.isAnnotationPresent(SearchFilter.class)))
         ).collect(Collectors.toList());
 
-        //todo: contemplar caso varias anttaciones @SearchFilter para un mismo campo
+        //todo: contemplar caso varias anotaciones @SearchFilter para un mismo campo
 
 
         for (FieldInterfaced f : allFields) {
@@ -340,6 +340,19 @@ public class JPAListViewComponent extends ListViewComponent {
                     ql += " x." + f.getName() + " ";
 
                     if (b) ql += " = true ";
+
+                } else if (Integer.class.equals(v.getClass()) || int.class.equals(v.getClass())
+                || Long.class.equals(v.getClass()) || long.class.equals(v.getClass())
+                || Double.class.equals(v.getClass()) || double.class.equals(v.getClass())) {
+
+                    String fname = f.getName();
+                    if (fname.endsWith("From")) fname = fname.substring(0, fname.lastIndexOf("From"));
+                    if (fname.endsWith("To")) fname = fname.substring(0, fname.lastIndexOf("To"));
+                    if (fname.endsWith("Value")) fname = fname.substring(0, fname.lastIndexOf("Value"));
+
+                    if (!"".equals(ql)) ql += " and ";
+                    ql += " x." + fname + " " + (f.getName().endsWith("From")?">=":(f.getName().endsWith("To")?"<=":"=")) + " :" + f.getName() + " ";
+                    parameterValues.put(f.getName(), v);
 
                 } else if (LocalDate.class.equals(v.getClass()) || LocalDateTime.class.equals(v.getClass()) || Date.class.equals(v.getClass())) {
 
@@ -406,7 +419,7 @@ public class JPAListViewComponent extends ListViewComponent {
         final int[] count = {0};
 
         try {
-            Helper.transact(new JPATransaction() {
+            Helper.notransact(new JPATransaction() {
                 @Override
                 public void run(EntityManager em) throws Throwable {
 

@@ -34,7 +34,9 @@ public class JPAPrimitiveCollectionsFieldBuilder extends JPAStringFieldBuilder {
         return ok;
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+
+        Component r = null;
 
         if (!forSearchFilter) {
 
@@ -48,6 +50,10 @@ public class JPAPrimitiveCollectionsFieldBuilder extends JPAStringFieldBuilder {
 
                 CheckBoxGroup rbg;
                 container.addComponent(tf = rbg = new CheckBoxGroup());
+
+                addErrorHandler(rbg);
+
+                r = rbg;
 
                 hv = rbg;
 
@@ -127,6 +133,10 @@ public class JPAPrimitiveCollectionsFieldBuilder extends JPAStringFieldBuilder {
                 container.addComponent(tf);
                 tf.setValueChangeMode(ValueChangeMode.BLUR);
 
+                addErrorHandler(tf);
+
+                r = tf;
+
                 if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
 
                 if (allFieldContainers != null) allFieldContainers.put(field, tf);
@@ -147,18 +157,19 @@ public class JPAPrimitiveCollectionsFieldBuilder extends JPAStringFieldBuilder {
 
         }
 
+        return r;
     }
 
 
     protected void bind(MDDBinder binder, AbstractTextField tf, FieldInterfaced field) {
-        binder.bind(new HasValue() {
+        HasValue hv = new HasValue() {
             @Override
             public void setValue(Object o) {
                 String s = "";
                 if (o != null) {
                     Collection col = (Collection) o;
                     for (Object v : col) {
-                        if (!"".equals(s)) s += (tf instanceof TextArea)?"\n":",";
+                        if (!"".equals(s)) s += (tf instanceof TextArea) ? "\n" : ",";
                         s += v;
                     }
                 }
@@ -168,12 +179,12 @@ public class JPAPrimitiveCollectionsFieldBuilder extends JPAStringFieldBuilder {
             @Override
             public Object getValue() {
 
-                Collection col = (Set.class.isAssignableFrom(field.getType()))?new HashSet():new ArrayList();
+                Collection col = (Set.class.isAssignableFrom(field.getType())) ? new HashSet() : new ArrayList();
 
                 Class gc = ReflectionHelper.getGenericClass(field, Collection.class, "E");
 
                 if (!Strings.isNullOrEmpty(tf.getValue())) {
-                    for (String s : tf.getValue().split((tf instanceof TextArea)?"\\\n":",")) {
+                    for (String s : tf.getValue().split((tf instanceof TextArea) ? "\\\n" : ",")) {
                         s = s.trim();
                         if (Integer.class.equals(gc)) col.add(new Integer(s));
                         else if (Long.class.equals(gc)) col.add(new Long(s));
@@ -211,7 +222,8 @@ public class JPAPrimitiveCollectionsFieldBuilder extends JPAStringFieldBuilder {
             public boolean isReadOnly() {
                 return tf.isReadOnly();
             }
-        }, field.getName());
+        };
+        completeBinding(hv, binder, field);
     }
 
 
@@ -254,6 +266,6 @@ public class JPAPrimitiveCollectionsFieldBuilder extends JPAStringFieldBuilder {
         });
 
         if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
-        aux.bind(field.getName());
+        completeBinding(aux, binder, field);
     }
 }

@@ -33,7 +33,10 @@ public class JPACodeFieldBuilder extends JPAStringFieldBuilder {
         return field.isAnnotationPresent(Code.class);
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    @Override
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+
+        Component r = null;
 
         if (!forSearchFilter) {
 
@@ -104,21 +107,23 @@ public class JPACodeFieldBuilder extends JPAStringFieldBuilder {
 
             addValidators(validators.get(tf));
 
+            addErrorHandler(tf);
+
+            r = tf;
         /*
         tf.setDescription();
         tf.setPlaceholder();
         */
 
-            bind(binder, tf, field);
+            completeBinding(tf, binder, field);
+
 
         }
 
+        return r;
     }
 
     public void addValidators(List<Validator> validators) {
     }
 
-    protected void bind(MDDBinder binder, AceEditor tf, FieldInterfaced field) {
-        binder.bind(tf, field.getName());
-    }
 }

@@ -36,6 +36,7 @@ import java.lang.reflect.ParameterizedType;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -53,8 +54,9 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         return ok;
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
 
+        Component r = null;
 
         if (forSearchFilter) {
 
@@ -68,20 +70,23 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             if (Map.class.isAssignableFrom(field.getType())) {
 
 
-                buildMap(field, object, container, binder, validators, stylist, allFieldContainers, forSearchFilter, owned);
+                r = buildMap(field, object, container, binder, validators, stylist, allFieldContainers, forSearchFilter, owned);
 
             } else {
 
-                buildList(field, object, container, binder, validators, stylist, allFieldContainers, forSearchFilter, owned);
+                r = buildList(field, object, container, binder, validators, stylist, allFieldContainers, forSearchFilter, owned);
 
 
             }
 
         }
 
+        return r;
     }
 
-    private void buildList(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue,List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced,Component> allFieldContainers, boolean forSearchFilter, boolean owned) {
+    private Component buildList(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue,List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced,Component> allFieldContainers, boolean forSearchFilter, boolean owned) {
+
+        Component r = null;
 
         Method mh;
         if (field.isAnnotationPresent(UseChips.class)) {
@@ -104,6 +109,9 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             bind(binder, l, field);
 
+            addErrorHandler(l);
+
+            r = l;
 
         } else if (field.isAnnotationPresent(UseTwinCols.class)) {
 
@@ -143,6 +151,10 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             bind(binder, tf, field);
 
+            addErrorHandler(tf);
+
+            r = tf;
+
         } else if (field.isAnnotationPresent(UseLinkToListView.class)) {
 
             HorizontalLayout hl = new HorizontalLayout();
@@ -162,6 +174,10 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             bind(binder, l, field, null);
 
+            addErrorHandler(l);
+
+            r = l;
+
         } else if (field.isAnnotationPresent(UseCheckboxes.class)) {
 
             CheckBoxGroup cbg = new CheckBoxGroup();
@@ -175,6 +191,10 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             container.addComponent(cbg);
 
             bind(binder, cbg, field);
+
+            addErrorHandler(cbg);
+
+            r = cbg;
 
         } else if ((mh = ReflectionHelper.getMethod(field.getDeclaringClass(), ReflectionHelper.getGetter(field.getName()) + "Html")) != null) {
 
@@ -196,6 +216,10 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             bind(binder, l, field, mh);
 
+            addErrorHandler(l);
+
+            r = l;
+
         } else if (Resource.class.equals(field.getGenericClass())) {
 
             VerticalLayout hl = new VerticalLayout();
@@ -210,6 +234,10 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             container.addComponent(hl);
 
             bindResourcesList(binder, l, field);
+
+            addErrorHandler(l);
+
+            r = l;
 
         } else if (field.isAnnotationPresent(UseTable.class)) {
 
@@ -233,6 +261,10 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             bind(binder, l, field);
 
+            addErrorHandler(l);
+
+            r = l;
+
         } else {
 
             Grid g = new Grid();
@@ -245,6 +277,10 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             Set<Class> subclasses = ReflectionHelper.getSubclasses(targetClass);
 
+
+            addErrorHandler(g);
+
+            r = g;
 
             boolean inline = false;
 
@@ -430,6 +466,92 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                     //todo: faltan botones para ordenar la lista
 
+                    hl.addComponent(b = new Button("Up", VaadinIcons.ARROW_UP));
+                    b.addClickListener(e -> {
+                        try {
+
+                            Object bean = binder.getBean();
+
+                            Collection col = (Collection) ReflectionHelper.getValue(field, bean);
+
+                            if (col instanceof  List) {
+                                List l = (List) col;
+
+                                Set sel = new HashSet(g.getSelectedItems());
+                                boolean posible = true;
+                                for (Object o : sel) {
+                                    int index = l.indexOf(o);
+                                    if (index == 0) {
+                                        posible = false;
+                                        break;
+                                    }
+                                }
+
+                                if (posible) {
+                                    for (Object o : (List) sel.stream().sorted((o1,o2) -> l.indexOf(o1) - l.indexOf(o2)).collect(Collectors.toList())) {
+                                        int index = l.indexOf(o);
+                                        if (index > 0) {
+                                            l.remove(o);
+                                            l.add(index - 1, o);
+                                        }
+                                    }
+
+                                    ReflectionHelper.setValue(field, bean, l);
+                                    g.deselectAll();
+                                    binder.update(bean);
+                                    sel.forEach(i -> g.select(i));
+                                }
+
+                            }
+
+                        } catch (Exception e1) {
+                            MDD.alert(e1);
+                        }
+                    });
+
+                    hl.addComponent(b = new Button("Down", VaadinIcons.ARROW_DOWN));
+                    b.addClickListener(e -> {
+                        try {
+
+                            Object bean = binder.getBean();
+
+                            Collection col = (Collection) ReflectionHelper.getValue(field, bean);
+
+                            if (col instanceof  List) {
+                                List l = (List) col;
+
+                                Set sel = new HashSet(g.getSelectedItems());
+                                boolean posible = true;
+                                for (Object o : sel) {
+                                    int index = l.indexOf(o);
+                                    if (index == l.size() - 1) {
+                                        posible = false;
+                                        break;
+                                    }
+                                }
+
+                                if (posible) {
+                                    for (Object o : (List) sel.stream().sorted((o1,o2) -> l.indexOf(o2) - l.indexOf(o1)).collect(Collectors.toList())) {
+                                        int index = l.indexOf(o);
+                                        if (index < l.size() -1) {
+                                            l.remove(o);
+                                            l.add(index + 1, o);
+                                        }
+                                    }
+
+                                    ReflectionHelper.setValue(field, bean, l);
+                                    g.deselectAll();
+                                    binder.update(bean);
+                                    sel.forEach(i -> g.select(i));
+                                }
+                            }
+
+                        } catch (Exception e1) {
+                            MDD.alert(e1);
+                        }
+                    });
+
+
                 }
 
             } else {
@@ -507,6 +629,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
         }
 
+        return r;
     }
 
     //usetable
@@ -548,6 +671,14 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                                         num = true;
                                     }
                                     Object v = ReflectionHelper.getValue(col, e);
+                                    if (v != null) {
+                                        if (col.isAnnotationPresent(WeekDays.class)) {
+                                            boolean[] wds = (boolean[]) v;
+                                            String s = "";
+                                            for (int i = 0; i < wds.length; i++) s += wds[i]?"|":"-";
+                                            v = s;
+                                        }
+                                    }
                                     pw.println("<td " + (num?" class= 'numeric'":"") + ">" + (v != null?v:"---") + "</td>");
                                 }
                                 pw.println("</tr>");
@@ -677,6 +808,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                 editable = true;
             } else if (LocalDate.class.equals(f.getType()) || LocalDateTime.class.equals(f.getType())) {
                 editable = true;
+            } else if (LocalTime.class.equals(f.getType()) || LocalTime.class.equals(f.getType())) {
+                editable = true;
             } else if (f.getType().isEnum()) {
                 editable = true;
             } else if (f.isAnnotationPresent(ManyToOne.class)) {
@@ -696,7 +829,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
     }
 
-    private void buildMap(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, boolean owned) {
+    private Component buildMap(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, boolean owned) {
         Class keyType = ReflectionHelper.getGenericClass(field, Map.class, "K");
         Class valueType = ReflectionHelper.getGenericClass(field, Map.class, "V");
 
@@ -808,6 +941,9 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
         container.addComponent(vl);
 
+        addErrorHandler(g);
+
+        return g;
     }
 
     private void bindMap(MDDBinder binder, Grid g, FieldInterfaced field) {
@@ -1144,7 +1280,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             }
         });
         aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
-        aux.bind(field.getName());
+        completeBinding(aux, binder, field);
     }
 
     private Component createChip(MDDBinder binder, FieldInterfaced field, Object x) {
@@ -1222,7 +1358,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             }
         });
         aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
-        aux.bind(field.getName());
+        completeBinding(aux, binder, field);
     }
 
     static void bind(MDDBinder binder, Label l, FieldInterfaced field, Method htmlGetter) {
@@ -1270,7 +1406,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             }
         });
         aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
-        aux.bind(field.getName());
+        completeBinding(aux, binder, field);
     }
 
     public static void bind(MDDBinder binder, Grid g, FieldInterfaced field, Class targetClass, List<FieldInterfaced> originalEditableFields) {
@@ -1392,8 +1528,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             });
 
             aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
-            aux.bind(field.getName());
-
+            completeBinding(aux, binder, field);
 
         } else {
 
@@ -1454,8 +1589,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             });
 
             aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
-            aux.bind(field.getName());
-
+            completeBinding(aux, binder, field);
         }
 
     }
@@ -1467,7 +1601,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
     }
 
     protected void bind(MDDBinder binder, TwinColSelect<Object> tf, FieldInterfaced field) {
-        binder.forField(tf).withValidator(new BeanValidator(field.getDeclaringClass(), field.getName())).bind(field.getName());
+        Binder.BindingBuilder aux = binder.forField(tf).withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+        completeBinding(aux, binder, field);
     }
 
 

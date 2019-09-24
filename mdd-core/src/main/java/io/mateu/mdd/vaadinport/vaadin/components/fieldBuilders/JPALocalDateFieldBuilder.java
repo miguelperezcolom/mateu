@@ -22,7 +22,7 @@ public class JPALocalDateFieldBuilder extends AbstractFieldBuilder {
         return LocalDate.class.equals(field.getType());
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearhFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearhFilter) {
 
 
         DateField tf;
@@ -39,12 +39,12 @@ public class JPALocalDateFieldBuilder extends AbstractFieldBuilder {
         //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
 
 
-        bind(binder, tf, field);
+        completeBinding(tf, binder, field);
 
+
+        addErrorHandler(tf);
+
+        return tf;
     }
 
-
-    protected void bind(MDDBinder binder, DateField tf, FieldInterfaced field) {
-        binder.bind(tf, field.getName());
-    }
 }

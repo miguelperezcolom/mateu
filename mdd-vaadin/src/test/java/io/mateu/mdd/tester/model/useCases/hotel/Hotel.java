@@ -61,8 +61,20 @@ public class Hotel {
 
 
     @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return this == obj || (obj != null && obj instanceof Hotel && id > 0 && id == ((Hotel)obj).getId());
+    }
+
+    @Override
     public String toString() {
         return name != null?name:"Hotel " + getId();
     }
+
+
 
 }

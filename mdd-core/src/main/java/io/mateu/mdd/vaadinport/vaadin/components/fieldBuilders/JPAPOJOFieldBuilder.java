@@ -8,6 +8,7 @@ import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
@@ -17,6 +18,7 @@ import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.ClassOption;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.FormLayoutBuilder;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.FormLayoutBuilderParameters;
 
 import javax.persistence.Embedded;
 import javax.validation.constraints.NotNull;
@@ -38,10 +40,12 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
     }
 
     @Override
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
 
         this.field = field;
         this.binder = binder;
+
+        Component r = null;
 
 
         if (false && field.isAnnotationPresent(Embedded.class)) {
@@ -101,11 +105,16 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
             }
 
 
-            container.addComponent(formLayout = new MiFormLayout());
+            MiFormLayout mfl;
+            container.addComponent(formLayout = mfl = new MiFormLayout());
             formLayout.addStyleName("embedded");
             if (container.getComponentCount() > 0) formLayout.setCaption(ReflectionHelper.getCaption(field));
 
             subBuild();
+
+            addErrorHandler(mfl);
+
+            r = mfl;
 
         } else {
 
@@ -119,11 +128,13 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
                 tf = hl = new HorizontalLayout();
                 container.addComponent(hl);
 
+                addErrorHandler(hl);
+
+                r = hl;
 
                 Label l;
                 hl.addComponent(l = new Label());
                 l.setContentMode(ContentMode.HTML);
-
 
                 List<HasValue.ValueChangeListener> listeners = new ArrayList<>();
 
@@ -194,13 +205,10 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
 
             if (!forSearchFilter) {
                 hv.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
-
-                Button b = new Button("Edit");
-                b.addStyleName(ValoTheme.BUTTON_LINK);
-                b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
-
-                hl.addComponent(b);
-
+                hl.addStyleName(CSS.CLICKABLE);
+                hl.addLayoutClickListener(e -> {
+                    if (e.isDoubleClick()) MDDUI.get().getNavegador().go(field.getName());
+                });
             }
 
 
@@ -214,6 +222,7 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
 
         }
 
+        return r;
 
     }
 
@@ -275,19 +284,18 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
 
         Map<HasValue, List<Validator>> subvalidators = new HashMap<>();
 
-        FormLayoutBuilder.get().build(formLayout, subbinder, subType, o, subvalidators, ReflectionHelper.getAllEditableFields(subType, field.getType()));
+        FormLayoutBuilder.get().build(formLayout, subbinder, subType, o, new ArrayList<>(), FormLayoutBuilderParameters.builder().validators(subvalidators).allFields(ReflectionHelper.getAllEditableFields(subType, field.getType())).build());
 
 
         bind(binder, field, subbinder);
     }
 
     private void bind(MDDBinder binder, FieldInterfaced field, MDDBinder subbinder) {
-
-        binder.bind(new HasValue() {
+        HasValue hv = new HasValue() {
             @Override
             public void setValue(Object o) {
                 try {
-                    cb.setValue((o != null)?new ClassOption(o.getClass()):null);
+                    cb.setValue((o != null) ? new ClassOption(o.getClass()) : null);
                     subbinder.setBean(o);
                 } catch (Exception e) {
 
@@ -323,7 +331,8 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
             public boolean isReadOnly() {
                 return false;
             }
-        }, field.getName());
+        };
+        completeBinding(hv, binder, field);
     }
 
     public Object convert(String s) {

@@ -39,43 +39,18 @@ import java.util.Map;
 @Slf4j
 public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuilder {
 
-    public Pair<Component, AbstractStylist> build(MDDBinder binder, Class<?> modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, boolean forSearchFields, CssLayout links, Map<String, List<AbstractAction>> actionsPerSection) {
-        CssLayout contentContainer = new CssLayout();
+    public Pair<Component, AbstractStylist> build(MDDBinder binder, Class<?> modelType, Object model, List<Component> componentsToLookForErrors, FormLayoutBuilderParameters params) {
+        Layout contentContainer = null;
+        if (params.isForSearchFilters() && !params.isForSearchFiltersExtended()) {
+            contentContainer = new CssLayout();
+        } else {
+            contentContainer = new VerticalLayout();
+        }
         contentContainer.addStyleName("contentcontainer");
-        return build(contentContainer, binder, modelType, model, validators, allFields, true, forSearchFields, links, actionsPerSection);
+        return build(contentContainer, binder, modelType, model, componentsToLookForErrors, params);
     }
 
-    public Pair<Component, AbstractStylist> build(MDDBinder binder, Class<?> modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, boolean forSearchFields) {
-        return build(binder, modelType, model, validators, allFields, forSearchFields, null, new HashMap<>());
-    }
-
-    @Override
-    public Pair<Component, AbstractStylist> build(MDDBinder binder, Class<?> modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields) {
-        return build(binder, modelType, model, validators, allFields, false);
-    }
-
-    public Pair<Component, AbstractStylist> build(MDDBinder binder, Class<?> modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, CssLayout links, Map<String, List<AbstractAction>> actionsPerSection) {
-        return build(binder, modelType, model, validators, allFields, false, links, actionsPerSection);
-    }
-
-    public Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields) {
-        return build(contentContainer, binder, modelType, model, validators, allFields, true, false);
-    }
-
-    public Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, boolean createSections, boolean forSearchFilters) {
-        return build(contentContainer, binder, modelType, model, validators, allFields, createSections, forSearchFilters, true);
-    }
-
-    public Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, boolean createSections, boolean forSearchFilters, CssLayout links, Map<String, List<AbstractAction>> actionsPerSection) {
-        return build(contentContainer, binder, modelType, model, validators, allFields, createSections, forSearchFilters, true, links, actionsPerSection);
-    }
-
-    public Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, boolean createSections, boolean forSearchFilters, boolean createTabs) {
-        return build(contentContainer, binder, modelType, model, validators, allFields, createSections, forSearchFilters, true, null, new HashMap<>());
-    }
-
-
-    public Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, Map<HasValue, List<Validator>> validators, List<FieldInterfaced> allFields, boolean createSections, boolean forSearchFilters, boolean createTabs, CssLayout links, Map<String, List<AbstractAction>> actionsPerSection) {
+    public Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, List<Component> componentsToLookForErrors, FormLayoutBuilderParameters params) {
 
         long t0 = System.currentTimeMillis();
 
@@ -97,7 +72,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
         stylist.setViewTitle(Helper.capitalize(modelType.getSimpleName()));
 
 
-        stylist.setUp(allFields);
+        stylist.setUp(params.getAllFields());
 
         log.debug("editor component E.1 in " + (System.currentTimeMillis() - t0) + " ms.");
 
@@ -105,11 +80,11 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
         JPAOutputFieldBuilder ofb = new JPAOutputFieldBuilder();
 
-        if (createSections) {
+        if (!params.isForSearchFilters() && params.isCreateSections()) {
             List<FormLayoutSection> sections = new ArrayList<>();
             Map<String, FormLayoutSection> sectionsByCaption = new HashMap<>();
             FormLayoutSection section = null;
-            for (FieldInterfaced f : allFields) {
+            for (FieldInterfaced f : params.getAllFields()) {
                 if (f.isAnnotationPresent(Section.class)) {
                     section = sectionsByCaption.get(f.getAnnotation(Section.class).value());
                     if (section == null) {
@@ -156,9 +131,9 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                     lsection.addStyleName("sectionHeader");
                     form.addComponent(lsection);
 
-                    if (links != null) {
+                    if (params.getLinks() != null) {
                         Button b;
-                        links.addComponent(b = new Button(s.getCaption(), (e) -> {
+                        params.getLinks().addComponent(b = new Button(s.getCaption(), (e) -> {
                             UI.getCurrent().scrollIntoView(lsection);
                         }));
                         //b.addStyleName(ValoTheme.BUTTON_TINY);
@@ -177,13 +152,13 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                     }
                 }
 
-                addActions(form, actionsPerSection.get(s.getCaption()));
-                buildAndAddFields(ofb, model, form, binder, validators, finalStylist1, allFieldContainers, s.getFields(), forSearchFilters);
+                addActions(form, params.getActionsPerSection().get(s.getCaption()));
+                buildAndAddFields(ofb, model, form, binder, params.getValidators(), finalStylist1, allFieldContainers, s.getFields(), params.isForSearchFilters(), params.isForSearchFiltersExtended(), componentsToLookForErrors);
                 addSectionToContainer(finalRealContainer, form, s.getCaption());
                 if (form.getWidth() == 100 && Sizeable.Unit.PERCENTAGE.equals(form.getWidthUnits())) contentContainer.setWidth("100%");
             });
         } else {
-            buildAndAddFields(ofb, model, contentContainer, binder, validators, stylist, allFieldContainers, allFields, forSearchFilters, createTabs);
+            buildAndAddFields(ofb, model, contentContainer, binder, params.getValidators(), stylist, allFieldContainers, params.getAllFields(), params.isForSearchFilters(), params.isForSearchFiltersExtended(), componentsToLookForErrors);
         }
 
         log.debug("editor component E.2 in " + (System.currentTimeMillis() - t0) + " ms.");
@@ -328,11 +303,11 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
         }
     }
 
-    private void buildAndAddFields(JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters) {
-        buildAndAddFields(ofb, model, contentContainer, binder, validators, stylist, allFieldContainers, fields, forSearchFilters, true);
+    private void buildAndAddFields(JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean forSearchFiltersExtended, List<Component> componentsToLookForErrors) {
+        buildAndAddFields(ofb, model, contentContainer, binder, validators, stylist, allFieldContainers, fields, forSearchFilters, forSearchFiltersExtended, true, componentsToLookForErrors);
     }
 
-    public void buildAndAddFields(JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean createTabs) {
+    public void buildAndAddFields(JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean forSearchFiltersExtended, boolean createTabs, List<Component> componentsToLookForErrors) {
 
 
         TabSheet tabs = null;
@@ -353,7 +328,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
             Layout wrapper = null;
 
-            if (forSearchFilters) {
+            if (forSearchFilters && !forSearchFiltersExtended) {
 
                 wrapper = contentContainer;
 
@@ -428,22 +403,24 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
             }
 
 
-
+            Component c = null;
             if (!forSearchFilters && (readOnly || (!f.forceInput() && (f.isAnnotationPresent(GeneratedValue.class) || (MDDUI.get().getNavegador().getViewProvider().getCurrentEditor() != null && (f.isAnnotationPresent(Output.class) || (!MDDUI.get().getNavegador().getViewProvider().getCurrentEditor().isNewRecord() && f.getDeclaringClass().isAnnotationPresent(Unmodifiable.class))))
                     || (!Component.class.isAssignableFrom(f.getType()) && ReflectionHelper.getMethod(model.getClass(), ReflectionHelper.getSetter(f)) == null))))) {
-                ofb.build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters);
+                c = ofb.build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters);
             } else if (f.isAnnotationPresent(FieldBuilder.class)) {
                 try {
-                    (f.getAnnotation(FieldBuilder.class).value().newInstance()).build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters);
+                    c = (f.getAnnotation(FieldBuilder.class).value().newInstance()).build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters);
                 } catch (Exception e) {
                     MDD.alert(e);
                 }
             } else {
                 AbstractFieldBuilder b = MDD.getApp().getFieldBuilder(f);
-                if (b != null) b.build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters);
+                if (b != null) c = b.build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters);
             }
 
-            if (!forSearchFilters) if (wrapper != null && wrapper.getComponentCount() > 0) currentContentContainer.addComponent(currentFieldContainer);
+            if (c != null) componentsToLookForErrors.add(c);
+
+            if (!forSearchFilters || forSearchFiltersExtended) if (wrapper != null && wrapper.getComponentCount() > 0) currentContentContainer.addComponent(currentFieldContainer);
 
 
             log.debug("editor component field " + f + " in " + (System.currentTimeMillis() - t0) + " ms.");

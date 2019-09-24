@@ -3,13 +3,13 @@ package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 import com.google.common.base.Strings;
 import com.vaadin.data.*;
 import com.vaadin.data.validator.BeanValidator;
-import com.vaadin.server.SerializablePredicate;
-import com.vaadin.server.Sizeable;
+import com.vaadin.server.*;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
+import io.mateu.mdd.core.data.FareValue;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
@@ -21,9 +21,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class JPAStringFieldBuilder extends AbstractFieldBuilder {
 
@@ -32,9 +30,12 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
         return String.class.equals(field.getType());
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    @Override
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
 
         Method mdp = ReflectionHelper.getMethod(field.getDeclaringClass(), ReflectionHelper.getGetter(field.getName()) + "DataProvider");
+
+        Component r = null;
 
         if (field.isAnnotationPresent(ValueClass.class) || field.isAnnotationPresent(DataProvider.class) || mdp != null) {
 
@@ -110,6 +111,7 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
 
                 if (!forSearchFilter) rbg.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class) || field.isAnnotationPresent(NotEmpty.class));
 
+                addErrorHandler(rbg);
             } else {
 
                 ComboBox cb;
@@ -200,6 +202,7 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
 
                 if (!forSearchFilter) cb.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class) || field.isAnnotationPresent(NotEmpty.class));
 
+                addErrorHandler(cb);
             }
 
             if (allFieldContainers != null) allFieldContainers.put(field, tf);
@@ -208,6 +211,8 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
 
 
             bind(binder, hv, field, forSearchFilter);
+
+            r = tf;
 
         } else {
 
@@ -249,8 +254,12 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
 
             bind(binder, tf, field, forSearchFilter);
 
+            addErrorHandler(tf);
+
+            r = tf;
         }
 
+        return r;
     }
 
 
@@ -284,7 +293,8 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
         }
 
         if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
-        aux.bind(field.getName());
+
+        completeBinding(aux, binder, field);
     }
 
     protected void bind(MDDBinder binder, HasValue tf, FieldInterfaced field, boolean forSearchFilter) {
@@ -317,6 +327,6 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
         });
 
         if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
-        aux.bind(field.getName());
+        completeBinding(aux, binder, field);
     }
 }

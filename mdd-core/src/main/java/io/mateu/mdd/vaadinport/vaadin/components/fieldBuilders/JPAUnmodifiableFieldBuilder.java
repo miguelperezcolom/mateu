@@ -26,7 +26,7 @@ public class JPAUnmodifiableFieldBuilder extends AbstractFieldBuilder {
         return (field.isAnnotationPresent(Unmodifiable.class) || field.isAnnotationPresent(Id.class)) && (MDDUI.get().getNavegador().getViewProvider().getCurrentEditor() != null && !MDDUI.get().isEditingNewRecord());
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
 
         if (!forSearchFilter) {
 
@@ -50,6 +50,7 @@ public class JPAUnmodifiableFieldBuilder extends AbstractFieldBuilder {
 
         }
 
+        return null;
     }
 
     protected void bind(MDDBinder binder, Label tf, FieldInterfaced field) {

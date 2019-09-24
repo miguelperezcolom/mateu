@@ -29,7 +29,9 @@ public class JPAHtmlFieldBuilder extends JPAStringFieldBuilder {
         return field.isAnnotationPresent(Html.class);
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+
+        Component r = null;
 
         if (!forSearchFilter) {
 
@@ -90,6 +92,8 @@ public class JPAHtmlFieldBuilder extends JPAStringFieldBuilder {
 
             addValidators(validators.get(tf));
 
+            addErrorHandler(tf);
+
         /*
         tf.setDescription();
         tf.setPlaceholder();
@@ -100,7 +104,10 @@ public class JPAHtmlFieldBuilder extends JPAStringFieldBuilder {
 
             bind(binder, tf, field);
 
+            r = tf;
         }
+
+        return r;
 
     }
 

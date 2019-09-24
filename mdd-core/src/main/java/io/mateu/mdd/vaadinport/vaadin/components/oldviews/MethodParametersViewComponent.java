@@ -5,6 +5,7 @@ import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
+import com.vaadin.ui.AbstractComponent;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
@@ -28,10 +29,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Version;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -43,6 +41,7 @@ public class MethodParametersViewComponent extends AbstractViewComponent impleme
     private final MDDBinder parentBinder;
     private final Set pendingSelection;
     private Map<HasValue, List<Validator>> validators = new HashMap<>();
+    List<Component> componentsToLookForErrors = new ArrayList<>();
 
     private Map<String, Object> model = new HashMap<>();
 
@@ -91,6 +90,8 @@ public class MethodParametersViewComponent extends AbstractViewComponent impleme
 
         super.build();
 
+        componentsToLookForErrors = new ArrayList<>();
+
         addStyleName("editorviewcomponent");
 
         parametersType = ReflectionHelper.createClass("" + method.getDeclaringClass().getName() + "" + method.getName() + "0003Parameters", getAllFields(), false);
@@ -99,7 +100,7 @@ public class MethodParametersViewComponent extends AbstractViewComponent impleme
         binder = new MDDBinder(parametersType);
         //binder = new Binder(modelType, true);
 
-        Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, parametersType, paremetersModel, validators, ReflectionHelper.getAllFields(parametersType));
+        Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, parametersType, paremetersModel, componentsToLookForErrors, FormLayoutBuilderParameters.builder().validators(validators).allFields(ReflectionHelper.getAllFields(parametersType)).build());
 
         stylist = r.getValue();
         addComponent(r.getKey());
@@ -131,8 +132,20 @@ public class MethodParametersViewComponent extends AbstractViewComponent impleme
         return allFields;
     }
 
+    private boolean validate() {
+        boolean noerror = true;
+        for (Component c : componentsToLookForErrors) {
+            if (c instanceof AbstractComponent && ((AbstractComponent) c).getComponentError() != null) {
+                noerror = false;
+                MDD.alert("Please solve errors for all fields");
+                break;
+            }
+        }
+        return noerror;
+    }
+
     public void run() {
-        try {
+        if (validate()) try {
 
             BinderValidationStatus v = binder.validate();
 

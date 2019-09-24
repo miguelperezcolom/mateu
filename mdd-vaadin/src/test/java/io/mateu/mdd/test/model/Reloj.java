@@ -8,12 +8,31 @@ import io.mateu.mdd.core.annotations.Output;
 import io.mateu.mdd.core.util.Helper;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.validator.constraints.Length;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Pattern;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter@Setter
 public class Reloj {
+
+    @Pattern(regexp = "z")
+    private String test;
+
+    public void setTest(String test) throws Error {
+        if (test != null && !"a".equalsIgnoreCase(test)) throw new Error("test debe ser igual a a");
+        this.test = test;
+    }
+
+    @NotEmpty
+    private String test2;
+
+    public void setTest2(String test2) throws Error {
+        if (test2 != null && !"a".equalsIgnoreCase(test2)) throw new Error("test2 debe ser igual a a");
+        this.test2 = test2;
+    }
 
     @Output
     private String proyecto;

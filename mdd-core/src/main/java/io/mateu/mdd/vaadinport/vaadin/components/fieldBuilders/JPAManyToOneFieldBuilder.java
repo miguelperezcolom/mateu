@@ -1,10 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.google.common.base.Strings;
-import com.vaadin.data.Binder;
-import com.vaadin.data.HasItems;
-import com.vaadin.data.HasValue;
-import com.vaadin.data.Validator;
+import com.vaadin.data.*;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.SerializablePredicate;
@@ -40,13 +37,17 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
         return field.isAnnotationPresent(ManyToOne.class) || field.getType().isAnnotationPresent(Entity.class);
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+
+        Component r = null;
 
         Component tf = null;
         HasValue hv = null;
         com.vaadin.data.provider.DataProvider dp = null;
 
-        Component captionOwner = null;
+        AbstractComponent captionOwner = null;
+
+        Converter converter = null;
 
 
         if (field.isAnnotationPresent(UseLinkToListView.class)) {
@@ -86,6 +87,11 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
             wrap.addComponent(b);
             container.addComponent(wrap);
 
+
+            addErrorHandler((AbstractField) tf);
+
+            r = tf;
+
             tf = wrap;
 
             if (!forSearchFilter) l.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
@@ -112,73 +118,23 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                 Label l;
                 fl.addComponent(l = new Label());
 
+                addErrorHandler(stf);
+
+                r = stf;
+
                 captionOwner = stf;
 
+                hv = stf;
 
-                List<HasValue.ValueChangeListener> listeners = new ArrayList<>();
-
-                hv = new HasValue() {
-                    private Object value;
-
+                converter = new Converter<String, Object>() {
                     @Override
-                    public void setValue(Object o) {
-                        value = o;
-                        if (o != null) {
-                            Object id = ReflectionHelper.getId(o);
-                            stf.setValue((id != null)?"" + id:"");
-                        } // else stf.setValue("");
-                        l.setValue((o != null)?"" + o:"No value");
-                    }
-
-                    @Override
-                    public Object getValue() {
-                        return value;
-                    }
-
-                    @Override
-                    public Registration addValueChangeListener(ValueChangeListener valueChangeListener) {
-                        listeners.add(valueChangeListener);
-                        return new Registration() {
-                            @Override
-                            public void remove() {
-                                listeners.remove(valueChangeListener);
-                            }
-                        };
-                    }
-
-                    @Override
-                    public void setRequiredIndicatorVisible(boolean b) {
-                        stf.setRequiredIndicatorVisible(b);
-                    }
-
-                    @Override
-                    public boolean isRequiredIndicatorVisible() {
-                        return stf.isRequiredIndicatorVisible();
-                    }
-
-                    @Override
-                    public void setReadOnly(boolean b) {
-                        stf.setReadOnly(b);
-                    }
-
-                    @Override
-                    public boolean isReadOnly() {
-                        return stf.isReadOnly();
-                    }
-                };
-
-
-                HasValue finalHv = hv;
-                stf.addValueChangeListener(s -> {
-                    if (Strings.isNullOrEmpty(s.getValue())) {
-                        Object oldValue = finalHv.getValue();
-                        finalHv.setValue(null);
-                        HasValue.ValueChangeEvent vce = new HasValue.ValueChangeEvent(stf, finalHv, oldValue, true);
-                        listeners.forEach(listener -> listener.valueChange(vce));
-                        stf.setComponentError(null);
-                    }
-                    else {
-                        try {
+                    public Result<Object> convertToModel(String s, ValueContext valueContext) {
+                        Result[] r = new Result[1];
+                        if (Strings.isNullOrEmpty(s)) {
+                            r[0] = Result.ok(null);
+                            l.setValue("No value");
+                        }
+                        else try {
                             Helper.notransact(em -> {
 
                                 FieldInterfaced fid = ReflectionHelper.getIdField(field.getType());
@@ -187,46 +143,49 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
                                 Object id = null;
                                 if (int.class.equals(fid.getType()) || Integer.class.equals(fid.getType())) {
-                                    id = Integer.parseInt(s.getValue());
+                                    id = Integer.parseInt(s);
                                 } else if (long.class.equals(fid.getType()) || Long.class.equals(fid.getType())) {
-                                    id = Long.parseLong(s.getValue());
+                                    id = Long.parseLong(s);
                                 } else if (String.class.equals(fid.getType())) {
-                                    id = s.getValue();
+                                    id = s;
                                 } else id = s;
 
                                 Query q = em.createQuery(sql).setParameter("i", id);
 
-                                List r = q.getResultList();
+                                List list = q.getResultList();
 
-                                Object oldValue = finalHv.getValue();
-
-                                if (r.size() == 1) {
-                                    finalHv.setValue(r.get(0));
-                                    stf.setComponentError(null);
+                                if (list.size() == 1) {
+                                    Object v;
+                                    r[0] = Result.ok(v = list.get(0));
+                                    l.setValue((v != null)?"" + v:"No value");
                                 } else {
-                                    finalHv.setValue(null);
-                                    stf.setComponentError(new UserError("Not found"));
+                                    r[0] = Result.error("Not found");
+                                    l.setValue("Not found");
                                 }
-
-
-                                HasValue.ValueChangeEvent vce = new HasValue.ValueChangeEvent(stf, finalHv, oldValue, true);
-                                listeners.forEach(listener -> listener.valueChange(vce));
 
                             });
                         } catch (Throwable throwable) {
                             if (throwable instanceof InvocationTargetException) {
                                 throwable = throwable.getCause();
                             }
-
-                            String msg = (throwable.getMessage() != null)?throwable.getMessage():throwable.getClass().getName();
-
-                            stf.setComponentError(new UserError(msg));
-                            MDD.alert(throwable);
+                            String msg = (throwable.getMessage() != null) ? throwable.getMessage() : throwable.getClass().getName();
+                            r[0] = Result.error(msg);
+                            l.setValue(msg);
                         }
+                        return r[0];
                     }
-                });
 
-
+                    @Override
+                    public String convertToPresentation(Object o, ValueContext valueContext) {
+                        String s = null;
+                        l.setValue((o != null)?"" + o:"No value");
+                        if (o != null) {
+                            Object id = ReflectionHelper.getId(o);
+                            s = (id != null)?"" + id:"";
+                        }
+                        return s != null?s:"";
+                    }
+                };
 
             } else {
 
@@ -242,6 +201,10 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                     hl.addComponent(rbg = new RadioButtonGroup());
 
                     hv = rbg;
+
+                    addErrorHandler(rbg);
+
+                    r = rbg;
 
                     captionOwner = rbg;
 
@@ -261,6 +224,10 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                     hl.addComponent(cb = new ComboBox());
 
                     captionOwner = cb;
+
+                    addErrorHandler(cb);
+
+                    r = cb;
 
                     cb.addStyleName("combo");
 
@@ -338,8 +305,9 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
         captionOwner.setCaption(ReflectionHelper.getCaption(field));
 
+        Binder.Binding binding = bind(binder, hv, field, forSearchFilter, dp, captionOwner, converter);
 
-        bind(binder, hv, field, forSearchFilter, dp);
+        return r;
     }
 
     public static void setDataProvider(HasItems hdp, FieldInterfaced field, MDDBinder binder) {
@@ -520,10 +488,12 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
     public void addValidators(List<Validator> validators) {
     }
 
-    protected void bind(MDDBinder binder, HasValue tf, FieldInterfaced field, boolean forSearchFilter, com.vaadin.data.provider.DataProvider dp) {
+    protected Binder.Binding bind(MDDBinder binder, HasValue tf, FieldInterfaced field, boolean forSearchFilter, com.vaadin.data.provider.DataProvider dp, AbstractComponent captionOwner, Converter converter) {
         Binder.BindingBuilder aux = binder.forField(tf);
         if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
-        Binder.Binding binding = aux.bind(field.getName());
+        if (converter != null) aux.withConverter(converter);
+        Binder.Binding binding = completeBinding(aux, binder, field, captionOwner);
+
 
         if (dp != null && dp instanceof JPQLListDataProvider) {
             JPQLListDataProvider ldp = (JPQLListDataProvider) dp;
@@ -543,6 +513,8 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                 }
             });
         }
+
+        return binding;
     }
 
 }

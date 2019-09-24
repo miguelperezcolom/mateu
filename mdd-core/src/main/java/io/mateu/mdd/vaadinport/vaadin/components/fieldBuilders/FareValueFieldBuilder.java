@@ -23,18 +23,19 @@ public class FareValueFieldBuilder extends AbstractFieldBuilder {
     }
 
     @Override
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
 
         TextField tf;
         container.addComponent(tf = new TextField());
         tf.setValueChangeMode(ValueChangeMode.BLUR);
+
 
         tf.setCaption(ReflectionHelper.getCaption(field));
 
         if (field.isAnnotationPresent(NotNull.class)) tf.setRequiredIndicatorVisible(true);
 
 
-
+        addErrorHandler(tf);
 
 
         Binder.BindingBuilder bindingBuilder = binder.forField(tf);
@@ -53,9 +54,8 @@ public class FareValueFieldBuilder extends AbstractFieldBuilder {
 
         if (!forSearchFilter && field.getDeclaringClass() != null) bindingBuilder.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
 
-        bindingBuilder.bind(field.getName());
+        completeBinding(bindingBuilder, binder, field);
 
-
-
+        return tf;
     }
 }

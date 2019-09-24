@@ -39,6 +39,7 @@ import java.lang.reflect.*;
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -65,6 +66,7 @@ public class ReflectionHelper {
         basicos.add(Boolean.class);
         basicos.add(LocalDate.class);
         basicos.add(LocalDateTime.class);
+        basicos.add(LocalTime.class);
         basicos.add(int.class);
         basicos.add(long.class);
         basicos.add(double.class);
@@ -123,6 +125,20 @@ public class ReflectionHelper {
                 BeanUtils.setProperty(o, fn, v);
             }
         }
+    }
+
+    public static Object getValue(FieldInterfaced f, Object o, Object valueIfNull) {
+        Object v = null;
+        try {
+            v = getValue(f, o);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return v != null?v:valueIfNull;
     }
 
     public static Object getValue(FieldInterfaced f, Object o) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
@@ -1752,7 +1768,13 @@ public class ReflectionHelper {
                 if (forFilters && double.class.equals(t)) t = Double.class;
 
 
-                if (LocalDate.class.equals(t) || LocalDateTime.class.equals(t) || Date.class.equals(t)) {
+                if (Double.class.equals(t) || double.class.equals(t)
+                || Long.class.equals(t) || long.class.equals(t)
+                || Integer.class.equals(t) || int.class.equals(t)) {
+                    addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName() + "From", f.getDeclaredAnnotations(), false);
+                    addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName() + "To", f.getDeclaredAnnotations(), true);
+                    addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName() + "Value", f.getDeclaredAnnotations(), true);
+                } else if (LocalDate.class.equals(t) || LocalDateTime.class.equals(t) || Date.class.equals(t)) {
                     addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName() + "From", f.getDeclaredAnnotations(), false);
                     addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName() + "To", f.getDeclaredAnnotations(), true);
                 } else addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName(), f.getDeclaredAnnotations(), false);
@@ -1791,6 +1813,19 @@ public class ReflectionHelper {
         }
 
         return cc.toClass();
+    }
+
+    private static Annotation[] expand(Annotation[] original, Class<? extends Annotation> annotationClass) {
+        Annotation[] r = original != null?Arrays.copyOf(original, original.length + 1):new Annotation[1];
+
+        r[r.length - 1] = new Annotation() {
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return annotationClass;
+            }
+        };
+
+        return r;
     }
 
     private static void addField(List<String> avoidedAnnotationNames, ClassPool pool, ClassFile cfile, ConstPool cpool, CtClass cc, boolean forFilters, Class t, String fieldName, Annotation[] declaredAnnotations, boolean forceSameLine) throws Exception {
@@ -2101,8 +2136,7 @@ public class ReflectionHelper {
                     }
 
 
-                    if (!owner && (f.isAnnotationPresent(ManyToOne.class) || f.isAnnotationPresent(OneToMany.class) || f.isAnnotationPresent(ManyToMany.class))) {
-
+                    if (!owner && (f.isAnnotationPresent(OneToMany.class) || f.isAnnotationPresent(ManyToMany.class))) {
 
                         FieldInterfaced mbf = ReflectionHelper.getMapper(f);
 

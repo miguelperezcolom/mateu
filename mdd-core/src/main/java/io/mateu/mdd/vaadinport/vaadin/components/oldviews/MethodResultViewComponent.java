@@ -25,10 +25,7 @@ import javax.persistence.Query;
 import javax.persistence.Version;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -227,7 +224,7 @@ public class MethodResultViewComponent extends AbstractViewComponent {
                 binder = new MDDBinder(result.getClass());
                 //binder = new Binder(modelType, true);
 
-                Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, result.getClass(), result, validators, getAllFields());
+                Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, result.getClass(), result, new ArrayList<>(), FormLayoutBuilderParameters.builder().validators(validators).allFields(getAllFields()).build());
 
                 stylist = r.getValue();
                 addComponent(r.getKey());

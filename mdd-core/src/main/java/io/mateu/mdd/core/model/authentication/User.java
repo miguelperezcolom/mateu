@@ -222,6 +222,15 @@ public class User {
         }
     }
 
+    public boolean hasPermission(long permissionId) {
+        boolean granted = false;
+        for (Permission p : permissions) {
+            granted = p.getId() == 1 || p.getId() == permissionId;
+            if (granted) break;
+        }
+        return granted;
+    }
+
 
     @Override
     public int hashCode() {

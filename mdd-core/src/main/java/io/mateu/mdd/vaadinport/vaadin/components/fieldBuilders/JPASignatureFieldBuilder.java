@@ -27,7 +27,9 @@ public class JPASignatureFieldBuilder extends JPAStringFieldBuilder {
         return field.isAnnotationPresent(Signature.class);
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+
+        Component r = null;
 
         if (!forSearchFilter) {
 
@@ -37,7 +39,9 @@ public class JPASignatureFieldBuilder extends JPAStringFieldBuilder {
             l.addComponent(tf = new SignatureField());
 
 
+            addErrorHandler(tf);
 
+            r = tf;
 
             if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
 
@@ -60,11 +64,13 @@ public class JPASignatureFieldBuilder extends JPAStringFieldBuilder {
 
         }
 
+        return r;
+
     }
 
 
     protected void bind(MDDBinder binder, SignatureField tf, FieldInterfaced field) {
-        binder.bind(new HasValue() {
+        HasValue hv = new HasValue() {
             @Override
             public void setValue(Object o) {
                 tf.setValue((String) o);
@@ -99,6 +105,7 @@ public class JPASignatureFieldBuilder extends JPAStringFieldBuilder {
             public boolean isReadOnly() {
                 return tf.isReadOnly();
             }
-        }, field.getName());
+        };
+        completeBinding(hv, binder, field);
     }
 }

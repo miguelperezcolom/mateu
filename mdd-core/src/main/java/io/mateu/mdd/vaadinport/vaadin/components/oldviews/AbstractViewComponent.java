@@ -79,16 +79,19 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                             @Override
                             public void run() {
 
-                                a.run(new AbstractMDDExecutionContext());
+                                if (!(AbstractViewComponent.this instanceof EditorViewComponent) || ((EditorViewComponent)AbstractViewComponent.this).validate()) {
 
-                                if (AbstractViewComponent.this instanceof EditorViewComponent) {
+                                    a.run(new AbstractMDDExecutionContext());
 
-                                    EditorViewComponent evc = (EditorViewComponent) AbstractViewComponent.this;
+                                    if (AbstractViewComponent.this instanceof EditorViewComponent) {
 
-                                    evc.getBinder().update(evc.getModel());
+                                        EditorViewComponent evc = (EditorViewComponent) AbstractViewComponent.this;
+
+                                        evc.getBinder().update(evc.getModel());
+
+                                    }
 
                                 }
-
 
                             }
                         };

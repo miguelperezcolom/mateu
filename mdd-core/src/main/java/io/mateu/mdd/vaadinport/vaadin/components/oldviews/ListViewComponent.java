@@ -8,12 +8,14 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.kbdunn.vaadin.addons.fontawesome.FontAwesome;
 import com.vaadin.data.HasDataProvider;
+import com.vaadin.data.HasValue;
 import com.vaadin.data.ValueProvider;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.SerializablePredicate;
+import com.vaadin.server.UserError;
 import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
@@ -51,6 +53,8 @@ import java.math.BigInteger;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -263,7 +267,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
                         return s;
 
-                    } else if (LocalDate.class.equals(f.getType()) || LocalDateTime.class.equals(f.getType()) || Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) {
+                    } else if (LocalDate.class.equals(f.getType()) || LocalDateTime.class.equals(f.getType()) || LocalTime.class.equals(f.getType()) || Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) {
                         return v;
                     } else {
                         return (v != null)?"" + v:null;
@@ -370,15 +374,64 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     if (f.getType().isAnnotationPresent(UseIdToSelect.class)) {
                         TextField nf = new TextField();
                         if (eager) nf.setValueChangeMode(ValueChangeMode.EAGER);
-                        col.setEditorComponent(nf, (o, v) -> {
+                        col.setEditorBinding(grid.getEditor().getBinder().forField(nf).bind(o -> {
+                            Object id = null;
+                            if (o != null) {
+                                id = ReflectionHelper.getId(o);
+                            } // else stf.setValue("");
+                            return (id != null)?"" + id:"";
+                        }, (o, v) -> {
+
+                            Object[] w = {null};
+
                             try {
-                                //todo: validar entero
-                                ReflectionHelper.setValue(f, o, (v != null)?new FareValue((String) v):null);
-                                refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                                Helper.notransact(em -> {
+
+                                    FieldInterfaced fid = ReflectionHelper.getIdField(f.getType());
+
+                                    String sql = "select x from " + f.getType().getName() + " x where x." + fid.getName() + " = :i";
+
+                                    Object id = null;
+                                    if (int.class.equals(fid.getType()) || Integer.class.equals(fid.getType())) {
+                                        id = Integer.parseInt((String) v);
+                                    } else if (long.class.equals(fid.getType()) || Long.class.equals(fid.getType())) {
+                                        id = Long.parseLong((String) v);
+                                    } else if (String.class.equals(fid.getType())) {
+                                        id = v;
+                                    } else id = v;
+
+                                    Query q = em.createQuery(sql).setParameter("i", id);
+
+                                    List r = q.getResultList();
+
+
+                                    if (r.size() == 1) {
+                                        w[0] = r.get(0);
+                                        nf.setComponentError(null);
+                                    } else {
+                                        nf.setComponentError(new UserError("Not found"));
+                                    }
+
+                                });
+                            } catch (Throwable throwable) {
+                                if (throwable instanceof InvocationTargetException) {
+                                    throwable = throwable.getCause();
+                                }
+
+                                String msg = (throwable.getMessage() != null)?throwable.getMessage():throwable.getClass().getName();
+
+                                nf.setComponentError(new UserError(msg));
+                                MDD.alert(throwable);
+                            }
+
+                            try {
+                                ReflectionHelper.setValue(f, o, w[0]);
+                                //refrescar(col, binder, f, o, w[0], colBindings, fieldByCol);
                             } catch (Exception e) {
                                 MDD.alert(e);
                             }
-                        });
+
+                        }));
                         col.setEditable(true);
 
                     } else if (f.isAnnotationPresent(ValueClass.class) || f.isAnnotationPresent(DataProvider.class) || mdp != null || f.isAnnotationPresent(ManyToOne.class)) {
@@ -469,7 +522,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                         col.setEditorComponent(cb, (o, v) -> {
                             try {
                                 ReflectionHelper.setValue(f, o, v);
-                                refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                                //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
                             } catch (Exception e) {
                                 MDD.alert(e);
                             }
@@ -480,16 +533,16 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     } else if (FareValue.class.equals(f.getType())) {
                         TextField nf = new TextField();
                         nf.setValueChangeMode(ValueChangeMode.EAGER);
-                        col.setEditorComponent(nf, (o, v) -> {
+                        col.setEditorBinding(grid.getEditor().getBinder().forField(nf).bind(o -> ReflectionHelper.getValue(f, o, ""), (o, v) -> {
                             try {
-                                //todo: validar entero
                                 ReflectionHelper.setValue(f, o, (v != null)?new FareValue((String) v):null);
-                                refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                                //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
                             } catch (Exception e) {
                                 MDD.alert(e);
                             }
-                        });
+                        }));
                         col.setEditable(true);
+
                     } else if (f.isAnnotationPresent(WeekDays.class)) {
 
                         List<String> days = Lists.newArrayList("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su");
@@ -520,70 +573,96 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     } else if (String.class.equals(f.getType())) {
                         TextField nf = new TextField();
                         if (eager) nf.setValueChangeMode(ValueChangeMode.EAGER);
-                        col.setEditorComponent(nf, (o, v) -> {
+                        col.setEditorBinding(grid.getEditor().getBinder().forField(nf).bind(o -> ReflectionHelper.getValue(f, o, ""), (o, v) -> {
                             try {
                                 ReflectionHelper.setValue(f, o, v);
-                                refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                                //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
                             } catch (Exception e) {
                                 MDD.alert(e);
                             }
-                        });
+                        }));
                         col.setEditable(true);
                     } else if (Integer.class.equals(f.getType()) || int.class.equals(f.getType())
                             || Long.class.equals(f.getType()) || long.class.equals(f.getType())) {
 
                         TextField nf = new TextField();
                         if (eager) nf.setValueChangeMode(ValueChangeMode.EAGER);
-                        col.setEditorComponent(nf, (o, v) -> {
+                        col.setEditorBinding(grid.getEditor().getBinder().forField(nf).bind(o -> "" + ReflectionHelper.getValue(f, o, ""), (o, v) -> {
                             try {
-                                //todo: validar entero
                                 ReflectionHelper.setValue(f, o, v);
-                                refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                                //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
                             } catch (Exception e) {
                                 MDD.alert(e);
                             }
-                        });
+                        }));
                         col.setEditable(true);
                     } else if (Double.class.equals(f.getType()) || double.class.equals(f.getType())) {
 
                         TextField nf = new TextField();
                         if (eager) nf.setValueChangeMode(ValueChangeMode.EAGER);
-                        col.setEditorComponent(nf, (o, v) -> {
+                        col.setEditorBinding(grid.getEditor().getBinder().forField(nf).bind(o -> "" + ReflectionHelper.getValue(f, o, ""), (o, v) -> {
                             try {
-                                //todo: validar doble
-                                //todo: falta float y long
                                 ReflectionHelper.setValue(f, o, v);
-                                refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                                //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
                             } catch (Exception e) {
                                 MDD.alert(e);
                             }
-                        });
+                        }));
                         col.setEditable(true);
                     } else if (LocalDate.class.equals(f.getType())) {
 
                         DateField nf = new DateField();
-                        col.setEditorComponent(nf, (o, v) -> {
+                        col.setEditorBinding(grid.getEditor().getBinder().forField(nf).bind(o -> ReflectionHelper.getValue(f, o, null), (o, v) -> {
                             try {
                                 ReflectionHelper.setValue(f, o, v);
-                                refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                                //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
                             } catch (Exception e) {
                                 MDD.alert(e);
                             }
-                        });
+                        }));
                         col.setEditable(true);
                     } else if (LocalDateTime.class.equals(f.getType())) {
 
                         DateTimeField nf = new DateTimeField();
-                        col.setEditorComponent(nf, (o, v) -> {
+                        col.setEditorBinding(grid.getEditor().getBinder().forField(nf).bind(o -> ReflectionHelper.getValue(f, o, null), (o, v) -> {
                             try {
-                                //todo: validar doble
-                                //todo: falta float y long
                                 ReflectionHelper.setValue(f, o, v);
-                                refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                                //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
                             } catch (Exception e) {
                                 MDD.alert(e);
                             }
-                        });
+                        }));
+                        col.setEditable(true);
+                    } else if (LocalTime.class.equals(f.getType())) {
+
+                        TextField nf = new TextField();
+                        col.setEditorBinding(grid.getEditor().getBinder().forField(nf).bind(o -> "" + ReflectionHelper.getValue(f, o, ""), (o, v) -> {
+                            try {
+                                LocalTime t = null;
+                                if (v != null && v instanceof String) {
+                                    String s = (String) v;
+                                    if (!"".equals(s)) {
+                                        try {
+                                            t = LocalTime.parse(s, DateTimeFormatter.ofPattern("HHmm"));
+                                        } catch (Exception e1) {
+                                            try {
+                                                t = LocalTime.parse(s, DateTimeFormatter.ofPattern("HH:mm"));
+                                            } catch (Exception e2) {
+                                                try {
+                                                    t = LocalTime.parse(s, DateTimeFormatter.ofPattern("HH.mm"));
+                                                } catch (Exception e3) {
+
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                ReflectionHelper.setValue(f, o, t);
+                                //refrescar(col, binder, f, o, t, colBindings, fieldByCol);
+                            } catch (Exception e) {
+                                MDD.alert(e);
+                            }
+                        }));
                         col.setEditable(true);
                     } else if (f.getType().isEnum()) {
 
@@ -594,7 +673,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                         col.setEditorComponent(tf, (o, v) -> {
                             try {
                                 ReflectionHelper.setValue(f, o, v);
-                                refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                                //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
                             } catch (Exception e) {
                                 MDD.alert(e);
                             }
@@ -675,6 +754,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     ) return 120;
             else if (LocalDate.class.equals(t)) return 125;
             else if (LocalDateTime.class.equals(t)) return 225;
+            else if (LocalTime.class.equals(t)) return 225;
             else if (FareValue.class.equals(t)) return 125;
             else if (f.isAnnotationPresent(WeekDays.class)) return 200;
             else return 250;
@@ -952,7 +1032,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             return explicitFilters;
         } else {
             return ReflectionHelper.getAllFields(filtersType).stream().filter(
-                    (f) ->  !f.isAnnotationPresent(Version.class) && !f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(Output.class) &&  !Resource.class.equals(f.getType()) && (String.class.equals(f.getType()) || LocalDate.class.equals(f.getType()) || LocalDateTime.class.equals(f.getType()) || Date.class.equals(f.getType()) || boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType()) || f.getType().isEnum() || f.isAnnotationPresent(ManyToOne.class) || f.getType().isAnnotationPresent(Entity.class))
+                    (f) ->  !f.isAnnotationPresent(Version.class) && !f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(Output.class) &&  !Resource.class.equals(f.getType()) && (String.class.equals(f.getType()) || LocalDate.class.equals(f.getType()) || LocalDateTime.class.equals(f.getType()) || LocalTime.class.equals(f.getType()) || Date.class.equals(f.getType()) || boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType()) || f.getType().isEnum() || f.isAnnotationPresent(ManyToOne.class) || f.getType().isAnnotationPresent(Entity.class))
             ).collect(Collectors.toList());
         }
     }

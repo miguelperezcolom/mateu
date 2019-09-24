@@ -30,7 +30,8 @@ public class JPADoubleFieldBuilder extends JPAStringFieldBuilder {
     }
 
     @Override
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+        Component r = null;
         if (field.isAnnotationPresent(DecimalMin.class) && field.isAnnotationPresent(DecimalMax.class)) {
             Slider tf;
             container.addComponent(tf = new Slider(new Double(field.getAnnotation(DecimalMin.class).value()), new Double(field.getAnnotation(DecimalMax.class).value()), 1));
@@ -50,13 +51,20 @@ public class JPADoubleFieldBuilder extends JPAStringFieldBuilder {
             //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
 
             bind(binder, tf, field, forSearchFilter);
-        } else super.build(field, object, container, binder, validators, stylist, allFieldContainers, forSearchFilter);
+
+            addErrorHandler(tf);
+
+            r = tf;
+
+        } else r = super.build(field, object, container, binder, validators, stylist, allFieldContainers, forSearchFilter);
+
+        return r;
     }
 
     protected void bind(MDDBinder binder, Slider tf, FieldInterfaced field, boolean forSearchFilter) {
         Binder.BindingBuilder aux = binder.forField(tf);
         if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
-        aux.bind(field.getName());
+        completeBinding(aux, binder, field);
     }
 
     @Override
@@ -94,7 +102,7 @@ public class JPADoubleFieldBuilder extends JPAStringFieldBuilder {
             }
         });
         if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
-        aux.bind(field.getName());
+        completeBinding(aux, binder, field);
     }
 
 }

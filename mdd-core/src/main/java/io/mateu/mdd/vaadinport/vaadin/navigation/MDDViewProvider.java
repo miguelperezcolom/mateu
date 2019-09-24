@@ -7,6 +7,7 @@ import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Notification;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.MDDBinder;
@@ -1073,6 +1074,30 @@ xxxxxxxxxxxxxxxx
 
         if (v == null) v = new VoidView(stack);
 
+
+        if (true) {
+            Component c = ((io.mateu.mdd.vaadinport.vaadin.navigation.View) v).getViewComponent();
+                if (c != null && c instanceof ComponentWrapper) {
+                    ((ComponentWrapper)c).updatePageTitle();
+                    c = ((ComponentWrapper)c).getWrapped();
+                }
+            if (c.getStyleName().contains("refreshOnBack")) {
+
+                if (c != null && c instanceof EditorViewComponent) {
+                    EditorViewComponent evc = (EditorViewComponent) c;
+                    Object id = ReflectionHelper.getId(evc.getModel());
+                    if (id != null) {
+                        try {
+                            evc.load(id);
+                        } catch (Throwable throwable) {
+                            MDD.alert(throwable);
+                        }
+                    } else evc.updateModel(evc.getModel());
+                }
+                c.removeStyleName("refreshOnBack");
+            }
+        }
+
         if (v != null && !nuevo) {
             Component c = ((io.mateu.mdd.vaadinport.vaadin.navigation.View) v).getViewComponent();
             if (c != null && c instanceof ComponentWrapper) {
@@ -1224,6 +1249,10 @@ xxxxxxxxxxxxxxxx
     public void callMethod(String state, Method method, Object instance, Component lastViewComponent) {
         if (method != null) {
             try {
+
+                if (method.isAnnotationPresent(Action.class) && method.getAnnotation(Action.class).refreshOnBack()) {
+                    lastViewComponent.addStyleName("refreshOnBack");
+                }
 
                 if (pendingResult != null) {
 

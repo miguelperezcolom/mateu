@@ -22,7 +22,9 @@ public class JPAWizardFieldBuilder extends AbstractFieldBuilder {
         return field.isAnnotationPresent(Wizard.class);
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+
+        Component r = null;
 
         if (!forSearchFilter) {
 
@@ -38,6 +40,10 @@ public class JPAWizardFieldBuilder extends AbstractFieldBuilder {
 
             if (container.getComponentCount() > 0) hl.setCaption(ReflectionHelper.getCaption(field));
 
+            addErrorHandler(tf);
+
+            r = tf;
+
             //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) hl.setDescription(field.getAnnotation(Help.class).value());
 
 
@@ -45,13 +51,14 @@ public class JPAWizardFieldBuilder extends AbstractFieldBuilder {
 
         }
 
+        return r;
     }
 
     protected void bind(MDDBinder binder, Label l, FieldInterfaced field) {
-        binder.forField(new HasValue() {
+        HasValue hv = new HasValue() {
             @Override
             public void setValue(Object o) {
-                l.setValue((o != null)?"" + o:"");
+                l.setValue((o != null) ? "" + o : "");
             }
 
             @Override
@@ -83,6 +90,7 @@ public class JPAWizardFieldBuilder extends AbstractFieldBuilder {
             public boolean isReadOnly() {
                 return false;
             }
-        }).bind(field.getName());
+        };
+        completeBinding(hv, binder, field);
     }
 }

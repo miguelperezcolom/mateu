@@ -33,7 +33,7 @@ public class JPAMoneyFieldBuilder extends JPAStringFieldBuilder {
             }
         });
         if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
-        aux.bind(field.getName());
+        completeBinding(aux, binder, field);
     }
 
 }

@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
+import com.vaadin.data.Binder;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
 import com.vaadin.data.converter.LocalDateTimeToDateConverter;
@@ -24,7 +25,8 @@ public class JPADateFieldBuilder extends AbstractFieldBuilder {
         return Date.class.equals(field.getType());
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    @Override
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
 
         DateTimeField tf;
         container.addComponent(tf = new DateTimeField());
@@ -43,10 +45,14 @@ public class JPADateFieldBuilder extends AbstractFieldBuilder {
 
         bind(binder, tf, field);
 
+        addErrorHandler(tf);
+
+        return tf;
     }
 
 
     protected void bind(MDDBinder binder, DateTimeField tf, FieldInterfaced field) {
-        binder.forField(tf).withConverter(new LocalDateTimeToDateConverter(ZoneId.systemDefault())).bind(field.getName());
+        Binder.BindingBuilder aux = binder.forField(tf).withConverter(new LocalDateTimeToDateConverter(ZoneId.systemDefault()));
+        completeBinding(aux, binder, field);
     }
 }

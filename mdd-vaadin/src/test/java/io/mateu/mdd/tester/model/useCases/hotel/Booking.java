@@ -34,6 +34,11 @@ public class Booking {
     @ListColumn
     private Hotel hotel;
 
+    public void setHotel(Hotel hotel) {
+        if (hotel != null && "valparaiso".equalsIgnoreCase(hotel.getName())) throw new Error("No puede ser el valaparaiso");
+        this.hotel = hotel;
+    }
+
     @SectionKPI
     private double totalPax = 3;
 
@@ -199,8 +204,16 @@ public class Booking {
         leadName += "zz";
     }
 
+    @Action(order = 100, refreshOnBack = true)
+    public Object refreshOnBack() {
+        return new RefreshOnBackForm(this);
+    }
 
 
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 
     @Override
     public boolean equals(Object obj) {

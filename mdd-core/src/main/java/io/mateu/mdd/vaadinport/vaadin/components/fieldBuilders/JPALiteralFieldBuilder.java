@@ -26,7 +26,7 @@ public class JPALiteralFieldBuilder extends AbstractFieldBuilder {
         return Literal.class.isAssignableFrom(field.getType());
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
 
         LiteralComponent c;
         container.addComponent(c = new LiteralComponent(field, binder));
@@ -47,12 +47,16 @@ public class JPALiteralFieldBuilder extends AbstractFieldBuilder {
 
 
         bind(binder, c, field, forSearchFilter);
+
+        addErrorHandler(c);
+
+        return c;
     }
 
 
     protected void bind(MDDBinder binder, LiteralComponent c, FieldInterfaced field, boolean forSearchFilter) {
         Binder.BindingBuilder aux = binder.forField(c);
         //if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
-        aux.bind(field.getName());
+        completeBinding(aux, binder, field);
     }
 }

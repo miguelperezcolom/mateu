@@ -21,8 +21,9 @@ public class JPABooleanFieldBuilder extends AbstractFieldBuilder {
         return Boolean.class.equals(field.getType()) || boolean.class.equals(field.getType());
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
 
+        Component r = null;
 
         if (forSearchFilter && object != null && object.getClass().getName().endsWith("000Filters")) {
 
@@ -37,7 +38,11 @@ public class JPABooleanFieldBuilder extends AbstractFieldBuilder {
             //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) cb.setDescription(field.getAnnotation(Help.class).value());
 
 
-            bind(binder, cb, field);
+            completeBinding(cb, binder, field);
+
+            addErrorHandler(cb);
+
+            r = cb;
 
         } else {
 
@@ -57,13 +62,14 @@ public class JPABooleanFieldBuilder extends AbstractFieldBuilder {
             //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) cb.setDescription(field.getAnnotation(Help.class).value());
 
 
-            bind(binder, cb, field);
+            completeBinding(cb, binder, field);
+
+            addErrorHandler(cb);
+
+            r = cb;
 
         }
 
-    }
-
-    protected void bind(MDDBinder binder, HasValue cb, FieldInterfaced field) {
-        binder.bind(cb, field.getName());
+        return r;
     }
 }

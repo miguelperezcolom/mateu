@@ -149,7 +149,8 @@ public class OwnedCollectionComponent extends HorizontalLayout {
                     getElementAt(currentIndex, v0 -> {
                         try {
                             getElementAt(currentIndex - 1, v -> {
-                                ReflectionHelper.copy(v0, v);
+                                ReflectionHelper.copy(v, v0);
+                                editorViewComponent.getBinder().update(v0);
                             });
                         } catch (Exception ex) {
                             ex.printStackTrace();

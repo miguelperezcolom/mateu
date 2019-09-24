@@ -25,11 +25,13 @@ public class JPAURLFieldBuilder extends AbstractFieldBuilder {
         return URL.class.equals(field.getType());
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
 
         TextField tf;
         container.addComponent(tf = new TextField());
         tf.setValueChangeMode(ValueChangeMode.BLUR);
+
+        addErrorHandler(tf);
 
 
         Button b = new Button("Go", e -> {
@@ -57,6 +59,8 @@ public class JPAURLFieldBuilder extends AbstractFieldBuilder {
 
 
         bind(binder, tf, field, forSearchFilter);
+
+        return tf;
     }
 
 

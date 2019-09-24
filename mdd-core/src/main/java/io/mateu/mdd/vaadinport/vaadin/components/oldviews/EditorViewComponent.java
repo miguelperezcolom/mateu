@@ -1,9 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
-import com.vaadin.data.Binder;
-import com.vaadin.data.BinderValidationStatus;
-import com.vaadin.data.HasValue;
-import com.vaadin.data.Validator;
+import com.vaadin.data.*;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.Registration;
@@ -51,6 +48,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private Object owner = null;
     private FieldInterfaced field = null;
     private Map<HasValue, List<Validator>> validators = new HashMap<>();
+    List<Component> componentsToLookForErrors = new ArrayList<>();
 
     protected boolean newRecord;
     private Class modelType;
@@ -280,6 +278,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         clear();
 
+        componentsToLookForErrors = new ArrayList<>();
+
         MDDUI.get().getNavegador().getViewProvider().setCurrentEditor(this);
 
         try {
@@ -334,7 +334,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 fields.removeIf(f -> hiddenFields.contains(f));
             }
 
-            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, model.getClass(), model, validators, fields, links, actionsPerSection);
+            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, model.getClass(), model, componentsToLookForErrors, FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).links(links).actionsPerSection(actionsPerSection).build());
 
             stylist = r.getValue();
 
@@ -970,73 +970,96 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
     public void save(boolean goBack, boolean notify, boolean copyEditableValues) throws Throwable {
 
-        try {
+        if (validate()) {
 
-            if (modelType.isAnnotationPresent(Entity.class)) {
+            try {
 
-                Helper.transact(new JPATransaction() {
-                    @Override
-                    public void run(EntityManager em) throws Throwable {
+                if (modelType.isAnnotationPresent(Entity.class)) {
 
-                        if (copyEditableValues) {
-                            Object m = getModel();
-                            Object d = transferirValores(em, m, new ArrayList<>());
-                            setModel(d);
-                        } else {
-                            for (Object o : getRemovables()) {
-                                if (getMergeables().contains(o)) getMergeables().remove(o);
+                    Helper.transact(new JPATransaction() {
+                        @Override
+                        public void run(EntityManager em) throws Throwable {
 
-                                if (!em.contains(o)) {
-                                    o = em.merge(o);
+                            if (copyEditableValues) {
+                                Object m = getModel();
+                                Object d = transferirValores(em, m, new ArrayList<>());
+                                setModel(d);
+                            } else {
+                                for (Object o : getRemovables()) {
+                                    if (getMergeables().contains(o)) getMergeables().remove(o);
+
+                                    if (!em.contains(o)) {
+                                        o = em.merge(o);
+                                    }
+                                    if (em.contains(o)) {
+                                        em.remove(o);
+                                    }
                                 }
-                                if (em.contains(o)) {
-                                    em.remove(o);
-                                }
+                                for (Object o : getMergeables()) em.merge(o);
+                                Object m = getModel();
+
+
+                                auditar(m);
+
+                                setModel(em.merge(m));
                             }
-                            for (Object o : getMergeables()) em.merge(o);
-                            Object m = getModel();
 
-
-                            auditar(m);
-
-                            setModel(em.merge(m));
                         }
+                    });
 
+                    modelId = ReflectionHelper.getId(getModel());
+
+                    //todo: ver que hacemos aquí. Volvemos y ya está?
+                    // cambiamos la url, para reflejar el cambio
+                    if (goBack) MDDUI.get().getNavegador().goBack();
+
+                } else if (PersistentPOJO.class.isAssignableFrom(modelType)) {
+
+                    PersistentPOJO ppojo = (PersistentPOJO) getModel();
+
+                    ppojo.save();
+
+                }
+
+                if (notify) listeners.forEach(l -> l.onSave(getModel()));
+
+                if (!goBack && (modelType.isAnnotationPresent(Entity.class)) || PersistentPOJO.class.isAssignableFrom(modelType)) {
+                    load(modelId);
+                }
+
+                if (getView() != null) getView().updateViewTitle(toString());
+
+            } catch (OptimisticLockException ole) {
+                MDD.confirm("Some objects have been modified by someone else. You should refresh and recover any modification you have done. Do you want to go ahead and overwrite instead?", () -> {
+                    try {
+                        save(goBack, notify, true);
+                    } catch (Throwable throwable) {
+                        MDD.alert(throwable);
                     }
                 });
-
-                modelId = ReflectionHelper.getId(getModel());
-
-                //todo: ver que hacemos aquí. Volvemos y ya está?
-                // cambiamos la url, para reflejar el cambio
-                if (goBack) MDDUI.get().getNavegador().goBack();
-
-            } else if (PersistentPOJO.class.isAssignableFrom(modelType)) {
-
-                PersistentPOJO ppojo = (PersistentPOJO) getModel();
-
-                ppojo.save();
-
             }
 
-            if (notify) listeners.forEach(l -> l.onSave(getModel()));
-
-            if (!goBack && (modelType.isAnnotationPresent(Entity.class)) || PersistentPOJO.class.isAssignableFrom(modelType)) {
-                load(modelId);
-            }
-
-            if (getView() != null) getView().updateViewTitle(toString());
-
-        } catch (OptimisticLockException ole) {
-            MDD.confirm("Some objects have been modified by someone else. You should refresh and recover any modification you have done. Do you want to go ahead and overwrite instead?", () -> {
-                try {
-                    save(goBack, notify, true);
-                } catch (Throwable throwable) {
-                    MDD.alert(throwable);
-                }
-            });
         }
 
+    }
+
+    public boolean validate() {
+        return validate(false);
+    }
+
+    public boolean validate(boolean silent) {
+        boolean noerror = true;
+        BinderValidationStatus status = binder.validate();
+        if (status.hasErrors()) {
+            noerror = false;
+        } else for (Component c : componentsToLookForErrors) {
+            if (c instanceof AbstractComponent && ((AbstractComponent) c).getComponentError() != null) {
+                noerror = false;
+                break;
+            }
+        }
+        if (!noerror && !silent) MDD.alert("Please solve errors for all fields");
+        return noerror;
     }
 
     private Object transferirValores(EntityManager em, Object m, List<Object> transferidos) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {

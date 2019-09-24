@@ -185,4 +185,8 @@ public class MDDBinder extends Binder {
             });
         }
     }
+
+    public Optional<Binding> getFieldBinding(HasValue hv) {
+        return getBindings().stream().filter(b -> ((Binding)b).getField() == hv).findFirst();
+    }
 }

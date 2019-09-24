@@ -39,4 +39,7 @@ public @interface Action {
     boolean saveBefore() default false;
 
     boolean saveAfter() default false;
+
+    boolean refreshOnBack() default false;
+
 }

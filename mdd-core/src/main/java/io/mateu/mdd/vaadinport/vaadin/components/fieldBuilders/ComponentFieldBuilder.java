@@ -2,6 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
+import com.vaadin.server.UserError;
 import com.vaadin.shared.Registration;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Composite;
@@ -23,7 +24,7 @@ public class ComponentFieldBuilder extends AbstractFieldBuilder {
         return Component.class.isAssignableFrom(field.getType()) || Composite.class.isAssignableFrom(field.getType());
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
 
         VerticalLayout tf;
         container.addComponent(tf = new VerticalLayout());
@@ -35,8 +36,11 @@ public class ComponentFieldBuilder extends AbstractFieldBuilder {
 
         //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
 
+        addErrorHandler(tf);
+
         bind(binder, tf, field);
 
+        return tf;
     }
 
     protected void bind(MDDBinder binder, VerticalLayout tf, FieldInterfaced field) {

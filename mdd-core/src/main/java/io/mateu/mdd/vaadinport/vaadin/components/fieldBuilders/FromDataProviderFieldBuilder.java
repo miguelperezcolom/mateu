@@ -27,8 +27,9 @@ public class FromDataProviderFieldBuilder extends AbstractFieldBuilder {
         return field.getDataProvider() != null;
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
 
+        Component r = null;
 
         if (field.isAnnotationPresent(UseRadioButtons.class)) {
 
@@ -67,8 +68,11 @@ public class FromDataProviderFieldBuilder extends AbstractFieldBuilder {
 
             }
 
-            binder.bind(tf, field.getName());
+            completeBinding(tf, binder, field);
 
+            addErrorHandler(tf);
+
+            r = tf;
 
         } else {
 
@@ -107,9 +111,14 @@ public class FromDataProviderFieldBuilder extends AbstractFieldBuilder {
 
             }
 
-            binder.bind(tf, field.getName());
+            completeBinding(tf, binder, field);
+
+            addErrorHandler(tf);
+
+            r = tf;
         }
 
+        return r;
     }
 
 }

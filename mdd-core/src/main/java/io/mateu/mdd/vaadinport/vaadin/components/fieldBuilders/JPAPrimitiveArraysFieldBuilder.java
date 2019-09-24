@@ -39,13 +39,19 @@ public class JPAPrimitiveArraysFieldBuilder extends JPAStringFieldBuilder {
         return ok;
     }
 
-    public void build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+
+        Component r = null;
 
         if (!forSearchFilter) {
 
             AbstractTextField tf = (field.isAnnotationPresent(io.mateu.mdd.core.annotations.TextArea.class))?new TextArea():new TextField();
             container.addComponent(tf);
             tf.setValueChangeMode(ValueChangeMode.BLUR);
+
+            addErrorHandler(tf);
+
+            r = tf;
 
             if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
 
@@ -64,11 +70,12 @@ public class JPAPrimitiveArraysFieldBuilder extends JPAStringFieldBuilder {
 
         }
 
+        return r;
     }
 
 
     protected void bind(MDDBinder binder, AbstractTextField tf, FieldInterfaced field) {
-        binder.bind(new HasValue() {
+        HasValue hv = new HasValue() {
             @Override
             public void setValue(Object o) {
                 String s = "";
@@ -82,31 +89,31 @@ public class JPAPrimitiveArraysFieldBuilder extends JPAStringFieldBuilder {
                     } else if (o instanceof long[]) {
                         long[] col = (long[]) o;
                         for (Object v : col) {
-                            if (!"".equals(s)) s += (tf instanceof TextArea)?"\n":",";
+                            if (!"".equals(s)) s += (tf instanceof TextArea) ? "\n" : ",";
                             s += v;
                         }
                     } else if (o instanceof float[]) {
                         float[] col = (float[]) o;
                         for (Object v : col) {
-                            if (!"".equals(s)) s += (tf instanceof TextArea)?"\n":",";
+                            if (!"".equals(s)) s += (tf instanceof TextArea) ? "\n" : ",";
                             s += v;
                         }
                     } else if (o instanceof double[]) {
                         double[] col = (double[]) o;
                         for (Object v : col) {
-                            if (!"".equals(s)) s += (tf instanceof TextArea)?"\n":",";
+                            if (!"".equals(s)) s += (tf instanceof TextArea) ? "\n" : ",";
                             s += v;
                         }
                     } else if (o instanceof boolean[]) {
                         boolean[] col = (boolean[]) o;
                         for (Object v : col) {
-                            if (!"".equals(s)) s += (tf instanceof TextArea)?"\n":",";
+                            if (!"".equals(s)) s += (tf instanceof TextArea) ? "\n" : ",";
                             s += v;
                         }
                     } else {
                         Object[] col = (Object[]) o;
                         for (Object v : col) {
-                            if (!"".equals(s)) s += (tf instanceof TextArea)?"\n":",";
+                            if (!"".equals(s)) s += (tf instanceof TextArea) ? "\n" : ",";
                             s += v;
                         }
                     }
@@ -195,6 +202,7 @@ public class JPAPrimitiveArraysFieldBuilder extends JPAStringFieldBuilder {
             public boolean isReadOnly() {
                 return tf.isReadOnly();
             }
-        }, field.getName());
+        };
+        completeBinding(hv, binder, field);
     }
 }
