@@ -392,10 +392,10 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
                 wrapper = currentFieldContainer;
 
-                if (f.isAnnotationPresent(Width.class)) {
+                if (f.isAnnotationPresent(FullWidth.class) || f.isAnnotationPresent(Width.class)) {
                     currentFieldContainer.addComponent(wrapper = new VerticalLayout());
-                    ((VerticalLayout)wrapper).setSpacing(false);
-                    wrapper.setWidth(f.getAnnotation(Width.class).value());
+                    ((VerticalLayout) wrapper).setSpacing(false);
+                    wrapper.setWidth(f.isAnnotationPresent(Width.class)?f.getAnnotation(Width.class).value():"100%");
                     wrapper.addStyleName(CSS.NOPADDING);
                     wrapper.addStyleName("widthwrapper");
                 }

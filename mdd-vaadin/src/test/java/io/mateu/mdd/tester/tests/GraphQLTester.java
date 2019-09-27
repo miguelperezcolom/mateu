@@ -44,7 +44,7 @@ public class GraphQLTester {
 
             Helper.notransact(em -> {
 
-                Helper.getSstreams().streamAll(em, Country.class).forEach(c -> log.debug(c.getName()));
+                Helper.getStreams().streamAll(em, Country.class).forEach(c -> log.debug(c.getName()));
 
 
                 String schema = crearSchema();
