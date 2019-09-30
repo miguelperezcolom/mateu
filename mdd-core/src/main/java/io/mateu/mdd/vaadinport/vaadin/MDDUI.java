@@ -104,14 +104,16 @@ public class MDDUI extends UI {
         if (app == null) {
 
             app = createApp();
-            app.setBaseUrl(contextUrl);
-
-            log.debug("baseurl=" + app.getBaseUrl());
 
             if (MDD.getClassPool() == null) MDD.setClassPool(ReflectionHelper.createClassPool(((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getServletContext()));
 
             app.buildAreaAndMenuIds();
 
+        }
+
+        if (Strings.isNullOrEmpty(app.getBaseUrl())) {
+            app.setBaseUrl(System.getProperty("baseurl", contextUrl));
+            log.debug("baseurl=" + app.getBaseUrl());
         }
 
 

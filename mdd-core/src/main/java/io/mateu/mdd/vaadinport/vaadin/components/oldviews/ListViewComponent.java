@@ -74,6 +74,11 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     private Button excelButton;
     private Button pdfButton;
 
+
+    public String getFieldsFilter() {
+        return null;
+    }
+
     @Override
     public ListViewComponent build() throws Exception {
 
@@ -131,7 +136,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     public List<FieldInterfaced> getColumnFields() {
-        return getColumnFields(getColumnType());
+        return getColumnFields(getColumnType(), false, getFieldsFilter());
     }
 
     public void buildColumns(Grid grid) {
@@ -991,9 +996,21 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     public static List<FieldInterfaced> getColumnFields(Class objectType, boolean forGrid) {
+        return getColumnFields(objectType, forGrid, null);
+    }
+
+    public static List<FieldInterfaced> getColumnFields(Class objectType, boolean forGrid, String fieldsFilter) {
+
+            if (fieldsFilter == null) fieldsFilter = "";
+            List<String> fns = Strings.isNullOrEmpty(fieldsFilter)?new ArrayList<>():Lists.newArrayList(fieldsFilter.replaceAll(" ", "").split(","));
 
             List<FieldInterfaced> explicitColumns = ReflectionHelper.getAllFields(objectType).stream().filter(
-                    (f) -> f.isAnnotationPresent(ListColumn.class)
+                    f -> {
+                        boolean ok = false;
+                        if (fns.size() == 0) ok = f.isAnnotationPresent(ListColumn.class);
+                        else ok = fns.contains(f.getId());
+                        return ok;
+                    }
             ).collect(Collectors.toList());
 
             if (explicitColumns.size() > 0) {
@@ -1001,6 +1018,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             } else
                 return ReflectionHelper.getAllFields(objectType).stream().filter(
                         (f) -> !"_proxied".equalsIgnoreCase(f.getName()) && !"_possibleValues".equalsIgnoreCase(f.getName()) && !"_binder".equalsIgnoreCase(f.getName()) && !"_field".equalsIgnoreCase(f.getName())
+                                && !Modifier.isTransient(f.getModifiers())
                                 && !f.isAnnotationPresent(Transient.class)
                                 && !f.isAnnotationPresent(NotInList.class)
                                 && !f.isAnnotationPresent(Version.class)

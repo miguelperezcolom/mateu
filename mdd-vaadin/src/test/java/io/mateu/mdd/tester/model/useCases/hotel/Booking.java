@@ -9,8 +9,11 @@ import io.mateu.mdd.tester.model.useCases.bankAccount.Payment;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.javamoney.moneta.FastMoney;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -240,4 +243,13 @@ public class Booking {
         log.debug("**************** Booking.portRemove()");
         updatePending = true;
         updating = true;
-    }}
+    }
+
+
+
+    @Action(order = 4, icon = VaadinIcons.EURO, saveBefore = true, saveAfter = true)
+    @NotWhenCreating
+    public void sendPaymentEmail(@NotEmpty String changeEmail, @NotEmpty String subject, String postscript, @NotNull Hotel hotel, FastMoney amount) throws Throwable {
+        System.out.println("hola!!!");
+    }
+}

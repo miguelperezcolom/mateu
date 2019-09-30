@@ -120,7 +120,8 @@ public abstract class AbstractFieldBuilder {
                             while (th != null && th.getCause() != null) {
                                 th = th.getCause();
                             }
-                            return lastResult = ValidationResult.error(th.getMessage());
+                            th.printStackTrace();
+                            return lastResult = ValidationResult.error(th.getMessage() != null?th.getMessage():th.getClass().getSimpleName());
                         }
                     }
                 } else return ValidationResult.error("missing HasValue");

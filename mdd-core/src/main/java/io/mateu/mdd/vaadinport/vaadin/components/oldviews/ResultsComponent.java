@@ -239,7 +239,7 @@ public class ResultsComponent extends VerticalLayout {
                         }
                     }
                 } else {
-                    List<FieldInterfaced> fields = ReflectionHelper.getAllFields(listViewComponent.getColumnType());
+                    List<FieldInterfaced> fields = listViewComponent.getColumnFields();
                     try {
                         for (int j = 0; j < fields.size(); j++) {
                             FieldInterfaced f = fields.get(j);

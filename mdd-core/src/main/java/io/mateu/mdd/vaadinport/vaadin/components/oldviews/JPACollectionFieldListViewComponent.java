@@ -31,6 +31,14 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
     private Collection list;
     private Object model;
 
+    @Override
+    public String getFieldsFilter() {
+        String fields = "";
+        if (field.getAnnotation(UseLinkToListView.class) != null) fields = field.getAnnotation(UseLinkToListView.class).fields();
+        if (Strings.isNullOrEmpty(fields) && field.isAnnotationPresent(FieldsFilter.class)) fields = field.getAnnotation(FieldsFilter.class).value();
+        return fields;
+    }
+
     public JPACollectionFieldListViewComponent(Class entityClass, FieldInterfaced field, IEditorViewComponent evfc) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         super(entityClass);
         this.field = field;

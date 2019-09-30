@@ -261,11 +261,16 @@ public abstract class AbstractApplication implements App {
 
     public View getPrivateHome() { return null; };
 
-    public String getBaseUrl() { return baseUrl; };
+    public String getBaseUrl() {
+        if (baseUrl == null && System.getProperty("baseurl") != null) baseUrl = System.getProperty("baseurl");
+        return baseUrl;
+    };
 
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
     }
+
+
 
 
     public String getPort() {

@@ -28,6 +28,9 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Version;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.ValidatorFactory;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -154,37 +157,54 @@ public class MethodParametersViewComponent extends AbstractViewComponent impleme
 
                 log.debug("" + binder.getBean());
 
+                ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+                javax.validation.Validator validator = factory.getValidator();
 
-                Object r = ReflectionHelper.execute(MDD.getUserData(), method, binder, bean, pendingSelection);
+                Set<ConstraintViolation<Object>> violations = validator.validate(binder.getBean());
 
-                if (r instanceof Class && (((Class) r).isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom((Class<?>) r))) {
+                if (violations.size() > 0) {
 
-                    MDDUI.get().getNavegador().getViewProvider().openCRUD(null, (Class) r, null, null, false);
+                    String s = "";
 
+                    for (ConstraintViolation<Object> violation : violations) {
+                        if (!"".equalsIgnoreCase(s)) s += "\n";
+                        s += "" + Helper.capitalize(violation.getPropertyPath().toString()) + " " + violation.getMessage();
+                    }
+
+                    MDD.alert(s);
 
                 } else {
 
-                    if (method.isAnnotationPresent(Action.class) && method.getAnnotation(Action.class).saveAfter() && parentBinder.getViewComponent() != null && parentBinder.getViewComponent() instanceof EditorViewComponent) {
-                        ((EditorViewComponent) parentBinder.getViewComponent()).save(false);
-                    }
+                    Object r = ReflectionHelper.execute(MDD.getUserData(), method, binder, bean, pendingSelection);
 
-                    if (parentBinder != null) {
-                        parentBinder.setBean(null, false);
-                        parentBinder.setBean(bean, false);
-                    }
+                    if (r instanceof Class && (((Class) r).isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom((Class<?>) r))) {
+
+                        MDDUI.get().getNavegador().getViewProvider().openCRUD(null, (Class) r, null, null, false);
 
 
-                    if (void.class.equals(method.getReturnType())) {
-                        MDDUI.get().getNavegador().goBack();
-                        MDD.info("Done");
                     } else {
-                        MDDUI.get().getNavegador().showResult(context.getCurrentState(), method, r, context, true, null);
+
+                        if (method.isAnnotationPresent(Action.class) && method.getAnnotation(Action.class).saveAfter() && parentBinder.getViewComponent() != null && parentBinder.getViewComponent() instanceof EditorViewComponent) {
+                            ((EditorViewComponent) parentBinder.getViewComponent()).save(false);
+                        }
+
+                        if (parentBinder != null) {
+                            parentBinder.update(bean);
+                        }
+
+
+                        if (void.class.equals(method.getReturnType())) {
+                            MDDUI.get().getNavegador().goBack();
+                            MDD.info("Done");
+                        } else {
+                            MDDUI.get().getNavegador().showResult(context.getCurrentState(), method, r, context, true, null);
+                        }
+
                     }
+
+                    // cambiamos la url, para reflejar el cambio
 
                 }
-
-                // cambiamos la url, para reflejar el cambio
-
 
             } else MDD.alert(v);
 

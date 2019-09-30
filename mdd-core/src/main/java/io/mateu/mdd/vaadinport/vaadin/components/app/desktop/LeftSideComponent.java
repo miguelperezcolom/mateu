@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.desktop;
 
 import com.vaadin.icons.VaadinIcons;
+import com.vaadin.server.MouseOverVerticalLayout;
 import com.vaadin.ui.AbsoluteLayout;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.VerticalLayout;
@@ -11,7 +12,7 @@ import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.MenuEntry;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
-public class LeftSideComponent extends VerticalLayout {
+public class LeftSideComponent extends MouseOverVerticalLayout {
     private final AbstractApplication app;
     private final DesktopAppComponent appComponent;
     private final NavigationComponent nav;
