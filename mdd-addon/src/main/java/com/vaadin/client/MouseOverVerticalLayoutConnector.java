@@ -1,32 +1,40 @@
 package com.vaadin.client;
 
-import com.vaadin.client.communication.StateChangeEvent;
-import com.vaadin.client.ui.VVerticalLayout;
+import com.google.gwt.event.dom.client.MouseOverEvent;
+import com.google.gwt.event.dom.client.MouseOverHandler;
+import com.vaadin.client.communication.RpcProxy;
 import com.vaadin.client.ui.orderedlayout.VerticalLayoutConnector;
 import com.vaadin.server.MouseOverVerticalLayout;
-import com.vaadin.shared.MouseOverVerticalLayoutState;
 import com.vaadin.shared.ui.Connect;
 
 @Connect(MouseOverVerticalLayout.class)
-public class MouseOverVerticalLayoutConnector extends VerticalLayoutConnector {
+public class MouseOverVerticalLayoutConnector extends VerticalLayoutConnector implements MouseOverHandler {
+
+
+    static native void console(String text)
+        /*-{
+            console.log(text);
+         }-*/;
+
+    MouseOverVerticalLayoutRpc rpc = RpcProxy.create(MouseOverVerticalLayoutRpc.class, this);
 
     @Override
     public VMouseOverVerticalLayout getWidget() {
         return (VMouseOverVerticalLayout) super.getWidget();
     }
 
-    @Override
-    public MouseOverVerticalLayoutState getState() {
-        return (MouseOverVerticalLayoutState) super.getState();
+
+    public MouseOverVerticalLayoutConnector() {
+        //console(getWidget().getStyleName());
+        getWidget().addStyleName("mouseoveractivo");
+        getWidget().addDomHandler(this, MouseOverEvent.getType());
     }
 
     @Override
-    public void onStateChanged(StateChangeEvent stateChangeEvent) {
-        super.onStateChanged(stateChangeEvent);
-
-        if (getState().isMousedOver()) {
-            getState().setMousedOver(false);
-            getRpcProxy(MouseOverVerticalLayoutRpc.class).mousedOver();
+    public void onMouseOver(MouseOverEvent mouseOverEvent) {
+        //console(getWidget().getStyleName());
+        if (getWidget().getStyleName().contains("mouseoveractivo")) {
+            rpc.mousedOver();
         }
     }
 }

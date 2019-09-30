@@ -1,10 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin;
 
 import com.google.common.base.Strings;
-import com.vaadin.annotations.PreserveOnRefresh;
-import com.vaadin.annotations.StyleSheet;
-import com.vaadin.annotations.Theme;
-import com.vaadin.annotations.Viewport;
+import com.vaadin.annotations.*;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.PushStateNavigation;
 import com.vaadin.server.VaadinRequest;
@@ -42,6 +39,12 @@ import java.net.URI;
 
 //@StyleSheet("//cdn.muicss.com/mui-0.9.39/css/mui.min.css")
 //@JavaScript("//cdn.muicss.com/mui-0.9.39/js/mui.min.js")
+
+//<script
+//  src="https://code.jquery.com/jquery-3.4.1.min.js"
+//  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+//  crossorigin="anonymous"></script>
+@JavaScript({"https://code.jquery.com/jquery-3.4.1.min.js"})
 
 @StyleSheet("https://use.fontawesome.com/releases/v5.5.0/css/all.css")
 

@@ -26,4 +26,15 @@ public class Permission {
     public String toString() {
         return getName();
     }
+
+
+    @Override
+    public boolean equals(Object obj) {
+        return this == obj || (obj != null && obj instanceof Permission && id > 0 && id == ((Permission) obj).getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

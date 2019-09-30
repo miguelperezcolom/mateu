@@ -9,6 +9,7 @@ import io.mateu.mdd.core.annotations.Caption;
 import io.mateu.mdd.core.annotations.IFrame;
 import io.mateu.mdd.core.annotations.SubApp;
 import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.util.Helper;
@@ -36,11 +37,16 @@ public class SimpleApp extends SimpleMDDApplication {
 
 
 
-    @Action(order = 0)
+    @Action(order = -100)
     public Class appconfig() {
         return AppConfig.class;
     }
 
+
+    @Action(order = 0)
+    public Class users() {
+        return User.class;
+    }
 
 
     @Action(value = "Say hello", order = 1)

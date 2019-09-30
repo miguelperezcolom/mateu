@@ -1365,7 +1365,8 @@ public class ReflectionHelper {
         if (added) {
             reverseMap(binder, field, bean, i);
             ReflectionHelper.setValue(field, bean, col);
-            binder.getBinding(field.getName()).ifPresent(b -> ((Binder.Binding)b).getField().setValue(col));
+            //binder.getBinding(field.getName()).ifPresent(b -> ((Binder.Binding)b).getField().setValue(col));
+            binder.update(bean);
         }
         return col;
     }
@@ -1406,7 +1407,8 @@ public class ReflectionHelper {
         }
 
         ReflectionHelper.setValue(field, bean, col);
-        binder.getBinding(field.getName()).ifPresent(b -> ((Binder.Binding)b).getField().setValue(col));
+        //binder.getBinding(field.getName()).ifPresent(b -> ((Binder.Binding)b).getField().setValue(col));
+        binder.update(bean);
 
         return col;
     }

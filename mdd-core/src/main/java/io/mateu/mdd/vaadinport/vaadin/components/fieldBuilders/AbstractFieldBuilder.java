@@ -157,9 +157,8 @@ public abstract class AbstractFieldBuilder {
         return binding;
     }
 
-    public void completeBinding(HasValue hv, MDDBinder binder, FieldInterfaced field) {
+    public static void completeBinding(HasValue hv, MDDBinder binder, FieldInterfaced field) {
         Binder.BindingBuilder aux = binder.forField(hv);
-
         completeBinding(aux, binder, field);
     }
 

@@ -603,9 +603,6 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                             Set l = g.getSelectedItems();
 
                             ReflectionHelper.removeFromCollection(binder, field, bean, l);
-
-
-                            binder.setBean(bean, false);
                         } catch (Exception e1) {
                             MDD.alert(e1);
                         }
@@ -636,10 +633,16 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
     public static void bind(MDDBinder binder, Label l, FieldInterfaced field) {
 
         Binder.BindingBuilder aux = binder.forField(new HasValue() {
+
+            Object v;
+
             @Override
             public void setValue(Object o) {
 
-                    try {
+                v = o;
+
+
+                try {
 
                         Collection elems = (Collection) o;
 
@@ -757,7 +760,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             @Override
             public Object getValue() {
-                return null;
+                return v;
             }
 
             @Override
@@ -1306,8 +1309,12 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
     private void bindResourcesList(MDDBinder binder, Label l, FieldInterfaced field) {
         Binder.BindingBuilder aux = binder.forField(new HasValue() {
+            private Object v;
+
             @Override
             public void setValue(Object o) {
+                v = o;
+
                 if (o == null || ((Collection)o).size() == 0) l.setValue("Empty list");
                 else {
                     try {
@@ -1329,7 +1336,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             @Override
             public Object getValue() {
-                return null;
+                return v;
             }
 
             @Override
@@ -1363,8 +1370,12 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
     static void bind(MDDBinder binder, Label l, FieldInterfaced field, Method htmlGetter) {
         Binder.BindingBuilder aux = binder.forField(new HasValue() {
+            private Object v;
+
             @Override
             public void setValue(Object o) {
+                v = o;
+
                 if (o == null || ((Collection)o).size() == 0) l.setValue("Empty list");
                 else {
                     try {
@@ -1377,7 +1388,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             @Override
             public Object getValue() {
-                return null;
+                return v;
             }
 
             @Override
@@ -1417,9 +1428,13 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
         if (ProxyClass.class.isAssignableFrom(targetClass)) {
 
-            Binder.BindingBuilder aux = binder.forField(new HasValue() {
+            HasValue hv = new HasValue() {
+                private Object v;
+
                 @Override
                 public void setValue(Object o) {
+                    v = o;
+
                     Collection items = null;
                     if (o == null) {
                         items = new ArrayList();
@@ -1464,10 +1479,11 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                                     if (possibleValues != null) {
                                         Map l = valoresPosiblesPorCampo.get(f.getName());
                                         if (l == null) valoresPosiblesPorCampo.put(f.getName(), l = new HashMap());
-                                        for (Object v : possibleValues) if (v != null) {
-                                            l.put(pos, v);
-                                            pos++;
-                                        }
+                                        for (Object v : possibleValues)
+                                            if (v != null) {
+                                                l.put(pos, v);
+                                                pos++;
+                                            }
                                     }
 
                                 }
@@ -1496,7 +1512,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                 public Object getValue() {
                     Collection items = new ArrayList();
                     for (Object o : ((ListDataProvider) g.getDataProvider()).getItems()) {
-                        ((ArrayList) items).add(((ProxyClass)o).toObject());
+                        ((ArrayList) items).add(((ProxyClass) o).toObject());
                     }
                     return items;
                 }
@@ -1525,16 +1541,18 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                 public boolean isReadOnly() {
                     return false;
                 }
-            });
+            };
 
-            aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
-            completeBinding(aux, binder, field);
+            completeBinding(hv, binder, field);
 
         } else {
 
-            Binder.BindingBuilder aux = binder.forField(new HasValue() {
+            HasValue hv = new HasValue() {
+                private Object v;
+
                 @Override
                 public void setValue(Object o) {
+                    v = o;
                     Collection items = null;
                     if (o == null) {
                         items = new ArrayList();
@@ -1586,10 +1604,9 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                 public boolean isReadOnly() {
                     return false;
                 }
-            });
+            };
 
-            aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
-            completeBinding(aux, binder, field);
+            completeBinding(hv, binder, field);
         }
 
     }

@@ -1,10 +1,9 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.desktop;
 
+import com.vaadin.client.VMouseOverVerticalLayout;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.MouseOverVerticalLayout;
-import com.vaadin.ui.AbsoluteLayout;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.app.AbstractApplication;
@@ -81,25 +80,28 @@ public class LeftSideComponent extends MouseOverVerticalLayout {
         versionMinimizada.addComponent(botonAmpliar = new Button(VaadinIcons.PLUS, e -> maximizar()));
         botonAmpliar.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
         botonAmpliar.addStyleName("botonampliar");
-
+        versionMinimizada.setHeight("2000px");
 
         updateSession();
 
+        maximizar();
     }
 
     public void minimizar() {
         if (!getStyleName().contains("minimizada")) {
-            removeAllComponents();
-            addComponent(versionMinimizada);
+            //removeAllComponents();
+            //addComponent(versionMinimizada);
             addStyleName("minimizada");
+            JavaScript.getCurrent().execute("$('.v-slot-leftside').css({marginLeft: '-210px'}).animate({marginLeft: '-415px'}, 200, function() { $('.v-slot-leftside .leftside').addClass('mouseoveractivo');});");
         }
     }
 
     public void maximizar() {
         if (getStyleName().contains("minimizada")) {
-            removeAllComponents();
-            addComponent(versionFull);
+            //removeAllComponents();
+            //addComponent(versionFull);
             removeStyleName("minimizada");
+            JavaScript.getCurrent().execute("$('.v-slot-leftside .leftside').removeClass('mouseoveractivo');$('.v-slot-leftside').css({marginLeft: '-415px'}).animate({marginLeft: '-210px'}, 200);");
         }
     }
 
@@ -121,4 +123,8 @@ public class LeftSideComponent extends MouseOverVerticalLayout {
         nav.searching();
     }
 
+    @Override
+    public void mousedOver() {
+        maximizar();
+    }
 }
