@@ -26,6 +26,7 @@ import io.mateu.mdd.tester.model.views.BookingsView;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.AbstractFieldBuilder;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.validation.constraints.NotEmpty;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -50,7 +51,7 @@ public class SimpleApp extends SimpleMDDApplication {
 
 
     @Action(value = "Say hello", order = 1)
-    public String hello(String name) {
+    public String hello(@NotEmpty String name) {
         return "Hello " + name + "!";
     }
 

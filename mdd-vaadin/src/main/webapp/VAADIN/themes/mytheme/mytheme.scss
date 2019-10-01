@@ -566,13 +566,38 @@ body {
 
         }
 
-    /*
-    .leftside.minimizada {
-      width: 20px;
+
+    .leftside {
+      transition: width 0.3s ease;
     }
-    */
-    
-    
+
+    .leftside.minimizada {
+      width: 10px;
+    }
+
+    .v-slot-contenedorizda {
+      height: 100%;
+
+      .contenedorizda {
+        width: 100%;
+        height: 100%;
+
+        >div {
+          width: 100%;
+          height: 100%;
+
+          >.v-absolutelayout-margin {
+            width: 100%;
+            height: 100%;
+          }
+
+        }
+
+      }
+
+    }
+
+
       .center {
 
       }

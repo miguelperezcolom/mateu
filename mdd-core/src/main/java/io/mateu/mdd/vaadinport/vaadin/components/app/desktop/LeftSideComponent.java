@@ -16,9 +16,7 @@ public class LeftSideComponent extends MouseOverVerticalLayout {
     private final DesktopAppComponent appComponent;
     private final NavigationComponent nav;
     private final SessionComponent ses;
-    private final Button botonAmpliar;
     private final Button botonMinimizar;
-    private final VerticalLayout versionMinimizada;
     private final VerticalLayout versionFull;
 
     public LeftSideComponent(DesktopAppComponent appComponent, AbstractApplication app) {
@@ -33,6 +31,11 @@ public class LeftSideComponent extends MouseOverVerticalLayout {
         /*
         VERSIÓN DESKTOP
          */
+
+        AbsoluteLayout contenedor = new AbsoluteLayout();
+        contenedor.addStyleName(CSS.NOPADDING);
+        contenedor.addStyleName("contenedorizda");
+        contenedor.setSizeFull();
 
 
         versionFull = new VerticalLayout();
@@ -64,23 +67,10 @@ public class LeftSideComponent extends MouseOverVerticalLayout {
 
         versionFull.addComponent(nav = new NavigationComponent(app));
 
-
-        addComponent(versionFull);
-
-
-        /*
-        VERSIÓN MOBILE
-         */
+        contenedor.addComponent(versionFull, "right: 0px;");
 
 
-        versionMinimizada = new VerticalLayout();
-        versionMinimizada.addStyleName("minimized");
-        versionMinimizada.addStyleName(CSS.NOPADDING);
-
-        versionMinimizada.addComponent(botonAmpliar = new Button(VaadinIcons.PLUS, e -> maximizar()));
-        botonAmpliar.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
-        botonAmpliar.addStyleName("botonampliar");
-        versionMinimizada.setHeight("2000px");
+        addComponent(contenedor);
 
         updateSession();
 
@@ -92,7 +82,7 @@ public class LeftSideComponent extends MouseOverVerticalLayout {
             //removeAllComponents();
             //addComponent(versionMinimizada);
             addStyleName("minimizada");
-            JavaScript.getCurrent().execute("$('.v-slot-leftside').css({marginLeft: '-210px'}).animate({marginLeft: '-415px'}, 200, function() { $('.v-slot-leftside .leftside').addClass('mouseoveractivo');});");
+            JavaScript.getCurrent().execute("window.setTimeout(function() { $('.leftside').addClass('mouseoveractivo'); window.pingserver(); }, 400);");
         }
     }
 
@@ -101,7 +91,7 @@ public class LeftSideComponent extends MouseOverVerticalLayout {
             //removeAllComponents();
             //addComponent(versionFull);
             removeStyleName("minimizada");
-            JavaScript.getCurrent().execute("$('.v-slot-leftside .leftside').removeClass('mouseoveractivo');$('.v-slot-leftside').css({marginLeft: '-415px'}).animate({marginLeft: '-210px'}, 200);");
+            JavaScript.getCurrent().execute("$('.leftside').removeClass('mouseoveractivo');");
         }
     }
 

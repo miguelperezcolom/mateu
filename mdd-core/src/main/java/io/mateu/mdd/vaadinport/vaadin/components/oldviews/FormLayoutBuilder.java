@@ -111,6 +111,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
             } else if (sections.size() > 1) {
                 TabSheet tabSheet;
                 contentContainer.addComponent(realContainer = tabSheet = new TabSheet());
+                tabSheet.setSizeUndefined();
             }
 
             AbstractStylist finalStylist1 = stylist;
@@ -352,7 +353,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                             containersStack.add(0, currentContentContainer);
                         }
                         tabs = new TabSheet();
-                        tabs.setWidth("100%");
+                        tabs.setSizeUndefined();
                         currentContentContainer.addComponent(tabs);
                     }
                     if (f.isAnnotationPresent(EndTabs.class)) {
@@ -371,7 +372,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                         Tab ta = f.getAnnotation(Tab.class);
                         if (tabs == null) {
                             tabs = new TabSheet();
-                            tabs.setWidth("100%");
+                            tabs.setSizeUndefined();
                             currentContentContainer.addComponent(tabs);
                             //tabs.setCaption(ta.value());
                         }

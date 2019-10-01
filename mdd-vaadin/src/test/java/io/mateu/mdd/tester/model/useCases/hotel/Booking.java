@@ -14,6 +14,7 @@ import org.javamoney.moneta.FastMoney;
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,8 +34,26 @@ public class Booking {
 
     private LocalDateTime ldt;
 
+    public void setLdt(LocalDateTime ldt) {
+        this.ldt = ldt;
+        if (ldt != null) setDd(ldt.toLocalDate());
+    }
+
+    @NotNull
+    private LocalDate dd;
+
+    public void setDd(LocalDate dd) {
+        this.dd = dd;
+    }
+
+    public boolean isDdVisible() {
+        return false;
+    };
+
+    @Section("aaaa")
     @ManyToOne
     @ListColumn
+    @Output
     private Hotel hotel;
 
     public void setHotel(Hotel hotel) {

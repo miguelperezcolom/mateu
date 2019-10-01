@@ -145,22 +145,24 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
                     public void setValue(Object o) {
                         Object oldValue = value;
                         value = o;
-                        String v = (o != null) ? "" + o : "No value";
-                        if (o != null) {
-                            Method m = ReflectionHelper.getMethod(o.getClass(), "toHtml");
-                            if (m != null) {
-                                try {
-                                    v = (String) m.invoke(o);
-                                } catch (IllegalAccessException e) {
-                                    e.printStackTrace();
-                                } catch (InvocationTargetException e) {
-                                    e.printStackTrace();
+                        if (oldValue != value || (value != null && !value.equals(oldValue))) {
+                            String v = (o != null) ? "" + o : "No value";
+                            if (o != null) {
+                                Method m = ReflectionHelper.getMethod(o.getClass(), "toHtml");
+                                if (m != null) {
+                                    try {
+                                        v = (String) m.invoke(o);
+                                    } catch (IllegalAccessException e) {
+                                        e.printStackTrace();
+                                    } catch (InvocationTargetException e) {
+                                        e.printStackTrace();
+                                    }
                                 }
                             }
+                            l.setValue(v);
+                            HasValue finalHv = this;
+                            listeners.forEach(l -> l.valueChange(new ValueChangeEvent(hl, finalHv, oldValue, false)));
                         }
-                        l.setValue(v);
-                        HasValue finalHv = this;
-                        listeners.forEach(l -> l.valueChange(new ValueChangeEvent(hl, finalHv, oldValue, false)));
                     }
 
                     @Override

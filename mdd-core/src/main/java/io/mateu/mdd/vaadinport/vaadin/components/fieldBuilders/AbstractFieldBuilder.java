@@ -14,6 +14,7 @@ import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 
@@ -108,22 +109,27 @@ public abstract class AbstractFieldBuilder {
             public ValidationResult apply(Object v, ValueContext valueContext) {
                 if (valueContext.getHasValue().isPresent()) {
                     if (initialized && (lastValue == v || (v != null && v.equals(lastValue)))) {
-                        return lastResult != null?lastResult:(lastResult = ValidationResult.ok());
                     } else {
-                        initialized = true;
-                        try {
-                            ReflectionHelper.setValue(field, binder.getBean(), v);
-                            lastValue = v;
-                            return lastResult = ValidationResult.ok();
-                        } catch (Exception e) {
-                            Throwable th = e;
-                            while (th != null && th.getCause() != null) {
-                                th = th.getCause();
+                        if (!initialized || lastValue != v || (v != null && !v.equals(lastValue))) {
+                            initialized = true;
+                            try {
+                                Object old = ReflectionHelper.getValue(field, binder.getBean());
+                                if (old == v || (v != null && !v.equals(old))) {
+                                    ReflectionHelper.setValue(field, binder.getBean(), v);
+                                }
+                                lastValue = v;
+                                return lastResult = ValidationResult.ok();
+                            } catch (Exception e) {
+                                Throwable th = e;
+                                while (th != null && th.getCause() != null) {
+                                    th = th.getCause();
+                                }
+                                th.printStackTrace();
+                                return lastResult = ValidationResult.error(th.getMessage() != null?th.getMessage():th.getClass().getSimpleName());
                             }
-                            th.printStackTrace();
-                            return lastResult = ValidationResult.error(th.getMessage() != null?th.getMessage():th.getClass().getSimpleName());
                         }
                     }
+                    return lastResult != null?lastResult:(lastResult = ValidationResult.ok());
                 } else return ValidationResult.error("missing HasValue");
             }
 
@@ -153,6 +159,7 @@ public abstract class AbstractFieldBuilder {
                 binder.getValidationStatusHandler().statusChange(new BinderValidationStatus(binder, Arrays.asList(status), Collections.emptyList()));
             }
             */
+            binder.update(o); // entra en bucle!!!
         });
         return binding;
     }

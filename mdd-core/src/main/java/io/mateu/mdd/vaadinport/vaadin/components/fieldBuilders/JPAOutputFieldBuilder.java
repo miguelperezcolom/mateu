@@ -162,8 +162,10 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
                 if (field.getType().isAnnotationPresent(Entity.class)) {
 
                     HorizontalLayout hl = new HorizontalLayout();
-                    hl.setDefaultComponentAlignment(Alignment.BOTTOM_LEFT);
                     container.addComponent(hl);
+                    hl.setWidth("500px");
+
+                    tf.setValue("None");
 
                     hl.addComponent(tf);
 
@@ -177,9 +179,11 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
                     botonLink.addStyleName(ValoTheme.BUTTON_QUIET);
                     botonLink.addStyleName(CSS.NOPADDING);
                     botonLink.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+                    botonLink.setVisible(false);
                     hl.addComponent(botonLink);
-                    hl.setComponentAlignment(tf, Alignment.MIDDLE_LEFT);
-                    hl.setComponentAlignment(botonLink, Alignment.MIDDLE_LEFT);
+                    hl.setComponentAlignment(tf, Alignment.TOP_LEFT);
+                    hl.setComponentAlignment(botonLink, Alignment.TOP_LEFT);
+                    hl.setExpandRatio(tf, 1);
 
                 } else {
 
@@ -269,7 +273,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
             @Override
             protected void doSetValue(Object o) {
                 v = o;
-                tf.setValue((o != null)?objectToString(o):"");
+                tf.setValue((o != null)?objectToString(o):"None");
                 if (botonLink != null) botonLink.setVisible(o != null);
             }
 

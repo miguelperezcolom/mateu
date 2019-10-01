@@ -5,6 +5,7 @@ import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewProvider;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.JavaScript;
 import com.vaadin.ui.Notification;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
@@ -1137,6 +1138,7 @@ xxxxxxxxxxxxxxxx
             }
 
         }
+
 
         AppComponent appComponent = MDDUI.get().getAppComponent();
         if (appComponent instanceof DesktopAppComponent) {
