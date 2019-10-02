@@ -21,6 +21,7 @@ import io.mateu.mdd.tester.model.entities.groups.Person;
 import io.mateu.mdd.tester.model.useCases.batches.Batch;
 import io.mateu.mdd.tester.model.useCases.hotel.Booking;
 import io.mateu.mdd.tester.model.useCases.hotel.HotelSalesControlView;
+import io.mateu.mdd.tester.model.useCases.showcase.Showcase;
 import io.mateu.mdd.tester.model.views.BookingsCrudView;
 import io.mateu.mdd.tester.model.views.BookingsView;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.AbstractFieldBuilder;
@@ -44,23 +45,28 @@ public class SimpleApp extends SimpleMDDApplication {
     }
 
 
-    @Action(order = 0)
+    @Action(order = -50)
     public Class users() {
         return User.class;
     }
 
 
-    @Action(value = "Say hello", order = 1)
+    @Action(value = "Say hello", order = -40)
     public String hello(@NotEmpty String name) {
         return "Hello " + name + "!";
     }
 
 
-    @Action(order = 1)
+    @Action(order = -30)
     public Class people() {
         return Person.class;
     }
 
+
+    @Action(order = -20)
+    public Class showcase() {
+        return Showcase.class;
+    }
 
     @Action(order = 2)
     public AbstractAction maintainEntities() {

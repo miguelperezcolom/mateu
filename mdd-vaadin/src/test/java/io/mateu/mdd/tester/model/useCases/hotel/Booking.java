@@ -7,6 +7,7 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
 import io.mateu.mdd.tester.model.useCases.bankAccount.Payment;
 import lombok.Getter;
+import lombok.MateuMDDEntity;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.javamoney.moneta.FastMoney;
@@ -21,7 +22,7 @@ import java.util.List;
 
 @Entity
 @Getter@Setter
-@Slf4j
+@Slf4j@MateuMDDEntity
 public class Booking {
 
     @Id@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -231,16 +232,6 @@ public class Booking {
         return new RefreshOnBackForm(this);
     }
 
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return this == obj || (obj != null && obj instanceof Booking && id > 0 && id == ((Booking)obj).getId());
-    }
 
     @Override
     public String toString() {
