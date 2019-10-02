@@ -6,6 +6,7 @@ import io.mateu.mdd.core.data.FileLocator;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.Utils;
 import lombok.Getter;
+import lombok.MateuMDDEntity;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,7 +25,7 @@ import java.net.URL;
  * Created by miguel on 27/3/17.
  */
 @Entity@Getter@Setter
-@Slf4j
+@Slf4j@MateuMDDEntity
 public class Resource {
 
     @Id

@@ -1,6 +1,7 @@
 package io.mateu.mdd.core.model.authentication;
 
 import lombok.Getter;
+import lombok.MateuMDDEntity;
 import lombok.Setter;
 
 import javax.persistence.*;
@@ -12,7 +13,7 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "_GRANT")
-@Getter@Setter
+@Getter@Setter@MateuMDDEntity
 public class Grant {
 
     @Id

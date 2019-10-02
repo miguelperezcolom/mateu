@@ -3,6 +3,7 @@ package io.mateu.mdd.core.model.config;
 import io.mateu.mdd.core.annotations.TextArea;
 import io.mateu.mdd.core.annotations.UseCheckboxes;
 import lombok.Getter;
+import lombok.MateuMDDEntity;
 import lombok.Setter;
 
 import javax.persistence.*;
@@ -15,7 +16,7 @@ import java.util.Set;
  */
 @Entity
 @Getter
-@Setter
+@Setter@MateuMDDEntity
 public class Template {
 
     @Id

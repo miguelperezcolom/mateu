@@ -12,6 +12,7 @@ import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.core.workflow.Task;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
 import lombok.Getter;
+import lombok.MateuMDDEntity;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,7 +31,7 @@ import java.util.*;
 @Entity
 @Table(name = "_USER")
 @Getter@Setter
-@Slf4j
+@Slf4j@MateuMDDEntity
 public class User {
 
     @Embedded
@@ -231,14 +232,4 @@ public class User {
         return granted;
     }
 
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return this == obj || (login != null && login != "" && obj instanceof User && login.equals(((User) obj).getLogin()));
-    }
 }

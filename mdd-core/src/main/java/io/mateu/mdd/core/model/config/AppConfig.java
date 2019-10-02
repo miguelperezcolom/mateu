@@ -14,6 +14,7 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import lombok.Getter;
+import lombok.MateuMDDEntity;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.mail.DefaultAuthenticator;
@@ -30,7 +31,7 @@ import java.time.format.DateTimeFormatter;
 @Entity
 @Getter
 @Setter
-@Slf4j
+@Slf4j@MateuMDDEntity
 public class AppConfig {
 
     @Section("General")

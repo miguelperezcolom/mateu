@@ -1,6 +1,7 @@
 package io.mateu.mdd.core.model.config;
 
 import lombok.Getter;
+import lombok.MateuMDDEntity;
 import lombok.Setter;
 
 import javax.persistence.Entity;
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Getter
-@Setter
+@Setter@MateuMDDEntity
 public class DummyDate {
 
     @Id
