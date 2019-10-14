@@ -2,27 +2,24 @@ package io.mateu.mdd.tester.model.useCases.bankAccount;
 
 import com.google.common.base.Strings;
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.model.authentication.Audit;
-import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.util.Helper;
-import lombok.Getter;
-import lombok.Setter;
-import org.apache.commons.collections.ArrayStack;
+import lombok.MateuMDDEntity;
 
 import javax.persistence.*;
-import javax.persistence.Embedded;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 public class BankAccount {
 
     @Id

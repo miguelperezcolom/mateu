@@ -1,9 +1,13 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.google.common.base.Strings;
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.AbstractMDDExecutionContext;
 import io.mateu.mdd.vaadinport.vaadin.navigation.View;
 
@@ -23,6 +27,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     protected List<String> menuItemIdsUnseen = new ArrayList<>();
     private String title;
     private HorizontalLayout hiddens;
+    private boolean backable;
 
     public HorizontalLayout getHiddens() {
         return hiddens;
@@ -45,6 +50,10 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
         this.view = view;
     }
 
+    public Layout getActionsContainer() {
+        return this;
+    }
+
     public A build() throws Exception {
 
         addStyleName("viewcomponent");
@@ -54,24 +63,57 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
         hiddens = new HorizontalLayout();
         hiddens.addStyleName("hidden");
 
-        addComponent(hiddens);
+        getActionsContainer().addComponent(hiddens);
 
         bar = new CssLayout();
         bar.addStyleName("actionsbar");
+        bar.addStyleName(CSS.NOPADDING);
         menuItemsById = new HashMap<>();
+        addBack(bar);
         addViewActionsMenuItems(bar);
-        if (bar.getComponentCount() > 0) addComponent(bar);
+        if (bar.getComponentCount() > 1) getActionsContainer().addComponent(bar);
 
         return (A) this;
     }
 
+    private void addBack(CssLayout bar) {
+            Component i = null;
+            if (!isActionPresent("back")) {
+                Button b;
+                bar.addComponent(i = b = new Button("Back", VaadinIcons.ARROW_LEFT));
+                b.addStyleName(ValoTheme.BUTTON_QUIET);
+                b.addClickListener(e -> {
+                    try {
+
+                        AbstractViewComponent.this.beforeBack();
+
+                        MDDUI.get().getNavegador().goBack();
+
+                    } catch (Throwable throwable) {
+                        MDD.alert(throwable);
+                    }
+                });
+
+                addMenuItem("back", i);
+
+            } else {
+                i = getMenuItemById("back");
+            }
+            if (isBackable()) i.setVisible(true);
+    }
+
     public void addViewActionsMenuItems(CssLayout bar) {
+
+        if (isActionPresent("back")) {
+            getMenuItemById("back").setVisible(isBackable());
+        }
 
         for (AbstractAction a : getActions()) {
             Component i = null;
             if (!isActionPresent(a.getId())) {
                 Button b;
                 bar.addComponent(i = b = new Button(a.getName(), a.getIcon()));
+                b.addStyleName(ValoTheme.BUTTON_QUIET);
                 b.addClickListener(e -> {
                     try {
 
@@ -127,6 +169,9 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
     }
 
+    public void beforeBack() {
+    }
+
     public void markAllAsUnseen() {
         menuItemIdsUnseen = new ArrayList<>(menuItemsById.keySet());
     }
@@ -168,4 +213,11 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     }
 
 
+    public boolean isBackable() {
+        return backable;
+    }
+
+    public void setBackable(boolean backable) {
+        this.backable = backable;
+    }
 }

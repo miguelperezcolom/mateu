@@ -1,13 +1,12 @@
 package io.mateu.mdd.tester.model.useCases.invoicing;
 
 
+import io.mateu.mdd.core.annotations.ColumnWidth;
 import io.mateu.mdd.core.annotations.FullWidth;
 import io.mateu.mdd.core.annotations.Output;
 import io.mateu.mdd.core.annotations.Sum;
-import io.mateu.mdd.core.annotations.ColumnWidth;
 import io.mateu.mdd.core.util.Helper;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
@@ -16,9 +15,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
-@Getter
-@Setter
+@MateuMDDEntity
 public class Invoice {
 
     @Id

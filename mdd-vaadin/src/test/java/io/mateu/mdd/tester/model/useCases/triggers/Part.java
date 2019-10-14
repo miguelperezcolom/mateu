@@ -1,16 +1,13 @@
 package io.mateu.mdd.tester.model.useCases.triggers;
 
-import io.mateu.mdd.core.util.Helper;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.persistence.sessions.UnitOfWork;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
-@Entity@Getter@Setter
+@MateuMDDEntity
 @Slf4j
 public class Part {
 

@@ -9,6 +9,7 @@ import io.mateu.mdd.core.annotations.UseRadioButtons;
 import io.mateu.mdd.core.interfaces.AbstractJPQLListView;
 import io.mateu.mdd.core.interfaces.EntityProvider;
 import lombok.Getter;
+import lombok.MateuMDDEntity;
 import lombok.Setter;
 
 import javax.persistence.*;
@@ -17,8 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 public class ManyToOneFieldDemoEntity {
 
     @Id

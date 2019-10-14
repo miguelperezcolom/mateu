@@ -1,7 +1,5 @@
 package io.mateu.mdd.tester.model.useCases.batches;
 
-import com.vaadin.icons.VaadinIcons;
-import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.annotations.Output;
 import io.mateu.mdd.core.annotations.SameLine;

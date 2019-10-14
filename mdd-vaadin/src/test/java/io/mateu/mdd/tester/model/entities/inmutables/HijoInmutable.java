@@ -1,6 +1,7 @@
 package io.mateu.mdd.tester.model.entities.inmutables;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.ToString;
 
 import javax.persistence.*;
 

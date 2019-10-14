@@ -1,7 +1,6 @@
 package io.mateu.mdd.tester.model.useCases.hotel;
 
 import io.mateu.mdd.core.annotations.Ignored;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 

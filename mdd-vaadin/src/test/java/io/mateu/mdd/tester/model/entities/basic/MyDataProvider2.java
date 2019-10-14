@@ -1,9 +1,6 @@
 package io.mateu.mdd.tester.model.entities.basic;
 
-import com.vaadin.data.provider.AbstractDataProvider;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
-
-import javax.persistence.Query;
 
 public class MyDataProvider2 extends JPQLListDataProvider {
 

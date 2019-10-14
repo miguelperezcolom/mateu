@@ -3,13 +3,13 @@ package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 import com.google.common.base.Strings;
 import com.vaadin.data.*;
 import com.vaadin.data.validator.BeanValidator;
-import com.vaadin.server.*;
+import com.vaadin.server.SerializablePredicate;
+import com.vaadin.server.Sizeable;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
-import io.mateu.mdd.core.data.FareValue;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
@@ -21,7 +21,9 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class JPAStringFieldBuilder extends AbstractFieldBuilder {
 

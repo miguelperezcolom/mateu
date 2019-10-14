@@ -2,16 +2,11 @@ package io.mateu.mdd.tester.model.useCases.hotel;
 
 import com.google.common.collect.Lists;
 import com.vaadin.data.provider.ListDataProvider;
-import com.vaadin.server.SerializablePredicate;
-import io.mateu.mdd.core.annotations.DataProvider;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 
 import javax.persistence.*;
 
-@Entity
-@Getter
-@Setter
+@MateuMDDEntity
 public class Room {
 
     @Id

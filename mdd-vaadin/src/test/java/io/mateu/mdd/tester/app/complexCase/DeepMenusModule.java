@@ -1,6 +1,5 @@
 package io.mateu.mdd.tester.app.complexCase;
 
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
 
 import java.util.ArrayList;

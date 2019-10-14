@@ -15,6 +15,7 @@ import io.mateu.mdd.core.workflow.WorkflowEngine;
 import io.mateu.mdd.tester.model.entities.dependant.Country;
 import lombok.extern.slf4j.Slf4j;
 
+import lombok.MateuMDDEntity;
 import javax.persistence.Id;
 import javax.persistence.metamodel.EntityType;
 import java.io.PrintWriter;

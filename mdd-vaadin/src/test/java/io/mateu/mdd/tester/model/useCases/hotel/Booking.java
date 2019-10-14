@@ -6,9 +6,7 @@ import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
 import io.mateu.mdd.tester.model.useCases.bankAccount.Payment;
-import lombok.Getter;
 import lombok.MateuMDDEntity;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.javamoney.moneta.FastMoney;
 
@@ -20,8 +18,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
-@Getter@Setter
 @Slf4j@MateuMDDEntity
 public class Booking {
 
@@ -237,6 +233,8 @@ public class Booking {
     public String toString() {
         return leadName != null?leadName:"Booking " + getId();
     }
+
+
 
 
     /*

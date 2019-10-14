@@ -1,10 +1,13 @@
 package io.mateu.mdd.tester.model.entities.mergeables;
 
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.MateuMDDEntity;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import javax.persistence.*;
 
-@Entity@Getter@Setter@ToString(exclude = {"padre"})@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@MateuMDDEntity@ToString(exclude = {"padre"})@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class HijoMergeable {
 
     @Id

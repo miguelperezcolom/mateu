@@ -1,17 +1,13 @@
 package io.mateu.mdd.tester.model.entities.groups;
 
-import io.mateu.mdd.core.annotations.MainSearchFilter;
 import io.mateu.mdd.core.annotations.NoChart;
 import io.mateu.mdd.core.annotations.TextArea;
-import lombok.Getter;
-import lombok.Setter;
 
-import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
+import lombok.MateuMDDEntity;
 import javax.persistence.Id;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 public class Person {
 
     @Id@GeneratedValue

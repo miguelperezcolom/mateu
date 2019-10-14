@@ -4,17 +4,17 @@ import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.model.authentication.User;
-import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.HasChangesSignature;
-import lombok.Getter;
-import lombok.Setter;
+import io.mateu.mdd.core.util.Helper;
+import lombok.MateuMDDEntity;
 
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity@Getter@Setter@Indelible
+@MateuMDDEntity
+@Indelible
 public class Batch implements HasChangesSignature {
 
     @Id@GeneratedValue(strategy = GenerationType.IDENTITY)

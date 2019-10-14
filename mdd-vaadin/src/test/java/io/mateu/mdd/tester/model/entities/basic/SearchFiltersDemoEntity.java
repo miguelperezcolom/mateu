@@ -2,16 +2,14 @@ package io.mateu.mdd.tester.model.entities.basic;
 
 import io.mateu.mdd.core.annotations.MainSearchFilter;
 import io.mateu.mdd.core.annotations.SearchFilter;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 
-import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
+import lombok.MateuMDDEntity;
 import javax.persistence.Id;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 public class SearchFiltersDemoEntity {
 
     @Id

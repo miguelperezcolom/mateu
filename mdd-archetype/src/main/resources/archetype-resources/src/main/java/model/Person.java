@@ -1,16 +1,13 @@
-package ${package}.model;
+package $
 
-import lombok.Getter;
-import lombok.Setter;
-
-import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.validation.constraints.NotNull;
 
-@Entity
-@Getter@Setter
+{package}.model;
+
+@MateuMDDEntity
 public class Person {
 
     @Id

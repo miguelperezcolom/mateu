@@ -3,19 +3,15 @@ package io.mateu.mdd.tester.model.entities.converter;
 
 import io.mateu.mdd.core.annotations.Section;
 import io.mateu.mdd.core.util.JsonConverter;
-import io.mateu.mdd.core.util.XMLSerializable;
 import io.mateu.mdd.core.util.XmlConverter;
 import io.mateu.mdd.core.util.YamlConverter;
-import lombok.Getter;
-import lombok.Setter;
 
 import javax.persistence.Convert;
-import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
+import lombok.MateuMDDEntity;
 import javax.persistence.Id;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 public class WithConverterDemoEntity {
 
     @Id

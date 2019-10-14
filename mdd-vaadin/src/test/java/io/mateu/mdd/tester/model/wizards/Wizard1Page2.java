@@ -1,17 +1,12 @@
 package io.mateu.mdd.tester.model.wizards;
 
-import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.annotations.Output;
 import io.mateu.mdd.core.interfaces.WizardPage;
-import io.mateu.mdd.core.util.Helper;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-
-import javax.validation.constraints.NotEmpty;
-import java.io.IOException;
 
 @Getter@Setter@ToString@Slf4j
 public class Wizard1Page2 implements WizardPage {

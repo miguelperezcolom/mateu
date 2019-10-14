@@ -1,21 +1,15 @@
 package io.mateu.mdd.tester.model.useCases.hotel;
 
-import com.vaadin.icons.VaadinIcons;
-import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.KPI;
-import io.mateu.mdd.core.annotations.NotWhenCreating;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 @Slf4j
 public class HotelBookingLine {
 

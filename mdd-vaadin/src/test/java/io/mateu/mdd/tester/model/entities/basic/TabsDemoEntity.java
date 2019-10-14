@@ -3,17 +3,13 @@ package io.mateu.mdd.tester.model.entities.basic;
 import io.mateu.mdd.core.annotations.EndTabs;
 import io.mateu.mdd.core.annotations.StartTabs;
 import io.mateu.mdd.core.annotations.Tab;
-import lombok.Getter;
-import lombok.Setter;
 
-import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
+import lombok.MateuMDDEntity;
 import javax.persistence.Id;
 import javax.validation.constraints.NotEmpty;
 
-@Entity
-@Getter
-@Setter
+@MateuMDDEntity
 public class TabsDemoEntity {
 
     @Id

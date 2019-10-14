@@ -1,15 +1,11 @@
 package io.mateu.mdd.tester.model.entities.dynamicContent;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import javax.persistence.Convert;
-import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
+import lombok.MateuMDDEntity;
 import javax.persistence.Id;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 public class WithDynamicContent {
 
     @Id

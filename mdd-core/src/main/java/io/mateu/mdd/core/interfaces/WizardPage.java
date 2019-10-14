@@ -1,7 +1,5 @@
 package io.mateu.mdd.core.interfaces;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 
 public interface WizardPage {

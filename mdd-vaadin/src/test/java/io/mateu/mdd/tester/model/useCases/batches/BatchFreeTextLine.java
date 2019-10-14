@@ -3,16 +3,16 @@ package io.mateu.mdd.tester.model.useCases.batches;
 import com.google.common.base.Strings;
 import io.mateu.mdd.core.annotations.Output;
 import io.mateu.mdd.core.model.authentication.User;
-import lombok.Getter;
-import lombok.Setter;
 
-import javax.persistence.*;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import lombok.MateuMDDEntity;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
-@Entity
-@Getter
-@Setter
+@MateuMDDEntity
 public class BatchFreeTextLine {
 
 

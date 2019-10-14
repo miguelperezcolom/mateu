@@ -2,19 +2,16 @@ package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.google.common.collect.Lists;
 import com.vaadin.data.*;
-import com.vaadin.server.ErrorEvent;
 import com.vaadin.server.UserError;
 import com.vaadin.ui.AbstractComponent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Layout;
-import com.vaadin.ui.TextField;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Pair;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 

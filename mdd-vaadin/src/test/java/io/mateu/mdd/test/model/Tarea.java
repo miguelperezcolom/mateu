@@ -1,31 +1,18 @@
 package io.mateu.mdd.test.model;
 
-import io.mateu.mdd.core.workflow.WorkflowEngine;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 
-import javax.persistence.*;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
-@Entity@Getter@Setter
+@MateuMDDEntity
 public class Tarea {
 
-    @Id@GeneratedValue
+    @Id@GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private String nombre = "Tarea creada " + LocalDateTime.now();
-
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return this == obj || (id > 0 && obj != null && obj instanceof Tarea && id == ((Tarea) obj).getId());
-    }
+    private String name = "Tarea creada " + LocalDateTime.now();
 
 }

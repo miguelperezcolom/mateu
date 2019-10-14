@@ -1,10 +1,7 @@
 package io.mateu.mdd.core.model.authentication;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 
-import javax.persistence.Entity;
-
-@Entity@Getter@Setter
+@MateuMDDEntity
 public class AdminUser extends User {
 }

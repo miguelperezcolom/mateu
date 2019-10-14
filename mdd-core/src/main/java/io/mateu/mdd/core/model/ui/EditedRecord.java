@@ -1,21 +1,13 @@
 package io.mateu.mdd.core.model.ui;
 
 import io.mateu.mdd.core.model.authentication.User;
-import lombok.Getter;
 import lombok.MateuMDDEntity;
-import lombok.Setter;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
-@Getter
-@Setter@MateuMDDEntity
+@MateuMDDEntity
 public class EditedRecord {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
 
     private String icon;
 

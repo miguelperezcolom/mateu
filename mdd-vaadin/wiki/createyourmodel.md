@@ -27,8 +27,7 @@ So, you must first create your entities. For instance:
 
 ```java
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 public class Person {
 
     @Id@GeneratedValue
@@ -94,8 +93,7 @@ Let's have a look at this other class which references our **Bank** class in a @
 
 ```java
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 public class BankAccount {
     
     ...

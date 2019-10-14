@@ -1,16 +1,13 @@
 package io.mateu.mdd.tester.model.useCases.hotel;
 
 import io.mateu.mdd.core.annotations.WeekDays;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
-@Entity
-@Getter
-@Setter
+@MateuMDDEntity
 public class Allotment {
 
     @Id

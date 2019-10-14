@@ -3,7 +3,6 @@ package io.mateu.mdd.tester.tests;
 import io.mateu.mdd.core.interfaces.AbstractJPQLListView;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.tester.model.jpql.SampleJPQLLIstView;
 import io.mateu.mdd.tester.model.rpc.SampleRPCListView;
 import io.mateu.mdd.tester.model.rpc.SampleRPCToJPAListView;

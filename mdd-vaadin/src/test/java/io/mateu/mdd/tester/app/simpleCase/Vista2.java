@@ -2,20 +2,12 @@ package io.mateu.mdd.tester.app.simpleCase;
 
 import com.google.common.collect.Lists;
 import io.mateu.mdd.core.annotations.Action;
-import io.mateu.mdd.core.annotations.DependsOn;
 import io.mateu.mdd.core.annotations.Output;
-import io.mateu.mdd.core.annotations.SameLine;
 import io.mateu.mdd.tester.model.useCases.hotel.Booking;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 

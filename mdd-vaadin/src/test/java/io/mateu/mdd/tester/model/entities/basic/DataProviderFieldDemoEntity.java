@@ -3,12 +3,10 @@ package io.mateu.mdd.tester.model.entities.basic;
 import com.google.common.collect.Lists;
 import com.vaadin.data.provider.ListDataProvider;
 import io.mateu.mdd.core.annotations.DataProvider;
-import io.mateu.mdd.core.annotations.TextArea;
 import io.mateu.mdd.core.annotations.UseTwinCols;
 import io.mateu.mdd.core.annotations.ValueClass;
 import io.mateu.mdd.core.model.authentication.User;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -16,8 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 public class DataProviderFieldDemoEntity {
 
     @Id

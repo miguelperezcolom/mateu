@@ -5,17 +5,14 @@ import io.mateu.mdd.core.annotations.MainSearchFilter;
 import io.mateu.mdd.core.annotations.Output;
 import io.mateu.mdd.core.annotations.Sum;
 import io.mateu.mdd.core.model.authentication.Audit;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalTime;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 @Slf4j
 public class Payment {
 

@@ -3,7 +3,6 @@ package io.mateu.mdd.tester.model.views;
 import com.google.common.base.Strings;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.shared.data.sort.SortDirection;
-import io.mateu.mdd.core.annotations.MainSearchFilter;
 import io.mateu.mdd.core.interfaces.AbstractJPQLListView;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.tester.model.useCases.hotel.Booking;

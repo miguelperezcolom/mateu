@@ -1,13 +1,15 @@
 package io.mateu.mdd.tester.model.entities.basic;
 
 import io.mateu.mdd.core.annotations.Output;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 
-import javax.persistence.*;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import lombok.MateuMDDEntity;
+import javax.persistence.Id;
+import javax.persistence.Transient;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 public class CalculatedFieldsDemoEntity {
 
     @Id

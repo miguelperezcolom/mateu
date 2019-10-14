@@ -1,16 +1,15 @@
 package io.mateu.mdd.tester.model.useCases.hotel;
 
-import com.google.common.collect.Lists;
-import com.vaadin.data.provider.ListDataProvider;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 
-import javax.persistence.*;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import lombok.MateuMDDEntity;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import javax.validation.constraints.NotNull;
 
-@Entity
-@Getter
-@Setter
+@MateuMDDEntity
 public class Board {
 
     @Id

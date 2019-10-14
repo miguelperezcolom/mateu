@@ -1,6 +1,9 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
-import com.vaadin.data.*;
+import com.vaadin.data.Binder;
+import com.vaadin.data.BinderValidationStatus;
+import com.vaadin.data.HasValue;
+import com.vaadin.data.Validator;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.Registration;
@@ -19,12 +22,11 @@ import io.mateu.mdd.core.interfaces.ReadOnly;
 import io.mateu.mdd.core.model.authentication.Audit;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.mdd.core.util.HasChangesSignature;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
-import io.mateu.mdd.core.util.HasChangesSignature;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.ClassOption;
-import io.mateu.mdd.vaadinport.vaadin.components.app.AbstractMDDExecutionContext;
 import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 import lombok.extern.slf4j.Slf4j;
 
@@ -58,6 +60,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private AbstractStylist stylist;
     private Panel panel;
     private Layout kpisContainer;
+    private Layout kpis;
     private Panel panelContenido;
 
     private List<EditorListener> listeners = new ArrayList<>();
@@ -69,6 +72,13 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private Map<String, Object> initialValues;
     private CssLayout links;
     private Map<String, List<AbstractAction>> actionsPerSection = new HashMap<>();
+    private VerticalLayout actionsContainer;
+
+
+    public void setKpisContainer(Layout kpisContainer) {
+        this.kpisContainer = kpisContainer;
+        if (kpis != null) kpisContainer.addComponent(kpis);
+    }
 
     public ListViewComponent getListViewComponent() {
         return listViewComponent;
@@ -208,6 +218,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         
         build(model);
 
+        rebuildActions();
+
+        /*
         for (Optional<Method> omv : mvs.values()) {
             if (omv.isPresent()) {
 
@@ -236,6 +249,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             }
 
         }
+         */
 
         
         if (updateChangesSignature) initialValues = buildSignature();
@@ -292,37 +306,33 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
             panelContenido = new Panel();
             panelContenido.addStyleName(ValoTheme.PANEL_BORDERLESS);
+            panelContenido.addStyleName(CSS.NOPADDING);
             panelContenido.addStyleName("panelContenido");
             panelContenido.setWidthUndefined();
 
-            List<FieldInterfaced> kpis = ReflectionHelper.getKpiFields(model.getClass());
-            if (kpis.size() > 0) {
-                kpisContainer = new VerticalLayout();
-                kpisContainer.addStyleName(CSS.NOPADDING);
-                kpisContainer.addStyleName("kpisContainer");
-                kpisContainer.setSizeUndefined();
-
-                Panel contenidoWrapper;
-                HorizontalLayout hl = new HorizontalLayout(contenidoWrapper = new Panel(panelContenido), kpisContainer);
-                contenidoWrapper.addStyleName(ValoTheme.PANEL_BORDERLESS);
-                contenidoWrapper.addStyleName(CSS.NOPADDING);
-                contenidoWrapper.setSizeFull();
-                hl.addStyleName(CSS.NOPADDING);
-                hl.setExpandRatio(contenidoWrapper, 1);
-                hl.setSizeFull();
-                panel.setContent(hl);
-
-                for (FieldInterfaced kpi : kpis) {
-                    kpisContainer.addComponent(createKpi(binder, kpi));
-                }
-
-                panelContenido.addStyleName("panelContenidoConKpi");
-
-            } else {
-                panel.setContent(panelContenido);
-                panelContenido.removeStyleName("panelContenidoConKpi");
+            if (kpis == null) {
+                kpis = new CssLayout();
+                kpis.addStyleName(CSS.NOPADDING);
             }
 
+            if (kpisContainer != null) {
+                kpisContainer.removeAllComponents();
+                kpisContainer.addComponent(kpis);
+            }
+
+
+            List<FieldInterfaced> kpiFields = ReflectionHelper.getKpiFields(model.getClass());
+            if (kpiFields.size() > 0) {
+                if (kpis != null) {
+                    kpis.removeAllComponents();
+
+                    for (FieldInterfaced kpi : kpiFields) {
+                        kpis.addComponent(createKpi(binder, kpi));
+                    }
+                }
+            }
+
+            panel.setContent(panelContenido);
 
             List<FieldInterfaced> fields = ReflectionHelper.getAllEditableFields(model.getClass(), (owner != null) ? owner.getClass() : null, false, field);
 
@@ -530,8 +540,21 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         return modelType;
     }
 
+    /*
+    @Override
+    public Layout getActionsContainer() {
+        return actionsContainer;
+    }
+     */
+
     @Override
     public EditorViewComponent build() throws Exception {
+
+        actionsContainer = new VerticalLayout();
+        actionsContainer.addStyleName("actionscontainer");
+        actionsContainer.addStyleName(CSS.NOPADDING);
+        actionsContainer.setSizeUndefined();
+
         super.build();
 
         log.debug("*******BUILD***************");
@@ -546,6 +569,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         panel = new Panel();
         panel.addStyleName(ValoTheme.PANEL_BORDERLESS);
+        panel.addStyleName(CSS.NOPADDING);
         panel.addStyleName("panelContenedor");
         addComponentsAndExpand(panel);
 
@@ -579,6 +603,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                 Button i;
                 bar.addComponent(i = new Button("Refresh", VaadinIcons.REFRESH));
+                i.addStyleName(ValoTheme.BUTTON_QUIET);
                 i.addClickListener(e -> {
                     try {
 
@@ -601,7 +626,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             if (!isActionPresent("prev")) {
 
                 Button i;
-                bar.addComponent(i = new Button("Prev", VaadinIcons.ARROW_LEFT));
+                bar.addComponent(i = new Button("Prev", VaadinIcons.ARROW_UP));
+                i.addStyleName(ValoTheme.BUTTON_QUIET);
                 i.addClickListener(e -> {
                     try {
 
@@ -628,7 +654,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             if (!isActionPresent("next")) {
 
                 Button i;
-                bar.addComponent(i = new Button("Next", VaadinIcons.ARROW_RIGHT));
+                bar.addComponent(i = new Button("Next", VaadinIcons.ARROW_DOWN));
+                i.addStyleName(ValoTheme.BUTTON_QUIET);
                 i.addClickListener(e -> {
                     try {
 
@@ -651,13 +678,15 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         }
 
         if (!readOnly && createSaveButton && (modelType.isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(modelType)) && (isNewRecord() || !modelType.isAnnotationPresent(Unmodifiable.class))) {
-            if (!isActionPresent("save")) {
 
-                MenuBar.Command cmd;
-                MenuBar split = new MenuBar();
-                MenuBar.MenuItem dropdown = split.addItem("Save", VaadinIcons.DOWNLOAD, cmd = new MenuBar.Command() {
-                    @Override
-                    public void menuSelected(MenuBar.MenuItem menuItem) {
+            if (true) {
+
+                if (!isActionPresent("save")) {
+
+                    Button i;
+                    bar.addComponent(i = new Button("Save", VaadinIcons.DOWNLOAD));
+                    i.addStyleName(ValoTheme.BUTTON_QUIET);
+                    i.addClickListener(e -> {
                         try {
 
                             BinderValidationStatus v = binder.validate();
@@ -674,70 +703,15 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                         } catch (Throwable throwable) {
                             MDD.alert(throwable);
                         }
-                    }
-                });
-                if (true) {
-                    dropdown = split.addItem("", null);
-                }
-
-                split.setStyleName(ValoTheme.BUTTON_PRIMARY);
-
-                //i.setDescription("Click Ctrl + S to fire. Ctrl + Alt + S to duplicate.");
-
-                bar.addComponent(split);
-                addMenuItem("save", split);
-
-
-                if (!shortcutsCreated.contains("save")) {
-
-                    Button b;
-                    getHiddens().addComponent(b = new Button());
-                    MenuBar.MenuItem finalDropdown = dropdown;
-                    MenuBar.Command finalCmd1 = cmd;
-                    b.addClickListener(e -> finalCmd1.menuSelected(finalDropdown));
-                    b.setClickShortcut(ShortcutAction.KeyCode.S, ShortcutAction.ModifierKey.CTRL);
-
-                    getHiddens().addComponent(b = new Button());
-                    b.addClickListener(e -> {
-                        BinderValidationStatus v = binder.validate();
-
-                        if (v.isOk()) {
-                            try {
-                                save(false);
-
-                                Object old = getBinder().getBean();
-
-                                //load(null);
-
-                                Object current = getBinder().getBean();
-                                for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(old.getClass())) {
-                                    if (f.isAnnotationPresent(Keep.class)) {
-                                        ReflectionHelper.setValue(f, current, ReflectionHelper.getValue(f, old));
-                                    }
-                                }
-                                getBinder().setBean(current, false);
-
-
-                            } catch (Throwable throwable) {
-                                throwable.printStackTrace();
-                            }
-
-
-                        } else MDD.alert(v);
-
                     });
-                    b.setClickShortcut(ShortcutAction.KeyCode.S, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
+                    addMenuItem("save", i);
+                    i.setClickShortcut(ShortcutAction.KeyCode.S, ShortcutAction.ModifierKey.CTRL);
 
+                    if (!shortcutsCreated.contains("new")) {
 
-                    shortcutsCreated.add("save");
-                }
-
-                MenuBar.MenuItem i;
-                if (!shortcutsCreated.contains("new")) {
-
-                    i = dropdown.addItem("Save and new", VaadinIcons.FILE_ADD, cmd = new MenuBar.Command() {
-                        @Override
-                        public void menuSelected(MenuBar.MenuItem menuItem) {
+                        Button b;
+                        getHiddens().addComponent(b = new Button());
+                        b.addClickListener(e -> {
                             BinderValidationStatus v = binder.validate();
 
                             if (v.isOk()) {
@@ -765,28 +739,153 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
 
                             } else MDD.alert(v);
+                        });
+                        b.setClickShortcut(ShortcutAction.KeyCode.N, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
+
+                        shortcutsCreated.add("new");
+                    }
+
+                    if ((modelType.isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(modelType)) && !modelType.isAnnotationPresent(NonDuplicable.class) && !isActionPresent("duplicate") && !isNewRecord()) {
+
+                        if (!shortcutsCreated.contains("duplicate")) {
+
+                            Button b;
+                            getHiddens().addComponent(b = new Button());
+                            b.addClickListener(e -> {
+                                try {
+
+                                    BinderValidationStatus v = binder.validate();
+
+                                    if (v.isOk()) {
+                                        try {
+                                            save(false);
+
+                                            Object old = getBinder().getBean();
+
+                                            //load(null);
+
+                                            Object current = newInstance(modelType, parent);
+                                            newRecord = true;
+                                            for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(old.getClass())) {
+                                                if (Collection.class.isAssignableFrom(f.getType())) {
+                                                    //todo: clonar colecciones y mapas
+                                                } else ReflectionHelper.setValue(f, current, ReflectionHelper.getValue(f, old));
+                                            }
+                                            getBinder().setBean(current, false);
+                                            setModel(current);
+                                            modelId = null;
+                                            MDD.updateTitle(getTitle());
+
+                                        } catch (Throwable throwable) {
+                                            throwable.printStackTrace();
+                                        }
+
+
+                                    } else MDD.alert(v);
+
+
+                                } catch (Throwable throwable) {
+                                    MDD.alert(throwable);
+                                }
+                            });
+                            b.setClickShortcut(ShortcutAction.KeyCode.D, ShortcutAction.ModifierKey.CTRL);
+
+                            shortcutsCreated.add("duplicate");
                         }
-                    });
 
+                    }
 
-                    Button b;
-                    getHiddens().addComponent(b = new Button());
-                    MenuBar.Command finalCmd2 = cmd;
-                    MenuBar.MenuItem finalI = i;
-                    b.addClickListener(e -> finalCmd2.menuSelected(finalI));
-                    b.setClickShortcut(ShortcutAction.KeyCode.N, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
-
-
-                    shortcutsCreated.add("new");
                 }
 
-                if ((modelType.isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(modelType)) && !modelType.isAnnotationPresent(NonDuplicable.class) && !isActionPresent("duplicate") && !isNewRecord()) {
+            } else {
+                if (!isActionPresent("save")) {
 
-                    i = dropdown.addItem("Save and copy", VaadinIcons.COPY, cmd = new MenuBar.Command() {
+                    MenuBar.Command cmd;
+                    MenuBar split = new MenuBar();
+                    MenuBar.MenuItem dropdown = split.addItem("Save", VaadinIcons.DOWNLOAD, cmd = new MenuBar.Command() {
                         @Override
                         public void menuSelected(MenuBar.MenuItem menuItem) {
                             try {
 
+                                BinderValidationStatus v = binder.validate();
+
+                                if (v.isOk()) {
+
+                                    preSave();
+
+                                    save();
+
+                                } else MDD.alert(v);
+
+
+                            } catch (Throwable throwable) {
+                                MDD.alert(throwable);
+                            }
+                        }
+                    });
+                    if (true) {
+                        dropdown = split.addItem("", null);
+                    }
+
+                    split.setStyleName(ValoTheme.BUTTON_PRIMARY);
+                    split.addStyleName(ValoTheme.BUTTON_QUIET);
+
+                    //i.setDescription("Click Ctrl + S to fire. Ctrl + Alt + S to duplicate.");
+
+                    bar.addComponent(split);
+                    addMenuItem("save", split);
+
+
+                    if (!shortcutsCreated.contains("save")) {
+
+                        Button b;
+                        getHiddens().addComponent(b = new Button());
+                        MenuBar.MenuItem finalDropdown = dropdown;
+                        MenuBar.Command finalCmd1 = cmd;
+                        b.addClickListener(e -> finalCmd1.menuSelected(finalDropdown));
+                        b.setClickShortcut(ShortcutAction.KeyCode.S, ShortcutAction.ModifierKey.CTRL);
+
+                        getHiddens().addComponent(b = new Button());
+                        b.addClickListener(e -> {
+                            BinderValidationStatus v = binder.validate();
+
+                            if (v.isOk()) {
+                                try {
+                                    save(false);
+
+                                    Object old = getBinder().getBean();
+
+                                    //load(null);
+
+                                    Object current = getBinder().getBean();
+                                    for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(old.getClass())) {
+                                        if (f.isAnnotationPresent(Keep.class)) {
+                                            ReflectionHelper.setValue(f, current, ReflectionHelper.getValue(f, old));
+                                        }
+                                    }
+                                    getBinder().setBean(current, false);
+
+
+                                } catch (Throwable throwable) {
+                                    throwable.printStackTrace();
+                                }
+
+
+                            } else MDD.alert(v);
+
+                        });
+                        b.setClickShortcut(ShortcutAction.KeyCode.S, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
+
+
+                        shortcutsCreated.add("save");
+                    }
+
+                    MenuBar.MenuItem i;
+                    if (!shortcutsCreated.contains("new")) {
+
+                        i = dropdown.addItem("Save and new", VaadinIcons.FILE_ADD, cmd = new MenuBar.Command() {
+                            @Override
+                            public void menuSelected(MenuBar.MenuItem menuItem) {
                                 BinderValidationStatus v = binder.validate();
 
                                 if (v.isOk()) {
@@ -800,13 +899,12 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                                         Object current = newInstance(modelType, parent);
                                         newRecord = true;
                                         for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(old.getClass())) {
-                                            if (Collection.class.isAssignableFrom(f.getType())) {
-                                                //todo: clonar colecciones y mapas
-                                            } else ReflectionHelper.setValue(f, current, ReflectionHelper.getValue(f, old));
+                                            if (f.isAnnotationPresent(Keep.class)) {
+                                                ReflectionHelper.setValue(f, current, ReflectionHelper.getValue(f, old));
+                                            }
                                         }
                                         getBinder().setBean(current, false);
-                                        setModel(current);
-                                        modelId = null;
+
                                         MDD.updateTitle(getTitle());
 
                                     } catch (Throwable throwable) {
@@ -815,34 +913,85 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
 
                                 } else MDD.alert(v);
-
-
-                            } catch (Throwable throwable) {
-                                MDD.alert(throwable);
                             }
-                        }
-                    });
+                        });
 
-                    //i.setDescription("Click Ctrl + S to fire. Ctrl + Alt + S to duplicate.");
-
-                    //addMenuItem("duplicate", i);
-
-
-                    if (!shortcutsCreated.contains("duplicate")) {
 
                         Button b;
                         getHiddens().addComponent(b = new Button());
-                        MenuBar.Command finalCmd = cmd;
-                        MenuBar.MenuItem finalI1 = i;
-                        b.addClickListener(e -> finalCmd.menuSelected(finalI1));
-                        b.setClickShortcut(ShortcutAction.KeyCode.D, ShortcutAction.ModifierKey.CTRL);
+                        MenuBar.Command finalCmd2 = cmd;
+                        MenuBar.MenuItem finalI = i;
+                        b.addClickListener(e -> finalCmd2.menuSelected(finalI));
+                        b.setClickShortcut(ShortcutAction.KeyCode.N, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
 
-                        shortcutsCreated.add("duplicate");
+
+                        shortcutsCreated.add("new");
                     }
 
+                    if ((modelType.isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(modelType)) && !modelType.isAnnotationPresent(NonDuplicable.class) && !isActionPresent("duplicate") && !isNewRecord()) {
+
+                        i = dropdown.addItem("Save and copy", VaadinIcons.COPY, cmd = new MenuBar.Command() {
+                            @Override
+                            public void menuSelected(MenuBar.MenuItem menuItem) {
+                                try {
+
+                                    BinderValidationStatus v = binder.validate();
+
+                                    if (v.isOk()) {
+                                        try {
+                                            save(false);
+
+                                            Object old = getBinder().getBean();
+
+                                            //load(null);
+
+                                            Object current = newInstance(modelType, parent);
+                                            newRecord = true;
+                                            for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(old.getClass())) {
+                                                if (Collection.class.isAssignableFrom(f.getType())) {
+                                                    //todo: clonar colecciones y mapas
+                                                } else ReflectionHelper.setValue(f, current, ReflectionHelper.getValue(f, old));
+                                            }
+                                            getBinder().setBean(current, false);
+                                            setModel(current);
+                                            modelId = null;
+                                            MDD.updateTitle(getTitle());
+
+                                        } catch (Throwable throwable) {
+                                            throwable.printStackTrace();
+                                        }
+
+
+                                    } else MDD.alert(v);
+
+
+                                } catch (Throwable throwable) {
+                                    MDD.alert(throwable);
+                                }
+                            }
+                        });
+
+                        //i.setDescription("Click Ctrl + S to fire. Ctrl + Alt + S to duplicate.");
+
+                        //addMenuItem("duplicate", i);
+
+
+                        if (!shortcutsCreated.contains("duplicate")) {
+
+                            Button b;
+                            getHiddens().addComponent(b = new Button());
+                            MenuBar.Command finalCmd = cmd;
+                            MenuBar.MenuItem finalI1 = i;
+                            b.addClickListener(e -> finalCmd.menuSelected(finalI1));
+                            b.setClickShortcut(ShortcutAction.KeyCode.D, ShortcutAction.ModifierKey.CTRL);
+
+                            shortcutsCreated.add("duplicate");
+                        }
+
+
+                    }
 
                 }
-
             }
 
         }
@@ -852,7 +1001,6 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         if (getMenuItemById("duplicate") != null) getMenuItemById("duplicate").setVisible(!isNewRecord());
 
         super.addViewActionsMenuItems(bar);
-
     }
 
     public AbstractStylist getStylist() {

@@ -1,10 +1,8 @@
 package io.mateu.mdd.core.model.authentication;
 
-import lombok.Getter;
 import lombok.MateuMDDEntity;
-import lombok.Setter;
 
-import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
 /**
@@ -14,8 +12,7 @@ import javax.persistence.Id;
  *
  * Created by miguel on 13/9/16.
  */
-@Entity
-@Getter@Setter@MateuMDDEntity
+@MateuMDDEntity
 public class Permission {
 
     @Id
@@ -23,9 +20,5 @@ public class Permission {
 
     private String name;
 
-    @Override
-    public String toString() {
-        return getName();
-    }
 
 }

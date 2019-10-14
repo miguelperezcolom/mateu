@@ -10,6 +10,7 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.OwnedCollectionComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.SearchInMenuComponent;
 
@@ -17,6 +18,7 @@ public class ComponentWrapper extends VerticalLayout {
     private final ViewStack stack;
     private final Component wrapped;
     private Label titleLabel;
+    private CssLayout kpisContainer;
 
     public Component getWrapped() {
         return wrapped;
@@ -45,7 +47,9 @@ public class ComponentWrapper extends VerticalLayout {
 
         l.addStyleName("viewHeader");
 
-        if (stack.size() >= 0 && !(
+        boolean add = MDD.isMobile();
+
+        if (!add && !(
                 component instanceof WelcomeComponent
                         || component instanceof ByeComponent
                         || component instanceof LoginFlowComponent
@@ -55,19 +59,51 @@ public class ComponentWrapper extends VerticalLayout {
                         || component instanceof ModuleComponent
                         || component instanceof MenuFlowComponent
                         || component instanceof SearchInMenuComponent
-                )) l.addComponent(createBackLink(stack.size() > 0));
+        ) && stack.size() > 0) {
+            View v = stack.get(0);
+            Component c = v.getComponent();
+            if (c instanceof ComponentWrapper) c = ((ComponentWrapper) c).getComponent(0);
+            if (!(c instanceof WelcomeComponent
+                    || c instanceof ByeComponent
+                    || c instanceof LoginFlowComponent
+                    || c instanceof PrivateMenuFlowComponent
+                    || c instanceof PublicMenuFlowComponent
+                    || c instanceof AreaComponent
+                    || c instanceof ModuleComponent
+                    || c instanceof MenuFlowComponent
+                    || c instanceof SearchInMenuComponent)) add = true;
+        }
+
         l.addComponent(createTitleLabel(component));
+
+        if (add && stack.size() > 0 && component instanceof AbstractViewComponent) {
+            ((AbstractViewComponent) component).setBackable(true);
+            if (component instanceof EditorViewComponent) {
+                ((EditorViewComponent) component).setKpisContainer(kpisContainer);
+                ((EditorViewComponent) component).rebuildActions();
+            }
+        }
 
         return l;
     }
 
     private Component createTitleLabel(Component component) {
+
         titleLabel = new Label("", ContentMode.HTML);
         titleLabel.addStyleName("viewTitle");
 
         if (component != null) updateViewTitle((component instanceof AbstractViewComponent)?((AbstractViewComponent)component).getTitle():component.toString());
 
-        return titleLabel;
+        kpisContainer = new CssLayout();
+        kpisContainer.addStyleName(CSS.NOPADDING);
+        kpisContainer.addStyleName("kpisContainer");
+        kpisContainer.setSizeUndefined();
+
+
+        HorizontalLayout hl = new HorizontalLayout(titleLabel, kpisContainer);
+        hl.addStyleName(CSS.NOPADDING);
+
+        return hl;
     }
 
 

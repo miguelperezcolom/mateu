@@ -1,13 +1,8 @@
 package io.mateu.mdd.tester.model.useCases.hotel;
 
-import io.mateu.mdd.core.data.FareValue;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 
-import javax.persistence.Entity;
-
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 public class EarlyBookingOffer extends AbstractOffer {
 
     private double discount;

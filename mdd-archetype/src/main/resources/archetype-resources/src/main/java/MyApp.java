@@ -1,13 +1,11 @@
-package ${package};
+package $
 
-import ${package}.model.Person;
 import io.mateu.mdd.core.annotations.Action;
-import io.mateu.mdd.core.annotations.Caption;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.app.SimpleMDDApplication;
 import io.mateu.mdd.core.util.Helper;
-import java.io.IOException;
+
+{package};
+        {package}.model.Person;
 
 public class MyApp extends SimpleMDDApplication {
 

@@ -1,15 +1,13 @@
 package io.mateu.mdd.tester.model.wizards;
 
 import io.mateu.mdd.core.annotations.Wizard;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 
-import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
+import lombok.MateuMDDEntity;
 import javax.persistence.Id;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 public class WizardEntity {
 
     @Id@GeneratedValue

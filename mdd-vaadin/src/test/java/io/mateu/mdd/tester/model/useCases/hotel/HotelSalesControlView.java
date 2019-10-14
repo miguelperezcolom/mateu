@@ -5,19 +5,12 @@ import com.vaadin.data.Binder;
 import com.vaadin.data.TreeData;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.provider.TreeDataProvider;
-import com.vaadin.event.selection.SingleSelectionEvent;
-import com.vaadin.event.selection.SingleSelectionListener;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.shared.ui.slider.SliderOrientation;
 import com.vaadin.ui.*;
-import com.vaadin.ui.components.grid.SingleSelectionModel;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
-import io.mateu.mdd.core.annotations.Money;
-import io.mateu.mdd.core.annotations.UseTable;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,8 +18,6 @@ import lombok.Setter;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.lang.reflect.InvocationTargetException;
-import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.*;
 

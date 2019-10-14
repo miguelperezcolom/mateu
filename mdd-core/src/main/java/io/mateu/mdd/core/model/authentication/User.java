@@ -11,9 +11,7 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.core.workflow.Task;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
-import lombok.Getter;
 import lombok.MateuMDDEntity;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
@@ -28,9 +26,7 @@ import java.util.*;
  *
  * Created by miguel on 13/9/16.
  */
-@Entity
 @Table(name = "_USER")
-@Getter@Setter
 @Slf4j@MateuMDDEntity
 public class User {
 

@@ -2,7 +2,6 @@ package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
-import com.vaadin.server.UserError;
 import com.vaadin.shared.Registration;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Composite;

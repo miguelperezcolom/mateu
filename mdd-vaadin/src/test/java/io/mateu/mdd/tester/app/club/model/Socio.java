@@ -4,8 +4,7 @@ import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.model.util.EmailHelper;
 import io.mateu.mdd.core.util.Helper;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
@@ -15,7 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-@Entity@Getter@Setter@Slf4j
+@MateuMDDEntity
+@Slf4j
 public class Socio {
 
     @Id

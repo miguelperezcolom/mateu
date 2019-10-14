@@ -4,7 +4,6 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.tester.model.entities.relations.OneToManyChildEntity;
 import io.mateu.mdd.tester.model.entities.relations.OneToManyParentEntity;
 import io.mateu.mdd.tester.model.entities.relations.OneToOneReferenced;
-import io.mateu.mdd.tester.model.useCases.hotel.Booking;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Query;

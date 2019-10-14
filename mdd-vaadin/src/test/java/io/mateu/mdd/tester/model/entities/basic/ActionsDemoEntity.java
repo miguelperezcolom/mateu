@@ -6,11 +6,13 @@ import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Caption;
 import io.mateu.mdd.core.annotations.SearchFilter;
 import io.mateu.mdd.tester.model.useCases.bankAccount.Payment;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.persistence.*;
+import javax.persistence.EntityManager;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import lombok.MateuMDDEntity;
+import javax.persistence.Id;
 import javax.validation.constraints.NotNull;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -18,8 +20,7 @@ import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 @Slf4j
 public class ActionsDemoEntity {
 

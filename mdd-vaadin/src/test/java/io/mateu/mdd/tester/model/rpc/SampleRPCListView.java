@@ -7,8 +7,8 @@ import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.annotations.MainSearchFilter;
 import io.mateu.mdd.core.data.Just1StringColumn;
-import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.data.Pair;
+import io.mateu.mdd.core.interfaces.RpcView;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,6 @@ import javax.ws.rs.core.Response;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Getter@Setter@Slf4j
 public class SampleRPCListView implements RpcView<SampleRPCListView, Just1StringColumn> {

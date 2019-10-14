@@ -2,13 +2,11 @@ package io.mateu.mdd.tester.model.entities.relations;
 
 import io.mateu.mdd.core.annotations.SearchFilter;
 import io.mateu.mdd.tester.model.entities.basic.BasicFieldsDemoEntity;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 
 import javax.persistence.*;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 public class OwnedManyToOneFieldDemoEntity {
 
     @Id

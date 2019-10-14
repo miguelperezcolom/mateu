@@ -47,6 +47,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
             contentContainer = new VerticalLayout();
         }
         contentContainer.addStyleName("contentcontainer");
+        contentContainer.addStyleName(CSS.NOPADDING);
         return build(contentContainer, binder, modelType, model, componentsToLookForErrors, params);
     }
 
@@ -199,6 +200,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                 Button b;
                 actionsContainer.addComponent(b = new Button(a.getName(), a.getIcon()));
                 b.addStyleName(ValoTheme.BUTTON_TINY);
+                b.addStyleName(ValoTheme.BUTTON_QUIET);
                 b.addStyleName(a.getStyle());
                 b.addClickListener(e -> a.run(new AbstractMDDExecutionContext()));
             }

@@ -1,17 +1,14 @@
 package io.mateu.mdd.tester.model.entities.basic;
 
-import io.mateu.mdd.core.annotations.Html;
 import io.mateu.mdd.core.annotations.IFrame;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 
-import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
+import lombok.MateuMDDEntity;
 import javax.persistence.Id;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 public class IFrameFieldDemoEntity {
 
     @Id

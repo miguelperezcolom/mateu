@@ -1,18 +1,15 @@
 package io.mateu.mdd.tester.model.entities.relations;
 
-import com.google.common.base.Strings;
-import io.mateu.mdd.core.annotations.*;
-import io.mateu.mdd.core.interfaces.AbstractJPQLListView;
-import io.mateu.mdd.core.interfaces.EntityProvider;
-import lombok.Getter;
-import lombok.Setter;
+import io.mateu.mdd.core.annotations.SearchFilter;
+import io.mateu.mdd.core.annotations.UseIdToSelect;
+import lombok.MateuMDDEntity;
 
-import javax.persistence.*;
-import java.util.HashMap;
-import java.util.Map;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import lombok.MateuMDDEntity;
+import javax.persistence.Id;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 @UseIdToSelect
 public class UseIdToSelectDemoEntity {
 

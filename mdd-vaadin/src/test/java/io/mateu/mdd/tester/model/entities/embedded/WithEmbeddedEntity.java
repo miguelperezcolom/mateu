@@ -1,12 +1,10 @@
 package io.mateu.mdd.tester.model.entities.embedded;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 
 import javax.persistence.*;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 public class WithEmbeddedEntity {
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)

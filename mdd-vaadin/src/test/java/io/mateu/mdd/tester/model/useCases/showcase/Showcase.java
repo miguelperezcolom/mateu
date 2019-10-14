@@ -1,15 +1,14 @@
 package io.mateu.mdd.tester.model.useCases.showcase;
 
 import io.mateu.mdd.core.annotations.Section;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity@Getter@Setter
+@MateuMDDEntity
 public class Showcase {
 
     @Id@GeneratedValue(strategy = GenerationType.IDENTITY)

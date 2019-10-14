@@ -6,8 +6,6 @@ import io.mateu.mdd.core.interfaces.WizardPage;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.io.IOException;
-
 @Getter@Setter
 public class Wizard2Page1 implements WizardPage {
 

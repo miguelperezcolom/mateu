@@ -1,15 +1,14 @@
 package io.mateu.mdd.tester.app.club.model;
 
 import io.mateu.mdd.core.annotations.UseLinkToListView;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity@Getter@Setter
+@MateuMDDEntity
 public class Servicio {
 
     @Id

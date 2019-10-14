@@ -55,6 +55,9 @@ public class OwnedCollectionComponent extends HorizontalLayout {
         return editorViewComponent;
     }
 
+    public void beforeBack() {
+        getParentBinder().setBean(getParentBinder().getBean(), false);
+    }
 
     public OwnedCollectionComponent(MDDBinder parentBinder, FieldInterfaced field) throws Exception {
         this(parentBinder, field, -1);

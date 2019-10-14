@@ -6,7 +6,6 @@ import com.vaadin.ui.StyleGenerator;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.NotInList;
 import io.mateu.mdd.core.interfaces.AbstractJPQLListView;
-import io.mateu.mdd.core.interfaces.GridDecorator;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;

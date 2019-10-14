@@ -1,7 +1,6 @@
 package io.mateu.mdd.tester.model.useCases.triggers;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
@@ -9,7 +8,7 @@ import javax.validation.constraints.NotEmpty;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity@Getter@Setter
+@MateuMDDEntity
 @Slf4j
 public class Product {
 

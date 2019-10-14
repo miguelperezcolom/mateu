@@ -1,16 +1,15 @@
 package io.mateu.mdd.tester.model.entities.inmutables;
 
 import com.google.common.collect.ImmutableList;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.List;
 
-@Entity@Getter@Setter@ToString@Slf4j
+@MateuMDDEntity
+@ToString@Slf4j
 public class PadreInmutable {
 
     @Id@GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,6 +1,5 @@
 package io.mateu.mdd.tester.model.wizards;
 
-import com.google.common.base.Strings;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Output;
 import io.mateu.mdd.core.interfaces.WizardPage;

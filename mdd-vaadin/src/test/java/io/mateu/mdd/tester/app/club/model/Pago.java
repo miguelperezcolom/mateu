@@ -2,14 +2,13 @@ package io.mateu.mdd.tester.app.club.model;
 
 import io.mateu.mdd.core.annotations.Sum;
 import io.mateu.mdd.core.annotations.TextArea;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Entity@Getter@Setter
+@MateuMDDEntity
 public class Pago {
 
     @Id

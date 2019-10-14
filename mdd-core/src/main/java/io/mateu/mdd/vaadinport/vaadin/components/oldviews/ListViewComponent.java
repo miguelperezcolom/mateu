@@ -8,7 +8,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.kbdunn.vaadin.addons.fontawesome.FontAwesome;
 import com.vaadin.data.HasDataProvider;
-import com.vaadin.data.HasValue;
 import com.vaadin.data.ValueProvider;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.provider.QuerySortOrder;
@@ -1074,6 +1073,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
             Button i;
             bar.addComponent(i = new Button("New", VaadinIcons.PLUS));
+            i.addStyleName(ValoTheme.BUTTON_QUIET);
             i.addClickListener(e -> {
                 try {
                     MDDUI.get().getNavegador().go("new");
@@ -1087,6 +1087,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         if (isDeleteEnabled()) {
             Button i;
             bar.addComponent(i = new Button("Delete", VaadinIcons.MINUS));
+            i.addStyleName(ValoTheme.BUTTON_QUIET);
             i.addClickListener(e -> {
                 MDD.confirm("Are you sure you want to delete the selected items?", new Runnable() {
                     @Override

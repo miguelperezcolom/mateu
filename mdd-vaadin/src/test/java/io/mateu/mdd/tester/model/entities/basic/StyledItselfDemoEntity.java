@@ -1,20 +1,16 @@
 package io.mateu.mdd.tester.model.entities.basic;
 
 import io.mateu.mdd.core.annotations.Action;
-import io.mateu.mdd.core.annotations.Stylist;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
+import lombok.MateuMDDEntity;
 import javax.persistence.Id;
 import java.util.Arrays;
 import java.util.List;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 @Slf4j
 public class StyledItselfDemoEntity {
 

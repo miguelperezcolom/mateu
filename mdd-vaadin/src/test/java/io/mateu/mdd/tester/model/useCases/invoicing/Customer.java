@@ -1,19 +1,16 @@
 package io.mateu.mdd.tester.model.useCases.invoicing;
 
 import io.mateu.mdd.core.annotations.SameLine;
-import lombok.Getter;
-import lombok.Setter;
 
-import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
+import lombok.MateuMDDEntity;
 import javax.persistence.Id;
 import javax.validation.constraints.NotEmpty;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 public class Customer {
 
 

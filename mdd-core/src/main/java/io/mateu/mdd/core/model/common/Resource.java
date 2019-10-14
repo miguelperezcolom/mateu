@@ -5,12 +5,9 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.FileLocator;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.Utils;
-import lombok.Getter;
 import lombok.MateuMDDEntity;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -24,13 +21,9 @@ import java.net.URL;
 /**
  * Created by miguel on 27/3/17.
  */
-@Entity@Getter@Setter
-@Slf4j@MateuMDDEntity
+@MateuMDDEntity
+@Slf4j
 public class Resource {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
 
     @NotNull
     private FileType type = FileType.BYTES;
@@ -86,6 +79,7 @@ public class Resource {
 
                 String extension = ".tmp";
                 String fileName = getName();
+
 
                 if (getName() == null || "".equals(getName().trim())) fileName = "" + getId();
                 if (fileName.lastIndexOf(".") < fileName.length() - 1) {

@@ -2,13 +2,10 @@ package io.mateu.mdd.tester.model.entities.relations;
 
 
 import io.mateu.mdd.core.annotations.Output;
-import io.mateu.mdd.tester.model.entities.basic.BasicFieldsDemoEntity;
 import io.mateu.mdd.tester.model.entities.basic.DemoEnumeration;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Embeddable;
-import javax.persistence.ManyToOne;
 import java.io.Serializable;
 
 @Getter@Setter

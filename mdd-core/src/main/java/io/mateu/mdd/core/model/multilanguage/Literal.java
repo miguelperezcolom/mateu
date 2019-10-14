@@ -2,11 +2,8 @@ package io.mateu.mdd.core.model.multilanguage;
 
 import io.mateu.mdd.core.data.Data;
 import io.mateu.mdd.core.interfaces.Translated;
-import lombok.Getter;
 import lombok.MateuMDDEntity;
-import lombok.Setter;
 
-import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -16,14 +13,8 @@ import javax.persistence.Id;
  *
  * Created by miguel on 13/9/16.
  */
-@Entity
-@Getter@Setter@MateuMDDEntity
+@MateuMDDEntity
 public class Literal implements Translated {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
-
     private String en;
 
     private String es;

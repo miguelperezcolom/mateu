@@ -1,9 +1,11 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.desktop;
 
-import com.vaadin.client.VMouseOverVerticalLayout;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.MouseOverVerticalLayout;
-import com.vaadin.ui.*;
+import com.vaadin.ui.AbsoluteLayout;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.JavaScript;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.app.AbstractApplication;

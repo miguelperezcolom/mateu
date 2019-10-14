@@ -1,21 +1,14 @@
 package io.mateu.mdd.core.app;
 
-import com.google.common.collect.Lists;
-import com.vaadin.data.provider.DataProvider;
-import com.vaadin.data.provider.ListDataProvider;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.UseCheckboxes;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.Found;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.persistence.OneToMany;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Getter@Setter@Slf4j
 public class Searcher {

@@ -1,19 +1,16 @@
 package io.mateu.mdd.tester.model.entities.basic;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 
-import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
+import lombok.MateuMDDEntity;
 import javax.persistence.Id;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 public class BasicFieldsWithValidationDemoEntity {
 
     @Id

@@ -2,12 +2,14 @@ package io.mateu.mdd.vaadinport.vaadin;
 
 import com.google.common.base.Strings;
 import com.vaadin.annotations.*;
-import com.vaadin.annotations.JavaScript;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.PushStateNavigation;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServletRequest;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.JavaScriptFunction;
+import com.vaadin.ui.Layout;
+import com.vaadin.ui.UI;
 import elemental.json.JsonArray;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.MDDPort;

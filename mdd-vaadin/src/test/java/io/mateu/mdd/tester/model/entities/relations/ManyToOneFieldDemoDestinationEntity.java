@@ -1,15 +1,17 @@
 package io.mateu.mdd.tester.model.entities.relations;
 
 import io.mateu.mdd.core.annotations.SearchFilter;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 
-import javax.persistence.*;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import lombok.MateuMDDEntity;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 public class ManyToOneFieldDemoDestinationEntity {
 
     @Id

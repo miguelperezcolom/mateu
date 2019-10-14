@@ -2,7 +2,6 @@ package io.mateu.mdd.core.reflection;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.vaadin.data.Binder;
 import com.vaadin.data.provider.DataProvider;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;

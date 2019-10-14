@@ -1,7 +1,5 @@
 package io.mateu.mdd.tester.tests.reflection;
 
-import com.vaadin.data.provider.QuerySortOrder;
-
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.util.List;

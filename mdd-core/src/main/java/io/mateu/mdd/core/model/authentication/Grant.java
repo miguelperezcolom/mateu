@@ -1,8 +1,6 @@
 package io.mateu.mdd.core.model.authentication;
 
-import lombok.Getter;
 import lombok.MateuMDDEntity;
-import lombok.Setter;
 
 import javax.persistence.*;
 
@@ -11,14 +9,8 @@ import javax.persistence.*;
  *
  * Created by miguel on 13/9/16.
  */
-@Entity
-@Table(name = "_GRANT")
-@Getter@Setter@MateuMDDEntity
+@Table(name = "_GRANT")@MateuMDDEntity
 public class Grant {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
 
     @ManyToOne
     private Permission permission;

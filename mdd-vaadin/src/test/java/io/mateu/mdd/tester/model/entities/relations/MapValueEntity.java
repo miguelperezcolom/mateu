@@ -1,12 +1,13 @@
 package io.mateu.mdd.tester.model.entities.relations;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 
-import javax.persistence.*;
+import javax.persistence.GeneratedValue;
+import lombok.MateuMDDEntity;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 public class MapValueEntity {
 
     @Id@GeneratedValue

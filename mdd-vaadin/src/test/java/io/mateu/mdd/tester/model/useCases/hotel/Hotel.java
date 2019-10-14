@@ -3,8 +3,7 @@ package io.mateu.mdd.tester.model.useCases.hotel;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.UseIdToSelect;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
@@ -12,8 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 @UseIdToSelect
 @Slf4j
 public class Hotel {

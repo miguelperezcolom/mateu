@@ -5,7 +5,6 @@ import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.Embeddable;
-import javax.validation.constraints.NotNull;
 
 @Getter@Setter@ToString
 @Embeddable

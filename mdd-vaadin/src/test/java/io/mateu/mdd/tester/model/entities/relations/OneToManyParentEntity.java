@@ -1,8 +1,7 @@
 package io.mateu.mdd.tester.model.entities.relations;
 
 import io.mateu.mdd.core.annotations.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -11,8 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 public class OneToManyParentEntity implements Serializable {
 
     @Id

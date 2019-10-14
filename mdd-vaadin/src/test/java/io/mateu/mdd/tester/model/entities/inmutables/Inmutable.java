@@ -1,12 +1,12 @@
 package io.mateu.mdd.tester.model.entities.inmutables;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
+import lombok.MateuMDDEntity;
 import javax.persistence.Id;
 
 @Entity@ToString

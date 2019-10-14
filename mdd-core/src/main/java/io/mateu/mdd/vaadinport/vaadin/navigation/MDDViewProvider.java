@@ -5,7 +5,6 @@ import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewProvider;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.JavaScript;
 import com.vaadin.ui.Notification;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
@@ -1111,7 +1110,9 @@ xxxxxxxxxxxxxxxx
                 }
             }
 
-        if (v != null && v instanceof io.mateu.mdd.vaadinport.vaadin.navigation.View && ((io.mateu.mdd.vaadinport.vaadin.navigation.View)v).getViewComponent() instanceof CRUDViewComponent) currentEditor = (EditorViewComponent) v.getViewComponent();
+        if (v != null && v instanceof io.mateu.mdd.vaadinport.vaadin.navigation.View && ((io.mateu.mdd.vaadinport.vaadin.navigation.View)v).getViewComponent() instanceof CRUDViewComponent) {
+            currentEditor = (EditorViewComponent) v.getViewComponent();
+        }
 
         if (v != null && v instanceof io.mateu.mdd.vaadinport.vaadin.navigation.View && ((io.mateu.mdd.vaadinport.vaadin.navigation.View)v).getComponent() instanceof CRUDViewComponent) Notification.show(((MDD.isMobile())?"Click":"Double click") + " on matches to edit", Notification.Type.TRAY_NOTIFICATION);
 

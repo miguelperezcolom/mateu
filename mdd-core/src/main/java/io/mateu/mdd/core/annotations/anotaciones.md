@@ -664,8 +664,7 @@ None
 
 ```java
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 @NewNotAllowed
 public class AuthToken {
 
@@ -1009,9 +1008,7 @@ TYPE
 ### Example
 ```java
 
-    @Entity
-    @Getter
-    @Setter
+    @MateuMDDEntity
     @QLForCombo(ql = "select x.code, x.name.es from HotelCategory x order by x.name.es")
     public class HotelCategory {
 
@@ -1164,8 +1161,7 @@ TYPE
 
 ```java
 
-    @Entity
-    @Getter@Setter
+    @MateuMDDEntity
     @Stylist(MyStylist.class)
     public class StyledDemoEntity {
     ...
@@ -1333,9 +1329,7 @@ TYPE
  *
  * Created by miguel on 13/9/16.
  */
-@Entity
-@Getter
-@Setter
+@MateuMDDEntity
 @UseIdToSelect(ql = "select x.id, concat(x.leadName, ' - ', x.agency.name, ' - ', x.id) as text from Booking x where x.id = xxxx")
 public class Booking implements WithTriggers {
 

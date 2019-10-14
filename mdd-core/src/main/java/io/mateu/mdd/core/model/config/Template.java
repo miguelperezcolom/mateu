@@ -2,11 +2,12 @@ package io.mateu.mdd.core.model.config;
 
 import io.mateu.mdd.core.annotations.TextArea;
 import io.mateu.mdd.core.annotations.UseCheckboxes;
-import lombok.Getter;
 import lombok.MateuMDDEntity;
-import lombok.Setter;
 
-import javax.persistence.*;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
 import java.util.HashSet;
 import java.util.Set;
@@ -14,14 +15,8 @@ import java.util.Set;
 /**
  * Created by miguel on 21/1/17.
  */
-@Entity
-@Getter
-@Setter@MateuMDDEntity
+@MateuMDDEntity
 public class Template {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
 
     @OneToMany
     @UseCheckboxes

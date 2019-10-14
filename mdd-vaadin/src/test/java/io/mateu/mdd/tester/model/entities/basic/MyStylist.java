@@ -1,10 +1,7 @@
 package io.mateu.mdd.tester.model.entities.basic;
 
-import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 

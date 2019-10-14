@@ -13,24 +13,22 @@ import io.mateu.mdd.core.model.util.EmailHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import lombok.Getter;
 import lombok.MateuMDDEntity;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.mail.DefaultAuthenticator;
 import org.apache.commons.mail.HtmlEmail;
 
 import javax.mail.internet.InternetAddress;
-import javax.persistence.*;
+import javax.persistence.EntityManager;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.Transient;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 /**
  * Created by miguel on 19/3/17.
  */
-@Entity
-@Getter
-@Setter
 @Slf4j@MateuMDDEntity
 public class AppConfig {
 

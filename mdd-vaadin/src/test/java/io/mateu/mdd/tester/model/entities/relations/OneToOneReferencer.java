@@ -1,14 +1,14 @@
 package io.mateu.mdd.tester.model.entities.relations;
 
 
-import lombok.Getter;
-import lombok.Setter;
-
-import javax.persistence.*;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import lombok.MateuMDDEntity;
+import javax.persistence.Id;
+import javax.persistence.OneToOne;
 import javax.validation.constraints.NotNull;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 public class OneToOneReferencer {
 
     @Id

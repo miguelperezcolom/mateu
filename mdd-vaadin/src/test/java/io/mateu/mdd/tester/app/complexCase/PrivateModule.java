@@ -1,7 +1,8 @@
 package io.mateu.mdd.tester.app.complexCase;
 
-import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.app.AbstractModule;
+import io.mateu.mdd.core.app.MDDOpenEditorAction;
+import io.mateu.mdd.core.app.MenuEntry;
 import io.mateu.mdd.core.model.config.AppConfig;
 
 import java.util.Arrays;

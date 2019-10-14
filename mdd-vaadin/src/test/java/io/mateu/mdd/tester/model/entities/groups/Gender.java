@@ -1,10 +1,5 @@
 package io.mateu.mdd.tester.model.entities.groups;
 
-import io.mateu.mdd.core.CSS;
-import io.mateu.mdd.core.interfaces.StyledEnum;
-
-import java.io.Serializable;
-
 public enum Gender { // implements StyledEnum {
 
     FEMALE, MALE;

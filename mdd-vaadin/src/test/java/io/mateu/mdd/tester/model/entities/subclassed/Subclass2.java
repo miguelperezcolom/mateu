@@ -1,12 +1,8 @@
 package io.mateu.mdd.tester.model.entities.subclassed;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 
-import javax.persistence.Entity;
-
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 public class Subclass2 extends Superclass {
 
     private String subclass2OnlyField;

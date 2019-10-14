@@ -1,17 +1,12 @@
 package io.mateu.mdd.tester.model.entities.dependant;
 
-import io.mateu.mdd.core.annotations.DependsOn;
-import lombok.Getter;
-import lombok.Setter;
-
-import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
+import lombok.MateuMDDEntity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.validation.constraints.NotNull;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 public class City {
 
     @Id@GeneratedValue

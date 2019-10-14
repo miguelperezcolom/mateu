@@ -1,13 +1,13 @@
 package io.mateu.mdd.tester.model.useCases.showcase;
 
-import lombok.Getter;
-import lombok.Setter;
-
-import javax.persistence.*;
+import javax.persistence.GeneratedValue;
+import lombok.MateuMDDEntity;
+import javax.persistence.Id;
+import javax.persistence.OneToOne;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
-@Entity@Getter@Setter
+@MateuMDDEntity
 public class UnoAUnoMapped {
 
     @Id

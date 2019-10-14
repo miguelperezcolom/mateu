@@ -2,7 +2,6 @@ package io.mateu.mdd.tester.model.callMethods;
 
 import io.mateu.mdd.core.annotations.Action;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @Getter@Slf4j

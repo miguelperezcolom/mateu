@@ -1,14 +1,16 @@
 package io.mateu.mdd.tester.model.entities.relations;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.MateuMDDEntity;
 
-import javax.persistence.*;
+import javax.persistence.ElementCollection;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import lombok.MateuMDDEntity;
+import javax.persistence.Id;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
-@Getter@Setter
+@MateuMDDEntity
 public class WithElementCollectionEntity {
 
     @Id
