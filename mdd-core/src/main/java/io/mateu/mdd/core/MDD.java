@@ -86,6 +86,15 @@ public class MDD {
     }
 
 
+    public static void notifyError(String msg) {
+        getPort().notifyError(msg);
+    }
+    public static void notifyInfo(String msg) {
+        getPort().notifyInfo(msg);
+    }
+    public static void notify(Throwable throwable) {
+        getPort().notifyError(throwable);
+    }
 
 
     public static void alert(String msg) {
@@ -147,6 +156,6 @@ public class MDD {
             }
             x.getMessage().ifPresent(m -> msg.append(m));
         });
-        Notification.show(msg.toString(), Notification.Type.ERROR_MESSAGE);
+        Notification.show(msg.toString(), Notification.Type.TRAY_NOTIFICATION);
     }
 }

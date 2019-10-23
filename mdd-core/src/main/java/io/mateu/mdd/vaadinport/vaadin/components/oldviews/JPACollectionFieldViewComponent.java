@@ -135,4 +135,9 @@ public class JPACollectionFieldViewComponent extends JPAListViewComponent {
 
         return l;
     }
+
+    @Override
+    public String toString() {
+        return field != null?"Adding " + Helper.capitalize(field.getName()).toLowerCase() + " to " + evfc.toString():super.toString();
+    }
 }

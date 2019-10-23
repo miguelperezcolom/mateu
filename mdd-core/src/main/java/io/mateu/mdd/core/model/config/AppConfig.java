@@ -44,6 +44,7 @@ public class AppConfig {
 
 
     @Section("Email")
+    @FieldGroup("Setup")
     private String adminEmailSmtpHost;
 
     private int adminEmailSmtpPort;
@@ -52,6 +53,7 @@ public class AppConfig {
 
     private boolean adminEmailSSLOnConnect;
 
+    @FieldGroup("Admin credentials")
     private String adminEmailUser;
 
     @Password
@@ -61,6 +63,7 @@ public class AppConfig {
 
     private String adminEmailCC;
 
+    @FieldGroup("Admin check")
     @Transient
     private Button check = new Button("Test", e -> {
 
@@ -91,12 +94,13 @@ public class AppConfig {
     });
 
     @Transient
-    private VerticalLayout gmailRequiredLinks = new VerticalLayout(
+    private VerticalLayout gmailRequiredLinks = new LinksList(
             new Link("https://myaccount.google.com/lesssecureapps", new ExternalResource("https://myaccount.google.com/lesssecureapps"))
             , new Link("https://accounts.google.com/DisplayUnlockCaptcha", new ExternalResource("https://accounts.google.com/DisplayUnlockCaptcha"))
     );
 
 
+    @FieldGroup("Pop3")
     private String pop3Host;
 
     private String pop3User;
@@ -109,6 +113,10 @@ public class AppConfig {
     @Section("SMS")
     private boolean clickatellEnabled;
     private String clickatellApiKey;
+
+    @Section("Telegram")
+    private boolean telegramEnabled;
+    private String telegramBotToken;
 
     @Section("CMS")
     private String nginxConfigDirectory = "/etc/nginx/conf.d";

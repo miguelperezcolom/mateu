@@ -27,8 +27,13 @@ public class ViewStack {
     public void push(String state, Component component) {
         io.mateu.mdd.vaadinport.vaadin.navigation.View v;
 
-        if (MDD.getApp().getMenu(state) != null && component != null && component instanceof AbstractViewComponent) {
-            ((AbstractViewComponent)component).setTitle(MDD.getApp().getMenu(state).getName());
+        if (component != null && component instanceof AbstractViewComponent) {
+            if (MDD.getApp().getMenu(state) != null) {
+                ((AbstractViewComponent)component).setTitle(MDD.getApp().getMenu(state).getName());
+            }
+            if (stack.size() > 0 && stack.get(stack.size() - 1).getViewComponent() instanceof AbstractViewComponent) {
+                ((AbstractViewComponent)component).setParentView((AbstractViewComponent) stack.get(stack.size() - 1).getViewComponent());
+            }
         }
 
         viewByState.put(state, v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(this, component));

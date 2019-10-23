@@ -7,8 +7,10 @@ import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractModule;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
 
-public class ModuleComponent extends VerticalLayout {
+public class ModuleComponent extends AbstractViewComponent {
 
     private final AbstractModule module;
 
@@ -18,7 +20,6 @@ public class ModuleComponent extends VerticalLayout {
     }
 
     public ModuleComponent(AbstractModule module) {
-
         this.module = module;
 
         addStyleName("moduleflowcomponent");

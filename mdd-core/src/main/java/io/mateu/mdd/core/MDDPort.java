@@ -63,4 +63,10 @@ public interface MDDPort {
     boolean isViewingCentralCurrency();
 
     boolean isIpad();
+
+    void notifyError(String msg);
+
+    void notifyInfo(String msg);
+
+    void notifyError(Throwable e);
 }

@@ -1,5 +1,6 @@
 package io.mateu.mdd.tester.model.useCases.showcase;
 
+import io.mateu.mdd.core.annotations.FieldGroup;
 import io.mateu.mdd.core.annotations.Section;
 import lombok.MateuMDDEntity;
 
@@ -15,11 +16,13 @@ public class Showcase {
     private long id;
 
     @Section("Básicos")
+    @FieldGroup("Strings")
     @NotEmpty
     private String name;
 
     private String opcional;
 
+    @FieldGroup("Primitivos")
     private int entero;
 
     private long largo;
@@ -28,6 +31,7 @@ public class Showcase {
 
     private boolean booleano;
 
+    @FieldGroup("Objetos")
     private Integer enteroo;
 
     private Long largoo;

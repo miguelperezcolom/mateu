@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
+import com.google.common.base.Strings;
 import com.vaadin.data.Binder;
 import com.vaadin.data.BinderValidationStatus;
 import com.vaadin.data.HasValue;
@@ -80,6 +81,12 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         if (kpis != null) kpisContainer.addComponent(kpis);
     }
 
+    @Override
+    public void setParentView(AbstractViewComponent parentView) {
+        super.setParentView(parentView);
+        if (parentView instanceof ListViewComponent) setListViewComponent((ListViewComponent) parentView);
+    }
+
     public ListViewComponent getListViewComponent() {
         return listViewComponent;
     }
@@ -95,7 +102,11 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             for (String k : initialValues.keySet()) {
                 Object v0 = initialValues.get(k);
                 Object v = currentValues.get(k);
-                if ((v0 == null && v != null) || (v0 != null && !v0.equals(v))) {
+                if (
+                        !(v0 != null && v0 instanceof String && "".equals(v0) && v == null)
+                        && !(v != null && v instanceof String && "".equals(v) && v0 == null)
+                        && ((v0 == null && v != null) || (v0 != null && !v0.equals(v)))
+                ) {
                     modificado = true;
                     break;
                 }
@@ -188,7 +199,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         this.modelType = model.getClass();
         this.visibleFields = visibleFields;
         this.hiddenFields = hiddenFields;
-        this.createSaveButton = createSaveButton;
+        this.createSaveButton = !(this instanceof OwnedCollectionComponent) && createSaveButton;
         setModel(model);
     }
 
@@ -202,20 +213,28 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     }
 
     public void setModel(Object model, boolean updateChangesSignature) {
-        modelType = model.getClass();
+        if (model != null) {
+            modelType = model.getClass();
+        } else {
+            try {
+                model = modelType.newInstance();
+            } catch (Exception e) {
+                MDD.alert(e);
+            }
+        }
 
         Object old = getModel();
         if (old != null) listeners.remove(old);
         if (model instanceof EditorListener) addEditorListener((EditorListener) model);
 
         binder = new MDDBinder(model.getClass(), this);
-        
+
         if (model != null && model.getClass().isAnnotationPresent(Entity.class)) {
             modelId = ReflectionHelper.getId(model);
         }
 
         binder.setBean(model);
-        
+
         build(model);
 
         rebuildActions();
@@ -251,9 +270,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         }
          */
 
-        
-        if (updateChangesSignature) initialValues = buildSignature();
 
+        if (updateChangesSignature) initialValues = buildSignature();
     }
 
     private Map<String,Object> buildSignature() {
@@ -308,7 +326,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             panelContenido.addStyleName(ValoTheme.PANEL_BORDERLESS);
             panelContenido.addStyleName(CSS.NOPADDING);
             panelContenido.addStyleName("panelContenido");
-            panelContenido.setWidthUndefined();
+            panelContenido.setSizeFull();
 
             if (kpis == null) {
                 kpis = new CssLayout();
@@ -335,6 +353,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             panel.setContent(panelContenido);
 
             List<FieldInterfaced> fields = ReflectionHelper.getAllEditableFields(model.getClass(), (owner != null) ? owner.getClass() : null, false, field);
+            
+            removeUneditableFields(fields);
 
             if (visibleFields != null && visibleFields.size() > 0) {
                 fields.removeIf(f -> !visibleFields.contains(f));
@@ -344,7 +364,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 fields.removeIf(f -> hiddenFields.contains(f));
             }
 
-            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, model.getClass(), model, componentsToLookForErrors, FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).links(links).actionsPerSection(actionsPerSection).build());
+            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(this, binder, model.getClass(), model, componentsToLookForErrors, FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).links(links).actionsPerSection(actionsPerSection).build());
 
             stylist = r.getValue();
 
@@ -416,6 +436,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         log.debug("editor component built in " + (System.currentTimeMillis() - t0) + " ms.");
 
+    }
+
+    protected void removeUneditableFields(List<FieldInterfaced> fields) {
     }
 
     private boolean focusFirstField(Component c) {
@@ -549,7 +572,6 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
     @Override
     public EditorViewComponent build() throws Exception {
-
         actionsContainer = new VerticalLayout();
         actionsContainer.addStyleName("actionscontainer");
         actionsContainer.addStyleName(CSS.NOPADDING);
@@ -599,7 +621,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         boolean readOnly = getModel() != null && getModel() instanceof ReadOnly && ((ReadOnly) getModel()).isReadOnly();
 
         if (modelType.isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(modelType)) {
-            if (field == null && !isActionPresent("refresh")) {
+            if (field == null && !(this instanceof OwnedCollectionComponent) && !isActionPresent("refresh")) {
 
                 Button i;
                 bar.addComponent(i = new Button("Refresh", VaadinIcons.REFRESH));
@@ -639,7 +661,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
 
                     } catch (Throwable throwable) {
-                        MDD.alert(throwable);
+                        MDD.notify(throwable);
                     }
                 });
 
@@ -666,7 +688,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                         }
 
                     } catch (Throwable throwable) {
-                        MDD.alert(throwable);
+                        MDD.notify(throwable);
                     }
                 });
                 addMenuItem("next", i);
@@ -697,7 +719,15 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                                 save();
 
-                            } else MDD.alert(v);
+                            } else {
+                                for (Component c : componentsToLookForErrors) {
+                                    if (c instanceof AbstractComponent && ((AbstractComponent) c).getComponentError() != null) {
+                                        if (c instanceof Focusable) ((Focusable) c).focus();
+                                        break;
+                                    }
+                                }
+                                MDD.alert(v);
+                            }
 
 
                         } catch (Throwable throwable) {
@@ -1026,7 +1056,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             if (m.isAnnotationPresent(Action.class) && !(
                     Modifier.isStatic(m.getModifiers())
                     || (m.isAnnotationPresent(NotWhenCreating.class) && isEditingNewRecord)
-                    || (m.isAnnotationPresent(NotWhenEditing.class) && !isEditingNewRecord)
+                    || (m.isAnnotationPresent(NotWhenEditing.class) && !isEditingNewRecord))
+                    && Strings.isNullOrEmpty(m.getAnnotation(Action.class).attachToField()
             )) {
 
                 Optional<Method> omv = mvs.get(m);
@@ -1200,13 +1231,15 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         BinderValidationStatus status = binder.validate();
         if (status.hasErrors()) {
             noerror = false;
-        } else for (Component c : componentsToLookForErrors) {
+        }
+        for (Component c : componentsToLookForErrors) {
             if (c instanceof AbstractComponent && ((AbstractComponent) c).getComponentError() != null) {
                 noerror = false;
+                if (c instanceof Focusable) ((Focusable) c).focus();
                 break;
             }
         }
-        if (!noerror && !silent) MDD.alert("Please solve errors for all fields");
+        if (!noerror && !silent) MDD.notifyError("Please solve errors for all fields");
         return noerror;
     }
 

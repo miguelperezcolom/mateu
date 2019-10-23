@@ -2,15 +2,22 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.google.common.base.Strings;
 import com.vaadin.icons.VaadinIcons;
+import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.interfaces.PersistentPOJO;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.AbstractMDDExecutionContext;
+import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
+import io.mateu.mdd.vaadinport.vaadin.components.app.views.AreaComponent;
+import io.mateu.mdd.vaadinport.vaadin.navigation.ComponentWrapper;
 import io.mateu.mdd.vaadinport.vaadin.navigation.View;
+import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
 
+import javax.persistence.Entity;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,7 +26,8 @@ import java.util.Map;
 
 public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> extends VerticalLayout {
 
-
+    private Label titleLabel;
+    private CssLayout kpisContainer;
     private View view;
     protected CssLayout bar;
     protected Map<Method, AbstractAction> actionsByMethod = new HashMap<>();
@@ -28,6 +36,117 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     private String title;
     private HorizontalLayout hiddens;
     private boolean backable;
+    private boolean built;
+    private AbstractViewComponent parentView;
+
+    public AbstractViewComponent getParentView() {
+        return parentView;
+    }
+
+    public void setParentView(AbstractViewComponent parentView) {
+        this.parentView = parentView;
+    }
+
+    public CssLayout getKpisContainer() {
+        return kpisContainer;
+    }
+
+    public AbstractViewComponent() {
+        addStyleName("viewcomponent");
+
+        addComponent(createHeader());
+
+        bar = new CssLayout();
+        bar.addStyleName("actionsbar");
+        bar.addStyleName(CSS.NOPADDING);
+        menuItemsById = new HashMap<>();
+        addBack(bar);
+        getActionsContainer().addComponent(bar);
+
+    }
+
+    private Component createHeader() {
+        HorizontalLayout l = new HorizontalLayout();
+
+        l.addStyleName("viewHeader");
+
+        l.addComponent(createTitleLabel());
+
+        hiddens = new HorizontalLayout();
+        hiddens.addStyleName("hidden");
+
+        l.addComponent(hiddens);
+
+
+        return l;
+    }
+
+    public void setStack(ViewStack stack) {
+        boolean add = MDD.isMobile();
+        int pos = 0;
+        if (!add && !(
+                this instanceof WelcomeComponent
+                        || this instanceof ByeComponent
+                        || this instanceof LoginFlowComponent
+                        || this instanceof PrivateMenuFlowComponent
+                        || this instanceof PublicMenuFlowComponent
+                        || this instanceof io.mateu.mdd.vaadinport.vaadin.components.app.views.AreaComponent
+                        || this instanceof ModuleComponent
+                        || this instanceof MenuFlowComponent
+                        || this instanceof SearchInMenuComponent
+        ) && stack.size() > 0) {
+            while (!add && pos < stack.size()) {
+                View v = stack.get(pos);
+                Component c = v.getComponent();
+                if (c instanceof ComponentWrapper) c = ((ComponentWrapper) c).getComponent(0);
+                if (!(c instanceof WelcomeComponent
+                        || c instanceof ByeComponent
+                        || c instanceof LoginFlowComponent
+                        || c instanceof PrivateMenuFlowComponent
+                        || c instanceof PublicMenuFlowComponent
+                        || c instanceof AreaComponent
+                        || c instanceof ModuleComponent
+                        || c instanceof MenuFlowComponent
+                        || c instanceof SearchInMenuComponent)) add = true;
+                if (!add) pos++;
+            }
+        }
+        if (add && stack.size() > pos && this instanceof AbstractViewComponent) {
+            ((AbstractViewComponent) this).setBackable(true);
+            if (this instanceof EditorViewComponent) {
+                ((EditorViewComponent) this).setKpisContainer(kpisContainer);
+                ((EditorViewComponent) this).rebuildActions();
+            }
+        }
+    }
+
+    private Component createTitleLabel() {
+
+        titleLabel = new Label("", ContentMode.HTML);
+        titleLabel.addStyleName("viewTitle");
+
+        kpisContainer = new CssLayout();
+        kpisContainer.addStyleName(CSS.NOPADDING);
+        kpisContainer.addStyleName("kpisContainer");
+        kpisContainer.setSizeUndefined();
+
+
+        HorizontalLayout hl = new HorizontalLayout(titleLabel, kpisContainer);
+        hl.addStyleName(CSS.NOPADDING);
+
+        return hl;
+    }
+
+
+    public void updateViewTitle(String newTitle) {
+        title = newTitle;
+        updatePageTitle();
+    }
+
+    public void updatePageTitle() {
+        titleLabel.setValue(getTitle());
+        UI.getCurrent().getPage().setTitle((titleLabel.getValue() != null)?titleLabel.getValue():"No title");
+    }
 
     public HorizontalLayout getHiddens() {
         return hiddens;
@@ -54,25 +173,20 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
         return this;
     }
 
+    public A buildIfNeeded() {
+        if (!built) {
+            try {
+                build();
+            } catch (Exception e) {
+                MDD.alert(e);
+            }
+        }
+        return (A) this;
+    }
+
     public A build() throws Exception {
-
-        addStyleName("viewcomponent");
-
-        if (!MDD.isMobile()) setSizeFull();
-
-        hiddens = new HorizontalLayout();
-        hiddens.addStyleName("hidden");
-
-        getActionsContainer().addComponent(hiddens);
-
-        bar = new CssLayout();
-        bar.addStyleName("actionsbar");
-        bar.addStyleName(CSS.NOPADDING);
-        menuItemsById = new HashMap<>();
-        addBack(bar);
         addViewActionsMenuItems(bar);
-        if (bar.getComponentCount() > 1) getActionsContainer().addComponent(bar);
-
+        built = true;
         return (A) this;
     }
 
@@ -121,7 +235,9 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                             @Override
                             public void run() {
 
-                                if (!(AbstractViewComponent.this instanceof EditorViewComponent) || ((EditorViewComponent)AbstractViewComponent.this).validate()) {
+                                boolean needsValidation = AbstractViewComponent.this instanceof EditorViewComponent && a.isValidationNeeded();
+
+                                if (!needsValidation || ((EditorViewComponent)AbstractViewComponent.this).validate()) {
 
                                     a.run(new AbstractMDDExecutionContext());
 
@@ -167,6 +283,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
             i.setVisible(true);
         }
 
+        if (bar.getComponentCount() == 0 || (bar.getComponentCount() == 1 && !bar.getComponent(0).isVisible())) bar.setVisible(false);
     }
 
     public void beforeBack() {

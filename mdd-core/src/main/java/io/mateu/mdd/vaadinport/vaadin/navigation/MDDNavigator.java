@@ -12,9 +12,13 @@ import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.desktop.DesktopAppComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
+import io.mateu.mdd.vaadinport.vaadin.components.app.views.AreaComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.views.FieldEditorComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.views.MenuFlowComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.views.ModuleComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorListener;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.OwnedCollectionComponent;
 
 import javax.persistence.Entity;
 import java.lang.reflect.Method;
@@ -167,18 +171,12 @@ public class MDDNavigator {
             currentState += "result";
         }
 
-        if (r instanceof AbstractAction) {
-            ((AbstractAction) r).run(context);
-        } else if (r instanceof Class && (((Class) r).isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom((Class<?>) r))) {
-            stack.push(currentState, MDDViewComponentCreator.createComponent(null, (Class) r, null, null, false));
-        } else stack.push(currentState, new MethodResultViewFlowComponent(currentState, m, r, lastViewComponent));
-
         goTo(currentState);
     }
 
 
     public void goBack() {
-        if (stack.getLast().getComponent() instanceof EditorViewComponent && ((PersistentPOJO.class.isAssignableFrom(((EditorViewComponent)stack.getLast().getComponent()).getModelType()) || ((EditorViewComponent)stack.getLast().getComponent()).getModelType().isAnnotationPresent(Entity.class)) && ((EditorViewComponent)stack.getLast().getComponent()).isModificado())) {
+        if (!(stack.getLast().getComponent() instanceof OwnedCollectionComponent) && stack.getLast().getComponent() instanceof EditorViewComponent && ((PersistentPOJO.class.isAssignableFrom(((EditorViewComponent)stack.getLast().getComponent()).getModelType()) || ((EditorViewComponent)stack.getLast().getComponent()).getModelType().isAnnotationPresent(Entity.class)) && ((EditorViewComponent)stack.getLast().getComponent()).isModificado())) {
             MDD.confirm("There are unsaved changes. Are you sure you want to exit?", () -> yesGoBack());
         } else {
             yesGoBack();
@@ -188,13 +186,9 @@ public class MDDNavigator {
     private void yesGoBack() {
 
         if (stack.getLast().getComponent() instanceof EditorViewComponent) {
-            ((EditorViewComponent) stack.getLast().getComponent()).onGoBack();
-        } else if (stack.getLast().getComponent() instanceof FieldEditorComponent) {
-            EditorViewComponent editor = ((FieldEditorComponent) stack.getLast().getComponent()).getEditor();
-            if (editor != null) editor.onGoBack();
-        } else if (stack.getLast().getComponent() instanceof MethodResultViewFlowComponent) {
-            Object result = ((MethodResultViewFlowComponent)stack.getLast().getComponent()).getResult();
+            Object result = ((EditorViewComponent)stack.getLast().getComponent()).getModel();
             if (result != null && result instanceof EditorListener) ((EditorListener) result).onGoBack(result);
+            ((EditorViewComponent) stack.getLast().getComponent()).onGoBack();
         }
 
         String u = stack.getState(stack.getLast());
@@ -241,9 +235,6 @@ public class MDDNavigator {
 
         if (stack.getLast().getComponent() instanceof EditorViewComponent) {
             ((EditorViewComponent) stack.getLast().getComponent()).onGoBack();
-        } else if (stack.getLast().getComponent() instanceof FieldEditorComponent) {
-            EditorViewComponent editor = ((FieldEditorComponent) stack.getLast().getComponent()).getEditor();
-            if (editor != null) editor.onGoBack();
         }
 
         String u = stack.getState(stack.getLast());

@@ -42,4 +42,5 @@ public @interface Action {
 
     boolean refreshOnBack() default false;
 
+    boolean validateBefore() default false;
 }

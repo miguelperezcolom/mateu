@@ -7,6 +7,7 @@ import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDExecutionContext;
 import io.mateu.mdd.core.data.UserData;
+import io.mateu.mdd.core.interfaces.PersistentPOJO;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
@@ -32,7 +33,10 @@ public class ViewComponentHelper {
                 @Override
                 public void run(MDDExecutionContext context) {
 
-                    if (!(viewComponent instanceof EditorViewComponent) || ((EditorViewComponent)viewComponent).validate()) {
+                    boolean needsValidation = aa.validateBefore();
+                    if (!needsValidation && viewComponent instanceof EditorViewComponent) needsValidation = ((EditorViewComponent)viewComponent).getModelType().isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(((EditorViewComponent)viewComponent).getModelType());
+
+                    if (!needsValidation || ((EditorViewComponent)viewComponent).validate()) {
 
                         try {
                             if (m.isAnnotationPresent(Action.class) && m.getAnnotation(Action.class).saveBefore() && viewComponent instanceof EditorViewComponent) {

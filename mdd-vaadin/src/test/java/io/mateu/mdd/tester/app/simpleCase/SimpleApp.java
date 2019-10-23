@@ -24,6 +24,7 @@ import io.mateu.mdd.tester.model.useCases.hotel.HotelSalesControlView;
 import io.mateu.mdd.tester.model.useCases.showcase.Showcase;
 import io.mateu.mdd.tester.model.views.BookingsCrudView;
 import io.mateu.mdd.tester.model.views.BookingsView;
+import io.mateu.mdd.tester.model.wizards.Wizard1Page1;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.AbstractFieldBuilder;
 import lombok.extern.slf4j.Slf4j;
 
@@ -91,7 +92,7 @@ public class SimpleApp extends SimpleMDDApplication {
             public void run(MDDExecutionContext context) {
                 log.debug("bye");
             }
-        });
+        }, new MDDOpenCRUDAction(Entidad.class));
     }
 
     @Action(order = 5)
@@ -181,6 +182,12 @@ public class SimpleApp extends SimpleMDDApplication {
         return new Reloj();
     }
 
+    @Action(order = 130)
+    public Wizard1Page1 wizard() {
+        return new Wizard1Page1();
+    }
+
+
     @Override
     public boolean isAuthenticationNeeded() {
         return false;
@@ -197,4 +204,8 @@ public class SimpleApp extends SimpleMDDApplication {
     }
 
 
+    @Override
+    public Searcher getSearcher() {
+        return new SimpleSearcher();
+    }
 }

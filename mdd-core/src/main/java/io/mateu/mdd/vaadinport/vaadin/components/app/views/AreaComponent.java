@@ -8,8 +8,10 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.AbstractModule;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
 
-public class AreaComponent extends VerticalLayout {
+public class AreaComponent extends AbstractViewComponent {
 
     private final AbstractArea area;
 
@@ -19,7 +21,6 @@ public class AreaComponent extends VerticalLayout {
     }
 
     public AreaComponent(AbstractArea area) {
-
         this.area = area;
 
         addStyleName("areaflowcomponent");

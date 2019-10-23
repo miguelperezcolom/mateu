@@ -18,6 +18,7 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
@@ -57,6 +58,18 @@ public class JPAListViewComponent extends ListViewComponent {
         this.entityClass = entityClass;
         this.extraFilters = extraFilters;
         this.initialValues = initialValues;
+
+        addListener(new ListViewComponentListener() {
+            @Override
+            public void onEdit(Object id) {
+                MDDUI.get().getNavegador().go("" + id);
+            }
+
+            @Override
+            public void onSelect(Object id) {
+
+            }
+        });
     }
 
 
@@ -608,7 +621,10 @@ public class JPAListViewComponent extends ListViewComponent {
         Set sel = new HashSet();
 
         try {
-            Helper.notransact(em -> super.getSelection().forEach(o -> sel.add(em.find(entityClass, toId(o)))));
+            Helper.notransact(em -> super.getSelection().forEach(o -> {
+                Object v = em.find(entityClass, toId(o));
+                sel.add(v != null?v:o);
+            }));
         } catch (Throwable throwable) {
             MDD.alert(throwable);
         }

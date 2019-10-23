@@ -12,11 +12,13 @@ import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.GitHubButton;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.GoogleButton;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.MicrosoftButton;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class LoginFlowComponent extends VerticalLayout {
+public class LoginFlowComponent extends AbstractViewComponent {
 
     private TextField login;
     private PasswordField password;

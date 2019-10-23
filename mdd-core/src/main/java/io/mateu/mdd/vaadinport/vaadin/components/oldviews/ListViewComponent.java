@@ -7,7 +7,9 @@ import com.byteowls.vaadin.chartjs.data.PieDataset;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.kbdunn.vaadin.addons.fontawesome.FontAwesome;
+import com.vaadin.data.Binder;
 import com.vaadin.data.HasDataProvider;
+import com.vaadin.data.HasValue;
 import com.vaadin.data.ValueProvider;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.provider.QuerySortOrder;
@@ -15,7 +17,9 @@ import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.SerializablePredicate;
 import com.vaadin.server.UserError;
+import com.vaadin.shared.Registration;
 import com.vaadin.shared.data.sort.SortDirection;
+import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.EditorOpenEvent;
@@ -25,6 +29,7 @@ import com.vaadin.ui.renderers.HtmlRenderer;
 import com.vaadin.ui.renderers.TextRenderer;
 import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonValue;
+import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.data.*;
@@ -68,14 +73,16 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     private int count;
     private Label countLabel;
     public FiltersComponent filtersComponent;
-    private HorizontalLayout sumsComponent;
-    private HorizontalLayout chartsComponent;
     private Button excelButton;
     private Button pdfButton;
 
 
     public String getFieldsFilter() {
         return null;
+    }
+
+    public ListViewComponent() {
+        if (!MDD.isMobile()) setSizeFull();
     }
 
     @Override
@@ -90,16 +97,9 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         setSizeFull();
 
         if (!(this instanceof JPACollectionFieldListViewComponent)) {
-            addComponent(sumsComponent = new HorizontalLayout());
-            sumsComponent.setVisible(false);
-
-            if (MDD.getApp().isChartsEnabled()) {
-                addComponent(chartsComponent = new HorizontalLayout());
-                chartsComponent.setVisible(false);
-            }
-
             HorizontalLayout hcl;
             addComponent(hcl = new HorizontalLayout(excelButton = new Button(FontAwesome.FILE_EXCEL_O, e -> excel()), pdfButton = new Button(FontAwesome.FILE_PDF_O, e -> pdf()), countLabel = new Label()));
+            hcl.addStyleName("listsummaryline");
             countLabel.addStyleName("resultsmessage");
 
             excelButton.addStyleName(ValoTheme.BUTTON_LINK);
@@ -772,8 +772,9 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         resultsComponent.search(filters);
     }
 
-    public void addListener(ListViewComponentListener listener) {
+    public ListViewComponent addListener(ListViewComponentListener listener) {
         listeners.add(listener);
+        return this;
     }
 
 
@@ -810,35 +811,29 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
         List<SumData> sums = getSums(filters);
 
+        getKpisContainer().removeAllComponents();
+
         if (sums != null && sums.size() > 0) {
 
-            sumsComponent.removeAllComponents();
-
             for (SumData d : sums) {
-                sumsComponent.addComponent(buildSum(d));
+                getKpisContainer().addComponent(buildSum(d));
             }
 
-            sumsComponent.setVisible(true);
-        } else {
-            sumsComponent.setVisible(false);
         }
+
 
         if (MDD.getApp().isChartsEnabled()) {
             List<ChartData> charts = getCharts(filters);
 
             if (charts != null && charts.size() > 0) {
 
-                chartsComponent.removeAllComponents();
-
                 for (ChartData d : charts) {
-                    chartsComponent.addComponent(buildChart(d));
+                    getKpisContainer().addComponent(buildChart(d));
                 }
 
-                chartsComponent.setVisible(true);
-            } else {
-                chartsComponent.setVisible(false);
             }
         }
+
 
         return count;
     }
@@ -934,10 +929,60 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     private Component buildSum(SumData d) {
+            VerticalLayout vl = new VerticalLayout();
+            vl.addStyleName("kpi");
+            vl.setWidthUndefined();
+
+            vl.addComponent(new Label(d.getTitle()));
+
+            Object v = d.getValue();
+
+            Label l;
+            vl.addComponent(l = new Label());
+            l.addStyleName("valor");
+            l.setContentMode(ContentMode.HTML);
+
+
+                    String s = "";
+
+                    if (double.class.equals(v.getClass())) {
+                        DecimalFormat df = new DecimalFormat("##,###,###,###,##0.00");
+                        s = df.format(v != null?v:0);
+                        if (v != null && ((double)v) < 0) {
+                            l.addStyleName("negativo");
+                            l.removeStyleName("positivo");
+                        } else {
+                            l.addStyleName("positivo");
+                            l.removeStyleName("negativo");
+                        }
+                    } else {
+                        if (v == null) s = "";
+                        else {
+                            if (v instanceof Boolean) {
+                                if ((Boolean) v) {
+                                    s = VaadinIcons.CHECK.getHtml();
+                                    l.addStyleName(ValoTheme.BUTTON_FRIENDLY);
+                                } else {
+                                    s = VaadinIcons.CLOSE.getHtml();
+                                    l.addStyleName(ValoTheme.BUTTON_DANGER);
+                                }
+                                l.addStyleName("centered");
+                            } else {
+                                s = "" + v;
+                            }
+                        }
+                    }
+                    l.setValue(s);
+
+            return vl;
+
+            /*
         Label l = new Label(d.getTitle() + ": " + d.getValue());
         l.addStyleName("sum");
         if (!Strings.isNullOrEmpty(d.getStyle())) l.addStyleName(d.getStyle());
         return l;
+        */
+
     }
 
     protected abstract int gatherCount(Object filters) throws Throwable;

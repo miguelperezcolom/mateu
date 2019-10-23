@@ -175,7 +175,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
                     //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) hl.setDescription(field.getAnnotation(Help.class).value());
 
-                    botonLink = new Button(null, VaadinIcons.EDIT);
+                    botonLink = new Button(null, VaadinIcons.ARROW_RIGHT);
                     botonLink.addStyleName(ValoTheme.BUTTON_QUIET);
                     botonLink.addStyleName(CSS.NOPADDING);
                     botonLink.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));

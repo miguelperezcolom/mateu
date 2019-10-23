@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
+import com.google.common.base.Strings;
 import com.vaadin.data.Binder;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
@@ -40,6 +41,9 @@ import java.util.Map;
 public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuilder {
 
     public Pair<Component, AbstractStylist> build(MDDBinder binder, Class<?> modelType, Object model, List<Component> componentsToLookForErrors, FormLayoutBuilderParameters params) {
+        return build(null, binder, modelType, model, componentsToLookForErrors, params);
+    }
+    public Pair<Component, AbstractStylist> build(EditorViewComponent editor, MDDBinder binder, Class<?> modelType, Object model, List<Component> componentsToLookForErrors, FormLayoutBuilderParameters params) {
         Layout contentContainer = null;
         if (params.isForSearchFilters() && !params.isForSearchFiltersExtended()) {
             contentContainer = new CssLayout();
@@ -52,6 +56,10 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
     }
 
     public Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, List<Component> componentsToLookForErrors, FormLayoutBuilderParameters params) {
+        return build(null, contentContainer, binder, modelType, model, componentsToLookForErrors, params);
+    }
+
+    public Pair<Component, AbstractStylist> build(EditorViewComponent editor, Layout contentContainer, MDDBinder binder, Class modelType, Object model, List<Component> componentsToLookForErrors, FormLayoutBuilderParameters params) {
 
         long t0 = System.currentTimeMillis();
 
@@ -110,9 +118,13 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                 FormLayoutSection s = sections.get(0);
                 if ("general".equalsIgnoreCase(s.getCaption())) s.setCaption(null);
             } else if (sections.size() > 1) {
-                TabSheet tabSheet;
-                contentContainer.addComponent(realContainer = tabSheet = new TabSheet());
-                tabSheet.setSizeUndefined();
+                if (!MDD.isMobile() && editor != null) editor.setSizeFull();
+                TabSheet tabSheet = new TabSheet();
+                //tabSheet.setSizeFull();
+                if (contentContainer instanceof VerticalLayout) ((VerticalLayout) contentContainer).addComponentsAndExpand(tabSheet);
+                else contentContainer.addComponent(tabSheet);
+                //contentContainer.setSizeFull();
+                realContainer = tabSheet;
             }
 
             AbstractStylist finalStylist1 = stylist;
@@ -124,30 +136,11 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                     form.addStyleName("section");
                 }
                 if (s.isCard()) form.addStyleName("sectioncard");
-                //form.addStyleName(ValoTheme.FORMLAYOUT_LIGHT);
-
-                if (false && s.getCaption() != null) {
-                    Label lsection = new Label(s.getCaption());
-                    lsection.addStyleName(ValoTheme.LABEL_H2);
-                    //section.addStyleName(ValoTheme.LABEL_COLORED);
-                    lsection.addStyleName("sectionHeader");
-                    form.addComponent(lsection);
-
-                    if (params.getLinks() != null) {
-                        Button b;
-                        params.getLinks().addComponent(b = new Button(s.getCaption(), (e) -> {
-                            UI.getCurrent().scrollIntoView(lsection);
-                        }));
-                        //b.addStyleName(ValoTheme.BUTTON_TINY);
-                        b.addStyleName(ValoTheme.BUTTON_LINK);
-                    }
-                }
 
                 if (s.getKpis().size() > 0) {
                     CssLayout kpisContainer;
                     form.addComponent(kpisContainer = new CssLayout());
                     kpisContainer.addStyleName(CSS.NOPADDING);
-                    kpisContainer.setWidth("100%");
                     for (FieldInterfaced kpi : s.getKpis()) {
                         Component c;
                         kpisContainer.addComponent(c = createKpi(binder, kpi));
@@ -156,7 +149,9 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
                 addActions(form, params.getActionsPerSection().get(s.getCaption()));
                 buildAndAddFields(ofb, model, form, binder, params.getValidators(), finalStylist1, allFieldContainers, s.getFields(), params.isForSearchFilters(), params.isForSearchFiltersExtended(), componentsToLookForErrors);
-                addSectionToContainer(finalRealContainer, form, s.getCaption());
+                Panel p;
+                addSectionToContainer(finalRealContainer, p = new Panel(form), s.getCaption());
+                p.addStyleName(ValoTheme.PANEL_BORDERLESS);
                 if (form.getWidth() == 100 && Sizeable.Unit.PERCENTAGE.equals(form.getWidthUnits())) contentContainer.setWidth("100%");
             });
         } else {
@@ -298,7 +293,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
     }
 
-    private void addSectionToContainer(Component finalRealContainer, Layout form, String caption) {
+    private void addSectionToContainer(Component finalRealContainer, Panel form, String caption) {
         if (finalRealContainer instanceof TabSheet) {
             ((TabSheet) finalRealContainer).addTab(form, caption);
         } else if (finalRealContainer instanceof Layout) {
@@ -312,7 +307,54 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
     public void buildAndAddFields(JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean forSearchFiltersExtended, boolean createTabs, List<Component> componentsToLookForErrors) {
 
+        if (forSearchFilters) {
+            _buildAndAddFields(ofb, model, contentContainer, binder, validators, stylist, allFieldContainers, fields, forSearchFilters, forSearchFiltersExtended, createTabs, componentsToLookForErrors);
+        } else {
 
+            contentContainer.setSizeFull();
+
+            List<FormLayoutGroup> groups = new ArrayList<>();
+            Map<String, FormLayoutGroup> groupsByCaption = new HashMap<>();
+            FormLayoutGroup group = null;
+            for (FieldInterfaced f : fields) {
+                if (f.isAnnotationPresent(FieldGroup.class)) {
+                    group = groupsByCaption.get(f.getAnnotation(FieldGroup.class).value());
+                    if (group == null) {
+                        groups.add(group = new FormLayoutGroup(f.getAnnotation(FieldGroup.class).value()));
+                        groupsByCaption.put(group.getCaption(), group);
+                    }
+                }
+                if (group == null) {
+                    group = groupsByCaption.get("");
+                    if (group == null) {
+                        groups.add(group = new FormLayoutGroup(""));
+                        groupsByCaption.put(group.getCaption(), group);
+                    }
+                }
+                group.getFields().add(f);
+            }
+
+            CssLayout css;
+            contentContainer.addComponent(css = new CssLayout());
+
+            groups.forEach(g -> {
+                VerticalLayout l;
+                css.addComponent(l = new VerticalLayout());
+                l.setSizeUndefined();
+                l.setWidth("620px");
+                l.addStyleName("fieldgroup");
+                if (!Strings.isNullOrEmpty(g.getCaption())) {
+                    Label c;
+                    l.addComponent(c = new Label(g.getCaption()));
+                    c.addStyleName(ValoTheme.LABEL_H3);
+                }
+
+                _buildAndAddFields(ofb, model, l, binder, validators, stylist, allFieldContainers, g.getFields(), forSearchFilters, forSearchFiltersExtended, createTabs, componentsToLookForErrors);
+            });
+        }
+    }
+
+    public void _buildAndAddFields(JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean forSearchFiltersExtended, boolean createTabs, List<Component> componentsToLookForErrors) {
         TabSheet tabs = null;
         TabSheet.Tab tab = null;
 

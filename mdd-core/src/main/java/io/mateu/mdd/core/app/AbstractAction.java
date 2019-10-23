@@ -17,6 +17,7 @@ public abstract class AbstractAction implements MenuEntry {
     private boolean modifierPressed;
     private String id = UUID.randomUUID().toString();
     private String group = "";
+    private boolean validationNeeded;
 
     public AbstractAction(String id, String name) {
         this.id = id;
@@ -104,5 +105,14 @@ public abstract class AbstractAction implements MenuEntry {
 
     public void setGroup(String group) {
         this.group = group;
+    }
+
+    public boolean isValidationNeeded() {
+        return validationNeeded;
+    }
+
+    public AbstractAction setValidationNeeded(boolean validationNeeded) {
+        this.validationNeeded = validationNeeded;
+        return this;
     }
 }

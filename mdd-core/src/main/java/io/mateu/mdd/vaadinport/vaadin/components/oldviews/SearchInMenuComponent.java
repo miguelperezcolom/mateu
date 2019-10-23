@@ -56,7 +56,7 @@ public class SearchInMenuComponent extends AbstractViewComponent {
             //t.setIcon(VaadinIcons.SEARCH);
             t.setPlaceholder("Type to search");
             t.setValueChangeTimeout(100);
-            if (primero ^= false) t.focus();
+            if (primero &= false) t.focus();
 
             t.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
                 @Override
@@ -98,7 +98,7 @@ public class SearchInMenuComponent extends AbstractViewComponent {
 
         try {
             Method m = ReflectionHelper.getMethod(searcher.getClass(), ReflectionHelper.getGetter(field).replaceFirst("get", "findBy"));
-            found = (List<Found>) m.invoke(searcher, text);
+            if (m != null) found = (List<Found>) m.invoke(searcher, text);
         } catch (Exception e) {
             MDD.alert(e);
         }

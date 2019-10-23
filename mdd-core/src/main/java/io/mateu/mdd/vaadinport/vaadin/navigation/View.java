@@ -7,7 +7,7 @@ import io.mateu.mdd.vaadinport.vaadin.components.oldviews.SearchInMenuComponent;
 
 public class View implements com.vaadin.navigator.View {
 
-    private final ComponentWrapper viewComponent;
+    private final AbstractViewComponent viewComponent;
     private final ViewStack stack;
     private final Component component;
 
@@ -15,10 +15,12 @@ public class View implements com.vaadin.navigator.View {
         this.stack = stack;
         this.component = component;
 
-        viewComponent = wrapComponent(component);
+        if (component instanceof AbstractViewComponent) viewComponent = (AbstractViewComponent) component;
+        else viewComponent = wrapComponent(null, component);
 
 
         if (component instanceof AbstractViewComponent) {
+            ((AbstractViewComponent)component).setStack(stack);
             ((AbstractViewComponent) component).setView(this);
         }
 
@@ -50,8 +52,8 @@ public class View implements com.vaadin.navigator.View {
 
 
 
-    private ComponentWrapper wrapComponent(Component component) {
-        return new ComponentWrapper(stack, component);
+    private AbstractViewComponent wrapComponent(String title, Component component) {
+        return new ComponentWrapper(title, component);
     }
 
 

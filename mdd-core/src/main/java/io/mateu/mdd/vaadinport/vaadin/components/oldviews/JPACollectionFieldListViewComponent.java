@@ -5,10 +5,10 @@ import com.google.common.collect.Lists;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.ui.Grid;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.FieldsFilter;
-import io.mateu.mdd.core.annotations.UseLinkToListView;
+import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDExecutionContext;
+import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
@@ -18,10 +18,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.ManyToOne;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.*;
 
 @Slf4j
 public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
@@ -155,6 +154,33 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
                 }
             });
 
+
+
+        Object bean = (evfc != null)?evfc.getModel():null;
+
+        boolean isEditingNewRecord = MDDUI.get().isEditingNewRecord();
+
+        List<Method> ms = new ArrayList<>();
+        for (Method m : ReflectionHelper.getAllMethods(bean != null?bean.getClass():field.getDeclaringClass())) {
+            if (m.isAnnotationPresent(Action.class) && !(
+                    Modifier.isStatic(m.getModifiers())
+                            || (m.isAnnotationPresent(NotWhenCreating.class) && isEditingNewRecord)
+                            || (m.isAnnotationPresent(NotWhenEditing.class) && !isEditingNewRecord))
+                    && field.getName().equals(m.getAnnotation(Action.class).attachToField()
+            )) {
+                ms.add(m);
+            }
+        }
+
+        ms.sort((a, b) -> {
+            return a.getAnnotation(Action.class).order() - b.getAnnotation(Action.class).order();
+        });
+
+        ms.forEach(m -> {
+            AbstractAction a;
+            l.add(a = ViewComponentHelper.createAction(m, this));
+        });
+
         return l;
     }
 
@@ -248,5 +274,29 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
 
         }
 
+    }
+
+
+    @Override
+    public Method getMethod(String methodName) {
+        Method a = super.getMethod(methodName);
+
+        if (a == null) {
+            Object bean = (evfc != null)?evfc.getModel():null;
+
+            for (Method m : ReflectionHelper.getAllMethods(bean != null?bean.getClass():field.getDeclaringClass())) {
+                if (m.isAnnotationPresent(Action.class) && !(
+                        Modifier.isStatic(m.getModifiers()))
+                        && field.getName().equals(m.getAnnotation(Action.class).attachToField())
+                        && m.getName().equals(methodName)
+                ) {
+                    a = m;
+                    break;
+                }
+            }
+
+        }
+
+        return a;
     }
 }

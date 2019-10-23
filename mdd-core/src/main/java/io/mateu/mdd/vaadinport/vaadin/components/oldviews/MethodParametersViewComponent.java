@@ -1,5 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.vaadin.data.BinderValidationStatus;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
@@ -13,6 +15,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Ignored;
+import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDExecutionContext;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Pair;
@@ -22,6 +25,7 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import io.mateu.mdd.vaadinport.vaadin.navigation.MDDViewProvider;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Entity;
@@ -36,240 +40,50 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class MethodParametersViewComponent extends AbstractViewComponent implements IEditorViewComponent {
+public class MethodParametersViewComponent extends EditorViewComponent {
 
     private final Method method;
     private final Object bean;
-    private final MDDExecutionContext context;
-    private final MDDBinder parentBinder;
     private final Set pendingSelection;
-    private Map<HasValue, List<Validator>> validators = new HashMap<>();
-    List<Component> componentsToLookForErrors = new ArrayList<>();
 
-    private Map<String, Object> model = new HashMap<>();
-
-    private MDDBinder binder;
-
-    private AbstractStylist stylist;
     private Class parametersType;
     private Object paremetersModel;
 
-    public List<Object> getMergeables() {
-        return binder.getMergeables();
-    }
-
-    public MethodParametersViewComponent(MDDBinder parentBinder, Object bean, Method method, MDDExecutionContext context, Set pendingSelection) {
-
-        this.parentBinder = parentBinder;
-        this.context = context;
+    public MethodParametersViewComponent(Object bean, Method method, Set pendingSelection) throws Exception {
+        super(ReflectionHelper.createClass("" + method.getDeclaringClass().getSimpleName() + "_" + method.getName() + "_Parameters000", ReflectionHelper.getAllFields(method), false));
         this.bean = bean;
         this.method = method;
         this.pendingSelection = pendingSelection;
-
-        //setViewTitle(stylist.getViewTitle(newRecord, entities));
-
-        try {
-            build();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        setModel(getModelType().newInstance());
     }
 
     @Override
     public String toString() {
         String t = Helper.capitalize(method.getName());
-        if (method.isAnnotationPresent(Action.class)) t = method.getAnnotation(Action.class).value();
+        if (method.isAnnotationPresent(Action.class) && !Strings.isNullOrEmpty(method.getAnnotation(Action.class).value())) t = method.getAnnotation(Action.class).value();
         return t;
     }
 
     @Override
-    public MethodParametersViewComponent build() throws Exception {
-
-        long t0 = System.currentTimeMillis();
-
-        super.build();
-
-        componentsToLookForErrors = new ArrayList<>();
-
-        addStyleName("editorviewcomponent");
-
-        parametersType = ReflectionHelper.createClass("" + method.getDeclaringClass().getName() + "" + method.getName() + "0003Parameters", getAllFields(), false);
-        paremetersModel = parametersType.newInstance();
-
-        binder = new MDDBinder(parametersType);
-        //binder = new Binder(modelType, true);
-
-        Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(binder, parametersType, paremetersModel, componentsToLookForErrors, FormLayoutBuilderParameters.builder().validators(validators).allFields(ReflectionHelper.getAllFields(parametersType)).build());
-
-        stylist = r.getValue();
-        addComponent(r.getKey());
-
-
-
-        Button b;
-        addComponent(b = new Button("Run", VaadinIcons.BOLT));
-        b.addStyleName(ValoTheme.BUTTON_PRIMARY);
-        b.addClickListener(e -> run());
-        b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
-
-
-        addComponentsAndExpand(new Label(""));
-
-        log.debug("method parameters component built in " + (System.currentTimeMillis() - t0) + " ms.");
-
-
-        return this;
-    }
-
-    private List<FieldInterfaced> getAllFields() {
-        List<FieldInterfaced> allFields = ReflectionHelper.getAllFields(method);
-
-        allFields = allFields.stream().filter((f) ->
-                !(f.isAnnotationPresent(Version.class) || f.isAnnotationPresent(Ignored.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))
-        ).collect(Collectors.toList());
-
-        return allFields;
-    }
-
-    private boolean validate() {
-        boolean noerror = true;
-        for (Component c : componentsToLookForErrors) {
-            if (c instanceof AbstractComponent && ((AbstractComponent) c).getComponentError() != null) {
-                noerror = false;
-                MDD.alert("Please solve errors for all fields");
-                break;
-            }
-        }
-        return noerror;
-    }
-
-    public void run() {
-        if (validate()) try {
-
-            BinderValidationStatus v = binder.validate();
-
-            if (v.isOk()) {
-
-
-                log.debug("" + binder.getBean());
-
-                ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-                javax.validation.Validator validator = factory.getValidator();
-
-                Set<ConstraintViolation<Object>> violations = validator.validate(binder.getBean());
-
-                if (violations.size() > 0) {
-
-                    String s = "";
-
-                    for (ConstraintViolation<Object> violation : violations) {
-                        if (!"".equalsIgnoreCase(s)) s += "\n";
-                        s += "" + Helper.capitalize(violation.getPropertyPath().toString()) + " " + violation.getMessage();
-                    }
-
-                    MDD.alert(s);
-
-                } else {
-
-                    Object r = ReflectionHelper.execute(MDD.getUserData(), method, binder, bean, pendingSelection);
-
-                    if (r instanceof Class && (((Class) r).isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom((Class<?>) r))) {
-
-                        MDDUI.get().getNavegador().getViewProvider().openCRUD(null, (Class) r, null, null, false);
-
-
+    public List<AbstractAction> getActions() {
+        return Lists.newArrayList(new AbstractAction(VaadinIcons.BOLT, "Run") {
+            @Override
+            public void run(MDDExecutionContext context) {
+                try {
+                    Object r = ReflectionHelper.execute(MDD.getUserData(), method, getBinder(), bean, pendingSelection);
+                    if (bean != null && void.class.equals(method.getReturnType())) {
+                        MDD.notifyInfo("Done");
+                        MDDUI.get().getNavegador().goBack();
                     } else {
-
-                        if (method.isAnnotationPresent(Action.class) && method.getAnnotation(Action.class).saveAfter() && parentBinder.getViewComponent() != null && parentBinder.getViewComponent() instanceof EditorViewComponent) {
-                            ((EditorViewComponent) parentBinder.getViewComponent()).save(false);
-                        }
-
-                        if (parentBinder != null) {
-                            parentBinder.update(bean);
-                        }
-
-
-                        if (void.class.equals(method.getReturnType())) {
-                            MDDUI.get().getNavegador().goBack();
-                            MDD.info("Done");
-                        } else {
-                            MDDUI.get().getNavegador().showResult(context.getCurrentState(), method, r, context, true, null);
-                        }
-
+                        MDDUI.get().getNavegador().getViewProvider().pendingResult = r;
+                        MDDUI.get().getNavegador().getViewProvider().lastMethodCall = method;
+                        MDDUI.get().getNavegador().go("result");
                     }
-
-                    // cambiamos la url, para reflejar el cambio
-
+                } catch (Throwable e) {
+                    MDD.alert(e);
                 }
-
-            } else MDD.alert(v);
-
-
-        } catch (Throwable throwable) {
-            MDD.alert(throwable);
-        }
-    }
-
-
-    public AbstractStylist getStylist() {
-        return stylist;
-    }
-
-    public void setStylist(AbstractStylist stylist) {
-        this.stylist = stylist;
-    }
-
-
-    @Override
-    public Method getMethod(String name) {
-        return null;
-    }
-
-    @Override
-    public FieldInterfaced getField(String name) {
-        FieldInterfaced f = null;
-        for (FieldInterfaced x : getAllFields()) {
-            if (name.equals(x.getName())) {
-                f = x;
-                break;
             }
-        }
-        return f;
+        });
     }
-
-    @Override
-    public Object getModel() {
-        return binder.getBean();
-    }
-
-    @Override
-    public MDDBinder getBinder() {
-        return binder;
-    }
-
-    @Override
-    public void updateModel(Object m) {
-        binder.setBean(m, false);
-    }
-
-    @Override
-    public void preSave() throws Throwable {
-
-    }
-
-    @Override
-    public void save(boolean goBack) {
-
-    }
-
-    @Override
-    public void save(boolean goBack, boolean notify) throws Throwable {
-
-    }
-
 
 }

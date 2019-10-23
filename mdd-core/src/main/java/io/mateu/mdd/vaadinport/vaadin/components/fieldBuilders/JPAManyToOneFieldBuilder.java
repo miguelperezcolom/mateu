@@ -262,33 +262,20 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                         hl.addComponent(b);
                     }
 
-                    b = new Button(null, VaadinIcons.EDIT);
-                    b.addStyleName(ValoTheme.BUTTON_QUIET);
-                    b.addStyleName(CSS.NOPADDING);
-                    b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
-                    hl.addComponent(b);
-
                     b = new Button(null, VaadinIcons.PLUS);
                     b.addStyleName(ValoTheme.BUTTON_QUIET);
                     b.addStyleName(CSS.NOPADDING);
                     b.addClickListener(e -> {
 
-                        /*
-                        Object bean = binder.getBean();
-                        try {
-                            ReflectionHelper.setValue(field, bean, null);
-                            binder.setBean(bean, false);
-
-                            MDDUI.get().getNavegador().go(field.getName());
-
-
-                        } catch (Exception e1) {
-                            MDD.alert(e1);
-                        }
-                        */
                         MDDUI.get().getNavegador().go(field.getName() + "_new");
 
                     });
+                    hl.addComponent(b);
+
+                    b = new Button(null, VaadinIcons.ARROW_RIGHT);
+                    b.addStyleName(ValoTheme.BUTTON_QUIET);
+                    b.addStyleName(CSS.NOPADDING);
+                    b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
                     hl.addComponent(b);
 
                 }

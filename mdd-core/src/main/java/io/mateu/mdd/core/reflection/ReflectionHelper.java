@@ -1175,7 +1175,10 @@ public class ReflectionHelper {
                         MDD.getPort().pushDone(message);
                     }
                 });
-            } else if ((instance instanceof RpcView || Modifier.isStatic(m.getModifiers())) && Set.class.isAssignableFrom(p.getType()) && (m.getDeclaringClass().equals(pgc) || (instance instanceof RpcView && ReflectionHelper.getGenericClass(instance.getClass(), RpcView.class, "C").equals(pgc)))) {
+            } else if (((instance instanceof RpcView || Modifier.isStatic(m.getModifiers())) && Set.class.isAssignableFrom(p.getType()) && (m.getDeclaringClass().equals(pgc)
+                    || (instance instanceof RpcView && ReflectionHelper.getGenericClass(instance.getClass(), RpcView.class, "C").equals(pgc))))
+                    || (pendingSelection != null && Set.class.isAssignableFrom(p.getType()) && !Strings.isNullOrEmpty(m.getAnnotation(Action.class).attachToField()))
+            ) {
                 vs.add(pendingSelection);
             } else if (params != null && params.containsKey(p.getName())) {
                 vs.add(params.get(p.getName()));
@@ -1478,7 +1481,13 @@ public class ReflectionHelper {
         } else {
             ReflectionHelper.setValue(mbf, i, null);
         }
-        binder.getMergeables().add(i);
+        boolean mergear = false;
+        OneToMany a = field.getAnnotation(OneToMany.class);
+        if (a != null) {
+            List<CascadeType> l = Arrays.asList(a.cascade());
+            mergear =  i.getClass().isAnnotationPresent(Entity.class) && !(l.contains(CascadeType.ALL) || l.contains(CascadeType.MERGE) || l.contains(CascadeType.PERSIST));
+        }
+        if (mergear) binder.getMergeables().add(i);
 
     }
 

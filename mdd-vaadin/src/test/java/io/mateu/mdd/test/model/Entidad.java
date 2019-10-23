@@ -1,6 +1,7 @@
 package io.mateu.mdd.test.model;
 
 import io.mateu.mdd.core.annotations.Code;
+import io.mateu.mdd.core.annotations.FieldGroup;
 import io.mateu.mdd.core.annotations.Html;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
@@ -18,9 +19,7 @@ import java.util.List;
 @Slf4j
 public class Entidad {
 
-    @Id@GeneratedValue
-    private long id;
-
+    @FieldGroup("G1")
     private String nombre = "Entidad " + LocalDateTime.now();
 
     private LocalDateTime trigger = LocalDateTime.now();
@@ -30,6 +29,7 @@ public class Entidad {
     private LocalDateTime fechaYHora = LocalDateTime.now();
 
 
+    @FieldGroup("G2")
     @Html
     private String html;
 
@@ -37,6 +37,7 @@ public class Entidad {
     private String codigo;
 
 
+    @FieldGroup("G3")
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Evento> _log = new ArrayList<>();
 

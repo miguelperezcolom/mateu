@@ -1,6 +1,7 @@
 package io.mateu.mdd.core.app;
 
 
+import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ExtraFilters;
 
 public class MDDOpenCRUDAction extends AbstractAction {
@@ -10,15 +11,15 @@ public class MDDOpenCRUDAction extends AbstractAction {
     private final ExtraFilters extraFilters;
 
     public MDDOpenCRUDAction(Class entityClass) {
-        this(null, entityClass, null, null);
+        this(Helper.capitalize(entityClass.getSimpleName()), entityClass, null, null);
     }
 
     public MDDOpenCRUDAction(Class entityClass, String queryFilters) {
-        this(null, entityClass, queryFilters, null);
+        this(Helper.capitalize(entityClass.getSimpleName()), entityClass, queryFilters, null);
     }
 
     public MDDOpenCRUDAction(Class entityClass, ExtraFilters extraFilters) {
-        this(null, entityClass, null, extraFilters);
+        this(Helper.capitalize(entityClass.getSimpleName()), entityClass, null, extraFilters);
     }
 
 

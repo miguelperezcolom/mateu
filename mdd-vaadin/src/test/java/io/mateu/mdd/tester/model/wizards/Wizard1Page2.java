@@ -21,6 +21,7 @@ public class Wizard1Page2 implements WizardPage {
 
     public Wizard1Page2(Wizard1Page1 prev) {
         this.prev = prev;
+        previousValues = "" + prev.getName() + " - " + prev.getAge();
     }
 
 
@@ -43,6 +44,6 @@ public class Wizard1Page2 implements WizardPage {
 
     @Override
     public void onOk() throws Throwable {
-        log.debug("" + this);
+        System.out.println("" + this);
     }
 }

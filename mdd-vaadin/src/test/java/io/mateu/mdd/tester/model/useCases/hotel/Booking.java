@@ -17,6 +17,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j@MateuMDDEntity
 public class Booking {
@@ -115,8 +116,13 @@ public class Booking {
 
 
     @OneToMany(cascade = CascadeType.ALL)
-    @UseLinkToListView
+    @UseLinkToListView(addEnabled = true, deleteEnabled = true)
     private List<BookingLog> _log = new ArrayList<>();
+
+    @Action(attachToField = "_log")
+    public void actionOnLog(Set<BookingLog> selection, String texto) {
+        selection.forEach(l -> l.setText(texto));
+    }
 
 
     @Ignored

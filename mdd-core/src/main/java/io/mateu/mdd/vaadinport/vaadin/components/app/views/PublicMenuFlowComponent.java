@@ -10,8 +10,10 @@ import io.mateu.mdd.core.app.AbstractModule;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
 
-public class PublicMenuFlowComponent extends VerticalLayout {
+public class PublicMenuFlowComponent extends AbstractViewComponent {
 
     @Override
     public String toString() {
@@ -20,7 +22,6 @@ public class PublicMenuFlowComponent extends VerticalLayout {
 
 
     public PublicMenuFlowComponent() {
-
         addStyleName("publicmenuflowcomponent");
         addStyleName(CSS.NOPADDING);
         if (MDD.isMobile()) {

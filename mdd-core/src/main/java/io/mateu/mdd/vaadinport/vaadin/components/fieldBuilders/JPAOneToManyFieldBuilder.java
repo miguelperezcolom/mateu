@@ -344,7 +344,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             if (anchoCompleto) g.setWidth("100%");
             else {
-                g.setWidth("" + (ancho + 50) + "px");
+                g.setWidth("" + (ancho + 55) + "px");
             }
 
             // añadimos columna para que no haga feo
@@ -376,7 +376,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                         if (!field.isAnnotationPresent(ModifyValuesOnly.class)) {
 
 
-                            hl.addComponent(b = new Button("Add", VaadinIcons.PLUS));
+                            hl.addComponent(b = new Button(VaadinIcons.PLUS));
+                            b.addStyleName(ValoTheme.BUTTON_QUIET);
                             b.addClickListener(e -> {
                                 try {
                                     Object bean = binder.getBean();
@@ -417,7 +418,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                         if (!field.isAnnotationPresent(ModifyValuesOnly.class)) {
 
-                            hl.addComponent(b = new Button("Add", VaadinIcons.PLUS));
+                            hl.addComponent(b = new Button(VaadinIcons.PLUS));
+                            b.addStyleName(ValoTheme.BUTTON_QUIET);
                             b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
                         }
 
@@ -425,7 +427,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                 if (!field.isAnnotationPresent(ModifyValuesOnly.class)) {
 
-                    hl.addComponent(b = new Button("Duplicate", VaadinIcons.COPY));
+                    hl.addComponent(b = new Button(VaadinIcons.COPY));
+                    b.addStyleName(ValoTheme.BUTTON_QUIET);
                     b.addClickListener(e -> {
                         try {
 
@@ -445,7 +448,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                         }
                     });
 
-                    hl.addComponent(b = new Button("Remove", VaadinIcons.MINUS));
+                    hl.addComponent(b = new Button(VaadinIcons.MINUS));
+                    b.addStyleName(ValoTheme.BUTTON_QUIET);
                     b.addClickListener(e -> {
                         try {
                             Object bean = binder.getBean();
@@ -466,7 +470,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                     //todo: faltan botones para ordenar la lista
 
-                    hl.addComponent(b = new Button("Up", VaadinIcons.ARROW_UP));
+                    hl.addComponent(b = new Button(VaadinIcons.ARROW_UP));
+                    b.addStyleName(ValoTheme.BUTTON_QUIET);
                     b.addClickListener(e -> {
                         try {
 
@@ -509,7 +514,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                         }
                     });
 
-                    hl.addComponent(b = new Button("Down", VaadinIcons.ARROW_DOWN));
+                    hl.addComponent(b = new Button(VaadinIcons.ARROW_DOWN));
+                    b.addStyleName(ValoTheme.BUTTON_QUIET);
                     b.addClickListener(e -> {
                         try {
 
@@ -593,10 +599,12 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                         }
                     });
 
-                    hl.addComponent(b = new Button("Add items", VaadinIcons.PLUS));
+                    hl.addComponent(b = new Button(VaadinIcons.PLUS));
+                    b.addStyleName(ValoTheme.BUTTON_QUIET);
                     b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
 
-                    hl.addComponent(b = new Button("Remove selection", VaadinIcons.MINUS));
+                    hl.addComponent(b = new Button(VaadinIcons.MINUS));
+                    b.addStyleName(ValoTheme.BUTTON_QUIET);
                     b.addClickListener(e -> {
                         try {
                             Object bean = binder.getBean();

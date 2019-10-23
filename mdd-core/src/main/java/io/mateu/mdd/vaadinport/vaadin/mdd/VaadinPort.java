@@ -95,6 +95,34 @@ public class VaadinPort implements MDDPort {
         return ipad;
     }
 
+    @Override
+    public void notifyError(String msg) {
+        Notification.show(msg, Notification.Type.TRAY_NOTIFICATION);
+    }
+
+    @Override
+    public void notifyInfo(String msg) {
+        Notification.show(msg, Notification.Type.TRAY_NOTIFICATION);
+    }
+
+    @Override
+    public void notifyError(Throwable throwable) {
+        throwable.printStackTrace();
+
+        if (throwable instanceof InvocationTargetException) {
+            throwable = throwable.getCause();
+        }
+
+        String msg = (throwable.getMessage() != null)?throwable.getMessage():throwable.getClass().getName();
+
+        //StringWriter sw = new StringWriter();
+        //throwable.printStackTrace(new PrintWriter(sw));
+        Notification.show("Error",
+                msg,
+                //sw.toString(),
+                Notification.Type.TRAY_NOTIFICATION);
+
+    }
 
 
     @Override

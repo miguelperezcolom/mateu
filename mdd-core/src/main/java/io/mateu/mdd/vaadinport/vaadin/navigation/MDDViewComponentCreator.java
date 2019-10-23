@@ -9,6 +9,7 @@ import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
 
 import javax.persistence.Entity;
@@ -46,9 +47,19 @@ public class MDDViewComponentCreator {
 
             if (RpcCrudView.class.isAssignableFrom(viewClass)) {
                 Class modelType = ReflectionHelper.getGenericClass(viewClass, RpcCrudView.class, "T");
-                v = new CRUDViewComponent(new RpcListViewComponent(viewClass).build(), createEditorViewComponent(modelType)).build();
+                v = new RpcListViewComponent(viewClass).addListener(new ListViewComponentListener() {
+                    @Override
+                    public void onEdit(Object id) {
+                        MDDUI.get().getNavegador().go("" + id);
+                    }
+
+                    @Override
+                    public void onSelect(Object id) {
+
+                    }
+                });
             } else {
-                v = new RpcListViewComponent(viewClass).build();
+                v = new RpcListViewComponent(viewClass);
             }
 
         } catch (Exception e) {
@@ -63,7 +74,7 @@ public class MDDViewComponentCreator {
         try {
 
             modelType = entityClass;
-            v = new CRUDViewComponent(createListViewComponent(modelType, queryFilters, extraFilters), createEditorViewComponent(modelType)).build();
+            v = createListViewComponent(modelType, queryFilters, extraFilters);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -76,19 +87,19 @@ public class MDDViewComponentCreator {
     }
 
     public static EditorViewComponent createEditorViewComponent(Class modelType, boolean createSaveBUtton) throws Exception {
-        EditorViewComponent v = new EditorViewComponent(modelType, createSaveBUtton).build();
+        EditorViewComponent v = new EditorViewComponent(modelType, createSaveBUtton);
         return v;
     }
 
     public static EditorViewComponent createEditorViewComponent(Object owner, FieldInterfaced field, Class modelType, boolean createSaveBUtton) throws Exception {
-        EditorViewComponent v = new EditorViewComponent(owner, field, modelType, createSaveBUtton).build();
+        EditorViewComponent v = new EditorViewComponent(owner, field, modelType, createSaveBUtton);
         return v;
     }
 
     private static ListViewComponent createListViewComponent(Class modelType, String queryFilters, ExtraFilters extraFilters) throws Exception {
         ListViewComponent v = null;
         if (modelType.isAnnotationPresent(Entity.class)) {
-            v = new JPAListViewComponent(modelType, extraFilters).build();
+            v = new JPAListViewComponent(modelType, extraFilters);
         } else {
 
         }

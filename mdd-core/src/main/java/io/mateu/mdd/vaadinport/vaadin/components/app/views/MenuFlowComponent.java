@@ -7,11 +7,13 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.AbstractMenu;
 import io.mateu.mdd.core.app.MenuEntry;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MenuFlowComponent extends Panel {
+public class MenuFlowComponent extends AbstractViewComponent {
 
     private final AbstractMenu menu;
 
@@ -25,12 +27,13 @@ public class MenuFlowComponent extends Panel {
     public MenuFlowComponent(AbstractMenu menu) {
         this.menu = menu;
 
-        setSizeFull();
-        addStyleName(ValoTheme.PANEL_BORDERLESS);
+        Panel p = new Panel();
+        p.setSizeFull();
+        p.addStyleName(ValoTheme.PANEL_BORDERLESS);
 
         CssLayout cssLayout = new CssLayout();
 
-        setContent(cssLayout);
+        p.setContent(cssLayout);
 
         cssLayout.addStyleName("menuflowcomponent");
 
@@ -47,6 +50,7 @@ public class MenuFlowComponent extends Panel {
 
         menu.getEntries().stream().filter(e -> e instanceof AbstractMenu).forEach(e -> cssLayout.addComponent(createMenuComponent(e)));
 
+        addComponents(p);
     }
 
     public Component createMenuComponent(MenuEntry e) {
