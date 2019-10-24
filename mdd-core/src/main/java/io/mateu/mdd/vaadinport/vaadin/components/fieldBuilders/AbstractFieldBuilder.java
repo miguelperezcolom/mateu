@@ -111,7 +111,7 @@ public abstract class AbstractFieldBuilder {
                             initialized = true;
                             try {
                                 Object old = ReflectionHelper.getValue(field, binder.getBean());
-                                if (old == v || (v != null && !v.equals(old))) {
+                                if (old != v || (v != null && !v.equals(old))) {
                                     ReflectionHelper.setValue(field, binder.getBean(), v);
                                 }
                                 lastValue = v;
