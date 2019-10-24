@@ -6,10 +6,16 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.app.MDDExecutionContext;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
 
-public class FiltersViewFlowComponent extends VerticalLayout {
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
+
+public class FiltersViewFlowComponent extends EditorViewComponent {
 
     private final ListViewComponent listViewComponent;
 
@@ -18,34 +24,13 @@ public class FiltersViewFlowComponent extends VerticalLayout {
         return "All filters for " + listViewComponent;
     }
 
-    public FiltersViewFlowComponent(String state, ListViewComponent listViewComponent) {
+    public FiltersViewFlowComponent(ListViewComponent listViewComponent) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        super(listViewComponent.getModelForSearchFilters());
         this.listViewComponent = listViewComponent;
-
-        addStyleName("filtersflowcomponent");
-
-        Panel p = new Panel(listViewComponent.getFiltersViewComponent());
-        p.addStyleName(ValoTheme.PANEL_BORDERLESS);
-        addComponentsAndExpand(p);
-
-
-        Button b;
-        addComponent(b = new Button(VaadinIcons.SEARCH));
-        //b.setDescription("Search. Click ENTER to fire");
-        b.addStyleName(ValoTheme.BUTTON_QUIET);
-        b.addStyleName("buttonlink");
-
-        b.addClickListener(new Button.ClickListener() {
-            @Override
-            public void buttonClick(Button.ClickEvent clickEvent) {
-                MDDUI.get().getNavegador().goBack();
-            }
-        });
-
-        b.setStyleName(ValoTheme.BUTTON_PRIMARY);
-        b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
-
-
-
     }
 
+    @Override
+    public void onGoBack() {
+        listViewComponent.setModelForSearchFilters(getModel());
+    }
 }

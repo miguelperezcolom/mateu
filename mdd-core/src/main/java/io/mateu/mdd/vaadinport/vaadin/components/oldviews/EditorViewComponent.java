@@ -28,6 +28,7 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.ClassOption;
+import io.mateu.mdd.vaadinport.vaadin.components.app.views.FiltersViewFlowComponent;
 import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 import lombok.extern.slf4j.Slf4j;
 
@@ -364,7 +365,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 fields.removeIf(f -> hiddenFields.contains(f));
             }
 
-            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(this, binder, model.getClass(), model, componentsToLookForErrors, FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).links(links).actionsPerSection(actionsPerSection).build());
+            FormLayoutBuilderParameters.FormLayoutBuilderParametersBuilder params = FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).links(links).actionsPerSection(actionsPerSection);
+            if (this instanceof FiltersViewFlowComponent) params = params.forSearchFilters(true).forSearchFiltersExtended(true).createSections(false).createTabs(false);
+            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(this, binder, model.getClass(), model, componentsToLookForErrors, params.build());
 
             stylist = r.getValue();
 
@@ -644,7 +647,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             }
         }
 
-        if (!isNewRecord() && (listViewComponent != null || (modelType != null && modelType.isAnnotationPresent(Entity.class)))) {
+        if (!(this instanceof FiltersViewFlowComponent) && !isNewRecord() && (listViewComponent != null || (modelType != null && modelType.isAnnotationPresent(Entity.class)))) {
             if (!isActionPresent("prev")) {
 
                 Button i;

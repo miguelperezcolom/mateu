@@ -923,7 +923,11 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
         } else if ("filters".equals(step)) {
 
-            stack.push(currentPath, new FiltersViewFlowComponent(state, lvc));
+            try {
+                stack.push(currentPath, new FiltersViewFlowComponent(lvc));
+            } catch (Exception e) {
+                MDD.alert(e);
+            }
 
         } else {
 

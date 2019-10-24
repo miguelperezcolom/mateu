@@ -110,7 +110,7 @@ public class FiltersComponent extends Composite {
 
 
 
-            if (mainFilterFields.size() < allFilterFields.size()) { // hay filtros que no son los
+            if (mainFilterFields.size() < allFilterFields.size()) { // hay filtros que no son los principales
 
                 r = FormLayoutBuilder.get().build(binder, modelType, binder.getBean(), new ArrayList<>(), FormLayoutBuilderParameters.builder().validators(validators).allFields(allFilterFields).forSearchFilters(true).forSearchFiltersExtended(true).build());
 
@@ -183,19 +183,6 @@ public class FiltersComponent extends Composite {
 
     private List<FieldInterfaced> getAllFilterFields() {
         List<FieldInterfaced> allFields = listViewComponent.getFilterFields();
-
-        /*
-        allFields = allFields.stream().filter((f) ->
-                !(f.isAnnotationPresent(Ignored.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)))
-        ).filter(f -> RpcView.class.isAssignableFrom(modelType) || f.isAnnotationPresent(SearchFilter.class) || f.isAnnotationPresent(MainSearchFilter.class)).collect(Collectors.toList());
-
-
-        if (allFields.size() == 0) {
-            //todo: considerar crear al menos un filtro para todos los campos de tipo string
-        }
-        */
-
-        //todo: acabar el tema de los filtros
         return allFields;
     }
 

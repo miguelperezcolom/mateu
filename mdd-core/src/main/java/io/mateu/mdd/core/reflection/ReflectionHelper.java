@@ -1723,7 +1723,7 @@ public class ReflectionHelper {
 
         log.debug("creating class " + fullClassName);
 
-        List<String> avoidedAnnotationNames = forFilters?Lists.newArrayList("NotNull", "NotEmpty", "SameLine", "Unmodifiable"):new ArrayList<>();
+        List<String> avoidedAnnotationNames = forFilters?Lists.newArrayList("Id", "GeneratedValue", "NotNull", "NotEmpty", "SameLine", "Unmodifiable"):new ArrayList<>();
 
         ClassPool pool = MDD.getClassPool();
 
@@ -1781,9 +1781,23 @@ public class ReflectionHelper {
                 if (Double.class.equals(t) || double.class.equals(t)
                 || Long.class.equals(t) || long.class.equals(t)
                 || Integer.class.equals(t) || int.class.equals(t)) {
-                    addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName() + "From", f.getDeclaredAnnotations(), false);
-                    addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName() + "To", f.getDeclaredAnnotations(), true);
-                    addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName() + "Value", f.getDeclaredAnnotations(), true);
+                    addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName(), f.getDeclaredAnnotations(), false);
+                    Annotation[] sfa = new Annotation[]{
+                            new SearchFilter() {
+
+                                @Override
+                                public Class<? extends Annotation> annotationType() {
+                                    return SearchFilter.class;
+                                }
+
+                                @Override
+                                public String field() {
+                                    return null;
+                                }
+                            }
+                    };
+                    addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName() + "From", sfa, true);
+                    addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName() + "To", sfa, true);
                 } else if (LocalDate.class.equals(t) || LocalDateTime.class.equals(t) || Date.class.equals(t)) {
                     addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName() + "From", f.getDeclaredAnnotations(), false);
                     addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName() + "To", f.getDeclaredAnnotations(), true);
