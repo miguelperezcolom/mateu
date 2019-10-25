@@ -54,6 +54,7 @@ public class Entidad {
     public void post() {
         if (trigger != null) {
 
+
             WorkflowEngine.add(() -> {
 
                 log.debug("tarea creada desde entidad.post()");
