@@ -128,6 +128,7 @@ public class VaadinPort implements MDDPort {
     @Override
     public void setUserData(UserData userData) {
         UI.getCurrent().getSession().setAttribute("_userdata", userData);
+        MDDUI.get().setApp(AbstractApplication.get(userData));
         getApp().updateSession();
         MDDUI.get().getAppComponent().updateSession();
     }

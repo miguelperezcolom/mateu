@@ -3,6 +3,8 @@ package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.vaadin.data.HasValue;
+import com.vaadin.icons.VaadinIcons;
+import com.vaadin.server.ClassResource;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.shared.Registration;
 import com.vaadin.ui.*;
@@ -125,13 +127,15 @@ public class FileComponent extends Composite implements HasValue<Resource>, Comp
         image.setWidth("130px");
         image.setVisible(false);
         image.addClickListener(e -> {
-            String u = null;
-            try {
-                u = file.toFileLocator().getUrl();
-            } catch (Exception e1) {
-                MDD.alert(e1);
+            if (file != null) {
+                String u = null;
+                try {
+                    u = file.toFileLocator().getUrl();
+                } catch (Exception e1) {
+                    MDD.alert(e1);
+                }
+                if (!Strings.isNullOrEmpty(u)) getUI().getPage().open(u, "_blank");
             }
-            if (!Strings.isNullOrEmpty(u)) getUI().getPage().open(u, "_blank");
         });
 
 
@@ -140,7 +144,7 @@ public class FileComponent extends Composite implements HasValue<Resource>, Comp
         v.addStyleName(CSS.NOPADDING);
 
 
-        v.addComponent(new Button("X", new Button.ClickListener() {
+        v.addComponent(new Button(VaadinIcons.CLOSE, new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent clickEvent) {
                 if (file != null) {
@@ -148,6 +152,7 @@ public class FileComponent extends Composite implements HasValue<Resource>, Comp
                     file.setName(null);
                     file.setUrl(null);
                     file.setBytes(null);
+                    file.setUrl(null);
 
                 }
 
@@ -252,17 +257,21 @@ public class FileComponent extends Composite implements HasValue<Resource>, Comp
                 hyperLink.setVisible(false);
                 image.setVisible(true);
                 String u = file.toFileLocator().getUrl();
-                image.setSource(new ExternalResource((!Strings.isNullOrEmpty(u))?u:""));
+                image.setSource(!Strings.isNullOrEmpty(u)?new ExternalResource(u):new ClassResource("/images/noimage.png"));
             } else {
                 hyperLink.setCaption((file != null) ? file.getName() : null);
-                if (file != null && file.getName() != null) hyperLink.setResource((file != null && file.toFileLocator().getUrl() != null) ? new ExternalResource(file.toFileLocator().getUrl()):null);
+                if (file != null && file.getName() != null) hyperLink.setResource((file != null && file.toFileLocator().getUrl() != null) ? new ExternalResource(file.toFileLocator().getUrl()):new ClassResource("/images/noimage.png"));
                 hyperLink.setVisible(true);
                 image.setVisible(false);
             }
 
-            if (file != null) {
+            if (file != null && file.toFileLocator().getUrl() != null && !"".equals(file.toFileLocator().getUrl())) {
                 cb.setValue(file.getType());
                 url.setValue((file.getUrl() != null)?file.getUrl():"");
+            } else {
+                image.setVisible(true);
+                hyperLink.setVisible(false);
+                image.setSource(new ClassResource("/images/noimage.png"));
             }
 
         } catch (Exception e) {

@@ -27,4 +27,9 @@ public class MDDOpenCustomComponentAction extends AbstractAction {
             MDD.alert(e);
         }
     }
+
+    @Override
+    public String toString() {
+        return "Home";
+    }
 }

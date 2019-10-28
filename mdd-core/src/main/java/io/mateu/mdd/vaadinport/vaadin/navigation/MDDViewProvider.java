@@ -210,7 +210,16 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                 Page.getCurrent().open(MDD.getApp().getBaseUrl() + newState, null);
             } else if (MDD.getApp().getDefaultPrivateArea().getDefaultAction() != null) {
-                Page.getCurrent().open(MDD.getApp().getBaseUrl(), null);
+                String newState = MDD.getApp().getMenuId(MDD.getApp().getDefaultPrivateArea().getDefaultAction());
+                if (!Strings.isNullOrEmpty(newState)) {
+                    if (newState.startsWith("/")) newState = newState.substring(1);
+
+                    log.debug("-->going to (" + MDD.getApp().getBaseUrl() + newState + ")");
+
+                    Page.getCurrent().open(MDD.getApp().getBaseUrl() + newState, null);
+                } else {
+                    Page.getCurrent().open(MDD.getApp().getBaseUrl(), null);
+                }
             }
         }
 

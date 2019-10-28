@@ -131,7 +131,7 @@ public class Resource {
     public void set(String url) throws Exception {
         setName((!Strings.isNullOrEmpty(url))?new URL(url).getFile().substring(new URL(url).getFile().lastIndexOf("/") + 1):null);
         setBytes(null);
-        setUrl(url);
+            setUrl(url);
         setType(FileType.URL);
     }
 

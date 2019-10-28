@@ -20,7 +20,7 @@ public class NavigationComponent extends VerticalLayout {
     private static final String[] estilosAreas = {"area-1", "area-2", "area-3", "area-4", "area-5", "area-6", "area-7", "area-8", "area-9", "area-10"};
 
 
-    private final AbstractApplication app;
+    private AbstractApplication app;
     private AbstractArea area;
     private Map<MenuEntry, Component> botones;
     private MenuEntry menu;
@@ -191,6 +191,11 @@ public class NavigationComponent extends VerticalLayout {
 
         botones.put(e, b);
 
+    }
+
+    public void setApp(AbstractApplication app) {
+        this.app = app;
+        setArea(null);
     }
 
     public void setArea(AbstractArea a) {

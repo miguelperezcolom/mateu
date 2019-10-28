@@ -1,12 +1,17 @@
 package io.mateu.mdd.tester.app.simpleCase;
 
 import com.google.common.collect.Lists;
+import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.DependsOn;
 import io.mateu.mdd.core.annotations.SameLine;
+import io.mateu.mdd.core.model.common.Resource;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.persistence.CascadeType;
+import javax.persistence.ManyToOne;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import java.time.LocalDate;
@@ -24,6 +29,12 @@ public class Vista {
     private List<Linea> lineas = Lists.newArrayList(new Linea("Mateu", 10), new Linea("Antonia", 41));
 
     private LocalDate fecha;
+
+    private Resource resource;
+
+    public void setResource(Resource resource) {
+        this.resource = resource;
+    }
 
     @DependsOn("check")
     public boolean isLineasVisible() {
@@ -43,5 +54,14 @@ public class Vista {
 
         private int edad;
 
+    }
+
+    @Action
+    public void test() {
+        try {
+            System.out.println(resource!=null?resource.toFileLocator().toJson():"null");
+        } catch (Exception e) {
+            MDD.alert(e);
+        }
     }
 }

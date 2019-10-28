@@ -28,8 +28,6 @@ import java.util.*;
 @Slf4j
 public abstract class AbstractApplication implements App {
 
-
-    private String baseUrl;
     private String port;
     private Map<AbstractArea, String> areaIds;
     private Map<String, AbstractArea> areaIdsReversed;
@@ -45,13 +43,17 @@ public abstract class AbstractApplication implements App {
     private MemorizadorRegistroEditado memorizador;
 
     public static AbstractApplication get() {
+        return get(MDD.getUserData());
+    }
+
+    public static AbstractApplication get(UserData userData) {
         if (!Strings.isNullOrEmpty(System.getProperty("appClassName"))) {
             try {
                 Object app = Class.forName(System.getProperty("appClassName")).newInstance();
-                if (app instanceof AppProvider) app = ((AppProvider) app).getApp(MDD.getCurrentUser());
+                if (app instanceof AppProvider) app = ((AppProvider) app).getApp(userData != null?Helper.find(User.class, userData.getLogin()):null);
                 return (AbstractApplication) app;
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
             }
         }
 
@@ -110,6 +112,9 @@ public abstract class AbstractApplication implements App {
 
     }
 
+    public boolean isAuthenticationAgnostic() {
+        return false;
+    }
 
 
     public String getAreaId(AbstractArea area) {
@@ -182,7 +187,7 @@ public abstract class AbstractApplication implements App {
             areas = new ArrayList<>();
             boolean autentico = MDD.getUserData() != null;
             for (AbstractArea a : buildAreas()) {
-                if ((!autentico && a.isPublicAccess()) || (autentico && !a.isPublicAccess())) areas.add(a);
+                if (isAuthenticationAgnostic() || (!autentico && a.isPublicAccess()) || (autentico && !a.isPublicAccess())) areas.add(a);
             }
         }
         return areas;
@@ -265,13 +270,9 @@ public abstract class AbstractApplication implements App {
     public View getPrivateHome() { return null; };
 
     public String getBaseUrl() {
-        if (baseUrl == null && System.getProperty("baseurl") != null) baseUrl = System.getProperty("baseurl");
-        return baseUrl;
+        if (MDDUI.get() != null) return MDDUI.get().getBaseUrl();
+        else return System.getProperty("baseurl");
     };
-
-    public void setBaseUrl(String baseUrl) {
-        this.baseUrl = baseUrl;
-    }
 
 
 
@@ -379,7 +380,7 @@ public abstract class AbstractApplication implements App {
     public AbstractArea getDefaultPrivateArea() {
         AbstractArea area = null;
         for (AbstractArea a : areas) {
-            if (!a.isPublicAccess()) {
+            if (isAuthenticationAgnostic() || !a.isPublicAccess()) {
                 area = a;
                 break;
             }
@@ -390,7 +391,7 @@ public abstract class AbstractApplication implements App {
     public AbstractArea getDefaultPublicArea() {
         AbstractArea area = null;
         for (AbstractArea a : areas) {
-            if (a.isPublicAccess()) {
+            if (isAuthenticationAgnostic() || a.isPublicAccess()) {
                 area = a;
                 break;
             }

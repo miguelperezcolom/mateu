@@ -68,6 +68,22 @@ public class MDDUI extends UI {
     private AppComponent appComponent;
     private AbstractApplication app;
     private VaadinPort port;
+    private String baseUrl;
+
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
+    }
+
+    public String getBaseUrl() {
+        return baseUrl;
+    }
+
+    public String _getBaseUrl() {
+        URI u = getPage().getLocation();
+        String s = u.getScheme() + "://" + u.getHost() + ((u.getPort() != 80)?":" + u.getPort():"") + "/";
+        return s;
+    }
+
 
     public boolean isEditingNewRecord() {
         return navegador.getViewProvider().isEditingNewRecord();
@@ -126,11 +142,7 @@ public class MDDUI extends UI {
 
         }
 
-        if (Strings.isNullOrEmpty(app.getBaseUrl())) {
-            app.setBaseUrl(System.getProperty("baseurl", contextUrl));
-            log.debug("baseurl=" + app.getBaseUrl());
-        }
-
+        setBaseUrl(System.getProperty("baseurl", contextUrl));
 
         viewContainer = createViewContainer();
 
@@ -143,11 +155,6 @@ public class MDDUI extends UI {
 
     }
 
-    private String getBaseUrl() {
-        URI u = getPage().getLocation();
-        String s = u.getScheme() + "://" + u.getHost() + ((u.getPort() != 80)?":" + u.getPort():"") + "/";
-        return s;
-    }
 
     public static AbstractApplication createApp() {
         return AbstractApplication.get();

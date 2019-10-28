@@ -30,7 +30,7 @@ public class SimpleMDDApplication extends BaseMDDApp {
     public List<AbstractArea> buildAreas() {
         List<AbstractArea> l = new ArrayList<>();
         addPrivateAreas(l);
-        addPublicAreas(l);
+        if (!isAuthenticationAgnostic()) addPublicAreas(l);
         return l;
     }
 
@@ -106,36 +106,41 @@ public class SimpleMDDApplication extends BaseMDDApp {
         for (Method m : getAllActionMethods(app.getClass())) {
 
             boolean add = false;
-            if (publicAccess && !m.isAnnotationPresent(Private.class) && (!SimpleMDDApplication.this.isAuthenticationNeeded() || m.isAnnotationPresent(Public.class))) {
+
+            if (isAuthenticationAgnostic()) {
                 add = true;
-            }
-            if (!publicAccess && !m.isAnnotationPresent(Public.class) && (SimpleMDDApplication.this.isAuthenticationNeeded() || m.isAnnotationPresent(Private.class))) {
-                Private pa = m.getAnnotation(Private.class);
-                if (pa != null) {
-                    User u = MDD.getCurrentUser();
-                    boolean permisoOk = false;
-                    if (u != null && (pa.users() == null || pa.users().length == 0) && pa.permissions() != null && pa.permissions().length > 0) {
-                        for (int i = 0; i < pa.permissions().length; i++) {
-                            for (Permission p : u.getPermissions()) {
-                                if (p.getId() == pa.permissions()[i]) {
-                                    permisoOk = true;
+            } else {
+                if (publicAccess && !m.isAnnotationPresent(Private.class) && (!SimpleMDDApplication.this.isAuthenticationNeeded() || m.isAnnotationPresent(Public.class))) {
+                    add = true;
+                }
+                if (!publicAccess && !m.isAnnotationPresent(Public.class) && (SimpleMDDApplication.this.isAuthenticationNeeded() || m.isAnnotationPresent(Private.class))) {
+                    Private pa = m.getAnnotation(Private.class);
+                    if (pa != null) {
+                        User u = MDD.getCurrentUser();
+                        boolean permisoOk = false;
+                        if (u != null && (pa.users() == null || pa.users().length == 0) && pa.permissions() != null && pa.permissions().length > 0) {
+                            for (int i = 0; i < pa.permissions().length; i++) {
+                                for (Permission p : u.getPermissions()) {
+                                    if (p.getId() == pa.permissions()[i]) {
+                                        permisoOk = true;
+                                        break;
+                                    }
+                                    if (permisoOk) break;
+                                }
+                            }
+                        } else permisoOk = true;
+                        boolean usuarioOk = false;
+                        if (u != null && pa.users() != null && pa.users().length > 0) {
+                            for (int i = 0; i < pa.users().length; i++) {
+                                if (u.getLogin().equalsIgnoreCase(pa.users()[i])) {
+                                    usuarioOk = true;
                                     break;
                                 }
-                                if (permisoOk) break;
                             }
-                        }
-                    } else permisoOk = true;
-                    boolean usuarioOk = false;
-                    if (u != null && pa.users() != null && pa.users().length > 0) {
-                        for (int i = 0; i < pa.users().length; i++) {
-                            if (u.getLogin().equalsIgnoreCase(pa.users()[i])) {
-                                usuarioOk = true;
-                                break;
-                            }
-                        }
-                    } else usuarioOk = true;
-                    if (permisoOk && usuarioOk) add = true;
-                } else add = true;
+                        } else usuarioOk = true;
+                        if (permisoOk && usuarioOk) add = true;
+                    } else add = true;
+                }
             }
 
             if (add) {
