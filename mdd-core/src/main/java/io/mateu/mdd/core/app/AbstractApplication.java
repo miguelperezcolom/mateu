@@ -47,7 +47,9 @@ public abstract class AbstractApplication implements App {
     public static AbstractApplication get() {
         if (!Strings.isNullOrEmpty(System.getProperty("appClassName"))) {
             try {
-                return (AbstractApplication) Class.forName(System.getProperty("appClassName")).newInstance();
+                Object app = Class.forName(System.getProperty("appClassName")).newInstance();
+                if (app instanceof AppProvider) app = ((AppProvider) app).getApp(MDD.getCurrentUser());
+                return (AbstractApplication) app;
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -57,6 +59,7 @@ public abstract class AbstractApplication implements App {
         AbstractApplication app = null;
         while (apps.hasNext()) {
             app = (AbstractApplication) apps.next();
+            if (app instanceof AppProvider) app = ((AppProvider) app).getApp(MDD.getCurrentUser());
             log.debug("app " + app.getName() + " loaded");
             break;
         }
