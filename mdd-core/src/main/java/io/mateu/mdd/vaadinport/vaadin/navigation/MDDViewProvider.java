@@ -1249,7 +1249,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
             ) {
                 stack.push(currentPath, new ComponentWrapper(title, new Label("" + r, ContentMode.HTML)));
             } else if (URL.class.equals(c)) {
-                if (m != null && m.isAnnotationPresent(IFrame.class) || m.toString().endsWith("pdf")) {
+                if ((m != null && m.isAnnotationPresent(IFrame.class)) || r.toString().endsWith("pdf")) {
                     BrowserFrame b = new BrowserFrame("Result", new ExternalResource(r.toString()));
                     b.setSizeFull();
                     stack.push(currentPath, new ComponentWrapper(title, b));

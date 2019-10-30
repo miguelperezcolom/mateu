@@ -118,6 +118,16 @@ public class AppConfig {
     private boolean telegramEnabled;
     private String telegramBotToken;
 
+    @Section("DeepL")
+    private boolean deeplEnabled;
+    private String deeplAuthKey;
+
+    @Action(order = 10)
+    public void testDeepL() {
+
+    }
+
+
     @Section("CMS")
     private String nginxConfigDirectory = "/etc/nginx/conf.d";
 
@@ -150,7 +160,7 @@ public class AppConfig {
         return c;
     }
 
-    @Action(value = "Create dummy dates")
+    @Action(value = "Create dummy dates", order = 100)
     public void createDummyDates() throws Throwable {
         Helper.transact(new JPATransaction() {
             @Override

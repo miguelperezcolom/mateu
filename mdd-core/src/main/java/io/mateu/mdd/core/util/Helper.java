@@ -27,6 +27,7 @@ import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 import io.mateu.mdd.core.annotations.RightAlignedCol;
 import io.mateu.mdd.core.asciiart.Painter;
+import io.mateu.mdd.core.deepl.DeepLClient;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -249,7 +250,13 @@ public class Helper {
                 WorkflowEngine.cancelLocalRunner();
                 if (em.getTransaction().isActive()) em.getTransaction().rollback();
                 em.close();
-                rethrow(e.getCause() != null && e.getCause() instanceof ConstraintViolationException?e.getCause():e);
+                e = e.getCause() != null && e.getCause() instanceof ConstraintViolationException?e.getCause():e;
+                if (e instanceof ConstraintViolationException) {
+                    StringBuffer sb = new StringBuffer();
+                    ((ConstraintViolationException)e).getConstraintViolations().forEach(v -> sb.append(("".equals(sb.toString())?"":"\n") + (v.getPropertyPath() != null?v.getPropertyPath().toString() + " ":"") + v.getMessage() + (v.getRootBeanClass() != null?" en " + v.getRootBeanClass().getSimpleName() + "":"")));
+                    e = new Exception(sb.toString());
+                }
+                rethrow(e);
 
             }
 
@@ -1749,4 +1756,9 @@ and returns the QR Code in the form of a byte array.
         l.add(o);
         return l;
     }
+
+    public static String translate(String source_lang, String target_lang, String text) throws Throwable {
+        return new DeepLClient().translate(source_lang, target_lang, text);
+    }
+
 }

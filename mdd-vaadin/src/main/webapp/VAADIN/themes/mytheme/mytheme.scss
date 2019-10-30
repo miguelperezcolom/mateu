@@ -947,6 +947,15 @@ body {
 
   .fieldgroup {
     padding: 10px;
+    min-width: 525px;
+
+    .fieldgroupheader {
+      width: 100%;
+      border-bottom: 1px solid lightgrey;
+      //font-weight: bold;
+      color: gray;
+    }
+
   }
 
   .listsummaryline {

@@ -2,6 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components;
 
 import com.google.common.collect.Lists;
 import com.vaadin.data.HasValue;
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
@@ -29,7 +30,9 @@ public class LiteralComponent extends Composite implements HasValue<Literal>, Co
 
         tf = (field.isAnnotationPresent(io.mateu.mdd.core.annotations.TextArea.class))?new TextArea():new TextField();
 
-        HorizontalLayout hl = new HorizontalLayout(tf, cb = new ComboBox<String>(null, langs));
+        HorizontalLayout hl = new HorizontalLayout(tf, cb = new ComboBox<String>(null, langs), new Button(VaadinIcons.FLAG, (e) -> {
+
+        }));
         cb.setWidth("80px");
         cb.setEmptySelectionAllowed(false);
         cb.setValue("es");

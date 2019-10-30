@@ -33,6 +33,8 @@ public class ComponentWrapper extends AbstractViewComponent {
     }
 
 
-
-
+    @Override
+    public String toString() {
+        return wrapped != null?wrapped.toString():"Nothing wrapped";
+    }
 }

@@ -341,12 +341,12 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                 VerticalLayout l;
                 css.addComponent(l = new VerticalLayout());
                 l.setSizeUndefined();
-                l.setWidth("620px");
                 l.addStyleName("fieldgroup");
                 if (!Strings.isNullOrEmpty(g.getCaption())) {
                     Label c;
                     l.addComponent(c = new Label(g.getCaption()));
-                    c.addStyleName(ValoTheme.LABEL_H3);
+                    c.addStyleName(ValoTheme.LABEL_H4);
+                    c.addStyleName("fieldgroupheader");
                 }
 
                 _buildAndAddFields(ofb, model, l, binder, validators, stylist, allFieldContainers, g.getFields(), forSearchFilters, forSearchFiltersExtended, createTabs, componentsToLookForErrors);
