@@ -18,7 +18,7 @@ import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.desktop.DesktopAppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.mobile.MobileAppComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.app.mobile.ViewContainer;
+import io.mateu.mdd.vaadinport.vaadin.components.app.ViewContainer;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.mdd.VaadinPort;
 import io.mateu.mdd.vaadinport.vaadin.navigation.*;

@@ -2,10 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.app.desktop;
 
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.MouseOverVerticalLayout;
-import com.vaadin.ui.AbsoluteLayout;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.JavaScript;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
@@ -45,9 +42,9 @@ public class LeftSideComponent extends MouseOverVerticalLayout {
         versionFull = new VerticalLayout();
         versionFull.addStyleName("full");
         versionFull.addStyleName(CSS.NOPADDING);
+        versionFull.setSpacing(false);
 
-        AbsoluteLayout al;
-        versionFull.addComponent(al = new AbsoluteLayout());
+        AbsoluteLayout al = new AbsoluteLayout();
         al.addStyleName(CSS.NOPADDING);
         al.setWidth("210px");
         al.setHeight("30px");
@@ -57,6 +54,7 @@ public class LeftSideComponent extends MouseOverVerticalLayout {
         appTitle.addStyleName("appTitle");
         appTitle.addClickListener(e -> {
             MDDUI.get().getNavegador().doAfterCheckSaved(() -> {
+                unselectAll();
                 MDDUI.get().getNavegador().goTo("");
             });
         });
@@ -65,10 +63,22 @@ public class LeftSideComponent extends MouseOverVerticalLayout {
         botonMinimizar.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
         botonMinimizar.addStyleName("botonminimizar");
 
-        versionFull.addComponent(ses = new SessionComponent());
-
+        VerticalLayout vlz;
+        versionFull.addComponent(vlz = new VerticalLayout(al, ses = new SessionComponent(appComponent)));
+        vlz.addStyleName(CSS.NOPADDING);
+        vlz.addStyleName("conborde");
 
         versionFull.addComponent(nav = new NavigationComponent(app));
+
+        Panel ll;
+        versionFull.addComponent(ll = new Panel());
+        ll.addStyleName(ValoTheme.PANEL_BORDERLESS);
+        ll.addStyleName("conborde");
+        ll.setHeight("500px");
+        ll.setWidth("211px");
+
+        versionFull.setSizeFull();
+
 
         contenedor.addComponent(versionFull, "right: 0px;");
 
@@ -114,12 +124,28 @@ public class LeftSideComponent extends MouseOverVerticalLayout {
         nav.setMenu(menu);
     }
 
-    public void searching() {
-        nav.searching();
-    }
-
     @Override
     public void mousedOver() {
         maximizar();
+    }
+
+    public void unselectAll() {
+        ses.unselectAll();
+        nav.unselectAll();
+    }
+
+    public void setSigningIn() {
+        unselectAll();
+        ses.setSigningIn();
+    }
+
+    public void setSearching() {
+        unselectAll();
+        nav.setSearching();
+    }
+
+    public void setSelectingArea() {
+        unselectAll();
+        nav.setSelectingArea();
     }
 }

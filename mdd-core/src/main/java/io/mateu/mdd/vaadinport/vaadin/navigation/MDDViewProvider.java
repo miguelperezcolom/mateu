@@ -232,11 +232,15 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
             v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new ResetPasswordFlowComponent(state.split("/")[1]));
 
+            MDDUI.get().getAppComponent().setResettingPassword();
+
         } else if ("login".equals(state)) {
 
             stack.clear();
 
             v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new LoginFlowComponent());
+
+            MDDUI.get().getAppComponent().setSigningIn();
 
         } else if ("search".equals(state)) {
 
@@ -244,9 +248,13 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
             v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new SearchInMenuComponent(MDD.getApp().getSearcher()));
 
+            MDDUI.get().getAppComponent().setSearching();
+
         } else if ("bye".equals(state)) {
 
             MDD.setUserData(null);
+
+            MDDUI.get().getAppComponent().unselectAll();
 
             stack.clear();
 
@@ -267,28 +275,27 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
             stack.clear();
 
+            MDDUI.get().getAppComponent().unselectAll();
+
             v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new WelcomeComponent());
 
             if (MDD.getApp().getAreas().size() == 1) {
-
-                if (MDD.getApp().getAreas().size() == 1) {
-                    AbstractArea area;
-                    MDDUI.get().getAppComponent().setArea(area = MDD.getApp().getAreas().get(0));
-                    if (area != null) {
-                        AbstractAction action = area.getDefaultAction();
-                        if (!MDD.isMobile() && action != null) {
-                            action.run(this);
-                            if (stack.size() > 0) v = stack.getLast();
-                        } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new AreaComponent(area));
-                        if (area != null) MDDUI.get().getAppComponent().setArea(area);
-                    }
+                AbstractArea area;
+                MDDUI.get().getAppComponent().setArea(area = MDD.getApp().getAreas().get(0));
+                if (area != null) {
+                    AbstractAction action = area.getDefaultAction();
+                    if (!MDD.isMobile() && action != null) {
+                        action.run(this);
+                        if (stack.size() > 0) v = stack.getLast();
+                    } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new AreaComponent(area));
+                    if (area != null) MDDUI.get().getAppComponent().setArea(area);
                 }
-
             } else MDDUI.get().getAppComponent().setArea(null);
 
         } else if ("public".equals(state)) {
 
             stack.clear();
+            MDDUI.get().getAppComponent().unselectAll();
 
             if (MDD.isMobile()) {
                 stack.push(currentPath, new PublicMenuFlowComponent());
@@ -311,6 +318,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
         } else if ("private".equals(state)) {
 
             stack.clear();
+            MDDUI.get().getAppComponent().unselectAll();
 
             if (MDD.isMobile()) {
                 stack.push(currentPath, new PrivateMenuFlowComponent());

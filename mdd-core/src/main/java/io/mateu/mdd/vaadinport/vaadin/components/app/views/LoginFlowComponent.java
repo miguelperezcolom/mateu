@@ -159,6 +159,7 @@ public class LoginFlowComponent extends AbstractViewComponent {
             try {
                 UserData u = ((BaseMDDApp)MDD.getApp()).authenticate(login.getValue(), password.getValue());
                 MDD.setUserData(u);
+                MDDUI.get().getAppComponent().unselectAll();
                 MDDUI.get().getNavegador().goTo("welcome");
             } catch (Throwable throwable) {
                 MDD.alert(throwable);

@@ -63,10 +63,7 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMultipart;
 import javax.money.MonetaryAmount;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import javax.persistence.Query;
+import javax.persistence.*;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -213,7 +210,35 @@ public class Helper {
         return (T) o[0];
     }
 
+    public static <T> List<T> findAll(EntityManager em, Class<T> type) throws Throwable {
+        return em.createQuery("select x from " + type.getName() + " x").setFlushMode(FlushModeType.COMMIT).getResultList();
+    }
 
+    public static <T> List<T> findAll(Class<T> type) throws Throwable {
+        List<T> l = new ArrayList<>();
+        Helper.notransact(em -> {
+            l.addAll(findAll(em, type));
+        });
+        return l;
+    }
+
+    public static <T> List<T> getAll(Class<T> type) {
+        try {
+            return findAll(type);
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+        return new ArrayList<>();
+    }
+
+    public static <T> T get(Class<T> type, Object id) {
+        try {
+            return find(type, id);
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+        return null;
+    }
 
     public static EntityManager getEMFromThreadLocal() {
         return tlem.get();

@@ -79,6 +79,8 @@ public class PublicMenuFlowComponent extends AbstractViewComponent {
                 CssLayout lx;
                 addComponent(lx = new CssLayout());
 
+                MDDUI.get().getAppComponent().setSelectingArea();
+
                 MDD.getApp().getAreas().stream().forEach(a -> {
 
                     Button b;

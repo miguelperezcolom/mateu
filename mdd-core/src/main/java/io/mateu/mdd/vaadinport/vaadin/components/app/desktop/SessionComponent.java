@@ -14,7 +14,7 @@ public class SessionComponent extends VerticalLayout {
     private final Button signingButton;
     private final Button greeting;
 
-    public SessionComponent() {
+    public SessionComponent(DesktopAppComponent appComponent) {
 
         addStyleName("sesion");
 
@@ -33,6 +33,8 @@ public class SessionComponent extends VerticalLayout {
         greeting.addStyleName("signingbutton");
         greeting.addClickListener(e -> {
             MDDUI.get().getNavegador().doAfterCheckSaved(() -> {
+                appComponent.unselectAll();
+                greeting.addStyleName("selected");
                 MDDUI.get().getNavegador().goTo("private/profile");
             });
         });
@@ -43,6 +45,8 @@ public class SessionComponent extends VerticalLayout {
         signingButton.addStyleName("signingbutton");
         signingButton.addClickListener(e -> {
             MDDUI.get().getNavegador().doAfterCheckSaved(() -> {
+                appComponent.unselectAll();
+                signingButton.addStyleName("selected");
                 if (MDD.getUserData() != null) {
                     MDDUI.get().getNavegador().goTo("bye");
                 } else {
@@ -79,5 +83,14 @@ public class SessionComponent extends VerticalLayout {
             signingButton.setCaption("Login");
         }
 
+    }
+
+    public void setSigningIn() {
+        signingButton.addStyleName("selected");
+    }
+
+    public void unselectAll() {
+        greeting.removeStyleName("selected");
+        signingButton.removeStyleName("selected");
     }
 }

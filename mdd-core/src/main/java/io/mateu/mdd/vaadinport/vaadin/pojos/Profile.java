@@ -73,7 +73,7 @@ public class Profile implements PersistentPOJO {
                 if (u.getPhoto() != null) userData.setPhoto(u.getPhoto().toFileLocator().getUrl());
                 for (Permission p : u.getPermissions()) userData.getPermissions().add(Math.toIntExact(p.getId()));
 
-                MDD.setUserData(userData);
+                //MDD.setUserData(userData);
 
             }
         });

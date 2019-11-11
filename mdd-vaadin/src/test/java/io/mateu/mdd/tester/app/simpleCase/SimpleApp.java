@@ -20,6 +20,7 @@ import io.mateu.mdd.tester.model.entities.basic.BasicFieldsDemoEntity;
 import io.mateu.mdd.tester.model.entities.groups.Person;
 import io.mateu.mdd.tester.model.useCases.batches.Batch;
 import io.mateu.mdd.tester.model.useCases.hotel.Booking;
+import io.mateu.mdd.tester.model.useCases.hotel.cockpit.CockpitView;
 import io.mateu.mdd.tester.model.useCases.hotel.HotelSalesControlView;
 import io.mateu.mdd.tester.model.useCases.showcase.Showcase;
 import io.mateu.mdd.tester.model.views.BookingsCrudView;
@@ -172,9 +173,14 @@ public class SimpleApp extends SimpleMDDApplication {
         return null;
     }
 
-    @Action(order = 110, icon = VaadinIcons.TREE_TABLE)@IFrame
+    @Action(order = 110, icon = VaadinIcons.TREE_TABLE)
     public Component misssionControl() {
         return new HotelSalesControlView();
+    }
+
+    @Action(order = 115, icon = VaadinIcons.GAMEPAD)
+    public Component cockpit() {
+        return new CockpitView();
     }
 
     @Action(order = 120, icon = VaadinIcons.STOPWATCH)@IFrame

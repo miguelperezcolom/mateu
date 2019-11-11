@@ -8,7 +8,7 @@ import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.MenuEntry;
 import io.mateu.mdd.core.util.Pair;
 import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.app.mobile.ViewContainer;
+import io.mateu.mdd.vaadinport.vaadin.components.app.ViewContainer;
 
 public class DesktopAppComponent extends VerticalLayout implements AppComponent {
     private final AbstractApplication app;
@@ -67,6 +67,7 @@ public class DesktopAppComponent extends VerticalLayout implements AppComponent 
 
     @Override
     public void setCoordinates(Pair<AbstractArea, MenuEntry> coordinates) {
+        unselectAll();
         AbstractArea area = coordinates.getA();
         MenuEntry menu = coordinates.getB();
         setArea(area);
@@ -85,5 +86,29 @@ public class DesktopAppComponent extends VerticalLayout implements AppComponent 
     @Override
     public void updateTitle(String title) {
         viewContainer.updateTitle(title);
+    }
+
+    @Override
+    public void setResettingPassword() {
+        left.unselectAll();
+    }
+
+    @Override
+    public void setSigningIn() {
+        left.setSigningIn();
+    }
+
+    @Override
+    public void setSearching() {
+        left.setSearching();
+    }
+
+    public void unselectAll() {
+        left.unselectAll();
+    }
+
+    @Override
+    public void setSelectingArea() {
+        left.setSelectingArea();
     }
 }

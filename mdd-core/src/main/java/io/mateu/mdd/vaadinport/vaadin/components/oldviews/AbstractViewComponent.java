@@ -95,10 +95,12 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                         || this instanceof MenuFlowComponent
                         || this instanceof SearchInMenuComponent
         ) && stack.size() > 0) {
+            add = true;
             while (!add && pos < stack.size()) {
                 View v = stack.get(pos);
                 Component c = v.getComponent();
                 if (c instanceof ComponentWrapper) c = ((ComponentWrapper) c).getComponent(0);
+                add = true;
                 if (!(c instanceof WelcomeComponent
                         || c instanceof ByeComponent
                         || c instanceof LoginFlowComponent
@@ -111,7 +113,9 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                 if (!add) pos++;
             }
         }
-        if (add && stack.size() > pos && this instanceof AbstractViewComponent) {
+        if (add
+                //&& stack.size() > pos
+                && this instanceof AbstractViewComponent) {
             ((AbstractViewComponent) this).setBackable(true);
             if (this instanceof EditorViewComponent) {
                 ((EditorViewComponent) this).setKpisContainer(kpisContainer);

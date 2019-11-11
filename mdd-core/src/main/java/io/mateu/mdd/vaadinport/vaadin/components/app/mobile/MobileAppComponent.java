@@ -6,6 +6,7 @@ import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.MenuEntry;
 import io.mateu.mdd.core.util.Pair;
 import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.ViewContainer;
 
 public class MobileAppComponent extends VerticalLayout implements AppComponent {
 
@@ -38,5 +39,30 @@ public class MobileAppComponent extends VerticalLayout implements AppComponent {
     @Override
     public void updateTitle(String title) {
         viewContainer.updateTitle(title);
+    }
+
+    @Override
+    public void setResettingPassword() {
+
+    }
+
+    @Override
+    public void setSigningIn() {
+
+    }
+
+    @Override
+    public void setSearching() {
+
+    }
+
+    @Override
+    public void unselectAll() {
+
+    }
+
+    @Override
+    public void setSelectingArea() {
+
     }
 }

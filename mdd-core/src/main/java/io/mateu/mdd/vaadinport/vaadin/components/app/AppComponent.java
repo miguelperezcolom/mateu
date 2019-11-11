@@ -12,4 +12,14 @@ public interface AppComponent {
     void updateSession();
 
     void updateTitle(String title);
+
+    void setResettingPassword();
+
+    void setSigningIn();
+
+    void setSearching();
+
+    void unselectAll();
+
+    void setSelectingArea();
 }
