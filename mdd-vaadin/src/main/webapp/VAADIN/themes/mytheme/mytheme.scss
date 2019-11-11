@@ -235,8 +235,12 @@ body {
             border-right: none;
           }
 
+          .signingbutton.selected:hover {
+            background-color: $v-background-color;
+          }
+
           .signingbutton:hover {
-            color: red;
+            background-color: red;
           }
 
           .greeting {
@@ -403,7 +407,11 @@ body {
             }
 
             .signingbutton:hover {
-              color: $masoscuro;
+              background-color: #73a5d7;
+            }
+
+            .signingbutton.selected:hover {
+              background-color: $v-background-color;
             }
 
             .signingbutton:active {
@@ -613,6 +621,10 @@ body {
               background-color: #73a5d7;
             }
 
+            .v-slot-opcionmenu.v-slot-selected:hover {
+              background-color: $v-background-color;
+            }
+
 
             .opcionmenu:active {
               outline: none;
@@ -660,6 +672,9 @@ body {
               background-color: #73a5d7;
             }
 
+            .v-slot-botonbuscar.v-slot-selected:hover {
+              background-color: $v-background-color;
+            }
 
             .botonbuscar:active {
               outline: none;

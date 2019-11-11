@@ -363,7 +363,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
             Pair<AbstractArea, MenuEntry> coordinates = getCoordinates(state);
 
-            if (!"private/profile".equals(state) && !"welcome".equals(state)) MDDUI.get().getAppComponent().setCoordinates(coordinates);
+            if (!state.startsWith("private/profile") && !"welcome".equals(state)) MDDUI.get().getAppComponent().setCoordinates(coordinates);
 
 
 
