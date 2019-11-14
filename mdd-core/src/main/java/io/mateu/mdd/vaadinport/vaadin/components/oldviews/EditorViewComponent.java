@@ -28,6 +28,7 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.ClassOption;
+import io.mateu.mdd.vaadinport.vaadin.components.EditorViewStyler;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.FiltersViewFlowComponent;
 import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -557,6 +558,12 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     }
 
     @Override
+    public void updatePageTitle() {
+        super.updatePageTitle();
+        if (getModel() != null && getModel() instanceof EditorViewStyler) ((EditorViewStyler) getModel()).apply(this);
+    }
+
+    @Override
     public String toString() {
         String t = (stylist != null)?stylist.getViewTitle(newRecord, getModel()):"Not yet";
         return t;
@@ -647,7 +654,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             }
 
 
-            if (!(this instanceof FiltersViewFlowComponent) && !isNewRecord() && listViewComponent != null) {
+            if (true || (!(this instanceof FiltersViewFlowComponent) && !isNewRecord() && listViewComponent != null)) {
                 if (!isActionPresent("prev")) {
 
                     Button i;
@@ -837,6 +844,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         super.addViewActionsMenuItems(bar);
     }
+
 
     public AbstractStylist getStylist() {
         return stylist;

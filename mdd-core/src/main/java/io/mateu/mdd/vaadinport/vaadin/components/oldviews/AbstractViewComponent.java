@@ -11,6 +11,7 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.PersistentPOJO;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.AbstractMDDExecutionContext;
+import io.mateu.mdd.vaadinport.vaadin.components.app.ViewContainer;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.AreaComponent;
 import io.mateu.mdd.vaadinport.vaadin.navigation.ComponentWrapper;
@@ -150,6 +151,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     public void updatePageTitle() {
         titleLabel.setValue(getTitle());
         UI.getCurrent().getPage().setTitle((titleLabel.getValue() != null)?titleLabel.getValue():"No title");
+        applyStyles(MDDUI.get().getViewContainer());
     }
 
     public HorizontalLayout getHiddens() {
@@ -278,12 +280,12 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
                 addMenuItem(a.getId(), i);
 
-                if (!Strings.isNullOrEmpty(a.getStyle())) i.setStyleName(a.getStyle());
+                if (!Strings.isNullOrEmpty(a.getStyle())) i.addStyleName(a.getStyle());
 
             } else {
                 i = getMenuItemById(a.getId());
             }
-            if (i != null && !Strings.isNullOrEmpty(a.getStyle())) i.setStyleName(a.getStyle());
+            if (i != null && !Strings.isNullOrEmpty(a.getStyle())) i.addStyleName(a.getStyle());
             i.setVisible(true);
         }
 
@@ -340,5 +342,9 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
     public void setBackable(boolean backable) {
         this.backable = backable;
+    }
+
+    public void applyStyles(ViewContainer viewContainer) {
+
     }
 }

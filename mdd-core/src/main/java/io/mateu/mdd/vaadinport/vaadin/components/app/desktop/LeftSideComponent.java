@@ -74,7 +74,7 @@ public class LeftSideComponent extends MouseOverVerticalLayout {
         versionFull.addComponent(ll = new Panel());
         ll.addStyleName(ValoTheme.PANEL_BORDERLESS);
         ll.addStyleName("conborde");
-        ll.setHeight("500px");
+        ll.setHeight("1500px");
         ll.setWidth("211px");
 
         versionFull.setSizeFull();

@@ -230,6 +230,8 @@ body {
             border-left: 1px solid lightgrey;
             border-top: 1px solid lightgrey;
             border-bottom: 1px solid lightgrey;
+            border-bottom-left-radius: 5px;
+            border-top-left-radius: 5px;
             margin-left: 5px;
             font-weight: bold;
             border-right: none;
@@ -287,8 +289,23 @@ body {
 
     }
 
+    .v-button.quiet {
+      border: none;
+      background-image: none;
+      -webkit-box-shadow: none;
+      box-shadow: none;
+      text-shadow: none;
+    }
 
-      .leftside {
+    .v-button.quiet:hover {
+      background-color: lightgray;
+    }
+
+    .v-button.quiet:focus:after {
+      box-shadow: none;
+    }
+
+    .leftside {
 
           background-color: $izquierda;
           width: 210px;
@@ -401,6 +418,8 @@ body {
               border-left: 1px solid lightgrey;
               border-top: 1px solid lightgrey;
               border-bottom: 1px solid lightgrey;
+              border-bottom-left-radius: 5px;
+              border-top-left-radius: 5px;
               margin-left: 5px;
               font-weight: bold;
               border-right: none;
@@ -443,12 +462,13 @@ body {
             .tituloarea {
               padding: 10px;
               width: 100%;
+              font-size: 14px;
               font-weight: bold;
               text-align: center;
               cursor: pointer;
               border-right: 1px solid lightgray;
-              border-top: 2px dashed lightgray;
-              border-bottom: 2px dashed lightgray;
+              border-top: 2px dashed #929292;
+              border-bottom: 2px dashed #929292;
 
               a {
                 text-decoration: none;
@@ -548,15 +568,23 @@ body {
               border-right: none;
             }
 
+            .v-slot-tituloarea.v-slot-selected:hover {
+              background-color: $v-background-color;
+            }
+
             .tituloarea.selected {
               background-color: $v-background-color;
               border-left: 1px solid lightgrey;
               border-top: 1px solid lightgrey;
               border-bottom: 1px solid lightgrey;
+              border-bottom-left-radius: 5px;
+              border-top-left-radius: 5px;
               margin-left: 5px;
               font-weight: bold;
               border-right: none;
             }
+
+
 
             .tituloarea:active {
               outline: none;
@@ -608,6 +636,8 @@ body {
               border-left: 1px solid lightgrey;
               border-top: 1px solid lightgrey;
               border-bottom: 1px solid lightgrey;
+              border-bottom-left-radius: 5px;
+              border-top-left-radius: 5px;
               margin-left: 5px;
               font-weight: bold;
 
@@ -665,6 +695,8 @@ body {
               border-left: 1px solid lightgray;
               border-top: 1px solid lightgray;
               border-bottom: 1px solid lightgray;
+              border-bottom-left-radius: 5px;
+              border-top-left-radius: 5px;
               border-right: none;
             }
 
@@ -1229,6 +1261,7 @@ body {
 
   .actionsbar {
     padding: 0px;
+    padding-top: 2px !important;
     width: 100%;
     border-top:1px solid lightgrey;
     border-bottom:1px solid lightgrey;
@@ -2321,6 +2354,26 @@ body {
 
       }
     }
+
+    .lines.card {
+      display: flex;
+      .line {
+        padding: 10px;
+        border: 1px solid lightgrey;
+      }
+    }
+
+  }
+
+  .huge-submenuoption {
+    border: 1px solid lightgrey;
+    margin: 20px;
+    padding: 20px;
+    border-radius: 2px;
+  }
+
+  .huge-submenuoption:hover {
+    background-color: #efefef
   }
 
 }

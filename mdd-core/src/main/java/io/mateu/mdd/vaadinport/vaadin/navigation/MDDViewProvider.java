@@ -300,9 +300,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
             if (MDD.isMobile()) {
                 stack.push(currentPath, new PublicMenuFlowComponent());
                 v = stack.get(currentPath);
-            } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PublicMenuFlowComponent());
-
-            if (MDD.getApp().getAreas().size() == 1) {
+            } else if (MDD.getApp().getAreas().size() == 1) {
                 AbstractArea area;
                 MDDUI.get().getAppComponent().setArea(area = MDD.getApp().getAreas().get(0));
                 if (area != null) {
@@ -313,6 +311,9 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new AreaComponent(area));
                     if (area != null) MDDUI.get().getAppComponent().setArea(area);
                 }
+            } else {
+                v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PublicMenuFlowComponent());
+                MDDUI.get().getAppComponent().setSelectingArea();
             }
 
         } else if ("private".equals(state)) {
@@ -323,9 +324,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
             if (MDD.isMobile()) {
                 stack.push(currentPath, new PrivateMenuFlowComponent());
                 v = stack.get(currentPath);
-            } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PrivateMenuFlowComponent());
-
-            if (MDD.getApp().getAreas().size() == 1) {
+            } else if (MDD.getApp().getAreas().size() == 1) {
                 AbstractArea area;
                 MDDUI.get().getAppComponent().setArea(area = MDD.getApp().getAreas().get(0));
                 if (area != null) {
@@ -336,6 +335,9 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new AreaComponent(area));
                     if (area != null) MDDUI.get().getAppComponent().setArea(area);
                 }
+            } else {
+                v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PrivateMenuFlowComponent());
+                MDDUI.get().getAppComponent().setSelectingArea();
             }
 
         } else if (state.split("/").length == 2 && !"private/profile".equals(state)) { // es una area

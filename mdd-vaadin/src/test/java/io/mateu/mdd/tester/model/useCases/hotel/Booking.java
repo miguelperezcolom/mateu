@@ -2,10 +2,14 @@ package io.mateu.mdd.tester.model.useCases.hotel;
 
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
 import io.mateu.mdd.tester.model.useCases.bankAccount.Payment;
+import io.mateu.mdd.vaadinport.vaadin.components.EditorViewStyler;
+import io.mateu.mdd.vaadinport.vaadin.components.app.ViewContainer;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 import lombok.MateuMDDEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.javamoney.moneta.FastMoney;
@@ -20,7 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 @Slf4j@MateuMDDEntity
-public class Booking {
+public class Booking implements EditorViewStyler {
 
     @Id@GeneratedValue(strategy = GenerationType.IDENTITY)
     @ListColumn
@@ -92,7 +96,43 @@ public class Booking {
     @ListColumn
     private int pax;
 
+    private int adultsx;
+
+    @SameLine
+    private int childrenx;
+
+    @SameLine
+    private int juniors;
+
+    @SameLine
+    private int seniors;
+
+    @SameLine
+    private int infants;
+
     private double doble;
+
+
+    public boolean isAdultsxVisible() {
+        return pax > 0;
+    }
+
+    public boolean isChildrenxVisible() {
+        return false;
+    }
+
+    public boolean isJuniorsVisible() {
+        return false;
+    }
+
+    public boolean isSeniorsVisible() {
+        return false;
+    }
+
+    public boolean isInfantsVisible() {
+        return false;
+    }
+
 
     @KPI@Money@Balance
     @ListColumn
@@ -180,7 +220,7 @@ public class Booking {
     }
 
 
-    @Action(order = 5, confirmationMessage = "Are you sure you want to confirm this booking?", style = ValoTheme.BUTTON_FRIENDLY, icon = VaadinIcons.CHECK)
+    @Action(order = 5, confirmationMessage = "Are you sure you want to confirm this booking?", style = CSS.GREENFGD, icon = VaadinIcons.CHECK)
     @NotWhenCreating
     public void confirm(EntityManager em) {
         setActive(true);
@@ -193,7 +233,7 @@ public class Booking {
     }
 
 
-    @Action(order = 5, confirmationMessage = "Are you sure you want to unconfirm this booking?", style = ValoTheme.BUTTON_DANGER, icon = VaadinIcons.CLOSE)
+    @Action(order = 5, confirmationMessage = "Are you sure you want to unconfirm this booking?", style = CSS.REDFGD, icon = VaadinIcons.CLOSE)
     @NotWhenCreating
     public void unconfirm(EntityManager em) {
         setActive(false);
@@ -265,5 +305,11 @@ public class Booking {
     @NotWhenCreating
     public void sendPaymentEmail(@NotEmpty String changeEmail, @NotEmpty String subject, String postscript, @NotNull Hotel hotel, FastMoney amount) throws Throwable {
         System.out.println("hola!!!");
+    }
+
+    @Override
+    public void apply(EditorViewComponent editorViewComponent) {
+        editorViewComponent.removeStyleNames("mdd-red-fgd");
+        if (pax > 0) editorViewComponent.addStyleName("mdd-red-fgd");
     }
 }

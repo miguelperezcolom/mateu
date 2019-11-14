@@ -11,6 +11,9 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.core.workflow.Task;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
+import io.mateu.mdd.vaadinport.vaadin.components.EditorViewStyler;
+import io.mateu.mdd.vaadinport.vaadin.components.app.ViewContainer;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 import lombok.MateuMDDEntity;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,7 +31,7 @@ import java.util.*;
  */
 @Table(name = "_USER")
 @Slf4j@MateuMDDEntity
-public class User {
+public class User implements EditorViewStyler {
 
     @Embedded
     @KPI
@@ -228,4 +231,10 @@ public class User {
         return granted;
     }
 
+    @Override
+    public void apply(EditorViewComponent editorViewComponent) {
+        editorViewComponent.removeStyleNames("mdd-red-fgd", "mdd-blue-fgd");
+        if (USER_STATUS.INACTIVE.equals(getStatus()) || USER_STATUS.EXPIRED.equals(getStatus())) editorViewComponent.addStyleName("mdd-red-fgd");
+        else if (USER_STATUS.BLOCKED.equals(getStatus())) editorViewComponent.addStyleName("mdd-blue-fgd");
+    }
 }

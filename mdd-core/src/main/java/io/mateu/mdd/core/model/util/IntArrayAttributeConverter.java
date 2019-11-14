@@ -26,6 +26,7 @@ public class IntArrayAttributeConverter implements AttributeConverter<int[], Str
     public int[] convertToEntityAttribute(String s) {
         if (s == null) return null;
         else {
+            if ("".equals(s)) return new int[0];
             String[] xs = s.split(",");
             int[] ints = new int[xs.length];
             for (int pos = 0; pos < xs.length; pos++) ints[pos] = Integer.parseInt(xs[pos]);

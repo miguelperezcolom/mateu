@@ -39,10 +39,13 @@ public class SearchInMenuComponent extends AbstractViewComponent {
 
         super.build();
 
+        setSizeFull();
+
         addStyleName("searchinmenucomponent");
 
-        CssLayout marco = new CssLayout();
-        addComponent(marco);
+        Layout marco = MDD.isMobile()?new CssLayout():new HorizontalLayout();
+        if (!MDD.isMobile()) marco.setSizeFull();
+        addComponentsAndExpand(marco);
 
         VerticalLayout form;
         marco.addComponent(form = new VerticalLayout());
@@ -56,7 +59,10 @@ public class SearchInMenuComponent extends AbstractViewComponent {
             //t.setIcon(VaadinIcons.SEARCH);
             t.setPlaceholder("Type to search");
             t.setValueChangeTimeout(100);
-            if (primero &= false) t.focus();
+            if (primero) {
+                t.focus();
+                primero = false;
+            }
 
             t.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
                 @Override
@@ -73,10 +79,12 @@ public class SearchInMenuComponent extends AbstractViewComponent {
 
         contentContainer.setContent(resultsLayout);
         resultsLayout.addStyleName(CSS.NOPADDING);
-        contentContainer.setWidth("400px");
-        contentContainer.setHeight("100%");
 
         marco.addComponent(contentContainer);
+        if (!MDD.isMobile()) {
+            contentContainer.setSizeFull();
+            ((HorizontalLayout)marco).setExpandRatio(contentContainer, 1);
+        }
 
         addComponentsAndExpand(marco);
 

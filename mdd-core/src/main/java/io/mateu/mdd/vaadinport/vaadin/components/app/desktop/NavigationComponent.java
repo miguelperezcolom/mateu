@@ -225,7 +225,7 @@ public class NavigationComponent extends VerticalLayout {
 
     public void setSearching() {
         unselectAll();
-        bBuscar.addStyleName("selected");
+        if (bBuscar != null) bBuscar.addStyleName("selected");
     }
 
     public void setSelectingArea() {

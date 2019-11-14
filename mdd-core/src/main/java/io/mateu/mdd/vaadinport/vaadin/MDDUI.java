@@ -84,6 +84,9 @@ public class MDDUI extends UI {
         return s;
     }
 
+    public ViewContainer getViewContainer() {
+        return viewContainer;
+    }
 
     public boolean isEditingNewRecord() {
         return navegador.getViewProvider().isEditingNewRecord();

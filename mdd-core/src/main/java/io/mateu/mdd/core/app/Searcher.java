@@ -44,7 +44,7 @@ public class Searcher {
 
             for (AbstractModule m : a.getModules()) {
                 for (MenuEntry e : m.getMenu()) {
-                    addMenuEntry(found, a, e, text);
+                    addMenuEntry(found, a, m, e, text, a.getName() + " / " + m.getName());
                 }
             }
 
@@ -56,19 +56,19 @@ public class Searcher {
 
     }
 
-    private void addMenuEntry(List<Found> found, AbstractArea a, MenuEntry e, String text) {
+    private void addMenuEntry(List<Found> found, AbstractArea a, AbstractModule m, MenuEntry e, String text, String prefix) {
 
         if (e instanceof AbstractMenu) {
 
             for (MenuEntry ez : ((AbstractMenu) e).getEntries()) {
-                addMenuEntry(found, a, ez, text); //("".equals(text) || e.getName().toLowerCase().contains(text))?"":text);
+                addMenuEntry(found, a, m, ez, text, prefix + " / " + ez.getName()); //("".equals(text) || e.getName().toLowerCase().contains(text))?"":text);
             }
 
         } else if (e instanceof AbstractAction) {
 
             if ("".equals(text) || e.getName().toLowerCase().contains(text)) {
 
-                found.add(new Found(MDDUI.get().getNavegador().getPath(e), e.getName(), "" + a.getName() + " -> " + e.getName()));
+                found.add(new Found(MDDUI.get().getNavegador().getPath(e), e.getName(), prefix));
 
             }
 

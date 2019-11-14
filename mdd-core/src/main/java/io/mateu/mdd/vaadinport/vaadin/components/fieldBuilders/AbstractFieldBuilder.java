@@ -5,6 +5,7 @@ import com.vaadin.data.*;
 import com.vaadin.server.UserError;
 import com.vaadin.ui.AbstractComponent;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Layout;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Pair;
@@ -74,8 +75,12 @@ public abstract class AbstractFieldBuilder {
             Component c = containers.get(f);
             if (c != null) {
                 boolean v = stylist.isVisible(f, model);
-                if (c.getParent() instanceof Layout && ((Layout) c.getParent()).getComponentCount() == 1) c.getParent().setVisible(v);
-                else c.setVisible(v);
+                c.setVisible(v);
+                if (c.getParent() instanceof HorizontalLayout) {
+                    final boolean[] algunoVisible = {false};
+                    ((Layout) c.getParent()).getComponentIterator().forEachRemaining(x -> algunoVisible[0] |= x.isVisible());
+                    c.getParent().setVisible(algunoVisible[0]);
+                }
             }
         }
     }
