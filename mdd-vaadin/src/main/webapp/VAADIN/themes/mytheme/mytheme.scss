@@ -2376,6 +2376,36 @@ body {
     background-color: #efefef
   }
 
+  .homecard {
+    padding: 30px;
+    border: 1px solid lightgrey;
+    margin: 30px;
+    min-width: 200px;
+    text-align: center;
+    border-radius: 3px;
+
+    .kpi {
+      font-size: 48px;
+      font-weight: bold;
+      background-color: white;
+    }
+  }
+
+
+  .bookingsummary {
+    thead {
+      th {
+        border-bottom: 1px solid lightgrey;
+        font-weight: normal;
+      }
+    }
+    tfoot {
+      th {
+        border-top: 1px solid lightgrey;
+        font-weight: normal;
+      }
+    }
+  }
 }
 
 

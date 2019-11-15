@@ -163,7 +163,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
                     HorizontalLayout hl = new HorizontalLayout();
                     container.addComponent(hl);
-                    hl.setWidth("500px");
+                    hl.setWidthUndefined();
 
                     tf.setValue("None");
 

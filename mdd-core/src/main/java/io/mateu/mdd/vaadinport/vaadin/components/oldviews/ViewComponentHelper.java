@@ -107,12 +107,13 @@ public class ViewComponentHelper {
                                                 public void run(EntityManager em) throws Throwable {
 
                                                     if (viewComponent instanceof EditorViewComponent) {
+
                                                         Object ni = em.merge(finalInstance);
 
                                                         invoke(viewComponent, m, ni, finalSelection, em, null);
 
-                                                        EditorViewComponent evc = (EditorViewComponent) viewComponent;
-                                                        evc.setModel(ni);
+                                                        if (viewComponent instanceof EditorViewComponent) ((EditorViewComponent) viewComponent).setModel(ni);
+
                                                     } else {
 
                                                         invoke(viewComponent, m, finalInstance, finalSelection, em, null);
@@ -121,6 +122,12 @@ public class ViewComponentHelper {
 
                                                 }
                                             });
+
+                                            if (viewComponent instanceof EditorViewComponent && instance.getClass().isAnnotationPresent(Entity.class)) {
+                                                EditorViewComponent evc = (EditorViewComponent) viewComponent;
+                                                Object i = evc.getModel();
+                                                Helper.notransact(em -> evc.setModel(em.find(i.getClass(), ReflectionHelper.getId(i))));
+                                            }
 
                                         } else {
 
