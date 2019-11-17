@@ -2,6 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.navigation;
 
 import com.google.common.base.Strings;
 import com.vaadin.navigator.Navigator;
+import com.vaadin.server.BrowserWindowOpener;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
 import io.mateu.mdd.core.MDD;
@@ -103,8 +104,17 @@ public class MDDNavigator {
 
 
     public void goTo(String path) {
+        goTo(path, false);
+    }
+
+    public void goTo(String path, boolean newTab) {
         if (path != null) {
-            navigator.navigateTo(path);
+            if (newTab) {
+                //Ui.getcurrent.open(new external resources(https://www.youtube.com/),"_blank",false)
+                if (!path.startsWith("/")) path = "/app/" + path;
+                else path = "/app" + path;
+                Page.getCurrent().open(path, "_blank", false);
+            } else navigator.navigateTo(path);
         }
     }
 
@@ -121,7 +131,11 @@ public class MDDNavigator {
     }
 
     public void goTo(MenuEntry e) {
-        goTo(getPath(e));
+        goTo(e, false);
+    }
+
+    public void goTo(MenuEntry e, boolean newTab) {
+        goTo(getPath(e), newTab);
     }
 
     public void goTo(AbstractArea area) {

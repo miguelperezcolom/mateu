@@ -90,7 +90,7 @@ public class MenuFlowComponent extends AbstractViewComponent {
         } else if (e instanceof AbstractAction) {
 
             Button b;
-            l.addComponent(b = new Button(e.getName(), ev -> MDDUI.get().getNavegador().goTo(e)));
+            l.addComponent(b = new Button(e.getName(), ev -> MDDUI.get().getNavegador().goTo(e, ev.isCtrlKey())));
             b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
             b.addStyleName("submenuoption");
 
