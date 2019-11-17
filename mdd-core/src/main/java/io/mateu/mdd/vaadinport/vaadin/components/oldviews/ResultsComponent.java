@@ -115,7 +115,7 @@ public class ResultsComponent extends VerticalLayout {
 
         grid.setSizeFull();
 
-
+        if (listViewComponent.getFrozenColumnCount() > 0) grid.setFrozenColumnCount(listViewComponent.getFrozenColumnCount());
 
 
         dataProvider = DataProvider.fromFilteringCallbacks(query -> {
@@ -137,38 +137,7 @@ public class ResultsComponent extends VerticalLayout {
 
         grid.setDataProvider(dataProvider);
         grid.setColumnReorderingAllowed(true);
-
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
-
-        /*
-
-        FastNavigation nav = new FastNavigation(grid, false, true);
-        nav.setChangeColumnAfterLastRow(true);
-        nav.setOpenEditorWithSingleClick(false);
-        nav.setRowValidation(true);
-
-
-        nav.addRowFocusListener(event -> {
-            if (event.getRow() >= 0) {
-                grid.select(event.getItem());
-            }
-            else grid.deselectAll();
-            log.debug("Focus moved to row " + event.getRow());
-        });
-
-*/
-
-
-
-        /*
-        nav.addEditorOpenListener(new FastNavigation.EditorOpenListener() {
-            @Override
-            public void onEvent(EditorOpenEvent<?> editorOpenEvent) {
-                Object i = editorOpenEvent.getItem();
-                if (i != null && i instanceof Object[]) edit(((Object[])i)[0]);
-            }
-        });
-        */
 
 
         grid.addSelectionListener(new SelectionListener() {

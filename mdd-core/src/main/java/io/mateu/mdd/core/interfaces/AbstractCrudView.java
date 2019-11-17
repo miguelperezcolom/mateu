@@ -45,6 +45,4 @@ public abstract class AbstractCrudView<R> extends AbstractJPQLListView<R>  imple
         return buildFilteredQueryFromEntityClass(em, sortOrders, forCount);
     }
 
-
-
 }

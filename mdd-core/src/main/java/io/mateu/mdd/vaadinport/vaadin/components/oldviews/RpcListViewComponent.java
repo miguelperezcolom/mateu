@@ -7,6 +7,7 @@ import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.ChartData;
 import io.mateu.mdd.core.data.SumData;
+import io.mateu.mdd.core.interfaces.AbstractCrudView;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
@@ -15,6 +16,7 @@ import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,6 +72,8 @@ public class RpcListViewComponent extends ListViewComponent {
                     } catch (Throwable throwable) {
                         MDD.alert(throwable);
                     }
+                } else {
+                    MDDUI.get().getNavegador().go("" + id);
                 }
             }
 
@@ -121,6 +125,14 @@ public class RpcListViewComponent extends ListViewComponent {
 
 
         List<Method> ms = new ArrayList<>();
+
+        if (AbstractCrudView.class.isAssignableFrom(rpcListViewClass)) {
+            for (Method m : ReflectionHelper.getAllMethods(ReflectionHelper.getGenericClass(rpcListViewClass, AbstractCrudView.class, "R"))) {
+                if (Modifier.isStatic(m.getModifiers()) && m.isAnnotationPresent(Action.class)) {
+                    ms.add(m);
+                }
+            }
+        }
 
         for (Method m : ReflectionHelper.getAllMethods(rpcListViewClass)) {
             if (m.isAnnotationPresent(Action.class)) {
@@ -183,5 +195,24 @@ public class RpcListViewComponent extends ListViewComponent {
     @Override
     public Class getModelType() {
         return rpcListView.getClass();
+    }
+
+    @Override
+    public Method getMethod(String methodName) {
+        Method a = super.getMethod(methodName);
+
+        if (a == null) {
+            if (AbstractCrudView.class.isAssignableFrom(rpcListViewClass)) {
+                for (Method m : ReflectionHelper.getAllMethods(ReflectionHelper.getGenericClass(rpcListViewClass, AbstractCrudView.class, "R"))) {
+                    if (Modifier.isStatic(m.getModifiers()) && m.isAnnotationPresent(Action.class)) {
+                        if (methodName.equals(m.getName())) {
+                            a = m;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return a;
     }
 }

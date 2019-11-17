@@ -2,6 +2,7 @@ package io.mateu.mdd.core.reflection;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.vaadin.data.provider.DataProvider;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
@@ -1205,6 +1206,30 @@ public class ReflectionHelper {
             Helper.transact(em -> {
 
                 vs.add(finalPosEM, em);
+
+                for (Object p : vs) {
+                    if (p instanceof Set) {
+                        Set s = (Set) p;
+                        Set<Object> aux = new HashSet<>();
+                        for (Object i : s) {
+                            if (i != null && i.getClass().isAnnotationPresent(Entity.class)) {
+                                aux.add(em.find(i.getClass(), ReflectionHelper.getId(i)));
+                            } else aux.add(i);
+                        }
+                        s.clear();
+                        s.addAll(aux);
+                    }
+                }
+
+                List<Object> aux = new ArrayList<>();
+                for (Object i : vs) {
+                    if (i != null && i.getClass().isAnnotationPresent(Entity.class)) {
+                        aux.add(em.find(i.getClass(), ReflectionHelper.getId(i)));
+                    } else aux.add(i);
+                }
+                vs.clear();
+                vs.addAll(aux);
+
 
                 Object[] args = vs.toArray();
 

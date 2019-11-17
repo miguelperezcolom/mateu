@@ -6,6 +6,7 @@ import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.app.MDDOpenEditorAction;
 import io.mateu.mdd.core.app.MDDOpenListViewAction;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
+import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
@@ -47,17 +48,7 @@ public class MDDViewComponentCreator {
 
             if (RpcCrudView.class.isAssignableFrom(viewClass)) {
                 Class modelType = ReflectionHelper.getGenericClass(viewClass, RpcCrudView.class, "T");
-                v = new RpcListViewComponent(viewClass).addListener(new ListViewComponentListener() {
-                    @Override
-                    public void onEdit(Object id) {
-                        MDDUI.get().getNavegador().go("" + id);
-                    }
-
-                    @Override
-                    public void onSelect(Object id) {
-
-                    }
-                });
+                v = new RpcListViewComponent(viewClass);
             } else {
                 v = new RpcListViewComponent(viewClass);
             }

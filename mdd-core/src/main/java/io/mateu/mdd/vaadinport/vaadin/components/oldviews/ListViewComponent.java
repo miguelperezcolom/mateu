@@ -34,6 +34,7 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.data.*;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
+import io.mateu.mdd.core.interfaces.AbstractCrudView;
 import io.mateu.mdd.core.interfaces.ICellStyleGenerator;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.interfaces.StyledEnum;
@@ -1198,4 +1199,8 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
 
     public abstract void decorateGrid(Grid grid);
+
+    public int getFrozenColumnCount() {
+        return 0;
+    }
 }

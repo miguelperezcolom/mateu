@@ -46,6 +46,8 @@ public class JPAListViewComponent extends ListViewComponent {
 
     private List<SumData> sums;
 
+    private int frozenColumnCount = -1;
+
     public JPAListViewComponent(Class entityClass) {
         this(entityClass, null, null);
     }
@@ -72,6 +74,20 @@ public class JPAListViewComponent extends ListViewComponent {
         });
     }
 
+    @Override
+    public int getFrozenColumnCount() {
+        if (frozenColumnCount < 0) {
+            int pos = 1;
+            for (FieldInterfaced columnField : getColumnFields(entityClass)) {
+                if (columnField.isAnnotationPresent(FrozenColumn.class)) {
+                    frozenColumnCount = pos;
+                }
+                pos++;
+            }
+            if (frozenColumnCount < 0) frozenColumnCount = 0;
+        }
+        return frozenColumnCount;
+    }
 
     @Override
     public String toString() {

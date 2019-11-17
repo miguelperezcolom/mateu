@@ -205,7 +205,7 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
         return s;
     }
 
-    private String buildWhereClause(Object filters, Class entityClass, Map<String, Object> parameterValues) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    public String buildWhereClause(Object filters, Class entityClass, Map<String, Object> parameterValues) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
         String ql = "";
 
@@ -225,7 +225,7 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
             String x = addFilter(filters, f, parameterValues);
 
             if (!Strings.isNullOrEmpty(x)) {
-                if (!"".equals(ql)) ql += " ";
+                if (!"".equals(ql)) ql += " and ";
                 ql += x;
             }
 
