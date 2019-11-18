@@ -12,6 +12,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.components.grid.ItemClickListener;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.interfaces.ReadOnly;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -147,7 +148,7 @@ public class ResultsComponent extends VerticalLayout {
             }
         });
 
-        grid.addItemClickListener(new ItemClickListener<Object>() {
+        if (!(listViewComponent instanceof RpcListViewComponent) || !(((RpcListViewComponent) listViewComponent).getRpcListView() instanceof ReadOnly) || !(((ReadOnly) ((RpcListViewComponent) listViewComponent).getRpcListView()).isReadOnly())) grid.addItemClickListener(new ItemClickListener<Object>() {
             @Override
             public void itemClick(Grid.ItemClick<Object> itemClick) {
                 if (MDD.isMobile() || MDD.isIpad() || itemClick.getMouseEventDetails().isDoubleClick()) {

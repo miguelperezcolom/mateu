@@ -923,14 +923,10 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
         Method method = lvc.getMethod(step);
 
         if (method == null && !"filters".equals(step) && lvc instanceof RpcListViewComponent) {
-            method = ReflectionHelper.getMethod(((RpcListViewComponent) lvc).getRpcListView().getClass(), "onEdit");
             if (pendingResult == null) {
                 try {
-                    method = ((RpcListViewComponent) lvc).getRpcListView().getClass().getMethod("onEdit", String.class);
-                    if (method != null) {
-                        pendingResult = method.invoke(((RpcListViewComponent) lvc).getRpcListView(), step);
-                    }
-                } catch (Exception e) {
+                    pendingResult = ((RpcListViewComponent) lvc).getRpcListView().onEdit(step);
+                } catch (Throwable e) {
                     MDD.alert(e);
                 }
             }
