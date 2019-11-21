@@ -44,5 +44,5 @@ public @interface Action {
 
     boolean validateBefore() default false;
 
-    boolean isGrous() default false;
+    boolean isGroup() default false;
 }

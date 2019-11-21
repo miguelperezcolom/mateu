@@ -1,7 +1,6 @@
 package io.mateu.mdd.tester.model.useCases.hotel;
 
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
@@ -10,7 +9,6 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
 import io.mateu.mdd.tester.model.useCases.bankAccount.Payment;
 import io.mateu.mdd.vaadinport.vaadin.components.EditorViewStyler;
-import io.mateu.mdd.vaadinport.vaadin.components.app.ViewContainer;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 import lombok.MateuMDDEntity;
 import lombok.extern.slf4j.Slf4j;
@@ -177,7 +175,7 @@ public class Booking implements EditorViewStyler {
 
 
 
-    @Action(icon = VaadinIcons.ENVELOPES, isGrous = true)
+    @Action(icon = VaadinIcons.ENVELOPES, isGroup = true)
     public void send() {
         MDD.alert("por aquí no debería pasar");
     }

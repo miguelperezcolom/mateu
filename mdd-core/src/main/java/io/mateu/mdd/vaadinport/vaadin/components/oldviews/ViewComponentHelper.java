@@ -4,7 +4,6 @@ import com.google.common.base.Strings;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
-import com.vaadin.ui.Window;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.app.AbstractAction;
@@ -36,7 +35,7 @@ public class ViewComponentHelper {
                 @Override
                 public void run(MDDExecutionContext context) {
 
-                    if (aa.isGrous()) {
+                    if (aa.isGroup()) {
 
                         UI.getCurrent().addWindow(new ActionGroupWindow(m, (List<Component>) viewComponent.menuItemsByGroup.get(m.getName())));
 
