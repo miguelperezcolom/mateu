@@ -129,6 +129,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
     public View getView(String state) {
         io.mateu.mdd.vaadinport.vaadin.navigation.View v = null;
         boolean nuevo = false;
+        boolean expand = false;
 
         if (state.startsWith("app/")) state = state.substring("app/".length());
 
@@ -588,7 +589,9 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     if (v != null) {
                         Component c = ((io.mateu.mdd.vaadinport.vaadin.navigation.View) v).getViewComponent();
                         if (c != null && c instanceof AbstractViewComponent) {
-                            ((AbstractViewComponent)c).buildIfNeeded();
+                            AbstractViewComponent av = (AbstractViewComponent) c;
+                            av.buildIfNeeded();
+                            expand = av.expandOnOpen();
                         }
                     }
 
@@ -701,10 +704,10 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
         AppComponent appComponent = MDDUI.get().getAppComponent();
         if (appComponent instanceof DesktopAppComponent) {
             DesktopAppComponent dac = (DesktopAppComponent) appComponent;
-            if (v.isMenuExpanded()) {
+            if (expand) {
+                dac.minimizeLeftSide();
+            } else if (v.isMenuExpanded()) {
                 dac.maximizeLeftSide();
-            } else {
-                //dac.minimizeLeftSide();
             }
         }
 

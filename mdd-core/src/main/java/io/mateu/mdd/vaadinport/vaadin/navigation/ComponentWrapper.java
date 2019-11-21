@@ -7,6 +7,7 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.annotations.ExpandOnOpen;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.HasActions;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
@@ -46,5 +47,10 @@ public class ComponentWrapper extends AbstractViewComponent {
     @Override
     public String toString() {
         return wrapped != null?wrapped.toString():"Nothing wrapped";
+    }
+
+    @Override
+    public boolean expandOnOpen() {
+        return wrapped != null && wrapped.getClass().isAnnotationPresent(ExpandOnOpen.class);
     }
 }

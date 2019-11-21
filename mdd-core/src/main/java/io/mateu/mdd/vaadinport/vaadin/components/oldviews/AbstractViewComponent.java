@@ -68,6 +68,10 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
     }
 
+    public boolean expandOnOpen() {
+        return false;
+    }
+
     private Component createHeader() {
         HorizontalLayout l = new HorizontalLayout();
 
