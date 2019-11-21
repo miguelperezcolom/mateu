@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.vaadin.data.Binder;
 import com.vaadin.data.BinderValidationStatus;
 import com.vaadin.data.HasValue;
@@ -21,7 +22,9 @@ import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.interfaces.PersistentPOJO;
 import io.mateu.mdd.core.interfaces.ReadOnly;
 import io.mateu.mdd.core.model.authentication.Audit;
+import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.core.reflection.FieldInterfacedFromType;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.HasChangesSignature;
 import io.mateu.mdd.core.util.Helper;
@@ -295,6 +298,10 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
     private void build(Object model) {
 
+        if (isResource(model)) {
+            model = new ResourceModel((Resource) model);
+        }
+
         long t0 = System.currentTimeMillis();
 
         if (model != null && model.getClass().isAnnotationPresent(Entity.class)) {
@@ -353,6 +360,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             }
 
             panel.setContent(panelContenido);
+
 
             List<FieldInterfaced> fields = ReflectionHelper.getAllEditableFields(model.getClass(), (owner != null) ? owner.getClass() : null, false, field);
 
@@ -440,6 +448,13 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         log.debug("editor component built in " + (System.currentTimeMillis() - t0) + " ms.");
 
+    }
+
+    private boolean isResource(Object model) {
+        boolean r = false;
+        if (model instanceof Resource) r = true;
+        else if (model instanceof List && Resource.class.equals(ReflectionHelper.getGenericClass(model.getClass()))) r = true;
+        return r;
     }
 
     protected void removeUneditableFields(List<FieldInterfaced> fields) {
@@ -866,12 +881,12 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         List<Method> ms = new ArrayList<>();
         for (Method m : ReflectionHelper.getAllMethods(modelType)) {
-            if (m.isAnnotationPresent(Action.class) && !(
+            if (!(
                     Modifier.isStatic(m.getModifiers())
                             || (m.isAnnotationPresent(NotWhenCreating.class) && isEditingNewRecord)
                             || (m.isAnnotationPresent(NotWhenEditing.class) && !isEditingNewRecord))
-                    && Strings.isNullOrEmpty(m.getAnnotation(Action.class).attachToField()
-            )) {
+                    && (m.isAnnotationPresent(Action.class) && Strings.isNullOrEmpty(m.getAnnotation(Action.class).attachToField()))
+            ) {
 
                 Optional<Method> omv = mvs.get(m);
 
@@ -904,8 +919,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         actionsPerSection = new HashMap<>();
         ms.forEach(m -> {
-            actionsPerSection.putIfAbsent(m.getAnnotation(Action.class).section(), new ArrayList<>());
-            List<AbstractAction> l = actionsPerSection.get(m.getAnnotation(Action.class).section());
+            Action aa = m.getAnnotation(Action.class);
+            actionsPerSection.putIfAbsent(aa.section(), new ArrayList<>());
+            List<AbstractAction> l = actionsPerSection.get(aa.section());
             AbstractAction a;
             l.add(a = ViewComponentHelper.createAction(m, this));
         });

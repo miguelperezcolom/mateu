@@ -43,4 +43,6 @@ public @interface Action {
     boolean refreshOnBack() default false;
 
     boolean validateBefore() default false;
+
+    boolean isGrous() default false;
 }

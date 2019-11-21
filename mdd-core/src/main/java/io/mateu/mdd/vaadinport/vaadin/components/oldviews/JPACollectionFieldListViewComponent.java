@@ -162,12 +162,12 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
 
         List<Method> ms = new ArrayList<>();
         for (Method m : ReflectionHelper.getAllMethods(bean != null?bean.getClass():field.getDeclaringClass())) {
-            if (m.isAnnotationPresent(Action.class) && !(
+            if (!(
                     Modifier.isStatic(m.getModifiers())
                             || (m.isAnnotationPresent(NotWhenCreating.class) && isEditingNewRecord)
                             || (m.isAnnotationPresent(NotWhenEditing.class) && !isEditingNewRecord))
-                    && field.getName().equals(m.getAnnotation(Action.class).attachToField()
-            )) {
+                    && (m.isAnnotationPresent(Action.class) && field.getName().equals(m.getAnnotation(Action.class).attachToField()))
+            ) {
                 ms.add(m);
             }
         }
@@ -285,10 +285,9 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
             Object bean = (evfc != null)?evfc.getModel():null;
 
             for (Method m : ReflectionHelper.getAllMethods(bean != null?bean.getClass():field.getDeclaringClass())) {
-                if (m.isAnnotationPresent(Action.class) && !(
-                        Modifier.isStatic(m.getModifiers()))
-                        && field.getName().equals(m.getAnnotation(Action.class).attachToField())
+                if (!Modifier.isStatic(m.getModifiers())
                         && m.getName().equals(methodName)
+                        && (m.isAnnotationPresent(Action.class) &&  field.getName().equals(m.getAnnotation(Action.class).attachToField()))
                 ) {
                     a = m;
                     break;

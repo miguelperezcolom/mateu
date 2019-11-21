@@ -3,7 +3,9 @@ package io.mateu.mdd.tester.model.useCases.hotel;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
+import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
 import io.mateu.mdd.tester.model.useCases.bankAccount.Payment;
@@ -165,10 +167,37 @@ public class Booking implements EditorViewStyler {
     }
 
 
+    @OneToMany(cascade = CascadeType.ALL)
+    private List<Resource> resources = new ArrayList<>();
+
     @Ignored
     private transient boolean updatePending = false;
     @Ignored
     private transient boolean updating = false;
+
+
+
+    @Action(icon = VaadinIcons.ENVELOPES, isGrous = true)
+    public void send() {
+        MDD.alert("por aquí no debería pasar");
+    }
+
+    @Action(icon = VaadinIcons.ENVELOPE, group = "send")
+    public void send1() {
+        MDD.alert("opción 1");
+    }
+
+    @Action(icon = VaadinIcons.ENVELOPE_O, group = "send")
+    public void send2() {
+        MDD.alert("opción 2");
+    }
+
+    @Action(icon = VaadinIcons.ENVELOPE_OPEN, group = "send")
+    public void send3() {
+        MDD.alert("opción 3");
+    }
+
+
 
     @PostLoad
     public void postload() {

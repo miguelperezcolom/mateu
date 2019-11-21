@@ -2,6 +2,9 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.google.common.base.Strings;
 import com.vaadin.icons.VaadinIcons;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.Window;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.app.AbstractAction;
@@ -33,134 +36,143 @@ public class ViewComponentHelper {
                 @Override
                 public void run(MDDExecutionContext context) {
 
-                    boolean needsValidation = aa.validateBefore();
-                    if (!needsValidation && viewComponent instanceof EditorViewComponent) needsValidation = ((EditorViewComponent)viewComponent).getModelType().isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(((EditorViewComponent)viewComponent).getModelType());
+                    if (aa.isGrous()) {
 
-                    if (!needsValidation || ((EditorViewComponent)viewComponent).validate()) {
+                        UI.getCurrent().addWindow(new ActionGroupWindow(m, (List<Component>) viewComponent.menuItemsByGroup.get(m.getName())));
 
-                        try {
-                            if (m.isAnnotationPresent(Action.class) && m.getAnnotation(Action.class).saveBefore() && viewComponent instanceof EditorViewComponent) {
-                                ((EditorViewComponent) viewComponent).save(false);
-                            }
+                    } else {
 
-                            boolean allInjectable = true;
-                            boolean needsTransaction = false;
-                            boolean needsSelection = false;
-                            for (Parameter p : m.getParameters()) {
-                                Class<?> pgc = ReflectionHelper.getGenericClass(p.getParameterizedType());
-                                if (EntityManager.class.equals(p.getType())) {
-                                    needsTransaction = true;
-                                } else if (UserData.class.equals(p.getType())) {
-                                } else if (viewComponent instanceof ListViewComponent && Set.class.isAssignableFrom(p.getType()) && (m.getDeclaringClass().equals(pgc) || (viewComponent instanceof RpcListViewComponent && ReflectionHelper.getGenericClass(((RpcListViewComponent)viewComponent).getRpcListView().getClass(), RpcView.class, "C").equals(pgc)))) {
-                                    if (!p.isAnnotationPresent(Size.class) || p.getAnnotation(Size.class).min() > 0)
-                                        needsSelection = true;
-                                } else {
-                                    allInjectable = false;
-                                }
-                            }
+                        boolean needsValidation = aa.validateBefore();
+                        if (!needsValidation && viewComponent instanceof EditorViewComponent) needsValidation = ((EditorViewComponent)viewComponent).getModelType().isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(((EditorViewComponent)viewComponent).getModelType());
+
+                        if (!needsValidation || ((EditorViewComponent)viewComponent).validate()) {
 
                             try {
-
-                                Set selection = new HashSet();
-                                if (viewComponent instanceof ListViewComponent) {
-                                    ListViewComponent lvc = (ListViewComponent) viewComponent;
-
-                                    Helper.notransact(em -> {
-                                        boolean jpa = lvc.getColumnType().isAnnotationPresent(Entity.class);
-                                        lvc.getSelection().forEach(o -> {
-                                            if (jpa && o instanceof Object[]) {
-                                                selection.add(em.find(lvc.getColumnType(), lvc.deserializeId("" + lvc.toId(o))));
-                                            } else {
-                                                selection.add(o);
-                                            }
-                                        });
-                                    });
-
-
+                                if (m.isAnnotationPresent(Action.class) && m.getAnnotation(Action.class).saveBefore() && viewComponent instanceof EditorViewComponent) {
+                                    ((EditorViewComponent) viewComponent).save(false);
                                 }
 
-                                if (needsSelection && selection.size() == 0) throw new Exception("You must first select some records.");
+                                boolean allInjectable = true;
+                                boolean needsTransaction = false;
+                                boolean needsSelection = false;
+                                for (Parameter p : m.getParameters()) {
+                                    Class<?> pgc = ReflectionHelper.getGenericClass(p.getParameterizedType());
+                                    if (EntityManager.class.equals(p.getType())) {
+                                        needsTransaction = true;
+                                    } else if (UserData.class.equals(p.getType())) {
+                                    } else if (viewComponent instanceof ListViewComponent && Set.class.isAssignableFrom(p.getType()) && (m.getDeclaringClass().equals(pgc) || (viewComponent instanceof RpcListViewComponent && ReflectionHelper.getGenericClass(((RpcListViewComponent)viewComponent).getRpcListView().getClass(), RpcView.class, "C").equals(pgc)))) {
+                                        if (!p.isAnnotationPresent(Size.class) || p.getAnnotation(Size.class).min() > 0)
+                                            needsSelection = true;
+                                    } else {
+                                        allInjectable = false;
+                                    }
+                                }
 
-                                if (!allInjectable) { // si necesita rellenar parámetros
-                                    MDD.getPort().open(m, selection);
-                                } else { // si no tiene parámetros o si todos son inyectables
+                                try {
 
-                                    try {
-                                        // necesita transacción?
+                                    Set selection = new HashSet();
+                                    if (viewComponent instanceof ListViewComponent) {
+                                        ListViewComponent lvc = (ListViewComponent) viewComponent;
 
-                                        Object instance = null;
-
-                                        if (viewComponent instanceof EditorViewComponent) {
-                                            EditorViewComponent evc = (EditorViewComponent) viewComponent;
-                                            instance = evc.getModel();
-                                        } else if (viewComponent instanceof RpcListViewComponent) {
-                                            instance = ((RpcListViewComponent)viewComponent).getRpcListView();
-                                        }
-
-
-                                        if (needsTransaction) {
-
-                                            Object finalInstance = instance;
-                                            Set finalSelection = selection;
-                                            Helper.transact(new JPATransaction() {
-                                                @Override
-                                                public void run(EntityManager em) throws Throwable {
-
-                                                    if (viewComponent instanceof EditorViewComponent) {
-
-                                                        Object ni = em.merge(finalInstance);
-
-                                                        invoke(viewComponent, m, ni, finalSelection, em, null);
-
-                                                        if (viewComponent instanceof EditorViewComponent) ((EditorViewComponent) viewComponent).setModel(ni);
-
-                                                    } else {
-
-                                                        invoke(viewComponent, m, finalInstance, finalSelection, em, null);
-
-                                                    }
-
+                                        Helper.notransact(em -> {
+                                            boolean jpa = lvc.getColumnType().isAnnotationPresent(Entity.class);
+                                            lvc.getSelection().forEach(o -> {
+                                                if (jpa && o instanceof Object[]) {
+                                                    selection.add(em.find(lvc.getColumnType(), lvc.deserializeId("" + lvc.toId(o))));
+                                                } else {
+                                                    selection.add(o);
                                                 }
                                             });
-
-                                            if (viewComponent instanceof EditorViewComponent && instance.getClass().isAnnotationPresent(Entity.class)) {
-                                                EditorViewComponent evc = (EditorViewComponent) viewComponent;
-                                                Object i = evc.getModel();
-                                                Helper.notransact(em -> evc.setModel(em.find(i.getClass(), ReflectionHelper.getId(i))));
-                                            }
-
-                                        } else {
-
-                                            invoke(viewComponent, m, instance, selection, null, null);
-
-                                        }
+                                        });
 
 
-                                        if (m.isAnnotationPresent(Action.class) && m.getAnnotation(Action.class).saveAfter() && viewComponent instanceof EditorViewComponent) {
-                                            ((EditorViewComponent) viewComponent).save(false);
-                                        } else if (viewComponent instanceof EditorViewComponent) {
-                                            EditorViewComponent evc = (EditorViewComponent) viewComponent;
-                                            evc.getBinder().update(evc.getModel());
-                                        }
-
-                                    } catch (Throwable throwable) {
-                                        MDD.alert(throwable);
                                     }
 
+                                    if (needsSelection && selection.size() == 0) throw new Exception("You must first select some records.");
+
+                                    if (!allInjectable) { // si necesita rellenar parámetros
+                                        MDD.getPort().open(m, selection);
+                                    } else { // si no tiene parámetros o si todos son inyectables
+
+                                        try {
+                                            // necesita transacción?
+
+                                            Object instance = null;
+
+                                            if (viewComponent instanceof EditorViewComponent) {
+                                                EditorViewComponent evc = (EditorViewComponent) viewComponent;
+                                                instance = evc.getModel();
+                                            } else if (viewComponent instanceof RpcListViewComponent) {
+                                                instance = ((RpcListViewComponent)viewComponent).getRpcListView();
+                                            }
+
+
+                                            if (needsTransaction) {
+
+                                                Object finalInstance = instance;
+                                                Set finalSelection = selection;
+                                                Helper.transact(new JPATransaction() {
+                                                    @Override
+                                                    public void run(EntityManager em) throws Throwable {
+
+                                                        if (viewComponent instanceof EditorViewComponent) {
+
+                                                            Object ni = em.merge(finalInstance);
+
+                                                            invoke(viewComponent, m, ni, finalSelection, em, null);
+
+                                                            if (viewComponent instanceof EditorViewComponent) ((EditorViewComponent) viewComponent).setModel(ni);
+
+                                                        } else {
+
+                                                            invoke(viewComponent, m, finalInstance, finalSelection, em, null);
+
+                                                        }
+
+                                                    }
+                                                });
+
+                                                if (viewComponent instanceof EditorViewComponent && instance.getClass().isAnnotationPresent(Entity.class)) {
+                                                    EditorViewComponent evc = (EditorViewComponent) viewComponent;
+                                                    Object i = evc.getModel();
+                                                    Helper.notransact(em -> evc.setModel(em.find(i.getClass(), ReflectionHelper.getId(i))));
+                                                }
+
+                                            } else {
+
+                                                invoke(viewComponent, m, instance, selection, null, null);
+
+                                            }
+
+
+                                            if (m.isAnnotationPresent(Action.class) && m.getAnnotation(Action.class).saveAfter() && viewComponent instanceof EditorViewComponent) {
+                                                ((EditorViewComponent) viewComponent).save(false);
+                                            } else if (viewComponent instanceof EditorViewComponent) {
+                                                EditorViewComponent evc = (EditorViewComponent) viewComponent;
+                                                evc.getBinder().update(evc.getModel());
+                                            }
+
+                                        } catch (Throwable throwable) {
+                                            MDD.alert(throwable);
+                                        }
+
+                                    }
+
+                                } catch (Throwable throwable) {
+                                    MDD.alert(throwable);
                                 }
 
                             } catch (Throwable throwable) {
                                 MDD.alert(throwable);
                             }
 
-                        } catch (Throwable throwable) {
-                            MDD.alert(throwable);
                         }
 
                     }
 
                 }
-            }.setStyle(aa.style()).setIcon(VaadinIcons.ADOBE_FLASH.equals(aa.icon())?null:aa.icon()).setConfirmationMessage(aa.confirmationMessage());
+            }.setStyle(aa.style()).setIcon(VaadinIcons.ADOBE_FLASH.equals(aa.icon())?null:aa.icon())
+                    .setConfirmationMessage(aa.confirmationMessage());
 
             action.setGroup(aa.group());
             viewComponent.setAction(m, action);

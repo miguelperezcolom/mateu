@@ -103,6 +103,7 @@ public class OwnedCollectionComponent extends EditorViewComponent {
                 {
                     try {
                         Object m = getModel();
+                        if (m != null && m instanceof ResourceModel) m = ((ResourceModel) m).getResource();
                         collection = ReflectionHelper.removeFromCollection(parentBinder, field, parentBinder.getBean(), Lists.newArrayList(m));
 
                         try {

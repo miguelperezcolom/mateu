@@ -202,13 +202,11 @@ public class FieldEditorComponent extends AbstractViewComponent{
 
         List<Method> ms = new ArrayList<>();
         for (Method m : ReflectionHelper.getAllMethods(bean != null?bean.getClass():field.getDeclaringClass())) {
-            if (m.isAnnotationPresent(Action.class) && !(
-                    Modifier.isStatic(m.getModifiers())
+            if (!(Modifier.isStatic(m.getModifiers())
                             || (m.isAnnotationPresent(NotWhenCreating.class) && isEditingNewRecord)
                             || (m.isAnnotationPresent(NotWhenEditing.class) && !isEditingNewRecord))
-                            && field.getName().equals(m.getAnnotation(Action.class).attachToField()
-            )) {
-
+                    && (m.isAnnotationPresent(Action.class) && field.getName().equals(m.getAnnotation(Action.class).attachToField()))
+            ) {
                 ms.add(m);
             }
         }

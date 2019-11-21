@@ -2406,6 +2406,38 @@ body {
       }
     }
   }
+
+  .fileicon {
+    font-size: 100px;
+  }
+
+  .actiongroupwindow {
+    min-width: 400px !important;
+    min-height: 400px !important;
+    padding: 20px;
+
+    .v-button {
+      margin: 10px;
+    }
+
+    .v-button.quiet {
+      border: none;
+      background-image: none;
+      -webkit-box-shadow: none;
+      box-shadow: none;
+      text-shadow: none;
+    }
+
+    .v-button.quiet:hover {
+      background-color: lightgray;
+    }
+
+    .v-button.quiet:focus:after {
+      box-shadow: none;
+    }
+
+  }
+
 }
 
 

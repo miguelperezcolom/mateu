@@ -1,6 +1,9 @@
 package io.mateu.mdd.tester.app.complexCase;
 
+import com.vaadin.icons.VaadinIcons;
+import com.vaadin.ui.Component;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.model.config.AppConfig;
@@ -8,6 +11,7 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.tester.model.useCases.bankAccount.BankAccount;
 import io.mateu.mdd.tester.model.useCases.bankAccount.Payment;
 import io.mateu.mdd.tester.model.useCases.hotel.*;
+import io.mateu.mdd.tester.model.useCases.hotel.cockpit.CockpitView;
 import io.mateu.mdd.tester.model.useCases.invoicing.Customer;
 import io.mateu.mdd.tester.model.useCases.invoicing.Invoice;
 import io.mateu.mdd.tester.model.useCases.pojos.Calculator;
@@ -94,6 +98,8 @@ public class UseCasesModule extends AbstractModule {
                 return l;
             }
         });
+
+        l.add(new MDDOpenCustomComponentAction("Cockpit", CockpitView.class));
 
         l.add(new MDDOpenEditorAction("App config", AppConfig.class, 1l));
 

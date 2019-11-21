@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
@@ -33,6 +34,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     protected CssLayout bar;
     protected Map<Method, AbstractAction> actionsByMethod = new HashMap<>();
     protected Map<String, Component> menuItemsById = new HashMap<>();
+    protected Map<String, List<Component>> menuItemsByGroup = new HashMap<>();
     protected List<String> menuItemIdsUnseen = new ArrayList<>();
     private String title;
     private HorizontalLayout hiddens;
@@ -229,65 +231,68 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
         }
 
         for (AbstractAction a : getActions()) {
-            Component i = null;
-            if (!isActionPresent(a.getId())) {
-                Button b;
-                bar.addComponent(i = b = new Button(a.getName(), a.getIcon()));
-                b.addStyleName(ValoTheme.BUTTON_QUIET);
-                b.addClickListener(e -> {
-                    try {
+                Component i = null;
+                if (!isActionPresent(a.getId())) {
+                    Button b;
+                    i = b = new Button(a.getName(), a.getIcon());
+                    b.addStyleName(ValoTheme.BUTTON_QUIET);
+                    b.addClickListener(e -> {
+                        try {
 
-                        Runnable r = new Runnable() {
-                            @Override
-                            public void run() {
+                            Runnable r = new Runnable() {
+                                @Override
+                                public void run() {
 
-                                boolean needsValidation = AbstractViewComponent.this instanceof EditorViewComponent && a.isValidationNeeded();
+                                    boolean needsValidation = AbstractViewComponent.this instanceof EditorViewComponent && a.isValidationNeeded();
 
-                                if (!needsValidation || ((EditorViewComponent)AbstractViewComponent.this).validate()) {
+                                    if (!needsValidation || ((EditorViewComponent)AbstractViewComponent.this).validate()) {
 
-                                    a.run(new AbstractMDDExecutionContext());
+                                        a.run(new AbstractMDDExecutionContext());
 
-                                    if (AbstractViewComponent.this instanceof EditorViewComponent) {
+                                        if (AbstractViewComponent.this instanceof EditorViewComponent) {
 
-                                        EditorViewComponent evc = (EditorViewComponent) AbstractViewComponent.this;
+                                            EditorViewComponent evc = (EditorViewComponent) AbstractViewComponent.this;
 
-                                        evc.getBinder().update(evc.getModel());
+                                            evc.getBinder().update(evc.getModel());
+
+                                        }
 
                                     }
 
                                 }
+                            };
 
-                            }
-                        };
+                            if (!Strings.isNullOrEmpty(a.getConfirmationMessage())) {
+                                MDD.confirm(a.getConfirmationMessage(), new Runnable() {
+                                    @Override
+                                    public void run() {
 
-                        if (!Strings.isNullOrEmpty(a.getConfirmationMessage())) {
-                            MDD.confirm(a.getConfirmationMessage(), new Runnable() {
-                                @Override
-                                public void run() {
+                                        r.run();
 
-                                    r.run();
+                                        //todo: actualizar vista con los cambios en el modelo
 
-                                    //todo: actualizar vista con los cambios en el modelo
+                                    }
+                                });
+                            } else r.run();
 
-                                }
-                            });
-                        } else r.run();
+                        } catch (Throwable throwable) {
+                            MDD.alert(throwable);
+                        }
+                    });
 
-                    } catch (Throwable throwable) {
-                        MDD.alert(throwable);
-                    }
-                });
+                    if (!Strings.isNullOrEmpty(a.getGroup())) menuItemsByGroup.computeIfAbsent(a.getGroup(), k -> new ArrayList<>()).add(i);
+                    addMenuItem(a.getId(), i);
 
-                addMenuItem(a.getId(), i);
+                    if (!Strings.isNullOrEmpty(a.getStyle())) i.addStyleName(a.getStyle());
 
-                if (!Strings.isNullOrEmpty(a.getStyle())) i.addStyleName(a.getStyle());
+                    if (Strings.isNullOrEmpty(a.getGroup())) bar.addComponent(i);
 
-            } else {
-                i = getMenuItemById(a.getId());
+                } else {
+                    i = getMenuItemById(a.getId());
+                }
+                if (i != null && !Strings.isNullOrEmpty(a.getStyle())) i.addStyleName(a.getStyle());
+                i.setVisible(true);
             }
-            if (i != null && !Strings.isNullOrEmpty(a.getStyle())) i.addStyleName(a.getStyle());
-            i.setVisible(true);
-        }
 
         if (bar.getComponentCount() == 0 || (bar.getComponentCount() == 1 && !bar.getComponent(0).isVisible())) bar.setVisible(false);
     }

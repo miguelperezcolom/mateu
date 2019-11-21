@@ -6,6 +6,8 @@ import com.vaadin.data.*;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.icons.VaadinIcons;
+import com.vaadin.server.ClassResource;
+import com.vaadin.server.ExternalResource;
 import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.shared.ui.grid.HeightMode;
@@ -222,22 +224,24 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
         } else if (Resource.class.equals(field.getGenericClass())) {
 
-            VerticalLayout hl = new VerticalLayout();
+            CssLayout hl = new CssLayout();
 
-            Label l;
-            hl.addComponent(l = new Label("", ContentMode.HTML));
-            l.addStyleName("collectionlinklabel");
             hl.addStyleName(CSS.NOPADDING);
 
             hl.setCaption(ReflectionHelper.getCaption(field));
 
+            hl.addStyleName(CSS.CLICKABLE);
+            hl.addLayoutClickListener(e -> {
+                if (e.isDoubleClick()) MDDUI.get().getNavegador().go(field.getName());
+            });
+
             container.addComponent(hl);
 
-            bindResourcesList(binder, l, field);
+            bindResourcesList(binder, hl, field);
 
-            addErrorHandler(l);
+            addErrorHandler(hl);
 
-            r = l;
+            r = hl;
 
         } else if (field.isAnnotationPresent(UseTable.class)) {
 
@@ -1315,7 +1319,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         return hl;
     }
 
-    private void bindResourcesList(MDDBinder binder, Label l, FieldInterfaced field) {
+    private void bindResourcesList(MDDBinder binder, Layout l, FieldInterfaced field) {
         Binder.BindingBuilder aux = binder.forField(new HasValue() {
             private Object v;
 
@@ -1323,19 +1327,49 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             public void setValue(Object o) {
                 v = o;
 
-                if (o == null || ((Collection)o).size() == 0) l.setValue("Empty list");
+                l.removeAllComponents();
+
+                if (o == null || ((Collection)o).size() == 0) {
+                    Label label;
+                    l.addComponent(label = new Label(VaadinIcons.PLUS.getHtml()));
+                    label.setContentMode(ContentMode.HTML);
+                    label.addStyleName("fileicon");
+                }
                 else {
                     try {
 
-                        String h = "<div class='freeTexts'>";
-                        for (Resource l : (Collection<Resource>)o) {
-                            h += "<div class='line'>";
-                            h += "<a href='" + l.toFileLocator().getUrl() + "'>" + l.getName() + "</a>";
-                            h += "</div>";
+                        for (Resource file : (Collection<Resource>)o) {
+                            boolean empty = true;
+                            if (file != null && file.getName () != null) {
+                                String u = file.toFileLocator().getUrl();
+                                if (!Strings.isNullOrEmpty(u)) {
+                                    if (file.getName().toLowerCase().endsWith(".jpg")
+                                            || file.getName().toLowerCase().endsWith(".jpeg")
+                                            || file.getName().toLowerCase().endsWith(".gif")
+                                            || file.getName().toLowerCase().endsWith(".png")
+                                            || file.getName().toLowerCase().endsWith(".svg")
+                                            || file.getName().toLowerCase().endsWith(".webp")) {
+                                        Image image = new Image();
+                                        image.setWidth("130px");
+                                        image.setSource(!Strings.isNullOrEmpty(u)?new ExternalResource(u):new ClassResource("/images/noimage.png"));
+                                        l.addComponent(image);
+                                    } else {
+                                        Label label;
+                                        l.addComponent(label = new Label(VaadinIcons.FILE.getHtml()));
+                                        label.setContentMode(ContentMode.HTML);
+                                        label.addStyleName("fileicon");
+                                    }
+                                    empty = false;
+                                }
+                            }
+                            if (empty) {
+                                Image image = new Image();
+                                image.setWidth("130px");
+                                image.setSource(new ClassResource("/images/noimage.png"));
+                                l.addComponent(image);
+                            }
                         }
-                        h += "</div>";
 
-                        l.setValue(h);
                     } catch (Exception e) {
                         MDD.alert(e);
                     }

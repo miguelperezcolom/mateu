@@ -18,6 +18,7 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.annotations.ExpandOnOpen;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDExecutionContext;
 import io.mateu.mdd.core.interfaces.HasActions;
@@ -32,6 +33,7 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.List;
 
+@ExpandOnOpen
 public class CockpitView extends VerticalLayout implements HasActions {
 
     private final HorizontalLayout mhl;
