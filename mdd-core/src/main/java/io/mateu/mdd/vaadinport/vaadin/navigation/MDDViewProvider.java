@@ -66,6 +66,8 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
     public Set pendingSelection;
     public Method lastMethodCall;
     public Object pendingResult;
+    public String lastFocusedSectionId;
+    public String pendingFocusedSectionId;
     private String currentPath;
 
     private EditorViewComponent currentEditor;
@@ -88,12 +90,14 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
         }
     }
 
-    public String getPendingPrivateState() {
-        return pendingPrivateState;
+    public String getPendingFocusedSectionId() {
+        String aux = pendingFocusedSectionId;
+        pendingFocusedSectionId = null;
+        return aux;
     }
 
-    public void setPendingPrivateState(String pendingPrivateState) {
-        this.pendingPrivateState = pendingPrivateState;
+    public void setPendingFocusedSectionId(String pendingFocusedSectionId) {
+        this.pendingFocusedSectionId = pendingFocusedSectionId;
     }
 
     public EditorViewComponent getCurrentEditor() {

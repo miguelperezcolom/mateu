@@ -79,7 +79,15 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private CssLayout links;
     private Map<String, List<AbstractAction>> actionsPerSection = new HashMap<>();
     private VerticalLayout actionsContainer;
+    private String focusedSectionId;
 
+    public String getFocusedSectionId() {
+        return focusedSectionId;
+    }
+
+    public void setFocusedSectionId(String focusedSectionId) {
+        this.focusedSectionId = focusedSectionId;
+    }
 
     public void setKpisContainer(Layout kpisContainer) {
         this.kpisContainer = kpisContainer;
@@ -1221,4 +1229,5 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     public void onGoBack() {
         for (EditorListener l : listeners) l.onGoBack(binder.getBean());
     }
+
 }

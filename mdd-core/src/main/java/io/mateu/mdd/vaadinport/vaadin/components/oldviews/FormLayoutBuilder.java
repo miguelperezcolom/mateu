@@ -32,10 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.GeneratedValue;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuilder {
@@ -52,7 +49,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
         }
         contentContainer.addStyleName("contentcontainer");
         contentContainer.addStyleName(CSS.NOPADDING);
-        return build(contentContainer, binder, modelType, model, componentsToLookForErrors, params);
+        return build(editor, contentContainer, binder, modelType, model, componentsToLookForErrors, params);
     }
 
     public Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, List<Component> componentsToLookForErrors, FormLayoutBuilderParameters params) {
@@ -89,6 +86,8 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
         JPAOutputFieldBuilder ofb = new JPAOutputFieldBuilder();
 
+        TabSheet sectionTabSheet = null;
+
         if (!params.isForSearchFilters() && params.isCreateSections()) {
             List<FormLayoutSection> sections = new ArrayList<>();
             Map<String, FormLayoutSection> sectionsByCaption = new HashMap<>();
@@ -119,12 +118,13 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                 if ("general".equalsIgnoreCase(s.getCaption())) s.setCaption(null);
             } else if (sections.size() > 1) {
                 if (!MDD.isMobile() && editor != null) editor.setSizeFull();
-                TabSheet tabSheet = new TabSheet();
+                sectionTabSheet = new TabSheet();
+                if (editor != null) sectionTabSheet.addSelectedTabChangeListener(e -> editor.setFocusedSectionId("" + e.getTabSheet().getSelectedTab().getId()));
                 //tabSheet.setSizeFull();
-                if (contentContainer instanceof VerticalLayout) ((VerticalLayout) contentContainer).addComponentsAndExpand(tabSheet);
-                else contentContainer.addComponent(tabSheet);
+                if (contentContainer instanceof VerticalLayout) ((VerticalLayout) contentContainer).addComponentsAndExpand(sectionTabSheet);
+                else contentContainer.addComponent(sectionTabSheet);
                 //contentContainer.setSizeFull();
-                realContainer = tabSheet;
+                realContainer = sectionTabSheet;
             }
 
             AbstractStylist finalStylist1 = stylist;
@@ -171,6 +171,13 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
         });
 
         AbstractFieldBuilder.applyStyles(stylist, model, allFieldContainers, stylist.process(binder.getBean()));
+
+        if (sectionTabSheet != null) {
+            String sid = MDDUI.get().getNavegador().getViewProvider().getPendingFocusedSectionId();
+            if (!Strings.isNullOrEmpty(sid)) {
+                sectionTabSheet.setSelectedTab(Integer.parseInt(sid));
+            }
+        }
 
         log.debug("editor component E.3 in " + (System.currentTimeMillis() - t0) + " ms.");
 
@@ -295,7 +302,9 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
     private void addSectionToContainer(Component finalRealContainer, Panel form, String caption) {
         if (finalRealContainer instanceof TabSheet) {
-            ((TabSheet) finalRealContainer).addTab(form, caption);
+            TabSheet ts = (TabSheet) finalRealContainer;
+            form.setId("" + ts.getComponentCount());
+            TabSheet.Tab t = ts.addTab(form, caption);
         } else if (finalRealContainer instanceof Layout) {
             ((Layout)finalRealContainer).addComponent(form);
         }

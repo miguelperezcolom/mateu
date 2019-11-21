@@ -2,7 +2,6 @@ package io.mateu.mdd.vaadinport.vaadin.navigation;
 
 import com.google.common.base.Strings;
 import com.vaadin.navigator.Navigator;
-import com.vaadin.server.BrowserWindowOpener;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
 import io.mateu.mdd.core.MDD;
@@ -14,7 +13,6 @@ import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.desktop.DesktopAppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.AreaComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.app.views.FieldEditorComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.MenuFlowComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.ModuleComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorListener;
@@ -248,7 +246,9 @@ public class MDDNavigator {
     private void yesGoSibling(Object id) {
 
         if (stack.getLast().getComponent() instanceof EditorViewComponent) {
-            ((EditorViewComponent) stack.getLast().getComponent()).onGoBack();
+            EditorViewComponent ed = (EditorViewComponent) stack.getLast().getComponent();
+            ed.onGoBack();
+            getViewProvider().pendingFocusedSectionId = ed.getFocusedSectionId();
         }
 
         String u = stack.getState(stack.getLast());
