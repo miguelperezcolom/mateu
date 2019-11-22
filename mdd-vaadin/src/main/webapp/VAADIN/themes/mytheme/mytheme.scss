@@ -1226,6 +1226,7 @@ body {
 
     border-top: 1px dashed lightgrey;
     border-bottom: 1px dashed lightgrey;
+    padding-bottom: 2px !important;
     width: 100%;
 
     > * {
@@ -1233,7 +1234,6 @@ body {
     }
 
     .v-caption {
-      margin-top: 0.65em;
       margin-right: 10px;
     }
 
@@ -2526,6 +2526,12 @@ body {
 
 
   .gridonetomany {
+
+    .v-grid-row-stripe {
+      td {
+        background-color: inherit;
+      }
+    }
 
     .v-grid-header {
       .v-grid-cell {

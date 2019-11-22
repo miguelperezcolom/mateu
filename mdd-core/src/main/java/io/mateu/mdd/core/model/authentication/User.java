@@ -41,18 +41,20 @@ public class User implements EditorViewStyler {
      * login must always be lowercase. It is the primary key.
      */
     @Section("Data")
+    @FieldGroup("Main")
     @Id
     @ListColumn("Login")
     @NotNull
     private String login;
 
-    @Output
-    private boolean oauth;
-
     @ListColumn("Name")
     @NotNull
     private String name;
 
+    @Output
+    private boolean oauth;
+
+    @FieldGroup("Info")
     @ListColumn("Email")
     @NotNull
     private String email;
@@ -75,16 +77,17 @@ public class User implements EditorViewStyler {
     private LocalDate expiryDate;
 
 
-
+    @FieldGroup("Photo")
     @NotInList
     @ManyToOne(cascade = CascadeType.ALL)
     private Resource photo;
 
+    @FieldGroup("Comments")
     @TextArea
     private String comments;
 
 
-    @Section("Access")
+    @Section("Auth")
     @OneToMany
     private List<Permission> permissions = new ArrayList<Permission>();
 
