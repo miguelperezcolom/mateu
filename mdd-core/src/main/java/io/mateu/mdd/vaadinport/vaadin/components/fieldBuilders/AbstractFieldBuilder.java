@@ -181,8 +181,9 @@ public abstract class AbstractFieldBuilder {
         if (attachedActions == null || attachedActions.size() == 0) container.addComponent(c);
         else {
             VerticalLayout vl = null;
-            if (container instanceof VerticalLayout && container.getComponentCount() == 2 && ((VerticalLayout) container).getComponent(1) instanceof HorizontalLayout) {
-                crearBotonera(attachedActions, (Layout) ((VerticalLayout) container).getComponent(1));
+            if (c instanceof VerticalLayout && ((VerticalLayout)c).getComponentCount() == 2 && ((VerticalLayout) c).getComponent(1) instanceof HorizontalLayout) {
+                vl = (VerticalLayout) c;
+                crearBotonera(attachedActions, (Layout) vl.getComponent(1));
             } else {
                 vl = new VerticalLayout(c, crearBotonera(attachedActions));
                 vl.addStyleName(CSS.NOPADDING);

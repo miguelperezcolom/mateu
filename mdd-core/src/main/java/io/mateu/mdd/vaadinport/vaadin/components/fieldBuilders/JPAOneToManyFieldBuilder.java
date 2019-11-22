@@ -244,7 +244,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             r = hl;
 
-        } else if (field.isAnnotationPresent(UseTable.class)) {
+        } else if (false && field.isAnnotationPresent(UseTable.class)) {
 
             VerticalLayout hl = new VerticalLayout();
             hl.addStyleName("onetomanytable");
@@ -276,7 +276,10 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             g.addStyleName("gridonetomany");
 
-            List<FieldInterfaced> colFields = getColumnFields(field);
+            String colsFilter = "";
+            if (field.isAnnotationPresent(UseTable.class)) colsFilter = field.getAnnotation(UseTable.class).fields();
+
+            List<FieldInterfaced> colFields = getColumnFields(field, colsFilter);
             List<FieldInterfaced> editableFields = ReflectionHelper.getAllEditableFields(ReflectionHelper.getGenericClass(field.getGenericType()), field.getDeclaringClass(), false, field);
             List<FieldInterfaced> originalEditableFields = editableFields;
 

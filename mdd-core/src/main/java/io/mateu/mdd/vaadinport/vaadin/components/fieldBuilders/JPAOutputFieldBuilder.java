@@ -98,7 +98,10 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
                     g.addStyleName("gridonetomany");
 
-                    List<FieldInterfaced> colFields = JPAOneToManyFieldBuilder.getColumnFields(field);
+                    String colsFilter = "";
+                    if (field.isAnnotationPresent(UseTable.class)) colsFilter = field.getAnnotation(UseTable.class).fields();
+
+                    List<FieldInterfaced> colFields = JPAOneToManyFieldBuilder.getColumnFields(field, colsFilter);
 
                     Class targetClass = field.getGenericClass();
 
