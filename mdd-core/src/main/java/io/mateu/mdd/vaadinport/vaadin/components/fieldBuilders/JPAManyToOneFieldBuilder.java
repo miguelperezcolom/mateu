@@ -10,6 +10,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
+import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
@@ -34,7 +35,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
         return field.isAnnotationPresent(ManyToOne.class) || field.getType().isAnnotationPresent(Entity.class);
     }
 
-    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
 
         Component r = null;
 
@@ -490,8 +491,8 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
             binding.getField().addValueChangeListener(e -> {
                 Object bean = binder.getBean();
                 try {
-                    if (e.getOldValue() != null) ReflectionHelper.unReverseMap(binder, field, bean, e.getOldValue());
-                    if (e.getValue() != null) ReflectionHelper.reverseMap(binder, field, bean, e.getValue());
+                    if (e.getOldValue() != null) ReflectionHelper.unReverseMap(binder, field, bean, getInstance(field, e.getOldValue()));
+                    if (e.getValue() != null) ReflectionHelper.reverseMap(binder, field, bean, getInstance(field, e.getValue()));
                 } catch (Exception e1) {
                     MDD.alert(e1);
                 }
@@ -499,6 +500,23 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
         }
 
         return binding;
+    }
+
+    private Object getInstance(FieldInterfaced field, Object rawValue) {
+        if (rawValue == null) return null;
+        if (field.getType().getClass().isAssignableFrom(rawValue.getClass())) return rawValue;
+        try {
+            Object id = rawValue;
+            if (rawValue instanceof String) {
+                FieldInterfaced idField = ReflectionHelper.getIdField(field.getType());
+                if (Long.class.equals(idField.getType()) || long.class.equals(idField.getType())) id = Long.parseLong((String) rawValue);
+                if (Integer.class.equals(idField.getType()) || int.class.equals(idField.getType())) id = Integer.parseInt((String) rawValue);
+            }
+            return Helper.find(field.getType(), id);
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+        return null;
     }
 
 }

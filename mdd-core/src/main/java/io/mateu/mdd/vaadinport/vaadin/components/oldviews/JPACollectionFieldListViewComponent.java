@@ -223,6 +223,7 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
         ReflectionHelper.setValue(field, bean, ReflectionHelper.getValue(field, bean));
         evfc.getBinder().setBean(bean, false);
         //evfc.save(false, false);
+        list = (Collection) ReflectionHelper.getValue(field, model);
         search(this);
     }
 

@@ -1,7 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import com.vaadin.data.Binder;
 import com.vaadin.data.BinderValidationStatus;
 import com.vaadin.data.HasValue;
@@ -24,7 +23,6 @@ import io.mateu.mdd.core.interfaces.ReadOnly;
 import io.mateu.mdd.core.model.authentication.Audit;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.FieldInterfacedFromType;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.HasChangesSignature;
 import io.mateu.mdd.core.util.Helper;
@@ -80,6 +78,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private Map<String, List<AbstractAction>> actionsPerSection = new HashMap<>();
     private VerticalLayout actionsContainer;
     private String focusedSectionId;
+    private Map<String, List<AbstractAction>> actionsPerField = new HashMap<>();
 
     public String getFocusedSectionId() {
         return focusedSectionId;
@@ -384,7 +383,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
             FormLayoutBuilderParameters.FormLayoutBuilderParametersBuilder params = FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).links(links).actionsPerSection(actionsPerSection);
             if (this instanceof FiltersViewFlowComponent) params = params.forSearchFilters(true).forSearchFiltersExtended(true).createSections(false).createTabs(false);
-            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(this, binder, model.getClass(), model, componentsToLookForErrors, params.build());
+            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(this, binder, model.getClass(), model, componentsToLookForErrors, params.build(), actionsPerField);
 
             stylist = r.getValue();
 
@@ -888,12 +887,14 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
 
         List<Method> ms = new ArrayList<>();
+        List<Method> mvf = new ArrayList<>();
+
         for (Method m : ReflectionHelper.getAllMethods(modelType)) {
             if (!(
                     Modifier.isStatic(m.getModifiers())
                             || (m.isAnnotationPresent(NotWhenCreating.class) && isEditingNewRecord)
                             || (m.isAnnotationPresent(NotWhenEditing.class) && !isEditingNewRecord))
-                    && (m.isAnnotationPresent(Action.class) && Strings.isNullOrEmpty(m.getAnnotation(Action.class).attachToField()))
+                    && m.isAnnotationPresent(Action.class)
             ) {
 
                 Optional<Method> omv = mvs.get(m);
@@ -912,7 +913,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 try {
 
                     if (mv == null || bean == null || (Boolean) mv.invoke(bean)) {
-                        ms.add(m);
+                        (Strings.isNullOrEmpty(m.getAnnotation(Action.class).attachToField())?ms:mvf).add(m);
                     }
 
                 } catch (Exception e) {
@@ -925,11 +926,24 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             return a.getAnnotation(Action.class).order() - b.getAnnotation(Action.class).order();
         });
 
+        mvf.sort((a, b) -> {
+            return a.getAnnotation(Action.class).order() - b.getAnnotation(Action.class).order();
+        });
+
         actionsPerSection = new HashMap<>();
         ms.forEach(m -> {
             Action aa = m.getAnnotation(Action.class);
             actionsPerSection.putIfAbsent(aa.section(), new ArrayList<>());
             List<AbstractAction> l = actionsPerSection.get(aa.section());
+            AbstractAction a;
+            l.add(a = ViewComponentHelper.createAction(m, this));
+        });
+
+        actionsPerField = new HashMap<>();
+        mvf.forEach(m -> {
+            Action aa = m.getAnnotation(Action.class);
+            actionsPerField.putIfAbsent(aa.attachToField(), new ArrayList<>());
+            List<AbstractAction> l = actionsPerField.get(aa.attachToField());
             AbstractAction a;
             l.add(a = ViewComponentHelper.createAction(m, this));
         });
@@ -1004,9 +1018,6 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                                 for (Object o : getRemovables()) {
                                     if (getMergeables().contains(o)) getMergeables().remove(o);
 
-                                    if (!em.contains(o)) {
-                                        o = em.merge(o);
-                                    }
                                     if (em.contains(o)) {
                                         em.remove(o);
                                     }

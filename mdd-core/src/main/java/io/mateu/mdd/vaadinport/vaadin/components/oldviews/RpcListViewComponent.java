@@ -215,4 +215,9 @@ public class RpcListViewComponent extends ListViewComponent {
         }
         return a;
     }
+
+    public Object onEdit(String step) throws Throwable {
+        Object row = resultsComponent.getRow(step);
+        return getRpcListView().onEdit(row);
+    }
 }

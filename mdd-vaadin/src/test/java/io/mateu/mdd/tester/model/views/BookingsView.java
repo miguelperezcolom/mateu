@@ -90,8 +90,4 @@ public class BookingsView extends AbstractJPQLListView<Reserva> {
         return Helper.find(Booking.class, row.getId());
     }
 
-    public Object onEdit(String id) throws Throwable {
-        return Helper.find(Booking.class, Long.parseLong(id));
-    }
-
 }

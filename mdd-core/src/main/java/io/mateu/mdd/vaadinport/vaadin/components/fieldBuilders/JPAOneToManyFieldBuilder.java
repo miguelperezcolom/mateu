@@ -16,6 +16,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
+import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.FareValue;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
@@ -56,7 +57,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         return ok;
     }
 
-    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
 
         Component r = null;
 
@@ -72,11 +73,11 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             if (Map.class.isAssignableFrom(field.getType())) {
 
 
-                r = buildMap(field, object, container, binder, validators, stylist, allFieldContainers, forSearchFilter, owned);
+                r = buildMap(field, object, container, binder, validators, stylist, allFieldContainers, forSearchFilter, owned, attachedActions);
 
             } else {
 
-                r = buildList(field, object, container, binder, validators, stylist, allFieldContainers, forSearchFilter, owned);
+                r = buildList(field, object, container, binder, validators, stylist, allFieldContainers, forSearchFilter, owned, attachedActions);
 
 
             }
@@ -86,7 +87,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         return r;
     }
 
-    private Component buildList(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue,List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced,Component> allFieldContainers, boolean forSearchFilter, boolean owned) {
+    private Component buildList(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, boolean owned, Map<String, List<AbstractAction>> attachedActions) {
 
         Component r = null;
 
@@ -107,7 +108,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             hl.setCaption(ReflectionHelper.getCaption(field));
 
-            container.addComponent(hl);
+            addComponent(container, hl, attachedActions.get(field.getName()));
 
             bind(binder, l, field);
 
@@ -126,7 +127,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             //tf.addValueChangeListener(event -> Notification.show("Value changed:", String.valueOf(event.getValue()), Type.TRAY_NOTIFICATION));
 
-            container.addComponent(tf);
+            addComponent(container, tf, attachedActions.get(field.getName()));
 
             JPAManyToOneFieldBuilder.setDataProvider(tf, field, binder);
 
@@ -172,7 +173,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             hl.setCaption(ReflectionHelper.getCaption(field));
 
-            container.addComponent(hl);
+            addComponent(container, hl, attachedActions.get(field.getName()));
 
             bind(binder, l, field, null);
 
@@ -190,7 +191,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             cbg.setCaption(ReflectionHelper.getCaption(field));
 
-            container.addComponent(cbg);
+            addComponent(container, cbg, attachedActions.get(field.getName()));
 
             bind(binder, cbg, field);
 
@@ -214,7 +215,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             hl.setCaption(ReflectionHelper.getCaption(field));
 
-            container.addComponent(hl);
+            addComponent(container, hl, attachedActions.get(field.getName()));
 
             bind(binder, l, field, mh);
 
@@ -235,7 +236,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                 if (e.isDoubleClick()) MDDUI.get().getNavegador().go(field.getName());
             });
 
-            container.addComponent(hl);
+            addComponent(container, hl, attachedActions.get(field.getName()));
 
             bindResourcesList(binder, hl, field);
 
@@ -261,7 +262,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             hl.setCaption(ReflectionHelper.getCaption(field));
 
-            container.addComponent(hl);
+            addComponent(container, hl, attachedActions.get(field.getName()));
 
             bind(binder, l, field);
 
@@ -272,6 +273,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         } else {
 
             Grid g = new Grid();
+
+            g.addStyleName("gridonetomany");
 
             List<FieldInterfaced> colFields = getColumnFields(field);
             List<FieldInterfaced> editableFields = ReflectionHelper.getAllEditableFields(ReflectionHelper.getGenericClass(field.getGenericType()), field.getDeclaringClass(), false, field);
@@ -362,6 +365,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
 
             HorizontalLayout hl = new HorizontalLayout();
+            hl.addStyleName("botoneracampo");
 
             Button b;
 
@@ -382,6 +386,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                             hl.addComponent(b = new Button(VaadinIcons.PLUS));
                             b.addStyleName(ValoTheme.BUTTON_QUIET);
+                            b.addStyleName(ValoTheme.BUTTON_TINY);
                             b.addClickListener(e -> {
                                 try {
                                     Object bean = binder.getBean();
@@ -424,6 +429,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                             hl.addComponent(b = new Button(VaadinIcons.PLUS));
                             b.addStyleName(ValoTheme.BUTTON_QUIET);
+                            b.addStyleName(ValoTheme.BUTTON_TINY);
                             b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
                         }
 
@@ -433,6 +439,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                     hl.addComponent(b = new Button(VaadinIcons.COPY));
                     b.addStyleName(ValoTheme.BUTTON_QUIET);
+                    b.addStyleName(ValoTheme.BUTTON_TINY);
                     b.addClickListener(e -> {
                         try {
 
@@ -454,6 +461,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                     hl.addComponent(b = new Button(VaadinIcons.MINUS));
                     b.addStyleName(ValoTheme.BUTTON_QUIET);
+                    b.addStyleName(ValoTheme.BUTTON_TINY);
                     b.addClickListener(e -> {
                         try {
                             Object bean = binder.getBean();
@@ -476,6 +484,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                     hl.addComponent(b = new Button(VaadinIcons.ARROW_UP));
                     b.addStyleName(ValoTheme.BUTTON_QUIET);
+                    b.addStyleName(ValoTheme.BUTTON_TINY);
                     b.addClickListener(e -> {
                         try {
 
@@ -520,6 +529,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                     hl.addComponent(b = new Button(VaadinIcons.ARROW_DOWN));
                     b.addStyleName(ValoTheme.BUTTON_QUIET);
+                    b.addStyleName(ValoTheme.BUTTON_TINY);
                     b.addClickListener(e -> {
                         try {
 
@@ -605,10 +615,12 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                     hl.addComponent(b = new Button(VaadinIcons.PLUS));
                     b.addStyleName(ValoTheme.BUTTON_QUIET);
+                    b.addStyleName(ValoTheme.BUTTON_TINY);
                     b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
 
                     hl.addComponent(b = new Button(VaadinIcons.MINUS));
                     b.addStyleName(ValoTheme.BUTTON_QUIET);
+                    b.addStyleName(ValoTheme.BUTTON_TINY);
                     b.addClickListener(e -> {
                         try {
                             Object bean = binder.getBean();
@@ -627,12 +639,15 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             if (hl.getComponentCount() > 0) {
 
                 VerticalLayout vl;
-                container.addComponent(vl = new VerticalLayout(g, hl));
+                addComponent(container, vl = new VerticalLayout(g, hl), attachedActions.get(field.getName()));
                 vl.addStyleName(CSS.NOPADDING);
+                vl.addStyleName("contenedorbotoneracampo");
+                vl.addStyleName("conbotonera");
+
 
             } else {
 
-                container.addComponent(g);
+                addComponent(container, g, attachedActions.get(field.getName()));
 
             }
 
@@ -844,7 +859,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
     }
 
-    private Component buildMap(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, boolean owned) {
+    private Component buildMap(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, boolean owned, Map<String, List<AbstractAction>> attachedActions) {
         Class keyType = ReflectionHelper.getGenericClass(field, Map.class, "K");
         Class valueType = ReflectionHelper.getGenericClass(field, Map.class, "V");
 
@@ -898,7 +913,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         Layout finalHl = lx;
         auxFields.forEach(f -> {
             AbstractFieldBuilder b = MDD.getApp().getFieldBuilder(f);
-            if (b != null) b.build(f, m, finalHl, auxbinder, null, null, null, false);
+            if (b != null) b.build(f, m, finalHl, auxbinder, null, null, null, false, attachedActions);
         });
 
         vl.addComponent(lx);
@@ -912,6 +927,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         g.setHeightMode(HeightMode.UNDEFINED);
 
         hl.addComponent(b = new Button("Put", VaadinIcons.PLUS));
+        b.addStyleName(ValoTheme.BUTTON_QUIET);
+        b.addStyleName(ValoTheme.BUTTON_TINY);
         b.addClickListener(e -> {
 
             Object bean = binder.getBean();
@@ -936,6 +953,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         });
 
         hl.addComponent(b = new Button("Remove selected lines", VaadinIcons.MINUS));
+        b.addStyleName(ValoTheme.BUTTON_QUIET);
+        b.addStyleName(ValoTheme.BUTTON_TINY);
         b.addClickListener(e -> {
 
 

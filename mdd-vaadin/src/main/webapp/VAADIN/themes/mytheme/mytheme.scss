@@ -805,7 +805,7 @@ body {
         padding: 0px;
 
         .checkboxcontainer {
-          padding-top: 8px;
+          //padding-top: 8px;
         }
       }
     }
@@ -821,7 +821,7 @@ body {
     }
 
     .checkboxcontainer {
-      padding-top: 8px;
+      //padding-top: 8px;
     }
 
     .embedded {
@@ -1136,7 +1136,8 @@ body {
   }
 
   .listsummaryline {
-    margin-top: 10px;
+    margin-top: 20px;
+    font-style: italic;
   }
 
 
@@ -1475,10 +1476,8 @@ body {
   }
 
   .collectionlinklabel {
-    margin-top: 6px;
-
-    margin-bottom: 10px;
-
+    //margin-top: 6px;
+    //margin-bottom: 10px;
   }
 
   .green {
@@ -2408,7 +2407,8 @@ body {
   }
 
   .fileicon {
-    font-size: 100px;
+    font-size: 50px;
+    color: lightgrey;
   }
 
   .actiongroupwindow {
@@ -2436,6 +2436,167 @@ body {
       box-shadow: none;
     }
 
+  }
+
+  .contenedorbotoneracampo {
+    .v-spacing {
+      height: 7px;
+      border-left: 1px dotted lightgrey;
+    }
+    .botoneracampo {
+      border: 1px dotted lightgrey;
+    }
+  }
+
+  .gridresultado {
+    .v-grid-header {
+      .v-grid-cell {
+        background-color: white;
+        background-image: none;
+        font-style: italic;
+      }
+      .v-grid-row {
+        th {
+          border-left: none;
+        }
+      }
+    }
+    .v-grid-row {
+      td {
+        border-left: none;
+      }
+    }
+    .v-grid-row-selected {
+      .v-grid-cell {
+        background-image: none;
+        font-weight: bold;
+      }
+    }
+
+    .v-grid-cell-focused:before {
+      border: none;
+    }
+
+    .v-grid-row:hover, .v-grid-row-selected:hover {
+      td {
+        background-color: red;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+      }
+    }
+    .v-grid-cell.frozen {
+      border-right: none;
+      box-shadow: none;
+      -webkit-box-shadow: none;
+    }
+
+    .v-grid-tablewrapper {
+      border: none;
+    }
+
+    .v-grid-horizontal-scrollbar-deco {
+      background-image: none;
+      border: none;
+    }
+
+    .v-grid-scroller-horizontal {
+      border: none;
+    }
+  }
+
+
+  .gridonetomany {
+
+    .v-grid-header {
+      .v-grid-cell {
+        background-color: white;
+        background-image: none;
+        font-style: italic;
+      }
+      .v-grid-row {
+        th {
+          border-left: none;
+        }
+      }
+    }
+    .v-grid-row {
+      td {
+        border-left: none;
+      }
+    }
+    .v-grid-row-selected {
+      .v-grid-cell {
+        background-image: none;
+        font-weight: bold;
+      }
+    }
+
+    .v-grid-cell-focused:before {
+      border: none;
+    }
+
+    .v-grid-row:hover, .v-grid-row-selected:hover {
+      td {
+        background-color: red;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+      }
+    }
+    .v-grid-cell.frozen {
+      border-right: none;
+      box-shadow: none;
+      -webkit-box-shadow: none;
+    }
+
+    .v-grid-tablewrapper {
+      border: none;
+    }
+
+    .v-grid-horizontal-scrollbar-deco {
+      background-image: none;
+      border: none;
+    }
+
+    .v-grid-scroller-horizontal {
+      border: none;
+    }
+  }
+
+  .conbotonera {
+    margin-bottom: 15px;
+  }
+
+  .v-caption {
+    padding-bottom: 1px;
+  }
+
+  .v-slot-sectionactionbar {
+    border-top: 1px dashed lightgrey;
+    border-bottom: 1px dashed lightgrey;
+    padding-top: 2px;
+    padding-bottom: 2px;
+  }
+
+  .v-slot-sectionkpiscontainer {
+    border-top: 1px dashed lightgrey;
+    border-bottom: 1px dashed lightgrey;
+    padding-top: 2px;
+    padding-bottom: 2px;
+
+    .kpi {
+      margin-bottom: inherit;
+      height: inherit;
+
+      .valor {
+        font-size: inherit;
+      }
+    }
+
+    .kpi.sectionkpi {
+      min-height: inherit;
+    }
   }
 
 }

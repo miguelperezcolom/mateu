@@ -10,6 +10,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Layout;
 import io.mateu.mdd.core.annotations.IFrame;
 import io.mateu.mdd.core.annotations.Width;
+import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -25,7 +26,7 @@ public class JPAIFrameFieldBuilder extends AbstractFieldBuilder {
         return field.isAnnotationPresent(IFrame.class);
     }
 
-    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
 
         Component r = null;
 

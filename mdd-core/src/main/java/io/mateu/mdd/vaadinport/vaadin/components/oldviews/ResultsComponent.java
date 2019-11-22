@@ -7,10 +7,10 @@ import com.vaadin.data.provider.Query;
 import com.vaadin.event.SortEvent;
 import com.vaadin.event.selection.SelectionEvent;
 import com.vaadin.event.selection.SelectionListener;
-import com.vaadin.ui.Grid;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.ItemClickListener;
+import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.interfaces.ReadOnly;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -24,12 +24,14 @@ import java.util.*;
 public class ResultsComponent extends VerticalLayout {
 
     private final ListViewComponent listViewComponent;
+    private final Component matchesComponent;
     private Grid grid;
     private Object filters;
     private CallbackDataProvider<Object,Object> dataProvider;
     private int lastClickedRowIndex = -1;
     private Query<Object,Object> lastQuery;
     private Label labelSelection;
+    private Collection found;
 
     public int getLastClickedRowIndex() {
         return lastClickedRowIndex;
@@ -81,9 +83,10 @@ public class ResultsComponent extends VerticalLayout {
         return dataProvider;
     }
 
-    public ResultsComponent(ListViewComponent listViewComponent) {
+    public ResultsComponent(ListViewComponent listViewComponent, Component matchesComponent) {
 
         this.listViewComponent = listViewComponent;
+        this.matchesComponent = matchesComponent;
 
         build();
 
@@ -97,6 +100,7 @@ public class ResultsComponent extends VerticalLayout {
 
 
         grid = new Grid<>();
+        grid.addStyleName("gridresultado");
 
         listViewComponent.buildColumns(grid);
 
@@ -122,7 +126,8 @@ public class ResultsComponent extends VerticalLayout {
         dataProvider = DataProvider.fromFilteringCallbacks(query -> {
             try {
                 setLastQuery(query);
-                return listViewComponent.findAll(listViewComponent.getModelForSearchFilters(), query.getSortOrders(), query.getOffset(), query.getLimit()).stream();
+                found = listViewComponent.findAll(listViewComponent.getModelForSearchFilters(), query.getSortOrders(), query.getOffset(), query.getLimit());
+                return found.stream();
             } catch (Throwable e) {
                 MDD.alert(e);
                 return null;
@@ -161,9 +166,16 @@ public class ResultsComponent extends VerticalLayout {
             }
         });
 
-        labelSelection = new Label("No items selected");
 
-        addComponent(labelSelection);
+        labelSelection = new Label("No items selected");
+        HorizontalLayout hl = new HorizontalLayout();
+        hl.addStyleName(CSS.NOPADDING);
+        hl.addStyleName("listsummaryline");
+        if (matchesComponent != null) hl.addComponent(matchesComponent);
+        hl.addComponent(labelSelection);
+        hl.setDefaultComponentAlignment(Alignment.TOP_LEFT);
+
+        addComponent(hl);
 
         addComponentsAndExpand(grid);
 
@@ -253,5 +265,12 @@ public class ResultsComponent extends VerticalLayout {
 
     public Grid getGrid() {
         return grid;
+    }
+
+    public Object getRow(String step) {
+        if (found != null) {
+            return found.stream().filter(o -> step.equals(o.toString())).findAny().orElse(null);
+        }
+        return null;
     }
 }

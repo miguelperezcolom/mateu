@@ -1499,10 +1499,10 @@ public class ReflectionHelper {
 
         if (Collection.class.isAssignableFrom(mbf.getType())) {
             Collection col = (Collection) ReflectionHelper.getValue(mbf, i);
-            col.remove(bean);
+            if (col != null) col.remove(bean);
         } else if (Set.class.isAssignableFrom(mbf.getType())) {
             Set col = (Set) ReflectionHelper.getValue(mbf, i);
-            col.remove(bean);
+            if (col != null) col.remove(bean);
         } else {
             ReflectionHelper.setValue(mbf, i, null);
         }

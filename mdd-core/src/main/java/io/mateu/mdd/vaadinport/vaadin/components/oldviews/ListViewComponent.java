@@ -76,6 +76,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     public FiltersComponent filtersComponent;
     private Button excelButton;
     private Button pdfButton;
+    private HorizontalLayout matchesComponent;
 
 
     public String getFieldsFilter() {
@@ -98,9 +99,8 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         setSizeFull();
 
         if (!(this instanceof JPACollectionFieldListViewComponent)) {
-            HorizontalLayout hcl;
-            addComponent(hcl = new HorizontalLayout(excelButton = new Button(FontAwesome.FILE_EXCEL_O, e -> excel()), pdfButton = new Button(FontAwesome.FILE_PDF_O, e -> pdf()), countLabel = new Label()));
-            hcl.addStyleName("listsummaryline");
+            addComponent(matchesComponent = new HorizontalLayout(excelButton = new Button(FontAwesome.FILE_EXCEL_O, e -> excel()), pdfButton = new Button(FontAwesome.FILE_PDF_O, e -> pdf()), countLabel = new Label()));
+            matchesComponent.addStyleName(CSS.NOPADDING);
             countLabel.addStyleName("resultsmessage");
 
             excelButton.addStyleName(ValoTheme.BUTTON_LINK);
@@ -132,7 +132,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         }    }
 
     private ResultsComponent buildResultsComponent() {
-        return new ResultsComponent(this);
+        return new ResultsComponent(this, matchesComponent);
     }
 
     public List<FieldInterfaced> getColumnFields() {

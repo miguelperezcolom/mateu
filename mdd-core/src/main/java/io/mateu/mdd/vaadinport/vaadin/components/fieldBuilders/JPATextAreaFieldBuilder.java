@@ -14,6 +14,7 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.annotations.TextArea;
+import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -33,13 +34,13 @@ public class JPATextAreaFieldBuilder extends JPAStringFieldBuilder {
         return field.isAnnotationPresent(TextArea.class);
     }
 
-    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
 
         Component r = null;
 
         if (forSearchFilter) {
 
-            r = super.build(field, object, container, binder, validators, stylist, allFieldContainers, forSearchFilter);
+            r = super.build(field, object, container, binder, validators, stylist, allFieldContainers, forSearchFilter, attachedActions);
 
         } else {
 

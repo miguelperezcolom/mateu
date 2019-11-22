@@ -12,9 +12,8 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.DataProvider;
-import io.mateu.mdd.core.annotations.FullWidth;
-import io.mateu.mdd.core.annotations.UseTable;
+import io.mateu.mdd.core.annotations.*;
+import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.model.common.Resource;
@@ -22,11 +21,14 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ViewComponentHelper;
 import org.javamoney.moneta.FastMoney;
 
 import javax.money.MonetaryAmount;
 import javax.persistence.Entity;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -38,111 +40,112 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
         return String.class.equals(field.getType());
     }
 
-    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
 
         Component r = null;
 
         if (!forSearchFilter) {
 
-        if (Resource.class.equals(field.getGenericClass())) {
+            if (Resource.class.equals(field.getGenericClass())) {
 
-            VerticalLayout hl = new VerticalLayout();
-
-            Label l;
-            hl.addComponent(l = new Label("", ContentMode.HTML));
-            l.addStyleName("collectionlinklabel");
-            hl.addStyleName(CSS.NOPADDING);
-
-            hl.setCaption(ReflectionHelper.getCaption(field));
-
-            container.addComponent(hl);
-
-            bindResourcesList(binder, l, field);
-
-
-        } else if (Collection.class.isAssignableFrom(field.getType())) {
-
-
-            Method mh;
-            if (field.isAnnotationPresent(UseTable.class)) {
                 VerticalLayout hl = new VerticalLayout();
-                hl.addStyleName("onetomanytable");
 
                 Label l;
                 hl.addComponent(l = new Label("", ContentMode.HTML));
+                l.addStyleName("collectionlinklabel");
                 hl.addStyleName(CSS.NOPADDING);
 
                 hl.setCaption(ReflectionHelper.getCaption(field));
 
-                container.addComponent(hl);
+                addComponent(container, hl, attachedActions.get(field.getName()));
 
-                JPAOneToManyFieldBuilder.bind(binder, l, field);
-            } else if ((mh = ReflectionHelper.getMethod(field.getDeclaringClass(), ReflectionHelper.getGetter(field.getName()) + "Html")) != null) {
-                VerticalLayout hl = new VerticalLayout();
-                hl.addStyleName("collectionlinklabel");
-
-                Label l;
-                hl.addComponent(l = new Label("", ContentMode.HTML));
-                hl.addStyleName(CSS.NOPADDING);
-
-                hl.setCaption(ReflectionHelper.getCaption(field));
-
-                container.addComponent(hl);
-
-                JPAOneToManyFieldBuilder.bind(binder, l, field, mh);
-            } else {
-
-                Grid g = new Grid();
-
-                List<FieldInterfaced> colFields = JPAOneToManyFieldBuilder.getColumnFields(field);
-
-                Class targetClass = field.getGenericClass();
-
-                boolean inline = false;
-
-                ListViewComponent.buildColumns(g, colFields, false, inline, binder, field);
-
-                g.setSelectionMode(Grid.SelectionMode.MULTI);
-
-                g.setCaption(ReflectionHelper.getCaption(field));
+                bindResourcesList(binder, l, field);
 
 
-                int ancho = 0;
-                for (Grid.Column col : (List<Grid.Column>) g.getColumns()) ancho += col.getWidth();
-                if (ancho <= 0) ancho = 500;
+            } else if (Collection.class.isAssignableFrom(field.getType())) {
 
 
-                boolean anchoCompleto = field.isAnnotationPresent(FullWidth.class) || ancho > 900;
-                anchoCompleto = false;
+                Method mh;
+                if (field.isAnnotationPresent(UseTable.class)) {
+                    VerticalLayout hl = new VerticalLayout();
+                    hl.addStyleName("onetomanytable");
 
-                if (anchoCompleto) g.setWidth("100%");
-                else {
-                    g.setWidth("" + (ancho + 60) + "px");
+                    Label l;
+                    hl.addComponent(l = new Label("", ContentMode.HTML));
+                    hl.addStyleName(CSS.NOPADDING);
+
+                    hl.setCaption(ReflectionHelper.getCaption(field));
+
+                    addComponent(container, hl, attachedActions.get(field.getName()));
+
+                    JPAOneToManyFieldBuilder.bind(binder, l, field);
+                } else if ((mh = ReflectionHelper.getMethod(field.getDeclaringClass(), ReflectionHelper.getGetter(field.getName()) + "Html")) != null) {
+                    VerticalLayout hl = new VerticalLayout();
+                    hl.addStyleName("collectionlinklabel");
+
+                    Label l;
+                    hl.addComponent(l = new Label("", ContentMode.HTML));
+                    hl.addStyleName(CSS.NOPADDING);
+
+                    hl.setCaption(ReflectionHelper.getCaption(field));
+
+                    addComponent(container, hl, attachedActions.get(field.getName()));
+
+                    JPAOneToManyFieldBuilder.bind(binder, l, field, mh);
+                } else {
+
+                    Grid g = new Grid();
+
+                    List<FieldInterfaced> colFields = JPAOneToManyFieldBuilder.getColumnFields(field);
+
+                    Class targetClass = field.getGenericClass();
+
+                    boolean inline = false;
+
+                    ListViewComponent.buildColumns(g, colFields, false, inline, binder, field);
+
+                    g.setSelectionMode(Grid.SelectionMode.MULTI);
+
+                    g.setCaption(ReflectionHelper.getCaption(field));
+
+
+                    int ancho = 0;
+                    for (Grid.Column col : (List<Grid.Column>) g.getColumns()) ancho += col.getWidth();
+                    if (ancho <= 0) ancho = 500;
+
+
+                    boolean anchoCompleto = field.isAnnotationPresent(FullWidth.class) || ancho > 900;
+                    anchoCompleto = false;
+
+                    if (anchoCompleto) g.setWidth("100%");
+                    else {
+                        g.setWidth("" + (ancho + 60) + "px");
+                    }
+
+                    // añadimos columna para que no haga feo
+                    if (anchoCompleto) {
+                        if (g.getColumns().size() == 1) ((Grid.Column) g.getColumns().get(0)).setExpandRatio(1);
+                        else g.addColumn((d) -> null).setWidthUndefined().setCaption("");
+                    }
+
+                    g.setHeightMode(HeightMode.UNDEFINED);
+
+
+                    DataProvider dpa = (field.isAnnotationPresent(DataProvider.class)) ? field.getAnnotation(DataProvider.class) : null;
+
+                    if (dpa == null) {
+
+                        Method mdp = ReflectionHelper.getMethod(field.getDeclaringClass(), ReflectionHelper.getGetter(field.getName()) + "DataProvider");
+
+                    }
+
+
+                    JPAOneToManyFieldBuilder.bind(binder, g, field, targetClass, null);
+
+
+                    addComponent(container, g, attachedActions.get(field.getName()));
+
                 }
-
-                // añadimos columna para que no haga feo
-                if (anchoCompleto) {
-                    if (g.getColumns().size() == 1) ((Grid.Column) g.getColumns().get(0)).setExpandRatio(1);
-                    else g.addColumn((d) -> null).setWidthUndefined().setCaption("");
-                }
-
-                g.setHeightMode(HeightMode.UNDEFINED);
-
-
-                DataProvider dpa = (field.isAnnotationPresent(DataProvider.class)) ? field.getAnnotation(DataProvider.class) : null;
-
-                if (dpa == null) {
-
-                    Method mdp = ReflectionHelper.getMethod(field.getDeclaringClass(), ReflectionHelper.getGetter(field.getName()) + "DataProvider");
-
-                }
-
-
-                JPAOneToManyFieldBuilder.bind(binder, g, field, targetClass, null);
-
-                container.addComponent(g);
-
-            }
 
             } else {
 
@@ -197,13 +200,8 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
                 }
 
-
-
                 bind(binder, tf, botonLink, field);
-
             }
-
-
 
         }
 

@@ -9,6 +9,7 @@ import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.layout.MiFormLayout;
@@ -39,7 +40,7 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
     }
 
     @Override
-    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
 
         this.field = field;
         this.binder = binder;
@@ -49,7 +50,7 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
 
         if (false && field.isAnnotationPresent(Embedded.class)) {
 
-            binder.addValueChangeListener(e -> subBuild());
+            binder.addValueChangeListener(e -> subBuild(attachedActions));
 
             subClasses = ReflectionHelper.getSubclasses(field.getType());
             if (subClasses.size() > 1) {
@@ -79,7 +80,7 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
                                     MDD.alert(e1);
                                 }
 
-                                subBuild((i != null)?i.getClass():field.getType(), i);
+                                subBuild((i != null)?i.getClass():field.getType(), i, attachedActions);
                                 binder.setBean(bean);
 
                             }
@@ -109,7 +110,7 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
             formLayout.addStyleName("embedded");
             if (container.getComponentCount() > 0) formLayout.setCaption(ReflectionHelper.getCaption(field));
 
-            subBuild();
+            subBuild(attachedActions);
 
             addErrorHandler(mfl);
 
@@ -234,25 +235,25 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
     }
 
 
-    private void subBuild() {
+    private void subBuild(Map<String, List<AbstractAction>> attachedActions) {
         Object i = null;
         try {
             i = ReflectionHelper.getValue(field, binder.getBean());
 
             if (i != null) {
-                subBuild(i.getClass(), i);
+                subBuild(i.getClass(), i, attachedActions);
             } else if (subClasses.size() > 1) {
                 try {
 
-                    if (i != null) subBuild(i.getClass());
+                    if (i != null) subBuild(i.getClass(), attachedActions);
 
                 } catch (Exception e) {
                     MDD.alert(e);
                 }
             } else if (subClasses.size() == 1) {
-                subBuild(subClasses.iterator().next());
+                subBuild(subClasses.iterator().next(), attachedActions);
             } else {
-                subBuild(field.getType());
+                subBuild(field.getType(), attachedActions);
             }
 
         } catch (Exception e) {
@@ -260,11 +261,11 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
         }
     }
 
-    private void subBuild(Class subType) {
-        subBuild(subType, null);
+    private void subBuild(Class subType, Map<String, List<AbstractAction>> attachedActions) {
+        subBuild(subType, null, attachedActions);
     }
 
-    private void subBuild(Class subType, Object o) {
+    private void subBuild(Class subType, Object o, Map<String, List<AbstractAction>> attachedActions) {
 
         formLayout.removeAllComponents();
 
@@ -285,7 +286,7 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
 
         Map<HasValue, List<Validator>> subvalidators = new HashMap<>();
 
-        FormLayoutBuilder.get().build(formLayout, subbinder, subType, o, new ArrayList<>(), FormLayoutBuilderParameters.builder().validators(subvalidators).allFields(ReflectionHelper.getAllEditableFields(subType, field.getType())).build());
+        FormLayoutBuilder.get().build(formLayout, subbinder, subType, o, new ArrayList<>(), FormLayoutBuilderParameters.builder().validators(subvalidators).allFields(ReflectionHelper.getAllEditableFields(subType, field.getType())).build(), attachedActions);
 
 
         bind(binder, field, subbinder);

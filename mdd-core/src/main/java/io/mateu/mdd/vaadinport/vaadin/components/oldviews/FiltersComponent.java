@@ -88,7 +88,7 @@ public class FiltersComponent extends Composite {
                 else mainFilterFields = allFilterFields;
             }
 
-            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(l, binder, modelType, binder.getBean(), new ArrayList<>(), FormLayoutBuilderParameters.builder().validators(validators).allFields(mainFilterFields).forSearchFilters(true).createSections(false).createTabs(false).build());
+            Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(l, binder, modelType, binder.getBean(), new ArrayList<>(), FormLayoutBuilderParameters.builder().validators(validators).allFields(mainFilterFields).forSearchFilters(true).createSections(false).createTabs(false).build(), null);
 
             Button b;
             botones.addComponent(b = new Button(VaadinIcons.CLOSE));
@@ -112,7 +112,7 @@ public class FiltersComponent extends Composite {
 
             if (mainFilterFields.size() < allFilterFields.size()) { // hay filtros que no son los principales
 
-                r = FormLayoutBuilder.get().build(binder, modelType, binder.getBean(), new ArrayList<>(), FormLayoutBuilderParameters.builder().validators(validators).allFields(allFilterFields).forSearchFilters(true).forSearchFiltersExtended(true).build());
+                r = FormLayoutBuilder.get().build(binder, modelType, binder.getBean(), new ArrayList<>(), FormLayoutBuilderParameters.builder().validators(validators).allFields(allFilterFields).forSearchFilters(true).forSearchFiltersExtended(true).build(), null);
 
                 allFiltersComponent = r.getKey();
 

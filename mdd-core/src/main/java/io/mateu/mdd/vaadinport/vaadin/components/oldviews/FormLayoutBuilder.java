@@ -37,10 +37,10 @@ import java.util.*;
 @Slf4j
 public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuilder {
 
-    public Pair<Component, AbstractStylist> build(MDDBinder binder, Class<?> modelType, Object model, List<Component> componentsToLookForErrors, FormLayoutBuilderParameters params) {
-        return build(null, binder, modelType, model, componentsToLookForErrors, params);
+    public Pair<Component, AbstractStylist> build(MDDBinder binder, Class<?> modelType, Object model, List<Component> componentsToLookForErrors, FormLayoutBuilderParameters params, Map<String, List<AbstractAction>> attachedActions) {
+        return build(null, binder, modelType, model, componentsToLookForErrors, params, attachedActions);
     }
-    public Pair<Component, AbstractStylist> build(EditorViewComponent editor, MDDBinder binder, Class<?> modelType, Object model, List<Component> componentsToLookForErrors, FormLayoutBuilderParameters params) {
+    public Pair<Component, AbstractStylist> build(EditorViewComponent editor, MDDBinder binder, Class<?> modelType, Object model, List<Component> componentsToLookForErrors, FormLayoutBuilderParameters params, Map<String, List<AbstractAction>> attachedActions) {
         Layout contentContainer = null;
         if (params.isForSearchFilters() && !params.isForSearchFiltersExtended()) {
             contentContainer = new CssLayout();
@@ -49,14 +49,14 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
         }
         contentContainer.addStyleName("contentcontainer");
         contentContainer.addStyleName(CSS.NOPADDING);
-        return build(editor, contentContainer, binder, modelType, model, componentsToLookForErrors, params);
+        return build(editor, contentContainer, binder, modelType, model, componentsToLookForErrors, params, attachedActions);
     }
 
-    public Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, List<Component> componentsToLookForErrors, FormLayoutBuilderParameters params) {
-        return build(null, contentContainer, binder, modelType, model, componentsToLookForErrors, params);
+    public Pair<Component, AbstractStylist> build(Layout contentContainer, MDDBinder binder, Class modelType, Object model, List<Component> componentsToLookForErrors, FormLayoutBuilderParameters params, Map<String, List<AbstractAction>> attachedActions) {
+        return build(null, contentContainer, binder, modelType, model, componentsToLookForErrors, params, attachedActions);
     }
 
-    public Pair<Component, AbstractStylist> build(EditorViewComponent editor, Layout contentContainer, MDDBinder binder, Class modelType, Object model, List<Component> componentsToLookForErrors, FormLayoutBuilderParameters params) {
+    public Pair<Component, AbstractStylist> build(EditorViewComponent editor, Layout contentContainer, MDDBinder binder, Class modelType, Object model, List<Component> componentsToLookForErrors, FormLayoutBuilderParameters params, Map<String, List<AbstractAction>> attachedActions) {
 
         long t0 = System.currentTimeMillis();
 
@@ -141,6 +141,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                     CssLayout kpisContainer;
                     form.addComponent(kpisContainer = new CssLayout());
                     kpisContainer.addStyleName(CSS.NOPADDING);
+                    kpisContainer.addStyleName("sectionkpiscontainer");
                     for (FieldInterfaced kpi : s.getKpis()) {
                         Component c;
                         kpisContainer.addComponent(c = createKpi(binder, kpi));
@@ -148,14 +149,14 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                 }
 
                 addActions(form, params.getActionsPerSection().get(s.getCaption()));
-                buildAndAddFields(ofb, model, form, binder, params.getValidators(), finalStylist1, allFieldContainers, s.getFields(), params.isForSearchFilters(), params.isForSearchFiltersExtended(), componentsToLookForErrors);
+                buildAndAddFields(ofb, model, form, binder, params.getValidators(), finalStylist1, allFieldContainers, s.getFields(), params.isForSearchFilters(), params.isForSearchFiltersExtended(), componentsToLookForErrors, attachedActions);
                 Panel p;
                 addSectionToContainer(finalRealContainer, p = new Panel(form), s.getCaption());
                 p.addStyleName(ValoTheme.PANEL_BORDERLESS);
                 if (form.getWidth() == 100 && Sizeable.Unit.PERCENTAGE.equals(form.getWidthUnits())) contentContainer.setWidth("100%");
             });
         } else {
-            buildAndAddFields(ofb, model, contentContainer, binder, params.getValidators(), stylist, allFieldContainers, params.getAllFields(), params.isForSearchFilters(), params.isForSearchFiltersExtended(), componentsToLookForErrors);
+            buildAndAddFields(ofb, model, contentContainer, binder, params.getValidators(), stylist, allFieldContainers, params.getAllFields(), params.isForSearchFilters(), params.isForSearchFiltersExtended(), componentsToLookForErrors, attachedActions);
         }
 
         log.debug("editor component E.2 in " + (System.currentTimeMillis() - t0) + " ms.");
@@ -189,6 +190,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
             HorizontalLayout actionsContainer;
             form.addComponent(actionsContainer = new HorizontalLayout());
             actionsContainer.addStyleName(CSS.NOPADDING);
+            actionsContainer.addStyleName("sectionactionbar");
 
             List<String> secuencia = new ArrayList<>();
             Map<String, AbstractAction> mapa = new HashMap<>();
@@ -310,14 +312,14 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
         }
     }
 
-    private void buildAndAddFields(JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean forSearchFiltersExtended, List<Component> componentsToLookForErrors) {
-        buildAndAddFields(ofb, model, contentContainer, binder, validators, stylist, allFieldContainers, fields, forSearchFilters, forSearchFiltersExtended, true, componentsToLookForErrors);
+    private void buildAndAddFields(JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean forSearchFiltersExtended, List<Component> componentsToLookForErrors, Map<String, List<AbstractAction>> attachedActions) {
+        buildAndAddFields(ofb, model, contentContainer, binder, validators, stylist, allFieldContainers, fields, forSearchFilters, forSearchFiltersExtended, true, componentsToLookForErrors, attachedActions);
     }
 
-    public void buildAndAddFields(JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean forSearchFiltersExtended, boolean createTabs, List<Component> componentsToLookForErrors) {
+    public void buildAndAddFields(JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean forSearchFiltersExtended, boolean createTabs, List<Component> componentsToLookForErrors, Map<String, List<AbstractAction>> attachedActions) {
 
         if (forSearchFilters) {
-            _buildAndAddFields(ofb, model, contentContainer, binder, validators, stylist, allFieldContainers, fields, forSearchFilters, forSearchFiltersExtended, createTabs, componentsToLookForErrors);
+            _buildAndAddFields(ofb, model, contentContainer, binder, validators, stylist, allFieldContainers, fields, forSearchFilters, forSearchFiltersExtended, createTabs, componentsToLookForErrors, attachedActions);
         } else {
 
             contentContainer.setSizeFull();
@@ -358,12 +360,12 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                     c.addStyleName("fieldgroupheader");
                 }
 
-                _buildAndAddFields(ofb, model, l, binder, validators, stylist, allFieldContainers, g.getFields(), forSearchFilters, forSearchFiltersExtended, createTabs, componentsToLookForErrors);
+                _buildAndAddFields(ofb, model, l, binder, validators, stylist, allFieldContainers, g.getFields(), forSearchFilters, forSearchFiltersExtended, createTabs, componentsToLookForErrors, attachedActions);
             });
         }
     }
 
-    public void _buildAndAddFields(JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean forSearchFiltersExtended, boolean createTabs, List<Component> componentsToLookForErrors) {
+    public void _buildAndAddFields(JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean forSearchFiltersExtended, boolean createTabs, List<Component> componentsToLookForErrors, Map<String, List<AbstractAction>> attachedActions) {
         TabSheet tabs = null;
         TabSheet.Tab tab = null;
 
@@ -484,16 +486,16 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                         )
                     )
             ) {
-                c = ofb.build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters);
+                c = ofb.build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters, attachedActions);
             } else if (f.isAnnotationPresent(FieldBuilder.class)) {
                 try {
-                    c = (f.getAnnotation(FieldBuilder.class).value().newInstance()).build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters);
+                    c = (f.getAnnotation(FieldBuilder.class).value().newInstance()).build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters, attachedActions);
                 } catch (Exception e) {
                     MDD.alert(e);
                 }
             } else {
                 AbstractFieldBuilder b = MDD.getApp().getFieldBuilder(f);
-                if (b != null) c = b.build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters);
+                if (b != null) c = b.build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters, attachedActions);
             }
 
             if (c != null) componentsToLookForErrors.add(c);

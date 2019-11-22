@@ -55,7 +55,7 @@ public class VaadinHelper {
         Map<HasValue, List<Validator>> validators = new HashMap<>();
 
         List<Component> componentsToLookForErrors = new ArrayList<>();
-        FormLayoutBuilder.get().build(vl, binder, model.getClass(), model, componentsToLookForErrors, FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).build());
+        FormLayoutBuilder.get().build(vl, binder, model.getClass(), model, componentsToLookForErrors, FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).build(), null);
 
         // Put some components in it
         subContent.addComponent(vl);
@@ -125,7 +125,7 @@ public class VaadinHelper {
         Map<HasValue, List<Validator>> validators = new HashMap<>();
 
         List<Component> componentsToLookForErrors = new ArrayList<>();
-        FormLayoutBuilder.get().build(vl, binder, model.getClass(), model, componentsToLookForErrors, FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).build());
+        FormLayoutBuilder.get().build(vl, binder, model.getClass(), model, componentsToLookForErrors, FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).build(), null);
 
         // Put some components in it
         subContent.addComponent(vl);
@@ -177,7 +177,7 @@ public class VaadinHelper {
         Map<HasValue, List<Validator>> validators = new HashMap<>();
 
         List<Component> componentsToLookForErrors = new ArrayList<>();
-        FormLayoutBuilder.get().build(vl, binder, model.getClass(), model, componentsToLookForErrors, FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).build());
+        FormLayoutBuilder.get().build(vl, binder, model.getClass(), model, componentsToLookForErrors, FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).build(), null);
 
         // Put some components in it
         subContent.addComponent(vl);

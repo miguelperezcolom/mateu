@@ -34,6 +34,11 @@ public class Booking implements EditorViewStyler {
     @ListColumn
     private String leadName;
 
+    @Action(attachToField = "leadName")
+    public void actionOnLeadName() {
+        System.out.println("bbbbbbbb");
+    }
+
     private LocalDateTime ldt;
 
     public void setLdt(LocalDateTime ldt) {
@@ -87,6 +92,11 @@ public class Booking implements EditorViewStyler {
         h += "</div>";
 
         return h;
+    }
+
+    @Action(attachToField = "lines")
+    public void actionOnLines() {
+        System.out.println("aaaa");
     }
 
 
@@ -162,6 +172,7 @@ public class Booking implements EditorViewStyler {
     @Action(attachToField = "_log")
     public void actionOnLog(Set<BookingLog> selection, String texto) {
         selection.forEach(l -> l.setText(texto));
+        _log.add(new BookingLog());
     }
 
 

@@ -1,18 +1,24 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.vaadin.data.*;
 import com.vaadin.server.UserError;
-import com.vaadin.ui.AbstractComponent;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Layout;
+import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.CSS;
+import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Pair;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.mdd.vaadinport.vaadin.components.app.AbstractMDDExecutionContext;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -57,7 +63,7 @@ public abstract class AbstractFieldBuilder {
 
     public abstract boolean isSupported(FieldInterfaced field);
 
-    public abstract Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter);
+    public abstract Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions);
 
 
     public static void applyStyles(AbstractStylist stylist, Object model, Map<FieldInterfaced, Component> containers, Pair<Map<FieldInterfaced, List<String>>, Map<FieldInterfaced, List<String>>> styleChanges) {
@@ -171,4 +177,97 @@ public abstract class AbstractFieldBuilder {
         completeBinding(aux, binder, field);
     }
 
+    public void addComponent(Layout container, Component c, List<AbstractAction> attachedActions) {
+        if (attachedActions == null || attachedActions.size() == 0) container.addComponent(c);
+        else {
+            VerticalLayout vl = null;
+            if (container instanceof VerticalLayout && container.getComponentCount() == 2 && ((VerticalLayout) container).getComponent(1) instanceof HorizontalLayout) {
+                crearBotonera(attachedActions, (Layout) ((VerticalLayout) container).getComponent(1));
+            } else {
+                vl = new VerticalLayout(c, crearBotonera(attachedActions));
+                vl.addStyleName(CSS.NOPADDING);
+            }
+            vl.addStyleName("contenedorbotoneracampo");
+            vl.addStyleName("conbotonera");
+            container.addComponent(vl);
+        }
+    }
+
+    private Component crearBotonera(List<AbstractAction> attachedActions) {
+        HorizontalLayout hl = new HorizontalLayout();
+        hl.addStyleName(CSS.NOPADDING);
+        hl.addStyleName("botoneracampo");
+        return crearBotonera(attachedActions, hl);
+    }
+
+    private Component crearBotonera(List<AbstractAction> attachedActions, Layout hl) {
+        for (AbstractAction a : attachedActions) {
+            Component i = null;
+            if (true) {
+                Button b;
+                i = b = new Button(a.getName(), a.getIcon());
+                b.addStyleName(ValoTheme.BUTTON_QUIET);
+                b.addStyleName(ValoTheme.BUTTON_TINY);
+                b.addClickListener(e -> {
+                    try {
+
+                        Runnable r = new Runnable() {
+                            @Override
+                            public void run() {
+
+                                /*
+                                boolean needsValidation = AbstractViewComponent.this instanceof EditorViewComponent && a.isValidationNeeded();
+
+                                if (!needsValidation || ((EditorViewComponent)AbstractViewComponent.this).validate()) {
+
+                                    a.run(new AbstractMDDExecutionContext());
+
+                                    if (AbstractViewComponent.this instanceof EditorViewComponent) {
+
+                                        EditorViewComponent evc = (EditorViewComponent) AbstractViewComponent.this;
+
+                                        evc.getBinder().update(evc.getModel());
+
+                                    }
+
+                                }
+                                 */
+                                a.run(new AbstractMDDExecutionContext());
+                            }
+                        };
+
+                        if (!Strings.isNullOrEmpty(a.getConfirmationMessage())) {
+                            MDD.confirm(a.getConfirmationMessage(), new Runnable() {
+                                @Override
+                                public void run() {
+
+                                    r.run();
+
+                                    //todo: actualizar vista con los cambios en el modelo
+
+                                }
+                            });
+                        } else r.run();
+
+                    } catch (Throwable throwable) {
+                        MDD.alert(throwable);
+                    }
+                });
+
+                /*
+                if (!Strings.isNullOrEmpty(a.getGroup())) menuItemsByGroup.computeIfAbsent(a.getGroup(), k -> new ArrayList<>()).add(i);
+                addMenuItem(a.getId(), i);
+
+                 */
+
+                if (!Strings.isNullOrEmpty(a.getStyle())) i.addStyleName(a.getStyle());
+
+                if (Strings.isNullOrEmpty(a.getGroup())) hl.addComponent(i);
+
+            }
+            if (i != null && !Strings.isNullOrEmpty(a.getStyle())) i.addStyleName(a.getStyle());
+            i.setVisible(true);
+        }
+        return hl;
+    }
 }
