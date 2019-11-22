@@ -1224,6 +1224,10 @@ body {
 
   .filterscomponent {
 
+    border-top: 1px dashed lightgrey;
+    border-bottom: 1px dashed lightgrey;
+    width: 100%;
+
     > * {
       margin-right: 20px;
     }
@@ -2449,6 +2453,13 @@ body {
   }
 
   .gridresultado {
+
+    .v-grid-header-deco {
+      background-image: none;
+      border-top: none;
+      border-right: none;
+    }
+
     .v-grid-header {
       .v-grid-cell {
         background-color: white;
@@ -2501,6 +2512,14 @@ body {
     }
 
     .v-grid-scroller-horizontal {
+      border: none;
+    }
+
+    .v-grid-scroller-vertical {
+      border: none;
+    }
+
+    .v-grid-footer-deco {
       border: none;
     }
   }

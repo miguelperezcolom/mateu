@@ -66,7 +66,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
 
                 Method mh;
-                if (field.isAnnotationPresent(UseTable.class)) {
+                if (false && field.isAnnotationPresent(UseTable.class)) {
                     VerticalLayout hl = new VerticalLayout();
                     hl.addStyleName("onetomanytable");
 
@@ -95,6 +95,8 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
                 } else {
 
                     Grid g = new Grid();
+
+                    g.addStyleName("gridonetomany");
 
                     List<FieldInterfaced> colFields = JPAOneToManyFieldBuilder.getColumnFields(field);
 
