@@ -95,7 +95,9 @@ public class Booking implements EditorViewStyler {
     }
 
     @Action(attachToField = "lines")
-    public void actionOnLines() {
+    public void actionOnLines(Set<HotelBookingLine> selection) {
+        System.out.println(selection != null?selection.size():"null");
+        selection.forEach(l -> l.setPax(l.getPax() + 1));
         System.out.println("aaaa");
     }
 

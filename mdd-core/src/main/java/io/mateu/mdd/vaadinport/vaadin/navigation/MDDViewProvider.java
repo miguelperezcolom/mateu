@@ -1243,7 +1243,11 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
     private void procesarResultado(Method m, Object r, Component lastViewComponent) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         String title = m != null?"Result of " + Helper.capitalize(m.getName()):"Result";
-        if (r == null) {
+        if (r == null && void.class.equals(m.getReturnType())) {
+            ComponentWrapper cw;
+            stack.push(currentPath, cw = new ComponentWrapper(title, new Label("Void method", ContentMode.HTML)));
+            cw.addAttachListener(e -> MDDUI.get().getNavegador().goBack());
+        } else if (r == null) {
             stack.push(currentPath, new ComponentWrapper(title, new Label("Empty result", ContentMode.HTML)));
         } else {
             Class c = r.getClass();

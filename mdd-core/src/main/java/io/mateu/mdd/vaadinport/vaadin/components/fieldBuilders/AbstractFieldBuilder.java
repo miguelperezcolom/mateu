@@ -14,6 +14,7 @@ import io.mateu.mdd.core.data.Pair;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.AbstractMDDExecutionContext;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
@@ -183,9 +184,9 @@ public abstract class AbstractFieldBuilder {
             VerticalLayout vl = null;
             if (c instanceof VerticalLayout && ((VerticalLayout)c).getComponentCount() == 2 && ((VerticalLayout) c).getComponent(1) instanceof HorizontalLayout) {
                 vl = (VerticalLayout) c;
-                crearBotonera(attachedActions, (Layout) vl.getComponent(1));
+                crearBotonera(vl.getComponent(0), attachedActions, (Layout) vl.getComponent(1));
             } else {
-                vl = new VerticalLayout(c, crearBotonera(attachedActions));
+                vl = new VerticalLayout(c, crearBotonera(c, attachedActions));
                 vl.addStyleName(CSS.NOPADDING);
             }
             vl.addStyleName("contenedorbotoneracampo");
@@ -194,14 +195,14 @@ public abstract class AbstractFieldBuilder {
         }
     }
 
-    private Component crearBotonera(List<AbstractAction> attachedActions) {
+    private Component crearBotonera(Component c, List<AbstractAction> attachedActions) {
         HorizontalLayout hl = new HorizontalLayout();
         hl.addStyleName(CSS.NOPADDING);
         hl.addStyleName("botoneracampo");
-        return crearBotonera(attachedActions, hl);
+        return crearBotonera(c, attachedActions, hl);
     }
 
-    private Component crearBotonera(List<AbstractAction> attachedActions, Layout hl) {
+    private Component crearBotonera(Component c, List<AbstractAction> attachedActions, Layout hl) {
         for (AbstractAction a : attachedActions) {
             Component i = null;
             if (true) {
@@ -233,6 +234,7 @@ public abstract class AbstractFieldBuilder {
 
                                 }
                                  */
+                                if (c instanceof Grid) MDDUI.get().getNavegador().getViewProvider().pendingSelection = ((Grid) c).getSelectedItems();
                                 a.run(new AbstractMDDExecutionContext());
                             }
                         };

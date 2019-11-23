@@ -18,13 +18,7 @@ public @interface Action {
 
     VaadinIcons icon() default VaadinIcons.ADOBE_FLASH;
 
-    boolean callOnEnterKeyPressed() default false;
-
-    boolean addAsButton() default false;
-
     String confirmationMessage() default "";
-
-    boolean keepOpened() default false;
 
     int order() default 1000;
 

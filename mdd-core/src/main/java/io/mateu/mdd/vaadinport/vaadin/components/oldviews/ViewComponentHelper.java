@@ -14,6 +14,7 @@ import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
@@ -85,6 +86,9 @@ public class ViewComponentHelper {
                                         });
 
 
+                                    } else if (viewComponent instanceof EditorViewComponent) {
+                                        selection.addAll(MDDUI.get().getNavegador().getViewProvider().pendingSelection);
+                                        MDDUI.get().getNavegador().getViewProvider().pendingSelection = null;
                                     }
 
                                     if (needsSelection && selection.size() == 0) throw new Exception("You must first select some records.");
