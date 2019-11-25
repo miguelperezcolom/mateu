@@ -3,6 +3,7 @@ package io.mateu.mdd.core;
 public class CSS {
 
 
+    public static final String SOFTGREENBGD = "mdd-softgreen-bgd";
     public static final String GREENBGD = "mdd-green-bgd";
     public static final String ORANGEBGD = "mdd-orange-bgd";
     public static final String REDBGD = "mdd-red-bgd";
