@@ -51,9 +51,9 @@ public class EmailHelper {
         if (subject == null) subject = "";
         if (text == null) text = "";
 
-        log.debug("Sending email to " + toEmail);
-        log.debug("Subject: " + subject);
-        log.debug("Text: " + text);
+        System.out.println("Sending email to " + toEmail);
+        System.out.println("Subject: " + subject);
+        System.out.println("Text: " + text);
 
 
         String finalSubject = subject;
@@ -85,9 +85,9 @@ public class EmailHelper {
 
 
                 } else {
-                    log.debug("************************************");
-                    log.debug("Missing SMTP confirguration. Please go to admin > Appconfig and fill");
-                    log.debug("************************************");
+                    System.out.println("************************************");
+                    System.out.println("Missing SMTP confirguration. Please go to admin > Appconfig and fill");
+                    System.out.println("************************************");
                 }
             }
         });
@@ -98,16 +98,16 @@ public class EmailHelper {
 
         if (isTesting()) {
 
-            log.debug("************************************");
-            log.debug("Mail not sent as we are TESTING");
-            log.debug("************************************");
+            System.out.println("************************************");
+            System.out.println("Mail not sent as we are TESTING");
+            System.out.println("************************************");
 
             if (mock != null) mock.send(email);
 
         } else {
             email.send();
 
-            log.debug("******* Email sent");
+            System.out.println("******* Email sent");
         }
 
     }
@@ -134,16 +134,16 @@ public class EmailHelper {
 
     private static void send(String a, String de, String pwd, String host, int port, boolean ssl) throws EmailException {
 
-        log.debug("Sending email to " + a);
-        log.debug("Subject: " + de);
-        log.debug("Pwd: " + pwd);
+        System.out.println("Sending email to " + a);
+        System.out.println("Subject: " + de);
+        System.out.println("Pwd: " + pwd);
 
 
         if (isTesting()) {
 
-            log.debug("************************************");
-            log.debug("Mail not sent as we are TESTING");
-            log.debug("************************************");
+            System.out.println("************************************");
+            System.out.println("Mail not sent as we are TESTING");
+            System.out.println("************************************");
 
 
         } else {
@@ -161,7 +161,7 @@ public class EmailHelper {
             email.addTo(a);
             email.send();
 
-            log.debug("sent");
+            System.out.println("sent");
         }
 
 

@@ -659,6 +659,75 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         return r;
     }
 
+
+    //set
+    public static void bindSet(MDDBinder binder, Label l, FieldInterfaced field) {
+
+        Binder.BindingBuilder aux = binder.forField(new HasValue() {
+
+            Object v;
+
+            @Override
+            public void setValue(Object o) {
+
+                v = o;
+
+
+                try {
+
+                    Collection elems = (Collection) o;
+
+                    String s = "";
+
+                    if (o == null || elems.size() == 0) s = "No item";
+                    else {
+                        for (Object x : elems) {
+                            if (!"".equalsIgnoreCase(s)) s += ", ";
+                            s += x;
+                        }
+                    }
+
+                    l.setValue(s);
+
+                } catch (Throwable e) {
+                    MDD.alert(e);
+                }
+            }
+
+            @Override
+            public Object getValue() {
+                return v;
+            }
+
+            @Override
+            public Registration addValueChangeListener(ValueChangeListener valueChangeListener) {
+                return null;
+            }
+
+            @Override
+            public void setRequiredIndicatorVisible(boolean b) {
+
+            }
+
+            @Override
+            public boolean isRequiredIndicatorVisible() {
+                return false;
+            }
+
+            @Override
+            public void setReadOnly(boolean b) {
+
+            }
+
+            @Override
+            public boolean isReadOnly() {
+                return false;
+            }
+        });
+        aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+        aux.bind(field.getName());
+    }
+
     //usetable
     public static void bind(MDDBinder binder, Label l, FieldInterfaced field) {
 

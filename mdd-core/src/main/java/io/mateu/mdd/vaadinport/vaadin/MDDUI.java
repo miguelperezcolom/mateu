@@ -191,7 +191,8 @@ public class MDDUI extends UI {
 
 
     public static MDDUI get() {
-        return (MDDUI) UI.getCurrent();
+        UI ui = UI.getCurrent();
+        return ui != null && ui instanceof MDDUI? (MDDUI) ui :null;
     }
 
 

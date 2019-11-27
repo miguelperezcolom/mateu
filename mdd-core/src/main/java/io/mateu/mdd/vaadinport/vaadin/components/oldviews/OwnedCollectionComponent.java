@@ -99,8 +99,8 @@ public class OwnedCollectionComponent extends EditorViewComponent {
         l.add(new AbstractAction(VaadinIcons.MINUS, "Remove") {
             @Override
             public void run(MDDExecutionContext context) {
-                if (currentIndex >= 0 && currentIndex < collection.size()) //MDD.confirm("Are you sure you want to delete this item?", () -> {
-                {
+                if (currentIndex >= 0 && currentIndex < collection.size()) MDD.confirm("Are you sure you want to delete this item?", () -> {
+
                     try {
                         Object m = getModel();
                         if (m != null && m instanceof ResourceModel) m = ((ResourceModel) m).getResource();
@@ -117,8 +117,7 @@ public class OwnedCollectionComponent extends EditorViewComponent {
                     } catch (Exception ex) {
                         MDD.alert(ex);
                     }
-                }
-                //);
+                });
                 else MDD.notifyError("Can not remove this item");
 
             }

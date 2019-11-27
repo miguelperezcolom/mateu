@@ -1519,6 +1519,14 @@ body {
     background-color: #a0c5a0 !important;
   }
 
+  .mdd-softred-bgd {
+    background-color: #dea7a3 !important;
+  }
+
+  .mdd-softyellow-bgd {
+    background-color: #ffffcc !important;
+  }
+
   .mdd-orange-bgd {
     background-color: orange !important;
   }
@@ -2364,6 +2372,8 @@ body {
 
     .lines.card {
       display: flex;
+      flex-wrap: wrap;
+      width: 100%;
       .line {
         padding: 10px;
         border: 1px solid lightgrey;
@@ -2625,6 +2635,19 @@ body {
 
     .kpi.sectionkpi {
       min-height: inherit;
+    }
+  }
+
+  .cockpitgrid {
+    .v-grid-column-header-content {
+      text-align: center;
+    }
+    .v-grid-cell.dato {
+
+    }
+    .v-grid-cell.clickable:hover {
+      cursor: pointer;
+      font-weight: bolder;
     }
   }
 

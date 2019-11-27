@@ -1412,7 +1412,6 @@ public class ReflectionHelper {
             } else if (Collection.class.isAssignableFrom(field.getType())) {
                 v = new ArrayList();
             }
-
         }
 
         Collection col = new ArrayList((Collection) v);
@@ -1548,7 +1547,14 @@ public class ReflectionHelper {
                 }
                 ReflectionHelper.setValue(mbf, i, bean);
             }
-            binder.getMergeables().add(i);
+
+            boolean mergear = false;
+            OneToMany a = mbf.getAnnotation(OneToMany.class);
+            if (a != null) {
+                List<CascadeType> l = Arrays.asList(a.cascade());
+                mergear =  i.getClass().isAnnotationPresent(Entity.class) && !(l.contains(CascadeType.ALL) || l.contains(CascadeType.MERGE) || l.contains(CascadeType.PERSIST));
+            }
+            if (mergear) binder.getMergeables().add(i);
 
         }
 

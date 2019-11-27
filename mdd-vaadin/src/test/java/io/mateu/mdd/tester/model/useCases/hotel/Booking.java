@@ -1,5 +1,6 @@
 package io.mateu.mdd.tester.model.useCases.hotel;
 
+import com.google.common.base.Strings;
 import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
@@ -45,6 +46,10 @@ public class Booking implements EditorViewStyler {
         this.ldt = ldt;
         if (ldt != null) setDd(ldt.toLocalDate());
     }
+
+
+
+    private int[] ages;
 
     @NotNull
     private LocalDate dd;
@@ -177,6 +182,25 @@ public class Booking implements EditorViewStyler {
         _log.add(new BookingLog());
     }
 
+
+    @Action(order = 3, icon = VaadinIcons.EDIT, saveBefore = true, saveAfter = true)
+    @NotWhenCreating
+    public void addCommentx() {
+        BookingLog c = new BookingLog();
+        c.setText("aaaaaaaaaaaaaa" + get_log().size());
+        get_log().add(c);
+    }
+
+    @Action(order = 3, icon = VaadinIcons.EDIT, saveBefore = true, saveAfter = true)
+    @NotWhenCreating
+    public void addComment(@NotEmpty String text, boolean sendEmail) {
+        if (!Strings.isNullOrEmpty(text)) {
+            BookingLog c = new BookingLog();
+            c.setText(text);
+            get_log().add(c);
+            if (sendEmail) c.setEntero(1);
+        }
+    }
 
     @OneToMany(cascade = CascadeType.ALL)
     private List<Resource> resources = new ArrayList<>();

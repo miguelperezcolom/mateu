@@ -26,6 +26,8 @@ import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.navigation.MDDViewProvider;
+import io.mateu.mdd.vaadinport.vaadin.navigation.View;
+import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Entity;
@@ -72,6 +74,11 @@ public class MethodParametersViewComponent extends EditorViewComponent {
                 try {
                     Object r = ReflectionHelper.execute(MDD.getUserData(), method, getBinder(), bean, pendingSelection);
                     if (bean != null && void.class.equals(method.getReturnType())) {
+                        if (method.isAnnotationPresent(Action.class) && method.getAnnotation(Action.class).saveAfter()) {
+                            ViewStack stack = MDDUI.get().getNavegador().getViewProvider().getStack();
+                            View v = stack.size() >= 2?stack.get(stack.size() - 2):null;
+                            if (v != null && v.getViewComponent() instanceof EditorViewComponent) ((EditorViewComponent) v.getViewComponent()).save(false);
+                        }
                         MDD.notifyInfo("Done");
                         MDDUI.get().getNavegador().goBack();
                     } else {

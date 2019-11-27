@@ -505,8 +505,11 @@ public class Helper {
 
         //Template temp = cfg.getTemplate("test.ftlh");
 
+        Configuration conf = new Configuration();
+        conf.setDefaultEncoding("utf-8");
+
         Template temp = new Template("name", new StringReader(freemarker),
-                new Configuration());
+                conf);
 
         /*
         StringTemplateLoader stringLoader = new StringTemplateLoader();

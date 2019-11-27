@@ -211,19 +211,19 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                 pendingPrivateState = null;
                 if (newState.startsWith("/")) newState = newState.substring(1);
 
-                log.debug("-->going to (" + MDD.getApp().getBaseUrl() + newState + ")");
+                log.debug("-->going to (" + MDD.getApp().getBaseUrl() + "app/" + newState + ")");
 
-                Page.getCurrent().open(MDD.getApp().getBaseUrl() + newState, null);
+                Page.getCurrent().open(MDD.getApp().getBaseUrl() + "app/" + newState, null);
             } else if (MDD.getApp().getDefaultPrivateArea().getDefaultAction() != null) {
                 String newState = MDD.getApp().getMenuId(MDD.getApp().getDefaultPrivateArea().getDefaultAction());
                 if (!Strings.isNullOrEmpty(newState)) {
                     if (newState.startsWith("/")) newState = newState.substring(1);
 
-                    log.debug("-->going to (" + MDD.getApp().getBaseUrl() + newState + ")");
+                    log.debug("-->going to (" + MDD.getApp().getBaseUrl() + "app/" + newState + ")");
 
-                    Page.getCurrent().open(MDD.getApp().getBaseUrl() + newState, null);
+                    Page.getCurrent().open(MDD.getApp().getBaseUrl() + "app/" + newState, null);
                 } else {
-                    Page.getCurrent().open(MDD.getApp().getBaseUrl(), null);
+                    Page.getCurrent().open(MDD.getApp().getBaseUrl() + "app/", null);
                 }
             }
         }

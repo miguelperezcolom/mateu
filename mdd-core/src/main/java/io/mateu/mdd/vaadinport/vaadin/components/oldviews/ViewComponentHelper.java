@@ -87,7 +87,7 @@ public class ViewComponentHelper {
 
 
                                     } else if (viewComponent instanceof EditorViewComponent) {
-                                        selection.addAll(MDDUI.get().getNavegador().getViewProvider().pendingSelection);
+                                        if (MDDUI.get().getNavegador().getViewProvider().pendingSelection != null) selection.addAll(MDDUI.get().getNavegador().getViewProvider().pendingSelection);
                                         MDDUI.get().getNavegador().getViewProvider().pendingSelection = null;
                                     }
 

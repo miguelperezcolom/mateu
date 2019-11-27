@@ -28,10 +28,7 @@ import javax.money.MonetaryAmount;
 import javax.persistence.Entity;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
@@ -66,7 +63,15 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
 
                 Method mh;
-                if (false && field.isAnnotationPresent(UseTable.class)) {
+                if (Set.class.isAssignableFrom(field.getType())) {
+                    Label l;
+                    l = new Label("", ContentMode.HTML);
+                    l.setCaption(ReflectionHelper.getCaption(field));
+
+                    addComponent(container, l, attachedActions.get(field.getName()));
+
+                    JPAOneToManyFieldBuilder.bindSet(binder, l, field);
+                } else if (false && field.isAnnotationPresent(UseTable.class)) {
                     VerticalLayout hl = new VerticalLayout();
                     hl.addStyleName("onetomanytable");
 

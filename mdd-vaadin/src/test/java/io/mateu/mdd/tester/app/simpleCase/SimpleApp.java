@@ -17,6 +17,7 @@ import io.mateu.mdd.test.model.Entidad;
 import io.mateu.mdd.test.model.EntidadReferenciada;
 import io.mateu.mdd.test.model.Reloj;
 import io.mateu.mdd.tester.model.entities.basic.BasicFieldsDemoEntity;
+import io.mateu.mdd.tester.model.entities.dependant.Address;
 import io.mateu.mdd.tester.model.entities.groups.Person;
 import io.mateu.mdd.tester.model.useCases.batches.Batch;
 import io.mateu.mdd.tester.model.useCases.hotel.Booking;
@@ -193,6 +194,10 @@ public class SimpleApp extends SimpleMDDApplication {
         return new Wizard1Page1();
     }
 
+    @Action(order = 140)
+    public Class addresses() {
+        return Address.class;
+    }
 
     @Override
     public boolean isAuthenticationNeeded() {
