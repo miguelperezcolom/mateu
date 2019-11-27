@@ -77,6 +77,7 @@ public class EmailHelper {
                     email.setSubject(finalSubject);
                     //email.setMsg(io.mateu.ui.mdd.server.util.Helper.freemark(template, getData()));
                     email.setHtmlMsg(finalText);
+                    email.setCharset("utf-8");
                     email.addTo((!Strings.isNullOrEmpty(System.getProperty("allemailsto")))?System.getProperty("allemailsto"):toEmail);
 
                     if (attachments != null) for (URL u : attachments) email.attach(u, u.toString().substring(u.toString().lastIndexOf("/") + 1), "");
@@ -157,6 +158,7 @@ public class EmailHelper {
             email.setStartTLSEnabled(true);
             email.setFrom(de);
             email.setSubject("TestMail 2");
+            email.setCharset("utf-8");
             email.setMsg("This is a test mail ... :-)");
             email.addTo(a);
             email.send();
