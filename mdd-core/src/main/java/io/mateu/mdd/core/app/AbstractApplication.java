@@ -270,8 +270,7 @@ public abstract class AbstractApplication implements App {
     public View getPrivateHome() { return null; };
 
     public String getBaseUrl() {
-        if (MDDUI.get() != null) return MDDUI.get().getBaseUrl();
-        else return System.getProperty("baseurl");
+        return System.getProperty("baseurl", MDDUI.get() != null?MDDUI.get().getBaseUrl():"");
     };
 
 
