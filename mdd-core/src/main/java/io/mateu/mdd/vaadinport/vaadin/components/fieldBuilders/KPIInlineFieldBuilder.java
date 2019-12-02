@@ -29,6 +29,7 @@ public class KPIInlineFieldBuilder extends AbstractFieldBuilder {
         return field.isAnnotationPresent(KPIInline.class);
     }
 
+    @Override
     public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
 
         VerticalLayout vl = new VerticalLayout();

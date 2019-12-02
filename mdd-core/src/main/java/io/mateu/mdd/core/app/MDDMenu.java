@@ -2,6 +2,9 @@ package io.mateu.mdd.core.app;
 
 
 import com.vaadin.ui.Component;
+import io.mateu.mdd.core.interfaces.RpcView;
+import io.mateu.mdd.core.interfaces.WizardPage;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -22,9 +25,22 @@ public class MDDMenu extends AbstractMenu {
                     Class c = (Class) args[pos];
                     if (Component.class.isAssignableFrom(c)) {
                         m.add(new MDDOpenCustomComponentAction(n, c));
+                    } else if (RpcView.class.isAssignableFrom(c)) {
+                        m.add(new MDDOpenListViewAction(n, c));
+                    } else if (WizardPage.class.isAssignableFrom(c)) {
+                        m.add(new MDDOpenWizardAction(n, c));
                     } else {
                         m.add(new MDDOpenCRUDAction(n, c));
                     }
+                } else if (args[pos - 1] instanceof String && args[pos] != null) {
+                    String n = (String) args[pos - 1];
+                    Object o = args[pos];
+                    m.add(new AbstractAction(n) {
+                        @Override
+                        public void run(MDDExecutionContext context) {
+                            MDDUI.get().getNavegador().getViewProvider().pendingResult = o;
+                        }
+                    });
                 } else log.debug("Wrong class parameters. Found " + args[pos - 1].getClass().getName() + ", " + args[pos].getClass().getName() + " while expected String, Class");
             }
         }

@@ -6,6 +6,7 @@ import lombok.MateuMDDEntity;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotEmpty;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +19,8 @@ public class Evento {
     @GeneratedValue
     private long id;
 
-    private String texto = "Evento creado " + LocalDateTime.now();
+    @NotEmpty
+    private String texto;
 
     private LocalDateTime trigger = LocalDateTime.now();
 

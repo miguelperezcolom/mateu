@@ -221,9 +221,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                 b.addClickListener(e -> {
                     try {
 
-                        AbstractViewComponent.this.beforeBack();
-
-                        MDDUI.get().getNavegador().goBack();
+                        if (AbstractViewComponent.this.beforeBack()) MDDUI.get().getNavegador().goBack();
 
                     } catch (Throwable throwable) {
                         MDD.alert(throwable);
@@ -311,7 +309,8 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
         if (bar.getComponentCount() == 0 || (bar.getComponentCount() == 1 && !bar.getComponent(0).isVisible())) bar.setVisible(false);
     }
 
-    public void beforeBack() {
+    public boolean beforeBack() {
+        return true;
     }
 
     public void markAllAsUnseen() {

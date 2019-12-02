@@ -374,7 +374,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
 
 
-            v = stack.get(state);
+            v = stack.get(cleanState(state));
 
             if (v != null) {
 
@@ -764,6 +764,15 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
         return v;
 
+    }
+
+    private String cleanState(String state) {
+        String s = "";
+        for (String t : state.split("/")) {
+            if (!"".equals(s)) s += "/";
+            s += t.contains("&")?t.substring(0, t.indexOf("&")):t;
+        }
+        return s;
     }
 
     private String queryFromStep(String fullStep) {
@@ -1190,7 +1199,12 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
         boolean menuPassed = false;
         while (pos < steps.length) {
             if (!"".equals(auxPath)) auxPath += "/";
-            auxPath += steps[pos];
+
+            String fullStep = steps[pos];
+            String cleanStep = cleanStep(fullStep);
+            String queryStep = queryFromStep(fullStep);
+
+            auxPath += cleanStep;
 
             if (pos == 1) area = MDD.getApp().getArea(auxPath);
 
@@ -1227,15 +1241,6 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
     }
 
     @Override
-    public void openComponent(AbstractAction action, Class componentClass, boolean modifierPressed) {
-        try {
-            stack.push(currentPath, (Component) componentClass.newInstance());
-        } catch (Exception e) {
-            MDD.alert(e);
-        }
-    }
-
-    @Override
     public void openWizardPage(Class firstPageClass) {
         try {
             stack.push(currentPath, MDDViewComponentCreator.createComponent((WizardPage) firstPageClass.newInstance()));
@@ -1247,19 +1252,6 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
     @Override
     public void open(AbstractAction action, Component component, boolean modifierPressed) {
         stack.push(currentPath, component);
-    }
-
-    @Override
-    public void callMethod(String state, Class entityClass, String methodName) {
-        Method method = ReflectionHelper.getMethod(entityClass, methodName);
-
-        if (method != null) {
-            try {
-                callMethod(state, method, Modifier.isStatic(method.getModifiers())?null:entityClass.newInstance(), null);
-            } catch (Exception e) {
-                MDD.alert(e);
-            }
-        } else MDD.alert("Method " + methodName + " does not exist. Is it a typo?");
     }
 
     @Override
@@ -1442,23 +1434,6 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
         }
         pendingResult = null;
 
-    }
-
-    @Override
-    public String getCurrentState() {
-
-        String state = currentPath;
-
-        if (stack.size() > 0) {
-
-            io.mateu.mdd.vaadinport.vaadin.navigation.View lastView = stack.getLast();
-
-            state = stack.getState(lastView);
-
-        }
-
-
-        return state;
     }
 
 

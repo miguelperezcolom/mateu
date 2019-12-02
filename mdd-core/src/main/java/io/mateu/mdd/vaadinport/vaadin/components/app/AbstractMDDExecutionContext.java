@@ -30,28 +30,13 @@ public class AbstractMDDExecutionContext implements MDDExecutionContext {
     }
 
     @Override
-    public void openComponent(AbstractAction action, Class componentClass, boolean modifierPressed) {
-
-    }
-
-    @Override
     public void open(AbstractAction action, Component component, boolean modifierPressed) {
-
-    }
-
-    @Override
-    public void callMethod(String state, Class entityClass, String methodName) {
 
     }
 
     @Override
     public void callMethod(String state, Method method, Object instance, Component lastViewComponent) {
 
-    }
-
-    @Override
-    public String getCurrentState() {
-        return null;
     }
 
     @Override

@@ -81,7 +81,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
     @Override
     public VaadinIcons getIcon() {
-        return VaadinIcons.LINES_LIST;
+        return VaadinIcons.LINES;
     }
 
     public String getFieldsFilter() {

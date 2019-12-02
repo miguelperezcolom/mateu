@@ -15,15 +15,9 @@ public interface MDDExecutionContext {
 
     void openCRUD(MDDOpenCRUDAction mddOpenCRUDAction, Class entityClass, String queryFilters, ExtraFilters extraFilters, boolean modifierPressed);
 
-    void openComponent(AbstractAction action, Class componentClass, boolean modifierPressed);
-
     void open(AbstractAction action, Component component, boolean modifierPressed);
 
-    void callMethod(String state, Class entityClass, String methodName);
-
     void callMethod(String state, Method method, Object instance, Component lastViewComponent);
-
-    String getCurrentState();
 
     void openWizardPage(Class firstPageClass);
 }

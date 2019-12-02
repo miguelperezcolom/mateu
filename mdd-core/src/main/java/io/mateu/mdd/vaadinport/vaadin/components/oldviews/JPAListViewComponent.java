@@ -357,7 +357,7 @@ public class JPAListViewComponent extends ListViewComponent {
 
                     if (!Strings.isNullOrEmpty(s)) {
                         if (!"".equals(ql)) ql += " and ";
-                        ql += " lower(x." + f.getName() + ") like :" + f.getName() + " ";
+                        ql += " lower(x." + f.getName() + (f.isAnnotationPresent(LiteralSearchFilter.class)?".es":"") + ") like :" + f.getName() + " ";
                         parameterValues.put(f.getName(), "%" + ((String) v).toLowerCase() + "%");
                     }
                 } else if (Boolean.class.equals(v.getClass()) || boolean.class.equals(v.getClass())) {

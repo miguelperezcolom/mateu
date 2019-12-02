@@ -2570,6 +2570,11 @@ body {
         border-left: none;
       }
     }
+    .v-grid-row-stripe.v-grid-row-selected {
+      td {
+        background-color: #e61a1a;
+      }
+    }
     .v-grid-row-selected {
       .v-grid-cell {
         background-image: none;

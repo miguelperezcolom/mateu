@@ -88,7 +88,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
         TabSheet sectionTabSheet = null;
 
-        if (params.isForSearchFiltersExtended() || params.isCreateSections()) {
+        if (params.isCreateSections()) {
             List<FormLayoutSection> sections = new ArrayList<>();
             Map<String, FormLayoutSection> sectionsByCaption = new HashMap<>();
             FormLayoutSection section = null;

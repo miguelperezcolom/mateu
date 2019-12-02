@@ -26,6 +26,7 @@ public class JPAEnumerationFieldBuilder extends AbstractFieldBuilder {
         return field.getType().isEnum();
     }
 
+    @Override
     public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
 
         ComboBox tf;

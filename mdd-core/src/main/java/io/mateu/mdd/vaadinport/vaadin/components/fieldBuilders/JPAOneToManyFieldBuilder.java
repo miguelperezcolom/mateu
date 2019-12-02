@@ -57,6 +57,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         return ok;
     }
 
+    @Override
     public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
 
         Component r = null;
@@ -428,7 +429,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                         });
 
 
-                        if (!field.isAnnotationPresent(ModifyValuesOnly.class)) {
+                        if (!field.isAnnotationPresent(ModifyValuesOnly.class) && ReflectionHelper.puedeAnadir(field)) {
 
                             hl.addComponent(b = new Button(VaadinIcons.PLUS));
                             b.addStyleName(ValoTheme.BUTTON_QUIET);
@@ -440,50 +441,55 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                 if (!field.isAnnotationPresent(ModifyValuesOnly.class)) {
 
-                    hl.addComponent(b = new Button(VaadinIcons.COPY));
-                    b.addStyleName(ValoTheme.BUTTON_QUIET);
-                    b.addStyleName(ValoTheme.BUTTON_TINY);
-                    b.addClickListener(e -> {
-                        try {
+                    if (ReflectionHelper.puedeAnadir(field)) {
 
-                            Object bean = binder.getBean();
+                        hl.addComponent(b = new Button(VaadinIcons.COPY));
+                        b.addStyleName(ValoTheme.BUTTON_QUIET);
+                        b.addStyleName(ValoTheme.BUTTON_TINY);
+                        b.addClickListener(e -> {
+                            try {
 
-                            for (Object o : g.getSelectedItems()) {
+                                Object bean = binder.getBean();
 
-                                if (o instanceof ProxyClass) o = ((ProxyClass) o).toObject();
+                                for (Object o : g.getSelectedItems()) {
 
-                                ReflectionHelper.addToCollection(binder, field, bean, ReflectionHelper.clone(o));
+                                    if (o instanceof ProxyClass) o = ((ProxyClass) o).toObject();
 
+                                    ReflectionHelper.addToCollection(binder, field, bean, ReflectionHelper.clone(o));
+
+                                }
+
+                                binder.setBean(bean, false);
+                            } catch (Exception e1) {
+                                MDD.alert(e1);
                             }
+                        });
 
-                            binder.setBean(bean, false);
-                        } catch (Exception e1) {
-                            MDD.alert(e1);
-                        }
-                    });
+                    }
 
-                    hl.addComponent(b = new Button(VaadinIcons.MINUS));
-                    b.addStyleName(ValoTheme.BUTTON_QUIET);
-                    b.addStyleName(ValoTheme.BUTTON_TINY);
-                    b.addClickListener(e -> {
-                        try {
-                            Object bean = binder.getBean();
-                            Set l = (Set) g.getSelectedItems().stream().map(o -> o != null && o instanceof ProxyClass ? ((ProxyClass) o).toObject() : o).collect(Collectors.toSet());
 
-                            if (field.isAnnotationPresent(OneToMany.class) && field.getAnnotation(OneToMany.class).orphanRemoval()) {
-                            } else {
-                                binder.getRemovables().addAll(l);
+                    if (ReflectionHelper.puedeBorrar(field)) {
+                        hl.addComponent(b = new Button(VaadinIcons.MINUS));
+                        b.addStyleName(ValoTheme.BUTTON_QUIET);
+                        b.addStyleName(ValoTheme.BUTTON_TINY);
+                        b.addClickListener(e -> {
+                            try {
+                                Object bean = binder.getBean();
+                                Set l = (Set) g.getSelectedItems().stream().map(o -> o != null && o instanceof ProxyClass ? ((ProxyClass) o).toObject() : o).collect(Collectors.toSet());
+
+                                if (field.isAnnotationPresent(OneToMany.class) && field.getAnnotation(OneToMany.class).orphanRemoval()) {
+                                } else {
+                                    binder.getRemovables().addAll(l);
+                                }
+                                ReflectionHelper.removeFromCollection(binder, field, bean, l, false);
+
+
+                                binder.setBean(bean, false);
+                            } catch (Exception e1) {
+                                MDD.alert(e1);
                             }
-                            ReflectionHelper.removeFromCollection(binder, field, bean, l, false);
-
-
-                            binder.setBean(bean, false);
-                        } catch (Exception e1) {
-                            MDD.alert(e1);
-                        }
-                    });
-
-                    //todo: faltan botones para ordenar la lista
+                        });
+                    }
 
                     hl.addComponent(b = new Button(VaadinIcons.ARROW_UP));
                     b.addStyleName(ValoTheme.BUTTON_QUIET);
@@ -1185,10 +1191,21 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
 
     public static List<FieldInterfaced> getColumnFields(FieldInterfaced field, String filter) {
-        List<FieldInterfaced> l = getColumnFields(field);
-        if (!Strings.isNullOrEmpty(filter)) {
+        List<FieldInterfaced> l;
+        if (Strings.isNullOrEmpty(filter)) {
+            l = getColumnFields(field);
+        } else {
+            l = new ArrayList<>();
+            List<FieldInterfaced> aux = ReflectionHelper.getAllFields(field.getGenericClass());
             List<String> fns = Arrays.asList(filter.split(","));
-            l = l.stream().filter(c -> fns.contains(c.getName())).sorted((a,b) -> fns.indexOf(a.getName()) - fns.indexOf(b.getName())).collect(Collectors.toList());
+            for (String fn : fns) {
+                if (fn.contains(".")) {
+                    l.add(new FieldInterfacedFromPath(field.getGenericClass(), fn));
+                } else {
+                    List<FieldInterfaced> finalL = l;
+                    aux.stream().filter(f -> fn.equals(f.getName())).findFirst().ifPresent(f -> finalL.add(f));
+                }
+            }
         }
         return l;
     }

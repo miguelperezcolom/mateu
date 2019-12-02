@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
+import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
 import io.mateu.mdd.core.app.AbstractAction;
@@ -19,6 +20,11 @@ public class JPACollectionFieldViewComponent extends JPAListViewComponent {
     private final FieldInterfaced field;
     private final IEditorViewComponent evfc;
     private final boolean addingToCollection;
+
+    @Override
+    public VaadinIcons getIcon() {
+        return VaadinIcons.TASKS; //VaadinIcons.LIST_SELECT; VaadinIcons.BOOKMARK; VaadinIcons.SEARCH; VaadinIcons.THUMBS_UP;
+    }
 
     public JPACollectionFieldViewComponent(Class entityClass, FieldInterfaced field, IEditorViewComponent evfc, boolean addingToCollection) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         this(entityClass, createExtraFields(field, evfc, addingToCollection), field, evfc, addingToCollection);

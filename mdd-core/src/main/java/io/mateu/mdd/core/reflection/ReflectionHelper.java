@@ -11,6 +11,7 @@ import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.interfaces.AbstractJPQLListView;
 import io.mateu.mdd.core.interfaces.PushWriter;
 import io.mateu.mdd.core.interfaces.RpcView;
+import io.mateu.mdd.core.model.multilanguage.Literal;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.tests.Persona;
@@ -159,31 +160,39 @@ public class ReflectionHelper {
         } else if (f instanceof FieldInterfacedForCheckboxColumn) {
             return f.getValue(o);
         } else {
-
-            if (f.getId().contains(".")) {
-                o = getInstance(o, f.getId().substring(0, f.getId().lastIndexOf(".")));
-            }
-
-            Method getter = null;
-            try {
-                getter = o.getClass().getMethod(getGetter(f));
-            } catch (Exception e) {
-
-            }
-            Object v = null;
-            try {
-                if (getter != null)
-                    v = getter.invoke(o);
-                else v = null; // no es posible hacer esto con campos interfaced!!!
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            }
-            return v;
-
+            return getValue(f.getId(), o);
         }
 
+    }
+
+    private static Object getValue(String id, Object o) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        String firstId = id;
+        String path = "";
+        if (id.contains(".")) {
+            firstId = id.substring(0, id.indexOf("."));
+            path = id.substring(id.indexOf(".") + 1);
+        }
+
+        Method getter = null;
+        try {
+            getter = o.getClass().getMethod(getGetter(o.getClass(), firstId));
+        } catch (Exception e) {
+
+        }
+        Object v = null;
+        try {
+            if (getter != null)
+                v = getter.invoke(o);
+            else v = null; // no es posible hacer esto con campos interfaced!!!
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+
+        if (!Strings.isNullOrEmpty(path)) v = getValue(path, v);
+
+        return v;
     }
 
     private static Object getInstance(Object o, String fn) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
@@ -1632,17 +1641,9 @@ public class ReflectionHelper {
             OneToMany aa = field.getAnnotation(OneToMany.class);
             ManyToMany mm = field.getAnnotation(ManyToMany.class);
 
-            if (aa != null && aa.cascade() != null) for (CascadeType ct : aa.cascade()) {
-                if (CascadeType.ALL.equals(ct) || CascadeType.REMOVE.equals(ct)) {
-                    owned = true;
-                    break;
-                }
-            } else if (mm != null && mm.cascade() != null) for (CascadeType ct : mm.cascade()) {
-                if (CascadeType.ALL.equals(ct) || CascadeType.REMOVE.equals(ct)) {
-                    owned = true;
-                    break;
-                }
-            } else if (field.isAnnotationPresent(ElementCollection.class)) owned = true;
+            if (aa != null) owned = checkCascade(aa.cascade());
+            else if (mm != null) owned = checkCascade(mm.cascade());
+            else if (field.isAnnotationPresent(ElementCollection.class)) owned = true;
             else if (!ReflectionHelper.getGenericClass(field.getGenericType()).isAnnotationPresent(Entity.class)) owned = true;
 
 
@@ -1662,6 +1663,51 @@ public class ReflectionHelper {
         }
 
         return owned;
+    }
+
+    private static boolean checkCascade(CascadeType[] cascade) {
+        boolean owned = false;
+        for (CascadeType ct : cascade) {
+            if (CascadeType.ALL.equals(ct) || CascadeType.REMOVE.equals(ct) || CascadeType.PERSIST.equals(ct) || CascadeType.MERGE.equals(ct)) {
+                owned = true;
+                break;
+            }
+        }
+        return owned;
+    }
+
+    public static boolean puedeBorrar(FieldInterfaced field) {
+        boolean puede = true;
+        CascadeType[] cascades = null;
+        if (field.isAnnotationPresent(OneToMany.class)) cascades = field.getAnnotation(OneToMany.class).cascade();
+        else if (field.isAnnotationPresent(ManyToMany.class)) cascades = field.getAnnotation(ManyToMany.class).cascade();
+        if (cascades != null) {
+            puede = false;
+            for (CascadeType ct : cascades) {
+                if (CascadeType.ALL.equals(ct) || CascadeType.REMOVE.equals(ct)) {
+                    puede = true;
+                    break;
+                }
+            }
+        }
+        return puede;
+    }
+
+    public static boolean puedeAnadir(FieldInterfaced field) {
+        boolean puede = true;
+        CascadeType[] cascades = null;
+        if (field.isAnnotationPresent(OneToMany.class)) cascades = field.getAnnotation(OneToMany.class).cascade();
+        else if (field.isAnnotationPresent(ManyToMany.class)) cascades = field.getAnnotation(ManyToMany.class).cascade();
+        if (cascades != null) {
+            puede = false;
+            for (CascadeType ct : cascades) {
+                if (CascadeType.ALL.equals(ct) || CascadeType.PERSIST.equals(ct)) {
+                    puede = true;
+                    break;
+                }
+            }
+        }
+        return puede;
     }
 
 
@@ -1820,6 +1866,11 @@ public class ReflectionHelper {
                 if (int.class.equals(t)) t = Integer.class;
                 if (long.class.equals(t)) t = Long.class;
                 if (double.class.equals(t)) t = Double.class;
+                boolean esLiteral = false;
+                if (Literal.class.equals(t)) {
+                    t = String.class;
+                    esLiteral = true;
+                }
 
 
                 if (Double.class.equals(t) || double.class.equals(t)
@@ -1845,7 +1896,16 @@ public class ReflectionHelper {
                 } else if (LocalDate.class.equals(t) || LocalDateTime.class.equals(t) || Date.class.equals(t)) {
                     addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName() + "From", f.getDeclaredAnnotations(), false);
                     addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName() + "To", f.getDeclaredAnnotations(), true);
-                } else addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName(), f.getDeclaredAnnotations(), false);
+                } else addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName(), esLiteral?addAnnotation(f.getDeclaredAnnotations(),
+                        new LiteralSearchFilter() {
+
+                            @Override
+                            public Class<? extends Annotation> annotationType() {
+                                return LiteralSearchFilter.class;
+                            }
+
+                        }
+                ):f.getDeclaredAnnotations(), false);
 
             } else if (forInlineEditing) {
 
@@ -1881,6 +1941,14 @@ public class ReflectionHelper {
         }
 
         return cc.toClass();
+    }
+
+    private static Annotation[] addAnnotation(Annotation[] list, Annotation annotation) {
+        Annotation[] l = new Annotation[list == null?1:list.length + 1];
+        int pos = 0;
+        if (list != null) for(Annotation a : list) l[pos++] = a;
+        l[pos] = annotation;
+        return l;
     }
 
     private static Annotation[] expand(Annotation[] original, Class<? extends Annotation> annotationClass) {

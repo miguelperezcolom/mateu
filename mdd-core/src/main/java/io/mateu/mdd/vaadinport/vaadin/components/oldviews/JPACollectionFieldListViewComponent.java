@@ -3,6 +3,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.vaadin.data.provider.QuerySortOrder;
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Grid;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
@@ -29,6 +30,11 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
     private final IEditorViewComponent evfc;
     private Collection list;
     private Object model;
+
+    @Override
+    public VaadinIcons getIcon() {
+        return VaadinIcons.LIST_SELECT;
+    }
 
     @Override
     public String getFieldsFilter() {

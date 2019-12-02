@@ -1,10 +1,14 @@
 package io.mateu.mdd.vaadinport.vaadin.tests;
 
 import io.mateu.mdd.core.annotations.FullWidth;
+import io.mateu.mdd.core.annotations.MainSearchFilter;
+import io.mateu.mdd.core.model.multilanguage.Literal;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.persistence.CascadeType;
+import javax.persistence.ManyToOne;
 import javax.validation.constraints.NotEmpty;
 
 @Data
@@ -13,11 +17,16 @@ public class Persona {
 
     @FullWidth
     @NotEmpty
+    @MainSearchFilter
     private String nombre;
 
     private String apellidos;
 
     private int edad;
+
+    @MainSearchFilter
+    @ManyToOne(cascade = CascadeType.ALL)
+    private Literal perfil = new Literal();
 
     private String nombreCompleto;
 

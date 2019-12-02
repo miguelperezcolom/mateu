@@ -2,6 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.google.common.collect.Lists;
 import com.vaadin.data.provider.QuerySortOrder;
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.ui.Grid;
 import io.mateu.mdd.core.MDD;
@@ -24,6 +25,11 @@ public class CollectionListViewComponent extends ListViewComponent {
 
     private List collection;
     private final Class columnType;
+
+    @Override
+    public VaadinIcons getIcon() {
+        return VaadinIcons.LIST_SELECT;
+    }
 
     public CollectionListViewComponent(Collection collection, Class columnType) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         this.collection = Lists.newArrayList(collection);

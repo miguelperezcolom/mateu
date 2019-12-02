@@ -22,7 +22,9 @@ import io.mateu.mdd.vaadinport.vaadin.navigation.MDDViewComponentCreator;
 import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
@@ -39,8 +41,15 @@ public class OwnedCollectionComponent extends EditorViewComponent {
 
     private int currentIndex = 0;
 
-    public void beforeBack() {
+    @Override
+    public VaadinIcons getIcon() {
+        return VaadinIcons.LIST_SELECT;
+    }
+
+    public boolean beforeBack() {
+        if (!validate()) return false;
         getParentBinder().setBean(getParentBinder().getBean(), false);
+        return true;
     }
 
     public MDDBinder getParentBinder() {
@@ -51,104 +60,131 @@ public class OwnedCollectionComponent extends EditorViewComponent {
     public List<AbstractAction> getActions() {
         List<AbstractAction> l = new ArrayList<>();
 
+        if (field != null) {
+
         /*
         goToPreviousButton.setClickShortcut(ShortcutAction.KeyCode.B, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
         goToNextButton.setClickShortcut(ShortcutAction.KeyCode.N, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
         addButton.setClickShortcut(ShortcutAction.KeyCode.M, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
          */
 
-        l.add(new AbstractAction(VaadinIcons.ARROW_UP, "Prev") {
-            @Override
-            public void run(MDDExecutionContext context) {
-                if (currentIndex > 0) {
-                    try {
-                        setIndex(currentIndex - 1);
-                    } catch (Exception e1) {
-                        MDD.alert(e1);
+            if (!isActionPresent("col_prev")) {
+                l.add(new AbstractAction("col_prev", VaadinIcons.ARROW_UP, "Prev") {
+
+                    @Override
+                    public void run(MDDExecutionContext context) {
+                        if (validate()) {
+                            if (currentIndex > 0) {
+                                try {
+                                    setIndex(currentIndex - 1);
+                                } catch (Exception e1) {
+                                    MDD.alert(e1);
+                                }
+                            } else MDD.notifyError("This was already the first item of the list");
+                        }
                     }
-                } else MDD.notifyError("This was already the first item of the list");
-            }
-        });
+                });
+            } else getMenuItemById("col_prev").setVisible(true);
 
-        l.add(new AbstractAction(VaadinIcons.ARROW_DOWN, "Next") {
-            @Override
-            public void run(MDDExecutionContext context) {
-                if (collection != null && currentIndex < collection.size() - 1) {
-                    try {
-                        setIndex(currentIndex + 1);
-                    } catch (Exception e1) {
-                        MDD.alert(e1);
+            if (!isActionPresent("col_next")) {
+                l.add(new AbstractAction("col_next", VaadinIcons.ARROW_DOWN, "Next") {
+                    @Override
+                    public void run(MDDExecutionContext context) {
+                        if (validate()) {
+                            if (collection != null && currentIndex < collection.size() - 1) {
+                                try {
+                                    setIndex(currentIndex + 1);
+                                } catch (Exception e1) {
+                                    MDD.alert(e1);
+                                }
+                            } else MDD.notifyError("This was already the last item of the list");
+                        }
                     }
-                } else MDD.notifyError("This was already the last item of the list");
+                });
+            } else getMenuItemById("col_next").setVisible(true);
+
+            if (ReflectionHelper.puedeAnadir(field)) {
+                if (!isActionPresent("col_add")) {
+                    l.add(new AbstractAction("col_add", VaadinIcons.PLUS, "Add") {
+                        @Override
+                        public void run(MDDExecutionContext context) {
+                            if (validate()) {
+                                try {
+
+                                    setIndex(collection.size());
+
+                                } catch (Throwable throwable) {
+                                    MDD.alert(throwable);
+                                }
+                            }
+                        }
+                    });
+                } else getMenuItemById("col_add").setVisible(true);
             }
-        });
 
-        l.add(new AbstractAction(VaadinIcons.PLUS, "Add") {
-            @Override
-            public void run(MDDExecutionContext context) {
-                try {
+            if (ReflectionHelper.puedeBorrar(field)) {
+                if (!isActionPresent("col_remove")) {
+                    l.add(new AbstractAction("col_remove", VaadinIcons.MINUS, "Remove") {
+                        @Override
+                        public void run(MDDExecutionContext context) {
+                            if (currentIndex >= 0 && currentIndex < collection.size())
+                                MDD.confirm("Are you sure you want to delete this item?", () -> {
 
-                    setIndex(collection.size());
+                                    try {
+                                        Object m = getModel();
+                                        if (m != null && m instanceof ResourceModel)
+                                            m = ((ResourceModel) m).getResource();
+                                        collection = ReflectionHelper.removeFromCollection(parentBinder, field, parentBinder.getBean(), Lists.newArrayList(m));
 
-                } catch (Throwable throwable) {
-                    MDD.alert(throwable);
-                }
+                                        try {
+                                            if (collection.size() == 0) MDDUI.get().getNavegador().goBack();
+                                            else if (currentIndex == collection.size()) setIndex(collection.size() - 1);
+                                            else setIndex(currentIndex);
+                                        } catch (Throwable throwable) {
+                                            MDD.alert(throwable);
+                                        }
+
+                                    } catch (Exception ex) {
+                                        MDD.alert(ex);
+                                    }
+                                });
+                            else MDD.notifyError("Can not remove this item");
+
+                        }
+                    });
+                } else getMenuItemById("col_remove").setVisible(true);
             }
-        });
 
-        l.add(new AbstractAction(VaadinIcons.MINUS, "Remove") {
-            @Override
-            public void run(MDDExecutionContext context) {
-                if (currentIndex >= 0 && currentIndex < collection.size()) MDD.confirm("Are you sure you want to delete this item?", () -> {
-
-                    try {
-                        Object m = getModel();
-                        if (m != null && m instanceof ResourceModel) m = ((ResourceModel) m).getResource();
-                        collection = ReflectionHelper.removeFromCollection(parentBinder, field, parentBinder.getBean(), Lists.newArrayList(m));
-
+            if (!isActionPresent("col_copy")) {
+                l.add(new AbstractAction("col_copy", VaadinIcons.COPY, "Copy prev") {
+                    @Override
+                    public void run(MDDExecutionContext context) {
                         try {
-                            if (collection.size() == 0) MDDUI.get().getNavegador().goBack();
-                            else if (currentIndex == collection.size()) setIndex(collection.size() - 1);
-                            else setIndex(currentIndex);
+
+                            if (currentIndex > 0) {
+                                getElementAt(currentIndex, v0 -> {
+                                    try {
+                                        getElementAt(currentIndex - 1, v -> {
+                                            ReflectionHelper.copy(v, v0);
+                                            getBinder().update(v0);
+                                        });
+                                    } catch (Exception ex) {
+                                        ex.printStackTrace();
+                                    }
+                                });
+                            } else MDD.notifyError("This is the first item of the list. Can not copy from previous");
+
                         } catch (Throwable throwable) {
                             MDD.alert(throwable);
                         }
 
-                    } catch (Exception ex) {
-                        MDD.alert(ex);
                     }
                 });
-                else MDD.notifyError("Can not remove this item");
+            } else getMenuItemById("col_copy").setVisible(true);
 
-            }
-        });
+            l.addAll(super.getActions());
 
-        l.add(new AbstractAction(VaadinIcons.COPY, "Copy prev") {
-            @Override
-            public void run(MDDExecutionContext context) {
-                try {
-
-                    if (currentIndex > 0) {
-                        getElementAt(currentIndex, v0 -> {
-                            try {
-                                getElementAt(currentIndex - 1, v -> {
-                                    ReflectionHelper.copy(v, v0);
-                                    getBinder().update(v0);
-                                });
-                            } catch (Exception ex) {
-                                ex.printStackTrace();
-                            }
-                        });
-                    } else MDD.notifyError("This is the first item of the list. Can not copy from previous");
-
-                } catch (Throwable throwable) {
-                    MDD.alert(throwable);
-                }
-
-            }
-        });
-
-        l.addAll(super.getActions());
+        }
 
         return l;
     }

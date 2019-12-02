@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.vaadin.data.HasValue;
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
@@ -19,6 +20,11 @@ public class SearchInMenuComponent extends AbstractViewComponent {
 
     private final VerticalLayout resultsLayout = new VerticalLayout();
     private final Searcher searcher;
+
+    @Override
+    public VaadinIcons getIcon() {
+        return VaadinIcons.SEARCH;
+    }
 
     @Override
     public String toString() {
