@@ -41,9 +41,14 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     private boolean backable;
     private boolean built;
     private AbstractViewComponent parentView;
+    private Label iconLabel;
 
     public AbstractViewComponent getParentView() {
         return parentView;
+    }
+
+    public VaadinIcons getIcon() {
+        return null;
     }
 
     public void setParentView(AbstractViewComponent parentView) {
@@ -133,6 +138,9 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
     private Component createTitleLabel() {
 
+        iconLabel = new Label("", ContentMode.HTML);
+        iconLabel.addStyleName("viewIcon");
+
         titleLabel = new Label("", ContentMode.HTML);
         titleLabel.addStyleName("viewTitle");
 
@@ -141,8 +149,10 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
         kpisContainer.addStyleName("kpisContainer");
         kpisContainer.setSizeUndefined();
 
+        if (getIcon() != null) iconLabel.setValue(getIcon().getHtml());
+        else iconLabel.setVisible(false);
 
-        HorizontalLayout hl = new HorizontalLayout(titleLabel, kpisContainer);
+        HorizontalLayout hl = new HorizontalLayout(iconLabel, titleLabel, kpisContainer);
         hl.addStyleName(CSS.NOPADDING);
 
         return hl;

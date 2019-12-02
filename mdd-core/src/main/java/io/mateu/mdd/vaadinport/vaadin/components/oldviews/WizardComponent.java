@@ -25,6 +25,11 @@ public class WizardComponent extends EditorViewComponent {
     private List<WizardPage> stack = new ArrayList<>();
     private WizardPage currentPage = null;
 
+    @Override
+    public VaadinIcons getIcon() {
+        return VaadinIcons.STEP_FORWARD;
+    }
+
     public WizardComponent(WizardPage page) {
         super(page.getClass());
         setPage(page);

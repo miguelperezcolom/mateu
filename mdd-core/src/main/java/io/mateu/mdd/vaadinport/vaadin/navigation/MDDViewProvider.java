@@ -425,8 +425,13 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                 while (coincide && pos < steps.length) {
                     lastPath = auxPath;
                     lastPos = pos;
+
+                    String fullStep = steps[pos];
+                    String cleanStep = cleanStep(fullStep);
+                    String queryStep = queryFromStep(fullStep);
+
                     if (!"".equals(auxPath)) auxPath += "/";
-                    auxPath += steps[pos];
+                    auxPath += cleanStep;
 
                     if (MDD.isMobile()) {
                         menuPassed = menuPassed || (MDD.getApp().getMenu(auxPath) != null && MDD.getApp().getMenu(auxPath) instanceof AbstractAction);
@@ -476,9 +481,11 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                     nuevo = true;
 
-                    String step = steps[currentStepIndex];
+                    String fullStep = steps[currentStepIndex];
+                    String cleanStep = cleanStep(fullStep);
+                    String queryStep = queryFromStep(fullStep);
 
-                    currentPath = ((Strings.isNullOrEmpty(currentPath))?"":currentPath + "/") + step;
+                    currentPath = ((Strings.isNullOrEmpty(currentPath))?"":currentPath + "/") + cleanStep;
 
 
                     boolean procesar = menuPassed && MDD.getApp().getMenu(currentPath) == null && MDD.getApp().getModule(currentPath) == null && lastView != null;
@@ -489,9 +496,9 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                         Component lastViewComponent = lastView.getComponent();
 
-                        if (step.startsWith("obj___")) {
+                        if (cleanStep.startsWith("obj___")) {
 
-                            procesarObj(step);
+                            procesarObj(cleanStep);
 
                         } else if (pendingResult != null) {
 
@@ -509,13 +516,13 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                 e.printStackTrace();
                             }
 
-                        } else if (lastViewComponent instanceof JPACollectionFieldListViewComponent && "add".equals(step)) {
+                        } else if (lastViewComponent instanceof JPACollectionFieldListViewComponent && "add".equals(cleanStep)) {
 
-                            procesarAdd(step, (JPACollectionFieldListViewComponent) lastViewComponent);
+                            procesarAdd(cleanStep, (JPACollectionFieldListViewComponent) lastViewComponent);
 
                         } else if (lastViewComponent instanceof ListViewComponent) { // el último fué una listView, estamos en un id, add, o en los filtros
 
-                            procesarListViewComponent(state, step, (ListViewComponent) lastViewComponent);
+                            procesarListViewComponent(state, cleanStep, (ListViewComponent) lastViewComponent);
 
                         } else if (IEditorViewComponent.class.isAssignableFrom(lastViewComponent.getClass())) {
                             //lastViewComponent instanceof EditorViewComponent ||
@@ -525,20 +532,20 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                             // lastViewComponent instanceof OwnedCollectionComponent || xxxxxxxxxxxxx
                             // lastViewComponent instanceof MethodParametersViewComponent
 
-                            procesarEditor(state, step, (IEditorViewComponent) lastViewComponent);
+                            procesarEditor(state, cleanStep, (IEditorViewComponent) lastViewComponent);
 
                         }
 
                     } else if (currentStepIndex == 0) {
 
-                        if ("public".equals(step)) { // caso "login"
+                        if ("public".equals(cleanStep)) { // caso "login"
 
                             if (MDD.isMobile()) {
                                 stack.push(currentPath, new PublicMenuFlowComponent());
                                 v = stack.get(currentPath);
                             } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PublicMenuFlowComponent());
 
-                        } else if ("private".equals(step)) { // caso "login"
+                        } else if ("private".equals(cleanStep)) { // caso "login"
 
                             if (MDD.isMobile()) {
                                 stack.push(currentPath, new PrivateMenuFlowComponent());
@@ -592,6 +599,50 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                             AbstractViewComponent av = (AbstractViewComponent) c;
                             av.buildIfNeeded();
                             expand = av.expandOnOpen();
+
+                            if (c instanceof ListViewComponent && !Strings.isNullOrEmpty(queryStep)) {
+                                ListViewComponent l = (ListViewComponent) c;
+                                try {
+                                    Object m = l.getModelForSearchFilters();
+
+                                    Base64.Decoder b64 = Base64.getDecoder();
+
+                                    for (String t : queryStep.split("&")) {
+                                        if (t.contains("=")) {
+                                            String[] tt = t.split("_");
+                                            String n = tt[0];
+                                            String p = tt[1];
+                                            p = new String(b64.decode(p), "utf-8");
+                                            FieldInterfaced f = ReflectionHelper.getFieldByName(m.getClass(), n);
+                                            if (f != null) {
+                                                Object pv = p;
+                                                if (!Strings.isNullOrEmpty(p)) {
+                                                    if (f.getType().equals(Long.class) || f.getType().equals(long.class)) pv = Long.parseLong(p);
+                                                    else if (f.getType().equals(Integer.class) || f.getType().equals(int.class)) pv = Integer.parseInt(p);
+                                                    else if (f.getType().equals(Double.class) || f.getType().equals(double.class)) pv = Double.parseDouble(p);
+                                                    else if (f.getType().equals(Boolean.class) || f.getType().equals(boolean.class)) pv = Boolean.parseBoolean(p);
+                                                    else if (f.getType().isEnum()) pv = Enum.valueOf((Class)f.getType(), p);
+                                                    else if (f.getType().isAnnotationPresent(Entity.class)) {
+                                                        FieldInterfaced idField = ReflectionHelper.getIdField(f.getType());
+                                                        if (idField.getType().equals(Long.class) || idField.getType().equals(long.class)) pv = Long.parseLong(p);
+                                                        else if (idField.getType().equals(Integer.class) || idField.getType().equals(int.class)) pv = Integer.parseInt(p);
+                                                        else if (idField.getType().equals(Double.class) || idField.getType().equals(double.class)) pv = Double.parseDouble(p);
+                                                        else if (idField.getType().equals(Boolean.class) || idField.getType().equals(boolean.class)) pv = Boolean.parseBoolean(p);
+                                                        else if (idField.getType().isEnum()) pv = Enum.valueOf((Class)idField.getType(), p);
+                                                        pv = Helper.find(f.getType(), pv);
+                                                    }
+                                                }
+                                                ReflectionHelper.setValue(f, m, pv);
+                                            }
+                                        }
+                                    }
+
+                                    l.setModelForSearchFilters(m);
+
+                                } catch (Throwable e) {
+                                    MDD.alert(e);
+                                }
+                            }
                         }
                     }
 
@@ -713,6 +764,16 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
         return v;
 
+    }
+
+    private String queryFromStep(String fullStep) {
+        if (fullStep == null || !fullStep.contains("&")) return fullStep;
+        else return fullStep.substring(fullStep.indexOf("&"));
+    }
+
+    private String cleanStep(String fullStep) {
+        if (fullStep == null || !fullStep.contains("&")) return fullStep;
+        else return fullStep.substring(0, fullStep.indexOf("&"));
     }
 
     private void procesarEditor(String state, String step, IEditorViewComponent evfc) {

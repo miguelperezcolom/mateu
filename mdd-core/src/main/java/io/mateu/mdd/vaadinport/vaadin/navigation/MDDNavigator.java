@@ -17,6 +17,7 @@ import io.mateu.mdd.vaadinport.vaadin.components.app.views.MenuFlowComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.ModuleComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorListener;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.OwnedCollectionComponent;
 
 import javax.persistence.Entity;
@@ -92,7 +93,7 @@ public class MDDNavigator {
 
 
     public void go(String relativePath) {
-        String path = stack.getState(stack.getLast());
+        String path = MDDUI.get().getNavigator().getState(); //stack.getState(stack.getLast());
         if (!path.endsWith("/")) path += "/";
         path += relativePath;
         if (path != null) {
@@ -203,27 +204,35 @@ public class MDDNavigator {
             ((EditorViewComponent) stack.getLast().getComponent()).onGoBack();
         }
 
-        String u = stack.getState(stack.getLast());
-        if (!Strings.isNullOrEmpty(u) && u.contains("/")) {
-            u = u.substring(0, u.lastIndexOf("/"));
-
-            if (!MDD.isMobile() && esMenu(u)) while (esMenu(u.substring(0, u.lastIndexOf("/")))) {
-                u = u.substring(0, u.lastIndexOf("/"));
-            }
-
-            if (MDD.isMobile()) {
-                if (esInutil(u)) while (esInutil(u)) {
-                    u = u.substring(0, u.lastIndexOf("/"));
-                }
-            }
-
+        if (stack.size() > 1) {
+            View v = stack.get(stack.size() - 2);
+            String u = stack.getState(v);
+            if (v.getViewComponent() instanceof ListViewComponent) u = ((ListViewComponent) v.getViewComponent()).getUrl();
             MDDUI.get().getNavegador().goTo(u);
         } else {
+            View v = stack.getLast();
+            String u = stack.getState(v);
+            if (!Strings.isNullOrEmpty(u) && u.contains("/")) {
+                u = u.substring(0, u.lastIndexOf("/"));
 
-            AppComponent appComponent = MDDUI.get().getAppComponent();
-            if (appComponent instanceof DesktopAppComponent) {
-                DesktopAppComponent dac = (DesktopAppComponent) appComponent;
-                dac.maximizeLeftSide();
+                if (!MDD.isMobile() && esMenu(u)) while (esMenu(u.substring(0, u.lastIndexOf("/")))) {
+                    u = u.substring(0, u.lastIndexOf("/"));
+                }
+
+                if (MDD.isMobile()) {
+                    if (esInutil(u)) while (esInutil(u)) {
+                        u = u.substring(0, u.lastIndexOf("/"));
+                    }
+                }
+
+                MDDUI.get().getNavegador().goTo(u);
+            } else {
+
+                AppComponent appComponent = MDDUI.get().getAppComponent();
+                if (appComponent instanceof DesktopAppComponent) {
+                    DesktopAppComponent dac = (DesktopAppComponent) appComponent;
+                    dac.maximizeLeftSide();
+                }
             }
         }
     }

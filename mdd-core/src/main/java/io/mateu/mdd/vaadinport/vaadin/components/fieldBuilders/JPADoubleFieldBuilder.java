@@ -97,7 +97,10 @@ public class JPADoubleFieldBuilder extends JPAStringFieldBuilder {
                         double d = number.doubleValue();
                         r = Result.ok(d);
                     } catch (ParseException e) {
+                        r = Result.error(e.getMessage() != null?e.getMessage():e.getClass().getSimpleName());
                     }
+                } else {
+                    r = Result.ok(double.class.equals(field.getType())?0d:null);
                 }
                 return r;
             }

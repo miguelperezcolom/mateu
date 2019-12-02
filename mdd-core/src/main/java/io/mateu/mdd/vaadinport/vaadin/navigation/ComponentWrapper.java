@@ -22,6 +22,11 @@ import java.util.List;
 public class ComponentWrapper extends AbstractViewComponent {
     private final Component wrapped;
 
+    @Override
+    public VaadinIcons getIcon() {
+        return VaadinIcons.FILE;
+    }
+
     public Component getWrapped() {
         return wrapped;
     }

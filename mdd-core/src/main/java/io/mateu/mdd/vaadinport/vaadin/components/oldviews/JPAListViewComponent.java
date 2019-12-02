@@ -64,7 +64,7 @@ public class JPAListViewComponent extends ListViewComponent {
         addListener(new ListViewComponentListener() {
             @Override
             public void onEdit(Object id) {
-                MDDUI.get().getNavegador().go("" + id);
+                MDDUI.get().getNavegador().goTo(getUrl() + "/" + id);
             }
 
             @Override
@@ -341,7 +341,17 @@ public class JPAListViewComponent extends ListViewComponent {
 
             if (v != null) {
 
-                if (String.class.equals(v.getClass())) {
+                FieldInterfaced ef = ReflectionHelper.getFieldByName(entityClass, f.getName());
+
+                if (ef != null && ef.getType().isAnnotationPresent(UseIdToSelect.class)) {
+
+                    FieldInterfaced idf = ReflectionHelper.getIdField(entityClass);
+
+                    if (!"".equals(ql)) ql += " and ";
+                    ql += " x." + f.getName() + "." + idf.getName() + " = :" + f.getName() + " ";
+                    parameterValues.put(f.getName(), v);
+
+                } else if (String.class.equals(v.getClass())) {
 
                     String s = (String) v;
 

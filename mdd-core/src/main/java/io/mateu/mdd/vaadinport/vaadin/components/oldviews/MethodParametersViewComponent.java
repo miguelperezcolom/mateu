@@ -48,6 +48,11 @@ public class MethodParametersViewComponent extends EditorViewComponent {
     private final Object bean;
     private final Set pendingSelection;
 
+    @Override
+    public VaadinIcons getIcon() {
+        return VaadinIcons.FORM;
+    }
+
     private Class parametersType;
     private Object paremetersModel;
 

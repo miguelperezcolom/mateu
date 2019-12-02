@@ -88,6 +88,11 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         this.focusedSectionId = focusedSectionId;
     }
 
+    @Override
+    public VaadinIcons getIcon() {
+        return VaadinIcons.EDIT;
+    }
+
     public void setKpisContainer(Layout kpisContainer) {
         this.kpisContainer = kpisContainer;
         if (kpis != null) kpisContainer.addComponent(kpis);

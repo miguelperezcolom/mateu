@@ -48,6 +48,65 @@ public class Booking implements EditorViewStyler {
     }
 
 
+    private Long longValue;
+
+    private Integer integerValue;
+
+    private Double doubleValue;
+
+    private long lonValue;
+
+    private int intValue;
+
+    private double doubValue;
+
+    public Long getLongValue() {
+        return longValue;
+    }
+
+    public void setLongValue(Long longValue) {
+        this.longValue = longValue;
+    }
+
+    public Integer getIntegerValue() {
+        return integerValue;
+    }
+
+    public void setIntegerValue(Integer integerValue) {
+        this.integerValue = integerValue;
+    }
+
+    public Double getDoubleValue() {
+        return doubleValue;
+    }
+
+    public void setDoubleValue(Double doubleValue) {
+        this.doubleValue = doubleValue;
+    }
+
+    public long getLonValue() {
+        return lonValue;
+    }
+
+    public void setLonValue(long lonValue) {
+        this.lonValue = lonValue;
+    }
+
+    public int getIntValue() {
+        return intValue;
+    }
+
+    public void setIntValue(int intValue) {
+        this.intValue = intValue;
+    }
+
+    public double getDoubValue() {
+        return doubValue;
+    }
+
+    public void setDoubValue(double doubValue) {
+        this.doubValue = doubValue;
+    }
 
     private int[] ages;
 
@@ -65,7 +124,7 @@ public class Booking implements EditorViewStyler {
     @Section("aaaa")
     @ManyToOne
     @ListColumn
-    @Output
+    @MainSearchFilter
     private Hotel hotel;
 
     public void setHotel(Hotel hotel) {

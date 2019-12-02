@@ -2,7 +2,6 @@ package io.mateu.mdd.core.reflection;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.vaadin.data.provider.DataProvider;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
@@ -22,6 +21,11 @@ import javassist.bytecode.ConstPool;
 import javassist.bytecode.annotation.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.BeanUtilsBean;
+import org.apache.commons.beanutils.converters.BooleanConverter;
+import org.apache.commons.beanutils.converters.DoubleConverter;
+import org.apache.commons.beanutils.converters.IntegerConverter;
+import org.apache.commons.beanutils.converters.LongConverter;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 
@@ -55,7 +59,6 @@ public class ReflectionHelper {
     static Map<Class, List<Method>> allMethodsCache = new HashMap<>();
     static Map<String, Method> methodCache = new HashMap<>();
 
-
     static List<Class> basicos = new ArrayList<>();
 
     static {
@@ -71,6 +74,12 @@ public class ReflectionHelper {
         basicos.add(long.class);
         basicos.add(double.class);
         basicos.add(boolean.class);
+
+        BeanUtilsBean beanUtilsBean = BeanUtilsBean.getInstance();
+        beanUtilsBean.getConvertUtils().register(new IntegerConverter(null), Integer.class);
+        beanUtilsBean.getConvertUtils().register(new LongConverter(null), Long.class);
+        beanUtilsBean.getConvertUtils().register(new DoubleConverter(null), Double.class);
+        beanUtilsBean.getConvertUtils().register(new BooleanConverter(null), Boolean.class);
     }
 
 
@@ -1803,10 +1812,14 @@ public class ReflectionHelper {
 
             if (forFilters) {
 
-                if (forFilters && boolean.class.equals(t)) t = Boolean.class;
-                if (forFilters && int.class.equals(t)) t = Integer.class;
-                if (forFilters && long.class.equals(t)) t = Long.class;
-                if (forFilters && double.class.equals(t)) t = Double.class;
+                if (t.isAnnotationPresent(UseIdToSelect.class)) {
+                    t = ReflectionHelper.getIdField(t).getType();
+                }
+
+                if (boolean.class.equals(t)) t = Boolean.class;
+                if (int.class.equals(t)) t = Integer.class;
+                if (long.class.equals(t)) t = Long.class;
+                if (double.class.equals(t)) t = Double.class;
 
 
                 if (Double.class.equals(t) || double.class.equals(t)

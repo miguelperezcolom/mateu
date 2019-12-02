@@ -88,7 +88,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
         TabSheet sectionTabSheet = null;
 
-        if (!params.isForSearchFilters() && params.isCreateSections()) {
+        if (params.isForSearchFiltersExtended() || params.isCreateSections()) {
             List<FormLayoutSection> sections = new ArrayList<>();
             Map<String, FormLayoutSection> sectionsByCaption = new HashMap<>();
             FormLayoutSection section = null;
@@ -318,7 +318,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
     public void buildAndAddFields(JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean forSearchFiltersExtended, boolean createTabs, List<Component> componentsToLookForErrors, Map<String, List<AbstractAction>> attachedActions) {
 
-        if (forSearchFilters) {
+        if (forSearchFilters && !forSearchFiltersExtended) {
             _buildAndAddFields(ofb, model, contentContainer, binder, validators, stylist, allFieldContainers, fields, forSearchFilters, forSearchFiltersExtended, createTabs, componentsToLookForErrors, attachedActions);
         } else {
 

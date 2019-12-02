@@ -79,6 +79,11 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     private HorizontalLayout matchesComponent;
 
 
+    @Override
+    public VaadinIcons getIcon() {
+        return VaadinIcons.TABLE;
+    }
+
     public String getFieldsFilter() {
         return null;
     }
@@ -1202,5 +1207,44 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
     public int getFrozenColumnCount() {
         return 0;
+    }
+
+    public void searched() {
+        MDDUI.get().getNavegador().goTo(getUrl());
+    }
+
+    public String getUrl() {
+        String u = MDDUI.get().getNavegador().getStack().getState(getView());
+        if (u.contains("/")) {
+            String s = u.substring(u.lastIndexOf("/"));
+            if (s.contains("&")) u = u.substring(0, u.length() - (s.length() - s.indexOf("&") - 1));
+        }
+        u += getModelForSearchFiltersSerialized();
+        return u;
+    }
+
+    private String getModelForSearchFiltersSerialized() {
+        Base64.Encoder b64 = Base64.getEncoder();
+        String s = "";
+        try {
+            Object m = getModelForSearchFilters();
+
+            for (FieldInterfaced f : ReflectionHelper.getAllFields(m.getClass())) {
+                Object v = ReflectionHelper.getValue(f, m);
+                if (v != null) {
+                    if (v.getClass().isAnnotationPresent(Entity.class)) {
+                        v = ReflectionHelper.getValue(ReflectionHelper.getIdField(v.getClass()), v);
+                    } else if (v.getClass().isEnum()) {
+                        v = ((Enum)v).name();
+                    }
+                    s += "&";
+                    s += "" + f.getName() + "_" + b64.encodeToString(("" + v).getBytes("utf-8"));
+                }
+            }
+
+        } catch (Exception e) {
+            MDD.alert(e);
+        }
+        return s;
     }
 }

@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
+import com.google.common.base.Strings;
 import com.vaadin.data.*;
 import com.vaadin.data.converter.StringToLongConverter;
 import com.vaadin.data.validator.BeanValidator;
@@ -75,6 +76,13 @@ public class JPALongFieldBuilder extends JPAStringFieldBuilder {
     @Override
     protected void bind(MDDBinder binder, TextField tf, FieldInterfaced field, boolean forSearchFilter) {
         Binder.BindingBuilder aux = binder.forField(tf).withConverter(new StringToLongConverter((long.class.equals(field.getType()))?0l:null,"Must be a long") {
+
+            @Override
+            public Result<Long> convertToModel(String value, ValueContext context) {
+                if (long.class.equals(field.getType())) return super.convertToModel(value, context);
+                else return Result.ok((!Strings.isNullOrEmpty(value))?new Double(value.toString()).longValue():null);
+            }
+
             @Override
             public String convertToPresentation(Long value, ValueContext context) {
                 if (value == null) return "";

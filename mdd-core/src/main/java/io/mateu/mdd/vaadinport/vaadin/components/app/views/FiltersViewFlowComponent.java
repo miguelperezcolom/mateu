@@ -20,6 +20,11 @@ public class FiltersViewFlowComponent extends EditorViewComponent {
     private final ListViewComponent listViewComponent;
 
     @Override
+    public VaadinIcons getIcon() {
+        return VaadinIcons.FILTER;
+    }
+
+    @Override
     public String toString() {
         return "All filters for " + listViewComponent;
     }

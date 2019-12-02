@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.views;
 
 import com.google.common.base.Strings;
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.app.AbstractAction;
@@ -16,6 +17,11 @@ import java.util.stream.Collectors;
 public class MenuFlowComponent extends AbstractViewComponent {
 
     private final AbstractMenu menu;
+
+    @Override
+    public VaadinIcons getIcon() {
+        return VaadinIcons.MENU;
+    }
 
     @Override
     public String toString() {
