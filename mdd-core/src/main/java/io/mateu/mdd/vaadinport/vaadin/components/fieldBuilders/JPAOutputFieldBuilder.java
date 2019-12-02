@@ -75,6 +75,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
                 } else if (false && field.isAnnotationPresent(UseTable.class)) {
                     VerticalLayout hl = new VerticalLayout();
                     hl.addStyleName("onetomanytable");
+                    hl.addStyleName("output");
 
                     Label l;
                     hl.addComponent(l = new Label("", ContentMode.HTML));
@@ -103,6 +104,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
                     Grid g = new Grid();
 
                     g.addStyleName("gridonetomany");
+                    g.addStyleName("output");
 
                     String colsFilter = "";
                     if (field.isAnnotationPresent(UseTable.class)) colsFilter = field.getAnnotation(UseTable.class).fields();
@@ -115,7 +117,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
                     ListViewComponent.buildColumns(g, colFields, false, inline, binder, field);
 
-                    g.setSelectionMode(Grid.SelectionMode.MULTI);
+                    g.setSelectionMode(attachedActions != null && attachedActions.size() > 0?Grid.SelectionMode.MULTI:Grid.SelectionMode.NONE);
 
                     g.setCaption(ReflectionHelper.getCaption(field));
 

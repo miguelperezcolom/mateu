@@ -2614,6 +2614,17 @@ body {
     }
   }
 
+  .gridonetomany.output {
+    .v-grid-row:hover, .v-grid-row-selected:hover {
+      td {
+        background-color: inherit;
+        color: inherit;
+        font-weight: inherit;
+        cursor: inherit;
+      }
+    }
+  }
+
   .conbotonera {
     margin-bottom: 15px;
   }

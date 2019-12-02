@@ -20,7 +20,6 @@ import java.util.List;
 @Slf4j
 public class Entidad {
 
-    @Section("Main")
     @FieldGroup("G1")
     private String nombre = "Entidad " + LocalDateTime.now();
 
@@ -29,6 +28,9 @@ public class Entidad {
     private LocalDate fecha = LocalDate.now();
 
     private LocalDateTime fechaYHora = LocalDateTime.now();
+
+    private boolean booleano;
+
 
 
     @FieldGroup("G2")
@@ -43,7 +45,6 @@ public class Entidad {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Evento> _log = new ArrayList<>();
 
-    @Section("One to")
     @NotNull
     @OneToOne
     private EntidadReferenciada unoAUno;

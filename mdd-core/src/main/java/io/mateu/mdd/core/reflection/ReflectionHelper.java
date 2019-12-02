@@ -175,7 +175,8 @@ public class ReflectionHelper {
 
         Method getter = null;
         try {
-            getter = o.getClass().getMethod(getGetter(o.getClass(), firstId));
+            FieldInterfaced f = ReflectionHelper.getFieldByName(o.getClass(), firstId);
+            getter = o.getClass().getMethod(getGetter(f.getType(), firstId));
         } catch (Exception e) {
 
         }

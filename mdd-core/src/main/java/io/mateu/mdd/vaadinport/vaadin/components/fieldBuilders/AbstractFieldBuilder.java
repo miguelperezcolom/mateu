@@ -153,7 +153,7 @@ public abstract class AbstractFieldBuilder {
                else captionOwner.setComponentError(null);
             });
         }
-        Binder.Binding binding = aux.bind(o -> ReflectionHelper.getValue(field, o, String.class.equals(field.getType())?"":null), (o, v) -> {
+        Binder.Binding binding = aux.bind(o -> ReflectionHelper.getValue(field, o, getDefaultValueForField(field)), (o, v) -> {
             /*
             try {
                 ReflectionHelper.setValue(field, o, v);
@@ -171,6 +171,12 @@ public abstract class AbstractFieldBuilder {
             binder.update(o); // entra en bucle!!!
         });
         return binding;
+    }
+
+    private static Object getDefaultValueForField(FieldInterfaced field) {
+        if (String.class.equals(field.getType())) return "";
+        if (boolean.class.equals(field.getType())) return false;
+        return null;
     }
 
     public static void completeBinding(HasValue hv, MDDBinder binder, FieldInterfaced field) {
