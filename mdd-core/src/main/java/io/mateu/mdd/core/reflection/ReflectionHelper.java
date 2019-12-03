@@ -410,6 +410,17 @@ public class ReflectionHelper {
         return l;
     }
 
+    public static List<FieldInterfaced> getAllFields(Constructor m) {
+
+        List<FieldInterfaced> l = new ArrayList<>();
+
+        for (Parameter p : m.getParameters()) if (!isInjectable(p)) {
+            l.add(new FieldInterfacedFromParameter(m, p));
+        }
+
+        return l;
+    }
+
     public static boolean isInjectable(Parameter p) {
         boolean injectable = true;
         if (EntityManager.class.equals(p.getType())) {
@@ -2328,4 +2339,24 @@ public class ReflectionHelper {
             }
         }
     }
+
+    public static Object newInstance(Constructor c, Object params) throws Throwable {
+        List<Object> vs = new ArrayList<>();
+        for (Parameter p : c.getParameters()) {
+            if (params != null && ReflectionHelper.getFieldByName(params.getClass(), p.getName()) != null) {
+                vs.add(ReflectionHelper.getValue(ReflectionHelper.getFieldByName(params.getClass(), p.getName()), params));
+            } else {
+                Object v = null;
+                if (int.class.equals(p.getType())) v = 0;
+                if (long.class.equals(p.getType())) v = 0l;
+                if (float.class.equals(p.getType())) v = 0f;
+                if (double.class.equals(p.getType())) v = 0d;
+                if (boolean.class.equals(p.getType())) v = false;
+                vs.add(v);
+            }
+        }
+        Object[] args = vs.toArray();
+        return c.newInstance(args);
+    }
+
 }

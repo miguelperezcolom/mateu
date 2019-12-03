@@ -66,10 +66,13 @@ public class CustomLombokTester {
         System.out.println("false");
         System.out.println("******************************");
 
-        Entidad e = new Entidad();
+        Entidad e = new Entidad("aaaaaaa");
         e.setId(3);
         System.out.println(e.toString());
 
+        e = new Entidad();
+        e.setId(3);
+        System.out.println(e.toString());
     }
 
 }

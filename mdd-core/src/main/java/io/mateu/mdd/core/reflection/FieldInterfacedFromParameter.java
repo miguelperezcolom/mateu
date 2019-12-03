@@ -15,7 +15,7 @@ import java.util.Map;
 public class FieldInterfacedFromParameter implements FieldInterfaced {
 
     private final Parameter p;
-    private final Method m;
+    private final Executable m;
     private final FieldInterfacedFromParameter ff;
     private List<Annotation> extraAnnotations = new ArrayList<>();
 
@@ -28,7 +28,7 @@ public class FieldInterfacedFromParameter implements FieldInterfaced {
         return p;
     }
 
-    public Method getMethod() {
+    public Executable getMethod() {
         return m;
     }
 
@@ -46,7 +46,7 @@ public class FieldInterfacedFromParameter implements FieldInterfaced {
         return (ff != null)?ff.getDeclaredAnnotationsByType(annotationClass): p.getDeclaredAnnotationsByType(annotationClass);
     }
 
-    public FieldInterfacedFromParameter(Method m, Parameter f) {
+    public FieldInterfacedFromParameter(Executable m, Parameter f) {
         this.ff = null;
         this.p = f;
         this.m = m;

@@ -10,12 +10,15 @@ import io.mateu.mdd.core.annotations.UseRadioButtons;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Value;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.core.reflection.FieldInterfacedFromParameter;
 import io.mateu.mdd.core.reflection.FieldInterfacedFromType;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.JPAOutputFieldBuilder;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.FormLayoutBuilder;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.FormLayoutBuilderParameters;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -207,4 +210,69 @@ public class VaadinHelper {
 
 
     }
+
+    public static void fill(String caption, Constructor c, Consumer onOk, Runnable onClose) {
+        try {
+            Class pc = ReflectionHelper.createClass("" + c.getDeclaringClass().getSimpleName() + "_" + c.getName() + "_Parameters000", ReflectionHelper.getAllFields(c), false);
+
+            List<FieldInterfaced> fields = ReflectionHelper.getAllFields(pc);
+
+            MDDBinder binder = new MDDBinder(pc);
+
+            // Create a sub-window and set the content
+            Window subWindow = new Window(caption);
+            VerticalLayout subContent = new VerticalLayout();
+            subWindow.setContent(subContent);
+
+
+            VerticalLayout vl = new VerticalLayout();
+
+            Object model = pc.newInstance();
+
+            Map<HasValue, List<Validator>> validators = new HashMap<>();
+
+            List<Component> componentsToLookForErrors = new ArrayList<>();
+            FormLayoutBuilder.get().build(vl, binder, model.getClass(), model, componentsToLookForErrors, FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).build(), null);
+
+            // Put some components in it
+            subContent.addComponent(vl);
+            Button b;
+            subContent.addComponent(b = new Button("OK"));
+
+            Value<Boolean> okd = new Value<>(false);
+
+            b.addClickListener(e -> {
+                if (validate(componentsToLookForErrors)) {
+                    Object v = null;
+                    try {
+                        v = ReflectionHelper.newInstance(c, binder.getBean());
+                        onOk.accept(v);
+                        okd.set(true);
+                        subWindow.close();
+                    } catch (Throwable throwable) {
+                        MDD.alert(throwable);
+                    }
+                }
+            });
+
+            // Center it in the browser window
+            subWindow.center();
+            subWindow.setModal(true);
+
+            subWindow.addCloseListener(e -> {
+                if (!okd.get()) onClose.run();
+            });
+
+            // Open it in the UI
+            UI.getCurrent().addWindow(subWindow);
+
+
+
+        } catch (Exception e) {
+            MDD.alert(e);
+            onClose.run();
+        };
+
+    }
+
 }

@@ -38,6 +38,7 @@ import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.OptimisticLockException;
 import javax.validation.constraints.NotNull;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -1156,15 +1157,15 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                 VaadinHelper.choose("Please choose type", subClassesOptions, c -> {
                     try {
-                        setModel(newInstance(((ClassOption)c).get_class(), parent));
-                    } catch (Exception e) {
+                        create(((ClassOption)c).get_class(), parent);
+                    } catch (Throwable e) {
                         MDD.alert(e);
                     }
                 }, () -> MDDUI.get().getNavegador().goBack());
             } else if (subClasses.size() == 1) {
-                setModel(newInstance(subClasses.iterator().next(), parent));
+                create(subClasses.iterator().next(), parent);
             } else {
-                setModel(newInstance(modelType, parent));
+                create(modelType, parent);
             }
 
         } else {
@@ -1212,6 +1213,30 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         }
 
+    }
+
+    private void create(Class type, Object parent) throws Throwable {
+        Constructor con = getConstructor(type);
+        if (con != null) {
+            VaadinHelper.fill("I need some data", con, i -> {
+                try {
+                    setModel(i);
+                } catch (Throwable e) {
+                    MDD.alert(e);
+                }
+            }, () -> MDDUI.get().getNavegador().goBack());
+        } else setModel(newInstance(type, parent));
+    }
+
+    private Constructor getConstructor(Class type) {
+        Constructor con = null;
+        for (Constructor x : type.getConstructors()) {
+            if (x.getParameterCount() > 0) {
+                con = x;
+                break;
+            }
+        }
+        return con;
     }
 
     public static Object newInstance(Class c, Object parent) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {

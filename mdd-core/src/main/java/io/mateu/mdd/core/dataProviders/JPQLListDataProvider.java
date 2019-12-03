@@ -15,7 +15,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvider implements com.vaadin.data.provider.DataProvider {
+public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvider {
 
 
     private FieldInterfaced field;

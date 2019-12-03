@@ -20,8 +20,9 @@ import java.util.List;
 @Slf4j
 public class Entidad {
 
+
     @FieldGroup("G1")
-    private String nombre = "Entidad " + LocalDateTime.now();
+    private final String nombre;
 
     private LocalDateTime trigger = LocalDateTime.now();
 
