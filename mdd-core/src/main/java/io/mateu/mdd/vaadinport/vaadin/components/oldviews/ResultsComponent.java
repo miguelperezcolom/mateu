@@ -13,6 +13,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.interfaces.ReadOnly;
+import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
@@ -154,7 +155,7 @@ public class ResultsComponent extends VerticalLayout {
             }
         });
 
-        if (!(listViewComponent instanceof RpcListViewComponent) || !(((RpcListViewComponent) listViewComponent).getRpcListView() instanceof ReadOnly) || !(((ReadOnly) ((RpcListViewComponent) listViewComponent).getRpcListView()).isReadOnly())) grid.addItemClickListener(new ItemClickListener<Object>() {
+        if (esEditable(listViewComponent)) grid.addItemClickListener(new ItemClickListener<Object>() {
             @Override
             public void itemClick(Grid.ItemClick<Object> itemClick) {
                 if (MDD.isMobile() || MDD.isIpad() || itemClick.getMouseEventDetails().isDoubleClick()) {
@@ -166,6 +167,7 @@ public class ResultsComponent extends VerticalLayout {
                 }
             }
         });
+        else grid.addStyleName("readonly");
 
 
         labelSelection = new Label("No items selected");
@@ -180,6 +182,14 @@ public class ResultsComponent extends VerticalLayout {
 
         addComponentsAndExpand(grid);
 
+    }
+
+    private boolean esEditable(ListViewComponent listViewComponent) {
+        if (!(listViewComponent instanceof RpcListViewComponent)) return true;
+        RpcListViewComponent rpc = (RpcListViewComponent) listViewComponent;
+        RpcView v = rpc.getRpcListView();
+        boolean ro = v instanceof ReadOnly && ((ReadOnly) v).isReadOnly();
+        return !ro && v.isEditHandled();
     }
 
 

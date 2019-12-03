@@ -10,6 +10,7 @@ import io.mateu.mdd.core.data.SumData;
 import io.mateu.mdd.core.interfaces.AbstractCrudView;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.core.interfaces.RpcView;
+import io.mateu.mdd.core.interfaces.StepInterceptor;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
@@ -217,6 +218,7 @@ public class RpcListViewComponent extends ListViewComponent {
     }
 
     public Object onEdit(String step) throws Throwable {
+        if (getRpcListView() instanceof StepInterceptor) return ((StepInterceptor) getRpcListView()).onEdit(step);
         Object row = resultsComponent.getRow(step);
         return getRpcListView().onEdit(row);
     }

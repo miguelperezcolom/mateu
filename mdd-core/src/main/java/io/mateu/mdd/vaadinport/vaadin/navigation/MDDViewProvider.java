@@ -1004,8 +1004,10 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                 try {
 
                     Object o = ((RpcListViewComponent) lvc).onEdit(step);
-                    EditorViewComponent evc = new EditorViewComponent(o);
-                    stack.push(currentPath, evc);
+                    if (o instanceof RpcView) o = new RpcListViewComponent((RpcView) o);
+                    else if (!(o instanceof Component)) o = new EditorViewComponent(o);
+
+                    stack.push(currentPath, (Component) o);
 
                 } catch (Throwable e) {
                     MDD.alert(e);

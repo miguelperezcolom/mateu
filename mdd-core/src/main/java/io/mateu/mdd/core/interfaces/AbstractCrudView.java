@@ -10,7 +10,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.util.List;
 
-public abstract class AbstractCrudView<R> extends AbstractJPQLListView<R>  implements RpcCrudView<AbstractJPQLListView, R, R> {
+public abstract class AbstractCrudView<R> extends AbstractJPQLListView<R>  implements RpcCrudView<AbstractJPQLListView, R, R>, StepInterceptor {
 
     @Override
     public boolean isAddEnabled() {
@@ -27,6 +27,7 @@ public abstract class AbstractCrudView<R> extends AbstractJPQLListView<R>  imple
         return Helper.find(getRowClass(), ReflectionHelper.getId(row));
     }
 
+    @Override
     public Object onEdit(String sid) throws Throwable {
         FieldInterfaced idField = ReflectionHelper.getIdField(getRowClass());
         Object id = null;

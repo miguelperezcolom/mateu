@@ -2510,8 +2510,8 @@ body {
 
     .v-grid-row:hover, .v-grid-row-selected:hover {
       td {
-        background-color: red;
-        color: white;
+        background-color: red !important;
+        color: white !important;
         font-weight: bold;
         cursor: pointer;
       }
@@ -2544,6 +2544,36 @@ body {
     }
   }
 
+  .gridresultado.readonly {
+    .v-grid-row:hover {
+      td {
+        background-color: inherit;
+        color: inherit;
+        font-weight: inherit;
+        cursor: inherit;
+      }
+    }
+    .v-grid-cell.rowno {
+      color: inherit;
+    }
+    .v-grid-row-stripe:hover {
+      td {
+        background-color: #f5f5f5;
+        color: inherit;
+        font-weight: inherit;
+        cursor: inherit;
+      }
+    }
+    .v-grid-row-selected:hover {
+      td {
+        background-color: #e61a1a;
+        color: #eec9c9 !important;
+        font-weight: bold;
+        cursor: inherit;
+      }
+    }
+
+  }
 
   .gridonetomany {
 
@@ -2572,7 +2602,7 @@ body {
     }
     .v-grid-row-stripe.v-grid-row-selected {
       td {
-        background-color: #e61a1a;
+        background-color: #e61a1a !important;
       }
     }
     .v-grid-row-selected {
@@ -2588,8 +2618,8 @@ body {
 
     .v-grid-row:hover, .v-grid-row-selected:hover {
       td {
-        background-color: red;
-        color: white;
+        background-color: red !important;
+        color: white !important;
         font-weight: bold;
         cursor: pointer;
       }
