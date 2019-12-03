@@ -261,7 +261,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
                                         a.run(new AbstractMDDExecutionContext());
 
-                                        if (AbstractViewComponent.this instanceof EditorViewComponent) {
+                                        if (AbstractViewComponent.this instanceof EditorViewComponent && !(AbstractViewComponent.this instanceof OwnedCollectionComponent)) {
 
                                             EditorViewComponent evc = (EditorViewComponent) AbstractViewComponent.this;
 

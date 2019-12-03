@@ -2501,6 +2501,7 @@ body {
       .v-grid-cell {
         background-image: none;
         font-weight: bold;
+        color: #eec9c9 !important;
       }
     }
 
@@ -2547,29 +2548,29 @@ body {
   .gridresultado.readonly {
     .v-grid-row:hover {
       td {
-        background-color: inherit;
-        color: inherit;
-        font-weight: inherit;
-        cursor: inherit;
+        background-color: inherit !important;
+        color: inherit !important;
+        font-weight: inherit !important;
+        cursor: inherit !important;
       }
     }
     .v-grid-cell.rowno {
-      color: inherit;
+      color: inherit !important;
     }
     .v-grid-row-stripe:hover {
       td {
-        background-color: #f5f5f5;
-        color: inherit;
-        font-weight: inherit;
-        cursor: inherit;
+        background-color: #f5f5f5 !important;
+        color: inherit !important;
+        font-weight: inherit !important;
+        cursor: inherit !important;
       }
     }
     .v-grid-row-selected:hover {
       td {
-        background-color: #e61a1a;
+        background-color: #e61a1a !important;
         color: #eec9c9 !important;
-        font-weight: bold;
-        cursor: inherit;
+        font-weight: bold !important;
+        cursor: inherit !important;
       }
     }
 
@@ -2603,12 +2604,14 @@ body {
     .v-grid-row-stripe.v-grid-row-selected {
       td {
         background-color: #e61a1a !important;
+        color: #eec9c9 !important;
       }
     }
     .v-grid-row-selected {
       .v-grid-cell {
         background-image: none;
         font-weight: bold;
+        color: #eec9c9 !important;
       }
     }
 
@@ -2688,6 +2691,12 @@ body {
     .kpi.sectionkpi {
       min-height: inherit;
     }
+  }
+
+  .v-grid-row-selected  > .v-grid-cell {
+    background-color: #e61a1a !important;
+    background-image: none;
+    color: #eec9c9 !important;
   }
 
   .cockpitgrid {
