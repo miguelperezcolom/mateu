@@ -318,7 +318,11 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
     public void buildAndAddFields(JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean forSearchFiltersExtended, boolean createTabs, List<Component> componentsToLookForErrors, Map<String, List<AbstractAction>> attachedActions) {
 
-        if (forSearchFilters && !forSearchFiltersExtended) {
+        if (forSearchFilters) {
+            if (forSearchFiltersExtended) {
+                contentContainer.addComponent(contentContainer = new VerticalLayout());
+                contentContainer.setSizeUndefined();
+            }
             _buildAndAddFields(ofb, model, contentContainer, binder, validators, stylist, allFieldContainers, fields, forSearchFilters, forSearchFiltersExtended, createTabs, componentsToLookForErrors, attachedActions);
         } else {
 

@@ -100,7 +100,7 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
 
                         VaadinHelper.choose("Please choose type", subClassesOptions, c -> {
                             try {
-                                MDDUI.get().getNavegador().setPendingResult(EditorViewComponent.newInstance(((ClassOption)c).get_class(), model));
+                                MDDUI.get().getNavegador().setPendingResult(ReflectionHelper.newInstance(((ClassOption)c).get_class(), model));
                                 MDDUI.get().getNavegador().go("add");
                             } catch (Exception e) {
                                 MDD.alert(e);
@@ -108,7 +108,7 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
                         }, () -> MDDUI.get().getNavegador().goBack());
                     } else if (subClasses.size() == 1) {
                         try {
-                            MDDUI.get().getNavegador().setPendingResult(EditorViewComponent.newInstance(subClasses.iterator().next(), model));
+                            MDDUI.get().getNavegador().setPendingResult(ReflectionHelper.newInstance(subClasses.iterator().next(), model));
 
                             MDDUI.get().getNavegador().go("add");
 

@@ -485,7 +485,8 @@ public class JPAListViewComponent extends ListViewComponent {
 
                         int pos = 1;
                         for (FieldInterfaced f : sumFields) {
-                            String caption = "Total " + Helper.capitalize(f.getName());
+                            String caption = Helper.capitalize(f.getName());
+                            if (!caption.startsWith("Total")) caption = "Total " + caption;
                             if (!Strings.isNullOrEmpty(f.getAnnotation(Sum.class).caption())) caption = f.getAnnotation(Sum.class).caption();
 
                             Object x = v[pos++];

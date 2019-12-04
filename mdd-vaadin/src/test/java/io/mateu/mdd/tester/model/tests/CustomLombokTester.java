@@ -70,7 +70,7 @@ public class CustomLombokTester {
         e.setId(3);
         System.out.println(e.toString());
 
-        e = new Entidad();
+        e = new Entidad("xxxxxxxxxx");
         e.setId(3);
         System.out.println(e.toString());
     }

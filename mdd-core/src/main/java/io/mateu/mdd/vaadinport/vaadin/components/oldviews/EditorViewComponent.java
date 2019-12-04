@@ -361,16 +361,19 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             }
 
 
-            List<FieldInterfaced> kpiFields = ReflectionHelper.getKpiFields(model.getClass());
-            if (kpiFields.size() > 0) {
-                if (kpis != null) {
-                    kpis.removeAllComponents();
+            if (!(this instanceof FiltersViewFlowComponent)) {
+                List<FieldInterfaced> kpiFields = ReflectionHelper.getKpiFields(model.getClass());
+                if (kpiFields.size() > 0) {
+                    if (kpis != null) {
+                        kpis.removeAllComponents();
 
-                    for (FieldInterfaced kpi : kpiFields) {
-                        kpis.addComponent(createKpi(binder, kpi));
+                        for (FieldInterfaced kpi : kpiFields) {
+                            kpis.addComponent(createKpi(binder, kpi));
+                        }
                     }
                 }
             }
+
 
             panel.setContent(panelContenido);
 
@@ -789,7 +792,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                                 //load(null);
 
-                                Object current = newInstance(modelType, parent);
+                                Object current = ReflectionHelper.newInstance(modelType, parent);
                                 newRecord = true;
                                 for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(old.getClass())) {
                                     if (f.isAnnotationPresent(Keep.class)) {
@@ -831,7 +834,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                                         //load(null);
 
-                                        Object current = newInstance(modelType, parent);
+                                        Object current = ReflectionHelper.newInstance(modelType, parent);
                                         newRecord = true;
                                         for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(old.getClass())) {
                                             if (Collection.class.isAssignableFrom(f.getType())) {
@@ -1032,7 +1035,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                                 Object m = getModel();
 
 
-                                auditar(m);
+                                ReflectionHelper.auditar(m);
 
                                 setModel(em.merge(m));
                             }
@@ -1124,23 +1127,10 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             em.persist(d);
         }
 
-        auditar(d);
+        ReflectionHelper.auditar(d);
         return d;
     }
 
-    private static void auditar(Object bean) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-
-        for (FieldInterfaced f : ReflectionHelper.getAllFields(bean.getClass())) if (Audit.class.equals(f.getType())) {
-            Audit a = (Audit) ReflectionHelper.getValue(f, bean);
-            if (a == null) {
-                a = new Audit(MDD.getCurrentUser());
-                ReflectionHelper.setValue(f, bean, a);
-            } else {
-                a.touch(MDD.getCurrentUser());
-            }
-        }
-
-    }
 
     public void load(Object id, Object parent, FieldInterfaced field) throws Throwable {
         this.modelId = id;
@@ -1216,8 +1206,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     }
 
     private void create(Class type, Object parent) throws Throwable {
-        Constructor con = getConstructor(type);
-        if (con != null) {
+        Constructor con = parent != null?ReflectionHelper.getConstructor(type, parent.getClass()):ReflectionHelper.getConstructor(type);
+        if (con != null && con.getParameterCount() > 0) {
             VaadinHelper.fill("I need some data", con, i -> {
                 try {
                     setModel(i);
@@ -1225,31 +1215,10 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                     MDD.alert(e);
                 }
             }, () -> MDDUI.get().getNavegador().goBack());
-        } else setModel(newInstance(type, parent));
+        } else setModel(ReflectionHelper.newInstance(type, parent));
     }
 
-    private Constructor getConstructor(Class type) {
-        Constructor con = null;
-        for (Constructor x : type.getConstructors()) {
-            if (x.getParameterCount() > 0) {
-                con = x;
-                break;
-            }
-        }
-        return con;
-    }
 
-    public static Object newInstance(Class c, Object parent) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        Object i = c.newInstance();
-        if (parent != null) {
-            for (FieldInterfaced f : ReflectionHelper.getAllFields(c)) if (f.getType().equals(parent.getClass()) && f.isAnnotationPresent(NotNull.class)) {
-                ReflectionHelper.setValue(f, i, parent);
-                break;
-            }
-        }
-        auditar(i);
-        return i;
-    }
 
     public void load(Object id) throws Throwable {
         load(id, null, null);

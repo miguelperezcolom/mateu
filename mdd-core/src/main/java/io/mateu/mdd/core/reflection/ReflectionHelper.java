@@ -11,6 +11,7 @@ import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.interfaces.AbstractJPQLListView;
 import io.mateu.mdd.core.interfaces.PushWriter;
 import io.mateu.mdd.core.interfaces.RpcView;
+import io.mateu.mdd.core.model.authentication.Audit;
 import io.mateu.mdd.core.model.multilanguage.Literal;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
@@ -34,6 +35,7 @@ import javax.persistence.*;
 import javax.servlet.ServletContext;
 import javax.tools.*;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -1052,7 +1054,7 @@ public class ReflectionHelper {
 
     public static Object newInstance(Class c) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         Object o = null;
-        if (c.getDeclaringClass() != null) {
+        if (c.getDeclaringClass() != null) { // caso inner class
             Object p = newInstance(c.getDeclaringClass());
             Constructor<?> cons = c.getDeclaredConstructors()[0];
             cons.setAccessible(true);
@@ -1393,10 +1395,15 @@ public class ReflectionHelper {
         if (m != null) {
             i = m.invoke(bean);
         } else {
-            i = field.getGenericClass().newInstance();
+            i = createChild(bean, field);
         }
 
         return addToCollection(binder, field, bean, i);
+    }
+
+    private static Object createChild(Object parent, FieldInterfaced collectionField) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
+        Class c = collectionField.getGenericClass();
+        return newInstance(c, parent);
     }
 
     public static Collection addToCollection(MDDBinder binder, FieldInterfaced field, Object bean, Object i) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
@@ -1702,6 +1709,13 @@ public class ReflectionHelper {
                 }
             }
         }
+        return puede;
+    }
+
+    public static boolean puedeOrdenar(FieldInterfaced field) {
+        boolean puede = List.class.isAssignableFrom(field.getType());
+        Class<?> gc = field.getGenericClass();
+        if (gc != null && gc.isAnnotationPresent(Entity.class)) puede = field.isAnnotationPresent(OrderColumn.class);
         return puede;
     }
 
@@ -2359,4 +2373,53 @@ public class ReflectionHelper {
         return c.newInstance(args);
     }
 
+    public static Constructor getConstructor(Class type) {
+        Constructor con = null;
+        int minParams = Integer.MAX_VALUE;
+        for (Constructor x : type.getConstructors()) if (Modifier.isPublic(x.getModifiers())) {
+            if (x.getParameterCount() < minParams) {
+                con = x;
+            }
+        }
+        return con;
+    }
+
+    public static Object newInstance(Class c, Object parent) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+        Object i = null;
+        if (parent != null) {
+            Constructor con = getConstructor(c, parent.getClass());
+            if (con != null) i = con.newInstance(parent);
+            else {
+                i = c.newInstance();
+                for (FieldInterfaced f : ReflectionHelper.getAllFields(c)) if (f.getType().equals(parent.getClass()) && f.isAnnotationPresent(NotNull.class)) {
+                    ReflectionHelper.setValue(f, i, parent);
+                    break;
+                }
+            }
+        } else i = c.newInstance();
+        auditar(i);
+        return i;
+    }
+
+    public static void auditar(Object bean) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+
+        for (FieldInterfaced f : ReflectionHelper.getAllFields(bean.getClass())) if (Audit.class.equals(f.getType())) {
+            Audit a = (Audit) ReflectionHelper.getValue(f, bean);
+            if (a == null) {
+                a = new Audit(MDD.getCurrentUser());
+                ReflectionHelper.setValue(f, bean, a);
+            } else {
+                a.touch(MDD.getCurrentUser());
+            }
+        }
+
+    }
+
+    public static Constructor getConstructor(Class c, Class parameterClass) {
+        try {
+            return c.getConstructor(parameterClass);
+        } catch (NoSuchMethodException e) {
+        }
+        return null;
+    }
 }

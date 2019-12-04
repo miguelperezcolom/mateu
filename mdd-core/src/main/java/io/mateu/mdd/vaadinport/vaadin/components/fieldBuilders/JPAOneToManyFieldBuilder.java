@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.vaadin.data.*;
 import com.vaadin.data.provider.ListDataProvider;
@@ -20,12 +21,14 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.FareValue;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
+import io.mateu.mdd.core.interfaces.Card;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.reflection.*;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.OwnedCollectionComponent;
+import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
@@ -33,14 +36,13 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.*;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
@@ -223,6 +225,21 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             addErrorHandler(l);
 
             r = l;
+
+        } else if (Card.class.isAssignableFrom(field.getGenericClass())) {
+
+            CssLayout hl = new CssLayout();
+            hl.addStyleName("collectionlinklabel");
+
+            hl.setCaption(ReflectionHelper.getCaption(field));
+
+            addComponent(container, hl, attachedActions.get(field.getName()));
+
+            bind(binder, hl, field, mh);
+
+            addErrorHandler(hl);
+
+            r = hl;
 
         } else if (Resource.class.equals(field.getGenericClass())) {
 
@@ -412,17 +429,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                                 Object i = e.getItem();
                                 if (i != null) {
 
-                                    String state = MDDUI.get().getNavegador().getViewProvider().getCurrentPath();
-                                    if (!state.endsWith("/")) state += "/";
-                                    state += field.getName();
-
-                                    try {
-                                        OwnedCollectionComponent occ;
-                                        MDDUI.get().getNavegador().getStack().push(state, occ = new OwnedCollectionComponent(binder, field, e.getRowIndex()));
-                                        MDDUI.get().getNavegador().goTo(state);
-                                    } catch (Exception e1) {
-                                        e1.printStackTrace();
-                                    }
+                                    editar(binder, field, i, e.getRowIndex());
 
                                 }
                             }
@@ -434,7 +441,41 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                             hl.addComponent(b = new Button(VaadinIcons.PLUS));
                             b.addStyleName(ValoTheme.BUTTON_QUIET);
                             b.addStyleName(ValoTheme.BUTTON_TINY);
-                            b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+                            b.addClickListener(e -> {
+
+                                try {
+                                    Constructor con = ReflectionHelper.getConstructor(field.getGenericClass(), binder.getBeanType());
+                                    if (con == null) {
+                                        con = field.getGenericClass().getConstructor();
+                                    }
+                                    if (con != null && Modifier.isPublic(con.getModifiers())) {
+                                        try {
+                                            Collection col;
+                                            Object i = Iterables.getLast(col = ReflectionHelper.addToCollection(binder, field, binder.getBean()));
+                                            editar(binder, field, i, col.size() - 1);
+                                        } catch (Exception ex) {
+                                            MDD.alert(ex);
+                                        }
+                                    } else {
+                                        con = ReflectionHelper.getConstructor(field.getGenericClass());
+                                        if (con != null && con.getParameterCount() > 0) {
+                                            VaadinHelper.fill("I need some data", con, i -> {
+                                                try {
+                                                    Collection col = ReflectionHelper.addToCollection(binder, field, binder.getBean());
+                                                    editar(binder, field, i, col.size() - 1);
+                                                } catch (Exception ex) {
+                                                    MDD.alert(ex);
+                                                }
+                                            }, () -> MDDUI.get().getNavegador().goBack());
+                                        } else MDD.alert("No constructor found for " + field.getGenericClass().getSimpleName());
+                                    }
+
+
+                                } catch (NoSuchMethodException ex) {
+                                    MDD.alert(ex);
+                                }
+
+                            });
                         }
 
                     }
@@ -491,95 +532,98 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                         });
                     }
 
-                    hl.addComponent(b = new Button(VaadinIcons.ARROW_UP));
-                    b.addStyleName(ValoTheme.BUTTON_QUIET);
-                    b.addStyleName(ValoTheme.BUTTON_TINY);
-                    b.addClickListener(e -> {
-                        try {
+                    if (ReflectionHelper.puedeOrdenar(field)) {
 
-                            Object bean = binder.getBean();
+                        hl.addComponent(b = new Button(VaadinIcons.ARROW_UP));
+                        b.addStyleName(ValoTheme.BUTTON_QUIET);
+                        b.addStyleName(ValoTheme.BUTTON_TINY);
+                        b.addClickListener(e -> {
+                            try {
 
-                            Collection col = (Collection) ReflectionHelper.getValue(field, bean);
+                                Object bean = binder.getBean();
 
-                            if (col instanceof  List) {
-                                List l = (List) col;
+                                Collection col = (Collection) ReflectionHelper.getValue(field, bean);
 
-                                Set sel = new HashSet(g.getSelectedItems());
-                                boolean posible = true;
-                                for (Object o : sel) {
-                                    int index = l.indexOf(o);
-                                    if (index == 0) {
-                                        posible = false;
-                                        break;
-                                    }
-                                }
+                                if (col instanceof  List) {
+                                    List l = (List) col;
 
-                                if (posible) {
-                                    for (Object o : (List) sel.stream().sorted((o1,o2) -> l.indexOf(o1) - l.indexOf(o2)).collect(Collectors.toList())) {
+                                    Set sel = new HashSet(g.getSelectedItems());
+                                    boolean posible = true;
+                                    for (Object o : sel) {
                                         int index = l.indexOf(o);
-                                        if (index > 0) {
-                                            l.remove(o);
-                                            l.add(index - 1, o);
+                                        if (index == 0) {
+                                            posible = false;
+                                            break;
                                         }
                                     }
 
-                                    ReflectionHelper.setValue(field, bean, l);
-                                    g.deselectAll();
-                                    binder.update(bean);
-                                    sel.forEach(i -> g.select(i));
-                                }
+                                    if (posible) {
+                                        for (Object o : (List) sel.stream().sorted((o1,o2) -> l.indexOf(o1) - l.indexOf(o2)).collect(Collectors.toList())) {
+                                            int index = l.indexOf(o);
+                                            if (index > 0) {
+                                                l.remove(o);
+                                                l.add(index - 1, o);
+                                            }
+                                        }
 
-                            }
-
-                        } catch (Exception e1) {
-                            MDD.alert(e1);
-                        }
-                    });
-
-                    hl.addComponent(b = new Button(VaadinIcons.ARROW_DOWN));
-                    b.addStyleName(ValoTheme.BUTTON_QUIET);
-                    b.addStyleName(ValoTheme.BUTTON_TINY);
-                    b.addClickListener(e -> {
-                        try {
-
-                            Object bean = binder.getBean();
-
-                            Collection col = (Collection) ReflectionHelper.getValue(field, bean);
-
-                            if (col instanceof  List) {
-                                List l = (List) col;
-
-                                Set sel = new HashSet(g.getSelectedItems());
-                                boolean posible = true;
-                                for (Object o : sel) {
-                                    int index = l.indexOf(o);
-                                    if (index == l.size() - 1) {
-                                        posible = false;
-                                        break;
+                                        ReflectionHelper.setValue(field, bean, l);
+                                        g.deselectAll();
+                                        binder.update(bean);
+                                        sel.forEach(i -> g.select(i));
                                     }
+
                                 }
 
-                                if (posible) {
-                                    for (Object o : (List) sel.stream().sorted((o1,o2) -> l.indexOf(o2) - l.indexOf(o1)).collect(Collectors.toList())) {
+                            } catch (Exception e1) {
+                                MDD.alert(e1);
+                            }
+                        });
+
+                        hl.addComponent(b = new Button(VaadinIcons.ARROW_DOWN));
+                        b.addStyleName(ValoTheme.BUTTON_QUIET);
+                        b.addStyleName(ValoTheme.BUTTON_TINY);
+                        b.addClickListener(e -> {
+                            try {
+
+                                Object bean = binder.getBean();
+
+                                Collection col = (Collection) ReflectionHelper.getValue(field, bean);
+
+                                if (col instanceof  List) {
+                                    List l = (List) col;
+
+                                    Set sel = new HashSet(g.getSelectedItems());
+                                    boolean posible = true;
+                                    for (Object o : sel) {
                                         int index = l.indexOf(o);
-                                        if (index < l.size() -1) {
-                                            l.remove(o);
-                                            l.add(index + 1, o);
+                                        if (index == l.size() - 1) {
+                                            posible = false;
+                                            break;
                                         }
                                     }
 
-                                    ReflectionHelper.setValue(field, bean, l);
-                                    g.deselectAll();
-                                    binder.update(bean);
-                                    sel.forEach(i -> g.select(i));
+                                    if (posible) {
+                                        for (Object o : (List) sel.stream().sorted((o1,o2) -> l.indexOf(o2) - l.indexOf(o1)).collect(Collectors.toList())) {
+                                            int index = l.indexOf(o);
+                                            if (index < l.size() -1) {
+                                                l.remove(o);
+                                                l.add(index + 1, o);
+                                            }
+                                        }
+
+                                        ReflectionHelper.setValue(field, bean, l);
+                                        g.deselectAll();
+                                        binder.update(bean);
+                                        sel.forEach(i -> g.select(i));
+                                    }
                                 }
+
+                            } catch (Exception e1) {
+                                MDD.alert(e1);
                             }
+                        });
 
-                        } catch (Exception e1) {
-                            MDD.alert(e1);
-                        }
-                    });
-
+                    }
 
                 }
 
@@ -663,6 +707,20 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         }
 
         return r;
+    }
+
+    private void editar(MDDBinder binder, FieldInterfaced field, Object i, int indice) {
+        String state = MDDUI.get().getNavegador().getViewProvider().getCurrentPath();
+        if (!state.endsWith("/")) state += "/";
+        state += field.getName();
+
+        try {
+            OwnedCollectionComponent occ;
+            MDDUI.get().getNavegador().getStack().push(state, occ = new OwnedCollectionComponent(binder, field, indice));
+            MDDUI.get().getNavegador().goTo(state);
+        } catch (Exception e1) {
+            e1.printStackTrace();
+        }
     }
 
 
@@ -1517,6 +1575,82 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
         completeBinding(aux, binder, field);
     }
+
+
+    void bind(MDDBinder binder, CssLayout l, FieldInterfaced field, Method htmlGetter) {
+        Binder.BindingBuilder aux = binder.forField(new HasValue() {
+            private Object v;
+
+            @Override
+            public void setValue(Object o) {
+                v = o;
+
+                l.removeAllComponents();
+
+                if (o == null || ((Collection)o).size() == 0) {
+                    HorizontalLayout clickable;
+                    l.addComponent(clickable = new HorizontalLayout(new Label("Empty list")));
+                    clickable.addStyleName(CSS.NOPADDING);
+                    clickable.addStyleName(CSS.CLICKABLE);
+                    clickable.addLayoutClickListener(e -> {
+                        if (e.isDoubleClick()) MDDUI.get().getNavegador().go(field.getName());
+                    });
+                } else {
+                    int pos = 0;
+                    for (Object i : ((Collection) o)) {
+                        HorizontalLayout clickable;
+                        Label lab;
+                        l.addComponent(clickable = new HorizontalLayout(lab = new Label(((Card)i).toHtml(), ContentMode.HTML)));
+                        clickable.addStyleName("carditem");
+                        clickable.addStyleName(CSS.CLICKABLE);
+                        int finalPos = pos;
+                        clickable.addLayoutClickListener(e -> {
+                            if (e.isDoubleClick()) {
+                                if (i != null) {
+                                    editar(binder, field, i, finalPos);
+                                }
+                            }
+                        });
+                        pos++;
+                    }
+
+                }
+            }
+
+            @Override
+            public Object getValue() {
+                return v;
+            }
+
+            @Override
+            public Registration addValueChangeListener(ValueChangeListener valueChangeListener) {
+                return null;
+            }
+
+            @Override
+            public void setRequiredIndicatorVisible(boolean b) {
+
+            }
+
+            @Override
+            public boolean isRequiredIndicatorVisible() {
+                return false;
+            }
+
+            @Override
+            public void setReadOnly(boolean b) {
+
+            }
+
+            @Override
+            public boolean isReadOnly() {
+                return false;
+            }
+        });
+        aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+        completeBinding(aux, binder, field);
+    }
+
 
     static void bind(MDDBinder binder, Label l, FieldInterfaced field, Method htmlGetter) {
         Binder.BindingBuilder aux = binder.forField(new HasValue() {

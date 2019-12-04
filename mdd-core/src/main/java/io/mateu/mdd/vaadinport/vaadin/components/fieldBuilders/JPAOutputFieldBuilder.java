@@ -178,6 +178,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
                 if (field.getType().isAnnotationPresent(Entity.class)) {
 
                     HorizontalLayout hl = new HorizontalLayout();
+                    hl.addStyleName(CSS.NOPADDING);
                     container.addComponent(hl);
                     hl.setWidthUndefined();
 
@@ -185,31 +186,19 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
                     hl.addComponent(tf);
 
-                    //if (allFieldContainers != null) allFieldContainers.put(field, hl);
-
                     if (container.getComponentCount() > 0) hl.setCaption(ReflectionHelper.getCaption(field));
 
-                    //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) hl.setDescription(field.getAnnotation(Help.class).value());
-
-                    botonLink = new Button(null, VaadinIcons.ARROW_RIGHT);
-                    botonLink.addStyleName(ValoTheme.BUTTON_QUIET);
-                    botonLink.addStyleName(CSS.NOPADDING);
+                    botonLink = new Button("None");
+                    botonLink.addStyleName(ValoTheme.BUTTON_LINK);
                     botonLink.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
                     botonLink.setVisible(false);
                     hl.addComponent(botonLink);
-                    hl.setComponentAlignment(tf, Alignment.TOP_LEFT);
-                    hl.setComponentAlignment(botonLink, Alignment.TOP_LEFT);
-                    hl.setExpandRatio(tf, 1);
 
                 } else {
 
                     container.addComponent(tf);
 
-                    //if (allFieldContainers != null) if (allFieldContainers != null) allFieldContainers.put(field, tf);
-
                     if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
-
-                    //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
 
                 }
 
@@ -285,7 +274,11 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
             protected void doSetValue(Object o) {
                 v = o;
                 tf.setValue((o != null)?objectToString(o):"None");
-                if (botonLink != null) botonLink.setVisible(o != null);
+                if (botonLink != null) {
+                    tf.setVisible(o == null);
+                    botonLink.setVisible(o != null);
+                    botonLink.setCaption((o != null)?objectToString(o):"None");
+                }
             }
 
             @Override

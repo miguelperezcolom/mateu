@@ -899,10 +899,27 @@ body {
 
     .clickable {
       cursor: pointer;
+      border: 1px solid transparent;
     }
 
     .clickable:hover {
-      opacity: 0.5;
+      border: 1px solid red;
+    }
+
+
+    .carditem {
+      padding: 10px;
+      border: 1px solid lightgray;
+      margin: 1px;
+
+      th {
+        font-weight: normal;
+      }
+
+    }
+
+    .carditem:hover {
+      background-color: #efefef;
     }
 
   }
@@ -2700,6 +2717,28 @@ body {
     background-image: none;
     color: #eec9c9 !important;
   }
+
+
+  .v-button.v-button-link {
+    height: unset;
+    padding: unset;
+  }
+
+  .v-button.v-button-link.v-pressed {
+    outline: none;
+  }
+
+  .v-button.v-button-link:active {
+    outline: none;
+  }
+
+  .v-button.v-button-link:focus {
+    outline: none;
+  }
+
+
+
+
 
   .cockpitgrid {
     .v-grid-column-header-content {

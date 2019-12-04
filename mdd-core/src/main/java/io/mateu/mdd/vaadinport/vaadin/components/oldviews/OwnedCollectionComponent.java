@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
@@ -27,8 +28,10 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -259,14 +262,16 @@ public class OwnedCollectionComponent extends EditorViewComponent {
 
             Set<Class> subClasses = ReflectionHelper.getSubclasses(ReflectionHelper.getGenericClass(field.getGenericType()));
 
+            Class c = null;
+
             if (subClasses.size() > 1) {
 
                 Set<ClassOption> subClassesOptions = new LinkedHashSet<>();
-                subClasses.forEach(c -> subClassesOptions.add(new ClassOption(c)));
+                subClasses.forEach(cl -> subClassesOptions.add(new ClassOption(cl)));
 
-                VaadinHelper.choose("Please choose type", subClassesOptions, c -> {
+                VaadinHelper.choose("Please choose type", subClassesOptions, cl -> {
                     try {
-                        Object o = newInstance(((ClassOption)c).get_class());
+                        Object o = newInstance(((ClassOption)cl).get_class());
                         collection = ReflectionHelper.addToCollection(parentBinder, field, parentBinder.getBean(), o);
                         consumer.accept(o);
                     } catch (Exception e) {
@@ -274,17 +279,45 @@ public class OwnedCollectionComponent extends EditorViewComponent {
                     }
                 }, () -> MDDUI.get().getNavegador().goBack());
             } else if (subClasses.size() == 1) {
-                v = newInstance(subClasses.iterator().next());
-                collection = ReflectionHelper.addToCollection(parentBinder, field, parentBinder.getBean(), v);
-                consumer.accept(v);
+                c = subClasses.iterator().next();
             } else {
 
-                v = newInstance(ReflectionHelper.getGenericClass(field.getGenericType()));
+                c = ReflectionHelper.getGenericClass(field.getGenericType());
 
-                collection = ReflectionHelper.addToCollection(parentBinder, field, parentBinder.getBean(), v);
+            }
 
-                consumer.accept(v);
 
+            if (c != null) {
+                try {
+                    Constructor con = ReflectionHelper.getConstructor(c, parentBinder.getBeanType());
+                    if (con == null) {
+                        con = c.getConstructor();
+                    }
+                    if (con != null && Modifier.isPublic(con.getModifiers())) {
+                        try {
+                            Object i = Iterables.getLast(collection = ReflectionHelper.addToCollection(parentBinder, field, parentBinder.getBean()));
+                            consumer.accept(i);
+                        } catch (Exception ex) {
+                            MDD.alert(ex);
+                        }
+                    } else {
+                        con = ReflectionHelper.getConstructor(c);
+                        if (con != null) {
+                            VaadinHelper.fill("I need some data", con, i -> {
+                                try {
+                                    collection = ReflectionHelper.addToCollection(parentBinder, field, parentBinder.getBean());
+                                    consumer.accept(i);
+                                } catch (Exception ex) {
+                                    MDD.alert(ex);
+                                }
+                            }, () -> MDDUI.get().getNavegador().goBack());
+                        } else MDD.alert("No constructor found for " + c.getSimpleName());
+                    }
+
+
+                } catch (NoSuchMethodException ex) {
+                    MDD.alert(ex);
+                }
             }
 
         } else {
