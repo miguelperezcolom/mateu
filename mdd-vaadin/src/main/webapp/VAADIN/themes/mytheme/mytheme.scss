@@ -2453,6 +2453,10 @@ body {
     font-size: 50px;
     color: lightgrey;
   }
+  .fileicon > .v-icon-plus {
+    font-size: inherit;
+    color: inherit;
+  }
 
   .actiongroupwindow {
     min-width: 400px !important;

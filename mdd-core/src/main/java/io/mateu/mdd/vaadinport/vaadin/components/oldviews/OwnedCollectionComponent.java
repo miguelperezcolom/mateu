@@ -348,7 +348,7 @@ public class OwnedCollectionComponent extends EditorViewComponent {
         if (m != null) {
             i = m.invoke(parent);
         } else {
-            i = c.newInstance();
+            i = ReflectionHelper.newInstance(c, parent);
             for (FieldInterfaced f : ReflectionHelper.getAllFields(c))
                 if (f.getType().equals(parent.getClass()) && f.isAnnotationPresent(NotNull.class)) {
                     ReflectionHelper.setValue(f, i, parent);
