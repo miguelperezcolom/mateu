@@ -158,13 +158,13 @@ public class ResultsComponent extends VerticalLayout {
         if (esEditable(listViewComponent)) grid.addItemClickListener(new ItemClickListener<Object>() {
             @Override
             public void itemClick(Grid.ItemClick<Object> itemClick) {
-                if (MDD.isMobile() || MDD.isIpad() || itemClick.getMouseEventDetails().isDoubleClick()) {
+                //if (MDD.isMobile() || MDD.isIpad() || itemClick.getMouseEventDetails().isDoubleClick()) {
                     setLastClickedRowIndex(itemClick.getRowIndex());
                     Object i = itemClick.getItem();
                     if (i != null) {
                         edit(listViewComponent.toId(i));
                     }
-                }
+                //}
             }
         });
         else grid.addStyleName("readonly");

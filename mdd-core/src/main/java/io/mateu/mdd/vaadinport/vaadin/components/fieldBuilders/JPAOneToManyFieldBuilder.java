@@ -171,7 +171,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             hl.addStyleName(CSS.CLICKABLE);
             hl.addLayoutClickListener(e -> {
-                if (e.isDoubleClick()) MDDUI.get().getNavegador().go(field.getName());
+                //if (e.isDoubleClick())
+                    MDDUI.get().getNavegador().go(field.getName());
             });
 
             hl.setCaption(ReflectionHelper.getCaption(field));
@@ -213,7 +214,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             hl.addStyleName(CSS.CLICKABLE);
             hl.addLayoutClickListener(e -> {
-                if (e.isDoubleClick()) MDDUI.get().getNavegador().go(field.getName());
+                //if (e.isDoubleClick())
+                    MDDUI.get().getNavegador().go(field.getName());
             });
 
             hl.setCaption(ReflectionHelper.getCaption(field));
@@ -251,7 +253,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             hl.addStyleName(CSS.CLICKABLE);
             hl.addLayoutClickListener(e -> {
-                if (e.isDoubleClick()) MDDUI.get().getNavegador().go(field.getName());
+                //if (e.isDoubleClick())
+                    MDDUI.get().getNavegador().go(field.getName());
             });
 
             addComponent(container, hl, attachedActions.get(field.getName()));
@@ -273,9 +276,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             hl.addStyleName(CSS.NOPADDING);
 
             hl.addLayoutClickListener(e -> {
-                if (e.isDoubleClick()) {
+                //if (e.isDoubleClick())
                     MDDUI.get().getNavegador().go(field.getName());
-                }
             });
 
             hl.setCaption(ReflectionHelper.getCaption(field));
@@ -425,14 +427,14 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                     } else {
 
                         g.addItemClickListener(e -> {
-                            if (MDD.isMobile() || e.getMouseEventDetails().isDoubleClick()) {
+                            //if (MDD.isMobile() || e.getMouseEventDetails().isDoubleClick()) {
                                 Object i = e.getItem();
                                 if (i != null) {
 
                                     editar(binder, field, i, e.getRowIndex());
 
                                 }
-                            }
+                            //}
                         });
 
 
@@ -658,12 +660,12 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
 
                     g.addItemClickListener(e -> {
-                        if (MDD.isMobile() || e.getMouseEventDetails().isDoubleClick()) {
+                        //if (MDD.isMobile() || e.getMouseEventDetails().isDoubleClick()) {
                             Object i = e.getItem();
                             if (i != null) {
                                 MDDUI.get().getNavegador().go(field.getName());
                             }
-                        }
+                        //}
                     });
 
                     hl.addComponent(b = new Button(VaadinIcons.PLUS));
@@ -1593,7 +1595,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                     clickable.addStyleName(CSS.NOPADDING);
                     clickable.addStyleName(CSS.CLICKABLE);
                     clickable.addLayoutClickListener(e -> {
-                        if (e.isDoubleClick()) MDDUI.get().getNavegador().go(field.getName());
+                        //if (e.isDoubleClick())
+                            MDDUI.get().getNavegador().go(field.getName());
                     });
                 } else {
                     int pos = 0;
@@ -1605,11 +1608,11 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                         clickable.addStyleName(CSS.CLICKABLE);
                         int finalPos = pos;
                         clickable.addLayoutClickListener(e -> {
-                            if (e.isDoubleClick()) {
+                            //if (e.isDoubleClick()) {
                                 if (i != null) {
                                     editar(binder, field, i, finalPos);
                                 }
-                            }
+                            //}
                         });
                         pos++;
                     }

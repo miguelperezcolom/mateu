@@ -209,7 +209,8 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
                 hv.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
                 hl.addStyleName(CSS.CLICKABLE);
                 hl.addLayoutClickListener(e -> {
-                    if (e.isDoubleClick()) MDDUI.get().getNavegador().go(field.getName());
+                    //if (e.isDoubleClick())
+                        MDDUI.get().getNavegador().go(field.getName());
                 });
             }
 

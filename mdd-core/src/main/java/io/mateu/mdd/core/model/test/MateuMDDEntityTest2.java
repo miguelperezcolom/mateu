@@ -5,14 +5,14 @@ import lombok.MateuMDDEntity;
 @MateuMDDEntity
 public class MateuMDDEntityTest2 {
 
-    private final String nombre;
+    private final String name;
 
     public MateuMDDEntityTest2() {
-        this.nombre = "";
+        this.name = "";
     }
 
-    public MateuMDDEntityTest2(String nombre) {
-        this.nombre = nombre;
+    public MateuMDDEntityTest2(String name) {
+        this.name = name;
     }
 
     public static void main(String[] args) {

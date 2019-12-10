@@ -2449,15 +2449,6 @@ body {
     }
   }
 
-  .fileicon {
-    font-size: 50px;
-    color: lightgrey;
-  }
-  .fileicon > .v-icon-plus {
-    font-size: inherit;
-    color: inherit;
-  }
-
   .actiongroupwindow {
     min-width: 400px !important;
     min-height: 400px !important;
@@ -2740,6 +2731,23 @@ body {
     outline: none;
   }
 
+
+
+  .qsid {
+    background: grey;
+    color: whitesmoke;
+    border-radius: 50%;
+    width: 19px;
+    text-align: center;
+    display: inline-block;
+    font-weight: bold;
+    margin-right: 10px;
+    margin-bottom: 10px;
+  }
+
+  .qsicon {
+    margin-right: 10px;
+  }
 
 
 
