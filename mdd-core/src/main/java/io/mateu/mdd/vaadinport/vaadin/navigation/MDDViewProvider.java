@@ -1430,7 +1430,12 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
             } else if (r instanceof WizardPage) {
                 stack.push(currentPath, new WizardComponent((WizardPage) r));
             } else {
-                stack.push(currentPath, new EditorViewComponent(r));
+                stack.push(currentPath, new EditorViewComponent(r) {
+                    @Override
+                    public void goBack() {
+                        // no vuelve atrás
+                    }
+                });
             }
 
         }

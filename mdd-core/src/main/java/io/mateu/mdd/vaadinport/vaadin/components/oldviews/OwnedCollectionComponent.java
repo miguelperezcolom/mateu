@@ -158,32 +158,34 @@ public class OwnedCollectionComponent extends EditorViewComponent {
                 } else getMenuItemById("col_remove").setVisible(true);
             }
 
-            if (!isActionPresent("col_copy")) {
-                l.add(new AbstractAction("col_copy", VaadinIcons.COPY, "Copy prev") {
-                    @Override
-                    public void run(MDDExecutionContext context) {
-                        try {
+            if (ReflectionHelper.puedeAnadir(field)) {
+                if (!isActionPresent("col_copy")) {
+                    l.add(new AbstractAction("col_copy", VaadinIcons.COPY, "Copy prev") {
+                        @Override
+                        public void run(MDDExecutionContext context) {
+                            try {
 
-                            if (currentIndex > 0) {
-                                getElementAt(currentIndex, v0 -> {
-                                    try {
-                                        getElementAt(currentIndex - 1, v -> {
-                                            ReflectionHelper.copy(v, v0);
-                                            getBinder().update(v0);
-                                        });
-                                    } catch (Exception ex) {
-                                        ex.printStackTrace();
-                                    }
-                                });
-                            } else MDD.notifyError("This is the first item of the list. Can not copy from previous");
+                                if (currentIndex > 0) {
+                                    getElementAt(currentIndex, v0 -> {
+                                        try {
+                                            getElementAt(currentIndex - 1, v -> {
+                                                ReflectionHelper.copy(v, v0);
+                                                getBinder().update(v0);
+                                            });
+                                        } catch (Exception ex) {
+                                            ex.printStackTrace();
+                                        }
+                                    });
+                                } else MDD.notifyError("This is the first item of the list. Can not copy from previous");
 
-                        } catch (Throwable throwable) {
-                            MDD.alert(throwable);
+                            } catch (Throwable throwable) {
+                                MDD.alert(throwable);
+                            }
+
                         }
-
-                    }
-                });
-            } else getMenuItemById("col_copy").setVisible(true);
+                    });
+                } else getMenuItemById("col_copy").setVisible(true);
+            }
 
             l.addAll(super.getActions());
 

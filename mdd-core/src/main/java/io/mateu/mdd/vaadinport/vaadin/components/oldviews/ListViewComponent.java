@@ -61,6 +61,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -164,12 +166,33 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     public static void buildColumns(Grid grid, List<FieldInterfaced> colFields, boolean isJPAListViewComponent, boolean editable, MDDBinder binder, FieldInterfaced collectionField) {
+        buildColumns(grid, colFields, isJPAListViewComponent, editable, binder, null, null);
+    }
+
+    public static void buildColumns(Grid grid, List<FieldInterfaced> colFields, boolean isJPAListViewComponent, boolean editable, MDDBinder binder, FieldInterfaced collectionField, String fieldsFilter) {
 
         // descomponemos los campos que tienen usecheckbox
 
         List<FieldInterfaced> descFields = new ArrayList<>();
 
         Object bean = binder != null?binder.getBean():null;
+
+        Map<String, String> extras = new HashMap<>();
+        if (!Strings.isNullOrEmpty(fieldsFilter)) {
+            Pattern pattern = Pattern.compile("\\((.*?)\\)");
+            for (String t : fieldsFilter.split(",")) {
+                if (t.contains("(")) {
+                    String n = t.replaceAll("\\([^)]*\\)", "");
+                    String v = "";
+                    Matcher matcher = pattern.matcher(t);
+                    if (matcher.find())
+                    {
+                        v = matcher.group(1);
+                    }
+                    extras.putIfAbsent(n, v);
+                }
+            }
+        }
 
         List<Grid.Column> colBindings = new ArrayList<>();
         Map<Grid.Column, FieldInterfaced> fieldByCol = new HashMap<>();
@@ -706,7 +729,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             if (f.isAnnotationPresent(Caption.class)) col.setCaption(f.getAnnotation(Caption.class).value());
 
             if (colFields.size() == 1) col.setExpandRatio(1);
-            else col.setWidth(getColumnWidth(f));
+            else col.setWidth(getColumnWidth(f, extras));
 
             col.setSortOrderProvider(new SortOrderProvider() {
                 @Override
@@ -742,8 +765,13 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     public static double getColumnWidth(FieldInterfaced f) {
+        return getColumnWidth(f, null);
+    }
 
-        if (f.isAnnotationPresent(ColumnWidth.class)) return f.getAnnotation(ColumnWidth.class).value();
+    public static double getColumnWidth(FieldInterfaced f, Map<String, String> extras) {
+
+        if (extras != null && !Strings.isNullOrEmpty(extras.get(f.getName()))) return Double.parseDouble(extras.get(f.getName()));
+        else if (f.isAnnotationPresent(ColumnWidth.class)) return f.getAnnotation(ColumnWidth.class).value();
         else {
 
             Class t = f.getType();

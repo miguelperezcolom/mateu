@@ -1052,18 +1052,6 @@ public class ReflectionHelper {
         if (m != null) m.invoke(o, v);
     }
 
-    public static Object newInstance(Class c) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        Object o = null;
-        if (c.getDeclaringClass() != null) { // caso inner class
-            Object p = newInstance(c.getDeclaringClass());
-            Constructor<?> cons = c.getDeclaredConstructors()[0];
-            cons.setAccessible(true);
-            o = cons.newInstance(p);
-        } else {
-            o = c.newInstance();
-        }
-        return o;
-    }
 
     public static List<FieldInterfaced> getKpiFields(Class modelType) {
         List<FieldInterfaced> allFields = ReflectionHelper.getAllFields(modelType);
@@ -1696,6 +1684,7 @@ public class ReflectionHelper {
     }
 
     public static boolean puedeBorrar(FieldInterfaced field) {
+        if (field.isAnnotationPresent(ModifyValuesOnly.class)) return false;
         boolean puede = true;
         CascadeType[] cascades = null;
         if (field.isAnnotationPresent(OneToMany.class)) cascades = field.getAnnotation(OneToMany.class).cascade();
@@ -1720,6 +1709,7 @@ public class ReflectionHelper {
     }
 
     public static boolean puedeAnadir(FieldInterfaced field) {
+        if (field.isAnnotationPresent(ModifyValuesOnly.class)) return false;
         boolean puede = true;
         CascadeType[] cascades = null;
         if (field.isAnnotationPresent(OneToMany.class)) cascades = field.getAnnotation(OneToMany.class).cascade();
@@ -2373,15 +2363,18 @@ public class ReflectionHelper {
         return c.newInstance(args);
     }
 
-    public static Constructor getConstructor(Class type) {
-        Constructor con = null;
-        int minParams = Integer.MAX_VALUE;
-        for (Constructor x : type.getConstructors()) if (Modifier.isPublic(x.getModifiers())) {
-            if (x.getParameterCount() < minParams) {
-                con = x;
-            }
+    public static Object newInstance(Class c) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        Object o = null;
+        if (c.getDeclaringClass() != null) { // caso inner class
+            Object p = newInstance(c.getDeclaringClass());
+            Constructor<?> cons = c.getDeclaredConstructors()[0];
+            cons.setAccessible(true);
+            o = cons.newInstance(p);
+        } else {
+            Constructor con = getConstructor(c);
+            o = con.newInstance();
         }
-        return con;
+        return o;
     }
 
     public static Object newInstance(Class c, Object parent) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
@@ -2396,9 +2389,31 @@ public class ReflectionHelper {
                     break;
                 }
             }
-        } else i = c.newInstance();
+        } else {
+            Constructor con = getConstructor(c);
+            i = con.newInstance();
+        }
         auditar(i);
         return i;
+    }
+
+    public static Constructor getConstructor(Class type) {
+        Constructor con = null;
+        int minParams = Integer.MAX_VALUE;
+        for (Constructor x : type.getConstructors()) if (Modifier.isPublic(x.getModifiers())) {
+            if (x.getParameterCount() < minParams) {
+                con = x;
+            }
+        }
+        return con;
+    }
+
+    public static Constructor getConstructor(Class c, Class parameterClass) {
+        try {
+            return c.getConstructor(parameterClass);
+        } catch (NoSuchMethodException e) {
+        }
+        return null;
     }
 
     public static void auditar(Object bean) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
@@ -2415,11 +2430,5 @@ public class ReflectionHelper {
 
     }
 
-    public static Constructor getConstructor(Class c, Class parameterClass) {
-        try {
-            return c.getConstructor(parameterClass);
-        } catch (NoSuchMethodException e) {
-        }
-        return null;
-    }
+
 }

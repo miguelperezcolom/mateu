@@ -141,7 +141,9 @@ public class FieldEditorComponent extends AbstractViewComponent{
             t.setSizeFull();
             t.focus();
             try {
-                t.setValue((String) ReflectionHelper.getValue(field, binder.getBean()));
+                String v = (String) ReflectionHelper.getValue(field, binder.getBean());
+                if (v == null) v = "";
+                t.setValue((String) v);
             } catch (Exception e) {
                 MDD.alert(e);
             }

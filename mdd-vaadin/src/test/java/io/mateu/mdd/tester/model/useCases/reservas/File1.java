@@ -12,6 +12,7 @@ import lombok.MateuMDDEntity;
 import javax.persistence.CascadeType;
 import javax.persistence.EntityManager;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderColumn;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -22,6 +23,7 @@ public class File1 {
     private String leadName;
 
     @OneToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}, mappedBy = "file")
+    @OrderColumn(name = "ordenenfile")
     @UseTable(fields = "del,al,servicio,precio")
     @NotInlineEditable
     private List<Reserva1> reservas = new ArrayList<>();

@@ -11,8 +11,12 @@ import com.vaadin.server.ClassResource;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ContentMode;
+import com.vaadin.shared.ui.dnd.DropEffect;
+import com.vaadin.shared.ui.dnd.EffectAllowed;
 import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.*;
+import com.vaadin.ui.dnd.DragSourceExtension;
+import com.vaadin.ui.dnd.DropTargetExtension;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
@@ -314,7 +318,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             boolean inline = false;
 
-            if (owned) {
+            if (owned && !field.isAnnotationPresent(UseTable.class)) {
 
                 inline = editableFields.size() <= colFields.size() && subclasses.size() == 0 && !field.isAnnotationPresent(NotInlineEditable.class);
 
@@ -325,7 +329,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                     }
                 }
 
-                if (inline) {
+                if (inline ) {
 
                     boolean needsProxy = false;
                     for (FieldInterfaced f : editableFields) if (f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline()) {
@@ -362,6 +366,12 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             g.setSelectionMode(Grid.SelectionMode.MULTI);
 
             g.setCaption(ReflectionHelper.getCaption(field));
+
+            if (inline) {
+                g.getEditor().addSaveListener(l -> {
+                    System.out.println("saved !!!!");
+                });
+            }
 
 
             int ancho = 0;
@@ -711,7 +721,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         return r;
     }
 
-    private void editar(MDDBinder binder, FieldInterfaced field, Object i, int indice) {
+    private static void editar(MDDBinder binder, FieldInterfaced field, Object i, int indice) {
         String state = MDDUI.get().getNavegador().getViewProvider().getCurrentPath();
         if (!state.endsWith("/")) state += "/";
         state += field.getName();
@@ -1255,6 +1265,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         if (Strings.isNullOrEmpty(filter)) {
             l = getColumnFields(field);
         } else {
+            filter = filter.replaceAll("\\([^)]*\\)", "");
             l = new ArrayList<>();
             List<FieldInterfaced> aux = ReflectionHelper.getAllFields(field.getGenericClass());
             List<String> fns = Arrays.asList(filter.split(","));
@@ -1579,7 +1590,11 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
     }
 
 
-    void bind(MDDBinder binder, CssLayout l, FieldInterfaced field, Method htmlGetter) {
+    static void bind(MDDBinder binder, CssLayout l, FieldInterfaced field, Method htmlGetter) {
+        bind(binder, l, field, htmlGetter, false);
+    }
+
+    static void bind(MDDBinder binder, CssLayout l, FieldInterfaced field, Method htmlGetter, boolean output) {
         Binder.BindingBuilder aux = binder.forField(new HasValue() {
             private Object v;
 
@@ -1593,11 +1608,13 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                     HorizontalLayout clickable;
                     l.addComponent(clickable = new HorizontalLayout(new Label("Empty list")));
                     clickable.addStyleName(CSS.NOPADDING);
-                    clickable.addStyleName(CSS.CLICKABLE);
-                    clickable.addLayoutClickListener(e -> {
-                        //if (e.isDoubleClick())
+                    if (!output) {
+                        clickable.addStyleName(CSS.CLICKABLE);
+                        clickable.addLayoutClickListener(e -> {
+                            //if (e.isDoubleClick())
                             MDDUI.get().getNavegador().go(field.getName());
-                    });
+                        });
+                    }
                 } else {
                     int pos = 0;
                     for (Object i : ((Collection) o)) {
@@ -1605,16 +1622,125 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                         Label lab;
                         l.addComponent(clickable = new HorizontalLayout(lab = new Label(((Card)i).toHtml(), ContentMode.HTML)));
                         clickable.addStyleName("carditem");
-                        clickable.addStyleName(CSS.CLICKABLE);
-                        int finalPos = pos;
-                        clickable.addLayoutClickListener(e -> {
-                            //if (e.isDoubleClick()) {
+                        if (!output) {
+                            clickable.addStyleName(CSS.CLICKABLE);
+                            int finalPos = pos;
+                            clickable.addLayoutClickListener(e -> {
+                                //if (e.isDoubleClick()) {
                                 if (i != null) {
                                     editar(binder, field, i, finalPos);
                                 }
-                            //}
-                        });
+                                //}
+                            });
+
+                            if (ReflectionHelper.puedeOrdenar(field)) {
+
+                                DragSourceExtension<HorizontalLayout> dragSource = new DragSourceExtension<>(clickable);
+
+                                // set the allowed effect
+                                dragSource.setEffectAllowed(EffectAllowed.MOVE);
+                                // set the text to transfer
+                                dragSource.setDataTransferText("hello receiver");
+                                // set other data to transfer (in this case HTML)
+                                dragSource.setDataTransferData("text/html", "<label>hello receiver</label>");
+
+                                dragSource.addDragStartListener(event ->
+                                        dragSource.setDragData(i)
+                                );
+                                dragSource.addDragEndListener(event ->
+                                        dragSource.setDragData(null)
+                                );
+
+
+
+
+
+                                clickable.setPrimaryStyleName("zonadrop");
+
+                                // make the layout accept drops
+                                DropTargetExtension<HorizontalLayout> dropTarget = new DropTargetExtension<>(clickable);
+
+                                // the drop effect must match the allowed effect in the drag source for a successful drop
+                                dropTarget.setDropEffect(DropEffect.MOVE);
+
+                                // catch the drops
+                                dropTarget.addDropListener(event -> {
+                                    // if the drag source is in the same UI as the target
+                                    Optional<AbstractComponent> dragSourcex = event.getDragSourceComponent();
+                                    if (dragSourcex.isPresent() && dragSourcex.get() instanceof HorizontalLayout) {
+
+                                        /*
+                                        // move the label to the layout
+                                        clickable.addComponent(dragSourcex.get());
+
+                                        // get possible transfer data
+                                        String message = event.getDataTransferData("text/html");
+                                        if (message != null) {
+                                            Notification.show("DropEvent with data transfer html: " + message);
+                                        } else {
+                                            // get transfer text
+                                            message = event.getDataTransferText();
+                                            Notification.show("DropEvent with data transfer text: " + message);
+                                        }
+                                         */
+
+                                        // handle possible server side drag data, if the drag source was in the same UI
+                                        event.getDragData().ifPresent(data -> {
+                                            System.out.println("recibido: " + data);
+                                            if (!i.equals(data)) {
+                                                Object bean = binder.getBean();
+                                                try {
+                                                    List l = new ArrayList((Collection) ReflectionHelper.getValue(field, bean));
+                                                    l.remove(data);
+                                                    l.add(l.indexOf(i), data);
+                                                    ReflectionHelper.setValue(field, bean, l);
+                                                    binder.update(bean);
+                                                } catch (Exception e) {
+                                                    MDD.alert(e);
+                                                }
+                                            }
+                                        });
+                                    }
+                                });
+
+                            }
+
+                        }
                         pos++;
+                    }
+                    if (!output && ReflectionHelper.puedeOrdenar(field)) {
+                        HorizontalLayout clickable;
+                        Label lab;
+                        l.addComponent(clickable = new HorizontalLayout(lab = new Label("<div style='width: 30px; height: 50px;'></div>", ContentMode.HTML)));
+                        clickable.setPrimaryStyleName("zonadrop");
+
+                        // make the layout accept drops
+                        DropTargetExtension<HorizontalLayout> dropTarget = new DropTargetExtension<>(clickable);
+
+                        // the drop effect must match the allowed effect in the drag source for a successful drop
+                        dropTarget.setDropEffect(DropEffect.MOVE);
+
+                        // catch the drops
+                        dropTarget.addDropListener(event -> {
+                            // if the drag source is in the same UI as the target
+                            Optional<AbstractComponent> dragSourcex = event.getDragSourceComponent();
+                            if (dragSourcex.isPresent() && dragSourcex.get() instanceof HorizontalLayout) {
+                                // handle possible server side drag data, if the drag source was in the same UI
+                                event.getDragData().ifPresent(data -> {
+                                    System.out.println("recibido: " + data);
+                                    Object bean = binder.getBean();
+                                    try {
+                                        List l = new ArrayList((Collection) ReflectionHelper.getValue(field, bean));
+                                        l.remove(data);
+                                        l.add(data);
+                                        ReflectionHelper.setValue(field, bean, l);
+                                        binder.update(bean);
+                                    } catch (Exception e) {
+                                        MDD.alert(e);
+                                    }
+                                });
+                            }
+                        });
                     }
 
                 }

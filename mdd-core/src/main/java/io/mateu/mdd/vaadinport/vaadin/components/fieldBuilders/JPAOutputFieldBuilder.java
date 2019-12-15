@@ -16,6 +16,7 @@ import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
+import io.mateu.mdd.core.interfaces.Card;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
@@ -99,6 +100,17 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
                     addComponent(container, hl, attachedActions.get(field.getName()));
 
                     JPAOneToManyFieldBuilder.bind(binder, l, field, mh);
+                } else if (Card.class.isAssignableFrom(field.getGenericClass())) {
+
+                    CssLayout hl = new CssLayout();
+                    hl.addStyleName("collectionlinklabel");
+
+                    hl.setCaption(ReflectionHelper.getCaption(field));
+
+                    addComponent(container, hl, attachedActions.get(field.getName()));
+
+                    JPAOneToManyFieldBuilder.bind(binder, hl, field, mh, true);
+
                 } else {
 
                     Grid g = new Grid();

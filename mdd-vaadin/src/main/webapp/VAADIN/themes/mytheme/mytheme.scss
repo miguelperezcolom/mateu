@@ -906,7 +906,6 @@ body {
       border: 1px solid red;
     }
 
-
     .carditem {
       padding: 10px;
       border: 1px solid lightgray;
@@ -920,6 +919,10 @@ body {
 
     .carditem:hover {
       background-color: #efefef;
+    }
+
+    .zonadrop-drag-center {
+      border-left: 4px dashed orangered !important;
     }
 
   }
@@ -1684,7 +1687,6 @@ body {
     //margin-bottom: 20px;
   }
 
-
   .rowyes {
     position:relative;
     text-align: center;
@@ -1698,6 +1700,7 @@ body {
     padding-right:10px;
     */
     content: "\f00c";
+    display: unset;
   }
 
   .rowno {
@@ -1714,6 +1717,7 @@ body {
     padding-right:10px;
     */
     content: "\f00d";
+    display: unset;
   }
 
 
@@ -2763,6 +2767,7 @@ body {
       cursor: pointer;
       font-weight: bolder;
     }
+
   }
 
 }

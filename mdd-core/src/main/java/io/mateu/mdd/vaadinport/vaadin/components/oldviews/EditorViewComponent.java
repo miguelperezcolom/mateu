@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.vaadin.data.Binder;
 import com.vaadin.data.BinderValidationStatus;
 import com.vaadin.data.HasValue;
@@ -15,6 +16,7 @@ import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.app.MDDExecutionContext;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Pair;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
@@ -867,6 +869,96 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
             }
 
+            if (true) {
+                if (!isActionPresent("add")) {
+                    Button i;
+                    bar.addComponent(i = new Button("Add", VaadinIcons.PLUS));
+                    i.addStyleName(ValoTheme.BUTTON_QUIET);
+                    i.addClickListener(e -> {
+                            try {
+
+                                BinderValidationStatus v = binder.validate();
+
+                                if (v.isOk()) {
+                                    try {
+                                        save(false);
+
+                                        Object old = getBinder().getBean();
+
+                                        //load(null);
+
+                                        load(null);
+                                        Object current = getModel();
+                                        for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(old.getClass())) {
+                                            if (f.isAnnotationPresent(Keep.class)) {
+                                                ReflectionHelper.setValue(f, current, ReflectionHelper.getValue(f, old));
+                                            }
+                                        }
+                                        getBinder().setBean(current, false);
+                                        setModel(current);
+                                        modelId = null;
+                                        MDD.updateTitle(getTitle());
+
+                                    } catch (Throwable throwable) {
+                                        throwable.printStackTrace();
+                                    }
+
+
+                                } else MDD.alert(v);
+
+
+                            } catch (Throwable throwable) {
+                                MDD.alert(throwable);
+                            }
+                    });
+                    addMenuItem("add", i);
+                }
+            }
+
+            if (true) {
+                if (!isActionPresent("remove")) {
+                    Button i;
+                    bar.addComponent(i = new Button("Remove", VaadinIcons.MINUS));
+                    i.addStyleName(ValoTheme.BUTTON_QUIET);
+                    i.addClickListener(e -> {
+
+                        MDD.confirm("Are you sure you want to delete this item?", () -> {
+
+                            try {
+
+                                Object xid = null;
+                                try {
+                                    xid = listViewComponent.getNext(modelId);
+                                } catch (Throwable throwable) {
+                                    try {
+                                        xid = listViewComponent.getPrevious(modelId);
+                                    } catch (Throwable throwable2) {
+                                    }
+                                }
+
+                                if (!isEditingNewRecord) {
+                                    Helper.transact(em -> {
+                                        ReflectionHelper.delete(em, em.find(getModelType(), ReflectionHelper.getId(getModel())));
+                                    });
+                                }
+
+                                if (xid != null) {
+                                    MDDUI.get().getNavegador().goSibling(xid);
+                                } else {
+                                    goBack();
+                                }
+
+                            } catch (Throwable ex) {
+                                MDD.alert(ex);
+                            }
+                        });
+
+                    });
+                    addMenuItem("remove", i);
+                };
+            }
+
+
         }
 
         if (getMenuItemById("prev") != null) getMenuItemById("prev").setVisible(!isNewRecord() && listViewComponent != null);
@@ -1047,7 +1139,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                     //todo: ver que hacemos aquí. Volvemos y ya está?
                     // cambiamos la url, para reflejar el cambio
-                    if (goBack) MDDUI.get().getNavegador().goBack();
+                    if (goBack) goBack();
 
                 } else if (PersistentPOJO.class.isAssignableFrom(modelType)) {
 
@@ -1151,7 +1243,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                     } catch (Throwable e) {
                         MDD.alert(e);
                     }
-                }, () -> MDDUI.get().getNavegador().goBack());
+                }, () -> goBack());
             } else if (subClasses.size() == 1) {
                 create(subClasses.iterator().next(), parent);
             } else {
@@ -1214,7 +1306,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 } catch (Throwable e) {
                     MDD.alert(e);
                 }
-            }, () -> MDDUI.get().getNavegador().goBack());
+            }, () -> goBack());
         } else setModel(ReflectionHelper.newInstance(type, parent));
     }
 
@@ -1238,6 +1330,10 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
     public void onGoBack() {
         for (EditorListener l : listeners) l.onGoBack(binder.getBean());
+    }
+
+    public void goBack() {
+        MDDUI.get().getNavegador().goBack();
     }
 
 }
