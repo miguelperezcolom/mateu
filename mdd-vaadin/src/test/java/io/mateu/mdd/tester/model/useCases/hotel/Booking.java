@@ -142,8 +142,12 @@ public class Booking implements EditorViewStyler {
     private double children = 0;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "booking")
-    @UseTable(fields = "pax,room,active")
+    //@UseTable(fields = "pax,room,active")
     private List<HotelBookingLine> lines = new ArrayList<>();
+
+    public void setLines(List<HotelBookingLine> lines) {
+        this.lines = lines;
+    }
 
     public String getXXLinesHtml() {
 

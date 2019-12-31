@@ -667,7 +667,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             if (field == null && !(this instanceof OwnedCollectionComponent) && !isActionPresent("refresh")) {
 
                 Button i;
-                bar.addComponent(i = new Button("Refresh", VaadinIcons.REFRESH));
+                bar.addComponent(i = new Button("", VaadinIcons.REFRESH));
+                //bar.addComponent(i = new Button("Refresh", VaadinIcons.REFRESH));
                 i.addStyleName(ValoTheme.BUTTON_QUIET);
                 i.addClickListener(e -> {
                     try {
@@ -691,7 +692,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 if (!isActionPresent("prev")) {
 
                     Button i;
-                    bar.addComponent(i = new Button("Prev", VaadinIcons.ARROW_UP));
+                    bar.addComponent(i = new Button("", VaadinIcons.ARROW_UP));
+                    //bar.addComponent(i = new Button("Prev", VaadinIcons.ARROW_UP));
                     i.addStyleName(ValoTheme.BUTTON_QUIET);
                     i.addClickListener(e -> {
                         try {
@@ -719,7 +721,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 if (!isActionPresent("next")) {
 
                     Button i;
-                    bar.addComponent(i = new Button("Next", VaadinIcons.ARROW_DOWN));
+                    bar.addComponent(i = new Button("", VaadinIcons.ARROW_DOWN));
+                    //bar.addComponent(i = new Button("Next", VaadinIcons.ARROW_DOWN));
                     i.addStyleName(ValoTheme.BUTTON_QUIET);
                     i.addClickListener(e -> {
                         try {
@@ -748,7 +751,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             if (!isActionPresent("save")) {
 
                 Button i;
-                bar.addComponent(i = new Button("Save", VaadinIcons.DOWNLOAD));
+                bar.addComponent(i = new Button("", VaadinIcons.DOWNLOAD));
+                //bar.addComponent(i = new Button("Save", VaadinIcons.DOWNLOAD));
                 i.addStyleName(ValoTheme.BUTTON_QUIET);
                 i.addClickListener(e -> {
                     try {
@@ -872,7 +876,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             if (true) {
                 if (!isActionPresent("add")) {
                     Button i;
-                    bar.addComponent(i = new Button("Add", VaadinIcons.PLUS));
+                    bar.addComponent(i = new Button("", VaadinIcons.PLUS));
+                    //bar.addComponent(i = new Button("Add", VaadinIcons.PLUS));
                     i.addStyleName(ValoTheme.BUTTON_QUIET);
                     i.addClickListener(e -> {
                             try {
@@ -918,7 +923,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             if (true) {
                 if (!isActionPresent("remove")) {
                     Button i;
-                    bar.addComponent(i = new Button("Remove", VaadinIcons.MINUS));
+                    bar.addComponent(i = new Button("", VaadinIcons.MINUS));
+                    //bar.addComponent(i = new Button("Remove", VaadinIcons.MINUS));
                     i.addStyleName(ValoTheme.BUTTON_QUIET);
                     i.addClickListener(e -> {
 

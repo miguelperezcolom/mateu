@@ -584,7 +584,11 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                             if (e instanceof AbstractAction) {
                                 ((AbstractAction) e).run(this);
                             } else if (e instanceof AbstractMenu) {
-                                stack.push(currentPath, new MenuFlowComponent((AbstractMenu) e));
+                                if (MDD.isMobile()) {
+                                    stack.push(currentPath, new MenuFlowComponent((AbstractMenu) e));
+                                } else {
+                                    stack.push(currentPath, new MenuFlowComponent(getRootMenu(currentPath)));
+                                }
                             }
                         }
 
@@ -764,6 +768,16 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
         return v;
 
+    }
+
+    private AbstractMenu getRootMenu(String currentPath) {
+        AbstractMenu m = (AbstractMenu) MDD.getApp().getMenu(currentPath);
+        MenuEntry e = MDD.getApp().getMenu(currentPath = currentPath.substring(0, currentPath.lastIndexOf("/")));
+        while (e != null && currentPath.contains("/")) {
+            if (e instanceof AbstractMenu) m = (AbstractMenu) e;
+            e = MDD.getApp().getMenu(currentPath = currentPath.substring(0, currentPath.lastIndexOf("/")));
+        }
+        return m;
     }
 
     private String cleanState(String state) {

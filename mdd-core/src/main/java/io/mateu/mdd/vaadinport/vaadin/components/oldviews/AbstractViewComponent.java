@@ -216,7 +216,8 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
             Component i = null;
             if (!isActionPresent("back")) {
                 Button b;
-                bar.addComponent(i = b = new Button("Back", VaadinIcons.ARROW_LEFT));
+                bar.addComponent(i = b = new Button("", VaadinIcons.ARROW_LEFT));
+                //bar.addComponent(i = b = new Button("Back", VaadinIcons.ARROW_LEFT));
                 b.addStyleName(ValoTheme.BUTTON_QUIET);
                 b.addClickListener(e -> {
                     try {

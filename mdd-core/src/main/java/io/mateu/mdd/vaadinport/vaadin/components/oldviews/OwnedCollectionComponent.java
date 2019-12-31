@@ -51,7 +51,14 @@ public class OwnedCollectionComponent extends EditorViewComponent {
 
     public boolean beforeBack() {
         if (!validate()) return false;
-        getParentBinder().setBean(getParentBinder().getBean(), false);
+        Object bean = getParentBinder().getBean();
+        try {
+            ReflectionHelper.setValue(field, bean, collection);
+            getParentBinder().setBean(bean, false);
+        } catch (Exception e) {
+            MDD.alert(e);
+            return false;
+        }
         return true;
     }
 
@@ -72,7 +79,8 @@ public class OwnedCollectionComponent extends EditorViewComponent {
          */
 
             if (!isActionPresent("col_prev")) {
-                l.add(new AbstractAction("col_prev", VaadinIcons.ARROW_UP, "Prev") {
+                l.add(new AbstractAction("col_prev", VaadinIcons.ARROW_UP, "") {
+                //l.add(new AbstractAction("col_prev", VaadinIcons.ARROW_UP, "Prev") {
 
                     @Override
                     public void run(MDDExecutionContext context) {
@@ -90,7 +98,8 @@ public class OwnedCollectionComponent extends EditorViewComponent {
             } else getMenuItemById("col_prev").setVisible(true);
 
             if (!isActionPresent("col_next")) {
-                l.add(new AbstractAction("col_next", VaadinIcons.ARROW_DOWN, "Next") {
+                l.add(new AbstractAction("col_next", VaadinIcons.ARROW_DOWN, "") {
+                //l.add(new AbstractAction("col_next", VaadinIcons.ARROW_DOWN, "Next") {
                     @Override
                     public void run(MDDExecutionContext context) {
                         if (validate()) {

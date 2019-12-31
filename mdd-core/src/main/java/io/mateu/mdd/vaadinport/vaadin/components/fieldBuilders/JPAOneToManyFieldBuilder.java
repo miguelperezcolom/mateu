@@ -368,8 +368,14 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             g.setCaption(ReflectionHelper.getCaption(field));
 
             if (inline) {
-                g.getEditor().addSaveListener(l -> {
-                    System.out.println("saved !!!!");
+                g.getEditor().getBinder().addValueChangeListener(e -> {
+                    Object bean = binder.getBean();
+                    try {
+                        ReflectionHelper.setValue(field, bean, ReflectionHelper.getValue(field, bean));
+                        binder.setBean(bean);
+                    } catch (Exception ex) {
+                        MDD.alert(ex);
+                    }
                 });
             }
 
