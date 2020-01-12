@@ -12,7 +12,6 @@
 
     <artifactId>mdd-core</artifactId>
 
-
     <properties>
         <vaadin.version>8.8.3</vaadin.version>
         <vaadin.plugin.version>8.8.3</vaadin.plugin.version>
@@ -25,6 +24,10 @@
 
 
     <repositories>
+        <repository>
+            <id>mateu-central</id>
+            <url>http://nexus.mateu.io/repository/mateu-central</url>
+        </repository>
         <repository>
             <id>vaadin-addons</id>
             <url>http://maven.vaadin.com/vaadin-addons</url>
@@ -153,7 +156,7 @@
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.11.91</version>
+            <version>1.18.11.92</version>
         </dependency>
 
         <dependency>

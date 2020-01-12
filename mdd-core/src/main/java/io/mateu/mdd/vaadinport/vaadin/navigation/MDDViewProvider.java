@@ -736,7 +736,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
             currentEditor = (EditorViewComponent) v.getViewComponent();
         }
 
-        if (c != null & c instanceof JPAListViewComponent) {
+        if (false && c != null & c instanceof JPAListViewComponent) {
             Notification.show(((MDD.isMobile())?"Click":"Double click") + " on matches to edit", Notification.Type.TRAY_NOTIFICATION);
         }
 

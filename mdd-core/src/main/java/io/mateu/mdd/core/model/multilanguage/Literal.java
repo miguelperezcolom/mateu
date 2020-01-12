@@ -45,6 +45,17 @@ public class Literal implements Translated {
         this.es = es;
     }
 
+    public Literal(String en, String es, String de, String fr, String it, String ar, String cz, String ru) {
+        this.en = en;
+        this.es = es;
+        this.de = de;
+        this.fr = fr;
+        this.it = it;
+        this.ar = ar;
+        this.cz = cz;
+        this.ru = ru;
+    }
+
     @Override
     public void set(Data value) {
         if (value != null) {

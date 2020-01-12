@@ -10,8 +10,10 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.ChartData;
 import io.mateu.mdd.core.data.ChartValue;
 import io.mateu.mdd.core.data.SumData;
+import io.mateu.mdd.core.interfaces.AuditRecord;
 import io.mateu.mdd.core.interfaces.GridDecorator;
 import io.mateu.mdd.core.interfaces.StyledEnum;
+import io.mateu.mdd.core.model.authentication.Audit;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.model.multilanguage.Literal;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -278,6 +280,7 @@ public class JPAListViewComponent extends ListViewComponent {
                 if (!"".equals(oc)) oc += ", ";
                 oc += "x" + "." + f.getName() + " " + (f.getAnnotation(Order.class).desc()?"desc":"asc");
             }
+            if ("".equals(oc) && ReflectionHelper.getFieldByName(entityClass, "audit") != null && Audit.class.equals(ReflectionHelper.getFieldByName(entityClass, "audit").getType())) oc += "x" + ".audit.modified desc";
             if ("".equals(oc)) oc += "x" + "." + columnFields.get(0).getName() + " desc";
             if (!"".equals(oc)) jpql += " order by " + oc;
         }

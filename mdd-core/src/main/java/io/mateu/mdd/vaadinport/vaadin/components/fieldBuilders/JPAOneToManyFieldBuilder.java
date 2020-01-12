@@ -26,6 +26,7 @@ import io.mateu.mdd.core.data.FareValue;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.interfaces.Card;
+import io.mateu.mdd.core.interfaces.GridDecorator;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.reflection.*;
 import io.mateu.mdd.core.util.Helper;
@@ -362,6 +363,29 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
 
             ListViewComponent.buildColumns(g, colFields, false, inline, binder, field);
+
+
+            GridDecorator decorator = null;
+            try {
+                Method m = ReflectionHelper.getMethod(targetClass, "getGridDecorator");
+                if (m != null) {
+                    if (Modifier.isStatic(m.getModifiers())) {
+                        decorator = (GridDecorator) m.invoke(null);
+                    } else {
+                        decorator = (GridDecorator) m.invoke(ReflectionHelper.newInstance(targetClass));
+                    }
+                } else {
+                    if (GridDecorator.class.isAssignableFrom(targetClass)) {
+                        decorator = (GridDecorator)ReflectionHelper.newInstance(targetClass);
+                    }
+                }
+                if (decorator != null) {
+                    decorator.decorateGrid(g);
+                }
+            } catch (Exception e) {
+                MDD.alert(e);
+            }
+
 
             g.setSelectionMode(Grid.SelectionMode.MULTI);
 

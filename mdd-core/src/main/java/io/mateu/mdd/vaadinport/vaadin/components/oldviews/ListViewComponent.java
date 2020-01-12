@@ -34,10 +34,7 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.data.*;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
-import io.mateu.mdd.core.interfaces.AbstractCrudView;
-import io.mateu.mdd.core.interfaces.ICellStyleGenerator;
-import io.mateu.mdd.core.interfaces.RpcView;
-import io.mateu.mdd.core.interfaces.StyledEnum;
+import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.FieldInterfacedForCheckboxColumn;
@@ -329,13 +326,40 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                             }
                         }
 
-                        return finalCsg.getStyles(o, v);
+                        String s = finalCsg.getStyles(o, v);
+
+                        if (o instanceof Activable) {
+                            if (!((Activable) o).isActive()) s = (Strings.isNullOrEmpty(s)?"":s + " ") + "cancelled";
+                        } else if (o instanceof Cancellable) {
+                            if (((Cancellable)o).isCancelled()) s = (Strings.isNullOrEmpty(s)?"":s + " ") + "cancelled";
+                        }
+
+                        return s;
                     } catch (Exception e) {
                         MDD.alert(e);
                     }
                     return null;
                 }
             });
+            else if (collectionField != null && collectionField.getGenericClass() != null && (Activable.class.isAssignableFrom(collectionField.getGenericClass()) || Cancellable.class.isAssignableFrom(collectionField.getGenericClass()))) {
+                col.setStyleGenerator(new StyleGenerator() {
+                    @Override
+                    public String apply(Object o) {
+                        try {
+                            if (o instanceof Activable) {
+                                if (!((Activable) o).isActive()) return "cancelled";
+                            } else if (o instanceof Cancellable) {
+                                if (((Cancellable)o).isCancelled()) return "cancelled";
+                            }
+                        } catch (Exception e) {
+                            MDD.alert(e);
+                        }
+                        return null;
+                    }
+                });
+            }
+
+
 
             if (finalCsg != null && !finalCsg.isContentShown()) col.setRenderer(new TextRenderer() {
                 @Override

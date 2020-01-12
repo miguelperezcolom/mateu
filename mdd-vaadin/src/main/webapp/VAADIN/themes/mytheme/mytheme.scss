@@ -89,6 +89,8 @@ body {
 
         .v-icon {
           font-size: 60px;
+          display: block;
+          text-align: center;
         }
         .huge-caption {
           display: block;
@@ -274,6 +276,8 @@ body {
 
         .v-icon {
           font-size: 60px;
+          display: block;
+          text-align: center;
         }
         .huge-caption {
           display: block;
@@ -2416,6 +2420,7 @@ body {
     margin: 20px;
     padding: 20px;
     border-radius: 2px;
+    min-width: 130px;
   }
 
   .huge-submenuoption:hover {
