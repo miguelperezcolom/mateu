@@ -1225,7 +1225,8 @@ public class Helper {
         String homeDirectory = System.getProperty("user.home");
 
         String[] cmd = { "/bin/sh", "-c", command };
-        Process process = Runtime.getRuntime().exec(cmd);
+        String[] wcmd = { "cmd", "/c", command };
+        Process process = Runtime.getRuntime().exec(System.getProperty("os.name").toLowerCase().contains("win")?wcmd:cmd);
         String r = Helper.leerInputStream(process.getInputStream(), "utf-8");
         String e = Helper.leerInputStream(process.getErrorStream(), "utf-8");
 

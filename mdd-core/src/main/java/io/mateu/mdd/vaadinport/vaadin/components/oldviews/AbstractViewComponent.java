@@ -300,11 +300,13 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
                     if (Strings.isNullOrEmpty(a.getGroup())) bar.addComponent(i);
 
+                    a.addShortCut(b);
+
                 } else {
                     i = getMenuItemById(a.getId());
                 }
                 if (i != null && !Strings.isNullOrEmpty(a.getStyle())) i.addStyleName(a.getStyle());
-                i.setVisible(true);
+                i.setVisible(a.isVisible());
             }
 
         if (bar.getComponentCount() == 0 || (bar.getComponentCount() == 1 && !bar.getComponent(0).isVisible())) bar.setVisible(false);

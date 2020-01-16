@@ -1,6 +1,7 @@
 package io.mateu.mdd.core.app;
 
 import com.vaadin.icons.VaadinIcons;
+import com.vaadin.ui.Button;
 
 import java.util.UUID;
 
@@ -120,5 +121,13 @@ public abstract class AbstractAction implements MenuEntry {
     public AbstractAction setValidationNeeded(boolean validationNeeded) {
         this.validationNeeded = validationNeeded;
         return this;
+    }
+
+    public void addShortCut(Button b) {
+
+    }
+
+    public boolean isVisible() {
+        return true;
     }
 }

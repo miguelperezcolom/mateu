@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
+import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.HorizontalLayout;
@@ -39,7 +40,13 @@ public class WizardComponent extends EditorViewComponent {
     public List<AbstractAction> getActions() {
         List<AbstractAction> l = new ArrayList<>();
 
-        if (stack.size() > 0) l.add(new AbstractAction(VaadinIcons.ARROW_LEFT, "Prev") {
+        l.add(new AbstractAction("wizardprev", VaadinIcons.ARROW_LEFT, "Prev") {
+
+            @Override
+            public void addShortCut(Button b) {
+                b.setClickShortcut(ShortcutAction.KeyCode.ARROW_LEFT, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
+            }
+
             @Override
             public void run(MDDExecutionContext context) {
                 WizardPage prevPage = stack.remove(0);
@@ -50,9 +57,20 @@ public class WizardComponent extends EditorViewComponent {
                     MDD.alert(e1);
                 }
             }
+
+            @Override
+            public boolean isVisible() {
+                return stack.size() > 0;
+            }
         });
 
-        if (currentPage.hasNext()) l.add(new AbstractAction(VaadinIcons.ARROW_RIGHT, "Next") {
+        l.add(new AbstractAction("wizardnext", VaadinIcons.ARROW_RIGHT, "Next") {
+
+            @Override
+            public void addShortCut(Button b) {
+                b.setClickShortcut(ShortcutAction.KeyCode.ARROW_RIGHT, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
+            }
+
             @Override
             public void run(MDDExecutionContext context) {
                 if (validate()) {
@@ -64,9 +82,20 @@ public class WizardComponent extends EditorViewComponent {
                     }
                 }
             }
+
+            @Override
+            public boolean isVisible() {
+                return currentPage.hasNext();
+            }
         });
 
-        if (!currentPage.hasNext()) l.add(new AbstractAction(VaadinIcons.CHECK, "Done") {
+        l.add(new AbstractAction("wizarddone", VaadinIcons.CHECK, "Done") {
+
+            @Override
+            public void addShortCut(Button b) {
+                b.setClickShortcut(ShortcutAction.KeyCode.ENTER, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
+            }
+
             @Override
             public void run(MDDExecutionContext context) {
                 if (validate()) {
@@ -80,6 +109,39 @@ public class WizardComponent extends EditorViewComponent {
                         MDD.alert(throwable);
                     }
                 }
+            }
+
+            @Override
+            public boolean isVisible() {
+                return !currentPage.hasNext();
+            }
+        });
+
+        l.add(new AbstractAction("wizarddonealt", VaadinIcons.CHECK_CIRCLE, "Done and repeat") {
+
+            @Override
+            public void addShortCut(Button b) {
+                b.setClickShortcut(ShortcutAction.KeyCode.ENTER, ShortcutAction.ModifierKey.CTRL);
+            }
+
+            @Override
+            public void run(MDDExecutionContext context) {
+                if (validate()) {
+                    try {
+
+                        currentPage.onOk();
+
+                        MDD.info("Done");
+
+                    } catch (Throwable throwable) {
+                        MDD.alert(throwable);
+                    }
+                }
+            }
+
+            @Override
+            public boolean isVisible() {
+                return !currentPage.hasNext() && currentPage.backOnOk();
             }
         });
 

@@ -712,7 +712,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                     addMenuItem("prev", i);
 
-                    i.setClickShortcut(ShortcutAction.KeyCode.ARROW_LEFT, ShortcutAction.ModifierKey.CTRL);
+                    i.setClickShortcut(ShortcutAction.KeyCode.ARROW_UP, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
 
                     shortcutsCreated.add("prev");
 
@@ -738,7 +738,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                         }
                     });
                     addMenuItem("next", i);
-                    i.setClickShortcut(ShortcutAction.KeyCode.ARROW_RIGHT, ShortcutAction.ModifierKey.CTRL);
+                    i.setClickShortcut(ShortcutAction.KeyCode.ARROW_DOWN, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
 
                     shortcutsCreated.add("next");
 
