@@ -79,8 +79,10 @@ public class FieldInterfacedFromParameter implements FieldInterfaced {
         else if (p.getType().isAnnotationPresent(Entity.class)) {
             return p.getType();
         } else if (p.getParameterizedType() != null) {
-
-            ParameterizedType genericType = (ParameterizedType) p.getParameterizedType();
+            ParameterizedType genericType = null;
+            Type aux = p.getAnnotatedType().getType();
+            if (aux instanceof ParameterizedType) genericType = (ParameterizedType) aux;
+            else genericType = (ParameterizedType) p.getParameterizedType();
             if (genericType != null && genericType.getActualTypeArguments().length > 0) {
                 Class<?> genericClass = (Class<?>) genericType.getActualTypeArguments()[0];
                 return genericClass;

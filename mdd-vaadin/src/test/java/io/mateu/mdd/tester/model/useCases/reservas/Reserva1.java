@@ -9,7 +9,7 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 @MateuMDDEntity
-public class Reserva1 implements Card {
+public class Reserva1 { // implements Card {
 
     @ManyToOne@NotNull
     private final File1 file;
@@ -23,7 +23,7 @@ public class Reserva1 implements Card {
     @Money
     private double precio;
 
-    @Override
+    //@Override
     public String toHtml() {
         String h = "<table >";
         h += "<tr><th width='150px'>Dates:</th><td>From " + del + " to " + al + "</td></tr>";

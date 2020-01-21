@@ -434,7 +434,7 @@ public class ReflectionHelper {
             } else {
                 gc = ReflectionHelper.getGenericClass(m.getDeclaringClass());
             }
-            if (!(gc !=  null && gc.equals(ReflectionHelper.getGenericClass(new FieldInterfacedFromParameter(m, p).getGenericClass())))) {
+            if (!(gc !=  null && gc.equals(new FieldInterfacedFromParameter(m, p).getGenericClass()))) {
                 injectable = false;
             }
         } else if (PushWriter.class.equals(p.getType())) {

@@ -23,8 +23,8 @@ public class File1 {
     private String leadName;
 
     @OneToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}, mappedBy = "file")
+    //@OneToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}, mappedBy = "file")
     @OrderColumn(name = "ordenenfile")
-    @UseTable(fields = "del,al,servicio,precio")
     @NotInlineEditable
     private List<Reserva1> reservas = new ArrayList<>();
 
@@ -37,18 +37,16 @@ public class File1 {
     }
 
 
-    @Action(order = 80, icon = VaadinIcons.CLOSE, attachToField = "bookings")
+    @Action(order = 80, icon = VaadinIcons.CLOSE, attachToField = "reservas")
     @NotWhenCreating
-    public void cancel(EntityManager em, Set<Booking> selection) throws Throwable {
-        MDD.alert("todavía no");
+    public void cancel(EntityManager em, Set<Reserva1> selection) throws Throwable {
+        System.out.println(selection);
     }
 
     @Action(order = 75, icon = VaadinIcons.PLUS_CIRCLE_O, saveBefore = true, refreshOnBack = true)
     @NotWhenCreating
     public void incorporate(Set<CapturedBooking> capturedBookings) throws Throwable {
-        if (capturedBookings != null) for (CapturedBooking c : capturedBookings) {
-            //getBookings().add(new FreeTextBooking());
-        }
+        System.out.println(capturedBookings);
     }
 
 
