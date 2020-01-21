@@ -2003,7 +2003,7 @@ public class ReflectionHelper {
 
     private static void addField(List<String> avoidedAnnotationNames, ClassPool pool, ClassFile cfile, ConstPool cpool, CtClass cc, boolean forFilters, AnnotatedType t, String fieldName, Annotation[] declaredAnnotations, boolean forceSameLine) throws Exception {
         CtField ctf;
-        cc.addField(ctf = new CtField(pool.get(((ParameterizedType)t.getType()).getRawType().getTypeName()), fieldName, cc));
+        cc.addField(ctf = new CtField(pool.get((t.getType() instanceof ParameterizedType?((ParameterizedType)t.getType()).getRawType():t.getType()).getTypeName()), fieldName, cc));
         ctf.setModifiers(Modifier.PRIVATE);
         Class gc = ReflectionHelper.getGenericClass(t.getType());
         if (gc != null) {
