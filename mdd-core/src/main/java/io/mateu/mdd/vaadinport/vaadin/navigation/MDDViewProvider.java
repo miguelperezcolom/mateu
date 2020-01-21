@@ -35,7 +35,6 @@ import javax.persistence.*;
 import javax.persistence.Embedded;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.net.URL;
 import java.util.*;
@@ -1291,7 +1290,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                     boolean hasNonInjectedParameters = false;
 
-                    for (Parameter p : method.getParameters()) if (!ReflectionHelper.isInjectable(p)) {
+                    for (Parameter p : method.getParameters()) if (!ReflectionHelper.isInjectable(method, p)) {
                         hasNonInjectedParameters = true;
                         break;
                     }
@@ -1312,6 +1311,11 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
     private void procesarResultado(Method m, Object r, Component lastViewComponent) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         String title = m != null?"Result of " + Helper.capitalize(m.getName()):"Result";
+
+        if (m != null && m.isAnnotationPresent(Action.class) && m.getAnnotation(Action.class).refreshOnBack()) {
+            if (lastViewComponent != null) lastViewComponent.addStyleName("refreshOnBack");
+        }
+
         if (r == null && void.class.equals(m.getReturnType())) {
             ComponentWrapper cw;
             stack.push(currentPath, cw = new ComponentWrapper(title, new Label("Void method", ContentMode.HTML)));

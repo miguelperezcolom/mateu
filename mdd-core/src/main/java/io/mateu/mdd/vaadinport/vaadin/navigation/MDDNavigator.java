@@ -162,6 +162,7 @@ public class MDDNavigator {
 
     public void goTo(Method m, Object result) {
         viewProvider.pendingResult = result;
+        viewProvider.lastMethodCall = m;
         String state = stack.getState(stack.getLast());
         state += "/" + m.getName();
         goTo(state);

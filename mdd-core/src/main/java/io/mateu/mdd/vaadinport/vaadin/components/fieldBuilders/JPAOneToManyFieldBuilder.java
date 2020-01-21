@@ -24,6 +24,7 @@ import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.FareValue;
 import io.mateu.mdd.core.data.MDDBinder;
+import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.interfaces.Card;
 import io.mateu.mdd.core.interfaces.GridDecorator;
@@ -425,8 +426,6 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             g.setHeightMode(HeightMode.UNDEFINED);
 
-
-
             HorizontalLayout hl = new HorizontalLayout();
             hl.addStyleName("botoneracampo");
 
@@ -445,7 +444,6 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                         g.getEditor().setBuffered(false);
 
                         if (!field.isAnnotationPresent(ModifyValuesOnly.class)) {
-
 
                             hl.addComponent(b = new Button(VaadinIcons.PLUS));
                             b.addStyleName(ValoTheme.BUTTON_QUIET);
@@ -676,7 +674,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                 boolean seleccion = false;
 
-                if (dpa == null) {
+                if (Set.class.isAssignableFrom(field.getType())) seleccion = true;
+                else if (dpa == null) {
 
                     Method mdp = ReflectionHelper.getMethod(field.getDeclaringClass(), ReflectionHelper.getGetter(field.getName()) + "DataProvider");
 
@@ -688,9 +687,25 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                 if (seleccion) { // queremos seleccionar valores de entre una lista
 
 
-                    JPAManyToOneFieldBuilder.setDataProvider(g, field, binder);
+                    if (Set.class.isAssignableFrom(field.getType())) {
 
+                        // estamos seleccionando valores que no hayan sido añadidos
+                        try {
+                            com.vaadin.data.provider.DataProvider dp = null;
+                            FieldInterfaced mbf = ReflectionHelper.getMapper(field);
+                            if (mbf != null) {
+                                dp = new JPQLListDataProvider("select x from " + targetClass.getName() + " x where x." + mbf.getName() + " = null order by x." + ReflectionHelper.getIdField(targetClass).getName() + " asc");
+                            } else {
+                                dp = new JPQLListDataProvider(targetClass);
+                            }
+                            g.setDataProvider(dp);
+                        } catch (Throwable throwable) {
+                            MDD.alert(throwable);
+                        }
 
+                    } else {
+                        JPAManyToOneFieldBuilder.setDataProvider(g, field, binder);
+                    }
                     bindSelection(binder, g, field);
 
 
@@ -698,34 +713,37 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                     bind(binder, g, field, targetClass, null);
 
+                    {
 
-                    g.addItemClickListener(e -> {
-                        //if (MDD.isMobile() || e.getMouseEventDetails().isDoubleClick()) {
+                        g.addItemClickListener(e -> {
+                            //if (MDD.isMobile() || e.getMouseEventDetails().isDoubleClick()) {
                             Object i = e.getItem();
                             if (i != null) {
                                 MDDUI.get().getNavegador().go(field.getName());
                             }
-                        //}
-                    });
+                            //}
+                        });
 
-                    hl.addComponent(b = new Button(VaadinIcons.PLUS));
-                    b.addStyleName(ValoTheme.BUTTON_QUIET);
-                    b.addStyleName(ValoTheme.BUTTON_TINY);
-                    b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+                        hl.addComponent(b = new Button(VaadinIcons.PLUS));
+                        b.addStyleName(ValoTheme.BUTTON_QUIET);
+                        b.addStyleName(ValoTheme.BUTTON_TINY);
+                        b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
 
-                    hl.addComponent(b = new Button(VaadinIcons.MINUS));
-                    b.addStyleName(ValoTheme.BUTTON_QUIET);
-                    b.addStyleName(ValoTheme.BUTTON_TINY);
-                    b.addClickListener(e -> {
-                        try {
-                            Object bean = binder.getBean();
-                            Set l = g.getSelectedItems();
+                        hl.addComponent(b = new Button(VaadinIcons.MINUS));
+                        b.addStyleName(ValoTheme.BUTTON_QUIET);
+                        b.addStyleName(ValoTheme.BUTTON_TINY);
+                        b.addClickListener(e -> {
+                            try {
+                                Object bean = binder.getBean();
+                                Set l = g.getSelectedItems();
 
-                            ReflectionHelper.removeFromCollection(binder, field, bean, l);
-                        } catch (Exception e1) {
-                            MDD.alert(e1);
-                        }
-                    });
+                                ReflectionHelper.removeFromCollection(binder, field, bean, l);
+                            } catch (Exception e1) {
+                                MDD.alert(e1);
+                            }
+                        });
+
+                    }
 
                 }
 
@@ -1448,7 +1466,15 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         });
 
         aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
-        aux.bind(field.getName());
+        Binder.Binding b = aux.bind(field.getName());
+
+        if (Set.class.isAssignableFrom(field.getType())) {
+            try {
+                ReflectionHelper.setValue(field, binder.getBean(), new HashSet<>());
+            } catch (Exception e) {
+                MDD.alert(e);
+            }
+        }
     }
 
 

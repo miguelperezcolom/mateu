@@ -3,6 +3,7 @@ package io.mateu.mdd.core.reflection;
 import com.vaadin.data.provider.DataProvider;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
@@ -14,6 +15,8 @@ public interface FieldInterfaced {
     boolean isAnnotationPresent(Class<? extends Annotation> annotationClass);
 
     Class<?> getType();
+
+    AnnotatedType getAnnotatedType();
 
     Class<?> getGenericClass();
 

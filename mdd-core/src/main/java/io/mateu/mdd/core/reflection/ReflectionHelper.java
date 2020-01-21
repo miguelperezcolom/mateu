@@ -405,7 +405,7 @@ public class ReflectionHelper {
 
         List<FieldInterfaced> l = new ArrayList<>();
 
-        for (Parameter p : m.getParameters()) if (!isInjectable(p)) {
+        for (Parameter p : m.getParameters()) if (!isInjectable(m, p)) {
             l.add(new FieldInterfacedFromParameter(m, p));
         }
 
@@ -416,18 +416,27 @@ public class ReflectionHelper {
 
         List<FieldInterfaced> l = new ArrayList<>();
 
-        for (Parameter p : m.getParameters()) if (!isInjectable(p)) {
+        for (Parameter p : m.getParameters()) if (!isInjectable(m, p)) {
             l.add(new FieldInterfacedFromParameter(m, p));
         }
 
         return l;
     }
 
-    public static boolean isInjectable(Parameter p) {
+    public static boolean isInjectable(Executable m, Parameter p) {
         boolean injectable = true;
         if (EntityManager.class.equals(p.getType())) {
         } else if (UserData.class.equals(p.getType())) {
         } else if (Set.class.isAssignableFrom(p.getType())) {
+            Class<?> gc = null;
+            if (m.isAnnotationPresent(Action.class) && !Strings.isNullOrEmpty(m.getAnnotation(Action.class).attachToField())) {
+                gc = ReflectionHelper.getGenericClass(ReflectionHelper.getFieldByName(m.getDeclaringClass(), m.getAnnotation(Action.class).attachToField()), List.class, "E");
+            } else {
+                gc = ReflectionHelper.getGenericClass(m.getDeclaringClass());
+            }
+            if (!(gc !=  null && gc.equals(ReflectionHelper.getGenericClass(p.getType())))) {
+                injectable = false;
+            }
         } else if (PushWriter.class.equals(p.getType())) {
         } else {
             injectable = false;
@@ -686,7 +695,8 @@ public class ReflectionHelper {
 
     public static Class getGenericClass(FieldInterfaced field, Class asClassOrInterface, String genericArgumentName) {
         Type t = field.getGenericType();
-        return getGenericClass((t instanceof ParameterizedType)?(ParameterizedType) t:null, field.getType(), asClassOrInterface, genericArgumentName);
+        if (field.isAnnotationPresent(GenericClass.class)) return field.getAnnotation(GenericClass.class).clazz();
+        else return getGenericClass((t instanceof ParameterizedType)?(ParameterizedType) t:null, field.getType(), asClassOrInterface, genericArgumentName);
     }
 
     public static Class getGenericClass(ParameterizedType parameterizedType, Class asClassOrInterface, String genericArgumentName) {
@@ -1285,6 +1295,11 @@ public class ReflectionHelper {
             }
 
             @Override
+            public AnnotatedType getAnnotatedType() {
+                return p.getAnnotatedType();
+            }
+
+            @Override
             public Class<?> getGenericClass() {
                 if (p.getParameterizedType() instanceof ParameterizedType) {
                     ParameterizedType genericType = (ParameterizedType) p.getParameterizedType();
@@ -1643,7 +1658,7 @@ public class ReflectionHelper {
     public static boolean isOwnedCollection(FieldInterfaced field) {
         boolean owned = false;
 
-        if (Collection.class.isAssignableFrom(field.getType())) {
+        if (!Set.class.isAssignableFrom(field.getType()) && Collection.class.isAssignableFrom(field.getType())) {
 
             OneToMany aa = field.getAnnotation(OneToMany.class);
             ManyToMany mm = field.getAnnotation(ManyToMany.class);
@@ -1869,7 +1884,6 @@ public class ReflectionHelper {
 
         for (FieldInterfaced f : fields) {
 
-
             Class t = f.getType();
 
             if (forFilters) {
@@ -1950,7 +1964,7 @@ public class ReflectionHelper {
                 } else addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName(), f.getDeclaredAnnotations(), false, forInlineEditing, null, -1, null);
 
             } else {
-                addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName(), f.getDeclaredAnnotations(), false);
+                addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, f.getAnnotatedType(), f.getName(), f.getDeclaredAnnotations(), false);
             }
 
 
@@ -1981,16 +1995,44 @@ public class ReflectionHelper {
     }
 
     private static void addField(List<String> avoidedAnnotationNames, ClassPool pool, ClassFile cfile, ConstPool cpool, CtClass cc, boolean forFilters, Class t, String fieldName, Annotation[] declaredAnnotations, boolean forceSameLine) throws Exception {
-        addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, fieldName, declaredAnnotations, forceSameLine, false, null, -1, null);
+        CtField ctf;
+        cc.addField(ctf = new CtField(pool.get(t.getName()), fieldName, cc));
+        ctf.setModifiers(Modifier.PRIVATE);
+        addField(avoidedAnnotationNames, pool, cfile, cpool, cc, ctf, forFilters, t, fieldName, declaredAnnotations, forceSameLine, false, null, -1, null);
+    }
+
+    private static void addField(List<String> avoidedAnnotationNames, ClassPool pool, ClassFile cfile, ConstPool cpool, CtClass cc, boolean forFilters, AnnotatedType t, String fieldName, Annotation[] declaredAnnotations, boolean forceSameLine) throws Exception {
+        CtField ctf;
+        cc.addField(ctf = new CtField(pool.get(((ParameterizedType)t.getType()).getRawType().getTypeName()), fieldName, cc));
+        ctf.setModifiers(Modifier.PRIVATE);
+        Class gc = ReflectionHelper.getGenericClass(t.getType());
+        if (gc != null) {
+            declaredAnnotations = Arrays.copyOf(declaredAnnotations, declaredAnnotations.length + 1);
+            declaredAnnotations[declaredAnnotations.length - 1] = new GenericClass() {
+
+                @Override
+                public Class clazz() {
+                    return gc;
+                }
+
+                @Override
+                public Class<? extends Annotation> annotationType() {
+                    return GenericClass.class;
+                }
+            };
+        }
+        addField(avoidedAnnotationNames, pool, cfile, cpool, cc, ctf, forFilters, (Class) ((ParameterizedType)t.getType()).getRawType(), fieldName, declaredAnnotations, forceSameLine, false, null, -1, null);
     }
 
     private static void addField(List<String> avoidedAnnotationNames, ClassPool pool, ClassFile cfile, ConstPool cpool, CtClass cc, boolean forFilters, Class t, String fieldName, Annotation[] declaredAnnotations, boolean forceSameLine, boolean forInlineEditing, String caption, int valueKey, FieldInterfaced collectionField) throws Exception {
-
         CtField ctf;
-
-
         cc.addField(ctf = new CtField(pool.get(t.getName()), fieldName, cc));
         ctf.setModifiers(Modifier.PRIVATE);
+        addField(avoidedAnnotationNames, pool, cfile, cpool, cc, ctf, forFilters, t, fieldName, declaredAnnotations, forceSameLine, false, null, -1, null);
+    }
+
+    private static void addField(List<String> avoidedAnnotationNames, ClassPool pool, ClassFile cfile, ConstPool cpool, CtClass cc, CtField ctf, boolean forFilters, Class t, String fieldName, Annotation[] declaredAnnotations, boolean forceSameLine, boolean forInlineEditing, String caption, int valueKey, FieldInterfaced collectionField) throws Exception {
+
 
         if (forceSameLine) {
 

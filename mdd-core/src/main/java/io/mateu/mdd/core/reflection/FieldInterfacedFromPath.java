@@ -4,10 +4,7 @@ import io.mateu.mdd.core.annotations.ValueClass;
 import io.mateu.mdd.core.annotations.ValueQL;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,6 +50,11 @@ public class FieldInterfacedFromPath implements FieldInterfaced {
     @Override
     public Class<?> getType() {
         return (ff != null)?ff.getType():f.getType();
+    }
+
+    @Override
+    public AnnotatedType getAnnotatedType() {
+        return (ff != null)?ff.getAnnotatedType():f.getAnnotatedType();
     }
 
     @Override

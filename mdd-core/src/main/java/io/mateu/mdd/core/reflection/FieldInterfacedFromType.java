@@ -5,6 +5,7 @@ import com.vaadin.data.provider.DataProvider;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
@@ -46,6 +47,31 @@ public class FieldInterfacedFromType implements FieldInterfaced {
     @Override
     public Class<?> getType() {
         return type;
+    }
+
+    @Override
+    public AnnotatedType getAnnotatedType() {
+        return new AnnotatedType() {
+            @Override
+            public Type getType() {
+                return type;
+            }
+
+            @Override
+            public <T extends Annotation> T getAnnotation(Class<T> aClass) {
+                return null;
+            }
+
+            @Override
+            public Annotation[] getAnnotations() {
+                return new Annotation[0];
+            }
+
+            @Override
+            public Annotation[] getDeclaredAnnotations() {
+                return new Annotation[0];
+            }
+        };
     }
 
     @Override

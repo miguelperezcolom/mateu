@@ -67,6 +67,13 @@ public class FieldInterfacedFromParameter implements FieldInterfaced {
     }
 
     @Override
+    public AnnotatedType getAnnotatedType() {
+        return (ff != null)?ff.getAnnotatedType(): p.getAnnotatedType();
+    }
+
+
+
+    @Override
     public Class<?> getGenericClass() {
         if (ff != null) return ff.getGenericClass();
         else if (p.getType().isAnnotationPresent(Entity.class)) {

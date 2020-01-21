@@ -13,6 +13,7 @@ import com.google.api.client.json.JsonObjectParser;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import com.google.zxing.BarcodeFormat;
@@ -1784,6 +1785,12 @@ and returns the QR Code in the form of a byte array.
         List<T> l = new ArrayList<T>(list);
         l.add(o);
         return l;
+    }
+
+    public static <T> ImmutableList<T> extend(ImmutableList<T> list, T o) {
+        List<T> l = new ArrayList<>(list);
+        l.add(o);
+        return ImmutableList.copyOf(l);
     }
 
     public static String translate(String source_lang, String target_lang, String text) throws Throwable {

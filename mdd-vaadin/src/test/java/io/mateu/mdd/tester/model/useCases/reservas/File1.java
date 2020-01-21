@@ -36,16 +36,20 @@ public class File1 {
         this.reservas = reservas;
     }
 
-    @Action(order = 70, icon = VaadinIcons.PLUS, attachToField = "bookings")
-    @NotWhenCreating
-    public void incorporate() throws Throwable {
-        MDD.alert("todavía no");
-    }
 
     @Action(order = 80, icon = VaadinIcons.CLOSE, attachToField = "bookings")
     @NotWhenCreating
     public void cancel(EntityManager em, Set<Booking> selection) throws Throwable {
         MDD.alert("todavía no");
     }
+
+    @Action(order = 75, icon = VaadinIcons.PLUS_CIRCLE_O, saveBefore = true, refreshOnBack = true)
+    @NotWhenCreating
+    public void incorporate(Set<CapturedBooking> capturedBookings) throws Throwable {
+        if (capturedBookings != null) for (CapturedBooking c : capturedBookings) {
+            //getBookings().add(new FreeTextBooking());
+        }
+    }
+
 
 }

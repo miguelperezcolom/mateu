@@ -2450,6 +2450,11 @@ body {
         font-weight: normal;
       }
     }
+    tbody {
+      td {
+        white-space: nowrap;
+      }
+    }
     tfoot {
       th {
         border-top: 1px solid lightgrey;

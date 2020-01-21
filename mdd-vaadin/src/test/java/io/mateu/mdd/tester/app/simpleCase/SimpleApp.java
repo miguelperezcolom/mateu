@@ -21,6 +21,7 @@ import io.mateu.mdd.tester.model.entities.dependant.Address;
 import io.mateu.mdd.tester.model.entities.groups.Person;
 import io.mateu.mdd.tester.model.useCases.batches.Batch;
 import io.mateu.mdd.tester.model.useCases.hotel.Booking;
+import io.mateu.mdd.tester.model.useCases.reservas.CapturedBooking;
 import io.mateu.mdd.tester.model.useCases.reservas.File1;
 import io.mateu.mdd.tester.model.useCases.hotel.cockpit.CockpitView;
 import io.mateu.mdd.tester.model.useCases.hotel.HotelSalesControlView;
@@ -138,6 +139,16 @@ public class SimpleApp extends SimpleMDDApplication {
     @Action(order = 12, icon = VaadinIcons.CART)
     public BookingsCrudView bookingsCrudView() {
         return new BookingsCrudView();
+    }
+
+    @Action(order = 13, icon = VaadinIcons.FOLDER)
+    public Class files1() {
+        return File1.class;
+    }
+
+    @Action(order = 13, icon = VaadinIcons.FOLDER_ADD)
+    public Class captured() {
+        return CapturedBooking.class;
     }
 
     @Action(order = 50)

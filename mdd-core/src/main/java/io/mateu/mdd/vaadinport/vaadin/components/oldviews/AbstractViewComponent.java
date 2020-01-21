@@ -252,25 +252,12 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                     b.addClickListener(e -> {
                         try {
 
+                            //añade validación, confirmación y updatea después de ejecutar
                             Runnable r = new Runnable() {
                                 @Override
                                 public void run() {
 
-                                    boolean needsValidation = AbstractViewComponent.this instanceof EditorViewComponent && a.isValidationNeeded();
-
-                                    if (!needsValidation || ((EditorViewComponent)AbstractViewComponent.this).validate()) {
-
-                                        a.run(new AbstractMDDExecutionContext());
-
-                                        if (AbstractViewComponent.this instanceof EditorViewComponent && !(AbstractViewComponent.this instanceof OwnedCollectionComponent)) {
-
-                                            EditorViewComponent evc = (EditorViewComponent) AbstractViewComponent.this;
-
-                                            evc.getBinder().update(evc.getModel());
-
-                                        }
-
-                                    }
+                                    a.run(new AbstractMDDExecutionContext());
 
                                 }
                             };
