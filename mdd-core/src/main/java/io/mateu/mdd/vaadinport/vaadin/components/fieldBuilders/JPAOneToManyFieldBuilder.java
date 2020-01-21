@@ -686,8 +686,13 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                 if (seleccion) { // queremos seleccionar valores de entre una lista
 
-
-                    if (Set.class.isAssignableFrom(field.getType())) {
+                    if (dpa != null) {
+                        try {
+                            g.setDataProvider((com.vaadin.data.provider.DataProvider) ReflectionHelper.newInstance(dpa.dataProvider()));
+                        } catch (Exception e) {
+                            MDD.alert(e);
+                        }
+                    } else if (Set.class.isAssignableFrom(field.getType())) {
 
                         // estamos seleccionando valores que no hayan sido añadidos
                         try {
