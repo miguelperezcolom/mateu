@@ -86,34 +86,13 @@ public class JPATextAreaFieldBuilder extends JPAStringFieldBuilder {
                 }
             });
 
-            tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class));
+            tf.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class) || field.isAnnotationPresent(NotEmpty.class));
 
             if (field.isAnnotationPresent(NotNull.class) || field.isAnnotationPresent(NotEmpty.class)) validators.get(tf).add(new StringLengthValidator("Required field", 1, Integer.MAX_VALUE));
 
             BeanValidator bv = new BeanValidator(field.getDeclaringClass(), field.getName());
 
-            validators.get(tf).add(new Validator() {
-
-                @Override
-                public ValidationResult apply(Object o, ValueContext valueContext) {
-                    return bv.apply(o, valueContext);
-                }
-
-                @Override
-                public Object apply(Object o, Object o2) {
-                    return null;
-                }
-            });
-
-            addValidators(validators.get(tf));
-
-        /*
-        tf.setDescription();
-        tf.setPlaceholder();
-        */
-
-            //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
-
+            addErrorHandler(tf);
 
             bind(binder, tf, field);
 

@@ -28,7 +28,8 @@ public class WizardComponent extends EditorViewComponent {
 
     @Override
     public VaadinIcons getIcon() {
-        return VaadinIcons.STEP_FORWARD;
+        return VaadinIcons.FAST_FORWARD; //STEP_FORWARD;
+
     }
 
     public WizardComponent(WizardPage page) {
@@ -40,7 +41,7 @@ public class WizardComponent extends EditorViewComponent {
     public List<AbstractAction> getActions() {
         List<AbstractAction> l = new ArrayList<>();
 
-        l.add(new AbstractAction("wizardprev", VaadinIcons.ARROW_LEFT, "Prev") {
+        l.add(new AbstractAction("wizardprev", VaadinIcons.STEP_BACKWARD, "Prev") {
 
             @Override
             public void addShortCut(Button b) {
@@ -64,7 +65,7 @@ public class WizardComponent extends EditorViewComponent {
             }
         });
 
-        l.add(new AbstractAction("wizardnext", VaadinIcons.ARROW_RIGHT, "Next") {
+        l.add(new AbstractAction("wizardnext", VaadinIcons.STEP_FORWARD, "Next") {
 
             @Override
             public void addShortCut(Button b) {
