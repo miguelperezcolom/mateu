@@ -20,12 +20,14 @@ import com.vaadin.server.SerializablePredicate;
 import com.vaadin.server.UserError;
 import com.vaadin.shared.Registration;
 import com.vaadin.shared.data.sort.SortDirection;
+import com.vaadin.shared.ui.BorderStyle;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.EditorOpenEvent;
 import com.vaadin.ui.components.grid.EditorOpenListener;
 import com.vaadin.ui.components.grid.SortOrderProvider;
+import com.vaadin.ui.renderers.ComponentRenderer;
 import com.vaadin.ui.renderers.HtmlRenderer;
 import com.vaadin.ui.renderers.TextRenderer;
 import com.vaadin.ui.themes.ValoTheme;
@@ -304,7 +306,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                         Resource r = (Resource) v;
                         if (r != null) {
                             try {
-                                return new Link(r.getName(), new ExternalResource(r.toFileLocator().getUrl()));
+                                return new Link(r.getName(), new ExternalResource(r.toFileLocator().getUrl()), "_blank", 400, 400, BorderStyle.MINIMAL);
                             } catch (Exception e) {
                                 return null;
                             }
@@ -316,6 +318,8 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     }
                 }
             });
+
+            if (Resource.class.equals(f.getType())) col.setRenderer(new ComponentRenderer());
 
             if (csg != null) col.setStyleGenerator(new StyleGenerator() {
                 @Override
@@ -370,7 +374,6 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     }
                 });
             }
-
 
 
             if (finalCsg != null && !finalCsg.isContentShown()) col.setRenderer(new TextRenderer() {
