@@ -11,6 +11,7 @@ import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ExtraFilters;
 import lombok.extern.slf4j.Slf4j;
 
@@ -122,6 +123,52 @@ public class VaadinPort implements MDDPort {
                 //sw.toString(),
                 Notification.Type.TRAY_NOTIFICATION);
 
+    }
+
+    @Override
+    public void saveOrDiscard(String msg, EditorViewComponent editor, Runnable afterSave) {
+        Window w = new Window("Please confirm action");
+
+        VerticalLayout l = new VerticalLayout();
+
+        l.addComponent(new Label(msg));
+
+        Button buttonSaveBefore;
+        Button buttonYes;
+        Button buttonNo;
+        HorizontalLayout hl;
+        l.addComponent(hl = new HorizontalLayout(buttonSaveBefore = new Button("Save and proceed", e -> {
+            try {
+                editor.save(false);
+                afterSave.run();
+            } catch (Throwable t) {
+                MDD.alert(t);
+            }
+            w.close();
+        }), buttonYes = new Button("Exit and discard changes", e -> {
+            try {
+                afterSave.run();
+            } catch (Throwable t) {
+                MDD.alert(t);
+            }
+            w.close();
+        }), buttonNo = new Button("Abort and stay here", e -> {
+            w.close();
+        })));
+
+        hl.setDefaultComponentAlignment(Alignment.MIDDLE_RIGHT);
+
+        buttonSaveBefore.addStyleName(ValoTheme.BUTTON_FRIENDLY);
+        buttonNo.addStyleName(ValoTheme.BUTTON_PRIMARY);
+        buttonYes.addStyleName(ValoTheme.BUTTON_DANGER);
+
+
+        w.setContent(l);
+
+        w.center();
+        w.setModal(true);
+
+        UI.getCurrent().addWindow(w);
     }
 
 

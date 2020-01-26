@@ -191,7 +191,7 @@ public class MDDNavigator {
 
     public void goBack() {
         if (!(stack.getLast().getComponent() instanceof OwnedCollectionComponent) && stack.getLast().getComponent() instanceof EditorViewComponent && ((PersistentPOJO.class.isAssignableFrom(((EditorViewComponent)stack.getLast().getComponent()).getModelType()) || ((EditorViewComponent)stack.getLast().getComponent()).getModelType().isAnnotationPresent(Entity.class)) && ((EditorViewComponent)stack.getLast().getComponent()).isModificado())) {
-            MDD.confirm("There are unsaved changes. Are you sure you want to exit?", () -> yesGoBack());
+            MDD.saveOrDiscard("There are unsaved changes. Are you sure you want to exit?", (EditorViewComponent) stack.getLast().getComponent(), () -> yesGoBack());
         } else {
             yesGoBack();
         }
@@ -240,9 +240,8 @@ public class MDDNavigator {
 
     public void goSibling(Object id) {
         if (stack.getLast().getComponent() instanceof EditorViewComponent && ((PersistentPOJO.class.isAssignableFrom(((EditorViewComponent)stack.getLast().getComponent()).getModelType()) || ((EditorViewComponent)stack.getLast().getComponent()).getModelType().isAnnotationPresent(Entity.class)) && ((EditorViewComponent)stack.getLast().getComponent()).isModificado())) {
-            MDD.confirm("There are unsaved changes. Do you want to save before?", () -> {
+            MDD.saveOrDiscard("There are unsaved changes. Do you want to save before?", (EditorViewComponent) stack.getLast().getComponent(), () -> {
                 try {
-                    ((EditorViewComponent) stack.getLast().getComponent()).save(false);
                     yesGoSibling(id);
                 } catch (Throwable throwable) {
                     MDD.alert(throwable);

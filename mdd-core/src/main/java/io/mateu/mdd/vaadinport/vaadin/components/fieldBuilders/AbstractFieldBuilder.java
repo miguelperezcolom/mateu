@@ -94,7 +94,11 @@ public abstract class AbstractFieldBuilder {
     }
 
     public void addErrorHandler(FieldInterfaced f, AbstractComponent tf) {
-        if (!MDD.isMobile() && f.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(f.getAnnotation(Help.class).value())) tf.setDescription(f.getAnnotation(Help.class).value());
+        if (!MDD.isMobile() && f.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(f.getAnnotation(Help.class).value())) {
+            String h = f.getAnnotation(Help.class).value();
+            tf.setDescription(h);
+            if (tf instanceof AbstractTextField) ((AbstractTextField)tf).setPlaceholder(h);
+        }
         tf.setErrorHandler(e -> {
             Throwable th = e.getThrowable();
             while (th != null && th.getCause() != null) {

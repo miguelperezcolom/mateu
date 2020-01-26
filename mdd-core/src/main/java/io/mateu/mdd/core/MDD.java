@@ -9,6 +9,7 @@ import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ExtraFilters;
 import javassist.ClassPool;
 
@@ -105,6 +106,10 @@ public class MDD {
     }
     public static void confirm(String msg, Runnable onOk) {
         getPort().confirm(msg, onOk);
+    }
+
+    public static void saveOrDiscard(String msg, EditorViewComponent editor, Runnable afterSave) {
+        getPort().saveOrDiscard(msg, editor, afterSave);
     }
 
     public static void info(String msg) {

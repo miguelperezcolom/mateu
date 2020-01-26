@@ -3,6 +3,7 @@ package io.mateu.mdd.core;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ExtraFilters;
 
 import java.lang.reflect.Method;
@@ -69,4 +70,6 @@ public interface MDDPort {
     void notifyInfo(String msg);
 
     void notifyError(Throwable e);
+
+    void saveOrDiscard(String msg, EditorViewComponent editor, Runnable afterSave);
 }

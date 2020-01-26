@@ -36,11 +36,16 @@ public class ViewStack {
             }
         }
 
-        viewByState.put(state, v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(this, component));
+        push(state, v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(this, component));
+    }
+
+
+    public void push(String state, io.mateu.mdd.vaadinport.vaadin.navigation.View v) {
+
+        viewByState.put(state, v);
         stateByView.put(v, state);
         stack.add(v);
     }
-
 
 
 
