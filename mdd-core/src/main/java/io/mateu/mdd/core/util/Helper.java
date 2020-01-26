@@ -925,19 +925,19 @@ public class Helper {
 
 
 
-            log.debug("Registrando concerters beanutils...");
+            log.info("Registrando concerters beanutils...");
             ConvertUtils.register(new MiURLConverter(), URL.class);
 
-            log.debug("Loading properties...");
+            log.info("Loading properties...");
             propertiesLoaded = true;
             InputStream s = null;
             try {
                 if (System.getProperty("appconf") != null) {
-                    log.debug("Loading properties from file " + System.getProperty("appconf"));
+                    log.info("Loading properties from file " + System.getProperty("appconf"));
                     s = new FileInputStream(System.getProperty("appconf"));
                 } else {
                     s = Helper.class.getResourceAsStream("/appconf.properties");
-                    log.debug("Loading properties classpath /appconf.properties");
+                    log.info("Loading properties classpath /appconf.properties");
                 }
 
                 if (s != null) {
@@ -946,18 +946,18 @@ public class Helper {
                     p.load(s);
 
                     for (Map.Entry<Object, Object> e : p.entrySet()) {
-                        log.debug("" + e.getKey() + "=" + e.getValue());
+                        log.info("" + e.getKey() + "=" + e.getValue());
                         if (System.getProperty("" + e.getKey()) == null) {
                             System.setProperty("" + e.getKey(), "" + e.getValue());
                             log.debug("property fixed");
                         } else {
-                            log.debug("property " + e.getKey() + " is already set with value " + System.getProperty("" + e.getKey()));
+                            log.info("property " + e.getKey() + " is already set with value " + System.getProperty("" + e.getKey()));
                         }
                     }
 
                     if (System.getProperty("heroku.database.url") != null) {
 
-                        log.debug("adjusting jdbc properties for Heroku...");
+                        log.info("adjusting jdbc properties for Heroku...");
 
                         URI dbUri = null;
                         try {
@@ -985,7 +985,7 @@ public class Helper {
                     }
                     s.close();
                 } else {
-                    log.debug("No appconf. Either set -Dappconf=xxxxxx.properties or place an appconf.properties file in your classpath.");
+                    log.error("No appconf. Either set -Dappconf=xxxxxx.properties or place an appconf.properties file in your classpath.");
                 }
 
             } catch (FileNotFoundException e1) {
@@ -995,7 +995,7 @@ public class Helper {
             }
 
         } else {
-            log.debug("Properties already loaded");
+            log.info("Properties already loaded");
         }
     }
 

@@ -13,6 +13,7 @@ import javax.persistence.CascadeType;
 import javax.persistence.EntityManager;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderColumn;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -49,5 +50,10 @@ public class File1 {
         System.out.println(capturedBookings);
     }
 
+    @Action(order = 75, icon = VaadinIcons.CLOSE, saveBefore = true, refreshOnBack = true)
+    @NotWhenCreating
+    public static void cancel(Set<File1> files) throws Throwable {
+        System.out.println(files);
+    }
 
 }

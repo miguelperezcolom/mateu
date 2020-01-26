@@ -432,7 +432,9 @@ public class ReflectionHelper {
             if (m.isAnnotationPresent(Action.class) && !Strings.isNullOrEmpty(m.getAnnotation(Action.class).attachToField())) {
                 gc = ReflectionHelper.getGenericClass(ReflectionHelper.getFieldByName(m.getDeclaringClass(), m.getAnnotation(Action.class).attachToField()), List.class, "E");
             } else {
-                gc = ReflectionHelper.getGenericClass(m.getDeclaringClass());
+                gc = m.getDeclaringClass();
+                if (RpcView.class.isAssignableFrom(gc)) gc = ReflectionHelper.getGenericClass(gc, RpcView.class, "C");
+                else if (Modifier.isStatic(m.getModifiers())) gc = m.getDeclaringClass();
             }
             if (!(gc !=  null && gc.equals(new FieldInterfacedFromParameter(m, p).getGenericClass()))) {
                 injectable = false;
@@ -1059,7 +1061,14 @@ public class ReflectionHelper {
         } catch (Exception e) {
         }
         if (m == null) m = getMethod(o.getClass(), getSetter(f));
-        if (m != null) m.invoke(o, v);
+        if (m != null) {
+            try {
+                m.invoke(o, v);
+            } catch (Exception e) {
+                System.out.println("Exception when setting value " + v + " for field " + f.getName());
+                throw e;
+            }
+        }
     }
 
 
@@ -2446,6 +2455,7 @@ public class ReflectionHelper {
         for (Constructor x : type.getConstructors()) if (Modifier.isPublic(x.getModifiers())) {
             if (x.getParameterCount() < minParams) {
                 con = x;
+                minParams = con.getParameterCount();
             }
         }
         return con;

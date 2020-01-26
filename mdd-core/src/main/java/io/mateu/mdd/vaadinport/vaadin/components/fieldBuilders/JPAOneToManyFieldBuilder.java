@@ -686,31 +686,39 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                 if (seleccion) { // queremos seleccionar valores de entre una lista
 
-                    if (dpa != null) {
-                        try {
-                            g.setDataProvider((com.vaadin.data.provider.DataProvider) ReflectionHelper.newInstance(dpa.dataProvider()));
-                        } catch (Exception e) {
-                            MDD.alert(e);
-                        }
-                    } else if (Set.class.isAssignableFrom(field.getType())) {
-
-                        // estamos seleccionando valores que no hayan sido añadidos
-                        try {
-                            com.vaadin.data.provider.DataProvider dp = null;
-                            FieldInterfaced mbf = ReflectionHelper.getMapper(field);
-                            if (mbf != null) {
-                                dp = new JPQLListDataProvider("select x from " + targetClass.getName() + " x where x." + mbf.getName() + " = null order by x." + ReflectionHelper.getIdField(targetClass).getName() + " asc");
-                            } else {
-                                dp = new JPQLListDataProvider(targetClass);
-                            }
-                            g.setDataProvider(dp);
-                        } catch (Throwable throwable) {
-                            MDD.alert(throwable);
-                        }
-
+                    if (MDDUI.get().getNavegador().getViewProvider().pendingSelection != null) {
+                        g.setDataProvider(new ListDataProvider(MDDUI.get().getNavegador().getViewProvider().pendingSelection));
+                        MDDUI.get().getNavegador().getViewProvider().pendingSelection = null;
                     } else {
-                        JPAManyToOneFieldBuilder.setDataProvider(g, field, binder);
+
+                        if (dpa != null) {
+                            try {
+                                g.setDataProvider((com.vaadin.data.provider.DataProvider) ReflectionHelper.newInstance(dpa.dataProvider()));
+                            } catch (Exception e) {
+                                MDD.alert(e);
+                            }
+                        } else if (Set.class.isAssignableFrom(field.getType())) {
+
+                            // estamos seleccionando valores que no hayan sido añadidos
+                            try {
+                                com.vaadin.data.provider.DataProvider dp = null;
+                                FieldInterfaced mbf = ReflectionHelper.getMapper(field);
+                                if (mbf != null) {
+                                    dp = new JPQLListDataProvider("select x from " + targetClass.getName() + " x where x." + mbf.getName() + " = null order by x." + ReflectionHelper.getIdField(targetClass).getName() + " asc");
+                                } else {
+                                    dp = new JPQLListDataProvider(targetClass);
+                                }
+                                g.setDataProvider(dp);
+                            } catch (Throwable throwable) {
+                                MDD.alert(throwable);
+                            }
+
+                        } else {
+                            JPAManyToOneFieldBuilder.setDataProvider(g, field, binder);
+                        }
+
                     }
+
                     bindSelection(binder, g, field);
 
 

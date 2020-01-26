@@ -64,4 +64,7 @@ public class View implements com.vaadin.navigator.View {
     }
 
 
+    public boolean isBarHidden() {
+        return viewComponent.isBarHidden();
+    }
 }

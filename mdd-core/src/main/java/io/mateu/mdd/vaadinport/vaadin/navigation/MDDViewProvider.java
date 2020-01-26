@@ -37,6 +37,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.net.URL;
+import java.time.LocalDate;
 import java.util.*;
 
 
@@ -624,6 +625,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                                     else if (f.getType().equals(Integer.class) || f.getType().equals(int.class)) pv = Integer.parseInt(p);
                                                     else if (f.getType().equals(Double.class) || f.getType().equals(double.class)) pv = Double.parseDouble(p);
                                                     else if (f.getType().equals(Boolean.class) || f.getType().equals(boolean.class)) pv = Boolean.parseBoolean(p);
+                                                    else if (f.getType().equals(LocalDate.class)) pv = LocalDate.parse(p);
                                                     else if (f.getType().isEnum()) pv = Enum.valueOf((Class)f.getType(), p);
                                                     else if (f.getType().isAnnotationPresent(Entity.class)) {
                                                         FieldInterfaced idField = ReflectionHelper.getIdField(f.getType());
@@ -631,6 +633,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                                         else if (idField.getType().equals(Integer.class) || idField.getType().equals(int.class)) pv = Integer.parseInt(p);
                                                         else if (idField.getType().equals(Double.class) || idField.getType().equals(double.class)) pv = Double.parseDouble(p);
                                                         else if (idField.getType().equals(Boolean.class) || idField.getType().equals(boolean.class)) pv = Boolean.parseBoolean(p);
+                                                        else if (idField.getType().equals(LocalDate.class)) pv = LocalDate.parse(p);
                                                         else if (idField.getType().isEnum()) pv = Enum.valueOf((Class)idField.getType(), p);
                                                         pv = Helper.find(f.getType(), pv);
                                                     }
@@ -754,13 +757,15 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
             log.debug("No limpiamos selección. clase = " + c.getClass().getName());
         }
 
+        expand |= stack.size() > 1;
 
         AppComponent appComponent = MDDUI.get().getAppComponent();
         if (appComponent instanceof DesktopAppComponent) {
             DesktopAppComponent dac = (DesktopAppComponent) appComponent;
             if (expand) {
                 dac.minimizeLeftSide();
-            } else if (v.isMenuExpanded()) {
+//            } else if (v.isMenuExpanded()) {
+            } else {
                 dac.maximizeLeftSide();
             }
         }

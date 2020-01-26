@@ -89,12 +89,12 @@ public class SimpleApp extends SimpleMDDApplication {
         return Lists.newArrayList(new AbstractAction("Say hello") {
             @Override
             public void run(MDDExecutionContext context) {
-                log.debug("hello");
+                System.out.println("hello");
             }
         }, new AbstractAction("Say bye") {
             @Override
             public void run(MDDExecutionContext context) {
-                log.debug("bye");
+                System.out.println("bye");
             }
         }, new MDDOpenCRUDAction(Entidad.class));
     }

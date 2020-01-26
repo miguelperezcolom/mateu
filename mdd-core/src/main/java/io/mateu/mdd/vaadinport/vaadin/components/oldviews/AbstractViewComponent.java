@@ -64,12 +64,14 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
         addComponent(createHeader());
 
-        bar = new CssLayout();
-        bar.addStyleName("actionsbar");
-        bar.addStyleName(CSS.NOPADDING);
-        menuItemsById = new HashMap<>();
-        addBack(bar);
-        getActionsContainer().addComponent(bar);
+        if (!view.isBarHidden()) {
+            bar = new CssLayout();
+            bar.addStyleName("actionsbar");
+            bar.addStyleName(CSS.NOPADDING);
+            menuItemsById = new HashMap<>();
+            addBack(bar);
+            getActionsContainer().addComponent(bar);
+        }
 
     }
 
@@ -354,5 +356,9 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
     public void applyStyles(ViewContainer viewContainer) {
 
+    }
+
+    public boolean isBarHidden() {
+        return false;
     }
 }

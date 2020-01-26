@@ -16,6 +16,11 @@ import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
 public class PublicMenuFlowComponent extends AbstractViewComponent {
 
     @Override
+    public boolean isBarHidden() {
+        return true;
+    }
+
+    @Override
     public String toString() {
         return MDD.isMobile() || MDD.getApp().getAreas().size() <= 1?"":"Please select work area";
     }

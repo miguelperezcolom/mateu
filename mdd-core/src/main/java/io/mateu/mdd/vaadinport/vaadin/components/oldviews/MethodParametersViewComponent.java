@@ -73,7 +73,7 @@ public class MethodParametersViewComponent extends EditorViewComponent {
 
     @Override
     public List<AbstractAction> getActions() {
-        return Lists.newArrayList(new AbstractAction(VaadinIcons.BOLT, "Run") {
+        return Lists.newArrayList(new AbstractAction(VaadinIcons.BOLT, toString()) {
             @Override
             public void run(MDDExecutionContext context) {
                 try {

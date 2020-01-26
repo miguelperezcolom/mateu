@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class LiteralComponent extends Composite implements HasValue<Literal>, Component.Focusable {
-    private final AbstractTextField tf;
+    private final AbstractField<String> tf;
     private final ComboBox<String> cb;
     private final MDDBinder binder;
     private Literal literal;
@@ -28,7 +28,9 @@ public class LiteralComponent extends Composite implements HasValue<Literal>, Co
 
         Collection<String> langs = Lists.newArrayList("es", "en", "de", "fr", "it", "ar", "cz", "ru");
 
-        tf = (field.isAnnotationPresent(io.mateu.mdd.core.annotations.TextArea.class))?new TextArea():new TextField();
+        if (field.isAnnotationPresent(io.mateu.mdd.core.annotations.Html.class)) tf = new RichTextArea();
+        else if (field.isAnnotationPresent(io.mateu.mdd.core.annotations.TextArea.class)) tf = new TextArea();
+        else tf = new TextField();
 
         HorizontalLayout hl = new HorizontalLayout(tf, cb = new ComboBox<String>(null, langs), new Button(VaadinIcons.FLAG, (e) -> {
 
@@ -54,7 +56,7 @@ public class LiteralComponent extends Composite implements HasValue<Literal>, Co
 
         setCompositionRoot(hl);
 
-        tf.setValueChangeMode(ValueChangeMode.BLUR);
+        if (tf instanceof AbstractTextField) ((AbstractTextField) tf).setValueChangeMode(ValueChangeMode.BLUR);
 
         tf.addValueChangeListener(e -> {
 
