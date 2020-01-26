@@ -15,6 +15,7 @@ import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
+import com.vaadin.server.ExternalResource;
 import com.vaadin.server.SerializablePredicate;
 import com.vaadin.server.UserError;
 import com.vaadin.shared.Registration;
@@ -299,6 +300,17 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
                     } else if (LocalDate.class.equals(f.getType()) || LocalDateTime.class.equals(f.getType()) || LocalTime.class.equals(f.getType()) || Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) {
                         return v;
+                    } else if (Resource.class.equals(f.getType())) {
+                        Resource r = (Resource) v;
+                        if (r != null) {
+                            try {
+                                return new Link(r.getName(), new ExternalResource(r.toFileLocator().getUrl()));
+                            } catch (Exception e) {
+                                return null;
+                            }
+                        } else {
+                            return null;
+                        }
                     } else {
                         return (v != null)?"" + v:null;
                     }
