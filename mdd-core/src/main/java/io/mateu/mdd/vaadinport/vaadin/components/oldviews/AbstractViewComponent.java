@@ -64,7 +64,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
         addComponent(createHeader());
 
-        if (!view.isBarHidden()) {
+        if (!isBarHidden()) {
             bar = new CssLayout();
             bar.addStyleName("actionsbar");
             bar.addStyleName(CSS.NOPADDING);
@@ -298,7 +298,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                 i.setVisible(a.isVisible());
             }
 
-        if (bar.getComponentCount() == 0 || (bar.getComponentCount() == 1 && !bar.getComponent(0).isVisible())) bar.setVisible(false);
+        if (bar != null) if  (bar.getComponentCount() == 0 || (bar.getComponentCount() == 1 && !bar.getComponent(0).isVisible())) bar.setVisible(false);
     }
 
     public boolean beforeBack() {
