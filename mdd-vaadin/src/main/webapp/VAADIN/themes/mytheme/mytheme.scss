@@ -55,11 +55,23 @@ body {
   // Insert your own theme rules here
 
   // customized spinner
-  .v-app-loading::before {
-    width: 200px;
-    height: 200px;
-    background: url(img/Spinner-1s-141px.gif) no-repeat 50%;
+  /*
+  .v-app-loading {
+    position: absolute;
+    left:0;
+    top:0;
+    width: 100%;
+    height: 100%;
   }
+  .v-app-loading::before {
+    width: 100%;
+    height: 100%;
+    background-image: url(img/Spinner-1s-141px.gif);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
+  }
+   */
 
   .mobileapp {
     padding: 0px;

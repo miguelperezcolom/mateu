@@ -358,8 +358,9 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     if (stack.size() > 0) v = stack.getLast();
                 } else if (MDD.isMobile()) {
                     String[] ts = currentPath.split("/");
-                    stack.push(ts[0], ("private".equals(ts[0]))?new PrivateMenuFlowComponent():new PublicMenuFlowComponent());
-                    stack.push(currentPath, new AreaComponent(area));
+                    AbstractViewComponent xmfc = ("private".equals(ts[0])) ? new PrivateMenuFlowComponent() : new PublicMenuFlowComponent();
+                    stack.push(ts[0], xmfc);
+                    stack.push(currentPath, MDD.getApp().getAreas().size() > 1?new AreaComponent(area):xmfc);
                     v = stack.get(currentPath);
                 } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new AreaComponent(area));
             }
@@ -564,7 +565,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                             action.run(this);
                             if (stack.size() > 0) v = stack.getLast();
                         } else if (MDD.isMobile()) {
-                            stack.push(currentPath, new AreaComponent(area));
+                            stack.push(currentPath, MDD.getApp().getAreas().size() > 1?new AreaComponent(area):((View)stack.get(0)).getViewComponent());
                             v = stack.get(currentPath);
                         } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new AreaComponent(area));
 
@@ -574,8 +575,8 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     } else if (MDD.getApp().getModule(currentPath) != null) {
 
                         AbstractModule module = MDD.getApp().getModule(currentPath);
-
-                        stack.push(currentPath, new ModuleComponent(module));
+                        Component c = MDD.getApp().getArea(module).getModules().size() > 1?new ModuleComponent(module):((View) stack.get(1)).getViewComponent();
+                        stack.push(currentPath, c);
 
                     } else {
 
@@ -585,6 +586,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                 ((AbstractAction) e).run(this);
                             } else if (e instanceof AbstractMenu) {
                                 if (MDD.isMobile()) {
+
                                     stack.push(currentPath, new MenuFlowComponent((AbstractMenu) e));
                                 } else {
                                     stack.push(currentPath, new MenuFlowComponent(getRootMenu(currentPath)));

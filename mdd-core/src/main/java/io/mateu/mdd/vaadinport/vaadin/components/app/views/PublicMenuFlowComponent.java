@@ -31,7 +31,9 @@ public class PublicMenuFlowComponent extends AbstractViewComponent {
         addStyleName(CSS.NOPADDING);
         if (MDD.isMobile()) {
 
-            addComponent(new Label(MDD.getApp().getName()));
+            Label l;
+            addComponent(l = new Label(MDD.getApp().getName()));
+            l.addStyleName(ValoTheme.LABEL_H1);
 
             try {
                 Helper.notransact(em -> {

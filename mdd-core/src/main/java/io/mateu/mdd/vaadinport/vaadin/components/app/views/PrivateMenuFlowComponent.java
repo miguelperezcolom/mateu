@@ -31,6 +31,10 @@ public class PrivateMenuFlowComponent extends AbstractViewComponent {
         if (MDD.isMobile()) {
             addStyleName("mobile");
 
+            Label l;
+            addComponent(l = new Label(MDD.getApp().getName()));
+            l.addStyleName(ValoTheme.LABEL_H1);
+
             try {
                 Helper.notransact(em -> {
                     AppConfig c = AppConfig.get(em);
