@@ -11,7 +11,7 @@ import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.MenuEntry;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
-public class LeftSideComponent extends MouseOverVerticalLayout {
+public class LeftSideComponent extends VerticalLayout {
     private final Button appTitle;
     private AbstractApplication app;
     private final DesktopAppComponent appComponent;
@@ -49,22 +49,33 @@ public class LeftSideComponent extends MouseOverVerticalLayout {
         al.setWidth("210px");
         al.setHeight("30px");
 
+        MouseOverVerticalLayout movl;
+        addComponent(movl = new MouseOverVerticalLayout() {
+            @Override
+            public void mousedOver() {
+                maximizar();
+            }
+        });
+        movl.addStyleName(CSS.NOPADDING);
+
+        movl.addComponent(al);
+
         al.addComponent(appTitle = new Button(app.getName()), "left: 50%; top: 0px;");
         appTitle.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
         appTitle.addStyleName("appTitle");
         appTitle.addClickListener(e -> {
-            MDDUI.get().getNavegador().doAfterCheckSaved(() -> {
-                unselectAll();
-                MDDUI.get().getNavegador().goTo("");
-            });
-        });
+                    MDDUI.get().getNavegador().doAfterCheckSaved(() -> {
+                        unselectAll();
+                        MDDUI.get().getNavegador().goTo("");
+                    });
+                });
 
         al.addComponent(botonMinimizar = new Button(VaadinIcons.MINUS, e -> minimizar()), "left: 190px; top: 0px;");
         botonMinimizar.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
         botonMinimizar.addStyleName("botonminimizar");
 
         VerticalLayout vlz;
-        versionFull.addComponent(vlz = new VerticalLayout(al, ses = new SessionComponent(appComponent)));
+        versionFull.addComponent(vlz = new VerticalLayout(movl, ses = new SessionComponent(appComponent)));
         vlz.addStyleName(CSS.NOPADDING);
         vlz.addStyleName("conborde");
 
@@ -124,10 +135,6 @@ public class LeftSideComponent extends MouseOverVerticalLayout {
         nav.setMenu(menu);
     }
 
-    @Override
-    public void mousedOver() {
-        maximizar();
-    }
 
     public void unselectAll() {
         ses.unselectAll();
