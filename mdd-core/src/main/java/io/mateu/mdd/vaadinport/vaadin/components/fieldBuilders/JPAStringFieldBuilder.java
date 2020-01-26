@@ -114,7 +114,7 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
 
                 if (!forSearchFilter) rbg.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class) || field.isAnnotationPresent(NotEmpty.class));
 
-                addErrorHandler(rbg);
+                addErrorHandler(field, rbg);
             } else {
 
                 ComboBox cb;
@@ -205,7 +205,7 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
 
                 if (!forSearchFilter) cb.setRequiredIndicatorVisible(field.isAnnotationPresent(NotNull.class) || field.isAnnotationPresent(NotEmpty.class));
 
-                addErrorHandler(cb);
+                addErrorHandler(field, cb);
             }
 
             if (allFieldContainers != null) allFieldContainers.put(field, tf);
@@ -257,7 +257,7 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
 
             bind(binder, tf, field, forSearchFilter);
 
-            addErrorHandler(tf);
+            addErrorHandler(field, tf);
 
             r = tf;
         }

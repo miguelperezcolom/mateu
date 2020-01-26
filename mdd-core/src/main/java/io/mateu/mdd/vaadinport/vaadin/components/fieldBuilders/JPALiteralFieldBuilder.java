@@ -50,7 +50,7 @@ public class JPALiteralFieldBuilder extends AbstractFieldBuilder {
 
         bind(binder, c, field, forSearchFilter);
 
-        addErrorHandler(c);
+        addErrorHandler(field, c);
 
         return c;
     }

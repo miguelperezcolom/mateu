@@ -47,7 +47,7 @@ public class JPAEnumerationFieldBuilder extends AbstractFieldBuilder {
 
         bind(binder, tf, field, forSearchFilter);
 
-        addErrorHandler(tf);
+        addErrorHandler(field, tf);
 
         return tf;
     }

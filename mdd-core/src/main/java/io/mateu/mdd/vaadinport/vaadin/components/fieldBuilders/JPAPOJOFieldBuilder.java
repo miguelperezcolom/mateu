@@ -112,7 +112,7 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
 
             subBuild(attachedActions);
 
-            addErrorHandler(mfl);
+            addErrorHandler(field, mfl);
 
             r = mfl;
 
@@ -128,7 +128,7 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
                 tf = hl = new HorizontalLayout();
                 container.addComponent(hl);
 
-                addErrorHandler(hl);
+                addErrorHandler(field, hl);
 
                 r = hl;
 

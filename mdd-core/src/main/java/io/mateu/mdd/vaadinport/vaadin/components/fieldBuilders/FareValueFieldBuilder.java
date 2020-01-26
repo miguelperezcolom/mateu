@@ -36,7 +36,7 @@ public class FareValueFieldBuilder extends AbstractFieldBuilder {
         if (field.isAnnotationPresent(NotNull.class)) tf.setRequiredIndicatorVisible(true);
 
 
-        addErrorHandler(tf);
+        addErrorHandler(field, tf);
 
 
         Binder.BindingBuilder bindingBuilder = binder.forField(tf);

@@ -42,7 +42,7 @@ public class JPABooleanFieldBuilder extends AbstractFieldBuilder {
 
             completeBinding(cb, binder, field);
 
-            addErrorHandler(cb);
+            addErrorHandler(field, cb);
 
             r = cb;
 
@@ -66,7 +66,7 @@ public class JPABooleanFieldBuilder extends AbstractFieldBuilder {
 
             completeBinding(cb, binder, field);
 
-            addErrorHandler(cb);
+            addErrorHandler(field, cb);
 
             r = cb;
 

@@ -8,6 +8,7 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.annotations.Help;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Pair;
@@ -92,7 +93,8 @@ public abstract class AbstractFieldBuilder {
         }
     }
 
-    public void addErrorHandler(AbstractComponent tf) {
+    public void addErrorHandler(FieldInterfaced f, AbstractComponent tf) {
+        if (!MDD.isMobile() && f.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(f.getAnnotation(Help.class).value())) tf.setDescription(f.getAnnotation(Help.class).value());
         tf.setErrorHandler(e -> {
             Throwable th = e.getThrowable();
             while (th != null && th.getCause() != null) {

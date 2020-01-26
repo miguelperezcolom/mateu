@@ -51,7 +51,7 @@ public class JPATextAreaFieldBuilder extends JPAStringFieldBuilder {
             l.addComponent(tf = new com.vaadin.ui.TextArea());
             tf.setWidth("370px");
 
-            addErrorHandler(tf);
+            addErrorHandler(field, tf);
 
             r = tf;
 
@@ -92,7 +92,7 @@ public class JPATextAreaFieldBuilder extends JPAStringFieldBuilder {
 
             BeanValidator bv = new BeanValidator(field.getDeclaringClass(), field.getName());
 
-            addErrorHandler(tf);
+            addErrorHandler(field, tf);
 
             bind(binder, tf, field);
 

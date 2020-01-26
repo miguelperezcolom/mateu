@@ -49,7 +49,7 @@ public class JPAIntegerFieldBuilder extends JPAStringFieldBuilder {
 
             bind(binder, tf, field, forSearchFilter);
 
-            addErrorHandler(tf);
+            addErrorHandler(field, tf);
 
             r = tf;
 

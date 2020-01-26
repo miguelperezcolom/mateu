@@ -50,7 +50,7 @@ public class JPALongFieldBuilder extends JPAStringFieldBuilder {
 
             bind(binder, tf, field, forSearchFilter);
 
-            addErrorHandler(tf);
+            addErrorHandler(field, tf);
 
             r = tf;
         } else r = super.build(field, object, container, binder, validators, stylist, allFieldContainers, forSearchFilter, attachedActions);

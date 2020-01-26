@@ -94,7 +94,7 @@ public class JPAHtmlFieldBuilder extends JPAStringFieldBuilder {
 
             addValidators(validators.get(tf));
 
-            addErrorHandler(tf);
+            addErrorHandler(field, tf);
 
         /*
         tf.setDescription();

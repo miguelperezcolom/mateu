@@ -44,7 +44,7 @@ public class JPALocalDateFieldBuilder extends AbstractFieldBuilder {
         completeBinding(tf, binder, field);
 
 
-        addErrorHandler(tf);
+        addErrorHandler(field, tf);
 
         return tf;
     }

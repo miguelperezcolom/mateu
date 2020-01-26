@@ -33,7 +33,7 @@ public class JPAURLFieldBuilder extends AbstractFieldBuilder {
         container.addComponent(tf = new TextField());
         tf.setValueChangeMode(ValueChangeMode.BLUR);
 
-        addErrorHandler(tf);
+        addErrorHandler(field, tf);
 
 
         Button b = new Button("Go", e -> {

@@ -53,7 +53,7 @@ public class JPAPrimitiveCollectionsFieldBuilder extends JPAStringFieldBuilder {
                 CheckBoxGroup rbg;
                 container.addComponent(tf = rbg = new CheckBoxGroup());
 
-                addErrorHandler(rbg);
+                addErrorHandler(field, rbg);
 
                 r = rbg;
 
@@ -135,7 +135,7 @@ public class JPAPrimitiveCollectionsFieldBuilder extends JPAStringFieldBuilder {
                 container.addComponent(tf);
                 tf.setValueChangeMode(ValueChangeMode.BLUR);
 
-                addErrorHandler(tf);
+                addErrorHandler(field, tf);
 
                 r = tf;
 

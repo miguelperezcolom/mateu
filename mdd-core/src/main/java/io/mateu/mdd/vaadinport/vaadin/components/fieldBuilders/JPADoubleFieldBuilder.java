@@ -53,7 +53,7 @@ public class JPADoubleFieldBuilder extends JPAStringFieldBuilder {
 
             bind(binder, tf, field, forSearchFilter);
 
-            addErrorHandler(tf);
+            addErrorHandler(field, tf);
 
             r = tf;
 

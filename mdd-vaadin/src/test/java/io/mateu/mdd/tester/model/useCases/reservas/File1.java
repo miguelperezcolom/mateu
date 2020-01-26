@@ -2,15 +2,13 @@ package io.mateu.mdd.tester.model.useCases.reservas;
 
 import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.Action;
-import io.mateu.mdd.core.annotations.NotInlineEditable;
-import io.mateu.mdd.core.annotations.NotWhenCreating;
-import io.mateu.mdd.core.annotations.UseTable;
+import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.tester.model.useCases.hotel.Booking;
 import lombok.MateuMDDEntity;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotEmpty;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +17,7 @@ import java.util.Set;
 @MateuMDDEntity
 public class File1 {
 
+    @NotEmpty@Help("Este campo es bla, bla, bla")
     private String leadName;
 
 
@@ -39,6 +38,14 @@ public class File1 {
 
     @ManyToOne(cascade = CascadeType.ALL)
     private Resource attachment;
+
+
+
+    @Action(order = 70, icon = VaadinIcons.BOLT)
+    @NotWhenCreating
+    public void requiredParam(@NotEmpty String param) throws Throwable {
+        System.out.println(param);
+    }
 
 
     @Action(order = 80, icon = VaadinIcons.CLOSE, attachToField = "reservas")

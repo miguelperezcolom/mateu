@@ -34,7 +34,7 @@ public class JPAWeekDaysFieldBuilder extends AbstractFieldBuilder {
         WeekDaysComponent c;
         container.addComponent(c = new WeekDaysComponent(field, binder));
 
-        addErrorHandler(c);
+        addErrorHandler(field, c);
 
 
         if (allFieldContainers.size() == 0) c.focus();

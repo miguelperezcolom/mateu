@@ -72,7 +72,7 @@ public class FromDataProviderFieldBuilder extends AbstractFieldBuilder {
 
             completeBinding(tf, binder, field);
 
-            addErrorHandler(tf);
+            addErrorHandler(field, tf);
 
             r = tf;
 
@@ -115,7 +115,7 @@ public class FromDataProviderFieldBuilder extends AbstractFieldBuilder {
 
             completeBinding(tf, binder, field);
 
-            addErrorHandler(tf);
+            addErrorHandler(field, tf);
 
             r = tf;
         }

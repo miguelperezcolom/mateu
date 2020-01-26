@@ -108,7 +108,7 @@ public class JPACodeFieldBuilder extends JPAStringFieldBuilder {
 
             addValidators(validators.get(tf));
 
-            addErrorHandler(tf);
+            addErrorHandler(field, tf);
 
             r = tf;
         /*

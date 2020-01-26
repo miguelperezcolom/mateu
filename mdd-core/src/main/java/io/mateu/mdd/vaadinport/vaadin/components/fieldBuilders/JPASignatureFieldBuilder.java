@@ -41,7 +41,7 @@ public class JPASignatureFieldBuilder extends JPAStringFieldBuilder {
             l.addComponent(tf = new SignatureField());
 
 
-            addErrorHandler(tf);
+            addErrorHandler(field, tf);
 
             r = tf;
 

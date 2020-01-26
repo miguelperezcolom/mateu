@@ -87,7 +87,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
             container.addComponent(wrap);
 
 
-            addErrorHandler((AbstractField) tf);
+            addErrorHandler(field, (AbstractField) tf);
 
             r = tf;
 
@@ -117,7 +117,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                 Label l;
                 fl.addComponent(l = new Label());
 
-                addErrorHandler(stf);
+                addErrorHandler(field, stf);
 
                 r = stf;
 
@@ -201,7 +201,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
                     hv = rbg;
 
-                    addErrorHandler(rbg);
+                    addErrorHandler(field, rbg);
 
                     r = rbg;
 
@@ -224,7 +224,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
                     captionOwner = cb;
 
-                    addErrorHandler(cb);
+                    addErrorHandler(field, cb);
 
                     r = cb;
 

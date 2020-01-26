@@ -46,7 +46,7 @@ public class JPADateFieldBuilder extends AbstractFieldBuilder {
 
         bind(binder, tf, field);
 
-        addErrorHandler(tf);
+        addErrorHandler(field, tf);
 
         return tf;
     }

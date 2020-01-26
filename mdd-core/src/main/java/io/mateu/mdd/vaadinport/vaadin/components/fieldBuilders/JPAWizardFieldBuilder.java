@@ -42,7 +42,7 @@ public class JPAWizardFieldBuilder extends AbstractFieldBuilder {
 
             if (container.getComponentCount() > 0) hl.setCaption(ReflectionHelper.getCaption(field));
 
-            addErrorHandler(tf);
+            addErrorHandler(field, tf);
 
             r = tf;
 

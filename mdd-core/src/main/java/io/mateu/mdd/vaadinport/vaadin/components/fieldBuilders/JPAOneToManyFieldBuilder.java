@@ -121,7 +121,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             bind(binder, l, field);
 
-            addErrorHandler(l);
+            addErrorHandler(field, l);
 
             r = l;
 
@@ -163,7 +163,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             bind(binder, tf, field);
 
-            addErrorHandler(tf);
+            addErrorHandler(field, tf);
 
             r = tf;
 
@@ -187,7 +187,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             bind(binder, l, field, null);
 
-            addErrorHandler(l);
+            addErrorHandler(field, l);
 
             r = l;
 
@@ -205,7 +205,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             bind(binder, cbg, field);
 
-            addErrorHandler(cbg);
+            addErrorHandler(field, cbg);
 
             r = cbg;
 
@@ -230,7 +230,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             bind(binder, l, field, mh);
 
-            addErrorHandler(l);
+            addErrorHandler(field, l);
 
             r = l;
 
@@ -245,7 +245,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             bind(binder, hl, field, mh);
 
-            addErrorHandler(hl);
+            addErrorHandler(field, hl);
 
             r = hl;
 
@@ -267,7 +267,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             bindResourcesList(binder, hl, field);
 
-            addErrorHandler(hl);
+            addErrorHandler(field, hl);
 
             r = hl;
 
@@ -292,7 +292,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             bind(binder, l, field);
 
-            addErrorHandler(l);
+            addErrorHandler(field, l);
 
             r = l;
 
@@ -314,7 +314,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             Set<Class> subclasses = ReflectionHelper.getSubclasses(targetClass);
 
 
-            addErrorHandler(g);
+            addErrorHandler(field, g);
 
             r = g;
 
@@ -1184,7 +1184,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
         container.addComponent(vl);
 
-        addErrorHandler(g);
+        addErrorHandler(field, g);
 
         return g;
     }

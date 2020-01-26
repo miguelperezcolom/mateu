@@ -50,7 +50,7 @@ public class JPAPrimitiveArraysFieldBuilder extends JPAStringFieldBuilder {
             container.addComponent(tf);
             tf.setValueChangeMode(ValueChangeMode.BLUR);
 
-            addErrorHandler(tf);
+            addErrorHandler(field, tf);
 
             r = tf;
 

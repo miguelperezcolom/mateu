@@ -37,7 +37,7 @@ public class ComponentFieldBuilder extends AbstractFieldBuilder {
 
         //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
 
-        addErrorHandler(tf);
+        addErrorHandler(field, tf);
 
         bind(binder, tf, field);
 
