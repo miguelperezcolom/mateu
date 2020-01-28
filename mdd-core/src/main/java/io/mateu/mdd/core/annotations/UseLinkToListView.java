@@ -19,4 +19,7 @@ public @interface UseLinkToListView {
     boolean deleteEnabled() default false;
 
     String fields() default "";
+
+    String actions() default "";
+
 }

@@ -187,6 +187,12 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
             l.add(a = ViewComponentHelper.createAction(m, this));
         });
 
+        String filter = field.isAnnotationPresent(UseLinkToListView.class)?field.getAnnotation(UseLinkToListView.class).actions():"";
+        if (!Strings.isNullOrEmpty(filter)) {
+            List<String> filteredActionIds = List.of(filter.split(","));
+            l.removeIf(a -> !filteredActionIds.contains(a.getId()));
+        }
+
         return l;
     }
 

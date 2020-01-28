@@ -371,10 +371,11 @@ public class ReflectionHelper {
         List<FieldInterfaced> l = allFieldsCache.get(c);
 
         if (l == null) {
-            allFieldsCache.put(c, l = buildAllFields(c));
+            l = buildAllFields(c);
+            allFieldsCache.put(c, l);
         }
 
-        return l;
+        return new ArrayList<>(l);
     }
 
     private static List<FieldInterfaced> buildAllFields(Class c) {
@@ -546,14 +547,7 @@ public class ReflectionHelper {
         else if (model.getClass().isAnnotationPresent(Entity.class)) {
             Object id = null;
             try {
-                FieldInterfaced idField = null;
-                for (FieldInterfaced f : ReflectionHelper.getAllFields(model.getClass())) {
-                    if (f.isAnnotationPresent(Id.class)) {
-                        idField = f;
-                        break;
-                    }
-                }
-
+                FieldInterfaced idField = ReflectionHelper.getIdField(model.getClass());
                 id = ReflectionHelper.getValue(idField, model);
             } catch (NoSuchMethodException e) {
                 e.printStackTrace();
@@ -619,6 +613,7 @@ public class ReflectionHelper {
                 break;
             }
         }
+        if (field == null) System.out.println("No field " + fieldName + " at " + sourceClass);
         return field;
     }
 

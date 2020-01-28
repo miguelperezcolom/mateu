@@ -88,7 +88,10 @@ public class FieldInterfacedFromPath implements FieldInterfaced {
 
     @Override
     public String getName() {
-        return path.contains(".")?path.substring(0, path.indexOf(".")):path;
+        if (!path.contains(".")) return path;
+        String n = path.substring(path.indexOf(".") + 1);
+        if ("name".equalsIgnoreCase(n) || "nombre".equalsIgnoreCase(n) || "id".equalsIgnoreCase(n)) n = path.substring(0, path.indexOf("."));
+        return n;
     }
 
     @Override

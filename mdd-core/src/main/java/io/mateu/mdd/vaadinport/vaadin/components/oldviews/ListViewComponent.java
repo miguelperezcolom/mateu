@@ -775,7 +775,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                 public Stream<QuerySortOrder> apply(SortDirection sortDirection) {
                     return Stream.of(new QuerySortOrder(f.getName(), sortDirection));
                 }
-            }).setId(f.getName());
+            }).setId(f.getId());
         }
 
 

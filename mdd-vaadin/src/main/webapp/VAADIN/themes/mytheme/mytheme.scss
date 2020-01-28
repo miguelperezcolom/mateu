@@ -1,4 +1,5 @@
 // If you edit this file you need to compile the theme. See README.md for details.
+// If you edit this file you need to compile the theme. See README.md for details.
 
 // Global variable overrides. Must be declared before importing Valo.
 
@@ -2625,7 +2626,7 @@ body {
 
     .v-grid-row-stripe {
       td {
-        background-color: inherit;
+        /* background-color: inherit; */
       }
     }
 
@@ -2664,14 +2665,6 @@ body {
       border: none;
     }
 
-    .v-grid-row:hover, .v-grid-row-selected:hover {
-      td {
-        background-color: red !important;
-        color: white !important;
-        font-weight: bold;
-        cursor: pointer;
-      }
-    }
     .v-grid-cell.frozen {
       border-right: none;
       box-shadow: none;
@@ -2692,13 +2685,35 @@ body {
     }
   }
 
+
+  .gridonetomany.nooutput {
+    .v-grid-row:hover, .v-grid-row-selected:hover {
+      td {
+        background-color: indianred !important;
+        color: white !important;
+        font-weight: bold;
+        cursor: pointer;
+      }
+    }
+  }
+
+  .gridonetomany.nooutput.inline {
+    .v-grid-row:hover, .v-grid-row-selected:hover {
+      td {
+        background-color: royalblue !important;
+      }
+    }
+  }
+
   .gridonetomany.output {
     .v-grid-row:hover, .v-grid-row-selected:hover {
       td {
-        background-color: inherit;
-        color: inherit;
-        font-weight: inherit;
-        cursor: inherit;
+        /*
+        background-color: unset;
+        color: unset;
+        font-weight: unset;
+        cursor: unset;
+         */
       }
     }
   }

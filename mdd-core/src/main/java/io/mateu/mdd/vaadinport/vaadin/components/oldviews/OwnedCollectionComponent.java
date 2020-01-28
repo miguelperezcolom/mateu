@@ -213,7 +213,7 @@ public class OwnedCollectionComponent extends EditorViewComponent {
     }
 
     public OwnedCollectionComponent(MDDBinder parentBinder, FieldInterfaced field, int index) throws Exception {
-        super(field.getGenericType());
+        super(field.getGenericClass());
         this.parentBinder = parentBinder;
         this.field = field;
         collection = (Collection) ReflectionHelper.getValue(field, parentBinder.getBean());

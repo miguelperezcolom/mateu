@@ -873,7 +873,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
             }
 
-            if (true) {
+            if (field == null || ReflectionHelper.puedeAnadir(field)) {
                 if (!isActionPresent("add")) {
                     Button i;
                     bar.addComponent(i = new Button("", VaadinIcons.PLUS));
@@ -920,7 +920,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 }
             }
 
-            if (true) {
+            if (field == null || ReflectionHelper.puedeBorrar(field)) {
                 if (!isActionPresent("remove")) {
                     Button i;
                     bar.addComponent(i = new Button("", VaadinIcons.MINUS));

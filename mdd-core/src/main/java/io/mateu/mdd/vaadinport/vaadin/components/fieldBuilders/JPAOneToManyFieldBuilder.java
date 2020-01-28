@@ -301,9 +301,11 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             Grid g = new Grid();
 
             g.addStyleName("gridonetomany");
+            g.addStyleName("nooutput");
 
             String colsFilter = "";
             if (field.isAnnotationPresent(UseTable.class)) colsFilter = field.getAnnotation(UseTable.class).fields();
+            if (Strings.isNullOrEmpty(colsFilter) && field.isAnnotationPresent(FieldsFilter.class)) colsFilter = field.getAnnotation(FieldsFilter.class).value();
 
             List<FieldInterfaced> colFields = getColumnFields(field, colsFilter);
             List<FieldInterfaced> editableFields = ReflectionHelper.getAllEditableFields(ReflectionHelper.getGenericClass(field.getGenericType()), field.getDeclaringClass(), false, field);
@@ -332,6 +334,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                 }
 
                 if (inline ) {
+
+                    g.addStyleName("inline");
 
                     boolean needsProxy = false;
                     for (FieldInterfaced f : editableFields) if (f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline()) {
@@ -1329,7 +1333,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             filter = filter.replaceAll("\\([^)]*\\)", "");
             l = new ArrayList<>();
             List<FieldInterfaced> aux = ReflectionHelper.getAllFields(field.getGenericClass());
-            List<String> fns = Arrays.asList(filter.split(","));
+            List<String> fns = Arrays.asList(filter.replaceAll(" ", "").split(","));
             for (String fn : fns) {
                 if (fn.contains(".")) {
                     l.add(new FieldInterfacedFromPath(field.getGenericClass(), fn));
@@ -1366,7 +1370,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
         List<FieldInterfaced> l = null;
 
-        l = ListViewComponent.getColumnFields(rowType, true);
+        l = ListViewComponent.getColumnFields(rowType, true, field.isAnnotationPresent(FieldsFilter.class)?field.getAnnotation(FieldsFilter.class).value():null);
 
         // quitamos el campo mappedBy de las columnas, ya que se supone que siempre seremos nosotros
         OneToMany aa;
@@ -1390,6 +1394,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         if (field.isAnnotationPresent(FieldsFilter.class)) {
 
             List<String> fns = Arrays.asList(field.getAnnotation(FieldsFilter.class).value().split(","));
+            fns = fns.stream().map(s -> s.trim()).collect(Collectors.toList());
 
             List<FieldInterfaced> borrar = new ArrayList<>();
             for (FieldInterfaced f : l) {
