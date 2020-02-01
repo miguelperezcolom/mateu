@@ -304,8 +304,10 @@ public class MDDUI extends UI {
 
         w.addStyleName("miapp");
 
-        w.setWidth("80%");
-        w.setHeight("80%");
+        int percent = 100 - UI.getCurrent().getWindows().size() * 10;
+
+        w.setWidth("" + percent + "%");
+        w.setHeight("" + percent + "%");
 
         w.setContent(view.getViewComponent());
         view.setWindowContainer(w);
