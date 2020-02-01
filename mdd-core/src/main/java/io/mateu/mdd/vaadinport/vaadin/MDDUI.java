@@ -304,7 +304,7 @@ public class MDDUI extends UI {
 
         w.addStyleName("miapp");
 
-        int percent = 100 - UI.getCurrent().getWindows().size() * 10;
+        int percent = 100 - (UI.getCurrent().getWindows().size() + 1) * 10;
 
         w.setWidth("" + percent + "%");
         w.setHeight("" + percent + "%");
