@@ -65,4 +65,9 @@ public class MobileAppComponent extends VerticalLayout implements AppComponent {
     public void setSelectingArea() {
 
     }
+
+    @Override
+    public void setSelectingArea(boolean force) {
+
+    }
 }

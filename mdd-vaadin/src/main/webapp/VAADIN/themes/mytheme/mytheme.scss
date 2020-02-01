@@ -91,7 +91,7 @@ body {
 
     }
 
-    .publicmenuflowcomponent, .privatemenuflowcomponent {
+    .publicmenuflowcomponent, .privatemenuflowcomponent, .selectarea {
       text-align: center;
       .areabutton {
         margin-left: inherit;
@@ -279,7 +279,7 @@ body {
 
         }
 
-    .publicmenuflowcomponent, .privatemenuflowcomponent {
+    .publicmenuflowcomponent, .privatemenuflowcomponent, .selectarea {
       .areabutton {
         margin-left: -15px;
       }
@@ -1664,7 +1664,7 @@ body {
   }
 
   .info {
-    background-color: #9df7e8 !important;
+    background-color: #e0e8f3 !important;
   }
 
   .warning {

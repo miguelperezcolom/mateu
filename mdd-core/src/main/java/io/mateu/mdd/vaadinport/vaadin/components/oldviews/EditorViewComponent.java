@@ -2,10 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.vaadin.data.Binder;
-import com.vaadin.data.BinderValidationStatus;
-import com.vaadin.data.HasValue;
-import com.vaadin.data.Validator;
+import com.vaadin.data.*;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.Registration;
@@ -873,7 +870,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
             }
 
-            if (field == null || ReflectionHelper.puedeAnadir(field)) {
+            if (modelType == null || (!modelType.isAnnotationPresent(ModifyValuesOnly.class) && !modelType.isAnnotationPresent(NewNotAllowed.class))) if (field == null || ReflectionHelper.puedeAnadir(field)) {
                 if (!isActionPresent("add")) {
                     Button i;
                     bar.addComponent(i = new Button("", VaadinIcons.PLUS));
@@ -920,7 +917,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 }
             }
 
-            if (field == null || ReflectionHelper.puedeBorrar(field)) {
+            if (modelType == null || (!modelType.isAnnotationPresent(ModifyValuesOnly.class) && !modelType.isAnnotationPresent(Indelible.class))) if (field == null || ReflectionHelper.puedeBorrar(field)) {
                 if (!isActionPresent("remove")) {
                     Button i;
                     bar.addComponent(i = new Button("", VaadinIcons.MINUS));
@@ -1184,10 +1181,10 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     public boolean validate(boolean silent) {
         boolean noerror = true;
         BinderValidationStatus status = binder.validate();
-        if (status.hasErrors()) {
+        if (false && status.hasErrors()) {
             noerror = false;
         }
-        for (Component c : componentsToLookForErrors) {
+        for (Component c : componentsToLookForErrors) if (c.isVisible() && c.getParent().isVisible()) {
             if (c instanceof AbstractComponent && ((AbstractComponent) c).getComponentError() != null) {
                 noerror = false;
                 if (c instanceof Focusable) ((Focusable) c).focus();

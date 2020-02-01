@@ -1,7 +1,9 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
+import com.vaadin.data.Binder;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
+import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.Layout;
@@ -24,7 +26,7 @@ public class JPALocalDateFieldBuilder extends AbstractFieldBuilder {
     }
 
     @Override
-    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearhFilter, Map<String, List<AbstractAction>> attachedActions) {
+    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
 
 
         DateField tf;
@@ -40,8 +42,11 @@ public class JPALocalDateFieldBuilder extends AbstractFieldBuilder {
 
         //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) tf.setDescription(field.getAnnotation(Help.class).value());
 
+        Binder.BindingBuilder aux = binder.forField(tf);
+        if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
 
-        completeBinding(tf, binder, field);
+
+        completeBinding(aux, binder, field);
 
 
         addErrorHandler(field, tf);

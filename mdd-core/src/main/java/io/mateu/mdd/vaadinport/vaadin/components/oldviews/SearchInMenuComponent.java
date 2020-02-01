@@ -16,7 +16,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SearchInMenuComponent extends AbstractViewComponent {
+public abstract class SearchInMenuComponent extends AbstractViewComponent {
 
     private final VerticalLayout resultsLayout = new VerticalLayout();
     private final Searcher searcher;
@@ -47,7 +47,8 @@ public class SearchInMenuComponent extends AbstractViewComponent {
 
         setSizeFull();
 
-        addStyleName("searchinmenucomponent");
+        if (getIcon() == null) hideHeader();
+        else addStyleName("searchinmenucomponent");
 
         Layout marco = MDD.isMobile()?new CssLayout():new HorizontalLayout();
         if (!MDD.isMobile()) marco.setSizeFull();
@@ -121,6 +122,7 @@ public class SearchInMenuComponent extends AbstractViewComponent {
         VerticalLayout contenedor;
         resultsLayout.addComponent(contenedor = new VerticalLayout());
         contenedor.addStyleName("contenedor");
+        contenedor.addStyleName(CSS.NOPADDING);
 
         if (found.size() == 0) {
 
@@ -139,7 +141,10 @@ public class SearchInMenuComponent extends AbstractViewComponent {
                 hl.addStyleName(CSS.NOPADDING);
                 Button b;
                 hl.addComponent(b = new Button(f.getName()));
-                b.addClickListener(ev -> MDDUI.get().getNavegador().goTo(f.getPath()));
+                b.addClickListener(ev -> {
+                    close();
+                    MDDUI.get().getNavegador().goTo(f.getPath());
+                });
                 b.addStyleName(ValoTheme.BUTTON_LINK);
 
                 Label l;
@@ -153,5 +158,7 @@ public class SearchInMenuComponent extends AbstractViewComponent {
 
         }
     }
+
+    public abstract void close();
 
 }

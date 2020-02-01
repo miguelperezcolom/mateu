@@ -2,6 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.navigation;
 
 import com.google.common.base.Strings;
 import com.vaadin.navigator.Navigator;
+import com.vaadin.navigator.ViewProvider;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
 import io.mateu.mdd.core.MDD;
@@ -36,15 +37,25 @@ public class MDDNavigator {
         this.stack = stack;
         this.navigator = navigator;
         this.viewProvider = viewProvider;
+        navigator.setErrorProvider(new ViewProvider() {
+            @Override
+            public String getViewName(String s) {
+                viewProvider.getView(s);
+                return viewProvider.getStack().getState(viewProvider.getStack().getLastNavigable());
+            }
+
+            @Override
+            public com.vaadin.navigator.View getView(String s) {
+                return viewProvider.getStack().get(s);
+            }
+
+
+        });
     }
 
 
     public ViewStack getStack() {
         return stack;
-    }
-
-    public Navigator getNavigator() {
-        return navigator;
     }
 
 
@@ -108,12 +119,15 @@ public class MDDNavigator {
 
     public void goTo(String path, boolean newTab) {
         if (path != null) {
-            if (newTab) {
-                //Ui.getcurrent.open(new external resources(https://www.youtube.com/),"_blank",false)
-                if (!path.startsWith("/")) path = "/app/" + path;
-                else path = "/app" + path;
-                Page.getCurrent().open(path, "_blank", false);
-            } else navigator.navigateTo(path);
+            com.vaadin.navigator.View v = viewProvider.getView(path);
+            if (v != null) {
+                if (newTab) {
+                    //Ui.getcurrent.open(new external resources(https://www.youtube.com/),"_blank",false)
+                    if (!path.startsWith("/")) path = "/app/" + path;
+                    else path = "/app" + path;
+                    Page.getCurrent().open(path, "_blank", false);
+                } else navigator.navigateTo(path);
+            }
         }
     }
 
@@ -199,20 +213,21 @@ public class MDDNavigator {
 
     private void yesGoBack() {
 
-        if (stack.getLast().getComponent() instanceof EditorViewComponent) {
-            Object result = ((EditorViewComponent)stack.getLast().getComponent()).getModel();
+        View l = stack.getLast();
+        if (l.getComponent() instanceof EditorViewComponent) {
+            Object result = ((EditorViewComponent)l.getComponent()).getModel();
             if (result != null && result instanceof EditorListener) ((EditorListener) result).onGoBack(result);
-            ((EditorViewComponent) stack.getLast().getComponent()).onGoBack();
+            ((EditorViewComponent) l.getComponent()).onGoBack();
         }
 
         if (stack.size() > 1) {
             View v = stack.get(stack.size() - 2);
             String u = stack.getState(v);
             if (v.getViewComponent() instanceof ListViewComponent) u = ((ListViewComponent) v.getViewComponent()).getUrl();
+            if (l.getWindowContainer() != null && !l.getWindowContainer().equals(v.getWindowContainer())) l.getWindowContainer().close();
             MDDUI.get().getNavegador().goTo(u);
         } else {
-            View v = stack.getLast();
-            String u = stack.getState(v);
+            String u = stack.getState(l);
             if (!Strings.isNullOrEmpty(u) && u.contains("/")) {
                 u = u.substring(0, u.lastIndexOf("/"));
 

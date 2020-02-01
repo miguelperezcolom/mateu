@@ -2,14 +2,14 @@ package io.mateu.mdd.vaadinport.vaadin;
 
 import com.google.common.base.Strings;
 import com.vaadin.annotations.*;
+import com.vaadin.annotations.JavaScript;
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.PushStateNavigation;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServletRequest;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.JavaScriptFunction;
-import com.vaadin.ui.Layout;
-import com.vaadin.ui.UI;
+import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonArray;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.MDDPort;
@@ -20,6 +20,7 @@ import io.mateu.mdd.vaadinport.vaadin.components.app.desktop.DesktopAppComponent
 import io.mateu.mdd.vaadinport.vaadin.components.app.mobile.MobileAppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.ViewContainer;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.SearchInMenuComponent;
 import io.mateu.mdd.vaadinport.vaadin.mdd.VaadinPort;
 import io.mateu.mdd.vaadinport.vaadin.navigation.*;
 import lombok.extern.slf4j.Slf4j;
@@ -228,5 +229,94 @@ public class MDDUI extends UI {
             evc.getBinder().refresh();
         }
 
+    }
+
+    public void chooseArea(boolean publicZone) {
+        //abrir ventana modal con todas las áreas
+        Window w = new Window("Please select work area");
+
+        w.addStyleName("miapp");
+
+        w.setWidth("80%");
+        w.setHeight("80%");
+
+        CssLayout lx = new CssLayout();
+        lx.addStyleName("selectarea");
+
+        MDDUI.get().getAppComponent().setSelectingArea();
+
+        MDD.getApp().getAreas().stream().forEach(a -> {
+
+            Button b;
+            lx.addComponent(b = new Button(a.getName(), a.getIcon()));
+            b.addClickListener(e -> {
+                w.close();
+                MDDUI.get().getNavegador().goTo(a);
+            });
+            b.setPrimaryStyleName(ValoTheme.BUTTON_HUGE);
+            b.addStyleName("submenuoption");
+
+        });
+
+
+        w.setContent(lx);
+
+        w.center();
+        w.setModal(true);
+
+        UI.getCurrent().addWindow(w);
+
+    }
+
+    public void search() {
+        // lo mismo para buscar y para navegar en profundidad
+        Window w = new Window("Search");
+
+        w.addStyleName("miapp");
+
+        w.setWidth("80%");
+        w.setHeight("80%");
+
+        SearchInMenuComponent c = new SearchInMenuComponent(MDD.getApp().getSearcher()) {
+
+            @Override
+            public VaadinIcons getIcon() {
+                return null;
+            }
+
+            @Override
+            public void close() {
+                w.close();
+            }
+        };
+
+        w.setContent(c);
+
+        w.center();
+        w.setModal(true);
+
+        UI.getCurrent().addWindow(w);
+    }
+
+    public void openInWindow(View view) {
+        // lo mismo para buscar y para navegar en profundidad
+        Window w = new Window("Search");
+
+        w.addStyleName("miapp");
+
+        w.setWidth("80%");
+        w.setHeight("80%");
+
+        w.setContent(view.getViewComponent());
+        view.setWindowContainer(w);
+
+        w.center();
+        w.setModal(true);
+
+        w.addCloseListener(e -> {
+           getNavegador().goBack();
+        });
+
+        UI.getCurrent().addWindow(w);
     }
 }

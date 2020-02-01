@@ -151,8 +151,8 @@ public class LeftSideComponent extends VerticalLayout {
         nav.setSearching();
     }
 
-    public void setSelectingArea() {
+    public void setSelectingArea(boolean force) {
         unselectAll();
-        nav.setSelectingArea();
+        nav.setSelectingArea(force);
     }
 }

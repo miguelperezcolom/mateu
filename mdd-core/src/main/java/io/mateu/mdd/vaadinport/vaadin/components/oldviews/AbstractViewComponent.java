@@ -28,6 +28,7 @@ import java.util.Map;
 
 public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> extends VerticalLayout {
 
+    private final Component header;
     private Label titleLabel;
     private CssLayout kpisContainer;
     private View view;
@@ -42,6 +43,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     private boolean built;
     private AbstractViewComponent parentView;
     private Label iconLabel;
+    private Component backButton;
 
     public AbstractViewComponent getParentView() {
         return parentView;
@@ -62,7 +64,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     public AbstractViewComponent() {
         addStyleName("viewcomponent");
 
-        addComponent(createHeader());
+        addComponent(header = createHeader());
 
         if (!isBarHidden()) {
             bar = new CssLayout();
@@ -73,6 +75,10 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
             getActionsContainer().addComponent(bar);
         }
 
+    }
+
+    public void hideHeader() {
+        header.setVisible(false);
     }
 
     public boolean expandOnOpen() {
@@ -215,10 +221,9 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     }
 
     private void addBack(CssLayout bar) {
-            Component i = null;
             if (!isActionPresent("back")) {
                 Button b;
-                bar.addComponent(i = b = new Button("", VaadinIcons.ARROW_LEFT));
+                bar.addComponent(backButton = b = new Button("", VaadinIcons.ARROW_LEFT));
                 //bar.addComponent(i = b = new Button("Back", VaadinIcons.ARROW_LEFT));
                 b.addStyleName(ValoTheme.BUTTON_QUIET);
                 b.addClickListener(e -> {
@@ -231,12 +236,12 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                     }
                 });
 
-                addMenuItem("back", i);
+                addMenuItem("back", backButton);
 
             } else {
-                i = getMenuItemById("back");
+                backButton = getMenuItemById("back");
             }
-            if (isBackable()) i.setVisible(true);
+            if (isBackable()) backButton.setVisible(true);
     }
 
     public void addViewActionsMenuItems(CssLayout bar) {
@@ -352,6 +357,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
     public void setBackable(boolean backable) {
         this.backable = backable;
+        if (backButton != null) backButton.setVisible(backable);
     }
 
     public void applyStyles(ViewContainer viewContainer) {

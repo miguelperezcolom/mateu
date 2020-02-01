@@ -1,9 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
-import com.vaadin.data.HasValue;
-import com.vaadin.data.ValidationResult;
-import com.vaadin.data.Validator;
-import com.vaadin.data.ValueContext;
+import com.vaadin.data.*;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.data.validator.StringLengthValidator;
 import com.vaadin.icons.VaadinIcons;
@@ -90,21 +87,15 @@ public class JPATextAreaFieldBuilder extends JPAStringFieldBuilder {
 
             if (field.isAnnotationPresent(NotNull.class) || field.isAnnotationPresent(NotEmpty.class)) validators.get(tf).add(new StringLengthValidator("Required field", 1, Integer.MAX_VALUE));
 
-            BeanValidator bv = new BeanValidator(field.getDeclaringClass(), field.getName());
+            Binder.BindingBuilder aux = binder.forField(tf);
+            if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
 
             addErrorHandler(field, tf);
 
-            bind(binder, tf, field);
-
+            completeBinding(aux, binder, field);
         }
 
         return r;
     }
 
-    public void addValidators(List<Validator> validators) {
-    }
-
-    protected void bind(MDDBinder binder, com.vaadin.ui.TextArea tf, FieldInterfaced field) {
-        completeBinding(tf, binder, field);
-    }
 }

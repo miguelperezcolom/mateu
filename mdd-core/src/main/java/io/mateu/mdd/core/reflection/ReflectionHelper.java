@@ -395,7 +395,7 @@ public class ReflectionHelper {
             }
         }
 
-        for (Field f : c.getDeclaredFields())  if (!f.isAnnotationPresent(Version.class)) if (!Logger.class.isAssignableFrom(f.getType())) if (!vistos.contains(f.getName())) if (!f.getName().contains("$") && !"_proxied".equalsIgnoreCase(f.getName()) && !"_possibleValues".equalsIgnoreCase(f.getName()) && !"_binder".equalsIgnoreCase(f.getName()) && !"_field".equalsIgnoreCase(f.getName())) {
+        for (Field f : c.getDeclaredFields())  if (!Modifier.isStatic(f.getModifiers())) if (!f.isAnnotationPresent(Version.class)) if (!Logger.class.isAssignableFrom(f.getType())) if (!vistos.contains(f.getName())) if (!f.getName().contains("$") && !"_proxied".equalsIgnoreCase(f.getName()) && !"_possibleValues".equalsIgnoreCase(f.getName()) && !"_binder".equalsIgnoreCase(f.getName()) && !"_field".equalsIgnoreCase(f.getName())) {
             l.add(new FieldInterfacedFromField(f));
         }
 

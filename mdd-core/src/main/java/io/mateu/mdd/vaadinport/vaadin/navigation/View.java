@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.navigation;
 
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Window;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.SearchInMenuComponent;
@@ -10,6 +11,8 @@ public class View implements com.vaadin.navigator.View {
     private final AbstractViewComponent viewComponent;
     private final ViewStack stack;
     private final Component component;
+    private Window windowContainer;
+    private boolean openNewWindow;
 
     public View(ViewStack stack, Component component) {
         this.stack = stack;
@@ -20,8 +23,8 @@ public class View implements com.vaadin.navigator.View {
 
 
         if (component instanceof AbstractViewComponent) {
-            ((AbstractViewComponent)component).setStack(stack);
             ((AbstractViewComponent) component).setView(this);
+            ((AbstractViewComponent)component).setStack(stack);
         }
 
     }
@@ -64,4 +67,25 @@ public class View implements com.vaadin.navigator.View {
     }
 
 
+    public void setWindowContainer(Window w) {
+        this.windowContainer = w;
+        if (w != null) {
+            int posx = stack.indexOf(this);
+            if (posx > 0 && !w.equals(stack.get(posx - 1).getWindowContainer())) {
+                viewComponent.setBackable(false);
+            }
+        }
+    }
+
+    public Window getWindowContainer() {
+        return windowContainer;
+    }
+
+    public void setOpenNewWindow(boolean openNewWindow) {
+        this.openNewWindow = openNewWindow;
+    }
+
+    public boolean isOpenNewWindow() {
+        return openNewWindow;
+    }
 }

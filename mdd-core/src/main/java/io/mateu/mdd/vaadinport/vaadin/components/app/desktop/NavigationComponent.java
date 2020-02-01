@@ -62,10 +62,13 @@ public class NavigationComponent extends VerticalLayout {
 
                         Button b = bArea = new Button(a.getName().toUpperCase() + ((app.getAreas().size() > 1)?"<span class=\"menu-badge\">" + VaadinIcons.RETWEET.getHtml() + "</span>":"")
                                 , ev -> {
-
                             MDDUI.get().getNavegador().doAfterCheckSaved(() -> {
-                                setSelectingArea();
-                                MDDUI.get().getNavegador().goTo(((a.isPublicAccess())?"public":"private"), ev.isCtrlKey());
+                                if (MDD.isMobile()) {
+                                    setSelectingArea(false);
+                                    MDDUI.get().getNavegador().goTo(((a.isPublicAccess())?"public":"private"), ev.isCtrlKey());
+                                } else {
+                                    MDDUI.get().chooseArea(MDD.getUserData() == null);
+                                }
                             });
 
                         }); //, a.getIcon());
@@ -113,8 +116,12 @@ public class NavigationComponent extends VerticalLayout {
                             , ev -> {
 
                         MDDUI.get().getNavegador().doAfterCheckSaved(() -> {
-                            setSearching();
-                            MDDUI.get().getNavegador().goTo("search", ev.isCtrlKey());
+                            if (MDD.isMobile()) {
+                                setSearching();
+                                MDDUI.get().getNavegador().goTo("search", ev.isCtrlKey());
+                            } else {
+                                MDDUI.get().search();
+                            }
                         });
 
                     }); //, a.getIcon());
@@ -138,9 +145,13 @@ public class NavigationComponent extends VerticalLayout {
             if (app.getAreas().size() > 1) {
                 Button b = bArea = new Button("CHOOSE AN AREA" + ((app.getAreas().size() > 1)?"<span class=\"menu-badge\">" + VaadinIcons.ARROW_RIGHT.getHtml() + "</span>":"")
                         , ev -> {
-                    MDDUI.get().getAppComponent().unselectAll();
-                    bArea.addStyleName("selected");
-                    MDDUI.get().getNavegador().goTo(MDD.getUserData() == null?"public":"private", ev.isCtrlKey());
+                    if (MDD.isMobile()) {
+                        MDDUI.get().getAppComponent().unselectAll();
+                        bArea.addStyleName("selected");
+                        MDDUI.get().getNavegador().goTo(MDD.getUserData() == null?"public":"private", ev.isCtrlKey());
+                    } else {
+                        MDDUI.get().chooseArea(MDD.getUserData() == null);
+                    }
                 });
                 b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
                 b.addStyleName("selected");
@@ -228,12 +239,14 @@ public class NavigationComponent extends VerticalLayout {
         if (bBuscar != null) bBuscar.addStyleName("selected");
     }
 
-    public void setSelectingArea() {
-        MDDUI.get().getAppComponent().unselectAll();
-        if (bArea != null) {
-            bArea.addStyleName("selected");
-            bArea.setIcon(null);
-            bArea.setCaption("CHOOSE AN AREA <span class=\"menu-badge\">" + VaadinIcons.ARROW_RIGHT.getHtml() + "</span>");
+    public void setSelectingArea(boolean force) {
+        if (force) {
+            MDDUI.get().getAppComponent().unselectAll();
+            if (bArea != null) {
+                bArea.addStyleName("selected");
+                bArea.setIcon(null);
+                bArea.setCaption("CHOOSE AN AREA <span class=\"menu-badge\">" + VaadinIcons.ARROW_RIGHT.getHtml() + "</span>");
+            }
         }
     }
 }

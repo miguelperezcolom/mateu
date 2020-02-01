@@ -109,6 +109,11 @@ public class DesktopAppComponent extends VerticalLayout implements AppComponent 
 
     @Override
     public void setSelectingArea() {
-        left.setSelectingArea();
+        setSelectingArea(false);
+    }
+
+    @Override
+    public void setSelectingArea(boolean force) {
+        left.setSelectingArea(force);
     }
 }

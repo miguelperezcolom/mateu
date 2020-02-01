@@ -127,6 +127,12 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
     @Override
     public View getView(String state) {
+
+        if (state.equals(currentPath)) {
+            io.mateu.mdd.vaadinport.vaadin.navigation.View v = stack.getLast();
+            if (v != null) return v;
+        }
+
         io.mateu.mdd.vaadinport.vaadin.navigation.View v = null;
         boolean nuevo = false;
         boolean expand = false;
@@ -251,7 +257,13 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
             stack.clear();
 
-            v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new SearchInMenuComponent(MDD.getApp().getSearcher()));
+            v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new SearchInMenuComponent(MDD.getApp().getSearcher()) {
+
+                @Override
+                public void close() {
+
+                }
+            });
 
             MDDUI.get().getAppComponent().setSearching();
 
@@ -318,7 +330,6 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                 }
             } else {
                 v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PublicMenuFlowComponent());
-                MDDUI.get().getAppComponent().setSelectingArea();
             }
 
         } else if ("private".equals(state)) {
@@ -777,8 +788,10 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
             }
         }
 
-        return v;
-
+        if (v != null && v.isOpenNewWindow()) {
+            MDDUI.get().openInWindow(v);
+            return null;
+        } else return v == null || v.getWindowContainer() == null?v:null;
     }
 
     private AbstractMenu getRootMenu(String currentPath) {
@@ -912,7 +925,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                         }
 
-                        stack.push(currentPath, vc);
+                        stack.push(currentPath, vc).setOpenNewWindow(true);
 
                     }
 
@@ -922,7 +935,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
             } else if (ownedCollection) {
 
                 try {
-                    stack.push(currentPath, new OwnedCollectionComponent(evfc.getBinder(), field, field.isAnnotationPresent(UseLinkToListView.class) ? -1 : 0));
+                    stack.push(currentPath, new OwnedCollectionComponent(evfc.getBinder(), field, field.isAnnotationPresent(UseLinkToListView.class) ? -1 : 0)).setOpenNewWindow(true);
                 } catch (Exception e) {
                     MDD.alert(e);
                 }
@@ -939,7 +952,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                     vc = new JPACollectionFieldViewComponent(field.getGenericClass(), field, evfc, false);
 
-                    stack.push(currentPath, vc);
+                    stack.push(currentPath, vc).setOpenNewWindow(true);
 
                 } catch (Throwable e) {
                     MDD.alert(e);
@@ -975,7 +988,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
     private void procesarFieldEditor(IEditorViewComponent parentEditor, FieldInterfaced field, String step) throws Throwable {
         MDDBinder parentBinder = parentEditor.getBinder();
         if (ReflectionHelper.isBasico(field.getType())) {
-            stack.push(currentPath, new FieldEditorComponent(parentBinder, field));
+            stack.push(currentPath, new FieldEditorComponent(parentBinder, field)).setOpenNewWindow(true);
         } else {
             Object o = ReflectionHelper.getValue(field, parentEditor.getModel());
             boolean add = o == null || step.endsWith("_new");
@@ -1015,7 +1028,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     }
                 }
             });
-            stack.push(currentPath, evc);
+            stack.push(currentPath, evc).setOpenNewWindow(true);
         }
     }
 
@@ -1308,7 +1321,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     }
 
                     if (hasNonInjectedParameters) {
-                        stack.push(currentPath, new MethodParametersViewComponent(instance, method, pendingSelection));
+                        stack.push(currentPath, new MethodParametersViewComponent(instance, method, pendingSelection)).setOpenNewWindow(true);
                     } else {
                         procesarResultado(method, ReflectionHelper.execute(MDD.getUserData(), method, new MDDBinder(new ArrayList<>()), instance, pendingSelection), lastViewComponent);
                     }
@@ -1330,15 +1343,15 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
         if (r == null && void.class.equals(m.getReturnType())) {
             ComponentWrapper cw;
-            stack.push(currentPath, cw = new ComponentWrapper(title, new Label("Void method", ContentMode.HTML)));
+            stack.push(currentPath, cw = new ComponentWrapper(title, new Label("Void method", ContentMode.HTML))).setOpenNewWindow(true);
             cw.addAttachListener(e -> MDDUI.get().getNavegador().goBack());
         } else if (r == null) {
-            stack.push(currentPath, new ComponentWrapper(title, new Label("Empty result", ContentMode.HTML)));
+            stack.push(currentPath, new ComponentWrapper(title, new Label("Empty result", ContentMode.HTML))).setOpenNewWindow(true);
         } else {
             Class c = r.getClass();
 
             if (r instanceof Class && ((Class)r).isAnnotationPresent(Entity.class)) {
-                stack.push(currentPath, new JPAListViewComponent((Class) r));
+                stack.push(currentPath, new JPAListViewComponent((Class) r)).setOpenNewWindow(true);
             } else if (int.class.equals(c)
                     || Integer.class.equals(c)
                     || long.class.equals(c)
@@ -1351,26 +1364,26 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     || float.class.equals(c)
                     || Float.class.equals(c)
             ) {
-                stack.push(currentPath, new ComponentWrapper(title, new Label("" + r, ContentMode.HTML)));
+                stack.push(currentPath, new ComponentWrapper(title, new Label("" + r, ContentMode.HTML))).setOpenNewWindow(true);
             } else if (URL.class.equals(c)) {
                 if ((m != null && m.isAnnotationPresent(IFrame.class)) || r.toString().endsWith("pdf")) {
                     BrowserFrame b = new BrowserFrame("Result", new ExternalResource(r.toString()));
                     b.setSizeFull();
-                    stack.push(currentPath, new ComponentWrapper(title, b));
+                    stack.push(currentPath, new ComponentWrapper(title, b)).setOpenNewWindow(true);
                 } else {
-                    stack.push(currentPath, new ComponentWrapper(title, new Link("Click me to view the result", new ExternalResource(r.toString()))));
+                    stack.push(currentPath, new ComponentWrapper(title, new Link("Click me to view the result", new ExternalResource(r.toString())))).setOpenNewWindow(true);
                 }
             } else if (r instanceof Collection && ((Collection) r).size() > 0 && ((Collection) r).iterator().next() != null && ((Collection) r).iterator().next().getClass().isAnnotationPresent(Entity.class)) {
-                stack.push(currentPath, new CollectionListViewComponent((Collection) r, ((Collection) r).iterator().next().getClass()));
+                stack.push(currentPath, new CollectionListViewComponent((Collection) r, ((Collection) r).iterator().next().getClass())).setOpenNewWindow(true);
             } else if (Collection.class.isAssignableFrom(c)) {
 
                 Collection col = (Collection) r;
 
                 if (col.size() == 0) {
-                    stack.push(currentPath, new ComponentWrapper(title, new Label("Empty list", ContentMode.HTML)));
+                    stack.push(currentPath, new ComponentWrapper(title, new Label("Empty list", ContentMode.HTML))).setOpenNewWindow(true);
                 } else if (m != null && m.isAnnotationPresent(Pdf.class) || Query.class.isAssignableFrom(m.getReturnType())) {
                     try {
-                        stack.push(currentPath, new ComponentWrapper(title, new PdfComponent((List) r)));
+                        stack.push(currentPath, new ComponentWrapper(title, new PdfComponent((List) r))).setOpenNewWindow(true);
                     } catch (Throwable throwable) {
                         MDD.alert(throwable);
                     }
@@ -1421,7 +1434,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                         g.setDataProvider(new ListDataProvider((Collection) r));
 
-                        stack.push(currentPath, new ComponentWrapper(title, g));
+                        stack.push(currentPath, new ComponentWrapper(title, g)).setOpenNewWindow(true);
                     }
 
                 }
@@ -1430,7 +1443,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
             } else if (r instanceof Query) {
 
                 try {
-                    stack.push(currentPath, new ComponentWrapper(title, new PdfComponent((Query) r)));
+                    stack.push(currentPath, new ComponentWrapper(title, new PdfComponent((Query) r))).setOpenNewWindow(true);
                 } catch (Throwable throwable) {
                     MDD.alert(throwable);
                 }
@@ -1439,33 +1452,33 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                 if (m != null && m.isAnnotationPresent(Output.class)) {
                     try {
-                        stack.push(currentPath, new ComponentWrapper(title, new PdfComponent((RpcView) r, r, null)));
+                        stack.push(currentPath, new ComponentWrapper(title, new PdfComponent((RpcView) r, r, null))).setOpenNewWindow(true);
                     } catch (Throwable throwable) {
                         MDD.alert(throwable);
                     }
                 } else {
-                    stack.push(currentPath, new RpcListViewComponent((RpcView) r));
+                    stack.push(currentPath, new RpcListViewComponent((RpcView) r)).setOpenNewWindow(true);
                 }
 
             } else if (m != null && m.isAnnotationPresent(Output.class)) {
 
-                stack.push(currentPath, new ComponentWrapper(title, new PrintPOJOComponent(r)));
+                stack.push(currentPath, new ComponentWrapper(title, new PrintPOJOComponent(r))).setOpenNewWindow(true);
 
             } else if (r.getClass().isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(r.getClass())) {
-                stack.push(currentPath, new EditorViewComponent(r, lastViewComponent));
+                stack.push(currentPath, new EditorViewComponent(r, lastViewComponent)).setOpenNewWindow(true);
             } else if (r instanceof Component) {
-                stack.push(currentPath, new ComponentWrapper(title, (Component) r));
+                stack.push(currentPath, new ComponentWrapper(title, (Component) r)).setOpenNewWindow(true);
             } else if (r instanceof AbstractAction) {
                 ((AbstractAction) r).run(this);
             } else if (r instanceof WizardPage) {
-                stack.push(currentPath, new WizardComponent((WizardPage) r));
+                stack.push(currentPath, new WizardComponent((WizardPage) r)).setOpenNewWindow(true);
             } else {
                 stack.push(currentPath, new EditorViewComponent(r) {
                     @Override
                     public void goBack() {
                         // no vuelve atrás
                     }
-                });
+                }).setOpenNewWindow(true);
             }
 
         }

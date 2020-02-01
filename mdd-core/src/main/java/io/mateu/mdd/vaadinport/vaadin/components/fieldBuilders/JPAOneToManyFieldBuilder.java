@@ -797,6 +797,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             MDDUI.get().getNavegador().goTo(state);
         } catch (Exception e1) {
             e1.printStackTrace();
+
         }
     }
 
@@ -1315,6 +1316,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             try {
                 ReflectionHelper.reverseMap(binder, field, bean, i);
             } catch (Exception e1) {
+                System.out.println("Error when trying to update references for field " + field.getName());
                 MDD.alert(e1);
             }
         });

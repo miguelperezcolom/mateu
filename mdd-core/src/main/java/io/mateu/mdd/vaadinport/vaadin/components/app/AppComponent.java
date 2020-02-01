@@ -22,4 +22,6 @@ public interface AppComponent {
     void unselectAll();
 
     void setSelectingArea();
+
+    void setSelectingArea(boolean force);
 }

@@ -24,7 +24,7 @@ public class ViewStack {
 
 
 
-    public void push(String state, Component component) {
+    public io.mateu.mdd.vaadinport.vaadin.navigation.View push(String state, Component component) {
         io.mateu.mdd.vaadinport.vaadin.navigation.View v;
 
         if (component != null && component instanceof AbstractViewComponent) {
@@ -37,14 +37,18 @@ public class ViewStack {
         }
 
         push(state, v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(this, component));
+
+        return v;
     }
 
 
-    public void push(String state, io.mateu.mdd.vaadinport.vaadin.navigation.View v) {
+    public io.mateu.mdd.vaadinport.vaadin.navigation.View push(String state, io.mateu.mdd.vaadinport.vaadin.navigation.View v) {
 
         viewByState.put(state, v);
         stateByView.put(v, state);
         stack.add(v);
+
+        return v;
     }
 
 
@@ -69,12 +73,13 @@ public class ViewStack {
 
 
     public io.mateu.mdd.vaadinport.vaadin.navigation.View getLast() {
-        return stack.get(stack.size() - 1);
+        int pos = stack.size() - 1;
+        return pos >= 0?stack.get(pos):null;
     }
 
     public io.mateu.mdd.vaadinport.vaadin.navigation.View getParent(View view) {
         int pos = stack.indexOf(view);
-        return stack.get(pos - 1);
+        return pos > 0?stack.get(pos - 1):null;
     }
 
     public void popTo(int index) {
@@ -111,5 +116,15 @@ public class ViewStack {
 
     public List<io.mateu.mdd.vaadinport.vaadin.navigation.View> getStack() {
         return stack;
+    }
+
+    public View getLastNavigable() {
+        io.mateu.mdd.vaadinport.vaadin.navigation.View firstInWindow = stack.stream().filter(v -> v.getWindowContainer() != null).findFirst().orElse(null);
+        io.mateu.mdd.vaadinport.vaadin.navigation.View last = getLast();
+        if (firstInWindow != null) {
+            int pos = stack.indexOf(firstInWindow);
+            last = stack.get(pos - 1);
+        }
+        return last;
     }
 }

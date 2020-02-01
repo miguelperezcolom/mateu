@@ -86,7 +86,7 @@ public class PublicMenuFlowComponent extends AbstractViewComponent {
                 CssLayout lx;
                 addComponent(lx = new CssLayout());
 
-                MDDUI.get().getAppComponent().setSelectingArea();
+                MDDUI.get().getAppComponent().setSelectingArea(true);
 
                 MDD.getApp().getAreas().stream().forEach(a -> {
 
@@ -111,6 +111,8 @@ public class PublicMenuFlowComponent extends AbstractViewComponent {
 
 
        if (!MDD.isMobile()) addComponentsAndExpand(new Label(""));
+
+       if (!MDD.isMobile() && MDD.getApp().getAreas().size() > 1) MDDUI.get().getAppComponent().setSelectingArea(true);
     }
 
 }

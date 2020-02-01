@@ -12,6 +12,7 @@ import io.mateu.mdd.tester.model.useCases.bankAccount.BankAccount;
 import io.mateu.mdd.tester.model.useCases.bankAccount.Payment;
 import io.mateu.mdd.tester.model.useCases.hotel.*;
 import io.mateu.mdd.tester.model.useCases.hotel.cockpit.CockpitView;
+import io.mateu.mdd.tester.model.useCases.invoicing.Agent;
 import io.mateu.mdd.tester.model.useCases.invoicing.Customer;
 import io.mateu.mdd.tester.model.useCases.invoicing.Invoice;
 import io.mateu.mdd.tester.model.useCases.pojos.Calculator;
@@ -55,6 +56,8 @@ public class UseCasesModule extends AbstractModule {
 
 
                 l.add(new MDDOpenCRUDAction("Customers", Customer.class));
+
+                l.add(new MDDOpenCRUDAction("Agents", Agent.class));
 
                 l.add(new MDDOpenCRUDAction("Invoices", Invoice.class));
 
