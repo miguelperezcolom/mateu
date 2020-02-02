@@ -1155,7 +1155,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     }
                 });
 
-                stack.push(currentPath, evc).setOpenNewWindow(true);
+                stack.push(currentPath, evc); //.setOpenNewWindow(true);
 
             }
         }

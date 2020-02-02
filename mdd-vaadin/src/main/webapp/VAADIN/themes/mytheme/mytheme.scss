@@ -1004,6 +1004,12 @@ body {
 
   }
 
+  .v-window-wrap {
+    .viewHeader {
+      margin-top: unset;
+    }
+  }
+
 
 
   .v-layout {

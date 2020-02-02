@@ -1002,9 +1002,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         if (getMenuItemById("prev") != null) getMenuItemById("prev").setVisible(!isNewRecord() && listViewComponent != null);
         if (getMenuItemById("next") != null) getMenuItemById("next").setVisible(!isNewRecord() && listViewComponent != null);
         if (getMenuItemById("duplicate") != null) getMenuItemById("duplicate").setVisible(!isNewRecord());
-        if (getView() == null || getView().getWindowContainer() != null || this instanceof OwnedCollectionComponent) getMenuItemById("add").setVisible(false);
-        if (getView() == null || getView().getWindowContainer() != null || this instanceof OwnedCollectionComponent) getMenuItemById("remove").setVisible(false);
-        if (this instanceof OwnedCollectionComponent) getMenuItemById("save").setVisible(false);
+        if (getMenuItemById("add") != null && (getView() == null || getView().getWindowContainer() != null || this instanceof OwnedCollectionComponent)) getMenuItemById("add").setVisible(false);
+        if (getMenuItemById("remove") != null && (getView() == null || getView().getWindowContainer() != null || this instanceof OwnedCollectionComponent)) getMenuItemById("remove").setVisible(false);
+        if (getMenuItemById("save") != null && this instanceof OwnedCollectionComponent) getMenuItemById("save").setVisible(false);
 
         super.addViewActionsMenuItems(bar);
     }
