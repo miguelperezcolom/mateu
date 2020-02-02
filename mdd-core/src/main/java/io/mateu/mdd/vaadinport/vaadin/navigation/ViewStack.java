@@ -22,9 +22,13 @@ public class ViewStack {
         return stack.size();
     }
 
+    public Map<io.mateu.mdd.vaadinport.vaadin.navigation.View, String> getStateByView() {
+        return stateByView;
+    }
 
-
-
+    public Map<String, io.mateu.mdd.vaadinport.vaadin.navigation.View> getViewByState() {
+        return viewByState;
+    }
 
     public io.mateu.mdd.vaadinport.vaadin.navigation.View push(String state, Component component) {
         io.mateu.mdd.vaadinport.vaadin.navigation.View v;

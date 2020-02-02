@@ -261,10 +261,11 @@ public class ResultsComponent extends VerticalLayout {
     }
 
     public void search(Object filters) throws Throwable {
+        boolean updateUrl = EditorViewComponent.isModificado(EditorViewComponent.buildSignature(this.filters), EditorViewComponent.buildSignature(filters));
         this.filters = filters;
         grid.deselectAll();
         grid.getDataProvider().refreshAll();
-        listViewComponent.searched();
+        if (updateUrl) listViewComponent.searched();
     }
 
     public Set getSelection() {

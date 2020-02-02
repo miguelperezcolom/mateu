@@ -113,9 +113,12 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     }
 
     public boolean isModificado() {
+        return isModificado(initialValues, buildSignature());
+    }
+
+    public static boolean isModificado(Map<String, Object> initialValues, Map<String, Object> currentValues) {
         boolean modificado = false;
         if (initialValues != null) {
-            Map<String, Object> currentValues = buildSignature();
             for (String k : initialValues.keySet()) {
                 Object v0 = initialValues.get(k);
                 Object v = currentValues.get(k);
@@ -291,13 +294,16 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         if (updateChangesSignature) initialValues = buildSignature();
     }
 
-    private Map<String,Object> buildSignature() {
+    public Map<String,Object> buildSignature() {
+        return buildSignature(getModel());
+    }
+
+    public static Map<String, Object> buildSignature(Object m) {
         Map<String, Object> s = new HashMap<>();
-        Object m = getModel();
         if (m != null && m instanceof HasChangesSignature) {
             s.put("signature", ((HasChangesSignature) m).getChangesSignature());
-        } else {
-            for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(modelType)) {
+        } else if (m != null) {
+            for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(m.getClass())) {
                 try {
                     Object v = ReflectionHelper.getValue(f, m);
                     if (v != null) {
@@ -321,7 +327,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         return s;
     }
 
-    private String serialize(Object o) {
+    public static String serialize(Object o) {
         String s = "";
         if (o != null) {
             for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(o.getClass())) {

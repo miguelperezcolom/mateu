@@ -277,13 +277,14 @@ public class MDDNavigator {
 
     private void yesGoSibling(Object id) {
 
+        EditorViewComponent ed = null;
         if (stack.getLast().getComponent() instanceof EditorViewComponent) {
-            EditorViewComponent ed = (EditorViewComponent) stack.getLast().getComponent();
+            ed = (EditorViewComponent) stack.getLast().getComponent();
             ed.onGoBack();
             getViewProvider().pendingFocusedSectionId = ed.getFocusedSectionId();
         }
 
-        String u = stack.getState(stack.getLast());
+        String u = stack.getState(stack.getLast()); //
         u = u.substring(0, u.lastIndexOf("/"));
 
         if (!MDD.isMobile() && esMenu(u)) while (esMenu(u.substring(0, u.lastIndexOf("/")))) {
@@ -298,7 +299,18 @@ public class MDDNavigator {
 
         u += "/" + id;
 
-        MDDUI.get().getNavegador().goTo(u);
+        if (ed != null && ed.getView().getWindowContainer() != null) {
+            try {
+                ed.load(id);
+                viewProvider.setCurrentPath(u);
+                viewProvider.getStack().getViewByState().remove(viewProvider.getStack().getStateByView().get(ed.getView()));
+                viewProvider.getStack().getStateByView().put(ed.getView(), u);
+                viewProvider.getStack().getViewByState().put(u, ed.getView());
+            } catch (Throwable throwable) {
+                MDD.alert(throwable);
+            }
+        }
+        else MDDUI.get().getNavegador().goTo(u);
     }
 
     private boolean esInutil(String u) {
