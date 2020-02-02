@@ -300,11 +300,11 @@ public class MDDUI extends UI {
 
     public void openInWindow(View view) {
         // lo mismo para buscar y para navegar en profundidad
-        Window w = new Window("Search");
+        Window w = new Window(view.getViewComponent().getCaption());
 
         w.addStyleName("miapp");
 
-        int percent = 100 - (UI.getCurrent().getWindows().size() + 1) * 10;
+        int percent = 100 - (UI.getCurrent().getWindows().size() + 1) * 5;
 
         w.setWidth("" + percent + "%");
         w.setHeight("" + percent + "%");
@@ -316,7 +316,7 @@ public class MDDUI extends UI {
         w.setModal(true);
 
         w.addCloseListener(e -> {
-           getNavegador().goBack();
+           if (!"noback".equals(w.getData())) getNavegador().goBack();
         });
 
         UI.getCurrent().addWindow(w);

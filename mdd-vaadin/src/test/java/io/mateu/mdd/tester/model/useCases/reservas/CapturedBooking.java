@@ -2,7 +2,6 @@ package io.mateu.mdd.tester.model.useCases.reservas;
 
 import io.mateu.mdd.core.annotations.ListColumn;
 import io.mateu.mdd.tester.model.useCases.bankAccount.BankAccount;
-import io.mateu.mdd.tester.model.views.Reserva;
 import lombok.MateuMDDEntity;
 
 import javax.persistence.Column;

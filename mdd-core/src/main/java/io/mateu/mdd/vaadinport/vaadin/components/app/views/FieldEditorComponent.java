@@ -45,6 +45,11 @@ public class FieldEditorComponent extends AbstractViewComponent{
     }
 
     @Override
+    public boolean isBarHidden() {
+        return true;
+    }
+
+    @Override
     public AbstractViewComponent build() throws Exception {
         super.build();
 

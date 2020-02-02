@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @Getter@Setter
-public class BookingsView extends AbstractJPQLListView<Reserva> {
+public class BookingsView extends AbstractJPQLListView<Reserva0> {
 
 
     private String leadName;
@@ -43,7 +43,7 @@ public class BookingsView extends AbstractJPQLListView<Reserva> {
         String ql = "select ";
 
         if (forCount) ql += "count(x)";
-        else ql += "new " + Reserva.class.getName() + "(x.id, x.leadName)";
+        else ql += "new " + Reserva0.class.getName() + "(x.id, x.leadName)";
 
         ql += " from " + Booking.class.getName() +" x ";
         Map<String, Object> params = new HashMap<>();
@@ -86,7 +86,7 @@ public class BookingsView extends AbstractJPQLListView<Reserva> {
     }
 
     @Override
-    public Object onEdit(Reserva row) throws Throwable {
+    public Object onEdit(Reserva0 row) throws Throwable {
         return Helper.find(Booking.class, row.getId());
     }
 

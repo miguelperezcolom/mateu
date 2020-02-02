@@ -2,6 +2,8 @@ package io.mateu.mdd.vaadinport.vaadin.navigation;
 
 import com.vaadin.navigator.View;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.Window;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
 
@@ -66,6 +68,13 @@ public class ViewStack {
                 View v = stack.remove(stack.size() - 1);
                 String state = stateByView.remove(v);
                 viewByState.remove(state);
+                if (v instanceof io.mateu.mdd.vaadinport.vaadin.navigation.View && ((io.mateu.mdd.vaadinport.vaadin.navigation.View) v).getWindowContainer() != null) {
+                    Window w = ((io.mateu.mdd.vaadinport.vaadin.navigation.View) v).getWindowContainer();
+                    if (stack.size() > 0 && !w.equals(getLast().getWindowContainer())) {
+                        w.setData("noback");
+                        w.close();
+                    }
+                }
             }
         }
     }
@@ -112,6 +121,10 @@ public class ViewStack {
 
     public void clear() {
         popTo(-1);
+        UI.getCurrent().getWindows().forEach(w -> {
+            w.setData("noback");
+            w.close();
+        });
     }
 
     public List<io.mateu.mdd.vaadinport.vaadin.navigation.View> getStack() {

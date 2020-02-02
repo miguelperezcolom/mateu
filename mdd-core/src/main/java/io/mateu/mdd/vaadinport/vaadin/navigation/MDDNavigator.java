@@ -5,6 +5,7 @@ import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.ViewProvider;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Window;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.interfaces.PersistentPOJO;
@@ -104,11 +105,14 @@ public class MDDNavigator {
 
 
     public void go(String relativePath) {
-        String path = MDDUI.get().getNavigator().getState(); //stack.getState(stack.getLast());
+        String path = MDDUI.get().getNavegador().getViewProvider().getCurrentPath(); //stack.getState(stack.getLast());
         if (!path.endsWith("/")) path += "/";
         path += relativePath;
         if (path != null) {
-            navigator.navigateTo(path);
+            com.vaadin.navigator.View v = viewProvider.getView(path);
+            if (v != null) {
+                navigator.navigateTo(path);
+            }
         }
     }
 
@@ -224,8 +228,12 @@ public class MDDNavigator {
             View v = stack.get(stack.size() - 2);
             String u = stack.getState(v);
             if (v.getViewComponent() instanceof ListViewComponent) u = ((ListViewComponent) v.getViewComponent()).getUrl();
-            if (l.getWindowContainer() != null && !l.getWindowContainer().equals(v.getWindowContainer())) l.getWindowContainer().close();
-            MDDUI.get().getNavegador().goTo(u);
+            if (l.getWindowContainer() != null && !l.getWindowContainer().equals(v.getWindowContainer())) {
+                l.getWindowContainer().setData("noback");
+                l.getWindowContainer().close();
+                stack.pop();
+                viewProvider.setCurrentPath(stack.size() > 0?stack.getState(stack.getLast()):null);
+            } else MDDUI.get().getNavegador().goTo(u);
         } else {
             String u = stack.getState(l);
             if (!Strings.isNullOrEmpty(u) && u.contains("/")) {

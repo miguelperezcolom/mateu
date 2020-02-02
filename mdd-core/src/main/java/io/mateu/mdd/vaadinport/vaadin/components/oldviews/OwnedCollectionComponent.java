@@ -2,6 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.vaadin.data.Binder;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Button;
@@ -241,6 +242,17 @@ public class OwnedCollectionComponent extends EditorViewComponent {
 
     @Override
     public void onGoBack() {
+
+        if (parentBinder != null) {
+            try {
+                Object o = parentBinder.getBean();
+                ReflectionHelper.setValue(field, o, collection);
+                parentBinder.update(o);
+            } catch (Exception e) {
+                MDD.alert(e);
+            }
+        }
+
     }
 
     @Override

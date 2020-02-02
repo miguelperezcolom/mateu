@@ -299,12 +299,41 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         } else {
             for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(modelType)) {
                 try {
-                    s.put(f.getName(), ReflectionHelper.getValue(f, m));
+                    Object v = ReflectionHelper.getValue(f, m);
+                    if (v != null) {
+                        if (v instanceof Collection) {
+                            Collection col = (Collection) v;
+                            String cols = "";
+                            for (Object o : col) {
+                                if (!"".equals(cols)) cols += ",";
+                                cols += "" + serialize(o);
+                            }
+                            s.put(f.getName(), cols);
+                            continue;
+                        }
+                    }
+                    s.put(f.getName(), "" + v);
                 } catch (Exception e) {
                     s.put(f.getName(), null);
                 }
             }
         }
+        return s;
+    }
+
+    private String serialize(Object o) {
+        String s = "";
+        if (o != null) {
+            for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(o.getClass())) {
+                if (!"".equals(s)) s += "&";
+                try {
+                    Object v = ReflectionHelper.getValue(f, o);
+                    s += f.getName() + "=" + v;
+                } catch (Exception e) {
+                    s += f.getName() + "=exception";
+                }
+            }
+        } else s = "null";
         return s;
     }
 
@@ -871,12 +900,12 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             }
 
             if (modelType == null || (!modelType.isAnnotationPresent(ModifyValuesOnly.class) && !modelType.isAnnotationPresent(NewNotAllowed.class))) if (field == null || ReflectionHelper.puedeAnadir(field)) {
-                if (!isActionPresent("add")) {
-                    Button i;
-                    bar.addComponent(i = new Button("", VaadinIcons.PLUS));
-                    //bar.addComponent(i = new Button("Add", VaadinIcons.PLUS));
-                    i.addStyleName(ValoTheme.BUTTON_QUIET);
-                    i.addClickListener(e -> {
+                    if (!isActionPresent("add")) {
+                        Button i;
+                        bar.addComponent(i = new Button("", VaadinIcons.PLUS));
+                        //bar.addComponent(i = new Button("Add", VaadinIcons.PLUS));
+                        i.addStyleName(ValoTheme.BUTTON_QUIET);
+                        i.addClickListener(e -> {
                             try {
 
                                 BinderValidationStatus v = binder.validate();
@@ -912,9 +941,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                             } catch (Throwable throwable) {
                                 MDD.alert(throwable);
                             }
-                    });
-                    addMenuItem("add", i);
-                }
+                        });
+                        addMenuItem("add", i);
+                    }
             }
 
             if (modelType == null || (!modelType.isAnnotationPresent(ModifyValuesOnly.class) && !modelType.isAnnotationPresent(Indelible.class))) if (field == null || ReflectionHelper.puedeBorrar(field)) {
@@ -967,6 +996,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         if (getMenuItemById("prev") != null) getMenuItemById("prev").setVisible(!isNewRecord() && listViewComponent != null);
         if (getMenuItemById("next") != null) getMenuItemById("next").setVisible(!isNewRecord() && listViewComponent != null);
         if (getMenuItemById("duplicate") != null) getMenuItemById("duplicate").setVisible(!isNewRecord());
+        if (getView() == null || getView().getWindowContainer() != null || this instanceof OwnedCollectionComponent) getMenuItemById("add").setVisible(false);
+        if (getView() == null || getView().getWindowContainer() != null || this instanceof OwnedCollectionComponent) getMenuItemById("remove").setVisible(false);
+        if (this instanceof OwnedCollectionComponent) getMenuItemById("save").setVisible(false);
 
         super.addViewActionsMenuItems(bar);
     }

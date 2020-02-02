@@ -793,7 +793,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
         try {
             OwnedCollectionComponent occ;
-            MDDUI.get().getNavegador().getStack().push(state, occ = new OwnedCollectionComponent(binder, field, indice));
+            MDDUI.get().getNavegador().getStack().push(state, occ = new OwnedCollectionComponent(binder, field, indice)).setOpenNewWindow(true);
             MDDUI.get().getNavegador().goTo(state);
         } catch (Exception e1) {
             e1.printStackTrace();
