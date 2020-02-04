@@ -936,6 +936,15 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         return s;
     }
 
+    @Override
+    public String getPageTitle() {
+        try {
+            return super.getPageTitle() + toCountLabel(getModelForSearchFilters());
+        } catch (Exception e) {
+        }
+        return super.getTitle();
+    }
+
     private Component buildChart(ChartData d) {
         DonutChartConfig config = new DonutChartConfig();
         config
@@ -1140,6 +1149,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                                 && !f.isAnnotationPresent(NotInList.class)
                                 && !f.isAnnotationPresent(Version.class)
                                 && !f.isAnnotationPresent(Ignored.class)
+                                && !f.isAnnotationPresent(Password.class)
                                 //&& !Modifier.isTransient(f.getModifiers())
                                 && (!Collection.class.isAssignableFrom(f.getType()) || (forGrid && f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline()))
                                 && !Map.class.isAssignableFrom(f.getType())
@@ -1161,13 +1171,13 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
     public List<FieldInterfaced> getFilterFields(Class filtersType) {
         List<FieldInterfaced> explicitFilters = ReflectionHelper.getAllFields(filtersType).stream().filter(
-                (f) -> !f.isAnnotationPresent(Version.class) && !f.isAnnotationPresent(Ignored.class) && f.isAnnotationPresent(SearchFilter.class) || f.isAnnotationPresent(MainSearchFilter.class)
+                (f) -> !f.isAnnotationPresent(Password.class) && !f.isAnnotationPresent(Version.class) && !f.isAnnotationPresent(Ignored.class) && f.isAnnotationPresent(SearchFilter.class) || f.isAnnotationPresent(MainSearchFilter.class)
         ).collect(Collectors.toList());
         if (explicitFilters.size() > 0) {
             return explicitFilters;
         } else {
             return ReflectionHelper.getAllFields(filtersType).stream().filter(
-                    (f) ->  !f.isAnnotationPresent(Version.class) && !f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(Output.class) &&  !Resource.class.equals(f.getType()) && (String.class.equals(f.getType()) || LocalDate.class.equals(f.getType()) || LocalDateTime.class.equals(f.getType()) || LocalTime.class.equals(f.getType()) || Date.class.equals(f.getType()) || boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType()) || f.getType().isEnum() || f.isAnnotationPresent(ManyToOne.class) || f.getType().isAnnotationPresent(Entity.class))
+                    (f) ->  !f.isAnnotationPresent(Password.class) && !f.isAnnotationPresent(Version.class) && !f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(Output.class) &&  !Resource.class.equals(f.getType()) && (String.class.equals(f.getType()) || LocalDate.class.equals(f.getType()) || LocalDateTime.class.equals(f.getType()) || LocalTime.class.equals(f.getType()) || Date.class.equals(f.getType()) || boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType()) || f.getType().isEnum() || f.isAnnotationPresent(ManyToOne.class) || f.getType().isAnnotationPresent(Entity.class))
             ).collect(Collectors.toList());
         }
     }

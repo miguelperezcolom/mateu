@@ -24,6 +24,11 @@ public class PrivateMenuFlowComponent extends AbstractViewComponent {
         return MDD.isMobile()?MDD.getApp().getName():(MDD.getApp().getAreas().size() > 1?"Please select work area":"");
     }
 
+    @Override
+    public String getPageTitle() {
+        return MDD.getApp().getName();
+    }
+
     public PrivateMenuFlowComponent() {
         addStyleName("privatemenuflowcomponent");
 

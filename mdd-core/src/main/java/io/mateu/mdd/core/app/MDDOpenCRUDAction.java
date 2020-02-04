@@ -47,7 +47,7 @@ public class MDDOpenCRUDAction extends AbstractAction {
     }
 
     @Override
-    public void run(MDDExecutionContext context) {
+    public void run(MDDExecutionContext context) throws Exception {
         context.openCRUD(this, entityClass, queryFilters, extraFilters, isModifierPressed());
     }
 }

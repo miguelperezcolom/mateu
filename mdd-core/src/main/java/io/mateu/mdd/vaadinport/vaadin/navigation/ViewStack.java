@@ -6,6 +6,7 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.Window;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,7 +31,7 @@ public class ViewStack {
         return viewByState;
     }
 
-    public io.mateu.mdd.vaadinport.vaadin.navigation.View push(String state, Component component) {
+    public io.mateu.mdd.vaadinport.vaadin.navigation.View push(String state, Component component) throws Exception {
         io.mateu.mdd.vaadinport.vaadin.navigation.View v;
 
         if (component != null && component instanceof AbstractViewComponent) {
@@ -48,12 +49,20 @@ public class ViewStack {
     }
 
 
-    public io.mateu.mdd.vaadinport.vaadin.navigation.View push(String state, io.mateu.mdd.vaadinport.vaadin.navigation.View v) {
+    public io.mateu.mdd.vaadinport.vaadin.navigation.View push(String state, io.mateu.mdd.vaadinport.vaadin.navigation.View v) throws Exception {
+
+        boolean yaAbierto = false;
+        if (v.getViewComponent() instanceof EditorViewComponent) {
+            yaAbierto = stack.stream().filter(w -> w.getViewComponent() instanceof EditorViewComponent && ((EditorViewComponent) w.getViewComponent()).getModel().equals(((EditorViewComponent) v.getViewComponent()).getModel())).findFirst().isPresent();
+        }
+
+        if (yaAbierto) {
+            throw new Exception("You are already editing " + v.getViewComponent().getPageTitle());
+        }
 
         viewByState.put(state, v);
         stateByView.put(v, state);
         stack.add(v);
-
         return v;
     }
 

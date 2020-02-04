@@ -1,11 +1,13 @@
 package io.mateu.mdd.vaadinport.vaadin;
 
 import com.google.common.base.Strings;
-import com.vaadin.annotations.*;
 import com.vaadin.annotations.JavaScript;
+import com.vaadin.annotations.*;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.PushStateNavigation;
+import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.Page;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServletRequest;
 import com.vaadin.ui.*;
@@ -16,9 +18,9 @@ import io.mateu.mdd.core.MDDPort;
 import io.mateu.mdd.core.app.AbstractApplication;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.ViewContainer;
 import io.mateu.mdd.vaadinport.vaadin.components.app.desktop.DesktopAppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.mobile.MobileAppComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.app.ViewContainer;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.SearchInMenuComponent;
 import io.mateu.mdd.vaadinport.vaadin.mdd.VaadinPort;
@@ -201,6 +203,26 @@ public class MDDUI extends UI {
     private void addNavigator() {
 
         navigator = new Navigator(this, viewContainer);
+        navigator.addViewChangeListener(new ViewChangeListener() {
+            @Override
+            public boolean beforeViewChange(ViewChangeEvent viewChangeEvent) {
+
+                return true;
+            }
+
+            @Override
+            public void afterViewChange(ViewChangeEvent event) {
+                // Execute JavaScript in the currently processed page
+                String t = MDD.getApp().getName();
+                if (event.getNewView() != null && event.getNewView() instanceof View) {
+                    View v = (View) event.getNewView();
+                    t = v.getViewComponent().getPageTitle();
+                } else t = event.getNewView().toString();
+                //Page.getCurrent().setTitle(stack.getLast() != null?stack.getLast().toString():MDD.getApp().getName());
+                Page.getCurrent().getJavaScript().execute("setTimeout(function() { document.title = '" + t + "' }, 50)");
+                //setTimeout(function() { your_func(); }, 5000);
+            }
+        });
 
         stack = stack = new ViewStack();
         MDDViewProvider viewProvider = new MDDViewProvider(stack);

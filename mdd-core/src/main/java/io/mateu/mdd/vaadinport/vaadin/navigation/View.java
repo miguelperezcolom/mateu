@@ -30,7 +30,7 @@ public class View implements com.vaadin.navigator.View {
     }
 
     @Override
-    public Component getViewComponent() {
+    public AbstractViewComponent getViewComponent() {
         return viewComponent;
     }
 

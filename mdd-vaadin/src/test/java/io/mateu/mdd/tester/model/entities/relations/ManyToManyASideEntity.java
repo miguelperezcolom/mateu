@@ -3,44 +3,40 @@ package io.mateu.mdd.tester.model.entities.relations;
 import io.mateu.mdd.core.annotations.UseCheckboxes;
 import lombok.MateuMDDEntity;
 
-import javax.persistence.GeneratedValue;
+import javax.persistence.*;
+
 import lombok.MateuMDDEntity;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
+
 import javax.validation.constraints.NotEmpty;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
-@MateuMDDEntity
+@MateuMDDEntity@Table(name = "mma")
 public class ManyToManyASideEntity {
 
-    @Id
-    @GeneratedValue
-    private long id;
-
     @NotEmpty
+    @Id
     private String name;
 
-
-    @ManyToMany(mappedBy = "as")
+    @ManyToMany(mappedBy = "manytomanysetmanytomanysetwchecks")
     @UseCheckboxes
-    private Set<ManyToManyBSideEntity> bs = new HashSet<>();
+    private Set<ManyToManyBSideEntity> manytomanysetmanytomanysetwchecks = new HashSet<>();
 
+    @ManyToMany(mappedBy = "manytomanysetmanytomanyset")
+    private Set<ManyToManyBSideEntity> manytomanysetmanytomanyset = new HashSet<>();
 
+    @ManyToMany(mappedBy = "manytomanylistmanytomanylist")
+    private List<ManyToManyBSideEntity> manytomanylistmanytomanylist = new ArrayList<>();
 
+    @ManyToMany(mappedBy = "onetomanylistmanytomanylist")
+    private List<ManyToManyBSideEntity> manytomanylistonetomanylist = new ArrayList<>();
 
-    @Override
-    public String toString() {
-        return getName();
-    }
+    @ManyToMany(mappedBy = "manytomanysetmanytomanylist")
+    private List<ManyToManyBSideEntity> manytomanylistmanytomanyset = new ArrayList<>();
 
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return this == obj || (obj != null && obj instanceof  ManyToManyASideEntity && id == ((ManyToManyASideEntity)obj).id);
+    public ManyToManyASideEntity(String n) {
+        name = n;
     }
 }

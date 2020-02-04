@@ -108,7 +108,7 @@ public abstract class AbstractStylist<S> {
                     }
                 }
             }
-            return "" + viewTitle + " " + id;
+            return id != null && viewTitle != null && id.startsWith(viewTitle)?id:"" + viewTitle + " " + id;
         }
     }
 

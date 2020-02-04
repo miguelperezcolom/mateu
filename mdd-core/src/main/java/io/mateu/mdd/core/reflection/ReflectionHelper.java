@@ -1540,21 +1540,24 @@ public class ReflectionHelper {
 
     public static void unReverseMap(MDDBinder binder, FieldInterfaced field, Object bean, Object i, FieldInterfaced mbf) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
 
-        if (Collection.class.isAssignableFrom(mbf.getType())) {
-            Collection col = (Collection) ReflectionHelper.getValue(mbf, i);
-            if (col != null) col.remove(bean);
-        } else if (Set.class.isAssignableFrom(mbf.getType())) {
+        if (Set.class.isAssignableFrom(mbf.getType())) {
             Set col = (Set) ReflectionHelper.getValue(mbf, i);
+            if (col != null) col.remove(bean);
+        } else if (Collection.class.isAssignableFrom(mbf.getType())) {
+            Collection col = (Collection) ReflectionHelper.getValue(mbf, i);
             if (col != null) col.remove(bean);
         } else {
             ReflectionHelper.setValue(mbf, i, null);
         }
         boolean mergear = false;
-        OneToMany a = field.getAnnotation(OneToMany.class);
-        if (a != null) {
-            List<CascadeType> l = Arrays.asList(a.cascade());
-            mergear =  i.getClass().isAnnotationPresent(Entity.class) && !(l.contains(CascadeType.ALL) || l.contains(CascadeType.MERGE) || l.contains(CascadeType.PERSIST));
+        List<CascadeType> l = new ArrayList<>();
+        OneToMany a = mbf.getAnnotation(OneToMany.class);
+        if (a != null) l = Arrays.asList(a.cascade());
+        else {
+            ManyToMany b = mbf.getAnnotation(ManyToMany.class);
+            if (b != null) l = Arrays.asList(b.cascade());
         }
+        mergear =  i.getClass().isAnnotationPresent(Entity.class) && !(l.contains(CascadeType.ALL) || l.contains(CascadeType.MERGE) || l.contains(CascadeType.PERSIST));
         if (mergear) binder.getMergeables().add(i);
 
     }
@@ -1575,12 +1578,12 @@ public class ReflectionHelper {
 
         if (mbf != null) {
 
-            if (Collection.class.isAssignableFrom(mbf.getType())) {
-                Collection col = (Collection) ReflectionHelper.getValue(mbf, i);
-                if (!col.contains(i)) col.add(bean);
-            } else if (Set.class.isAssignableFrom(mbf.getType())) {
+            if (Set.class.isAssignableFrom(mbf.getType())) {
                 Set col = (Set) ReflectionHelper.getValue(mbf, i);
-                if (!col.contains(i)) col.add(bean);
+                if (!col.contains(bean)) col.add(bean);
+            } else if (Collection.class.isAssignableFrom(mbf.getType())) {
+                Collection col = (Collection) ReflectionHelper.getValue(mbf, i);
+                if (!col.contains(bean)) col.add(bean);
             } else {
                 if (field.isAnnotationPresent(OneToOne.class)) {
                     Object old = ReflectionHelper.getValue(mbf, i);
@@ -1593,11 +1596,14 @@ public class ReflectionHelper {
             }
 
             boolean mergear = false;
+            List<CascadeType> l = new ArrayList<>();
             OneToMany a = mbf.getAnnotation(OneToMany.class);
-            if (a != null) {
-                List<CascadeType> l = Arrays.asList(a.cascade());
-                mergear =  i.getClass().isAnnotationPresent(Entity.class) && !(l.contains(CascadeType.ALL) || l.contains(CascadeType.MERGE) || l.contains(CascadeType.PERSIST));
+            if (a != null) l = Arrays.asList(a.cascade());
+            else {
+                ManyToMany b = mbf.getAnnotation(ManyToMany.class);
+                if (b != null) l = Arrays.asList(b.cascade());
             }
+            mergear =  i.getClass().isAnnotationPresent(Entity.class) && !(l.contains(CascadeType.ALL) || l.contains(CascadeType.MERGE) || l.contains(CascadeType.PERSIST));
             if (mergear) binder.getMergeables().add(i);
 
         }

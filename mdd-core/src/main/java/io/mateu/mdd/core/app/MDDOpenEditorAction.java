@@ -23,7 +23,7 @@ public class MDDOpenEditorAction extends AbstractAction {
     }
 
     @Override
-    public void run(MDDExecutionContext context) {
+    public void run(MDDExecutionContext context) throws Exception {
         context.openEditor(this, viewClass, id, modifierPressed);
     }
 }

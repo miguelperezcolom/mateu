@@ -34,6 +34,7 @@ public class ResultsComponent extends VerticalLayout {
     private Query<Object,Object> lastQuery;
     private Label labelSelection;
     private Collection found;
+    private Map<String, Object> lastSignature;
 
     public int getLastClickedRowIndex() {
         return lastClickedRowIndex;
@@ -261,7 +262,8 @@ public class ResultsComponent extends VerticalLayout {
     }
 
     public void search(Object filters) throws Throwable {
-        boolean updateUrl = EditorViewComponent.isModificado(EditorViewComponent.buildSignature(this.filters), EditorViewComponent.buildSignature(filters));
+        boolean updateUrl = EditorViewComponent.isModificado(lastSignature, EditorViewComponent.buildSignature(filters));
+        lastSignature = EditorViewComponent.buildSignature(filters);
         this.filters = filters;
         grid.deselectAll();
         grid.getDataProvider().refreshAll();

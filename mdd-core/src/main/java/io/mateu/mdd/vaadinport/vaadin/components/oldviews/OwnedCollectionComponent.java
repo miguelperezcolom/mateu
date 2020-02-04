@@ -263,6 +263,7 @@ public class OwnedCollectionComponent extends EditorViewComponent {
         s += ": ";
         if (currentIndex < collection.size()) s += Helper.capitalize(field.getName() + " " + (currentIndex + 1) + " of " + collection.size());
         else s += Helper.capitalize("New " + field.getName());
+        //if (parentBinder != null && parentBinder.getViewComponent() != null) s += " from " + parentBinder.getViewComponent().getTitle();
         return s;
     }
 

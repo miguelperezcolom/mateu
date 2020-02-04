@@ -134,338 +134,326 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
         }
 
         io.mateu.mdd.vaadinport.vaadin.navigation.View v = null;
-        boolean nuevo = false;
-        boolean expand = false;
 
-        if (state.startsWith("app/")) state = state.substring("app/".length());
+        try {
 
 
-        if (Strings.isNullOrEmpty(state)) { // caso ""
+            boolean nuevo = false;
+            boolean expand = false;
 
-            if (!MDD.getApp().hasPublicContent()) {
-                if (MDD.getUserData() == null) state = "login";
-                else {
-                    if (MDD.isMobile()) state = "private";
-                    else state = state.split("/").length > 1?MDD.getApp().getState(MDD.getApp().getDefaultPrivateArea()):"private";
+            if (state.startsWith("app/")) state = state.substring("app/".length());
+
+
+            if (Strings.isNullOrEmpty(state)) { // caso ""
+
+                if (!MDD.getApp().hasPublicContent()) {
+                    if (MDD.getUserData() == null) state = "login";
+                    else {
+                        if (MDD.isMobile()) state = "private";
+                        else state = state.split("/").length > 1?MDD.getApp().getState(MDD.getApp().getDefaultPrivateArea()):"private";
+                    }
+                } else {
+                    if (MDD.isMobile()) state = "public";
+                    else state = state.split("/").length > 1?MDD.getApp().getState(MDD.getApp().getDefaultPublicArea()):"public";
                 }
-            } else {
-                if (MDD.isMobile()) state = "public";
-                else state = state.split("/").length > 1?MDD.getApp().getState(MDD.getApp().getDefaultPublicArea()):"public";
-            }
 
-        }
-
-
-        if ("oauth/github/callback".equalsIgnoreCase(state)) {
-
-            //http://localhost:8080/callback?code=c0324687fdcdf68fde05
-
-            log.debug("state = " + state);
-
-            Map<String, String> params = Helper.parseQueryString(Page.getCurrent().getLocation().getQuery());
-
-            if (params.containsKey("code")) {
-                try {
-                    MDD.setUserData(OAuthHelper.getUserDataFromGitHubCode(params.get("code")));
-                } catch (Throwable throwable) {
-                    MDD.alert(throwable);
-                }
-                state = "welcome";
-            }
-
-        } else if ("oauth/google/callback".equalsIgnoreCase(state)) {
-
-            //http://localhost:8080/callback?code=c0324687fdcdf68fde05
-
-            log.debug("state = " + state);
-
-            Map<String, String> params = Helper.parseQueryString(Page.getCurrent().getLocation().getQuery());
-
-            if (params.containsKey("code")) {
-                try {
-                    MDD.setUserData(OAuthHelper.getUserDataFromGoogleCode(params.get("code")));
-                } catch (Throwable throwable) {
-                    MDD.alert(throwable);
-                }
-                state = "welcome";
-            }
-
-        } else if ("oauth/microsoft/callback".equalsIgnoreCase(state)) {
-
-            //http://localhost:8080/callback?code=c0324687fdcdf68fde05
-
-            log.debug("state = " + state);
-
-            Map<String, String> params = Helper.parseQueryString(Page.getCurrent().getLocation().getQuery());
-
-            if (params.containsKey("code")) {
-                try {
-                    MDD.setUserData(OAuthHelper.getUserDataFromMicrosoftCode(params.get("code")));
-                } catch (Throwable throwable) {
-                    MDD.alert(throwable);
-                }
-                state = "welcome";
             }
 
 
-        }
+            if ("oauth/github/callback".equalsIgnoreCase(state)) {
 
-        if ("welcome".equals(state) && MDD.getUserData() != null) { // caso "login"
-            log.debug("-->welcome (" + pendingPrivateState + ")");
-            if (!Strings.isNullOrEmpty(pendingPrivateState)) {
-                String newState = pendingPrivateState;
-                pendingPrivateState = null;
-                if (newState.startsWith("/")) newState = newState.substring(1);
+                //http://localhost:8080/callback?code=c0324687fdcdf68fde05
 
-                log.debug("-->going to (" + MDD.getApp().getBaseUrl() + "app/" + newState + ")");
+                log.debug("state = " + state);
 
-                Page.getCurrent().open(MDD.getApp().getBaseUrl() + "app/" + newState, null);
-            } else if (MDD.getApp().getDefaultPrivateArea().getDefaultAction() != null) {
-                String newState = MDD.getApp().getMenuId(MDD.getApp().getDefaultPrivateArea().getDefaultAction());
-                if (!Strings.isNullOrEmpty(newState)) {
+                Map<String, String> params = Helper.parseQueryString(Page.getCurrent().getLocation().getQuery());
+
+                if (params.containsKey("code")) {
+                    try {
+                        MDD.setUserData(OAuthHelper.getUserDataFromGitHubCode(params.get("code")));
+                    } catch (Throwable throwable) {
+                        MDD.alert(throwable);
+                    }
+                    state = "welcome";
+                }
+
+            } else if ("oauth/google/callback".equalsIgnoreCase(state)) {
+
+                //http://localhost:8080/callback?code=c0324687fdcdf68fde05
+
+                log.debug("state = " + state);
+
+                Map<String, String> params = Helper.parseQueryString(Page.getCurrent().getLocation().getQuery());
+
+                if (params.containsKey("code")) {
+                    try {
+                        MDD.setUserData(OAuthHelper.getUserDataFromGoogleCode(params.get("code")));
+                    } catch (Throwable throwable) {
+                        MDD.alert(throwable);
+                    }
+                    state = "welcome";
+                }
+
+            } else if ("oauth/microsoft/callback".equalsIgnoreCase(state)) {
+
+                //http://localhost:8080/callback?code=c0324687fdcdf68fde05
+
+                log.debug("state = " + state);
+
+                Map<String, String> params = Helper.parseQueryString(Page.getCurrent().getLocation().getQuery());
+
+                if (params.containsKey("code")) {
+                    try {
+                        MDD.setUserData(OAuthHelper.getUserDataFromMicrosoftCode(params.get("code")));
+                    } catch (Throwable throwable) {
+                        MDD.alert(throwable);
+                    }
+                    state = "welcome";
+                }
+
+
+            }
+
+            if ("welcome".equals(state) && MDD.getUserData() != null) { // caso "login"
+                log.debug("-->welcome (" + pendingPrivateState + ")");
+                if (!Strings.isNullOrEmpty(pendingPrivateState)) {
+                    String newState = pendingPrivateState;
+                    pendingPrivateState = null;
                     if (newState.startsWith("/")) newState = newState.substring(1);
 
                     log.debug("-->going to (" + MDD.getApp().getBaseUrl() + "app/" + newState + ")");
 
                     Page.getCurrent().open(MDD.getApp().getBaseUrl() + "app/" + newState, null);
-                } else {
-                    Page.getCurrent().open(MDD.getApp().getBaseUrl() + "app/", null);
+                } else if (MDD.getApp().getDefaultPrivateArea().getDefaultAction() != null) {
+                    String newState = MDD.getApp().getMenuId(MDD.getApp().getDefaultPrivateArea().getDefaultAction());
+                    if (!Strings.isNullOrEmpty(newState)) {
+                        if (newState.startsWith("/")) newState = newState.substring(1);
+
+                        log.debug("-->going to (" + MDD.getApp().getBaseUrl() + "app/" + newState + ")");
+
+                        Page.getCurrent().open(MDD.getApp().getBaseUrl() + "app/" + newState, null);
+                    } else {
+                        Page.getCurrent().open(MDD.getApp().getBaseUrl() + "app/", null);
+                    }
                 }
             }
-        }
 
-        currentEditor = null;
-        currentPath = state;
+            currentEditor = null;
+            currentPath = state;
 
-        if (state.startsWith("resetpassword")) {
+            if (state.startsWith("resetpassword")) {
 
-            clearStack();
+                clearStack();
 
-            v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new ResetPasswordFlowComponent(state.split("/")[1]));
+                v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new ResetPasswordFlowComponent(state.split("/")[1]));
 
-            MDDUI.get().getAppComponent().setResettingPassword();
+                MDDUI.get().getAppComponent().setResettingPassword();
 
-        } else if ("login".equals(state)) {
+            } else if ("login".equals(state)) {
 
-            clearStack();
+                clearStack();
 
-            v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new LoginFlowComponent());
+                v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new LoginFlowComponent());
 
-            MDDUI.get().getAppComponent().setSigningIn();
+                MDDUI.get().getAppComponent().setSigningIn();
 
-        } else if ("search".equals(state)) {
+            } else if ("search".equals(state)) {
 
-            UI.getCurrent().getWindows().forEach(w -> {
-                w.setData("noback");
-                w.close();
-            });
-            clearStack();
+                UI.getCurrent().getWindows().forEach(w -> {
+                    w.setData("noback");
+                    w.close();
+                });
+                clearStack();
 
-            v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new SearchInMenuComponent(MDD.getApp().getSearcher()) {
+                v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new SearchInMenuComponent(MDD.getApp().getSearcher()) {
 
-                @Override
-                public void close() {
+                    @Override
+                    public void close() {
 
-                }
-            });
+                    }
+                });
 
-            MDDUI.get().getAppComponent().setSearching();
+                MDDUI.get().getAppComponent().setSearching();
 
-        } else if ("bye".equals(state)) {
+            } else if ("bye".equals(state)) {
 
-            MDD.setUserData(null);
+                MDD.setUserData(null);
 
-            MDDUI.get().getAppComponent().unselectAll();
+                MDDUI.get().getAppComponent().unselectAll();
 
-            clearStack();
+                clearStack();
 
-            v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new ByeComponent());
+                v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new ByeComponent());
 
-            MDDUI.get().getAppComponent().setArea(MDD.getApp().getDefaultPublicArea());
+                MDDUI.get().getAppComponent().setArea(MDD.getApp().getDefaultPublicArea());
 
-        } else if ((state.startsWith("private") || state.equals("welcome") || state.equals("profile")) && MDD.getUserData() == null) {
+            } else if ((state.startsWith("private") || state.equals("welcome") || state.equals("profile")) && MDD.getUserData() == null) {
 
-            clearStack();
+                clearStack();
 
-            pendingPrivateState = state;
+                pendingPrivateState = state;
 
-            v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new LoginFlowComponent());
+                v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new LoginFlowComponent());
 
 
-        } else if ("welcome".equals(state)) {
+            } else if ("welcome".equals(state)) {
 
-            clearStack();
+                clearStack();
 
-            MDDUI.get().getAppComponent().unselectAll();
+                MDDUI.get().getAppComponent().unselectAll();
 
-            v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new WelcomeComponent());
+                v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new WelcomeComponent());
 
-            if (MDD.getApp().getAreas().size() == 1) {
-                AbstractArea area;
-                MDDUI.get().getAppComponent().setArea(area = MDD.getApp().getAreas().get(0));
-                if (area != null) {
-                    AbstractAction action = area.getDefaultAction();
-                    if (!MDD.isMobile() && action != null) {
-                        action.run(this);
-                        if (stack.size() > 0) v = stack.getLast();
-                    } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new AreaComponent(area));
-                    if (area != null) MDDUI.get().getAppComponent().setArea(area);
-                }
-            } else MDDUI.get().getAppComponent().setArea(null);
+                if (MDD.getApp().getAreas().size() == 1) {
+                    AbstractArea area;
+                    MDDUI.get().getAppComponent().setArea(area = MDD.getApp().getAreas().get(0));
+                    if (area != null) {
+                        AbstractAction action = area.getDefaultAction();
+                        if (!MDD.isMobile() && action != null) {
+                            action.run(this);
+                            if (stack.size() > 0) v = stack.getLast();
+                        } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new AreaComponent(area));
+                        if (area != null) MDDUI.get().getAppComponent().setArea(area);
+                    }
+                } else MDDUI.get().getAppComponent().setArea(null);
 
-        } else if ("public".equals(state)) {
+            } else if ("public".equals(state)) {
 
-            clearStack();
-            MDDUI.get().getAppComponent().unselectAll();
+                clearStack();
+                MDDUI.get().getAppComponent().unselectAll();
 
-            if (MDD.isMobile()) {
-                stack.push(currentPath, new PublicMenuFlowComponent());
-                v = stack.get(currentPath);
-            } else if (MDD.getApp().getAreas().size() == 1) {
-                AbstractArea area;
-                MDDUI.get().getAppComponent().setArea(area = MDD.getApp().getAreas().get(0));
-                if (area != null) {
-                    AbstractAction action = area.getDefaultAction();
-                    if (!MDD.isMobile() && action != null) {
-                        action.run(this);
-                        if (stack.size() > 0) v = stack.getLast();
-                    } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new AreaComponent(area));
-                    if (area != null) MDDUI.get().getAppComponent().setArea(area);
-                }
-            } else {
-                v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PublicMenuFlowComponent());
-            }
-
-        } else if ("private".equals(state)) {
-
-            clearStack();
-            MDDUI.get().getAppComponent().unselectAll();
-
-            if (MDD.isMobile()) {
-                stack.push(currentPath, new PrivateMenuFlowComponent());
-                v = stack.get(currentPath);
-            } else if (MDD.getApp().getAreas().size() == 1) {
-                AbstractArea area;
-                MDDUI.get().getAppComponent().setArea(area = MDD.getApp().getAreas().get(0));
-                if (area != null) {
-                    AbstractAction action = area.getDefaultAction();
-                    if (!MDD.isMobile() && action != null) {
-                        action.run(this);
-                        if (stack.size() > 0) v = stack.getLast();
-                    } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new AreaComponent(area));
-                    if (area != null) MDDUI.get().getAppComponent().setArea(area);
-                }
-            } else {
-                v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PrivateMenuFlowComponent());
-            }
-
-        } else if (state.split("/").length == 2 && !"private/profile".equals(state)) { // es una area
-
-            AbstractArea area = MDD.getApp().getArea(state);
-
-            clearStack();
-
-            if (area != null) {
-                AbstractAction action = area.getDefaultAction();
-                if (!MDD.isMobile() && action != null) {
-                    action.run(this);
-                    if (stack.size() > 0) v = stack.getLast();
-                } else if (MDD.isMobile()) {
-                    String[] ts = currentPath.split("/");
-                    AbstractViewComponent xmfc = ("private".equals(ts[0])) ? new PrivateMenuFlowComponent() : new PublicMenuFlowComponent();
-                    stack.push(ts[0], xmfc);
-                    stack.push(currentPath, MDD.getApp().getAreas().size() > 1?new AreaComponent(area):xmfc);
+                if (MDD.isMobile()) {
+                    stack.push(currentPath, new PublicMenuFlowComponent());
                     v = stack.get(currentPath);
-                } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new AreaComponent(area));
-            }
+                } else if (MDD.getApp().getAreas().size() == 1) {
+                    AbstractArea area;
+                    MDDUI.get().getAppComponent().setArea(area = MDD.getApp().getAreas().get(0));
+                    if (area != null) {
+                        AbstractAction action = area.getDefaultAction();
+                        if (!MDD.isMobile() && action != null) {
+                            action.run(this);
+                            if (stack.size() > 0) v = stack.getLast();
+                        } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new AreaComponent(area));
+                        if (area != null) MDDUI.get().getAppComponent().setArea(area);
+                    }
+                } else {
+                    v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PublicMenuFlowComponent());
+                }
 
-            if (area != null) MDDUI.get().getAppComponent().setArea(area);
+            } else if ("private".equals(state)) {
 
-        } else { // cualquier otro caso
+                clearStack();
+                MDDUI.get().getAppComponent().unselectAll();
 
-            Pair<AbstractArea, MenuEntry> coordinates = getCoordinates(state);
+                if (MDD.isMobile()) {
+                    stack.push(currentPath, new PrivateMenuFlowComponent());
+                    v = stack.get(currentPath);
+                } else if (MDD.getApp().getAreas().size() == 1) {
+                    AbstractArea area;
+                    MDDUI.get().getAppComponent().setArea(area = MDD.getApp().getAreas().get(0));
+                    if (area != null) {
+                        AbstractAction action = area.getDefaultAction();
+                        if (!MDD.isMobile() && action != null) {
+                            action.run(this);
+                            if (stack.size() > 0) v = stack.getLast();
+                        } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new AreaComponent(area));
+                        if (area != null) MDDUI.get().getAppComponent().setArea(area);
+                    }
+                } else {
+                    v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PrivateMenuFlowComponent());
+                }
 
-            if (!state.startsWith("private/profile") && !"welcome".equals(state)) MDDUI.get().getAppComponent().setCoordinates(coordinates);
+            } else if (state.split("/").length == 2 && !"private/profile".equals(state)) { // es una area
+
+                AbstractArea area = MDD.getApp().getArea(state);
+
+                clearStack();
+
+                if (area != null) {
+                    AbstractAction action = area.getDefaultAction();
+                    if (!MDD.isMobile() && action != null) {
+                        action.run(this);
+                        if (stack.size() > 0) v = stack.getLast();
+                    } else if (MDD.isMobile()) {
+                        String[] ts = currentPath.split("/");
+                        AbstractViewComponent xmfc = ("private".equals(ts[0])) ? new PrivateMenuFlowComponent() : new PublicMenuFlowComponent();
+                        stack.push(ts[0], xmfc);
+                        stack.push(currentPath, MDD.getApp().getAreas().size() > 1?new AreaComponent(area):xmfc);
+                        v = stack.get(currentPath);
+                    } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new AreaComponent(area));
+                }
+
+                if (area != null) MDDUI.get().getAppComponent().setArea(area);
+
+            } else { // cualquier otro caso
+
+                Pair<AbstractArea, MenuEntry> coordinates = getCoordinates(state);
+
+                if (!state.startsWith("private/profile") && !"welcome".equals(state)) MDDUI.get().getAppComponent().setCoordinates(coordinates);
 
 
 
-            v = stack.get(cleanState(state));
+                v = stack.get(cleanState(state));
 
-            if (v != null) {
+                if (v != null) {
 
-                stack.popTo(stack.indexOf(v));
+                    stack.popTo(stack.indexOf(v));
 
-            } else {
+                } else {
 
-                String[] steps = state.split("/");
+                    String[] steps = state.split("/");
 
-                String path = "";
+                    String path = "";
 
-                int lastIndexInStack = -1; // nos dice hasta que posición del mobile podemos mantener
-                boolean coincide = true;
-                io.mateu.mdd.vaadinport.vaadin.navigation.View lastView = null;
-                int pos = 0;
-                String auxPath = path;
-                String lastPath = "";
-                int lastPos = 0;
-                boolean menuPassed = false;
+                    int lastIndexInStack = -1; // nos dice hasta que posición del mobile podemos mantener
+                    boolean coincide = true;
+                    io.mateu.mdd.vaadinport.vaadin.navigation.View lastView = null;
+                    int pos = 0;
+                    String auxPath = path;
+                    String lastPath = "";
+                    int lastPos = 0;
+                    boolean menuPassed = false;
 
-                if (state.startsWith("private/profile")) {
+                    if (state.startsWith("private/profile")) {
 
-                    currentPath = lastPath = auxPath = "private/profile";
-
-                    v = lastView = stack.get("private/profile");
-
-                    if (v == null) {
-
-                        if (!MDD.isMobile()) clearStack();
-                        openEditor(null, Profile.class, MDD.getUserData(), false);
+                        currentPath = lastPath = auxPath = "private/profile";
 
                         v = lastView = stack.get("private/profile");
+
+                        if (v == null) {
+
+                            if (!MDD.isMobile()) clearStack();
+                            openEditor(null, Profile.class, MDD.getUserData(), false);
+
+                            v = lastView = stack.get("private/profile");
+
+                        }
+
+
+                        lastIndexInStack = 0;
+
+                        lastPos = pos = 2;
+
+                        menuPassed = true;
 
                     }
 
 
-                    lastIndexInStack = 0;
+                    // va avanzando en los steps mientra exista en el stack
 
-                    lastPos = pos = 2;
+                    while (coincide && pos < steps.length) {
+                        lastPath = auxPath;
+                        lastPos = pos;
 
-                    menuPassed = true;
+                        String fullStep = steps[pos];
+                        String cleanStep = cleanStep(fullStep);
+                        String queryStep = queryFromStep(fullStep);
 
-                }
+                        if (!"".equals(auxPath)) auxPath += "/";
+                        auxPath += cleanStep;
 
-
-                // va avanzando en los steps mientra exista en el stack
-
-                while (coincide && pos < steps.length) {
-                    lastPath = auxPath;
-                    lastPos = pos;
-
-                    String fullStep = steps[pos];
-                    String cleanStep = cleanStep(fullStep);
-                    String queryStep = queryFromStep(fullStep);
-
-                    if (!"".equals(auxPath)) auxPath += "/";
-                    auxPath += cleanStep;
-
-                    if (MDD.isMobile()) {
-                        menuPassed = menuPassed || (MDD.getApp().getMenu(auxPath) != null && MDD.getApp().getMenu(auxPath) instanceof AbstractAction);
-                        coincide = stack.get(auxPath) != null;
-
-                        if (coincide) {
-                            path = auxPath;
-                            io.mateu.mdd.vaadinport.vaadin.navigation.View auxV = stack.get(auxPath);
-                            lastIndexInStack = stack.indexOf(auxV);
-                            lastView = auxV;
-                        }
-
-                    } else {
-
-                        menuPassed = menuPassed || MDD.getApp().getMenu(auxPath) != null;
-
-
-                        if (menuPassed) {
-                            //coincide = auxV != null || (!MDD.isMobile() && (MDD.getApp().getMenu(auxPath) != null && !(MDD.getApp().getMenu(auxPath) instanceof AbstractAction)));
+                        if (MDD.isMobile()) {
+                            menuPassed = menuPassed || (MDD.getApp().getMenu(auxPath) != null && MDD.getApp().getMenu(auxPath) instanceof AbstractAction);
                             coincide = stack.get(auxPath) != null;
 
                             if (coincide) {
@@ -475,321 +463,341 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                 lastView = auxV;
                             }
 
+                        } else {
+
+                            menuPassed = menuPassed || MDD.getApp().getMenu(auxPath) != null;
+
+
+                            if (menuPassed) {
+                                //coincide = auxV != null || (!MDD.isMobile() && (MDD.getApp().getMenu(auxPath) != null && !(MDD.getApp().getMenu(auxPath) instanceof AbstractAction)));
+                                coincide = stack.get(auxPath) != null;
+
+                                if (coincide) {
+                                    path = auxPath;
+                                    io.mateu.mdd.vaadinport.vaadin.navigation.View auxV = stack.get(auxPath);
+                                    lastIndexInStack = stack.indexOf(auxV);
+                                    lastView = auxV;
+                                }
+
+                            }
+
+                        }
+
+                        pos++;
+                    }
+
+
+                    if (lastIndexInStack < stack.size() - 1) stack.popTo(lastIndexInStack);
+
+                    // aquí el stack está limpio hasta el último contenido que coincide
+
+                    // vamos creando el stack hasta que terminemos los steps
+
+                    int currentStepIndex = lastPos;
+                    currentPath = lastPath;
+                    nuevo = false;
+                    while (currentStepIndex < steps.length) { //vamos completando
+
+                        nuevo = true;
+
+                        String fullStep = steps[currentStepIndex];
+                        String cleanStep = cleanStep(fullStep);
+                        String queryStep = queryFromStep(fullStep);
+
+                        currentPath = ((Strings.isNullOrEmpty(currentPath))?"":currentPath + "/") + cleanStep;
+
+
+                        boolean procesar = menuPassed && MDD.getApp().getMenu(currentPath) == null && MDD.getApp().getModule(currentPath) == null && lastView != null;
+
+
+                        if (procesar) {
+                            // miramos el último componente añadido
+
+                            Component lastViewComponent = lastView.getComponent();
+
+                            if (cleanStep.startsWith("obj___")) {
+
+                                procesarObj(cleanStep);
+
+                            } else if (pendingResult != null) {
+
+                                try {
+                                    procesarResultado(lastMethodCall, pendingResult, lastViewComponent);
+                                    lastMethodCall = null;
+                                    pendingResult = null;
+                                } catch (InvocationTargetException e) {
+                                    e.printStackTrace();
+                                } catch (NoSuchMethodException e) {
+                                    e.printStackTrace();
+                                } catch (InstantiationException e) {
+                                    e.printStackTrace();
+                                } catch (IllegalAccessException e) {
+                                    e.printStackTrace();
+                                }
+
+                            } else if (lastViewComponent instanceof JPACollectionFieldListViewComponent && "add".equals(cleanStep)) {
+
+                                procesarAdd(cleanStep, (JPACollectionFieldListViewComponent) lastViewComponent);
+
+                            } else if (lastViewComponent instanceof ListViewComponent) { // el último fué una listView, estamos en un id, add, o en los filtros
+
+                                procesarListViewComponent(state, cleanStep, (ListViewComponent) lastViewComponent);
+
+                            } else if (IEditorViewComponent.class.isAssignableFrom(lastViewComponent.getClass())) {
+                                //lastViewComponent instanceof EditorViewComponent ||
+                                // lastViewComponent instanceof FieldEditorComponent || xxxxxxxxxxxxxxxxxxxx
+                                // lastViewComponent instanceof MethodResultViewComponent ||
+                                // lastViewComponent instanceof WizardComponent || xxxxxxxxxxxxxxxxxxxx
+                                // lastViewComponent instanceof OwnedCollectionComponent || xxxxxxxxxxxxx
+                                // lastViewComponent instanceof MethodParametersViewComponent
+
+                                procesarEditor(state, cleanStep, (IEditorViewComponent) lastViewComponent);
+
+                            }
+
+                        } else if (currentStepIndex == 0) {
+
+                            if ("public".equals(cleanStep)) { // caso "login"
+
+                                if (MDD.isMobile()) {
+                                    stack.push(currentPath, new PublicMenuFlowComponent());
+                                    v = stack.get(currentPath);
+                                } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PublicMenuFlowComponent());
+
+                            } else if ("private".equals(cleanStep)) { // caso "login"
+
+                                if (MDD.isMobile()) {
+                                    stack.push(currentPath, new PrivateMenuFlowComponent());
+                                    v = stack.get(currentPath);
+                                } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PrivateMenuFlowComponent());
+
+                            }
+
+                        } else if (currentStepIndex == 1) {
+
+
+                            AbstractArea area = MDD.getApp().getArea(currentPath);
+
+                            AbstractAction action = area.getDefaultAction();
+                            if (!MDD.isMobile() && action != null) {
+                                action.run(this);
+                                if (stack.size() > 0) v = stack.getLast();
+                            } else if (MDD.isMobile()) {
+                                if (MDD.getApp().getAreas().size() > 1) stack.push(currentPath, new AreaComponent(area));
+                                else stack.push(currentPath, stack.get(0));
+                                v = stack.get(currentPath);
+                            } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new AreaComponent(area));
+
+                            MDDUI.get().getAppComponent().setArea(area);
+
+
+                        } else if (MDD.getApp().getModule(currentPath) != null) {
+
+                            AbstractModule module = MDD.getApp().getModule(currentPath);
+                            Component c = null;
+                            if (MDD.getApp().getArea(module).getModules().size() > 1)  stack.push(currentPath, new ModuleComponent(module));
+                            else stack.push(currentPath, stack.get(1));
+
+                        } else {
+
+                            MenuEntry e = MDD.getApp().getMenu(currentPath);
+                            if (e != null) {
+                                if (e instanceof AbstractAction) {
+                                    ((AbstractAction) e).run(this);
+                                } else if (e instanceof AbstractMenu) {
+                                    if (MDD.isMobile()) {
+
+                                        stack.push(currentPath, new MenuFlowComponent((AbstractMenu) e));
+                                    } else {
+                                        if (stack.size() > 0)
+                                            stack.push(currentPath, stack.getLast());
+                                        else
+                                            stack.push(currentPath, new MenuFlowComponent(getRootMenu(currentPath)));
+                                    }
+                                }
+                            }
+
+                        }
+
+                        currentStepIndex++;
+                        v = lastView = stack.get(currentPath);
+
+                        if (v != null) {
+                            Component c = v.getViewComponent();
+                            if (c != null && c instanceof AbstractViewComponent) {
+                                AbstractViewComponent av = (AbstractViewComponent) c;
+                                av.buildIfNeeded();
+                                expand = av.expandOnOpen();
+
+                                if (c instanceof ListViewComponent && !Strings.isNullOrEmpty(queryStep)) {
+                                    ListViewComponent l = (ListViewComponent) c;
+                                    try {
+                                        Object m = l.getModelForSearchFilters();
+
+                                        Base64.Decoder b64 = Base64.getDecoder();
+
+                                        for (String t : queryStep.split("&")) {
+                                            if (t.contains("=")) {
+                                                String[] tt = t.split("_");
+                                                String n = tt[0];
+                                                String p = tt[1];
+                                                p = new String(b64.decode(p), "utf-8");
+                                                FieldInterfaced f = ReflectionHelper.getFieldByName(m.getClass(), n);
+                                                if (f != null) {
+                                                    Object pv = p;
+                                                    if (!Strings.isNullOrEmpty(p)) {
+                                                        if (f.getType().equals(Long.class) || f.getType().equals(long.class)) pv = Long.parseLong(p);
+                                                        else if (f.getType().equals(Integer.class) || f.getType().equals(int.class)) pv = Integer.parseInt(p);
+                                                        else if (f.getType().equals(Double.class) || f.getType().equals(double.class)) pv = Double.parseDouble(p);
+                                                        else if (f.getType().equals(Boolean.class) || f.getType().equals(boolean.class)) pv = Boolean.parseBoolean(p);
+                                                        else if (f.getType().equals(LocalDate.class)) pv = LocalDate.parse(p);
+                                                        else if (f.getType().isEnum()) pv = Enum.valueOf((Class)f.getType(), p);
+                                                        else if (f.getType().isAnnotationPresent(Entity.class)) {
+                                                            FieldInterfaced idField = ReflectionHelper.getIdField(f.getType());
+                                                            if (idField.getType().equals(Long.class) || idField.getType().equals(long.class)) pv = Long.parseLong(p);
+                                                            else if (idField.getType().equals(Integer.class) || idField.getType().equals(int.class)) pv = Integer.parseInt(p);
+                                                            else if (idField.getType().equals(Double.class) || idField.getType().equals(double.class)) pv = Double.parseDouble(p);
+                                                            else if (idField.getType().equals(Boolean.class) || idField.getType().equals(boolean.class)) pv = Boolean.parseBoolean(p);
+                                                            else if (idField.getType().equals(LocalDate.class)) pv = LocalDate.parse(p);
+                                                            else if (idField.getType().isEnum()) pv = Enum.valueOf((Class)idField.getType(), p);
+                                                            pv = Helper.find(f.getType(), pv);
+                                                        }
+                                                    }
+                                                    ReflectionHelper.setValue(f, m, pv);
+                                                }
+                                            }
+                                        }
+
+                                        l.setModelForSearchFilters(m);
+
+                                    } catch (Throwable e) {
+                                        MDD.alert(e);
+                                    }
+                                }
+                            }
                         }
 
                     }
 
-                    pos++;
-                }
 
 
-                if (lastIndexInStack < stack.size() - 1) stack.popTo(lastIndexInStack);
+                    // aquí
 
-                // aquí el stack está limpio hasta el último contenido que coincide
-
-                // vamos creando el stack hasta que terminemos los steps
-
-                int currentStepIndex = lastPos;
-                currentPath = lastPath;
-                nuevo = false;
-                while (currentStepIndex < steps.length) { //vamos completando
-
-                    nuevo = true;
-
-                    String fullStep = steps[currentStepIndex];
-                    String cleanStep = cleanStep(fullStep);
-                    String queryStep = queryFromStep(fullStep);
-
-                    currentPath = ((Strings.isNullOrEmpty(currentPath))?"":currentPath + "/") + cleanStep;
-
-
-                    boolean procesar = menuPassed && MDD.getApp().getMenu(currentPath) == null && MDD.getApp().getModule(currentPath) == null && lastView != null;
-
-
-                    if (procesar) {
-                        // miramos el último componente añadido
-
-                        Component lastViewComponent = lastView.getComponent();
-
-                        if (cleanStep.startsWith("obj___")) {
-
-                            procesarObj(cleanStep);
-
-                        } else if (pendingResult != null) {
-
-                            try {
-                                procesarResultado(lastMethodCall, pendingResult, lastViewComponent);
-                                lastMethodCall = null;
-                                pendingResult = null;
-                            } catch (InvocationTargetException e) {
-                                e.printStackTrace();
-                            } catch (NoSuchMethodException e) {
-                                e.printStackTrace();
-                            } catch (InstantiationException e) {
-                                e.printStackTrace();
-                            } catch (IllegalAccessException e) {
-                                e.printStackTrace();
-                            }
-
-                        } else if (lastViewComponent instanceof JPACollectionFieldListViewComponent && "add".equals(cleanStep)) {
-
-                            procesarAdd(cleanStep, (JPACollectionFieldListViewComponent) lastViewComponent);
-
-                        } else if (lastViewComponent instanceof ListViewComponent) { // el último fué una listView, estamos en un id, add, o en los filtros
-
-                            procesarListViewComponent(state, cleanStep, (ListViewComponent) lastViewComponent);
-
-                        } else if (IEditorViewComponent.class.isAssignableFrom(lastViewComponent.getClass())) {
-                            //lastViewComponent instanceof EditorViewComponent ||
-                            // lastViewComponent instanceof FieldEditorComponent || xxxxxxxxxxxxxxxxxxxx
-                            // lastViewComponent instanceof MethodResultViewComponent ||
-                            // lastViewComponent instanceof WizardComponent || xxxxxxxxxxxxxxxxxxxx
-                            // lastViewComponent instanceof OwnedCollectionComponent || xxxxxxxxxxxxx
-                            // lastViewComponent instanceof MethodParametersViewComponent
-
-                            procesarEditor(state, cleanStep, (IEditorViewComponent) lastViewComponent);
-
-                        }
-
-                    } else if (currentStepIndex == 0) {
-
-                        if ("public".equals(cleanStep)) { // caso "login"
-
-                            if (MDD.isMobile()) {
-                                stack.push(currentPath, new PublicMenuFlowComponent());
-                                v = stack.get(currentPath);
-                            } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PublicMenuFlowComponent());
-
-                        } else if ("private".equals(cleanStep)) { // caso "login"
-
-                            if (MDD.isMobile()) {
-                                stack.push(currentPath, new PrivateMenuFlowComponent());
-                                v = stack.get(currentPath);
-                            } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new PrivateMenuFlowComponent());
-
-                        }
-
-                    } else if (currentStepIndex == 1) {
-
-
-                        AbstractArea area = MDD.getApp().getArea(currentPath);
-
-                        AbstractAction action = area.getDefaultAction();
-                        if (!MDD.isMobile() && action != null) {
-                            action.run(this);
-                            if (stack.size() > 0) v = stack.getLast();
-                        } else if (MDD.isMobile()) {
-                            if (MDD.getApp().getAreas().size() > 1) stack.push(currentPath, new AreaComponent(area));
-                            else stack.push(currentPath, stack.get(0));
-                            v = stack.get(currentPath);
-                        } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new AreaComponent(area));
-
-                        MDDUI.get().getAppComponent().setArea(area);
-
-
-                    } else if (MDD.getApp().getModule(currentPath) != null) {
-
-                        AbstractModule module = MDD.getApp().getModule(currentPath);
-                        Component c = null;
-                        if (MDD.getApp().getArea(module).getModules().size() > 1)  stack.push(currentPath, new ModuleComponent(module));
-                        else stack.push(currentPath, stack.get(1));
-
-                    } else {
+                    if (v == null) {
 
                         MenuEntry e = MDD.getApp().getMenu(currentPath);
                         if (e != null) {
-                            if (e instanceof AbstractAction) {
-                                ((AbstractAction) e).run(this);
-                            } else if (e instanceof AbstractMenu) {
+                            if (e instanceof AbstractMenu) {
                                 if (MDD.isMobile()) {
-
-                                    stack.push(currentPath, new MenuFlowComponent((AbstractMenu) e));
+                                    stack.push(currentPath, new MobileMenuComponent(e));
                                 } else {
-                                    if (stack.size() > 0)
-                                        stack.push(currentPath, stack.getLast());
-                                    else
-                                        stack.push(currentPath, new MenuFlowComponent(getRootMenu(currentPath)));
+                                    stack.push(currentPath, new MenuFlowComponent((AbstractMenu) e));
                                 }
-                            }
-                        }
-
-                    }
-
-                    currentStepIndex++;
-                    v = lastView = stack.get(currentPath);
-
-                    if (v != null) {
-                        Component c = v.getViewComponent();
-                        if (c != null && c instanceof AbstractViewComponent) {
-                            AbstractViewComponent av = (AbstractViewComponent) c;
-                            av.buildIfNeeded();
-                            expand = av.expandOnOpen();
-
-                            if (c instanceof ListViewComponent && !Strings.isNullOrEmpty(queryStep)) {
-                                ListViewComponent l = (ListViewComponent) c;
-                                try {
-                                    Object m = l.getModelForSearchFilters();
-
-                                    Base64.Decoder b64 = Base64.getDecoder();
-
-                                    for (String t : queryStep.split("&")) {
-                                        if (t.contains("=")) {
-                                            String[] tt = t.split("_");
-                                            String n = tt[0];
-                                            String p = tt[1];
-                                            p = new String(b64.decode(p), "utf-8");
-                                            FieldInterfaced f = ReflectionHelper.getFieldByName(m.getClass(), n);
-                                            if (f != null) {
-                                                Object pv = p;
-                                                if (!Strings.isNullOrEmpty(p)) {
-                                                    if (f.getType().equals(Long.class) || f.getType().equals(long.class)) pv = Long.parseLong(p);
-                                                    else if (f.getType().equals(Integer.class) || f.getType().equals(int.class)) pv = Integer.parseInt(p);
-                                                    else if (f.getType().equals(Double.class) || f.getType().equals(double.class)) pv = Double.parseDouble(p);
-                                                    else if (f.getType().equals(Boolean.class) || f.getType().equals(boolean.class)) pv = Boolean.parseBoolean(p);
-                                                    else if (f.getType().equals(LocalDate.class)) pv = LocalDate.parse(p);
-                                                    else if (f.getType().isEnum()) pv = Enum.valueOf((Class)f.getType(), p);
-                                                    else if (f.getType().isAnnotationPresent(Entity.class)) {
-                                                        FieldInterfaced idField = ReflectionHelper.getIdField(f.getType());
-                                                        if (idField.getType().equals(Long.class) || idField.getType().equals(long.class)) pv = Long.parseLong(p);
-                                                        else if (idField.getType().equals(Integer.class) || idField.getType().equals(int.class)) pv = Integer.parseInt(p);
-                                                        else if (idField.getType().equals(Double.class) || idField.getType().equals(double.class)) pv = Double.parseDouble(p);
-                                                        else if (idField.getType().equals(Boolean.class) || idField.getType().equals(boolean.class)) pv = Boolean.parseBoolean(p);
-                                                        else if (idField.getType().equals(LocalDate.class)) pv = LocalDate.parse(p);
-                                                        else if (idField.getType().isEnum()) pv = Enum.valueOf((Class)idField.getType(), p);
-                                                        pv = Helper.find(f.getType(), pv);
-                                                    }
-                                                }
-                                                ReflectionHelper.setValue(f, m, pv);
-                                            }
-                                        }
-                                    }
-
-                                    l.setModelForSearchFilters(m);
-
-                                } catch (Throwable e) {
-                                    MDD.alert(e);
-                                }
-                            }
-                        }
-                    }
-
-                }
-
-
-
-                // aquí
-
-                if (v == null) {
-
-                    MenuEntry e = MDD.getApp().getMenu(currentPath);
-                    if (e != null) {
-                        if (e instanceof AbstractMenu) {
-                            if (MDD.isMobile()) {
-                                stack.push(currentPath, new MobileMenuComponent(e));
-                            } else {
-                                stack.push(currentPath, new MenuFlowComponent((AbstractMenu) e));
-                            }
-                            currentStepIndex++;
-                            v = stack.get(currentPath);
-                        } else if (e instanceof AbstractAction) {
-                            stack.push(currentPath, new ComponentWrapper(e.getName(), new Label("", ContentMode.HTML)));
-                            currentStepIndex++;
-                            v = stack.get(currentPath);
-                        }
-                    } else {
-                        if (currentStepIndex == 0) { // public | private --> lista de areas
-                            if ("public".equalsIgnoreCase(path)) {
-                                stack.push(currentPath, new PublicMenuFlowComponent());
                                 currentStepIndex++;
                                 v = stack.get(currentPath);
-                            } else if ("private".equalsIgnoreCase(path)) {
-                                stack.push(currentPath, new PrivateMenuFlowComponent());
+                            } else if (e instanceof AbstractAction) {
+                                stack.push(currentPath, new ComponentWrapper(e.getName(), new Label("", ContentMode.HTML)));
                                 currentStepIndex++;
                                 v = stack.get(currentPath);
                             }
-                        } else if (currentStepIndex == 1) {
-                            // todo: fijamos el menu en esta area
                         } else {
-                            // todo: fijamos el menu en esta area
+                            if (currentStepIndex == 0) { // public | private --> lista de areas
+                                if ("public".equalsIgnoreCase(path)) {
+                                    stack.push(currentPath, new PublicMenuFlowComponent());
+                                    currentStepIndex++;
+                                    v = stack.get(currentPath);
+                                } else if ("private".equalsIgnoreCase(path)) {
+                                    stack.push(currentPath, new PrivateMenuFlowComponent());
+                                    currentStepIndex++;
+                                    v = stack.get(currentPath);
+                                }
+                            } else if (currentStepIndex == 1) {
+                                // todo: fijamos el menu en esta area
+                            } else {
+                                // todo: fijamos el menu en esta area
+                            }
                         }
+
                     }
 
                 }
 
+
             }
 
 
-        }
+            // aquí ya tenemos la vista, tanto si ya existía en la pila como si no, y es el último elemento de la pila
+
+            if (v == null) v = new VoidView(stack);
 
 
-        // aquí ya tenemos la vista, tanto si ya existía en la pila como si no, y es el último elemento de la pila
-
-        if (v == null) v = new VoidView(stack);
-
-
-        Component c = ((io.mateu.mdd.vaadinport.vaadin.navigation.View) v).getViewComponent();
-        if (c != null && c instanceof AbstractViewComponent) {
-            ((AbstractViewComponent)c).buildIfNeeded();
-            ((AbstractViewComponent)c).updatePageTitle();
-        }
-        if (c.getStyleName().contains("refreshOnBack")) {
-
-            if (c != null && c instanceof EditorViewComponent) {
-                EditorViewComponent evc = (EditorViewComponent) c;
-                Object id = ReflectionHelper.getId(evc.getModel());
-                if (id != null) {
-                    try {
-                        evc.load(id);
-                    } catch (Throwable throwable) {
-                        MDD.alert(throwable);
-                    }
-                } else evc.updateModel(evc.getModel());
+            Component c = ((io.mateu.mdd.vaadinport.vaadin.navigation.View) v).getViewComponent();
+            if (c != null && c instanceof AbstractViewComponent) {
+                ((AbstractViewComponent)c).buildIfNeeded();
             }
-            c.removeStyleName("refreshOnBack");
-        }
+            if (c.getStyleName().contains("refreshOnBack")) {
 
-        if (!nuevo) {
-            if (c != null && c instanceof EditorViewComponent) {
+                if (c != null && c instanceof EditorViewComponent) {
+                    EditorViewComponent evc = (EditorViewComponent) c;
+                    Object id = ReflectionHelper.getId(evc.getModel());
+                    if (id != null) {
+                        try {
+                            evc.load(id);
+                        } catch (Throwable throwable) {
+                            MDD.alert(throwable);
+                        }
+                    } else evc.updateModel(evc.getModel());
+                }
+                c.removeStyleName("refreshOnBack");
+            }
+
+            if (!nuevo) {
+                if (c != null && c instanceof EditorViewComponent) {
                     EditorViewComponent evc = (EditorViewComponent) c;
                     evc.updateModel(evc.getModel());
                 }
             }
 
-        if (c != null & c instanceof EditorViewComponent) {
-            currentEditor = (EditorViewComponent) v.getViewComponent();
-        }
-
-        if (false && c != null & c instanceof JPAListViewComponent) {
-            Notification.show(((MDD.isMobile())?"Click":"Double click") + " on matches to edit", Notification.Type.TRAY_NOTIFICATION);
-        }
-
-        if (c != null && c instanceof AbstractViewComponent) {
-            ((AbstractViewComponent)c).updatePageTitle();
-        }
-        if (c == null) {
-            log.debug("No limpiamos selección. c es null");
-        } else if (c instanceof ListViewComponent) {
-            if (((ListViewComponent)c).resultsComponent != null) {
-                log.debug("Limpiamos selección " + ((ListViewComponent)c).resultsComponent.getGrid().getSelectedItems().size());
-                ((ListViewComponent)c).resultsComponent.getGrid().getSelectionModel().deselectAll();
-                log.debug("Ha quedado en " + ((ListViewComponent)c).resultsComponent.getGrid().getSelectedItems().size());
+            if (c != null & c instanceof EditorViewComponent) {
+                currentEditor = (EditorViewComponent) v.getViewComponent();
             }
-        } else {
-            log.debug("No limpiamos selección. clase = " + c.getClass().getName());
-        }
 
-        expand |= stack.size() > 1;
+            if (false && c != null & c instanceof JPAListViewComponent) {
+                Notification.show(((MDD.isMobile())?"Click":"Double click") + " on matches to edit", Notification.Type.TRAY_NOTIFICATION);
+            }
 
-        AppComponent appComponent = MDDUI.get().getAppComponent();
-        if (appComponent instanceof DesktopAppComponent) {
-            DesktopAppComponent dac = (DesktopAppComponent) appComponent;
-            if (false && expand) {
-                dac.minimizeLeftSide();
-//            } else if (v.isMenuExpanded()) {
+            if (c != null && c instanceof AbstractViewComponent) {
+                ((AbstractViewComponent)c).updatePageTitle();
+            }
+            if (c == null) {
+                log.debug("No limpiamos selección. c es null");
+            } else if (c instanceof ListViewComponent) {
+                if (((ListViewComponent)c).resultsComponent != null) {
+                    log.debug("Limpiamos selección " + ((ListViewComponent)c).resultsComponent.getGrid().getSelectedItems().size());
+                    ((ListViewComponent)c).resultsComponent.getGrid().getSelectionModel().deselectAll();
+                    log.debug("Ha quedado en " + ((ListViewComponent)c).resultsComponent.getGrid().getSelectedItems().size());
+                }
             } else {
-                dac.maximizeLeftSide();
+                log.debug("No limpiamos selección. clase = " + c.getClass().getName());
             }
+
+            expand |= stack.size() > 1;
+
+            AppComponent appComponent = MDDUI.get().getAppComponent();
+            if (appComponent instanceof DesktopAppComponent) {
+                DesktopAppComponent dac = (DesktopAppComponent) appComponent;
+                if (false && expand) {
+                    dac.minimizeLeftSide();
+//            } else if (v.isMenuExpanded()) {
+                } else {
+                    dac.maximizeLeftSide();
+                }
+            }
+
+        } catch (Throwable e) {
+            MDD.alert(e);
         }
+
 
         if (v != null && v.isOpenNewWindow()) {
             MDDUI.get().openInWindow(v);
@@ -834,7 +842,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
         else return fullStep.substring(0, fullStep.indexOf("&"));
     }
 
-    private void procesarEditor(String state, String step, IEditorViewComponent evfc) {
+    private void procesarEditor(String state, String step, IEditorViewComponent evfc) throws Throwable {
         Object r = null;
         Method method = null;
         FieldInterfaced field = null;
@@ -859,7 +867,6 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
             boolean ownedCollection = ReflectionHelper.isOwnedCollection(field);
 
             if (field.isAnnotationPresent(UseLinkToListView.class)) {
-                try {
 
                     UseLinkToListView aa = field.getAnnotation(UseLinkToListView.class);
 
@@ -939,44 +946,24 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                         stack.push(currentPath, vc).setOpenNewWindow(true);
 
                     }
-
-                } catch (Exception e) {
-                    MDD.alert(e);
-                }
             } else if (ownedCollection) {
 
-                try {
-                    stack.push(currentPath, new OwnedCollectionComponent(evfc.getBinder(), field, field.isAnnotationPresent(UseLinkToListView.class) ? -1 : 0)).setOpenNewWindow(true);
-                } catch (Exception e) {
-                    MDD.alert(e);
-                }
-
+                stack.push(currentPath, new OwnedCollectionComponent(evfc.getBinder(), field, field.isAnnotationPresent(UseLinkToListView.class) ? -1 : 0)).setOpenNewWindow(true);
 
             } else if (field.isAnnotationPresent(OneToMany.class) || field.isAnnotationPresent(ManyToMany.class)) {
 
                 ListViewComponent lvc = null;
                 Component vc = null;
 
-                try {
+                if (field.isAnnotationPresent(UseLinkToListView.class)) evfc.save(false);
 
-                    if (field.isAnnotationPresent(UseLinkToListView.class)) evfc.save(false);
+                vc = new JPACollectionFieldViewComponent(field.getGenericClass(), field, evfc, false);
 
-                    vc = new JPACollectionFieldViewComponent(field.getGenericClass(), field, evfc, false);
-
-                    stack.push(currentPath, vc).setOpenNewWindow(true);
-
-                } catch (Throwable e) {
-                    MDD.alert(e);
-                }
-
+                stack.push(currentPath, vc).setOpenNewWindow(true);
 
             } else {
 
-                try {
-                    procesarFieldEditor(evfc, field, step);
-                } catch (Throwable e) {
-                    MDD.alert(e);
-                }
+                procesarFieldEditor(evfc, field, step);
 
             }
 
@@ -1043,7 +1030,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
         }
     }
 
-    private void procesarListViewComponent(String state, String step, ListViewComponent lvc) {
+    private void procesarListViewComponent(String state, String step, ListViewComponent lvc) throws Exception {
         // step es filters, add o el id del objeto a editar
 
         Method method = lvc.getMethod(step);
@@ -1155,7 +1142,8 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     }
                 });
 
-                stack.push(currentPath, evc); //.setOpenNewWindow(true);
+                io.mateu.mdd.vaadinport.vaadin.navigation.View v = stack.push(currentPath, evc);
+                if (lvc.getView().getWindowContainer() != null) v.setOpenNewWindow(true);
 
             }
         }
@@ -1298,17 +1286,17 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
     }
 
     @Override
-    public void openEditor(MDDOpenEditorAction action, Class viewClass, Object id, boolean modifierPressed) {
+    public void openEditor(MDDOpenEditorAction action, Class viewClass, Object id, boolean modifierPressed) throws Exception {
         stack.push(currentPath, MDDViewComponentCreator.createComponent(action, viewClass, id, modifierPressed));
     }
 
     @Override
-    public void openListView(MDDOpenListViewAction action, Class viewClass, boolean modifierPressed) {
+    public void openListView(MDDOpenListViewAction action, Class viewClass, boolean modifierPressed) throws Exception {
         stack.push(currentPath, MDDViewComponentCreator.createComponent(action, viewClass, modifierPressed));
     }
 
     @Override
-    public void openCRUD(MDDOpenCRUDAction action, Class entityClass, String queryFilters, ExtraFilters extraFilters, boolean modifierPressed) {
+    public void openCRUD(MDDOpenCRUDAction action, Class entityClass, String queryFilters, ExtraFilters extraFilters, boolean modifierPressed) throws Exception {
         stack.push(currentPath, MDDViewComponentCreator.createComponent(action, entityClass, queryFilters, extraFilters, modifierPressed));
     }
 
@@ -1322,7 +1310,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
     }
 
     @Override
-    public void open(AbstractAction action, Component component, boolean modifierPressed) {
+    public void open(AbstractAction action, Component component, boolean modifierPressed) throws Exception {
         stack.push(currentPath, component);
     }
 
@@ -1389,7 +1377,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
         }
     }
 
-    private void procesarResultado(Method m, Object r, Component lastViewComponent) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    private void procesarResultado(Method m, Object r, Component lastViewComponent) throws Exception {
         String title = m != null?"Result of " + Helper.capitalize(m.getName()):"Result";
 
         if (m != null && m.isAnnotationPresent(Action.class) && m.getAnnotation(Action.class).refreshOnBack()) {

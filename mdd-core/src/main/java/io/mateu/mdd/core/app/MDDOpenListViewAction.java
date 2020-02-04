@@ -19,7 +19,7 @@ public class MDDOpenListViewAction extends AbstractAction {
     }
 
     @Override
-    public void run(MDDExecutionContext context) {
+    public void run(MDDExecutionContext context) throws Exception {
         context.openListView(this, listViewClass, modifierPressed);
     }
 }

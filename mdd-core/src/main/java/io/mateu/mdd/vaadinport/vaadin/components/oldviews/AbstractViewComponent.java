@@ -174,7 +174,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
     public void updatePageTitle() {
         titleLabel.setValue(getTitle());
-        UI.getCurrent().getPage().setTitle((titleLabel.getValue() != null)?titleLabel.getValue():"No title");
+        //UI.getCurrent().getPage().setTitle((titleLabel.getValue() != null)?titleLabel.getValue():"No title");
         applyStyles(MDDUI.get().getViewContainer());
     }
 
@@ -184,6 +184,10 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
     public String getTitle() {
         return title != null?title:toString();
+    }
+
+    public String getPageTitle() {
+        return getTitle();
     }
 
     public A setTitle(String title) {
@@ -264,7 +268,11 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                                 @Override
                                 public void run() {
 
-                                    a.run(new AbstractMDDExecutionContext());
+                                    try {
+                                        a.run(new AbstractMDDExecutionContext());
+                                    } catch (Exception ex) {
+                                        MDD.alert(ex);
+                                    }
 
                                 }
                             };

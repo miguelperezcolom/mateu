@@ -247,7 +247,11 @@ public abstract class AbstractFieldBuilder {
                                 }
                                  */
                                 if (c instanceof Grid) MDDUI.get().getNavegador().getViewProvider().pendingSelection = ((Grid) c).getSelectedItems();
-                                a.run(new AbstractMDDExecutionContext());
+                                try {
+                                    a.run(new AbstractMDDExecutionContext());
+                                } catch (Exception ex) {
+                                    MDD.alert(ex);
+                                }
                             }
                         };
 

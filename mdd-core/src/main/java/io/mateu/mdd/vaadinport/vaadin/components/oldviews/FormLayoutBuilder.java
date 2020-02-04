@@ -206,7 +206,13 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
                 b.addStyleName(ValoTheme.BUTTON_TINY);
                 b.addStyleName(ValoTheme.BUTTON_QUIET);
                 b.addStyleName(a.getStyle());
-                b.addClickListener(e -> a.run(new AbstractMDDExecutionContext()));
+                b.addClickListener(e -> {
+                    try {
+                        a.run(new AbstractMDDExecutionContext());
+                    } catch (Exception ex) {
+                        MDD.alert(ex);
+                    }
+                });
             }
 
         }

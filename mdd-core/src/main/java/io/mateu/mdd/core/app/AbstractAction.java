@@ -68,7 +68,7 @@ public abstract class AbstractAction implements MenuEntry {
         return modifierPressed;
     }
 
-    public abstract void run(MDDExecutionContext context);
+    public abstract void run(MDDExecutionContext context) throws Exception;
 
     public String getId() {
         return id;

@@ -690,6 +690,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                 if (seleccion) { // queremos seleccionar valores de entre una lista
 
+                    g.addStyleName("unclickable");
+
                     if (MDDUI.get().getNavegador().getViewProvider().pendingSelection != null) {
                         g.setDataProvider(new ListDataProvider(MDDUI.get().getNavegador().getViewProvider().pendingSelection));
                         MDDUI.get().getNavegador().getViewProvider().pendingSelection = null;
@@ -707,7 +709,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                             try {
                                 com.vaadin.data.provider.DataProvider dp = null;
                                 FieldInterfaced mbf = ReflectionHelper.getMapper(field);
-                                if (mbf != null) {
+                                if (mbf != null && mbf.isAnnotationPresent(ManyToOne.class)) {
                                     dp = new JPQLListDataProvider("select x from " + targetClass.getName() + " x where x." + mbf.getName() + " = null order by x." + ReflectionHelper.getIdField(targetClass).getName() + " asc");
                                 } else {
                                     dp = new JPQLListDataProvider(targetClass);
@@ -724,7 +726,6 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                     }
 
                     bindSelection(binder, g, field);
-
 
                 } else {
 
@@ -1305,14 +1306,14 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
     private void updateReferences(MDDBinder binder, FieldInterfaced field, HasValue.ValueChangeEvent<Set<Object>> e) {
         Object bean = binder.getBean();
-        e.getOldValue().stream().filter(i -> !e.getValue().contains(i)).forEach(i -> {
+        if (e.getOldValue() != null) e.getOldValue().stream().filter(i -> e.getValue() == null || !e.getValue().contains(i)).forEach(i -> {
             try {
                 ReflectionHelper.unReverseMap(binder, field, bean, i);
             } catch (Exception e1) {
                 MDD.alert(e1);
             }
         });
-        e.getValue().stream().filter(i -> !e.getOldValue().contains(i)).forEach(i -> {
+        if (e.getValue() != null) e.getValue().stream().filter(i -> e.getOldValue() == null || !e.getOldValue().contains(i)).forEach(i -> {
             try {
                 ReflectionHelper.reverseMap(binder, field, bean, i);
             } catch (Exception e1) {
@@ -1427,7 +1428,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
     }
 
     private void bindSelection(MDDBinder binder, Grid g, FieldInterfaced field) {
-        Binder.BindingBuilder aux = binder.forField(new HasValue() {
+        HasValue hv;
+        Binder.BindingBuilder aux = binder.forField(hv = new HasValue() {
 
             List<ValueChangeListener> valueChangeListeners = new ArrayList<>();
 
@@ -1487,6 +1489,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
         aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
         Binder.Binding b = aux.bind(field.getName());
+
+        hv.addValueChangeListener(e -> updateReferences(binder, field, e));
 
         if (Set.class.isAssignableFrom(field.getType())) {
             try {
