@@ -1376,7 +1376,16 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
         if (r == null && void.class.equals(m.getReturnType())) {
             ComponentWrapper cw;
             stack.push(currentPath, cw = new ComponentWrapper(title, new Label("Void method", ContentMode.HTML))).setOpenNewWindow(true);
-            cw.addAttachListener(e -> MDDUI.get().getNavegador().goBack());
+            cw.addAttachListener(e -> {
+                if (lastViewComponent != null && lastViewComponent instanceof ListViewComponent) {
+                    try {
+                        ((ListViewComponent) lastViewComponent).search(((ListViewComponent) lastViewComponent).getModelForSearchFilters());
+                    } catch (Throwable throwable) {
+                        MDD.alert(throwable);
+                    }
+                }
+                //MDDUI.get().getNavegador().goBack();
+            });
         } else if (r == null) {
             stack.push(currentPath, new ComponentWrapper(title, new Label("Empty result", ContentMode.HTML))).setOpenNewWindow(true);
         } else {
