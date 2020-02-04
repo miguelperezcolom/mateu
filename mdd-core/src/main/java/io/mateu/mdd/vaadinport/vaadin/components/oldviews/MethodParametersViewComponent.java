@@ -85,13 +85,14 @@ public class MethodParametersViewComponent extends EditorViewComponent {
                                 View v = stack.size() >= 2?stack.get(stack.size() - 2):null;
                                 if (v != null && v.getViewComponent() instanceof EditorViewComponent) ((EditorViewComponent) v.getViewComponent()).save(false);
                             }
-                            MDD.notifyInfo("Done");
-                            MDDUI.get().getNavegador().goBack();
                         } else {
                             MDDUI.get().getNavegador().getViewProvider().pendingResult = r;
                             MDDUI.get().getNavegador().getViewProvider().lastMethodCall = method;
-                            MDDUI.get().getNavegador().go("result");
                         }
+                        if (r == null || void.class.equals(method.getReturnType())) {
+                            MDD.notifyInfo("Done");
+                            MDDUI.get().getNavegador().goBack();
+                        } else MDDUI.get().getNavegador().go("result");
                     } catch (Throwable e) {
                         MDD.alert(e);
                     }

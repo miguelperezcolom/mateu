@@ -1353,7 +1353,30 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     }
 
                     if (hasNonInjectedParameters) {
-                        stack.push(currentPath, new MethodParametersViewComponent(instance, method, pendingSelection)).setOpenNewWindow(true);
+                        MethodParametersViewComponent mpvc;
+                        stack.push(currentPath, mpvc = new MethodParametersViewComponent(instance, method, pendingSelection)).setOpenNewWindow(true);
+                        mpvc.addEditorListener(new EditorListener() {
+                            @Override
+                            public void preSave(Object model) throws Throwable {
+
+                            }
+
+                            @Override
+                            public void onSave(Object model) {
+
+                            }
+
+                            @Override
+                            public void onGoBack(Object model) {
+                                if (lastViewComponent != null && lastViewComponent instanceof ListViewComponent) {
+                                    try {
+                                        ((ListViewComponent) lastViewComponent).search(((ListViewComponent) lastViewComponent).getModelForSearchFilters());
+                                    } catch (Throwable throwable) {
+                                        MDD.alert(throwable);
+                                    }
+                                }
+                            }
+                        });
                     } else {
                         procesarResultado(method, ReflectionHelper.execute(MDD.getUserData(), method, new MDDBinder(new ArrayList<>()), instance, pendingSelection), lastViewComponent);
                     }
@@ -1377,14 +1400,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
             ComponentWrapper cw;
             stack.push(currentPath, cw = new ComponentWrapper(title, new Label("Void method", ContentMode.HTML))).setOpenNewWindow(true);
             cw.addAttachListener(e -> {
-                if (lastViewComponent != null && lastViewComponent instanceof ListViewComponent) {
-                    try {
-                        ((ListViewComponent) lastViewComponent).search(((ListViewComponent) lastViewComponent).getModelForSearchFilters());
-                    } catch (Throwable throwable) {
-                        MDD.alert(throwable);
-                    }
-                }
-                //MDDUI.get().getNavegador().goBack();
+                MDDUI.get().getNavegador().goBack();
             });
         } else if (r == null) {
             stack.push(currentPath, new ComponentWrapper(title, new Label("Empty result", ContentMode.HTML))).setOpenNewWindow(true);
