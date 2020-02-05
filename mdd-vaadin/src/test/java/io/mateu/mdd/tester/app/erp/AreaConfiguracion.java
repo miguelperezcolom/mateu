@@ -25,7 +25,7 @@ public class AreaConfiguracion extends AbstractArea {
             public List<MenuEntry> buildMenu() {
                 List<MenuEntry> l = new ArrayList<>();
 
-                l.add(new MDDMenu("Mundo", "Países", Pais.class, "Provincias", Provincia.class, "Localidades", Localidad.class));
+                l.add(new MDDMenu("Mundo", "Mundos", Mundo.class, "Países", Pais.class, "Provincias", Provincia.class, "Localidades", Localidad.class));
 
 
                 l.add(new MDDMenu("ManyToMany", "Lado A", ManyToManyASideEntity.class, "Lado B", ManyToManyBSideEntity.class));

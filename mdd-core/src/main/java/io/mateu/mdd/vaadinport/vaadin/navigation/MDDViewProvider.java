@@ -37,6 +37,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -122,11 +123,14 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
     @Override
     public String getViewName(String s) {
+        System.out.println("MDDViewProvider.getViewName(" + s + ")");
         return s;
     }
 
     @Override
     public View getView(String state) {
+
+        System.out.println("MDDViewProvider.getView(" + state + ")");
 
         if (state.equals(currentPath)) {
             io.mateu.mdd.vaadinport.vaadin.navigation.View v = stack.getLast();
@@ -1113,7 +1117,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     if (Strings.isNullOrEmpty(step) || "new".equals(step)) { // estamos añadiendo un nuevo registro
                         evc.load(null);
                     } else { // step es el id del objeto a editar
-                        String sid = step;
+                        String sid = URLDecoder.decode(step, "iso-8859-1");
                         evc.load(lvc.deserializeId(sid));
                     }
 

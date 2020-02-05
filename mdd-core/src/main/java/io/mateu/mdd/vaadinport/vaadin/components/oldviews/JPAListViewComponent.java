@@ -25,9 +25,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.URLEncoder;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.time.LocalDate;
@@ -66,7 +68,11 @@ public class JPAListViewComponent extends ListViewComponent {
         addListener(new ListViewComponentListener() {
             @Override
             public void onEdit(Object id) {
-                MDDUI.get().getNavegador().goTo(getUrl() + "/" + id);
+                try {
+                    MDDUI.get().getNavegador().goTo(getUrl() + "/" + URLEncoder.encode("" + id, "iso-8859-1"));
+                } catch (UnsupportedEncodingException e) {
+                    MDD.alert(e);
+                }
             }
 
             @Override

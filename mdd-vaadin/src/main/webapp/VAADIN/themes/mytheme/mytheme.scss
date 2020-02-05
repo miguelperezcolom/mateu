@@ -2461,7 +2461,15 @@ body {
     }
 
     .opicon {
-      color: lightgray;
+      color: gray;
+    }
+  }
+
+  .homecard.link:hover {
+    cursor: pointer;
+    background-color: #efefef;
+    .kpi {
+      background-color: unset;
     }
   }
 
