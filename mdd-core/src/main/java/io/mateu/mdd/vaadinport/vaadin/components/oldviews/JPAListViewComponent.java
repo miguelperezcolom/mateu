@@ -69,7 +69,7 @@ public class JPAListViewComponent extends ListViewComponent {
             @Override
             public void onEdit(Object id) {
                 try {
-                    MDDUI.get().getNavegador().goTo(getUrl() + "/" + URLEncoder.encode("" + id, "iso-8859-1"));
+                    MDDUI.get().getNavegador().goTo(getUrl() + "/" + URLEncoder.encode(Helper.encodeState("" + id), "iso-8859-1"));
                 } catch (UnsupportedEncodingException e) {
                     MDD.alert(e);
                 }

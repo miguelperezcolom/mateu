@@ -272,6 +272,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                                         a.run(new AbstractMDDExecutionContext());
                                     } catch (Exception ex) {
                                         MDD.alert(ex);
+                                        removeStyleName("refreshonback");
                                     }
 
                                 }

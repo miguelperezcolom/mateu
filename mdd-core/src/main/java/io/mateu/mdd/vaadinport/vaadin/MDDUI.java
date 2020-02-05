@@ -21,6 +21,7 @@ import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.ViewContainer;
 import io.mateu.mdd.vaadinport.vaadin.components.app.desktop.DesktopAppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.mobile.MobileAppComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.SearchInMenuComponent;
 import io.mateu.mdd.vaadinport.vaadin.mdd.VaadinPort;
@@ -339,6 +340,26 @@ public class MDDUI extends UI {
 
         w.addCloseListener(e -> {
            if (!"noback".equals(w.getData())) getNavegador().goBack();
+           int pos = MDDUI.get().getNavegador().getStack().indexOf(view);
+           if (pos > 0) {
+               Component c = MDDUI.get().getNavegador().getStack().get(pos - 1).getViewComponent();
+               if (c.getStyleName().contains("refreshOnBack")) {
+
+                   if (c != null && c instanceof EditorViewComponent) {
+                       EditorViewComponent evc = (EditorViewComponent) c;
+                       Object id = ReflectionHelper.getId(evc.getModel());
+                       if (id != null) {
+                           try {
+                               evc.load(id);
+                           } catch (Throwable throwable) {
+                               MDD.alert(throwable);
+                           }
+                       } else evc.updateModel(evc.getModel());
+                   }
+                   c.removeStyleName("refreshOnBack");
+               }
+           }
+
         });
 
         UI.getCurrent().addWindow(w);

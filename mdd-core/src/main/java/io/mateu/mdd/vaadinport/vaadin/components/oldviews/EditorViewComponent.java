@@ -303,7 +303,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         if (m != null && m instanceof HasChangesSignature) {
             s.put("signature", ((HasChangesSignature) m).getChangesSignature());
         } else if (m != null) {
-            for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(m.getClass())) {
+            for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(m.getClass())) if (!Modifier.isTransient(f.getModifiers())) {
                 try {
                     Object v = ReflectionHelper.getValue(f, m);
                     if (v != null) {

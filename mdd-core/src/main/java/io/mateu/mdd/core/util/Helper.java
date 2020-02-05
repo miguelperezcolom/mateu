@@ -246,6 +246,46 @@ public class Helper {
     }
 
 
+    public static void atomicTransact(JPATransaction t) throws Throwable {
+        atomicTransact(System.getProperty("defaultpuname", "default"), t);
+    }
+
+    public static void atomicTransact(String persistenceUnit, JPATransaction t) throws Throwable {
+        try {
+
+            EntityManager em = getEMF().createEntityManager();
+
+            try {
+
+                em.getTransaction().begin();
+
+                t.run(em);
+
+                em.getTransaction().commit();
+
+            } catch (Throwable e) {
+
+                e.printStackTrace();
+
+                if (em.getTransaction().isActive()) em.getTransaction().rollback();
+                em.close();
+                e = e.getCause() != null && e.getCause() instanceof ConstraintViolationException?e.getCause():e;
+                if (e instanceof ConstraintViolationException) {
+                    StringBuffer sb = new StringBuffer();
+                    ((ConstraintViolationException)e).getConstraintViolations().forEach(v -> sb.append(("".equals(sb.toString())?"":"\n") + (v.getPropertyPath() != null?v.getPropertyPath().toString() + " ":"") + v.getMessage() + (v.getRootBeanClass() != null?" en " + v.getRootBeanClass().getSimpleName() + "":"")));
+                    e = new Exception(sb.toString());
+                }
+                rethrow(e);
+
+            }
+
+            em.close();
+
+        } catch (Throwable e) {
+            rethrow(e.getCause() != null && e.getCause() instanceof ConstraintViolationException?e.getCause():e);
+        }
+
+    }
 
     public static void transact(JPATransaction t) throws Throwable {
         transact(System.getProperty("defaultpuname", "default"), t);
@@ -1764,6 +1804,13 @@ public class Helper {
         MatrixToImageWriter.writeToPath(bitMatrix, "PNG", path);
     }
 
+    public static String encodeState(String s) {
+        return s.replaceAll("/", "YP9LKQ");
+    }
+
+    public static String decodeState(String s) {
+        return s.replaceAll("YP9LKQ", "/");
+    }
 
     /*
 This method takes the text to be encoded, the width and height of the QR Code,

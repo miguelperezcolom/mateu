@@ -1117,7 +1117,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     if (Strings.isNullOrEmpty(step) || "new".equals(step)) { // estamos añadiendo un nuevo registro
                         evc.load(null);
                     } else { // step es el id del objeto a editar
-                        String sid = URLDecoder.decode(step, "iso-8859-1");
+                        String sid = URLDecoder.decode(Helper.decodeState(step), "iso-8859-1");
                         evc.load(lvc.deserializeId(sid));
                     }
 
@@ -1377,6 +1377,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
             } catch (Throwable e) {
                 MDD.alert(e);
+                lastViewComponent.removeStyleName("refreshOnBack");
             }
         }
     }
