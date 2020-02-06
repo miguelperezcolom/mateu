@@ -10,10 +10,7 @@ import io.mateu.mdd.core.util.Helper;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvider {
 
@@ -29,6 +26,11 @@ public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvi
 
     public JPQLListDataProvider(String jpql) throws Throwable {
         super(Helper.selectObjects(jpql));
+        this.jpql = jpql;
+    }
+
+    public JPQLListDataProvider(String jpql, Map<String, Object> params) throws Throwable {
+        super(Helper.selectObjects(jpql, params));
         this.jpql = jpql;
     }
 

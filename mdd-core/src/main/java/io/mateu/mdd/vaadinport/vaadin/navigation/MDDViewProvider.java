@@ -228,6 +228,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     log.debug("-->going to (" + MDD.getApp().getBaseUrl() + "app/" + newState + ")");
 
                     Page.getCurrent().open(MDD.getApp().getBaseUrl() + "app/" + newState, null);
+                    return null;
                 } else if (MDD.getApp().getDefaultPrivateArea().getDefaultAction() != null) {
                     String newState = MDD.getApp().getMenuId(MDD.getApp().getDefaultPrivateArea().getDefaultAction());
                     if (!Strings.isNullOrEmpty(newState)) {
@@ -239,6 +240,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     } else {
                         Page.getCurrent().open(MDD.getApp().getBaseUrl() + "app/", null);
                     }
+                    return null;
                 }
             }
 
