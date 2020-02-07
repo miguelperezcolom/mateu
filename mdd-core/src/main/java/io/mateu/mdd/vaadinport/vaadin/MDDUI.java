@@ -219,8 +219,9 @@ public class MDDUI extends UI {
                     View v = (View) event.getNewView();
                     t = v.getViewComponent().getPageTitle();
                 } else t = event.getNewView().toString();
-                Page.getCurrent().setTitle(t);
-                Page.getCurrent().getJavaScript().execute("setTimeout(function() { document.title = '" + t + "';window.document.title = '" + t + "'; }, 1)");
+                //Page.getCurrent().setTitle(t);
+                //Page.getCurrent().getJavaScript().execute("setTimeout(function() { document.title = '" + t + "';}, 1)");
+                Page.getCurrent().getJavaScript().execute("document.title = '" + t + "';");
                 //setTimeout(function() { your_func(); }, 5000);
             }
         });

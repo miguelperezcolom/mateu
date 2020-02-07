@@ -160,11 +160,13 @@ public class ResultsComponent extends VerticalLayout {
             @Override
             public void itemClick(Grid.ItemClick<Object> itemClick) {
                 //if (MDD.isMobile() || MDD.isIpad() || itemClick.getMouseEventDetails().isDoubleClick()) {
+                if (itemClick.getColumn() != null) {
                     setLastClickedRowIndex(itemClick.getRowIndex());
                     Object i = itemClick.getItem();
                     if (i != null) {
                         edit(listViewComponent.toId(i));
                     }
+                }
                 //}
             }
         });

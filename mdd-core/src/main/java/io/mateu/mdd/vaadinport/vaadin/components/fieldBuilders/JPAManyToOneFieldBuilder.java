@@ -128,6 +128,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                 converter = new Converter<String, Object>() {
                     @Override
                     public Result<Object> convertToModel(String s, ValueContext valueContext) {
+                        stf.setComponentError(null);
                         Result[] r = new Result[1];
                         if (Strings.isNullOrEmpty(s)) {
                             r[0] = Result.ok(null);
@@ -495,8 +496,10 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
             binding.getField().addValueChangeListener(e -> {
                 Object bean = binder.getBean();
                 try {
-                    if (e.getOldValue() != null) ReflectionHelper.unReverseMap(binder, field, bean, getInstance(field, e.getOldValue()));
-                    if (e.getValue() != null) ReflectionHelper.reverseMap(binder, field, bean, getInstance(field, e.getValue()));
+                    Object old = getInstance(field, e.getOldValue());
+                    if (old != null) ReflectionHelper.unReverseMap(binder, field, bean, old);
+                    Object value = getInstance(field, e.getValue());
+                    if (value != null) ReflectionHelper.reverseMap(binder, field, bean, value);
                 } catch (Exception e1) {
                     MDD.alert(e1);
                 }
@@ -507,7 +510,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
     }
 
     private Object getInstance(FieldInterfaced field, Object rawValue) {
-        if (rawValue == null) return null;
+        if (rawValue == null || "".equals(rawValue)) return null;
         if (field.getType().isAssignableFrom(rawValue.getClass())) return rawValue;
         try {
             Object id = rawValue;
