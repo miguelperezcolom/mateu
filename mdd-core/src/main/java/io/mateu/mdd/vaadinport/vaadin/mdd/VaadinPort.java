@@ -301,15 +301,13 @@ public class VaadinPort implements MDDPort {
 
     @Override
     public void info(String msg) {
-        Notification.show("Alert",
-                msg,
-                Notification.Type.WARNING_MESSAGE);
+        Notification.show(msg, Notification.Type.HUMANIZED_MESSAGE);
     }
 
     @Override
     public void push(String msg) {
         log.debug("push(" + msg + ")");
-        Notification.show(msg, Notification.Type.TRAY_NOTIFICATION);
+        Notification.show(msg, Notification.Type.HUMANIZED_MESSAGE);
         MDDUI.get().push();
     }
 

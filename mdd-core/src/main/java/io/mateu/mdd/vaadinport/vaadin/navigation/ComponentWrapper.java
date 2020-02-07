@@ -10,6 +10,7 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.ExpandOnOpen;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.HasActions;
+import io.mateu.mdd.core.interfaces.HasIcon;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
@@ -24,7 +25,7 @@ public class ComponentWrapper extends AbstractViewComponent {
 
     @Override
     public VaadinIcons getIcon() {
-        return VaadinIcons.FILE;
+        return wrapped instanceof HasIcon?((HasIcon)wrapped).getIcon():VaadinIcons.FILE;
     }
 
     public Component getWrapped() {

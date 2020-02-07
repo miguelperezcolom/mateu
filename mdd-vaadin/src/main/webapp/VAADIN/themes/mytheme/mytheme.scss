@@ -1038,6 +1038,67 @@ body {
 
   }
 
+  .v-label-info {
+    background: #e8eff7;
+    color: #8391b9;
+    border: 2px solid #8391b9;
+    border-radius: 4px;
+    padding: 6px 16px 6px 32px;
+    font-weight: 400;
+    font-size: 13px;
+  }
+
+  .v-label-info:before {
+    font-family: FontAwesome;
+    content: "\f05a";
+    margin-right: 0.5em;
+    margin-left: -16px;
+    color: #8391b9;
+  }
+
+  .v-label-warning {
+    background: #fffccf;
+    color: #AC7C00;
+    border: 2px solid #AC7C00;
+    border-radius: 4px;
+    padding: 6px 16px 6px 32px;
+    font-weight: 400;
+    font-size: 13px;
+  }
+
+  .v-label-warning:before {
+    font-family: FontAwesome;
+    content: "\f071";
+    margin-right: 0.5em;
+    margin-left: -16px;
+    color: #AC7C00;
+  }
+
+  .v-label-failure {
+    background-color: #f9e6e6;
+  }
+
+  .subheader {
+    width: 100%;
+
+    .success {
+      background-color: green;
+    }
+
+    .info {
+      background-color: skyblue;
+    }
+
+    .warning {
+      background-color: yellow;
+    }
+
+    .error {
+      background-color: red;
+    }
+
+  }
+
 
   .miformlayout .v-slot-sectionHeader .v-label.v-label-sectionHeader {
     margin-top: 0px !important;
@@ -1252,7 +1313,7 @@ body {
   }
 
   .submenulayout {
-    padding: 0px;
+    padding-top: 20px;
   }
 
 

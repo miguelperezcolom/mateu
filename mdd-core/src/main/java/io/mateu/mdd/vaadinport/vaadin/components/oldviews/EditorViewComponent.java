@@ -16,9 +16,7 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDExecutionContext;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Pair;
-import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.core.interfaces.PersistentPOJO;
-import io.mateu.mdd.core.interfaces.ReadOnly;
+import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.core.model.authentication.Audit;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -378,6 +376,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
             getActions();
 
+            updateSubheader(model);
+
             panelContenido = new Panel();
             panelContenido.addStyleName(ValoTheme.PANEL_BORDERLESS);
             panelContenido.addStyleName(CSS.NOPADDING);
@@ -500,6 +500,37 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
     }
 
+    private void updateSubheader(Object model) {
+        if (subheader != null) {
+            subheader.removeAllComponents();
+            if (model != null && model instanceof HasHeader) {
+                Component h = createSubheader(((HasHeader) model).getHeader());
+                if (h != null) {
+                    subheader.addComponent(h);
+                    subheader.setVisible(true);
+                } else {
+                    subheader.setVisible(false);
+                }
+
+            }
+        }
+    }
+
+    private Component createSubheader(Header header) {
+        if (header == null) return null;
+        Label l = new Label(header.getMessage());
+        l.addStyleName("subheader");
+        String s = null;
+        switch (header.getType()) {
+            case Info: s = "v-label-info"; break;
+            case Success: s = ValoTheme.LABEL_SUCCESS; break;
+            case Warning: s = "v-label-warning"; break;
+            case Error: s = ValoTheme.LABEL_FAILURE; break;
+        }
+        l.addStyleName(s);
+        return l;
+    }
+
     private boolean isResource(Object model) {
         boolean r = false;
         if (model instanceof Resource) r = true;
@@ -620,6 +651,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
     public void updateModel(Object model) {
         binder.update(model);
+        updateSubheader(model);
     }
 
     @Override

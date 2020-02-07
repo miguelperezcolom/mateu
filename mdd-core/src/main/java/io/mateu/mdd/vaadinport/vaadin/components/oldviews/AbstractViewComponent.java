@@ -33,6 +33,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     private CssLayout kpisContainer;
     private View view;
     protected CssLayout bar;
+    protected CssLayout subheader;
     protected Map<Method, AbstractAction> actionsByMethod = new HashMap<>();
     protected Map<String, Component> menuItemsById = new HashMap<>();
     protected Map<String, List<Component>> menuItemsByGroup = new HashMap<>();
@@ -74,6 +75,11 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
             addBack(bar);
             getActionsContainer().addComponent(bar);
         }
+
+        addComponent(subheader = new CssLayout());
+        subheader.addStyleName(CSS.NOPADDING);
+        subheader.setWidth("100%");
+        subheader.setVisible(false);
 
     }
 
