@@ -301,6 +301,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         if (m != null && m instanceof HasChangesSignature) {
             s.put("signature", ((HasChangesSignature) m).getChangesSignature());
         } else if (m != null) {
+            List<Object> seen = new ArrayList<>();
+            seen.add(m);
             for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(m.getClass())) if (!Modifier.isTransient(f.getModifiers())) {
                 try {
                     Object v = ReflectionHelper.getValue(f, m);
@@ -310,7 +312,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                             String cols = "";
                             for (Object o : col) {
                                 if (!"".equals(cols)) cols += ",";
-                                cols += "" + serialize(o);
+                                cols += "" + serialize(seen, o);
                             }
                             s.put(f.getName(), cols);
                             continue;
@@ -325,14 +327,34 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         return s;
     }
 
-    public static String serialize(Object o) {
+    public static String serialize(List<Object> seen, Object o) {
         String s = "";
         if (o != null) {
+            if (seen.contains(o)) return "" + o;
+            seen.add(o);
             for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(o.getClass())) {
                 if (!"".equals(s)) s += "&";
                 try {
+                    s += f.getName() + "=";
                     Object v = ReflectionHelper.getValue(f, o);
-                    s += f.getName() + "=" + v;
+                    if (v != null) {
+                        if (v instanceof Collection) {
+                            String z = "";
+                            for (Object i : (Collection) v) {
+                                if (!"".equals(z)) z += "|";
+                                z += serialize(seen, i);
+                            }
+                            v = z;
+                        } else if (v instanceof Map) {
+                            String z = "";
+                            for (Object i : ((Map) v).keySet()) {
+                                if (!"".equals(z)) z += "|";
+                                z += serialize(seen, i) + "->" + serialize(seen, ((Map) v).get(i));
+                            }
+                            v = z;
+                        }
+                    }
+                    s += v;
                 } catch (Exception e) {
                     s += f.getName() + "=exception";
                 }
@@ -1180,38 +1202,40 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                 if (modelType.isAnnotationPresent(Entity.class)) {
 
+                    Object m = getModel();
+
                     Helper.transact(new JPATransaction() {
                         @Override
                         public void run(EntityManager em) throws Throwable {
 
                             if (copyEditableValues) {
-                                Object m = getModel();
                                 Object d = transferirValores(em, m, new ArrayList<>());
                                 setModel(d);
                             } else {
                                 for (Object o : getRemovables()) {
                                     if (getMergeables().contains(o)) getMergeables().remove(o);
 
-                                    if (em.contains(o)) {
-                                        em.remove(o);
+                                    if (em.contains(o)) em.remove(o);
+                                    else if (em.find(o.getClass(), ReflectionHelper.getId(o)) != null) {
+                                        em.remove(em.merge(o));
                                     }
                                 }
                                 for (Object o : getMergeables()) em.merge(o);
-                                Object m = getModel();
-
 
                                 ReflectionHelper.auditar(m);
 
-                                setModel(em.merge(m));
+                                em.merge(m);
                             }
 
                         }
                     });
 
-                    modelId = ReflectionHelper.getId(getModel());
+                    modelId = ReflectionHelper.getId(m);
 
-                    //todo: ver que hacemos aquí. Volvemos y ya está?
-                    // cambiamos la url, para reflejar el cambio
+                    Helper.notransact(em -> {
+                        setModel(em.find(m.getClass(), modelId));
+                    });
+
                     if (goBack) goBack();
 
                 } else if (PersistentPOJO.class.isAssignableFrom(modelType)) {

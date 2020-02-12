@@ -9,6 +9,7 @@ import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Pair;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.interfaces.AbstractJPQLListView;
+import io.mateu.mdd.core.interfaces.DoBeforeRemoveFromCollection;
 import io.mateu.mdd.core.interfaces.PushWriter;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.model.authentication.Audit;
@@ -1442,11 +1443,15 @@ public class ReflectionHelper {
         return col;
     }
 
-    public static Collection removeFromCollection(MDDBinder binder, FieldInterfaced field, Object bean, Collection l) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    public static Collection removeFromCollection(MDDBinder binder, FieldInterfaced field, Object bean, Collection l) throws Throwable {
         return removeFromCollection(binder, field, bean, l, true);
     }
 
-    public static Collection removeFromCollection(MDDBinder binder, FieldInterfaced field, Object bean, Collection l, boolean unreverseMap) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    public static Collection removeFromCollection(MDDBinder binder, FieldInterfaced field, Object bean, Collection l, boolean unreverseMap) throws Throwable {
+
+        for (Object i : l) {
+            if (i instanceof DoBeforeRemoveFromCollection) ((DoBeforeRemoveFromCollection) i).onRemove(binder);
+        }
 
         Object v = ReflectionHelper.getValue(field, bean);
 
@@ -1474,6 +1479,10 @@ public class ReflectionHelper {
                     }
                 });
             }
+
+            for (Object o : l) {
+                destroyReferences(binder, o);
+            }
         }
 
         ReflectionHelper.setValue(field, bean, col);
@@ -1481,6 +1490,45 @@ public class ReflectionHelper {
         binder.update(bean);
 
         return col;
+    }
+
+    private static void destroyReferences(MDDBinder binder, Object o) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        if (o != null) for (FieldInterfaced f : getAllFields(o.getClass())) {
+            if (isRelationDestroyable(f)) {
+                Object v = getValue(f, o);
+                if (v != null) {
+                    if (v instanceof Collection) {
+                        for (Object i : (Collection) v) unReverseMap(binder, f, o, i);
+                    } else {
+                        unReverseMap(binder, f, o, v);
+                    }
+                }
+            }
+        }
+    }
+
+    private static boolean isRelationDestroyable(FieldInterfaced f) {
+        boolean r = false;
+        if (f.isAnnotationPresent(OneToMany.class)) {
+            OneToMany a = f.getAnnotation(OneToMany.class);
+            r = true;
+            if (!Strings.isNullOrEmpty(a.mappedBy()) && a.cascade() != null) {
+                for (CascadeType c : a.cascade()) if (CascadeType.ALL.equals(c) || CascadeType.REMOVE.equals(c)) {
+                    r = false;
+                    break;
+                }
+            }
+        } else if (f.isAnnotationPresent(ManyToMany.class)) {
+            ManyToMany a = f.getAnnotation(ManyToMany.class);
+            r = true;
+            if (!Strings.isNullOrEmpty(a.mappedBy()) && a.cascade() != null) {
+                for (CascadeType c : a.cascade()) if (CascadeType.ALL.equals(c) || CascadeType.REMOVE.equals(c)) {
+                    r = false;
+                    break;
+                }
+            }
+        }
+        return r;
     }
 
     public static void addToMap(MDDBinder binder, FieldInterfaced field, Object bean, Object k, Object v) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
@@ -2463,11 +2511,17 @@ public class ReflectionHelper {
     }
 
     public static Constructor getConstructor(Class c, Class parameterClass) {
-        try {
-            return c.getConstructor(parameterClass);
-        } catch (NoSuchMethodException e) {
+        Constructor con = null;
+        while (con == null && !Object.class.equals(parameterClass)) {
+            try {
+                con = c.getConstructor(parameterClass);
+            } catch (NoSuchMethodException e) {
+            }
+            if (con == null) {
+                parameterClass = parameterClass.getSuperclass();
+            }
         }
-        return null;
+        return con;
     }
 
     public static void auditar(Object bean) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {

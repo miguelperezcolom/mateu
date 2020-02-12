@@ -115,6 +115,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             b.addStyleName(ValoTheme.BUTTON_LINK);
             b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
 
+            if (allFieldContainers != null) allFieldContainers.put(field, hl);
+
             hl.setCaption(ReflectionHelper.getCaption(field));
 
             addComponent(container, hl, attachedActions.get(field.getName()));
@@ -183,6 +185,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             hl.setCaption(ReflectionHelper.getCaption(field));
 
+            if (allFieldContainers != null) allFieldContainers.put(field, hl);
+
             addComponent(container, hl, attachedActions.get(field.getName()));
 
             bind(binder, l, field, null);
@@ -200,6 +204,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             cbg.addValueChangeListener(e -> updateReferences(binder, field, e));
 
             cbg.setCaption(ReflectionHelper.getCaption(field));
+
+            if (allFieldContainers != null) allFieldContainers.put(field, cbg);
 
             addComponent(container, cbg, attachedActions.get(field.getName()));
 
@@ -226,6 +232,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             hl.setCaption(ReflectionHelper.getCaption(field));
 
+            if (allFieldContainers != null) allFieldContainers.put(field, hl);
+
             addComponent(container, hl, attachedActions.get(field.getName()));
 
             bind(binder, l, field, mh);
@@ -240,6 +248,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             hl.addStyleName("collectionlinklabel");
 
             hl.setCaption(ReflectionHelper.getCaption(field));
+
+            if (allFieldContainers != null) allFieldContainers.put(field, hl);
 
             addComponent(container, hl, attachedActions.get(field.getName()));
 
@@ -256,6 +266,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             hl.addStyleName(CSS.NOPADDING);
 
             hl.setCaption(ReflectionHelper.getCaption(field));
+
+            if (allFieldContainers != null) allFieldContainers.put(field, hl);
 
             hl.addStyleName(CSS.CLICKABLE);
             hl.addLayoutClickListener(e -> {
@@ -470,12 +482,14 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                         g.addItemClickListener(e -> {
                             //if (MDD.isMobile() || e.getMouseEventDetails().isDoubleClick()) {
+                            if (e.getColumn() != null) {
                                 Object i = e.getItem();
                                 if (i != null) {
 
                                     editar(binder, field, i, e.getRowIndex());
 
                                 }
+                            }
                             //}
                         });
 
@@ -566,12 +580,12 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                                 } else {
                                     binder.getRemovables().addAll(l);
                                 }
-                                ReflectionHelper.removeFromCollection(binder, field, bean, l, false);
+                                ReflectionHelper.removeFromCollection(binder, field, bean, l);
 
 
                                 binder.setBean(bean, false);
-                            } catch (Exception e1) {
-                                MDD.alert(e1);
+                            } catch (Throwable throwable) {
+                                MDD.alert(throwable);
                             }
                         });
                     }
@@ -756,8 +770,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                                 Set l = g.getSelectedItems();
 
                                 ReflectionHelper.removeFromCollection(binder, field, bean, l);
-                            } catch (Exception e1) {
-                                MDD.alert(e1);
+                            } catch (Throwable throwable) {
+                                MDD.alert(throwable);
                             }
                         });
 
@@ -775,10 +789,14 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                 vl.addStyleName("contenedorbotoneracampo");
                 vl.addStyleName("conbotonera");
 
+                if (allFieldContainers != null) allFieldContainers.put(field, vl);
 
             } else {
 
                 addComponent(container, g, attachedActions.get(field.getName()));
+
+                if (allFieldContainers != null) allFieldContainers.put(field, g);
+
 
             }
 
@@ -1192,6 +1210,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
         addErrorHandler(field, g);
 
+        if (allFieldContainers != null) allFieldContainers.put(field, vl);
+
         return g;
     }
 
@@ -1570,8 +1590,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         b.addClickListener(e -> {
             try {
                 ReflectionHelper.removeFromCollection(binder, field, binder.getBean(), Sets.newHashSet(x));
-            } catch (Exception e1) {
-                MDD.alert(e1);
+            } catch (Throwable throwable) {
+                MDD.alert(throwable);
             }
         });
 

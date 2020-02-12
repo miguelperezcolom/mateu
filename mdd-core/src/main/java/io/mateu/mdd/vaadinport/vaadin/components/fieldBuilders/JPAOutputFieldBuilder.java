@@ -60,6 +60,8 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
                 bindResourcesList(binder, l, field);
 
+                if (allFieldContainers != null) allFieldContainers.put(field, hl);
+
 
             } else if (Collection.class.isAssignableFrom(field.getType())) {
 
@@ -71,6 +73,8 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
                     l.setCaption(ReflectionHelper.getCaption(field));
 
                     addComponent(container, l, attachedActions.get(field.getName()));
+
+                    if (allFieldContainers != null) allFieldContainers.put(field, l);
 
                     JPAOneToManyFieldBuilder.bindSet(binder, l, field);
                 } else if (false && field.isAnnotationPresent(UseTable.class)) {
@@ -86,6 +90,8 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
                     addComponent(container, hl, attachedActions.get(field.getName()));
 
+                    if (allFieldContainers != null) allFieldContainers.put(field, hl);
+
                     JPAOneToManyFieldBuilder.bind(binder, l, field);
                 } else if ((mh = ReflectionHelper.getMethod(field.getDeclaringClass(), ReflectionHelper.getGetter(field.getName()) + "Html")) != null) {
                     VerticalLayout hl = new VerticalLayout();
@@ -99,6 +105,8 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
                     addComponent(container, hl, attachedActions.get(field.getName()));
 
+                    if (allFieldContainers != null) allFieldContainers.put(field, hl);
+
                     JPAOneToManyFieldBuilder.bind(binder, l, field, mh);
                 } else if (Card.class.isAssignableFrom(field.getGenericClass())) {
 
@@ -110,6 +118,8 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
                     addComponent(container, hl, attachedActions.get(field.getName()));
 
                     JPAOneToManyFieldBuilder.bind(binder, hl, field, mh, true);
+
+                    if (allFieldContainers != null) allFieldContainers.put(field, hl);
 
                 } else {
 
@@ -167,6 +177,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
                     JPAOneToManyFieldBuilder.bind(binder, g, field, targetClass, null);
 
+                    if (allFieldContainers != null) allFieldContainers.put(field, g);
 
                     addComponent(container, g, attachedActions.get(field.getName()));
 
@@ -206,11 +217,15 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
                     botonLink.setVisible(false);
                     hl.addComponent(botonLink);
 
+                    if (allFieldContainers != null) allFieldContainers.put(field, hl);
+
                 } else {
 
                     container.addComponent(tf);
 
                     if (container.getComponentCount() > 0) tf.setCaption(ReflectionHelper.getCaption(field));
+
+                    if (allFieldContainers != null) allFieldContainers.put(field, tf);
 
                 }
 

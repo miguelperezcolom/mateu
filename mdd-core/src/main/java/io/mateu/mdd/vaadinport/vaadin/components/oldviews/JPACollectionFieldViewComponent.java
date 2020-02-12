@@ -14,6 +14,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public class JPACollectionFieldViewComponent extends JPAListViewComponent {
 
@@ -88,8 +89,8 @@ public class JPACollectionFieldViewComponent extends JPAListViewComponent {
 
                     try {
                         ReflectionHelper.removeFromCollection(evfc.getBinder(), field,  evfc.getModel(), getSelection());
-                    } catch (Exception e1) {
-                        MDD.alert(e1);
+                    } catch (Throwable throwable) {
+                        MDD.alert(throwable);
                     }
 
                     if (field.isAnnotationPresent(UseLinkToListView.class)) {

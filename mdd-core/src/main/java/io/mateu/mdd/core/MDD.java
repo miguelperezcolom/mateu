@@ -13,6 +13,8 @@ import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ExtraFilters;
 import javassist.ClassPool;
 
+import java.util.Map;
+
 public class MDD {
 
     private static ClassPool classPool;
@@ -75,8 +77,8 @@ public class MDD {
     public static void openView(MDDOpenListViewAction mddOpenListViewAction, Class listViewClass, boolean modifierPressed) {
         getPort().openView(mddOpenListViewAction, listViewClass, modifierPressed);
     }
-    public static void openCRUD(AbstractAction action, Class entityClass, String queryFilters, ExtraFilters extraFilters, boolean modifierPressed) {
-        getPort().openCRUD(action, entityClass, queryFilters, extraFilters, modifierPressed);
+    public static void openCRUD(AbstractAction action, Class entityClass, String queryFilters, ExtraFilters extraFilters, Map<String, Object> defaultValues, boolean modifierPressed) {
+        getPort().openCRUD(action, entityClass, queryFilters, extraFilters, defaultValues, modifierPressed);
     }
     public static void openEditor(AbstractAction action, Class viewClass, Object object, boolean modifierPressed) {
         getPort().openEditor(action, viewClass, object, modifierPressed);

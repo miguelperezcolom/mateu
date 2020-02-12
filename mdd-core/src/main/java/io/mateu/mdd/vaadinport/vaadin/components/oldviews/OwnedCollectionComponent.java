@@ -157,8 +157,8 @@ public class OwnedCollectionComponent extends EditorViewComponent {
                                             MDD.alert(throwable);
                                         }
 
-                                    } catch (Exception ex) {
-                                        MDD.alert(ex);
+                                    } catch (Throwable throwable) {
+                                        MDD.alert(throwable);
                                     }
                                 });
                             else MDD.notifyError("Can not remove this item");

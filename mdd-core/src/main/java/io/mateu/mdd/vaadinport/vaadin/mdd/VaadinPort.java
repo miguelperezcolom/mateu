@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.Set;
 
 @Slf4j
@@ -55,7 +56,7 @@ public class VaadinPort implements MDDPort {
     }
 
     @Override
-    public void openCRUD(AbstractAction action, Class viewClass, String queryFilters, ExtraFilters extraFilters, boolean modifierPressed) {
+    public void openCRUD(AbstractAction action, Class viewClass, String queryFilters, ExtraFilters extraFilters, Map<String, Object> defaultValues, boolean modifierPressed) {
         log.debug("open crud");
 
         MDDUI.get().getNavegador().goTo(action, viewClass);

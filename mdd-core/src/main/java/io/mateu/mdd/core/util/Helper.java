@@ -91,6 +91,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by miguel on 13/9/16.
@@ -410,6 +411,15 @@ public class Helper {
     }
 
 
+    public static <T> Optional<T> selectValue(String jpql) throws Throwable {
+        return selectValue(jpql, null);
+    }
+
+
+    public static <T> Optional<T> selectValue(String jpql, Map<String, Object> params) throws Throwable {
+        List<T> l = selectObjects(jpql, params);
+        return Optional.of(l.size() > 0?l.get(0):null);
+    }
 
 
     public static List selectObjects(String jpql) throws Throwable {
@@ -952,6 +962,17 @@ public class Helper {
             e.printStackTrace();
         }
         return v;
+    }
+
+    public static int[] toIntArray(String s) {
+        if (s == null) return null;
+        if ("".equals(s.trim())) return new int[0];
+        String[] ts = s.replace("[", "").replace("]", "").split(",");
+        int[] r = new int[ts.length];
+        for (int pos = 0; pos < ts.length; pos++) {
+            r[pos] = Integer.parseInt(ts[pos]);
+        }
+        return r;
     }
 
 

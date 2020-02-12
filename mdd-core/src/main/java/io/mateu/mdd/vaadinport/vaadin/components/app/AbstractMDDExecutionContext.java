@@ -6,6 +6,7 @@ import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ExtraFilters;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 
 public class AbstractMDDExecutionContext implements MDDExecutionContext {
 
@@ -25,8 +26,8 @@ public class AbstractMDDExecutionContext implements MDDExecutionContext {
     }
 
     @Override
-    public void openCRUD(MDDOpenCRUDAction action, Class entityClass, String queryFilters, ExtraFilters extraFilters, boolean modifierPressed) {
-        MDD.openCRUD(action, entityClass, queryFilters, extraFilters, modifierPressed);
+    public void openCRUD(MDDOpenCRUDAction action, Class entityClass, String queryFilters, ExtraFilters extraFilters, Map<String, Object> defaultValues, boolean modifierPressed) {
+        MDD.openCRUD(action, entityClass, queryFilters, extraFilters, defaultValues, modifierPressed);
     }
 
     @Override

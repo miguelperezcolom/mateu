@@ -14,6 +14,7 @@ import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
 
 import javax.persistence.Entity;
+import java.util.Map;
 
 public class MDDViewComponentCreator {
 
@@ -59,13 +60,13 @@ public class MDDViewComponentCreator {
         return v;
     }
 
-    public static Component createComponent(MDDOpenCRUDAction mddOpenCRUDAction, Class entityClass, String queryFilters, ExtraFilters extraFilters, boolean modifierPressed) {
+    public static Component createComponent(MDDOpenCRUDAction mddOpenCRUDAction, Class entityClass, String queryFilters, ExtraFilters extraFilters, Map<String, Object> defaultValues, boolean modifierPressed) {
         Component v = null;
         Class modelType = null;
         try {
 
             modelType = entityClass;
-            v = createListViewComponent(modelType, queryFilters, extraFilters);
+            v = createListViewComponent(modelType, queryFilters, extraFilters, defaultValues);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -87,10 +88,10 @@ public class MDDViewComponentCreator {
         return v;
     }
 
-    private static ListViewComponent createListViewComponent(Class modelType, String queryFilters, ExtraFilters extraFilters) throws Exception {
+    private static ListViewComponent createListViewComponent(Class modelType, String queryFilters, ExtraFilters extraFilters, Map<String, Object> defaultValues) throws Exception {
         ListViewComponent v = null;
         if (modelType.isAnnotationPresent(Entity.class)) {
-            v = new JPAListViewComponent(modelType, extraFilters);
+            v = new JPAListViewComponent(modelType, extraFilters, defaultValues);
         } else {
 
         }

@@ -4,6 +4,7 @@ import com.vaadin.ui.Component;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ExtraFilters;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 
 public interface MDDExecutionContext {
 
@@ -13,7 +14,7 @@ public interface MDDExecutionContext {
 
     void openListView(MDDOpenListViewAction mddOpenListViewAction, Class viewClass, boolean modifierPressed) throws Exception;
 
-    void openCRUD(MDDOpenCRUDAction mddOpenCRUDAction, Class entityClass, String queryFilters, ExtraFilters extraFilters, boolean modifierPressed) throws Exception;
+    void openCRUD(MDDOpenCRUDAction mddOpenCRUDAction, Class entityClass, String queryFilters, ExtraFilters extraFilters, Map<String, Object> defaultValues, boolean modifierPressed) throws Exception;
 
     void open(AbstractAction action, Component component, boolean modifierPressed) throws Exception;
 

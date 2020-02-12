@@ -47,8 +47,8 @@ public class LoginFlowComponent extends AbstractViewComponent {
             izda.setSizeUndefined();
 
             Label t;
-            //izda.addComponent(t = new Label("Sign in " + MDD.getApp().getName()));
-            //t.addStyleName(ValoTheme.LABEL_H3);
+            izda.addComponent(t = new Label("Sign in " + MDD.getApp().getName() + ":"));
+            t.addStyleName(ValoTheme.LABEL_H3);
 
             izda.addComponent(login = new TextField("Login"));
             izda.addComponent(password = new PasswordField("password"));
