@@ -25,7 +25,7 @@ public abstract class AbstractMenu implements MenuEntry {
         this.name = name;
     }
 
-    public String getName() {
+    public String getCaption() {
         return name;
     }
 

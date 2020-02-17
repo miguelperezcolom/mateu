@@ -8,8 +8,6 @@ import com.vaadin.ui.Grid;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.MDDExecutionContext;
-import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
@@ -89,7 +87,7 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
 
             if (canAdd()) l.add(new AbstractAction("Add") {
                 @Override
-                public void run(MDDExecutionContext context) {
+                public void run() {
 
                     Set<Class> subClasses = ReflectionHelper.getSubclasses(getModelType());
 
@@ -123,7 +121,7 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
             });
             if (canDelete()) l.add(new AbstractAction("Remove selected items") {
                 @Override
-                public void run(MDDExecutionContext context) {
+                public void run() {
 
                     if (resultsComponent.getSelection().size() == 0) MDD.alert("No item selected");
                     else MDD.confirm("Are you sure?", new Runnable() {

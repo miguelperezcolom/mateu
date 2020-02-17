@@ -2,31 +2,18 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.vaadin.data.Binder;
-import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.MDDExecutionContext;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.ClassOption;
-import io.mateu.mdd.vaadinport.vaadin.navigation.MDDViewComponentCreator;
 import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.Constructor;
@@ -80,11 +67,11 @@ public class OwnedCollectionComponent extends EditorViewComponent {
          */
 
             if (!isActionPresent("col_prev")) {
-                l.add(new AbstractAction("col_prev", VaadinIcons.ARROW_UP, "") {
+                l.add(new AbstractAction("") {
                 //l.add(new AbstractAction("col_prev", VaadinIcons.ARROW_UP, "Prev") {
 
                     @Override
-                    public void run(MDDExecutionContext context) {
+                    public void run() {
                         if (validate()) {
                             if (currentIndex > 0) {
                                 try {
@@ -95,14 +82,14 @@ public class OwnedCollectionComponent extends EditorViewComponent {
                             } else MDD.notifyError("This was already the first item of the list");
                         }
                     }
-                });
+                }.setIcon(VaadinIcons.ARROW_UP).setId("col_prev"));
             } else getMenuItemById("col_prev").setVisible(true);
 
             if (!isActionPresent("col_next")) {
-                l.add(new AbstractAction("col_next", VaadinIcons.ARROW_DOWN, "") {
+                l.add(new AbstractAction("") {
                 //l.add(new AbstractAction("col_next", VaadinIcons.ARROW_DOWN, "Next") {
                     @Override
-                    public void run(MDDExecutionContext context) {
+                    public void run() {
                         if (validate()) {
                             if (collection != null && currentIndex < collection.size() - 1) {
                                 try {
@@ -113,14 +100,14 @@ public class OwnedCollectionComponent extends EditorViewComponent {
                             } else MDD.notifyError("This was already the last item of the list");
                         }
                     }
-                });
+                }.setIcon(VaadinIcons.ARROW_DOWN).setId("col_next"));
             } else getMenuItemById("col_next").setVisible(true);
 
             if (ReflectionHelper.puedeAnadir(field)) {
                 if (!isActionPresent("col_add")) {
-                    l.add(new AbstractAction("col_add", VaadinIcons.PLUS, "Add") {
+                    l.add(new AbstractAction("Add") {
                         @Override
-                        public void run(MDDExecutionContext context) {
+                        public void run() {
                             if (validate()) {
                                 try {
 
@@ -131,15 +118,15 @@ public class OwnedCollectionComponent extends EditorViewComponent {
                                 }
                             }
                         }
-                    });
+                    }.setIcon(VaadinIcons.PLUS).setId("col_add"));
                 } else getMenuItemById("col_add").setVisible(true);
             }
 
             if (ReflectionHelper.puedeBorrar(field)) {
                 if (!isActionPresent("col_remove")) {
-                    l.add(new AbstractAction("col_remove", VaadinIcons.MINUS, "Remove") {
+                    l.add(new AbstractAction("Remove") {
                         @Override
-                        public void run(MDDExecutionContext context) {
+                        public void run() {
                             if (currentIndex >= 0 && currentIndex < collection.size())
                                 MDD.confirm("Are you sure you want to delete this item?", () -> {
 
@@ -164,15 +151,15 @@ public class OwnedCollectionComponent extends EditorViewComponent {
                             else MDD.notifyError("Can not remove this item");
 
                         }
-                    });
+                    }.setIcon(VaadinIcons.MINUS).setId("col_remove"));
                 } else getMenuItemById("col_remove").setVisible(true);
             }
 
             if (ReflectionHelper.puedeAnadir(field)) {
                 if (!isActionPresent("col_copy")) {
-                    l.add(new AbstractAction("col_copy", VaadinIcons.COPY, "Copy prev") {
+                    l.add(new AbstractAction("Copy prev") {
                         @Override
-                        public void run(MDDExecutionContext context) {
+                        public void run() {
                             try {
 
                                 if (currentIndex > 0) {
@@ -193,7 +180,7 @@ public class OwnedCollectionComponent extends EditorViewComponent {
                             }
 
                         }
-                    });
+                    }.setIcon(VaadinIcons.COPY).setId("col_copy"));
                 } else getMenuItemById("col_copy").setVisible(true);
             }
 

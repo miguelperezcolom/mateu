@@ -88,12 +88,12 @@ public class SimpleApp extends SimpleMDDApplication {
     public List<MenuEntry> anotherSubMenu() {
         return Lists.newArrayList(new AbstractAction("Say hello") {
             @Override
-            public void run(MDDExecutionContext context) {
+            public void run() {
                 System.out.println("hello");
             }
         }, new AbstractAction("Say bye") {
             @Override
-            public void run(MDDExecutionContext context) {
+            public void run() {
                 System.out.println("bye");
             }
         }, new MDDOpenCRUDAction(Entidad.class));

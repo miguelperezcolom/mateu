@@ -5,7 +5,6 @@ import com.vaadin.event.ShortcutAction;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.app.AppProvider;
 import io.mateu.mdd.core.app.BaseMDDApp;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.util.Helper;
@@ -14,7 +13,6 @@ import io.mateu.mdd.vaadinport.vaadin.components.oauth.GitHubButton;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.GoogleButton;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.MicrosoftButton;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
 
 import java.util.ArrayList;
 import java.util.List;

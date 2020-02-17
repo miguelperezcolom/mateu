@@ -24,7 +24,6 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.app.AbstractMDDExecutionContext;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.AbstractFieldBuilder;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.FieldBuilder;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.JPAOutputFieldBuilder;
@@ -32,7 +31,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.GeneratedValue;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuilder {
@@ -202,14 +204,14 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
             for (AbstractAction a : l) {
                 Button b;
-                actionsContainer.addComponent(b = new Button(a.getName(), a.getIcon()));
+                actionsContainer.addComponent(b = new Button(a.getCaption(), a.getIcon()));
                 b.addStyleName(ValoTheme.BUTTON_TINY);
                 b.addStyleName(ValoTheme.BUTTON_QUIET);
                 b.addStyleName(a.getStyle());
                 b.addClickListener(e -> {
                     try {
-                        a.run(new AbstractMDDExecutionContext());
-                    } catch (Exception ex) {
+                        a.run();
+                    } catch (Throwable ex) {
                         MDD.alert(ex);
                     }
                 });

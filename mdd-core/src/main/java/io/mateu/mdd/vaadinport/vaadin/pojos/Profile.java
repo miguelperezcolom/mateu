@@ -1,6 +1,5 @@
 package io.mateu.mdd.vaadinport.vaadin.pojos;
 
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.annotations.NonDuplicable;

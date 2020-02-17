@@ -2,7 +2,6 @@ package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.*;
-import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.app.AbstractAction;

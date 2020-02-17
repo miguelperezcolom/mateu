@@ -2,7 +2,6 @@ package io.mateu.mdd.core.model.authentication;
 
 import lombok.MateuMDDEntity;
 
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
 /**

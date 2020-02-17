@@ -10,7 +10,6 @@ import io.mateu.mdd.core.annotations.UseRadioButtons;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Value;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.FieldInterfacedFromParameter;
 import io.mateu.mdd.core.reflection.FieldInterfacedFromType;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.JPAOutputFieldBuilder;

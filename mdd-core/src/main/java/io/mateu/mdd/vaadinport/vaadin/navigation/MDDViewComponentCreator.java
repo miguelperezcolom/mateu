@@ -6,11 +6,9 @@ import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.app.MDDOpenEditorAction;
 import io.mateu.mdd.core.app.MDDOpenListViewAction;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
-import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
 
 import javax.persistence.Entity;
@@ -18,7 +16,7 @@ import java.util.Map;
 
 public class MDDViewComponentCreator {
 
-    public static Component createComponent(MDDOpenEditorAction mddOpenEditorAction, Class viewClass, Object id, boolean modifierPressed) {
+    public static Component createComponent(MDDOpenEditorAction mddOpenEditorAction, Class viewClass, Object id) {
         Component v = null;
 
         Class modelType = null;
@@ -42,7 +40,7 @@ public class MDDViewComponentCreator {
         return v;
     }
 
-    public static Component createComponent(MDDOpenListViewAction mddOpenListViewAction, Class viewClass, boolean modifierPressed) {
+    public static Component createComponent(MDDOpenListViewAction mddOpenListViewAction, Class viewClass) {
         Component v = null;
 
         try {
@@ -60,13 +58,13 @@ public class MDDViewComponentCreator {
         return v;
     }
 
-    public static Component createComponent(MDDOpenCRUDAction mddOpenCRUDAction, Class entityClass, String queryFilters, ExtraFilters extraFilters, Map<String, Object> defaultValues, boolean modifierPressed) {
+    public static Component createComponent(MDDOpenCRUDAction action) {
         Component v = null;
         Class modelType = null;
         try {
 
-            modelType = entityClass;
-            v = createListViewComponent(modelType, queryFilters, extraFilters, defaultValues);
+            modelType = action.getEntityClass();
+            v = createListViewComponent(modelType, action.getQueryFilters(), action.getExtraFilters(), action.getDefaultValues(), action.getColumns(), action.getFilters(), action.getFields());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -89,9 +87,13 @@ public class MDDViewComponentCreator {
     }
 
     private static ListViewComponent createListViewComponent(Class modelType, String queryFilters, ExtraFilters extraFilters, Map<String, Object> defaultValues) throws Exception {
+        return createListViewComponent(modelType, queryFilters, extraFilters, defaultValues, null, null, null);
+    }
+
+    private static ListViewComponent createListViewComponent(Class modelType, String queryFilters, ExtraFilters extraFilters, Map<String, Object> defaultValues, String columns, String filters, String fields) throws Exception {
         ListViewComponent v = null;
         if (modelType.isAnnotationPresent(Entity.class)) {
-            v = new JPAListViewComponent(modelType, extraFilters, defaultValues);
+            v = new JPAListViewComponent(modelType, extraFilters, defaultValues, columns, filters, fields);
         } else {
 
         }

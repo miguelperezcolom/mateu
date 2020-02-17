@@ -2,56 +2,61 @@ package io.mateu.mdd.core.app;
 
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Button;
+import lombok.Getter;
 
 import java.util.UUID;
 
 /**
  * Created by miguel on 8/8/16.
  */
+@Getter
 public abstract class AbstractAction implements MenuEntry {
 
     private VaadinIcons icon;
     private String style = "";
     private String confirmationMessage;
-    private String name;
+    private String caption;
     private boolean callOnEnterKeyPressed = false;
     private boolean modifierPressed;
     private String id = UUID.randomUUID().toString();
     private String group = "";
     private boolean validationNeeded;
 
-    public AbstractAction(String id, String name) {
-        this.id = id;
-        this.name = name;
+
+    public AbstractAction(String caption) {
+        this.caption = caption;
     }
 
-    public AbstractAction(String id, VaadinIcons icon, String name) {
-        this.id = id;
+    public abstract void run() throws Throwable;
+
+
+    public void addShortCut(Button b) {
+
+    }
+
+    public boolean isVisible() {
+        return true;
+    }
+
+
+    public AbstractAction setCaption(String caption) {
+        this.caption = caption;
+        return this;
+    }
+
+    public AbstractAction setIcon(VaadinIcons icon) {
         this.icon = icon;
-        this.name = name;
+        return this;
     }
 
-    public AbstractAction(VaadinIcons icon, String name) {
-        this.icon = icon;
-        this.name = name;
+    public AbstractAction setStyle(String style) {
+        this.style = style;
+        return this;
     }
 
-    public AbstractAction(String name) {
-        this.name = name;
-    }
-
-    public AbstractAction(String name, boolean callOnEnterKeyPressed) {
-        this.name = name;
-        this.callOnEnterKeyPressed = callOnEnterKeyPressed;
-    }
-
-
-    public String getName() {
-        return name;
-    };
-
-    public boolean isCallOnEnterKeyPressed() {
-        return callOnEnterKeyPressed;
+    public AbstractAction setConfirmationMessage(String confirmationMessage) {
+        this.confirmationMessage = confirmationMessage;
+        return this;
     }
 
     public AbstractAction setCallOnEnterKeyPressed(boolean callOnEnterKeyPressed) {
@@ -64,58 +69,9 @@ public abstract class AbstractAction implements MenuEntry {
         return this;
     }
 
-    public boolean isModifierPressed() {
-        return modifierPressed;
-    }
-
-    public abstract void run(MDDExecutionContext context) throws Exception;
-
-    public String getId() {
-        return id;
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
-
-    public VaadinIcons getIcon() {
-        return icon;
-    }
-
-    public AbstractAction setIcon(VaadinIcons icon) {
-        this.icon = icon;
-        return this;
-    }
-
-    public String getConfirmationMessage() {
-        return confirmationMessage;
-    }
-
-    public AbstractAction setConfirmationMessage(String confirmationMessage) {
-        this.confirmationMessage = confirmationMessage;
-        return this;
-    }
-
-    public String getStyle() {
-        return style;
-    }
-
-    public AbstractAction setStyle(String style) {
-        this.style = style;
-        return this;
-    }
-
-    public String getGroup() {
-        return group;
-    }
-
-    public void setGroup(String group) {
+    public AbstractAction setGroup(String group) {
         this.group = group;
-    }
-
-    public boolean isValidationNeeded() {
-        return validationNeeded;
+        return this;
     }
 
     public AbstractAction setValidationNeeded(boolean validationNeeded) {
@@ -123,11 +79,8 @@ public abstract class AbstractAction implements MenuEntry {
         return this;
     }
 
-    public void addShortCut(Button b) {
-
-    }
-
-    public boolean isVisible() {
-        return true;
+    public AbstractAction setId(String id) {
+        this.id = id;
+        return this;
     }
 }

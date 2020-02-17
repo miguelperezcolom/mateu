@@ -48,7 +48,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
@@ -379,7 +378,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             }
 
 
-            ListViewComponent.buildColumns(g, colFields, false, inline, binder, field);
+            ListViewComponent.buildColumns(g, colFields, false, inline, binder, field, field.isAnnotationPresent(FieldsFilter.class)?field.getAnnotation(FieldsFilter.class).value():null);
 
 
             GridDecorator decorator = null;
@@ -1353,10 +1352,17 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         if (Strings.isNullOrEmpty(filter)) {
             l = getColumnFields(field);
         } else {
-            filter = filter.replaceAll("\\([^)]*\\)", "");
             l = new ArrayList<>();
             List<FieldInterfaced> aux = ReflectionHelper.getAllFields(field.getGenericClass());
-            List<String> fns = Arrays.asList(filter.replaceAll(" ", "").split(","));
+            String limpio = "";
+            for (String s : filter.split(",")) {
+                String n = s.trim();
+                if (n.contains("(")) n = n.substring(0, n.indexOf("("));
+                if (n.contains(" ")) n = n.substring(0, n.indexOf(" "));
+                if (!"".equals(limpio)) limpio += ",";
+                limpio += n;
+            }
+            List<String> fns = Arrays.asList(limpio.replaceAll(" ", "").split(","));
             for (String fn : fns) {
                 if (fn.contains(".")) {
                     l.add(new FieldInterfacedFromPath(field.getGenericClass(), fn));
@@ -1393,7 +1399,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
         List<FieldInterfaced> l = null;
 
-        l = ListViewComponent.getColumnFields(rowType, true, field.isAnnotationPresent(FieldsFilter.class)?field.getAnnotation(FieldsFilter.class).value():null);
+        l = ListViewComponent.getColumnFields(rowType, true, field.isAnnotationPresent(FieldsFilter.class)?field.getAnnotation(FieldsFilter.class).value():null, new ArrayList<>(), new HashMap<>());
 
         // quitamos el campo mappedBy de las columnas, ya que se supone que siempre seremos nosotros
         OneToMany aa;

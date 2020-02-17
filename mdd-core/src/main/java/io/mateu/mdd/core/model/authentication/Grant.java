@@ -2,7 +2,8 @@ package io.mateu.mdd.core.model.authentication;
 
 import lombok.MateuMDDEntity;
 
-import javax.persistence.*;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 /**
  * holder for a permission grant to user. It also defines the scope of the grant (e.g. a hotel, a customer, an office, ...)

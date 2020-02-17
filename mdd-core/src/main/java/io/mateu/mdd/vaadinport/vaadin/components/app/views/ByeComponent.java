@@ -2,12 +2,10 @@ package io.mateu.mdd.vaadinport.vaadin.components.app.views;
 
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
 
 public class ByeComponent extends AbstractViewComponent {
 

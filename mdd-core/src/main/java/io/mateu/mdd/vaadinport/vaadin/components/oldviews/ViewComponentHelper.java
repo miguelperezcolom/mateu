@@ -7,7 +7,6 @@ import com.vaadin.ui.UI;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.MDDExecutionContext;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.interfaces.PersistentPOJO;
 import io.mateu.mdd.core.interfaces.RpcView;
@@ -32,9 +31,9 @@ public class ViewComponentHelper {
         if (action == null) {
             Action aa = m.getAnnotation(Action.class);
 
-            action = new AbstractAction(m.getName(), (!Strings.isNullOrEmpty(aa.value())) ? aa.value() : Helper.capitalize(m.getName())) {
+            action = new AbstractAction((!Strings.isNullOrEmpty(aa.value())) ? aa.value() : Helper.capitalize(m.getName())) {
                 @Override
-                public void run(MDDExecutionContext context) {
+                public void run() {
 
                     if (aa.isGroup()) {
 
@@ -175,7 +174,7 @@ public class ViewComponentHelper {
 
                 }
             }.setStyle(aa.style()).setIcon(VaadinIcons.ADOBE_FLASH.equals(aa.icon())?null:aa.icon())
-                    .setConfirmationMessage(aa.confirmationMessage());
+                    .setConfirmationMessage(aa.confirmationMessage()).setId(m.getName());
 
             action.setGroup(aa.group());
             viewComponent.setAction(m, action);

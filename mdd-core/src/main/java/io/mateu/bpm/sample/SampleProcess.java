@@ -1,6 +1,5 @@
 package io.mateu.bpm.sample;
 
-import com.google.common.collect.Lists;
 import io.mateu.bpm.Block;
 import io.mateu.bpm.Process;
 import lombok.MateuMDDEntity;

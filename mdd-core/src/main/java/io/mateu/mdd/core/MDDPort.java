@@ -4,10 +4,8 @@ import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ExtraFilters;
 
 import java.lang.reflect.Method;
-import java.util.Map;
 import java.util.Set;
 
 public interface MDDPort {
@@ -16,13 +14,13 @@ public interface MDDPort {
 
     void alert(String msg);
 
-    void openCRUD(AbstractAction action, Class entityClass, String queryFilters, ExtraFilters extraFilters, Map<String, Object> defaultValues, boolean modifierPressed);
+    void openCRUD(AbstractAction action);
 
-    void openEditor(AbstractAction action, Class viewClass, Object id, boolean modifierPressed);
+    void openEditor(AbstractAction action, Class viewClass, Object id);
 
     UserData getUserData();
 
-    void openView(AbstractAction mddOpenListViewAction, Class listViewClass, boolean modifierPressed);
+    void openView(AbstractAction mddOpenListViewAction, Class listViewClass);
 
     void alert(Throwable throwable);
 

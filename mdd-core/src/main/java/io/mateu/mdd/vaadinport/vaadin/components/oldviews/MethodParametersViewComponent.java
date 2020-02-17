@@ -2,44 +2,20 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.vaadin.data.BinderValidationStatus;
-import com.vaadin.data.HasValue;
-import com.vaadin.data.Validator;
-import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.ui.AbstractComponent;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
-import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.MDDExecutionContext;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.data.Pair;
-import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.core.interfaces.PersistentPOJO;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.navigation.MDDViewProvider;
 import io.mateu.mdd.vaadinport.vaadin.navigation.View;
 import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Version;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.ValidatorFactory;
 import java.lang.reflect.Method;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Set;
 
 @Slf4j
 public class MethodParametersViewComponent extends EditorViewComponent {
@@ -73,9 +49,9 @@ public class MethodParametersViewComponent extends EditorViewComponent {
 
     @Override
     public List<AbstractAction> getActions() {
-        return Lists.newArrayList(new AbstractAction(VaadinIcons.BOLT, toString()) {
+        return Lists.newArrayList(new AbstractAction(toString()) {
             @Override
-            public void run(MDDExecutionContext context) {
+            public void run() {
                 if (validate()) {
                     try {
                         Object r = ReflectionHelper.execute(MDD.getUserData(), method, getBinder(), bean, pendingSelection);
@@ -98,7 +74,7 @@ public class MethodParametersViewComponent extends EditorViewComponent {
                     }
                 }
             }
-        });
+        }.setIcon(VaadinIcons.BOLT));
     }
 
 }

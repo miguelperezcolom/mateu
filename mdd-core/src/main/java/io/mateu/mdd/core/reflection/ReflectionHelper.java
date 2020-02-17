@@ -585,7 +585,7 @@ public class ReflectionHelper {
         if (!toStringIsOverriden) {
             boolean hayName = false;
             for (FieldInterfaced ff : getAllFields(entityClass))
-                if ("value".equalsIgnoreCase(ff.getName()) || "name".equalsIgnoreCase(ff.getName()) || "title".equalsIgnoreCase(ff.getName())) {
+                if ("value".equalsIgnoreCase(ff.getName()) || "name".equalsIgnoreCase(ff.getName()) || "title".equalsIgnoreCase(ff.getName()) || "nombre".equalsIgnoreCase(ff.getName()) || "titulo".equalsIgnoreCase(ff.getName())) {
                     fName = ff;
                     hayName = true;
                 }

@@ -1,6 +1,5 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.desktop;
 
-import com.google.common.base.Strings;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -173,7 +172,7 @@ public class NavigationComponent extends VerticalLayout {
     private void addMenu(MenuEntry e) {
 
 
-        Button b = new Button(e.getName() + ((e instanceof AbstractMenu)?"<span class=\"menu-badge\">" + VaadinIcons.ELLIPSIS_DOTS_H.getHtml() + "</span>":"")
+        Button b = new Button(e.getCaption() + ((e instanceof AbstractMenu)?"<span class=\"menu-badge\">" + VaadinIcons.ELLIPSIS_DOTS_H.getHtml() + "</span>":"")
         , ev -> {
 
             MDDUI.get().getNavegador().doAfterCheckSaved(() -> {

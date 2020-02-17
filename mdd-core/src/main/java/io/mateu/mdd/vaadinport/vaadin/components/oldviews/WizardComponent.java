@@ -3,18 +3,11 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.MDDExecutionContext;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.navigation.MDDViewComponentCreator;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -41,7 +34,7 @@ public class WizardComponent extends EditorViewComponent {
     public List<AbstractAction> getActions() {
         List<AbstractAction> l = new ArrayList<>();
 
-        l.add(new AbstractAction("wizardprev", VaadinIcons.STEP_BACKWARD, "Prev") {
+        l.add(new AbstractAction("Prev") {
 
             @Override
             public void addShortCut(Button b) {
@@ -49,7 +42,7 @@ public class WizardComponent extends EditorViewComponent {
             }
 
             @Override
-            public void run(MDDExecutionContext context) {
+            public void run() {
                 WizardPage prevPage = stack.remove(0);
                 currentPage = null;
                 try {
@@ -63,9 +56,10 @@ public class WizardComponent extends EditorViewComponent {
             public boolean isVisible() {
                 return stack.size() > 0;
             }
-        });
 
-        l.add(new AbstractAction("wizardnext", VaadinIcons.STEP_FORWARD, "Next") {
+        }.setIcon(VaadinIcons.STEP_BACKWARD).setId("wizardprev"));
+
+        l.add(new AbstractAction("Next") {
 
             @Override
             public void addShortCut(Button b) {
@@ -73,7 +67,7 @@ public class WizardComponent extends EditorViewComponent {
             }
 
             @Override
-            public void run(MDDExecutionContext context) {
+            public void run() {
                 if (validate()) {
                     WizardPage nextPage = currentPage.getNext();
                     try {
@@ -88,9 +82,10 @@ public class WizardComponent extends EditorViewComponent {
             public boolean isVisible() {
                 return currentPage.hasNext();
             }
-        });
 
-        l.add(new AbstractAction("wizarddone", VaadinIcons.CHECK, "Done") {
+        }.setIcon(VaadinIcons.STEP_FORWARD).setId("wizardnext"));
+
+        l.add(new AbstractAction("Done") {
 
             @Override
             public void addShortCut(Button b) {
@@ -98,7 +93,7 @@ public class WizardComponent extends EditorViewComponent {
             }
 
             @Override
-            public void run(MDDExecutionContext context) {
+            public void run() {
                 if (validate()) {
                     try {
 
@@ -116,9 +111,10 @@ public class WizardComponent extends EditorViewComponent {
             public boolean isVisible() {
                 return !currentPage.hasNext();
             }
-        });
 
-        l.add(new AbstractAction("wizarddonealt", VaadinIcons.CHECK_CIRCLE, "Done and repeat") {
+        }.setIcon(VaadinIcons.CHECK).setId("wizarddone"));
+
+        l.add(new AbstractAction("Done and repeat") {
 
             @Override
             public void addShortCut(Button b) {
@@ -126,7 +122,7 @@ public class WizardComponent extends EditorViewComponent {
             }
 
             @Override
-            public void run(MDDExecutionContext context) {
+            public void run() {
                 if (validate()) {
                     try {
 
@@ -144,7 +140,8 @@ public class WizardComponent extends EditorViewComponent {
             public boolean isVisible() {
                 return !currentPage.hasNext() && currentPage.backOnOk();
             }
-        });
+
+        }.setIcon(VaadinIcons.CHECK_CIRCLE).setId("wizarddonealt"));
 
         l.addAll(super.getActions());
 

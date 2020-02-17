@@ -9,18 +9,11 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.shared.ui.slider.SliderOrientation;
 import com.vaadin.ui.*;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.ExpandOnOpen;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.MDDExecutionContext;
 import io.mateu.mdd.core.interfaces.HasActions;
 import io.mateu.mdd.core.util.Helper;
 import lombok.AllArgsConstructor;
@@ -31,7 +24,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.List;
 
 @ExpandOnOpen
 public class CockpitView extends VerticalLayout implements HasActions {
@@ -197,7 +189,7 @@ public class CockpitView extends VerticalLayout implements HasActions {
         as.add(new AbstractAction("Abrir/Cerrar") {
 
             @Override
-            public void run(MDDExecutionContext context) {
+            public void run() {
                 DialogoAbrirCerrar sub = new DialogoAbrirCerrar();
 
                 // Add it to the root component
@@ -208,7 +200,7 @@ public class CockpitView extends VerticalLayout implements HasActions {
         as.add(new AbstractAction("Gestión de cupos") {
 
             @Override
-            public void run(MDDExecutionContext context) {
+            public void run() {
                 MDD.alert("Pendiente");
             }
         });
@@ -216,7 +208,7 @@ public class CockpitView extends VerticalLayout implements HasActions {
         as.add(new AbstractAction("Consultar Revenue") {
 
             @Override
-            public void run(MDDExecutionContext context) {
+            public void run() {
                 MDD.alert("Pendiente");
             }
         });
@@ -224,7 +216,7 @@ public class CockpitView extends VerticalLayout implements HasActions {
         as.add(new AbstractAction("Actualizar precios") {
 
             @Override
-            public void run(MDDExecutionContext context) {
+            public void run() {
                 MDD.alert("Pendiente");
             }
         });
@@ -232,7 +224,7 @@ public class CockpitView extends VerticalLayout implements HasActions {
         as.add(new AbstractAction("Refrescar") {
 
             @Override
-            public void run(MDDExecutionContext context) {
+            public void run() {
                 MDD.alert("Pendiente");
             }
         });
@@ -240,7 +232,7 @@ public class CockpitView extends VerticalLayout implements HasActions {
         as.add(new AbstractAction("Crear contrato") {
 
             @Override
-            public void run(MDDExecutionContext context) {
+            public void run() {
                 DialogoCrearContrato sub = new DialogoCrearContrato();
 
                 // Add it to the root component
@@ -251,7 +243,7 @@ public class CockpitView extends VerticalLayout implements HasActions {
         as.add(new AbstractAction("Crear oferta") {
 
             @Override
-            public void run(MDDExecutionContext context) {
+            public void run() {
                 DialogoCrearOferta sub = new DialogoCrearOferta();
 
                 // Add it to the root component

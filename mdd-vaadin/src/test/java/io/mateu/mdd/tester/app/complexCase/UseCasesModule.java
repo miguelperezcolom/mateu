@@ -110,7 +110,7 @@ public class UseCasesModule extends AbstractModule {
 
         l.add(new AbstractAction("Test object editor") {
             @Override
-            public void run(MDDExecutionContext context) {
+            public void run() {
                 try {
                     MDD.edit(Helper.find(AppConfig.class, 1l));
                 } catch (Throwable throwable) {
@@ -121,7 +121,7 @@ public class UseCasesModule extends AbstractModule {
 
         l.add(new AbstractAction("Test object editor 2") {
             @Override
-            public void run(MDDExecutionContext context) {
+            public void run() {
                 try {
                     MDD.edit(Helper.find(BankAccount.class, 1l));
                 } catch (Throwable throwable) {

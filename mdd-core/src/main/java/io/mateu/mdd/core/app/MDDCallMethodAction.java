@@ -3,6 +3,7 @@ package io.mateu.mdd.core.app;
 
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 import java.lang.reflect.Method;
 
@@ -19,8 +20,8 @@ public class MDDCallMethodAction extends AbstractAction {
 
 
     @Override
-    public void run(MDDExecutionContext context) {
+    public void run() {
         if (method == null) MDD.alert(error);
-        else context.callMethod(getName(), method, null, null);
+        else MDDUI.get().getNavegador().getViewProvider().callMethod(null, method, null, null);
     }
 }

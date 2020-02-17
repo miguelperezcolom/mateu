@@ -1,6 +1,8 @@
 package io.mateu.mdd.core.app;
 
 
+import io.mateu.mdd.core.MDD;
+
 public class MDDOpenWizardAction extends AbstractAction {
 
     private final Class firstPageClass;
@@ -11,7 +13,7 @@ public class MDDOpenWizardAction extends AbstractAction {
     }
 
     @Override
-    public void run(MDDExecutionContext context) {
-        context.openWizardPage(firstPageClass);
+    public void run() {
+        MDD.openWizard(firstPageClass);
     }
 }

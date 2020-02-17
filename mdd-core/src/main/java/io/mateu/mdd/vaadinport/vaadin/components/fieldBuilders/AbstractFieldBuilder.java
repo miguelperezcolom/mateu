@@ -16,11 +16,7 @@ import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.app.AbstractMDDExecutionContext;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -219,7 +215,7 @@ public abstract class AbstractFieldBuilder {
             Component i = null;
             if (true) {
                 Button b;
-                i = b = new Button(a.getName(), a.getIcon());
+                i = b = new Button(a.getCaption(), a.getIcon());
                 b.addStyleName(ValoTheme.BUTTON_QUIET);
                 b.addStyleName(ValoTheme.BUTTON_TINY);
                 b.addClickListener(e -> {
@@ -248,23 +244,20 @@ public abstract class AbstractFieldBuilder {
                                  */
                                 if (c instanceof Grid) MDDUI.get().getNavegador().getViewProvider().pendingSelection = ((Grid) c).getSelectedItems();
                                 try {
-                                    a.run(new AbstractMDDExecutionContext());
-                                } catch (Exception ex) {
+                                    a.run();
+                                } catch (Throwable ex) {
                                     MDD.alert(ex);
                                 }
                             }
                         };
 
                         if (!Strings.isNullOrEmpty(a.getConfirmationMessage())) {
-                            MDD.confirm(a.getConfirmationMessage(), new Runnable() {
-                                @Override
-                                public void run() {
+                            MDD.confirm(a.getConfirmationMessage(), () -> {
 
-                                    r.run();
+                                r.run();
 
-                                    //todo: actualizar vista con los cambios en el modelo
+                                //todo: actualizar vista con los cambios en el modelo
 
-                                }
                             });
                         } else r.run();
 

@@ -8,6 +8,7 @@ import io.mateu.mdd.core.model.authentication.Permission;
 import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -186,18 +187,18 @@ public class SimpleMDDApplication extends BaseMDDApp {
 
                     } else {
 
-                        l.add(new AbstractAction(icon, caption) {
+                        l.add(new AbstractAction(caption) {
                             @Override
-                            public void run(MDDExecutionContext context) {
+                            public void run() {
                                 try {
 
-                                    context.callMethod(null, m, app, null);
+                                    MDDUI.get().getNavegador().getViewProvider().callMethod(null, m, app, null);
 
                                 } catch (Throwable e) {
                                     MDD.alert(e);
                                 }
                             }
-                        });
+                        }.setIcon(icon));
 
                     }
 

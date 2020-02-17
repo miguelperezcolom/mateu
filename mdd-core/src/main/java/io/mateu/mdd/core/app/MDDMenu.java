@@ -35,12 +35,16 @@ public class MDDMenu extends AbstractMenu {
                 } else if (args[pos - 1] instanceof String && args[pos] != null) {
                     String n = (String) args[pos - 1];
                     Object o = args[pos];
-                    m.add(new AbstractAction(n) {
-                        @Override
-                        public void run(MDDExecutionContext context) {
-                            MDDUI.get().getNavegador().getViewProvider().pendingResult = o;
-                        }
-                    });
+                    if (o instanceof AbstractAction) {
+                        m.add(((AbstractAction)o).setCaption(n));
+                    } else {
+                        m.add(new AbstractAction(n) {
+                            @Override
+                            public void run() {
+                                MDDUI.get().getNavegador().getViewProvider().pendingResult = o;
+                            }
+                        });
+                    }
                 } else log.debug("Wrong class parameters. Found " + args[pos - 1].getClass().getName() + ", " + args[pos].getClass().getName() + " while expected String, Class");
             }
         }

@@ -1,12 +1,9 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.views;
 
-import com.google.common.base.Strings;
-import com.vaadin.data.Binder;
 import com.vaadin.data.HasValue;
 import com.vaadin.shared.Registration;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.RichTextArea;
-import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.AbstractAction;
@@ -15,18 +12,15 @@ import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ViewComponentHelper;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.WizardComponent;
 import org.vaadin.aceeditor.AceEditor;
 
-import javax.persistence.Convert;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 
 public class FieldEditorComponent extends AbstractViewComponent{
 

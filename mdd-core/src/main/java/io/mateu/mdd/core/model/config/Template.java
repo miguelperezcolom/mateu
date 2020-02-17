@@ -4,9 +4,6 @@ import io.mateu.mdd.core.annotations.TextArea;
 import io.mateu.mdd.core.annotations.UseCheckboxes;
 import lombok.MateuMDDEntity;
 
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
 import java.util.HashSet;

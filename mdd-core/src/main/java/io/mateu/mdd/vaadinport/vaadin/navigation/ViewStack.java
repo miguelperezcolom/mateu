@@ -36,7 +36,7 @@ public class ViewStack {
 
         if (component != null && component instanceof AbstractViewComponent) {
             if (MDD.getApp().getMenu(state) != null) {
-                ((AbstractViewComponent)component).setTitle(MDD.getApp().getMenu(state).getName());
+                ((AbstractViewComponent)component).setTitle(MDD.getApp().getMenu(state).getCaption());
             }
             if (stack.size() > 0 && stack.get(stack.size() - 1).getViewComponent() instanceof AbstractViewComponent) {
                 ((AbstractViewComponent)component).setParentView((AbstractViewComponent) stack.get(stack.size() - 1).getViewComponent());

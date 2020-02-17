@@ -9,14 +9,12 @@ import com.vaadin.event.selection.SelectionEvent;
 import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.ItemClickListener;
-import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.interfaces.ReadOnly;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import lombok.extern.slf4j.Slf4j;
 
 import java.text.DecimalFormat;

@@ -15,7 +15,10 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.interfaces.*;
+import io.mateu.mdd.core.interfaces.EntityProvider;
+import io.mateu.mdd.core.interfaces.PersistentPOJO;
+import io.mateu.mdd.core.interfaces.RpcView;
+import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
@@ -31,8 +34,8 @@ import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
 import io.mateu.mdd.vaadinport.vaadin.pojos.Profile;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.persistence.*;
 import javax.persistence.Embedded;
+import javax.persistence.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -61,7 +64,7 @@ import java.util.*;
 //private|public/area/modulo/menu/menu/accion/vista/id|add/methodName <-- rellenar seleccionado registros
 
 @Slf4j
-public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
+public class MDDViewProvider implements ViewProvider {
 
     private final ViewStack stack;
     public Set pendingSelection;
@@ -316,7 +319,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     if (area != null) {
                         AbstractAction action = area.getDefaultAction();
                         if (!MDD.isMobile() && action != null) {
-                            action.run(this);
+                            action.run();
                             if (stack.size() > 0) v = stack.getLast();
                         } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new AreaComponent(area));
                         if (area != null) MDDUI.get().getAppComponent().setArea(area);
@@ -337,7 +340,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     if (area != null) {
                         AbstractAction action = area.getDefaultAction();
                         if (!MDD.isMobile() && action != null) {
-                            action.run(this);
+                            action.run();
                             if (stack.size() > 0) v = stack.getLast();
                         } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new AreaComponent(area));
                         if (area != null) MDDUI.get().getAppComponent().setArea(area);
@@ -360,7 +363,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                     if (area != null) {
                         AbstractAction action = area.getDefaultAction();
                         if (!MDD.isMobile() && action != null) {
-                            action.run(this);
+                            action.run();
                             if (stack.size() > 0) v = stack.getLast();
                         } else v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new AreaComponent(area));
                         if (area != null) MDDUI.get().getAppComponent().setArea(area);
@@ -378,7 +381,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                 if (area != null) {
                     AbstractAction action = area.getDefaultAction();
                     if (!MDD.isMobile() && action != null) {
-                        action.run(this);
+                        action.run();
                         if (stack.size() > 0) v = stack.getLast();
                     } else if (MDD.isMobile()) {
                         String[] ts = currentPath.split("/");
@@ -429,7 +432,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                         if (v == null) {
 
                             if (!MDD.isMobile()) clearStack();
-                            openEditor(null, Profile.class, MDD.getUserData(), false);
+                            openEditor(null, Profile.class, MDD.getUserData());
 
                             v = lastView = stack.get("private/profile");
 
@@ -586,7 +589,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
 
                             AbstractAction action = area.getDefaultAction();
                             if (!MDD.isMobile() && action != null) {
-                                action.run(this);
+                                action.run();
                                 if (stack.size() > 0) v = stack.getLast();
                             } else if (MDD.isMobile()) {
                                 if (MDD.getApp().getAreas().size() > 1) stack.push(currentPath, new AreaComponent(area));
@@ -609,7 +612,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                             MenuEntry e = MDD.getApp().getMenu(currentPath);
                             if (e != null) {
                                 if (e instanceof AbstractAction) {
-                                    ((AbstractAction) e).run(this);
+                                    ((AbstractAction) e).run();
                                 } else if (e instanceof AbstractMenu) {
                                     if (MDD.isMobile()) {
 
@@ -702,7 +705,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
                                 currentStepIndex++;
                                 v = stack.get(currentPath);
                             } else if (e instanceof AbstractAction) {
-                                stack.push(currentPath, new ComponentWrapper(e.getName(), new Label("", ContentMode.HTML)));
+                                stack.push(currentPath, new ComponentWrapper(e.getCaption(), new Label("", ContentMode.HTML)));
                                 currentStepIndex++;
                                 v = stack.get(currentPath);
                             }
@@ -1286,27 +1289,26 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
     }
 
 
-    @Override
     public void alert(String s) {
         MDD.alert(s);
     }
 
-    @Override
-    public void openEditor(MDDOpenEditorAction action, Class viewClass, Object id, boolean modifierPressed) throws Exception {
-        stack.push(currentPath, MDDViewComponentCreator.createComponent(action, viewClass, id, modifierPressed));
+    public void openEditor(MDDOpenEditorAction action, Class viewClass, Object id) throws Exception {
+        stack.push(currentPath, MDDViewComponentCreator.createComponent(action, viewClass, id));
     }
 
-    @Override
-    public void openListView(MDDOpenListViewAction action, Class viewClass, boolean modifierPressed) throws Exception {
-        stack.push(currentPath, MDDViewComponentCreator.createComponent(action, viewClass, modifierPressed));
+    public void openListView(MDDOpenListViewAction action, Class viewClass) throws Exception {
+        stack.push(currentPath, MDDViewComponentCreator.createComponent(action, viewClass));
     }
 
-    @Override
-    public void openCRUD(MDDOpenCRUDAction action, Class entityClass, String queryFilters, ExtraFilters extraFilters, Map<String, Object> defaultValues, boolean modifierPressed) throws Exception {
-        stack.push(currentPath, MDDViewComponentCreator.createComponent(action, entityClass, queryFilters, extraFilters, defaultValues, modifierPressed));
+    public void openEditor(Object bean) throws Throwable {
+        stack.push(currentPath, new EditorViewComponent(bean));
     }
 
-    @Override
+    public void openCRUD(MDDOpenCRUDAction action) throws Exception {
+        stack.push(currentPath, MDDViewComponentCreator.createComponent(action));
+    }
+
     public void openWizardPage(Class firstPageClass) {
         try {
             stack.push(currentPath, MDDViewComponentCreator.createComponent((WizardPage) firstPageClass.newInstance()));
@@ -1315,12 +1317,10 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
         }
     }
 
-    @Override
-    public void open(AbstractAction action, Component component, boolean modifierPressed) throws Exception {
+    public void open(AbstractAction action, Component component) throws Exception {
         stack.push(currentPath, component);
     }
 
-    @Override
     public void callMethod(String state, Method method, Object instance, Component lastViewComponent) {
         if (method != null) {
             try {
@@ -1384,7 +1384,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
         }
     }
 
-    private void procesarResultado(Method m, Object r, Component lastViewComponent) throws Exception {
+    private void procesarResultado(Method m, Object r, Component lastViewComponent) throws Throwable {
         String title = m != null?"Result of " + Helper.capitalize(m.getName()):"Result";
 
         if (m != null && m.isAnnotationPresent(Action.class) && m.getAnnotation(Action.class).refreshOnBack()) {
@@ -1521,7 +1521,7 @@ public class MDDViewProvider implements ViewProvider, MDDExecutionContext {
             } else if (r instanceof Component) {
                 stack.push(currentPath, new ComponentWrapper(title, (Component) r)).setOpenNewWindow(true);
             } else if (r instanceof AbstractAction) {
-                ((AbstractAction) r).run(this);
+                ((AbstractAction) r).run();
             } else if (r instanceof WizardPage) {
                 stack.push(currentPath, new WizardComponent((WizardPage) r)).setOpenNewWindow(true);
             } else {

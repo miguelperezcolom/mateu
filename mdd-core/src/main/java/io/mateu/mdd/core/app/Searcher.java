@@ -61,14 +61,14 @@ public class Searcher {
         if (e instanceof AbstractMenu) {
 
             for (MenuEntry ez : ((AbstractMenu) e).getEntries()) {
-                addMenuEntry(found, a, m, ez, text, prefix + " / " + ez.getName()); //("".equals(text) || e.getName().toLowerCase().contains(text))?"":text);
+                addMenuEntry(found, a, m, ez, text, prefix + " / " + ez.getCaption()); //("".equals(text) || e.getName().toLowerCase().contains(text))?"":text);
             }
 
         } else if (e instanceof AbstractAction) {
 
-            if ("".equals(text) || e.getName().toLowerCase().contains(text)) {
+            if ("".equals(text) || e.getCaption().toLowerCase().contains(text)) {
 
-                found.add(new Found(MDDUI.get().getNavegador().getPath(e), e.getName(), prefix));
+                found.add(new Found(MDDUI.get().getNavegador().getPath(e), e.getCaption(), prefix));
 
             }
 

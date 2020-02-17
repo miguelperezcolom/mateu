@@ -238,7 +238,7 @@ public abstract class AbstractApplication implements App {
     }
 
     private void buildMenuIds(AbstractArea a, String prefijo, List<MenuEntry> incomingPath, MenuEntry e) {
-        String id = prefijo + "/" + e.getName().toLowerCase().replaceAll("/", "").replaceAll(" ", "").replaceAll("&", "");
+        String id = prefijo + "/" + e.getCaption().toLowerCase().replaceAll("/", "").replaceAll(" ", "").replaceAll("&", "");
 
         int pos = 0;
         String idbase = id;

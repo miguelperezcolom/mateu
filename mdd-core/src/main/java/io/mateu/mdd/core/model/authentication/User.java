@@ -12,7 +12,6 @@ import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.core.workflow.Task;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
 import io.mateu.mdd.vaadinport.vaadin.components.EditorViewStyler;
-import io.mateu.mdd.vaadinport.vaadin.components.app.ViewContainer;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 import lombok.MateuMDDEntity;
 import lombok.extern.slf4j.Slf4j;

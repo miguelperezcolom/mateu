@@ -1,7 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
@@ -9,17 +8,14 @@ import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.interfaces.PersistentPOJO;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.app.AbstractMDDExecutionContext;
 import io.mateu.mdd.vaadinport.vaadin.components.app.ViewContainer;
-import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.AreaComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
 import io.mateu.mdd.vaadinport.vaadin.navigation.ComponentWrapper;
 import io.mateu.mdd.vaadinport.vaadin.navigation.View;
 import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
 
-import javax.persistence.Entity;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -264,7 +260,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                 Component i = null;
                 if (!isActionPresent(a.getId())) {
                     Button b;
-                    i = b = new Button(a.getName(), a.getIcon());
+                    i = b = new Button(a.getCaption(), a.getIcon());
                     b.addStyleName(ValoTheme.BUTTON_QUIET);
                     b.addClickListener(e -> {
                         try {
@@ -275,8 +271,8 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                                 public void run() {
 
                                     try {
-                                        a.run(new AbstractMDDExecutionContext());
-                                    } catch (Exception ex) {
+                                        a.run();
+                                    } catch (Throwable ex) {
                                         MDD.alert(ex);
                                         removeStyleName("refreshonback");
                                     }
@@ -285,15 +281,12 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                             };
 
                             if (!Strings.isNullOrEmpty(a.getConfirmationMessage())) {
-                                MDD.confirm(a.getConfirmationMessage(), new Runnable() {
-                                    @Override
-                                    public void run() {
+                                MDD.confirm(a.getConfirmationMessage(), () -> {
 
-                                        r.run();
+                                    r.run();
 
-                                        //todo: actualizar vista con los cambios en el modelo
+                                    //todo: actualizar vista con los cambios en el modelo
 
-                                    }
                                 });
                             } else r.run();
 

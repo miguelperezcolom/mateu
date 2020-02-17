@@ -64,7 +64,7 @@ public class ShowMenuComponent extends AbstractViewComponent {
 
             if (lx.getComponentCount() > 0) {
                 Label lab;
-                lx.addComponent(lab = new Label(e.getName()));
+                lx.addComponent(lab = new Label(e.getCaption()));
                 lab.addStyleName((contenedor instanceof CssLayout)?"titulosubmenuprincipal":"titulosubmenu");
 
                 lx.addComponent(lz);
@@ -75,7 +75,7 @@ public class ShowMenuComponent extends AbstractViewComponent {
         } else if (e instanceof AbstractAction) {
 
             Button b;
-            addComponent(b = new Button(e.getName()));
+            addComponent(b = new Button(e.getCaption()));
             b.addClickListener(ev -> MDDUI.get().getNavegador().goTo(e));
             b.addStyleName(ValoTheme.BUTTON_LINK);
 

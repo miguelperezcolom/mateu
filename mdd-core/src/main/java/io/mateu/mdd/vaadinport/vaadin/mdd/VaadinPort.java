@@ -12,13 +12,11 @@ import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ExtraFilters;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Map;
 import java.util.Set;
 
 @Slf4j
@@ -56,14 +54,14 @@ public class VaadinPort implements MDDPort {
     }
 
     @Override
-    public void openCRUD(AbstractAction action, Class viewClass, String queryFilters, ExtraFilters extraFilters, Map<String, Object> defaultValues, boolean modifierPressed) {
+    public void openCRUD(AbstractAction action) {
         log.debug("open crud");
 
-        MDDUI.get().getNavegador().goTo(action, viewClass);
+        MDDUI.get().getNavegador().goTo(action);
     }
 
     @Override
-    public void openEditor(AbstractAction action, Class viewClass, Object id, boolean modifierPressed) {
+    public void openEditor(AbstractAction action, Class viewClass, Object id) {
         log.debug("open editor");
 
         MDDUI.get().getNavegador().goTo(action, viewClass, id);
@@ -187,7 +185,7 @@ public class VaadinPort implements MDDPort {
     }
 
     @Override
-    public void openView(AbstractAction action, Class listViewClass, boolean modifierPressed) {
+    public void openView(AbstractAction action, Class listViewClass) {
         MDDUI.get().getNavegador().goTo(action, listViewClass);
     }
 

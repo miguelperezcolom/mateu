@@ -1,8 +1,10 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.vaadin.data.*;
+import com.vaadin.data.Binder;
+import com.vaadin.data.BinderValidationStatus;
+import com.vaadin.data.HasValue;
+import com.vaadin.data.Validator;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.Registration;
@@ -13,11 +15,9 @@ import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.MDDExecutionContext;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Pair;
 import io.mateu.mdd.core.interfaces.*;
-import io.mateu.mdd.core.model.authentication.Audit;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;

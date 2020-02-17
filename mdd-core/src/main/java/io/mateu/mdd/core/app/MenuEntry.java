@@ -9,7 +9,7 @@ public interface MenuEntry {
 
     VaadinIcons getIcon();
 
-    String getName();
+    String getCaption();
 
     String getId();
 }

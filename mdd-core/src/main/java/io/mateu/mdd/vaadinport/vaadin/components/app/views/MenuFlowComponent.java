@@ -9,7 +9,6 @@ import io.mateu.mdd.core.app.AbstractMenu;
 import io.mateu.mdd.core.app.MenuEntry;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,7 +24,7 @@ public class MenuFlowComponent extends AbstractViewComponent {
 
     @Override
     public String toString() {
-        return menu.getName();
+        return menu.getCaption();
     }
 
 
@@ -82,9 +81,9 @@ public class MenuFlowComponent extends AbstractViewComponent {
 
             q.addStyleName("submenulayout");
 
-            if (!Strings.isNullOrEmpty(m.getName())) {
+            if (!Strings.isNullOrEmpty(m.getCaption())) {
                 Label t;
-                q.addComponent(t = new Label(m.getName()));
+                q.addComponent(t = new Label(m.getCaption()));
                 if (nivel == 0) t.addStyleName(ValoTheme.LABEL_H2);
                 else if (nivel == 1) t.addStyleName(ValoTheme.LABEL_H3);
                 else t.addStyleName(ValoTheme.LABEL_H4);
@@ -97,7 +96,7 @@ public class MenuFlowComponent extends AbstractViewComponent {
         } else if (e instanceof AbstractAction) {
 
             Button b;
-            l.addComponent(b = new Button(e.getName(), ev -> MDDUI.get().getNavegador().goTo(e, ev.isCtrlKey())));
+            l.addComponent(b = new Button(e.getCaption(), ev -> MDDUI.get().getNavegador().goTo(e, ev.isCtrlKey())));
             b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
             b.addStyleName("submenuoption");
 

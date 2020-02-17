@@ -15,7 +15,7 @@ public class MobileMenuComponent extends VerticalLayout {
 
     @Override
     public String toString() {
-        return "" + area.getName();
+        return "" + area.getCaption();
     }
 
     public MobileMenuComponent(MenuEntry area) {
@@ -30,7 +30,7 @@ public class MobileMenuComponent extends VerticalLayout {
             ((AbstractMenu) area).getEntries().stream().forEach(a -> {
 
                 Button b;
-                addComponent(b = new Button(a.getName()));
+                addComponent(b = new Button(a.getCaption()));
                 b.addClickListener(e -> MDDUI.get().getNavegador().goTo(a));
                 b.addStyleName(ValoTheme.BUTTON_QUIET);
 

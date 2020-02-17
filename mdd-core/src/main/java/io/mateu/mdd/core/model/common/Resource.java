@@ -8,9 +8,6 @@ import io.mateu.mdd.core.util.Utils;
 import lombok.MateuMDDEntity;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.io.FileInputStream;

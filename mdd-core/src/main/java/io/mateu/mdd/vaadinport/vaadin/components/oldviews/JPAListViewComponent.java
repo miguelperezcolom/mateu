@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.ui.Grid;
@@ -10,7 +11,6 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.ChartData;
 import io.mateu.mdd.core.data.ChartValue;
 import io.mateu.mdd.core.data.SumData;
-import io.mateu.mdd.core.interfaces.AuditRecord;
 import io.mateu.mdd.core.interfaces.GridDecorator;
 import io.mateu.mdd.core.interfaces.StyledEnum;
 import io.mateu.mdd.core.model.authentication.Audit;
@@ -34,7 +34,9 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -42,6 +44,7 @@ import java.util.stream.Collectors;
 public class JPAListViewComponent extends ListViewComponent {
 
     private final Map<String,Object> initialValues;
+    private final List<String> aliasedColumnNamesList = new ArrayList<>();
     private ExtraFilters extraFilters;
 
     private final Class entityClass;
@@ -52,6 +55,31 @@ public class JPAListViewComponent extends ListViewComponent {
 
     private int frozenColumnCount = -1;
 
+    private final String useColumns;
+
+    private final String useFilters;
+
+    private final String useFields;
+
+
+
+
+    private List<String> columnNames = new ArrayList<>();
+    private Map<String, FieldInterfaced> fieldsByColumnName = new HashMap<>();
+    private List<String> filterNames = new ArrayList<>();
+    private Map<String, FieldInterfaced> fieldsByFilterName = new HashMap<>();
+    private List<String> columnFields;
+    private List<FieldInterfaced> filterFields;
+
+    Map<String, String> alias = new HashMap<>();
+    Map<String, String> aliasedColumnNames = new HashMap<>();
+
+    String selectColumnsForCount;
+    String selectColumnsForList;
+
+    List<FieldInterfaced> sumFields;
+
+
     public JPAListViewComponent(Class entityClass) {
         this(entityClass, null, null);
     }
@@ -61,9 +89,17 @@ public class JPAListViewComponent extends ListViewComponent {
     }
 
     public JPAListViewComponent(Class entityClass, ExtraFilters extraFilters, Map<String, Object> initialValues) {
+        this(entityClass, extraFilters, initialValues, null, null, null);
+    }
+
+    public JPAListViewComponent(Class entityClass, ExtraFilters extraFilters, Map<String, Object> initialValues, String columns, String filters, String fields) {
         this.entityClass = entityClass;
         this.extraFilters = extraFilters;
         this.initialValues = initialValues;
+        this.useColumns = columns;
+        this.useFilters = filters;
+        this.useFields = fields;
+
 
         addListener(new ListViewComponentListener() {
             @Override
@@ -80,6 +116,28 @@ public class JPAListViewComponent extends ListViewComponent {
 
             }
         });
+
+
+        columnFields = getSelectFields(getColumnType(), useColumns, columnNames, fieldsByColumnName);
+        filterFields = getFilterFields();
+
+        createAliases(getColumnType(), columnNames, fieldsByColumnName, alias, aliasedColumnNames, aliasedColumnNamesList);
+
+        sumFields = fieldsByColumnName.values().stream().filter(f -> f.isAnnotationPresent(Sum.class)).collect(Collectors.toList());
+
+        {
+            String ql = "count(x)";
+
+            for (FieldInterfaced f : sumFields) {
+                if (!"".equals(ql)) ql += ", ";
+                ql += " sum(x." + f.getName() + ") ";
+            }
+
+            selectColumnsForCount = ql;
+        }
+
+        selectColumnsForList = buildFieldsPart(columnFields);
+
     }
 
     @Override
@@ -95,6 +153,28 @@ public class JPAListViewComponent extends ListViewComponent {
             if (frozenColumnCount < 0) frozenColumnCount = 0;
         }
         return frozenColumnCount;
+    }
+
+    @Override
+    public void buildColumns(Grid grid) {
+        Map<String, FieldInterfaced> fieldsByAliasedColumnName = new HashMap<>();
+        columnNames.stream().forEach(n -> {
+            fieldsByAliasedColumnName.put(aliasedColumnNames.get(n), fieldsByColumnName.get(n));
+        });
+        buildColumns(grid, columnNames.stream().map(n -> aliasedColumnNames.get(n)).collect(Collectors.toList()), fieldsByAliasedColumnName, true, false, null, null, aliasUseColumns(useColumns));
+    }
+
+    private String aliasUseColumns(String useColumns) {
+        if (useColumns == null) return null;
+        String r = "";
+        for (String t : useColumns.split(",")) {
+            String k = t.trim();
+            if (k.contains("(")) k = k.substring(0, k.indexOf("("));
+            if (k.contains(" ")) k = k.substring(0, k.indexOf(" "));
+            if (!"".equals(r)) r += ",";
+            r += t.replaceAll(k.replaceAll("\\.", "\\\\."), aliasedColumnNames.get(k));
+        }
+        return r;
     }
 
     @Override
@@ -114,6 +194,46 @@ public class JPAListViewComponent extends ListViewComponent {
         this.filters = filters;
     }
 
+    @Override
+    public String getFieldsFilter() {
+        return selectColumnsForList;
+    }
+
+    @Override
+    public List<FieldInterfaced> getFilterFields(Class filtersType) {
+        if (Strings.isNullOrEmpty(useFilters)) {
+
+            List<FieldInterfaced> filterFields = ReflectionHelper.getAllFields(filtersType).stream().filter(
+                    (f) -> !f.isAnnotationPresent(Password.class) && !f.isAnnotationPresent(Version.class) && !f.isAnnotationPresent(Ignored.class) && f.isAnnotationPresent(SearchFilter.class) || f.isAnnotationPresent(MainSearchFilter.class)
+            ).collect(Collectors.toList());
+            if (filterFields.size() == 0) {
+                filterFields = ReflectionHelper.getAllFields(filtersType).stream().filter(
+                        (f) ->  !f.isAnnotationPresent(Password.class) && !f.isAnnotationPresent(Version.class) && !f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(Output.class) &&  !Resource.class.equals(f.getType()) && (String.class.equals(f.getType()) || LocalDate.class.equals(f.getType()) || LocalDateTime.class.equals(f.getType()) || LocalTime.class.equals(f.getType()) || Date.class.equals(f.getType()) || boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType()) || f.getType().isEnum() || f.isAnnotationPresent(ManyToOne.class) || f.getType().isAnnotationPresent(Entity.class))
+                ).collect(Collectors.toList());
+            }
+
+            filterFields.forEach(f -> {
+                filterNames.add(f.getName());
+                fieldsByFilterName.put(f.getName(), f);
+            });
+
+            return filterFields;
+
+        } else {
+
+            List<String> fns = Lists.newArrayList(useFilters.replaceAll(" ", "").split(","));
+
+            List<FieldInterfaced> filterFields = fns.stream().map(n -> {
+                FieldInterfaced f = ReflectionHelper.getFieldByName(filtersType, n);
+                filterNames.add(n);
+                fieldsByFilterName.put(n, f);
+                return f;
+            }).collect(Collectors.toList());
+
+            return filterFields;
+        }
+
+    }
 
     @Override
     public boolean isAddEnabled() {
@@ -206,7 +326,7 @@ public class JPAListViewComponent extends ListViewComponent {
                 @Override
                 public void run(EntityManager em) throws Throwable {
 
-                    Query q = buildQuery(em, (alias) -> buildFieldsPart(alias), getFilters(), sortOrders, null, offset, limit, true);
+                    Query q = buildQuery(em, selectColumnsForList, getFilters(), sortOrders, null, offset, limit, true);
 
                     l.addAll(q.getResultList());
 
@@ -219,52 +339,23 @@ public class JPAListViewComponent extends ListViewComponent {
         return l;
     }
 
-    private Query buildQuery(EntityManager em, Function<Map<FieldInterfaced, String>, Object> fieldsPartBuilderFunction, Object filters, List<QuerySortOrder> sortOrders, int offset, int limit) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        return buildQuery(em, fieldsPartBuilderFunction, filters, sortOrders, null, offset, limit, false);
+    private Query buildQuery(EntityManager em, String selectedColumns, Object filters, List<QuerySortOrder> sortOrders, int offset, int limit) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        return buildQuery(em, selectedColumns, filters, sortOrders, null, offset, limit, false);
     }
 
-    private Query buildQuery(EntityManager em, Function<Map<FieldInterfaced, String>, Object> fieldsPartBuilderFunction, Object filters, List<QuerySortOrder> sortOrders, String groupClause, int offset, int limit, boolean addOrderClause) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    private Query buildQuery(EntityManager em, String selectedColumns, Object filters, List<QuerySortOrder> sortOrders, String groupClause, int offset, int limit, boolean addOrderClause) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
-        List<FieldInterfaced> columnFields = getSelectFields(getColumnType());
-        List<FieldInterfaced> filterFields = getFilterFields();
-
-        Map<FieldInterfaced, String> alias = new HashMap<>();
-
-        for (FieldInterfaced f : columnFields) {
-            if (f.getType().isAnnotationPresent(Entity.class) && !f.isAnnotationPresent(NotNull.class)) {
-                // referencia y no obligatorio --> left outer join
-
-                if (!f.isAnnotationPresent(NotNull.class)) {
-                    if (!alias.containsKey(f)) alias.put(f, "x" + alias.size());
-                }
-                //todo: crear joins hasta el nivel que haga falta
-            }
-        }
 
         Map<String, Object> parameterValues = new HashMap<>();
         String w = "";
         w = buildWhereClause(filters, entityClass, parameterValues);
 
-        for (FieldInterfaced f : filterFields) { //todo: comprobar que estamos utilizando el filtro. Si no, no hace falta incluir el join
-            if (f.getType().isAnnotationPresent(Entity.class) && !f.isAnnotationPresent(NotNull.class)) {
-                // referencia y no obligatorio --> left outer join
-
-                if (!f.isAnnotationPresent(NotNull.class)) {
-                    if (!alias.containsKey(f.getType())) {
-                        if (!alias.containsKey(f)) alias.put(f, "x" + alias.size());
-                    }
-                }
-
-                //todo: crear joins hasta el nivel que haga falta
-            }
-        }
-
         // SELECT f from Student f LEFT JOIN f.classTbls s WHERE s.ClassName = 'abc' <=== ejemplo left outer join
 
-        String jpql = "select " + fieldsPartBuilderFunction.apply(alias) + " from " + entityClass.getName() + " x ";
+        String jpql = "select " + selectedColumns + " from " + entityClass.getName() + " x ";
 
-        for (FieldInterfaced c : alias.keySet()) {
-            jpql += " left join x." + c.getName() + " " + alias.get(c);
+        for (String c : alias.keySet()) {
+            jpql += " left join " + c + " " + alias.get(c);
         }
 
         if (!"".equals(w)) jpql += " where " + w;
@@ -275,7 +366,7 @@ public class JPAListViewComponent extends ListViewComponent {
             String oc = "";
             if (sortOrders != null) for (QuerySortOrder qso : sortOrders) {
                 if (!"".equals(oc)) oc += ", ";
-                oc += "x" + "." + qso.getSorted() + " " + ((SortDirection.DESCENDING.equals(qso.getDirection()))?"desc":"asc");
+                oc += "col" + getColumnIndex(qso.getSorted()) + " " + ((SortDirection.DESCENDING.equals(qso.getDirection()))?"desc":"asc");
             }
             List<FieldInterfaced> orderCols = new ArrayList<>();
             for (FieldInterfaced f : ReflectionHelper.getAllFields(getColumnType())) {
@@ -284,30 +375,69 @@ public class JPAListViewComponent extends ListViewComponent {
             Collections.sort(orderCols, (f1, f2) -> f1.getAnnotation(Order.class).priority() - f2.getAnnotation(Order.class).priority());
             for (FieldInterfaced f : orderCols) {
                 if (!"".equals(oc)) oc += ", ";
-                oc += "x" + "." + f.getName() + " " + (f.getAnnotation(Order.class).desc()?"desc":"asc");
+                oc += aliasedColumnNames.get(f.getName()) + " " + (f.getAnnotation(Order.class).desc()?"desc":"asc");
             }
             if ("".equals(oc) && ReflectionHelper.getFieldByName(entityClass, "audit") != null && Audit.class.equals(ReflectionHelper.getFieldByName(entityClass, "audit").getType())) oc += "x" + ".audit.modified desc";
-            if ("".equals(oc)) oc += "x" + "." + columnFields.get(0).getName() + " desc";
+            if ("".equals(oc) && columnNames.size() > 1) oc += aliasedColumnNames.get(columnNames.get(1)) + " desc";
             if (!"".equals(oc)) jpql += " order by " + oc;
         }
 
         Query q = em.createQuery(jpql).setFirstResult(offset).setMaxResults(limit);
         for (String k : parameterValues.keySet()) q.setParameter(k, parameterValues.get(k));
-        log.debug(jpql);
-        log.debug(q.toString());
+        System.out.println(jpql);
+        System.out.println(q.toString());
         return q;
     }
 
-    public static List<FieldInterfaced> getSelectFields(Class targetType) {
-        List<FieldInterfaced> cols = getColumnFields(targetType);
+    private int getColumnIndex(String columnId) {
+        return aliasedColumnNamesList.indexOf(columnId);
+    }
+
+    private void createAliases(Class sourceType, List<String> paths, Map<String, FieldInterfaced> fieldsByPath, Map<String, String> alias, Map<String, String> aliasedColumnNames, List<String> aliasedColumnNamesList) {
+        for (String path: paths) {
+            FieldInterfaced f = fieldsByPath.get(path);
+            String p = path;
+            FieldInterfaced fx = f;
+            Class type = sourceType;
+            FieldInterfaced f0 = null;
+            String pathAcumulado = "x";
+            while (!Strings.isNullOrEmpty(p)) {
+                String s = p;
+                if (p.contains(".")) {
+                    p = p.substring(p.indexOf(".") + 1);
+                    s = s.substring(0, s.indexOf("."));
+                } else p = null;
+                if (!"".equals(pathAcumulado)) pathAcumulado += ".";
+                pathAcumulado += s;
+                fx = ReflectionHelper.getFieldByName(type, s);
+                type = fx.getType();
+                if (type.isAnnotationPresent(Entity.class) && !fx.isAnnotationPresent(NotNull.class)) {
+                    // referencia y no obligatorio --> left outer join
+                    if (!fx.isAnnotationPresent(NotNull.class)) {
+                        if (!alias.containsKey(pathAcumulado)) {
+                            alias.put(pathAcumulado, "x" + alias.size());
+                        }
+                        pathAcumulado = alias.get(pathAcumulado);
+                        f0 = fx;
+                    }
+                }
+            }
+            aliasedColumnNames.put(path, pathAcumulado);
+            aliasedColumnNamesList.add(pathAcumulado);
+        }
+
+    }
+
+    public static List<String> getSelectFields(Class targetType, String useColumns, List<String> columnNames, Map<String, FieldInterfaced> fieldsByColumnName) {
+        List<FieldInterfaced> cols = getColumnFields(targetType, false, useColumns, columnNames, fieldsByColumnName);
 
         FieldInterfaced idField = null;
 
-        for (FieldInterfaced f : ReflectionHelper.getAllFields(targetType)) if (f.isAnnotationPresent(Id.class)) idField = f;
+        for (FieldInterfaced f : ReflectionHelper.getAllFields(targetType)) if (f.getDeclaringClass().equals(targetType) && f.isAnnotationPresent(Id.class)) idField = f;
 
-        if (idField != null) cols.add(0, idField);
+        if (idField != null) columnNames.add(0, idField.getName());
 
-        return cols;
+        return columnNames;
     }
 
 
@@ -423,34 +553,14 @@ public class JPAListViewComponent extends ListViewComponent {
     public void updateExtraFilters() throws Exception {
     }
 
-    private String buildFieldsPart(Map<FieldInterfaced, String> alias) {
+    private String buildFieldsPart(List<String> columnFieldNames) {
         String s = "";
-        FieldInterfaced id = null;
-
-
-
-        for (FieldInterfaced f : getSelectFields(getColumnType())) {
-
-                if (!"".equals(s)) s += ", ";
-                if (f.getType().isAnnotationPresent(Entity.class) && !f.isAnnotationPresent(NotNull.class)) {
-                    s += "" + alias.get(f);
-                    FieldInterfaced nf = ReflectionHelper.getNameField(f.getType());
-                    if (nf != null) s += "." + nf.getName();
-                } else {
-                    s += "x." + f.getName();
-                    if (f.getType().isAnnotationPresent(Entity.class)) {
-                        FieldInterfaced nf = ReflectionHelper.getNameField(f.getType());
-                        if (nf != null) s += "." + nf.getName();
-                    }
-                }
-
-                if (false && f.isAnnotationPresent(Id.class)) id = f;
-
+        for (String columnName : columnFieldNames) {
+            if (!"".equals(s)) s += ", ";
+            String colId = aliasedColumnNames.get(columnName);
+            s += colId + " as col" + getColumnIndex(colId);
         }
 
-        if (id != null) {
-            s = " x." + id.getName() + ((!"".equals(s))?", " + s:"");
-        }
         return s;
     }
 
@@ -465,18 +575,7 @@ public class JPAListViewComponent extends ListViewComponent {
 
                     sums = new ArrayList<>();
 
-                    List<FieldInterfaced> sumFields = ReflectionHelper.getAllFields(entityClass).stream().filter(f -> f.isAnnotationPresent(Sum.class)).collect(Collectors.toList());
-
-                    Query q = buildQuery(em, (alias) -> {
-                        String ql = "count(x)";
-
-                        for (FieldInterfaced f : sumFields) {
-                            if (!"".equals(ql)) ql += ", ";
-                            ql += " sum(x." + f.getName() + ") ";
-                        }
-
-                        return ql;
-                    }, filters, null, 0, 1000);
+                    Query q = buildQuery(em, selectColumnsForCount, filters, null, 0, 1000);
                     log.debug(q.toString());
 
                     Object r = q.getSingleResult();
@@ -543,7 +642,7 @@ public class JPAListViewComponent extends ListViewComponent {
                 @Override
                 public void run(EntityManager em) throws Throwable {
 
-                    Query q = buildQuery(em, (alias) ->  "x." + f.getName() + ", count(x)" , filters, null, "group by x." + f.getName(), 0, 1000, false);
+                    Query q = buildQuery(em, "x." + f.getName() + ", count(x)" , filters, null, "group by x." + f.getName(), 0, 1000, false);
                     log.debug(q.toString());
 
                     List<Object[]> r = q.getResultList();

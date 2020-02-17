@@ -4,7 +4,6 @@ import com.vaadin.data.Binder;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
 import com.vaadin.data.validator.BeanValidator;
-import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.shared.ui.grid.HeightMode;
@@ -12,7 +11,9 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.*;
+import io.mateu.mdd.core.annotations.DataProvider;
+import io.mateu.mdd.core.annotations.FullWidth;
+import io.mateu.mdd.core.annotations.UseTable;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
@@ -22,14 +23,15 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ViewComponentHelper;
 import org.javamoney.moneta.FastMoney;
 
 import javax.money.MonetaryAmount;
 import javax.persistence.Entity;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 

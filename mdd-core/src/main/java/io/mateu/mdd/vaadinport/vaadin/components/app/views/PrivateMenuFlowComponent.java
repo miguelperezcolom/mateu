@@ -1,6 +1,9 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.views;
 
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.Image;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
@@ -10,7 +13,6 @@ import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
 
 public class PrivateMenuFlowComponent extends AbstractViewComponent {
 
@@ -62,7 +64,7 @@ public class PrivateMenuFlowComponent extends AbstractViewComponent {
                 m.getMenu().stream().forEach(a -> {
 
                     Button b;
-                    addComponent(b = new Button(a.getName()));
+                    addComponent(b = new Button(a.getCaption()));
                     b.addClickListener(e -> MDDUI.get().getNavegador().goTo(a));
                     b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
                     b.addStyleName("submenuoption");

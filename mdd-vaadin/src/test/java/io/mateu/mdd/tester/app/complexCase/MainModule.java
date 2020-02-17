@@ -1,5 +1,6 @@
 package io.mateu.mdd.tester.app.complexCase;
 
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.model.config.AppConfig;
@@ -53,8 +54,8 @@ public class MainModule extends AbstractModule {
                 l.add(new AbstractAction("Alert") {
 
                     @Override
-                    public void run(MDDExecutionContext context) {
-                        context.alert("Hola!");
+                    public void run() {
+                        MDD.alert("Hola!");
                     }
 
                 });

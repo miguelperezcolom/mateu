@@ -1,19 +1,10 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.views;
 
-import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.MDDExecutionContext;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
 
 public class FiltersViewFlowComponent extends EditorViewComponent {
 

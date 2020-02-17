@@ -32,7 +32,7 @@ public class AreaConfiguracion extends AbstractArea {
 
                 l.add(new AbstractAction("Limpiar caché") {
                     @Override
-                    public void run(MDDExecutionContext context) throws Exception {
+                    public void run() throws Exception {
 
                         Helper.getEMF().getCache().evictAll();
 

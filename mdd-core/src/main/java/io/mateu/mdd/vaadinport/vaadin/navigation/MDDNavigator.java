@@ -5,9 +5,11 @@ import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.ViewProvider;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.Window;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.app.AbstractArea;
+import io.mateu.mdd.core.app.AbstractModule;
+import io.mateu.mdd.core.app.MenuEntry;
 import io.mateu.mdd.core.interfaces.PersistentPOJO;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
@@ -196,7 +198,7 @@ public class MDDNavigator {
         goTo(state);
     }
 
-    public void showResult(String currentState, Method m, Object r, MDDExecutionContext context, boolean addStep, Component lastViewComponent) throws Exception {
+    public void showResult(String currentState, Method m, Object r, boolean addStep, Component lastViewComponent) throws Exception {
 
         if (addStep) {
             if (!currentState.endsWith("/")) currentState += "/";

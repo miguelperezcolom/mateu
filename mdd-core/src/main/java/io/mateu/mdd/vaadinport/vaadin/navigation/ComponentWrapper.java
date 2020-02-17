@@ -1,22 +1,13 @@
 package io.mateu.mdd.vaadinport.vaadin.navigation;
 
-import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.shared.ui.ContentMode;
-import com.vaadin.ui.*;
-import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.core.CSS;
+import com.vaadin.ui.Component;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.ExpandOnOpen;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.HasActions;
 import io.mateu.mdd.core.interfaces.HasIcon;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.OwnedCollectionComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.SearchInMenuComponent;
 
 import java.util.List;
 

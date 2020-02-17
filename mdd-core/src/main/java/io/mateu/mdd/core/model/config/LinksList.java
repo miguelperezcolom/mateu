@@ -1,7 +1,6 @@
 package io.mateu.mdd.core.model.config;
 
 import com.vaadin.ui.Component;
-import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.CSS;
 

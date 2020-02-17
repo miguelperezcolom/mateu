@@ -4,7 +4,6 @@ import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.UseLinkToListView;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.MDDExecutionContext;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
@@ -14,7 +13,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 public class JPACollectionFieldViewComponent extends JPAListViewComponent {
 
@@ -79,13 +77,13 @@ public class JPACollectionFieldViewComponent extends JPAListViewComponent {
         if (field.isAnnotationPresent(UseLinkToListView.class) && !addingToCollection) {
             l.add(new AbstractAction("Add items") {
                 @Override
-                public void run(MDDExecutionContext context) {
+                public void run() {
                     MDDUI.get().getNavegador().go("add");
                 }
             });
             l.add(new AbstractAction("Remove selected items") {
                 @Override
-                public void run(MDDExecutionContext context) {
+                public void run() {
 
                     try {
                         ReflectionHelper.removeFromCollection(evfc.getBinder(), field,  evfc.getModel(), getSelection());
@@ -109,7 +107,7 @@ public class JPACollectionFieldViewComponent extends JPAListViewComponent {
             });
         } else l.add(new AbstractAction("Add selected") {
             @Override
-            public void run(MDDExecutionContext context) {
+            public void run() {
 
                 try {
 

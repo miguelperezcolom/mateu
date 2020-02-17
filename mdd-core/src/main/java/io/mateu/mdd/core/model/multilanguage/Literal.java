@@ -4,10 +4,6 @@ import io.mateu.mdd.core.data.Data;
 import io.mateu.mdd.core.interfaces.Translated;
 import lombok.MateuMDDEntity;
 
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-
 /**
  * holder for translations. Hardcoding translations is used for better performance
  *

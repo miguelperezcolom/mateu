@@ -3,7 +3,8 @@ package io.mateu.mdd.core.model.ui;
 import io.mateu.mdd.core.model.authentication.User;
 import lombok.MateuMDDEntity;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.ManyToOne;
 import java.time.LocalDateTime;
 
 @MateuMDDEntity

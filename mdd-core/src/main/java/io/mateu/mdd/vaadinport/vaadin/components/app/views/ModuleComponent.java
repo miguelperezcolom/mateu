@@ -2,13 +2,11 @@ package io.mateu.mdd.vaadinport.vaadin.components.app.views;
 
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractModule;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
 
 public class ModuleComponent extends AbstractViewComponent {
 
@@ -29,7 +27,7 @@ public class ModuleComponent extends AbstractViewComponent {
             module.getMenu().stream().forEach(a -> {
 
                 Button b;
-                addComponent(b = new Button(a.getName()));
+                addComponent(b = new Button(a.getCaption()));
                 b.addClickListener(e -> MDDUI.get().getNavegador().goTo(a));
                 b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
                 b.addStyleName("submenuoption");
