@@ -1168,7 +1168,13 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
                 explicitColumns = ReflectionHelper.getAllFields(objectType).stream().filter(
                         f -> f.isAnnotationPresent(ListColumn.class)
-                ).collect(Collectors.toList());
+                ).peek(f -> {
+                    if (columNames != null && fieldsByColumnName != null) {
+                        String n = f.getName();
+                        columNames.add(n);
+                        fieldsByColumnName.put(n, f);
+                    }
+                }).collect(Collectors.toList());
 
             } else {
 
@@ -1182,8 +1188,10 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
                 explicitColumns = fns.stream().map(n -> {
                     FieldInterfaced f = ReflectionHelper.getFieldByName(objectType, n);
-                    columNames.add(n);
-                    fieldsByColumnName.put(n, f);
+                    if (columNames != null && fieldsByColumnName != null) {
+                        columNames.add(n);
+                        fieldsByColumnName.put(n, f);
+                    }
                     return f;
                 }).collect(Collectors.toList());
 
