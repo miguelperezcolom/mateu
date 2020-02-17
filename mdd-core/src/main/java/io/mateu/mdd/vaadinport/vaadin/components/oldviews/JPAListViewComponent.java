@@ -3,6 +3,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.vaadin.data.provider.QuerySortOrder;
+import com.vaadin.external.org.slf4j.MDC;
 import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.ui.Grid;
 import io.mateu.mdd.core.MDD;
@@ -36,8 +37,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -45,6 +44,10 @@ public class JPAListViewComponent extends ListViewComponent {
 
     private final Map<String,Object> initialValues;
     private final List<String> aliasedColumnNamesList = new ArrayList<>();
+    private final List<String> columnIds;
+    private final Map<String, FieldInterfaced> fieldsByAliasedColumnName;
+    private final Map<String, String> aliasedColumnNamesByColId = new HashMap<>();
+    private final Map<String, FieldInterfaced> fieldsByColId = new HashMap<>();
     private ExtraFilters extraFilters;
 
     private final Class entityClass;
@@ -137,6 +140,19 @@ public class JPAListViewComponent extends ListViewComponent {
         }
 
         selectColumnsForList = buildFieldsPart(columnFields);
+        
+        columnIds = new ArrayList<>();
+        int pos = 0;
+        for (String n : columnNames) {
+            String colId = "col_" + pos++; 
+            columnIds.add(colId);
+            aliasedColumnNamesByColId.put(colId, aliasedColumnNames.get(n));
+            if (pos > 1) fieldsByColId.put(colId, fieldsByColumnName.get(n));
+        }
+        fieldsByAliasedColumnName = new HashMap<>();
+        columnNames.stream().forEach(n -> {
+            fieldsByAliasedColumnName.put(aliasedColumnNames.get(n), fieldsByColumnName.get(n));
+        });
 
     }
 
@@ -157,22 +173,19 @@ public class JPAListViewComponent extends ListViewComponent {
 
     @Override
     public void buildColumns(Grid grid) {
-        Map<String, FieldInterfaced> fieldsByAliasedColumnName = new HashMap<>();
-        columnNames.stream().forEach(n -> {
-            fieldsByAliasedColumnName.put(aliasedColumnNames.get(n), fieldsByColumnName.get(n));
-        });
-        buildColumns(grid, columnNames.stream().map(n -> aliasedColumnNames.get(n)).collect(Collectors.toList()), fieldsByAliasedColumnName, true, false, null, null, aliasUseColumns(useColumns));
+        buildColumns(grid, columnIds, fieldsByColId, true, false, null, null, useColumnsToColIds(useColumns));
     }
 
-    private String aliasUseColumns(String useColumns) {
+    private String useColumnsToColIds(String useColumns) {
         if (useColumns == null) return null;
         String r = "";
+        int pos = 0;
         for (String t : useColumns.split(",")) {
             String k = t.trim();
             if (k.contains("(")) k = k.substring(0, k.indexOf("("));
             if (k.contains(" ")) k = k.substring(0, k.indexOf(" "));
             if (!"".equals(r)) r += ",";
-            r += t.replaceAll(k.replaceAll("\\.", "\\\\."), aliasedColumnNames.get(k));
+            r += t.replaceAll(k.replaceAll("\\.", "\\\\."), "col_" + pos++);
         }
         return r;
     }
@@ -555,10 +568,11 @@ public class JPAListViewComponent extends ListViewComponent {
 
     private String buildFieldsPart(List<String> columnFieldNames) {
         String s = "";
+        int pos = 0;
         for (String columnName : columnFieldNames) {
             if (!"".equals(s)) s += ", ";
             String colId = aliasedColumnNames.get(columnName);
-            s += colId + " as col" + getColumnIndex(colId);
+            s += colId + " as col" + pos++;
         }
 
         return s;

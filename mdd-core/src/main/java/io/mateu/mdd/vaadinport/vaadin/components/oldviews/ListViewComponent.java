@@ -1189,27 +1189,36 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
             }
 
-            if (explicitColumns.size() > 0) {
+        if (explicitColumns.size() > 0) {
                 return explicitColumns;
-            } else
-                return ReflectionHelper.getAllFields(objectType).stream().filter(
-                        (f) -> !"_proxied".equalsIgnoreCase(f.getName()) && !"_possibleValues".equalsIgnoreCase(f.getName()) && !"_binder".equalsIgnoreCase(f.getName()) && !"_field".equalsIgnoreCase(f.getName())
-                                && !Modifier.isTransient(f.getModifiers())
-                                && !f.isAnnotationPresent(Transient.class)
-                                && !f.isAnnotationPresent(NotInList.class)
-                                && !f.isAnnotationPresent(Version.class)
-                                && !f.isAnnotationPresent(Ignored.class)
-                                && !f.isAnnotationPresent(Password.class)
-                                //&& !Modifier.isTransient(f.getModifiers())
-                                && (!Collection.class.isAssignableFrom(f.getType()) || (forGrid && f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline()))
-                                && !Map.class.isAssignableFrom(f.getType())
-                                && !f.isAnnotationPresent(GeneratedValue.class)
-                                && (ReflectionHelper.isBasico(f.getType()) || BigDecimal.class.equals(f.getType()) || f.getType().isEnum() || f.getType().isAnnotationPresent(Entity.class) || java.sql.Date.class.equals(f.getType())
-                                || FareValue.class.equals(f.getType())
-                                || f.isAnnotationPresent(WeekDays.class)
-                                || (forGrid && f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline())
-                        )
-                ).collect(Collectors.toList());
+            } else {
+
+            List<FieldInterfaced> cols = ReflectionHelper.getAllFields(objectType).stream().filter(
+                    (f) -> !"_proxied".equalsIgnoreCase(f.getName()) && !"_possibleValues".equalsIgnoreCase(f.getName()) && !"_binder".equalsIgnoreCase(f.getName()) && !"_field".equalsIgnoreCase(f.getName())
+                            && !Modifier.isTransient(f.getModifiers())
+                            && !f.isAnnotationPresent(Transient.class)
+                            && !f.isAnnotationPresent(NotInList.class)
+                            && !f.isAnnotationPresent(Version.class)
+                            && !f.isAnnotationPresent(Ignored.class)
+                            && !f.isAnnotationPresent(Password.class)
+                            //&& !Modifier.isTransient(f.getModifiers())
+                            && (!Collection.class.isAssignableFrom(f.getType()) || (forGrid && f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline()))
+                            && !Map.class.isAssignableFrom(f.getType())
+                            && !f.isAnnotationPresent(GeneratedValue.class)
+                            && (ReflectionHelper.isBasico(f.getType()) || BigDecimal.class.equals(f.getType()) || f.getType().isEnum() || f.getType().isAnnotationPresent(Entity.class) || java.sql.Date.class.equals(f.getType())
+                            || FareValue.class.equals(f.getType())
+                            || f.isAnnotationPresent(WeekDays.class)
+                            || (forGrid && f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline())
+                    )
+            ).collect(Collectors.toList());
+
+            if (columNames != null && fieldsByColumnName != null) cols.forEach(f -> {
+                columNames.add(f.getName());
+                fieldsByColumnName.put(f.getName(), f);
+            });
+
+            return cols;
+        }
 
     }
 
