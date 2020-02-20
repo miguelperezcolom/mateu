@@ -14,7 +14,7 @@ import java.util.List;
 public class Reserva {
 
     @ManyToOne
-    private Agencia agencia;
+    private final Agencia agencia;
 
     @NotEmpty
     private String leadName;

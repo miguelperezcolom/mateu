@@ -220,11 +220,6 @@ public class MDDNavigator {
     private void yesGoBack() {
 
         View l = stack.getLast();
-        if (l.getComponent() instanceof EditorViewComponent) {
-            Object result = ((EditorViewComponent)l.getComponent()).getModel();
-            if (result != null && result instanceof EditorListener) ((EditorListener) result).onGoBack(result);
-            ((EditorViewComponent) l.getComponent()).onGoBack();
-        }
 
         if (stack.size() > 1) {
             View v = stack.get(stack.size() - 2);
@@ -261,6 +256,14 @@ public class MDDNavigator {
                 }
             }
         }
+
+
+        if (l.getComponent() instanceof EditorViewComponent) {
+            Object result = ((EditorViewComponent)l.getComponent()).getModel();
+            if (result != null && result instanceof EditorListener) ((EditorListener) result).onGoBack(result);
+            ((EditorViewComponent) l.getComponent()).onGoBack();
+        }
+
     }
 
     public void goSibling(Object id) {

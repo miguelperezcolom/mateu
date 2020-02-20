@@ -85,7 +85,7 @@ public class WizardComponent extends EditorViewComponent {
 
         }.setIcon(VaadinIcons.STEP_FORWARD).setId("wizardnext"));
 
-        l.add(new AbstractAction("Done") {
+        l.add(new AbstractAction(currentPage.getOkCaption()) {
 
             @Override
             public void addShortCut(Button b) {
@@ -114,7 +114,7 @@ public class WizardComponent extends EditorViewComponent {
 
         }.setIcon(VaadinIcons.CHECK).setId("wizarddone"));
 
-        l.add(new AbstractAction("Done and repeat") {
+        l.add(new AbstractAction(currentPage.getOkAndStayCaption()) {
 
             @Override
             public void addShortCut(Button b) {

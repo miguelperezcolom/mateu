@@ -28,6 +28,7 @@ import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.ClassOption;
 import io.mateu.mdd.vaadinport.vaadin.components.EditorViewStyler;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.FiltersViewFlowComponent;
+import io.mateu.mdd.vaadinport.vaadin.util.BindedWindow;
 import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 import lombok.extern.slf4j.Slf4j;
 
@@ -77,6 +78,11 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private VerticalLayout actionsContainer;
     private String focusedSectionId;
     private Map<String, List<AbstractAction>> actionsPerField = new HashMap<>();
+    private BindedWindow creatorWindow;
+
+    public BindedWindow getCreatorWindow() {
+        return creatorWindow;
+    }
 
     public String getFocusedSectionId() {
         return focusedSectionId;
@@ -672,8 +678,10 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     }
 
     public void updateModel(Object model) {
-        binder.update(model);
-        updateSubheader(model);
+        if (binder != null) {
+            binder.update(model);
+            updateSubheader(model);
+        }
     }
 
     @Override
@@ -1169,7 +1177,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         FieldInterfaced a = null;
 
         for (FieldInterfaced m : ReflectionHelper.getAllFields(getModelType())) {
-            if (m.getName().equals(fieldName) || (m.getName() + "_new").equals(fieldName)) {
+            if (m.getName().equals(fieldName) || (m.getName() + "_search").equals(fieldName)) {
                 a = m;
                 break;
             }
@@ -1203,6 +1211,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 if (modelType.isAnnotationPresent(Entity.class)) {
 
                     Object m = getModel();
+                    Object[] merged = new Object[1];
 
                     Helper.transact(new JPATransaction() {
                         @Override
@@ -1211,6 +1220,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                             if (copyEditableValues) {
                                 Object d = transferirValores(em, m, new ArrayList<>());
                                 setModel(d);
+                                merged[0] = d;
                             } else {
                                 for (Object o : getRemovables()) {
                                     if (getMergeables().contains(o)) getMergeables().remove(o);
@@ -1224,16 +1234,16 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                                 ReflectionHelper.auditar(m);
 
-                                em.merge(m);
+                                merged[0] = em.merge(m);
                             }
 
                         }
                     });
 
-                    modelId = ReflectionHelper.getId(m);
+                    modelId = ReflectionHelper.getId(merged[0]);
 
                     Helper.notransact(em -> {
-                        setModel(em.find(m.getClass(), modelId));
+                        setModel(em.find(merged[0].getClass(), modelId));
                     });
 
                     if (goBack) goBack();
@@ -1397,7 +1407,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private void create(Class type, Object parent) throws Throwable {
         Constructor con = parent != null?ReflectionHelper.getConstructor(type, parent.getClass()):ReflectionHelper.getConstructor(type);
         if (con != null && con.getParameterCount() > 0) {
-            VaadinHelper.fill("I need some data", con, i -> {
+            VaadinHelper.fill(this, "I need some data", con, i -> {
                 try {
                     setModel(i);
                 } catch (Throwable e) {
@@ -1426,11 +1436,14 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     }
 
     public void onGoBack() {
-        for (EditorListener l : listeners) l.onGoBack(binder.getBean());
+        if (binder != null) for (EditorListener l : listeners) l.onGoBack(binder.getBean());
     }
 
     public void goBack() {
         MDDUI.get().getNavegador().goBack();
     }
 
+    public void setCreatorWindow(BindedWindow creatorWindow) {
+        this.creatorWindow = creatorWindow;
+    }
 }

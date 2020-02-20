@@ -72,7 +72,7 @@ public class VaadinPort implements MDDPort {
         log.debug("open wizard");
 
         //todo: ver que hacemos con esto
-        MDDUI.get().getNavegador().goTo("error no tiene sentido");
+        MDDUI.get().getNavegador().getViewProvider().openWizardPage(firstPageClass);
     }
 
     @Override

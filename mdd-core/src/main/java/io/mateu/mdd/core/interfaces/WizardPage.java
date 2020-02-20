@@ -19,5 +19,7 @@ public interface WizardPage {
     }
 
     default boolean backOnOk() { return true; }
+    default String getOkCaption() { return "Done"; }
+    default String getOkAndStayCaption() { return "Done and stay"; }
 
 }

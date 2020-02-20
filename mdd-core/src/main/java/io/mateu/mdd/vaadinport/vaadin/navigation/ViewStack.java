@@ -48,12 +48,11 @@ public class ViewStack {
         return v;
     }
 
-
     public io.mateu.mdd.vaadinport.vaadin.navigation.View push(String state, io.mateu.mdd.vaadinport.vaadin.navigation.View v) throws Exception {
 
         boolean yaAbierto = false;
         if (v.getViewComponent() instanceof EditorViewComponent) {
-            yaAbierto = stack.stream().filter(w -> w.getViewComponent() instanceof EditorViewComponent && ((EditorViewComponent) w.getViewComponent()).getModel().equals(((EditorViewComponent) v.getViewComponent()).getModel())).findFirst().isPresent();
+            if (((EditorViewComponent) v.getViewComponent()).getModel() != null) yaAbierto = stack.stream().filter(w -> w.getViewComponent() instanceof EditorViewComponent && ((EditorViewComponent) w.getViewComponent()).getModel() != null && ((EditorViewComponent) w.getViewComponent()).getModel().equals(((EditorViewComponent) v.getViewComponent()).getModel())).findFirst().isPresent();
         }
 
         if (yaAbierto) {

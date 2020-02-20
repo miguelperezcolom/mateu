@@ -6,6 +6,7 @@ import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 import java.lang.reflect.Method;
+import java.util.function.Function;
 
 public class MDDCallMethodAction extends AbstractAction {
 
@@ -17,7 +18,6 @@ public class MDDCallMethodAction extends AbstractAction {
         this.method = ReflectionHelper.getMethod(type, methodName);
         this.error = (method == null)?"No method " + methodName + " in class " + type.getSimpleName():"";
     }
-
 
     @Override
     public void run() {

@@ -589,6 +589,10 @@ public class Helper {
     }
 
     public static String capitalize(String s) {
+        return capitalize(s, true);
+    }
+
+    public static String capitalize(String s, boolean startWithUppercase) {
         if (s == null || "".equals(s)) return s;
         s = s.replaceAll("\\.", " ");
         String c = s.replaceAll(
@@ -600,7 +604,7 @@ public class Helper {
                 " "
         ).toLowerCase();
         c = c.replaceAll("[ ]+", " ");
-        if (c.length() > 1) c = c.substring(0, 1).toUpperCase() + c.substring(1);
+        if (startWithUppercase && c.length() > 1) c = c.substring(0, 1).toUpperCase() + c.substring(1);
 
         return c;
     }

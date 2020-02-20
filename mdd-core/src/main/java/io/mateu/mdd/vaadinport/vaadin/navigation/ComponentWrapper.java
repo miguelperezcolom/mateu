@@ -2,6 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.navigation;
 
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Window;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.ExpandOnOpen;
 import io.mateu.mdd.core.app.AbstractAction;
@@ -29,9 +30,10 @@ public class ComponentWrapper extends AbstractViewComponent {
 
         addStyleName("componentwrapper");
 
-        if (MDD.isMobile()) addComponent(component);
-        else addComponentsAndExpand(component);
-
+        if (!(component instanceof Window)) {
+            if (MDD.isMobile()) addComponent(component);
+            else addComponentsAndExpand(component);
+        }
     }
 
     @Override

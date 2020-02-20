@@ -48,6 +48,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
         Converter converter = null;
 
+        Button botonLink = null;
 
         if (field.isAnnotationPresent(UseLinkToListView.class)) {
 
@@ -265,21 +266,22 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                         hl.addComponent(b);
                     }
 
-                    b = new Button(null, VaadinIcons.PLUS);
+                    b = new Button(null, VaadinIcons.SEARCH);
                     b.addStyleName(ValoTheme.BUTTON_QUIET);
                     b.addStyleName(CSS.NOPADDING);
                     b.addClickListener(e -> {
 
-                        MDDUI.get().getNavegador().go(field.getName() + "_new");
+                        MDDUI.get().getNavegador().go(field.getName() + "_search");
 
                     });
                     hl.addComponent(b);
 
-                    b = new Button(null, VaadinIcons.ARROW_RIGHT);
-                    b.addStyleName(ValoTheme.BUTTON_QUIET);
-                    b.addStyleName(CSS.NOPADDING);
-                    b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
-                    hl.addComponent(b);
+                    botonLink = new Button(null, VaadinIcons.ARROW_RIGHT);
+                    botonLink.addStyleName(ValoTheme.BUTTON_QUIET);
+                    botonLink.addStyleName(CSS.NOPADDING);
+                    botonLink.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+                    botonLink.setVisible(false);
+                    hl.addComponent(botonLink);
 
                 }
 
@@ -292,7 +294,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
         captionOwner.setCaption(ReflectionHelper.getCaption(field));
 
-        Binder.Binding binding = bind(binder, hv, field, forSearchFilter, dp, captionOwner, converter);
+        Binder.Binding binding = bind(binder, hv, field, forSearchFilter, dp, captionOwner, converter, botonLink);
 
         return r;
     }
@@ -478,7 +480,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
     public void addValidators(List<Validator> validators) {
     }
 
-    protected Binder.Binding bind(MDDBinder binder, HasValue tf, FieldInterfaced field, boolean forSearchFilter, com.vaadin.data.provider.DataProvider dp, AbstractComponent captionOwner, Converter converter) {
+    protected Binder.Binding bind(MDDBinder binder, HasValue tf, FieldInterfaced field, boolean forSearchFilter, com.vaadin.data.provider.DataProvider dp, AbstractComponent captionOwner, Converter converter, Button botonLink) {
         Binder.BindingBuilder aux = binder.forField(tf);
         if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
         if (converter != null) aux.withConverter(converter);
@@ -503,8 +505,11 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                 } catch (Exception e1) {
                     MDD.alert(e1);
                 }
+                botonLink.setVisible(e.getValue() != null);
             });
         }
+
+        if (botonLink != null) botonLink.setVisible(tf.getValue() != null);
 
         return binding;
     }

@@ -2,6 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.vaadinport.vaadin.util.BindedWindow;
 
 import java.lang.reflect.Method;
 
@@ -21,5 +22,7 @@ public interface IEditorViewComponent {
     void save(boolean goBack) throws Throwable;
 
     void save(boolean goBack, boolean notify) throws Throwable;
+
+    BindedWindow getCreatorWindow();
 
 }

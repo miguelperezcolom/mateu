@@ -164,7 +164,6 @@ public class FiltersComponent extends Composite {
             @Override
             public void buttonClick(Button.ClickEvent clickEvent) {
                 try {
-                    listViewComponent.setModelForSearchFilters(binder.getBean());
                     listViewComponent.search(binder.getBean());
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();

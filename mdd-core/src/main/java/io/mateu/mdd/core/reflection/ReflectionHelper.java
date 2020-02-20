@@ -14,6 +14,7 @@ import io.mateu.mdd.core.interfaces.PushWriter;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.model.authentication.Audit;
 import io.mateu.mdd.core.model.multilanguage.Literal;
+import io.mateu.mdd.core.test.TestCaller;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.tests.Persona;
@@ -50,6 +51,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
@@ -1708,9 +1710,9 @@ public class ReflectionHelper {
         return gc;
     }
 
-    public static Method getMethod(Consumer methodReference) {
-        //todo: pendiente!!!!
-        return ReflectionHelper.getMethod(methodReference.getClass(), methodReference.toString());
+    public static Method getMethod(Function methodReference) {
+        //todo: en principio no es posible llegar al método desde una methodReference. Investigar!
+        return null;
     }
 
     public static boolean isOwnedCollection(FieldInterfaced field) {
@@ -2289,6 +2291,7 @@ public class ReflectionHelper {
 
     public static void main(String[] args) throws Exception {
 
+        /*
         ClassPool cpool = ClassPool.getDefault();
         cpool.appendClassPath(new ClassClassPath(Persona.class));
         MDD.setClassPool(cpool);
@@ -2319,6 +2322,7 @@ public class ReflectionHelper {
         } catch (Exception e) {
             e.printStackTrace();
         }
+         */
 
     }
 
@@ -2340,7 +2344,7 @@ public class ReflectionHelper {
             Method m = ReflectionHelper.getMethod(original.getClass(), "cloneAsConverted");
             if (m != null) return m.invoke(original);
             else {
-                Object copy = original.getClass().newInstance();
+                Object copy = original.getClass().getConstructor().newInstance();
 
                 for (FieldInterfaced f : ReflectionHelper.getAllFields(original.getClass())) if (!f.isAnnotationPresent(Id.class)) {
                     ReflectionHelper.setValue(f, copy, ReflectionHelper.getValue(f, original));
@@ -2537,6 +2541,5 @@ public class ReflectionHelper {
         }
 
     }
-
 
 }

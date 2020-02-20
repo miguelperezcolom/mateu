@@ -32,6 +32,7 @@ import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.OAuthHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
 import io.mateu.mdd.vaadinport.vaadin.pojos.Profile;
+import io.mateu.mdd.vaadinport.vaadin.util.BindedWindow;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Embedded;
@@ -605,7 +606,10 @@ public class MDDViewProvider implements ViewProvider {
                             AbstractModule module = MDD.getApp().getModule(currentPath);
                             Component c = null;
                             if (MDD.getApp().getArea(module).getModules().size() > 1)  stack.push(currentPath, new ModuleComponent(module));
-                            else stack.push(currentPath, stack.get(1));
+                            else {
+                                if (stack.size() > 1) stack.push(currentPath, stack.get(1));
+                                else stack.push(currentPath, new AreaComponent(MDD.getApp().getArea(module)));
+                            }
 
                         } else {
 
@@ -811,7 +815,9 @@ public class MDDViewProvider implements ViewProvider {
         if (v != null && v.isOpenNewWindow()) {
             MDDUI.get().openInWindow(v);
             return null;
-        } else return v == null || v.getWindowContainer() == null?v:null;
+        } else {
+            return v == null || v.getWindowContainer() == null?v:null;
+        }
     }
 
     private void clearStack() {
@@ -863,7 +869,7 @@ public class MDDViewProvider implements ViewProvider {
         }
         if (r != null) {
             method = ReflectionHelper.getMethod(r.getClass(), step);
-            field = ReflectionHelper.getFieldByName(r.getClass(), step.endsWith("_new") ? step.replaceAll("_new", "") : step);
+            field = ReflectionHelper.getFieldByName(r.getClass(), step.endsWith("_search") ? step.replaceAll("_search", "") : step);
         }
 
         if (method != null) {
@@ -972,7 +978,9 @@ public class MDDViewProvider implements ViewProvider {
 
             } else {
 
-                procesarFieldEditor(evfc, field, step);
+                MDDBinder binder = evfc.getBinder();
+                if (evfc.getCreatorWindow() != null) binder = evfc.getCreatorWindow().getBinder();
+                procesarFieldEditor(binder, field, step);
 
             }
 
@@ -992,13 +1000,14 @@ public class MDDViewProvider implements ViewProvider {
 
     }
 
-    private void procesarFieldEditor(IEditorViewComponent parentEditor, FieldInterfaced field, String step) throws Throwable {
-        MDDBinder parentBinder = parentEditor.getBinder();
-        if (ReflectionHelper.isBasico(field.getType())) {
+    private void procesarFieldEditor(MDDBinder parentBinder, FieldInterfaced field, String step) throws Throwable {
+        if (step.endsWith("_search")) {
+            stack.push(currentPath, MDDViewComponentCreator.createSearcherComponent(parentBinder, field)).setOpenNewWindow(true);
+        } else if (ReflectionHelper.isBasico(field.getType())) {
             stack.push(currentPath, new FieldEditorComponent(parentBinder, field)).setOpenNewWindow(true);
         } else {
-            Object o = ReflectionHelper.getValue(field, parentEditor.getModel());
-            boolean add = o == null || step.endsWith("_new");
+            Object o = ReflectionHelper.getValue(field, parentBinder.getBean());
+            boolean add = o == null;
             EditorViewComponent evc = add?new EditorViewComponent(field.getType()):new EditorViewComponent(o);
             if (add) evc.load(null);
             evc.addEditorListener(new EditorListener() {
@@ -1065,7 +1074,7 @@ public class MDDViewProvider implements ViewProvider {
         } else if ("filters".equals(step)) {
 
             try {
-                stack.push(currentPath, new FiltersViewFlowComponent(lvc));
+                stack.push(currentPath, new FiltersViewFlowComponent(lvc)).setOpenNewWindow(MDDUI.get().getWindows().size() > 0);
             } catch (Exception e) {
                 MDD.alert(e);
             }

@@ -37,6 +37,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -48,6 +49,7 @@ public class JPAListViewComponent extends ListViewComponent {
     private final Map<String, FieldInterfaced> fieldsByAliasedColumnName;
     private final Map<String, String> aliasedColumnNamesByColId = new HashMap<>();
     private final Map<String, FieldInterfaced> fieldsByColId = new HashMap<>();
+    private final Consumer<Object> callback;
     private ExtraFilters extraFilters;
 
     private final Class entityClass;
@@ -96,12 +98,17 @@ public class JPAListViewComponent extends ListViewComponent {
     }
 
     public JPAListViewComponent(Class entityClass, ExtraFilters extraFilters, Map<String, Object> initialValues, String columns, String filters, String fields) {
+        this(entityClass, extraFilters, initialValues, columns, filters, fields, null);
+    }
+    
+    public JPAListViewComponent(Class entityClass, ExtraFilters extraFilters, Map<String, Object> initialValues, String columns, String filters, String fields, Consumer<Object> callback) {
         this.entityClass = entityClass;
         this.extraFilters = extraFilters;
         this.initialValues = initialValues;
         this.useColumns = columns;
         this.useFilters = filters;
         this.useFields = fields;
+        this.callback = callback;
 
 
         addListener(new ListViewComponentListener() {
@@ -116,7 +123,21 @@ public class JPAListViewComponent extends ListViewComponent {
 
             @Override
             public void onSelect(Object id) {
-
+                if (callback != null) {
+                    if (id != null && id instanceof Optional) {
+                        id = ((Optional) id).get();
+                    }
+                    Object o = null;
+                    if (id != null) {
+                        try {
+                            o = Helper.find(entityClass, toId(id));
+                        } catch (Throwable throwable) {
+                            MDD.alert(throwable);
+                        }
+                    }
+                    callback.accept(o);
+                    MDDUI.get().getNavegador().goBack();
+                }
             }
         });
 
@@ -192,7 +213,10 @@ public class JPAListViewComponent extends ListViewComponent {
 
     @Override
     public String toString() {
-        return Helper.pluralize(Helper.capitalize(entityClass.getSimpleName()));
+        if (callback != null) {
+            String n = Helper.capitalize(entityClass.getSimpleName(), false);
+            return "Select a" + (n.matches("^[aeiou]")?"n":"") + " " + n;
+        } else return Helper.pluralize(Helper.capitalize(entityClass.getSimpleName()));
     }
 
 
@@ -217,7 +241,7 @@ public class JPAListViewComponent extends ListViewComponent {
         if (Strings.isNullOrEmpty(useFilters)) {
 
             List<FieldInterfaced> filterFields = ReflectionHelper.getAllFields(filtersType).stream().filter(
-                    (f) -> !f.isAnnotationPresent(Password.class) && !f.isAnnotationPresent(Version.class) && !f.isAnnotationPresent(Ignored.class) && f.isAnnotationPresent(SearchFilter.class) || f.isAnnotationPresent(MainSearchFilter.class)
+                    (f) -> !f.isAnnotationPresent(Password.class) && !f.isAnnotationPresent(Version.class) && !f.isAnnotationPresent(Ignored.class) && (f.isAnnotationPresent(SearchFilter.class) || f.isAnnotationPresent(MainSearchFilter.class))
             ).collect(Collectors.toList());
             if (filterFields.size() == 0) {
                 filterFields = ReflectionHelper.getAllFields(filtersType).stream().filter(
@@ -255,7 +279,7 @@ public class JPAListViewComponent extends ListViewComponent {
 
     @Override
     public boolean isDeleteEnabled() {
-        return !entityClass.isAnnotationPresent(Indelible.class);
+        return callback == null && !entityClass.isAnnotationPresent(Indelible.class);
     }
 
     @Override
@@ -264,7 +288,7 @@ public class JPAListViewComponent extends ListViewComponent {
 
         List<Method> ms = new ArrayList<>();
 
-        for (Method m : ReflectionHelper.getAllMethods(entityClass)) {
+        if (callback == null) for (Method m : ReflectionHelper.getAllMethods(entityClass)) {
             if (Modifier.isStatic(m.getModifiers()) && m.isAnnotationPresent(Action.class)) {
                 ms.add(m);
             }
@@ -319,11 +343,17 @@ public class JPAListViewComponent extends ListViewComponent {
     @Override
     public Class getFiltersType() {
         try {
-            return ReflectionHelper.createClass(entityClass.getName() + "000Filters", getFilterFields(entityClass), true);
+            return ReflectionHelper.createClass(entityClass.getName() + "000Filters" + getFilterFieldsSerialized(), getFilterFields(entityClass), true);
         } catch (Exception e) {
             MDD.alert(e);
         }
         return null;
+    }
+
+    private String getFilterFieldsSerialized() {
+        String s = "";
+        if (!Strings.isNullOrEmpty(useFilters)) s += useFilters.replaceAll("[,\\.]", "");
+        return s;
     }
 
     public Object getFilters() {
@@ -446,7 +476,7 @@ public class JPAListViewComponent extends ListViewComponent {
 
         FieldInterfaced idField = null;
 
-        for (FieldInterfaced f : ReflectionHelper.getAllFields(targetType)) if (f.getDeclaringClass().equals(targetType) && f.isAnnotationPresent(Id.class)) idField = f;
+        for (FieldInterfaced f : ReflectionHelper.getAllFields(targetType)) if (f.isAnnotationPresent(Id.class)) idField = f;
 
         if (idField != null) columnNames.add(0, idField.getName());
 

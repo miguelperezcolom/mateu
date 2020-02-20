@@ -5,6 +5,7 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.app.MDDOpenEditorAction;
 import io.mateu.mdd.core.app.MDDOpenListViewAction;
+import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -12,7 +13,10 @@ import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
 
 import javax.persistence.Entity;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class MDDViewComponentCreator {
 
@@ -58,6 +62,28 @@ public class MDDViewComponentCreator {
         return v;
     }
 
+    public static Component createSearcherComponent(MDDBinder parentBinder, FieldInterfaced field) {
+        Component v = null;
+        Class modelType = null;
+        try {
+
+            modelType = field.getType();
+            v = createListViewComponent(modelType, null, null, null, null, null, null, (o) -> {
+                try {
+                    Object bean = parentBinder.getBean();
+                    ReflectionHelper.setValue(field, bean, o);
+                    parentBinder.update(bean);
+                } catch (Exception e) {
+                    MDD.alert(e);
+                }
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return v;
+    }
+
     public static Component createComponent(MDDOpenCRUDAction action) {
         Component v = null;
         Class modelType = null;
@@ -91,9 +117,13 @@ public class MDDViewComponentCreator {
     }
 
     private static ListViewComponent createListViewComponent(Class modelType, String queryFilters, ExtraFilters extraFilters, Map<String, Object> defaultValues, String columns, String filters, String fields) throws Exception {
+        return createListViewComponent(modelType, queryFilters, extraFilters, defaultValues, columns, filters, fields, null);
+    }
+
+    private static ListViewComponent createListViewComponent(Class modelType, String queryFilters, ExtraFilters extraFilters, Map<String, Object> defaultValues, String columns, String filters, String fields, Consumer<Object> callback) throws Exception {
         ListViewComponent v = null;
         if (modelType.isAnnotationPresent(Entity.class)) {
-            v = new JPAListViewComponent(modelType, extraFilters, defaultValues, columns, filters, fields);
+            v = new JPAListViewComponent(modelType, extraFilters, defaultValues, columns, filters, fields, callback);
         } else {
 
         }

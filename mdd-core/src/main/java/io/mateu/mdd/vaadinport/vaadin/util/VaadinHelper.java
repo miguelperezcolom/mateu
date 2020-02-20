@@ -12,7 +12,9 @@ import io.mateu.mdd.core.data.Value;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.FieldInterfacedFromType;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.JPAOutputFieldBuilder;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.FormLayoutBuilder;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.FormLayoutBuilderParameters;
 
@@ -211,6 +213,11 @@ public class VaadinHelper {
     }
 
     public static void fill(String caption, Constructor c, Consumer onOk, Runnable onClose) {
+        fill(null, caption, c, onOk, onClose);
+    }
+
+
+    public static void fill(EditorViewComponent evc, String caption, Constructor c, Consumer onOk, Runnable onClose) {
         try {
             Class pc = ReflectionHelper.createClass("" + c.getDeclaringClass().getSimpleName() + "_" + c.getName() + "_Parameters000", ReflectionHelper.getAllFields(c), false);
 
@@ -219,7 +226,12 @@ public class VaadinHelper {
             MDDBinder binder = new MDDBinder(pc);
 
             // Create a sub-window and set the content
-            Window subWindow = new Window(caption);
+            BindedWindow subWindow = new BindedWindow(caption) {
+                @Override
+                public MDDBinder getBinder() {
+                    return binder;
+                }
+            };
             VerticalLayout subContent = new VerticalLayout();
             subWindow.setContent(subContent);
 
@@ -259,13 +271,13 @@ public class VaadinHelper {
             subWindow.setModal(true);
 
             subWindow.addCloseListener(e -> {
+                if (evc != null) evc.setCreatorWindow(null);
                 if (!okd.get()) onClose.run();
             });
 
             // Open it in the UI
             UI.getCurrent().addWindow(subWindow);
-
-
+            if (evc != null) evc.setCreatorWindow(subWindow);
 
         } catch (Exception e) {
             MDD.alert(e);

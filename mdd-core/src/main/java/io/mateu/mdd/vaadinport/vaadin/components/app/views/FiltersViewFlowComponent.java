@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.views;
 
 import com.vaadin.icons.VaadinIcons;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
 
@@ -27,6 +28,11 @@ public class FiltersViewFlowComponent extends EditorViewComponent {
 
     @Override
     public void onGoBack() {
-        listViewComponent.setModelForSearchFilters(getModel());
+        try {
+            listViewComponent.search(getModel());
+        } catch (Throwable throwable) {
+            MDD.alert(throwable);
+        }
     }
+
 }
