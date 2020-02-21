@@ -215,7 +215,7 @@ public class JPAListViewComponent extends ListViewComponent {
     public String toString() {
         if (callback != null) {
             String n = Helper.capitalize(entityClass.getSimpleName(), false);
-            return "Select a" + (n.matches("^[aeiou]")?"n":"") + " " + n;
+            return "Select a" + (n.matches("^[aeiou].*")?"n":"") + " " + n;
         } else return Helper.pluralize(Helper.capitalize(entityClass.getSimpleName()));
     }
 
