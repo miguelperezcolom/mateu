@@ -452,11 +452,13 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                 bind(binder, g, field, targetClass, originalEditableFields, object);
 
+                if (field.isAnnotationPresent(ModifyValuesOnly.class) && (attachedActions.get(field.getName()) == null || attachedActions.get(field.getName()).size() == 0)) g.setSelectionMode(Grid.SelectionMode.NONE);
 
-                    if (inline) {
+                if (inline) {
 
                         g.getEditor().setEnabled(true);
                         g.getEditor().setBuffered(false);
+
 
                         if (!field.isAnnotationPresent(ModifyValuesOnly.class)) {
 

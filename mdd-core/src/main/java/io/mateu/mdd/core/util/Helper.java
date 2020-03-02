@@ -30,6 +30,7 @@ import io.mateu.mdd.core.annotations.RightAlignedCol;
 import io.mateu.mdd.core.asciiart.Painter;
 import io.mateu.mdd.core.deepl.DeepLClient;
 import io.mateu.mdd.core.interfaces.RpcView;
+import io.mateu.mdd.core.interfaces.RunnableThrowsThrowable;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.MiURLConverter;
@@ -288,11 +289,18 @@ public class Helper {
     }
 
     public static void transact(JPATransaction t) throws Throwable {
-        transact(System.getProperty("defaultpuname", "default"), t);
+        transact(System.getProperty("defaultpuname", "default"), t, null);
     }
 
-    public static void transact(String persistenceUnit, JPATransaction t) throws Throwable {
+    public static void transact(JPATransaction t, RunnableThrowsThrowable callback) throws Throwable {
+        transact(System.getProperty("defaultpuname", "default"), t, callback);
+    }
 
+    public static void transact(String persistenceUnit, JPATransaction t, RunnableThrowsThrowable callback) throws Throwable {
+
+        // a partir de aquí, todo sucede en este thread a no ser que tengamos un callback
+        // atTop == true si es la primera llamada en este thread
+        // añade una cola a la pila
         boolean atTop = WorkflowEngine.activateLocalRunner();
 
         try {
@@ -312,8 +320,6 @@ public class Helper {
             } catch (Throwable e) {
 
                 e.printStackTrace();
-
-                WorkflowEngine.cancelLocalRunner();
                 if (em.getTransaction().isActive()) em.getTransaction().rollback();
                 em.close();
                 e = e.getCause() != null && e.getCause() instanceof ConstraintViolationException?e.getCause():e;
@@ -329,11 +335,16 @@ public class Helper {
             em.close();
 
         } catch (Throwable e) {
-            WorkflowEngine.cancelLocalRunner();
+            WorkflowEngine.cancelLocalRunner(); // cancelamos las tareas pendientes en este hilo
             rethrow(e.getCause() != null && e.getCause() instanceof ConstraintViolationException?e.getCause():e);
         }
 
-        WorkflowEngine.runAndWaitThreadLocalTasks(atTop);
+        // si es la primera llamada
+        //      ---> si no tenemos un callback : esperaremos a que acaben todas
+        //      ---> si tenemos un callback : no esperamos, y ya se llamará el callback desde otro thread
+        // si no es la primera llamada
+        //      ---> siempre : esperá a que terminen todas las tareas dependientes
+        WorkflowEngine.runAndWaitThreadLocalTasks(!atTop, callback);
     }
 
     public static void rethrow(Throwable e) throws Throwable {
@@ -1311,7 +1322,7 @@ public class Helper {
 
 
     public static byte[] fop(Source xslfo, Source xml) throws IOException, SAXException {
-        long t0 = new Date().getTime();
+        long t0 = System.currentTimeMillis();
 
 
 // Step 1: Construct a FopFactory by specifying a reference to the configuration file
@@ -1371,8 +1382,32 @@ public class Helper {
             out.close();
         }
 
+        System.out.println("fop took " + (System.currentTimeMillis() - t0) + " ms");
+
         return out.toByteArray();
     }
+
+
+/*
+    public static byte[] jasper(String path, String xml, Map<String, Object> params) throws IOException, SAXException, JRException {
+        long t0 = System.currentTimeMillis();
+
+        // get the jasper report
+        JasperReport r = (JasperReport) JRLoader.loadObject(Helper.class.getResourceAsStream(path));
+
+        // fill the jasper report
+        JasperPrint p = JasperFillManager.fillReport(r, params, new JRXmlDataSource(new ByteArrayInputStream(xml.getBytes())));
+
+        // write output
+        byte[] bytes = JasperExportManager.exportReportToPdf(p);
+
+        System.out.println("jasper took " + (System.currentTimeMillis() - t0) + " ms");
+
+        return bytes;
+    }
+*/
+
+
 
 
 

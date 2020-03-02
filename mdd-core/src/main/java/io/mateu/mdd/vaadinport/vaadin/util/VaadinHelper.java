@@ -240,6 +240,8 @@ public class VaadinHelper {
 
             Object model = pc.newInstance();
 
+            binder.setBean(model);
+
             Map<HasValue, List<Validator>> validators = new HashMap<>();
 
             List<Component> componentsToLookForErrors = new ArrayList<>();

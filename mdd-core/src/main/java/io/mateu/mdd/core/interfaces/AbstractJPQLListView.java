@@ -7,6 +7,7 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.core.reflection.FieldInterfacedFromField;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
@@ -21,6 +22,7 @@ import org.eclipse.persistence.sessions.Session;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.time.LocalDate;
@@ -47,9 +49,13 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
                     q.setFirstResult(offset);
                     q.setMaxResults(limit);
 
+                    List<FieldInterfaced> fields = getRowClass().isAnnotationPresent(Entity.class) && !getRowClass().isAnnotationPresent(NativeJPQLResult.class)?AbstractJPQLListView.getSelectFields(getRowClass()):ReflectionHelper.getAllFields(getRowClass());
+
+                    for (FieldInterfaced f : fields) if (f instanceof FieldInterfacedFromField) f.getField().trySetAccessible();
+
                     for (Object o : q.getResultList()) {
 
-                        if (o instanceof Object[]) l.add((R) ReflectionHelper.fillQueryResult((Object[]) o, getNewRowInstance()));
+                        if (o instanceof Object[]) l.add((R) ReflectionHelper.fillQueryResult(fields, (Object[]) o, getNewRowInstance()));
                         else l.add((R) o);
                     }
 
@@ -66,7 +72,16 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
 
     public R getNewRowInstance() throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         Class rowClass = getRowClass();
-        return (R) ReflectionHelper.newInstance(rowClass);
+        return (R) newInstance(rowClass);
+    }
+
+    public static Object newInstance(Class c) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        Object o = null;
+        for (Constructor con : c.getDeclaredConstructors()) if (con.getParameterCount() == 0) {
+            con.setAccessible(true);
+            o = con.newInstance();
+        }
+        return o;
     }
 
     @Override

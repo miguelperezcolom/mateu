@@ -2,6 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders;
 
 import com.vaadin.data.Binder;
 import com.vaadin.data.HasValue;
+import com.vaadin.data.Result;
 import com.vaadin.data.Validator;
 import com.vaadin.data.converter.LocalDateTimeToDateConverter;
 import com.vaadin.ui.Component;
@@ -14,7 +15,10 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 
 import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +34,7 @@ public class JPADateFieldBuilder extends AbstractFieldBuilder {
     public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
 
         DateTimeField tf;
-        container.addComponent(tf = new DateTimeField());
+        container.addComponent(tf = new JPADateTimeField());
 
         if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
 

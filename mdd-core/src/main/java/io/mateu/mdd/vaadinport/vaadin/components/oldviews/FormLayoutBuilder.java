@@ -163,7 +163,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
         log.debug("editor component E.2 in " + (System.currentTimeMillis() - t0) + " ms.");
 
-        binder.setBean(model);
+        //binder.setBean(model);
 
         AbstractStylist finalStylist = stylist;
         binder.addValueChangeListener(new HasValue.ValueChangeListener<Object>() {

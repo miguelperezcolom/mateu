@@ -4,10 +4,13 @@ import com.vaadin.data.*;
 import com.vaadin.server.Setter;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.core.reflection.FieldInterfacedFromField;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -17,6 +20,7 @@ public class MDDBinder extends Binder {
     private final Class beanType;
     private List<Object> mergeables = new ArrayList<>();
     private List<Object> removables = new ArrayList<>();
+    private boolean updating;
 
     public MDDBinder(List<FieldInterfaced> fields) {
         super(new PropertySet() {
@@ -157,15 +161,36 @@ public class MDDBinder extends Binder {
     }
 
     public void update(Object model) {
-        if (model != null) {
-            getBindings().forEach(b -> {
-                ((Binding) b).read(model);
-            });
-        } else {
-            getFields().forEach(f -> {
-                HasValue hv = (HasValue) f;
-                hv.setValue(null);
-            });
+        if (!updating) {
+            updating = true;
+            if (model != null) {
+                getBindings().forEach(b -> {
+                    ((Binding) b).read(model);
+                });
+                Field v;
+                if ((v = ReflectionHelper.getVersionField(model.getClass())) != null) {
+                    try {
+                        v.setAccessible(true);
+                        v.set(getBean(), v.get(model));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                for (FieldInterfaced f : ReflectionHelper.getAllFields(model.getClass())) if (f instanceof FieldInterfacedFromField) {
+                    try {
+                        f.getField().setAccessible(true);
+                        f.getField().set(getBean(), f.getField().get(model));
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } else {
+                getFields().forEach(f -> {
+                    HasValue hv = (HasValue) f;
+                    hv.setValue(null);
+                });
+            }
+            updating = false;
         }
     }
 

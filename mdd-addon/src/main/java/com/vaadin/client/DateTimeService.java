@@ -698,8 +698,8 @@ public class DateTimeService {
 
     public static void main(String[] args) {
         String s = "2019 15:20";
-        getLogger().info(s.split(" ")[1].replaceAll("[^\\d]", ""));
-        getLogger().info(s.split(" ")[0].replaceAll("[^\\d]", ""));
+        System.out.println(s.split(" ")[1].replaceAll("[^\\d]", ""));
+        System.out.println(s.split(" ")[0].replaceAll("[^\\d]", ""));
     }
 
 

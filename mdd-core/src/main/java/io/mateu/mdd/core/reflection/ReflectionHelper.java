@@ -580,6 +580,23 @@ public class ReflectionHelper {
         } else return null;
     }
 
+    public static Field getVersionField(Class c) {
+        if (c.isAnnotationPresent(Entity.class)) {
+            Field idField = null;
+
+            if (c.getSuperclass() != null && (!c.isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class))) {
+                idField = getVersionField(c.getSuperclass());
+            }
+
+            if (idField == null) {
+                for (Field f : c.getDeclaredFields())  if (f.isAnnotationPresent(Version.class)) {
+                    idField = f;
+                }
+            }
+
+            return idField;
+        } else return null;
+    }
     public static FieldInterfaced getNameField(Class entityClass) {
         FieldInterfaced fName = null;
         Method toStringMethod = getMethod(entityClass, "toString");
@@ -1034,18 +1051,14 @@ public class ReflectionHelper {
         return argPos;
     }
 
-    public static <T> T fillQueryResult(Object[] o, Class<T> rowClass) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
-        T t = null;
-        t = (T) ReflectionHelper.newInstance(rowClass);
-        return fillQueryResult(o, t);
-    }
-
-    public static <T> T fillQueryResult(Object[] o, T t) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
+    public static <T> T fillQueryResult(List<FieldInterfaced> fields, Object[] o, T t) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         int pos = 0;
-        List<FieldInterfaced> fields = t.getClass().isAnnotationPresent(Entity.class) && !t.getClass().isAnnotationPresent(NativeJPQLResult.class)?AbstractJPQLListView.getSelectFields(t.getClass()):getAllFields(t.getClass());
         for (FieldInterfaced f : fields) {
             if (pos < o.length) {
-                if (o[pos] != null) set(t, f, o[pos]);
+                if (o[pos] != null) {
+                    if (f instanceof FieldInterfacedFromField) f.getField().set(t, o[pos]);
+                    else set(t, f, o[pos]);
+                }
             } else break;
             pos++;
         }

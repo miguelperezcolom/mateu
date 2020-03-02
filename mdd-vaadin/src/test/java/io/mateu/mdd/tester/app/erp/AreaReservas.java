@@ -31,7 +31,7 @@ public class AreaReservas extends AbstractArea {
             public List<MenuEntry> buildMenu() {
                 List<MenuEntry> l = new ArrayList<>();
 
-                l.add(new MDDOpenCRUDAction("Agencias", Agencia.class).setColumns("nombre(130),localidad.nombre as 'Localidad'(130),central.nombre as 'Central'"));
+                l.add(new MDDOpenCRUDAction("Agencias", Agencia.class).setColumns("nombre(130),localidad.nombre as 'Localidad'(130),central.nombre as 'Central',del,al"));
 
                 l.add(new MDDMenu("Reservas", "Reservas", new MDDOpenCRUDAction(Reserva.class).setColumns("agencia.nombre,agencia.localidad,leadName,estado,total")));
 

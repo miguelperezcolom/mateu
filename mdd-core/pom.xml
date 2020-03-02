@@ -5,7 +5,7 @@
     <parent>
         <artifactId>mdd-parent</artifactId>
         <groupId>io.mateu</groupId>
-        <version>0.0.7-SNAPSHOT</version>
+        <version>0.0.8-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>jar</packaging>
@@ -636,6 +636,42 @@
             <version>4.4.0.1</version>
         </dependency>
 
+
+        <!-- https://mvnrepository.com/artifact/jasperreports/jasperreports -->
+        <!--
+        <dependency>
+            <groupId>jasperreports</groupId>
+            <artifactId>jasperreports</artifactId>
+            <version>3.5.3</version>
+        </dependency>
+        -->
+
     </dependencies>
 
+
+    <build>
+        <plugins>
+            <!--- para los unit tests sobre transacciones y callbacks -->
+            <plugin>
+                <groupId>io.mateu.jpa-utils</groupId>
+                <artifactId>pujoiner-plugin</artifactId>
+                <version>0.0.2</version>
+
+                <configuration>
+                    <puname>yourapp</puname>
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>procesarpus</goal>
+                        </goals>
+                    </execution>
+                </executions>
+
+            </plugin>
+
+        </plugins>
+        </build>
 </project>

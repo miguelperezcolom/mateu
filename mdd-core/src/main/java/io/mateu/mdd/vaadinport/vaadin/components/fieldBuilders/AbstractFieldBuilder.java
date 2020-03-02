@@ -24,6 +24,7 @@ public abstract class AbstractFieldBuilder {
 
     public static List<AbstractFieldBuilder> builders = Lists.newArrayList(
             new KPIInlineFieldBuilder()
+            , new ButtonFieldBuilder()
             , new FareValueFieldBuilder()
             , new JPAUnmodifiableFieldBuilder()
             , new FromDataProviderFieldBuilder()

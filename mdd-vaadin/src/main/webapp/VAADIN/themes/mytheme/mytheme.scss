@@ -306,6 +306,13 @@ body {
 
     }
 
+    .v-grid-cell {
+      i {
+        padding-right: 2px;
+      }
+    }
+
+
     .v-button.quiet {
       border: none;
       background-image: none;
@@ -2884,6 +2891,11 @@ body {
 
   .v-textarea {
     resize: auto;
+  }
+
+  .mddbutton {
+    background-color: #e2e7ea;
+    visibility: unset;
   }
 
 

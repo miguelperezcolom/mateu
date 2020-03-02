@@ -4,7 +4,7 @@
     <parent>
         <artifactId>mdd-parent</artifactId>
         <groupId>io.mateu</groupId>
-        <version>0.0.7-SNAPSHOT</version>
+        <version>0.0.8-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -82,6 +82,11 @@
                 <groupId>com.vaadin</groupId>
                 <artifactId>vaadin-maven-plugin</artifactId>
                 <version>${vaadin.plugin.version}</version>
+                <!-- jasper. hace que el parseo de las fechas no funcione
+                <configuration>
+                    <gwtSdkFirstInClasspath>true</gwtSdkFirstInClasspath>
+                </configuration>
+                -->
                 <executions>
                     <execution>
                         <goals>

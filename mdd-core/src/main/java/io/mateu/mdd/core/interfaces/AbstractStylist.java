@@ -6,6 +6,7 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 
+import javax.persistence.Entity;
 import javax.persistence.Id;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -80,35 +81,39 @@ public abstract class AbstractStylist<S> {
     }
 
     public String getViewTitle(boolean newRecord, S model) {
-        if (newRecord || model == null) return "New " + viewTitle;
-        else {
-            String id = "";
-            Method toString = ReflectionHelper.getMethod(model.getClass(), "toString");
-            if (toString != null) {
-                try {
-                    id = (String) toString.invoke(model);
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                for (FieldInterfaced f : ReflectionHelper.getAllFields(model.getClass())) {
-                    if (f.isAnnotationPresent(Id.class)) {
-                        if (!"".equals(id)) id += " - ";
-                        try {
-                            id += ReflectionHelper.getValue(f, model);
-                        } catch (NoSuchMethodException e) {
-                            e.printStackTrace();
-                        } catch (IllegalAccessException e) {
-                            e.printStackTrace();
-                        } catch (InvocationTargetException e) {
-                            e.printStackTrace();
+        if (model != null && !(model instanceof PersistentPOJO || model.getClass().isAnnotationPresent(Entity.class))) {
+            return "" + model;
+        } else {
+            if (newRecord || model == null) return "New " + viewTitle;
+            else {
+                String id = "";
+                Method toString = ReflectionHelper.getMethod(model.getClass(), "toString");
+                if (toString != null) {
+                    try {
+                        id = (String) toString.invoke(model);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    for (FieldInterfaced f : ReflectionHelper.getAllFields(model.getClass())) {
+                        if (f.isAnnotationPresent(Id.class)) {
+                            if (!"".equals(id)) id += " - ";
+                            try {
+                                id += ReflectionHelper.getValue(f, model);
+                            } catch (NoSuchMethodException e) {
+                                e.printStackTrace();
+                            } catch (IllegalAccessException e) {
+                                e.printStackTrace();
+                            } catch (InvocationTargetException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                 }
+                return id != null && viewTitle != null && id.startsWith(viewTitle)?id:"" + viewTitle + " " + id;
             }
-            return id != null && viewTitle != null && id.startsWith(viewTitle)?id:"" + viewTitle + " " + id;
         }
     }
 

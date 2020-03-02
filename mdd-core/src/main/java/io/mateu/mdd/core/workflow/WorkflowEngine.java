@@ -1,19 +1,24 @@
 package io.mateu.mdd.core.workflow;
 
+import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.interfaces.RunnableThrowsThrowable;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 public class WorkflowEngine {
 
     private static ConcurrentLinkedQueue queue;
-    private static ThreadLocal<Boolean> uselocalRunners = new ThreadLocal<>();
-    private static ThreadLocal<Boolean> waitingForLocalRunners = new ThreadLocal<>();
-    private static ThreadLocal<ConcurrentLinkedQueue> localQueues = new ThreadLocal<>();
+    private static ThreadLocal<Boolean> uselocalRunner = new ThreadLocal<>();
+    private static ThreadLocal<List<ConcurrentLinkedQueue>> localQueue = new ThreadLocal<>();
 
+    public static AtomicInteger localRunners = new AtomicInteger();
     public static AtomicBoolean running = new AtomicBoolean();
 
     static {
@@ -26,7 +31,7 @@ public class WorkflowEngine {
     }
 
     public static void shutdown() {
-        while (queue.size() > 0 || running.get()) {
+        while (localRunners.get() > 0 || queue.size() > 0 || running.get()) {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
@@ -37,62 +42,81 @@ public class WorkflowEngine {
 
 
     public static boolean isLocalRunnerActive() {
-        return !(uselocalRunners.get() == null || !uselocalRunners.get());
+        return !(uselocalRunner.get() == null || !uselocalRunner.get());
     }
 
     public static boolean activateLocalRunner() {
         boolean alreadyActive = isLocalRunnerActive();
+        log.debug("el local runner ya está activo");
         if (!alreadyActive) {
-            uselocalRunners.set(true);
-            localQueues.set(new ConcurrentLinkedQueue());
-            waitingForLocalRunners.set(false);
+            uselocalRunner.set(true);
+            localQueue.set(new ArrayList<>());
             alreadyActive = false;
         }
+        localQueue.get().add(0, new ConcurrentLinkedQueue());
+        localRunners.incrementAndGet();
         return !alreadyActive;
     }
 
     public static void cancelLocalRunner() {
-        if (uselocalRunners.get() != null) {
-            uselocalRunners.set(false);
-            localQueues.set(new ConcurrentLinkedQueue());
-            waitingForLocalRunners.set(false);
+        if (uselocalRunner.get() != null) {
+            if (localQueue.get().size() > 0) localQueue.get().remove(0);
         }
+        localRunners.decrementAndGet();
     }
 
 
     public static void add(Task task) {
-        //log.debug("añadiendo tarea " + task.getClass().getName());
+        log.debug("añadiendo tarea " + task.getClass().getName());
 
-        if (uselocalRunners.get() != null && uselocalRunners.get()) {
-            //log.debug("va al runner del thread");
-            localQueues.get().add(task);
+        if (uselocalRunner.get() != null && uselocalRunner.get()) {
+            log.debug("va al runner del thread");
+            localQueue.get().get(0).add(task);
         } else {
-            //log.debug("va al workflow global");
+            log.debug("va al workflow global");
             queue.add(task);
         }
     }
 
-    public static void runAndWaitThreadLocalTasks() {
-        runAndWaitThreadLocalTasks(false);
-    }
-
-    public static void runAndWaitThreadLocalTasks(boolean force) {
-        //log.debug("runAndWaitThreadLocalTasks(" + force + ")");
-        if (force || !uselocalRunners.get()) {
-            //log.debug("ejecutando tareas thread local. localQueues.get().size() = " + localQueues.get().size());
-            uselocalRunners.set(true);
-            while (localQueues.get().size() > 0) {
-                //log.debug("ejecutando tarea thread local. localQueues.get().size() = " + localQueues.get().size());
-                Task task = (Task) localQueues.get().poll();
+    public static void runAndWaitThreadLocalTasks(boolean forceRunAndWait, RunnableThrowsThrowable callback) {
+        log.debug("runAndWaitThreadLocalTasks(" + forceRunAndWait + ", " + callback + "");
+        ConcurrentLinkedQueue tasks = localQueue.get() != null && localQueue.get().size() > 0?localQueue.get().get(0):new ConcurrentLinkedQueue();
+        Task r = () -> {
+            while (tasks.size() > 0) {
+                Task task = (Task) tasks.poll();
                 try {
                     task.run();
-                } catch (Throwable e) {
-                    e.printStackTrace();
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
                 }
             }
-            //log.debug("localQueues empty");
-            uselocalRunners.set(false);
+
+            if (callback != null) {
+                try {
+                    log.debug("llamando al callback");
+                    callback.run();
+                } catch (Throwable throwable) {
+                    MDD.alert(throwable);
+                }
+            }
+
+        };
+
+        if (!forceRunAndWait && callback != null) { // no esperamos. Las derivamos a la cola general
+            log.debug("derivando tareas a la cola general");
+            queue.add(r);
+        } else { // queremos que se ejecuten ya y esperar, o meter en otro therad y que se llame al callback cuando acaben
+            log.debug("ejecutando tareas locales");
+            try {
+                r.run();
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
+            }
+            log.debug("fin ejecución tareas locales");
         }
+        if (localQueue.get() != null) localQueue.get().remove(tasks);
+        localRunners.decrementAndGet();
+        if (uselocalRunner.get() != null && uselocalRunner.get() && localRunners.get() <= 0) uselocalRunner.set(false);
     }
 
     private static synchronized void start() {

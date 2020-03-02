@@ -10,6 +10,7 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
@@ -877,6 +878,32 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 addMenuItem("save", i);
                 i.setClickShortcut(ShortcutAction.KeyCode.S, ShortcutAction.ModifierKey.CTRL);
 
+                if (!shortcutsCreated.contains("saveandstay")) {
+
+                    Button b;
+                    getHiddens().addComponent(b = new Button());
+                    b.addClickListener(e -> {
+                        BinderValidationStatus v = binder.validate();
+
+                        if (v.isOk()) {
+                            try {
+
+                                preSave();
+
+                                save(false);
+
+                            } catch (Throwable throwable) {
+                                throwable.printStackTrace();
+                            }
+
+
+                        } else MDD.alert(v);
+                    });
+                    b.setClickShortcut(ShortcutAction.KeyCode.S, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
+
+                    shortcutsCreated.add("saveandstay");
+                }
+
                 if (!shortcutsCreated.contains("new")) {
 
                     Button b;
@@ -886,6 +913,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                         if (v.isOk()) {
                             try {
+
+                                preSave();
+
                                 save(false);
 
                                 Object old = getBinder().getBean();
@@ -928,6 +958,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                                 if (v.isOk()) {
                                     try {
+
+                                        preSave();
+
                                         save(false);
 
                                         Object old = getBinder().getBean();
@@ -980,6 +1013,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                                 if (v.isOk()) {
                                     try {
+
+                                        preSave();
+
                                         save(false);
 
                                         Object old = getBinder().getBean();
@@ -1213,6 +1249,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                     Object m = getModel();
                     Object[] merged = new Object[1];
 
+                    MDDUI ui = MDDUI.get();
+
                     Helper.transact(new JPATransaction() {
                         @Override
                         public void run(EntityManager em) throws Throwable {
@@ -1238,12 +1276,29 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                             }
 
                         }
+                    }, () -> {
+                        System.out.println("entramos en el callback");
+                        if (!goBack) {
+                            System.out.println("actualizamos el ui");
+                            ui.access(() -> {
+                                try {
+                                    Helper.notransact(em -> {
+                                        binder.update(em.find(merged[0].getClass(), modelId));
+                                        initialValues = buildSignature();
+                                    });
+                                    MDD.updateTitle(getTitle());
+                                } catch (Throwable throwable) {
+                                    MDD.alert(throwable);
+                                }
+                            });
+                        }
                     });
 
                     modelId = ReflectionHelper.getId(merged[0]);
 
                     Helper.notransact(em -> {
-                        setModel(em.find(merged[0].getClass(), modelId));
+                        binder.update(em.find(merged[0].getClass(), modelId));
+                        initialValues = buildSignature();
                     });
 
                     if (goBack) goBack();

@@ -21,6 +21,7 @@ import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.ViewContainer;
 import io.mateu.mdd.vaadinport.vaadin.components.app.desktop.DesktopAppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.mobile.MobileAppComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.SearchInMenuComponent;
 import io.mateu.mdd.vaadinport.vaadin.mdd.VaadinPort;
@@ -317,6 +318,28 @@ public class MDDUI extends UI {
 
         w.center();
         w.setModal(true);
+
+        UI.getCurrent().addWindow(w);
+    }
+
+    public void openInWindow(AbstractViewComponent view) {
+        // lo mismo para buscar y para navegar en profundidad
+        Window w = new Window(view.getCaption());
+
+        w.addStyleName("miapp");
+
+        int percent = 100 - (UI.getCurrent().getWindows().size() + 1) * 5;
+
+        w.setWidth("" + percent + "%");
+        w.setHeight("" + percent + "%");
+
+        w.setContent(view);
+
+        w.center();
+        w.setModal(true);
+
+        w.addCloseListener(e -> {
+        });
 
         UI.getCurrent().addWindow(w);
     }

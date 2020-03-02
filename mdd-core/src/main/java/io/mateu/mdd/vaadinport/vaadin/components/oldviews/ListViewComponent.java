@@ -20,6 +20,7 @@ import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.shared.ui.BorderStyle;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.shared.ui.ValueChangeMode;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.EditorOpenEvent;
 import com.vaadin.ui.components.grid.EditorOpenListener;
@@ -333,7 +334,13 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
                             return s;
 
-                        } else if (LocalDate.class.equals(f.getType()) || LocalDateTime.class.equals(f.getType()) || LocalTime.class.equals(f.getType()) || Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) {
+                        } else if (LocalDate.class.equals(f.getType())) {
+                            return v != null?((LocalDate)v).format(DateTimeFormatter.ISO_LOCAL_DATE):null;
+                        } else if (LocalDateTime.class.equals(f.getType())) {
+                            return v != null?((LocalDateTime)v).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")):null;
+                        } else if (LocalTime.class.equals(f.getType())) {
+                            return v != null?((LocalTime)v).format(DateTimeFormatter.ofPattern("HH:mm")):null;
+                        } else if (Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) {
                             return v;
                         } else if (Resource.class.equals(f.getType())) {
                             Resource r = (Resource) v;

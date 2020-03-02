@@ -2,15 +2,35 @@ package io.mateu.mdd.core;
 
 import com.vaadin.data.BinderValidationStatus;
 import com.vaadin.data.BindingValidationStatus;
-import com.vaadin.ui.AbstractComponent;
-import com.vaadin.ui.Notification;
+import com.vaadin.data.provider.ListDataProvider;
+import com.vaadin.server.ExternalResource;
+import com.vaadin.shared.ui.ContentMode;
+import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.annotations.IFrame;
+import io.mateu.mdd.core.annotations.Output;
+import io.mateu.mdd.core.annotations.Pdf;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.UserData;
+import io.mateu.mdd.core.interfaces.PersistentPOJO;
+import io.mateu.mdd.core.interfaces.RpcView;
+import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.model.authentication.User;
+import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
+import io.mateu.mdd.vaadinport.vaadin.navigation.ComponentWrapper;
+import io.mateu.mdd.vaadinport.vaadin.navigation.View;
 import javassist.ClassPool;
+
+import javax.persistence.Entity;
+import javax.persistence.Query;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
+import java.util.Collection;
+import java.util.List;
 
 public class MDD {
 
@@ -161,5 +181,137 @@ public class MDD {
             x.getMessage().ifPresent(m -> msg.append(m));
         });
         Notification.show(msg.toString(), Notification.Type.TRAY_NOTIFICATION);
+    }
+
+    public static void openInWindow(String title, Object o) {
+        if (o == null) {
+            MDD.alert("Nothing to show");
+        } else {
+            try {
+
+                AbstractViewComponent v = null;
+                Class c = o.getClass();
+                if (o instanceof Class && ((Class)o).isAnnotationPresent(Entity.class)) v = new JPAListViewComponent((Class) o);
+                else if (o instanceof Component) v = new ComponentWrapper(title, (Component) o);
+                else if (int.class.equals(c)
+                        || Integer.class.equals(c)
+                        || long.class.equals(c)
+                        || Long.class.equals(c)
+                        || double.class.equals(c)
+                        || Double.class.equals(c)
+                        || String.class.equals(c)
+                        || boolean.class.equals(c)
+                        || Boolean.class.equals(c)
+                        || float.class.equals(c)
+                        || Float.class.equals(c)
+                ) v = new ComponentWrapper(title, new Label("" + o, ContentMode.HTML));
+                else if (URL.class.equals(c)) {
+                    if (o.toString().endsWith("pdf")) {
+                        BrowserFrame b = new BrowserFrame("Result", new ExternalResource(o.toString()));
+                        b.setSizeFull();
+                        v = new ComponentWrapper(title, b);
+                    } else {
+                        v = new ComponentWrapper(title, new Link("Click me to view the result", new ExternalResource(o.toString())));
+                    }
+                } else if (o instanceof Collection && ((Collection) o).size() > 0 && ((Collection) o).iterator().next() != null && ((Collection) o).iterator().next().getClass().isAnnotationPresent(Entity.class)) {
+                    v = new CollectionListViewComponent((Collection) o, ((Collection) o).iterator().next().getClass());
+                } else if (Collection.class.isAssignableFrom(c)) {
+
+                    Collection col = (Collection) o;
+
+                    if (col.size() == 0) {
+                        v = new ComponentWrapper(title, new Label("Empty list", ContentMode.HTML));
+                    } else {
+
+                        if (MDD.isMobile()) {
+
+                            VerticalLayout vl = new VerticalLayout();
+                            boolean primero = true;
+                            for (Object i : col) {
+
+                                if (primero) primero = false;
+                                else vl.addComponent(new Label("--------------"));
+
+                                if (ReflectionHelper.isBasico(i)) {
+                                    vl.addComponent(new Label("" + i));
+                                } else {
+                                    for (FieldInterfaced f : ReflectionHelper.getAllFields(i.getClass())) {
+                                        Label l;
+                                        vl.addComponent(l = new Label("" + ReflectionHelper.getCaption(f)));
+                                        l.addStyleName(ValoTheme.LABEL_BOLD);
+                                        l.addStyleName(CSS.NOPADDING);
+                                        vl.addComponent(l = new Label("" + ReflectionHelper.getValue(f, i)));
+                                        l.addStyleName(CSS.NOPADDING);
+                                    }
+                                }
+
+                            }
+
+                            v = new ComponentWrapper(title, vl);
+
+                        } else {
+
+                            Object primerElemento = col.iterator().next();
+
+                            Grid g = new Grid();
+
+                            ListViewComponent.buildColumns(g, ListViewComponent.getColumnFields(primerElemento.getClass()), false, false);
+
+                            //g.setSelectionMode(Grid.SelectionMode.MULTI);
+
+                            // añadimos columna para que no haga feo
+                            if (g.getColumns().size() == 1) ((Grid.Column)g.getColumns().get(0)).setExpandRatio(1);
+                            else g.addColumn((d) -> null).setWidthUndefined().setCaption("");
+
+                            g.setWidth("100%");
+                            g.setHeightByRows(col.size());
+
+                            g.setDataProvider(new ListDataProvider((Collection) o));
+
+                            v = new ComponentWrapper(title, g);
+                        }
+
+                    }
+
+
+                } else if (o instanceof Query) {
+
+                    try {
+                        v = new ComponentWrapper(title, new PdfComponent((Query) o));
+                    } catch (Throwable throwable) {
+                        MDD.alert(throwable);
+                    }
+
+                } else if (o instanceof RpcView) {
+                    v = new RpcListViewComponent((RpcView) o);
+                } else if (o.getClass().isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(o.getClass())) {
+                    v = new EditorViewComponent(o) {
+                        @Override
+                        public void goBack() {
+                            // no vuelve atrás
+                        }
+                    };
+                } else if (o instanceof Component) {
+                    v = new ComponentWrapper(title, (Component) o);
+                } else if (o instanceof AbstractAction) {
+                    ((AbstractAction) o).run();
+                } else if (o instanceof WizardPage) {
+                    v = new WizardComponent((WizardPage) o);
+                } else {
+                    v = new EditorViewComponent(o) {
+                        @Override
+                        public void goBack() {
+                            // no vuelve atrás
+                        }
+                    };
+                }
+                if (v != null) {
+                    v.setBackable(false);
+                    MDDUI.get().openInWindow(v);
+                }
+            } catch (Throwable throwable) {
+                MDD.alert(throwable);
+            }
+        }
     }
 }

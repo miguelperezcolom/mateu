@@ -107,7 +107,7 @@ public class Resource {
                 } else url = new URL(baseUrl + "/" + temp.getName());
 
 
-                return new FileLocator(id, name, url.toString(), temp.getAbsolutePath());
+                return new FileLocator(id, name, url.toString(), temp.getAbsolutePath().replaceAll("\\\\", "/"));
 
             } else {
                 return new FileLocator(id, null, null);
