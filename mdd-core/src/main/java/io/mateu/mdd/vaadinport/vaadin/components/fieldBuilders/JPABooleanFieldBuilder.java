@@ -12,6 +12,8 @@ import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 
@@ -39,6 +41,7 @@ public class JPABooleanFieldBuilder extends AbstractFieldBuilder {
 
             //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) cb.setDescription(field.getAnnotation(Help.class).value());
 
+            if (allFieldContainers != null) allFieldContainers.put(field, cb);
 
             completeBinding(cb, binder, field);
 
@@ -63,6 +66,7 @@ public class JPABooleanFieldBuilder extends AbstractFieldBuilder {
 
             //if (field.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(field.getAnnotation(Help.class).value())) cb.setDescription(field.getAnnotation(Help.class).value());
 
+            if (allFieldContainers != null) allFieldContainers.put(field, hl);
 
             completeBinding(cb, binder, field);
 
@@ -71,6 +75,7 @@ public class JPABooleanFieldBuilder extends AbstractFieldBuilder {
             r = cb;
 
         }
+
 
         return r;
     }

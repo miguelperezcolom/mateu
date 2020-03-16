@@ -77,7 +77,12 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
 
     public static Object newInstance(Class c) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         Object o = null;
-        for (Constructor con : c.getDeclaredConstructors()) if (con.getParameterCount() == 0) {
+        if (c.getDeclaringClass() != null) { // caso inner class
+            Object p = newInstance(c.getDeclaringClass());
+            Constructor<?> cons = c.getDeclaredConstructors()[0];
+            cons.setAccessible(true);
+            o = cons.newInstance(p);
+        } else for (Constructor con : c.getDeclaredConstructors()) if (con.getParameterCount() == 0) {
             con.setAccessible(true);
             o = con.newInstance();
         }

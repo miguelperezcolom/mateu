@@ -16,6 +16,41 @@ public class TestNashorn {
 
     public static void main(String... args) throws ScriptException, NoSuchMethodException {
 
+        //test1();
+
+        test2();
+
+    }
+
+    private static void test2() throws ScriptException {
+        ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
+        ScriptEngine nashorn = scriptEngineManager.getEngineByName("nashorn");
+
+        nashorn.put("$this", new SamplePojo());
+
+        test(nashorn, "$this.name");
+
+        test(nashorn, "$this.check");
+        test(nashorn, "false || $this.name");
+        test(nashorn, "$this.name = null");
+        test(nashorn, "false || $this.name");
+
+        test(nashorn, "this");
+
+        test(nashorn, "$this");
+
+        test(nashorn, "!!$this.name");
+        test(nashorn, "$this.name = ''");
+        test(nashorn, "!!$this.name");
+        test(nashorn, "$this.name = 'a'");
+        test(nashorn, "!!$this.name");
+    }
+
+    private static void test(ScriptEngine nashorn, String s) throws ScriptException {
+        System.out.println(s += " ==> " + nashorn.eval(s));
+    }
+
+    private static void test1() throws ScriptException, NoSuchMethodException {
         ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
         ScriptEngine nashorn = scriptEngineManager.getEngineByName("nashorn");
         nashorn.eval("print('Hola Mundo')");
@@ -48,8 +83,6 @@ public class TestNashorn {
         nashorn.eval("print('d[string]= ' + d)");
         nashorn.eval("print('d[string]= ' + JSON.stringify(d))");
         nashorn.eval("print('d[string]= ' + d.string)");
-
-
     }
 
 

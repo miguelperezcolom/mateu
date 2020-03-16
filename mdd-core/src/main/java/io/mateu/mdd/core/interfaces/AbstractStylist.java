@@ -1,6 +1,8 @@
 package io.mateu.mdd.core.interfaces;
 
+import com.google.common.base.Strings;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.annotations.VisibleIf;
 import io.mateu.mdd.core.data.Pair;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
@@ -8,6 +10,7 @@ import io.mateu.mdd.core.util.Helper;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.script.ScriptEngine;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -129,6 +132,10 @@ public abstract class AbstractStylist<S> {
             } catch (Exception e) {
                 MDD.alert(e);
             }
+        } else if (f.isAnnotationPresent(VisibleIf.class) && !Strings.isNullOrEmpty(f.getAnnotation(VisibleIf.class).value())) {
+            String s = f.getAnnotation(VisibleIf.class).value();
+            String r = Helper.eval("nashorn", s, Helper.hashmap("$this", model));
+            return "true".equalsIgnoreCase(r);
         }
         return true;
     }

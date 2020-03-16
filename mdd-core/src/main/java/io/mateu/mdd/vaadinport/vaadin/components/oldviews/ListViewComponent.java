@@ -7,14 +7,15 @@ import com.byteowls.vaadin.chartjs.data.PieDataset;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.kbdunn.vaadin.addons.fontawesome.FontAwesome;
-import com.vaadin.data.HasDataProvider;
-import com.vaadin.data.ValueProvider;
+import com.vaadin.data.*;
+import com.vaadin.data.Converter;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.server.SerializablePredicate;
+import com.vaadin.server.Setter;
 import com.vaadin.server.UserError;
 import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.shared.ui.BorderStyle;
@@ -25,6 +26,7 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.EditorOpenEvent;
 import com.vaadin.ui.components.grid.EditorOpenListener;
 import com.vaadin.ui.components.grid.SortOrderProvider;
+import com.vaadin.ui.renderers.ButtonRenderer;
 import com.vaadin.ui.renderers.ComponentRenderer;
 import com.vaadin.ui.renderers.HtmlRenderer;
 import com.vaadin.ui.renderers.TextRenderer;
@@ -45,6 +47,10 @@ import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components.WeekDaysComponent;
 import lombok.extern.slf4j.Slf4j;
 import org.javamoney.moneta.FastMoney;
+import org.vaadin.grid.cellrenderers.editable.DateFieldRenderer;
+import org.vaadin.grid.cellrenderers.editable.SimpleSelectRenderer;
+import org.vaadin.grid.cellrenderers.editable.TextFieldRenderer;
+import org.vaadin.grid.cellrenderers.editoraware.CheckboxRenderer;
 
 import javax.money.MonetaryAmount;
 import javax.persistence.*;
@@ -481,323 +487,334 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     if (f.isAnnotationPresent(Output.class)) {
                     } else {
 
-                        Method mdp = ReflectionHelper.getMethod(f.getDeclaringClass(), ReflectionHelper.getGetter(f.getName()) + "DataProvider");
+                        if (collectionField != null && collectionField.isAnnotationPresent(UseComponentsToEditValues.class)) {
 
-                        if (f.getType().isAnnotationPresent(UseIdToSelect.class)) {
-                            TextField nf = new TextField();
-                            if (eager) nf.setValueChangeMode(ValueChangeMode.EAGER);
-                            col.setEditorBinding(grid.getEditor().getBinder().forField(nf).bind(o -> {
-                                Object id = null;
-                                if (o != null) {
-                                    id = ReflectionHelper.getId(o);
-                                } // else stf.setValue("");
-                                return (id != null)?"" + id:"";
-                            }, (o, v) -> {
+                            setEditorAsRenderer(col, f, eager, grid, binder, collectionField);
 
-                                Object[] w = {null};
+                        } else {
 
-                                try {
-                                    Helper.notransact(em -> {
+                            Method mdp = ReflectionHelper.getMethod(f.getDeclaringClass(), ReflectionHelper.getGetter(f.getName()) + "DataProvider");
 
-                                        FieldInterfaced fid = ReflectionHelper.getIdField(f.getType());
+                            if (f.getType().isAnnotationPresent(UseIdToSelect.class)) {
+                                TextField nf = new TextField();
+                                if (eager) nf.setValueChangeMode(ValueChangeMode.EAGER);
+                                col.setEditorBinding(grid.getEditor().getBinder().forField(nf).bind(o -> {
+                                    Object id = null;
+                                    if (o != null) {
+                                        id = ReflectionHelper.getId(o);
+                                    } // else stf.setValue("");
+                                    return (id != null)?"" + id:"";
+                                }, (o, v) -> {
 
-                                        String sql = "select x from " + f.getType().getName() + " x where x." + fid.getName() + " = :i";
+                                    Object[] w = {null};
 
-                                        Object id = null;
-                                        if (int.class.equals(fid.getType()) || Integer.class.equals(fid.getType())) {
-                                            id = Integer.parseInt((String) v);
-                                        } else if (long.class.equals(fid.getType()) || Long.class.equals(fid.getType())) {
-                                            id = Long.parseLong((String) v);
-                                        } else if (String.class.equals(fid.getType())) {
-                                            id = v;
-                                        } else id = v;
+                                    try {
+                                        Helper.notransact(em -> {
 
-                                        Query q = em.createQuery(sql).setParameter("i", id);
+                                            FieldInterfaced fid = ReflectionHelper.getIdField(f.getType());
 
-                                        List r = q.getResultList();
+                                            String sql = "select x from " + f.getType().getName() + " x where x." + fid.getName() + " = :i";
+
+                                            Object id = null;
+                                            if (int.class.equals(fid.getType()) || Integer.class.equals(fid.getType())) {
+                                                id = Integer.parseInt((String) v);
+                                            } else if (long.class.equals(fid.getType()) || Long.class.equals(fid.getType())) {
+                                                id = Long.parseLong((String) v);
+                                            } else if (String.class.equals(fid.getType())) {
+                                                id = v;
+                                            } else id = v;
+
+                                            Query q = em.createQuery(sql).setParameter("i", id);
+
+                                            List r = q.getResultList();
 
 
-                                        if (r.size() == 1) {
-                                            w[0] = r.get(0);
-                                            nf.setComponentError(null);
-                                        } else {
-                                            nf.setComponentError(new UserError("Not found"));
+                                            if (r.size() == 1) {
+                                                w[0] = r.get(0);
+                                                nf.setComponentError(null);
+                                            } else {
+                                                nf.setComponentError(new UserError("Not found"));
+                                            }
+
+                                        });
+                                    } catch (Throwable throwable) {
+                                        if (throwable instanceof InvocationTargetException) {
+                                            throwable = throwable.getCause();
                                         }
 
-                                    });
-                                } catch (Throwable throwable) {
-                                    if (throwable instanceof InvocationTargetException) {
-                                        throwable = throwable.getCause();
+                                        String msg = (throwable.getMessage() != null)?throwable.getMessage():throwable.getClass().getName();
+
+                                        nf.setComponentError(new UserError(msg));
+                                        MDD.alert(throwable);
                                     }
 
-                                    String msg = (throwable.getMessage() != null)?throwable.getMessage():throwable.getClass().getName();
-
-                                    nf.setComponentError(new UserError(msg));
-                                    MDD.alert(throwable);
-                                }
-
-                                try {
-                                    ReflectionHelper.setValue(f, o, w[0]);
-                                    //refrescar(col, binder, f, o, w[0], colBindings, fieldByCol);
-                                } catch (Exception e) {
-                                    MDD.alert(e);
-                                }
-
-                            }));
-                            col.setEditable(true);
-
-                        } else if (f.isAnnotationPresent(ValueClass.class) || f.isAnnotationPresent(DataProvider.class) || mdp != null || f.isAnnotationPresent(ManyToOne.class)) {
-
-                            ComboBox cb = new ComboBox();
-
-                            //AbstractBackendDataProvider
-                            //FetchItemsCallback
-                            //newItemProvider
-
-                            boolean necesitaCaptionGenerator = false;
-
-                            if (mdp != null) {
-                                // en este punto no hacemos nada
-                            } else if (f.isAnnotationPresent(ValueClass.class)) {
-
-                                ValueClass a = f.getAnnotation(ValueClass.class);
-
-                                cb.setDataProvider(new JPQLListDataProvider(a.value()));
-
-                            } else if (f.isAnnotationPresent(DataProvider.class)) {
-
-                                necesitaCaptionGenerator = true;
-
-                                try {
-
-                                    DataProvider a = f.getAnnotation(DataProvider.class);
-
-                                    ((HasDataProvider)cb).setDataProvider(a.dataProvider().newInstance());
-
-                                    cb.setItemCaptionGenerator(a.itemCaptionGenerator().newInstance());
-
-                                } catch (InstantiationException e) {
-                                    e.printStackTrace();
-                                } catch (IllegalAccessException e) {
-                                    e.printStackTrace();
-                                }
-
-                            } else {
-
-                                necesitaCaptionGenerator = true;
-
-                                try {
-                                    Helper.notransact((em) -> cb.setDataProvider(new JPQLListDataProvider(em, f)));
-                                } catch (Throwable throwable) {
-                                    throwable.printStackTrace();
-                                }
-                            }
-
-                            if (necesitaCaptionGenerator) {
-                                FieldInterfaced fName = ReflectionHelper.getNameField(f.getType());
-                                if (fName != null) cb.setItemCaptionGenerator((i) -> {
                                     try {
-                                        return "" + ReflectionHelper.getValue(fName, i);
-                                    } catch (NoSuchMethodException e) {
+                                        ReflectionHelper.setValue(f, o, w[0]);
+                                        //refrescar(col, binder, f, o, w[0], colBindings, fieldByCol);
+                                    } catch (Exception e) {
+                                        MDD.alert(e);
+                                    }
+
+                                }));
+                                col.setEditable(true);
+
+                            } else if (f.isAnnotationPresent(ValueClass.class) || f.isAnnotationPresent(DataProvider.class) || mdp != null || f.isAnnotationPresent(ManyToOne.class)) {
+
+                                ComboBox cb = new ComboBox();
+
+                                //AbstractBackendDataProvider
+                                //FetchItemsCallback
+                                //newItemProvider
+
+                                boolean necesitaCaptionGenerator = false;
+
+                                if (mdp != null) {
+                                    // en este punto no hacemos nada
+                                } else if (f.isAnnotationPresent(ValueClass.class)) {
+
+                                    ValueClass a = f.getAnnotation(ValueClass.class);
+
+                                    cb.setDataProvider(new JPQLListDataProvider(a.value()));
+
+                                } else if (f.isAnnotationPresent(DataProvider.class)) {
+
+                                    necesitaCaptionGenerator = true;
+
+                                    try {
+
+                                        DataProvider a = f.getAnnotation(DataProvider.class);
+
+                                        ((HasDataProvider)cb).setDataProvider(a.dataProvider().newInstance());
+
+                                        cb.setItemCaptionGenerator(a.itemCaptionGenerator().newInstance());
+
+                                    } catch (InstantiationException e) {
                                         e.printStackTrace();
                                     } catch (IllegalAccessException e) {
                                         e.printStackTrace();
-                                    } catch (InvocationTargetException e) {
-                                        e.printStackTrace();
                                     }
-                                    return "Error";
-                                });
-                            }
 
+                                } else {
 
-                            if (mdp != null) {
-                                grid.getEditor().addOpenListener(new EditorOpenListener() {
-                                    @Override
-                                    public void onEditorOpen(EditorOpenEvent editorOpenEvent) {
+                                    necesitaCaptionGenerator = true;
+
+                                    try {
+                                        Helper.notransact((em) -> cb.setDataProvider(new JPQLListDataProvider(em, f)));
+                                    } catch (Throwable throwable) {
+                                        throwable.printStackTrace();
+                                    }
+                                }
+
+                                if (necesitaCaptionGenerator) {
+                                    FieldInterfaced fName = ReflectionHelper.getNameField(f.getType());
+                                    if (fName != null) cb.setItemCaptionGenerator((i) -> {
                                         try {
-                                            Object object = editorOpenEvent.getBean();
-                                            cb.setDataProvider((com.vaadin.data.provider.DataProvider) mdp.invoke(object), fx -> new SerializablePredicate() {
-                                                @Override
-                                                public boolean test(Object o) {
-                                                    String s = (String) fx;
-                                                    return  o != null && (Strings.isNullOrEmpty(s) || cb.getItemCaptionGenerator().apply(o).toLowerCase().contains(((String) s).toLowerCase()));
-                                                }
-                                            });
-                                        } catch (Exception e) {
-                                            MDD.alert(e);
+                                            return "" + ReflectionHelper.getValue(fName, i);
+                                        } catch (NoSuchMethodException e) {
+                                            e.printStackTrace();
+                                        } catch (IllegalAccessException e) {
+                                            e.printStackTrace();
+                                        } catch (InvocationTargetException e) {
+                                            e.printStackTrace();
                                         }
+                                        return "Error";
+                                    });
+                                }
 
+
+                                if (mdp != null) {
+                                    grid.getEditor().addOpenListener(new EditorOpenListener() {
+                                        @Override
+                                        public void onEditorOpen(EditorOpenEvent editorOpenEvent) {
+                                            try {
+                                                Object object = editorOpenEvent.getBean();
+                                                cb.setDataProvider((com.vaadin.data.provider.DataProvider) mdp.invoke(object), fx -> new SerializablePredicate() {
+                                                    @Override
+                                                    public boolean test(Object o) {
+                                                        String s = (String) fx;
+                                                        return  o != null && (Strings.isNullOrEmpty(s) || cb.getItemCaptionGenerator().apply(o).toLowerCase().contains(((String) s).toLowerCase()));
+                                                    }
+                                                });
+                                            } catch (Exception e) {
+                                                MDD.alert(e);
+                                            }
+
+                                        }
+                                    });
+                                }
+
+                                col.setEditorComponent(cb, (o, v) -> {
+                                    try {
+                                        ReflectionHelper.setValue(f, o, v);
+                                        //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                                    } catch (Exception e) {
+                                        MDD.alert(e);
                                     }
                                 });
-                            }
 
-                            col.setEditorComponent(cb, (o, v) -> {
-                                try {
-                                    ReflectionHelper.setValue(f, o, v);
-                                    //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
-                                } catch (Exception e) {
-                                    MDD.alert(e);
-                                }
-                            });
+                                col.setEditable(true);
 
-                            col.setEditable(true);
-
-                        } else if (FareValue.class.equals(f.getType())) {
-                            TextField nf = new TextField();
-                            nf.setValueChangeMode(ValueChangeMode.EAGER);
-                            col.setEditorBinding(grid.getEditor().getBinder().forField(nf).bind(o -> ReflectionHelper.getValue(f, o, ""), (o, v) -> {
-                                try {
-                                    ReflectionHelper.setValue(f, o, (v != null)?new FareValue((String) v):null);
-                                    //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
-                                } catch (Exception e) {
-                                    MDD.alert(e);
-                                }
-                            }));
-                            col.setEditable(true);
-
-                        } else if (f.isAnnotationPresent(WeekDays.class)) {
-
-                            List<String> days = Lists.newArrayList("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su");
-
-                            col.setEditorComponent(new WeekDaysGridEditor(), (o, v) -> {
-                                try {
-                                    boolean array[] = {false, false, false, false, false, false, false};
-                                    if (v != null) {
-                                        for (int i = 0; i < days.size(); i++) if (i < array.length) array[i] = ((String)v).contains(days.get(i));
+                            } else if (FareValue.class.equals(f.getType())) {
+                                TextField nf = new TextField();
+                                nf.setValueChangeMode(ValueChangeMode.EAGER);
+                                col.setEditorBinding(grid.getEditor().getBinder().forField(nf).bind(o -> ReflectionHelper.getValue(f, o, ""), (o, v) -> {
+                                    try {
+                                        ReflectionHelper.setValue(f, o, (v != null)?new FareValue((String) v):null);
+                                        //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                                    } catch (Exception e) {
+                                        MDD.alert(e);
                                     }
-                                    ReflectionHelper.setValue(f, o, v != null?array:null);
-                                    if (binder != null) binder.refresh();
-                                } catch (Exception e) {
-                                    MDD.alert(e);
-                                }
-                            });
-                            col.setEditable(true);
-                        } else if (Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) {
-                            col.setEditorComponent(new CheckBox(), (o, v) -> {
-                                try {
-                                    ReflectionHelper.setValue(f, o, v);
-                                    if (binder != null) binder.refresh();
-                                } catch (Exception e) {
-                                    MDD.alert(e);
-                                }
-                            });
-                            col.setEditable(true);
-                        } else if (String.class.equals(f.getType())) {
-                            TextField nf = new TextField();
-                            if (eager) nf.setValueChangeMode(ValueChangeMode.EAGER);
-                            col.setEditorBinding(grid.getEditor().getBinder().forField(nf).bind(o -> ReflectionHelper.getValue(f, o, ""), (o, v) -> {
-                                try {
-                                    ReflectionHelper.setValue(f, o, v);
-                                    //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
-                                } catch (Exception e) {
-                                    MDD.alert(e);
-                                }
-                            }));
-                            col.setEditable(true);
-                        } else if (Integer.class.equals(f.getType()) || int.class.equals(f.getType())
-                                || Long.class.equals(f.getType()) || long.class.equals(f.getType())) {
+                                }));
+                                col.setEditable(true);
 
-                            TextField nf = new TextField();
-                            if (eager) nf.setValueChangeMode(ValueChangeMode.EAGER);
-                            col.setEditorBinding(grid.getEditor().getBinder().forField(nf).bind(o -> "" + ReflectionHelper.getValue(f, o, ""), (o, v) -> {
-                                try {
-                                    ReflectionHelper.setValue(f, o, v);
-                                    //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
-                                } catch (Exception e) {
-                                    MDD.alert(e);
-                                }
-                            }));
-                            col.setEditable(true);
-                        } else if (Double.class.equals(f.getType()) || double.class.equals(f.getType())) {
+                            } else if (f.isAnnotationPresent(WeekDays.class)) {
 
-                            TextField nf = new TextField();
-                            if (eager) nf.setValueChangeMode(ValueChangeMode.EAGER);
-                            col.setEditorBinding(grid.getEditor().getBinder().forField(nf).bind(o -> "" + ReflectionHelper.getValue(f, o, ""), (o, v) -> {
-                                try {
-                                    ReflectionHelper.setValue(f, o, v);
-                                    //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
-                                } catch (Exception e) {
-                                    MDD.alert(e);
-                                }
-                            }));
-                            col.setEditable(true);
-                        } else if (LocalDate.class.equals(f.getType())) {
+                                List<String> days = Lists.newArrayList("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su");
 
-                            DateField nf = new DateField();
-                            col.setEditorBinding(grid.getEditor().getBinder().forField(nf).bind(o -> ReflectionHelper.getValue(f, o, null), (o, v) -> {
-                                try {
-                                    ReflectionHelper.setValue(f, o, v);
-                                    //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
-                                } catch (Exception e) {
-                                    MDD.alert(e);
-                                }
-                            }));
-                            col.setEditable(true);
-                        } else if (LocalDateTime.class.equals(f.getType())) {
+                                col.setEditorComponent(new WeekDaysGridEditor(), (o, v) -> {
+                                    try {
+                                        boolean array[] = {false, false, false, false, false, false, false};
+                                        if (v != null) {
+                                            for (int i = 0; i < days.size(); i++) if (i < array.length) array[i] = ((String)v).contains(days.get(i));
+                                        }
+                                        ReflectionHelper.setValue(f, o, v != null?array:null);
+                                        if (binder != null) binder.refresh();
+                                    } catch (Exception e) {
+                                        MDD.alert(e);
+                                    }
+                                });
+                                col.setEditable(true);
+                            } else if (Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) {
+                                col.setEditorComponent(new CheckBox(), (o, v) -> {
+                                    try {
+                                        ReflectionHelper.setValue(f, o, v);
+                                        if (binder != null) binder.refresh();
+                                    } catch (Exception e) {
+                                        MDD.alert(e);
+                                    }
+                                });
+                                col.setEditable(true);
+                            } else if (String.class.equals(f.getType())) {
+                                TextField nf = new TextField();
+                                if (eager) nf.setValueChangeMode(ValueChangeMode.EAGER);
+                                col.setEditorBinding(grid.getEditor().getBinder().forField(nf).bind(o -> ReflectionHelper.getValue(f, o, ""), (o, v) -> {
+                                    try {
+                                        ReflectionHelper.setValue(f, o, v);
+                                        //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                                    } catch (Exception e) {
+                                        MDD.alert(e);
+                                    }
+                                }));
+                                col.setEditable(true);
+                            } else if (Integer.class.equals(f.getType()) || int.class.equals(f.getType())
+                                    || Long.class.equals(f.getType()) || long.class.equals(f.getType())) {
 
-                            DateTimeField nf = new DateTimeField();
-                            col.setEditorBinding(grid.getEditor().getBinder().forField(nf).bind(o -> ReflectionHelper.getValue(f, o, null), (o, v) -> {
-                                try {
-                                    ReflectionHelper.setValue(f, o, v);
-                                    //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
-                                } catch (Exception e) {
-                                    MDD.alert(e);
-                                }
-                            }));
-                            col.setEditable(true);
-                        } else if (LocalTime.class.equals(f.getType())) {
+                                TextField nf = new TextField();
+                                if (eager) nf.setValueChangeMode(ValueChangeMode.EAGER);
+                                col.setEditorBinding(grid.getEditor().getBinder().forField(nf).bind(o -> "" + ReflectionHelper.getValue(f, o, ""), (o, v) -> {
+                                    try {
+                                        ReflectionHelper.setValue(f, o, v);
+                                        //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                                    } catch (Exception e) {
+                                        MDD.alert(e);
+                                    }
+                                }));
+                                col.setEditable(true);
+                            } else if (Double.class.equals(f.getType()) || double.class.equals(f.getType())) {
 
-                            TextField nf = new TextField();
-                            col.setEditorBinding(grid.getEditor().getBinder().forField(nf).bind(o -> "" + ReflectionHelper.getValue(f, o, ""), (o, v) -> {
-                                try {
-                                    LocalTime t = null;
-                                    if (v != null && v instanceof String) {
-                                        String s = (String) v;
-                                        if (!"".equals(s)) {
-                                            try {
-                                                t = LocalTime.parse(s, DateTimeFormatter.ofPattern("HHmm"));
-                                            } catch (Exception e1) {
+                                TextField nf = new TextField();
+                                if (eager) nf.setValueChangeMode(ValueChangeMode.EAGER);
+                                col.setEditorBinding(grid.getEditor().getBinder().forField(nf).bind(o -> "" + ReflectionHelper.getValue(f, o, ""), (o, v) -> {
+                                    try {
+                                        ReflectionHelper.setValue(f, o, v);
+                                        //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                                    } catch (Exception e) {
+                                        MDD.alert(e);
+                                    }
+                                }));
+                                col.setEditable(true);
+                            } else if (LocalDate.class.equals(f.getType())) {
+
+                                DateField nf = new DateField();
+                                col.setEditorBinding(grid.getEditor().getBinder().forField(nf).bind(o -> ReflectionHelper.getValue(f, o, null), (o, v) -> {
+                                    try {
+                                        ReflectionHelper.setValue(f, o, v);
+                                        //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                                    } catch (Exception e) {
+                                        MDD.alert(e);
+                                    }
+                                }));
+                                col.setEditable(true);
+                            } else if (LocalDateTime.class.equals(f.getType())) {
+
+                                DateTimeField nf = new DateTimeField();
+                                col.setEditorBinding(grid.getEditor().getBinder().forField(nf).bind(o -> ReflectionHelper.getValue(f, o, null), (o, v) -> {
+                                    try {
+                                        ReflectionHelper.setValue(f, o, v);
+                                        //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                                    } catch (Exception e) {
+                                        MDD.alert(e);
+                                    }
+                                }));
+                                col.setEditable(true);
+                            } else if (LocalTime.class.equals(f.getType())) {
+
+                                TextField nf = new TextField();
+                                col.setEditorBinding(grid.getEditor().getBinder().forField(nf).bind(o -> "" + ReflectionHelper.getValue(f, o, ""), (o, v) -> {
+                                    try {
+                                        LocalTime t = null;
+                                        if (v != null && v instanceof String) {
+                                            String s = (String) v;
+                                            if (!"".equals(s)) {
                                                 try {
-                                                    t = LocalTime.parse(s, DateTimeFormatter.ofPattern("HH:mm"));
-                                                } catch (Exception e2) {
+                                                    t = LocalTime.parse(s, DateTimeFormatter.ofPattern("HHmm"));
+                                                } catch (Exception e1) {
                                                     try {
-                                                        t = LocalTime.parse(s, DateTimeFormatter.ofPattern("HH.mm"));
-                                                    } catch (Exception e3) {
+                                                        t = LocalTime.parse(s, DateTimeFormatter.ofPattern("HH:mm"));
+                                                    } catch (Exception e2) {
+                                                        try {
+                                                            t = LocalTime.parse(s, DateTimeFormatter.ofPattern("HH.mm"));
+                                                        } catch (Exception e3) {
 
+                                                        }
                                                     }
                                                 }
                                             }
                                         }
+                                        ReflectionHelper.setValue(f, o, t);
+                                        //refrescar(col, binder, f, o, t, colBindings, fieldByCol);
+                                    } catch (Exception e) {
+                                        MDD.alert(e);
                                     }
-                                    ReflectionHelper.setValue(f, o, t);
-                                    //refrescar(col, binder, f, o, t, colBindings, fieldByCol);
-                                } catch (Exception e) {
-                                    MDD.alert(e);
-                                }
-                            }));
-                            col.setEditable(true);
-                        } else if (f.getType().isEnum()) {
+                                }));
+                                col.setEditable(true);
+                            } else if (f.getType().isEnum()) {
 
-                            ComboBox tf = new ComboBox();
+                                ComboBox tf = new ComboBox();
 
-                            tf.setDataProvider(new ListDataProvider(Arrays.asList(f.getType().getEnumConstants())));
+                                tf.setDataProvider(new ListDataProvider(Arrays.asList(f.getType().getEnumConstants())));
 
-                            col.setEditorComponent(tf, (o, v) -> {
-                                try {
-                                    ReflectionHelper.setValue(f, o, v);
-                                    //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
-                                } catch (Exception e) {
-                                    MDD.alert(e);
-                                }
-                            });
-                            col.setEditable(true);
+                                col.setEditorComponent(tf, (o, v) -> {
+                                    try {
+                                        ReflectionHelper.setValue(f, o, v);
+                                        //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                                    } catch (Exception e) {
+                                        MDD.alert(e);
+                                    }
+                                });
+                                col.setEditable(true);
+
+                            }
 
                         }
 
-                    }
+
+                        //todo: acabar
 
 
-                    //todo: acabar
+                        }
+
+
                 }
 
                 colBindings.add(col);
@@ -821,6 +838,274 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         }
 
 
+    }
+
+    private static void setEditorAsRenderer(Grid.Column col, FieldInterfaced f, boolean eager, Grid grid, MDDBinder binder, FieldInterfaced collectionField) {
+        Method mdp = ReflectionHelper.getMethod(f.getDeclaringClass(), ReflectionHelper.getGetter(f.getName()) + "DataProvider");
+
+        Setter setter = (o, v) -> {
+            try {
+                ReflectionHelper.setValue(f, o, v);
+                //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                ReflectionHelper.setValue(collectionField, binder.getBean(), ReflectionHelper.getValue(collectionField, binder.getBean()));
+                binder.refresh();
+            } catch (Exception e) {
+                MDD.alert(e);
+            }
+        };
+
+        if (f.getType().isAnnotationPresent(UseIdToSelect.class)) {
+           col.setRenderer(o -> {
+               Object id = null;
+               if (o != null) {
+                   id = ReflectionHelper.getId(o);
+               } // else stf.setValue("");
+               return (id != null)?"" + id:"";
+           }, new TextFieldRenderer((o, v) -> {
+
+               Object[] w = {null};
+
+               try {
+                   Helper.notransact(em -> {
+
+                       FieldInterfaced fid = ReflectionHelper.getIdField(f.getType());
+
+                       String sql = "select x from " + f.getType().getName() + " x where x." + fid.getName() + " = :i";
+
+                       Object id = null;
+                       if (int.class.equals(fid.getType()) || Integer.class.equals(fid.getType())) {
+                           id = Integer.parseInt((String) v);
+                       } else if (long.class.equals(fid.getType()) || Long.class.equals(fid.getType())) {
+                           id = Long.parseLong((String) v);
+                       } else if (String.class.equals(fid.getType())) {
+                           id = v;
+                       } else id = v;
+
+                       Query q = em.createQuery(sql).setParameter("i", id);
+
+                       List r = q.getResultList();
+
+
+                       if (r.size() == 1) {
+                           w[0] = r.get(0);
+                           //setComponentError(null);
+                       } else {
+                           //setComponentError(new UserError("Not found"));
+                           MDD.alert("Not found");
+                       }
+
+                   });
+               } catch (Throwable throwable) {
+                   if (throwable instanceof InvocationTargetException) {
+                       throwable = throwable.getCause();
+                   }
+
+                   String msg = (throwable.getMessage() != null)?throwable.getMessage():throwable.getClass().getName();
+
+                   //nf.setComponentError(new UserError(msg));
+                   MDD.alert(throwable);
+               }
+
+               try {
+                   ReflectionHelper.setValue(f, o, w[0]);
+                   //refrescar(col, binder, f, o, w[0], colBindings, fieldByCol);
+               } catch (Exception e) {
+                   MDD.alert(e);
+               }
+
+           }));
+
+        } else if (f.isAnnotationPresent(ValueClass.class) || f.isAnnotationPresent(DataProvider.class) || mdp != null || f.isAnnotationPresent(ManyToOne.class)) {
+
+            /*
+            ComboBox cb = new ComboBox();
+
+            //AbstractBackendDataProvider
+            //FetchItemsCallback
+            //newItemProvider
+
+            boolean necesitaCaptionGenerator = false;
+
+            if (mdp != null) {
+                // en este punto no hacemos nada
+            } else if (f.isAnnotationPresent(ValueClass.class)) {
+
+                ValueClass a = f.getAnnotation(ValueClass.class);
+
+                cb.setDataProvider(new JPQLListDataProvider(a.value()));
+
+            } else if (f.isAnnotationPresent(DataProvider.class)) {
+
+                necesitaCaptionGenerator = true;
+
+                try {
+
+                    DataProvider a = f.getAnnotation(DataProvider.class);
+
+                    ((HasDataProvider)cb).setDataProvider(a.dataProvider().newInstance());
+
+                    cb.setItemCaptionGenerator(a.itemCaptionGenerator().newInstance());
+
+                } catch (InstantiationException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+
+            } else {
+
+                necesitaCaptionGenerator = true;
+
+                try {
+                    Helper.notransact((em) -> cb.setDataProvider(new JPQLListDataProvider(em, f)));
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
+                }
+            }
+
+            if (necesitaCaptionGenerator) {
+                FieldInterfaced fName = ReflectionHelper.getNameField(f.getType());
+                if (fName != null) cb.setItemCaptionGenerator((i) -> {
+                    try {
+                        return "" + ReflectionHelper.getValue(fName, i);
+                    } catch (NoSuchMethodException e) {
+                        e.printStackTrace();
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+                    return "Error";
+                });
+            }
+
+
+            if (mdp != null) {
+                grid.getEditor().addOpenListener(new EditorOpenListener() {
+                    @Override
+                    public void onEditorOpen(EditorOpenEvent editorOpenEvent) {
+                        try {
+                            Object object = editorOpenEvent.getBean();
+                            cb.setDataProvider((com.vaadin.data.provider.DataProvider) mdp.invoke(object), fx -> new SerializablePredicate() {
+                                @Override
+                                public boolean test(Object o) {
+                                    String s = (String) fx;
+                                    return  o != null && (Strings.isNullOrEmpty(s) || cb.getItemCaptionGenerator().apply(o).toLowerCase().contains(((String) s).toLowerCase()));
+                                }
+                            });
+                        } catch (Exception e) {
+                            MDD.alert(e);
+                        }
+
+                    }
+                });
+            }
+
+
+             */
+
+            col.setRenderer(new SimpleSelectRenderer((o, v) -> {
+                try {
+                    ReflectionHelper.setValue(f, o, v);
+                    //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                } catch (Exception e) {
+                    MDD.alert(e);
+                }
+            }, new ArrayList()));
+
+        } else if (FareValue.class.equals(f.getType())) {
+
+            col.setRenderer(o -> ReflectionHelper.getValue(f, o, ""), new TextFieldRenderer((o, v) -> {
+                try {
+                    ReflectionHelper.setValue(f, o, (v != null)?new FareValue((String) v):null);
+                    //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                } catch (Exception e) {
+                    MDD.alert(e);
+                }
+            }));
+
+        } else if (f.isAnnotationPresent(WeekDays.class)) {
+
+            List<String> days = Lists.newArrayList("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su");
+
+            /*
+
+            col.setEditorComponent(new WeekDaysGridEditor(), (o, v) -> {
+                try {
+                    boolean array[] = {false, false, false, false, false, false, false};
+                    if (v != null) {
+                        for (int i = 0; i < days.size(); i++) if (i < array.length) array[i] = ((String)v).contains(days.get(i));
+                    }
+                    ReflectionHelper.setValue(f, o, v != null?array:null);
+                    if (binder != null) binder.refresh();
+                } catch (Exception e) {
+                    MDD.alert(e);
+                }
+            });
+            col.setEditable(true);
+
+             */
+        } else if (Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) {
+            col.setRenderer(new CheckboxRenderer(setter));
+        } else if (String.class.equals(f.getType())) {
+            TextFieldRenderer r;
+            col.setRenderer(r = new TextFieldRenderer(setter));
+            r.setConverter(new DummyConverter());
+        } else if (Integer.class.equals(f.getType()) || int.class.equals(f.getType())
+                || Long.class.equals(f.getType()) || long.class.equals(f.getType())) {
+            TextFieldRenderer r;
+            col.setRenderer(r = new TextFieldRenderer(setter));
+            r.setConverter(new DummyConverter());
+        } else if (Double.class.equals(f.getType()) || double.class.equals(f.getType())) {
+            TextFieldRenderer r;
+            col.setRenderer(r = new TextFieldRenderer(setter));
+            r.setConverter(new DummyConverter());
+        } else if (LocalDate.class.equals(f.getType())) {
+            TextFieldRenderer r;
+            col.setRenderer(r = new TextFieldRenderer(setter));
+            r.setConverter(new DummyConverter(null));
+        } else if (LocalDateTime.class.equals(f.getType())) {
+            TextFieldRenderer r;
+            col.setRenderer(r = new TextFieldRenderer(setter));
+            r.setConverter(new DummyConverter(null));
+        } else if (LocalTime.class.equals(f.getType())) {
+            col.setRenderer(o -> "" + ReflectionHelper.getValue(f, o, ""), new DateFieldRenderer((o, v) -> {
+                try {
+                    LocalTime t = null;
+                    if (v != null && v instanceof String) {
+                        String s = (String) v;
+                        if (!"".equals(s)) {
+                            try {
+                                t = LocalTime.parse(s, DateTimeFormatter.ofPattern("HHmm"));
+                            } catch (Exception e1) {
+                                try {
+                                    t = LocalTime.parse(s, DateTimeFormatter.ofPattern("HH:mm"));
+                                } catch (Exception e2) {
+                                    try {
+                                        t = LocalTime.parse(s, DateTimeFormatter.ofPattern("HH.mm"));
+                                    } catch (Exception e3) {
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    ReflectionHelper.setValue(f, o, t);
+                    //refrescar(col, binder, f, o, t, colBindings, fieldByCol);
+                } catch (Exception e) {
+                    MDD.alert(e);
+                }
+            }));
+        } else if (f.getType().isEnum()) {
+            col.setRenderer(new SimpleSelectRenderer((o, v) -> {
+                try {
+                    ReflectionHelper.setValue(f, o, v);
+                    //refrescar(col, binder, f, o, v, colBindings, fieldByCol);
+                } catch (Exception e) {
+                    MDD.alert(e);
+                }
+            }, Arrays.asList(f.getType().getEnumConstants())));
+        }
     }
 
     private static void refrescar(Grid.Column col, MDDBinder binder, FieldInterfaced f, Object o, Object v, List<Grid.Column> colBindings, Map<Grid.Column, FieldInterfaced> fieldByCol) {

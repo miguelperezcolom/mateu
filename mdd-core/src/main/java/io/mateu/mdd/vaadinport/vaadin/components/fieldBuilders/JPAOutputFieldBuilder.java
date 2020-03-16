@@ -13,6 +13,7 @@ import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.DataProvider;
 import io.mateu.mdd.core.annotations.FullWidth;
+import io.mateu.mdd.core.annotations.Money;
 import io.mateu.mdd.core.annotations.UseTable;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.MDDBinder;
@@ -28,6 +29,7 @@ import org.javamoney.moneta.FastMoney;
 import javax.money.MonetaryAmount;
 import javax.persistence.Entity;
 import java.lang.reflect.Method;
+import java.text.DecimalFormat;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -302,6 +304,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
             @Override
             protected void doSetValue(Object o) {
                 v = o;
+                if (field.isAnnotationPresent(Money.class)) o = new DecimalFormat("##,###,###,###,###,###.00").format(o != null?o:0);
                 tf.setValue((o != null)?objectToString(o):"None");
                 if (botonLink != null) {
                     tf.setVisible(o == null);

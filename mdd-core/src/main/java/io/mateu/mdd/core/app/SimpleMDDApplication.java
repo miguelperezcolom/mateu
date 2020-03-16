@@ -192,7 +192,7 @@ public class SimpleMDDApplication extends BaseMDDApp {
                             public void run() {
                                 try {
 
-                                    MDDUI.get().getNavegador().getViewProvider().callMethod(null, m, app, null);
+                                    MDDUI.get().getNavegador().getViewProvider().callMethod(null, m, app, null, true);
 
                                 } catch (Throwable e) {
                                     MDD.alert(e);

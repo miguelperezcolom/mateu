@@ -55,6 +55,7 @@ public class VaadinHelper {
         VerticalLayout vl = new VerticalLayout();
 
         Map<String, Object> model = new HashMap<>();
+        binder.setBean(model);
 
         Map<HasValue, List<Validator>> validators = new HashMap<>();
 
@@ -125,6 +126,7 @@ public class VaadinHelper {
         VerticalLayout vl = new VerticalLayout();
 
         Map<String, Object> model = new HashMap<>();
+        binder.setBean(model);
 
         Map<HasValue, List<Validator>> validators = new HashMap<>();
 
@@ -177,6 +179,7 @@ public class VaadinHelper {
         VerticalLayout vl = new VerticalLayout();
 
         Map<String, Object> model = new HashMap<>();
+        binder.setBean(model);
 
         Map<HasValue, List<Validator>> validators = new HashMap<>();
 

@@ -1,5 +1,6 @@
 package io.mateu.mdd.tester.app.erp;
 
+import com.google.common.base.Strings;
 import io.mateu.mdd.core.annotations.*;
 import lombok.MateuMDDEntity;
 
@@ -19,8 +20,15 @@ public class Reserva {
     @NotEmpty
     private String leadName;
 
+    public boolean isLeadNameVisible() {
+        return true;
+    }
+
     @TextArea
     private String comentarios;
+
+    @VisibleIf("!!$this.comentarios")
+    private boolean comentariosPrivados;
 
     @KPI
     private String estado;

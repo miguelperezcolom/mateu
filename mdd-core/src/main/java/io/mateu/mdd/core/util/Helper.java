@@ -66,10 +66,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMultipart;
 import javax.money.MonetaryAmount;
 import javax.persistence.*;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
+import javax.script.*;
 import javax.sql.DataSource;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
@@ -102,6 +99,9 @@ public class Helper {
     public static boolean propertiesLoaded = false;
     private static org.apache.avalon.framework.configuration.Configuration fopConfig;
     private static Map<String, JinqJPAStreamProvider> streams = new HashMap<>();
+    private static ScriptEngineManager scriptEngineManager;
+
+
 
     static {
         loadProperties();
@@ -117,6 +117,7 @@ public class Helper {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        scriptEngineManager = new ScriptEngineManager(ClassLoader.getSystemClassLoader());
     }
 
     static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
@@ -1836,19 +1837,48 @@ public class Helper {
     }
 
     public static String eval(String operations) {
+        return eval("nashorn", operations, null);
+    }
 
-        ScriptEngine engine = new ScriptEngineManager().getEngineByName("javascript");
+    public static String eval(String engineName, String operations, Map<String, Object> params) {
+
+        long t0 = System.currentTimeMillis();
+
+        /*
+        // Get the list of all available engines
+        List<ScriptEngineFactory> list = manager.getEngineFactories();
+
+        // Print the details of each engine
+        for (ScriptEngineFactory f : list) {
+            System.out.println("Engine Name:" + f.getEngineName());
+            System.out.println("Engine Version:" + f.getEngineVersion());
+            System.out.println("Language Name:" + f.getLanguageName());
+            System.out.println("Language Version:" + f.getLanguageVersion());
+            System.out.println("Engine Short Names:" + f.getNames());
+            System.out.println("Mime Types:" + f.getMimeTypes());
+            System.out.println("===");
+        }
+         */
+        
+        ScriptEngine engine = scriptEngineManager.getEngineByName(engineName);
+        //System.out.println("engine.eval('" + operations + "') instantiating engine took " + (System.currentTimeMillis() - t0) + "ms");
+
         ScriptContext context = engine.getContext();
+        if (params != null) params.forEach((k,v) -> engine.put(k, v));
         StringWriter writer = new StringWriter();
         context.setWriter(writer);
 
+        long t1 = System.currentTimeMillis();
         try {
             writer.append("" + engine.eval(operations));
         } catch (ScriptException e) {
             writer.append(e.getMessage());
         }
+        //System.out.println("engine.eval('" + operations + "') took " + (System.currentTimeMillis() - t1) + "ms");
 
         String output = writer.toString();
+
+        //System.out.println("eval('" + operations + "') took " + (System.currentTimeMillis() - t0) + "ms");
         return output;
     }
 

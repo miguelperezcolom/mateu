@@ -33,7 +33,7 @@ public class AreaReservas extends AbstractArea {
 
                 l.add(new MDDOpenCRUDAction("Agencias", Agencia.class).setColumns("nombre(130),localidad.nombre as 'Localidad'(130),central.nombre as 'Central',del,al"));
 
-                l.add(new MDDMenu("Reservas", "Reservas", new MDDOpenCRUDAction(Reserva.class).setColumns("agencia.nombre,agencia.localidad,leadName,estado,total")));
+                l.add(new MDDMenu("Reservas", "Reservas", new MDDOpenCRUDAction(Reserva.class).setColumns("agencia.nombre,agencia.localidad,leadName,estado,total"), "Markups", Markup.class));
 
                 l.add(new MDDOpenEditorAction("JPQL", new JPQLTester()));
 
