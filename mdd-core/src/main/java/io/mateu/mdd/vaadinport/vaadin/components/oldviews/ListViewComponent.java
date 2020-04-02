@@ -1188,11 +1188,27 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
 
     public Object getPrevious(Object current) {
-        return toId(resultsComponent.getPrevious());
+        Object x = resultsComponent.getPrevious();
+        if (getView().getViewComponent() instanceof RpcListViewComponent && ((RpcListViewComponent) getView().getViewComponent()).getRpcListView() instanceof AbstractJPQLListView) {
+            try {
+                return ReflectionHelper.getId(((RpcListViewComponent) getView().getViewComponent()).getRpcListView().onEdit(x));
+            } catch (Throwable throwable) {
+                MDD.alert(throwable);
+            }
+        }
+        return toId(x);
     }
 
     public Object getNext(Object current) {
-        return toId(resultsComponent.getNext());
+        Object x = resultsComponent.getNext();
+        if (getView().getViewComponent() instanceof RpcListViewComponent && ((RpcListViewComponent) getView().getViewComponent()).getRpcListView() instanceof AbstractJPQLListView) {
+            try {
+                return ReflectionHelper.getId(((RpcListViewComponent) getView().getViewComponent()).getRpcListView().onEdit(x));
+            } catch (Throwable throwable) {
+                MDD.alert(throwable);
+            }
+        }
+        return toId(x);
     }
 
 

@@ -165,7 +165,7 @@ public class JPAListViewComponent extends ListViewComponent {
         columnIds = new ArrayList<>();
         int pos = 0;
         for (String n : columnNames) {
-            String colId = "col_" + pos++; 
+            String colId = "col" + pos++;
             columnIds.add(colId);
             aliasedColumnNamesByColId.put(colId, aliasedColumnNames.get(n));
             if (pos > 1) fieldsByColId.put(colId, fieldsByColumnName.get(n));
@@ -433,7 +433,9 @@ public class JPAListViewComponent extends ListViewComponent {
     }
 
     private int getColumnIndex(String columnId) {
-        return aliasedColumnNamesList.indexOf(columnId);
+        int i = aliasedColumnNamesList.indexOf(columnId);
+        if (i < 0 && columnId.startsWith("col")) i = Integer.parseInt(columnId.substring("col".length()));
+        return i;
     }
 
     private void createAliases(Class sourceType, List<String> paths, Map<String, FieldInterfaced> fieldsByPath, Map<String, String> alias, Map<String, String> aliasedColumnNames, List<String> aliasedColumnNamesList) {

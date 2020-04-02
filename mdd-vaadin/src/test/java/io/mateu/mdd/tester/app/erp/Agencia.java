@@ -10,6 +10,7 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
 import lombok.MateuMDDEntity;
 
+import javax.persistence.CascadeType;
 import javax.persistence.ManyToOne;
 import javax.persistence.PostPersist;
 import javax.persistence.PostUpdate;
@@ -46,6 +47,9 @@ public class Agencia implements HasHeader {
     @KPI
     private String kpi = "" + (System.currentTimeMillis() % 1000);
 
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    private OfficeSerial serial;
 
     @Override
     public Header getHeader() {
