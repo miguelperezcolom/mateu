@@ -814,8 +814,14 @@ public class MDDViewProvider implements ViewProvider {
 
         if (v != null && v.isOpenNewWindow()) {
             MDDUI.get().openInWindow(v);
+            if (v != null && v.getViewComponent() != null && v.getViewComponent() instanceof EditorViewComponent && ((EditorViewComponent)v.getViewComponent()).getBeforeOpen() != null) {
+                ((EditorViewComponent)v.getViewComponent()).getBeforeOpen().run();
+            }
             return null;
         } else {
+            if (v != null && v.getViewComponent() != null && v.getViewComponent() instanceof EditorViewComponent && ((EditorViewComponent)v.getViewComponent()).getBeforeOpen() != null) {
+                ((EditorViewComponent)v.getViewComponent()).getBeforeOpen().run();
+            }
             return v == null || v.getWindowContainer() == null?v:null;
         }
     }
@@ -1126,18 +1132,21 @@ public class MDDViewProvider implements ViewProvider {
             } else {
 
                 EditorViewComponent evc = new EditorViewComponent(lvc, lvc.getModelType());
-                try {
 
-                    if (Strings.isNullOrEmpty(step) || "new".equals(step)) { // estamos añadiendo un nuevo registro
-                        evc.load(null);
-                    } else { // step es el id del objeto a editar
-                        String sid = URLDecoder.decode(Helper.decodeState(step), "iso-8859-1");
-                        evc.load(lvc.deserializeId(sid));
+                evc.setBeforeOpen(() -> {
+                    try {
+
+                        if (Strings.isNullOrEmpty(step) || "new".equals(step)) { // estamos añadiendo un nuevo registro
+                            evc.load(null);
+                        } else { // step es el id del objeto a editar
+                            String sid = URLDecoder.decode(Helper.decodeState(step), "iso-8859-1");
+                            evc.load(lvc.deserializeId(sid));
+                        }
+
+                    } catch (Throwable throwable) {
+                        throwable.printStackTrace();
                     }
-
-                } catch (Throwable throwable) {
-                    throwable.printStackTrace();
-                }
+                });
 
                 evc.addEditorListener(new EditorListener() {
                     @Override

@@ -81,6 +81,16 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private Map<String, List<AbstractAction>> actionsPerField = new HashMap<>();
     private BindedWindow creatorWindow;
 
+    private Runnable beforeOpen;
+
+    public Runnable getBeforeOpen() {
+        return beforeOpen;
+    }
+
+    public void setBeforeOpen(Runnable beforeOpen) {
+        this.beforeOpen = beforeOpen;
+    }
+
     public BindedWindow getCreatorWindow() {
         return creatorWindow;
     }
@@ -1501,4 +1511,5 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     public void setCreatorWindow(BindedWindow creatorWindow) {
         this.creatorWindow = creatorWindow;
     }
+
 }
