@@ -53,7 +53,6 @@ public class EmailHelper {
 
         System.out.println("Sending email to " + toEmail);
         System.out.println("Subject: " + subject);
-        System.out.println("Text: " + text);
 
 
         String finalSubject = subject;
@@ -65,6 +64,13 @@ public class EmailHelper {
                 AppConfig c = AppConfig.get(em);
 
                 if (checkAppConfigForSMTP(c)) {
+
+                    System.out.println("Host: " + c.getAdminEmailSmtpHost());
+                    System.out.println("Port: " + c.getAdminEmailSmtpPort());
+                    System.out.println("User: " + c.getAdminEmailUser());
+                    System.out.println("Password: " + c.getAdminEmailPassword());
+                    System.out.println("From: " + c.getAdminEmailFrom());
+
                     HtmlEmail email = new HtmlEmail();
                     email.setHostName(c.getAdminEmailSmtpHost());
                     email.setSmtpPort(c.getAdminEmailSmtpPort());
@@ -106,6 +112,7 @@ public class EmailHelper {
             if (mock != null) mock.send(email);
 
         } else {
+
             email.send();
 
             System.out.println("******* Email sent");
@@ -131,6 +138,9 @@ public class EmailHelper {
         //send("miguel@quotravel.eu", "demo@quotravel.eu", "antonia123", "mail.quotravel.eu", 25);
 
 
+        send("miguelperezcolom@gmail.com", "quonext-tur@outlook.com", "Quonext123", "smtp.office365.com", 587, false);
+
+
     }
 
     private static void send(String a, String de, String pwd, String host, int port, boolean ssl) throws EmailException {
@@ -148,20 +158,21 @@ public class EmailHelper {
 
 
         } else {
-            Email email = new SimpleEmail();
-            //email.setHostName("smtp.googlemail.com");
-            //email.setSmtpPort(465);
+
+            HtmlEmail email = new HtmlEmail();
             email.setHostName(host);
             email.setSmtpPort(port);
             email.setAuthenticator(new DefaultAuthenticator(de, pwd));
-            //email.setSSLOnConnect(ssl);
+            email.setSSLOnConnect(false);
             email.setStartTLSEnabled(true);
             email.setFrom(de);
-            email.setSubject("TestMail 2");
+            email.setSubject("TestMail 3");
+            //email.setMsg(io.mateu.ui.mdd.server.util.Helper.freemark(template, getData()));
+            email.setHtmlMsg("This is a test mail ... :-)");
             email.setCharset("utf-8");
-            email.setMsg("This is a test mail ... :-)");
-            email.addTo(a);
-            email.send();
+            email.addTo((!Strings.isNullOrEmpty(System.getProperty("allemailsto")))?System.getProperty("allemailsto"):a);
+
+            EmailHelper.send(email);
 
             System.out.println("sent");
         }
