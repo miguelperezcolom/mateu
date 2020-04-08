@@ -173,16 +173,23 @@ public class MDDViewProvider implements ViewProvider {
 
                 log.debug("state = " + state);
 
-                Map<String, String> params = Helper.parseQueryString(Page.getCurrent().getLocation().getQuery());
+                if (MDD.getUserData() == null) {
 
-                if (params.containsKey("code")) {
-                    try {
-                        MDD.setUserData(OAuthHelper.getUserDataFromGitHubCode(params.get("code")));
-                    } catch (Throwable throwable) {
-                        MDD.alert(throwable);
+                    Map<String, String> params = Helper.parseQueryString(Page.getCurrent().getLocation().getQuery());
+
+                    if (params.containsKey("code")) {
+                        try {
+                            MDD.setUserData(OAuthHelper.getUserDataFromGitHubCode(params.get("code")));
+                            state = "welcome";
+                        } catch (Throwable throwable) {
+                            v = new ProblemView(stack, "Error during authentication", throwable);
+                        }
                     }
+
+                } else {
                     state = "welcome";
                 }
+
 
             } else if ("oauth/google/callback".equalsIgnoreCase(state)) {
 
@@ -190,14 +197,20 @@ public class MDDViewProvider implements ViewProvider {
 
                 log.debug("state = " + state);
 
-                Map<String, String> params = Helper.parseQueryString(Page.getCurrent().getLocation().getQuery());
+                if (MDD.getUserData() == null) {
 
-                if (params.containsKey("code")) {
-                    try {
-                        MDD.setUserData(OAuthHelper.getUserDataFromGoogleCode(params.get("code")));
-                    } catch (Throwable throwable) {
-                        MDD.alert(throwable);
+                    Map<String, String> params = Helper.parseQueryString(Page.getCurrent().getLocation().getQuery());
+
+                    if (params.containsKey("code")) {
+                        try {
+                            MDD.setUserData(OAuthHelper.getUserDataFromGoogleCode(params.get("code")));
+                            state = "welcome";
+                        } catch (Throwable throwable) {
+                            v = new ProblemView(stack, "Error during authentication", throwable);
+                        }
                     }
+
+                } else {
                     state = "welcome";
                 }
 
@@ -207,17 +220,22 @@ public class MDDViewProvider implements ViewProvider {
 
                 log.debug("state = " + state);
 
-                Map<String, String> params = Helper.parseQueryString(Page.getCurrent().getLocation().getQuery());
+                if (MDD.getUserData() == null) {
 
-                if (params.containsKey("code")) {
-                    try {
-                        MDD.setUserData(OAuthHelper.getUserDataFromMicrosoftCode(params.get("code")));
-                    } catch (Throwable throwable) {
-                        MDD.alert(throwable);
+                    Map<String, String> params = Helper.parseQueryString(Page.getCurrent().getLocation().getQuery());
+
+                    if (params.containsKey("code")) {
+                        try {
+                            MDD.setUserData(OAuthHelper.getUserDataFromMicrosoftCode(params.get("code")));
+                            state = "welcome";
+                        } catch (Throwable throwable) {
+                            v = new ProblemView(stack, "Error during authentication", throwable);
+                        }
                     }
+
+                } else {
                     state = "welcome";
                 }
-
 
             }
 
@@ -231,7 +249,7 @@ public class MDDViewProvider implements ViewProvider {
                     log.debug("-->going to (" + MDD.getApp().getBaseUrl() + "app/" + newState + ")");
 
                     Page.getCurrent().open(MDD.getApp().getBaseUrl() + "app/" + newState, null);
-                    return null;
+                    return new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new WelcomeComponent());
                 } else if (MDD.getApp().getDefaultPrivateArea().getDefaultAction() != null) {
                     String newState = MDD.getApp().getMenuId(MDD.getApp().getDefaultPrivateArea().getDefaultAction());
                     if (!Strings.isNullOrEmpty(newState)) {
@@ -243,7 +261,7 @@ public class MDDViewProvider implements ViewProvider {
                     } else {
                         Page.getCurrent().open(MDD.getApp().getBaseUrl() + "app/", null);
                     }
-                    return null;
+                    return new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new WelcomeComponent());
                 }
             }
 

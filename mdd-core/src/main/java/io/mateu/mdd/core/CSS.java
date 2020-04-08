@@ -36,8 +36,11 @@ public class CSS {
 
 
     public static final String NOPADDING = "nopadding";
+    public static final String LITTLEPADDING = "littlepadding";
 
     public static final String RIGHTALIGN = "alinearderecha";
+    public static final String ALIGNRIGHT = "alinearderecha";
+    public static final String ALIGNCENTER = "alinearcentro";
 
 
     public static final String SUPERKPI = "superkpi";

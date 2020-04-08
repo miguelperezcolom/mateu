@@ -809,6 +809,9 @@ body {
         padding: 0px;
       }
 
+      .littlepadding {
+        padding: 10px;
+      }
 
       .labelconlink {
         margin-top: 7px;
@@ -832,6 +835,11 @@ body {
           //padding-top: 8px;
         }
       }
+
+      .littlepadding {
+        padding: 10px;
+      }
+
     }
 
     .methodresultflowcomponent {
@@ -842,6 +850,10 @@ body {
           padding-top: 8px;
         }
       }
+      .littlepadding {
+        padding: 10px;
+      }
+
     }
 
     .checkboxcontainer {
@@ -1774,6 +1786,10 @@ body {
     width: 100%;
   }
 
+  .alinearcentro {
+    text-align: center;
+  }
+
   .v-slot-actionsbar {
     //margin-bottom: 20px;
   }
@@ -2524,6 +2540,7 @@ body {
 
     .mini {
       min-width: 100px;
+      margin: 10px;
     }
 
     .kpi {

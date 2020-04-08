@@ -1482,12 +1482,13 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                         columNames.add(n);
                         fieldsByColumnName.put(n, f);
                     }
-                }).collect(Collectors.toList());
+                }).filter(f -> f != null).collect(Collectors.toList());
 
             } else {
 
                 List<String> fns = Lists.newArrayList(fieldsFilter.split(","));
                 fns = fns.stream().map(n -> {
+                    n = n.trim();
                     n = n.replaceAll("\\(.*\\)", "");
                     if (n.contains(" ")) n = n.substring(0, n.indexOf(" "));
                     n = n.replaceAll(" ", "");
@@ -1501,7 +1502,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                         fieldsByColumnName.put(n, f);
                     }
                     return f;
-                }).collect(Collectors.toList());
+                }).filter(f -> f != null).collect(Collectors.toList());
 
             }
 
@@ -1526,7 +1527,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                             || f.isAnnotationPresent(WeekDays.class)
                             || (forGrid && f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline())
                     )
-            ).collect(Collectors.toList());
+            ).filter(f -> f != null).collect(Collectors.toList());
 
             if (columNames != null && fieldsByColumnName != null) cols.forEach(f -> {
                 columNames.add(f.getName());

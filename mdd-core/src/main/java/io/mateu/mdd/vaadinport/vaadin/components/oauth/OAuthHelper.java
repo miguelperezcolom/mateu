@@ -162,6 +162,11 @@ grant_type=authorization_code
                     log.debug("" + email); // puede ser null
                     log.debug("" + login);
 
+                    User u = Helper.find(User.class, login);
+
+                    if (u == null && !"true".equalsIgnoreCase(System.getProperty("oauth.newusersallowed"))) throw  new Exception("New users not allowed. Please contact the system administrator");
+
+
                     Helper.transact(new JPATransaction() {
                         @Override
                         public void run(EntityManager em) throws Throwable {
@@ -344,6 +349,11 @@ grant_type=authorization_code
                     log.debug("" + email); // puede ser null
                     log.debug("" + login);
 
+                    User u = Helper.find(User.class, login);
+
+                    if (u == null && !"true".equalsIgnoreCase(System.getProperty("oauth.newusersallowed"))) throw  new Exception("New users not allowed. Please contact the system administrator");
+
+
                     Helper.transact(new JPATransaction() {
                         @Override
                         public void run(EntityManager em) throws Throwable {
@@ -507,6 +517,10 @@ grant_type=authorization_code
                     log.debug("" + name);
                     log.debug("" + email); // puede ser null
                     log.debug("" + login);
+
+                    User u = Helper.find(User.class, login);
+
+                    if (u == null && !"true".equalsIgnoreCase(System.getProperty("oauth.newusersallowed"))) throw  new Exception("New users not allowed. Please contact the system administrator");
 
                     Helper.transact(new JPATransaction() {
                         @Override
