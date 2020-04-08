@@ -5,6 +5,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Window;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.ExpandOnOpen;
+import io.mateu.mdd.core.annotations.FullWidth;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.HasActions;
 import io.mateu.mdd.core.interfaces.HasIcon;
@@ -14,10 +15,11 @@ import java.util.List;
 
 public class ComponentWrapper extends AbstractViewComponent {
     private final Component wrapped;
+    private final VaadinIcons _icon;
 
     @Override
     public VaadinIcons getIcon() {
-        return wrapped instanceof HasIcon?((HasIcon)wrapped).getIcon():VaadinIcons.FILE;
+        return wrapped instanceof HasIcon?((HasIcon)wrapped).getIcon():_icon;
     }
 
     public Component getWrapped() {
@@ -25,15 +27,22 @@ public class ComponentWrapper extends AbstractViewComponent {
     }
 
     public ComponentWrapper(String title, Component component) {
+        this(null, title, component, true);
+    }
+
+    public ComponentWrapper(VaadinIcons icon, String title, Component component, boolean expand) {
         setTitle(title);
+        _icon = icon != null?icon:VaadinIcons.FILE;
         this.wrapped = component;
 
         addStyleName("componentwrapper");
 
         if (!(component instanceof Window)) {
-            if (MDD.isMobile()) addComponent(component);
+            if (MDD.isMobile() || !expand || !(component instanceof FullWidth)) addComponent(component);
             else addComponentsAndExpand(component);
         }
+
+        updatePageTitle();
     }
 
     @Override

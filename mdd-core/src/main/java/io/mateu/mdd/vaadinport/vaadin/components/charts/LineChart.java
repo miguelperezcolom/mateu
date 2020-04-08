@@ -12,6 +12,7 @@ import com.google.common.base.Strings;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.provider.Query;
 import com.vaadin.ui.Composite;
+import org.jdom2.input.SAXBuilder;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -101,7 +102,6 @@ public class LineChart extends Composite {
 
         LineChartOptions options = barConfig
                 .options();
-
 
         options.responsive(true)
                 .hover()

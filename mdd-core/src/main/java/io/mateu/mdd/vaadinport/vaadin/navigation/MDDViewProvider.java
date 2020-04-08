@@ -32,7 +32,6 @@ import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.OAuthHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
 import io.mateu.mdd.vaadinport.vaadin.pojos.Profile;
-import io.mateu.mdd.vaadinport.vaadin.util.BindedWindow;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Embedded;
@@ -741,7 +740,10 @@ public class MDDViewProvider implements ViewProvider {
 
             // aquí ya tenemos la vista, tanto si ya existía en la pila como si no, y es el último elemento de la pila
 
-            if (v == null) v = new VoidView(stack);
+            if (v == null) {
+                v = new BrokenLinkView(stack);
+                System.out.println("broken link: " + state);
+            }
 
 
             Component c = ((io.mateu.mdd.vaadinport.vaadin.navigation.View) v).getViewComponent();

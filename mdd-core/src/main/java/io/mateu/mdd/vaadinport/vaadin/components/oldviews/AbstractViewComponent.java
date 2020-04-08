@@ -24,7 +24,7 @@ import java.util.Map;
 
 public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> extends VerticalLayout {
 
-    private final Component header;
+    private Component header;
     private Label titleLabel;
     private CssLayout kpisContainer;
     private View view;
@@ -175,7 +175,15 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     }
 
     public void updatePageTitle() {
-        titleLabel.setValue(getTitle());
+        if (titleLabel != null) {
+            titleLabel.setValue(getTitle());
+        }
+        if (iconLabel != null) {
+            if (getIcon() != null) {
+                iconLabel.setValue(getIcon().getHtml());
+                iconLabel.setVisible(true);
+            } else iconLabel.setVisible(false);
+        }
         //UI.getCurrent().getPage().setTitle((titleLabel.getValue() != null)?titleLabel.getValue():"No title");
         applyStyles(MDDUI.get().getViewContainer());
     }

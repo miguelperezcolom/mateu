@@ -2522,6 +2522,10 @@ body {
     text-align: center;
     border-radius: 3px;
 
+    .mini {
+      min-width: 100px;
+    }
+
     .kpi {
       font-size: 48px;
       font-weight: bold;
