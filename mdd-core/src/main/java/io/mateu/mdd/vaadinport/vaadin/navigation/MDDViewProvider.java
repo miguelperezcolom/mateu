@@ -1467,7 +1467,7 @@ public class MDDViewProvider implements ViewProvider {
                 if ((m != null && m.isAnnotationPresent(IFrame.class)) || r.toString().endsWith("pdf")) {
                     BrowserFrame b = new BrowserFrame("Result", new ExternalResource(r.toString()));
                     b.setSizeFull();
-                    stack.push(currentPath, new ComponentWrapper(title, b)).setOpenNewWindow(inNewWindow);
+                    stack.push(currentPath, new ComponentWrapper(null, title, b, true)).setOpenNewWindow(inNewWindow);
                 } else {
                     stack.push(currentPath, new ComponentWrapper(title, new Link("Click me to view the result", new ExternalResource(r.toString())))).setOpenNewWindow(inNewWindow);
                 }
@@ -1478,10 +1478,10 @@ public class MDDViewProvider implements ViewProvider {
                 Collection col = (Collection) r;
 
                 if (col.size() == 0) {
-                    stack.push(currentPath, new ComponentWrapper(title, new Label("Empty list", ContentMode.HTML))).setOpenNewWindow(inNewWindow);
+                    stack.push(currentPath, new ComponentWrapper(null, title, new Label("Empty list", ContentMode.HTML), true)).setOpenNewWindow(inNewWindow);
                 } else if (m != null && m.isAnnotationPresent(Pdf.class) || Query.class.isAssignableFrom(m.getReturnType())) {
                     try {
-                        stack.push(currentPath, new ComponentWrapper(title, new PdfComponent((List) r))).setOpenNewWindow(inNewWindow);
+                        stack.push(currentPath, new ComponentWrapper(null, title, new PdfComponent((List) r), true)).setOpenNewWindow(inNewWindow);
                     } catch (Throwable throwable) {
                         MDD.alert(throwable);
                     }
@@ -1532,7 +1532,7 @@ public class MDDViewProvider implements ViewProvider {
 
                         g.setDataProvider(new ListDataProvider((Collection) r));
 
-                        stack.push(currentPath, new ComponentWrapper(title, g)).setOpenNewWindow(inNewWindow);
+                        stack.push(currentPath, new ComponentWrapper(null, title, g, true)).setOpenNewWindow(inNewWindow);
                     }
 
                 }

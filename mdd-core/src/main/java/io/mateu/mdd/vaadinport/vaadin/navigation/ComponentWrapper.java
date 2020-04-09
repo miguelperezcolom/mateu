@@ -38,7 +38,7 @@ public class ComponentWrapper extends AbstractViewComponent {
         addStyleName("componentwrapper");
 
         if (!(component instanceof Window)) {
-            if (MDD.isMobile() || !expand || !(component instanceof FullWidth)) addComponent(component);
+            if (MDD.isMobile() || (!expand && !(component instanceof FullWidth))) addComponent(component);
             else addComponentsAndExpand(component);
         }
 
