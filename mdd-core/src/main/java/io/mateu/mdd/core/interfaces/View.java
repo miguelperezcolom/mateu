@@ -10,8 +10,6 @@ public interface View<T> extends ListView<T> {
         return null;
     }
 
-    default boolean isFieldsListedOnly() { return true; }
-
     default T newInstance(EntityManager em, UserData user) {
         return null;
     }

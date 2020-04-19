@@ -66,7 +66,7 @@ public class SimpleMDDApplication extends BaseMDDApp {
         if (a.getModules().size() > 0 && a.getModules().get(0).getMenu().size() > 0) l.add(a);
     }
 
-    private void addPrivateAreas(List<AbstractArea> l) {
+    public void addPrivateAreas(List<AbstractArea> l) {
         AbstractArea a = new AbstractArea("") {
             @Override
             public List<AbstractModule> buildModules() {
