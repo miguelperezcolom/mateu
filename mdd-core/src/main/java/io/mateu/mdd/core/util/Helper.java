@@ -404,6 +404,10 @@ public class Helper {
     }
 
     public static void notransact(JPATransaction t) throws Throwable {
+        notransact(t, true);
+    }
+
+    public static void notransact(JPATransaction t, boolean printException) throws Throwable {
 
         EntityManager em = getEMF().createEntityManager();
 
@@ -412,7 +416,7 @@ public class Helper {
             t.run(em);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            if (printException) e.printStackTrace();
             em.close();
             throw e;
         }
@@ -546,7 +550,15 @@ public class Helper {
         return count[0];
     }
 
-
+    public static String runNativeSqlUpdate(String sql) throws Throwable {
+        StringBuffer sb = new StringBuffer();
+        Helper.transact(em -> {
+            System.out.println("running " + sql);
+            int r = em.createNativeQuery(sql).executeUpdate();
+            sb.append(r);
+        });
+        return sb.toString();
+    }
 
     public static String md5(String s) {
         return Hashing.sha256().newHasher().putString(s, Charsets.UTF_8).hash().toString();

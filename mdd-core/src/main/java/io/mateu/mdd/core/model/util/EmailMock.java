@@ -20,7 +20,7 @@ public class EmailMock {
 
     public void print() {
         sent.forEach(m -> {
-            log.debug(">>>" + m.getSubject() + " to " + m.getToAddresses() + " from " + m.getFromAddress());
+            System.out.println(">>>" + m.getSubject() + " to " + m.getToAddresses() + " from " + m.getFromAddress());
         });
     }
 

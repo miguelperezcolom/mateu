@@ -64,12 +64,12 @@ public class MDD {
     public static User getCurrentUser() {
         try {
             User[] u = {null};
-            Helper.notransact(em -> u[0] = em.find(User.class, (MDD.getPort() != null && MDD.getUserData() != null)?MDD.getUserData().getLogin():"system"));
+            Helper.notransact(em -> u[0] = em.find(User.class, (MDD.getPort() != null && MDD.getUserData() != null)?MDD.getUserData().getLogin():"system"), false);
             return u[0];
         } catch (Throwable e) {
             try {
                 User[] u = {null};
-                Helper.notransact(em -> u[0] = em.find(User.class, "system"));
+                Helper.notransact(em -> u[0] = em.find(User.class, "system"), false);
                 return u[0];
             } catch (Throwable ee) {
                 return null;
