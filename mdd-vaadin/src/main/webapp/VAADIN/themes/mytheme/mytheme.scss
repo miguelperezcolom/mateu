@@ -134,7 +134,7 @@ body {
     }
 
     .logincomponent {
-      width: 100%;
+      //width: 100%;
       text-align: center;
 
       .v-slot-submenuoption {
@@ -148,6 +148,10 @@ body {
       .v-caption {
         text-align: center;
       }
+    }
+
+    .loginilayoutizda {
+      margin-left: 300px;
     }
 
     .loginilayoutdcha {
@@ -330,6 +334,403 @@ body {
     }
 
     .leftside {
+
+      background-image: unquote("linear-gradient(145deg, #484962 30%, #d06b41 100%)");
+      width: 210px;
+      height: 100%;
+      padding:  0px;
+
+      .botonampliar {
+        cursor: pointer;
+        margin-left: 2px;
+      }
+
+      .botonminimizar {
+        cursor: pointer;
+      }
+
+      .appTitle {
+
+        width: 200px;
+        text-align: center;
+        font-size: 1.5em;
+        font-weight: bold;
+
+        -webkit-transform: translateX(-50%);
+        transform: translateX(-50%);
+
+        padding: 0px;
+        cursor: pointer;
+
+        text-decoration: none;
+
+        outline: none !important;
+        box-shadow: none !important;
+        box-sizing: inherit;
+
+      }
+
+      .appTitle:hover {
+        color: $masoscuro !important;
+      }
+
+
+      .appTitle:active {
+        outline: none;
+      }
+
+      .appTitle:focus {
+        outline: none;
+      }
+
+
+      .appTitle.v-pressed {
+        outline: none;
+        outline-color: inherit;
+        outline-style: inherit;
+
+        .v-button-wrap {
+          outline: none;
+          outline-color: inherit;
+          outline-style: inherit;
+
+          .v-button-caption {
+            outline: none;
+            outline-color: inherit;
+            outline-style: inherit;
+          }
+
+        }
+      }
+
+
+      .sesion {
+        padding: 0px;
+        width: 100%;
+        text-align: center;
+        padding-bottom: 20px;
+
+        .foto {
+          padding: 0px;
+          width: 120px;
+          height: 120px;
+          border-radius: 50%;
+          border: 3px solid transparent;
+          cursor: pointer;
+          margin-left: 10px;
+        }
+
+        .v-slot-foto {
+          .v-captiontext {
+            text-align: center;
+            width: 100%;
+          }
+        }
+
+        .foto:hover {
+          border-color: whitesmoke;
+        }
+
+
+        .signingbutton {
+          text-decoration: none;
+          cursor: pointer;
+          width: 100%;
+          text-align: center;
+          padding-top: 5px;
+          padding-bottom: 5px;
+        }
+
+        .signingbutton.selected {
+          background: rgba(0, 0, 0, 0.2);
+          color: #efeff3;
+        }
+
+        .signingbutton:hover {
+          background: #3c3c51;
+        }
+
+        .signingbutton.selected:hover {
+          background-color: $v-background-color;
+        }
+
+        .signingbutton:active {
+          outline: none;
+        }
+
+        .signingbutton:focus {
+          outline: none;
+        }
+
+        .signingbutton.v-pressed {
+          outline: none;
+        }
+
+      }
+
+
+
+      .navegacion {
+
+        width: 100%;
+        padding: 0px;
+
+        > .v-slot {
+          border-right: 1px solid lightgrey;
+        }
+
+
+        .tituloarea {
+          padding: 10px;
+          width: 100%;
+          font-size: 16px;
+          /* font-weight: bold; */
+          text-align: center;
+          cursor: pointer;
+          border-right: 1px solid lightgray;
+          border-top: 2px dashed #929292;
+          border-bottom: 2px dashed #929292;
+          color: whitesmoke;
+
+          a {
+            text-decoration: none;
+            color: #191919 !important;
+          }
+
+        }
+
+        .area-1 {
+          background-color: slategrey;
+        }
+
+        .area-1:hover {
+          background-color: #73a5d7;
+        }
+
+        .area-2 {
+          background-color: lightyellow;
+        }
+
+        .area-2:hover {
+          background-color: #73a5d7;
+        }
+
+        .area-3 {
+          background-color: lightcoral;
+        }
+
+        .area-3:hover {
+          background-color: #73a5d7;
+        }
+
+
+        .area-4 {
+          background-color: lightblue;
+        }
+
+        .area-4:hover {
+          background-color: #73a5d7;
+        }
+
+
+        .area-5 {
+          background-color: lightgreen;
+        }
+
+        .area-5:hover {
+          background-color: #73a5d7;
+        }
+
+
+        .area-6 {
+          background-color: lightpink;
+        }
+
+        .area-6:hover {
+          background-color: #73a5d7;
+        }
+
+
+        .area-7 {
+          background-color: lightseagreen;
+        }
+
+        .area-7:hover {
+          background-color: #73a5d7;
+        }
+
+
+        .area-8 {
+          background-color: lightcyan;
+        }
+
+        .area-8:hover {
+          background-color: #73a5d7;
+        }
+
+
+        .area-9 {
+          background-color: sandybrown;
+        }
+
+        .area-9:hover {
+          background-color: #73a5d7;
+        }
+
+
+        .area-10 {
+          background-color: indianred;
+        }
+
+        .area-10:hover {
+          background-color: #73a5d7;
+        }
+
+        .v-slot-tituloarea {
+          border-right: none;
+        }
+
+        .v-slot-tituloarea.v-slot-selected:hover {
+          background-color: $v-background-color;
+        }
+
+        .tituloarea.selected {
+          background: rgba(0, 0, 0, 0.2);
+          color: #efeff3;
+        }
+
+
+
+        .tituloarea:active {
+          outline: none;
+        }
+
+        .tituloarea:focus {
+          outline: none;
+        }
+
+        .tituloarea.v-pressed {
+          outline: none;
+        }
+
+
+        .v-slot-tituloarea:hover {
+          background: #3c3c51;
+        }
+
+
+        .v-slot-titulomodulo {
+          padding-top: 20px;
+        }
+
+        .titulomodulo {
+          padding: 10px 10px 3px 10px;
+          width: 100%;
+          font-weight: bold;
+          border-bottom: 1px solid slategray;
+          margin-bottom: 5px;
+        }
+
+
+
+        .opcionmenu {
+
+          width: 100%;
+          padding: 3px 10px 3px 10px;
+          cursor: pointer;
+
+          a {
+            text-decoration: none;
+            color: #191919 !important;
+          }
+
+        }
+
+        .opcionmenu.selected {
+          background: rgba(0, 0, 0, 0.2);
+          color: #efeff3;
+        }
+
+
+        .v-slot-opcionmenu:hover {
+          background: #3c3c51;
+        }
+
+        .v-slot-opcionmenu.v-slot-selected:hover {
+          background: #3c3c51;
+        }
+
+
+        .opcionmenu:active {
+          outline: none;
+        }
+
+        .opcionmenu:focus {
+          outline: none;
+        }
+
+        .opcionmenu.v-pressed {
+          outline: none;
+        }
+
+
+
+        .espaciobotonbuscar {
+          height: 30px;
+        }
+
+
+        .botonbuscar {
+
+          width: 100%;
+          padding: 3px 10px 3px 10px;
+          cursor: pointer;
+          text-align: center;
+
+          a {
+            text-decoration: none;
+            color: #191919 !important;
+          }
+
+        }
+
+        .botonbuscar.selected {
+          background-color: $v-background-color;
+          margin-left: 5px;
+          border-left: 1px solid lightgray;
+          border-top: 1px solid lightgray;
+          border-bottom: 1px solid lightgray;
+          border-bottom-left-radius: 5px;
+          border-top-left-radius: 5px;
+          border-right: none;
+        }
+
+        .v-slot-botonbuscar:hover {
+          background-color: #73a5d7;
+        }
+
+        .v-slot-botonbuscar.v-slot-selected:hover {
+          background-color: $v-background-color;
+        }
+
+        .botonbuscar:active {
+          outline: none;
+        }
+
+        .botonbuscar:focus {
+          outline: none;
+        }
+
+        .botonbuscar.v-pressed {
+          outline: none;
+        }
+
+      }
+
+
+    }
+
+    .leftside.old {
 
           background-color: $izquierda;
           width: 210px;
@@ -712,7 +1113,7 @@ body {
               }
 
             }
-            
+
             .botonbuscar.selected {
               background-color: $v-background-color;
               margin-left: 5px;
@@ -761,9 +1162,16 @@ body {
     .v-slot-contenedorizda {
       height: 100%;
 
+
       .contenedorizda {
         width: 100%;
         height: 100%;
+
+        background-image: url(img/bg.jpg);
+
+        color: #b4b4c8;
+        background-size: cover;
+        background-position: top;
 
         .full {
 
@@ -939,7 +1347,7 @@ body {
     }
 
     .clickable:hover {
-      border: 1px solid red;
+      border: 1px solid #484860;
     }
 
     .carditem {
@@ -1040,7 +1448,7 @@ body {
     }
 
     .submenuoption:hover {
-      color: red;
+      color: #484860;
     }
 
     .submenuoption:active {
@@ -1349,6 +1757,64 @@ body {
     /* margin-left: 60px; */
   }
 
+  .logincomponent2 {
+    background-color: transparent;
+    background-image: url(img/bg.jpg);
+    background-size: cover;
+  }
+
+  .v-slot-cajalogin {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cajalogin {
+    display: block;
+    padding: 0px;
+
+    .info,.form {
+      height: 450px;
+      box-shadow: 0 2px 3px rgba(0,0,0,.2);
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .info {
+      background-color: rgba(255,255,255,.2) !important;
+      width: 465px;
+      border-radius: 5px 0 0 5px;
+      text-align: center;
+      color:white;
+      .v-label-h1 {
+        color:white;
+      }
+    }
+
+    .form {
+      width: 320px;
+      padding: 28px;
+      border-radius: 0 5px 5px 0;
+
+      background-color: #fff;
+      justify-content: center;
+    }
+
+
+    .loggedout {
+      text-align: center;
+      .v-label-h1,.v-label-h2,.v-label-h3 {
+        color: white;
+      }
+      .v-button {
+        margin-top: 40px;
+      }
+    }
+
+
+  }
 
 
   .filterscomponent {
@@ -1373,7 +1839,8 @@ body {
   }
 
   .menu-badge {
-    width: 20px;
+    display: none;
+    width: 30px;
     /* background-color: orange; */
     border-radius: 2px;
     float: right;
@@ -2583,6 +3050,7 @@ body {
       th {
         border-top: 1px solid lightgrey;
         font-weight: normal;
+        padding-bottom: 40px;
       }
     }
   }
@@ -2663,7 +3131,7 @@ body {
 
     .v-grid-row:hover, .v-grid-row-selected:hover {
       td {
-        background-color: red !important;
+        background-color: #484860 !important;
         color: white !important;
         font-weight: bold;
         cursor: pointer;
@@ -2716,16 +3184,16 @@ body {
     }
     .v-grid-row-stripe:hover {
       td {
-        background-color: #f5f5f5 !important;
-        color: inherit !important;
+        background-color: #484860 !important;
+        color: #B0B0EA !important;
         font-weight: inherit !important;
         cursor: inherit !important;
       }
     }
     .v-grid-row-selected:hover {
       td {
-        background-color: #e61a1a !important;
-        color: #eec9c9 !important;
+        background-color: #484860 !important;
+        color: #B0B0EA !important;
         font-weight: bold !important;
         cursor: inherit !important;
       }
@@ -2761,14 +3229,14 @@ body {
     .v-grid-row-stripe.v-grid-row-selected {
       td {
         background-color: #e61a1a !important;
-        color: #eec9c9 !important;
+        color: #484860 !important;
       }
     }
     .v-grid-row-selected {
       .v-grid-cell {
         background-image: none;
         font-weight: bold;
-        color: #eec9c9 !important;
+        color: #484860 !important;
       }
     }
 

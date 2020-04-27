@@ -19,10 +19,7 @@ import org.apache.commons.mail.DefaultAuthenticator;
 import org.apache.commons.mail.HtmlEmail;
 
 import javax.mail.internet.InternetAddress;
-import javax.persistence.EntityManager;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -39,7 +36,7 @@ public class AppConfig {
 
     private String businessName;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     private Resource logo;
 
 

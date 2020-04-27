@@ -9,11 +9,15 @@ import io.mateu.mdd.core.app.MenuEntry;
 import io.mateu.mdd.core.util.Pair;
 import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.ViewContainer;
+import io.mateu.mdd.vaadinport.vaadin.components.app.views.LoggedOutComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.views.LoginComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.app.views.LoginFlowComponent;
 
 public class DesktopAppComponent extends VerticalLayout implements AppComponent {
     private final AbstractApplication app;
     private final LeftSideComponent left;
     private final ViewContainer viewContainer;
+    private final HorizontalLayout all;
 
     public DesktopAppComponent(AbstractApplication app, ViewContainer viewContainer) {
         this.app = app;
@@ -28,17 +32,16 @@ public class DesktopAppComponent extends VerticalLayout implements AppComponent 
         setSpacing(false);
 
 
-        HorizontalLayout h = new HorizontalLayout();
-        h.setSpacing(false);
-        h.setStyleName("horizontallayout");
-        h.setSizeFull();
+        all = new HorizontalLayout();
+        all.setSpacing(false);
+        all.setStyleName("horizontallayout");
+        all.setSizeFull();
 
-        h.addComponent(left = new LeftSideComponent(this, app));
+        all.addComponent(left = new LeftSideComponent(this, app));
 
-        h.addComponentsAndExpand(viewContainer);
+        all.addComponentsAndExpand(viewContainer);
 
-        addComponentsAndExpand(h);
-
+        addComponentsAndExpand(all);
     }
 
 
@@ -95,7 +98,17 @@ public class DesktopAppComponent extends VerticalLayout implements AppComponent 
 
     @Override
     public void setSigningIn() {
-        left.setSigningIn();
+        removeAllComponents();
+        addComponentsAndExpand(new LoginComponent(() -> {
+            removeAllComponents();
+            addComponentsAndExpand(all);
+        }));
+    }
+
+    @Override
+    public void setSignedOut() {
+        removeAllComponents();
+        addComponentsAndExpand(new LoggedOutComponent());
     }
 
     @Override

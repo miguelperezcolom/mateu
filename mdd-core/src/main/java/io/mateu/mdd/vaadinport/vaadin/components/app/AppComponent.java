@@ -17,6 +17,8 @@ public interface AppComponent {
 
     void setSigningIn();
 
+    void setSignedOut();
+
     void setSearching();
 
     void unselectAll();

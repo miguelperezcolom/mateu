@@ -52,6 +52,11 @@ public class MobileAppComponent extends VerticalLayout implements AppComponent {
     }
 
     @Override
+    public void setSignedOut() {
+
+    }
+
+    @Override
     public void setSearching() {
 
     }

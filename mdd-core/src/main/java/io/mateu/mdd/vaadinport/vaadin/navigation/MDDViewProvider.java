@@ -314,6 +314,9 @@ public class MDDViewProvider implements ViewProvider {
 
                 MDDUI.get().getAppComponent().setArea(MDD.getApp().getDefaultPublicArea());
 
+                MDDUI.get().getAppComponent().setSignedOut();
+
+
             } else if ((state.startsWith("private") || state.equals("welcome") || state.equals("profile")) && MDD.getUserData() == null) {
 
                 clearStack();
@@ -321,6 +324,8 @@ public class MDDViewProvider implements ViewProvider {
                 pendingPrivateState = state;
 
                 v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new LoginFlowComponent());
+
+                MDDUI.get().getAppComponent().setSigningIn();
 
 
             } else if ("welcome".equals(state)) {

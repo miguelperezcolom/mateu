@@ -336,6 +336,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             if (owned && !field.isAnnotationPresent(UseTable.class)) {
 
                 inline = editableFields.size() <= colFields.size() && subclasses.size() == 0 && !field.isAnnotationPresent(NotInlineEditable.class);
+                inline = false;
 
                 if (inline) for (FieldInterfaced f : editableFields) {
                     if (!isEditableInline(f)) {
@@ -364,6 +365,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                         }
 
                         inline = editableFields.size() <= colFields.size() && subclasses.size() == 0;
+                        inline = false;
 
                         if (inline) for (FieldInterfaced f : colFields) {
                             if (!isEditableInline(f)) {
