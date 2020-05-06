@@ -26,6 +26,7 @@ public class NavigationComponent extends VerticalLayout {
     private MenuEntry menu;
     private Button bArea;
     private Button bBuscar;
+    private Button bLogout;
 
     public NavigationComponent(AbstractApplication app) {
 
@@ -62,6 +63,7 @@ public class NavigationComponent extends VerticalLayout {
 
                         Button b = bArea = new Button(a.getName().toUpperCase() + ((app.getAreas().size() > 1)?"<span class=\"menu-badge\">" + FontAwesome.COMPASS.getHtml() + "</span>":"")
                                 , ev -> {
+                            clicked();
                             MDDUI.get().getNavegador().doAfterCheckSaved(() -> {
                                 if (MDD.isMobile()) {
                                     setSelectingArea(false);
@@ -114,7 +116,7 @@ public class NavigationComponent extends VerticalLayout {
 
                     Button b = bBuscar = new Button("Search"
                             , ev -> {
-
+                        clicked();
                         MDDUI.get().getNavegador().doAfterCheckSaved(() -> {
                             if (MDD.isMobile()) {
                                 setSearching();
@@ -134,6 +136,22 @@ public class NavigationComponent extends VerticalLayout {
                     addComponent(b);
 
 
+                    b = bLogout = new Button("Log out"
+                            , ev -> {
+                        clicked();
+                        MDDUI.get().getNavegador().doAfterCheckSaved(() -> {
+                            MDDUI.get().getNavegador().goTo("bye");
+                        });
+
+                    }); //, a.getIcon());
+                    b.setIcon(VaadinIcons.SIGN_OUT);
+                    b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
+                    b.setCaptionAsHtml(true);
+                    b.addStyleName("botonlogout");
+                    //b.setDescription("Click to change to another area");
+
+                    addComponent(b);
+
                     break;
 
                 }
@@ -145,6 +163,7 @@ public class NavigationComponent extends VerticalLayout {
             if (app.getAreas().size() > 1) {
                 Button b = bArea = new Button("CHOOSE AN AREA" + ((app.getAreas().size() > 1)?"<span class=\"menu-badge\">" + VaadinIcons.ARROW_RIGHT.getHtml() + "</span>":"")
                         , ev -> {
+                    clicked();
                     if (MDD.isMobile()) {
                         MDDUI.get().getAppComponent().unselectAll();
                         bArea.addStyleName("selected");
@@ -175,7 +194,7 @@ public class NavigationComponent extends VerticalLayout {
 
         Button b = new Button(e.getCaption() + ((e instanceof AbstractMenu)?"<span class=\"menu-badge\">" + VaadinIcons.ELLIPSIS_DOTS_H.getHtml() + "</span>":"")
         , ev -> {
-
+            clicked();
             MDDUI.get().getNavegador().doAfterCheckSaved(() -> {
                 MDDUI.get().getNavegador().goTo(e, ev.isCtrlKey());
             });
@@ -248,5 +267,9 @@ public class NavigationComponent extends VerticalLayout {
                 bArea.setCaption("CHOOSE AN AREA <span class=\"menu-badge\">" + VaadinIcons.ARROW_RIGHT.getHtml() + "</span>");
             }
         }
+    }
+
+    public void clicked() {
+        if (getStyleName().contains("xxvisible")) removeStyleName("xxvisible");
     }
 }

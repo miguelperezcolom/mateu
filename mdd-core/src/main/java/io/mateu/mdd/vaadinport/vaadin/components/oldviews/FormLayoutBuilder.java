@@ -44,7 +44,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
     }
     public Pair<Component, AbstractStylist> build(EditorViewComponent editor, MDDBinder binder, Class<?> modelType, Object model, List<Component> componentsToLookForErrors, FormLayoutBuilderParameters params, Map<String, List<AbstractAction>> attachedActions) {
         Layout contentContainer = null;
-        if (params.isForSearchFilters() && !params.isForSearchFiltersExtended()) {
+        if (false && params.isForSearchFilters() && !params.isForSearchFiltersExtended()) {
             contentContainer = new CssLayout();
         } else {
             contentContainer = new VerticalLayout();
@@ -398,7 +398,10 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
             if (forSearchFilters && !forSearchFiltersExtended) {
 
-                wrapper = contentContainer;
+                //wrapper = contentContainer;
+                HorizontalLayout hl;
+                contentContainer.addComponent(wrapper = hl = new HorizontalLayout());
+                hl.addStyleName(CSS.NOPADDING);
 
             } else {
 

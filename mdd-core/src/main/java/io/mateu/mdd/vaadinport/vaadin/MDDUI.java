@@ -158,7 +158,7 @@ public class MDDUI extends UI {
 
         //setContent(flowComponent);
 
-        setContent((Component) (appComponent = (MDD.getPort().isMobile())?new MobileAppComponent(app, viewContainer):new DesktopAppComponent(app, viewContainer)));
+        setContent((Component) (appComponent = (MDD.isMobile())?new MobileAppComponent(app, viewContainer):new DesktopAppComponent(app, viewContainer)));
 
     }
 

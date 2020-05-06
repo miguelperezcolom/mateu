@@ -135,7 +135,7 @@ public class MDD {
         getPort().info(msg);
     }
 
-    public static boolean isMobile() { return getPort().isMobile(); }
+    public static boolean isMobile() { return false && getPort().isMobile(); }
 
     public static void openWizard(Class firstPageClass) {
         getPort().openWizard(firstPageClass);

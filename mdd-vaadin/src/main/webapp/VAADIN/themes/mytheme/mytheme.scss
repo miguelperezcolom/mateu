@@ -118,6 +118,10 @@ body {
       }
     }
 
+    .botonlogout {
+      display: none;
+    }
+
     .areaflowcomponent, .moduleflowcomponent, .menuflowcomponent, .welcomeflowcomponent, .byeflowcomponent {
       text-align: center;
       width: 100%;
@@ -679,8 +683,14 @@ body {
           height: 30px;
         }
 
+        .botonlogout {
+          margin-top: 30px;
+          margin-bottom: 20px;
+          display: none;
+        }
 
-        .botonbuscar {
+
+        .botonbuscar, .botonlogout {
 
           width: 100%;
           padding: 3px 10px 3px 10px;
@@ -1174,6 +1184,10 @@ body {
         background-position: top;
 
         .full {
+
+          .botonmenu {
+            display: none;
+          }
 
           .conborde {
             border-right: 1px solid lightgrey;
@@ -1770,7 +1784,7 @@ body {
   }
 
   .cajalogin {
-    display: block;
+    display: flex;
     padding: 0px;
 
     .info,.form {
@@ -1800,6 +1814,20 @@ body {
 
       background-color: #fff;
       justify-content: center;
+
+      .v-widget {
+        width: 100%;
+
+        .v-caption {
+          width: 100%;
+          font-size: 14px;
+
+          .v-textfield {
+            width: 100%;
+          }
+        }
+
+      }
     }
 
 
@@ -1824,7 +1852,7 @@ body {
     padding-bottom: 10px !important;
     width: 100%;
 
-    > * {
+    > div > * {
       margin-right: 20px;
     }
 
@@ -3424,15 +3452,241 @@ body {
 }
 
 
+
+@media (max-width: 1001px) {
+  .mytheme {
+
+    .miapp {
+
+      .logincomponent2 {
+        padding: 0px;
+        background-size: unset;
+      }
+
+      .v-slot-cajalogin {
+        display: block !important;
+      }
+
+      .cajalogin {
+        display: block;
+        box-sizing: content-box;
+        padding: 0px;
+        width: 100%;
+        height: 100% !important;
+
+        .info, .form {
+          width: 100%;
+          border-radius: unset;
+        }
+
+        .info {
+          background-color: transparent !important;
+        }
+
+        .form {
+          height: 100% !important;
+          vertical-align: top;
+          display: block;
+          text-align: center;
+
+          .signinlabel {
+            display: none;
+          }
+
+          .v-vertical {
+            width: 80% !important;
+          }
+
+
+        }
+
+
+      }
+
+    }
+
+  }
+}
+
+@media (min-width: 601px) and (max-width: 1001px) {
+
+  .mytheme {
+
+    .miapp {
+
+    }
+  }
+
+}
+
+
+@media (max-width: 601px) {
+
+  .mytheme {
+
+    .miapp {
+
+      .v-label-undef-w {
+        white-space: initial;
+      }
+
+      .cajalogin {
+        .info {
+          height: unset;
+        }
+        .form {
+          .v-textfield {
+            max-width: unset !important;
+          }
+        }
+      }
+
+      .combo.v-filterselect {
+               width: 370px;
+               max-width: 84% !important;
+             }
+
+      .v-textfield {
+        max-width: 84% !important;
+      }
+
+      > .v-expand {
+
+        .horizontallayout {
+
+          > .v-expand {
+
+            display: block;
+            padding-left: unset !important;
+
+            .v-slot-leftside {
+              height: unset !important;
+              width: 100%;
+              margin-left: unset !important;
+              background-color: red;
+              float: unset !important;
+
+              .leftside {
+
+                width: 100%;
+
+                .contenedorizda {
+
+                  .full {
+                    width: 100%;
+                  }
+
+                  .conborde {
+                    display: none;
+                  }
+
+                  >div {
+                    >.v-absolutelayout-margin {
+                      overflow: visible !important;
+                    }
+                  }
+
+                  .v-absolutelayout-wrapper {
+                    position: unset !important;
+
+                    .header {
+                      display: flex;
+                      width: 100%;
+
+                      >div {
+                        width: 100%;
+                      }
+
+                      .appTitle {
+                        width: unset !important;
+                        transform: unset !important;
+                        -webkit-transform: unset !important;
+                        margin-left: 5px;
+                      }
+
+                      .botonminimizar {
+                        display: none;
+                      }
+
+                      .botonmenu {
+                        display: block;
+                        color: #b4b4c8;
+                        float: right;
+                      }
+
+                      .botonmenu:hover {
+                        color: $masoscuro !important;
+                      }
+
+                      .botonmenu:hover, .botonmenu:active, .botonmenu:focus {
+                        background-color: unset;
+                      }
+
+                      .sesion {
+                        display: none;
+                      }
+
+                    }
+
+                    .navegacion {
+                      display: none;
+
+                      position: absolute;
+                      left: 0px;
+                      top: 32px;
+                      z-index: 10000;
+                      width: 100%;
+                      background: #4b4b65;
+                      padding-top: 5px;
+                      border-top: 1px solid slategray;
+                      padding-bottom: 5px;
+
+
+                      .botonlogout {
+                        display: block;
+                      }
+
+                    }
+
+                    .navegacion.xxvisible {
+                      display: block;
+                    }
+
+                  }
+
+                }
+
+
+              }
+
+            }
+
+            .v-slot-viewcontainer {
+              display: block;
+              width: 100%;
+              .viewcontainer {
+                display: block;
+              }
+            }
+
+          }
+
+        }
+
+      }
+
+    }
+  }
+
+}
+
 @media print {
 
-  .horizontallayout > .v-expand  {
-    padding-left: 0px !important;
-  }
+    .horizontallayout > .v-expand  {
+      padding-left: 0px !important;
+    }
 
-  .v-slot-leftside {
-    display: none;
-  }
-
-
+    .v-slot-leftside {
+      display: none;
+    }
 }

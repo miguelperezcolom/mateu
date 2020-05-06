@@ -50,7 +50,7 @@ public class FiltersComponent extends Composite {
 
         long t0 = System.currentTimeMillis();
 
-        Layout l = (MDD.isMobile())?new VerticalLayout():new HorizontalLayout();
+        Layout l = new CssLayout(); //MDD.isMobile())?new VerticalLayout():new HorizontalLayout();
         Layout pl = MDD.isMobile()?l:new CssLayout(l);
         setCompositionRoot(pl);
         l.addStyleName(CSS.NOPADDING);

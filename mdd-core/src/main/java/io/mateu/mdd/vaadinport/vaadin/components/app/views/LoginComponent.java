@@ -119,6 +119,7 @@ public class LoginComponent extends VerticalLayout {
 
         VerticalLayout info = new VerticalLayout();
         info.addStyleName("info");
+        info.setWidthUndefined();
 
         VerticalLayout vl;
         info.addComponent(vl = new VerticalLayout());
@@ -140,31 +141,36 @@ public class LoginComponent extends VerticalLayout {
 
         VerticalLayout form = new VerticalLayout();
         form.addStyleName("form");
+        form.setWidthUndefined();
         form.addComponent(vl = new VerticalLayout());
+        vl.setWidth("80%");
 
         Label t;
         vl.addComponent(t = new Label("Sign in " + MDD.getApp().getName() + ":"));
         t.addStyleName(ValoTheme.LABEL_H3);
+        t.addStyleName("signinlabel");
 
         vl.addComponent(login = new TextField("Login"));
-        vl.addComponent(password = new PasswordField("password"));
+        vl.addComponent(password = new PasswordField("Password"));
+        login.setWidth("100%");
+        password.setWidth("100%");
 
-        HorizontalLayout hl;
-        vl.addComponent(hl = new HorizontalLayout());
+        vl.addComponent(new Label(" "));
+
         Button b;
-        hl.addComponent(b = new Button("Sign in", e -> login()));
+        vl.addComponent(b = new Button("Sign in", e -> login()));
         //b.setDescription("Click ENTER to sign in");
         b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
         b.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
-        hl.addComponent(b = new Button("Forgot password", e -> forgotPassword()));
+        vl.addComponent(b = new Button("Forgot password", e -> forgotPassword()));
 
 
 
-        HorizontalLayout cl = new HorizontalLayout();
+        CssLayout cl = new CssLayout();
         cl.addStyleName("cajalogin");
         cl.addStyleName(CSS.ALIGNCENTER);
-        cl.setSpacing(false);
+        cl.setSizeUndefined();
         //layouts.forEach(l -> cl.addComponent(l));
         cl.addComponent(info);
         cl.addComponent(form);

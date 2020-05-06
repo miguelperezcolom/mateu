@@ -13,9 +13,10 @@ import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 public class LeftSideComponent extends VerticalLayout {
     private final Button appTitle;
+    private final VerticalLayout header;
     private AbstractApplication app;
     private final DesktopAppComponent appComponent;
-    private final NavigationComponent nav;
+    private NavigationComponent nav;
     private final SessionComponent ses;
     private final Button botonMinimizar;
     private final VerticalLayout versionFull;
@@ -74,10 +75,18 @@ public class LeftSideComponent extends VerticalLayout {
         botonMinimizar.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
         botonMinimizar.addStyleName("botonminimizar");
 
-        VerticalLayout vlz;
-        versionFull.addComponent(vlz = new VerticalLayout(movl, ses = new SessionComponent(appComponent)));
-        vlz.addStyleName(CSS.NOPADDING);
-        vlz.addStyleName("conborde");
+        Button botonMenu;
+        header = new VerticalLayout(movl, ses = new SessionComponent(appComponent), botonMenu = new Button("Menu", e -> {
+            if (nav.getStyleName().contains("xxvisible")) nav.removeStyleName("xxvisible");
+            else nav.addStyleName("xxvisible");
+        }));
+        botonMenu.setIcon(VaadinIcons.MENU);
+        botonMenu.addStyleName(ValoTheme.BUTTON_QUIET);
+        botonMenu.addStyleName("botonmenu");
+        header.addStyleName(CSS.NOPADDING);
+        header.setSpacing(false);
+        header.addStyleName("header");
+        versionFull.addComponent(header);
 
         versionFull.addComponent(nav = new NavigationComponent(app));
 

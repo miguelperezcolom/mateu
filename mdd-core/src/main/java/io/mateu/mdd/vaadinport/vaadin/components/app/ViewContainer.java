@@ -12,7 +12,7 @@ public class ViewContainer extends VerticalLayout {
 
     public ViewContainer() {
         addStyleName("viewcontainer");
-        if (MDD.getPort().isMobile()) addStyleName(CSS.NOPADDING);
+        if (MDD.isMobile()) addStyleName(CSS.NOPADDING);
         else setSizeFull();
     }
 
