@@ -250,7 +250,7 @@ public class MDDViewProvider implements ViewProvider {
 
                     Page.getCurrent().open(MDD.getApp().getBaseUrl() + "app/" + newState, null);
                     return new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new WelcomeComponent());
-                } else if (MDD.getApp().getDefaultPrivateArea().getDefaultAction() != null) {
+                } else if (MDD.getApp().getDefaultPrivateArea() != null && MDD.getApp().getDefaultPrivateArea().getDefaultAction() != null) {
                     String newState = MDD.getApp().getMenuId(MDD.getApp().getDefaultPrivateArea().getDefaultAction());
                     if (!Strings.isNullOrEmpty(newState)) {
                         if (newState.startsWith("/")) newState = newState.substring(1);

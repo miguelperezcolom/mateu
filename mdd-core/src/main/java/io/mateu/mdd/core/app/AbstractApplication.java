@@ -238,29 +238,30 @@ public abstract class AbstractApplication implements App {
     }
 
     private void buildMenuIds(AbstractArea a, String prefijo, List<MenuEntry> incomingPath, MenuEntry e) {
-        String id = prefijo + "/" + e.getCaption().toLowerCase().replaceAll("/", "").replaceAll(" ", "").replaceAll("&", "");
+        if (a != null && e != null) {
+            String id = prefijo + "/" + (e.getCaption() != null?e.getCaption():e.getId()).toLowerCase().replaceAll("/", "").replaceAll(" ", "").replaceAll("&", "");
 
-        int pos = 0;
-        String idbase = id;
-        while (!"void".equals(id) && menuIdsReversed.containsKey(id)) {
-            id = idbase + pos++;
-        }
-        menuIds.put(e, id);
-        menuIdsReversed.put(id, e);
-        List<MenuEntry> path = menuPaths.get(e);
-        if (path == null) menuPaths.put(e, path = new ArrayList<>());
-        path.addAll(incomingPath);
+            int pos = 0;
+            String idbase = id;
+            while (!"void".equals(id) && menuIdsReversed.containsKey(id)) {
+                id = idbase + pos++;
+            }
+            menuIds.put(e, id);
+            menuIdsReversed.put(id, e);
+            List<MenuEntry> path = menuPaths.get(e);
+            if (path == null) menuPaths.put(e, path = new ArrayList<>());
+            path.addAll(incomingPath);
 
-        menuToArea.put(e, a);
+            menuToArea.put(e, a);
 
-        if (e instanceof AbstractMenu) {
-            List<MenuEntry> outgoingPath = new ArrayList<>(path);
-            outgoingPath.add(e);
-            for (MenuEntry x : ((AbstractMenu) e).getEntries()) {
-                buildMenuIds(a, id, outgoingPath, x);
+            if (e instanceof AbstractMenu) {
+                List<MenuEntry> outgoingPath = new ArrayList<>(path);
+                outgoingPath.add(e);
+                for (MenuEntry x : ((AbstractMenu) e).getEntries()) {
+                    buildMenuIds(a, id, outgoingPath, x);
+                }
             }
         }
-
     }
 
     public abstract List<AbstractArea> buildAreas();
@@ -357,7 +358,7 @@ public abstract class AbstractApplication implements App {
 
 
     public boolean hasPublicContent() {
-        boolean r = false;
+        boolean r = !isAuthenticationNeeded() && (areas == null || areas.size() == 0);
         for (AbstractArea a : areas) {
             if (a.isPublicAccess()) {
                 r = true;

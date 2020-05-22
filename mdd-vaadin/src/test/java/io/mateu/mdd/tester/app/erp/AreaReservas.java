@@ -35,6 +35,8 @@ public class AreaReservas extends AbstractArea {
 
                 l.add(new MDDOpenCRUDAction("Serials", OfficeSerial.class));
 
+                l.add(new MDDOpenCRUDAction("Excursiones", Excursion.class));
+
                 l.add(new MDDMenu("Reservas", "Reservas", new MDDOpenCRUDAction(Reserva.class).setColumns("agencia.nombre,agencia.localidad,leadName,estado,total"), "Markups", Markup.class, "Vista", VistaReservas.class));
 
                 l.add(new MDDOpenEditorAction("JPQL", new JPQLTester()));

@@ -43,7 +43,7 @@ public class VaadinPort implements MDDPort {
 
     @Override
     public boolean isMobile() {
-        return mobile;
+        return false && mobile;
     }
 
     @Override
