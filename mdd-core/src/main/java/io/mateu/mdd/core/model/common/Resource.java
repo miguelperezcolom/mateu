@@ -9,10 +9,7 @@ import lombok.MateuMDDEntity;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.constraints.NotNull;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 
 /**
@@ -37,6 +34,12 @@ public class Resource {
 
     public Resource() {
 
+    }
+
+    public Resource(String name, InputStream stream) throws FileNotFoundException {
+        this.type = FileType.BYTES;
+        this.bytes = Helper.leerByteArray(stream);
+        this.name = name;
     }
 
     public Resource(File file) throws FileNotFoundException {
