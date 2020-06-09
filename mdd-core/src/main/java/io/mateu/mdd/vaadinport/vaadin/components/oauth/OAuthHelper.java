@@ -492,7 +492,7 @@ grant_type=authorization_code
 
                 Request request = new Request.Builder()
                         .url("https://api.github.com/user")
-                        .addHeader("Authorization", access_token)
+                        .addHeader("Authorization", "token " + access_token)
                         .get()
                         .build();
 
