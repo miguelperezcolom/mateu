@@ -246,14 +246,17 @@ public class FileComponent extends Composite implements HasValue<Resource>, Comp
 
         try {
 
-            if (file != null && file.getName () != null && (
+            boolean esFoto = false;
+            if (FileType.URL.equals(file.getType()) && (file.getUrl() != null && (file.getUrl().toLowerCase().contains("githubusercontent") || file.getUrl().toLowerCase().contains("googleusercontent")))) esFoto = true;
+
+            if (esFoto || (file != null && file.getName () != null && (
                     file.getName().toLowerCase().endsWith(".jpg")
                             || file.getName().toLowerCase().endsWith(".jpeg")
                             || file.getName().toLowerCase().endsWith(".gif")
                             || file.getName().toLowerCase().endsWith(".png")
                             || file.getName().toLowerCase().endsWith(".svg")
                             || file.getName().toLowerCase().endsWith(".webp")
-                    )) {
+                    ))) {
                 hyperLink.setVisible(false);
                 image.setVisible(true);
                 String u = file.toFileLocator().getUrl();

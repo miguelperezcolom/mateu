@@ -15,6 +15,7 @@ import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.GitHubButton;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.GoogleButton;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.MicrosoftButton;
+import io.mateu.mdd.vaadinport.vaadin.navigation.MDDViewProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,15 +79,16 @@ public class LoginComponent extends VerticalLayout {
         login.setWidth("100%");
         password.setWidth("100%");
 
-        vl.addComponent(new Label(" "));
+        //vl.addComponent(new Label(" "));
 
         Button b;
         vl.addComponent(b = new Button("Sign in", e -> login()));
         //b.setDescription("Click ENTER to sign in");
         b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
         b.addStyleName(ValoTheme.BUTTON_PRIMARY);
-
+        b.addStyleName("botonsignin");
         vl.addComponent(b = new Button("Forgot password", e -> forgotPassword()));
+        b.addStyleName("botonforgotpassword");
 
 
         if (System.getProperty("oauth.github.client_id") != null
@@ -153,7 +155,8 @@ public class LoginComponent extends VerticalLayout {
                 MDD.setUserData(u);
                 if (onLogin != null) onLogin.run();
                 MDDUI.get().getAppComponent().unselectAll();
-                MDDUI.get().getNavegador().goTo("welcome");
+                String ps = MDDUI.get().getNavegador().getViewProvider().getPendingPrivateState();
+                MDDUI.get().getNavegador().goTo(!Strings.isNullOrEmpty(ps)?ps:"welcome");
             } catch (Throwable throwable) {
                 MDD.alert(throwable);
             }

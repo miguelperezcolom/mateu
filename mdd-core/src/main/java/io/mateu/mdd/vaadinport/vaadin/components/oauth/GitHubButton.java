@@ -4,6 +4,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.oauth;
 import com.vaadin.server.ClassResource;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Button;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 public class GitHubButton extends Button {
@@ -80,29 +81,7 @@ Accept: application/xml
 
             Page p = MDDUI.get().getPage();
 
-            String callbackUrl = p.getLocation().toString();
-            /*
-            if (!Strings.isNullOrEmpty(p.getLocation().getPath())) callbackUrl = callbackUrl.substring(0, callbackUrl.length() - p.getLocation().getPath().length());
-            callbackUrl += "";
-            */
-
-            /*
-            MDDUI.get().getPage().setLocation("https://github.com/login/oauth/authorize?client_id=" + key +
-                    "&redirect_uri=" + callbackUrl.replaceAll("login", "callback"));
-            */
-
             MDDUI.get().getPage().setLocation("https://github.com/login/oauth/authorize?client_id=" + key);
-
-            /*
-            // Create an opener extension
-            BrowserWindowOpener opener =
-                    new BrowserWindowOpener("https://github.com/login/oauth/authorize?client_id=" + key +
-                            "&redirect_uri=" + callbackUrl
-                    );
-            opener.setFeatures("height=700,width=600,resizable");
-
-            opener.extend(this);
-            */
 
         });
     }

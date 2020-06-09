@@ -55,6 +55,7 @@ public class MDD {
 
 
     public static void setUserData(UserData userData) {
+        System.out.println("setUserData(" + userData + ")");
         getPort().setUserData(userData);
     }
     public static UserData getUserData() {

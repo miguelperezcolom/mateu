@@ -52,6 +52,16 @@ public class MobileAppComponent extends VerticalLayout implements AppComponent {
     }
 
     @Override
+    public boolean isSigningIn() {
+        return false;
+    }
+
+    @Override
+    public void setSignedIn() {
+
+    }
+
+    @Override
     public void setSignedOut() {
 
     }

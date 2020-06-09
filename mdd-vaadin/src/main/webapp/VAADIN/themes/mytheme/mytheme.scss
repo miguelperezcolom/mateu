@@ -1815,6 +1815,14 @@ body {
       background-color: #fff;
       justify-content: center;
 
+      .botonsignin {
+        margin-top: 10px;
+      }
+
+      .botonforgotpassword {
+        margin-bottom: 10px;
+      }
+
       .v-widget {
         width: 100%;
 
@@ -1947,8 +1955,8 @@ body {
 
   .signinbutton {
     img {
-      width: 30px;
-      margin-top: -4px;
+      width: 25px;
+      margin-top: -3px;
     }
   }
 

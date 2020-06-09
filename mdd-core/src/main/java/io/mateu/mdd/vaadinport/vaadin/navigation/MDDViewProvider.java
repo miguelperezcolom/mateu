@@ -94,6 +94,10 @@ public class MDDViewProvider implements ViewProvider {
         }
     }
 
+    public String getPendingPrivateState() {
+        return pendingPrivateState;
+    }
+
     public String getPendingFocusedSectionId() {
         String aux = pendingFocusedSectionId;
         pendingFocusedSectionId = null;
@@ -135,6 +139,8 @@ public class MDDViewProvider implements ViewProvider {
 
         System.out.println("MDDViewProvider.getView(" + state + ")");
 
+        if (MDDUI.get().getAppComponent().isSigningIn() && MDD.getUserData() != null) MDDUI.get().getAppComponent().setSignedIn();
+
         if (state.equals(currentPath)) {
             io.mateu.mdd.vaadinport.vaadin.navigation.View v = stack.getLast();
             if (v != null) return v;
@@ -166,12 +172,12 @@ public class MDDViewProvider implements ViewProvider {
 
             }
 
-
+            boolean calledback = false;
             if ("oauth/github/callback".equalsIgnoreCase(state)) {
 
                 //http://localhost:8080/callback?code=c0324687fdcdf68fde05
 
-                log.debug("state = " + state);
+                System.out.println("state = " + state);
 
                 if (MDD.getUserData() == null) {
 
@@ -190,12 +196,13 @@ public class MDDViewProvider implements ViewProvider {
                     state = "welcome";
                 }
 
+                calledback = true;
 
             } else if ("oauth/google/callback".equalsIgnoreCase(state)) {
 
                 //http://localhost:8080/callback?code=c0324687fdcdf68fde05
 
-                log.debug("state = " + state);
+                System.out.println("state = " + state);
 
                 if (MDD.getUserData() == null) {
 
@@ -214,11 +221,13 @@ public class MDDViewProvider implements ViewProvider {
                     state = "welcome";
                 }
 
+                calledback = true;
+
             } else if ("oauth/microsoft/callback".equalsIgnoreCase(state)) {
 
                 //http://localhost:8080/callback?code=c0324687fdcdf68fde05
 
-                log.debug("state = " + state);
+                System.out.println("state = " + state);
 
                 if (MDD.getUserData() == null) {
 
@@ -237,31 +246,40 @@ public class MDDViewProvider implements ViewProvider {
                     state = "welcome";
                 }
 
+                calledback = true;
+
+            }
+
+            System.out.println("....state=" + state);
+            if ("welcome".equals(state) && calledback) {
+                MDDUI.get().getAppComponent().setSignedIn();
             }
 
             if ("welcome".equals(state) && MDD.getUserData() != null) { // caso "login"
-                log.debug("-->welcome (" + pendingPrivateState + ")");
+                System.out.println("-->welcome (" + pendingPrivateState + ")");
                 if (!Strings.isNullOrEmpty(pendingPrivateState)) {
                     String newState = pendingPrivateState;
                     pendingPrivateState = null;
                     if (newState.startsWith("/")) newState = newState.substring(1);
 
-                    log.debug("-->going to (" + MDD.getApp().getBaseUrl() + "app/" + newState + ")");
-
-                    Page.getCurrent().open(MDD.getApp().getBaseUrl() + "app/" + newState, null);
-                    return new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new WelcomeComponent());
+                    System.out.println("-->going to (" + MDD.getApp().getBaseUrl() + "app/" + newState + ")");
+                    state = newState;
+                    //Page.getCurrent().open(MDD.getApp().getBaseUrl() + "app/" + newState, null);
                 } else if (MDD.getApp().getDefaultPrivateArea() != null && MDD.getApp().getDefaultPrivateArea().getDefaultAction() != null) {
                     String newState = MDD.getApp().getMenuId(MDD.getApp().getDefaultPrivateArea().getDefaultAction());
                     if (!Strings.isNullOrEmpty(newState)) {
                         if (newState.startsWith("/")) newState = newState.substring(1);
 
-                        log.debug("-->going to (" + MDD.getApp().getBaseUrl() + "app/" + newState + ")");
-
-                        Page.getCurrent().open(MDD.getApp().getBaseUrl() + "app/" + newState, null);
+                        System.out.println("-->going to (" + MDD.getApp().getBaseUrl() + "app/" + newState + ")");
+                        state = newState;
+                        //Page.getCurrent().open(MDD.getApp().getBaseUrl() + "app/" + newState, null);
                     } else {
-                        Page.getCurrent().open(MDD.getApp().getBaseUrl() + "app/", null);
+                        System.out.println("-->going to (" + MDD.getApp().getBaseUrl() + "app/" + ")");
+                        //Page.getCurrent().open(MDD.getApp().getBaseUrl() + "app/", null);
                     }
-                    return new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new WelcomeComponent());
+                } else if (calledback) {
+                    System.out.println("-->going to (" + MDD.getApp().getBaseUrl() + "app/" + ")");
+                    //Page.getCurrent().open(MDD.getApp().getBaseUrl() + "app/", null);
                 }
             }
 
@@ -315,7 +333,6 @@ public class MDDViewProvider implements ViewProvider {
                 MDDUI.get().getAppComponent().setArea(MDD.getApp().getDefaultPublicArea());
 
                 MDDUI.get().getAppComponent().setSignedOut();
-
 
             } else if ((state.startsWith("private") || state.equals("welcome") || state.equals("profile")) && MDD.getUserData() == null) {
 

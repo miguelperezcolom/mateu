@@ -25,13 +25,15 @@ public class GoogleButton extends Button {
 
             Page p = MDDUI.get().getPage();
 
-            String callbackUrl = p.getLocation().toString();
+            //String callbackUrl = p.getLocation().toString();
+            String callbackUrl = MDD.getApp().getBaseUrl();
 
-            if (!Strings.isNullOrEmpty(p.getLocation().getPath())) callbackUrl = callbackUrl.substring(0, callbackUrl.length() - p.getLocation().getPath().length());
-            callbackUrl += "";
+//            if (!Strings.isNullOrEmpty(p.getLocation().getPath())) callbackUrl = callbackUrl.substring(0, callbackUrl.length() - p.getLocation().getPath().length());
+//            callbackUrl += "";
 
             if (!callbackUrl.endsWith("/")) callbackUrl += "/";
-            callbackUrl += "app/oauth/google/callback";
+            if (!callbackUrl.endsWith("app/")) callbackUrl += "app/";
+            callbackUrl += "oauth/google/callback";
 
 
             try {

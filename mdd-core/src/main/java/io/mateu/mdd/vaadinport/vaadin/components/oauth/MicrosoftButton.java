@@ -49,12 +49,13 @@ client_id=6731de76-14a6-49ae-97bc-6eba6914391e
             callbackUrl += "";
 
             if (!callbackUrl.endsWith("/")) callbackUrl += "/";
+            if (!callbackUrl.endsWith("app/")) callbackUrl += "app/";
             callbackUrl += "oauth/microsoft/callback";
 
 
             try {
                 MDDUI.get().getPage().setLocation("https://login.microsoftonline.com/common/oauth2/authorize?response_type=code&client_id=" + key
-                        + "&redirect_uri=" + URLEncoder.encode(callbackUrl, "iso-8859-1") + "&scope=" + URLEncoder.encode("https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile", "iso-8859-1"));
+                        + "&redirect_uri=" + URLEncoder.encode(callbackUrl, "iso-8859-1") + "&scope=" + URLEncoder.encode("email profile openid", "iso-8859-1"));
             } catch (UnsupportedEncodingException e1) {
                 MDD.alert(e1);
             }

@@ -18,6 +18,7 @@ public class DesktopAppComponent extends VerticalLayout implements AppComponent 
     private final LeftSideComponent left;
     private final ViewContainer viewContainer;
     private final HorizontalLayout all;
+    private boolean signingIn = false;
 
     public DesktopAppComponent(AbstractApplication app, ViewContainer viewContainer) {
         this.app = app;
@@ -98,11 +99,24 @@ public class DesktopAppComponent extends VerticalLayout implements AppComponent 
 
     @Override
     public void setSigningIn() {
+        signingIn = true;
         removeAllComponents();
         addComponentsAndExpand(new LoginComponent(() -> {
-            removeAllComponents();
-            addComponentsAndExpand(all);
+            setSignedIn();
         }));
+    }
+
+    @Override
+    public boolean isSigningIn() {
+        return signingIn;
+    }
+
+
+    @Override
+    public void setSignedIn() {
+        signingIn = false;
+        removeAllComponents();
+        addComponentsAndExpand(all);
     }
 
     @Override
