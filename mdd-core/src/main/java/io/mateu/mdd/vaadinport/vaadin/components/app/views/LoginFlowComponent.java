@@ -61,36 +61,32 @@ public class LoginFlowComponent extends AbstractViewComponent {
 
             hl.addComponent(b = new Button("Forgot password", e -> forgotPassword()));
 
+
+
+
+            if (System.getProperty("oauth.github.client_id") != null
+                    || System.getProperty("oauth.google.client_id") != null
+                    || System.getProperty("oauth.microsoft.client_id") != null) {
+
+
+                if (System.getProperty("oauth.github.client_id") != null) izda.addComponent(new GitHubButton(System.getProperty("oauth.github.client_id"), System.getProperty("oauth.github.client_secret")));
+
+                if (System.getProperty("oauth.google.client_id") != null) izda.addComponent(new GoogleButton(System.getProperty("oauth.google.client_id"), System.getProperty("oauth.google.client_secret")));
+
+                if (System.getProperty("oauth.microsoft.client_id") != null) izda.addComponent(new MicrosoftButton(System.getProperty("oauth.microsoft.client_id"), System.getProperty("oauth.microsoft.client_secret")));
+
+            }
+
+
+
+
             izda.addComponentsAndExpand(new Label(""));
 
             layouts.add(izda);
 
         }
 
-        if (System.getProperty("oauth.github.client_id") != null
-                || System.getProperty("oauth.google.client_id") != null
-                || System.getProperty("oauth.microsoft.client_id") != null) {
 
-
-            VerticalLayout dcha = new VerticalLayout();
-            if (layouts.size() > 0) dcha.addStyleName("loginilayoutdcha");
-            else dcha.addStyleName("loginilayoutizda");
-            dcha.setSizeUndefined();
-
-            Label t;
-            dcha.addComponent(t = new Label((layouts.size() > 0)?"Or:":"Choose one"));
-            t.addStyleName(ValoTheme.LABEL_H3);
-
-            if (System.getProperty("oauth.github.client_id") != null) dcha.addComponent(new GitHubButton(System.getProperty("oauth.github.client_id"), System.getProperty("oauth.github.client_secret")));
-
-            if (System.getProperty("oauth.google.client_id") != null) dcha.addComponent(new GoogleButton(System.getProperty("oauth.google.client_id"), System.getProperty("oauth.google.client_secret")));
-
-            if (System.getProperty("oauth.microsoft.client_id") != null) dcha.addComponent(new MicrosoftButton(System.getProperty("oauth.microsoft.client_id"), System.getProperty("oauth.microsoft.client_secret")));
-
-            dcha.addComponentsAndExpand(new Label(""));
-
-            layouts.add(dcha);
-        }
 
         if (MDD.isMobile()) {
 

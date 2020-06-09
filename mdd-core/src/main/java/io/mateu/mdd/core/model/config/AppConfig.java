@@ -124,6 +124,9 @@ public class AppConfig {
 
     }
 
+    @Section("Mapbox")
+    private String mapboxKey;
+
 
     @Section("CMS")
     private String nginxConfigDirectory = "/etc/nginx/conf.d";

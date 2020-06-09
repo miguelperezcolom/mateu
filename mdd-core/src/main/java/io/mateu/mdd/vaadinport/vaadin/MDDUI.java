@@ -55,6 +55,14 @@ import java.net.URI;
 
 @StyleSheet("https://use.fontawesome.com/releases/v5.5.0/css/all.css")
 
+
+
+//@JavaScript({"https://api.mapbox.com/mapbox-gl-js/v1.10.1/mapbox-gl.js"})
+//@StyleSheet("https://api.mapbox.com/mapbox-gl-js/v1.10.1/mapbox-gl.css")
+
+//<script src='https://api.mapbox.com/mapbox-gl-js/v1.10.1/mapbox-gl.js'></script>
+//<link href='https://api.mapbox.com/mapbox-gl-js/v1.10.1/mapbox-gl.css' rel='stylesheet' />
+
 //@StyleSheet("https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css")
 @Viewport("width=device-width, initial-scale=1")
 @PushStateNavigation // para urls sin #!

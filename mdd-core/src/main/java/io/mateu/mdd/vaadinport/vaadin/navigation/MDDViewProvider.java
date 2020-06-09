@@ -280,7 +280,7 @@ public class MDDViewProvider implements ViewProvider {
 
                 clearStack();
 
-                v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new LoginFlowComponent());
+                v = null;
 
                 MDDUI.get().getAppComponent().setSigningIn();
 
@@ -323,7 +323,7 @@ public class MDDViewProvider implements ViewProvider {
 
                 pendingPrivateState = state;
 
-                v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new LoginFlowComponent());
+                v = null;
 
                 MDDUI.get().getAppComponent().setSigningIn();
 

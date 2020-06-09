@@ -40,83 +40,6 @@ public class LoginComponent extends VerticalLayout {
 
         setSizeFull();
 
-        if (false) {
-
-            List<Layout> layouts = new ArrayList<>();
-
-            if (!"true".equalsIgnoreCase(System.getProperty("oauthonly"))) {
-                VerticalLayout izda = new VerticalLayout();
-
-                izda.addStyleName("loginilayoutizda");
-                izda.setSizeUndefined();
-
-                Label t;
-                izda.addComponent(t = new Label("Sign in " + MDD.getApp().getName() + ":"));
-                t.addStyleName(ValoTheme.LABEL_H3);
-
-                izda.addComponent(login = new TextField("Login"));
-                izda.addComponent(password = new PasswordField("password"));
-
-                HorizontalLayout hl;
-                izda.addComponent(hl = new HorizontalLayout());
-                Button b;
-                hl.addComponent(b = new Button("Sign in", e -> login()));
-                //b.setDescription("Click ENTER to sign in");
-                b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
-                b.addStyleName(ValoTheme.BUTTON_PRIMARY);
-
-                hl.addComponent(b = new Button("Forgot password", e -> forgotPassword()));
-
-                izda.addComponentsAndExpand(new Label(""));
-
-                layouts.add(izda);
-
-            }
-
-            if (System.getProperty("oauth.github.client_id") != null
-                    || System.getProperty("oauth.google.client_id") != null
-                    || System.getProperty("oauth.microsoft.client_id") != null) {
-
-
-                VerticalLayout dcha = new VerticalLayout();
-                if (layouts.size() > 0) dcha.addStyleName("loginilayoutdcha");
-                else dcha.addStyleName("loginilayoutizda");
-                dcha.setSizeUndefined();
-
-                Label t;
-                dcha.addComponent(t = new Label((layouts.size() > 0) ? "Or:" : "Choose one"));
-                t.addStyleName(ValoTheme.LABEL_H3);
-
-                if (System.getProperty("oauth.github.client_id") != null)
-                    dcha.addComponent(new GitHubButton(System.getProperty("oauth.github.client_id"), System.getProperty("oauth.github.client_secret")));
-
-                if (System.getProperty("oauth.google.client_id") != null)
-                    dcha.addComponent(new GoogleButton(System.getProperty("oauth.google.client_id"), System.getProperty("oauth.google.client_secret")));
-
-                if (System.getProperty("oauth.microsoft.client_id") != null)
-                    dcha.addComponent(new MicrosoftButton(System.getProperty("oauth.microsoft.client_id"), System.getProperty("oauth.microsoft.client_secret")));
-
-                dcha.addComponentsAndExpand(new Label(""));
-
-                layouts.add(dcha);
-            }
-
-            if (MDD.isMobile()) {
-
-                VerticalLayout l;
-                layouts.add(l = new VerticalLayout());
-
-                Button b;
-                l.addComponent(b = new Button("Go back to menu"));
-                b.addClickListener(e -> MDDUI.get().getNavegador().goTo("public"));
-                b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
-                b.addStyleName("submenuoption");
-
-            }
-
-        }
-
-
         VerticalLayout info = new VerticalLayout();
         info.addStyleName("info");
         info.setWidthUndefined();
@@ -165,6 +88,19 @@ public class LoginComponent extends VerticalLayout {
 
         vl.addComponent(b = new Button("Forgot password", e -> forgotPassword()));
 
+
+        if (System.getProperty("oauth.github.client_id") != null
+                || System.getProperty("oauth.google.client_id") != null
+                || System.getProperty("oauth.microsoft.client_id") != null) {
+
+
+            if (System.getProperty("oauth.github.client_id") != null) vl.addComponent(new GitHubButton(System.getProperty("oauth.github.client_id"), System.getProperty("oauth.github.client_secret")));
+
+            if (System.getProperty("oauth.google.client_id") != null) vl.addComponent(new GoogleButton(System.getProperty("oauth.google.client_id"), System.getProperty("oauth.google.client_secret")));
+
+            if (System.getProperty("oauth.microsoft.client_id") != null) vl.addComponent(new MicrosoftButton(System.getProperty("oauth.microsoft.client_id"), System.getProperty("oauth.microsoft.client_secret")));
+
+        }
 
 
         CssLayout cl = new CssLayout();
