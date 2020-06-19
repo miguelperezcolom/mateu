@@ -1,8 +1,13 @@
 package io.mateu.mdd.core.model.multilanguage;
 
+import com.vaadin.icons.VaadinIcons;
+import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.data.Data;
 import io.mateu.mdd.core.interfaces.Translated;
 import lombok.MateuMDDEntity;
+
+import java.util.Set;
 
 /**
  * holder for translations. Hardcoding translations is used for better performance
@@ -92,6 +97,12 @@ public class Literal implements Translated {
     public String get(String language) {
         Data d = get();
         return d.containsKey(language)?d.getString(language):d.getString("en");
+    }
+
+
+    @Action(icon = VaadinIcons.FLAG)
+    public static void translateWithDeepL(Set<Literal> selection) {
+        MDD.alert("DeepL is not configured. Please contact your administrator.");
     }
 
 }

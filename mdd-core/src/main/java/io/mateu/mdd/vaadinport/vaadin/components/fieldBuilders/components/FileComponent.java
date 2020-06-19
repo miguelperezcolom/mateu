@@ -48,7 +48,7 @@ public class FileComponent extends Composite implements HasValue<Resource>, Comp
                                               String mimeType) {
                 // Create and return a file output stream
 
-                log.debug("receiveUpload(" + fileName + "," + mimeType + ")");
+                System.out.println("receiveUpload(" + fileName + "," + mimeType + ")");
 
                 FileOutputStream os = null;
                 if (fileName != null && !"".equals(fileName)) {
@@ -87,7 +87,7 @@ public class FileComponent extends Composite implements HasValue<Resource>, Comp
                 }
 
 
-                log.debug("uploadSucceeded(" + filex.getAbsolutePath() + ")");
+                System.out.println("uploadSucceeded(" + filex.getAbsolutePath() + ")");
 
                 try {
 
@@ -232,7 +232,7 @@ public class FileComponent extends Composite implements HasValue<Resource>, Comp
          upload.addChangeListener(e -> {
 
 
-             log.debug("UPLOAD HA CAMBIADO!");
+             System.out.println("UPLOAD HA CAMBIADO!");
 
 
          });
@@ -247,7 +247,7 @@ public class FileComponent extends Composite implements HasValue<Resource>, Comp
         try {
 
             boolean esFoto = false;
-            if (FileType.URL.equals(file.getType()) && (file.getUrl() != null && (file.getUrl().toLowerCase().contains("githubusercontent") || file.getUrl().toLowerCase().contains("googleusercontent")))) esFoto = true;
+            if (file != null && FileType.URL.equals(file.getType()) && (file.getUrl() != null && (file.getUrl().toLowerCase().contains("githubusercontent") || file.getUrl().toLowerCase().contains("googleusercontent")))) esFoto = true;
 
             if (esFoto || (file != null && file.getName () != null && (
                     file.getName().toLowerCase().endsWith(".jpg")

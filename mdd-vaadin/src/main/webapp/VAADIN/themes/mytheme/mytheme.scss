@@ -412,7 +412,8 @@ body {
         padding: 0px;
         width: 100%;
         text-align: center;
-        padding-bottom: 20px;
+        padding-bottom: 10px;
+        padding-top: 10px;
 
         .foto {
           padding: 0px;
@@ -478,10 +479,6 @@ body {
 
         width: 100%;
         padding: 0px;
-
-        > .v-slot {
-          border-right: 1px solid lightgrey;
-        }
 
 
         .tituloarea {
@@ -889,10 +886,6 @@ body {
             width: 100%;
             padding: 0px;
 
-            > .v-slot {
-              border-right: 1px solid lightgrey;
-            }
-
 
             .tituloarea {
               padding: 10px;
@@ -1189,10 +1182,6 @@ body {
             display: none;
           }
 
-          .conborde {
-            border-right: 1px solid lightgrey;
-          }
-
           .v-absolutelayout-wrapper-full {
             height: 100%;
 
@@ -1381,6 +1370,33 @@ body {
 
     .zonadrop-drag-center {
       border-left: 4px dashed orangered !important;
+    }
+
+
+
+    .layoutdatasheet {
+      padding: 5px;
+    }
+
+    .iconosdatasheet {
+      > div {
+        margin: 10px;
+      }
+    }
+
+    .imagesdatasheet {
+      > img {
+        padding: 1px;
+      }
+    }
+
+    .headerdatasheet {
+      width: 400px;
+    }
+
+    .descriptiondatasheet {
+      padding: 10px;
+      width: 400px;
     }
 
   }

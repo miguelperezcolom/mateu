@@ -18,6 +18,8 @@ public class SessionComponent extends VerticalLayout {
 
         addStyleName("sesion");
 
+        setSpacing(false);
+
         /*
         addComponent(foto = new Image("", new ClassResource("/images/profile.jpg")));
         foto.setVisible(false);

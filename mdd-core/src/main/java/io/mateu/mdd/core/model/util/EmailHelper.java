@@ -113,7 +113,14 @@ public class EmailHelper {
 
         } else {
 
-            email.send();
+            if ("false".equalsIgnoreCase(System.getProperty("sendemailsinforeground")) || "no".equalsIgnoreCase(System.getProperty("sendemailsinforeground"))) email.send();
+            else new Thread(() -> {
+                try {
+                    email.send();
+                } catch (EmailException e) {
+                    e.printStackTrace();
+                }
+            }).start();
 
             System.out.println("******* Email sent");
         }

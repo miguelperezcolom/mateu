@@ -3,6 +3,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.app.views;
 import com.google.common.base.Strings;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.server.ExternalResource;
+import com.vaadin.server.Page;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
@@ -34,6 +35,10 @@ public class LoginComponent extends VerticalLayout {
 
     public LoginComponent(Runnable onLogin) {
         this.onLogin = onLogin;
+
+
+        Page.getCurrent().setTitle("Login");
+
 
         addStyleName("logincomponent2");
 

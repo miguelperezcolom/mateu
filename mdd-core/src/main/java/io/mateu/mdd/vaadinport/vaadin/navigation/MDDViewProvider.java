@@ -5,6 +5,7 @@ import com.vaadin.data.Binder;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewProvider;
+import com.vaadin.server.BrowserWindowOpener;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.server.Page;
 import com.vaadin.shared.ui.ContentMode;
@@ -77,6 +78,19 @@ public class MDDViewProvider implements ViewProvider {
     private EditorViewComponent currentEditor;
     private String pendingPrivateState;
 
+
+    public void searchUp() {
+        io.mateu.mdd.vaadinport.vaadin.navigation.View v = stack.getLast();
+        if (v != null && v.getViewComponent() != null && v.getViewComponent() instanceof ListViewComponent) {
+            try {
+                ((ListViewComponent) v.getViewComponent()).search(((ListViewComponent) v.getViewComponent()).getModelForSearchFilters());
+            } catch (Throwable throwable) {
+                MDD.alert(throwable);
+            }
+        }
+    }
+
+
     public void search(RpcView rpcView) {
         RpcListViewComponent x = null;
         for (io.mateu.mdd.vaadinport.vaadin.navigation.View v : stack.getStack()) {
@@ -95,7 +109,9 @@ public class MDDViewProvider implements ViewProvider {
     }
 
     public String getPendingPrivateState() {
-        return pendingPrivateState;
+        String ps = pendingPrivateState;
+        pendingPrivateState = null;
+        return ps;
     }
 
     public String getPendingFocusedSectionId() {
@@ -321,6 +337,8 @@ public class MDDViewProvider implements ViewProvider {
                 MDDUI.get().getAppComponent().setSearching();
 
             } else if ("bye".equals(state)) {
+
+                pendingPrivateState = null;
 
                 MDD.setUserData(null);
 
@@ -1486,7 +1504,9 @@ public class MDDViewProvider implements ViewProvider {
             ) {
                 stack.push(currentPath, new ComponentWrapper(title, new Label("" + r, ContentMode.HTML))).setOpenNewWindow(inNewWindow);
             } else if (URL.class.equals(c)) {
-                if ((m != null && m.isAnnotationPresent(IFrame.class)) || r.toString().endsWith("pdf")) {
+                if (r.toString().contains("google")) {
+                    Page.getCurrent().open(r.toString(), "_blank");
+                } else if ((m != null && m.isAnnotationPresent(IFrame.class)) || r.toString().endsWith("pdf")) {
                     BrowserFrame b = new BrowserFrame("Result", new ExternalResource(r.toString()));
                     b.setSizeFull();
                     stack.push(currentPath, new ComponentWrapper(null, title, b, true)).setOpenNewWindow(inNewWindow);

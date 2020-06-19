@@ -6,6 +6,7 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.model.multilanguage.Literal;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
@@ -33,7 +34,7 @@ public class LiteralComponent extends Composite implements HasValue<Literal>, Co
         else tf = new TextField();
 
         HorizontalLayout hl = new HorizontalLayout(tf, cb = new ComboBox<String>(null, langs), new Button(VaadinIcons.FLAG, (e) -> {
-
+            MDD.alert("DeepL is not configured. Please contact your administrator.");
         }));
         cb.setWidth("80px");
         cb.setEmptySelectionAllowed(false);

@@ -1293,7 +1293,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                             ui.access(() -> {
                                 try {
                                     Helper.notransact(em -> {
-                                        binder.update(em.find(merged[0].getClass(), modelId));
+                                        if (modelId != null) {
+                                            binder.update(em.find(merged[0].getClass(), modelId));
+                                        }
                                         initialValues = buildSignature();
                                     });
                                     MDD.updateTitle(getTitle());
