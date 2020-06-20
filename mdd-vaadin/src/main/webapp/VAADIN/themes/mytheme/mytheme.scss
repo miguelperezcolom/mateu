@@ -49,6 +49,27 @@ body {
   /* zoom: 0.66; */
 }
 
+.blinking{
+  animation:blinkingText 1.2s infinite;
+}
+@keyframes blinkingText{
+  0%{     color: #000;    }
+  49%{    color: #000; }
+  60%{    color: transparent; }
+  99%{    color:transparent;  }
+  100%{   color: #000;    }
+}
+
+.ultraurgent{
+  animation:ultraurgentblinkingText 1.2s infinite;
+}
+@keyframes ultraurgentblinkingText{
+  0%{     background-color: #f27469;    }
+  49%{    background-color: inherit; }
+  60%{    background-color: inherit; }
+  99%{    background-color: inherit;  }
+  100%{   background-color: inherit;    }
+}
 
 @mixin mytheme {
   @include valo;
@@ -171,6 +192,8 @@ body {
 
   }
 
+
+
   .miapp {
 
       width: 100%;
@@ -182,6 +205,8 @@ body {
       background-color: #ececec;
       border: none;
     }
+
+
 
 
     .cockpit {
@@ -488,7 +513,7 @@ body {
           /* font-weight: bold; */
           text-align: center;
           cursor: pointer;
-          border-right: 1px solid lightgray;
+          /* border-right: 1px solid lightgray; */
           border-top: 2px dashed #929292;
           border-bottom: 2px dashed #929292;
           color: whitesmoke;

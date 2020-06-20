@@ -455,15 +455,17 @@ public class JPAListViewComponent extends ListViewComponent {
                 if (!"".equals(pathAcumulado)) pathAcumulado += ".";
                 pathAcumulado += s;
                 fx = ReflectionHelper.getFieldByName(type, s);
-                type = fx.getType();
-                if (type.isAnnotationPresent(Entity.class) && !fx.isAnnotationPresent(NotNull.class)) {
-                    // referencia y no obligatorio --> left outer join
-                    if (!fx.isAnnotationPresent(NotNull.class)) {
-                        if (!alias.containsKey(pathAcumulado)) {
-                            alias.put(pathAcumulado, "x" + alias.size());
+                if (fx != null) {
+                    type = fx.getType();
+                    if (type.isAnnotationPresent(Entity.class) && !fx.isAnnotationPresent(NotNull.class)) {
+                        // referencia y no obligatorio --> left outer join
+                        if (!fx.isAnnotationPresent(NotNull.class)) {
+                            if (!alias.containsKey(pathAcumulado)) {
+                                alias.put(pathAcumulado, "x" + alias.size());
+                            }
+                            pathAcumulado = alias.get(pathAcumulado);
+                            f0 = fx;
                         }
-                        pathAcumulado = alias.get(pathAcumulado);
-                        f0 = fx;
                     }
                 }
             }
@@ -529,11 +531,15 @@ public class JPAListViewComponent extends ListViewComponent {
 
                 if (ef != null && ef.getType().isAnnotationPresent(UseIdToSelect.class)) {
 
-                    FieldInterfaced idf = ReflectionHelper.getIdField(entityClass);
+                    boolean anadir = !String.class.equals(v.getClass()) || !Strings.isNullOrEmpty((String) v);
 
-                    if (!"".equals(ql)) ql += " and ";
-                    ql += " x." + f.getName() + "." + idf.getName() + " = :" + f.getName() + " ";
-                    parameterValues.put(f.getName(), v);
+                    if (anadir) {
+                        FieldInterfaced idf = ReflectionHelper.getIdField(entityClass);
+
+                        if (!"".equals(ql)) ql += " and ";
+                        ql += " x." + f.getName() + "." + idf.getName() + " = :" + f.getName() + " ";
+                        parameterValues.put(f.getName(), v);
+                    }
 
                 } else if (String.class.equals(v.getClass())) {
 

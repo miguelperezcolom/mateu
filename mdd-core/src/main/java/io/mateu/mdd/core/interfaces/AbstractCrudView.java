@@ -2,13 +2,17 @@ package io.mateu.mdd.core.interfaces;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.provider.QuerySortOrder;
+import com.vaadin.shared.data.sort.SortDirection;
+import io.mateu.mdd.core.annotations.Order;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Helper;
 
+import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import java.util.List;
+import javax.validation.constraints.NotNull;
+import java.util.*;
 
 public abstract class AbstractCrudView<R> extends AbstractJPQLListView<R>  implements RpcCrudView<AbstractJPQLListView, R, R>, StepInterceptor {
 
@@ -46,4 +50,9 @@ public abstract class AbstractCrudView<R> extends AbstractJPQLListView<R>  imple
         return buildFilteredQueryFromEntityClass(em, sortOrders, forCount);
     }
 
+
+    @Override
+    public List<FieldInterfaced> getFilterFields() {
+        return new ArrayList<>();
+    }
 }

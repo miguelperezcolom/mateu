@@ -341,7 +341,7 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
         return ql;
     }
 
-    public Class getRowClass() {
+    public Class    getRowClass() {
         return ReflectionHelper.getGenericClass(this.getClass(), RpcView.class, "C");
     }
 

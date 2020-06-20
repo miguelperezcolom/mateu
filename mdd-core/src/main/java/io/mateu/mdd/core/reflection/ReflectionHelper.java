@@ -1614,14 +1614,20 @@ public class ReflectionHelper {
         }
         boolean mergear = false;
         List<CascadeType> l = new ArrayList<>();
-        OneToMany a = mbf.getAnnotation(OneToMany.class);
+        OneToMany a = field.getAnnotation(OneToMany.class);
         if (a != null) l = Arrays.asList(a.cascade());
         else {
-            ManyToMany b = mbf.getAnnotation(ManyToMany.class);
+            ManyToMany b = field.getAnnotation(ManyToMany.class);
             if (b != null) l = Arrays.asList(b.cascade());
         }
         mergear =  i.getClass().isAnnotationPresent(Entity.class) && !(l.contains(CascadeType.ALL) || l.contains(CascadeType.MERGE) || l.contains(CascadeType.PERSIST));
-        if (mergear) binder.getMergeables().add(i);
+        if (mergear) {
+            if (!binder.getMergeables().contains(i)) binder.getMergeables().add(i);
+        } else {
+            binder.getMergeables().remove(i);
+        }
+
+
 
     }
 

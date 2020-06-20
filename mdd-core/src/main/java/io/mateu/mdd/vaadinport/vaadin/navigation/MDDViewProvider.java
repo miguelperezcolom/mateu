@@ -184,6 +184,7 @@ public class MDDViewProvider implements ViewProvider {
                 } else {
                     if (MDD.isMobile()) state = "public";
                     else state = state.split("/").length > 1?MDD.getApp().getState(MDD.getApp().getDefaultPublicArea()):"public";
+                    MDDUI.get().getAppComponent().setSignedIn();
                 }
 
             }
