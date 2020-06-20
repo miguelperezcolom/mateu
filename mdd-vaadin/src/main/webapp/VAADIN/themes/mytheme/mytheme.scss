@@ -208,6 +208,29 @@ body {
 
 
 
+    .cardicono {
+      padding: 10px;
+      border: 1px solid transparent;
+
+      width: 100px;
+
+      .v-label {
+        font-size: 10px;
+        text-align: center;
+        width: 100%;
+
+        i {
+          font-size: 30px;
+        }
+
+      }
+    }
+
+    .cardicono:hover {
+      border: 1px solid indianred;
+      cursor: pointer;
+    }
+
 
     .cockpit {
 

@@ -34,6 +34,7 @@ public abstract class AbstractFieldBuilder {
             , new JPAIFrameFieldBuilder()
             , new JPAURLFieldBuilder()
             , new JPAFileFieldBuilder()
+            , new JPAIconFieldBuilder()
             , new JPALiteralFieldBuilder()
             , new JPASignatureFieldBuilder()
             , new JPACodeFieldBuilder()

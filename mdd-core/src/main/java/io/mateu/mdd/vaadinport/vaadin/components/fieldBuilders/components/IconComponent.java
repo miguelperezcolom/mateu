@@ -1,0 +1,167 @@
+package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components;
+
+import com.google.common.base.Strings;
+import com.vaadin.data.HasValue;
+import com.vaadin.icons.VaadinIcons;
+import com.vaadin.shared.Registration;
+import com.vaadin.shared.ui.ContentMode;
+import com.vaadin.ui.*;
+import io.mateu.mdd.core.data.MDDBinder;
+import io.mateu.mdd.core.model.common.Icon;
+import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.core.util.Helper;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class IconComponent extends Composite implements HasValue<Icon>, Component.Focusable {
+    private final MDDBinder binder;
+    private final Button b;
+    private List<Icon> icons;
+    private Icon icon;
+    private Map<UUID, ValueChangeListener> listeners = new HashMap<>();
+
+    public IconComponent(FieldInterfaced field, MDDBinder binder) {
+        this.binder = binder;
+
+        try {
+            icons = Helper.findAll(Icon.class).stream().sorted((a,b) -> a.getId().compareTo(b.getId())).collect(Collectors.toList());
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+            icons = new ArrayList<>();
+        }
+
+        b = new Button();
+        b.setCaptionAsHtml(true);
+
+        b.addClickListener(e -> {
+            //abrir diálogo con todos los iconos en css layout
+            // al hacer click, seleccionamos
+            abrirListaIconos();
+        });
+
+        setCompositionRoot(b);
+
+    }
+
+    private void abrirListaIconos() {
+        // lo mismo para buscar y para navegar en profundidad
+        Window w = new Window("Select an Icon");
+
+        w.addStyleName("miapp");
+
+        w.setWidth("700px");
+        w.setHeight("600px");
+
+        CssLayout l = new CssLayout();
+
+        VerticalLayout vl = new VerticalLayout();
+        TextField tf;
+        vl.addComponent(tf = new TextField());
+        tf.addValueChangeListener(e -> {
+            rellenar(l, e.getValue(), w);
+        });
+
+        rellenar(l, "", w);
+
+        l.setSizeUndefined();
+        vl.addComponent(l);
+
+        w.setContent(new Panel(vl));
+
+        w.center();
+        w.setModal(true);
+
+        w.addCloseListener(e -> {
+        });
+
+        UI.getCurrent().addWindow(w);
+    }
+
+    private void rellenar(CssLayout l, String text, Window w) {
+        try {
+            l.removeAllComponents();
+            icons.stream().filter(i -> Strings.isNullOrEmpty(text) || i.getId().toLowerCase().contains(text.toLowerCase())).forEach(i -> {
+                VerticalLayout c;
+                l.addComponent(c = new VerticalLayout());
+                Label h;
+                c.addComponent(h = new Label(i.getHtml(), ContentMode.HTML));
+                h.addStyleName("icono");
+                c.addComponent(new Label(i.getId()));
+                c.setSizeUndefined();
+                c.addStyleName("cardicono");
+                c.addLayoutClickListener(e -> {
+                    Icon old = icon;
+                    setValue(i);
+                    ValueChangeEvent ce = new ValueChangeEvent(this, old, true);
+                    listeners.values().forEach(x -> x.valueChange(ce));
+                    w.close();
+                });
+            });
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+
+    }
+
+    @Override
+    public void setValue(Icon o) {
+        icon = o;
+        b.setCaption(icon != null?icon.getHtml(): VaadinIcons.QUESTION.getHtml());
+    }
+
+    @Override
+    public Icon getValue() {
+        return icon;
+    }
+
+    @Override
+    public void setRequiredIndicatorVisible(boolean b) {
+
+    }
+
+    @Override
+    public boolean isRequiredIndicatorVisible() {
+        return false;
+    }
+
+    @Override
+    public void setReadOnly(boolean b) {
+        //b.disa
+    }
+
+    @Override
+    public boolean isReadOnly() {
+        return false;
+    }
+
+    @Override
+    public Registration addValueChangeListener(ValueChangeListener<Icon> valueChangeListener) {
+        UUID _id = UUID.randomUUID();
+        listeners.put(_id, valueChangeListener);
+        return new Registration() {
+
+            UUID id = _id;
+
+            @Override
+            public void remove() {
+                listeners.remove(id);
+            }
+        };
+    }
+
+    @Override
+    public void focus() {
+        b.focus();
+    }
+
+    @Override
+    public int getTabIndex() {
+        return b.getTabIndex();
+    }
+
+    @Override
+    public void setTabIndex(int i) {
+        b.setTabIndex(i);
+    }
+}

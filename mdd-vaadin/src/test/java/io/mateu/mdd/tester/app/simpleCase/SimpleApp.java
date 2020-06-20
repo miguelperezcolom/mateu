@@ -10,6 +10,7 @@ import io.mateu.mdd.core.annotations.IFrame;
 import io.mateu.mdd.core.annotations.SubApp;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.model.authentication.User;
+import io.mateu.mdd.core.model.common.Icon;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.util.Helper;
@@ -146,7 +147,12 @@ public class SimpleApp extends SimpleMDDApplication {
         return File1.class;
     }
 
-    @Action(order = 13, icon = VaadinIcons.FOLDER_ADD)
+    @Action(order = 14, icon = VaadinIcons.PICTURE)
+    public Class icons() {
+        return Icon.class;
+    }
+
+    @Action(order = 15, icon = VaadinIcons.FOLDER_ADD)
     public Class captured() {
         return CapturedBooking.class;
     }

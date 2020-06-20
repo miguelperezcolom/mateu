@@ -3,6 +3,7 @@ package io.mateu.mdd.tester.model.useCases.reservas;
 import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
+import io.mateu.mdd.core.model.common.Icon;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.tester.model.useCases.hotel.Booking;
 import lombok.MateuMDDEntity;
@@ -38,6 +39,9 @@ public class File1 {
 
     @ManyToOne(cascade = CascadeType.ALL)
     private Resource attachment;
+
+    @ManyToOne
+    private Icon icon;
 
 
 

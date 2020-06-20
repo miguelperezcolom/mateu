@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components;
 
 import com.google.common.collect.Lists;
+import com.kbdunn.vaadin.addons.fontawesome.FontAwesome;
 import com.vaadin.data.HasValue;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.Registration;
@@ -33,7 +34,7 @@ public class LiteralComponent extends Composite implements HasValue<Literal>, Co
         else if (field.isAnnotationPresent(io.mateu.mdd.core.annotations.TextArea.class)) tf = new TextArea();
         else tf = new TextField();
 
-        HorizontalLayout hl = new HorizontalLayout(tf, cb = new ComboBox<String>(null, langs), new Button(VaadinIcons.FLAG, (e) -> {
+        HorizontalLayout hl = new HorizontalLayout(tf, cb = new ComboBox<String>(null, langs), new Button(FontAwesome.LANGUAGE, (e) -> {
             MDD.alert("DeepL is not configured. Please contact your administrator.");
         }));
         cb.setWidth("80px");

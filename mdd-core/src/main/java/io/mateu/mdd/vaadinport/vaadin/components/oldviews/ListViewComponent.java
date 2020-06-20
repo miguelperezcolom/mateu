@@ -38,6 +38,7 @@ import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.data.*;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.*;
+import io.mateu.mdd.core.model.common.Icon;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.FieldInterfacedForCheckboxColumn;
@@ -348,6 +349,8 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                             return v != null?((LocalTime)v).format(DateTimeFormatter.ofPattern("HH:mm")):null;
                         } else if (Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) {
                             return v;
+                        } else if (Icon.class.equals(f.getType())) {
+                            return (v != null)?"" + v:null;
                         } else if (Resource.class.equals(f.getType())) {
                             Resource r = (Resource) v;
                             if (r != null) {
@@ -366,6 +369,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                 });
 
                 if (Resource.class.equals(f.getType())) col.setRenderer(new ComponentRenderer());
+                if (Icon.class.equals(f.getType())) col.setRenderer(new HtmlRenderer(""));
 
                 if (csg != null) col.setStyleGenerator(new StyleGenerator() {
                     @Override

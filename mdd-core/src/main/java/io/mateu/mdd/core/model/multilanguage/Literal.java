@@ -100,7 +100,7 @@ public class Literal implements Translated {
     }
 
 
-    @Action(icon = VaadinIcons.FLAG)
+    @Action(icon = VaadinIcons.CLOUD_UPLOAD)
     public static void translateWithDeepL(Set<Literal> selection) {
         MDD.alert("DeepL is not configured. Please contact your administrator.");
     }
