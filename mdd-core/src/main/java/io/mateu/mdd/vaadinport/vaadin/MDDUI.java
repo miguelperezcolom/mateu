@@ -53,7 +53,7 @@ import java.net.URI;
 //  crossorigin="anonymous"></script>
 @JavaScript({"https://code.jquery.com/jquery-3.4.1.min.js"})
 
-@StyleSheet("https://use.fontawesome.com/releases/v5.5.0/css/all.css")
+@StyleSheet("https://use.fontawesome.com/releases/v5.13.0/css/all.css")
 
 
 
