@@ -145,7 +145,7 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
                     public void setValue(Object o) {
                         Object oldValue = value;
                         value = o;
-                        if (oldValue != value || (value != null && !value.equals(oldValue))) {
+                        if (true || oldValue != value || (value != null && !value.equals(oldValue))) {
                             String v = (o != null) ? "" + o : "No value";
                             if (o != null) {
                                 Method m = ReflectionHelper.getMethod(o.getClass(), "toHtml");

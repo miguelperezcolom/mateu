@@ -30,6 +30,7 @@
 // For more information, see: https://vaadin.com/book/-/page/themes.valo.html
 // Example variants can be copy/pasted from https://vaadin.com/wiki/-/wiki/Main/Valo+Examples
 
+$v-font-awesome: false;
 
 $blanco: #ffffff; //#f5f6f7;
 $kpi: #7b7e80;
@@ -1551,10 +1552,11 @@ body {
     padding: 6px 16px 6px 32px;
     font-weight: 400;
     font-size: 13px;
+    font-weight: bold;
   }
 
   .v-label-info:before {
-    font-family: FontAwesome;
+    font-family: 'Font Awesome 5 Free';
     content: "\f05a";
     margin-right: 0.5em;
     margin-left: -16px;
@@ -1569,10 +1571,11 @@ body {
     padding: 6px 16px 6px 32px;
     font-weight: 400;
     font-size: 13px;
+    font-weight: bold;
   }
 
   .v-label-warning:before {
-    font-family: FontAwesome;
+    font-family: 'Font Awesome 5 Free';
     content: "\f071";
     margin-right: 0.5em;
     margin-left: -16px;
@@ -2367,13 +2370,11 @@ body {
   }
 
   .rowyes:before {
-    font-family: FontAwesome;
     top:0;
     /*
     left:-5px;
     padding-right:10px;
     */
-    content: "\f00c";
     display: unset;
   }
 
@@ -2384,13 +2385,11 @@ body {
   }
 
   .rowno:before {
-    font-family: FontAwesome;
     top:0;
     /*
     left:-5px;
     padding-right:10px;
     */
-    content: "\f00d";
     display: unset;
   }
 
@@ -2403,16 +2402,17 @@ body {
     position:relative;
     text-align: center;
     color: green;
+    font-weight: bold;
   }
 
   .sale:before {
-    font-family: FontAwesome;
+    font-family: 'Font Awesome 5 Free';
     top:0;
     /*
     left:-5px;
     padding-right:10px;
     */
-    content: "\f153";
+    content: "\f382";
   }
 
 
@@ -2420,16 +2420,17 @@ body {
     position:relative;
     text-align: center;
     color: brown;
+    font-weight: bold;
   }
 
   .purchase:before {
-    font-family: FontAwesome;
+    font-family: 'Font Awesome 5 Free';
     top:0;
     /*
     left:-5px;
     padding-right:10px;
     */
-    content: "\f07a";
+    content: "\f2f6";
   }
 
 

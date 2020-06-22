@@ -16,7 +16,7 @@ public class FareValue implements XMLSerializable, ISupplementOrPositive {
     @SameLine
     private boolean percent;
     @SameLine
-    private double value;
+    private Double value;
 
     public FareValue(FareValue v) {
         this.supplement = v.isSupplement();
@@ -49,11 +49,11 @@ public class FareValue implements XMLSerializable, ISupplementOrPositive {
         this.percent = percent;
     }
 
-    public double getValue() {
+    public Double getValue() {
         return value;
     }
 
-    public void setValue(double value) {
+    public void setValue(Double value) {
         this.value = value;
     }
 
@@ -78,9 +78,11 @@ public class FareValue implements XMLSerializable, ISupplementOrPositive {
     @Override
     public String toString() {
         String s = "";
-        if (isSupplement() && getValue() >= 0) s += "+";
-        s += getValue();
-        if (isPercent()) s += "%";
+        if (getValue() != null) {
+            if (isSupplement() && getValue() >= 0) s += "+";
+            s += getValue();
+            if (isPercent()) s += "%";
+        }
         return s;
     }
 
@@ -97,7 +99,7 @@ public class FareValue implements XMLSerializable, ISupplementOrPositive {
         if (isSupplement()) e.setAttribute("supplement", "");
         if (isDiscount()) e.setAttribute("discount", "");
         if (isPercent()) e.setAttribute("percent", "");
-        e.setAttribute("value","" + getValue());
+        if (getValue() != null) e.setAttribute("value","" + getValue());
         return e;
     }
 

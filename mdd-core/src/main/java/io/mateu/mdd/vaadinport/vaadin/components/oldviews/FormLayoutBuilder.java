@@ -121,7 +121,10 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
             } else if (sections.size() > 1) {
                 if (!MDD.isMobile() && editor != null) editor.setSizeFull();
                 sectionTabSheet = new TabSheet();
-                if (editor != null) sectionTabSheet.addSelectedTabChangeListener(e -> editor.setFocusedSectionId("" + e.getTabSheet().getSelectedTab().getId()));
+                if (editor != null) {
+                    TabSheet finalSectionTabSheet = sectionTabSheet;
+                    sectionTabSheet.addSelectedTabChangeListener(e -> editor.setFocusedSection(finalSectionTabSheet, e.getTabSheet().getSelectedTab()));
+                }
                 //tabSheet.setSizeFull();
                 if (contentContainer instanceof VerticalLayout) ((VerticalLayout) contentContainer).addComponentsAndExpand(sectionTabSheet);
                 else contentContainer.addComponent(sectionTabSheet);
@@ -179,6 +182,8 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
             String sid = MDDUI.get().getNavegador().getViewProvider().getPendingFocusedSectionId();
             if (!Strings.isNullOrEmpty(sid)) {
                 sectionTabSheet.setSelectedTab(Integer.parseInt(sid));
+            } else if (editor != null && !Strings.isNullOrEmpty(editor.getFocusedSectionId())) {
+                sectionTabSheet.setSelectedTab(Integer.parseInt(editor.getFocusedSectionId()));
             }
         }
 

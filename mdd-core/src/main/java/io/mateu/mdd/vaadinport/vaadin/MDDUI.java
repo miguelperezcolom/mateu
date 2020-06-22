@@ -29,6 +29,7 @@ import io.mateu.mdd.vaadinport.vaadin.navigation.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
+import java.util.ArrayList;
 
 /**
  * This UI is the application entry point. A UI may either represent a browser window 
@@ -327,6 +328,13 @@ public class MDDUI extends UI {
         w.setModal(true);
 
         UI.getCurrent().addWindow(w);
+    }
+
+    public static void closeWindow() {
+        if (UI.getCurrent() != null && UI.getCurrent().getWindows().size() > 0) {
+            ArrayList<Window> l = new ArrayList<>(UI.getCurrent().getWindows());
+            l.get(l.size() - 1).close();
+        }
     }
 
     public void openInWindow(AbstractViewComponent view) {

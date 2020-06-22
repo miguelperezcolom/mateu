@@ -6,7 +6,6 @@ import com.byteowls.vaadin.chartjs.data.Dataset;
 import com.byteowls.vaadin.chartjs.data.PieDataset;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.kbdunn.vaadin.addons.fontawesome.FontAwesome;
 import com.vaadin.data.*;
 import com.vaadin.data.Converter;
 import com.vaadin.data.provider.ListDataProvider;
@@ -111,15 +110,17 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         setSizeFull();
 
         if (!(this instanceof JPACollectionFieldListViewComponent)) {
-            addComponent(matchesComponent = new HorizontalLayout(excelButton = new Button(FontAwesome.FILE_EXCEL_O, e -> excel()), pdfButton = new Button(FontAwesome.FILE_PDF_O, e -> pdf()), countLabel = new Label()));
+            addComponent(matchesComponent = new HorizontalLayout(excelButton = new Button("<i class=\"fas fa-file-excel\"></i>", e -> excel()), pdfButton = new Button("<i class=\"fas fa-file-pdf\"></i>", e -> pdf()), countLabel = new Label()));
             matchesComponent.addStyleName(CSS.NOPADDING);
             countLabel.addStyleName("resultsmessage");
 
             excelButton.addStyleName(ValoTheme.BUTTON_LINK);
             excelButton.addStyleName("botondeicono");
+            excelButton.setCaptionAsHtml(true);
 
             pdfButton.addStyleName(ValoTheme.BUTTON_LINK);
             pdfButton.addStyleName("botondeicono");
+            pdfButton.setCaptionAsHtml(true);
         }
 
 
@@ -291,12 +292,12 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                     csg = new ICellStyleGenerator() {
                         @Override
                         public String getStyles(Object row, Object value) {
-                            return (value != null && ((Boolean)value))?"rowyes":"rowno";
+                            return ""; //(value != null && ((Boolean)value))?"rowyes":"rowno";
                         }
 
                         @Override
                         public boolean isContentShown() {
-                            return false;
+                            return true;
                         }
                     };
                 }
@@ -348,7 +349,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                         } else if (LocalTime.class.equals(f.getType())) {
                             return v != null?((LocalTime)v).format(DateTimeFormatter.ofPattern("HH:mm")):null;
                         } else if (Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) {
-                            return v;
+                            return "<i class='fas fa-" + ((v != null && (Boolean)v)?"check":"times") + "'></i>";
                         } else if (Icon.class.equals(f.getType())) {
                             return (v != null)?"" + v:null;
                         } else if (Resource.class.equals(f.getType())) {
@@ -370,6 +371,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
                 if (Resource.class.equals(f.getType())) col.setRenderer(new ComponentRenderer());
                 if (Icon.class.equals(f.getType())) col.setRenderer(new HtmlRenderer(""));
+                if (Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) col.setRenderer(new HtmlRenderer(""));
 
                 if (csg != null) col.setStyleGenerator(new StyleGenerator() {
                     @Override

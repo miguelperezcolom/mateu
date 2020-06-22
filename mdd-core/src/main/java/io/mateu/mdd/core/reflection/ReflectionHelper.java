@@ -1495,8 +1495,10 @@ public class ReflectionHelper {
                 });
             }
 
-            for (Object o : l) {
-                destroyReferences(binder, o);
+            if (isOwnedCollection(field)) {
+                for (Object o : l) {
+                    destroyReferences(binder, o);
+                }
             }
         }
 

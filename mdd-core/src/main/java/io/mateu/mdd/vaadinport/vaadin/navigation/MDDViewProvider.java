@@ -157,7 +157,7 @@ public class MDDViewProvider implements ViewProvider {
 
         if (MDDUI.get().getAppComponent().isSigningIn() && MDD.getUserData() != null) MDDUI.get().getAppComponent().setSignedIn();
 
-        if (state.equals(currentPath)) {
+        if (samePath(state, currentPath)) {
             io.mateu.mdd.vaadinport.vaadin.navigation.View v = stack.getLast();
             if (v != null) return v;
         }
@@ -885,6 +885,20 @@ public class MDDViewProvider implements ViewProvider {
             }
             return v == null || v.getWindowContainer() == null?v:null;
         }
+    }
+
+    private boolean samePath(String state, String currentPath) {
+        return cleanPath(state).equals(cleanPath(currentPath));
+    }
+
+    private String cleanPath(String p) {
+        String r = "";
+        if (p != null) for (String s : p.split("/")) {
+            if (!"".equals(r)) r += "/";
+            if (!s.contains("&")) r += s;
+            else r += s.substring(0, s.indexOf("&"));
+        }
+        return r;
     }
 
     private void clearStack() {

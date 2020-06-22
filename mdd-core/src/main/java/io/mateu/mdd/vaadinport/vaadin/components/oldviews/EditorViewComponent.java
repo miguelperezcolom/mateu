@@ -82,6 +82,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private BindedWindow creatorWindow;
 
     private Runnable beforeOpen;
+    private TabSheet sectionTabSheet;
+    private Component selectedTab;
 
     public Runnable getBeforeOpen() {
         return beforeOpen;
@@ -102,6 +104,13 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     public void setFocusedSectionId(String focusedSectionId) {
         this.focusedSectionId = focusedSectionId;
     }
+
+    public void setFocusedSection(TabSheet sectionTabSheet, Component selectedTab) {
+        this.sectionTabSheet = sectionTabSheet;
+        this.selectedTab = selectedTab;
+        setFocusedSectionId("" + selectedTab.getId());
+    }
+
 
     @Override
     public VaadinIcons getIcon() {
@@ -270,7 +279,14 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         binder.setBean(model);
 
+        String oldFocusedSectionId = focusedSectionId;
+
         build(model);
+
+        if (!Strings.isNullOrEmpty(oldFocusedSectionId) && sectionTabSheet != null) {
+            sectionTabSheet.setSelectedTab(Integer.parseInt(oldFocusedSectionId));
+            focusedSectionId = oldFocusedSectionId;
+        }
 
         rebuildActions();
 
@@ -304,7 +320,6 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         }
          */
-
 
         if (updateChangesSignature) initialValues = buildSignature();
     }
@@ -1417,7 +1432,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                     } catch (Throwable e) {
                         MDD.alert(e);
                     }
-                }, () -> goBack());
+                }, () -> {
+                    MDDUI.get().getNavegador().goBack();
+                });
             } else if (subClasses.size() == 1) {
                 create(subClasses.iterator().next(), parent);
             } else {
@@ -1480,7 +1497,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 } catch (Throwable e) {
                     MDD.alert(e);
                 }
-            }, () -> goBack());
+                MDDUI.closeWindow();
+            }, () -> MDDUI.get().getNavegador().goBack());
         } else setModel(ReflectionHelper.newInstance(type, parent));
     }
 

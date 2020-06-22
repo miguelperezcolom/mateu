@@ -1,6 +1,5 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.desktop;
 
-import com.kbdunn.vaadin.addons.fontawesome.FontAwesome;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -61,7 +60,7 @@ public class NavigationComponent extends VerticalLayout {
 
                     if (app.getAreas().size() > 1) {
 
-                        Button b = bArea = new Button(a.getName().toUpperCase() + ((app.getAreas().size() > 1)?"<span class=\"menu-badge\">" + FontAwesome.COMPASS.getHtml() + "</span>":"")
+                        Button b = bArea = new Button(a.getName().toUpperCase() + ((app.getAreas().size() > 1)?"<span class=\"menu-badge\">" + "<i class=\"fas fa-compass\"></i>" + "</span>":"")
                                 , ev -> {
                             clicked();
                             MDDUI.get().getNavegador().doAfterCheckSaved(() -> {
@@ -248,7 +247,7 @@ public class NavigationComponent extends VerticalLayout {
     }
 
     public void unselectAll() {
-        if (bArea != null && area != null) bArea.setCaption(area.getName().toUpperCase() + ((app.getAreas().size() > 1)?"<span class=\"menu-badge\">" + FontAwesome.COMPASS.getHtml() + "</span>":""));
+        if (bArea != null && area != null) bArea.setCaption(area.getName().toUpperCase() + ((app.getAreas().size() > 1)?"<span class=\"menu-badge\">" + "<i class=\"fas fa-compass\"></i>" + "</span>":""));
         if (bArea != null) bArea.removeStyleName("selected");
         setMenu(null);
     }
