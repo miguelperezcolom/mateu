@@ -4,6 +4,7 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Button;
 import lombok.Getter;
 
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -82,5 +83,18 @@ public abstract class AbstractAction implements MenuEntry {
     public AbstractAction setId(String id) {
         this.id = id;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AbstractAction that = (AbstractAction) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

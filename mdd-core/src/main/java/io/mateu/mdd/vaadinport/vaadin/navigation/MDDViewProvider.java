@@ -352,6 +352,8 @@ public class MDDViewProvider implements ViewProvider {
 
                 v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new ByeComponent());
 
+                MDDUI.get().getApp().buildAreaAndMenuIds();
+
                 MDDUI.get().getAppComponent().setArea(MDD.getApp().getDefaultPublicArea());
 
                 MDDUI.get().getAppComponent().setSignedOut();
