@@ -5,6 +5,7 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.model.common.Icon;
 import io.mateu.mdd.core.model.common.Resource;
+import io.mateu.mdd.tester.app.erp.Agencia;
 import io.mateu.mdd.tester.model.useCases.hotel.Booking;
 import lombok.MateuMDDEntity;
 
@@ -12,6 +13,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -20,6 +22,9 @@ public class File1 {
 
     @NotEmpty@Help("Este campo es bla, bla, bla")
     private String leadName;
+
+    @ManyToOne@UseCheckboxes
+    private Set<Agencia> wwww = new HashSet<>();
 
 
     @OneToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}, mappedBy = "file")

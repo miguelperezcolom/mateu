@@ -159,7 +159,10 @@ public class MDDViewProvider implements ViewProvider {
 
         if (samePath(state, currentPath)) {
             io.mateu.mdd.vaadinport.vaadin.navigation.View v = stack.getLast();
-            if (v != null) return v;
+            if (v != null) {
+                System.out.println("got same path (" + state + ")");
+                return v;
+            }
         }
 
         io.mateu.mdd.vaadinport.vaadin.navigation.View v = null;
@@ -465,6 +468,7 @@ public class MDDViewProvider implements ViewProvider {
 
                 if (v != null) {
 
+                    System.out.println("v = stack.get(cleanState(" + state + ")); != null");
                     stack.popTo(stack.indexOf(v));
 
                 } else {
@@ -508,10 +512,13 @@ public class MDDViewProvider implements ViewProvider {
 
 
                     // va avanzando en los steps mientra exista en el stack
+                    System.out.println("coincide=" + coincide + ", pos = " + pos + ", steps.length = " + steps.length);
 
                     while (coincide && pos < steps.length) {
                         lastPath = auxPath;
                         lastPos = pos;
+
+                        System.out.println("coincide=" + coincide + ", pos = " + pos + ", steps.length = " + steps.length + " pastPath = " + lastPath);
 
                         String fullStep = steps[pos];
                         String cleanStep = cleanStep(fullStep);
@@ -577,6 +584,7 @@ public class MDDViewProvider implements ViewProvider {
 
                         boolean procesar = menuPassed && MDD.getApp().getMenu(currentPath) == null && MDD.getApp().getModule(currentPath) == null && lastView != null;
 
+                        System.out.println("procesar=" + procesar);
 
                         if (procesar) {
                             // miramos el último componente añadido
@@ -1503,8 +1511,22 @@ public class MDDViewProvider implements ViewProvider {
         } else {
             Class c = r.getClass();
 
-            if (r instanceof Class && ((Class)r).isAnnotationPresent(Entity.class)) {
-                stack.push(currentPath, new JPAListViewComponent((Class) r)).setOpenNewWindow(inNewWindow);
+            if (r instanceof Class) {
+                c = (Class) r;
+                if (c.isAnnotationPresent(Entity.class)) {
+                    stack.push(currentPath, new JPAListViewComponent(c)).setOpenNewWindow(inNewWindow);
+                } else if (RpcView.class.isAssignableFrom(c)) {
+                    r = c.getConstructor().newInstance();
+                    if (m != null && m.isAnnotationPresent(Output.class)) {
+                        try {
+                            stack.push(currentPath, new ComponentWrapper(title, new PdfComponent((RpcView) r, r, null))).setOpenNewWindow(inNewWindow);
+                        } catch (Throwable throwable) {
+                            MDD.alert(throwable);
+                        }
+                    } else {
+                        stack.push(currentPath, new RpcListViewComponent((RpcView) r)).setOpenNewWindow(inNewWindow);
+                    }
+                }
             } else if (int.class.equals(c)
                     || Integer.class.equals(c)
                     || long.class.equals(c)

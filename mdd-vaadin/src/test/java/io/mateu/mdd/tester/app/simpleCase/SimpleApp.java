@@ -20,6 +20,7 @@ import io.mateu.mdd.test.model.Reloj;
 import io.mateu.mdd.tester.model.entities.basic.BasicFieldsDemoEntity;
 import io.mateu.mdd.tester.model.entities.dependant.Address;
 import io.mateu.mdd.tester.model.entities.groups.Person;
+import io.mateu.mdd.tester.model.rpc.SampleRPCListView;
 import io.mateu.mdd.tester.model.useCases.batches.Batch;
 import io.mateu.mdd.tester.model.useCases.hotel.Booking;
 import io.mateu.mdd.tester.model.useCases.ofertas.Oferta;
@@ -151,6 +152,16 @@ public class SimpleApp extends SimpleMDDApplication {
     @Action(order = 15, icon = VaadinIcons.EURO)
     public Class ofertas() {
         return Oferta.class;
+    }
+
+    @Action(order = 16, icon = VaadinIcons.BOLT)
+    public SampleRPCListView rpcListView() {
+        return new SampleRPCListView();
+    }
+
+    @Action(order = 17, icon = VaadinIcons.FORM)
+    public SampleForm form() {
+        return new SampleForm();
     }
 
     @Action(order = 20, icon = VaadinIcons.PICTURE)

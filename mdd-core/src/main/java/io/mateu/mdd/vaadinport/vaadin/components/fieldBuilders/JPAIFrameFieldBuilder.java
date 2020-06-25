@@ -66,7 +66,9 @@ public class JPAIFrameFieldBuilder extends AbstractFieldBuilder {
         Binder.BindingBuilder aux = binder.forField(new HasValue() {
             @Override
             public void setValue(Object o) {
-                b.setSource((o != null)?new ExternalResource("" + o):null);
+                if (o != null) {
+                    b.setSource((o != null)?new ExternalResource("" + o):null);
+                }
             }
 
             @Override

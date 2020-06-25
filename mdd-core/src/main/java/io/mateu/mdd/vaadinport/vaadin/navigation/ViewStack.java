@@ -5,9 +5,12 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.Window;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.RpcListViewComponent;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,9 +38,21 @@ public class ViewStack {
         io.mateu.mdd.vaadinport.vaadin.navigation.View v;
 
         if (component != null && component instanceof AbstractViewComponent) {
-            if (MDD.getApp().getMenu(state) != null) {
-                ((AbstractViewComponent)component).setTitle(MDD.getApp().getMenu(state).getCaption());
+            String t = null;
+            if (component instanceof RpcListViewComponent) {
+                RpcListViewComponent c = (RpcListViewComponent) component;
+                if (c.getRpcListView() != null) {
+                    Class cl = c.getRpcListView().getClass();
+                    Method m = ReflectionHelper.getMethod(cl, "toString");
+                    if (m != null && !Object.class.equals(m.getDeclaringClass())) {
+                        t = "" + c.getRpcListView();
+                    }
+                }
             }
+            if (MDD.getApp().getMenu(state) != null) {
+                t = MDD.getApp().getMenu(state).getCaption();
+            }
+            if (t != null) ((AbstractViewComponent)component).setTitle(t);
             if (stack.size() > 0 && stack.get(stack.size() - 1).getViewComponent() instanceof AbstractViewComponent) {
                 ((AbstractViewComponent)component).setParentView((AbstractViewComponent) stack.get(stack.size() - 1).getViewComponent());
             }

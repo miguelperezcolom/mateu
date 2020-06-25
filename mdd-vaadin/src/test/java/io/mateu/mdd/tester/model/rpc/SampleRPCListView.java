@@ -36,6 +36,13 @@ public class SampleRPCListView implements RpcView<SampleRPCListView, Just1String
     @Ignored
     private Pair<String, List<Just1StringColumn>> result;
 
+    /*
+    @Override
+    public String toString() {
+        return "Hola!";
+    }
+     */
+
 
     @Override
     public List<Just1StringColumn> rpc(SampleRPCListView filters, List<QuerySortOrder> sortOrders, int offset, int limit) {
