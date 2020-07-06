@@ -23,6 +23,7 @@ import io.mateu.mdd.vaadinport.vaadin.components.app.desktop.DesktopAppComponent
 import io.mateu.mdd.vaadinport.vaadin.components.app.mobile.MobileAppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.SearchInMenuComponent;
 import io.mateu.mdd.vaadinport.vaadin.mdd.VaadinPort;
 import io.mateu.mdd.vaadinport.vaadin.navigation.*;
@@ -148,22 +149,22 @@ public class MDDUI extends UI {
 
         port = new VaadinPort(vaadinRequest);
 
+        setBaseUrl(System.getProperty("baseurl", contextUrl));
+
+        viewContainer = createViewContainer();
+
+        addNavigator();
+
+
         if (app == null) {
 
-            app = createApp();
+            setApp(createApp());
 
             if (MDD.getClassPool() == null) MDD.setClassPool(ReflectionHelper.createClassPool(((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getServletContext()));
 
             app.buildAreaAndMenuIds();
 
         }
-
-        setBaseUrl(System.getProperty("baseurl", contextUrl));
-
-        viewContainer = createViewContainer();
-
-
-        addNavigator();
 
         //setContent(flowComponent);
 
@@ -382,8 +383,13 @@ public class MDDUI extends UI {
            if (pos > 0) {
                Component c = MDDUI.get().getNavegador().getStack().get(pos - 1).getViewComponent();
                if (c.getStyleName().contains("refreshOnBack")) {
-
-                   if (c != null && c instanceof EditorViewComponent) {
+                   if (c instanceof ListViewComponent) {
+                       try {
+                           ((ListViewComponent) c).search(((ListViewComponent) c).getModelForSearchFilters());
+                       } catch (Throwable throwable) {
+                           MDD.alert(throwable);
+                       }
+                   } else if (c instanceof EditorViewComponent) {
                        EditorViewComponent evc = (EditorViewComponent) c;
                        Object id = ReflectionHelper.getId(evc.getModel());
                        if (id != null) {

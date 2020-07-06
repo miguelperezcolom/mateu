@@ -110,7 +110,7 @@ public class Booking implements EditorViewStyler {
 
     private int[] ages;
 
-    @NotNull
+    //@NotNull
     private LocalDate dd;
 
     public void setDd(LocalDate dd) {

@@ -1,35 +1,59 @@
 package io.mateu.mdd.tester.app.erp;
 
+import com.google.common.base.Strings;
+import com.vaadin.data.provider.DataProvider;
+import com.vaadin.data.provider.ListDataProvider;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.DependsOn;
 import io.mateu.mdd.core.annotations.KPI;
 import io.mateu.mdd.core.annotations.Password;
+import io.mateu.mdd.core.annotations.UseCheckboxes;
 import io.mateu.mdd.core.interfaces.HasHeader;
 import io.mateu.mdd.core.interfaces.Header;
 import io.mateu.mdd.core.interfaces.HeaderType;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
+import io.mateu.mdd.tester.model.useCases.bankAccount.BankAccount;
 import lombok.MateuMDDEntity;
 
-import javax.persistence.CascadeType;
-import javax.persistence.ManyToOne;
-import javax.persistence.PostPersist;
-import javax.persistence.PostUpdate;
+import javax.persistence.*;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @MateuMDDEntity
 public class Agencia implements HasHeader {
 
     private String nombre;
 
-    @Min(1)
-    private final int del;
+    @OneToMany@UseCheckboxes
+    private Set<BankAccount> accounts = new HashSet<>();
+
+    public void setAccounts(Set<BankAccount> accounts) {
+        this.accounts = accounts;
+    }
+
+    @DependsOn("nombre")
+    public DataProvider getAccountsDataProvider() {
+        try {
+            return new ListDataProvider(Helper.findAll(BankAccount.class).stream().filter(a -> Strings.isNullOrEmpty(nombre) || a.getName().toLowerCase().contains(nombre.toLowerCase())).collect(Collectors.toList()));
+        } catch (Throwable throwable) {
+            MDD.alert(throwable);
+            return new ListDataProvider(new ArrayList());
+        }
+    }
 
     @Min(1)
-    private final int al;
+    private int del;
+
+    @Min(1)
+    private int al;
 
     @Password
     private String pwd;

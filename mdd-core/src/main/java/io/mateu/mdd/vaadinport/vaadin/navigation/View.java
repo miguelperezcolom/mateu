@@ -6,7 +6,25 @@ import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.SearchInMenuComponent;
 
+import java.util.Objects;
+import java.util.UUID;
+
 public class View implements com.vaadin.navigator.View {
+
+    private String uuid = UUID.randomUUID().toString();
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        View view = (View) o;
+        return uuid.equals(view.uuid);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(uuid);
+    }
 
     private final AbstractViewComponent viewComponent;
     private final ViewStack stack;

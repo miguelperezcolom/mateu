@@ -1,10 +1,13 @@
 package io.mateu.mdd.tester.model.useCases.reservas;
 
+import com.vaadin.data.provider.DataProvider;
+import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.model.common.Icon;
 import io.mateu.mdd.core.model.common.Resource;
+import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.tester.app.erp.Agencia;
 import io.mateu.mdd.tester.model.useCases.hotel.Booking;
 import lombok.MateuMDDEntity;
@@ -23,8 +26,23 @@ public class File1 {
     @NotEmpty@Help("Este campo es bla, bla, bla")
     private String leadName;
 
-    @ManyToOne@UseCheckboxes
+    @OneToMany@UseCheckboxes
     private Set<Agencia> wwww = new HashSet<>();
+
+    @PrePersist@PreUpdate
+    public void pre() {
+        System.out.println("zzzzzzzzzz");
+    }
+
+    @DependsOn("leadName")
+    public DataProvider getWwwwDataProvider() {
+        try {
+            return new ListDataProvider(Helper.findAll(Agencia.class));
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+        return new ListDataProvider(new ArrayList());
+    }
 
 
     @OneToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}, mappedBy = "file")

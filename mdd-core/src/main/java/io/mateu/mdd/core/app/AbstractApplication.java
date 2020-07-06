@@ -118,37 +118,30 @@ public abstract class AbstractApplication implements App {
 
 
     public String getAreaId(AbstractArea area) {
-        if (areaIds == null) buildAreaAndMenuIds();
         return areaIds.get(area);
     }
 
     public AbstractArea getArea(String id) {
-        if (areaIdsReversed == null) buildAreaAndMenuIds();
         return areaIdsReversed.get(id);
     }
 
     public String getMenuId(MenuEntry menu) {
-        if (menuIds == null) buildAreaAndMenuIds();
         return menuIds.get(menu);
     }
 
     public MenuEntry getMenu(String id) {
-        if (menuIdsReversed == null) buildAreaAndMenuIds();
         return menuIdsReversed.get(id);
     }
 
     public String getModuleId(AbstractModule m) {
-        if (moduleIds == null) buildAreaAndMenuIds();
         return moduleIds.get(m);
     }
 
     public AbstractArea getArea(AbstractModule m) {
-        if (moduleToArea == null) buildAreaAndMenuIds();
         return moduleToArea.get(m);
     }
 
     public AbstractModule getModule(String id) {
-        if (moduleIdsReversed == null) buildAreaAndMenuIds();
         return moduleIdsReversed.get(id);
     }
 
@@ -168,7 +161,6 @@ public abstract class AbstractApplication implements App {
 
 
     public List<MenuEntry> getPath(MenuEntry e) {
-        if (menuPaths == null) buildAreaAndMenuIds();
         return menuPaths.get(e);
     }
 
@@ -235,6 +227,7 @@ public abstract class AbstractApplication implements App {
                 }
             }
         }
+        MDDUI.get().getNavegador().getViewProvider().clearStack();
     }
 
     private void buildMenuIds(AbstractArea a, String prefijo, List<MenuEntry> incomingPath, MenuEntry e) {

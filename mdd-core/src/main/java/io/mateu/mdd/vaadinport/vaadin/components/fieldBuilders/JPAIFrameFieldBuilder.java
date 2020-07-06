@@ -9,6 +9,7 @@ import com.vaadin.ui.BrowserFrame;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Layout;
 import io.mateu.mdd.core.annotations.FullWidth;
+import io.mateu.mdd.core.annotations.Height;
 import io.mateu.mdd.core.annotations.IFrame;
 import io.mateu.mdd.core.annotations.Width;
 import io.mateu.mdd.core.app.AbstractAction;
@@ -41,7 +42,7 @@ public class JPAIFrameFieldBuilder extends AbstractFieldBuilder {
                 container.setSizeFull();
             } else {
                 tf.setWidth(field.isAnnotationPresent(Width.class)?field.getAnnotation(Width.class).value():"600px");
-                tf.setHeight("400px");
+                tf.setHeight(field.isAnnotationPresent(Height.class)?field.getAnnotation(Height.class).value():"400px");
             }
 
             if (allFieldContainers != null) allFieldContainers.put(field, tf);

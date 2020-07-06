@@ -25,8 +25,10 @@ import javax.persistence.Query;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
@@ -332,6 +334,13 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                                                 ((RadioButtonGroup)hdp).setDataProvider(dpx);
                                             } else if (hdp instanceof CheckBoxGroup) {
                                                 ((CheckBoxGroup)hdp).setDataProvider(dpx);
+                                                Object bean = binder.getBean();
+                                                if (bean != null && ReflectionHelper.getValue(field, bean) != null) {
+                                                    Object v = ReflectionHelper.getValue(field, bean);
+                                                    if (v != null && v instanceof Set) {
+                                                        ((CheckBoxGroup)hdp).setValue((Set) v);
+                                                    }
+                                                }
                                             } else if (hdp instanceof ComboBox) {
                                                 ((ComboBox)hdp).setDataProvider(dpx, f -> new SerializablePredicate() {
                                                     @Override
@@ -461,6 +470,15 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                         if (bean != null && ReflectionHelper.getValue(field, bean) == null) {
                             ReflectionHelper.setValue(field, bean, v);
                             binder.setBean(bean, false);
+
+                            try {
+                                Object old = ReflectionHelper.getValue(field, bean);
+                                if (old != null) ReflectionHelper.unReverseMap(binder, field, bean, old);
+                                Object value = v;
+                                if (value != null) ReflectionHelper.reverseMap(binder, field, bean, value);
+                            } catch (Exception e1) {
+                                MDD.alert(e1);
+                            }
                         }
                     }
                 }

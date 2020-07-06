@@ -87,7 +87,8 @@ public class BookingsView extends AbstractJPQLListView<Reserva0> {
 
     @Override
     public Object onEdit(Reserva0 row) throws Throwable {
-        return Helper.find(Booking.class, row.getId());
+        return new BookingForm(row);
+        //return Helper.find(Booking.class, row.getId());
     }
 
 }

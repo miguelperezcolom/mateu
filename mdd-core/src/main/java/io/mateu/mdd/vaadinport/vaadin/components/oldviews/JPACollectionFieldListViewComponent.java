@@ -36,18 +36,23 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
 
     @Override
     public String getFieldsFilter() {
-        String fields = "";
-        if (field.getAnnotation(UseLinkToListView.class) != null) fields = field.getAnnotation(UseLinkToListView.class).fields();
-        if (Strings.isNullOrEmpty(fields) && field.isAnnotationPresent(FieldsFilter.class)) fields = field.getAnnotation(FieldsFilter.class).value();
-        return fields;
+        return getColumns(field);
     }
 
     public JPACollectionFieldListViewComponent(Class entityClass, FieldInterfaced field, IEditorViewComponent evfc) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        super(entityClass);
+        super(entityClass, getColumns(field));
         this.field = field;
         this.evfc = evfc;
         this.model = evfc.getModel();
         this.list = (Collection) ReflectionHelper.getValue(field, model);
+
+    }
+
+    private static String getColumns(FieldInterfaced field) {
+        String fields = "";
+        if (field.getAnnotation(UseLinkToListView.class) != null) fields = field.getAnnotation(UseLinkToListView.class).fields();
+        if (Strings.isNullOrEmpty(fields) && field.isAnnotationPresent(FieldsFilter.class)) fields = field.getAnnotation(FieldsFilter.class).value();
+        return fields;
     }
 
     @Override
@@ -246,7 +251,7 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
         if (!Strings.isNullOrEmpty(fields)) {
             List<String> fns = Lists.newArrayList(fields.replaceAll(" ", "").split(","));
             for (Grid.Column col : (List<Grid.Column>) grid.getColumns()) {
-                if (col.getId() != null && !fns.contains(col.getId())) col.setHidden(true);
+                if (col.getId() != null && !fns.contains(col.getId()) && (getFieldsByColId().get(col.getId()) == null || !fns.contains(getFieldsByColId().get(col.getId()).getName()))) col.setHidden(true);
             }
         } else {
             super.decorateGrid(grid);

@@ -21,6 +21,7 @@ import io.mateu.mdd.tester.model.entities.basic.BasicFieldsDemoEntity;
 import io.mateu.mdd.tester.model.entities.dependant.Address;
 import io.mateu.mdd.tester.model.entities.groups.Person;
 import io.mateu.mdd.tester.model.rpc.SampleRPCListView;
+import io.mateu.mdd.tester.model.useCases.bankAccount.Bank;
 import io.mateu.mdd.tester.model.useCases.batches.Batch;
 import io.mateu.mdd.tester.model.useCases.hotel.Booking;
 import io.mateu.mdd.tester.model.useCases.ofertas.Oferta;
@@ -169,6 +170,11 @@ public class SimpleApp extends SimpleMDDApplication {
         return Icon.class;
     }
 
+    @Action(order = 25, icon = VaadinIcons.BUILDING)
+    public Class banks() {
+        return Bank.class;
+    }
+
     @Action(order = 30, icon = VaadinIcons.FOLDER_ADD)
     public Class captured() {
         return CapturedBooking.class;
@@ -242,7 +248,7 @@ public class SimpleApp extends SimpleMDDApplication {
 
     @Override
     public boolean isAuthenticationNeeded() {
-        return false;
+        return true;
     }
 
     @Override

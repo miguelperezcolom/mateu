@@ -157,7 +157,6 @@ public class LoginComponent extends VerticalLayout {
 
             try {
                 UserData u = ((BaseMDDApp)MDD.getApp()).authenticate(login.getValue(), password.getValue());
-                MDD.setUserData(u);
                 if (onLogin != null) onLogin.run();
                 MDDUI.get().getAppComponent().unselectAll();
                 String ps = MDDUI.get().getNavegador().getViewProvider().getPendingPrivateState();

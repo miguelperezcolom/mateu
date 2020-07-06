@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER}) //can use in method only.
-public @interface VisibleIf {
+public @interface Height {
 
     String value();
 

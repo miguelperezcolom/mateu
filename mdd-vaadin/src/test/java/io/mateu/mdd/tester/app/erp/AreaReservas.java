@@ -3,6 +3,8 @@ package io.mateu.mdd.tester.app.erp;
 import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.dev.JPQLTester;
+import io.mateu.mdd.tester.model.useCases.bankAccount.Bank;
+import io.mateu.mdd.tester.model.useCases.bankAccount.BankAccount;
 import io.mateu.mdd.tester.model.views.Reserva0;
 import io.mateu.mdd.vaadinport.vaadin.navigation.MDDViewComponentCreator;
 
@@ -34,6 +36,10 @@ public class AreaReservas extends AbstractArea {
                 l.add(new MDDOpenCRUDAction("Agencias", Agencia.class).setColumns("nombre(130),localidad.nombre as 'Localidad'(130),central.nombre as 'Central',del,al"));
 
                 l.add(new MDDOpenCRUDAction("Serials", OfficeSerial.class));
+
+                l.add(new MDDOpenCRUDAction("Banks", Bank.class));
+
+                l.add(new MDDOpenCRUDAction("Accounts", BankAccount.class));
 
                 l.add(new MDDOpenCRUDAction("Excursiones", Excursion.class));
 

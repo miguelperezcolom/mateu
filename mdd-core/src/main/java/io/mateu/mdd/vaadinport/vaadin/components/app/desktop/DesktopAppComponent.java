@@ -116,6 +116,7 @@ public class DesktopAppComponent extends VerticalLayout implements AppComponent 
     @Override
     public void setSignedIn() {
         signingIn = false;
+        MDDUI.get().getNavegador().getStack().clear();
         removeAllComponents();
         addComponentsAndExpand(all);
     }
@@ -123,7 +124,7 @@ public class DesktopAppComponent extends VerticalLayout implements AppComponent 
     @Override
     public void setSignedOut() {
         removeAllComponents();
-        MDDUI.get().getApp().buildAreaAndMenuIds();
+        MDDUI.get().getNavegador().getStack().clear();
         addComponentsAndExpand(new LoggedOutComponent());
     }
 

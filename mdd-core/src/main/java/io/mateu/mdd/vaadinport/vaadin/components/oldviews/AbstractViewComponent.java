@@ -17,12 +17,25 @@ import io.mateu.mdd.vaadinport.vaadin.navigation.View;
 import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> extends VerticalLayout {
+
+    private final String uuid = UUID.randomUUID().toString();
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        AbstractViewComponent<?> that = (AbstractViewComponent<?>) o;
+        return uuid.equals(that.uuid);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), uuid);
+    }
 
     private Component header;
     private Label titleLabel;

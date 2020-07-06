@@ -6,6 +6,7 @@ import com.google.common.collect.Sets;
 import com.vaadin.data.*;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.validator.BeanValidator;
+import com.vaadin.external.org.slf4j.Marker;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.ClassResource;
 import com.vaadin.server.ExternalResource;
@@ -15,6 +16,10 @@ import com.vaadin.shared.ui.dnd.DropEffect;
 import com.vaadin.shared.ui.dnd.EffectAllowed;
 import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Image;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.dnd.DragSourceExtension;
 import com.vaadin.ui.dnd.DropTargetExtension;
 import com.vaadin.ui.themes.ValoTheme;
@@ -40,6 +45,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.awt.*;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.*;
@@ -48,6 +54,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
@@ -200,7 +207,21 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             JPAManyToOneFieldBuilder.setDataProvider(cbg, field, binder);
 
-            cbg.addValueChangeListener(e -> updateReferences(binder, field, e));
+            /*
+            cbg.addValueChangeListener(e -> {
+                updateReferences(binder, field, e);
+            });
+             */
+
+            cbg.addValueChangeListener(e -> {
+                if (e.isUserOriginated()) {
+                    try {
+                        ReflectionHelper.setValue(field, binder.getBean(), e.getValue());
+                    } catch (Exception ex) {
+                        MDD.alert(ex);
+                    }
+                }
+            });
 
             cbg.setCaption(ReflectionHelper.getCaption(field));
 
@@ -1218,6 +1239,74 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         return g;
     }
 
+    private void bind(MDDBinder binder, CheckBoxGroup g, FieldInterfaced field) {
+         Binder.BindingBuilder aux = binder.forField(new HasValue() {
+
+
+            private List<HasValue.ValueChangeListener> listeners = new ArrayList<>();
+
+            @Override
+            public void setValue(Object o) {
+                Set items = null;
+                if (o == null) {
+                    items = new HashSet();
+                } else {
+
+                    if (o instanceof Set) {
+                        items = (Set) o;
+                    } else if (o instanceof List) {
+                        items = new HashSet(((List)o));
+                    }
+                }
+                try {
+                    ReflectionHelper.setValue(field, binder.getBean(), items);
+                } catch (Exception e) {
+                    MDD.alert(e);
+                }
+                g.setValue(items);
+                //listeners.forEach(l -> l.valueChange(new ValueChangeEvent(g, null, true)));
+            }
+
+            @Override
+            public Object getValue() {
+                return g.getValue() != null?new HashSet<>(g.getValue()):null;
+            }
+
+            @Override
+            public Registration addValueChangeListener(ValueChangeListener valueChangeListener) {
+                listeners.add(valueChangeListener);
+                return new Registration() {
+                    @Override
+                    public void remove() {
+                        listeners.remove(valueChangeListener);
+                    }
+                };
+            }
+
+            @Override
+            public void setRequiredIndicatorVisible(boolean b) {
+
+            }
+
+            @Override
+            public boolean isRequiredIndicatorVisible() {
+                return false;
+            }
+
+            @Override
+            public void setReadOnly(boolean b) {
+
+            }
+
+            @Override
+            public boolean isReadOnly() {
+                return false;
+            }
+        });
+        aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+        aux.bind(field.getName());
+    }
+
     private void bindMap(MDDBinder binder, Grid g, FieldInterfaced field) {
         Binder.BindingBuilder aux = binder.forField(new HasValue() {
             @Override
@@ -1450,12 +1539,13 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
     public void addValidators(List<Validator> validators) {
     }
 
-
+/*
     private void bind(MDDBinder binder, CheckBoxGroup cbg, FieldInterfaced field) {
         Binder.BindingBuilder aux = binder.forField(cbg);
         aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
         aux.bind(field.getName());
     }
+*/
 
     private void bindSelection(MDDBinder binder, Grid g, FieldInterfaced field) {
         HasValue hv;

@@ -151,6 +151,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                                 && !(v != null && v instanceof String && "".equals(v) && v0 == null)
                                 && ((v0 == null && v != null) || (v0 != null && !v0.equals(v)))
                 ) {
+                    System.out.println("modificado. k=" + k + ",v0=" + v0 + ",v=" + v);
                     modificado = true;
                     break;
                 }
@@ -349,7 +350,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                             s.put(f.getName(), cols);
                             continue;
                         }
-                    }
+                    } else v = "";
                     s.put(f.getName(), "" + v);
                 } catch (Exception e) {
                     s.put(f.getName(), null);
@@ -385,7 +386,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                             }
                             v = z;
                         }
-                    }
+                    } else v = "";
                     s += v;
                 } catch (Exception e) {
                     s += f.getName() + "=exception";

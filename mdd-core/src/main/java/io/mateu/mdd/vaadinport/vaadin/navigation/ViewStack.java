@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ViewStack {
 
@@ -74,6 +75,11 @@ public class ViewStack {
             throw new Exception("You are already editing " + v.getViewComponent().getPageTitle());
         }
 
+        if (viewByState.containsKey(state)) {
+            io.mateu.mdd.vaadinport.vaadin.navigation.View x = viewByState.remove(state);
+            stateByView.remove(x);
+            stack.remove(x);
+        }
         viewByState.put(state, v);
         stateByView.put(v, state);
         stack.add(v);
@@ -95,6 +101,15 @@ public class ViewStack {
                 View v = stack.remove(stack.size() - 1);
                 String state = stateByView.remove(v);
                 viewByState.remove(state);
+                if (viewByState.size() != stateByView.size()) {
+                    List<String> missedStates = viewByState.keySet().stream().filter(k -> !stateByView.values().contains(k)).collect(Collectors.toList());
+                    List<io.mateu.mdd.vaadinport.vaadin.navigation.View> missedViews = stateByView.keySet().stream().filter(k -> !viewByState.values().contains(k)).collect(Collectors.toList());
+                    missedStates.forEach(k -> viewByState.remove(k));
+                    missedViews.forEach(k -> stateByView.remove(k));
+                }
+                if (viewByState.size() != stateByView.size()) {
+                    MDD.alert("stateByView.size()=" + stateByView.size() + ", viewByState.size()=" + viewByState.size());
+                }
                 if (v instanceof io.mateu.mdd.vaadinport.vaadin.navigation.View && ((io.mateu.mdd.vaadinport.vaadin.navigation.View) v).getWindowContainer() != null) {
                     Window w = ((io.mateu.mdd.vaadinport.vaadin.navigation.View) v).getWindowContainer();
                     if (stack.size() > 0 && !w.equals(getLast().getWindowContainer())) {
@@ -147,7 +162,9 @@ public class ViewStack {
     }
 
     public void clear() {
-        popTo(-1);
+        stack = new ArrayList<>();
+        viewByState = new HashMap<>();
+        stateByView = new HashMap<>();
         UI.getCurrent().getWindows().forEach(w -> {
             w.setData("noback");
             w.close();

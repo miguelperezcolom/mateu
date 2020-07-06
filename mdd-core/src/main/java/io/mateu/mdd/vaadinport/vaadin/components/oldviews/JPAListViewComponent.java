@@ -66,8 +66,9 @@ public class JPAListViewComponent extends ListViewComponent {
 
     private final String useFields;
 
-
-
+    public Map<String, FieldInterfaced> getFieldsByColId() {
+        return fieldsByColId;
+    }
 
     private List<String> columnNames = new ArrayList<>();
     private Map<String, FieldInterfaced> fieldsByColumnName = new HashMap<>();
@@ -84,6 +85,9 @@ public class JPAListViewComponent extends ListViewComponent {
 
     List<FieldInterfaced> sumFields;
 
+    public JPAListViewComponent(Class entityClass, String columns) {
+        this(entityClass, null, null, columns, null, null, null);
+    }
 
     public JPAListViewComponent(Class entityClass) {
         this(entityClass, null, null);

@@ -352,8 +352,6 @@ public class MDDViewProvider implements ViewProvider {
 
                 v = new io.mateu.mdd.vaadinport.vaadin.navigation.View(stack, new ByeComponent());
 
-                MDDUI.get().getApp().buildAreaAndMenuIds();
-
                 MDDUI.get().getAppComponent().setArea(MDD.getApp().getDefaultPublicArea());
 
                 MDDUI.get().getAppComponent().setSignedOut();
@@ -510,7 +508,40 @@ public class MDDViewProvider implements ViewProvider {
 
                         menuPassed = true;
 
+                    } else {
+                        // va hacia atrás buscando coincidencias en el stack
+
+                        path = state;
+                        lastPath = path;
+                        v = stack.get(path);
+                        coincide = v != null;
+                        pos = path.split("/").length;
+
+                        while (pos > 1 && !coincide) {
+                            auxPath = lastPath = path = path.substring(0, path.lastIndexOf("/"));
+                            v = stack.get(path);
+                            coincide = v != null;
+                            pos = path.split("/").length;
+                            if (v != null) {
+                                lastIndexInStack = stack.indexOf(v);
+                                lastView = v;
+                            }
+                        }
+                        auxPath = lastPath;
+                        menuPassed = MDD.getApp().getMenu(auxPath) != null;
+
+                        int auxpos = pos;
+                        String lp = lastPath;
+                        while (auxpos > 1 && !menuPassed && lp.contains("/")) {
+                            lp = lp.substring(0, lp.lastIndexOf("/"));
+                            menuPassed = MDD.getApp().getMenu(lp) != null;
+                        }
+
+                        lastPos = pos;
+                        coincide = true;
                     }
+
+
 
 
                     // va avanzando en los steps mientra exista en el stack
@@ -690,7 +721,7 @@ public class MDDViewProvider implements ViewProvider {
 
                                         stack.push(currentPath, new MenuFlowComponent((AbstractMenu) e));
                                     } else {
-                                        if (stack.size() > 0)
+                                        if (stack.size() > 0 && stack.getLast().getViewComponent() instanceof MenuFlowComponent)
                                             stack.push(currentPath, stack.getLast());
                                         else
                                             stack.push(currentPath, new MenuFlowComponent(getRootMenu(currentPath)));
@@ -810,7 +841,7 @@ public class MDDViewProvider implements ViewProvider {
             // aquí ya tenemos la vista, tanto si ya existía en la pila como si no, y es el último elemento de la pila
 
             if (v == null) {
-                v = new BrokenLinkView(stack);
+                stack.push(currentPath, v = new BrokenLinkView(stack));
                 System.out.println("broken link: " + state);
             }
 
@@ -893,7 +924,7 @@ public class MDDViewProvider implements ViewProvider {
             if (v != null && v.getViewComponent() != null && v.getViewComponent() instanceof EditorViewComponent && ((EditorViewComponent)v.getViewComponent()).getBeforeOpen() != null) {
                 ((EditorViewComponent)v.getViewComponent()).getBeforeOpen().run();
             }
-            return v == null || v.getWindowContainer() == null?v:null;
+            return v != null && v.getWindowContainer() == null?v:null;
         }
     }
 
@@ -911,7 +942,7 @@ public class MDDViewProvider implements ViewProvider {
         return r;
     }
 
-    private void clearStack() {
+    public void clearStack() {
         UI.getCurrent().getWindows().forEach(w -> {
             w.setData("noback");
             w.close();
@@ -1437,7 +1468,9 @@ public class MDDViewProvider implements ViewProvider {
                 }
 
                 if (method.isAnnotationPresent(Action.class) && method.getAnnotation(Action.class).refreshOnBack()) {
-                    lastViewComponent.addStyleName("refreshOnBack");
+                    if (lastViewComponent != null) lastViewComponent.addStyleName("refreshOnBack");
+                } else if (lastViewComponent != null && lastViewComponent instanceof ListViewComponent) {
+                    if (lastViewComponent != null) lastViewComponent.addStyleName("refreshOnBack");
                 }
 
                 if (pendingResult != null) {
@@ -1499,6 +1532,8 @@ public class MDDViewProvider implements ViewProvider {
         String title = m != null?"Result of " + Helper.capitalize(m.getName()):"Result";
 
         if (m != null && m.isAnnotationPresent(Action.class) && m.getAnnotation(Action.class).refreshOnBack()) {
+            if (lastViewComponent != null) lastViewComponent.addStyleName("refreshOnBack");
+        } else if (lastViewComponent != null && lastViewComponent instanceof ListViewComponent) {
             if (lastViewComponent != null) lastViewComponent.addStyleName("refreshOnBack");
         }
 

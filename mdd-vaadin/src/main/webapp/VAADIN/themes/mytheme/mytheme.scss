@@ -2857,7 +2857,6 @@ body {
             }
 
 
-
             .desviado {
               font-size: 12px;
               float: left;
@@ -2986,6 +2985,14 @@ body {
 
         .dia.domingo {
           border-right: 1px solid darkgray;
+        }
+
+        .diames.cerrado {
+          background-color: indianred;
+        }
+
+        .diames.cierreparcial {
+          color: aliceblue;
         }
 
       }

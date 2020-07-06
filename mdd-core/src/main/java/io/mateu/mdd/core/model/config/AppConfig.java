@@ -107,15 +107,16 @@ public class AppConfig {
 
     private String pop3ReboundToEmail;
 
-    @Section("SMS")
+    @Section("Integrations")
+    @FieldGroup("SMS")
     private boolean clickatellEnabled;
     private String clickatellApiKey;
 
-    @Section("Telegram")
+    @FieldGroup("Telegram")
     private boolean telegramEnabled;
     private String telegramBotToken;
 
-    @Section("DeepL")
+    @FieldGroup("DeepL")
     private boolean deeplEnabled;
     private String deeplAuthKey;
 
@@ -124,7 +125,7 @@ public class AppConfig {
 
     }
 
-    @Section("Mapbox")
+    @FieldGroup("Mapbox")
     private String mapboxKey;
 
 

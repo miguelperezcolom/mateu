@@ -79,7 +79,9 @@ public class MDDNavigator {
     }
 
     public String getPath(MenuEntry e) {
-        return MDD.getApp().getState(e);
+        String p = MDD.getApp().getState(e);
+        if (p == null) MDD.alert("No state for " + e);
+        return p;
     }
 
     public String getPath(AbstractArea area) {
