@@ -151,14 +151,14 @@ public class VaadinPort implements MDDPort {
                 MDD.alert(t);
             }
             w.close();
-        }), buttonNo = new Button("Abort and stay here", e -> {
-            w.close();
-        })));
+        })
+                //, buttonNo = new Button("Abort and stay here", e -> w.close())
+        ));
 
         hl.setDefaultComponentAlignment(Alignment.MIDDLE_RIGHT);
 
         buttonSaveBefore.addStyleName(ValoTheme.BUTTON_FRIENDLY);
-        buttonNo.addStyleName(ValoTheme.BUTTON_PRIMARY);
+        //buttonNo.addStyleName(ValoTheme.BUTTON_PRIMARY);
         buttonYes.addStyleName(ValoTheme.BUTTON_DANGER);
 
 

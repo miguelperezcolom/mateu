@@ -47,7 +47,7 @@ import java.util.*;
 @Slf4j
 public class EditorViewComponent extends AbstractViewComponent implements IEditorViewComponent {
 
-    private final boolean createSaveButton;
+    private boolean createSaveButton;
     private final List<FieldInterfaced> visibleFields;
     private final List<FieldInterfaced> hiddenFields;
     private ListViewComponent listViewComponent;
@@ -111,6 +111,14 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         setFocusedSectionId("" + selectedTab.getId());
     }
 
+
+    public void setCreateSaveButton(boolean createSaveButton) {
+        this.createSaveButton = createSaveButton;
+    }
+
+    public boolean isCreateSaveButton() {
+        return createSaveButton;
+    }
 
     @Override
     public VaadinIcons getIcon() {
@@ -1160,7 +1168,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                     Modifier.isStatic(m.getModifiers())
                             || (m.isAnnotationPresent(NotWhenCreating.class) && isEditingNewRecord)
                             || (m.isAnnotationPresent(NotWhenEditing.class) && !isEditingNewRecord))
-                    && m.isAnnotationPresent(Action.class)
+                    && m.isAnnotationPresent(Action.class) && (isCreateSaveButton() || (!m.getAnnotation(Action.class).saveAfter() && !m.getAnnotation(Action.class).saveBefore()))
             ) {
 
                 Optional<Method> omv = mvs.get(m);

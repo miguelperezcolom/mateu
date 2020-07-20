@@ -204,7 +204,7 @@ public class ViewComponentHelper {
             } else if (viewComponent instanceof ListViewComponent && Set.class.isAssignableFrom(p.getType()) && (m.getDeclaringClass().equals(pgc) || (viewComponent instanceof RpcListViewComponent && ReflectionHelper.getGenericClass(((RpcListViewComponent)viewComponent).getRpcListView().getClass(), RpcView.class, "C").equals(pgc)))) {
                 if (needsEm && ReflectionHelper.getGenericClass(p.getParameterizedType()).isAnnotationPresent(Entity.class)) {
                     Set aux = new HashSet();
-                    for (Object o : selection) aux.add(em.merge(o));
+                    for (Object o : selection) aux.add(em.find(ReflectionHelper.getGenericClass(p.getParameterizedType()), ReflectionHelper.getId(o)));
                     selection = aux;
                 }
                 vs.add(selection);

@@ -15,6 +15,7 @@ import io.mateu.mdd.core.data.Pair;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 import java.util.List;
@@ -127,7 +128,7 @@ public abstract class AbstractFieldBuilder {
                             initialized = true;
                             try {
                                 Object old = ReflectionHelper.getValue(field, binder.getBean());
-                                if (old != v || (v != null && !v.equals(old))) {
+                                if (!Helper.equals(v, old)) {
                                     ReflectionHelper.setValue(field, binder.getBean(), v);
                                 }
                                 lastValue = v;

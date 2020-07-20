@@ -1132,6 +1132,13 @@ public class MDDViewProvider implements ViewProvider {
             boolean add = o == null;
             EditorViewComponent evc = add?new EditorViewComponent(field.getType()):new EditorViewComponent(o);
             if (add) evc.load(null);
+            if (field.isAnnotationPresent(ManyToOne.class) && field.getAnnotation(ManyToOne.class).cascade() != null) for (CascadeType c : field.getAnnotation(ManyToOne.class).cascade()) {
+                if (CascadeType.ALL.equals(c) || CascadeType.MERGE.equals(c)) {
+                    evc.setCreateSaveButton(false);
+                    break;
+                }
+            }
+
             evc.addEditorListener(new EditorListener() {
                 @Override
                 public void preSave(Object model) throws Throwable {
