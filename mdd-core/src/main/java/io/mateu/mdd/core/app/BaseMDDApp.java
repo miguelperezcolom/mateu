@@ -11,6 +11,7 @@ import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.model.ui.EditedRecord;
+import io.mateu.mdd.core.model.util.EmailHelper;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.core.util.Utils;
@@ -75,16 +76,33 @@ public abstract class BaseMDDApp extends AbstractApplication {
 
                 User u = em.find(User.class, login.toLowerCase().trim());
                 if (u != null) {
+                    if (USER_STATUS.BLOCKED.equals(u.getStatus())) throw new Exception("User " + login + " is blocked due to failed logins.");
+                    if (USER_STATUS.EXPIRED.equals(u.getStatus())) throw new Exception("User " + login + " has expired.");
+                    if (USER_STATUS.INACTIVE.equals(u.getStatus())) throw new Exception("User " + login + " is not active.");
                     if (u.getPassword() == null) throw new Exception("Missing password for user " + login);
                     if (!u.checkPassword(password)) {
                         u.setFailedLogins(u.getFailedLogins() + 1);
                         if (u.getFailedLogins() >= 10) u.setStatus(USER_STATUS.BLOCKED);
-                        em.flush();
-                        throw new Exception("Wrong password. User will be blocked after 10 attempts");
+                        Helper.transact(em2 -> em2.merge(u));
+                        try {
+                            EmailHelper.sendEmail(u.getEmail(), "Failed login attempt", "Login failed due to wrong password", false);
+                        } catch (Throwable t) {
+                            t.printStackTrace();
+                        }
+                        if (USER_STATUS.BLOCKED.equals(u.getStatus())) {
+                            try {
+                                EmailHelper.sendEmail(AppConfig.get(em).getAdminEmailUser(), "User blocked due to failed login attempts", "User " + u.getLogin() + " (" + u.getName() + ", " + u.getEmail() + ") was blocked after " + u.getFailedLogins() + " failed passwords.", false);
+                            } catch (Throwable t) {
+                                t.printStackTrace();
+                            }
+                        }
+                        throw new Exception("Wrong password. User will be blocked after " + (10 - u.getFailedLogins()) + " attempts");
                     }
                     if (USER_STATUS.INACTIVE.equals(u.getStatus())) throw new Exception("Deactivated user");
 
                     if (u.getFailedLogins() > 0) u.setFailedLogins(0);
+
+                    if (u.getLastLogin() != null) MDD.info("Last login: " + u.getLastLogin().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
 
                     u.setLastLogin(LocalDateTime.now());
 

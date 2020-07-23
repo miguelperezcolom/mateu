@@ -17,9 +17,10 @@ public class TestIcons {
 
         Icon.createDefaultSet();
 
-        WorkflowEngine.exit(0);
+        WorkflowEngine.shutdown();
 
         assertEquals(1, 1);
+
     }
 
 }

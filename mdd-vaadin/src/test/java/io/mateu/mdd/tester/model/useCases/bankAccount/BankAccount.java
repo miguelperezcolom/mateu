@@ -35,7 +35,7 @@ public class BankAccount {
 
     @ManyToOne@NotNull
     @Unmodifiable
-    private Bank bank;
+    private final Bank bank;
 
     @NotEmpty
     private String name;
