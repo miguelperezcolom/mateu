@@ -277,7 +277,7 @@ public class VaadinHelper {
 
             subWindow.addCloseListener(e -> {
                 if (evc != null) evc.setCreatorWindow(null);
-                if (!okd.get()) onClose.run();
+                if (subWindow.getData() == null || !(subWindow.getData() instanceof Boolean) || (Boolean) subWindow.getData()) if (!okd.get()) onClose.run();
             });
 
             // Open it in the UI

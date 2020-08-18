@@ -1506,7 +1506,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 } catch (Throwable e) {
                     MDD.alert(e);
                 }
-                MDDUI.closeWindow();
+                MDDUI.closeWindow(false);
             }, () -> MDDUI.get().getNavegador().goBack());
         } else setModel(ReflectionHelper.newInstance(type, parent));
     }

@@ -17,7 +17,7 @@ public class Bank {
     private long id;
 
     @NotEmpty
-    private String name;
+    private final String name;
 
     private String country;
 

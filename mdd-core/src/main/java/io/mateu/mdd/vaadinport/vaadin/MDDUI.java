@@ -334,9 +334,15 @@ public class MDDUI extends UI {
     }
 
     public static void closeWindow() {
+        closeWindow(true);
+    }
+
+    public static void closeWindow(boolean notifyClosingEvent) {
         if (UI.getCurrent() != null && UI.getCurrent().getWindows().size() > 0) {
             ArrayList<Window> l = new ArrayList<>(UI.getCurrent().getWindows());
-            l.get(l.size() - 1).close();
+            Window w = l.get(l.size() - 1);
+            w.setData(notifyClosingEvent);
+            w.close();
         }
     }
 
