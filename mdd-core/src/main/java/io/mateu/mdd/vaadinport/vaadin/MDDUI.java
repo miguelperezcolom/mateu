@@ -137,10 +137,12 @@ public class MDDUI extends UI {
         String contextUrl = url.substring(0, url.length() - uri.length());
         contextUrl += ((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getContextPath();
         if (!contextUrl.endsWith("/")) contextUrl += "/";
+        /*
         String sp = ((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getServletPath();
         if (sp.startsWith("/")) sp = sp.substring(1);
         contextUrl += sp;
         if (!contextUrl.endsWith("/")) contextUrl += "/";
+         */
 
         if (Strings.isNullOrEmpty(System.getProperty("tmpurl"))) {
             System.setProperty("tmpurl", contextUrl + "tmp");
@@ -157,8 +159,8 @@ public class MDDUI extends UI {
 
 
         if (app == null) {
-
-            setApp(createApp());
+            AbstractApplication appFromContext = (AbstractApplication) ((VaadinServletRequest) vaadinRequest).getServletContext().getAttribute(MDDUI.get().getUiRootPath() + "_app");
+            setApp(appFromContext != null?appFromContext:createApp());
 
             if (MDD.getClassPool() == null) MDD.setClassPool(ReflectionHelper.createClassPool(((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getServletContext()));
 

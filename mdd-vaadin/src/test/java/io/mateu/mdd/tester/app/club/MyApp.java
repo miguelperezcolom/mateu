@@ -1,10 +1,7 @@
 package io.mateu.mdd.tester.app.club;
 
 
-import io.mateu.mdd.core.annotations.Action;
-import io.mateu.mdd.core.annotations.Caption;
-import io.mateu.mdd.core.annotations.Private;
-import io.mateu.mdd.core.annotations.Public;
+import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.app.MDDOpenEditorAction;
@@ -16,6 +13,7 @@ import io.mateu.mdd.tester.app.club.model.Socio;
 import io.mateu.mdd.tester.app.club.model.Subscripcion;
 
 @Caption("Ermassets")
+@MateuMDDApp(path = "/club")
 public class MyApp extends SimpleMDDApplication {
 
     @Action(order = 1)

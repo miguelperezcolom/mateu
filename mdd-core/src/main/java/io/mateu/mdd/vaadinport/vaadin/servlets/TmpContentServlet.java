@@ -13,7 +13,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-@WebServlet(value = {"/tmp/*", "/app/tmp/*"}, loadOnStartup = 10)
+@WebServlet(value = {"/tmp/*"}, loadOnStartup = 10)
 @Slf4j
 public class TmpContentServlet extends HttpServlet {
 

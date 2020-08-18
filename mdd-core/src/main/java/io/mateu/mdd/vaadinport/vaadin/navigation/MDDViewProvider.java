@@ -173,7 +173,13 @@ public class MDDViewProvider implements ViewProvider {
             boolean nuevo = false;
             boolean expand = false;
 
-            if (state.startsWith("app/")) state = state.substring("app/".length());
+            String appPrefix = MDDUI.get().getUiRootPath();
+            if (!"".equals(appPrefix)) {
+                if (appPrefix.startsWith("/")) appPrefix = appPrefix.substring(1);
+                if (state.equals(appPrefix)) state = "";
+                if (!appPrefix.endsWith("/")) appPrefix += "/";
+            }
+            if (state.startsWith(appPrefix)) state = state.substring(appPrefix.length());
 
 
             if (Strings.isNullOrEmpty(state)) { // caso ""

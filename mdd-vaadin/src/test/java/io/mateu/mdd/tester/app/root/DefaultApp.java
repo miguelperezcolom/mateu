@@ -1,4 +1,4 @@
-package io.mateu.mdd.tester.app.simpleCase;
+package io.mateu.mdd.tester.app.root;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -14,6 +14,7 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.test.model.Entidad;
 import io.mateu.mdd.test.model.EntidadReferenciada;
 import io.mateu.mdd.test.model.Reloj;
+import io.mateu.mdd.tester.app.simpleCase.*;
 import io.mateu.mdd.tester.model.entities.basic.BasicFieldsDemoEntity;
 import io.mateu.mdd.tester.model.entities.dependant.Address;
 import io.mateu.mdd.tester.model.entities.groups.Person;
@@ -21,11 +22,11 @@ import io.mateu.mdd.tester.model.rpc.SampleRPCListView;
 import io.mateu.mdd.tester.model.useCases.bankAccount.Bank;
 import io.mateu.mdd.tester.model.useCases.batches.Batch;
 import io.mateu.mdd.tester.model.useCases.hotel.Booking;
+import io.mateu.mdd.tester.model.useCases.hotel.HotelSalesControlView;
+import io.mateu.mdd.tester.model.useCases.hotel.cockpit.CockpitView;
 import io.mateu.mdd.tester.model.useCases.ofertas.Oferta;
 import io.mateu.mdd.tester.model.useCases.reservas.CapturedBooking;
 import io.mateu.mdd.tester.model.useCases.reservas.File1;
-import io.mateu.mdd.tester.model.useCases.hotel.cockpit.CockpitView;
-import io.mateu.mdd.tester.model.useCases.hotel.HotelSalesControlView;
 import io.mateu.mdd.tester.model.useCases.showcase.Showcase;
 import io.mateu.mdd.tester.model.views.BookingsCrudView;
 import io.mateu.mdd.tester.model.views.BookingsView;
@@ -39,10 +40,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
-@Caption("My simple app")
-@MateuMDDApp(path = "/simple")
+@Caption("Default")
+@MateuMDDApp(path = "/")
 @Slf4j
-public class SimpleApp extends SimpleMDDApplication {
+public class DefaultApp extends SimpleMDDApplication {
 
 
 
@@ -246,7 +247,7 @@ public class SimpleApp extends SimpleMDDApplication {
 
     @Override
     public boolean isAuthenticationNeeded() {
-        return true;
+        return false;
     }
 
     @Override

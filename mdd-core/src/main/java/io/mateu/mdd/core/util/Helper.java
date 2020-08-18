@@ -1524,7 +1524,8 @@ public class Helper {
 
                         Element cell = new Element("cell");
                         linea.addContent(cell);
-                        Object v = ((Object[])x)[col++];
+                        Object[] a = (Object[]) x;
+                        Object v = a.length > col?a[col++]:null;
                         String text = "";
                         if (v != null) text += v;
                         if (v instanceof Double){

@@ -9,9 +9,9 @@ import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import javax.servlet.annotation.WebServlet;
 import java.util.Properties;
 
-@WebServlet(urlPatterns = {"/app", "/app/*", "/VAADIN", "/VAADIN/*"}, name = "MyUIServlet", asyncSupported = true, loadOnStartup = 500)
+@WebServlet(urlPatterns = {"/VAADIN", "/VAADIN/*"}, name = "VaadinResourcesServlet", asyncSupported = true, loadOnStartup = 500)
 @VaadinServletConfiguration(ui = MDDUI.class, productionMode = false)
-public class MDDVaadinServlet extends VaadinServlet {
+public class VaadinResourcesServlet extends VaadinServlet {
 
     @Override
     protected DeploymentConfiguration createDeploymentConfiguration(Properties initParameters) {
@@ -20,6 +20,7 @@ public class MDDVaadinServlet extends VaadinServlet {
 
         return super.createDeploymentConfiguration(initParameters);
     }
+
 
 }
 

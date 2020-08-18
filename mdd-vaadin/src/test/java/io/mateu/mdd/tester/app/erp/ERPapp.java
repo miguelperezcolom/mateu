@@ -1,10 +1,12 @@
 package io.mateu.mdd.tester.app.erp;
 
+import io.mateu.mdd.core.annotations.MateuMDDApp;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.interfaces.View;
 
 import java.util.List;
 
+@MateuMDDApp(path = "/erp")
 public class ERPapp extends SimpleMDDApplication {
     @Override
     public String getName() {

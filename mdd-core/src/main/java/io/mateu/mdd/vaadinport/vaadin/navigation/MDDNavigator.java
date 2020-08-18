@@ -130,9 +130,10 @@ public class MDDNavigator {
             com.vaadin.navigator.View v = viewProvider.getView(path);
             if (v != null) {
                 if (newTab) {
+                    String rootPath = MDDUI.get().getUiRootPath();
                     //Ui.getcurrent.open(new external resources(https://www.youtube.com/),"_blank",false)
-                    if (!path.startsWith("/")) path = "/app/" + path;
-                    else path = "/app" + path;
+                    if (!path.startsWith("/")) path = rootPath + "/" + path;
+                    else path = rootPath + path;
                     Page.getCurrent().open(path, "_blank", false);
                 } else navigator.navigateTo(path);
             }
