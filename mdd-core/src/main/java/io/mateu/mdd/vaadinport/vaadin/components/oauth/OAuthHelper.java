@@ -10,6 +10,7 @@ import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 

@@ -324,7 +324,8 @@ public class MDDViewProvider implements ViewProvider {
 
                 clearStack();
 
-                v = null;
+                stack.push(currentPath, v = new DummyView("Login", stack));
+                System.out.println("dummy view: " + state);
 
                 MDDUI.get().getAppComponent().setSigningIn();
 
