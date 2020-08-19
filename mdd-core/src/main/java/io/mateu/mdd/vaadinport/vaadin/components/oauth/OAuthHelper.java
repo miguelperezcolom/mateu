@@ -51,7 +51,7 @@ grant_type=authorization_code
 
             String callbackUrl = MDD.getApp().getBaseUrl();
             if (!callbackUrl.endsWith("/")) callbackUrl += "/";
-            if (!callbackUrl.endsWith("app/")) callbackUrl += "app/";
+            if (!callbackUrl.endsWith(MDDUI.get().getAdaptedUIRootPath())) callbackUrl += MDDUI.get().getAdaptedUIRootPath();
             callbackUrl += "oauth/microsoft/callback";
 
             //OkHttpClient client = new OkHttpClient();
@@ -260,7 +260,7 @@ grant_type=authorization_code
 
             String callbackUrl = MDD.getApp().getBaseUrl();
             if (!callbackUrl.endsWith("/")) callbackUrl += "/";
-            if (!callbackUrl.endsWith("app/")) callbackUrl += "app/";
+            if (!callbackUrl.endsWith(MDDUI.get().getAdaptedUIRootPath())) callbackUrl += MDDUI.get().getAdaptedUIRootPath();
             callbackUrl += "oauth/google/callback";
 
             System.out.println("callbackurl = " + callbackUrl);

@@ -49,7 +49,7 @@ client_id=6731de76-14a6-49ae-97bc-6eba6914391e
             callbackUrl += "";
 
             if (!callbackUrl.endsWith("/")) callbackUrl += "/";
-            if (!callbackUrl.endsWith("app/")) callbackUrl += "app/";
+            if (!callbackUrl.endsWith(MDDUI.get().getAdaptedUIRootPath())) callbackUrl += MDDUI.get().getAdaptedUIRootPath();
             callbackUrl += "oauth/microsoft/callback";
 
 

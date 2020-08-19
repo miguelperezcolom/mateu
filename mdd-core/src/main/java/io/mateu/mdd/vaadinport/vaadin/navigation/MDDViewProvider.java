@@ -288,24 +288,24 @@ public class MDDViewProvider implements ViewProvider {
                     pendingPrivateState = null;
                     if (newState.startsWith("/")) newState = newState.substring(1);
 
-                    System.out.println("-->going to (" + MDD.getApp().getBaseUrl() + "app/" + newState + ")");
+                    System.out.println("-->going to (" + MDD.getApp().getBaseUrl() + MDDUI.get().getAdaptedUIRootPath() + newState + ")");
                     state = newState;
-                    //Page.getCurrent().open(MDD.getApp().getBaseUrl() + "app/" + newState, null);
+                    //Page.getCurrent().open(MDD.getApp().getBaseUrl() + MDDUI.get().getAdaptedUIRootPath() + newState, null);
                 } else if (MDD.getApp().getDefaultPrivateArea() != null && MDD.getApp().getDefaultPrivateArea().getDefaultAction() != null) {
                     String newState = MDD.getApp().getMenuId(MDD.getApp().getDefaultPrivateArea().getDefaultAction());
                     if (!Strings.isNullOrEmpty(newState)) {
                         if (newState.startsWith("/")) newState = newState.substring(1);
 
-                        System.out.println("-->going to (" + MDD.getApp().getBaseUrl() + "app/" + newState + ")");
+                        System.out.println("-->going to (" + MDD.getApp().getBaseUrl() + MDDUI.get().getAdaptedUIRootPath() + newState + ")");
                         state = newState;
-                        //Page.getCurrent().open(MDD.getApp().getBaseUrl() + "app/" + newState, null);
+                        //Page.getCurrent().open(MDD.getApp().getBaseUrl() + MDDUI.get().getAdaptedUIRootPath() + newState, null);
                     } else {
-                        System.out.println("-->going to (" + MDD.getApp().getBaseUrl() + "app/" + ")");
-                        //Page.getCurrent().open(MDD.getApp().getBaseUrl() + "app/", null);
+                        System.out.println("-->going to (" + MDD.getApp().getBaseUrl() + MDDUI.get().getAdaptedUIRootPath() + ")");
+                        //Page.getCurrent().open(MDD.getApp().getBaseUrl() + MDDUI.get().getAdaptedUIRootPath(), null);
                     }
                 } else if (calledback) {
-                    System.out.println("-->going to (" + MDD.getApp().getBaseUrl() + "app/" + ")");
-                    //Page.getCurrent().open(MDD.getApp().getBaseUrl() + "app/", null);
+                    System.out.println("-->going to (" + MDD.getApp().getBaseUrl() + MDDUI.get().getAdaptedUIRootPath() + ")");
+                    //Page.getCurrent().open(MDD.getApp().getBaseUrl() + MDDUI.get().getAdaptedUIRootPath(), null);
                 }
             }
 

@@ -11,6 +11,7 @@ import io.mateu.mdd.core.util.Helper;
 import io.mateu.mdd.core.util.JPATransaction;
 import io.mateu.mdd.core.workflow.Task;
 import io.mateu.mdd.core.workflow.WorkflowEngine;
+import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.EditorViewStyler;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
 import lombok.MateuMDDEntity;
@@ -141,7 +142,7 @@ public class User implements EditorViewStyler {
         setPasswordResetKey(UUID.randomUUID().toString());
         setPasswordResetExpiryDateTime(LocalDateTime.now().plusHours(4));
 
-        EmailHelper.sendEmail(getEmail(), "Password reset instructions", "<p>" + MDD.getApp().getBaseUrl() + "app/resetpassword/" + getPasswordResetKey() + "</p>", true);
+        EmailHelper.sendEmail(getEmail(), "Password reset instructions", "<p>" + MDD.getApp().getBaseUrl() + MDDUI.get().getAdaptedUIRootPath() + "resetpassword/" + getPasswordResetKey() + "</p>", true);
         return "An email with instructions has been sent to " + getEmail();
     }
 

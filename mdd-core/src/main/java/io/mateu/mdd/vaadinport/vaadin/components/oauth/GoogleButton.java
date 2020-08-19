@@ -32,7 +32,7 @@ public class GoogleButton extends Button {
 //            callbackUrl += "";
 
             if (!callbackUrl.endsWith("/")) callbackUrl += "/";
-            if (!callbackUrl.endsWith("app/")) callbackUrl += "app/";
+            if (!callbackUrl.endsWith(MDDUI.get().getAdaptedUIRootPath())) callbackUrl += MDDUI.get().getAdaptedUIRootPath();
             callbackUrl += "oauth/google/callback";
 
 
