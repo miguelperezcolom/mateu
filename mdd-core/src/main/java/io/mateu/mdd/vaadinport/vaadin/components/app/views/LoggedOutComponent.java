@@ -1,21 +1,11 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.views;
 
-import com.google.common.base.Strings;
-import com.vaadin.event.ShortcutAction;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.app.BaseMDDApp;
-import io.mateu.mdd.core.data.UserData;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.oauth.GitHubButton;
-import io.mateu.mdd.vaadinport.vaadin.components.oauth.GoogleButton;
-import io.mateu.mdd.vaadinport.vaadin.components.oauth.MicrosoftButton;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class LoggedOutComponent extends VerticalLayout {
 

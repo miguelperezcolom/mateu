@@ -6,11 +6,10 @@ import io.mateu.mdd.core.annotations.VisibleIf;
 import io.mateu.mdd.core.data.Pair;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.script.ScriptEngine;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;

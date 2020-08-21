@@ -1,7 +1,7 @@
 package io.mateu.mdd.tester.model.useCases.pojos;
 
 import io.mateu.mdd.core.annotations.TextArea;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 import lombok.Getter;
 
 @Getter

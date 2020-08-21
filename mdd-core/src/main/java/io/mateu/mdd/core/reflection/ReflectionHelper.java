@@ -2,22 +2,19 @@ package io.mateu.mdd.core.reflection;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.vaadin.data.provider.DataProvider;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Pair;
 import io.mateu.mdd.core.data.UserData;
-import io.mateu.mdd.core.interfaces.AbstractJPQLListView;
 import io.mateu.mdd.core.interfaces.DoBeforeRemoveFromCollection;
 import io.mateu.mdd.core.interfaces.PushWriter;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.model.authentication.Audit;
 import io.mateu.mdd.core.model.multilanguage.Literal;
-import io.mateu.mdd.core.test.TestCaller;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.reflection.BaseReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.tests.Persona;
 import javassist.*;
 import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ClassFile;
@@ -30,17 +27,20 @@ import org.apache.commons.beanutils.converters.BooleanConverter;
 import org.apache.commons.beanutils.converters.DoubleConverter;
 import org.apache.commons.beanutils.converters.IntegerConverter;
 import org.apache.commons.beanutils.converters.LongConverter;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.input.SAXBuilder;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 
 import javax.persistence.*;
 import javax.servlet.ServletContext;
 import javax.tools.*;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.StringReader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
@@ -50,7 +50,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -58,29 +57,14 @@ import static java.util.Collections.singletonList;
 import static javax.tools.JavaFileObject.Kind.SOURCE;
 
 @Slf4j
-public class ReflectionHelper {
+public class ReflectionHelper extends BaseReflectionHelper {
 
 
     static Map<Class, List<FieldInterfaced>> allFieldsCache = new HashMap<>();
     static Map<Class, List<Method>> allMethodsCache = new HashMap<>();
     static Map<String, Method> methodCache = new HashMap<>();
 
-    static List<Class> basicos = new ArrayList<>();
-
     static {
-        basicos.add(String.class);
-        basicos.add(Integer.class);
-        basicos.add(Long.class);
-        basicos.add(Double.class);
-        basicos.add(Boolean.class);
-        basicos.add(LocalDate.class);
-        basicos.add(LocalDateTime.class);
-        basicos.add(LocalTime.class);
-        basicos.add(int.class);
-        basicos.add(long.class);
-        basicos.add(double.class);
-        basicos.add(boolean.class);
-
         BeanUtilsBean beanUtilsBean = BeanUtilsBean.getInstance();
         beanUtilsBean.getConvertUtils().register(new IntegerConverter(null), Integer.class);
         beanUtilsBean.getConvertUtils().register(new LongConverter(null), Long.class);
@@ -89,13 +73,7 @@ public class ReflectionHelper {
     }
 
 
-    public static boolean isBasico(Class c) {
-        return basicos.contains(c);
-    }
 
-    public static boolean isBasico(Object o) {
-        return isBasico(o.getClass());
-    }
 
 
 
@@ -430,7 +408,6 @@ public class ReflectionHelper {
     public static boolean isInjectable(Executable m, Parameter p) {
         boolean injectable = true;
         if (EntityManager.class.equals(p.getType())) {
-        } else if (UserData.class.equals(p.getType())) {
         } else if (Set.class.isAssignableFrom(p.getType())) {
             Class<?> gc = null;
             if (m.isAnnotationPresent(Action.class) && !Strings.isNullOrEmpty(m.getAnnotation(Action.class).attachToField())) {
@@ -1192,11 +1169,11 @@ public class ReflectionHelper {
 
 
     public static Object invokeInjectableParametersOnly(Method method, Object instance) throws Throwable {
-        return execute(MDD.getUserData(), method, new MDDBinder(new ArrayList<>()), instance, null);
+        return execute(method, new MDDBinder(new ArrayList<>()), instance, null);
     }
 
 
-    public static Object execute(UserData user, Method m, MDDBinder parameters, Object instance, Set pendingSelection) throws Throwable {
+    public static Object execute(Method m, MDDBinder parameters, Object instance, Set pendingSelection) throws Throwable {
         Object o = parameters.getBean();
         Map<String, Object> params = null;
         if (o != null && Map.class.isAssignableFrom(o.getClass())) {
@@ -1211,7 +1188,7 @@ public class ReflectionHelper {
             Class<?> pgc = ReflectionHelper.getGenericClass(p.getParameterizedType());
 
             if (UserData.class.equals(p.getType())) {
-                vs.add(user);
+                vs.add(MDD.getCurrentUser());
             } else if (EntityManager.class.equals(p.getType())) {
                 posEM = pos;
             } else if (PushWriter.class.equals(p.getType())) {
@@ -1390,7 +1367,7 @@ public class ReflectionHelper {
             }
 
             @Override
-            public DataProvider getDataProvider() {
+            public com.vaadin.data.provider.DataProvider getDataProvider() {
                 return null;
             }
 
@@ -2555,12 +2532,77 @@ public class ReflectionHelper {
             Audit a = (Audit) ReflectionHelper.getValue(f, bean);
             if (a == null) {
                 a = new Audit(MDD.getCurrentUser());
-                ReflectionHelper.setValue(f, bean, a);
+                setValue(f, bean, a);
             } else {
                 a.touch(MDD.getCurrentUser());
             }
         }
 
+    }
+
+
+    public static Element toXml(Object o) {
+        return toXml(o, new ArrayList<>());
+    }
+
+    public static Element toXml(Object o, List visited) {
+        if (o == null) {
+            return null;
+        } else {
+            if (!visited.contains(o)) {
+                visited.add(o);
+            }
+            Element e = new Element(o.getClass().getSimpleName());
+            e.setAttribute("className", o.getClass().getName());
+            for (FieldInterfaced f : getAllFields(o.getClass())) {
+                try {
+                    Object i = getValue(f, o);
+
+                    if (i != null) {
+                        if (BaseReflectionHelper.isBasico(i)) {
+                            e.setAttribute(f.getName(), "" + i);
+                        } else {
+
+                            //todo: añadir casos collection y map
+
+                            e.addContent(toXml(i, visited));
+                        }
+                    }
+
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+            }
+            return e;
+        }
+    }
+
+
+    public static Object fromXml(String s) {
+        if (Strings.isNullOrEmpty(s)) return null;
+        else {
+            try {
+                Document doc = new SAXBuilder().build(new StringReader(s));
+
+                Element root = doc.getRootElement();
+
+                Object o = null;
+
+                //todo: acabar
+
+                if (root.getAttribute("className") != null && !Strings.isNullOrEmpty(root.getAttributeValue("className"))) {
+                    o = Class.forName(root.getAttributeValue("className")).newInstance();
+                } else {
+                    o = new HashMap<>();
+                }
+
+                return o;
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
     }
 
 }

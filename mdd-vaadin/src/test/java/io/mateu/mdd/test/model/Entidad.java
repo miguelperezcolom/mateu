@@ -3,9 +3,8 @@ package io.mateu.mdd.test.model;
 import io.mateu.mdd.core.annotations.Code;
 import io.mateu.mdd.core.annotations.FieldGroup;
 import io.mateu.mdd.core.annotations.Html;
-import io.mateu.mdd.core.annotations.Section;
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.workflow.WorkflowEngine;
+import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.workflow.WorkflowEngine;
 import lombok.MateuMDDEntity;
 import lombok.extern.slf4j.Slf4j;
 

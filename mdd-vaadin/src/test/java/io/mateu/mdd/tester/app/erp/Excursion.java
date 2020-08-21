@@ -3,8 +3,8 @@ package io.mateu.mdd.tester.app.erp;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.KPI;
 import io.mateu.mdd.core.annotations.Money;
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.workflow.WorkflowEngine;
+import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.workflow.WorkflowEngine;
 import lombok.MateuMDDEntity;
 
 import javax.persistence.CascadeType;

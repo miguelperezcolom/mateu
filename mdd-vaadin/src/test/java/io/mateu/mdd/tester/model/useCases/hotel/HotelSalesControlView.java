@@ -11,7 +11,7 @@ import com.vaadin.shared.ui.slider.SliderOrientation;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;

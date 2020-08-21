@@ -6,7 +6,7 @@ import io.mateu.mdd.core.annotations.UseLinkToListView;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 import java.lang.reflect.InvocationTargetException;

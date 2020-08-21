@@ -8,7 +8,7 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.BaseMDDApp;
 import io.mateu.mdd.core.model.authentication.USER_STATUS;
 import io.mateu.mdd.core.model.authentication.User;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 import java.time.LocalDateTime;

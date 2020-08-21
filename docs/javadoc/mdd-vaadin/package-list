@@ -2,7 +2,7 @@ io.mateu.common.model.util
 io.mateu.mdd.core
 io.mateu.mdd.core.annotations
 io.mateu.mdd.core.app
-io.mateu.mdd.core.asciiart
+io.mateu.mdd.util.asciiart
 io.mateu.mdd.core.data
 io.mateu.mdd.core.dataProviders
 io.mateu.mdd.core.interfaces
@@ -20,7 +20,7 @@ io.mateu.mdd.core.reflection
 io.mateu.mdd.core.servlet
 io.mateu.mdd.core.test
 io.mateu.mdd.core.util
-io.mateu.mdd.core.workflow
+io.mateu.mdd.util.workflow
 io.mateu.mdd.vaadinport
 io.mateu.mdd.vaadinport.vaadin
 io.mateu.mdd.vaadinport.vaadin.components

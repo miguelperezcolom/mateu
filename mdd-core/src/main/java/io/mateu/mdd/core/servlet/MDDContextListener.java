@@ -1,7 +1,7 @@
 package io.mateu.mdd.core.servlet;
 
-import io.mateu.mdd.core.model.util.EmailHelper;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.mail.EmailHelper;
+import io.mateu.mdd.util.Helper;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;

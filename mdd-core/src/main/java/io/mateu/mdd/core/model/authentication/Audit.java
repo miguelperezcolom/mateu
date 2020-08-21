@@ -3,7 +3,6 @@ package io.mateu.mdd.core.model.authentication;
 import io.mateu.mdd.core.interfaces.AuditRecord;
 import lombok.Getter;
 import lombok.Setter;
-import org.eclipse.persistence.annotations.Index;
 
 import javax.persistence.Embeddable;
 import javax.persistence.EntityManager;
@@ -32,13 +31,11 @@ public class Audit implements AuditRecord {
     @ManyToOne
     private User createdBy;
 
-    @Index
     private LocalDateTime created = LocalDateTime.now();
 
     @ManyToOne
     private User modifiedBy;
 
-    @Index
     private LocalDateTime modified;
 
 

@@ -1,5 +1,8 @@
 package io.mateu.mdd.core.util;
 
+import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.xml.XMLSerializable;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -20,7 +23,7 @@ public class XmlConverter implements AttributeConverter<Object, String> {
     public String convertToDatabaseColumn(Object xmlSerializable) {
         if (xmlSerializable == null) return null;
         else {
-            Element xml = (xmlSerializable instanceof XMLSerializable)?((XMLSerializable)xmlSerializable).toXml():Helper.toXml(xmlSerializable);
+            Element xml = (xmlSerializable instanceof XMLSerializable)?((XMLSerializable)xmlSerializable).toXml():ReflectionHelper.toXml(xmlSerializable);
             if (xml == null) return null;
             else {
                 if (xml.getAttribute("className") == null) xml.setAttribute("className", xmlSerializable.getClass().getName());
@@ -39,7 +42,7 @@ public class XmlConverter implements AttributeConverter<Object, String> {
             if (i instanceof XMLSerializable) {
                 ((XMLSerializable) i).fromXml(doc.getRootElement());
             } else {
-                i = Helper.fromXml(s);
+                i = ReflectionHelper.fromXml(s);
             }
             return i;
         } catch (JDOMException e) {

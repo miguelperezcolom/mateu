@@ -5,7 +5,7 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.util.HasChangesSignature;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 import lombok.MateuMDDEntity;
 
 import javax.persistence.*;

@@ -9,8 +9,8 @@ import io.mateu.mdd.core.interfaces.PersistentPOJO;
 import io.mateu.mdd.core.model.authentication.Permission;
 import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.model.common.Resource;
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.util.JPATransaction;
+import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.persistence.JPATransaction;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -1,13 +1,12 @@
 package io.mateu.mdd.core.model.test;
 
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.workflow.WorkflowEngine;
+import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.workflow.WorkflowEngine;
 import lombok.MateuMDDEntity;
 
 import javax.persistence.PostPersist;
 import javax.persistence.PostUpdate;
 import javax.validation.constraints.NotNull;
-import java.util.Optional;
 
 @MateuMDDEntity
 public class MateuMDDWorkflowEntityTest2 {

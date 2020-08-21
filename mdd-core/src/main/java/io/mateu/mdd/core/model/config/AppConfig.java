@@ -9,9 +9,10 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.AbstractApplication;
 import io.mateu.mdd.core.model.common.Resource;
-import io.mateu.mdd.core.model.util.EmailHelper;
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.util.JPATransaction;
+import io.mateu.mdd.shared.IAppConfig;
+import io.mateu.mdd.util.mail.EmailHelper;
+import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.persistence.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import lombok.MateuMDDEntity;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +28,7 @@ import java.time.format.DateTimeFormatter;
  * Created by miguel on 19/3/17.
  */
 @Slf4j@MateuMDDEntity
-public class AppConfig {
+public class AppConfig implements IAppConfig {
 
     @Section("General")
     @Id
@@ -38,6 +39,10 @@ public class AppConfig {
 
     @ManyToOne(cascade = CascadeType.ALL)
     private Resource logo;
+
+    public String getLogoUrl() throws Exception {
+        return logo != null?logo.toFileLocator().getUrl():null;
+    }
 
 
     @Section("Email")

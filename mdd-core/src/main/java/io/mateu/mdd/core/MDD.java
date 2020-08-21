@@ -7,9 +7,6 @@ import com.vaadin.server.ExternalResource;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.core.annotations.IFrame;
-import io.mateu.mdd.core.annotations.Output;
-import io.mateu.mdd.core.annotations.Pdf;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.interfaces.PersistentPOJO;
@@ -18,19 +15,16 @@ import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
 import io.mateu.mdd.vaadinport.vaadin.navigation.ComponentWrapper;
-import io.mateu.mdd.vaadinport.vaadin.navigation.View;
 import javassist.ClassPool;
 
 import javax.persistence.Entity;
 import javax.persistence.Query;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.Collection;
-import java.util.List;
 
 public class MDD {
 

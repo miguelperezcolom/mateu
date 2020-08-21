@@ -1,7 +1,7 @@
 package io.mateu.mdd.tester.model.entities.population;
 
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.util.JPATransaction;
+import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.persistence.JPATransaction;
 import io.mateu.mdd.tester.model.entities.basic.BasicFieldsDemoEntity;
 
 import javax.persistence.EntityManager;

@@ -1,7 +1,7 @@
 package io.mateu.mdd.tester.model.entities.dynamicContent;
 
 import com.google.common.base.Strings;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;

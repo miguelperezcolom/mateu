@@ -1,7 +1,7 @@
 package io.mateu.mdd.tester.model.entities.converter;
 
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.util.XMLSerializable;
+import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.xml.XMLSerializable;
 import lombok.Getter;
 import lombok.Setter;
 import org.jdom2.Element;

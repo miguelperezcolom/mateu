@@ -3,8 +3,8 @@ package io.mateu.mdd.core.data;
 import com.google.common.base.Strings;
 import io.mateu.mdd.core.annotations.SameLine;
 import io.mateu.mdd.core.interfaces.ISupplementOrPositive;
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.util.XMLSerializable;
+import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.xml.XMLSerializable;
 import org.jdom2.Element;
 
 public class FareValue implements XMLSerializable, ISupplementOrPositive {

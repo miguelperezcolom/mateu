@@ -11,15 +11,11 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.BaseMDDApp;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.model.config.AppConfig;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.GitHubButton;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.GoogleButton;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.MicrosoftButton;
-import io.mateu.mdd.vaadinport.vaadin.navigation.MDDViewProvider;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class LoginComponent extends VerticalLayout {
 

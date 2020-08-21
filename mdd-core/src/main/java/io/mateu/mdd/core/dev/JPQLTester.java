@@ -3,7 +3,7 @@ package io.mateu.mdd.core.dev;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Output;
 import io.mateu.mdd.core.annotations.TextArea;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 import lombok.Getter;
 import lombok.Setter;
 

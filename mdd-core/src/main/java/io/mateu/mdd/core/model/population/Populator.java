@@ -12,8 +12,8 @@ import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.model.config.TemplateUseCase;
 import io.mateu.mdd.core.model.util.Constants;
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.util.JPATransaction;
+import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.persistence.JPATransaction;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.InputStream;

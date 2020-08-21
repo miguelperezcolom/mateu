@@ -1,7 +1,7 @@
 package io.mateu.mdd.tester.app.erp;
 
 import io.mateu.mdd.core.app.*;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.tester.model.entities.relations.ManyToManyASideEntity;
 import io.mateu.mdd.tester.model.entities.relations.ManyToManyBSideEntity;
 

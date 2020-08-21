@@ -1,5 +1,7 @@
 package io.mateu.mdd.core.util;
 
+import io.mateu.mdd.util.Helper;
+
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 import java.io.IOException;

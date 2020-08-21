@@ -6,8 +6,8 @@ import com.byteowls.vaadin.chartjs.data.Dataset;
 import com.byteowls.vaadin.chartjs.data.PieDataset;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.vaadin.data.*;
-import com.vaadin.data.Converter;
+import com.vaadin.data.HasDataProvider;
+import com.vaadin.data.ValueProvider;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.event.ShortcutAction;
@@ -25,7 +25,6 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.EditorOpenEvent;
 import com.vaadin.ui.components.grid.EditorOpenListener;
 import com.vaadin.ui.components.grid.SortOrderProvider;
-import com.vaadin.ui.renderers.ButtonRenderer;
 import com.vaadin.ui.renderers.ComponentRenderer;
 import com.vaadin.ui.renderers.HtmlRenderer;
 import com.vaadin.ui.renderers.TextRenderer;
@@ -42,9 +41,10 @@ import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.FieldInterfacedForCheckboxColumn;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components.WeekDaysComponent;
+import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.javamoney.moneta.FastMoney;
 import org.vaadin.grid.cellrenderers.editable.DateFieldRenderer;
@@ -131,7 +131,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
     private void pdf() {
         try {
-            getUI().getPage().open(Helper.listViewComponentToPdf(this, getModelForSearchFilters()).toString(), "_blank");
+            getUI().getPage().open(VaadinHelper.listViewComponentToPdf(this, getModelForSearchFilters()).toString(), "_blank");
         } catch (Throwable throwable) {
             MDD.alert(throwable);
         }
@@ -139,7 +139,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
     private void excel() {
         try {
-            getUI().getPage().open(Helper.listViewComponentToExcel(this, getModelForSearchFilters()).toString(), "_blank");
+            getUI().getPage().open(VaadinHelper.listViewComponentToExcel(this, getModelForSearchFilters()).toString(), "_blank");
         } catch (Throwable throwable) {
             MDD.alert(throwable);
         }    }

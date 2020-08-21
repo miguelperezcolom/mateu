@@ -10,12 +10,11 @@ import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.workflow.WorkflowEngine;
+import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.workflow.WorkflowEngine;
 import io.mateu.mdd.tester.model.entities.dependant.Country;
 import lombok.extern.slf4j.Slf4j;
 
-import lombok.MateuMDDEntity;
 import javax.persistence.Id;
 import javax.persistence.metamodel.EntityType;
 import java.io.PrintWriter;

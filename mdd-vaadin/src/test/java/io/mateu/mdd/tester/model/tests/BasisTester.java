@@ -1,7 +1,7 @@
 package io.mateu.mdd.tester.model.tests;
 
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.workflow.WorkflowEngine;
+import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.workflow.WorkflowEngine;
 import io.mateu.mdd.tester.model.entities.inmutables.HijoInmutable;
 import io.mateu.mdd.tester.model.entities.inmutables.Inmutable;
 import io.mateu.mdd.tester.model.entities.inmutables.PadreInmutable;

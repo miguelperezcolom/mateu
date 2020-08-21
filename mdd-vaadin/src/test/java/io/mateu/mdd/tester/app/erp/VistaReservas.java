@@ -4,7 +4,7 @@ import com.google.common.base.Strings;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.shared.data.sort.SortDirection;
 import io.mateu.mdd.core.interfaces.AbstractJPQLListView;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -1,6 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components;
 
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 import lombok.Getter;
 import lombok.Setter;
 

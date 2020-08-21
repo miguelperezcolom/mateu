@@ -6,7 +6,7 @@ import io.mateu.mdd.core.annotations.QLFilter;
 import io.mateu.mdd.core.annotations.QLForCombo;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;

@@ -1,7 +1,7 @@
 package io.mateu.mdd.tester.app.complexCase;
 
 import io.mateu.mdd.core.app.Searcher;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.tester.model.useCases.bankAccount.BankAccount;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.Found;

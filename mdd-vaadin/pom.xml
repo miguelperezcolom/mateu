@@ -52,7 +52,7 @@
     <dependencies>
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>mdd-core</artifactId>
+            <artifactId>mdd-se</artifactId>
             <version>${project.version}</version>
         </dependency>
 

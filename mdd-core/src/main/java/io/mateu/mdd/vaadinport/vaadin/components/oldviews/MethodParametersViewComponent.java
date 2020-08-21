@@ -7,7 +7,7 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.navigation.View;
 import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
@@ -54,7 +54,7 @@ public class MethodParametersViewComponent extends EditorViewComponent {
             public void run() {
                 if (validate()) {
                     try {
-                        Object r = ReflectionHelper.execute(MDD.getUserData(), method, getBinder(), bean, pendingSelection);
+                        Object r = ReflectionHelper.execute(method, getBinder(), bean, pendingSelection);
                         if (bean != null && void.class.equals(method.getReturnType())) {
                             if (method.isAnnotationPresent(Action.class) && method.getAnnotation(Action.class).saveAfter()) {
                                 ViewStack stack = MDDUI.get().getNavegador().getViewProvider().getStack();

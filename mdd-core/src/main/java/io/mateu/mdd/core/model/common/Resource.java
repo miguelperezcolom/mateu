@@ -3,7 +3,7 @@ package io.mateu.mdd.core.model.common;
 import com.google.common.base.Strings;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.FileLocator;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.core.util.Utils;
 import lombok.MateuMDDEntity;
 import lombok.extern.slf4j.Slf4j;

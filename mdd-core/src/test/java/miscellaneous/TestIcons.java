@@ -1,8 +1,8 @@
 package miscellaneous;
 
 import io.mateu.mdd.core.model.common.Icon;
-import io.mateu.mdd.core.model.util.EmailHelper;
-import io.mateu.mdd.core.workflow.WorkflowEngine;
+import io.mateu.mdd.util.mail.EmailHelper;
+import io.mateu.mdd.util.workflow.WorkflowEngine;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

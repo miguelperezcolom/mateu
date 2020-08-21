@@ -11,9 +11,9 @@ import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.model.ui.EditedRecord;
-import io.mateu.mdd.core.model.util.EmailHelper;
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.util.JPATransaction;
+import io.mateu.mdd.util.mail.EmailHelper;
+import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.persistence.JPATransaction;
 import io.mateu.mdd.core.util.Utils;
 import lombok.extern.slf4j.Slf4j;
 

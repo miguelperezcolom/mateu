@@ -3,7 +3,6 @@ package io.mateu.mdd.vaadinport.vaadin.components.oldviews;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.vaadin.data.provider.QuerySortOrder;
-import com.vaadin.external.org.slf4j.MDC;
 import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.ui.Grid;
 import io.mateu.mdd.core.MDD;
@@ -19,8 +18,8 @@ import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.model.multilanguage.Literal;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.util.JPATransaction;
+import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.persistence.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import lombok.extern.slf4j.Slf4j;
 

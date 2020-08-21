@@ -3,7 +3,7 @@ package io.mateu.mdd.tester.model.pojos;
 
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.interfaces.PersistentPOJO;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;

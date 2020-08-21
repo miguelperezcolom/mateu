@@ -1,6 +1,6 @@
 package io.mateu.mdd.core.servlet;
 
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

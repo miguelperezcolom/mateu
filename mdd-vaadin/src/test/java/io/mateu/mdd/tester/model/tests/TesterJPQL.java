@@ -1,6 +1,6 @@
 package io.mateu.mdd.tester.model.tests;
 
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.tester.model.entities.relations.OneToManyChildEntity;
 import io.mateu.mdd.tester.model.entities.relations.OneToManyParentEntity;
 import io.mateu.mdd.tester.model.entities.relations.OneToOneReferenced;

@@ -1,7 +1,7 @@
 package io.mateu.mdd.tester.model.useCases.bankAccount;
 
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.util.JPATransaction;
+import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.persistence.JPATransaction;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.EntityManager;

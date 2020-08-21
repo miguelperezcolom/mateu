@@ -5,7 +5,6 @@ import com.vaadin.data.Binder;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewProvider;
-import com.vaadin.server.BrowserWindowOpener;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.server.Page;
 import com.vaadin.shared.ui.ContentMode;
@@ -23,7 +22,7 @@ import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.core.util.Pair;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
@@ -1526,7 +1525,7 @@ public class MDDViewProvider implements ViewProvider {
                             }
                         });
                     } else {
-                        procesarResultado(method, ReflectionHelper.execute(MDD.getUserData(), method, new MDDBinder(new ArrayList<>()), instance, pendingSelection), lastViewComponent, !esMenu);
+                        procesarResultado(method, ReflectionHelper.execute(method, new MDDBinder(new ArrayList<>()), instance, pendingSelection), lastViewComponent, !esMenu);
                     }
 
                 }

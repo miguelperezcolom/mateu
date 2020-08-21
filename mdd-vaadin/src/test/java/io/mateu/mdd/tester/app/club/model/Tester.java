@@ -1,7 +1,7 @@
 package io.mateu.mdd.tester.app.club.model;
 
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.workflow.WorkflowEngine;
+import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.workflow.WorkflowEngine;
 
 import java.util.List;
 

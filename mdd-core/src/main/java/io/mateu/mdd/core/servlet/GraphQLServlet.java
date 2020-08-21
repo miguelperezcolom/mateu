@@ -1,6 +1,5 @@
 package io.mateu.mdd.core.servlet;
 
-import ch.qos.logback.classic.Level;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.RuntimeWiring;
@@ -11,7 +10,7 @@ import graphql.servlet.GraphQLConfiguration;
 import graphql.servlet.GraphQLHttpServlet;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,8 +51,6 @@ public class GraphQLServlet extends GraphQLHttpServlet {
         Logger l = LoggerFactory.getLogger("graphql");
 
         if ("true".equalsIgnoreCase(System.getProperty("graphql"))) {
-
-            if (l instanceof ch.qos.logback.classic.Logger) ((ch.qos.logback.classic.Logger)l).setLevel(Level.ERROR);
 
             log.debug(l.getClass().getName());
 

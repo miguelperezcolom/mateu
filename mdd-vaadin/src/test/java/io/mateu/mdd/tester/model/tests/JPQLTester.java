@@ -1,6 +1,6 @@
 package io.mateu.mdd.tester.model.tests;
 
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Query;

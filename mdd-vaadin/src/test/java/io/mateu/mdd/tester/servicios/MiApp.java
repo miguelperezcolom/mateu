@@ -1,6 +1,6 @@
 package io.mateu.mdd.tester.servicios;
 
-import io.mateu.mdd.core.rest.MateuRestApiResourceConfig;
+import io.mateu.mdd.util.rest.MateuRestApiResourceConfig;
 import io.swagger.annotations.Contact;
 import io.swagger.annotations.Info;
 import io.swagger.annotations.SwaggerDefinition;

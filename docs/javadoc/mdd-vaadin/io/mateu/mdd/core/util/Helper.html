@@ -101,7 +101,7 @@ var activeTableTab = "activeTableTab";
 <li><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">java.lang.Object</a></li>
 <li>
 <ul class="inheritance">
-<li>io.mateu.mdd.core.util.Helper</li>
+<li>io.mateu.mdd.util.Helper</li>
 </ul>
 </li>
 </ul>
@@ -174,7 +174,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>static boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/mateu/mdd/core/util/Helper.html#areXmlSerializableEqual-io.mateu.mdd.core.util.XMLSerializable-io.mateu.mdd.core.util.XMLSerializable-">areXmlSerializableEqual</a></span>(<a href="../../../../../io/mateu/mdd/core/util/XMLSerializable.html" title="interface in io.mateu.mdd.core.util">XMLSerializable</a>&nbsp;a,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/mateu/mdd/core/util/Helper.html#areXmlSerializableEqual-io.mateu.mdd.util.xml.XMLSerializable-io.mateu.mdd.util.xml.XMLSerializable-">areXmlSerializableEqual</a></span>(<a href="../../../../../io/mateu/mdd/core/util/XMLSerializable.html" title="interface in io.mateu.mdd.core.util">XMLSerializable</a>&nbsp;a,
                        <a href="../../../../../io/mateu/mdd/core/util/XMLSerializable.html" title="interface in io.mateu.mdd.core.util">XMLSerializable</a>&nbsp;b)</code>&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
@@ -398,7 +398,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </tr>
 <tr id="i49" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/mateu/mdd/core/util/Helper.html#notransact-io.mateu.mdd.core.util.JPATransaction-">notransact</a></span>(<a href="../../../../../io/mateu/mdd/core/util/JPATransaction.html" title="interface in io.mateu.mdd.core.util">JPATransaction</a>&nbsp;t)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/mateu/mdd/core/util/Helper.html#notransact-io.mateu.mdd.util.persistence.JPATransaction-">notransact</a></span>(<a href="../../../../../io/mateu/mdd/core/util/JPATransaction.html" title="interface in io.mateu.mdd.core.util">JPATransaction</a>&nbsp;t)</code>&nbsp;</td>
 </tr>
 <tr id="i50" class="altColor">
 <td class="colFirst"><code>static <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>[][]</code></td>
@@ -561,11 +561,11 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </tr>
 <tr id="i82" class="altColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/mateu/mdd/core/util/Helper.html#transact-io.mateu.mdd.core.util.JPATransaction-">transact</a></span>(<a href="../../../../../io/mateu/mdd/core/util/JPATransaction.html" title="interface in io.mateu.mdd.core.util">JPATransaction</a>&nbsp;t)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/mateu/mdd/core/util/Helper.html#transact-io.mateu.mdd.util.persistence.JPATransaction-">transact</a></span>(<a href="../../../../../io/mateu/mdd/core/util/JPATransaction.html" title="interface in io.mateu.mdd.core.util">JPATransaction</a>&nbsp;t)</code>&nbsp;</td>
 </tr>
 <tr id="i83" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/mateu/mdd/core/util/Helper.html#transact-java.lang.String-io.mateu.mdd.core.util.JPATransaction-">transact</a></span>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;persistenceUnit,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/mateu/mdd/core/util/Helper.html#transact-java.lang.String-io.mateu.mdd.util.persistence.JPATransaction-">transact</a></span>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;persistenceUnit,
         <a href="../../../../../io/mateu/mdd/core/util/JPATransaction.html" title="interface in io.mateu.mdd.core.util">JPATransaction</a>&nbsp;t)</code>&nbsp;</td>
 </tr>
 <tr id="i84" class="altColor">
@@ -761,7 +761,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <pre>public static&nbsp;javax.persistence.EntityManager&nbsp;getEMFromThreadLocal()</pre>
 </li>
 </ul>
-<a name="transact-io.mateu.mdd.core.util.JPATransaction-">
+<a name="transact-io.mateu.mdd.util.persistence.JPATransaction-">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -775,7 +775,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </dl>
 </li>
 </ul>
-<a name="transact-java.lang.String-io.mateu.mdd.core.util.JPATransaction-">
+<a name="transact-java.lang.String-io.mateu.mdd.util.persistence.JPATransaction-">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -790,7 +790,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </dl>
 </li>
 </ul>
-<a name="notransact-io.mateu.mdd.core.util.JPATransaction-">
+<a name="notransact-io.mateu.mdd.util.persistence.JPATransaction-">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -1774,7 +1774,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <pre>public static&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;toString(org.jdom2.Element&nbsp;element)</pre>
 </li>
 </ul>
-<a name="areXmlSerializableEqual-io.mateu.mdd.core.util.XMLSerializable-io.mateu.mdd.core.util.XMLSerializable-">
+<a name="areXmlSerializableEqual-io.mateu.mdd.util.xml.XMLSerializable-io.mateu.mdd.util.xml.XMLSerializable-">
 <!--   -->
 </a>
 <ul class="blockList">

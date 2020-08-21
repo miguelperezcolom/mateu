@@ -9,7 +9,7 @@ import com.vaadin.ui.*;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.model.common.Icon;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 
 import java.util.*;
 import java.util.stream.Collectors;

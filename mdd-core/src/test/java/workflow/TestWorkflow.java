@@ -3,9 +3,8 @@ package workflow;
 import io.mateu.mdd.core.model.test.MateuMDDWorkflowEntityTest1;
 import io.mateu.mdd.core.model.test.MateuMDDWorkflowEntityTest2;
 import io.mateu.mdd.core.model.test.TestLog;
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.workflow.WorkflowEngine;
-import org.junit.Assert;
+import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.workflow.WorkflowEngine;
 import org.junit.Test;
 
 import java.util.stream.Collectors;

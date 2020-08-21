@@ -10,7 +10,7 @@ import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.model.common.Icon;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.test.model.Entidad;
 import io.mateu.mdd.test.model.EntidadReferenciada;
 import io.mateu.mdd.test.model.Reloj;

@@ -1,6 +1,7 @@
 package io.mateu.mdd.core.util;
 
 import io.mateu.mdd.core.annotations.Ignored;
+import io.mateu.mdd.util.xml.XMLSerializable;
 import lombok.Getter;
 import lombok.Setter;
 import org.jdom2.Element;

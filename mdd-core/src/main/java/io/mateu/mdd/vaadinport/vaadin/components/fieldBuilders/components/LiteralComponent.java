@@ -2,7 +2,6 @@ package io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components;
 
 import com.google.common.collect.Lists;
 import com.vaadin.data.HasValue;
-import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;

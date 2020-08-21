@@ -2,8 +2,8 @@ package io.mateu.mdd.tester.app.club.model;
 
 import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.annotations.*;
-import io.mateu.mdd.core.model.util.EmailHelper;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.mail.EmailHelper;
+import io.mateu.mdd.util.Helper;
 import lombok.MateuMDDEntity;
 import lombok.extern.slf4j.Slf4j;
 

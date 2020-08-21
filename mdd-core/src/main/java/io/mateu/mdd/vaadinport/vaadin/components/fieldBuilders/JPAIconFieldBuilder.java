@@ -9,11 +9,8 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.model.common.Icon;
-import io.mateu.mdd.core.model.common.Resource;
-import io.mateu.mdd.core.model.multilanguage.Literal;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components.FileComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components.IconComponent;
 
 import javax.validation.constraints.NotEmpty;

@@ -6,7 +6,8 @@ import com.vaadin.server.ExternalResource;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.interfaces.RpcView;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 
 import javax.persistence.Query;
 import javax.xml.transform.Source;
@@ -41,21 +42,21 @@ public class PdfComponent extends VerticalLayout {
 
     private URL build(RpcView view, Object filters, List<QuerySortOrder> sortOrders) throws Throwable {
 
-        return Helper.viewToPdf(view, filters, sortOrders);
+        return VaadinHelper.viewToPdf(view, filters, sortOrders);
 
     }
 
 
     public static URL build(Query query) throws Throwable {
 
-        return Helper.queryToPdf(query);
+        return VaadinHelper.queryToPdf(query);
 
     }
 
 
     public static URL build(List list) throws Throwable {
 
-        return Helper.listToPdf(list);
+        return VaadinHelper.listToPdf(list);
 
     }
 

@@ -11,8 +11,8 @@ import io.mateu.mdd.core.annotations.UseCheckboxes;
 import io.mateu.mdd.core.interfaces.HasHeader;
 import io.mateu.mdd.core.interfaces.Header;
 import io.mateu.mdd.core.interfaces.HeaderType;
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.workflow.WorkflowEngine;
+import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.workflow.WorkflowEngine;
 import io.mateu.mdd.tester.model.useCases.bankAccount.BankAccount;
 import lombok.MateuMDDEntity;
 

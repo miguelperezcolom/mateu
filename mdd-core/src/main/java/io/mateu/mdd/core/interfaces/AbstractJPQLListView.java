@@ -9,16 +9,11 @@ import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.FieldInterfacedFromField;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.util.JPATransaction;
+import io.mateu.mdd.shared.JPAAdapter;
+import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.persistence.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.persistence.internal.helper.DatabaseField;
-import org.eclipse.persistence.jpa.JpaEntityManager;
-import org.eclipse.persistence.jpa.JpaQuery;
-import org.eclipse.persistence.queries.DatabaseQuery;
-import org.eclipse.persistence.sessions.DatabaseRecord;
-import org.eclipse.persistence.sessions.Session;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -58,7 +53,6 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
                         if (o instanceof Object[]) l.add((R) ReflectionHelper.fillQueryResult(fields, (Object[]) o, getNewRowInstance()));
                         else l.add((R) o);
                     }
-
 
                 }
             });
@@ -345,63 +339,16 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
         return ReflectionHelper.getGenericClass(this.getClass(), RpcView.class, "C");
     }
 
-    public Query getCountQueryForEclipseLink(EntityManager em, Query q) {
+    public Query getCountQueryForEclipseLink(EntityManager em, Query q) throws Exception {
 
-        Session session = em.unwrap(JpaEntityManager.class).getActiveSession();
-        //DatabaseQuery databaseQuery = q.unwrap(EJBQueryImpl.class).getDatabaseQuery();
-        DatabaseQuery databaseQuery = q.unwrap(JpaQuery.class).getDatabaseQuery();
-        DatabaseRecord recordWithValues= new DatabaseRecord();
-        q.getParameters().forEach(p -> recordWithValues.add(new DatabaseField(p.getName()), q.getParameterValue(p)));
-        databaseQuery.prepareCall(session, recordWithValues);
-        //Record r = databaseQuery.getTranslationRow();
-        String bound = databaseQuery.getTranslatedSQLString(session, recordWithValues);
-        String sqlString = databaseQuery.getSQLString();
+        String bound = Helper.getImpl(JPAAdapter.class).extractSql(em, q);
 
         log.debug("bound=" + bound);
 
-        /*
-        JpaQuery xq = q.unwrap(JpaQuery.class);
-        DatabaseQuery dbQuery = xq.getDatabaseQuery();
-        Session session = em.unwrap(JpaEntityManager.class).getActiveSession();
-        String bound = dbQuery.getTranslatedSQLString(session, dbQuery.getTranslationRow());
-        */
         Query qt = em.createNativeQuery("select count(*) from (" + bound + ") x");
         return qt;
     }
 
-    public static void test(AbstractJPQLListView view) throws Throwable {
-
-
-        //StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-
-        /*
-        Class ec = new Object() {}
-                .getClass()
-                .getEnclosingClass();
-                */
-        //Class ec = Class.forName(stackTrace[stackTrace.length - 1].getClassName());
-        //log.debug("ec=" + ec.getName());
-
-        try {
-            Helper.notransact(em -> {
-                Query q = view.buildQuery(em, null, false);
-                Query qt = em.createNativeQuery("select count(*) from (" + q.unwrap(JpaQuery.class).getDatabaseQuery().getSQLString() + ") x");
-                q.getParameters().forEach(p -> qt.setParameter(p.getName(), q.getParameterValue(p)));
-            });
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
-        }
-
-
-        try {
-            Helper.notransact(em -> {
-                log.debug("" + view.buildQuery(em, null, true).getResultList());
-            });
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
-        }
-
-    }
 
 
     public Object deserializeId(String sid) {

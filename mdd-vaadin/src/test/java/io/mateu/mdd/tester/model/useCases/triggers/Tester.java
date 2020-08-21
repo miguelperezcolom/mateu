@@ -1,7 +1,7 @@
 package io.mateu.mdd.tester.model.useCases.triggers;
 
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.workflow.WorkflowEngine;
+import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.workflow.WorkflowEngine;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;

@@ -1,6 +1,6 @@
 package io.mateu.bpm;
 
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 
 public class BPMEngine implements Runnable {
 

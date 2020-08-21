@@ -1,7 +1,7 @@
 package io.mateu.mdd.tester.model.tests;
 
-import io.mateu.mdd.core.util.Helper;
-import io.mateu.mdd.core.workflow.WorkflowEngine;
+import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.workflow.WorkflowEngine;
 import io.mateu.mdd.tester.model.tests.mappings.maps.c10BasicEntityTransient.C10Parent;
 import io.mateu.mdd.tester.model.tests.mappings.maps.c10BasicEntityTransient.C10Son;
 import io.mateu.mdd.tester.model.tests.mappings.maps.c11BasicEntityOneToManyWithKeyInInverseJoin.C11Parent;

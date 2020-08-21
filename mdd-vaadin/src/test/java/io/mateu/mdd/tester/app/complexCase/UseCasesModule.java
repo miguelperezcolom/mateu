@@ -1,13 +1,10 @@
 package io.mateu.mdd.tester.app.complexCase;
 
-import com.vaadin.icons.VaadinIcons;
-import com.vaadin.ui.Component;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.model.config.AppConfig;
-import io.mateu.mdd.core.util.Helper;
+import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.tester.model.useCases.bankAccount.BankAccount;
 import io.mateu.mdd.tester.model.useCases.bankAccount.Payment;
 import io.mateu.mdd.tester.model.useCases.hotel.*;

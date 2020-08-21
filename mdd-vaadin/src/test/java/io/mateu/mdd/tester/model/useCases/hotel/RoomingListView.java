@@ -92,12 +92,4 @@ public class RoomingListView extends AbstractJPQLListView<RoomingListView.Row> {
         });
     }
 
-    public static void main(String[] args) {
-        try {
-            test(new RoomingListView());
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
-        }
-    }
-
 }
