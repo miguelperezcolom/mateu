@@ -246,4 +246,28 @@
 
 
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>io.mateu.jpa-utils</groupId>
+                <artifactId>pujoiner-plugin</artifactId>
+                <version>0.0.2</version>
+
+                <configuration>
+                    <puname>yourapp</puname>
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>procesarpus</goal>
+                        </goals>
+                    </execution>
+                </executions>
+
+            </plugin>
+        </plugins>
+    </build>
+
 </project>
