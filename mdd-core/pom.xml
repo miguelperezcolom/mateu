@@ -242,6 +242,63 @@
         </dependency>
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mdd-eclipselink</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.persistence</groupId>
+            <artifactId>org.eclipse.persistence.jpa</artifactId>
+            <version>2.7.4</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.eclipse.persistence</groupId>
+                    <artifactId>commonj.sdo</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.eclipse.persistence</groupId>
+                    <artifactId>jakarta.persistence</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>6.0.17.Final</version>
+            <scope>test</scope>
+        </dependency>
+
+
+        <!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.4.197</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
 
