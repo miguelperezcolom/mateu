@@ -59,7 +59,7 @@
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>mdd-annotationprocessing</artifactId>
-            <version>0.0.9.1-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
