@@ -22,6 +22,17 @@ jobs:
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
+# already done
+#    - name: Checkout
+#      uses: actions/checkout@v1
+
+    # Install NPM dependencies, cache them correctly
+    # and run all Cypress tests
+    - name: Cypress run
+      uses: cypress-io/github-action@v2
+      with:
+        project: ./e2e_tests
+
     - name: Publish to GitHub Packages Apache Maven
       run: mvn deploy
       env:
