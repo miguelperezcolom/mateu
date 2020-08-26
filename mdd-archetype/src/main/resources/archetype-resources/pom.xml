@@ -9,8 +9,6 @@
 
 
   <name>myapp</name>
-  <!-- FIXME change it to the project's website -->
-  <url>http://www.example.com</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -70,16 +68,21 @@
 
     <dependency>
       <groupId>io.mateu</groupId>
-      <artifactId>mdd-core</artifactId>
-      <version>0.0.7-SNAPSHOT</version>
-      <scope>provided</scope>
+      <artifactId>mdd-se</artifactId>
+      <version>0.0.9-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.mateu</groupId>
+      <artifactId>mdd-annotationprocessing</artifactId>
+      <version>0.0.9-SNAPSHOT</version>
     </dependency>
 
 
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>mdd-vaadin</artifactId>
-      <version>0.0.7-SNAPSHOT</version>
+      <version>0.0.9-SNAPSHOT</version>
       <type>war</type>
     </dependency>
 

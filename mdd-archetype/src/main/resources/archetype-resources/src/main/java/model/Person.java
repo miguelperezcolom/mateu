@@ -1,18 +1,10 @@
-package $
+package ${package}.model;
 
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.validation.constraints.NotNull;
-
-{package}.model;
+import lombok.MateuMDDEntity;
 
 @MateuMDDEntity
 public class Person {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
 
     @NotNull
     private String name;
