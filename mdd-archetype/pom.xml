@@ -10,9 +10,9 @@
   </parent>
   -->
   <groupId>io.mateu.archetypes</groupId>
-  <artifactId>mdd-archetype</artifactId>
-  <version>0.0.36</version>
-  <name>mdd-archetype</name>
+  <artifactId>mdd-archetype-se</artifactId>
+  <version>0.1.0</version>
+  <name>mdd-archetype-se</name>
   <url>http://mateu.io</url>
 
   <packaging>maven-archetype</packaging>

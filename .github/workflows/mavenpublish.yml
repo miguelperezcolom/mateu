@@ -31,7 +31,7 @@ jobs:
     - name: Cypress run
       uses: cypress-io/github-action@v2
       with:
-        project: ./e2e_tests
+        working-directory: e2e_tests
 
     - name: Publish to GitHub Packages Apache Maven
       run: mvn deploy
