@@ -5,7 +5,7 @@
     <parent>
         <artifactId>mdd-parent</artifactId>
         <groupId>io.mateu</groupId>
-        <version>0.0.9</version>
+        <version>0.0.10</version>
     </parent>
     <artifactId>mdd-addon</artifactId>
     <packaging>jar</packaging>

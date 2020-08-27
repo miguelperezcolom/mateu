@@ -1,12 +1,12 @@
 <gitVersioning>
-    <updatePom>true</updatePom>
+    <!-- <updatePom>true</updatePom> -->
     <branch>
         <pattern>master</pattern>
-        <versionFormat>${version}.2</versionFormat>
+        <versionFormat>${version}</versionFormat>
     </branch>
     <branch>
-        <pattern><![CDATA[(?<feature>.+)]]></pattern>
-        <versionFormat>${feature}-SNAPSHOT</versionFormat>
+        <pattern><![CDATA[.*]]></pattern>
+        <versionFormat>${branch}-SNAPSHOT</versionFormat>
     </branch>
     <!--
     <tag>

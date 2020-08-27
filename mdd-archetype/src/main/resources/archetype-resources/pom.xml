@@ -69,20 +69,20 @@
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>mdd-se</artifactId>
-      <version>0.0.9</version>
+      <version>0.0.10</version>
     </dependency>
 
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>mdd-annotationprocessing</artifactId>
-      <version>0.0.9</version>
+      <version>0.0.10</version>
     </dependency>
 
 
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>mdd-vaadin</artifactId>
-      <version>0.0.9</version>
+      <version>0.0.10</version>
       <type>war</type>
     </dependency>
 
