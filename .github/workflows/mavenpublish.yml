@@ -20,7 +20,7 @@ jobs:
         server-password: MAVEN_CENTRAL_TOKEN
 
     - name: Build with Maven
-      run: mvn -B package --file pom.xml
+      run: mvn -B install --file pom.xml
 
 # already done
 #    - name: Checkout
