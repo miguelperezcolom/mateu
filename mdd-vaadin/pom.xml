@@ -18,8 +18,8 @@
     </prerequisites>
 
     <properties>
-        <vaadin.version>8.10.5</vaadin.version>
-        <vaadin.plugin.version>8.10.5</vaadin.plugin.version>
+        <vaadin.version>8.11.2</vaadin.version>
+        <vaadin.plugin.version>8.11.2</vaadin.plugin.version>
         <jetty.plugin.version>9.4.19.v20190610</jetty.plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>11</maven.compiler.source>
@@ -50,10 +50,12 @@
     </dependencyManagement>
 
     <dependencies>
+
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>mdd-se</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
