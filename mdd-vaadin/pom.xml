@@ -53,6 +53,12 @@
 
         <dependency>
             <groupId>io.mateu</groupId>
+            <artifactId>mdd-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.mateu</groupId>
             <artifactId>mdd-se</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
