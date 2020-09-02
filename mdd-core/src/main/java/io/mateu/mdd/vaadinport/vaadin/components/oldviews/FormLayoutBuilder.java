@@ -478,6 +478,7 @@ public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuild
 
             }
 
+            readOnly |= MDD.isReadOnly(f);
 
             Component c = null;
             if (

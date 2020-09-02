@@ -82,10 +82,12 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                 }
             };
 
-            Button b = new Button("Select");
-            b.addStyleName(ValoTheme.BUTTON_LINK);
-            b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
-            wrap.addComponent(b);
+            if (!MDD.isReadWrite(field.getType())) {
+                Button b = new Button("Select");
+                b.addStyleName(ValoTheme.BUTTON_LINK);
+                b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+                wrap.addComponent(b);
+            }
             container.addComponent(wrap);
 
 
@@ -277,12 +279,14 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                     });
                     hl.addComponent(b);
 
-                    botonLink = new Button(null, VaadinIcons.ARROW_RIGHT);
-                    botonLink.addStyleName(ValoTheme.BUTTON_QUIET);
-                    botonLink.addStyleName(CSS.NOPADDING);
-                    botonLink.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
-                    botonLink.setVisible(false);
-                    hl.addComponent(botonLink);
+                    if (!MDD.isReadWrite(field.getType())) {
+                        botonLink = new Button(null, VaadinIcons.ARROW_RIGHT);
+                        botonLink.addStyleName(ValoTheme.BUTTON_QUIET);
+                        botonLink.addStyleName(CSS.NOPADDING);
+                        botonLink.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+                        botonLink.setVisible(false);
+                        hl.addComponent(botonLink);
+                    }
 
                 }
 

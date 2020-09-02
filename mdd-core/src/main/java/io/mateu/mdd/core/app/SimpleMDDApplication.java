@@ -117,29 +117,7 @@ public class SimpleMDDApplication extends BaseMDDApp {
                 if (!publicAccess && !m.isAnnotationPresent(Public.class) && (SimpleMDDApplication.this.isAuthenticationNeeded() || m.isAnnotationPresent(Private.class))) {
                     Private pa = m.getAnnotation(Private.class);
                     if (pa != null) {
-                        User u = MDD.getCurrentUser();
-                        boolean permisoOk = false;
-                        if (u != null && (pa.users() == null || pa.users().length == 0) && pa.permissions() != null && pa.permissions().length > 0) {
-                            for (int i = 0; i < pa.permissions().length; i++) {
-                                for (Permission p : u.getPermissions()) {
-                                    if (p.getId() == pa.permissions()[i]) {
-                                        permisoOk = true;
-                                        break;
-                                    }
-                                    if (permisoOk) break;
-                                }
-                            }
-                        } else permisoOk = true;
-                        boolean usuarioOk = false;
-                        if (u != null && pa.users() != null && pa.users().length > 0) {
-                            for (int i = 0; i < pa.users().length; i++) {
-                                if (u.getLogin().equalsIgnoreCase(pa.users()[i])) {
-                                    usuarioOk = true;
-                                    break;
-                                }
-                            }
-                        } else usuarioOk = true;
-                        if (permisoOk && usuarioOk) add = true;
+                        add = MDD.check(pa);
                     } else add = true;
                 }
             }

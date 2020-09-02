@@ -7,11 +7,16 @@ import com.vaadin.server.ExternalResource;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.annotations.Forbidden;
+import io.mateu.mdd.core.annotations.Private;
+import io.mateu.mdd.core.annotations.ReadOnly;
+import io.mateu.mdd.core.annotations.ReadWrite;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.interfaces.PersistentPOJO;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.interfaces.WizardPage;
+import io.mateu.mdd.core.model.authentication.Permission;
 import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
@@ -308,5 +313,86 @@ public class MDD {
                 MDD.alert(throwable);
             }
         }
+    }
+
+    public static boolean check(Private pa) {
+        return check(pa.permissions(), pa.users(), pa.userTypes());
+    }
+
+    private static boolean check(int[] permissions, String[] users, Class[] userTypes) {
+        boolean add = false;
+        User u = MDD.getCurrentUser();
+        if (u == null) return false;
+
+        boolean usuarioOk = false;
+        if (u != null && users != null && users.length > 0) {
+            for (int i = 0; i < users.length; i++) {
+                if (u.getLogin().equalsIgnoreCase(users[i])) {
+                    usuarioOk = true;
+                    break;
+                }
+            }
+        } else usuarioOk = true;
+
+        if (!usuarioOk) return false;
+
+        boolean permisoOk = false;
+        if (u != null && (users == null || users.length == 0) && permissions != null && permissions.length > 0) {
+            for (int i = 0; i < permissions.length; i++) {
+                for (Permission p : u.getPermissions()) {
+                    if (p.getId() == permissions[i]) {
+                        permisoOk = true;
+                        break;
+                    }
+                    if (permisoOk) break;
+                }
+            }
+        } else permisoOk = true;
+
+
+        boolean tipoOk = false;
+        if (u != null && userTypes != null && userTypes.length > 0) {
+            for (int i = 0; i < userTypes.length; i++) {
+                if (userTypes[i].isAssignableFrom(u.getClass())) {
+                    tipoOk = true;
+                    break;
+                }
+            }
+        } else tipoOk = true;
+
+        if (permisoOk || usuarioOk || tipoOk) add = true;
+        return add;
+    }
+
+    public static boolean check(ReadOnly a) {
+        return check(a.permissions(), a.users(), a.userTypes());
+    }
+
+    public static boolean check(ReadWrite a) {
+        return check(a.permissions(), a.users(), a.userTypes());
+    }
+
+    public static boolean check(Forbidden a) {
+        return check(a.permissions(), a.users(), a.userTypes());
+    }
+
+    public static boolean isReadOnly(FieldInterfaced f) {
+        if (f.isAnnotationPresent(ReadOnly.class)) {
+            ReadOnly a = f.getAnnotation(ReadOnly.class);
+            return check(a.permissions(), a.users(), a.userTypes());
+        } else return false;
+    }
+
+    public static boolean isReadWrite(Class<?> type) {
+        boolean r = true;
+        if (type.isAnnotationPresent(Forbidden.class)) {
+            Forbidden a = type.getAnnotation(Forbidden.class);
+            r &= !check(a.permissions(), a.users(), a.userTypes());
+        }
+        if (type.isAnnotationPresent(ReadOnly.class)) {
+            ReadOnly a = type.getAnnotation(ReadOnly.class);
+            r &= !check(a.permissions(), a.users(), a.userTypes());
+        }
+        return r;
     }
 }

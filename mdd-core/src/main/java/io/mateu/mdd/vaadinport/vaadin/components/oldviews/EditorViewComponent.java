@@ -19,6 +19,7 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Pair;
 import io.mateu.mdd.core.interfaces.*;
+import io.mateu.mdd.core.interfaces.ReadOnly;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;

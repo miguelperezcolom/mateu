@@ -302,6 +302,18 @@ public class ReflectionHelper extends BaseReflectionHelper {
 
 
     public static List<Method> getAllMethods(Class c) {
+        List<Method> l = _getAllMethods(c);
+
+        List<Method> r = new ArrayList<>();
+
+        for (Method m : l) {
+            if (check(m)) r.add(m);
+        }
+
+        return r;
+    }
+
+    public static List<Method> _getAllMethods(Class c) {
         List<Method> l = allMethodsCache.get(c);
 
         if (l == null) {
@@ -310,7 +322,6 @@ public class ReflectionHelper extends BaseReflectionHelper {
 
         return l;
     }
-
 
     public static List<Method> buildAllMethods(Class c) {
         List<Method> l = new ArrayList<>();
@@ -1112,6 +1123,8 @@ public class ReflectionHelper extends BaseReflectionHelper {
 
         }
 
+        allFields = filterAuthorized(allFields);
+
 
         boolean isEditingNewRecord = MDDUI.get().isEditingNewRecord();
 
@@ -1165,6 +1178,48 @@ public class ReflectionHelper extends BaseReflectionHelper {
 
 
         return allFields;
+    }
+
+    private static List<FieldInterfaced> filterAuthorized(List<FieldInterfaced> allFields) {
+        List<FieldInterfaced> r = new ArrayList<>();
+        for (FieldInterfaced f : allFields) {
+            if (check(f)) r.add(f);
+        }
+        return r;
+    }
+
+    private static boolean check(FieldInterfaced f) {
+        boolean r = false;
+        if (f.isAnnotationPresent(ReadOnly.class)) {
+            ReadOnly a = f.getAnnotation(ReadOnly.class);
+            r |= MDD.check(a);
+        }
+        if (f.isAnnotationPresent(ReadWrite.class)) {
+            ReadWrite a = f.getAnnotation(ReadWrite.class);
+            r |= MDD.check(a);
+        }
+        if (f.isAnnotationPresent(Forbidden.class)) {
+            Forbidden a = f.getAnnotation(Forbidden.class);
+            r &= !MDD.check(a);
+        }
+        return r;
+    }
+
+    private static boolean check(Method m) {
+        boolean r = false;
+        if (m.isAnnotationPresent(ReadOnly.class)) {
+            ReadOnly a = m.getAnnotation(ReadOnly.class);
+            r |= MDD.check(a);
+        }
+        if (m.isAnnotationPresent(ReadWrite.class)) {
+            ReadWrite a = m.getAnnotation(ReadWrite.class);
+            r |= MDD.check(a);
+        }
+        if (m.isAnnotationPresent(Forbidden.class)) {
+            Forbidden a = m.getAnnotation(Forbidden.class);
+            r &= !MDD.check(a);
+        }
+        return r;
     }
 
 
