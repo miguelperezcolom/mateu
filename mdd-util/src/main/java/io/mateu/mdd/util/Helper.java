@@ -184,7 +184,13 @@ public class Helper {
         return DAYS.between(start, end) - 1;
     }
 
+    public static boolean intersects(LocalDate start, LocalDate end, LocalDate checkIn, LocalDate checkOut) {
+        return (start == null || start.isBefore(checkOut)) && (end == null || end.compareTo(checkIn) >= 0);
+    }
 
+    public static boolean cabe(LocalDate validFrom, LocalDate validTo, LocalDate checkIn, LocalDate checkOut) {
+        return validFrom.compareTo(checkIn) <= 0 && validTo.compareTo(checkOut) >= 0;
+    }
 
     public static Map<String, Object> fromJson(String json) throws IOException {
         if (json == null || "".equals(json)) json = "{}";
