@@ -9,7 +9,7 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.util.workflow.WorkflowEngine;
-import io.mateu.mdd.tester.model.entities.dependant.Country;
+import io.mateu.showcase.tester.model.entities.dependant.Country;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Id;
@@ -17,7 +17,6 @@ import javax.persistence.metamodel.EntityType;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 import static graphql.schema.idl.TypeRuntimeWiring.newTypeWiring;
 
 @Slf4j

@@ -1,8 +1,8 @@
 package tests;
 
 import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.test.model.Hijo;
-import io.mateu.mdd.test.model.Padre;
+import io.mateu.showcase.test.model.Hijo;
+import io.mateu.showcase.test.model.Padre;
 import org.junit.Assert;
 import org.junit.Test;
 
