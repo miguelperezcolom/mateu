@@ -1190,36 +1190,44 @@ public class ReflectionHelper extends BaseReflectionHelper {
 
     private static boolean check(FieldInterfaced f) {
         boolean r = false;
+        boolean annotated = false;
         if (f.isAnnotationPresent(ReadOnly.class)) {
+            annotated = true;
             ReadOnly a = f.getAnnotation(ReadOnly.class);
             r |= MDD.check(a);
         }
         if (f.isAnnotationPresent(ReadWrite.class)) {
+            annotated = true;
             ReadWrite a = f.getAnnotation(ReadWrite.class);
             r |= MDD.check(a);
         }
         if (f.isAnnotationPresent(Forbidden.class)) {
+            annotated = true;
             Forbidden a = f.getAnnotation(Forbidden.class);
             r &= !MDD.check(a);
         }
-        return r;
+        return !annotated || r;
     }
 
     private static boolean check(Method m) {
         boolean r = false;
+        boolean annotated = false;
         if (m.isAnnotationPresent(ReadOnly.class)) {
+            annotated = true;
             ReadOnly a = m.getAnnotation(ReadOnly.class);
             r |= MDD.check(a);
         }
         if (m.isAnnotationPresent(ReadWrite.class)) {
+            annotated = true;
             ReadWrite a = m.getAnnotation(ReadWrite.class);
             r |= MDD.check(a);
         }
         if (m.isAnnotationPresent(Forbidden.class)) {
+            annotated = true;
             Forbidden a = m.getAnnotation(Forbidden.class);
             r &= !MDD.check(a);
         }
-        return r;
+        return !annotated || r;
     }
 
 
@@ -2380,9 +2388,11 @@ public class ReflectionHelper extends BaseReflectionHelper {
     }
 
     public static ClassPool createClassPool(ServletContext servletContext) {
-        ClassPool pool = new ClassPool();
+        ClassPool pool = ClassPool.getDefault(); //new ClassPool();
         //pool.appendClassPath(new URLClassPath());
-        pool.appendClassPath(new ClassClassPath(MDD.getApp().getClass()));
+        //pool.appendClassPath(new ClassClassPath(MDD.getApp().getClass()));
+        //pool.appendClassPath(new ClassClassPath(servletContext.getClass()));
+        //pool.appendClassPath(new ClassClassPath(FakeClass.class));
         return pool;
     }
 

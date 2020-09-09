@@ -68,7 +68,7 @@ public class MateuMDDAnnotationProcessor extends AbstractProcessor {
 
                         out.println("    @Override\n" +
                                 "    public void init(ServletConfig servletConfig) throws ServletException {\n" +
-                                "        servletConfig.getServletContext().setAttribute(\"" + e.getAnnotation(MateuMDDApp.class).path() + "_app\", new " + className.substring(className.lastIndexOf(".") + 1) + "());\n" +
+                                "        servletConfig.getServletContext().setAttribute(\"" + ("".equals(e.getAnnotation(MateuMDDApp.class).path())?"/":e.getAnnotation(MateuMDDApp.class).path()) + "_app\", new " + className.substring(className.lastIndexOf(".") + 1) + "());\n" +
                                 "        super.init(servletConfig);\n" +
                                 "    }\n");
 

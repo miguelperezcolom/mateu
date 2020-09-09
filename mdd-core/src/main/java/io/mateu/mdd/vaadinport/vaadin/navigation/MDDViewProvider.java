@@ -145,21 +145,21 @@ public class MDDViewProvider implements ViewProvider {
 
     @Override
     public String getViewName(String s) {
-        System.out.println("MDDViewProvider.getViewName(" + s + ")");
+        //System.out.println("MDDViewProvider.getViewName(" + s + ")");
         return s;
     }
 
     @Override
     public View getView(String state) {
 
-        System.out.println("MDDViewProvider.getView(" + state + ")");
+        //System.out.println("MDDViewProvider.getView(" + state + ")");
 
         if (MDDUI.get().getAppComponent().isSigningIn() && MDD.getUserData() != null) MDDUI.get().getAppComponent().setSignedIn();
 
         if (samePath(state, currentPath)) {
             io.mateu.mdd.vaadinport.vaadin.navigation.View v = stack.getLast();
             if (v != null) {
-                System.out.println("got same path (" + state + ")");
+                //System.out.println("got same path (" + state + ")");
                 return v;
             }
         }
@@ -202,7 +202,7 @@ public class MDDViewProvider implements ViewProvider {
 
                 //http://localhost:8080/callback?code=c0324687fdcdf68fde05
 
-                System.out.println("state = " + state);
+                //System.out.println("state = " + state);
 
                 if (MDD.getUserData() == null) {
 
@@ -227,7 +227,7 @@ public class MDDViewProvider implements ViewProvider {
 
                 //http://localhost:8080/callback?code=c0324687fdcdf68fde05
 
-                System.out.println("state = " + state);
+                //System.out.println("state = " + state);
 
                 if (MDD.getUserData() == null) {
 
@@ -252,7 +252,7 @@ public class MDDViewProvider implements ViewProvider {
 
                 //http://localhost:8080/callback?code=c0324687fdcdf68fde05
 
-                System.out.println("state = " + state);
+                //System.out.println("state = " + state);
 
                 if (MDD.getUserData() == null) {
 
@@ -275,19 +275,19 @@ public class MDDViewProvider implements ViewProvider {
 
             }
 
-            System.out.println("....state=" + state);
+            //System.out.println("....state=" + state);
             if ("welcome".equals(state) && calledback) {
                 MDDUI.get().getAppComponent().setSignedIn();
             }
 
             if ("welcome".equals(state) && MDD.getUserData() != null) { // caso "login"
-                System.out.println("-->welcome (" + pendingPrivateState + ")");
+                //System.out.println("-->welcome (" + pendingPrivateState + ")");
                 if (!Strings.isNullOrEmpty(pendingPrivateState)) {
                     String newState = pendingPrivateState;
                     pendingPrivateState = null;
                     if (newState.startsWith("/")) newState = newState.substring(1);
 
-                    System.out.println("-->going to (" + MDD.getApp().getBaseUrl() + MDDUI.get().getAdaptedUIRootPath() + newState + ")");
+                    //System.out.println("-->going to (" + MDD.getApp().getBaseUrl() + MDDUI.get().getAdaptedUIRootPath() + newState + ")");
                     state = newState;
                     //Page.getCurrent().open(MDD.getApp().getBaseUrl() + MDDUI.get().getAdaptedUIRootPath() + newState, null);
                 } else if (MDD.getApp().getDefaultPrivateArea() != null && MDD.getApp().getDefaultPrivateArea().getDefaultAction() != null) {
@@ -295,15 +295,15 @@ public class MDDViewProvider implements ViewProvider {
                     if (!Strings.isNullOrEmpty(newState)) {
                         if (newState.startsWith("/")) newState = newState.substring(1);
 
-                        System.out.println("-->going to (" + MDD.getApp().getBaseUrl() + MDDUI.get().getAdaptedUIRootPath() + newState + ")");
+                        //System.out.println("-->going to (" + MDD.getApp().getBaseUrl() + MDDUI.get().getAdaptedUIRootPath() + newState + ")");
                         state = newState;
                         //Page.getCurrent().open(MDD.getApp().getBaseUrl() + MDDUI.get().getAdaptedUIRootPath() + newState, null);
                     } else {
-                        System.out.println("-->going to (" + MDD.getApp().getBaseUrl() + MDDUI.get().getAdaptedUIRootPath() + ")");
+                        //System.out.println("-->going to (" + MDD.getApp().getBaseUrl() + MDDUI.get().getAdaptedUIRootPath() + ")");
                         //Page.getCurrent().open(MDD.getApp().getBaseUrl() + MDDUI.get().getAdaptedUIRootPath(), null);
                     }
                 } else if (calledback) {
-                    System.out.println("-->going to (" + MDD.getApp().getBaseUrl() + MDDUI.get().getAdaptedUIRootPath() + ")");
+                    //System.out.println("-->going to (" + MDD.getApp().getBaseUrl() + MDDUI.get().getAdaptedUIRootPath() + ")");
                     //Page.getCurrent().open(MDD.getApp().getBaseUrl() + MDDUI.get().getAdaptedUIRootPath(), null);
                 }
             }
@@ -324,7 +324,7 @@ public class MDDViewProvider implements ViewProvider {
                 clearStack();
 
                 stack.push(currentPath, v = new DummyView("Login", stack));
-                System.out.println("dummy view: " + state);
+                //System.out.println("dummy view: " + state);
 
                 MDDUI.get().getAppComponent().setSigningIn();
 
@@ -474,7 +474,7 @@ public class MDDViewProvider implements ViewProvider {
 
                 if (v != null) {
 
-                    System.out.println("v = stack.get(cleanState(" + state + ")); != null");
+                    //System.out.println("v = stack.get(cleanState(" + state + ")); != null");
                     stack.popTo(stack.indexOf(v));
 
                 } else {
@@ -551,13 +551,13 @@ public class MDDViewProvider implements ViewProvider {
 
 
                     // va avanzando en los steps mientra exista en el stack
-                    System.out.println("coincide=" + coincide + ", pos = " + pos + ", steps.length = " + steps.length);
+                    //System.out.println("coincide=" + coincide + ", pos = " + pos + ", steps.length = " + steps.length);
 
                     while (coincide && pos < steps.length) {
                         lastPath = auxPath;
                         lastPos = pos;
 
-                        System.out.println("coincide=" + coincide + ", pos = " + pos + ", steps.length = " + steps.length + " pastPath = " + lastPath);
+                        //System.out.println("coincide=" + coincide + ", pos = " + pos + ", steps.length = " + steps.length + " pastPath = " + lastPath);
 
                         String fullStep = steps[pos];
                         String cleanStep = cleanStep(fullStep);
@@ -623,7 +623,7 @@ public class MDDViewProvider implements ViewProvider {
 
                         boolean procesar = menuPassed && MDD.getApp().getMenu(currentPath) == null && MDD.getApp().getModule(currentPath) == null && lastView != null;
 
-                        System.out.println("procesar=" + procesar);
+                        //System.out.println("procesar=" + procesar);
 
                         if (procesar) {
                             // miramos el último componente añadido

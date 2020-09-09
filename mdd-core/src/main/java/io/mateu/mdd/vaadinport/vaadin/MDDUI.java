@@ -171,7 +171,7 @@ public class MDDUI extends UI {
 
 
         if (app == null) {
-            AbstractApplication appFromContext = (AbstractApplication) ((VaadinServletRequest) vaadinRequest).getServletContext().getAttribute(MDDUI.get().getUiRootPath() + "_app");
+            AbstractApplication appFromContext = (AbstractApplication) ((VaadinServletRequest) vaadinRequest).getServletContext().getAttribute((Strings.isNullOrEmpty(MDDUI.get().getUiRootPath())?"/":MDDUI.get().getUiRootPath()) + "_app");
             setApp(appFromContext != null?appFromContext:createApp());
 
             if (MDD.getClassPool() == null) MDD.setClassPool(ReflectionHelper.createClassPool(((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getServletContext()));

@@ -2,6 +2,7 @@ package io.mateu.mdd.util.mail;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import io.mateu.mdd.shared.AppConfigLocator;
 import io.mateu.mdd.shared.IAppConfig;
 import io.mateu.mdd.util.Helper;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +60,7 @@ public class EmailHelper {
         String finalSubject = subject;
         String finalText = text;
 
-        IAppConfig c = Helper.getImpl(IAppConfig.class);
+        IAppConfig c = Helper.getImpl(AppConfigLocator.class).get();
 
         if (checkAppConfigForSMTP(c)) {
 

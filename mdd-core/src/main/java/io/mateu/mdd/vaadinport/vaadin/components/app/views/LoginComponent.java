@@ -51,8 +51,11 @@ public class LoginComponent extends VerticalLayout {
         vl.addStyleName(CSS.ALIGNCENTER);
 
         try {
-            AppConfig c = Helper.find(AppConfig.class, 1l);
-            vl.addComponent(new Image(null, new ExternalResource(c.getLogo() != null?c.getLogo().toFileLocator().getUrl():"https://www.quonext.com/wp-content/uploads/2017/11/quonext-logo-transformacion-digital.png")));
+            VerticalLayout finalVl = vl;
+            Helper.notransact(em -> {
+                AppConfig c = AppConfig.get(em);
+                finalVl.addComponent(new Image(null, new ExternalResource(c.getLogo() != null?c.getLogo().toFileLocator().getUrl():"https://www.quonext.com/wp-content/uploads/2017/11/quonext-logo-transformacion-digital.png")));
+            });
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }

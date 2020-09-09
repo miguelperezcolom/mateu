@@ -8,6 +8,8 @@ import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.AbstractApplication;
+import io.mateu.mdd.core.app.AppProvider;
+import io.mateu.mdd.core.model.authentication.User;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.shared.IAppConfig;
 import io.mateu.mdd.util.mail.EmailHelper;
@@ -157,7 +159,7 @@ public class AppConfig implements IAppConfig {
         AppConfig c = em.find(AppConfig.class, 1l);
         if (c == null) {
             try {
-                AbstractApplication.get().getPopulator().populate(MDDUI.createApp().getAppConfigClass());
+                MDD.getApp().getPopulator().populate(MDD.getApp().getAppConfigClass());
                 c = em.find(AppConfig.class, 1l);
             } catch (Throwable throwable) {
                 throwable.printStackTrace();

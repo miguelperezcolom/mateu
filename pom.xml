@@ -25,6 +25,7 @@
       <module>mdd-util-extended</module>
       <module>mdd-eclipselink</module>
     <module>mdd-sharedinterfaces</module>
+      <module>mdd-showcase</module>
   </modules>
 
   <dependencies>

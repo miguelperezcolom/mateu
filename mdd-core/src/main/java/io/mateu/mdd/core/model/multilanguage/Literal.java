@@ -99,6 +99,12 @@ public class Literal implements Translated {
         return d.containsKey(language)?d.getString(language):d.getString("en");
     }
 
+    public void set(String language, String text) {
+        Data d = get();
+        d.put(language, text);
+        set(d);
+    }
+
 
     @Action(icon = VaadinIcons.CLOUD_UPLOAD)
     public static void translateWithDeepL(Set<Literal> selection) {
