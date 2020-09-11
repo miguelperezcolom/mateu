@@ -61,9 +61,9 @@ public class LoginComponent extends VerticalLayout {
         }
 
         Label l;
-        vl.addComponent(l = new Label("Welcome to " + MDD.getApp().getName() + "."));
+        vl.addComponent(l = new Label(System.getProperty("welcome.message", "Welcome to " + MDD.getApp().getName() + ".")));
         l.addStyleName(ValoTheme.LABEL_H1);
-        vl.addComponent(l = new Label("Please call 902 109 606 for login details."));
+        vl.addComponent(l = new Label(System.getProperty("welcome.info", "Here your welcome info")));
         //l.addStyleName(ValoTheme.LABEL_H1);
 
 
