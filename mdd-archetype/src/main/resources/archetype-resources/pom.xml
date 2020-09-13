@@ -14,7 +14,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
-    <mateu.version>0.0.11</mateu.version>
+    <mateu.version>0.0.12</mateu.version>
   </properties>
 
   <repositories>
