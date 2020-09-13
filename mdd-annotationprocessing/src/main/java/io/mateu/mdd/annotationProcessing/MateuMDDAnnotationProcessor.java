@@ -24,21 +24,53 @@ public class MateuMDDAnnotationProcessor extends AbstractProcessor {
 
             for (Element e : annotatedElements) {
                 String className = ((TypeElement) e).getQualifiedName().toString();
+                String simpleClassName = ((TypeElement) e).getSimpleName().toString();
 
                 String generatedFullClassName = className + "Servlet";
+                String pkgName = generatedFullClassName.substring(0, generatedFullClassName.lastIndexOf("."));
+                String generatedClassName = generatedFullClassName.substring(generatedFullClassName.lastIndexOf(".") + 1);
 
                 JavaFileObject builderFile = null;
                 try {
-                    builderFile = processingEnv.getFiler().createSourceFile(generatedFullClassName);
+                    builderFile = processingEnv.getFiler().createSourceFile(pkgName + "." + simpleClassName + "MDDUI");
                     try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
                         // writing generated file to out …
-                        String pkgName = generatedFullClassName.substring(0, generatedFullClassName.lastIndexOf("."));
-                        String generatedClassName = generatedFullClassName.substring(generatedFullClassName.lastIndexOf(".") + 1);
 
                         out.println("package " + pkgName + ";");
                         out.println("import " + className + ";");
 
                         out.println("import io.mateu.mdd.vaadinport.vaadin.MDDUI;");
+                        out.println("import com.vaadin.annotations.*;");
+                        out.println("import com.vaadin.annotations.JavaScript;");
+                        out.println("import com.vaadin.navigator.PushStateNavigation;");
+                        out.println("import lombok.extern.slf4j.Slf4j;");
+
+                        out.println("");
+
+
+                        out.println();
+                        out.println("@Theme(\"" + e.getAnnotation(MateuMDDApp.class).theme() + "\")\n" +
+                                "@JavaScript({\"https://code.jquery.com/jquery-3.4.1.min.js\"})\n" +
+                                "@StyleSheet(\"https://use.fontawesome.com/releases/v5.13.0/css/all.css\")\n" +
+                                "@Viewport(\"width=device-width, initial-scale=1\")\n" +
+                                "@PushStateNavigation // para urls sin #!\n" +
+                                "//@Push\n" +
+                                "@PreserveOnRefresh\n" +
+                                "@Slf4j\n" +
+                                "public class " + simpleClassName + "MDDUI extends MDDUI {");
+                        out.println("");
+                        out.println("}");
+                    }
+
+                    builderFile = processingEnv.getFiler().createSourceFile(generatedFullClassName);
+                    try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
+                        // writing generated file to out …
+
+                        out.println("package " + pkgName + ";");
+                        out.println("import " + className + ";");
+
+                        out.println("import io.mateu.mdd.vaadinport.vaadin.MDDUI;");
+                        out.println("import " + pkgName + "." + simpleClassName + "MDDUI;");
                         out.println("import com.vaadin.annotations.VaadinServletConfiguration;");
                         out.println("import com.vaadin.server.DeploymentConfiguration;");
                         out.println("import com.vaadin.server.VaadinServlet;");
@@ -54,7 +86,7 @@ public class MateuMDDAnnotationProcessor extends AbstractProcessor {
 
                         out.println();
                         out.println("@WebServlet(urlPatterns = {\"" + e.getAnnotation(MateuMDDApp.class).path() + "\", \"" + ("/".equals(e.getAnnotation(MateuMDDApp.class).path())?"":e.getAnnotation(MateuMDDApp.class).path()) + "/*\"}, name = \"" + className.replaceAll("\\.","_") + "UIServlet\", asyncSupported = true, loadOnStartup = 500)");
-                        out.println("@VaadinServletConfiguration(ui = MDDUI.class, productionMode = false)");
+                        out.println("@VaadinServletConfiguration(ui = " + simpleClassName + "MDDUI.class, productionMode = false)");
                         out.println("public class " + generatedClassName + " extends VaadinServlet {");
                         out.println("");
 

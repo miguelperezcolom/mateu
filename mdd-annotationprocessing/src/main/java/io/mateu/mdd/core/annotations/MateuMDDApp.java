@@ -14,4 +14,5 @@ public @interface MateuMDDApp {
 
     String path();
 
+    String theme() default "mateumddtheme";
 }

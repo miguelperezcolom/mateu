@@ -1,8 +1,8 @@
 package io.mateu.mdd.vaadinport.vaadin;
 
 import com.google.common.base.Strings;
-import com.vaadin.annotations.JavaScript;
 import com.vaadin.annotations.*;
+import com.vaadin.annotations.JavaScript;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.PushStateNavigation;
