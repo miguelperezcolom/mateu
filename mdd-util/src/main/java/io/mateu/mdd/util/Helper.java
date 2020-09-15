@@ -35,7 +35,6 @@ import io.mateu.mdd.util.i18n.DeepLClient;
 import io.mateu.mdd.util.persistence.JPATransaction;
 import io.mateu.mdd.util.runnable.RunnableThrowsThrowable;
 import io.mateu.mdd.util.runtime.MemInfo;
-import io.mateu.mdd.util.workflow.WorkflowEngine;
 import io.mateu.mdd.util.xml.XMLSerializable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
@@ -264,7 +263,7 @@ public class Helper {
     public static void atomicTransact(String persistenceUnit, JPATransaction t) throws Throwable {
         try {
 
-            EntityManager em = getEMF().createEntityManager();
+            EntityManager em = getEMF(persistenceUnit).createEntityManager();
 
             try {
 
@@ -308,11 +307,6 @@ public class Helper {
 
     public static void transact(String persistenceUnit, JPATransaction t, RunnableThrowsThrowable callback) throws Throwable {
 
-        // a partir de aquí, todo sucede en este thread a no ser que tengamos un callback
-        // atTop == true si es la primera llamada en este thread
-        // añade una cola a la pila
-        boolean atTop = WorkflowEngine.activateLocalRunner();
-
         try {
 
             EntityManager em = getEMF().createEntityManager();
@@ -345,16 +339,8 @@ public class Helper {
             em.close();
 
         } catch (Throwable e) {
-            WorkflowEngine.cancelLocalRunner(); // cancelamos las tareas pendientes en este hilo
             rethrow(e.getCause() != null && e.getCause() instanceof ConstraintViolationException?e.getCause():e);
         }
-
-        // si es la primera llamada
-        //      ---> si no tenemos un callback : esperaremos a que acaben todas
-        //      ---> si tenemos un callback : no esperamos, y ya se llamará el callback desde otro thread
-        // si no es la primera llamada
-        //      ---> siempre : esperá a que terminen todas las tareas dependientes
-        WorkflowEngine.runAndWaitThreadLocalTasks(!atTop, callback);
     }
 
     public static void rethrow(Throwable e) throws Throwable {

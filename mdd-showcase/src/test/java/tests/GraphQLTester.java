@@ -8,7 +8,6 @@ import graphql.schema.idl.*;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.workflow.WorkflowEngine;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Id;
@@ -68,8 +67,6 @@ public class GraphQLTester {
             throwable.printStackTrace();
         }
 
-
-        WorkflowEngine.exit(0);
 
     }
 

@@ -1,5 +1,7 @@
 package io.mateu.mdd.core.model;
 
+import io.mateu.mdd.core.eventBus.EventBus;
+import io.mateu.mdd.core.model.authentication.UserCreatedEventConsumer;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.model.population.Populator;
 import io.mateu.mdd.shared.AppContextListener;
@@ -18,6 +20,11 @@ public class BaseAppContext implements AppContextListener {
     private Scheduler scheduler;
 
     protected static HashMap<String, Command> scheduledCommands = new HashMap<>();
+
+    public BaseAppContext() {
+        init();
+        initialized();
+    }
 
     @Override
     public void init() {
@@ -38,11 +45,16 @@ public class BaseAppContext implements AppContextListener {
 
     @Override
     public void initialized() {
+
+        EventBus.register(new UserCreatedEventConsumer());
+
         try {
             Helper.getImpls(BoundedContextListener.class).stream().forEach(c -> c.contextInitialized());
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHookThread(this)));
 
         try {
             // Grab the Scheduler instance from the Factory
@@ -116,6 +128,14 @@ public class BaseAppContext implements AppContextListener {
 
     @Override
     public void destroyed() {
+        System.out.println("destroyed");
+
+        try {
+            Helper.getImpls(BoundedContextListener.class).stream().forEach(c -> c.contextDestroyed());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         try {
             scheduler.shutdown();
         } catch (SchedulerException e) {
@@ -127,4 +147,5 @@ public class BaseAppContext implements AppContextListener {
     public List<Command> getCommands() {
         return null;
     }
+
 }

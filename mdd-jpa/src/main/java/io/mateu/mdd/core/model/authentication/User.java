@@ -4,6 +4,7 @@ import com.Ostermiller.util.RandPass;
 import com.google.common.base.Strings;
 import com.vaadin.ui.Component;
 import io.mateu.mdd.core.annotations.*;
+import io.mateu.mdd.core.eventBus.EventBus;
 import io.mateu.mdd.core.interfaces.EditorViewStyler;
 import io.mateu.mdd.core.interfaces.UserPrincipal;
 import io.mateu.mdd.core.model.common.Resource;
@@ -14,8 +15,6 @@ import io.mateu.mdd.shared.VaadinHelper;
 import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.util.mail.EmailHelper;
 import io.mateu.mdd.util.persistence.JPATransaction;
-import io.mateu.mdd.util.workflow.Task;
-import io.mateu.mdd.util.workflow.WorkflowEngine;
 import lombok.MateuMDDEntity;
 import lombok.extern.slf4j.Slf4j;
 
@@ -156,26 +155,7 @@ public class User implements EditorViewStyler, UserPrincipal {
 
     @PostPersist
     public void post() {
-        WorkflowEngine.add(new Task() {
-
-            String xid = getLogin();
-
-            @Override
-            public void run() {
-
-                try {
-                    Helper.transact(new JPATransaction() {
-                        @Override
-                        public void run(EntityManager em) throws Throwable {
-                            em.find(User.class, xid).sendWelcomeEmail();
-                        }
-                    });
-                } catch (Throwable throwable) {
-                    throwable.printStackTrace();
-                }
-
-            }
-        });
+        EventBus.publish(new UserCreatedEvent(login));
     }
 
     public void sendWelcomeEmail() throws Throwable {
