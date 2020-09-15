@@ -1,7 +1,5 @@
 package io.mateu.mdd.util.reflection;
 
-import io.mateu.mdd.shared.BaseFieldInterfaced;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;

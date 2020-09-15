@@ -9,8 +9,8 @@ import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.BaseMDDApp;
-import io.mateu.mdd.core.data.UserData;
-import io.mateu.mdd.core.model.config.AppConfig;
+import io.mateu.mdd.shared.AppConfigLocator;
+import io.mateu.mdd.shared.IAppConfig;
 import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.GitHubButton;
@@ -52,10 +52,8 @@ public class LoginComponent extends VerticalLayout {
 
         try {
             VerticalLayout finalVl = vl;
-            Helper.notransact(em -> {
-                AppConfig c = AppConfig.get(em);
-                finalVl.addComponent(new Image(null, new ExternalResource(c.getLogo() != null?c.getLogo().toFileLocator().getUrl():"https://www.quonext.com/wp-content/uploads/2017/11/quonext-logo-transformacion-digital.png")));
-            });
+            IAppConfig c = Helper.getImpl(AppConfigLocator.class).get();
+            vl.addComponent(new Image(null, new ExternalResource(c.getLogoUrl() != null?c.getLogoUrl():"https://www.quonext.com/wp-content/uploads/2017/11/quonext-logo-transformacion-digital.png")));
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
@@ -155,7 +153,7 @@ public class LoginComponent extends VerticalLayout {
         } else {
 
             try {
-                UserData u = ((BaseMDDApp)MDD.getApp()).authenticate(login.getValue(), password.getValue());
+                ((BaseMDDApp)MDD.getApp()).authenticate(login.getValue(), password.getValue());
                 if (onLogin != null) onLogin.run();
                 MDDUI.get().getAppComponent().unselectAll();
                 String ps = MDDUI.get().getNavegador().getViewProvider().getPendingPrivateState();

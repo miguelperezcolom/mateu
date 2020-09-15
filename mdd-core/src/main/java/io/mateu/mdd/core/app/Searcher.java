@@ -2,7 +2,7 @@ package io.mateu.mdd.core.app;
 
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.Found;
+import io.mateu.mdd.vaadinport.vaadin.components.views.Found;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ public class Searcher {
 
         List<Found> found = new ArrayList<>();
 
-        boolean autentico = MDD.getUserData() != null;
+        boolean autentico = MDD.getCurrentUser() != null;
 
         List<AbstractArea> areas = new ArrayList<>();
 

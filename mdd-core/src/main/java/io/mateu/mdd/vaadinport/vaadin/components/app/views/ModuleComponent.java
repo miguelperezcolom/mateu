@@ -6,7 +6,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractModule;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.AbstractViewComponent;
 
 public class ModuleComponent extends AbstractViewComponent {
 

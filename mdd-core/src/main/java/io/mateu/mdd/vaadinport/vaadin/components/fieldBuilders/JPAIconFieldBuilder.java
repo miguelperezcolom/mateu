@@ -8,7 +8,7 @@ import com.vaadin.ui.Layout;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.core.model.common.Icon;
+import io.mateu.mdd.core.interfaces.IIcon;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components.IconComponent;
@@ -22,7 +22,7 @@ public class JPAIconFieldBuilder extends AbstractFieldBuilder {
 
 
     public boolean isSupported(FieldInterfaced field) {
-        return Icon.class.equals(field.getType());
+        return IIcon.class.isAssignableFrom(field.getType());
     }
 
     @Override

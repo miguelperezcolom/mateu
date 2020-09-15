@@ -7,25 +7,26 @@ import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.model.common.Icon;
+import io.mateu.mdd.core.interfaces.GeneralRepository;
+import io.mateu.mdd.core.interfaces.IIcon;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.util.Helper;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class IconComponent extends Composite implements HasValue<Icon>, Component.Focusable {
+public class IconComponent extends Composite implements HasValue<IIcon>, Component.Focusable {
     private final MDDBinder binder;
     private final Button b;
-    private List<Icon> icons;
-    private Icon icon;
+    private List<IIcon> icons;
+    private IIcon icon;
     private Map<UUID, ValueChangeListener> listeners = new HashMap<>();
 
     public IconComponent(FieldInterfaced field, MDDBinder binder) {
         this.binder = binder;
 
         try {
-            icons = Helper.findAll(Icon.class).stream().sorted((a,b) -> a.getId().compareTo(b.getId())).collect(Collectors.toList());
+            icons = Helper.getImpl(GeneralRepository.class).findAllIcons();
         } catch (Throwable throwable) {
             throwable.printStackTrace();
             icons = new ArrayList<>();
@@ -91,7 +92,7 @@ public class IconComponent extends Composite implements HasValue<Icon>, Componen
                 c.setSizeUndefined();
                 c.addStyleName("cardicono");
                 c.addLayoutClickListener(e -> {
-                    Icon old = icon;
+                    IIcon old = icon;
                     setValue(i);
                     ValueChangeEvent ce = new ValueChangeEvent(this, old, true);
                     listeners.values().forEach(x -> x.valueChange(ce));
@@ -105,13 +106,13 @@ public class IconComponent extends Composite implements HasValue<Icon>, Componen
     }
 
     @Override
-    public void setValue(Icon o) {
+    public void setValue(IIcon o) {
         icon = o;
         b.setCaption(icon != null?icon.getHtml(): VaadinIcons.QUESTION.getHtml());
     }
 
     @Override
-    public Icon getValue() {
+    public IIcon getValue() {
         return icon;
     }
 
@@ -136,7 +137,7 @@ public class IconComponent extends Composite implements HasValue<Icon>, Componen
     }
 
     @Override
-    public Registration addValueChangeListener(ValueChangeListener<Icon> valueChangeListener) {
+    public Registration addValueChangeListener(ValueChangeListener<IIcon> valueChangeListener) {
         UUID _id = UUID.randomUUID();
         listeners.put(_id, valueChangeListener);
         return new Registration() {

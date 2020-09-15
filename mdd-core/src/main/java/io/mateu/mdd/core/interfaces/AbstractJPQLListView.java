@@ -5,14 +5,13 @@ import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.shared.data.sort.SortDirection;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
-import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.FieldInterfacedFromField;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.shared.JPAAdapter;
 import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.util.persistence.JPATransaction;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.ListViewComponent;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
@@ -260,7 +259,7 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
             return explicitFilters;
         } else {
             return ReflectionHelper.getAllFields(filtersType).stream().filter(
-                    (f) ->  !f.isAnnotationPresent(Version.class) && !f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(Output.class) &&  !Resource.class.equals(f.getType()) && (String.class.equals(f.getType()) || LocalDate.class.equals(f.getType()) || LocalDateTime.class.equals(f.getType()) || Date.class.equals(f.getType()) || boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType()) || f.getType().isEnum() || f.isAnnotationPresent(ManyToOne.class) || f.getType().isAnnotationPresent(Entity.class))
+                    (f) ->  !f.isAnnotationPresent(Version.class) && !f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(Output.class) &&  !IResource.class.equals(f.getType()) && (String.class.equals(f.getType()) || LocalDate.class.equals(f.getType()) || LocalDateTime.class.equals(f.getType()) || Date.class.equals(f.getType()) || boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType()) || f.getType().isEnum() || f.isAnnotationPresent(ManyToOne.class) || f.getType().isAnnotationPresent(Entity.class))
             ).collect(Collectors.toList());
         }
     }

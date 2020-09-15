@@ -14,9 +14,6 @@
   <name>mdd-util</name>
 
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
 
   <repositories>
@@ -45,18 +42,6 @@
       <version>${project.version}</version>
     </dependency>
 
-    <!--
-<dependency>
-    <groupId>org.projectlombok</groupId>
-    <artifactId>lombok</artifactId>
-    <version>1.18.10</version>
-</dependency>
--->
-    <dependency>
-      <groupId>io.mateu</groupId>
-      <artifactId>lombok</artifactId>
-      <version>1.18.11.92</version>
-    </dependency>
 
     <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
     <dependency>

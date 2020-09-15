@@ -17,8 +17,8 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.ClassOption;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.FormLayoutBuilder;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.FormLayoutBuilderParameters;
+import io.mateu.mdd.vaadinport.vaadin.components.views.FormLayoutBuilder;
+import io.mateu.mdd.vaadinport.vaadin.components.views.FormLayoutBuilderParameters;
 
 import javax.persistence.Embedded;
 import javax.validation.constraints.NotNull;

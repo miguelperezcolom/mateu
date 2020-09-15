@@ -8,7 +8,7 @@ import com.vaadin.ui.Layout;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.core.model.multilanguage.Literal;
+import io.mateu.mdd.core.interfaces.Translated;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components.LiteralComponent;
@@ -21,10 +21,10 @@ import java.util.Map;
 public class JPALiteralFieldBuilder extends AbstractFieldBuilder {
 
 
-    private Literal literal;
+    private Translated literal;
 
     public boolean isSupported(FieldInterfaced field) {
-        return Literal.class.isAssignableFrom(field.getType());
+        return Translated.class.isAssignableFrom(field.getType());
     }
 
     @Override

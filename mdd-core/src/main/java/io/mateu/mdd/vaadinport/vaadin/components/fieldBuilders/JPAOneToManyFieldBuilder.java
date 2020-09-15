@@ -15,10 +15,6 @@ import com.vaadin.shared.ui.dnd.DropEffect;
 import com.vaadin.shared.ui.dnd.EffectAllowed;
 import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.*;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Image;
-import com.vaadin.ui.Label;
 import com.vaadin.ui.dnd.DragSourceExtension;
 import com.vaadin.ui.dnd.DropTargetExtension;
 import com.vaadin.ui.themes.ValoTheme;
@@ -32,12 +28,12 @@ import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.interfaces.Card;
 import io.mateu.mdd.core.interfaces.GridDecorator;
-import io.mateu.mdd.core.model.common.Resource;
+import io.mateu.mdd.core.interfaces.IResource;
 import io.mateu.mdd.core.reflection.*;
 import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.OwnedCollectionComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.ListViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.OwnedCollectionComponent;
 import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 
 import javax.persistence.ManyToOne;
@@ -52,7 +48,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
@@ -277,7 +272,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             r = hl;
 
-        } else if (Resource.class.equals(field.getGenericClass())) {
+        } else if (IResource.class.isAssignableFrom(field.getGenericClass())) {
 
             CssLayout hl = new CssLayout();
 
@@ -1098,7 +1093,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             } else if (f.getType().isEnum()) {
                 editable = true;
             } else if (f.isAnnotationPresent(ManyToOne.class)) {
-                editable = !Resource.class.equals(f.getType());
+                editable = !IResource.class.isAssignableFrom(f.getType());
             } else if (f.isAnnotationPresent(UseCheckboxes.class)) {
                 editable = f.getAnnotation(UseCheckboxes.class).editableInline();
             } else if (f.isAnnotationPresent(WeekDays.class)) {
@@ -1715,7 +1710,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                 else {
                     try {
 
-                        for (Resource file : (Collection<Resource>)o) {
+                        for (Object i : (Collection)o) {
+                            IResource file = (IResource) i;
                             boolean empty = true;
                             if (file != null && file.getName () != null) {
                                 String u = file.toFileLocator().getUrl();

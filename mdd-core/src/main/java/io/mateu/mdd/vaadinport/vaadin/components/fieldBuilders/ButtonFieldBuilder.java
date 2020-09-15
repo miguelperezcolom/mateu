@@ -14,7 +14,7 @@ import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.interfaces.Button;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.EditorViewComponent;
 
 import java.util.List;
 import java.util.Map;

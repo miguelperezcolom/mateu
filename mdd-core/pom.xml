@@ -13,13 +13,6 @@
     <artifactId>mdd-core</artifactId>
 
     <properties>
-        <vaadin.version>8.11.2</vaadin.version>
-        <vaadin.plugin.version>8.11.2</vaadin.plugin.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <!-- If there are no local customizations, this can also be "fetch" or "cdn" -->
-        <vaadin.widgetset.mode>local</vaadin.widgetset.mode>
     </properties>
 
 
@@ -47,6 +40,7 @@
     </dependencyManagement>
 
     <dependencies>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -240,17 +234,6 @@
             <artifactId>javassist</artifactId>
             <version>3.22.0-CR2</version>
         </dependency>
-
-
-
-
-
-
-
-
-
-
-
 
 
 

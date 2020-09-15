@@ -7,19 +7,21 @@ import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.model.multilanguage.Literal;
+import io.mateu.mdd.core.interfaces.GeneralRepository;
+import io.mateu.mdd.core.interfaces.Translated;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.util.Helper;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class LiteralComponent extends Composite implements HasValue<Literal>, Component.Focusable {
+public class LiteralComponent extends Composite implements HasValue<Translated>, Component.Focusable {
     private final AbstractField<String> tf;
     private final ComboBox<String> cb;
     private final MDDBinder binder;
-    private Literal literal;
+    private Translated literal;
     private Map<UUID, ValueChangeListener> listeners = new HashMap<>();
 
 
@@ -84,10 +86,14 @@ public class LiteralComponent extends Composite implements HasValue<Literal>, Co
     }
 
     @Override
-    public void setValue(Literal o) {
+    public void setValue(Translated o) {
         literal = o;
         if (literal == null) {
-            literal = new Literal();
+            try {
+                literal = Helper.getImpl(GeneralRepository.class).getNewTranslated();
+            } catch (Exception e) {
+                MDD.alert(e);
+            }
         }
 
         if (literal != null) {
@@ -105,7 +111,7 @@ public class LiteralComponent extends Composite implements HasValue<Literal>, Co
     }
 
     @Override
-    public Literal getValue() {
+    public Translated getValue() {
         return literal;
     }
 
@@ -130,7 +136,7 @@ public class LiteralComponent extends Composite implements HasValue<Literal>, Co
     }
 
     @Override
-    public Registration addValueChangeListener(ValueChangeListener<Literal> valueChangeListener) {
+    public Registration addValueChangeListener(ValueChangeListener<Translated> valueChangeListener) {
         UUID _id = UUID.randomUUID();
         listeners.put(_id, valueChangeListener);
         return new Registration() {

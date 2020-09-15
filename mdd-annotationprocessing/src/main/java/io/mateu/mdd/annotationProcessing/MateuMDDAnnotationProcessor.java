@@ -1,7 +1,7 @@
 package io.mateu.mdd.annotationProcessing;
 
 import com.google.auto.service.AutoService;
-import io.mateu.mdd.core.annotations.MateuMDDApp;
+import io.mateu.mdd.core.annotations.MateuMDDUI;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -49,7 +49,7 @@ public class MateuMDDAnnotationProcessor extends AbstractProcessor {
 
 
                         out.println();
-                        out.println("@Theme(\"" + e.getAnnotation(MateuMDDApp.class).theme() + "\")\n" +
+                        out.println("@Theme(\"" + e.getAnnotation(MateuMDDUI.class).theme() + "\")\n" +
                                 "@JavaScript({\"https://code.jquery.com/jquery-3.4.1.min.js\"})\n" +
                                 "@StyleSheet(\"https://use.fontawesome.com/releases/v5.13.0/css/all.css\")\n" +
                                 "@Viewport(\"width=device-width, initial-scale=1\")\n" +
@@ -85,7 +85,7 @@ public class MateuMDDAnnotationProcessor extends AbstractProcessor {
 
 
                         out.println();
-                        out.println("@WebServlet(urlPatterns = {\"" + e.getAnnotation(MateuMDDApp.class).path() + "\", \"" + ("/".equals(e.getAnnotation(MateuMDDApp.class).path())?"":e.getAnnotation(MateuMDDApp.class).path()) + "/*\"}, name = \"" + className.replaceAll("\\.","_") + "UIServlet\", asyncSupported = true, loadOnStartup = 500)");
+                        out.println("@WebServlet(urlPatterns = {\"" + e.getAnnotation(MateuMDDUI.class).path() + "\", \"" + ("/".equals(e.getAnnotation(MateuMDDUI.class).path())?"":e.getAnnotation(MateuMDDUI.class).path()) + "/*\"}, name = \"" + className.replaceAll("\\.","_") + "UIServlet\", asyncSupported = true, loadOnStartup = 500)");
                         out.println("@VaadinServletConfiguration(ui = " + simpleClassName + "MDDUI.class, productionMode = false)");
                         out.println("public class " + generatedClassName + " extends VaadinServlet {");
                         out.println("");
@@ -100,7 +100,7 @@ public class MateuMDDAnnotationProcessor extends AbstractProcessor {
 
                         out.println("    @Override\n" +
                                 "    public void init(ServletConfig servletConfig) throws ServletException {\n" +
-                                "        servletConfig.getServletContext().setAttribute(\"" + ("".equals(e.getAnnotation(MateuMDDApp.class).path())?"/":e.getAnnotation(MateuMDDApp.class).path()) + "_app\", new " + className.substring(className.lastIndexOf(".") + 1) + "());\n" +
+                                "        servletConfig.getServletContext().setAttribute(\"" + ("".equals(e.getAnnotation(MateuMDDUI.class).path())?"/":e.getAnnotation(MateuMDDUI.class).path()) + "_app\", new " + className.substring(className.lastIndexOf(".") + 1) + "());\n" +
                                 "        super.init(servletConfig);\n" +
                                 "    }\n");
 

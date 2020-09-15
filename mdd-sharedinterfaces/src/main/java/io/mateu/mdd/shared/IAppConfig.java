@@ -24,4 +24,10 @@ public interface IAppConfig {
     String getAdminEmailCC();
 
     String getTelegramBotToken();
+
+    String getName();
+
+    String getBaseUrl();
+
+    String getXslfoForList();
 }

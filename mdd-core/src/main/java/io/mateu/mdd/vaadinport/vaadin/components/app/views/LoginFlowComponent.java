@@ -6,13 +6,12 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.BaseMDDApp;
-import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.GitHubButton;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.GoogleButton;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.MicrosoftButton;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.AbstractViewComponent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -151,7 +150,7 @@ public class LoginFlowComponent extends AbstractViewComponent {
         } else {
 
             try {
-                UserData u = ((BaseMDDApp)MDD.getApp()).authenticate(login.getValue(), password.getValue());
+                ((BaseMDDApp)MDD.getApp()).authenticate(login.getValue(), password.getValue());
                 MDDUI.get().getAppComponent().unselectAll();
                 MDDUI.get().getNavegador().goTo("welcome");
             } catch (Throwable throwable) {

@@ -2,8 +2,8 @@ package io.mateu.mdd.vaadinport.vaadin.components.app.views;
 
 import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.EditorViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.ListViewComponent;
 
 import java.lang.reflect.InvocationTargetException;
 

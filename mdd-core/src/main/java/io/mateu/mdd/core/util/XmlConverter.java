@@ -1,7 +1,6 @@
 package io.mateu.mdd.core.util;
 
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.util.xml.XMLSerializable;
 import org.jdom2.Document;
 import org.jdom2.Element;

@@ -13,6 +13,10 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <vaadin.version>8.11.2</vaadin.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
   </properties>
 
   <modules>
@@ -26,6 +30,8 @@
       <module>mdd-eclipselink</module>
     <module>mdd-sharedinterfaces</module>
       <module>mdd-showcase</module>
+      <module>mdd-core14</module>
+    <module>mdd-jpa</module>
   </modules>
 
   <dependencies>

@@ -1,8 +1,8 @@
 package io.mateu.mdd.vaadinport.vaadin;
 
 import com.google.common.base.Strings;
-import com.vaadin.annotations.*;
 import com.vaadin.annotations.JavaScript;
+import com.vaadin.annotations.*;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.PushStateNavigation;
@@ -14,19 +14,20 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonArray;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.MDDPort;
 import io.mateu.mdd.core.app.AbstractApplication;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.ViewContainer;
 import io.mateu.mdd.vaadinport.vaadin.components.app.desktop.DesktopAppComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.app.mobile.MobileAppComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.SearchInMenuComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.AbstractViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.EditorViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.ListViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.SearchInMenuComponent;
 import io.mateu.mdd.vaadinport.vaadin.mdd.VaadinPort;
-import io.mateu.mdd.vaadinport.vaadin.navigation.*;
+import io.mateu.mdd.vaadinport.vaadin.navigation.MDDNavigator;
+import io.mateu.mdd.vaadinport.vaadin.navigation.MDDViewProvider;
+import io.mateu.mdd.vaadinport.vaadin.navigation.View;
+import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
@@ -84,17 +85,6 @@ public class MDDUI extends UI {
     private VaadinPort port;
     private String baseUrl;
 
-    public String getAdaptedUIRootPath() {
-        // MDDUI.get().getAdaptedUIRootPath()
-        String p = UI.getCurrent().getUiRootPath();
-        if ("/".equals(p)) {
-            p = "";
-        } if (!"".equals(p)) {
-            if (p.startsWith("/")) p = p.substring(1);
-            if (!p.endsWith("/")) p += "/";
-        }
-        return p;
-    }
 
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
@@ -182,7 +172,7 @@ public class MDDUI extends UI {
 
         //setContent(flowComponent);
 
-        setContent((Component) (appComponent = (MDD.isMobile())?new MobileAppComponent(app, viewContainer):new DesktopAppComponent(app, viewContainer)));
+        setContent((Component) (appComponent = new DesktopAppComponent(app, viewContainer)));
 
     }
 
@@ -250,7 +240,7 @@ public class MDDUI extends UI {
             }
         });
 
-        stack = stack = new ViewStack();
+        stack = new ViewStack();
         MDDViewProvider viewProvider = new MDDViewProvider(stack);
 
         navegador = new MDDNavigator(stack, navigator, viewProvider);
@@ -264,7 +254,7 @@ public class MDDUI extends UI {
         return navegador;
     }
 
-    public MDDPort getPort() {
+    public VaadinPort getPort() {
         return port;
     }
 

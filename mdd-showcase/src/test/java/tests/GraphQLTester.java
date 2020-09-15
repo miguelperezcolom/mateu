@@ -17,8 +17,6 @@ import javax.persistence.metamodel.EntityType;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import static graphql.schema.idl.TypeRuntimeWiring.newTypeWiring;
-
 @Slf4j
 public class GraphQLTester {
 

@@ -19,11 +19,11 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.interfaces.Card;
-import io.mateu.mdd.core.model.common.Resource;
+import io.mateu.mdd.core.interfaces.IResource;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.ListViewComponent;
 import org.javamoney.moneta.FastMoney;
 
 import javax.money.MonetaryAmount;
@@ -49,7 +49,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
         if (!forSearchFilter) {
 
-            if (Resource.class.equals(field.getGenericClass())) {
+            if (IResource.class.equals(field.getGenericClass())) {
 
                 VerticalLayout hl = new VerticalLayout();
 
@@ -250,7 +250,8 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
                     try {
 
                         String h = "<div class='freeTexts'>";
-                        for (Resource l : (Collection<Resource>)o) {
+                        for (Object i : (Collection)o) {
+                            IResource l = (IResource) i;
                             h += "<div class='line'>";
                             h += "<a href='" + l.toFileLocator().getUrl() + "'>" + l.getName() + "</a>";
                             h += "</div>";

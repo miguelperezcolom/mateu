@@ -1,14 +1,13 @@
 package io.mateu.mdd.vaadinport.vaadin.pojos;
 
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
-import io.mateu.mdd.core.annotations.Ignored;
 import io.mateu.mdd.core.annotations.NonDuplicable;
 import io.mateu.mdd.core.annotations.Password;
-import io.mateu.mdd.core.data.UserData;
+import io.mateu.mdd.core.interfaces.GeneralRepository;
+import io.mateu.mdd.core.interfaces.IResource;
 import io.mateu.mdd.core.interfaces.PersistentPOJO;
-import io.mateu.mdd.core.model.authentication.Permission;
-import io.mateu.mdd.core.model.authentication.User;
-import io.mateu.mdd.core.model.common.Resource;
+import io.mateu.mdd.core.interfaces.UserPrincipal;
 import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.util.persistence.JPATransaction;
 import lombok.Getter;
@@ -21,10 +20,7 @@ import java.io.IOException;
 @Getter@Setter@NonDuplicable
 public class Profile implements PersistentPOJO {
 
-    @Ignored
-    private UserData userData;
-
-    private Resource photo;
+    private IResource photo;
 
     private String name;
 
@@ -34,20 +30,10 @@ public class Profile implements PersistentPOJO {
     @Action(value = "Change password")
     public void changePassword(@NotNull @Password String currentPassword, @NotNull @Password String newPassword, @NotNull @Password String newPasswordAgain) throws Throwable {
 
-        Helper.transact(new JPATransaction() {
-            @Override
-            public void run(EntityManager em) throws Throwable {
+        if (!newPassword.equals(newPasswordAgain)) throw new Exception("New password fieldBuilders must be equal");
 
-                User u = em.find(User.class, userData.getLogin());
-
-                if (!u.checkPassword(currentPassword)) throw new Exception("This is not your current password");
-
-                if (!newPassword.equals(newPasswordAgain)) throw new Exception("New password fieldBuilders must be equal");
-
-                u.setPassword(newPassword);
-
-            }
-        });
+        GeneralRepository repo = Helper.getImpl(GeneralRepository.class);
+        repo.changePassword(MDD.getCurrentUser().getLogin(), currentPassword, newPassword);
 
     }
 
@@ -56,56 +42,30 @@ public class Profile implements PersistentPOJO {
     @Override
     public void save() throws IOException, Throwable {
 
-        Helper.transact(new JPATransaction() {
-            @Override
-            public void run(EntityManager em) throws Throwable {
-
-                User u = em.find(User.class, userData.getLogin());
-
-                u.setName(getName());
-
-                u.setEmail(getEmail());
-                u.setPhoto(getPhoto());
-
-                userData.setName(u.getName());
-                userData.setEmail(u.getEmail());
-                if (u.getPhoto() != null) userData.setPhoto(u.getPhoto().toFileLocator().getUrl());
-                for (Permission p : u.getPermissions()) userData.getPermissions().add(Math.toIntExact(p.getId()));
-
-                //MDD.setUserData(userData);
-
-            }
-        });
-
+        GeneralRepository repo = Helper.getImpl(GeneralRepository.class);
+        repo.updateUser(MDD.getCurrentUser().getLogin(), getName(), getEmail(), getPhoto());
 
     }
 
     @Override
     public void load(Object id) throws Throwable {
-        userData = (UserData) id;
 
-        Helper.transact(em -> {
+        UserPrincipal u = MDD.getCurrentUser();
 
-            User u = em.find(User.class, userData.getLogin());
-
-            setName(u.getName());
-
-            setEmail(u.getEmail());
-
-            setPhoto(u.getPhoto());
-
-        });
+        setName(u.getName());
+        setEmail(u.getEmail());
+        setPhoto(u.getPhoto());
 
     }
 
     @Override
     public Object getId() {
-        return userData;
+        return MDD.getCurrentUser().getLogin();
     }
 
 
     @Override
     public String toString() {
-        return "Profile for user " + ((userData != null)?userData.getLogin():"unknown");
+        return "Profile for user " + (MDD.getCurrentUser() != null?MDD.getCurrentUser().getLogin():"unknown");
     }
 }

@@ -15,22 +15,18 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.interfaces.EntityProvider;
-import io.mateu.mdd.core.interfaces.PersistentPOJO;
-import io.mateu.mdd.core.interfaces.RpcView;
-import io.mateu.mdd.core.interfaces.WizardPage;
-import io.mateu.mdd.core.model.authentication.User;
+import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.mdd.util.common.Pair;
 import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.core.util.Pair;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.desktop.DesktopAppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.AreaComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
 import io.mateu.mdd.vaadinport.vaadin.components.oauth.OAuthHelper;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
+import io.mateu.mdd.vaadinport.vaadin.components.views.*;
 import io.mateu.mdd.vaadinport.vaadin.pojos.Profile;
 import lombok.extern.slf4j.Slf4j;
 
@@ -154,7 +150,7 @@ public class MDDViewProvider implements ViewProvider {
 
         //System.out.println("MDDViewProvider.getView(" + state + ")");
 
-        if (MDDUI.get().getAppComponent().isSigningIn() && MDD.getUserData() != null) MDDUI.get().getAppComponent().setSignedIn();
+        if (MDDUI.get().getAppComponent().isSigningIn() && MDD.getCurrentUser() != null) MDDUI.get().getAppComponent().setSignedIn();
 
         if (samePath(state, currentPath)) {
             io.mateu.mdd.vaadinport.vaadin.navigation.View v = stack.getLast();
@@ -184,7 +180,7 @@ public class MDDViewProvider implements ViewProvider {
             if (Strings.isNullOrEmpty(state)) { // caso ""
 
                 if (!MDD.getApp().hasPublicContent()) {
-                    if (MDD.getUserData() == null) state = "login";
+                    if (MDD.getCurrentUser() == null) state = "login";
                     else {
                         if (MDD.isMobile()) state = "private";
                         else state = state.split("/").length > 1?MDD.getApp().getState(MDD.getApp().getDefaultPrivateArea()):"private";
@@ -204,13 +200,13 @@ public class MDDViewProvider implements ViewProvider {
 
                 //System.out.println("state = " + state);
 
-                if (MDD.getUserData() == null) {
+                if (MDD.getCurrentUser() == null) {
 
                     Map<String, String> params = Helper.parseQueryString(Page.getCurrent().getLocation().getQuery());
 
                     if (params.containsKey("code")) {
                         try {
-                            MDD.setUserData(OAuthHelper.getUserDataFromGitHubCode(params.get("code")));
+                            MDD.setCurrentUserLogin(OAuthHelper.getUserDataFromGitHubCode(params.get("code")));
                             state = "welcome";
                         } catch (Throwable throwable) {
                             v = new ProblemView(stack, "Error during authentication", throwable);
@@ -229,13 +225,13 @@ public class MDDViewProvider implements ViewProvider {
 
                 //System.out.println("state = " + state);
 
-                if (MDD.getUserData() == null) {
+                if (MDD.getCurrentUser() == null) {
 
                     Map<String, String> params = Helper.parseQueryString(Page.getCurrent().getLocation().getQuery());
 
                     if (params.containsKey("code")) {
                         try {
-                            MDD.setUserData(OAuthHelper.getUserDataFromGoogleCode(params.get("code")));
+                            MDD.setCurrentUserLogin(OAuthHelper.getUserDataFromGoogleCode(params.get("code")));
                             state = "welcome";
                         } catch (Throwable throwable) {
                             v = new ProblemView(stack, "Error during authentication", throwable);
@@ -254,13 +250,13 @@ public class MDDViewProvider implements ViewProvider {
 
                 //System.out.println("state = " + state);
 
-                if (MDD.getUserData() == null) {
+                if (MDD.getCurrentUser() == null) {
 
                     Map<String, String> params = Helper.parseQueryString(Page.getCurrent().getLocation().getQuery());
 
                     if (params.containsKey("code")) {
                         try {
-                            MDD.setUserData(OAuthHelper.getUserDataFromMicrosoftCode(params.get("code")));
+                            MDD.setCurrentUserLogin(OAuthHelper.getUserDataFromMicrosoftCode(params.get("code")));
                             state = "welcome";
                         } catch (Throwable throwable) {
                             v = new ProblemView(stack, "Error during authentication", throwable);
@@ -280,7 +276,7 @@ public class MDDViewProvider implements ViewProvider {
                 MDDUI.get().getAppComponent().setSignedIn();
             }
 
-            if ("welcome".equals(state) && MDD.getUserData() != null) { // caso "login"
+            if ("welcome".equals(state) && MDD.getCurrentUser() != null) { // caso "login"
                 //System.out.println("-->welcome (" + pendingPrivateState + ")");
                 if (!Strings.isNullOrEmpty(pendingPrivateState)) {
                     String newState = pendingPrivateState;
@@ -350,7 +346,7 @@ public class MDDViewProvider implements ViewProvider {
 
                 pendingPrivateState = null;
 
-                MDD.setUserData(null);
+                MDD.setCurrentUserLogin(null);
 
                 MDDUI.get().getAppComponent().unselectAll();
 
@@ -362,7 +358,7 @@ public class MDDViewProvider implements ViewProvider {
 
                 MDDUI.get().getAppComponent().setSignedOut();
 
-            } else if ((state.startsWith("private") || state.equals("welcome") || state.equals("profile")) && MDD.getUserData() == null) {
+            } else if ((state.startsWith("private") || state.equals("welcome") || state.equals("profile")) && MDD.getCurrentUser() == null) {
 
                 clearStack();
 
@@ -501,7 +497,7 @@ public class MDDViewProvider implements ViewProvider {
                         if (v == null) {
 
                             if (!MDD.isMobile()) clearStack();
-                            openEditor(null, Profile.class, MDD.getUserData());
+                            openEditor(null, Profile.class, MDD.getCurrentUser().getLogin());
 
                             v = lastView = stack.get("private/profile");
 
@@ -1382,7 +1378,7 @@ public class MDDViewProvider implements ViewProvider {
                 o = Helper.find(c, ReflectionHelper.toId(c, id));
             }
 
-            if (o instanceof User) throw new Exception("Users are not accesible this way!");
+            if (UserPrincipal.class.isAssignableFrom(o.getClass())) throw new Exception("Users are not accesible this way!");
 
             EditorViewComponent evc = new EditorViewComponent(o);
 

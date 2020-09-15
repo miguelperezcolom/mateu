@@ -6,8 +6,8 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.FieldInterfacedFromField;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.AbstractViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.EditorViewComponent;
 
 import java.lang.reflect.Field;
 import java.util.*;

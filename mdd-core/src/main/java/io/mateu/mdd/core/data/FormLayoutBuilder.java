@@ -3,7 +3,7 @@ package io.mateu.mdd.core.data;
 import com.vaadin.ui.Component;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.FormLayoutBuilderParameters;
+import io.mateu.mdd.vaadinport.vaadin.components.views.FormLayoutBuilderParameters;
 
 import java.util.List;
 import java.util.Map;

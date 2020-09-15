@@ -10,7 +10,7 @@ import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
+import io.mateu.mdd.vaadinport.vaadin.components.views.*;
 
 import javax.persistence.Entity;
 import java.util.Map;

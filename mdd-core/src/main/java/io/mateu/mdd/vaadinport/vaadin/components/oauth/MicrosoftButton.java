@@ -6,6 +6,7 @@ import com.vaadin.server.ClassResource;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Button;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.shared.VaadinHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 import java.io.UnsupportedEncodingException;
@@ -49,7 +50,7 @@ client_id=6731de76-14a6-49ae-97bc-6eba6914391e
             callbackUrl += "";
 
             if (!callbackUrl.endsWith("/")) callbackUrl += "/";
-            if (!callbackUrl.endsWith(MDDUI.get().getAdaptedUIRootPath())) callbackUrl += MDDUI.get().getAdaptedUIRootPath();
+            if (!callbackUrl.endsWith(VaadinHelper.getAdaptedUIRootPath())) callbackUrl += VaadinHelper.getAdaptedUIRootPath();
             callbackUrl += "oauth/microsoft/callback";
 
 

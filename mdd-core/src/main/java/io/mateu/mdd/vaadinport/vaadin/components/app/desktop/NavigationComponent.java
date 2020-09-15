@@ -52,7 +52,7 @@ public class NavigationComponent extends VerticalLayout {
                 if (area != null) {
                     valid = a.equals(area);
                 } else {
-                    if (MDD.getUserData() == null) valid = a.isPublicAccess();
+                    if (MDD.getCurrentUser() == null) valid = a.isPublicAccess();
                     else valid = !a.isPublicAccess();
                 }
 
@@ -68,7 +68,7 @@ public class NavigationComponent extends VerticalLayout {
                                     setSelectingArea(false);
                                     MDDUI.get().getNavegador().goTo(((a.isPublicAccess())?"public":"private"), ev.isCtrlKey());
                                 } else {
-                                    MDDUI.get().chooseArea(MDD.getUserData() == null);
+                                    MDDUI.get().chooseArea(MDD.getCurrentUser() == null);
                                 }
                             });
 
@@ -166,9 +166,9 @@ public class NavigationComponent extends VerticalLayout {
                     if (MDD.isMobile()) {
                         MDDUI.get().getAppComponent().unselectAll();
                         bArea.addStyleName("selected");
-                        MDDUI.get().getNavegador().goTo(MDD.getUserData() == null?"public":"private", ev.isCtrlKey());
+                        MDDUI.get().getNavegador().goTo(MDD.getCurrentUser() == null?"public":"private", ev.isCtrlKey());
                     } else {
-                        MDDUI.get().chooseArea(MDD.getUserData() == null);
+                        MDDUI.get().chooseArea(MDD.getCurrentUser() == null);
                     }
                 });
                 b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);

@@ -3,15 +3,12 @@ package io.mateu.mdd.core.reflection;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.annotations.ReadOnly;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Pair;
-import io.mateu.mdd.core.data.UserData;
-import io.mateu.mdd.core.interfaces.DoBeforeRemoveFromCollection;
-import io.mateu.mdd.core.interfaces.PushWriter;
-import io.mateu.mdd.core.interfaces.RpcView;
-import io.mateu.mdd.core.model.authentication.Audit;
-import io.mateu.mdd.core.model.multilanguage.Literal;
+import io.mateu.mdd.core.interfaces.*;
+import io.mateu.mdd.core.util.Notifier;
 import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.util.reflection.BaseReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
@@ -48,7 +45,6 @@ import java.lang.reflect.*;
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -533,7 +529,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
 
     public static Object getId(Object model) {
         if (model instanceof Object[]) return ((Object[]) model)[0];
-        else if (model instanceof io.mateu.mdd.core.util.Pair) return ((io.mateu.mdd.core.util.Pair)model).getA();
+        else if (model instanceof io.mateu.mdd.util.common.Pair) return ((io.mateu.mdd.util.common.Pair)model).getA();
         else if (model instanceof Pair) return ((Pair)model).getKey();
         else if (model.getClass().isAnnotationPresent(Entity.class)) {
             Object id = null;
@@ -1250,9 +1246,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
         for (Parameter p : m.getParameters()) {
             Class<?> pgc = ReflectionHelper.getGenericClass(p.getParameterizedType());
 
-            if (UserData.class.equals(p.getType())) {
-                vs.add(MDD.getCurrentUser());
-            } else if (EntityManager.class.equals(p.getType())) {
+            if (EntityManager.class.equals(p.getType())) {
                 posEM = pos;
             } else if (PushWriter.class.equals(p.getType())) {
                 vs.add(new PushWriter() {
@@ -2018,7 +2012,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
                 if (long.class.equals(t)) t = Long.class;
                 if (double.class.equals(t)) t = Double.class;
                 boolean esLiteral = false;
-                if (Literal.class.equals(t)) {
+                if (Translated.class.isAssignableFrom(t)) {
                     t = String.class;
                     esLiteral = true;
                 }
@@ -2593,13 +2587,21 @@ public class ReflectionHelper extends BaseReflectionHelper {
 
     public static void auditar(Object bean) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
-        for (FieldInterfaced f : ReflectionHelper.getAllFields(bean.getClass())) if (Audit.class.equals(f.getType())) {
-            Audit a = (Audit) ReflectionHelper.getValue(f, bean);
+        for (FieldInterfaced f : ReflectionHelper.getAllFields(bean.getClass())) if (AuditRecord.class.isAssignableFrom(f.getType())) {
+            AuditRecord a = (AuditRecord) ReflectionHelper.getValue(f, bean);
             if (a == null) {
-                a = new Audit(MDD.getCurrentUser());
+                try {
+                    a = Helper.getImpl(GeneralRepository.class).getNewAudit(MDD.getCurrentUserLogin());
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
                 setValue(f, bean, a);
             } else {
-                a.touch(MDD.getCurrentUser());
+                try {
+                    a.touch(MDD.getCurrentUser());
+                } catch (Throwable throwable) {
+                    Notifier.alert(throwable);
+                }
             }
         }
 

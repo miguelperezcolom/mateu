@@ -3,8 +3,8 @@ package io.mateu.mdd.vaadinport.vaadin.navigation;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Window;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.*;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.SearchInMenuComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.AbstractViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.SearchInMenuComponent;
 
 import java.util.Objects;
 import java.util.UUID;

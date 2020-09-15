@@ -16,14 +16,6 @@
   <url>http://www.example.com</url>
 
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-
-    <vaadin.version>8.11.2</vaadin.version>
-    <vaadin.plugin.version>8.11.2</vaadin.plugin.version>
-    <!-- If there are no local customizations, this can also be "fetch" or "cdn" -->
-    <vaadin.widgetset.mode>local</vaadin.widgetset.mode>
   </properties>
 
 

@@ -1,7 +1,5 @@
 package io.mateu.mdd.core.interfaces;
 
-import io.mateu.mdd.core.data.UserData;
-
 import javax.persistence.EntityManager;
 
 public interface View<T> extends ListView<T> {
@@ -10,7 +8,7 @@ public interface View<T> extends ListView<T> {
         return null;
     }
 
-    default T newInstance(EntityManager em, UserData user) {
+    default T newInstance(EntityManager em) {
         return null;
     }
 

@@ -2,7 +2,6 @@ package io.mateu.mdd.core.interfaces;
 
 
 import io.mateu.mdd.core.data.Data;
-import io.mateu.mdd.core.data.UserData;
 
 import javax.persistence.EntityManager;
 
@@ -30,16 +29,16 @@ public interface ListView<T> {
         return null;
     }
 
-    default String getAdditionalFilters(EntityManager em, UserData user, Data parameters) {
+    default String getAdditionalFilters(EntityManager em, Data parameters) {
         return null;
     }
 
 
-    default String buildQuery(EntityManager em, UserData user, Data parameters) {
+    default String buildQuery(EntityManager em, Data parameters) {
         return null;
     }
 
-    default String getQLFilter(EntityManager em, UserData user, String field) {
+    default String getQLFilter(EntityManager em, String field) {
         return null;
     }
 

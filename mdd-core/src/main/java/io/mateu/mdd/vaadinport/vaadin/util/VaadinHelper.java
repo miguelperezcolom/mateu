@@ -13,17 +13,17 @@ import io.mateu.mdd.core.annotations.UseRadioButtons;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.data.Value;
 import io.mateu.mdd.core.interfaces.RpcView;
-import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.FieldInterfacedFromType;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.core.util.EmptyRow;
+import io.mateu.mdd.shared.AppConfigLocator;
+import io.mateu.mdd.util.common.EmptyRow;
 import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.JPAOutputFieldBuilder;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.FormLayoutBuilder;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.FormLayoutBuilderParameters;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.EditorViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.FormLayoutBuilder;
+import io.mateu.mdd.vaadinport.vaadin.components.views.FormLayoutBuilderParameters;
+import io.mateu.mdd.vaadinport.vaadin.components.views.ListViewComponent;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
@@ -360,7 +360,7 @@ public class VaadinHelper {
 
         String[] xslfo = {""};
 
-        Helper.notransact(em -> xslfo[0] = AppConfig.get(em).getXslfoForList());
+        Helper.notransact(em -> xslfo[0] = Helper.getImpl(AppConfigLocator.class).get().getXslfoForList());
 
         long t0 = new Date().getTime();
 

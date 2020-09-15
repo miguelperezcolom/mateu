@@ -3,11 +3,9 @@ package io.mateu.mdd.vaadinport.vaadin.components.oauth;
 import com.google.common.base.Strings;
 import com.vaadin.server.Page;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.data.UserData;
-import io.mateu.mdd.core.model.authentication.Permission;
-import io.mateu.mdd.core.model.authentication.USER_STATUS;
-import io.mateu.mdd.core.model.authentication.User;
-import io.mateu.mdd.core.model.common.Resource;
+import io.mateu.mdd.core.interfaces.GeneralRepository;
+import io.mateu.mdd.core.interfaces.UserPrincipal;
+import io.mateu.mdd.shared.VaadinHelper;
 import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.util.persistence.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
@@ -24,8 +22,8 @@ import java.util.Map;
 public class OAuthHelper {
 
 
-    public static UserData getUserDataFromMicrosoftCode(String code) throws Throwable {
-        UserData[] ud = { null };
+    public static String getUserDataFromMicrosoftCode(String code) throws Throwable {
+        String[] ud = { null };
 
         /*
         POST /oauth2/v4/token HTTP/1.1
@@ -52,7 +50,7 @@ grant_type=authorization_code
 
             String callbackUrl = MDD.getApp().getBaseUrl();
             if (!callbackUrl.endsWith("/")) callbackUrl += "/";
-            if (!callbackUrl.endsWith(MDDUI.get().getAdaptedUIRootPath())) callbackUrl += MDDUI.get().getAdaptedUIRootPath();
+            if (!callbackUrl.endsWith(VaadinHelper.getAdaptedUIRootPath())) callbackUrl += VaadinHelper.getAdaptedUIRootPath();
             callbackUrl += "oauth/microsoft/callback";
 
             //OkHttpClient client = new OkHttpClient();
@@ -184,43 +182,15 @@ Content-length: 491
                     System.out.println("" + email); // puede ser null
                     System.out.println("" + login);
 
-                    User u = Helper.find(User.class, login);
+                    GeneralRepository repo = Helper.getImpl(GeneralRepository.class);
+
+                    UserPrincipal u = repo.findUser(login);
 
                     if (u == null && !"true".equalsIgnoreCase(System.getProperty("oauth.newusersallowed"))) throw  new Exception("New users not allowed. Please contact the system administrator");
 
+                    repo.createUser(login, email, name, avatarUrl);
 
-                    String finalAvatarUrl = avatarUrl;
-                    Helper.transact(new JPATransaction() {
-                        @Override
-                        public void run(EntityManager em) throws Throwable {
-
-                            User u = em.find(User.class, login);
-
-                            UserData d = new UserData();
-
-                            if (u == null) {
-                                u = new User();
-                                u.setOauth(true);
-                                u.setLogin(login);
-                                u.setEmail((email != null)?email:"");
-                                u.setName((name != null)?name:"");
-                                if (!Strings.isNullOrEmpty(finalAvatarUrl)) u.setPhoto(new Resource(new URL(finalAvatarUrl)));
-                                u.setStatus(USER_STATUS.ACTIVE);
-                                em.persist(u);
-                            }
-                            u.setLastLogin(LocalDateTime.now());
-
-
-                            d.setName(u.getName());
-                            d.setEmail(u.getEmail());
-                            d.setLogin(login);
-                            if (u.getPhoto() != null) d.setPhoto(u.getPhoto().toFileLocator().getUrl());
-                            for (Permission p : u.getPermissions()) d.getPermissions().add(Math.toIntExact(p.getId()));
-
-                            ud[0] = d;
-
-                        }
-                    });
+                    ud[0] = login;
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -236,8 +206,8 @@ Content-length: 491
     }
 
 
-    public static UserData getUserDataFromGoogleCode(String code) throws Throwable {
-        UserData[] ud = { null };
+    public static String getUserDataFromGoogleCode(String code) throws Throwable {
+        String[] ud = { null };
 
         /*
         POST /oauth2/v4/token HTTP/1.1
@@ -261,7 +231,7 @@ grant_type=authorization_code
 
             String callbackUrl = MDD.getApp().getBaseUrl();
             if (!callbackUrl.endsWith("/")) callbackUrl += "/";
-            if (!callbackUrl.endsWith(MDDUI.get().getAdaptedUIRootPath())) callbackUrl += MDDUI.get().getAdaptedUIRootPath();
+            if (!callbackUrl.endsWith(VaadinHelper.getAdaptedUIRootPath())) callbackUrl += VaadinHelper.getAdaptedUIRootPath();
             callbackUrl += "oauth/google/callback";
 
             System.out.println("callbackurl = " + callbackUrl);
@@ -382,42 +352,15 @@ grant_type=authorization_code
                     System.out.println("" + email); // puede ser null
                     System.out.println("" + login);
 
-                    User u = Helper.find(User.class, login);
+                    GeneralRepository repo = Helper.getImpl(GeneralRepository.class);
+
+                    UserPrincipal u = repo.findUser(login);
 
                     if (u == null && !"true".equalsIgnoreCase(System.getProperty("oauth.newusersallowed"))) throw  new Exception("New users not allowed. Please contact the system administrator");
 
+                    repo.createUser(login, email, name, avatarUrl);
 
-                    Helper.transact(new JPATransaction() {
-                        @Override
-                        public void run(EntityManager em) throws Throwable {
-
-                            User u = em.find(User.class, login);
-
-                            UserData d = new UserData();
-
-                            if (u == null) {
-                                u = new User();
-                                u.setOauth(true);
-                                u.setLogin(login);
-                                u.setEmail((email != null)?email:"");
-                                u.setName((name != null)?name:"");
-                                if (!Strings.isNullOrEmpty(avatarUrl)) u.setPhoto(new Resource(new URL(avatarUrl)));
-                                u.setStatus(USER_STATUS.ACTIVE);
-                                em.persist(u);
-                            }
-                            u.setLastLogin(LocalDateTime.now());
-
-
-                            d.setName(u.getName());
-                            d.setEmail(u.getEmail());
-                            d.setLogin(login);
-                            if (u.getPhoto() != null) d.setPhoto(u.getPhoto().toFileLocator().getUrl());
-                            for (Permission p : u.getPermissions()) d.getPermissions().add(Math.toIntExact(p.getId()));
-
-                            ud[0] = d;
-
-                        }
-                    });
+                    ud[0] = login;
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -433,8 +376,8 @@ grant_type=authorization_code
     }
 
 
-    public static UserData getUserDataFromGitHubCode(String code) throws Throwable {
-        UserData[] ud = { null };
+    public static String getUserDataFromGitHubCode(String code) throws Throwable {
+        String[] ud = { null };
 
         if (!Strings.isNullOrEmpty(code)) {
 
@@ -557,40 +500,15 @@ grant_type=authorization_code
                     System.out.println("" + email); // puede ser null
                     System.out.println("" + login);
 
-                    User u = Helper.find(User.class, login);
+                    GeneralRepository repo = Helper.getImpl(GeneralRepository.class);
+
+                    UserPrincipal u = repo.findUser(login);
 
                     if (u == null && !"true".equalsIgnoreCase(System.getProperty("oauth.newusersallowed"))) throw  new Exception("New users not allowed. Please contact the system administrator");
 
-                    Helper.transact(new JPATransaction() {
-                        @Override
-                        public void run(EntityManager em) throws Throwable {
+                    repo.createUser(login, email, name, avatarUrl);
 
-                            User u = em.find(User.class, login);
-
-                            UserData d = new UserData();
-
-                            if (u == null) {
-                                u = new User();
-                                u.setOauth(true);
-                                u.setLogin(login);
-                                u.setEmail((email != null)?email:"");
-                                u.setName((name != null)?name:"");
-                                if (!Strings.isNullOrEmpty(avatarUrl)) u.setPhoto(new Resource(new URL(avatarUrl)));
-                                u.setStatus(USER_STATUS.ACTIVE);
-                                em.persist(u);
-                            }
-                            u.setLastLogin(LocalDateTime.now());
-
-                            d.setName(u.getName());
-                            d.setEmail(u.getEmail());
-                            d.setLogin(login);
-                            if (u.getPhoto() != null) d.setPhoto(u.getPhoto().toFileLocator().getUrl());
-                            for (Permission p : u.getPermissions()) d.getPermissions().add(Math.toIntExact(p.getId()));
-
-                            ud[0] = d;
-
-                        }
-                    });
+                    ud[0] = login;
 
                 }
 

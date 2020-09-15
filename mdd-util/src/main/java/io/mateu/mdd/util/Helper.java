@@ -25,15 +25,14 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
+import io.mateu.mdd.core.util.Serializer;
 import io.mateu.mdd.shared.AppConfigLocator;
-import io.mateu.mdd.shared.BaseFieldInterfaced;
 import io.mateu.mdd.shared.IAppConfig;
 import io.mateu.mdd.shared.JPAAdapter;
 import io.mateu.mdd.util.asciiart.Painter;
 import io.mateu.mdd.util.beanutils.MiURLConverter;
 import io.mateu.mdd.util.i18n.DeepLClient;
 import io.mateu.mdd.util.persistence.JPATransaction;
-import io.mateu.mdd.util.reflection.BaseReflectionHelper;
 import io.mateu.mdd.util.runnable.RunnableThrowsThrowable;
 import io.mateu.mdd.util.runtime.MemInfo;
 import io.mateu.mdd.util.workflow.WorkflowEngine;
@@ -49,9 +48,7 @@ import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.jdom2.Document;
 import org.jdom2.Element;
-import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.jinq.jpa.JinqJPAStreamProvider;
@@ -128,13 +125,6 @@ public class Helper {
 
     private static ThreadLocal<EntityManager> tlem = new ThreadLocal<>();
 
-    private static ObjectMapper mapper = new ObjectMapper();
-    private static ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
-
-    static {
-        mapper.enable(SerializationFeature.INDENT_OUTPUT);
-        yamlMapper.enable(SerializationFeature.INDENT_OUTPUT);
-    }
 
     // Create your Configuration instance, and specify if up to what FreeMarker
 // version (here 2.3.25) do you want to apply the fixes that are not 100%
@@ -193,17 +183,15 @@ public class Helper {
     }
 
     public static Map<String, Object> fromJson(String json) throws IOException {
-        if (json == null || "".equals(json)) json = "{}";
-        return mapper.readValue(json, Map.class);
+        return Serializer.fromJson(json);
     }
 
     public static <T> T fromJson(String json, Class<T> c) throws IOException {
-        if (json == null || "".equals(json)) json = "{}";
-        return mapper.readValue(json, c);
+        return Serializer.fromJson(json, c);
     }
 
     public static String toJson(Object o) throws IOException {
-        return mapper.writeValueAsString(o);
+        return Serializer.toJson(o);
     }
 
 
@@ -212,17 +200,15 @@ public class Helper {
 
 
     public static Map<String, Object> fromYaml(String yaml) throws IOException {
-        if (yaml == null) yaml = "";
-        return yamlMapper.readValue(yaml, Map.class);
+        return Serializer.fromYaml(yaml);
     }
 
     public static <T> T fromYaml(String yaml, Class<T> c) throws IOException {
-        if (yaml == null) yaml = "";
-        return yamlMapper.readValue(yaml, c);
+        return Serializer.fromYaml(yaml, c);
     }
 
     public static String toYaml(Object o) throws IOException {
-        return yamlMapper.writeValueAsString(o);
+        return Serializer.toYaml(o);
     }
 
 
@@ -1142,7 +1128,7 @@ public class Helper {
     public static String leerFichero(InputStream is) throws IOException {
 
         int count;
-        byte data[] = new byte[BUFFER];
+        byte[] data = new byte[BUFFER];
         ByteArrayOutputStream dest = new ByteArrayOutputStream();
         while ((count = is.read(data, 0, BUFFER))
                 != -1) {
@@ -1199,7 +1185,7 @@ public class Helper {
     private static final int BUFFER = 2048;
     public static byte[] leerByteArray(InputStream is) {
         int count;
-        byte data[] = new byte[BUFFER];
+        byte[] data = new byte[BUFFER];
         // write the files to the disk
         ByteArrayOutputStream dest = new ByteArrayOutputStream();
         try {

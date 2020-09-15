@@ -11,9 +11,11 @@ import com.vaadin.ui.*;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.model.common.FileType;
-import io.mateu.mdd.core.model.common.Resource;
+import io.mateu.mdd.core.interfaces.FileType;
+import io.mateu.mdd.core.interfaces.GeneralRepository;
+import io.mateu.mdd.core.interfaces.IResource;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.util.Helper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -27,14 +29,14 @@ import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
-public class FileComponent extends Composite implements HasValue<Resource>, Component.Focusable {
+public class FileComponent extends Composite implements HasValue<IResource>, Component.Focusable {
     private final MDDBinder binder;
     private final Link hyperLink;
     private final Upload upload;
     private final Image image;
     private final ComboBox<FileType> cb;
     private final TextField url;
-    private Resource file;
+    private IResource file;
     private Map<UUID, ValueChangeListener> listeners = new HashMap<>();
 
 
@@ -91,7 +93,7 @@ public class FileComponent extends Composite implements HasValue<Resource>, Comp
 
                 try {
 
-                    if (file == null) file = new Resource();
+                    if (file == null) file = Helper.getImpl(GeneralRepository.class).getNewResource();
 
                     file.set(filex.getName(), filex.getAbsolutePath());
 
@@ -176,17 +178,25 @@ public class FileComponent extends Composite implements HasValue<Resource>, Comp
         cb.setEmptySelectionAllowed(false);
         cb.addValueChangeListener(e -> {
 
-            if (file == null) file = new Resource();
+            if (file == null) {
+                try {
+                    file = Helper.getImpl(GeneralRepository.class).getNewResource();
 
-            if (FileType.BYTES.equals(e.getValue())) {
-                upload.setVisible(true);
-                url.setVisible(false);
-                file.setType(e.getValue());
-            } else {
-                upload.setVisible(false);
-                url.setVisible(true);
-                file.setType(e.getValue());
+                    if (FileType.BYTES.equals(e.getValue())) {
+                        upload.setVisible(true);
+                        url.setVisible(false);
+                        file.setType(e.getValue());
+                    } else {
+                        upload.setVisible(false);
+                        url.setVisible(true);
+                        file.setType(e.getValue());
+                    }
+
+                } catch (Exception ex) {
+                    MDD.alert(ex);
+                }
             }
+
 
             if (file != null) if (!binder.getMergeables().contains(file)) binder.getMergeables().add(file);
             ValueChangeEvent ce = new ValueChangeEvent(FileComponent.this, FileComponent.this, true);
@@ -201,11 +211,17 @@ public class FileComponent extends Composite implements HasValue<Resource>, Comp
         url.setVisible(false);
         url.addValueChangeListener(e -> {
 
-            if (file == null) file = new Resource();
+            if (file == null) {
+                try {
+                    file = Helper.getImpl(GeneralRepository.class).getNewResource();
+                } catch (Exception ex) {
+                    MDD.alert(ex);
+                }
+            }
 
             if (FileType.URL.equals(cb.getValue())) {
 
-                try {
+                if (file != null) try {
                     file.set(e.getValue());
                 } catch (Exception e1) {
                     MDD.alert(e1);
@@ -241,7 +257,7 @@ public class FileComponent extends Composite implements HasValue<Resource>, Comp
     }
 
     @Override
-    public void setValue(Resource o) {
+    public void setValue(IResource o) {
         file = o;
 
         try {
@@ -284,7 +300,7 @@ public class FileComponent extends Composite implements HasValue<Resource>, Comp
     }
 
     @Override
-    public Resource getValue() {
+    public IResource getValue() {
         //if (file != null && file.getName() == null) file = null;
         return file;
     }
@@ -312,7 +328,7 @@ public class FileComponent extends Composite implements HasValue<Resource>, Comp
     }
 
     @Override
-    public Registration addValueChangeListener(ValueChangeListener<Resource> valueChangeListener) {
+    public Registration addValueChangeListener(ValueChangeListener<IResource> valueChangeListener) {
         UUID _id = UUID.randomUUID();
         listeners.put(_id, valueChangeListener);
         return new Registration() {

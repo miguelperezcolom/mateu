@@ -8,7 +8,7 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.AbstractMenu;
 import io.mateu.mdd.core.app.MenuEntry;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.AbstractViewComponent;
 
 import java.util.List;
 import java.util.stream.Collectors;

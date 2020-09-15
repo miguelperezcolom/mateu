@@ -19,10 +19,10 @@ import io.mateu.mdd.vaadinport.vaadin.components.app.desktop.DesktopAppComponent
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.AreaComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.MenuFlowComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.views.ModuleComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorListener;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.EditorViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ListViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.OwnedCollectionComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.EditorListener;
+import io.mateu.mdd.vaadinport.vaadin.components.views.EditorViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.ListViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.OwnedCollectionComponent;
 
 import javax.persistence.Entity;
 import java.lang.reflect.Method;

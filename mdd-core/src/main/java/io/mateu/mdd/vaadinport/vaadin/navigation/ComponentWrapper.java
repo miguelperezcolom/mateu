@@ -9,7 +9,7 @@ import io.mateu.mdd.core.annotations.FullWidth;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.HasActions;
 import io.mateu.mdd.core.interfaces.HasIcon;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.AbstractViewComponent;
 
 import java.util.List;
 

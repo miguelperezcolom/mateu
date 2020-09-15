@@ -12,17 +12,14 @@ import io.mateu.mdd.core.annotations.Private;
 import io.mateu.mdd.core.annotations.ReadOnly;
 import io.mateu.mdd.core.annotations.ReadWrite;
 import io.mateu.mdd.core.app.*;
-import io.mateu.mdd.core.data.UserData;
-import io.mateu.mdd.core.interfaces.PersistentPOJO;
-import io.mateu.mdd.core.interfaces.RpcView;
-import io.mateu.mdd.core.interfaces.WizardPage;
-import io.mateu.mdd.core.model.authentication.Permission;
-import io.mateu.mdd.core.model.authentication.User;
+import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.mdd.core.util.Notifier;
 import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.*;
+import io.mateu.mdd.vaadinport.vaadin.components.views.*;
+import io.mateu.mdd.vaadinport.vaadin.mdd.VaadinPort;
 import io.mateu.mdd.vaadinport.vaadin.navigation.ComponentWrapper;
 import javassist.ClassPool;
 
@@ -37,7 +34,7 @@ public class MDD {
     private static AbstractApplication app;
 
 
-    public static MDDPort getPort() {
+    public static VaadinPort getPort() {
         return (MDDUI.get() != null)?MDDUI.get().getPort():null;
     }
 
@@ -53,28 +50,22 @@ public class MDD {
 
 
 
-    public static void setUserData(UserData userData) {
+    public static void setCurrentUserLogin(String userData) {
         System.out.println("setUserData(" + userData + ")");
-        getPort().setUserData(userData);
+        getPort().setCurrentUserLogin(userData);
     }
-    public static UserData getUserData() {
-        return (getPort() != null)?getPort().getUserData():null;
+    public static String getCurrentUserLogin() {
+        return (getPort() != null)?getPort().getCurrentUserLogin():null;
     }
 
-    public static User getCurrentUser() {
+    public static UserPrincipal getCurrentUser() {
+        String login = (MDD.getPort() != null && MDD.getCurrentUserLogin() != null)?MDD.getCurrentUserLogin():null;
         try {
-            User[] u = {null};
-            Helper.notransact(em -> u[0] = em.find(User.class, (MDD.getPort() != null && MDD.getUserData() != null)?MDD.getUserData().getLogin():"system"), false);
-            return u[0];
-        } catch (Throwable e) {
-            try {
-                User[] u = {null};
-                Helper.notransact(em -> u[0] = em.find(User.class, "system"), false);
-                return u[0];
-            } catch (Throwable ee) {
-                return null;
-            }
+            return Helper.getImpl(GeneralRepository.class).findUser(login);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        return null;
     }
 
 
@@ -118,11 +109,12 @@ public class MDD {
 
 
     public static void alert(String msg) {
-        getPort().alert(msg);
+        Notifier.alert(msg);
     }
     public static void alert(Throwable throwable) {
-        getPort().alert(throwable);
+        Notifier.alert(throwable);
     }
+
     public static void confirm(String msg, Runnable onOk) {
         getPort().confirm(msg, onOk);
     }
@@ -132,7 +124,7 @@ public class MDD {
     }
 
     public static void info(String msg) {
-        getPort().info(msg);
+        Notifier.info(msg);
     }
 
     public static boolean isMobile() { return getPort().isMobile(); }
@@ -321,7 +313,7 @@ public class MDD {
 
     private static boolean check(int[] permissions, String[] users, Class[] userTypes) {
         boolean add = false;
-        User u = MDD.getCurrentUser();
+        UserPrincipal u = MDD.getCurrentUser();
         if (u == null) return false;
 
         boolean usuarioOk = false;
@@ -339,8 +331,8 @@ public class MDD {
         boolean permisoOk = false;
         if (u != null && (users == null || users.length == 0) && permissions != null && permissions.length > 0) {
             for (int i = 0; i < permissions.length; i++) {
-                for (Permission p : u.getPermissions()) {
-                    if (p.getId() == permissions[i]) {
+                for (Long p : u.getPermissionIds()) {
+                    if (p == permissions[i]) {
                         permisoOk = true;
                         break;
                     }

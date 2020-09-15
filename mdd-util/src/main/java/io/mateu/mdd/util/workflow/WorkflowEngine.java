@@ -1,6 +1,6 @@
 package io.mateu.mdd.util.workflow;
 
-import io.mateu.mdd.shared.INotifier;
+import io.mateu.mdd.core.util.Notifier;
 import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.util.runnable.RunnableThrowsThrowable;
 import lombok.extern.slf4j.Slf4j;
@@ -97,7 +97,7 @@ public class WorkflowEngine {
                     log.debug("llamando al callback");
                     callback.run();
                 } catch (Throwable throwable) {
-                    Helper.getImpl(INotifier.class).alert(throwable);
+                    Notifier.alert(throwable);
                 }
             }
 

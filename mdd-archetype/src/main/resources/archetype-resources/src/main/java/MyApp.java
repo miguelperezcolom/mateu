@@ -1,11 +1,11 @@
-package ${package};
+package $
 
-import io.mateu.mdd.core.annotations.MateuMDDApp;
 import io.mateu.mdd.core.annotations.Action;
+import io.mateu.mdd.core.annotations.MateuMDDApp;
 import io.mateu.mdd.core.app.SimpleMDDApplication;
 import io.mateu.mdd.util.Helper;
 
-import ${package}.model.Person;
+{package};{package}.model.Person;
 
 @MateuMDDApp(path = "")
 public class MyApp extends SimpleMDDApplication {

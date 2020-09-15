@@ -32,8 +32,8 @@ io.mateu.mdd.vaadinport.vaadin.components.charts
 io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders
 io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components
 io.mateu.mdd.vaadinport.vaadin.components.oauth
-io.mateu.mdd.vaadinport.vaadin.components.oldviews
-io.mateu.mdd.vaadinport.vaadin.components.oldviews.backends
+io.mateu.mdd.vaadinport.vaadin.components.views
+io.mateu.mdd.vaadinport.vaadin.components.views.backends
 io.mateu.mdd.vaadinport.vaadin.mdd
 io.mateu.mdd.vaadinport.vaadin.navigation
 io.mateu.mdd.vaadinport.vaadin.pojos

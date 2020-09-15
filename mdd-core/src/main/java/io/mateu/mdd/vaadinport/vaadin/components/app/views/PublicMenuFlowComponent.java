@@ -10,10 +10,11 @@ import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.AbstractModule;
-import io.mateu.mdd.core.model.config.AppConfig;
+import io.mateu.mdd.shared.AppConfigLocator;
+import io.mateu.mdd.shared.IAppConfig;
 import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.AbstractViewComponent;
 
 public class PublicMenuFlowComponent extends AbstractViewComponent {
 
@@ -42,16 +43,14 @@ public class PublicMenuFlowComponent extends AbstractViewComponent {
             l.addStyleName(ValoTheme.LABEL_H1);
 
             try {
-                Helper.notransact(em -> {
-                    AppConfig c = AppConfig.get(em);
-                    if (c.getLogo() != null) {
-                        Image img;
-                        addComponent(img = new Image(null, new ExternalResource(c.getLogo().toFileLocator().getUrl())));
-                        img.setWidth("200px");
-                    }
-                });
+                IAppConfig c = Helper.getImpl(AppConfigLocator.class).get();
+                if (c.getLogoUrl() != null) {
+                    Image img;
+                    addComponent(img = new Image(null, new ExternalResource(c.getLogoUrl())));
+                    img.setWidth("200px");
+                }
             } catch (Throwable throwable) {
-                throwable.printStackTrace();
+                MDD.alert(throwable);
             }
 
             if (MDD.getApp().getAreas().size() == 1) {

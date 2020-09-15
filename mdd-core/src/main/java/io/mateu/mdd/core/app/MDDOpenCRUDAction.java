@@ -2,7 +2,7 @@ package io.mateu.mdd.core.app;
 
 
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ExtraFilters;
+import io.mateu.mdd.vaadinport.vaadin.components.views.ExtraFilters;
 import lombok.Getter;
 
 import java.util.Map;

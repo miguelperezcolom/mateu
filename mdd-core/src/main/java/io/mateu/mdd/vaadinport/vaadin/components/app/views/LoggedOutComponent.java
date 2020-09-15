@@ -20,7 +20,6 @@ public class LoggedOutComponent extends VerticalLayout {
 
 
     public LoggedOutComponent() {
-        this.onLogin = onLogin;
 
         addStyleName("logincomponent2");
 

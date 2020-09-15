@@ -9,7 +9,7 @@ import io.mateu.mdd.core.annotations.WeekDays;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.core.model.multilanguage.Literal;
+import io.mateu.mdd.core.interfaces.Translated;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components.WeekDaysComponent;
@@ -22,7 +22,7 @@ import java.util.Map;
 public class JPAWeekDaysFieldBuilder extends AbstractFieldBuilder {
 
 
-    private Literal literal;
+    private Translated literal;
 
     public boolean isSupported(FieldInterfaced field) {
         return boolean[].class.equals(field.getType()) && field.isAnnotationPresent(WeekDays.class);

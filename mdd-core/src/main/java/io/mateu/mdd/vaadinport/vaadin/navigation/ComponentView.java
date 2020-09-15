@@ -2,9 +2,6 @@ package io.mateu.mdd.vaadinport.vaadin.navigation;
 
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.themes.ValoTheme;
 
 public class ComponentView extends View {
 

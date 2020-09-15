@@ -1,11 +1,11 @@
 package io.mateu.mdd.vaadinport.vaadin.components.oauth;
 
 
-import com.google.common.base.Strings;
 import com.vaadin.server.ClassResource;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Button;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.shared.VaadinHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 import java.io.UnsupportedEncodingException;
@@ -32,7 +32,7 @@ public class GoogleButton extends Button {
 //            callbackUrl += "";
 
             if (!callbackUrl.endsWith("/")) callbackUrl += "/";
-            if (!callbackUrl.endsWith(MDDUI.get().getAdaptedUIRootPath())) callbackUrl += MDDUI.get().getAdaptedUIRootPath();
+            if (!callbackUrl.endsWith(VaadinHelper.getAdaptedUIRootPath())) callbackUrl += VaadinHelper.getAdaptedUIRootPath();
             callbackUrl += "oauth/google/callback";
 
 

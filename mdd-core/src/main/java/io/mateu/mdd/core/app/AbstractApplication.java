@@ -4,22 +4,14 @@ package io.mateu.mdd.core.app;
 import com.google.common.base.Strings;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.data.Data;
-import io.mateu.mdd.core.data.UserData;
 import io.mateu.mdd.core.interfaces.App;
 import io.mateu.mdd.core.interfaces.View;
-import io.mateu.mdd.core.model.authentication.User;
-import io.mateu.mdd.core.model.config.AppConfig;
-import io.mateu.mdd.core.model.population.Populator;
-import io.mateu.mdd.core.model.ui.EditedRecord;
-import io.mateu.mdd.core.nose.MemorizadorRegistroEditado;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.persistence.JPATransaction;
+import io.mateu.mdd.shared.VaadinHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.AbstractFieldBuilder;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
@@ -28,7 +20,6 @@ import java.util.*;
 @Slf4j
 public abstract class AbstractApplication implements App {
 
-    private String port;
     private Map<AbstractArea, String> areaIds;
     private Map<String, AbstractArea> areaIdsReversed;
     private Map<MenuEntry, AbstractArea> menuToArea;
@@ -40,17 +31,11 @@ public abstract class AbstractApplication implements App {
     private Map<MenuEntry, List<MenuEntry>> menuPaths;
     List<AbstractArea> areas = null;
 
-    private MemorizadorRegistroEditado memorizador;
-
     public static AbstractApplication get() {
-        return get(MDD.getUserData());
-    }
-
-    public static AbstractApplication get(UserData userData) {
         if (!Strings.isNullOrEmpty(System.getProperty("appClassName"))) {
             try {
                 Object app = Class.forName(System.getProperty("appClassName")).newInstance();
-                if (app instanceof AppProvider) app = ((AppProvider) app).getApp(userData != null?Helper.find(User.class, userData.getLogin()):null);
+                if (app instanceof AppProvider) app = ((AppProvider) app).getApp(MDD.getCurrentUser());
                 return (AbstractApplication) app;
             } catch (Throwable throwable) {
                 throwable.printStackTrace();
@@ -68,30 +53,9 @@ public abstract class AbstractApplication implements App {
         return app;
     }
 
-    public boolean isSearchAvailable() {
-        return false;
-    }
-
-    public boolean isFavouritesAvailable() {
-        return false;
-    }
-
-    public boolean isLastEditedAvailable() {
-        return false;
-    }
-
-    public void getFavourites(UserData user, Callback<Data> callback) {
-        callback.onFailure(new Exception("Favourites are not available for this app."));
-    }
-
-    public void search(UserData user, Callback<Data> callback) {
+    public void search(Callback<Data> callback) {
         callback.onFailure(new Exception("Search is not available for this app."));
     }
-
-    public void getLastEdited(UserData user, Callback<Data> callback) {
-        callback.onFailure(new Exception("Search is not available for this app."));
-    }
-
 
     public abstract String getName();
 
@@ -147,7 +111,7 @@ public abstract class AbstractApplication implements App {
 
 
     public String getState(AbstractArea a) {
-        if (a == null) return (MDD.getUserData() == null)?"public":"private";
+        if (a == null) return (MDD.getCurrentUser() == null)?"public":"private";
         return getAreaId(a);
     }
 
@@ -160,14 +124,6 @@ public abstract class AbstractApplication implements App {
     }
 
 
-    public List<MenuEntry> getPath(MenuEntry e) {
-        return menuPaths.get(e);
-    }
-
-    public boolean isSignUpSupported() {
-        return false;
-    }
-
     public void updateSession() {
         this.areas = null;
         buildAreaAndMenuIds();
@@ -177,7 +133,7 @@ public abstract class AbstractApplication implements App {
     public List<AbstractArea> getAreas() {
         if (areas == null) synchronized (this) {
             areas = new ArrayList<>();
-            boolean autentico = MDD.getUserData() != null;
+            boolean autentico = MDD.getCurrentUser() != null;
             for (AbstractArea a : buildAreas()) {
                 if (isAuthenticationAgnostic() || (!autentico && a.isPublicAccess()) || (autentico && !a.isPublicAccess())) areas.add(a);
             }
@@ -265,90 +221,13 @@ public abstract class AbstractApplication implements App {
 
     public String getBaseUrl() {
         String u = System.getProperty("baseurl", MDDUI.get() != null?MDDUI.get().getBaseUrl():"");
-        if (u.endsWith(MDDUI.get().getAdaptedUIRootPath())) u = u.substring(0, u.lastIndexOf(MDDUI.get().getAdaptedUIRootPath()));
+        if (u.endsWith(VaadinHelper.getAdaptedUIRootPath())) u = u.substring(0, u.lastIndexOf(VaadinHelper.getAdaptedUIRootPath()));
         return u;
     };
-
-
-
-
-    public String getPort() {
-        return port;
-    }
-
-    public void setPort(String port) {
-        this.port = port;
-    }
-
-    public List<String> getSupportedLanguages() {
-        return null;
-    }
-
-    public String getOriginLanguage() {
-        return null;
-    }
 
     public String translate(String text, String toLanguage) {
         return null;
     }
-
-    public void askForTranslation(String text, String fromLanguage, String toLanguage) {
-
-    }
-
-    public MemorizadorRegistroEditado getMemorizador() {
-        if (memorizador == null) {
-            memorizador = new MemorizadorRegistroEditado() {
-                @Override
-                public void recordar(UserData userData, boolean isNew, String name, String sourceUri, Object id) {
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-
-                            try {
-
-                                Helper.transact(new JPATransaction() {
-                                    @Override
-                                    public void run(EntityManager em) throws Throwable {
-
-                                        EditedRecord r = new EditedRecord();
-
-                                        r.setIcon((isNew)?"new":"edit");
-                                        r.setName(name);
-                                        if (userData != null && !Strings.isNullOrEmpty(userData.getLogin())) r.setUser(em.find(User.class, userData.getLogin()));
-
-                                        String u = sourceUri;
-
-                                        if (isNew) {
-                                            u += "/";
-                                            if (id instanceof String) u += "s" + id;
-                                            else if (id instanceof Long) u += "l" + id;
-                                            else if (id instanceof Integer) u += "i" + id;
-                                        }
-
-                                        r.setUri(u);
-
-                                        em.persist(r);
-
-                                    }
-                                });
-
-                            } catch (Throwable throwable) {
-                                throwable.printStackTrace();
-                            }
-
-                        }
-                    }).start();
-                }
-            };
-        }
-        return memorizador;
-    }
-
-    public void setMemorizador(MemorizadorRegistroEditado memorizador) {
-        this.memorizador = memorizador;
-    }
-
 
     public boolean hasPublicContent() {
         boolean r = !isAuthenticationNeeded() && (areas == null || areas.size() == 0);
@@ -394,19 +273,6 @@ public abstract class AbstractApplication implements App {
         return area;
     }
 
-
-
-    public Class<? extends AppConfig> getAppConfigClass() {
-        return AppConfig.class;
-    }
-
-    public Class<? extends User> getUserClass() {
-        return User.class;
-    }
-
-    public Populator getPopulator() {
-        return new Populator();
-    }
 
 
     private static Map<String, AbstractFieldBuilder> fieldBuildersCache = new HashMap<>();

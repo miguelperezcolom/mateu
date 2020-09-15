@@ -8,7 +8,8 @@ import io.mateu.mdd.util.Helper;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class AbstractCrudView<R> extends AbstractJPQLListView<R>  implements RpcCrudView<AbstractJPQLListView, R, R>, StepInterceptor {
 

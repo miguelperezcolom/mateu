@@ -1,9 +1,9 @@
 package io.mateu.mdd.core.app;
 
-import io.mateu.mdd.core.model.authentication.User;
+import io.mateu.mdd.core.interfaces.UserPrincipal;
 
 public interface AppProvider {
 
-    AbstractApplication getApp(User user);
+    AbstractApplication getApp(UserPrincipal user);
 
 }

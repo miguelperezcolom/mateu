@@ -12,9 +12,9 @@ import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.AbstractViewComponent;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.ViewComponentHelper;
-import io.mateu.mdd.vaadinport.vaadin.components.oldviews.WizardComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.AbstractViewComponent;
+import io.mateu.mdd.vaadinport.vaadin.components.views.ViewComponentHelper;
+import io.mateu.mdd.vaadinport.vaadin.components.views.WizardComponent;
 import org.vaadin.aceeditor.AceEditor;
 
 import java.lang.reflect.Method;
