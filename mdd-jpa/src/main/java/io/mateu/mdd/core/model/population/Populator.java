@@ -51,8 +51,8 @@ public class Populator implements IPopulator {
 
             AppConfig c = (AppConfig) appConfigClass.newInstance();
             c.setId(1);
-            c.setXslfoForList(Resources.toString(Resources.getResource("/xsl/listing.xsl"), Charsets.UTF_8));
-            c.setXslfoForObject(Resources.toString(Resources.getResource("/xsl/object.xsl"), Charsets.UTF_8));
+            c.setXslfoForList(Resources.toString(Resources.getResource(appConfigClass, "/xsl/listing.xsl"), Charsets.UTF_8));
+            c.setXslfoForObject(Resources.toString(Resources.getResource(appConfigClass, "/xsl/object.xsl"), Charsets.UTF_8));
             em.persist(c);
 
             //c.createDummyDates();
