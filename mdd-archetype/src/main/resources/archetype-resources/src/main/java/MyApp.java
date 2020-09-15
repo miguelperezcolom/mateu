@@ -1,13 +1,13 @@
 package $
 
 import io.mateu.mdd.core.annotations.Action;
-import io.mateu.mdd.core.annotations.MateuMDDApp;
+import io.mateu.mdd.core.annotations.MateuMDDUI;
 import io.mateu.mdd.core.app.SimpleMDDApplication;
 import io.mateu.mdd.util.Helper;
 
 {package};{package}.model.Person;
 
-@MateuMDDApp(path = "")
+@MateuMDDUI(path = "")
 public class MyApp extends SimpleMDDApplication {
 
     @Action(value = "Say hello", order = 1)

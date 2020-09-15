@@ -9,7 +9,6 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.util.workflow.WorkflowEngine;
-import io.mateu.showcase.tester.model.entities.dependant.Country;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Id;
@@ -24,7 +23,7 @@ public class GraphQLTester {
 
         try {
 
-
+/*
 
             Helper.transact(em -> {
                 Country u = new Country();
@@ -64,9 +63,11 @@ public class GraphQLTester {
                 log.debug(executionResult.getData().toString());
 
             });
+ */
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
+
 
         WorkflowEngine.exit(0);
 

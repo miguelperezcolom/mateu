@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Set;
 
-@SupportedAnnotationTypes("io.mateu.mdd.core.annotations.MateuMDDApp")
+@SupportedAnnotationTypes("io.mateu.mdd.core.annotations.MateuMDDUI")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor.class)
 public class MateuMDDAnnotationProcessor extends AbstractProcessor {
