@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components;
 
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 import lombok.Getter;
 import lombok.Setter;
 

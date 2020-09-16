@@ -13,6 +13,7 @@ import io.mateu.mdd.shared.AppConfigLocator;
 import io.mateu.mdd.shared.IAppConfig;
 import io.mateu.mdd.shared.VaadinHelper;
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 import io.mateu.mdd.util.mail.EmailHelper;
 import io.mateu.mdd.util.persistence.JPATransaction;
 import lombok.MateuMDDEntity;
@@ -65,7 +66,7 @@ public class User implements EditorViewStyler, UserPrincipal {
     private String password;
 
     public void setPassword(String password) {
-        this.password = (password != null)?Helper.md5(password.toLowerCase().trim()):null;
+        this.password = (password != null)? Helper.md5(password.toLowerCase().trim()):null;
     }
 
     public boolean checkPassword(String password) {

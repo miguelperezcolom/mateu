@@ -31,6 +31,7 @@ import io.mateu.mdd.core.interfaces.GridDecorator;
 import io.mateu.mdd.core.interfaces.IResource;
 import io.mateu.mdd.core.reflection.*;
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.views.ListViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.views.OwnedCollectionComponent;

@@ -12,10 +12,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Set;
 
-@SupportedAnnotationTypes("io.mateu.mdd.core.annotations.MateuMDDUI")
+@SupportedAnnotationTypes({"io.mateu.mdd.core.annotations.MateuMDDUI"})
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor.class)
-public class MateuMDDAnnotationProcessor extends AbstractProcessor {
+public class MateuMDDUIAnnotationProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {

@@ -23,7 +23,7 @@ import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.util.common.HasChangesSignature;
-import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 import io.mateu.mdd.util.persistence.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.ClassOption;
@@ -1107,7 +1107,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                                 }
 
                                 if (!isEditingNewRecord) {
-                                    Helper.transact(em -> {
+                                    JPAHelper.transact(em -> {
                                         ReflectionHelper.delete(em, em.find(getModelType(), ReflectionHelper.getId(getModel())));
                                     });
                                 }
@@ -1285,7 +1285,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                     MDDUI ui = MDDUI.get();
 
-                    Helper.transact(new JPATransaction() {
+                    JPAHelper.transact(new JPATransaction() {
                         @Override
                         public void run(EntityManager em) throws Throwable {
 
@@ -1316,7 +1316,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                             System.out.println("actualizamos el ui");
                             ui.access(() -> {
                                 try {
-                                    Helper.notransact(em -> {
+                                    JPAHelper.notransact(em -> {
                                         if (modelId != null) {
                                             binder.update(em.find(merged[0].getClass(), modelId));
                                         }
@@ -1332,7 +1332,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                     modelId = ReflectionHelper.getId(merged[0]);
 
-                    Helper.notransact(em -> {
+                    JPAHelper.notransact(em -> {
                         binder.update(em.find(merged[0].getClass(), modelId));
                         initialValues = buildSignature();
                     });
@@ -1455,7 +1455,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
             if (modelType.isAnnotationPresent(Entity.class)) {
 
-                Helper.notransact(new JPATransaction() {
+                JPAHelper.notransact(new JPATransaction() {
                     @Override
                     public void run(EntityManager em) throws Throwable {
                         setModel(em.find(modelType, id));

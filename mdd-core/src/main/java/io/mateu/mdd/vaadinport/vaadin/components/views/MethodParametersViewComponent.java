@@ -8,6 +8,7 @@ import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.navigation.View;
 import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;

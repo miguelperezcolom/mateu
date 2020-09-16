@@ -1,6 +1,5 @@
 package io.mateu.mdd.shared;
 
-import java.io.IOException;
 import java.util.List;
 
 public interface AppContextListener {

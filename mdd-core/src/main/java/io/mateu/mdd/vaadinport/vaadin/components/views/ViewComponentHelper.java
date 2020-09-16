@@ -11,6 +11,7 @@ import io.mateu.mdd.core.interfaces.PersistentPOJO;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 import io.mateu.mdd.util.persistence.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
@@ -71,7 +72,7 @@ public class ViewComponentHelper {
                                     if (viewComponent instanceof ListViewComponent) {
                                         ListViewComponent lvc = (ListViewComponent) viewComponent;
 
-                                        Helper.notransact(em -> {
+                                        JPAHelper.notransact(em -> {
                                             boolean jpa = lvc.getColumnType().isAnnotationPresent(Entity.class);
                                             lvc.getSelection().forEach(o -> {
                                                 if (jpa && o instanceof Object[]) {
@@ -111,7 +112,7 @@ public class ViewComponentHelper {
 
                                                 Object finalInstance = instance;
                                                 Set finalSelection = selection;
-                                                Helper.transact(new JPATransaction() {
+                                                JPAHelper.transact(new JPATransaction() {
                                                     @Override
                                                     public void run(EntityManager em) throws Throwable {
 
@@ -135,7 +136,7 @@ public class ViewComponentHelper {
                                                 if (viewComponent instanceof EditorViewComponent && instance.getClass().isAnnotationPresent(Entity.class)) {
                                                     EditorViewComponent evc = (EditorViewComponent) viewComponent;
                                                     Object i = evc.getModel();
-                                                    Helper.notransact(em -> evc.setModel(em.find(i.getClass(), ReflectionHelper.getId(i))));
+                                                    JPAHelper.notransact(em -> evc.setModel(em.find(i.getClass(), ReflectionHelper.getId(i))));
                                                 }
 
                                             } else {

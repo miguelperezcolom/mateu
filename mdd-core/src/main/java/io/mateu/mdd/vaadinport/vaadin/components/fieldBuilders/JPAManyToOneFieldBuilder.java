@@ -16,7 +16,7 @@ import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 import javax.persistence.Entity;
@@ -139,7 +139,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                             l.setValue("No value");
                         }
                         else try {
-                            Helper.notransact(em -> {
+                            JPAHelper.notransact(em -> {
 
                                 FieldInterfaced fid = ReflectionHelper.getIdField(field.getType());
 
@@ -307,7 +307,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
     public static void setDataProvider(HasItems hdp, FieldInterfaced field, MDDBinder binder) {
 
         try {
-            Helper.notransact((em) -> {
+            JPAHelper.notransact((em) -> {
 
                 com.vaadin.data.provider.DataProvider dp = null;
                 ItemCaptionGenerator icg = null;
@@ -545,7 +545,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                 if (Long.class.equals(idField.getType()) || long.class.equals(idField.getType())) id = Long.parseLong((String) rawValue);
                 if (Integer.class.equals(idField.getType()) || int.class.equals(idField.getType())) id = Integer.parseInt((String) rawValue);
             }
-            return Helper.find(field.getType(), id);
+            return JPAHelper.find(field.getType(), id);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }

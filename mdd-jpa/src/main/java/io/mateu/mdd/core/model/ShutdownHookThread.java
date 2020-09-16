@@ -3,9 +3,9 @@ package io.mateu.mdd.core.model;
 public class ShutdownHookThread implements Runnable {
 
 
-    private final BaseAppContext context;
+    private final BaseAppContextListener context;
 
-    public ShutdownHookThread(BaseAppContext context) {
+    public ShutdownHookThread(BaseAppContextListener context) {
         this.context = context;
     }
 

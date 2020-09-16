@@ -10,6 +10,7 @@ import io.mateu.mdd.core.data.Pair;
 import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.core.util.Notifier;
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 import io.mateu.mdd.util.reflection.BaseReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import javassist.*;
@@ -1287,7 +1288,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
 
             int finalPosEM = posEM;
 
-            Helper.transact(em -> {
+            JPAHelper.transact(em -> {
 
                 vs.add(finalPosEM, em);
 

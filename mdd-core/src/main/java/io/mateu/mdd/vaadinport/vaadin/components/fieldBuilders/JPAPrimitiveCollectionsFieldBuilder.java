@@ -15,7 +15,7 @@ import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 
 import javax.persistence.Entity;
 import javax.validation.constraints.NotNull;
@@ -97,7 +97,7 @@ public class JPAPrimitiveCollectionsFieldBuilder extends JPAStringFieldBuilder {
                 } else {
 
                     try {
-                        Helper.notransact((em) -> rbg.setDataProvider(new JPQLListDataProvider(em, field)));
+                        JPAHelper.notransact((em) -> rbg.setDataProvider(new JPQLListDataProvider(em, field)));
                     } catch (Throwable throwable) {
                         throwable.printStackTrace();
                     }

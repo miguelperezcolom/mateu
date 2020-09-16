@@ -3,6 +3,7 @@ package io.mateu.mdd.util.i18n;
 import com.google.common.base.Strings;
 import io.mateu.mdd.shared.AppConfigLocator;
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 
 import java.util.Map;
 

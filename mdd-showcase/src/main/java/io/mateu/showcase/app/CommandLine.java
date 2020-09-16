@@ -1,12 +1,13 @@
 package io.mateu.showcase.app;
 
-import io.mateu.showcase.domain.App;
+import io.mateu.showcase.domain.MyAppListener;
 
 public class CommandLine {
 
     public static void main(String[] args) {
+
         try {
-            new App();
+            new MyAppListener();
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
@@ -17,6 +18,7 @@ public class CommandLine {
             e.printStackTrace();
         }
         System.out.println("fin!");
+
         System.exit(0);
     }
 

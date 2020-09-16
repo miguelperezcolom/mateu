@@ -16,7 +16,7 @@ import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -91,7 +91,7 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
                 } else {
 
                     try {
-                        Helper.notransact((em) -> rbg.setDataProvider(new JPQLListDataProvider(em, field)));
+                        JPAHelper.notransact((em) -> rbg.setDataProvider(new JPQLListDataProvider(em, field)));
                     } catch (Throwable throwable) {
                         throwable.printStackTrace();
                     }
@@ -176,7 +176,7 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
                 } else {
 
                     try {
-                        Helper.notransact((em) -> cb.setDataProvider(new JPQLListDataProvider(em, field), f -> new SerializablePredicate() {
+                        JPAHelper.notransact((em) -> cb.setDataProvider(new JPQLListDataProvider(em, field), f -> new SerializablePredicate() {
                             @Override
                             public boolean test(Object o) {
                                 String s = (String) f;

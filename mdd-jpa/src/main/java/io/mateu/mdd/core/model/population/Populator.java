@@ -15,6 +15,7 @@ import io.mateu.mdd.core.model.config.TemplateUseCase;
 import io.mateu.mdd.core.model.util.Constants;
 import io.mateu.mdd.shared.AppConfigLocator;
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 import io.mateu.mdd.util.persistence.JPATransaction;
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,7 +48,7 @@ public class Populator implements IPopulator {
 
 
         //authentication
-        Helper.transact((JPATransaction) (em)->{
+        JPAHelper.transact((JPATransaction) (em)->{
 
             AppConfig c = (AppConfig) appConfigClass.newInstance();
             c.setId(1);
@@ -124,7 +125,7 @@ public class Populator implements IPopulator {
     }
 
     private static void createViews() throws Throwable {
-        Helper.transact(em -> {
+        JPAHelper.transact(em -> {
             InputStream r = Populator.class.getResourceAsStream("/sql/vistas.sql");
 
             if (r != null) {

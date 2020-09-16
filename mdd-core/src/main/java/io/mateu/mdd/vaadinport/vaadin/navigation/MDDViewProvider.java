@@ -18,8 +18,9 @@ import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.util.common.Pair;
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.common.Pair;
+import io.mateu.mdd.util.JPAHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.desktop.DesktopAppComponent;
@@ -774,7 +775,7 @@ public class MDDViewProvider implements ViewProvider {
                                                             else if (idField.getType().equals(Boolean.class) || idField.getType().equals(boolean.class)) pv = Boolean.parseBoolean(p);
                                                             else if (idField.getType().equals(LocalDate.class)) pv = LocalDate.parse(p);
                                                             else if (idField.getType().isEnum()) pv = Enum.valueOf((Class)idField.getType(), p);
-                                                            pv = Helper.find(f.getType(), pv);
+                                                            pv = JPAHelper.find(f.getType(), pv);
                                                         }
                                                     }
                                                     ReflectionHelper.setValue(f, m, pv);
@@ -1050,7 +1051,7 @@ public class MDDViewProvider implements ViewProvider {
 
                                         try {
 
-                                            Helper.notransact(em -> {
+                                            JPAHelper.notransact(em -> {
 
                                                 Object m = evfc.getModel();
                                                 Object oid = o.get();
@@ -1375,7 +1376,7 @@ public class MDDViewProvider implements ViewProvider {
                 o = pendingResult;
             } else {
                 Class c = Class.forName(cn);
-                o = Helper.find(c, ReflectionHelper.toId(c, id));
+                o = JPAHelper.find(c, ReflectionHelper.toId(c, id));
             }
 
             if (UserPrincipal.class.isAssignableFrom(o.getClass())) throw new Exception("Users are not accesible this way!");

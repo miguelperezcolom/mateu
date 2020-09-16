@@ -9,6 +9,7 @@ import io.mateu.mdd.shared.BoundedContextListener;
 import io.mateu.mdd.shared.Command;
 import io.mateu.mdd.shared.ScheduledCommand;
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 
@@ -16,12 +17,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-public class BaseAppContext implements AppContextListener {
+public class BaseAppContextListener implements AppContextListener {
     private Scheduler scheduler;
 
     protected static HashMap<String, Command> scheduledCommands = new HashMap<>();
 
-    public BaseAppContext() {
+    public BaseAppContextListener() {
         init();
         initialized();
     }
@@ -114,7 +115,7 @@ public class BaseAppContext implements AppContextListener {
     @Override
     public boolean isPopulationNeeded() {
         try {
-            return Helper.find(AppConfig.class, 1l) != null;
+            return JPAHelper.find(AppConfig.class, 1l) != null;
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }

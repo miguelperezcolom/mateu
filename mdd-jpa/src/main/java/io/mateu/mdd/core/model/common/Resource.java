@@ -7,6 +7,7 @@ import io.mateu.mdd.core.interfaces.IResource;
 import io.mateu.mdd.shared.AppConfigLocator;
 import io.mateu.mdd.shared.IAppConfig;
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 import io.mateu.mdd.util.common.Utils;
 import lombok.MateuMDDEntity;
 import lombok.extern.slf4j.Slf4j;

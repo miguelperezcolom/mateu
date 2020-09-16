@@ -11,6 +11,7 @@ import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.model.multilanguage.Literal;
 import io.mateu.mdd.core.util.Notifier;
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 import io.mateu.mdd.util.mail.EmailHelper;
 import io.mateu.mdd.util.persistence.JPATransaction;
 
@@ -27,12 +28,12 @@ public class GeneralRepositoryImpl implements GeneralRepository {
     public UserPrincipal findUser(String login) {
         try {
             User[] u = {null};
-            Helper.notransact(em -> u[0] = em.find(User.class, login != null?login:"system"), false);
+            JPAHelper.notransact(em -> u[0] = em.find(User.class, login != null?login:"system"), false);
             return u[0];
         } catch (Throwable e) {
             try {
                 User[] u = {null};
-                Helper.notransact(em -> u[0] = em.find(User.class, "system"), false);
+                JPAHelper.notransact(em -> u[0] = em.find(User.class, "system"), false);
                 return u[0];
             } catch (Throwable ee) {
                 return null;
@@ -54,7 +55,7 @@ public class GeneralRepositoryImpl implements GeneralRepository {
     @Override
     public UserPrincipal findUserByPasswordResetKey(String key) throws Throwable {
         User[] u = new User[1];
-        Helper.notransact(em -> {
+        JPAHelper.notransact(em -> {
             u[0] = findUserByPasswordResetKey(em, key);
         });
         return u[0];
@@ -62,7 +63,7 @@ public class GeneralRepositoryImpl implements GeneralRepository {
 
     @Override
     public void setPassword(String key, String password) throws Throwable {
-        Helper.transact(em -> {
+        JPAHelper.transact(em -> {
             User u = findUserByPasswordResetKey(em, key);
             u.setPassword(password);
 
@@ -74,7 +75,7 @@ public class GeneralRepositoryImpl implements GeneralRepository {
 
     @Override
     public void createUser(String login, String email, String name, String avatarUrl) throws Throwable {
-        Helper.transact(new JPATransaction() {
+        JPAHelper.transact(new JPATransaction() {
             @Override
             public void run(EntityManager em) throws Throwable {
 
@@ -99,7 +100,7 @@ public class GeneralRepositoryImpl implements GeneralRepository {
 
     @Override
     public void changePassword(String login, String currentPassword, String newPassword) throws Throwable {
-        Helper.transact(em -> {
+        JPAHelper.transact(em -> {
             User u = em.find(User.class, login);
 
             if (!u.checkPassword(currentPassword)) throw new Exception("This is not your current password");
@@ -110,7 +111,7 @@ public class GeneralRepositoryImpl implements GeneralRepository {
 
     @Override
     public void updateUser(String login, String name, String email, IResource photo) throws Throwable {
-        Helper.transact(new JPATransaction() {
+        JPAHelper.transact(new JPATransaction() {
             @Override
             public void run(EntityManager em) throws Throwable {
 
@@ -127,14 +128,14 @@ public class GeneralRepositoryImpl implements GeneralRepository {
 
     @Override
     public List<IIcon> findAllIcons() throws Throwable {
-        List<Icon> l = Helper.findAll(Icon.class).stream().sorted((a, b) -> a.getId().compareTo(b.getId())).collect(Collectors.toList());
+        List<Icon> l = JPAHelper.findAll(Icon.class).stream().sorted((a, b) -> a.getId().compareTo(b.getId())).collect(Collectors.toList());
         return new ArrayList<>(l);
     }
 
     @Override
     public UserPrincipal authenticate(String login, String password) throws Throwable {
         UserPrincipal[] p = new UserPrincipal[1];
-        Helper.transact(new JPATransaction() {
+        JPAHelper.transact(new JPATransaction() {
             @Override
             public void run(EntityManager em)throws Throwable {
 
@@ -151,7 +152,7 @@ public class GeneralRepositoryImpl implements GeneralRepository {
                     if (!u.checkPassword(password)) {
                         u.setFailedLogins(u.getFailedLogins() + 1);
                         if (u.getFailedLogins() >= 10) u.setStatus(USER_STATUS.BLOCKED);
-                        Helper.transact(em2 -> em2.merge(u));
+                        JPAHelper.transact(em2 -> em2.merge(u));
                         try {
                             EmailHelper.sendEmail(u.getEmail(), "Failed login attempt", "Login failed due to wrong password", false);
                         } catch (Throwable t) {
@@ -184,14 +185,14 @@ public class GeneralRepositoryImpl implements GeneralRepository {
 
     @Override
     public void recoverPassword(String login) throws Throwable {
-        Helper.transact(em -> {
+        JPAHelper.transact(em -> {
             em.find(User.class, login).sendForgottenPasswordEmail(em);
         });
     }
 
     @Override
     public AuditRecord getNewAudit(String login) throws Throwable {
-        return new Audit(Helper.find(User.class, login));
+        return new Audit(JPAHelper.find(User.class, login));
     }
 
     private User findUserByPasswordResetKey(EntityManager em, String key) throws Exception {

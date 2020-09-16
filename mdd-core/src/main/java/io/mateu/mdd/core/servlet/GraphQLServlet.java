@@ -11,6 +11,7 @@ import graphql.servlet.GraphQLHttpServlet;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,7 +90,7 @@ public class GraphQLServlet extends GraphQLHttpServlet {
     private static RuntimeWiring crearRuntimeWiring() throws Throwable {
         RuntimeWiring.Builder b = newRuntimeWiring();
 
-        Helper.notransact(em -> {
+        JPAHelper.notransact(em -> {
 
             em.getMetamodel().getEntities().forEach(e -> {
                 if (utilizable(e)) b.type("Query", builder -> builder.dataFetcher(e.getName().substring(0, 1).toLowerCase() + e.getName().substring(1) + "ById", getFieldDataFetcher(e, ReflectionHelper.getIdField(e.getJavaType()))));
@@ -132,7 +133,7 @@ public class GraphQLServlet extends GraphQLHttpServlet {
         return dataFetchingEnvironment -> {
             Object id = getValueForField(f, dataFetchingEnvironment.getArgument("id"));
             try {
-                return Helper.selectObjects("select x from " + e.getName() + " x where x." + f.getName() + " = :f", Helper.hashmap("f", id)).stream().findFirst().orElse(null);
+                return JPAHelper.selectObjects("select x from " + e.getName() + " x where x." + f.getName() + " = :f", Helper.hashmap("f", id)).stream().findFirst().orElse(null);
             } catch (Throwable t) {
                 t.printStackTrace();
                 return null;
@@ -157,7 +158,7 @@ public class GraphQLServlet extends GraphQLHttpServlet {
         StringWriter sw;
         PrintWriter pw = new PrintWriter(sw = new StringWriter());
 
-        Helper.notransact(em -> {
+        JPAHelper.notransact(em -> {
 
             pw.println("type Query {");
             em.getMetamodel().getEntities().forEach(e -> {

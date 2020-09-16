@@ -40,6 +40,7 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.FieldInterfacedForCheckboxColumn;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components.WeekDaysComponent;
 import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
@@ -513,7 +514,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                                     Object[] w = {null};
 
                                     try {
-                                        Helper.notransact(em -> {
+                                        JPAHelper.notransact(em -> {
 
                                             FieldInterfaced fid = ReflectionHelper.getIdField(f.getType());
 
@@ -603,7 +604,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                                     necesitaCaptionGenerator = true;
 
                                     try {
-                                        Helper.notransact((em) -> cb.setDataProvider(new JPQLListDataProvider(em, f)));
+                                        JPAHelper.notransact((em) -> cb.setDataProvider(new JPQLListDataProvider(em, f)));
                                     } catch (Throwable throwable) {
                                         throwable.printStackTrace();
                                     }
@@ -870,7 +871,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                Object[] w = {null};
 
                try {
-                   Helper.notransact(em -> {
+                   JPAHelper.notransact(em -> {
 
                        FieldInterfaced fid = ReflectionHelper.getIdField(f.getType());
 
@@ -961,7 +962,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                 necesitaCaptionGenerator = true;
 
                 try {
-                    Helper.notransact((em) -> cb.setDataProvider(new JPQLListDataProvider(em, f)));
+                    JPAHelper.notransact((em) -> cb.setDataProvider(new JPQLListDataProvider(em, f)));
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();
                 }

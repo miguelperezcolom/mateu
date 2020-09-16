@@ -12,6 +12,6 @@ public class MateuJob implements Job {
 
         String uuid = dataMap.getString("_commandId");
 
-        BaseAppContext.scheduledCommands.get(uuid).run();
+        BaseAppContextListener.scheduledCommands.get(uuid).run();
     }
 }

@@ -3,6 +3,7 @@ package io.mateu.mdd.core.reflection;
 import com.vaadin.data.provider.DataProvider;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;

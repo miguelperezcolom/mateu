@@ -4,6 +4,7 @@ import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.Output;
 import io.mateu.mdd.core.annotations.TextArea;
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,7 +21,7 @@ public class JPQLTester {
 
     @Action(order = 10)
     public void select() throws Throwable {
-        Helper.notransact(em -> {
+        JPAHelper.notransact(em -> {
             result = "";
             List l = em.createQuery(jpql).setMaxResults(10).getResultList();
             result += l.size() + " records found:<br/>";
@@ -43,7 +44,7 @@ public class JPQLTester {
 
     @Action(order = 20)
     public void update() throws Throwable {
-        Helper.notransact(em -> {
+        JPAHelper.notransact(em -> {
             int r = em.createQuery(jpql).executeUpdate();
             result = r + " records updated<br/>";
         });

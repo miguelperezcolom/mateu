@@ -5,6 +5,7 @@ import io.mateu.mdd.core.annotations.HtmlCol;
 import io.mateu.mdd.core.annotations.Output;
 import io.mateu.mdd.core.interfaces.IIcon;
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 import lombok.MateuMDDEntity;
 
 import javax.persistence.Id;
@@ -44,7 +45,7 @@ public class Icon implements IIcon {
 
     private static void rebuild(String css) throws Throwable {
         if (css != null) {
-            Helper.transact(em -> {
+            JPAHelper.transact(em -> {
                 for (String l : css.split("\n")) {
                     if (l.contains(":before")) {
                         try {

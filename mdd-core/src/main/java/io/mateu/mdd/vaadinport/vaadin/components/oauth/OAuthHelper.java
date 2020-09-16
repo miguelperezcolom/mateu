@@ -7,6 +7,7 @@ import io.mateu.mdd.core.interfaces.GeneralRepository;
 import io.mateu.mdd.core.interfaces.UserPrincipal;
 import io.mateu.mdd.shared.VaadinHelper;
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 import io.mateu.mdd.util.persistence.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import lombok.extern.slf4j.Slf4j;

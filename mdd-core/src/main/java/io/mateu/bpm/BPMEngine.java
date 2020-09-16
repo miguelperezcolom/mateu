@@ -1,6 +1,6 @@
 package io.mateu.bpm;
 
-import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 
 public class BPMEngine implements Runnable {
 
@@ -11,18 +11,18 @@ public class BPMEngine implements Runnable {
         while (dentro) {
             try {
 
-                Helper.transact(em -> {
+                JPAHelper.transact(em -> {
 
-                    Helper.getStreams().streamAll(em, Process.class).filter(p -> ProcessStatus.GOINGTONEXTSTATE.equals(p.getStatus())).forEach(p -> {
+                    JPAHelper.getStreams().streamAll(em, Process.class).filter(p -> ProcessStatus.GOINGTONEXTSTATE.equals(p.getStatus())).forEach(p -> {
                         p.setState(p.getNextState());
                         p.setStatus(ProcessStatus.RUNNING);
                     });
 
                 });
 
-                Helper.transact(em -> {
+                JPAHelper.transact(em -> {
 
-                    Helper.getStreams().streamAll(em, Process.class).filter(p -> ProcessStatus.RUNNING.equals(p.getStatus())).forEach(p -> {
+                    JPAHelper.getStreams().streamAll(em, Process.class).filter(p -> ProcessStatus.RUNNING.equals(p.getStatus())).forEach(p -> {
                         p.setStatus(ProcessStatus.WAITING);
                         p.process(p.getState()).forEach(b -> em.persist(b));
                     });

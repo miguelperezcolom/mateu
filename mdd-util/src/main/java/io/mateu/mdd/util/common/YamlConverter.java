@@ -1,6 +1,7 @@
 package io.mateu.mdd.util.common;
 
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;

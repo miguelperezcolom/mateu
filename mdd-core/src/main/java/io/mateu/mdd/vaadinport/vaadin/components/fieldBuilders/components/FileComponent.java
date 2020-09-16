@@ -16,6 +16,7 @@ import io.mateu.mdd.core.interfaces.GeneralRepository;
 import io.mateu.mdd.core.interfaces.IResource;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;

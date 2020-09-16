@@ -4,7 +4,7 @@ import com.google.common.base.Strings;
 import com.vaadin.data.provider.QuerySortOrder;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -25,7 +25,7 @@ public abstract class AbstractCrudView<R> extends AbstractJPQLListView<R>  imple
 
     @Override
     public Object onEdit(R row) throws Throwable {
-        return Helper.find(getRowClass(), ReflectionHelper.getId(row));
+        return JPAHelper.find(getRowClass(), ReflectionHelper.getId(row));
     }
 
     @Override
@@ -37,7 +37,7 @@ public abstract class AbstractCrudView<R> extends AbstractJPQLListView<R>  imple
             else if (int.class.equals(idField.getType()) || Integer.class.equals(idField.getType())) id = Integer.parseInt(sid);
             else if (String.class.equals(idField.getType())) id = sid;
         }
-        return Helper.find(getRowClass(), id);
+        return JPAHelper.find(getRowClass(), id);
     }
 
 

@@ -10,6 +10,7 @@ import io.mateu.mdd.core.reflection.FieldInterfacedFromField;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.shared.JPAAdapter;
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 import io.mateu.mdd.util.persistence.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.components.views.ListViewComponent;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +35,7 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
 
         try {
 
-            Helper.notransact(new JPATransaction() {
+            JPAHelper.notransact(new JPATransaction() {
                 @Override
                 public void run(EntityManager em) throws Throwable {
 
@@ -89,7 +90,7 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
 
         try {
 
-            Helper.notransact(new JPATransaction() {
+            JPAHelper.notransact(new JPATransaction() {
                 @Override
                 public void run(EntityManager em) throws Throwable {
 

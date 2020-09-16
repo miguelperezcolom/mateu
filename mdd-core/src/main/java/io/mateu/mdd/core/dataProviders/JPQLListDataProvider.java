@@ -6,7 +6,7 @@ import io.mateu.mdd.core.annotations.QLFilter;
 import io.mateu.mdd.core.annotations.QLForCombo;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -25,17 +25,17 @@ public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvi
     }
 
     public JPQLListDataProvider(String jpql) throws Throwable {
-        super(Helper.selectObjects(jpql));
+        super(JPAHelper.selectObjects(jpql));
         this.jpql = jpql;
     }
 
     public JPQLListDataProvider(String jpql, Map<String, Object> params) throws Throwable {
-        super(Helper.selectObjects(jpql, params));
+        super(JPAHelper.selectObjects(jpql, params));
         this.jpql = jpql;
     }
 
     public JPQLListDataProvider(String jpql, Class targetClass) throws Throwable {
-        super(Helper.selectObjects(jpql, targetClass));
+        super(JPAHelper.selectObjects(jpql, targetClass));
         this.jpql = jpql;
         this.targetClass = targetClass;
     }
@@ -57,7 +57,7 @@ public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvi
     private static Collection getInstances(Class entityClass) {
         List col = new ArrayList();
         try {
-            Helper.notransact(em -> col.addAll(buildQuery(em, entityClass, null).getResultList()));
+            JPAHelper.notransact(em -> col.addAll(buildQuery(em, entityClass, null).getResultList()));
         } catch (Throwable throwable) {
             MDD.alert(throwable);
         }
@@ -114,22 +114,22 @@ public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvi
     public void refresh() {
         if (field != null) {
             try {
-                Helper.transact(em -> refresh(buildQuery(em, field)));
+                JPAHelper.transact(em -> refresh(buildQuery(em, field)));
             } catch (Throwable throwable) {
                 MDD.alert(throwable);
             }
         } else if (entityClass != null) {
             try {
-                Helper.transact(em -> refresh(buildQuery(em, entityClass, null)));
+                JPAHelper.transact(em -> refresh(buildQuery(em, entityClass, null)));
             } catch (Throwable throwable) {
                 MDD.alert(throwable);
             }
         } else if (jpql != null) {
             try {
                 if (targetClass != null) {
-                    Helper.transact(em -> refresh(em.createQuery(jpql, targetClass)));
+                    JPAHelper.transact(em -> refresh(em.createQuery(jpql, targetClass)));
                 } else {
-                    Helper.transact(em -> refresh(em.createQuery(jpql)));
+                    JPAHelper.transact(em -> refresh(em.createQuery(jpql)));
                 }
             } catch (Throwable throwable) {
                 MDD.alert(throwable);
@@ -146,7 +146,7 @@ public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvi
 
     public void refresh(String s) {
         try {
-            Helper.notransact(em -> refresh(em.createQuery(s)));
+            JPAHelper.notransact(em -> refresh(em.createQuery(s)));
         } catch (Throwable throwable) {
             MDD.alert(throwable);
         }

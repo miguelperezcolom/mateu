@@ -11,6 +11,7 @@ import io.mateu.mdd.core.interfaces.GeneralRepository;
 import io.mateu.mdd.core.interfaces.IIcon;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 
 import java.util.*;
 import java.util.stream.Collectors;

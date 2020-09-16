@@ -17,8 +17,9 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.FieldInterfacedFromType;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.shared.AppConfigLocator;
-import io.mateu.mdd.util.common.EmptyRow;
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.common.EmptyRow;
+import io.mateu.mdd.util.JPAHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.JPAOutputFieldBuilder;
 import io.mateu.mdd.vaadinport.vaadin.components.views.EditorViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.views.FormLayoutBuilder;
@@ -360,7 +361,7 @@ public class VaadinHelper {
 
         String[] xslfo = {""};
 
-        Helper.notransact(em -> xslfo[0] = Helper.getImpl(AppConfigLocator.class).get().getXslfoForList());
+        JPAHelper.notransact(em -> xslfo[0] = Helper.getImpl(AppConfigLocator.class).get().getXslfoForList());
 
         long t0 = new Date().getTime();
 

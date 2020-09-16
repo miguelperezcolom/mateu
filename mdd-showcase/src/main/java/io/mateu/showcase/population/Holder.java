@@ -1,6 +1,6 @@
 package io.mateu.showcase.population;
 
-import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 import io.mateu.showcase.domain.boundedContexts.educational.model.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,7 +23,7 @@ public class Holder {
     List<Grade> grades;
 
     public void persistAll() throws Throwable {
-        Helper.transact(em -> {
+        JPAHelper.transact(em -> {
             if (courses != null) courses.stream().forEach(c -> em.persist(c));
             if (quarters != null) quarters.stream().forEach(c -> em.persist(c));
             if (teachers != null) teachers.stream().forEach(c -> em.persist(c));

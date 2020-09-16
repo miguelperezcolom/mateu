@@ -15,6 +15,7 @@ import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 import io.mateu.mdd.util.persistence.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import lombok.extern.slf4j.Slf4j;
@@ -129,7 +130,7 @@ public class JPAListViewComponent extends ListViewComponent {
                     Object o = null;
                     if (id != null) {
                         try {
-                            o = Helper.find(entityClass, toId(id));
+                            o = JPAHelper.find(entityClass, toId(id));
                         } catch (Throwable throwable) {
                             MDD.alert(throwable);
                         }
@@ -364,7 +365,7 @@ public class JPAListViewComponent extends ListViewComponent {
         List l = new ArrayList();
 
         try {
-            Helper.notransact(new JPATransaction() {
+            JPAHelper.notransact(new JPATransaction() {
                 @Override
                 public void run(EntityManager em) throws Throwable {
 
@@ -620,7 +621,7 @@ public class JPAListViewComponent extends ListViewComponent {
         final int[] count = {0};
 
         try {
-            Helper.notransact(new JPATransaction() {
+            JPAHelper.notransact(new JPATransaction() {
                 @Override
                 public void run(EntityManager em) throws Throwable {
 
@@ -689,7 +690,7 @@ public class JPAListViewComponent extends ListViewComponent {
         String caption = "By " + Helper.capitalize(f.getName()).toLowerCase();
 
         try {
-            Helper.notransact(new JPATransaction() {
+            JPAHelper.notransact(new JPATransaction() {
                 @Override
                 public void run(EntityManager em) throws Throwable {
 
@@ -755,7 +756,7 @@ public class JPAListViewComponent extends ListViewComponent {
     @Override
     protected void delete(Set selection) {
         try {
-            Helper.transact(new JPATransaction() {
+            JPAHelper.transact(new JPATransaction() {
                 @Override
                 public void run(EntityManager em) throws Throwable {
 
@@ -807,7 +808,7 @@ public class JPAListViewComponent extends ListViewComponent {
         Set sel = new HashSet();
 
         try {
-            Helper.notransact(em -> super.getSelection().forEach(o -> {
+            JPAHelper.notransact(em -> super.getSelection().forEach(o -> {
                 Object v = em.find(entityClass, toId(o));
                 sel.add(v != null?v:o);
             }));

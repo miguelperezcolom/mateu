@@ -7,6 +7,7 @@ import io.mateu.mdd.core.data.Pair;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;

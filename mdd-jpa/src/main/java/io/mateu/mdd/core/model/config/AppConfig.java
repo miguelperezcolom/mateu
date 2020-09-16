@@ -14,6 +14,7 @@ import io.mateu.mdd.core.util.Notifier;
 import io.mateu.mdd.shared.IAppConfig;
 import io.mateu.mdd.shared.VaadinHelper;
 import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.util.JPAHelper;
 import io.mateu.mdd.util.mail.EmailHelper;
 import io.mateu.mdd.util.persistence.JPATransaction;
 import lombok.MateuMDDEntity;
@@ -186,7 +187,7 @@ public class AppConfig implements IAppConfig {
 
     @Action(value = "Create dummy dates", order = 100)
     public void createDummyDates() throws Throwable {
-        Helper.transact(new JPATransaction() {
+        JPAHelper.transact(new JPATransaction() {
             @Override
             public void run(EntityManager em) throws Throwable {
                 LocalDate d = LocalDate.parse("01/01/2000", DateTimeFormatter.ofPattern("dd/MM/yyyy"));
