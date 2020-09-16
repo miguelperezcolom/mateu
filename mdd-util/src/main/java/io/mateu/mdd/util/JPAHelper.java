@@ -6,6 +6,10 @@ import io.mateu.mdd.util.runnable.RunnableThrowsThrowable;
 import org.jinq.jpa.JinqJPAStreamProvider;
 
 import javax.persistence.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.util.*;
@@ -314,4 +318,79 @@ public class JPAHelper {
 
 
 
+
+
+
+    public static <T> void deleteWithId(EntityManager em, Class<T> type, Object id) {
+        T o = em.find(type, id);
+        if (o != null) em.remove(o);
+    }
+
+    public static <T> T find(EntityManager em, Class<T> type, Object... params) {
+        TypedQuery<T> q = createQuery(em, type, params);
+        return q.getSingleResult();
+    }
+
+    private static <T> TypedQuery<T> createQuery(EntityManager em, Class<T> type, Object[] params) {
+        CriteriaBuilder b = em.getCriteriaBuilder();
+        CriteriaQuery<T> cq = b.createQuery(type);
+        Root<T> root = cq.from(type);
+        int pos = 0;
+        Object o0 = null;
+        List<Predicate> predicados = new ArrayList<>();
+        for (Object o : params) {
+            if (pos > 0 && pos % 2 == 1) {
+                predicados.add(b.equal(root.get("" + o0), o));
+            } else {
+                o0 = o;
+            }
+            pos++;
+        }
+        Predicate todosLosPredicados = b.and(predicados.toArray(new Predicate[0]));
+        TypedQuery<T> q = em.createQuery(cq.select(root).where(todosLosPredicados));
+        return q;
+    }
+
+    public static <T> List<T> list(EntityManager em, Class<T> type, Object... params) {
+        TypedQuery<T> q = createQuery(em, type, params);
+        return q.getResultList();
+    }
+
+    public static <T> void delete(EntityManager em, Class<T> type, Object... params) {
+        T o = find(em, type, params);
+        if (o != null) em.remove(o);
+    }
+
+    public static <T> int count(EntityManager em, Class<T> type) {
+        try {
+            return findAll(type).size();
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+        return 0;
+    }
+
+    public static <T> int count(EntityManager em, Class<T> type, Object... params) {
+        return list(em, type, params).size();
+    }
+
+    private static <T> TypedQuery<T> createQueryForCount(EntityManager em, Class<T> type, Object[] params) {
+        CriteriaBuilder b = em.getCriteriaBuilder();
+        CriteriaQuery<T> cq = b.createQuery(type);
+        Root<T> root = cq.from(type);
+        int pos = 0;
+        Object o0 = null;
+        List<Predicate> predicados = new ArrayList<>();
+        for (Object o : params) {
+            if (pos > 0 && pos % 2 == 1) {
+                predicados.add(b.equal(root.get("" + o0), o));
+            } else {
+                o0 = o;
+            }
+            pos++;
+        }
+        Predicate todosLosPredicados = b.and(predicados.toArray(new Predicate[0]));
+        TypedQuery<T> q = em.createQuery(cq.select(root).where(todosLosPredicados));
+        return q;
+    }
 }

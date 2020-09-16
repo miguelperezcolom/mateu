@@ -31,7 +31,12 @@ public class EventBus {
                 while (true) {
                     while (events.size() > 0) {
                         Event event = events.remove(0);
-                        consumers.get(event.getClass()).stream().forEach(c -> c.accept(event));
+                        List<Consumer> l = consumers.get(event.getClass());
+                        if (l == null || l.size() == 0) {
+                            System.out.println("**** NO CONSUMER FOR EVENTS OF TYPE " + event.getClass().getSimpleName() + " ****");
+                        } else {
+                            l.stream().forEach(c -> c.accept(event));
+                        }
                     }
                     Thread.sleep(100);
                 }

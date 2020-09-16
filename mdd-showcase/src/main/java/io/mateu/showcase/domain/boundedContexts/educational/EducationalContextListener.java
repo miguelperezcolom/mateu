@@ -11,7 +11,7 @@ import java.util.List;
 public class EducationalContextListener implements BoundedContextListener {
     @Override
     public void init() {
-        EventBus.register(new StudentGradedEventConsumer());
+
     }
 
     @Override
@@ -27,5 +27,12 @@ public class EducationalContextListener implements BoundedContextListener {
     @Override
     public List<Command> getCommands() {
         return List.of(new StartCourseCommand());
+    }
+
+    @Override
+    public void registerEventConsumers() {
+
+        EventBus.register(new StudentGradedEventConsumer());
+
     }
 }

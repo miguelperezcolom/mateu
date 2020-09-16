@@ -12,5 +12,5 @@ public interface BoundedContextListener {
 
     List<Command> getCommands();
 
-
+    void registerEventConsumers();
 }

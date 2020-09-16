@@ -10,7 +10,7 @@ import java.util.List;
 public class FinancialContextListener implements BoundedContextListener {
     @Override
     public void init() {
-        EventBus.register(new QuarterStartedEventConsumer());
+
     }
 
     @Override
@@ -26,5 +26,10 @@ public class FinancialContextListener implements BoundedContextListener {
     @Override
     public List<Command> getCommands() {
         return null;
+    }
+
+    @Override
+    public void registerEventConsumers() {
+        EventBus.register(new QuarterStartedEventConsumer());
     }
 }

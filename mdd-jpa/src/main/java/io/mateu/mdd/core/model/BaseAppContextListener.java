@@ -35,6 +35,8 @@ public class BaseAppContextListener implements AppContextListener {
             e.printStackTrace();
         }
 
+        registerEventConsumers();
+
         if (isPopulationNeeded()) {
             try {
                 populate();
@@ -44,10 +46,21 @@ public class BaseAppContextListener implements AppContextListener {
         }
     }
 
+
+    @Override
+    public void registerEventConsumers() {
+        EventBus.register(new UserCreatedEventConsumer());
+
+        try {
+            Helper.getImpls(BoundedContextListener.class).stream().forEach(c -> c.registerEventConsumers());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
     @Override
     public void initialized() {
-
-        EventBus.register(new UserCreatedEventConsumer());
 
         try {
             Helper.getImpls(BoundedContextListener.class).stream().forEach(c -> c.contextInitialized());
@@ -115,7 +128,7 @@ public class BaseAppContextListener implements AppContextListener {
     @Override
     public boolean isPopulationNeeded() {
         try {
-            return JPAHelper.find(AppConfig.class, 1l) != null;
+            return JPAHelper.find(AppConfig.class, 1l) == null;
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }

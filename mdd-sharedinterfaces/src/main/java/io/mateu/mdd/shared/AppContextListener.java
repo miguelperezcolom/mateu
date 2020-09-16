@@ -6,6 +6,8 @@ public interface AppContextListener {
 
     void init();
 
+    void registerEventConsumers();
+
     void initialized();
 
     boolean isPopulationNeeded();
