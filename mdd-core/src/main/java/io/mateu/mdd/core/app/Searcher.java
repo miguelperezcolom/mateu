@@ -25,7 +25,7 @@ public class Searcher {
 
         List<Found> found = new ArrayList<>();
 
-        boolean autentico = MDD.getCurrentUser() != null;
+        boolean autentico = MDD.getCurrentUserLogin() != null;
 
         List<AbstractArea> areas = new ArrayList<>();
 

@@ -67,6 +67,6 @@ public class Profile implements PersistentPOJO {
 
     @Override
     public String toString() {
-        return "Profile for user " + (MDD.getCurrentUser() != null?MDD.getCurrentUser().getLogin():"unknown");
+        return "Profile for user " + (MDD.getCurrentUserLogin() != null?MDD.getCurrentUserLogin():"unknown");
     }
 }

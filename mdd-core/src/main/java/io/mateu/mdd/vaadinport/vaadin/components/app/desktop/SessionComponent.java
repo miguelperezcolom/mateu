@@ -48,7 +48,7 @@ public class SessionComponent extends VerticalLayout {
             MDDUI.get().getNavegador().doAfterCheckSaved(() -> {
                 appComponent.unselectAll();
                 signingButton.addStyleName("selected");
-                if (MDD.getCurrentUser() != null) {
+                if (MDD.getCurrentUserLogin() != null) {
                     MDDUI.get().getNavegador().goTo("bye");
                 } else {
                     MDDUI.get().getNavegador().goTo("login");
@@ -56,14 +56,14 @@ public class SessionComponent extends VerticalLayout {
             });
         });
 
-        if (MDD.getCurrentUser() != null) signingButton.setVisible(true);
+        if (MDD.getCurrentUserLogin() != null) signingButton.setVisible(true);
         if (!MDD.getApp().isAuthenticationNeeded() && !MDD.getApp().hasPrivateContent()) signingButton.setVisible(false);
         else signingButton.setVisible(true);
 
     }
 
     public void update() {
-        if (MDD.getCurrentUser() != null) {
+        if (MDD.getCurrentUserLogin() != null) {
             greeting.setVisible(true);
             greeting.setCaption("Hi " + MDD.getCurrentUser().getName());
             //foto.setCaption("Hi " + MDD.getUserData().getName());

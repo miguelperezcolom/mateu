@@ -133,7 +133,7 @@ public abstract class AbstractApplication implements App {
     public List<AbstractArea> getAreas() {
         if (areas == null) synchronized (this) {
             areas = new ArrayList<>();
-            boolean autentico = MDD.getCurrentUser() != null;
+            boolean autentico = MDD.getCurrentUserLogin() != null;
             for (AbstractArea a : buildAreas()) {
                 if (isAuthenticationAgnostic() || (!autentico && a.isPublicAccess()) || (autentico && !a.isPublicAccess())) areas.add(a);
             }
