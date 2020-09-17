@@ -1,9 +1,9 @@
 # Mateu MDD
 
-Mateu MDD is a framework for creating awesome web applications from java.
+Mateu MDD is a framework for creating awesome **web applications** from **java**.
 
 
-It's main target is to allow you to write your applications with the minimum code.
+It's main target is to allow you to write your applications with the **minimum code**.
 
 
 For achieving this goal, Mateu MDD provides 
@@ -16,7 +16,7 @@ For achieving this goal, Mateu MDD provides
 So, you define your whole application by using plain java clases. From the application structure and menus to any UI custom component.
 
 
-The true power of this approach (java based) comes up when you compose or extend existing appications just by using java inheritance, polimorphism and the maven dependency mechanism.
+The true power of this approach comes up when you compose or extend existing appications just by using java inheritance, polimorphism and the maven dependency mechanism, or when you want to customize the styles or add your custom components with Vaadin.
 
 
 Mateu MDD is not about scaling neither about deploying your application to cloud, though we see a way to do it in a chapter of the manual.
