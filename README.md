@@ -1,6 +1,6 @@
 # Mateu MDD
 
-Mateu MDD is a framework for creating awesome **web applications** from **java**, and it's main target is to allow you to write your applications with the **minimum code**.
+Mateu MDD is a framework for creating awesome **responsive web applications** from **java** at speed of light, and it's main target is to allow you to do it with the **minimum lines of code**.
 
 For achieving this goal, Mateu MDD provides 
 

@@ -7,7 +7,7 @@ import io.mateu.mdd.core.app.MateuUI;
 import io.mateu.showcase.domain.boundedContexts.educational.model.Grade;
 
 @MateuMDDUI(path = "")
-public class UI extends MateuUI {
+public class MyUI extends MateuUI {
 
     @Submenu
     public ConfigMenu config;
