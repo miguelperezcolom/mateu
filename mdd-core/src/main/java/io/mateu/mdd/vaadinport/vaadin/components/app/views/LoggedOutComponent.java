@@ -4,6 +4,7 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.util.SharedHelper;
 import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.util.JPAHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
@@ -23,8 +24,6 @@ public class LoggedOutComponent extends VerticalLayout {
     public LoggedOutComponent() {
 
         addStyleName("logincomponent2");
-
-        Helper.loadProperties();
 
         setSizeFull();
 

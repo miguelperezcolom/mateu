@@ -1,4 +1,4 @@
-package io.mateu.mdd.core.model;
+package io.mateu.mdd.core.quartz;
 
 import org.quartz.Job;
 import org.quartz.JobDataMap;
@@ -12,6 +12,6 @@ public class MateuJob implements Job {
 
         String uuid = dataMap.getString("_commandId");
 
-        BaseAppContextListener.scheduledCommands.get(uuid).run();
+        QuartzEngine.run(uuid);
     }
 }

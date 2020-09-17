@@ -9,6 +9,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.BaseMDDApp;
+import io.mateu.mdd.core.util.SharedHelper;
 import io.mateu.mdd.shared.AppConfigLocator;
 import io.mateu.mdd.shared.IAppConfig;
 import io.mateu.mdd.util.Helper;
@@ -38,8 +39,6 @@ public class LoginComponent extends VerticalLayout {
 
 
         addStyleName("logincomponent2");
-
-        Helper.loadProperties();
 
         setSizeFull();
 

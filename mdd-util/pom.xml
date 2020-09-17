@@ -109,13 +109,6 @@
       <version>2.2</version>
     </dependency>
 
-    <dependency>
-      <groupId>commons-beanutils</groupId>
-      <artifactId>commons-beanutils</artifactId>
-      <version>1.9.4</version>
-      <scope>compile</scope>
-    </dependency>
-
     <!-- códigos QR -->
     <dependency>
       <groupId>com.google.zxing</groupId>

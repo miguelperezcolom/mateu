@@ -2,7 +2,7 @@ io.mateu.common.model.util
 io.mateu.mdd.core
 io.mateu.mdd.core.annotations
 io.mateu.mdd.core.app
-io.mateu.mdd.util.asciiart
+io.mateu.mdd.core.util.asciiart
 io.mateu.mdd.core.data
 io.mateu.mdd.core.dataProviders
 io.mateu.mdd.core.interfaces

@@ -151,7 +151,7 @@ public class MDDViewProvider implements ViewProvider {
 
         //System.out.println("MDDViewProvider.getView(" + state + ")");
 
-        if (MDDUI.get().getAppComponent().isSigningIn() && MDD.getCurrentUser() != null) MDDUI.get().getAppComponent().setSignedIn();
+        if (MDDUI.get().getAppComponent().isSigningIn() && MDD.getCurrentUserLogin() != null) MDDUI.get().getAppComponent().setSignedIn();
 
         if (samePath(state, currentPath)) {
             io.mateu.mdd.vaadinport.vaadin.navigation.View v = stack.getLast();
@@ -181,7 +181,7 @@ public class MDDViewProvider implements ViewProvider {
             if (Strings.isNullOrEmpty(state)) { // caso ""
 
                 if (!MDD.getApp().hasPublicContent()) {
-                    if (MDD.getCurrentUser() == null) state = "login";
+                    if (MDD.getCurrentUserLogin() == null) state = "login";
                     else {
                         if (MDD.isMobile()) state = "private";
                         else state = state.split("/").length > 1?MDD.getApp().getState(MDD.getApp().getDefaultPrivateArea()):"private";
@@ -201,7 +201,7 @@ public class MDDViewProvider implements ViewProvider {
 
                 //System.out.println("state = " + state);
 
-                if (MDD.getCurrentUser() == null) {
+                if (MDD.getCurrentUserLogin() == null) {
 
                     Map<String, String> params = Helper.parseQueryString(Page.getCurrent().getLocation().getQuery());
 
@@ -226,7 +226,7 @@ public class MDDViewProvider implements ViewProvider {
 
                 //System.out.println("state = " + state);
 
-                if (MDD.getCurrentUser() == null) {
+                if (MDD.getCurrentUserLogin() == null) {
 
                     Map<String, String> params = Helper.parseQueryString(Page.getCurrent().getLocation().getQuery());
 
@@ -251,7 +251,7 @@ public class MDDViewProvider implements ViewProvider {
 
                 //System.out.println("state = " + state);
 
-                if (MDD.getCurrentUser() == null) {
+                if (MDD.getCurrentUserLogin() == null) {
 
                     Map<String, String> params = Helper.parseQueryString(Page.getCurrent().getLocation().getQuery());
 
@@ -277,7 +277,7 @@ public class MDDViewProvider implements ViewProvider {
                 MDDUI.get().getAppComponent().setSignedIn();
             }
 
-            if ("welcome".equals(state) && MDD.getCurrentUser() != null) { // caso "login"
+            if ("welcome".equals(state) && MDD.getCurrentUserLogin() != null) { // caso "login"
                 //System.out.println("-->welcome (" + pendingPrivateState + ")");
                 if (!Strings.isNullOrEmpty(pendingPrivateState)) {
                     String newState = pendingPrivateState;
@@ -359,7 +359,7 @@ public class MDDViewProvider implements ViewProvider {
 
                 MDDUI.get().getAppComponent().setSignedOut();
 
-            } else if ((state.startsWith("private") || state.equals("welcome") || state.equals("profile")) && MDD.getCurrentUser() == null) {
+            } else if ((state.startsWith("private") || state.equals("welcome") || state.equals("profile")) && MDD.getCurrentUserLogin() == null) {
 
                 clearStack();
 
@@ -498,7 +498,7 @@ public class MDDViewProvider implements ViewProvider {
                         if (v == null) {
 
                             if (!MDD.isMobile()) clearStack();
-                            openEditor(null, Profile.class, MDD.getCurrentUser().getLogin());
+                            openEditor(null, Profile.class, MDD.getCurrentUserLogin());
 
                             v = lastView = stack.get("private/profile");
 

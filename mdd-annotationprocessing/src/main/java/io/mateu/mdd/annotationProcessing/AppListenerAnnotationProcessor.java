@@ -32,46 +32,23 @@ public class AppListenerAnnotationProcessor extends AbstractProcessor {
 
                 JavaFileObject builderFile = null;
                 try {
-                    builderFile = processingEnv.getFiler().createSourceFile(pkgName + "." + simpleClassName + "ServletContextListener");
+                    builderFile = processingEnv.getFiler().createSourceFile(pkgName + "." + simpleClassName + "Wrapper");
                     try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
                         // writing generated file to out …
-
 
 
                         out.println("package " + pkgName + ";");
                         out.println("import " + className + ";");
 
-                        out.println("");
-
-                        out.println("import javax.servlet.ServletContextEvent;");
-                        out.println("import javax.servlet.ServletContextListener;");
-                        out.println("import javax.servlet.annotation.WebListener;");
+                        out.println("import com.google.auto.service.AutoService;");
+                        out.println("import io.mateu.mdd.shared.AppContextListener;");
 
                         out.println("");
 
-                        out.println("@WebListener\n" +
-                                "public class " + simpleClassName + "ServletContextListener implements ServletContextListener {\n" +
-                                "    \n");
+                        out.println("@AutoService(AppContextListener.class)");
+                        out.println("public class " + simpleClassName + "Wrapper extends " + simpleClassName + " implements AppContextListener {");
+                        out.println("}");
 
-                        out.println("    private " + simpleClassName + " app;");
-                        out.println("    ");
-
-
-                        out.println("    @Override\n" +
-                                "    public void contextInitialized(ServletContextEvent servletContextEvent) {");
-
-                        out.println("        app = new " + simpleClassName + "();");
-
-                        out.println("    }\n" +
-                                "\n" +
-                                "    @Override\n" +
-                                "    public void contextDestroyed(ServletContextEvent servletContextEvent) {");
-
-                        out.println("        app.destroyed();");
-
-                        out.println("    }\n" +
-                                "\n" +
-                                "}");
                     }
                 } catch (IOException ex) {
                     ex.printStackTrace();

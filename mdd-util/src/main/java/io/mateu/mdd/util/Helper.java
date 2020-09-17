@@ -3,9 +3,6 @@ package io.mateu.mdd.util;
 
 import com.Ostermiller.util.CSVParser;
 import com.Ostermiller.util.CSVPrinter;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.github.slugify.Slugify;
 import com.google.api.client.http.*;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -26,19 +23,14 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 import io.mateu.mdd.core.util.Serializer;
+import io.mateu.mdd.core.util.SharedHelper;
 import io.mateu.mdd.shared.AppConfigLocator;
 import io.mateu.mdd.shared.IAppConfig;
-import io.mateu.mdd.shared.JPAAdapter;
-import io.mateu.mdd.util.asciiart.Painter;
-import io.mateu.mdd.util.beanutils.MiURLConverter;
 import io.mateu.mdd.util.i18n.DeepLClient;
-import io.mateu.mdd.util.persistence.JPATransaction;
-import io.mateu.mdd.util.runnable.RunnableThrowsThrowable;
 import io.mateu.mdd.util.runtime.MemInfo;
 import io.mateu.mdd.util.xml.XMLSerializable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
-import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.mail.DefaultAuthenticator;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
@@ -50,7 +42,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
-import org.jinq.jpa.JinqJPAStreamProvider;
 import org.xml.sax.SAXException;
 
 import javax.mail.Message;
@@ -64,13 +55,9 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.sql.DataSource;
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
 import javax.xml.transform.*;
 import javax.xml.transform.sax.SAXResult;
 import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
@@ -91,14 +78,13 @@ import static java.time.temporal.ChronoUnit.DAYS;
 @Slf4j
 public class Helper {
 
-    public static boolean propertiesLoaded = false;
     private static org.apache.avalon.framework.configuration.Configuration fopConfig;
     private static ScriptEngineManager scriptEngineManager;
 
 
 
     static {
-        loadProperties();
+        SharedHelper.loadProperties();
         DefaultConfigurationBuilder cfgBuilder = new DefaultConfigurationBuilder();
         try {
             if (!Strings.isNullOrEmpty(System.getProperty("fopconfig"))) {
@@ -618,89 +604,7 @@ public class Helper {
     }
 
 
-    public static void loadProperties() {
-        if (!propertiesLoaded) {
 
-
-
-            Painter.paint("Hello");
-            Painter.paint("MATEU");
-
-
-
-            log.info("Registrando concerters beanutils...");
-            ConvertUtils.register(new MiURLConverter(), URL.class);
-
-            log.info("Loading properties...");
-            propertiesLoaded = true;
-            InputStream s = null;
-            try {
-                if (System.getProperty("appconf") != null) {
-                    log.info("Loading properties from file " + System.getProperty("appconf"));
-                    s = new FileInputStream(System.getProperty("appconf"));
-                } else {
-                    s = Helper.class.getResourceAsStream("/appconf.properties");
-                    log.info("Loading properties classpath /appconf.properties");
-                }
-
-                if (s != null) {
-
-                    Properties p = new Properties();
-                    p.load(s);
-
-                    for (Map.Entry<Object, Object> e : p.entrySet()) {
-                        log.info("" + e.getKey() + "=" + e.getValue());
-                        if (System.getProperty("" + e.getKey()) == null) {
-                            System.setProperty("" + e.getKey(), "" + e.getValue());
-                            log.debug("property fixed");
-                        } else {
-                            log.info("property " + e.getKey() + " is already set with value " + System.getProperty("" + e.getKey()));
-                        }
-                    }
-
-                    if (System.getProperty("heroku.database.url") != null) {
-
-                        log.info("adjusting jdbc properties for Heroku...");
-
-                        URI dbUri = null;
-                        try {
-                            dbUri = new URI(System.getProperty("heroku.database.url"));
-                        } catch (URISyntaxException e) {
-                            e.printStackTrace();
-                        }
-
-
-                        System.setProperty("eclipselink.target-database", "io.mateu.mdd.se.postgresql.MiPostgreSQLPlatform");
-                        System.setProperty("javax.persistence.jdbc.driver", "org.postgresql.Driver");
-
-                        String username = dbUri.getUserInfo().split(":")[0];
-                        String password = dbUri.getUserInfo().split(":")[1];
-                        String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ':' + dbUri.getPort() + dbUri.getPath() + "?sslmode=require&user=" + username + "&password=" + password;
-
-
-                        System.setProperty("javax.persistence.jdbc.url", dbUrl);
-                        System.getProperties().remove("javax.persistence.jdbc.user");
-                        System.getProperties().remove("javax.persistence.jdbc.password");
-
-
-                    } else if (System.getProperty("javax.persistence.jdbc.url", "").contains("postgres")) {
-                        System.setProperty("eclipselink.target-database", "io.mateu.mdd.se.postgresql.MiPostgreSQLPlatform");
-                    }
-                    s.close();
-                } else {
-                    log.error("No appconf. Either set -Dappconf=xxxxxx.properties or place an appconf.properties file in your classpath.");
-                }
-
-            } catch (FileNotFoundException e1) {
-                e1.printStackTrace();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
-
-        } else {
-            log.info("Properties already loaded");
-        }
-    }
 
 
 
@@ -1076,23 +980,11 @@ public class Helper {
 
 
     public static <T> T getImpl(Class<T> c) throws Exception {
-        Iterator<T> impls = ServiceLoader.load(c).iterator();
-        T i = null;
-        while (impls.hasNext()) {
-            i = impls.next();
-            break;
-        }
-        if (i != null && impls.hasNext()) throw new Exception("More than 1 implementation found for " + c.getName());
-        return i;
+       return SharedHelper.getImpl(c);
     }
 
     public static <T> List<T> getImpls(Class<T> c) throws Exception {
-        Iterator<T> impls = ServiceLoader.load(c).iterator();
-        List<T> i = new ArrayList<>();
-        while (impls.hasNext()) {
-            i.add(impls.next());
-        }
-        return i;
+        return SharedHelper.getImpls(c);
     }
 
     public static Map<String, Object> getGeneralData() throws Throwable {

@@ -18,110 +18,26 @@ import java.util.List;
 import java.util.UUID;
 
 public class BaseAppContextListener implements AppContextListener {
-    private Scheduler scheduler;
-
-    protected static HashMap<String, Command> scheduledCommands = new HashMap<>();
 
     public BaseAppContextListener() {
-        init();
-        initialized();
     }
 
     @Override
     public void init() {
-        try {
-            Helper.getImpls(BoundedContextListener.class).stream().forEach(c -> c.init());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        registerEventConsumers();
-
-        if (isPopulationNeeded()) {
-            try {
-                populate();
-            } catch (Throwable throwable) {
-                throwable.printStackTrace();
-            }
-        }
     }
 
 
     @Override
     public void registerEventConsumers() {
         EventBus.register(new UserCreatedEventConsumer());
-
-        try {
-            Helper.getImpls(BoundedContextListener.class).stream().forEach(c -> c.registerEventConsumers());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
     }
 
     @Override
     public void initialized() {
-
         try {
             Helper.getImpls(BoundedContextListener.class).stream().forEach(c -> c.contextInitialized());
         } catch (Exception e) {
             e.printStackTrace();
-        }
-
-        Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHookThread(this)));
-
-        try {
-            // Grab the Scheduler instance from the Factory
-            scheduler = StdSchedulerFactory.getDefaultScheduler();
-            // and start it off
-            scheduler.start();
-        } catch (SchedulerException e) {
-            e.printStackTrace();
-        }
-
-
-        runAndSchedule(getCommands());
-        try {
-            Helper.getImpls(BoundedContextListener.class).stream().forEach(c -> runAndSchedule(c.getCommands()));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    private void runAndSchedule(List<Command> commands) {
-        if (commands != null) {
-            commands.stream().forEach(c -> {
-                if (c instanceof ScheduledCommand) {
-                    // define the job and tie it to our HelloJob class
-                    String uuid = UUID.randomUUID().toString();
-                    scheduledCommands.put(uuid, c);
-                    JobDetail job = JobBuilder.newJob(MateuJob.class)
-                            .withIdentity("job-" + uuid, "io.mateu")
-                            .usingJobData("_commandId", uuid)
-                            .build();
-
-                    // Trigger the job to run now, and then repeat every 40 seconds
-                    Trigger trigger = TriggerBuilder.newTrigger()
-                            .withIdentity("trigger-" + uuid, "io.mateu")
-                            .startNow()
-//                            .withSchedule(CronScheduleBuilder.cronSchedule("0 0/2 8-17 * * ?"))
-//                            .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-//                                    .withIntervalInSeconds(40)
-//                                    .repeatForever())
-                            .withSchedule(CronScheduleBuilder.cronSchedule(((ScheduledCommand) c).getSchedule()))
-                            .build();
-
-                    // Tell quartz to schedule the job using our trigger
-                    try {
-                        scheduler.scheduleJob(job, trigger);
-                    } catch (SchedulerException e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    c.run();
-                }
-            });
         }
     }
 
@@ -142,19 +58,7 @@ public class BaseAppContextListener implements AppContextListener {
 
     @Override
     public void destroyed() {
-        System.out.println("destroyed");
-
-        try {
-            Helper.getImpls(BoundedContextListener.class).stream().forEach(c -> c.contextDestroyed());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        try {
-            scheduler.shutdown();
-        } catch (SchedulerException e) {
-            e.printStackTrace();
-        }
+        System.out.println("app destroyed");
     }
 
     @Override

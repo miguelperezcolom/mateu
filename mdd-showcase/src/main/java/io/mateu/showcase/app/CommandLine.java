@@ -1,16 +1,12 @@
 package io.mateu.showcase.app;
 
-import io.mateu.showcase.domain.MyAppListener;
+import io.mateu.mdd.core.app.MateuApplication;
 
 public class CommandLine {
 
     public static void main(String[] args) {
 
-        try {
-            new MyAppListener();
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
-        }
+        MateuApplication app = new MateuApplication().start();
 
         try {
             Thread.sleep(1 * 15 * 1000);
@@ -19,7 +15,7 @@ public class CommandLine {
         }
         System.out.println("fin!");
 
-        System.exit(0);
+        app.destroy();
     }
 
 }

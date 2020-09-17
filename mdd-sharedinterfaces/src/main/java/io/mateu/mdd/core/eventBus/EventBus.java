@@ -41,14 +41,21 @@ public class EventBus {
                     Thread.sleep(100);
                 }
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                System.out.println("EventBus worker thread interrupted");
             }
         });
         worker.start();
     }
 
     public static void publish(Event event) {
-        get().events.add(event);
+        new Thread(() -> {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            get().events.add(event);
+        }).start();
     }
 
     public static void register(Consumer consumer) {
@@ -68,6 +75,14 @@ public class EventBus {
             List<Consumer> l = get().consumers.get(eventClass);
             if (l != null) l.remove(consumer);
         }
+    }
+
+    public static void shutdown() {
+        get()._shutdown();
+    }
+
+    private void _shutdown() {
+        if (worker != null && !worker.isInterrupted()) worker.interrupt();
     }
 
 }

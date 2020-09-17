@@ -1,6 +1,6 @@
 package io.mateu.showcase.app;
 
-import io.mateu.showcase.domain.MyAppListener;
+import io.mateu.mdd.core.app.MateuApplication;
 import org.jboss.weld.environment.se.Weld;
 import org.jboss.weld.environment.se.WeldContainer;
 
@@ -11,11 +11,10 @@ public class CommandLineWithCDI {
 
         try (WeldContainer container = weld.initialize()) {
 
-            container.select(MyAppListener.class).get();
+                container.select(MateuApplication.class).get();
 
         }
-        weld.shutdown();
-        System.exit(0);
+        //weld.shutdown(); // no es necesario. tiene un shutdown hook
     }
 
 }

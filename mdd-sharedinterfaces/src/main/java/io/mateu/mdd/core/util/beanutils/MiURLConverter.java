@@ -1,4 +1,4 @@
-package io.mateu.mdd.util.beanutils;
+package io.mateu.mdd.core.util.beanutils;
 
 import org.apache.commons.beanutils.converters.AbstractConverter;
 
