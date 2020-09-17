@@ -164,7 +164,13 @@ public class ReflectionHelper extends BaseReflectionHelper {
         try {
             if (getter != null)
                 v = getter.invoke(o);
-            else v = null; // no es posible hacer esto con campos interfaced!!!
+            else {
+                try {
+                    v = o.getClass().getField(id).get(o);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         } catch (InvocationTargetException e) {

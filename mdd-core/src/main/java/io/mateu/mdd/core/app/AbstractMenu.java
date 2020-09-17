@@ -15,6 +15,8 @@ public abstract class AbstractMenu implements MenuEntry {
     private VaadinIcons icon;
     private String name;
     private List<MenuEntry> entries;
+    private int order = 10000;
+
 
     public AbstractMenu(String name) {
         this.name = name;
@@ -50,5 +52,15 @@ public abstract class AbstractMenu implements MenuEntry {
     @Override
     public VaadinIcons getIcon() {
         return icon;
+    }
+
+    @Override
+    public int getOrder() {
+        return order;
+    }
+
+    public AbstractMenu setOrder(int order) {
+        this.order = order;
+        return this;
     }
 }

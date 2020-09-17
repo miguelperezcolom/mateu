@@ -12,4 +12,6 @@ public interface MenuEntry {
     String getCaption();
 
     String getId();
+
+    int getOrder();
 }

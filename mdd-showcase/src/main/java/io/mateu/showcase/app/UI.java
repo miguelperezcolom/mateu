@@ -12,23 +12,15 @@ import io.mateu.showcase.domain.boundedContexts.educational.model.Grade;
 public class UI extends SimpleMDDApplication {
 
     @Action
-    public Class courses() {
-        return AcademicCourse.class;
-    }
+    public Class courses = AcademicCourse.class;
 
     @Action
-    public Class persons() {
-        return Person.class;
-    }
+    public Class persons = Person.class;
 
     @Action
-    public Class classrooms() {
-        return Classroom.class;
-    }
+    public Class classrooms = Classroom.class;
 
     @Action
-    public Class grades() {
-        return Grade.class;
-    }
+    public Class grades = Grade.class;
 
 }

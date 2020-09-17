@@ -22,6 +22,7 @@ public abstract class AbstractAction implements MenuEntry {
     private String id = UUID.randomUUID().toString();
     private String group = "";
     private boolean validationNeeded;
+    private int order = 10000;
 
 
     public AbstractAction(String caption) {
@@ -39,6 +40,14 @@ public abstract class AbstractAction implements MenuEntry {
         return true;
     }
 
+    public int getOrder() {
+        return order;
+    }
+
+    public AbstractAction setOrder(int order) {
+        this.order = order;
+        return this;
+    }
 
     public AbstractAction setCaption(String caption) {
         this.caption = caption;
