@@ -7,17 +7,15 @@ import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.JPAHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-public class SimpleMDDApplication extends BaseMDDApp {
+public class MateuUI extends BaseMDDApp {
 
     @Override
     public String getName() {
@@ -49,7 +47,7 @@ public class SimpleMDDApplication extends BaseMDDApp {
 
                     @Override
                     public List<MenuEntry> buildMenu() {
-                        return SimpleMDDApplication.this.buildMenu(true);
+                        return MateuUI.this.buildMenu(true);
                     }
                 });
                 return m;
@@ -62,7 +60,7 @@ public class SimpleMDDApplication extends BaseMDDApp {
 
             @Override
             public AbstractAction getDefaultAction() {
-                return SimpleMDDApplication.this.getDefaultAction();
+                return MateuUI.this.getDefaultAction();
             }
         };
         if (a.getModules().size() > 0 && a.getModules().get(0).getMenu().size() > 0) l.add(a);
@@ -80,7 +78,7 @@ public class SimpleMDDApplication extends BaseMDDApp {
 
                     @Override
                     public List<MenuEntry> buildMenu() {
-                        return SimpleMDDApplication.this.buildMenu(false);
+                        return MateuUI.this.buildMenu(false);
                     }
                 });
                 return m;
@@ -93,7 +91,7 @@ public class SimpleMDDApplication extends BaseMDDApp {
 
             @Override
             public AbstractAction getDefaultAction() {
-                return SimpleMDDApplication.this.getDefaultAction();
+                return MateuUI.this.getDefaultAction();
             }
         };
         if (a.getModules().size() > 0 && a.getModules().get(0).getMenu().size() > 0) l.add(a);
@@ -107,46 +105,80 @@ public class SimpleMDDApplication extends BaseMDDApp {
         List<MenuEntry> l = new ArrayList<>();
 
         for (FieldInterfaced f : ReflectionHelper.getAllFields(app.getClass())) {
-            if (f.isAnnotationPresent(Action.class)) {
 
-                String caption = (f.isAnnotationPresent(SubApp.class))?f.getAnnotation(SubApp.class).value():f.getAnnotation(Action.class).value();
+            if (f.isAnnotationPresent(Action.class) || f.isAnnotationPresent(Submenu.class)) {
+
+                String caption = (f.isAnnotationPresent(Submenu.class))?f.getAnnotation(Submenu.class).value():f.getAnnotation(Action.class).value();
                 if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(f.getName());
 
-                VaadinIcons icon = (f.isAnnotationPresent(SubApp.class))?f.getAnnotation(SubApp.class).icon():f.getAnnotation(Action.class).icon();
+                VaadinIcons icon = (f.isAnnotationPresent(Submenu.class))?f.getAnnotation(Submenu.class).icon():f.getAnnotation(Action.class).icon();
                 if (VaadinIcons.ADOBE_FLASH.equals(icon)) icon = null;
 
                 int order = 0;
                 if (f.isAnnotationPresent(Action.class)) order = f.getAnnotation(Action.class).order();
-                else if (f.isAnnotationPresent(SubApp.class)) order = f.getAnnotation(SubApp.class).order();
+                else if (f.isAnnotationPresent(Submenu.class)) order = f.getAnnotation(Submenu.class).order();
                 if (order == 0 || order == 10000) order = l.size();
 
-                try {
 
-                    if (Class.class.isAssignableFrom(f.getType())) {
-                        l.add(new MDDOpenCRUDAction(caption, (Class) ReflectionHelper.getValue(f, app)).setIcon(icon).setOrder(order));
-                    } else if (List.class.isAssignableFrom(f.getType()) && MenuEntry.class.equals(ReflectionHelper.getGenericClass(f.getType()))) {
-                        l.add(new AbstractMenu(icon, caption) {
-                            @Override
-                            public List<MenuEntry> buildEntries() {
-                                List<MenuEntry> l = new ArrayList<>();
-                                try {
+                if (f.isAnnotationPresent(Action.class)) {
 
-                                    l = (List<MenuEntry>) ReflectionHelper.getValue(f, app);
+                    try {
 
-                                } catch (Throwable e) {
-                                    MDD.alert(e);
+                        if (Class.class.isAssignableFrom(f.getType())) {
+                            l.add(new MDDOpenCRUDAction(caption, (Class) ReflectionHelper.getValue(f, app)).setIcon(icon).setOrder(order));
+                        } else if (List.class.isAssignableFrom(f.getType()) && MenuEntry.class.equals(ReflectionHelper.getGenericClass(f.getType()))) {
+                            l.add(new AbstractMenu(icon, caption) {
+                                @Override
+                                public List<MenuEntry> buildEntries() {
+                                    List<MenuEntry> l = new ArrayList<>();
+                                    try {
+
+                                        l = (List<MenuEntry>) ReflectionHelper.getValue(f, app);
+
+                                    } catch (Throwable e) {
+                                        MDD.alert(e);
+                                    }
+                                    return l;
                                 }
-                                return l;
-                            }
-                        }.setOrder(order));
-                    } else {
-                        l.add(new MDDOpenEditorAction(caption, ReflectionHelper.getValue(f, app)).setIcon(icon).setOrder(order));
-                    }
+                            }.setOrder(order));
+                        } else {
+                            Object v = ReflectionHelper.getValue(f, app);
+                            if (v != null) v = ReflectionHelper.newInstance(f.getType());
+                            l.add(new MDDOpenEditorAction(caption, v).setIcon(icon).setOrder(order));
+                        }
 
-                } catch (Exception e) {
-                    MDD.alert(e);
+                    } catch (Exception e) {
+                        MDD.alert(e);
+                    }
+                }
+                if (f.isAnnotationPresent(Submenu.class)) {
+
+                    try {
+
+                        {
+                            Object v = ReflectionHelper.getValue(f, app);
+                            if (v == null) v = ReflectionHelper.newInstance(f.getType());
+                            Object finalV = v;
+                            l.add(new AbstractMenu(icon, caption) {
+                                @Override
+                                public List<MenuEntry> buildEntries() {
+                                    try {
+                                        return buildMenu(finalV, publicAccess);
+                                    } catch (Throwable throwable) {
+                                        MDD.alert(throwable);
+                                    }
+                                    return new ArrayList<>();
+                                }
+                            }.setOrder(order));
+
+                        }
+
+                    } catch (Exception e) {
+                        MDD.alert(e);
+                    }
                 }
             }
+
         }
 
         for (Method m : getAllActionMethods(app.getClass())) {
@@ -156,10 +188,10 @@ public class SimpleMDDApplication extends BaseMDDApp {
             if (isAuthenticationAgnostic()) {
                 add = true;
             } else {
-                if (publicAccess && !m.isAnnotationPresent(Private.class) && (!SimpleMDDApplication.this.isAuthenticationNeeded() || m.isAnnotationPresent(Public.class))) {
+                if (publicAccess && !m.isAnnotationPresent(Private.class) && (!MateuUI.this.isAuthenticationNeeded() || m.isAnnotationPresent(Public.class))) {
                     add = true;
                 }
-                if (!publicAccess && !m.isAnnotationPresent(Public.class) && (SimpleMDDApplication.this.isAuthenticationNeeded() || m.isAnnotationPresent(Private.class))) {
+                if (!publicAccess && !m.isAnnotationPresent(Public.class) && (MateuUI.this.isAuthenticationNeeded() || m.isAnnotationPresent(Private.class))) {
                     Private pa = m.getAnnotation(Private.class);
                     if (pa != null) {
                         add = MDD.check(pa);
@@ -168,19 +200,19 @@ public class SimpleMDDApplication extends BaseMDDApp {
             }
 
             if (add) {
-                String caption = (m.isAnnotationPresent(SubApp.class))?m.getAnnotation(SubApp.class).value():m.getAnnotation(Action.class).value();
+                String caption = (m.isAnnotationPresent(Submenu.class))?m.getAnnotation(Submenu.class).value():m.getAnnotation(Action.class).value();
                 if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(m.getName());
 
-                VaadinIcons icon = (m.isAnnotationPresent(SubApp.class))?m.getAnnotation(SubApp.class).icon():m.getAnnotation(Action.class).icon();
+                VaadinIcons icon = (m.isAnnotationPresent(Submenu.class))?m.getAnnotation(Submenu.class).icon():m.getAnnotation(Action.class).icon();
                 if (VaadinIcons.ADOBE_FLASH.equals(icon)) icon = null;
 
                 int order = 0;
                 if (m.isAnnotationPresent(Action.class)) order = m.getAnnotation(Action.class).order();
-                else if (m.isAnnotationPresent(SubApp.class)) order = m.getAnnotation(SubApp.class).order();
+                else if (m.isAnnotationPresent(Submenu.class)) order = m.getAnnotation(Submenu.class).order();
                 if (order == 0 || order == 10000) order = l.size();
 
 
-                if (m.isAnnotationPresent(SubApp.class)) {
+                if (m.isAnnotationPresent(Submenu.class)) {
 
                     l.add(new AbstractMenu(icon, caption) {
                         @Override
@@ -204,7 +236,7 @@ public class SimpleMDDApplication extends BaseMDDApp {
                                 List<MenuEntry> l = new ArrayList<>();
                                 try {
 
-                                    l = (List<MenuEntry>) ReflectionHelper.invokeInjectableParametersOnly(m, SimpleMDDApplication.this);
+                                    l = (List<MenuEntry>) ReflectionHelper.invokeInjectableParametersOnly(m, MateuUI.this);
 
                                 } catch (Throwable e) {
                                     MDD.alert(e);
@@ -245,10 +277,10 @@ public class SimpleMDDApplication extends BaseMDDApp {
     List<Method> getAllActionMethods(Class c) {
         List<Method> l = new ArrayList<>();
 
-        if (c.getSuperclass() != null && !SimpleMDDApplication.class.equals(c.getSuperclass()))
+        if (c.getSuperclass() != null && !MateuUI.class.equals(c.getSuperclass()))
             l.addAll(getAllActionMethods(c.getSuperclass()));
 
-        for (Method f : c.getDeclaredMethods()) if (f.isAnnotationPresent(Action.class) || f.isAnnotationPresent(SubApp.class)) l.add(f);
+        for (Method f : c.getDeclaredMethods()) if (f.isAnnotationPresent(Action.class) || f.isAnnotationPresent(Submenu.class)) l.add(f);
 
         return l;
     }
