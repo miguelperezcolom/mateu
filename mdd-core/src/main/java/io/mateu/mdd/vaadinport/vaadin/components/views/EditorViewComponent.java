@@ -792,7 +792,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         boolean isEditingNewRecord = newRecord;
         boolean readOnly = getModel() != null && getModel() instanceof ReadOnly && ((ReadOnly) getModel()).isReadOnly();
 
-        if (modelType.isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(modelType)) {
+        if (modelType.isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(modelType)) {
             if (field == null && !(this instanceof OwnedCollectionComponent) && !isActionPresent("refresh")) {
 
                 Button i;
@@ -875,7 +875,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             }
         }
 
-        if (!readOnly && createSaveButton && (modelType.isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(modelType)) && (isNewRecord() || !modelType.isAnnotationPresent(Unmodifiable.class))) {
+        if (!readOnly && createSaveButton && (modelType.isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(modelType)) && (isNewRecord() || !modelType.isAnnotationPresent(Unmodifiable.class))) {
 
             if (!isActionPresent("save")) {
 
@@ -979,7 +979,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                     shortcutsCreated.add("new");
                 }
 
-                if ((modelType.isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(modelType)) && !modelType.isAnnotationPresent(NonDuplicable.class) && !isActionPresent("duplicate") && !isNewRecord()) {
+                if ((modelType.isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(modelType)) && !modelType.isAnnotationPresent(NonDuplicable.class) && !isActionPresent("duplicate") && !isNewRecord()) {
 
                     if (!shortcutsCreated.contains("duplicate")) {
 
@@ -1339,9 +1339,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                     if (goBack) goBack();
 
-                } else if (PersistentPOJO.class.isAssignableFrom(modelType)) {
+                } else if (PersistentPojo.class.isAssignableFrom(modelType)) {
 
-                    PersistentPOJO ppojo = (PersistentPOJO) getModel();
+                    PersistentPojo ppojo = (PersistentPojo) getModel();
 
                     ppojo.save();
 
@@ -1349,7 +1349,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                 if (notify) listeners.forEach(l -> l.onSave(getModel()));
 
-                if (!goBack && (modelType.isAnnotationPresent(Entity.class)) || PersistentPOJO.class.isAssignableFrom(modelType)) {
+                if (!goBack && (modelType.isAnnotationPresent(Entity.class)) || PersistentPojo.class.isAssignableFrom(modelType)) {
                     load(modelId);
                 }
 
@@ -1462,11 +1462,11 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                     }
                 });
 
-            } else if (PersistentPOJO.class.isAssignableFrom(modelType)) {
-                PersistentPOJO ppojo = null;
+            } else if (PersistentPojo.class.isAssignableFrom(modelType)) {
+                PersistentPojo ppojo = null;
 
-                if (id != null && modelType.equals(id.getClass())) ppojo = (PersistentPOJO) id;
-                else ppojo = (PersistentPOJO) modelType.newInstance();
+                if (id != null && modelType.equals(id.getClass())) ppojo = (PersistentPojo) id;
+                else ppojo = (PersistentPojo) modelType.newInstance();
 
                 ppojo.load(id);
 

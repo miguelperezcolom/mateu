@@ -1,7 +1,10 @@
 package io.mateu.test.model;
 
-import com.sun.istack.NotNull;
+import io.mateu.mdd.core.annotations.Action;
+import io.mateu.mdd.core.annotations.Fake;
 import lombok.MateuMDDEntity;
+
+import javax.validation.constraints.NotNull;
 
 @MateuMDDEntity
 public class Entidad {
@@ -10,5 +13,10 @@ public class Entidad {
 
     @NotNull
     private Estado estado = Estado.Vivo;
+
+    @Action@Fake
+    public void metodo(String name) {
+        System.out.println("Hola " + name);
+    }
 
 }

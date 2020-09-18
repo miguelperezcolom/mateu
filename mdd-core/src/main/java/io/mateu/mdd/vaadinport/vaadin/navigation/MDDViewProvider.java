@@ -1688,7 +1688,7 @@ public class MDDViewProvider implements ViewProvider {
 
                 stack.push(currentPath, new ComponentWrapper(title, new PrintPOJOComponent(r))).setOpenNewWindow(inNewWindow);
 
-            } else if (r.getClass().isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(r.getClass())) {
+            } else if (r.getClass().isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(r.getClass())) {
                 stack.push(currentPath, new EditorViewComponent(r, lastViewComponent)).setOpenNewWindow(inNewWindow);
             } else if (r instanceof Component) {
                 stack.push(currentPath, new ComponentWrapper(title, (Component) r)).setOpenNewWindow(inNewWindow);

@@ -10,4 +10,12 @@ public class Person {
 
     private String name;
 
+    private int age;
+
+    public Person(Person p) {
+        id = p.id;
+        __version = p.__version;
+        name = p.name;
+        age = p.age;
+    }
 }

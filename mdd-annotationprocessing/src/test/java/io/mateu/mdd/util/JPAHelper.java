@@ -11,6 +11,13 @@ import java.util.List;
 
 public class JPAHelper {
 
+    public static void transact(JPATransaction t) throws Throwable {
+    }
+
+    public static void notransact(JPATransaction t) throws Throwable {
+    }
+
+
     public static <T> T find(Class<T> type, Object id) throws Throwable {
         return null;
     }

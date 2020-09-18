@@ -2502,12 +2502,23 @@ public class ReflectionHelper extends BaseReflectionHelper {
     }
 
     public static void copy(Object o1, Object o2) {
-        if (o1 != null && o2 != null && o1.getClass().equals(o2.getClass())) {
-            for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(o2.getClass())) {
-                try {
-                    ReflectionHelper.setValue(f, o2, ReflectionHelper.getValue(f, o1));
-                } catch (Exception e) {
-                    e.printStackTrace();
+        if (o1 != null && o2 != null) {
+            if (o1.getClass().equals(o2.getClass())) {
+                for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(o2.getClass())) {
+                    try {
+                        ReflectionHelper.setValue(f, o2, ReflectionHelper.getValue(f, o1));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            } else {
+                for (FieldInterfaced f2 : ReflectionHelper.getAllEditableFields(o2.getClass())) {
+                    try {
+                        FieldInterfaced f1 = ReflectionHelper.getFieldByName(o1.getClass(), f2.getName());
+                        if (f1 != null && f1.getType().equals(f2.getType())) ReflectionHelper.setValue(f2, o2, ReflectionHelper.getValue(f1, o1));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }

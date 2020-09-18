@@ -7,7 +7,7 @@ import com.vaadin.ui.UI;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.interfaces.PersistentPOJO;
+import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.interfaces.RpcView;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.util.Helper;
@@ -42,7 +42,7 @@ public class ViewComponentHelper {
                     } else {
 
                         boolean needsValidation = aa.validateBefore();
-                        if (!needsValidation && viewComponent instanceof EditorViewComponent) needsValidation = ((EditorViewComponent)viewComponent).getModelType().isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(((EditorViewComponent)viewComponent).getModelType());
+                        if (!needsValidation && viewComponent instanceof EditorViewComponent) needsValidation = ((EditorViewComponent)viewComponent).getModelType().isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(((EditorViewComponent)viewComponent).getModelType());
 
                         if (!needsValidation || ((EditorViewComponent)viewComponent).validate()) {
 

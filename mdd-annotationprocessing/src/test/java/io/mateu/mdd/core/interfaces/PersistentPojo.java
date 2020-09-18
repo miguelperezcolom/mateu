@@ -2,7 +2,7 @@ package io.mateu.mdd.core.interfaces;
 
 import java.io.IOException;
 
-public interface PersistentPOJO {
+public interface PersistentPojo {
 
     void save() throws IOException, Throwable;
 

@@ -6,20 +6,17 @@ import io.mateu.mdd.core.annotations.NonDuplicable;
 import io.mateu.mdd.core.annotations.Password;
 import io.mateu.mdd.core.interfaces.GeneralRepository;
 import io.mateu.mdd.core.interfaces.IResource;
-import io.mateu.mdd.core.interfaces.PersistentPOJO;
+import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.interfaces.UserPrincipal;
 import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.JPAHelper;
-import io.mateu.mdd.util.persistence.JPATransaction;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.EntityManager;
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
 
 @Getter@Setter@NonDuplicable
-public class Profile implements PersistentPOJO {
+public class Profile implements PersistentPojo {
 
     private IResource photo;
 

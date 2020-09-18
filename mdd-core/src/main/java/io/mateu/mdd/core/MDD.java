@@ -17,7 +17,6 @@ import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.core.util.Notifier;
 import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.JPAHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.views.*;
 import io.mateu.mdd.vaadinport.vaadin.mdd.VaadinPort;
@@ -277,7 +276,7 @@ public class MDD {
 
                 } else if (o instanceof RpcView) {
                     v = new RpcListViewComponent((RpcView) o);
-                } else if (o.getClass().isAnnotationPresent(Entity.class) || PersistentPOJO.class.isAssignableFrom(o.getClass())) {
+                } else if (o.getClass().isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(o.getClass())) {
                     v = new EditorViewComponent(o) {
                         @Override
                         public void goBack() {

@@ -393,4 +393,11 @@ public class JPAHelper {
         TypedQuery<T> q = em.createQuery(cq.select(root).where(todosLosPredicados));
         return q;
     }
+
+    public static void update(Object a, String fieldName, Object value) {
+        // debe actualizar la propiedad "fieldName" en el objeto a, con el valor value
+        // resolviendo cualquier mapeado inverso, tanto en el valor anterior como en el nuevo valor
+        //todo: implementar
+    }
+
 }
