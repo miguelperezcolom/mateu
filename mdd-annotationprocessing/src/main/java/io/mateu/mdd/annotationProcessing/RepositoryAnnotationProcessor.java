@@ -30,12 +30,15 @@ public class RepositoryAnnotationProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        System.out.println("RepositoryAnnotationProcessor.process()");
         for (TypeElement annotation : annotations) {
             Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(annotation);
 
             for (Element e : annotatedElements) {
                 String className = ((TypeElement) e).getQualifiedName().toString();
                 String simpleClassName = ((TypeElement) e).getSimpleName().toString();
+
+                System.out.println("RepositoryAnnotationProcessor running on " + simpleClassName);
 
                 String generatedFullClassName = className + "Impl";
                 String pkgName = generatedFullClassName.substring(0, generatedFullClassName.lastIndexOf("."));
@@ -116,7 +119,6 @@ public class RepositoryAnnotationProcessor extends AbstractProcessor {
     }
 
     private void printMethodImplementation(RoundEnvironment roundEnv, PrintWriter out, Element ee, Map<String, String> genericos) {
-        System.out.println(ee.toString());
         Map<String, String> paramTypes = toParamsMap(ee);
         ExecutableType t = (ExecutableType) ee.asType();
         Trees trees = Trees.instance(processingEnv);

@@ -206,9 +206,20 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         this.owner = owner;
         this.field = field;
         this.modelType = modelType;
+        if (modelType.isAnnotationPresent(Entity.class)) {
+            try {
+                modelType = getPojoTypeForEntity(modelType);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
         this.visibleFields = visibleFields;
         this.hiddenFields = hiddenFields;
         this.createSaveButton = createSaveButton;
+    }
+
+    private Class getPojoTypeForEntity(Class modelType) throws ClassNotFoundException {
+        return Class.forName(modelType.getName() + "Pojo");
     }
 
     public EditorViewComponent(Object owner, FieldInterfaced field, Class modelType, boolean createSaveButton) {

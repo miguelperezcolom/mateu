@@ -26,6 +26,8 @@ public class MateuMDDUIAnnotationProcessor extends AbstractProcessor {
                 String className = ((TypeElement) e).getQualifiedName().toString();
                 String simpleClassName = ((TypeElement) e).getSimpleName().toString();
 
+                System.out.println("MateuMDDUIAnnotationProcessor running on " + simpleClassName);
+
                 String generatedFullClassName = className + "Servlet";
                 String pkgName = generatedFullClassName.substring(0, generatedFullClassName.lastIndexOf("."));
                 String generatedClassName = generatedFullClassName.substring(generatedFullClassName.lastIndexOf(".") + 1);

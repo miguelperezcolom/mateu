@@ -7,7 +7,7 @@
   <parent>
     <artifactId>mdd-parent</artifactId>
     <groupId>io.mateu</groupId>
-    <version>0.0.12</version>
+    <version>0.0.13</version>
   </parent>
   <artifactId>mdd-util</artifactId>
 

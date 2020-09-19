@@ -26,6 +26,8 @@ public class AppListenerAnnotationProcessor extends AbstractProcessor {
                 String className = ((TypeElement) e).getQualifiedName().toString();
                 String simpleClassName = ((TypeElement) e).getSimpleName().toString();
 
+                System.out.println("AppListenerAnnotationProcessor running on " + simpleClassName);
+
                 String generatedFullClassName = className + "Impl";
                 String pkgName = generatedFullClassName.substring(0, generatedFullClassName.lastIndexOf("."));
                 String generatedClassName = generatedFullClassName.substring(generatedFullClassName.lastIndexOf(".") + 1);

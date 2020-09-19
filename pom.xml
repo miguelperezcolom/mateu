@@ -4,7 +4,7 @@
 
   <groupId>io.mateu</groupId>
   <artifactId>mdd-parent</artifactId>
-  <version>0.0.12</version>
+  <version>0.0.13</version>
   <packaging>pom</packaging>
 
   <name>Mateu MDD</name>
@@ -32,6 +32,7 @@
       <module>mdd-showcase</module>
       <module>mdd-core14</module>
     <module>mdd-jpa</module>
+      <module>lombok-tester</module>
   </modules>
 
   <dependencies>
