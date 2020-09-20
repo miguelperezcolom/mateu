@@ -33,6 +33,7 @@
       <module>mdd-core14</module>
     <module>mdd-jpa</module>
       <module>lombok-tester</module>
+      <module>mdd-springboot</module>
   </modules>
 
   <dependencies>

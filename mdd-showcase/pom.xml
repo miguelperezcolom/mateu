@@ -88,7 +88,6 @@
       <groupId>io.mateu</groupId>
       <artifactId>mdd-vaadin</artifactId>
       <version>${mateu.version}</version>
-      <type>war</type>
     </dependency>
 
 

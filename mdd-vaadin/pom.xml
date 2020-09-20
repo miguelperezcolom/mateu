@@ -10,7 +10,7 @@
 
     <groupId>io.mateu</groupId>
     <artifactId>mdd-vaadin</artifactId>
-    <packaging>${paquete}</packaging>
+    <packaging>jar</packaging>
     <name>mdd-vaadin</name>
 
     <prerequisites>
@@ -22,7 +22,6 @@
         <jetty.plugin.version>9.4.19.v20190610</jetty.plugin.version>
         <!-- If there are no local customizations, this can also be "fetch" or "cdn" -->
         <vaadin.widgetset.mode>local</vaadin.widgetset.mode>
-        <paquete>war</paquete>
     </properties>
 
     <repositories>
@@ -50,13 +49,11 @@
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-server</artifactId>
             <version>${vaadin.version}</version>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-themes</artifactId>
-            <scope>provided</scope>
         </dependency>
 
 
@@ -64,7 +61,6 @@
             <groupId>io.mateu</groupId>
             <artifactId>mdd-core</artifactId>
             <version>${project.version}</version>
-            <scope>provided</scope>
         </dependency>
 
     </dependencies>
