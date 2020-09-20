@@ -149,10 +149,12 @@
 
           <overlays>
             <overlay></overlay>
+            <!--
             <overlay>
               <groupId>io.mateu</groupId>
               <artifactId>mdd-vaadin</artifactId>
             </overlay>
+            -->
           </overlays>
         </configuration>
       </plugin>
