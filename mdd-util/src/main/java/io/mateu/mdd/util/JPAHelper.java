@@ -27,11 +27,15 @@ public class JPAHelper {
         transact(System.getProperty("defaultpuname", "default"), t, callback);
     }
 
+    public static void transact(String persistenceUnit, JPATransaction t) throws Throwable {
+        transact(persistenceUnit, t, null);
+    }
+
     public static void transact(String persistenceUnit, JPATransaction t, RunnableThrowsThrowable callback) throws Throwable {
 
         try {
 
-            EntityManager em = getEMF().createEntityManager();
+            EntityManager em = getEMF(persistenceUnit).createEntityManager();
 
             try {
 
@@ -108,12 +112,20 @@ public class JPAHelper {
     }
 
     public static void notransact(JPATransaction t) throws Throwable {
-        notransact(t, true);
+        notransact(System.getProperty("defaultpuname", "default"), t, true);
     }
 
     public static void notransact(JPATransaction t, boolean printException) throws Throwable {
+        notransact(System.getProperty("defaultpuname", "default"), t, printException);
+    }
 
-        EntityManager em = getEMF().createEntityManager();
+    public static void notransact(String persistenceUnit, JPATransaction t) throws Throwable {
+        notransact(persistenceUnit, t, true);
+    }
+
+    public static void notransact(String persistenceUnit, JPATransaction t, boolean printException) throws Throwable {
+
+        EntityManager em = getEMF(persistenceUnit).createEntityManager();
 
         try {
 

@@ -33,7 +33,11 @@ public class QuartzEngine {
     }
 
     private void _run(String uuid) {
-        scheduledCommands.get(uuid).run();
+        try {
+            scheduledCommands.get(uuid).run();
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
     }
 
     private void _runAndSchedule(List<Command> commands) {
@@ -66,7 +70,11 @@ public class QuartzEngine {
                         e.printStackTrace();
                     }
                 } else {
-                    c.run();
+                    try {
+                        c.run();
+                    } catch (Throwable throwable) {
+                        throwable.printStackTrace();
+                    }
                 }
             });
         }

@@ -71,6 +71,7 @@ public class MateuMDDUIAnnotationProcessor extends AbstractProcessor {
                         out.println("package " + pkgName + ";");
                         out.println("import " + className + ";");
 
+                        out.println("import io.mateu.mdd.core.annotations.MateuUIServlet;");
                         out.println("import io.mateu.mdd.vaadinport.vaadin.MDDUI;");
                         out.println("import " + pkgName + "." + simpleClassName + "MDDUI;");
                         out.println("import com.vaadin.annotations.VaadinServletConfiguration;");
@@ -89,6 +90,7 @@ public class MateuMDDUIAnnotationProcessor extends AbstractProcessor {
                         out.println();
                         out.println("@WebServlet(urlPatterns = {\"" + e.getAnnotation(MateuMDDUI.class).path() + "\", \"" + ("/".equals(e.getAnnotation(MateuMDDUI.class).path())?"":e.getAnnotation(MateuMDDUI.class).path()) + "/*\"}, name = \"" + className.replaceAll("\\.","_") + "UIServlet\", asyncSupported = true, loadOnStartup = 500)");
                         out.println("@VaadinServletConfiguration(ui = " + simpleClassName + "MDDUI.class, productionMode = false)");
+                        out.println("@MateuUIServlet(path=\"" + e.getAnnotation(MateuMDDUI.class).path() + "\")");
                         out.println("public class " + generatedClassName + " extends VaadinServlet {");
                         out.println("");
 

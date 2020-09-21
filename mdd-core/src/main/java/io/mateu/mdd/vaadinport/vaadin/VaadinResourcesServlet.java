@@ -1,10 +1,9 @@
-package io.mateu.mdd.vaadinport;
+package io.mateu.mdd.vaadinport.vaadin;
 
 
 import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.server.DeploymentConfiguration;
 import com.vaadin.server.VaadinServlet;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 import javax.servlet.annotation.WebServlet;
 import java.util.Properties;

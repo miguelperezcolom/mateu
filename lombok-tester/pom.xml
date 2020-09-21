@@ -42,7 +42,7 @@
 
     <dependency>
       <groupId>io.mateu</groupId>
-      <artifactId>mdd-annotationprocessing</artifactId>
+      <artifactId>mdd-j2ee</artifactId>
       <version>0.0.13</version>
     </dependency>
 

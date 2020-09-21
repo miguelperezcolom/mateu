@@ -34,6 +34,8 @@
     <module>mdd-jpa</module>
       <module>lombok-tester</module>
       <module>mdd-springboot</module>
+      <module>mdd-fakespringboot</module>
+    <module>mdd-j2ee</module>
   </modules>
 
   <dependencies>

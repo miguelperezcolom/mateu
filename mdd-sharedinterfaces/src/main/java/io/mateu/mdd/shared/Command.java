@@ -1,5 +1,7 @@
 package io.mateu.mdd.shared;
 
-public interface Command extends Runnable {
+public interface Command {
+
+    void run() throws Throwable;
 
 }

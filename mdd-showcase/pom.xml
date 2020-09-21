@@ -79,17 +79,9 @@
 
     <dependency>
       <groupId>io.mateu</groupId>
-      <artifactId>mdd-annotationprocessing</artifactId>
+      <artifactId>mdd-j2ee</artifactId>
       <version>${mateu.version}</version>
     </dependency>
-
-
-    <dependency>
-      <groupId>io.mateu</groupId>
-      <artifactId>mdd-vaadin</artifactId>
-      <version>${mateu.version}</version>
-    </dependency>
-
 
   </dependencies>
 
@@ -146,16 +138,14 @@
         <version>3.3.1</version>
         <configuration>
           <failOnMissingWebXml>false</failOnMissingWebXml>
-
-          <overlays>
-            <overlay></overlay>
-            <!--
-            <overlay>
-              <groupId>io.mateu</groupId>
-              <artifactId>mdd-vaadin</artifactId>
-            </overlay>
-            -->
+          <!--
+        <overlays>
+          <overlay>
+            <groupId>io.mateu</groupId>
+            <artifactId>mdd-vaadin</artifactId>
+          </overlay>
           </overlays>
+          -->
         </configuration>
       </plugin>
 
