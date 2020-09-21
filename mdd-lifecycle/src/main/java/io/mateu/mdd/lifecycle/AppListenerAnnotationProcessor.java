@@ -1,7 +1,6 @@
-package io.mateu.mdd.annotationProcessing;
+package io.mateu.mdd.lifecycle;
 
 import com.google.auto.service.AutoService;
-import io.mateu.mdd.core.annotations.Repository;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;

@@ -3,7 +3,7 @@ package tests.persistence;
 
 import io.mateu.mdd.core.app.MateuApplication;
 import io.mateu.mdd.util.JPAHelper;
-import io.mateu.showcase.domain.boundedContexts.common.model.Person;
+import org.example.domain.boundaries.common.entities.Person;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -18,11 +18,14 @@ public class PersistenceTest {
                 JPAHelper.transact(em -> {
                     Person p1 = em.find(Person.class, 1l);
 
-                    Person p2 = new Person(p1);
-                    p2.setAge(10);
-                    p2.setName(p1.getName() + " zzzz");
+                    if (p1 != null) {
+                        // si copiamos una instancia, al hacer merge se piensa que es la misma y hace un update en lugar de un insert. COMPROBADO!
+                        Person p2 = new Person(); //new Person(p1);
+                        p2.setName(p1.getName() + " zzzz");
 
-                    em.merge(p2);
+                        em.merge(p2);
+                    }
+
                 });
             } catch (Throwable throwable) {
                 throwable.printStackTrace();

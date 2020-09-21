@@ -1,14 +1,18 @@
 package io.mateu.showcase.app;
 
 import io.mateu.mdd.core.annotations.Action;
-import io.mateu.showcase.domain.boundedContexts.common.model.Person;
-import io.mateu.showcase.domain.boundedContexts.educational.model.AcademicCourse;
-import io.mateu.showcase.domain.boundedContexts.educational.model.Classroom;
+import org.example.domain.boundaries.common.entities.Person;
+import org.example.domain.boundaries.educational.entities.AcademicPlan;
+import org.example.domain.boundaries.educational.entities.Classroom;
+import org.example.domain.boundaries.educational.entities.Course;
 
 public class ConfigMenu {
 
     @Action
-    public Class courses = AcademicCourse.class;
+    public Class plans = AcademicPlan.class;
+
+    @Action
+    public Class courses = Course.class;
 
     @Action
     public Class persons = Person.class;

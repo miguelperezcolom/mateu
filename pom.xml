@@ -36,6 +36,7 @@
       <module>mdd-springboot</module>
       <module>mdd-fakespringboot</module>
     <module>mdd-j2ee</module>
+    <module>mdd-lifecycle</module>
   </modules>
 
   <dependencies>

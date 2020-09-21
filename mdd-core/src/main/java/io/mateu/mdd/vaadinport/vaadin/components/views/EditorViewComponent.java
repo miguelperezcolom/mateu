@@ -206,9 +206,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         this.owner = owner;
         this.field = field;
         this.modelType = modelType;
-        if (modelType.isAnnotationPresent(Entity.class)) {
+        if (false && modelType.isAnnotationPresent(Entity.class)) {
             try {
-                modelType = getPojoTypeForEntity(modelType);
+                this.modelType = getPojoTypeForEntity(modelType);
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
@@ -309,37 +309,6 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         }
 
         rebuildActions();
-
-        /*
-        for (Optional<Method> omv : mvs.values()) {
-            if (omv.isPresent()) {
-
-                Method mv = omv.get();
-
-                if (mv.isAnnotationPresent(DependsOn.class)) {
-                    String fns = mv.getAnnotation(DependsOn.class).value();
-
-                    if (fns != null) {
-                        for (String fn : fns.split(",")) {
-                            fn = fn.trim();
-                            getBinder().getBinding(fn).ifPresent(b -> ((Binder.Binding)b).getField().addValueChangeListener(e -> {
-
-                                if (getBinder().getBean() != null) { // puede pasar que llamemos a este método cuando todavía no hayamos bindeado nada
-
-                                    rebuildActions();
-
-                                }
-
-                            }));
-                        }
-                    }
-                }
-
-
-            }
-
-        }
-         */
 
         if (updateChangesSignature) initialValues = buildSignature();
     }
