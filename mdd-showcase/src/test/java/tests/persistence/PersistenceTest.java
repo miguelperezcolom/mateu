@@ -20,10 +20,10 @@ public class PersistenceTest {
 
                     if (p1 != null) {
                         // si copiamos una instancia, al hacer merge se piensa que es la misma y hace un update en lugar de un insert. COMPROBADO!
-                        Person p2 = new Person(); //new Person(p1);
-                        p2.setName(p1.getName() + " zzzz");
+                        //Person p2 = new Person(); //new Person(p1);
+                        //p2.setName(p1.getName() + " zzzz");
 
-                        em.merge(p2);
+                        //em.merge(p2);
                     }
 
                 });

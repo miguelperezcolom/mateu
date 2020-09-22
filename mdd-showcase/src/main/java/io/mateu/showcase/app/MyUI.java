@@ -1,6 +1,7 @@
 package io.mateu.showcase.app;
 
 import io.mateu.mdd.core.annotations.Action;
+import io.mateu.mdd.core.annotations.Home;
 import io.mateu.mdd.core.annotations.MateuMDDUI;
 import io.mateu.mdd.core.annotations.Submenu;
 import io.mateu.mdd.core.app.MateuUI;
@@ -14,5 +15,8 @@ public class MyUI extends MateuUI {
 
     @Action
     public Class persons = Person.class;
+
+    @Home
+    public String msg = "Hello world";
 
 }

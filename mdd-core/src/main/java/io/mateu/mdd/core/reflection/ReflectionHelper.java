@@ -1446,7 +1446,25 @@ public class ReflectionHelper extends BaseReflectionHelper {
     public static String getCaption(FieldInterfaced f) {
         if (f.isAnnotationPresent(Caption.class)) {
             return f.getAnnotation(Caption.class).value();
-        } else return Helper.capitalize(f.getName());
+        } else {
+            String caption = "";
+            if (f.isAnnotationPresent(Submenu.class)) caption = f.getAnnotation(Submenu.class).value();
+            if (f.isAnnotationPresent(Action.class)) f.getAnnotation(Action.class).value();
+            if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(f.getName());
+            return caption;
+        }
+    }
+
+    public static String getCaption(Method f) {
+        if (f.isAnnotationPresent(Caption.class)) {
+            return f.getAnnotation(Caption.class).value();
+        } else {
+            String caption = "";
+            if (f.isAnnotationPresent(Submenu.class)) caption = f.getAnnotation(Submenu.class).value();
+            if (f.isAnnotationPresent(Action.class)) f.getAnnotation(Action.class).value();
+            if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(f.getName());
+            return caption;
+        }
     }
 
 
