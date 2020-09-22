@@ -2324,7 +2324,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     public static Class createClass(String fullClassName, List<FieldInterfaced> fields, boolean forFilters) throws Exception {
 
         try {
-            Class c = Class.forName(fullClassName);
+            Class c = Class.forName(fullClassName, false, MDD.getClassPool().getClassLoader());
             log.debug("class " + fullClassName + " already exists");
             return c;
         } catch (ClassNotFoundException e) {
@@ -2341,7 +2341,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
             return c;
         } else {
             try {
-                Class c = Class.forName(fullClassName);
+                Class c = Class.forName(fullClassName, false, MDD.getClassPool().getClassLoader());
                 log.debug("class " + fullClassName + " already exists");
                 return c;
             } catch (ClassNotFoundException e) {
