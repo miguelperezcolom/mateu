@@ -1416,10 +1416,13 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 subClasses.forEach(c -> subClassesOptions.add(new ClassOption(c)));
 
                 VaadinHelper.choose("Please choose type", subClassesOptions, c -> {
-                    try {
-                        create(((ClassOption)c).get_class(), parent);
-                    } catch (Throwable e) {
-                        MDD.alert(e);
+                    if (c == null) MDDUI.get().getNavegador().goBack();
+                    else {
+                        try {
+                            create(((ClassOption)c).get_class(), parent);
+                        } catch (Throwable e) {
+                            MDD.alert(e);
+                        }
                     }
                 }, () -> {
                     MDDUI.get().getNavegador().goBack();

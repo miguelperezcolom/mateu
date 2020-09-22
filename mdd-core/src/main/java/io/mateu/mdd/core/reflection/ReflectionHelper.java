@@ -1750,7 +1750,12 @@ public class ReflectionHelper extends BaseReflectionHelper {
     }
 
     public static Set<Class> getSubclasses(Class c) {
-        Reflections reflections = new Reflections(c.getPackage().getName());
+        String pkg = c.getPackage().getName();
+        String[] ts = pkg.split("\\.");
+        if (ts.length > 3) {
+            pkg = ts[0] + "." + ts[1] + "." + ts[2];
+        }
+        Reflections reflections = new Reflections(pkg);
 
         Set<Class> subs = reflections.getSubTypesOf(c);
 
