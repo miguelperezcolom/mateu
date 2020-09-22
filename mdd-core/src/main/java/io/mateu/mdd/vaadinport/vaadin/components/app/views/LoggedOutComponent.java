@@ -42,6 +42,12 @@ public class LoggedOutComponent extends VerticalLayout {
             MDDUI.get().getNavegador().goTo("login");
         }));
 
+        if (true) {
+            info.addComponent(new Button("Go to home", e -> {
+                MDDUI.get().getNavegador().goTo("");
+            }));
+        }
+
         HorizontalLayout cl = new HorizontalLayout();
         cl.addStyleName("cajalogin");
         cl.addStyleName(CSS.ALIGNCENTER);

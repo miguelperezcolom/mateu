@@ -4,4 +4,6 @@ public interface AppConfigLocator {
 
     IAppConfig get() throws Throwable;
 
+    Class getAppConfigClass();
+
 }

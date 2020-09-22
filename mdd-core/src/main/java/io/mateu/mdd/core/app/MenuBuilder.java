@@ -39,7 +39,8 @@ public class MenuBuilder {
                 if (!publicAccess && f.isAnnotationPresent(Private.class)) {
                     Private pa = f.getAnnotation(Private.class);
                     if (pa != null) {
-                        add = MDD.check(pa);
+                        //todo: el check debemos hacerlo en tiempo de ejecución
+                        add = true; //MDD.check(pa);
                     } else add = true;
                 }
             }
@@ -68,7 +69,8 @@ public class MenuBuilder {
                 if (!publicAccess && m.isAnnotationPresent(Private.class)) {
                     Private pa = m.getAnnotation(Private.class);
                     if (pa != null) {
-                        add = MDD.check(pa);
+                        //todo: el check debemos hacerlo en tiempo de ejecución
+                        add = true; //MDD.check(pa);
                     } else add = true;
                 }
             }
@@ -179,7 +181,7 @@ public class MenuBuilder {
                         @Override
                         public List<MenuEntry> buildEntries() {
                             try {
-                                return buildMenu(finalV, authenticationAgnostic, publicAccess);
+                                return buildMenu(finalV, true, publicAccess);
                             } catch (Throwable throwable) {
                                 MDD.alert(throwable);
                             }

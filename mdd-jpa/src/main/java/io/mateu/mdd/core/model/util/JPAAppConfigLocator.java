@@ -14,4 +14,11 @@ public class JPAAppConfigLocator implements AppConfigLocator {
         });
         return c[0];
     }
+
+    @Override
+    public Class getAppConfigClass() {
+        return AppConfig.class;
+    }
+
+
 }

@@ -39,7 +39,7 @@ public class Populator implements IPopulator {
 
     @Override
     public void populate() throws Throwable {
-        populate(Helper.getImpl(AppConfigLocator.class).getClass());
+        populate(Helper.getImpl(AppConfigLocator.class).getAppConfigClass());
     }
 
     public void populate(Class appConfigClass) throws Throwable {
