@@ -170,6 +170,10 @@ public class JPAHelper {
         return get().find(em, type, params);
     }
 
+    public static <T> T find(Class<T> type, Object... params) {
+        return get().find(type, params);
+    }
+
     private static <T> TypedQuery<T> createQuery(EntityManager em, Class<T> type, Object[] params) {
         return get().createQuery(em, type, params);
     }

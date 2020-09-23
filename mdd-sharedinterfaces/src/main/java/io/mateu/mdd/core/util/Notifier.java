@@ -1,13 +1,15 @@
 package io.mateu.mdd.core.util;
 
 import com.vaadin.ui.Notification;
+import com.vaadin.ui.UI;
 
 import java.lang.reflect.InvocationTargetException;
 
 public class Notifier {
 
     public static void alert(String msg) {
-        Notification.show("Alert",
+        System.out.println(msg);
+        if (UI.getCurrent() != null) Notification.show("Alert",
                 msg,
                 Notification.Type.ERROR_MESSAGE);
     }
@@ -25,7 +27,7 @@ public class Notifier {
 
         //StringWriter sw = new StringWriter();
         //throwable.printStackTrace(new PrintWriter(sw));
-        Notification.show("Error",
+        if (UI.getCurrent() != null) Notification.show("Error",
                 msg,
                 //sw.toString(),
                 Notification.Type.ERROR_MESSAGE);

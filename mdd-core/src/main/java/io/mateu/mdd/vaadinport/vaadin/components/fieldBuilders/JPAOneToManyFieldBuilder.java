@@ -486,7 +486,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                                 try {
                                     Object bean = binder.getBean();
 
-                                    ReflectionHelper.addToCollection(binder, field, bean);
+                                    ReflectionHelper.addToCollection(field, bean);
 
                                     binder.setBean(bean, false);
                                 } catch (Exception e1) {
@@ -527,7 +527,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                                     if (con != null && Modifier.isPublic(con.getModifiers())) {
                                         try {
                                             Collection col;
-                                            Object i = Iterables.getLast(col = ReflectionHelper.addToCollection(binder, field, binder.getBean()));
+                                            Object i = Iterables.getLast(col = ReflectionHelper.addToCollection(field, binder.getBean()));
                                             editar(binder, field, i, col.size() - 1);
                                         } catch (Exception ex) {
                                             MDD.alert(ex);
@@ -537,7 +537,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                                         if (con != null && con.getParameterCount() > 0) {
                                             VaadinHelper.fill("I need some data", con, i -> {
                                                 try {
-                                                    Collection col = ReflectionHelper.addToCollection(binder, field, binder.getBean());
+                                                    Collection col = ReflectionHelper.addToCollection(field, binder.getBean());
                                                     editar(binder, field, i, col.size() - 1);
                                                 } catch (Exception ex) {
                                                     MDD.alert(ex);
@@ -572,7 +572,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                                     if (o instanceof ProxyClass) o = ((ProxyClass) o).toObject();
 
-                                    ReflectionHelper.addToCollection(binder, field, bean, ReflectionHelper.clone(o));
+
+                                    ReflectionHelper.addToCollection(field, bean, ReflectionHelper.clone(o));
 
                                 }
 
@@ -594,12 +595,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                                 Object bean = binder.getBean();
                                 Set l = (Set) g.getSelectedItems().stream().map(o -> o != null && o instanceof ProxyClass ? ((ProxyClass) o).toObject() : o).collect(Collectors.toSet());
 
-                                if (field.isAnnotationPresent(OneToMany.class) && field.getAnnotation(OneToMany.class).orphanRemoval()) {
-                                } else {
-                                    binder.getRemovables().addAll(l);
-                                }
-                                ReflectionHelper.removeFromCollection(binder, field, bean, l);
-
+                                ReflectionHelper.setValue(field, bean, Helper.removeAll((Collection) ReflectionHelper.getValue(field, bean), l));
 
                                 binder.setBean(bean, false);
                             } catch (Throwable throwable) {
@@ -787,7 +783,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                                 Object bean = binder.getBean();
                                 Set l = g.getSelectedItems();
 
-                                ReflectionHelper.removeFromCollection(binder, field, bean, l);
+                                ReflectionHelper.setValue(field, bean, Helper.removeAll((Collection) ReflectionHelper.getValue(field, bean), l));
+
                             } catch (Throwable throwable) {
                                 MDD.alert(throwable);
                             }
@@ -1191,7 +1188,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             try {
 
                 if (k != null) {
-                    ReflectionHelper.addToMap(binder, field, bean, k, v);
+                    ReflectionHelper.addToMap(field, bean, k, v);
 
                     binder.setBean(bean, false);
                 }
@@ -1213,7 +1210,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                 Object bean = binder.getBean();
                 Set l = g.getSelectedItems();
 
-                ReflectionHelper.removeFromMap(binder, field, bean, l);
+                ReflectionHelper.removeFromMap(field, bean, l);
 
                 binder.setBean(bean, false);
             } catch (Exception e1) {
@@ -1368,29 +1365,6 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                 Object bean = binder.getBean();
                 try {
-
-                    Map old = (Map) ReflectionHelper.getValue(field, bean);
-
-                    old.values().forEach(e -> {
-                        Object target = e;
-                        if (!m.containsValue(target)) {
-                            try {
-                                ReflectionHelper.unReverseMap(binder, field, bean, target);
-                            } catch (Exception e1) {
-                                MDD.alert(e1);
-                            }
-                        }
-                    });
-                    m.values().forEach(e -> {
-                        Object target = e;
-                        if (!old.containsValue(target)) {
-                            try {
-                                ReflectionHelper.reverseMap(binder, field, bean, target);
-                            } catch (Exception e1) {
-                                MDD.alert(e1);
-                            }
-                        }
-                    });
                     ReflectionHelper.setValue(field, bean, (o != null)?m:null);
                 } catch (Exception e) {
                     MDD.alert(e);
@@ -1412,21 +1386,6 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
     private void updateReferences(MDDBinder binder, FieldInterfaced field, HasValue.ValueChangeEvent<Set<Object>> e) {
         Object bean = binder.getBean();
-        if (e.getOldValue() != null) e.getOldValue().stream().filter(i -> e.getValue() == null || !e.getValue().contains(i)).forEach(i -> {
-            try {
-                ReflectionHelper.unReverseMap(binder, field, bean, i);
-            } catch (Exception e1) {
-                MDD.alert(e1);
-            }
-        });
-        if (e.getValue() != null) e.getValue().stream().filter(i -> e.getOldValue() == null || !e.getOldValue().contains(i)).forEach(i -> {
-            try {
-                ReflectionHelper.reverseMap(binder, field, bean, i);
-            } catch (Exception e1) {
-                System.out.println("Error when trying to update references for field " + field.getName());
-                MDD.alert(e1);
-            }
-        });
     }
 
     private Object toId(Object row) {
@@ -1683,7 +1642,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
         b.addClickListener(e -> {
             try {
-                ReflectionHelper.removeFromCollection(binder, field, binder.getBean(), Sets.newHashSet(x));
+                Object bean = binder.getBean();
+                ReflectionHelper.setValue(field, bean, Helper.removeAll((Collection) ReflectionHelper.getValue(field, bean), Sets.newHashSet(x)));
             } catch (Throwable throwable) {
                 MDD.alert(throwable);
             }

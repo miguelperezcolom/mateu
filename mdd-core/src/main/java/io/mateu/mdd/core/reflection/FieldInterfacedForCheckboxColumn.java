@@ -129,13 +129,8 @@ public class FieldInterfacedForCheckboxColumn implements FieldInterfaced {
     @Override
     public void setValue(Object o, Object v) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         Collection col = (Collection)ReflectionHelper.getValue(collectionField, o);
-        if (!binder.getMergeables().contains(value)) binder.getMergeables().add(value);
         if (((Boolean)v)) {
             if (!col.contains(value)) col.add(value);
-            ReflectionHelper.reverseMap(binder, collectionField, o, value);
-        } else {
-            col.remove(value);
-            ReflectionHelper.unReverseMap(binder, collectionField, o, value);
         }
     }
 

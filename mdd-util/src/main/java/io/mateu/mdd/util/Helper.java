@@ -11,6 +11,8 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import com.google.zxing.BarcodeFormat;
@@ -1098,6 +1100,7 @@ public class Helper {
         return s.replaceAll("YP9LKQ", "/");
     }
 
+
     /*
 This method takes the text to be encoded, the width and height of the QR Code,
 and returns the QR Code in the form of a byte array.
@@ -1113,6 +1116,18 @@ and returns the QR Code in the form of a byte array.
     }
 
 
+    public static <T> Collection<T> extend(Collection<T> list, T o) {
+        if (list == null) return null;
+        if (list instanceof ImmutableList) {
+            return extend((ImmutableList<T>) list, o);
+        } else if (list instanceof ImmutableSet) {
+            return extend((ImmutableSet<T>) list, o);
+        } else if (Set.class.isAssignableFrom(list.getClass())) {
+            return extend((Set) list, o);
+        } else {
+            return extend((List) list, o);
+        }
+    }
 
     public static <T> List<T> extend(List<T> list, T o) {
         List<T> l = new ArrayList<T>(list);
@@ -1125,6 +1140,125 @@ and returns the QR Code in the form of a byte array.
         l.add(o);
         return ImmutableList.copyOf(l);
     }
+
+    public static <T> Set<T> extend(Set<T> list, T o) {
+        Set<T> l = new HashSet<>(list);
+        l.add(o);
+        return l;
+    }
+
+    public static <T> ImmutableSet<T> extend(ImmutableSet<T> list, T o) {
+        Set<T> l = new HashSet<>(list);
+        l.add(o);
+        return ImmutableSet.copyOf(l);
+    }
+
+    public static <K,V> Map<K,V> extend(Map<K,V> list, K k, V v) {
+        Map<K,V> l = new HashMap<>(list);
+        l.put(k, v);
+        return l;
+    }
+
+    public static <K,V> ImmutableMap<K,V> extend(ImmutableMap<K,V> list, K k, V v) {
+        Map<K,V> l = new HashMap<>(list);
+        l.put(k, v);
+        return ImmutableMap.copyOf(l);
+    }
+
+
+
+    public static <T> Collection<T> remove(Collection<T> list, T o) {
+        if (list == null) return null;
+        if (list instanceof ImmutableList) {
+            return remove((ImmutableList<T>) list, o);
+        } else if (list instanceof ImmutableSet) {
+            return remove((ImmutableSet<T>) list, o);
+        } else if (Set.class.isAssignableFrom(list.getClass())) {
+            return remove((Set) list, o);
+        } else {
+            return remove((List) list, o);
+        }
+    }
+
+    public static <T> List<T> remove(List<T> list, T o) {
+        if (list == null) return null;
+        List<T> l = new ArrayList<T>(list);
+        l.remove(o);
+        return l;
+    }
+
+    public static <T> Set<T> remove(Set<T> list, T o) {
+        if (list == null) return null;
+        Set<T> l = new HashSet<>(list);
+        l.remove(o);
+        return l;
+    }
+
+    public static <T> ImmutableList<T> remove(ImmutableList<T> list, T o) {
+        if (list == null) return null;
+        List<T> l = new ArrayList<>(list);
+        l.remove(o);
+        return ImmutableList.copyOf(l);
+    }
+
+    public static <T> ImmutableSet<T> remove(ImmutableSet<T> list, T o) {
+        if (list == null) return null;
+        Set<T> l = new HashSet<>(list);
+        l.remove(o);
+        return ImmutableSet.copyOf(l);
+    }
+
+    public static <K,V> ImmutableMap<K,V> remove(ImmutableMap<K,V> list, K o) {
+        if (list == null) return null;
+        Map<K,V> l = new HashMap<>(list);
+        l.remove(o);
+        return ImmutableMap.copyOf(l);
+    }
+
+
+
+
+    public static <T> Collection<T> removeAll(Collection<T> list, Collection o) {
+        if (list == null) return null;
+        if (list instanceof ImmutableList) {
+            return removeAll((ImmutableList<T>) list, o);
+        } else if (list instanceof ImmutableSet) {
+            return removeAll((ImmutableSet<T>) list, o);
+        } else if (Set.class.isAssignableFrom(list.getClass())) {
+            return removeAll((Set) list, o);
+        } else {
+            return removeAll((List) list, o);
+        }
+    }
+
+    public static <T> List<T> removeAll(List<T> list, Collection o) {
+        if (list == null) return null;
+        List<T> l = new ArrayList<T>(list);
+        l.removeAll(o);
+        return l;
+    }
+
+    public static <T> Set<T> removeAll(Set<T> list, Collection o) {
+        if (list == null) return null;
+        Set<T> l = new HashSet<>(list);
+        l.removeAll(o);
+        return l;
+    }
+
+    public static <T> ImmutableList<T> removeAll(ImmutableList<T> list, Collection o) {
+        if (list == null) return null;
+        List<T> l = new ArrayList<>(list);
+        l.removeAll(o);
+        return ImmutableList.copyOf(l);
+    }
+
+    public static <T> ImmutableSet<T> removeAll(ImmutableSet<T> list, Collection o) {
+        if (list == null) return null;
+        Set<T> l = new HashSet<>(list);
+        l.removeAll(o);
+        return ImmutableSet.copyOf(l);
+    }
+
 
     public static String translate(String source_lang, String target_lang, String text) throws Throwable {
         return new DeepLClient().translate(source_lang, target_lang, text);

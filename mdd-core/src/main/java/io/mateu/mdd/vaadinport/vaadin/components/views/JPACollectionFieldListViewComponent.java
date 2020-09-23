@@ -10,6 +10,7 @@ import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.mdd.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.ClassOption;
 import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
@@ -217,8 +218,6 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
 
     public Object addNew() throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         Object o = getModelType().newInstance();
-        //ReflectionHelper.reverseMap(evfc.getBinder(), field, evfc.getModel(), o);
-        /// lo hemos movido al onsave
         return o;
     }
 
@@ -270,7 +269,10 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
         Collection col = (Collection) ReflectionHelper.getValue(field, parent);
         log.debug("******RESULT=" + col.size());
 
-        ReflectionHelper.addToCollection(evfc.getBinder(), field, parent, model);
+        //Object parentBean = evfc.getBinder().getBean();
+        ReflectionHelper.addToCollection(field, parent, model);
+        evfc.getBinder().setBean(parent, false);
+
 
         col = (Collection) ReflectionHelper.getValue(field, parent);
         log.debug("******RESULT=" + col.size());

@@ -77,6 +77,8 @@ public interface IJPAHelper {
 
     <T> T find(EntityManager em, Class<T> type, Object... params);
 
+    <T> T find(Class<T> type, Object... params);
+
     <T> TypedQuery<T> createQuery(EntityManager em, Class<T> type, Object[] params);
 
     <T> List<T> list(EntityManager em, Class<T> type, Object... params);

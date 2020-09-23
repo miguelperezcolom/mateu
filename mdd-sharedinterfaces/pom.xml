@@ -7,7 +7,7 @@
   <parent>
     <artifactId>mdd-parent</artifactId>
     <groupId>io.mateu</groupId>
-    <version>0.0.13</version>
+    <version>0.0.14</version>
   </parent>
 
   <artifactId>mdd-sharedinterfaces</artifactId>
@@ -41,7 +41,7 @@
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>lombok</artifactId>
-      <version>1.18.11.95</version>
+      <version>1.18.11.96</version>
     </dependency>
 
     <dependency>

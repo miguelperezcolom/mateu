@@ -6,7 +6,7 @@
 
   <groupId>io.mateu</groupId>
   <artifactId>lombok-tester</artifactId>
-  <version>0.0.13</version>
+  <version>0.0.14</version>
 
   <name>lombok-tester</name>
   <!-- FIXME change it to the project's website -->
@@ -37,19 +37,19 @@
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>mdd-se</artifactId>
-      <version>0.0.13</version>
+      <version>0.0.14</version>
     </dependency>
 
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>mdd-j2ee</artifactId>
-      <version>0.0.13</version>
+      <version>0.0.14</version>
     </dependency>
 
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>lombok</artifactId>
-      <version>1.18.11.95</version>
+      <version>1.18.11.96</version>
     </dependency>
 
   </dependencies>

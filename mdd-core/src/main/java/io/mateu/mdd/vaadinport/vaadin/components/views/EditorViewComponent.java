@@ -1269,8 +1269,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                         @Override
                         public void run(EntityManager em) throws Throwable {
 
-                            if (copyEditableValues) {
-                                Object d = transferirValores(em, m, new ArrayList<>());
+                            if (true || copyEditableValues) {
+                                Object d = transferirValores(em, m);
                                 setModel(d);
                                 merged[0] = d;
                             } else {
@@ -1370,35 +1370,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         return noerror;
     }
 
-    private Object transferirValores(EntityManager em, Object m, List<Object> transferidos) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        Object d = em.find(m.getClass(), ReflectionHelper.getId(m));
-        if (d != null) {
-            for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(m.getClass()))
-                if (!f.isAnnotationPresent(Output.class) && !f.isAnnotationPresent(KPI.class) && !f.isAnnotationPresent(KPIInline.class)) {
-                    Object v = ReflectionHelper.getValue(f, m);
-                    boolean transferir = true;
-                    if (v instanceof Collection) {
-                        if (ReflectionHelper.isOwnedCollection(f)) {
-                            Collection aux = new ArrayList();
-                            if (v instanceof Collection) {
-                                if (v instanceof Set) aux = new HashSet();
-                            }
-                            Collection finalAux = aux;
-                            for (Object x : ((Collection)v)) {
-                                finalAux.add(x.getClass().isAnnotationPresent(Entity.class) && !transferidos.contains(x)? transferirValores(em, x, transferidos) : x);
-                            };
-                            v = aux;
-                        } else transferir = false;
-                    }
-                    if (transferir) ReflectionHelper.setValue(f, d, v);
-                }
-        } else {
-            d = m;
-            em.persist(d);
-        }
-
-        ReflectionHelper.auditar(d);
-        return d;
+    private Object transferirValores(EntityManager em, Object m) throws Throwable {
+        return new Transferrer().transfer(em, m);
     }
 
 
@@ -1471,7 +1444,6 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                         break;
                     }
                 }
-
 
                 setModel(id);
             }

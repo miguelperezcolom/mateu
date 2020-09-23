@@ -87,7 +87,9 @@ public class JPACollectionFieldViewComponent extends JPAListViewComponent {
                 public void run() {
 
                     try {
-                        ReflectionHelper.removeFromCollection(evfc.getBinder(), field,  evfc.getModel(), getSelection());
+                        Object parentBean = evfc.getBinder().getBean();
+                        ReflectionHelper.setValue(field, parentBean, Helper.removeAll((Collection) ReflectionHelper.getValue(field, parentBean), getSelection()));
+                        evfc.getBinder().setBean(parentBean, false);
                     } catch (Throwable throwable) {
                         MDD.alert(throwable);
                     }
@@ -118,7 +120,8 @@ public class JPACollectionFieldViewComponent extends JPAListViewComponent {
                             Object m = evfc.getModel();
 
                             try {
-                                ReflectionHelper.addToCollection(evfc.getBinder(), field, m, o);
+                                ReflectionHelper.addToCollection(field, m, o);
+                                evfc.getBinder().setBean(m, false);
                             } catch (Exception e1) {
                                 MDD.alert(e1);
                             }

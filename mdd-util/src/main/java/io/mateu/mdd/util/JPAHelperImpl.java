@@ -378,6 +378,20 @@ public class JPAHelperImpl implements IJPAHelper {
     }
 
     @Override
+    public <T> T find(Class<T> type, Object... params) {
+        Object[] o = {null};
+        try {
+            notransact(em -> {
+                TypedQuery<T> q = createQuery(em, type, params);
+                o[0] = q.getSingleResult();
+            });
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+        return (T) o[0];
+    }
+
+    @Override
     public <T> TypedQuery<T> createQuery(EntityManager em, Class<T> type, Object[] params) {
         CriteriaBuilder b = em.getCriteriaBuilder();
         CriteriaQuery<T> cq = b.createQuery(type);

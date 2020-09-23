@@ -473,15 +473,6 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                         if (bean != null && ReflectionHelper.getValue(field, bean) == null) {
                             ReflectionHelper.setValue(field, bean, v);
                             binder.setBean(bean, false);
-
-                            try {
-                                Object old = ReflectionHelper.getValue(field, bean);
-                                if (old != null) ReflectionHelper.unReverseMap(binder, field, bean, old);
-                                Object value = v;
-                                if (value != null) ReflectionHelper.reverseMap(binder, field, bean, value);
-                            } catch (Exception e1) {
-                                MDD.alert(e1);
-                            }
                         }
                     }
                 }
@@ -517,16 +508,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
         if (!forSearchFilter && field.getDeclaringClass() != null && field.getType().isAnnotationPresent(Entity.class)) {
             binding.getField().addValueChangeListener(e -> {
-                Object bean = binder.getBean();
-                try {
-                    Object old = getInstance(field, e.getOldValue());
-                    if (old != null) ReflectionHelper.unReverseMap(binder, field, bean, old);
-                    Object value = getInstance(field, e.getValue());
-                    if (value != null) ReflectionHelper.reverseMap(binder, field, bean, value);
-                } catch (Exception e1) {
-                    MDD.alert(e1);
-                }
-                botonLink.setVisible(e.getValue() != null);
+                if (botonLink != null) botonLink.setVisible(e.getValue() != null);
             });
         }
 

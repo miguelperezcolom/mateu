@@ -135,7 +135,11 @@ public class OwnedCollectionComponent extends EditorViewComponent {
                                         Object m = getModel();
                                         if (m != null && m instanceof ResourceModel)
                                             m = ((ResourceModel) m).getResource();
-                                        collection = ReflectionHelper.removeFromCollection(parentBinder, field, parentBinder.getBean(), Lists.newArrayList(m));
+
+                                        Object parentBean = parentBinder.getBean();
+                                        collection = Helper.remove((Collection) ReflectionHelper.getValue(field, parentBean), m);
+                                        ReflectionHelper.setValue(field, parentBean, collection);
+                                        parentBinder.setBean(parentBean, false);
 
                                         try {
                                             if (collection.size() == 0) MDDUI.get().getNavegador().goBack();
@@ -284,7 +288,10 @@ public class OwnedCollectionComponent extends EditorViewComponent {
                 VaadinHelper.choose("Please choose type", subClassesOptions, cl -> {
                     try {
                         Object o = newInstance(((ClassOption)cl).get_class());
-                        collection = ReflectionHelper.addToCollection(parentBinder, field, parentBinder.getBean(), o);
+                        Object parentBean = parentBinder.getBean();
+                        collection = Helper.extend((Collection) ReflectionHelper.getValue(field, parentBean), o);
+                        ReflectionHelper.setValue(field, parentBean, collection);
+                        parentBinder.setBean(parentBean, false);
                         consumer.accept(o);
                     } catch (Exception e) {
                         MDD.alert(e);
@@ -307,7 +314,13 @@ public class OwnedCollectionComponent extends EditorViewComponent {
                     }
                     if (con != null && Modifier.isPublic(con.getModifiers())) {
                         try {
-                            Object i = Iterables.getLast(collection = ReflectionHelper.addToCollection(parentBinder, field, parentBinder.getBean()));
+
+                            Object parentBean = parentBinder.getBean();
+                            collection = ReflectionHelper.addToCollection(field, parentBinder.getBean());
+                            ReflectionHelper.setValue(field, parentBean, collection);
+                            parentBinder.setBean(parentBean, false);
+
+                            Object i = Iterables.getLast(collection);
                             consumer.accept(i);
                         } catch (Exception ex) {
                             MDD.alert(ex);
@@ -317,7 +330,7 @@ public class OwnedCollectionComponent extends EditorViewComponent {
                         if (con != null) {
                             VaadinHelper.fill("I need some data", con, i -> {
                                 try {
-                                    collection = ReflectionHelper.addToCollection(parentBinder, field, parentBinder.getBean());
+                                    collection = ReflectionHelper.addToCollection(field, parentBinder.getBean());
                                     consumer.accept(i);
                                 } catch (Exception ex) {
                                     MDD.alert(ex);
