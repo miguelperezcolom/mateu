@@ -619,7 +619,21 @@ public class ReflectionHelper extends BaseReflectionHelper {
                 }
             if (!hayName) {
                 for (FieldInterfaced ff : getAllFields(entityClass))
-                    if ("value".equalsIgnoreCase(ff.getName()) || "title".equalsIgnoreCase(ff.getName()) || "titulo".equalsIgnoreCase(ff.getName())) {
+                    if ("value".equalsIgnoreCase(ff.getName())
+                            || "title".equalsIgnoreCase(ff.getName())
+                            || "titulo".equalsIgnoreCase(ff.getName())
+                            || "description".equalsIgnoreCase(ff.getName())
+                            || "descripcion".equalsIgnoreCase(ff.getName())
+                    ) {
+                        fName = ff;
+                        hayName = true;
+                    }
+            }
+            if (!hayName) {
+                for (FieldInterfaced ff : getAllFields(entityClass))
+                    if ("description".equalsIgnoreCase(ff.getName())
+                            || "descripcion".equalsIgnoreCase(ff.getName())
+                    ) {
                         fName = ff;
                         hayName = true;
                     }

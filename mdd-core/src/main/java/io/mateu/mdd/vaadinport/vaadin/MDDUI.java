@@ -285,7 +285,7 @@ public class MDDUI extends UI {
         MDD.getApp().getAreas().stream().forEach(a -> {
 
             Button b;
-            lx.addComponent(b = new Button(a.getName(), a.getIcon()));
+            lx.addComponent(b = new Button(a.getName(), VaadinIcons.ADOBE_FLASH.equals(a.getIcon())?null:a.getIcon()));
             b.addClickListener(e -> {
                 w.close();
                 MDDUI.get().getNavegador().goTo(a);

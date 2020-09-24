@@ -785,6 +785,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                                 ReflectionHelper.setValue(field, bean, Helper.removeAll((Collection) ReflectionHelper.getValue(field, bean), l));
 
+                                binder.setBean(bean, false);
+
                             } catch (Throwable throwable) {
                                 MDD.alert(throwable);
                             }

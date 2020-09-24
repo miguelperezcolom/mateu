@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.app.views;
 
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.CssLayout;
@@ -118,7 +119,7 @@ public class WelcomeComponent extends AbstractViewComponent {
             MDD.getApp().getAreas().stream().forEach(a -> {
 
                 Button b;
-                lx.addComponent(b = new Button(a.getName(), a.getIcon()));
+                lx.addComponent(b = new Button(a.getName(), VaadinIcons.ADOBE_FLASH.equals(a.getIcon())?null:a.getIcon()));
                 b.addClickListener(e -> MDDUI.get().getNavegador().goTo(a));
                 b.setPrimaryStyleName(ValoTheme.BUTTON_HUGE);
                 b.addStyleName("submenuoption");

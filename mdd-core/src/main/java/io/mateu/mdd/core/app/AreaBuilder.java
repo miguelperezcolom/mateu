@@ -1,5 +1,6 @@
 package io.mateu.mdd.core.app;
 
+import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
@@ -99,6 +100,11 @@ public class AreaBuilder {
             public AbstractAction getDefaultAction() {
                 return findDefaultAction(f.getType(), authenticationAgnostic, publicAccess);
             }
+
+            @Override
+            public VaadinIcons getIcon() {
+                return f.isAnnotationPresent(Area.class)?f.getAnnotation(Area.class).icon():VaadinIcons.ADOBE_FLASH;
+            }
         };
     }
 
@@ -164,6 +170,11 @@ public class AreaBuilder {
             @Override
             public AbstractAction getDefaultAction() {
                 return findDefaultAction(method.getReturnType(), authenticationAgnostic, publicAccess);
+            }
+
+            @Override
+            public VaadinIcons getIcon() {
+                return method.isAnnotationPresent(Area.class)?method.getAnnotation(Area.class).icon():VaadinIcons.ADOBE_FLASH;
             }
         };
     }

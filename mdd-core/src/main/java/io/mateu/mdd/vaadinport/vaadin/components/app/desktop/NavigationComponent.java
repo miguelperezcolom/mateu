@@ -9,6 +9,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 import java.util.HashMap;
@@ -73,7 +74,7 @@ public class NavigationComponent extends VerticalLayout {
                             });
 
                         }); //, a.getIcon());
-                        b.setIcon(a.getIcon());
+                        if (!VaadinIcons.ADOBE_FLASH.equals(a.getIcon())) b.setIcon(a.getIcon());
                         b.setPrimaryStyleName(ValoTheme.BUTTON_LINK);
                         b.setCaptionAsHtml(true);
                         b.addStyleName("tituloarea");
@@ -131,6 +132,7 @@ public class NavigationComponent extends VerticalLayout {
                     b.setCaptionAsHtml(true);
                     b.addStyleName("botonbuscar");
                     //b.setDescription("Click to change to another area");
+                    bBuscar.setVisible(canBeSearched(app));
 
                     addComponent(b);
 
@@ -228,6 +230,10 @@ public class NavigationComponent extends VerticalLayout {
         setArea(null);
     }
 
+    private boolean canBeSearched(AbstractApplication app) {
+        return app != null && app.getSearcher() != null && !Searcher.class.equals(app.getSearcher().getClass()) || app.getAreas().size() > 1  || (app.getAreas().size() > 0 && app.getAreas().get(0).getModules().size() > 0 && app.getAreas().get(0).getModules().get(0).getMenu().size() > 0);
+    }
+
     public void setArea(AbstractArea a) {
         this.area = a;
         removeAllComponents();
@@ -237,6 +243,7 @@ public class NavigationComponent extends VerticalLayout {
     public void setMenu(MenuEntry menu) {
         if (bBuscar != null) {
             bBuscar.removeStyleName("selected");
+            bBuscar.setVisible(canBeSearched(app));
         }
         if (this.menu != null) {
             if (bArea!= null) bArea.removeStyleName("selected");

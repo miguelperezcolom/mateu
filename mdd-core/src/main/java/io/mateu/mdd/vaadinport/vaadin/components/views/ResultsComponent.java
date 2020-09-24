@@ -61,7 +61,10 @@ public class ResultsComponent extends VerticalLayout {
         if (o.isPresent()) {
             setLastClickedRowIndex(getLastClickedRowIndex() + 1);
             return o.get();
-        } else throw new Error("This is the last item of the list");
+        } else {
+            MDD.info("This is the last item of the list");
+            return null;
+        }
     }
 
     public Object getPrevious() {
@@ -77,7 +80,10 @@ public class ResultsComponent extends VerticalLayout {
         if (o.isPresent()) {
             setLastClickedRowIndex(getLastClickedRowIndex() - 1);
             return o.get();
-        } else throw new Error("This is already the first item of the list");
+        } else {
+            MDD.info("This is already the first item of the list");
+            return null;
+        }
     }
 
     public CallbackDataProvider<Object, Object> getDataProvider() {
