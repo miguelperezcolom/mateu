@@ -26,7 +26,11 @@ public class MenuBuilder {
     public static List<MenuEntry> buildMenu(Object app, boolean authenticationAgnostic, boolean publicAccess) {
         List<MenuEntry> l = new ArrayList<>();
 
-        for (FieldInterfaced f : ReflectionHelper.getAllFields(app.getClass())) if (Modifier.isPublic(f.getModifiers())) {
+        for (FieldInterfaced f : ReflectionHelper.getAllFields(app.getClass())) {
+
+            if (!Modifier.isPublic(f.getModifiers())) {
+                f.getField().setAccessible(true);
+            }
 
             boolean add = false;
 
@@ -56,7 +60,11 @@ public class MenuBuilder {
 
         }
 
-        for (Method m : getAllActionMethods(app.getClass())) if (Modifier.isPublic(m.getModifiers())) {
+        for (Method m : getAllActionMethods(app.getClass())) {
+
+            if (!Modifier.isPublic(m.getModifiers())) {
+                m.setAccessible(true);
+            }
 
             boolean add = false;
 
@@ -171,6 +179,10 @@ public class MenuBuilder {
 
         if (f.isAnnotationPresent(Submenu.class)) {
 
+            if (!Modifier.isPublic(f.getModifiers())) {
+                f.getField().setAccessible(true);
+            }
+
             try {
 
                 {
@@ -197,6 +209,10 @@ public class MenuBuilder {
         } else if (f.isAnnotationPresent(Action.class) || f.isAnnotationPresent(Home.class) || f.isAnnotationPresent(PublicHome.class) || f.isAnnotationPresent(PrivateHome.class)) {
 
             try {
+
+                if (!Modifier.isPublic(f.getModifiers())) {
+                    f.getField().setAccessible(true);
+                }
 
                 if (Class.class.isAssignableFrom(f.getType())) {
                     Class type = (Class) ReflectionHelper.getValue(f, app);

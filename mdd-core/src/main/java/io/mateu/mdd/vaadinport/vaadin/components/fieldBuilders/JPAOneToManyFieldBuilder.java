@@ -522,7 +522,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                                 try {
                                     Constructor con = ReflectionHelper.getConstructor(field.getGenericClass(), binder.getBeanType());
                                     if (con == null) {
-                                        con = field.getGenericClass().getConstructor();
+                                        con = Arrays.stream(field.getGenericClass().getConstructors()).filter(c -> c.getParameterCount() == 0).findFirst().orElse(null);
                                     }
                                     if (con != null && Modifier.isPublic(con.getModifiers())) {
                                         try {
@@ -537,7 +537,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                                         if (con != null && con.getParameterCount() > 0) {
                                             VaadinHelper.fill("I need some data", con, i -> {
                                                 try {
-                                                    Collection col = ReflectionHelper.addToCollection(field, binder.getBean());
+                                                    Collection col = ReflectionHelper.addToCollection(field, binder.getBean(), i);
                                                     editar(binder, field, i, col.size() - 1);
                                                 } catch (Exception ex) {
                                                     MDD.alert(ex);
@@ -547,7 +547,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                                     }
 
 
-                                } catch (NoSuchMethodException ex) {
+                                } catch (Exception ex) {
                                     MDD.alert(ex);
                                 }
 
@@ -558,7 +558,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                 if (!field.isAnnotationPresent(ModifyValuesOnly.class)) {
 
-                    if (ReflectionHelper.puedeAnadir(field)) {
+                    if (ReflectionHelper.puedeClonar(field)) {
 
                         hl.addComponent(b = new Button(VaadinIcons.COPY));
                         b.addStyleName(ValoTheme.BUTTON_QUIET);

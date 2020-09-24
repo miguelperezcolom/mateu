@@ -37,6 +37,13 @@ public class Transferrer {
                             List l = new ArrayList();
                             ((Collection)v).forEach(o -> {
                                 Object p = em.find(o.getClass(), ReflectionHelper.getId(o));
+                                if (p != null && ReflectionHelper.isOwner(f)) {
+                                    try {
+                                        p = transfer(em, o);
+                                    } catch (Throwable throwable) {
+                                        throwable.printStackTrace();
+                                    }
+                                }
                                 l.add(p != null?p:o);
                             });
                             if (ImmutableList.class.isAssignableFrom(f.getType())) v = ImmutableList.copyOf(l);
@@ -111,21 +118,32 @@ public class Transferrer {
         if (bean != null && oldValue != null) {
             FieldInterfaced rf = null;
             String mappedBy = ReflectionHelper.getMappedBy(f);
+            Type targetType = f.getGenericType();
+            if (Collection.class.isAssignableFrom(f.getType())) targetType = ReflectionHelper.getGenericClass(targetType);
             if (!Strings.isNullOrEmpty(mappedBy)) {
-                rf = ReflectionHelper.getFieldByName(oldValue.getClass(), mappedBy);
+                rf = ReflectionHelper.getFieldByName((Class) targetType, mappedBy);
             } else {
                 rf = ReflectionHelper.getMapper(f);
             }
             if (rf != null) {
                 if (!ReflectionHelper.isOwner(f)) {
-                    Object v = ReflectionHelper.getValue(rf, oldValue);
-                    if (v != null) {
-                        if (v instanceof  Collection) {
-                            ReflectionHelper.setValue(rf, oldValue, Helper.remove((Collection) v, bean));
-                        } else {
-                            ReflectionHelper.setValue(rf, oldValue, null);
+                    List otherSide = new ArrayList();
+                    if (oldValue instanceof Collection) otherSide.addAll((Collection) oldValue);
+                    else otherSide.add(oldValue);
+                    FieldInterfaced finalRf = rf;
+                    otherSide.forEach(i -> {
+                        try {
+                            if (Collection.class.isAssignableFrom(finalRf.getType())) {
+                                Collection v = (Collection) ReflectionHelper.getValue(finalRf, i);
+                                if (v != null && v.contains(bean)) v = Helper.remove((Collection) v, bean);
+                                ReflectionHelper.setValue(finalRf, i, v);
+                            } else {
+                                ReflectionHelper.setValue(finalRf, i, null);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
-                    }
+                    });
                 }
             }
         }

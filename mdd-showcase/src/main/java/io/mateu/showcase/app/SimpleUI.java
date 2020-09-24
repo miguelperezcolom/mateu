@@ -5,19 +5,16 @@ import io.mateu.mdd.core.app.MateuUI;
 import org.example.domain.boundaries.common.entities.Person;
 
 @MateuMDDUI(path = "")
-public class MyUI extends MateuUI {
+public class SimpleUI extends MateuUI {
 
     @Private
     @Submenu
-    public ConfigMenu config;
+    ConfigMenu config;
 
-    @Action
-    public Class persons = Person.class;
-
-    @Home
-    public String msg = "Hello world";
+    @PublicHome
+    String msg = "Hello world";
 
     @PrivateHome
-    public String eyesOnlyMsg = "Hello Mateu";
+    String eyesOnlyMsg = "Hello Mateu";
 
 }

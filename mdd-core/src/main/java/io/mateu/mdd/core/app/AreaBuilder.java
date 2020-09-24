@@ -31,22 +31,32 @@ public class AreaBuilder {
                 if (privateMenu.size() > 0) l.add(new AreaFromMenu("", privateMenu, false, findDefaultAction(uiclass, false, false)));
             } else {
                 if (privateMenu.size() > 0) l.add(new AreaFromMenu("", privateMenu, false, findDefaultAction(uiclass, false, false)));
-                if (publicMenu.size() > 0) l.add(new AreaFromMenu("", publicMenu, true, findDefaultAction(uiclass, false, true)));
+                if (publicMenu.size() > 0 || isPublicHomeDefined()) l.add(new AreaFromMenu("", publicMenu, true, findDefaultAction(uiclass, false, true)));
             }
             if (l.size() == 0) l.add(new FakeArea("", !allPrivate, findDefaultAction(uiclass, allPrivate, allPrivate)));
+        } else {
+            if (isPublicHomeDefined()) l.add(new FakeArea("", true, findDefaultAction(uiclass, false, true)));
         }
         return l;
+    }
+
+    private boolean isPublicHomeDefined() {
+        return ReflectionHelper.getAllFields(ui.getClass()).stream().filter(f -> f.isAnnotationPresent(PublicHome.class)).map(f -> true).findFirst().orElse(
+                ReflectionHelper.getAllMethods(ui.getClass()).stream().filter(f -> f.isAnnotationPresent(PublicHome.class)).map(m -> true).findFirst().orElse(false)
+        );
     }
 
     private void addAreas(Class uiclass, List<AbstractArea> l, boolean publicAccess) {
         for (FieldInterfaced f : ReflectionHelper.getAllFields(uiclass)) {
             if (f.isAnnotationPresent(Area.class)) {
-                addIfNotEmpty(l, createArea(f, false, publicAccess));
+                if ((publicAccess && !f.isAnnotationPresent(Private.class)) || (!publicAccess && f.isAnnotationPresent(Private.class)))
+                    addIfNotEmpty(l, createArea(f, false, publicAccess));
             }
         }
         for (Method m : ReflectionHelper.getAllMethods(uiclass)) {
             if (m.isAnnotationPresent(Area.class)) {
-                addIfNotEmpty(l, createArea(m, false, publicAccess));
+                if ((publicAccess && !m.isAnnotationPresent(Private.class)) || (!publicAccess && m.isAnnotationPresent(Private.class)))
+                    addIfNotEmpty(l, createArea(m, false, publicAccess));
             }
         }
     }
@@ -67,7 +77,14 @@ public class AreaBuilder {
 
                     @Override
                     public List<MenuEntry> buildMenu() {
-                        return new MenuBuilder().buildMenu(f.getType(), true, publicAccess);
+                        try {
+                            Object v = ReflectionHelper.getValue(f, ui);
+                            if (v == null) v = ReflectionHelper.newInstance(f.getType());
+                            return new MenuBuilder().buildMenu(v, true, publicAccess);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        return new ArrayList<>();
                     }
                 });
                 return m;

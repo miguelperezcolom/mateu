@@ -169,7 +169,11 @@ public class ReflectionHelper extends BaseReflectionHelper {
                 v = getter.invoke(o);
             else {
                 try {
-                    v = o.getClass().getField(id).get(o);
+                    Field field = o.getClass().getDeclaredField(id);
+                    if (!Modifier.isPublic(field.getModifiers())) {
+                        field.setAccessible(true);
+                    }
+                    v = field.get(o);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -1630,12 +1634,14 @@ public class ReflectionHelper extends BaseReflectionHelper {
     }
 
     public static boolean isOwner(FieldInterfaced field) {
+        OneToOne oo = field.getAnnotation(OneToOne.class);
         OneToMany aa = field.getAnnotation(OneToMany.class);
         ManyToMany mm = field.getAnnotation(ManyToMany.class);
 
         boolean owner = false;
 
-        if (aa != null) owner = checkCascade(aa.cascade());
+        if (oo != null) owner = checkCascade(oo.cascade());
+        else if (aa != null) owner = checkCascade(aa.cascade());
         else if (mm != null) owner = checkCascade(mm.cascade());
 
         return owner;
@@ -1645,7 +1651,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     private static boolean checkCascade(CascadeType[] cascade) {
         boolean owned = false;
         for (CascadeType ct : cascade) {
-            if (CascadeType.ALL.equals(ct) || CascadeType.REMOVE.equals(ct) || CascadeType.PERSIST.equals(ct) || CascadeType.MERGE.equals(ct)) {
+            if (CascadeType.ALL.equals(ct) || CascadeType.PERSIST.equals(ct)) {
                 owned = true;
                 break;
             }
@@ -1696,6 +1702,19 @@ public class ReflectionHelper extends BaseReflectionHelper {
         return puede;
     }
 
+
+    public static boolean puedeClonar(FieldInterfaced field) {
+        boolean puede = puedeAnadir(field);
+        if (puede) {
+            Class targetType = field.getType();
+            if (Collection.class.isAssignableFrom(field.getType())) {
+                targetType = field.getGenericClass();
+            }
+            Constructor con = getConstructor(targetType);
+            puede = con != null && con.getParameterCount() == 0;
+        }
+        return puede;
+    }
 
     public static Class createClassUsingJavac(String fullClassName, List<FieldInterfaced> fields) throws CannotCompileException, IOException, NoSuchFieldException, IllegalAccessException, ClassNotFoundException {
 
@@ -2241,7 +2260,17 @@ public class ReflectionHelper extends BaseReflectionHelper {
             Method m = ReflectionHelper.getMethod(original.getClass(), "cloneAsConverted");
             if (m != null) return m.invoke(original);
             else {
-                Object copy = original.getClass().getConstructor().newInstance();
+
+                Object copy = null;
+
+
+                Constructor con = getConstructor(original.getClass());
+                if (con != null && con.getParameterCount() == 0) copy = con.newInstance();
+                else {
+                    con = Arrays.stream(original.getClass().getDeclaredConstructors()).filter(x -> x.getParameterCount() == 0).findFirst().orElse(null);
+                    if (!Modifier.isPublic(con.getModifiers())) con.setAccessible(true);
+                    copy = con.newInstance();
+                }
 
                 for (FieldInterfaced f : ReflectionHelper.getAllFields(original.getClass())) if (!f.isAnnotationPresent(Id.class)) {
                     ReflectionHelper.setValue(f, copy, ReflectionHelper.getValue(f, original));
@@ -2396,7 +2425,9 @@ public class ReflectionHelper extends BaseReflectionHelper {
             Constructor con = getConstructor(c, parent.getClass());
             if (con != null) i = con.newInstance(parent);
             else {
-                i = c.newInstance();
+                con = Arrays.stream(c.getDeclaredConstructors()).filter(x -> x.getParameterCount() == 0).findFirst().orElse(null);
+                if (!Modifier.isPublic(con.getModifiers())) con.setAccessible(true);
+                i = con.newInstance();
                 for (FieldInterfaced f : ReflectionHelper.getAllFields(c)) if (f.getType().equals(parent.getClass()) && f.isAnnotationPresent(NotNull.class)) {
                     ReflectionHelper.setValue(f, i, parent);
                     break;
