@@ -199,7 +199,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
 
 
-                if (field.isAnnotationPresent(UseRadioButtons.class)) {
+                if (!forSearchFilter && field.isAnnotationPresent(UseRadioButtons.class)) {
 
                     RadioButtonGroup rbg;
                     hl.addComponent(rbg = new RadioButtonGroup());

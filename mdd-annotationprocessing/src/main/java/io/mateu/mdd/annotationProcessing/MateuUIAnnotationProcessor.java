@@ -1,7 +1,7 @@
 package io.mateu.mdd.annotationProcessing;
 
 import com.google.auto.service.AutoService;
-import io.mateu.mdd.core.annotations.MateuMDDUI;
+import io.mateu.mdd.core.annotations.MateuUI;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -12,10 +12,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Set;
 
-@SupportedAnnotationTypes({"io.mateu.mdd.core.annotations.MateuMDDUI"})
+@SupportedAnnotationTypes({"io.mateu.mdd.core.annotations.MateuUI"})
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor.class)
-public class MateuMDDUIAnnotationProcessor extends AbstractProcessor {
+public class MateuUIAnnotationProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -26,7 +26,7 @@ public class MateuMDDUIAnnotationProcessor extends AbstractProcessor {
                 String className = ((TypeElement) e).getQualifiedName().toString();
                 String simpleClassName = ((TypeElement) e).getSimpleName().toString();
 
-                System.out.println("MateuMDDUIAnnotationProcessor running on " + simpleClassName);
+                System.out.println("MateuUIAnnotationProcessor running on " + simpleClassName);
 
                 String generatedFullClassName = className + "Servlet";
                 String pkgName = generatedFullClassName.substring(0, generatedFullClassName.lastIndexOf("."));
@@ -34,7 +34,7 @@ public class MateuMDDUIAnnotationProcessor extends AbstractProcessor {
 
                 JavaFileObject builderFile = null;
                 try {
-                    builderFile = processingEnv.getFiler().createSourceFile(pkgName + "." + simpleClassName + "MDDUI");
+                    builderFile = processingEnv.getFiler().createSourceFile(pkgName + "." + simpleClassName + "UI");
                     try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
                         // writing generated file to out …
 
@@ -51,7 +51,7 @@ public class MateuMDDUIAnnotationProcessor extends AbstractProcessor {
 
 
                         out.println();
-                        out.println("@Theme(\"" + e.getAnnotation(MateuMDDUI.class).theme() + "\")\n" +
+                        out.println("@Theme(\"" + e.getAnnotation(MateuUI.class).theme() + "\")\n" +
                                 "@JavaScript({\"https://code.jquery.com/jquery-3.4.1.min.js\"})\n" +
                                 "@StyleSheet(\"https://use.fontawesome.com/releases/v5.13.0/css/all.css\")\n" +
                                 "@Viewport(\"width=device-width, initial-scale=1\")\n" +
@@ -59,7 +59,7 @@ public class MateuMDDUIAnnotationProcessor extends AbstractProcessor {
                                 "//@Push\n" +
                                 "@PreserveOnRefresh\n" +
                                 "@Slf4j\n" +
-                                "public class " + simpleClassName + "MDDUI extends MDDUI {");
+                                "public class " + simpleClassName + "UI extends MDDUI {");
                         out.println("");
                         out.println("}");
                     }
@@ -73,7 +73,7 @@ public class MateuMDDUIAnnotationProcessor extends AbstractProcessor {
 
                         out.println("import io.mateu.mdd.core.annotations.MateuUIServlet;");
                         out.println("import io.mateu.mdd.vaadinport.vaadin.MDDUI;");
-                        out.println("import " + pkgName + "." + simpleClassName + "MDDUI;");
+                        out.println("import " + pkgName + "." + simpleClassName + "UI;");
                         out.println("import com.vaadin.annotations.VaadinServletConfiguration;");
                         out.println("import com.vaadin.server.DeploymentConfiguration;");
                         out.println("import com.vaadin.server.VaadinServlet;");
@@ -88,9 +88,9 @@ public class MateuMDDUIAnnotationProcessor extends AbstractProcessor {
 
 
                         out.println();
-                        out.println("@WebServlet(urlPatterns = {\"" + e.getAnnotation(MateuMDDUI.class).path() + "\", \"" + ("/".equals(e.getAnnotation(MateuMDDUI.class).path())?"":e.getAnnotation(MateuMDDUI.class).path()) + "/*\"}, name = \"" + className.replaceAll("\\.","_") + "UIServlet\", asyncSupported = true, loadOnStartup = 500)");
-                        out.println("@VaadinServletConfiguration(ui = " + simpleClassName + "MDDUI.class, productionMode = false)");
-                        out.println("@MateuUIServlet(path=\"" + e.getAnnotation(MateuMDDUI.class).path() + "\")");
+                        out.println("@WebServlet(urlPatterns = {\"" + e.getAnnotation(MateuUI.class).path() + "\", \"" + ("/".equals(e.getAnnotation(MateuUI.class).path())?"":e.getAnnotation(MateuUI.class).path()) + "/*\"}, name = \"" + className.replaceAll("\\.","_") + "UIServlet\", asyncSupported = true, loadOnStartup = 500)");
+                        out.println("@VaadinServletConfiguration(ui = " + simpleClassName + "UI.class, productionMode = false)");
+                        out.println("@MateuUIServlet(path=\"" + e.getAnnotation(MateuUI.class).path() + "\")");
                         out.println("public class " + generatedClassName + " extends VaadinServlet {");
                         out.println("");
 
@@ -104,7 +104,7 @@ public class MateuMDDUIAnnotationProcessor extends AbstractProcessor {
 
                         out.println("    @Override\n" +
                                 "    public void init(ServletConfig servletConfig) throws ServletException {\n" +
-                                "        servletConfig.getServletContext().setAttribute(\"" + ("".equals(e.getAnnotation(MateuMDDUI.class).path())?"/":e.getAnnotation(MateuMDDUI.class).path()) + "_app\", new " + className.substring(className.lastIndexOf(".") + 1) + "());\n" +
+                                "        servletConfig.getServletContext().setAttribute(\"" + ("".equals(e.getAnnotation(MateuUI.class).path())?"/":e.getAnnotation(MateuUI.class).path()) + "_app\", new " + className.substring(className.lastIndexOf(".") + 1) + "());\n" +
                                 "        super.init(servletConfig);\n" +
                                 "    }\n");
 

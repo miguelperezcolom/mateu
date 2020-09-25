@@ -1,7 +1,7 @@
 package io.mateu.test;
 
-import io.mateu.mdd.core.annotations.MateuMDDUI;
+import io.mateu.mdd.core.annotations.MateuUI;
 
-@MateuMDDUI(path = "/xxx")
+@MateuUI(path = "/xxx")
 public class MyUI {
 }

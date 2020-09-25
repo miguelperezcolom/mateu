@@ -1,6 +1,6 @@
 package io.mateu.showcase.app;
 
-import io.mateu.mdd.core.annotations.Action;
+import io.mateu.mdd.core.annotations.MenuOption;
 import org.example.domain.boundaries.common.entities.Person;
 import org.example.domain.boundaries.educational.entities.AcademicPlan;
 import org.example.domain.boundaries.educational.entities.Classroom;
@@ -8,16 +8,16 @@ import org.example.domain.boundaries.educational.entities.Course;
 
 public class ConfigMenu {
 
-    @Action
+    @MenuOption
     Class plans = AcademicPlan.class;
 
-    @Action
+    @MenuOption
     Class courses = Course.class;
 
-    @Action
+    @MenuOption
     Class persons = Person.class;
 
-    @Action
+    @MenuOption
     Class classrooms = Classroom.class;
 
 

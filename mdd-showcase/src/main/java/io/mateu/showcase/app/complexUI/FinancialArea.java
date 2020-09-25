@@ -1,27 +1,23 @@
 package io.mateu.showcase.app.complexUI;
 
-import io.mateu.mdd.core.annotations.Action;
-import org.example.domain.boundaries.common.entities.Person;
-import org.example.domain.boundaries.educational.entities.AcademicPlan;
-import org.example.domain.boundaries.educational.entities.Classroom;
-import org.example.domain.boundaries.educational.entities.Course;
-import org.example.domain.boundaries.financial.entities.Invoice;
-import org.example.domain.boundaries.financial.entities.InvoiceTag;
-import org.example.domain.boundaries.financial.entities.Item;
-import org.example.domain.boundaries.financial.entities.Order;
+import io.mateu.mdd.core.annotations.MenuOption;
+import org.example.domain.boundaries.financial.entities.*;
 
 public class FinancialArea {
 
-    @Action
+    @MenuOption
+    Class financialAgents = FinancialAgent.class;
+
+    @MenuOption
     Class items = Item.class;
 
-    @Action
+    @MenuOption
     Class invoiceTags = InvoiceTag.class;
 
-    @Action
+    @MenuOption
     Class orders = Order.class;
 
-    @Action
+    @MenuOption
     Class invoices = Invoice.class;
 
 

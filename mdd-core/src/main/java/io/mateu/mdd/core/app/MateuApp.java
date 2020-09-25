@@ -6,12 +6,12 @@ import io.mateu.mdd.util.Helper;
 
 import java.util.List;
 
-public class MateuUI extends BaseMDDApp {
+public class MateuApp extends BaseMDDApp {
 
     private List<AbstractArea> _areas;
     private boolean _authenticationNeeded;
 
-    public MateuUI() {
+    public MateuApp() {
     }
 
     @Override

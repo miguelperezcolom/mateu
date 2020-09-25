@@ -4,24 +4,26 @@ import com.vaadin.data.Binder;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
 import com.vaadin.data.validator.BeanValidator;
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.core.layout.MiFormLayout;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.ClassOption;
 import io.mateu.mdd.vaadinport.vaadin.components.views.FormLayoutBuilder;
 import io.mateu.mdd.vaadinport.vaadin.components.views.FormLayoutBuilderParameters;
+import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 
-import javax.persistence.Embedded;
 import javax.validation.constraints.NotNull;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -48,75 +50,7 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
         Component r = null;
 
 
-        if (false && field.isAnnotationPresent(Embedded.class)) {
-
-            binder.addValueChangeListener(e -> subBuild(attachedActions));
-
-            subClasses = ReflectionHelper.getSubclasses(field.getType());
-            if (subClasses.size() > 1) {
-
-
-                Set<ClassOption> subClassesOptions = new LinkedHashSet<>();
-                subClasses.forEach(c -> subClassesOptions.add(new ClassOption(c)));
-
-                container.addComponent(cb = new ComboBox<>("Type", subClassesOptions));
-
-                cb.addValueChangeListener(e -> {
-
-                    if (e.getValue() != null && !e.getValue().equals(e.getOldValue())) {
-                        Object bean = binder.getBean();
-
-                        Object i = null;
-                        try {
-                            i = ReflectionHelper.getValue(field, binder.getBean());
-
-                            if (i == null || !i.getClass().equals(e.getValue().get_class())) {
-
-                                i = e.getValue().get_class().newInstance();
-
-                                try {
-                                    ReflectionHelper.setValue(field, bean, i);
-                                } catch (Exception e1) {
-                                    MDD.alert(e1);
-                                }
-
-                                subBuild((i != null)?i.getClass():field.getType(), i, attachedActions);
-                                binder.setBean(bean);
-
-                            }
-
-                        } catch (Exception e1) {
-                            MDD.alert(e1);
-                        }
-
-                    } else if (e.getValue() == null && e.getOldValue() != null) {
-                        Object bean = binder.getBean();
-                        try {
-                            ReflectionHelper.setValue(field, bean, null);
-                        } catch (Exception e1) {
-                            MDD.alert(e1);
-                        }
-                        binder.setBean(bean);
-                        formLayout.removeAllComponents();
-                    }
-
-                });
-
-            }
-
-
-            MiFormLayout mfl;
-            container.addComponent(formLayout = mfl = new MiFormLayout());
-            formLayout.addStyleName("embedded");
-            if (container.getComponentCount() > 0) formLayout.setCaption(ReflectionHelper.getCaption(field));
-
-            subBuild(attachedActions);
-
-            addErrorHandler(field, mfl);
-
-            r = mfl;
-
-        } else {
+        {
 
             HorizontalLayout hl;
             Component tf = null;
@@ -136,6 +70,19 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
                 hl.addComponent(l = new Label());
                 l.setContentMode(ContentMode.HTML);
 
+                Button reset;
+                hl.addComponent(reset = new Button(VaadinIcons.CLOSE, (e) -> {
+                    Object bean = binder.getBean();
+                    try {
+                        ReflectionHelper.setValue(field, bean, null);
+                        binder.setBean(bean, false);
+                    } catch (Exception ex) {
+                        MDD.alert(ex);
+                    }
+                }));
+                reset.addStyleName(ValoTheme.BUTTON_TINY);
+                reset.setVisible(false);
+
                 List<HasValue.ValueChangeListener> listeners = new ArrayList<>();
 
                 hv = new HasValue() {
@@ -146,23 +93,12 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
                         Object oldValue = value;
                         value = o;
                         if (true || oldValue != value || (value != null && !value.equals(oldValue))) {
-                            String v = (o != null) ? "" + o : "No value";
-                            if (o != null) {
-                                Method m = ReflectionHelper.getMethod(o.getClass(), "toHtml");
-                                if (m != null) {
-                                    try {
-                                        v = (String) m.invoke(o);
-                                    } catch (IllegalAccessException e) {
-                                        e.printStackTrace();
-                                    } catch (InvocationTargetException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            }
+                            String v = (o != null) ? "" + toHtml(o) : "No value";
                             l.setValue(v);
                             HasValue finalHv = this;
                             listeners.forEach(l -> l.valueChange(new ValueChangeEvent(hl, finalHv, oldValue, false)));
                         }
+                        reset.setVisible(o != null);
                     }
 
                     @Override
@@ -210,7 +146,49 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
                 hl.addStyleName(CSS.CLICKABLE);
                 hl.addLayoutClickListener(e -> {
                     //if (e.isDoubleClick())
-                        MDDUI.get().getNavegador().go(field.getName());
+
+                    Object bean = binder.getBean();
+                    try {
+
+                        Object value = ReflectionHelper.getValue(field, bean);
+                        if (value == null) {
+
+                            Class<?> modelType = field.getType();
+
+
+                            Set<Class> subClasses = ReflectionHelper.getSubclasses(modelType);
+
+                            if (subClasses.size() > 1) {
+
+                                Set<ClassOption> subClassesOptions = new LinkedHashSet<>();
+                                subClasses.forEach(c -> subClassesOptions.add(new ClassOption(c)));
+
+                                VaadinHelper.choose("Please choose type", subClassesOptions, c -> {
+                                    if (c == null) MDDUI.get().getNavegador().goBack();
+                                    else {
+                                        try {
+                                            create(binder, ((ClassOption)c).get_class(), bean);
+                                        } catch (Throwable th) {
+                                            MDD.alert(th);
+                                        }
+                                    }
+                                }, () -> {
+                                    MDDUI.get().getNavegador().goBack();
+                                });
+                            } else if (subClasses.size() == 1) {
+                                create(binder, subClasses.iterator().next(), bean);
+                            } else {
+                                create(binder, modelType, bean);
+                            }
+
+                        } else {
+                            MDDUI.get().getNavegador().go(field.getName());
+                        }
+
+                    } catch (Throwable ex) {
+                        MDD.alert(ex);
+                    }
+
                 });
             }
 
@@ -227,6 +205,61 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
 
         return r;
 
+    }
+
+    private String toHtml(Object o) {
+        String h = "";
+        if (o != null) {
+            Method m = ReflectionHelper.getMethod(o.getClass(), "toHtml");
+            if (m != null) {
+                try {
+                    h = (String) m.invoke(o);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+            } else {
+
+                m = ReflectionHelper.getMethod(o.getClass(), "toString");
+                if (m != null && !Object.class.equals(m.getDeclaringClass())) {
+                    try {
+                        h = (String) m.invoke(o);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+
+                    h = ReflectionHelper.toHtml(o);
+
+                }
+
+            }
+        }
+        return h;
+    }
+
+    private void create(MDDBinder binder, Class type, Object parent) throws Throwable {
+        Constructor con = parent != null?ReflectionHelper.getConstructor(type, parent.getClass()):ReflectionHelper.getConstructor(type);
+        if (con != null && con.getParameterCount() > 0) {
+            VaadinHelper.fill("I need some data", con, i -> {
+                try {
+                    ReflectionHelper.setValue(field, parent, i);
+                    binder.setBean(parent, false);
+                } catch (Throwable e) {
+                    MDD.alert(e);
+                }
+                MDDUI.closeWindow(false);
+                MDDUI.get().getNavegador().go(field.getName());
+            }, () -> MDDUI.get().getNavegador().goBack());
+        } else {
+            Object i = ReflectionHelper.newInstance(type, parent);
+            ReflectionHelper.setValue(field, parent, i);
+            binder.setBean(parent, false);
+            MDDUI.get().getNavegador().go(field.getName());
+        }
     }
 
     protected void bind(MDDBinder binder, HasValue tf, FieldInterfaced field, boolean forSearchFilter) {

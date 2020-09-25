@@ -12,7 +12,8 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD}) //can use in method only.
-public @interface Action {
+public @interface
+Action {
 
     String value() default "";
 

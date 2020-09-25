@@ -5,16 +5,15 @@ import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class AreaBuilder {
-    private final MateuUI ui;
+    private final MateuApp ui;
 
-    public AreaBuilder(MateuUI ui) {
+    public AreaBuilder(MateuApp ui) {
         this.ui = ui;
     }
 
@@ -121,24 +120,24 @@ public class AreaBuilder {
         List<MenuEntry> l = new ArrayList<>();
         for (FieldInterfaced f : ReflectionHelper.getAllFields(type)) {
             if (!publicAccess && f.isAnnotationPresent(PrivateHome.class)) {
-                MenuBuilder.addAction(l, instance, f, authenticationAgnostic, publicAccess);
+                MenuBuilder.addMenuEntry(l, instance, f, authenticationAgnostic, publicAccess);
             }
             if (publicAccess && f.isAnnotationPresent(PublicHome.class)) {
-                MenuBuilder.addAction(l, instance, f, authenticationAgnostic, publicAccess);
+                MenuBuilder.addMenuEntry(l, instance, f, authenticationAgnostic, publicAccess);
             }
             if (l.size() == 0 && f.isAnnotationPresent(Home.class)) {
-                MenuBuilder.addAction(l, instance, f, authenticationAgnostic, publicAccess);
+                MenuBuilder.addMenuEntry(l, instance, f, authenticationAgnostic, publicAccess);
             }
         }
         for (Method m : ReflectionHelper.getAllMethods(type)) {
             if (!publicAccess && m.isAnnotationPresent(PrivateHome.class)) {
-                MenuBuilder.addAction(l, instance, m, authenticationAgnostic, publicAccess);
+                MenuBuilder.addMenuEntry(l, instance, m, authenticationAgnostic, publicAccess);
             }
             if (publicAccess && m.isAnnotationPresent(PublicHome.class)) {
-                MenuBuilder.addAction(l, instance, m, authenticationAgnostic, publicAccess);
+                MenuBuilder.addMenuEntry(l, instance, m, authenticationAgnostic, publicAccess);
             }
             if (l.size() == 0 && m.isAnnotationPresent(Home.class)) {
-                MenuBuilder.addAction(l, instance, m, authenticationAgnostic, publicAccess);
+                MenuBuilder.addMenuEntry(l, instance, m, authenticationAgnostic, publicAccess);
             }
         }
         return l.size() > 0? (AbstractAction) l.get(0) :null;

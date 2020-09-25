@@ -1,6 +1,6 @@
 package io.mateu.mdd.core.annotations;
 
-import io.mateu.mdd.core.services.FakeServiceProvider;
+import com.vaadin.icons.VaadinIcons;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -11,12 +11,13 @@ import java.lang.annotation.Target;
  * Created by miguel on 18/1/17.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE}) //can use in method only.
-public @interface MateuMDDUI {
+@Target({ElementType.METHOD, ElementType.FIELD}) //can use in method only.
+public @interface MenuOption {
 
-    String path();
+    String value() default "";
 
-    String theme() default "mateumddtheme";
+    VaadinIcons icon() default VaadinIcons.ADOBE_FLASH;
 
-    Class serviceProvider() default FakeServiceProvider.class;
+    int order() default 0;
+
 }

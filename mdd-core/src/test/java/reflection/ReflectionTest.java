@@ -16,6 +16,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Date;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -118,6 +119,7 @@ public class ReflectionTest {
 
         Order o = new Order();
         o.setPerson(JPAHelper.get(Person.class, 1l));
+        o.setRequestDateTime(new Date());
         FieldInterfaced linesField = ReflectionHelper.getFieldByName(Order.class, "lines");
 
         ReflectionHelper.addToCollection(linesField, o);

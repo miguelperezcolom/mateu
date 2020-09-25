@@ -53,7 +53,7 @@ public class LoginComponent extends VerticalLayout {
         try {
             VerticalLayout finalVl = vl;
             IAppConfig c = Helper.getImpl(AppConfigLocator.class).get();
-            vl.addComponent(new Image(null, new ExternalResource(c.getLogoUrl() != null?c.getLogoUrl():"https://www.quonext.com/wp-content/uploads/2017/11/quonext-logo-transformacion-digital.png")));
+            if (c != null && c.getLogoUrl() != null) vl.addComponent(new Image(null, new ExternalResource(c.getLogoUrl())));
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }

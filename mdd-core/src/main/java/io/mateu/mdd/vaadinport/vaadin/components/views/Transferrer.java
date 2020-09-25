@@ -2,6 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.views;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import io.mateu.mdd.core.annotations.KPI;
 import io.mateu.mdd.core.annotations.KPIInline;
@@ -9,9 +10,8 @@ import io.mateu.mdd.core.annotations.Output;
 import io.mateu.mdd.core.reflection.FieldInterfaced;
 import io.mateu.mdd.core.reflection.ReflectionHelper;
 import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.JPAHelper;
 
-import javax.persistence.*;
+import javax.persistence.EntityManager;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 import java.util.*;
@@ -33,7 +33,32 @@ public class Transferrer {
                 Object v = ReflectionHelper.getValue(f, m);
                 if (ReflectionHelper.esJpa(f)) {
                     if (v != null) {
-                        if (Collection.class.isAssignableFrom(f.getType())) {
+                        if (Map.class.isAssignableFrom(f.getType())) {
+                            Map l = new LinkedHashMap();
+                            ((Map)v).forEach((k, o) -> {
+                                Object pk = em.find(k.getClass(), ReflectionHelper.getId(k));
+                                if (pk != null && ReflectionHelper.isOwner(f)) {
+                                    try {
+                                        pk = transfer(em, k);
+                                    } catch (Throwable throwable) {
+                                        throwable.printStackTrace();
+                                    }
+                                }
+
+                                Object po = em.find(o.getClass(), ReflectionHelper.getId(o));
+                                if (po != null && ReflectionHelper.isOwner(f)) {
+                                    try {
+                                        po = transfer(em, o);
+                                    } catch (Throwable throwable) {
+                                        throwable.printStackTrace();
+                                    }
+                                }
+
+                                l.put(pk != null?pk:k, po != null?po:o);
+                            });
+                            if (ImmutableMap.class.isAssignableFrom(f.getType())) v = ImmutableMap.copyOf(l);
+                            else v = Map.copyOf(l);
+                        } else if (Collection.class.isAssignableFrom(f.getType())) {
                             List l = new ArrayList();
                             ((Collection)v).forEach(o -> {
                                 Object p = em.find(o.getClass(), ReflectionHelper.getId(o));

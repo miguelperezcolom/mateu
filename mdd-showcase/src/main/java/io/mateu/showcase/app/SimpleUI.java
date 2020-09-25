@@ -1,11 +1,10 @@
 package io.mateu.showcase.app;
 
 import io.mateu.mdd.core.annotations.*;
-import io.mateu.mdd.core.app.MateuUI;
-import org.example.domain.boundaries.common.entities.Person;
+import io.mateu.mdd.core.app.MateuApp;
 
-@MateuMDDUI(path = "")
-public class SimpleUI extends MateuUI {
+@MateuUI(path = "")
+public class SimpleUI extends MateuApp {
 
     @Private
     @Submenu

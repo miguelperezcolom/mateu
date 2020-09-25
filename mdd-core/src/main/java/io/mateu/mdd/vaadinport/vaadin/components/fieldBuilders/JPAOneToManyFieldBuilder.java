@@ -1114,6 +1114,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         Class valueType = ReflectionHelper.getGenericClass(field, Map.class, "V");
 
         Grid g = new Grid();
+        g.addStyleName("gridonetomany");
+        g.addStyleName("nooutput");
 
         ListViewComponent.buildColumns(g, getColumnFields(field), false, true);
 
@@ -1357,30 +1359,25 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             }
         });
 
-        if (Map.class.isAssignableFrom(field.getType())) aux.withConverter(new Converter() {
-            @Override
-            public Result convertToModel(Object o, ValueContext valueContext) {
-                Map m = new HashMap();
-                if (o != null) {
-                    ((Collection)o).forEach(e -> m.put(((MapEntry)e).getKey(), ((MapEntry)e).getValue()));
+        if (Map.class.isAssignableFrom(field.getType())) {
+            aux.withConverter(new Converter() {
+                @Override
+                public Result convertToModel(Object o, ValueContext valueContext) {
+                    Map m = new HashMap();
+                    if (o != null) {
+                        ((Collection)o).forEach(e -> m.put(((MapEntry)e).getKey(), ((MapEntry)e).getValue()));
+                    }
+
+                    return Result.ok((o != null)?m:null);
                 }
 
-                Object bean = binder.getBean();
-                try {
-                    ReflectionHelper.setValue(field, bean, (o != null)?m:null);
-                } catch (Exception e) {
-                    MDD.alert(e);
+                @Override
+                public Object convertToPresentation(Object o, ValueContext valueContext) {
+                    return (o != null)?toList((Map) o):null;
                 }
-                binder.setBean(bean, false);
+            });
 
-                return Result.ok((o != null)?m:null);
-            }
-
-            @Override
-            public Object convertToPresentation(Object o, ValueContext valueContext) {
-                return (o != null)?toList((Map) o):null;
-            }
-        });
+        }
 
         aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
         aux.bind(field.getName());
@@ -1646,6 +1643,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             try {
                 Object bean = binder.getBean();
                 ReflectionHelper.setValue(field, bean, Helper.removeAll((Collection) ReflectionHelper.getValue(field, bean), Sets.newHashSet(x)));
+                binder.setBean(bean, false);
             } catch (Throwable throwable) {
                 MDD.alert(throwable);
             }

@@ -38,10 +38,7 @@ import javax.persistence.*;
 import javax.servlet.ServletContext;
 import javax.tools.*;
 import javax.validation.constraints.NotNull;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.StringReader;
+import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
@@ -88,7 +85,10 @@ public class ReflectionHelper extends BaseReflectionHelper {
         try {
             if (getter != null)
                 v = getter.invoke(o);
-            else v = f.get(o);
+            else {
+                if (!Modifier.isPublic(f.getModifiers())) f.setAccessible(true);
+                v = f.get(o);
+            }
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         } catch (InvocationTargetException e) {
@@ -100,6 +100,25 @@ public class ReflectionHelper extends BaseReflectionHelper {
     public static void setValue(FieldInterfaced f, Object o, Object v) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         if (f instanceof FieldInterfacedForCheckboxColumn) {
             f.setValue(o, v);
+        } else if (f instanceof  FieldInterfacedFromField) {
+            Method setter = null;
+            try {
+                setter = o.getClass().getMethod(getSetter(f));
+            } catch (Exception e) {
+            }
+            try {
+                if (setter != null) {
+                    setter.invoke(o, v);
+//                        BeanUtils.setProperty(o, fn, v);
+                } else {
+                    if (!Modifier.isPublic(f.getField().getModifiers())) f.getField().setAccessible(true);
+                    f.getField().set(o, v);
+                }
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
         } else setValue(f.getId(), o, v);
     }
 
@@ -115,7 +134,11 @@ public class ReflectionHelper extends BaseReflectionHelper {
                     if (v instanceof List) v = new ArrayList((Collection) v);
                     else if (v instanceof  Set) v = new HashSet((Collection) v);
                 }
-                BeanUtils.setProperty(o, fn, v);
+
+                FieldInterfaced f = getFieldByName(o.getClass(), fn);
+
+                setValue(f, o, v);
+
             }
         }
     }
@@ -149,42 +172,85 @@ public class ReflectionHelper extends BaseReflectionHelper {
     }
 
     private static Object getValue(String id, Object o) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        String firstId = id;
-        String path = "";
-        if (id.contains(".")) {
-            firstId = id.substring(0, id.indexOf("."));
-            path = id.substring(id.indexOf(".") + 1);
-        }
-
-        Method getter = null;
-        try {
-            FieldInterfaced f = ReflectionHelper.getFieldByName(o.getClass(), firstId);
-            getter = o.getClass().getMethod(getGetter(f.getType(), firstId));
-        } catch (Exception e) {
-
-        }
         Object v = null;
-        try {
-            if (getter != null)
-                v = getter.invoke(o);
-            else {
-                try {
-                    Field field = o.getClass().getDeclaredField(id);
-                    if (!Modifier.isPublic(field.getModifiers())) {
-                        field.setAccessible(true);
+
+        if (id.contains(".")) {
+            String firstId = id.substring(0, id.indexOf("."));
+            String path = id.substring(id.indexOf(".") + 1);
+
+            Method getter = null;
+            try {
+                FieldInterfaced f = ReflectionHelper.getFieldByName(o.getClass(), firstId);
+
+                if (f != null) {
+
+                    try {
+                        getter = o.getClass().getMethod(getGetter(f.getType(), firstId));
+                    } catch (Exception e) {
+
                     }
-                    v = field.get(o);
+
+                    if (getter != null)
+                        v = getter.invoke(o);
+                    else {
+                        try {
+                            if (f instanceof FieldInterfacedFromField) {
+                                Field field = f.getField();
+                                if (!Modifier.isPublic(field.getModifiers())) {
+                                    field.setAccessible(true);
+                                }
+                                v = field.get(o);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if (v != null) {
+                        v = getValue(path, v);
+                    }
+
+                }
+
+            } catch (Exception e) {
+            }
+
+        } else {
+            FieldInterfaced f = ReflectionHelper.getFieldByName(o.getClass(), id);
+
+            if (f != null) {
+
+                Method getter = null;
+                try {
+                    getter = o.getClass().getMethod(getGetter(f.getType(), id));
                 } catch (Exception e) {
+
+                }
+                try {
+                    if (getter != null)
+                        v = getter.invoke(o);
+                    else {
+                        try {
+                            if (f instanceof FieldInterfacedFromField) {
+                                Field field = f.getField();
+                                if (!Modifier.isPublic(field.getModifiers())) {
+                                    field.setAccessible(true);
+                                }
+                                v = field.get(o);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (InvocationTargetException e) {
                     e.printStackTrace();
                 }
-            }
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        }
 
-        if (!Strings.isNullOrEmpty(path)) v = getValue(path, v);
+            }
+
+        }
 
         return v;
     }
@@ -1173,7 +1239,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
 
         allFields = allFields.stream().filter((f) ->
                 !(f.isAnnotationPresent(Version.class) || f.isAnnotationPresent(Ignored.class) || f.isAnnotationPresent(KPI.class) || f.isAnnotationPresent(NotInEditor.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class))
-                || (f.isAnnotationPresent(NotWhenCreating.class) && isEditingNewRecord)
+                        || (f.isAnnotationPresent(NotWhenCreating.class) && isEditingNewRecord)
                         || (f.isAnnotationPresent(NotWhenEditing.class) && !isEditingNewRecord))
         ).collect(Collectors.toList());
 
@@ -1549,7 +1615,6 @@ public class ReflectionHelper extends BaseReflectionHelper {
             ReflectionHelper.setValue(field, bean, m);
         } else ReflectionHelper.setValue(field, bean, Helper.extend(m, k, v));
 
-        ReflectionHelper.setValue(field, bean, m);
     }
 
     public static void removeFromMap(FieldInterfaced field, Object bean, Set l) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
@@ -1892,8 +1957,8 @@ public class ReflectionHelper extends BaseReflectionHelper {
 
 
                 if (Double.class.equals(t) || double.class.equals(t)
-                || Long.class.equals(t) || long.class.equals(t)
-                || Integer.class.equals(t) || int.class.equals(t)) {
+                        || Long.class.equals(t) || long.class.equals(t)
+                        || Integer.class.equals(t) || int.class.equals(t)) {
                     addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName(), f.getDeclaredAnnotations(), false);
                     Annotation[] sfa = new Annotation[]{
                             new SearchFilter() {
@@ -2347,7 +2412,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
 
                         if (mbf != null && t != null) {
 
-                                throw new Error("" + o + " is referenced from " + t);
+                            throw new Error("" + o + " is referenced from " + t);
 
                         }
 
@@ -2501,6 +2566,43 @@ public class ReflectionHelper extends BaseReflectionHelper {
             }
         }
 
+    }
+
+    public static String toHtml(Object o) {
+        StringWriter sw;
+        PrintWriter pw = new PrintWriter(sw = new StringWriter());
+        toHtml(pw, o, new ArrayList<>());
+        return sw.toString();
+    }
+
+    public static void toHtml(PrintWriter pw, Object o, List visited) {
+        if (o == null) {
+        } else {
+            if (!visited.contains(o)) {
+                visited.add(o);
+            }
+            pw.println("<table>");
+            for (FieldInterfaced f : getAllFields(o.getClass())) {
+                try {
+                    Object i = getValue(f, o);
+
+                    pw.println("<tr><td style='text-align:right; font-style:italic;'>" + Helper.capitalize(f.getName()) + ":</td><td>");
+                    if (i != null) {
+                        if (BaseReflectionHelper.isBasico(i)) {
+                            pw.print("" + i);
+                        } else {
+                            //todo: añadir casos collection y map
+                            toHtml(pw, i, visited);
+                        }
+                    }
+                    pw.println("</td></tr>");
+
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+            }
+            pw.println("</table>");
+        }
     }
 
 

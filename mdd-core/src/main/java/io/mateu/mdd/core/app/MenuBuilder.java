@@ -51,16 +51,16 @@ public class MenuBuilder {
 
             if (add) {
 
-                if (f.isAnnotationPresent(Action.class) || f.isAnnotationPresent(Submenu.class)) {
+                if (f.isAnnotationPresent(MenuOption.class) || f.isAnnotationPresent(Submenu.class)) {
 
-                    addAction(l, app, f, authenticationAgnostic, publicAccess);
+                    addMenuEntry(l, app, f, authenticationAgnostic, publicAccess);
 
                 }
             }
 
         }
 
-        for (Method m : getAllActionMethods(app.getClass())) {
+        for (Method m : getAllMenuMethods(app.getClass())) {
 
             if (!Modifier.isPublic(m.getModifiers())) {
                 m.setAccessible(true);
@@ -84,7 +84,7 @@ public class MenuBuilder {
             }
 
             if (add) {
-                addAction(l, app, m, authenticationAgnostic, publicAccess);
+                addMenuEntry(l, app, m, authenticationAgnostic, publicAccess);
             }
 
         }
@@ -94,17 +94,17 @@ public class MenuBuilder {
         return l;
     }
 
-    public static void addAction(List<MenuEntry> l, Object app, Method m, boolean authenticationAgnostic, boolean publicAccess) {
-        String caption = (m.isAnnotationPresent(Submenu.class))?m.getAnnotation(Submenu.class).value():m.getAnnotation(Action.class).value();
+    public static void addMenuEntry(List<MenuEntry> l, Object app, Method m, boolean authenticationAgnostic, boolean publicAccess) {
+        String caption = (m.isAnnotationPresent(Submenu.class))?m.getAnnotation(Submenu.class).value():m.getAnnotation(MenuOption.class).value();
         if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(m.getName());
 
         VaadinIcons icon = VaadinIcons.ADOBE_FLASH;
         if (m.isAnnotationPresent(Submenu.class)) icon = m.getAnnotation(Submenu.class).icon();
-        if (m.isAnnotationPresent(Action.class)) icon = m.getAnnotation(Action.class).icon();
+        if (m.isAnnotationPresent(MenuOption.class)) icon = m.getAnnotation(MenuOption.class).icon();
         if (VaadinIcons.ADOBE_FLASH.equals(icon)) icon = null;
 
         int order = 0;
-        if (m.isAnnotationPresent(Action.class)) order = m.getAnnotation(Action.class).order();
+        if (m.isAnnotationPresent(MenuOption.class)) order = m.getAnnotation(MenuOption.class).order();
         else if (m.isAnnotationPresent(Submenu.class)) order = m.getAnnotation(Submenu.class).order();
         if (order == 0 || order == 10000) order = l.size();
 
@@ -123,7 +123,7 @@ public class MenuBuilder {
                 }
             }.setOrder(order));
 
-        } else if (m.isAnnotationPresent(Action.class) || m.isAnnotationPresent(Home.class) || m.isAnnotationPresent(PublicHome.class) || m.isAnnotationPresent(PrivateHome.class)) {
+        } else if (m.isAnnotationPresent(MenuOption.class) || m.isAnnotationPresent(Home.class) || m.isAnnotationPresent(PublicHome.class) || m.isAnnotationPresent(PrivateHome.class)) {
 
             if (List.class.isAssignableFrom(m.getReturnType()) && MenuEntry.class.equals(ReflectionHelper.getGenericClass(m))) {
 
@@ -164,16 +164,16 @@ public class MenuBuilder {
         }
     }
 
-    public static void addAction(List<MenuEntry> l, Object app, FieldInterfaced f, boolean authenticationAgnostic, boolean publicAccess) {
+    public static void addMenuEntry(List<MenuEntry> l, Object app, FieldInterfaced f, boolean authenticationAgnostic, boolean publicAccess) {
         String caption = ReflectionHelper.getCaption(f);
 
         VaadinIcons icon = VaadinIcons.ADOBE_FLASH;
         if (f.isAnnotationPresent(Submenu.class)) icon = f.getAnnotation(Submenu.class).icon();
-        if (f.isAnnotationPresent(Action.class)) icon = f.getAnnotation(Action.class).icon();
+        if (f.isAnnotationPresent(MenuOption.class)) icon = f.getAnnotation(MenuOption.class).icon();
         if (VaadinIcons.ADOBE_FLASH.equals(icon)) icon = null;
 
         int order = 0;
-        if (f.isAnnotationPresent(Action.class)) order = f.getAnnotation(Action.class).order();
+        if (f.isAnnotationPresent(MenuOption.class)) order = f.getAnnotation(MenuOption.class).order();
         else if (f.isAnnotationPresent(Submenu.class)) order = f.getAnnotation(Submenu.class).order();
         if (order == 0 || order == 10000) order = l.size();
 
@@ -206,7 +206,7 @@ public class MenuBuilder {
             } catch (Exception e) {
                 MDD.alert(e);
             }
-        } else if (f.isAnnotationPresent(Action.class) || f.isAnnotationPresent(Home.class) || f.isAnnotationPresent(PublicHome.class) || f.isAnnotationPresent(PrivateHome.class)) {
+        } else if (f.isAnnotationPresent(MenuOption.class) || f.isAnnotationPresent(Home.class) || f.isAnnotationPresent(PublicHome.class) || f.isAnnotationPresent(PrivateHome.class)) {
 
             try {
 
@@ -249,13 +249,13 @@ public class MenuBuilder {
     }
 
 
-    static List<Method> getAllActionMethods(Class c) {
+    static List<Method> getAllMenuMethods(Class c) {
         List<Method> l = new ArrayList<>();
 
-        if (c.getSuperclass() != null && !MateuUI.class.equals(c.getSuperclass()))
-            l.addAll(getAllActionMethods(c.getSuperclass()));
+        if (c.getSuperclass() != null && !MateuApp.class.equals(c.getSuperclass()))
+            l.addAll(getAllMenuMethods(c.getSuperclass()));
 
-        for (Method f : c.getDeclaredMethods()) if (f.isAnnotationPresent(Action.class) || f.isAnnotationPresent(Submenu.class)) l.add(f);
+        for (Method f : c.getDeclaredMethods()) if (f.isAnnotationPresent(MenuOption.class) || f.isAnnotationPresent(Submenu.class)) l.add(f);
 
         return l;
     }

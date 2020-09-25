@@ -1,23 +1,26 @@
 package io.mateu.showcase.app.complexUI;
 
-import io.mateu.mdd.core.annotations.Action;
+import io.mateu.mdd.core.annotations.MenuOption;
 import org.example.domain.boundaries.common.entities.Person;
-import org.example.domain.boundaries.educational.entities.AcademicPlan;
-import org.example.domain.boundaries.educational.entities.Classroom;
-import org.example.domain.boundaries.educational.entities.Course;
+import org.example.domain.boundaries.educational.entities.*;
 
 public class AcademicArea {
 
-    @Action
+    @MenuOption
     Class plans = AcademicPlan.class;
 
-    @Action
+    @MenuOption
     Class courses = Course.class;
 
-    @Action
+    @MenuOption
+    Class subjects = Subject.class;
+
+    @MenuOption
     Class persons = Person.class;
 
-    @Action
+    @MenuOption
     Class classrooms = Classroom.class;
 
+    @MenuOption
+    Class grades = Grade.class;
 }

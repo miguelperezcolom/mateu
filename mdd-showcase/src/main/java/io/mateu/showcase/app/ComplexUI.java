@@ -1,13 +1,13 @@
 package io.mateu.showcase.app;
 
 import io.mateu.mdd.core.annotations.*;
-import io.mateu.mdd.core.app.MateuUI;
+import io.mateu.mdd.core.app.MateuApp;
 import io.mateu.showcase.app.complexUI.AcademicArea;
 import io.mateu.showcase.app.complexUI.FinancialArea;
-import org.example.domain.boundaries.common.entities.Person;
+import io.mateu.showcase.app.complexUI.MaintenanceArea;
 
-@MateuMDDUI(path = "/complex")
-public class ComplexUI extends MateuUI {
+@MateuUI(path = "/complex")
+public class ComplexUI extends MateuApp {
 
     @Private
     @Area
@@ -16,6 +16,10 @@ public class ComplexUI extends MateuUI {
     @Private
     @Area
     FinancialArea financials;
+
+    @Private
+    @Area
+    MaintenanceArea maintenance;
 
     @PrivateHome
     String eyesOnlyMsg = "Hello Mateu";
