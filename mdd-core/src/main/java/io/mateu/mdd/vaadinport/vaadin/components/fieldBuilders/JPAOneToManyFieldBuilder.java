@@ -18,24 +18,23 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.dnd.DragSourceExtension;
 import com.vaadin.ui.dnd.DropTargetExtension;
 import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.core.CSS;
+import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.data.FareValue;
-import io.mateu.mdd.core.data.MDDBinder;
+import io.mateu.mdd.shared.data.FareValue;
+import io.mateu.mdd.shared.annotations.*;
+import io.mateu.reflection.*;
+import io.mateu.mdd.shared.data.MDDBinder;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.interfaces.Card;
 import io.mateu.mdd.core.interfaces.GridDecorator;
-import io.mateu.mdd.core.interfaces.IResource;
-import io.mateu.mdd.core.reflection.*;
-import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.JPAHelper;
+import io.mateu.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.views.ListViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.views.OwnedCollectionComponent;
 import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
+import io.mateu.util.interfaces.IResource;
 
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
@@ -372,7 +371,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                     if (false && needsProxy) {
 
-                        targetClass = ReflectionHelper.getProxy(field.isAnnotationPresent(FieldsFilter.class)?field.getAnnotation(FieldsFilter.class).value():null, targetClass, field, object, editableFields);
+                        targetClass = ReflectionHelper.getProxy(MDD.getClassPool(), MDDBinder.class, MDD.getClassPool().getClassLoader(), field.isAnnotationPresent(FieldsFilter.class)?field.getAnnotation(FieldsFilter.class).value():null, targetClass, field, object, editableFields);
                         //si hemos creado una clase proxy, entonces cambian las columnas y los campos editables
                         if (ProxyClass.class.isAssignableFrom(targetClass)) {
                             colFields = getColumnFields(field, targetClass);
@@ -595,7 +594,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                                 Object bean = binder.getBean();
                                 Set l = (Set) g.getSelectedItems().stream().map(o -> o != null && o instanceof ProxyClass ? ((ProxyClass) o).toObject() : o).collect(Collectors.toSet());
 
-                                ReflectionHelper.setValue(field, bean, Helper.removeAll((Collection) ReflectionHelper.getValue(field, bean), l));
+                                ReflectionHelper.setValue(field, bean, ReflectionHelper.removeAll((Collection) ReflectionHelper.getValue(field, bean), l));
 
                                 binder.setBean(bean, false);
                             } catch (Throwable throwable) {
@@ -783,7 +782,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                                 Object bean = binder.getBean();
                                 Set l = g.getSelectedItems();
 
-                                ReflectionHelper.setValue(field, bean, Helper.removeAll((Collection) ReflectionHelper.getValue(field, bean), l));
+                                ReflectionHelper.setValue(field, bean, ReflectionHelper.removeAll((Collection) ReflectionHelper.getValue(field, bean), l));
 
                                 binder.setBean(bean, false);
 
@@ -1642,7 +1641,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         b.addClickListener(e -> {
             try {
                 Object bean = binder.getBean();
-                ReflectionHelper.setValue(field, bean, Helper.removeAll((Collection) ReflectionHelper.getValue(field, bean), Sets.newHashSet(x)));
+                ReflectionHelper.setValue(field, bean, ReflectionHelper.removeAll((Collection) ReflectionHelper.getValue(field, bean), Sets.newHashSet(x)));
                 binder.setBean(bean, false);
             } catch (Throwable throwable) {
                 MDD.alert(throwable);

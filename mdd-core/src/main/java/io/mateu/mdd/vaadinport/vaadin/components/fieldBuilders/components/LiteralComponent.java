@@ -6,12 +6,12 @@ import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.interfaces.GeneralRepository;
-import io.mateu.mdd.core.interfaces.Translated;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.JPAHelper;
+import io.mateu.mdd.shared.data.MDDBinder;
+import io.mateu.mdd.shared.annotations.Html;
+import io.mateu.reflection.FieldInterfaced;
+import io.mateu.util.Helper;
+import io.mateu.util.interfaces.GeneralRepository;
+import io.mateu.util.interfaces.Translated;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -31,8 +31,8 @@ public class LiteralComponent extends Composite implements HasValue<Translated>,
 
         Collection<String> langs = Lists.newArrayList("es", "en", "de", "fr", "it", "ar", "cz", "ru");
 
-        if (field.isAnnotationPresent(io.mateu.mdd.core.annotations.Html.class)) tf = new RichTextArea();
-        else if (field.isAnnotationPresent(io.mateu.mdd.core.annotations.TextArea.class)) tf = new TextArea();
+        if (field.isAnnotationPresent(Html.class)) tf = new RichTextArea();
+        else if (field.isAnnotationPresent(io.mateu.mdd.shared.annotations.TextArea.class)) tf = new TextArea();
         else tf = new TextField();
 
         Button b;

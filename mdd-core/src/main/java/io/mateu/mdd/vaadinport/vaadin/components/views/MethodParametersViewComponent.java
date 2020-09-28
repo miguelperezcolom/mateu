@@ -4,11 +4,12 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.Action;
+import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.JPAHelper;
+import io.mateu.mdd.shared.data.MDDBinder;
+import io.mateu.mdd.shared.reflection.CoreReflectionHelper;
+import io.mateu.reflection.ReflectionHelper;
+import io.mateu.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.navigation.View;
 import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
@@ -34,7 +35,7 @@ public class MethodParametersViewComponent extends EditorViewComponent {
     private Object paremetersModel;
 
     public MethodParametersViewComponent(Object bean, Method method, Set pendingSelection) throws Exception {
-        super(ReflectionHelper.createClass("" + method.getDeclaringClass().getSimpleName() + "_" + method.getName() + "_Parameters000", ReflectionHelper.getAllFields(method), false));
+        super(ReflectionHelper.createClass(MDD.getClassPool(), MDDBinder.class, MDD.getClassPool().getClassLoader(), "" + method.getDeclaringClass().getSimpleName() + "_" + method.getName() + "_Parameters000", ReflectionHelper.getAllFields(method), false));
         this.bean = bean;
         this.method = method;
         this.pendingSelection = pendingSelection;
@@ -55,7 +56,7 @@ public class MethodParametersViewComponent extends EditorViewComponent {
             public void run() {
                 if (validate()) {
                     try {
-                        Object r = ReflectionHelper.execute(method, getBinder(), bean, pendingSelection);
+                        Object r = CoreReflectionHelper.execute(method, getBinder(), bean, pendingSelection);
                         if (bean != null && void.class.equals(method.getReturnType())) {
                             if (method.isAnnotationPresent(Action.class) && method.getAnnotation(Action.class).saveAfter()) {
                                 ViewStack stack = MDDUI.get().getNavegador().getViewProvider().getStack();

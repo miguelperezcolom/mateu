@@ -3,9 +3,9 @@ package io.mateu.mdd.vaadinport.vaadin.components.views;
 import com.vaadin.ui.FormLayout;
 import com.vaadin.ui.Label;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.Ignored;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.mdd.shared.annotations.Ignored;
+import io.mateu.reflection.FieldInterfaced;
+import io.mateu.reflection.ReflectionHelper;
 
 import javax.persistence.Version;
 import java.util.List;

@@ -6,12 +6,12 @@ import com.vaadin.data.Validator;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Layout;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.data.MDDBinder;
+import io.mateu.mdd.shared.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.core.interfaces.Translated;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.reflection.FieldInterfaced;
+import io.mateu.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components.LiteralComponent;
+import io.mateu.util.interfaces.Translated;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;

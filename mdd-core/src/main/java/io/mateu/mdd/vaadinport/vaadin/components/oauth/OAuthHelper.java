@@ -3,20 +3,14 @@ package io.mateu.mdd.vaadinport.vaadin.components.oauth;
 import com.google.common.base.Strings;
 import com.vaadin.server.Page;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.interfaces.GeneralRepository;
-import io.mateu.mdd.core.interfaces.UserPrincipal;
 import io.mateu.mdd.shared.VaadinHelper;
-import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.JPAHelper;
-import io.mateu.mdd.util.persistence.JPATransaction;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import io.mateu.util.Helper;
+import io.mateu.util.interfaces.GeneralRepository;
+import io.mateu.util.interfaces.UserPrincipal;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 
-import javax.persistence.EntityManager;
 import java.io.IOException;
-import java.net.URL;
-import java.time.LocalDateTime;
 import java.util.Map;
 
 @Slf4j

@@ -1,14 +1,14 @@
 package io.mateu.mdd.vaadinport.vaadin.pojos;
 
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.Action;
-import io.mateu.mdd.core.annotations.NonDuplicable;
-import io.mateu.mdd.core.annotations.Password;
-import io.mateu.mdd.core.interfaces.GeneralRepository;
-import io.mateu.mdd.core.interfaces.IResource;
+import io.mateu.mdd.shared.annotations.Action;
+import io.mateu.mdd.shared.annotations.NonDuplicable;
+import io.mateu.mdd.shared.annotations.Password;
 import io.mateu.mdd.core.interfaces.PersistentPojo;
-import io.mateu.mdd.core.interfaces.UserPrincipal;
-import io.mateu.mdd.util.Helper;
+import io.mateu.util.Helper;
+import io.mateu.util.interfaces.GeneralRepository;
+import io.mateu.util.interfaces.IResource;
+import io.mateu.util.interfaces.UserPrincipal;
 import lombok.Getter;
 import lombok.Setter;
 

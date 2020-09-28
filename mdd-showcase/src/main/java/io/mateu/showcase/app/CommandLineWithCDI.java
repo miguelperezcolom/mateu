@@ -1,6 +1,6 @@
 package io.mateu.showcase.app;
 
-import io.mateu.mdd.core.app.MateuApplication;
+import io.mateu.util.app.MateuApplication;
 import org.jboss.weld.environment.se.Weld;
 import org.jboss.weld.environment.se.WeldContainer;
 

@@ -10,17 +10,20 @@ import com.vaadin.server.Page;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.core.CSS;
+import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.*;
-import io.mateu.mdd.core.data.MDDBinder;
+import io.mateu.mdd.shared.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.*;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.common.Pair;
-import io.mateu.mdd.util.JPAHelper;
+import io.mateu.mdd.shared.reflection.CoreReflectionHelper;
+import io.mateu.mdd.shared.annotations.*;
+import io.mateu.mdd.shared.interfaces.RpcView;
+import io.mateu.reflection.FieldInterfaced;
+import io.mateu.reflection.ReflectionHelper;
+import io.mateu.util.Helper;
+import io.mateu.util.common.Pair;
+import io.mateu.util.interfaces.UserPrincipal;
+import io.mateu.util.persistence.JPAHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.desktop.DesktopAppComponent;
@@ -1522,7 +1525,7 @@ public class MDDViewProvider implements ViewProvider {
                             }
                         });
                     } else {
-                        procesarResultado(method, ReflectionHelper.execute(method, new MDDBinder(new ArrayList<>()), instance, pendingSelection), lastViewComponent, !esMenu);
+                        procesarResultado(method, CoreReflectionHelper.execute(method, new MDDBinder(new ArrayList<>()), instance, pendingSelection), lastViewComponent, !esMenu);
                     }
 
                 }

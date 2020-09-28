@@ -30,20 +30,23 @@ import com.vaadin.ui.renderers.HtmlRenderer;
 import com.vaadin.ui.renderers.TextRenderer;
 import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonValue;
-import io.mateu.mdd.core.CSS;
+import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.*;
-import io.mateu.mdd.core.data.*;
+import io.mateu.mdd.shared.data.*;
+import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.*;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.FieldInterfacedForCheckboxColumn;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.JPAHelper;
+import io.mateu.mdd.shared.interfaces.RpcView;
+import io.mateu.reflection.FieldInterfaced;
+import io.mateu.reflection.FieldInterfacedForCheckboxColumn;
+import io.mateu.reflection.ReflectionHelper;
+import io.mateu.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.components.WeekDaysComponent;
 import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
+import io.mateu.util.interfaces.IIcon;
+import io.mateu.util.interfaces.IResource;
+import io.mateu.util.persistence.JPAHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.javamoney.moneta.FastMoney;
 import org.vaadin.grid.cellrenderers.editable.DateFieldRenderer;
@@ -259,7 +262,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
                     int pos = 0;
                     if (possibleValues != null) for (Object v : possibleValues) if (v != null) {
-                        fieldByColumnId.put(columnId + "_" + pos, new FieldInterfacedForCheckboxColumn(f.getName() + "" + pos, f, v, binder));
+                        fieldByColumnId.put(columnId + "_" + pos, new FieldInterfacedForCheckboxColumn(f.getName() + "" + pos, f, v));
                         pos++;
                     }
 

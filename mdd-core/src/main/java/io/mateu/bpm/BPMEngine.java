@@ -1,6 +1,6 @@
 package io.mateu.bpm;
 
-import io.mateu.mdd.util.JPAHelper;
+import io.mateu.util.persistence.JPAHelper;
 
 public class BPMEngine implements Runnable {
 

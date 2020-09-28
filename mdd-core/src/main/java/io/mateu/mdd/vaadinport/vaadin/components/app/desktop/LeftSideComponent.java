@@ -4,7 +4,7 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.MouseOverVerticalLayout;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.core.CSS;
+import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractApplication;
 import io.mateu.mdd.core.app.AbstractArea;

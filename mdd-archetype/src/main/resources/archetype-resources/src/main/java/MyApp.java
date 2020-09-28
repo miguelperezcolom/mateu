@@ -3,7 +3,7 @@ package $
 import io.mateu.mdd.core.annotations.Action;
 import io.mateu.mdd.core.annotations.MateuMDDUI;
 import io.mateu.mdd.core.app.SimpleMDDApplication;
-import io.mateu.mdd.util.JPAHelper;
+import io.mateu.util.persistence.JPAHelper;
 
 {package};{package}.model.Person;
 

@@ -51,14 +51,14 @@
 
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>mdd-util</artifactId>
-            <version>${project.version}</version>
+            <artifactId>reflection</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>mdd-sharedinterfaces</artifactId>
-            <version>${project.version}</version>
+            <artifactId>security-api</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
 
         <!--
@@ -108,11 +108,7 @@
 
 
 
-        <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <version>0.9.11</version>
-        </dependency>
+
 
 
 
@@ -229,11 +225,7 @@
 
 
 
-        <dependency>
-            <groupId>org.javassist</groupId>
-            <artifactId>javassist</artifactId>
-            <version>3.27.0-GA</version>
-        </dependency>
+
 
 
 

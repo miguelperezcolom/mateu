@@ -1,6 +1,6 @@
 package io.mateu.mdd.vaadinport.vaadin.components.views;
 
-import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.reflection.FieldInterfaced;
 import lombok.Getter;
 import lombok.Setter;
 

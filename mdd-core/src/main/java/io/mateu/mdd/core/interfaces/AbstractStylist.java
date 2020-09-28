@@ -2,11 +2,11 @@ package io.mateu.mdd.core.interfaces;
 
 import com.google.common.base.Strings;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.VisibleIf;
-import io.mateu.mdd.core.data.Pair;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.shared.annotations.VisibleIf;
+import io.mateu.util.data.Pair;
+import io.mateu.reflection.FieldInterfaced;
+import io.mateu.reflection.ReflectionHelper;
+import io.mateu.util.Helper;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;

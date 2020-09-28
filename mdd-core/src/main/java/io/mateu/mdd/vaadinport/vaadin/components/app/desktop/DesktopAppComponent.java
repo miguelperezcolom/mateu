@@ -6,7 +6,7 @@ import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.app.AbstractApplication;
 import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.MenuEntry;
-import io.mateu.mdd.util.common.Pair;
+import io.mateu.util.common.Pair;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.ViewContainer;

@@ -5,12 +5,12 @@ import com.vaadin.data.Validator;
 import com.vaadin.shared.Registration;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.core.annotations.Wizard;
+import io.mateu.mdd.shared.annotations.Wizard;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.data.MDDBinder;
+import io.mateu.mdd.shared.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.reflection.FieldInterfaced;
+import io.mateu.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 import java.util.List;

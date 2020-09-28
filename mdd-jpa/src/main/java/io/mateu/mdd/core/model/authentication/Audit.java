@@ -1,13 +1,13 @@
 package io.mateu.mdd.core.model.authentication;
 
-import io.mateu.mdd.core.interfaces.AuditRecord;
-import io.mateu.mdd.core.interfaces.UserPrincipal;
-import io.mateu.mdd.util.JPAHelper;
+import io.mateu.mdd.core.MDD;
+import io.mateu.util.interfaces.AuditRecord;
+import io.mateu.util.interfaces.UserPrincipal;
+import io.mateu.util.persistence.JPAHelper;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.Embeddable;
-import javax.persistence.EntityManager;
 import javax.persistence.ManyToOne;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -65,7 +65,8 @@ public class Audit implements AuditRecord {
     }
 
     @Override
-    public void touch(UserPrincipal p) throws Throwable {
+    public void touch() throws Throwable {
+        UserPrincipal p = MDD.getCurrentUser();
         if (p != null) {
             User u = JPAHelper.find(User.class, p.getLogin());
             setModifiedBy(u);

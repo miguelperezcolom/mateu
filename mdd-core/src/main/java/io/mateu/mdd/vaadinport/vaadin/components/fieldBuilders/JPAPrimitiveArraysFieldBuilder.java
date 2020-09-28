@@ -5,10 +5,10 @@ import com.vaadin.data.*;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.data.MDDBinder;
+import io.mateu.mdd.shared.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.reflection.FieldInterfaced;
+import io.mateu.reflection.ReflectionHelper;
 
 import java.util.List;
 import java.util.Map;
@@ -45,7 +45,7 @@ public class JPAPrimitiveArraysFieldBuilder extends JPAStringFieldBuilder {
 
         if (!forSearchFilter) {
 
-            AbstractTextField tf = (field.isAnnotationPresent(io.mateu.mdd.core.annotations.TextArea.class))?new TextArea():new TextField();
+            AbstractTextField tf = (field.isAnnotationPresent(io.mateu.mdd.shared.annotations.TextArea.class))?new TextArea():new TextField();
             container.addComponent(tf);
             tf.setValueChangeMode(ValueChangeMode.BLUR);
 

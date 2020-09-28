@@ -5,7 +5,7 @@ import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
-import io.mateu.mdd.core.interfaces.RpcView;
+import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
 
 import javax.persistence.Query;

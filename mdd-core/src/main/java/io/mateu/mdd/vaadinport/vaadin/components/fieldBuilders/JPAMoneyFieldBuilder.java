@@ -7,8 +7,8 @@ import com.vaadin.data.Result;
 import com.vaadin.data.ValueContext;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.ui.TextField;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.shared.data.MDDBinder;
+import io.mateu.reflection.FieldInterfaced;
 import org.javamoney.moneta.Money;
 
 public class JPAMoneyFieldBuilder extends JPAStringFieldBuilder {

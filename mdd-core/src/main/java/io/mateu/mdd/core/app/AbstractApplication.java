@@ -3,10 +3,10 @@ package io.mateu.mdd.core.app;
 
 import com.google.common.base.Strings;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.data.Data;
+import io.mateu.util.data.Data;
 import io.mateu.mdd.core.interfaces.App;
 import io.mateu.mdd.core.interfaces.View;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.reflection.FieldInterfaced;
 import io.mateu.mdd.shared.VaadinHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.AbstractFieldBuilder;
@@ -220,7 +220,7 @@ public abstract class AbstractApplication implements App {
     public View getPrivateHome() { return null; };
 
     public String getBaseUrl() {
-        String u = System.getProperty("baseurl", MDDUI.get() != null?MDDUI.get().getBaseUrl():"");
+        String u = System.getProperty("baseurl", MDDUI.get() != null? MDDUI.get().getBaseUrl():"");
         if (u.endsWith(VaadinHelper.getAdaptedUIRootPath())) u = u.substring(0, u.lastIndexOf(VaadinHelper.getAdaptedUIRootPath()));
         return u;
     };

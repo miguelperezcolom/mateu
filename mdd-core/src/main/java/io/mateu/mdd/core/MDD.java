@@ -7,20 +7,24 @@ import com.vaadin.server.ExternalResource;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.core.annotations.Forbidden;
-import io.mateu.mdd.core.annotations.Private;
-import io.mateu.mdd.core.annotations.ReadOnly;
-import io.mateu.mdd.core.annotations.ReadWrite;
+import io.mateu.mdd.shared.CSS;
+import io.mateu.mdd.shared.annotations.Forbidden;
+import io.mateu.mdd.shared.annotations.ReadOnly;
+import io.mateu.mdd.shared.annotations.ReadWrite;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.interfaces.*;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.core.util.Notifier;
-import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.shared.interfaces.RpcView;
+import io.mateu.reflection.FieldInterfaced;
+import io.mateu.reflection.ReflectionHelper;
+import io.mateu.security.Private;
+import io.mateu.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.views.*;
 import io.mateu.mdd.vaadinport.vaadin.mdd.VaadinPort;
 import io.mateu.mdd.vaadinport.vaadin.navigation.ComponentWrapper;
+import io.mateu.util.interfaces.GeneralRepository;
+import io.mateu.util.interfaces.UserPrincipal;
+import io.mateu.util.notification.Notifier;
 import javassist.ClassPool;
 
 import javax.persistence.Entity;
@@ -35,12 +39,12 @@ public class MDD {
 
 
     public static VaadinPort getPort() {
-        return (MDDUI.get() != null)?MDDUI.get().getPort():null;
+        return (MDDUI.get() != null)? MDDUI.get().getPort():null;
     }
 
     public static AbstractApplication getApp() {
         try {
-            app = MDDUI.get() != null?MDDUI.get().getApp():MDDUI.createApp();
+            app = MDDUI.get() != null? MDDUI.get().getApp(): MDDUI.createApp();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -308,10 +312,10 @@ public class MDD {
     }
 
     public static boolean check(Private pa) {
-        return check(pa.permissions(), pa.users(), pa.userTypes());
+        return check(pa.roles(), pa.users());
     }
 
-    private static boolean check(int[] permissions, String[] users, Class[] userTypes) {
+    private static boolean check(String[] permissions, String[] users) {
         boolean add = false;
         UserPrincipal u = MDD.getCurrentUser();
         if (u == null) return false;
@@ -332,7 +336,7 @@ public class MDD {
         if (u != null && (users == null || users.length == 0) && permissions != null && permissions.length > 0) {
             for (int i = 0; i < permissions.length; i++) {
                 for (Long p : u.getPermissionIds()) {
-                    if (p == permissions[i]) {
+                    if (permissions[i].equals("" + p)) {
                         permisoOk = true;
                         break;
                     }
@@ -342,36 +346,26 @@ public class MDD {
         } else permisoOk = true;
 
 
-        boolean tipoOk = false;
-        if (u != null && userTypes != null && userTypes.length > 0) {
-            for (int i = 0; i < userTypes.length; i++) {
-                if (userTypes[i].isAssignableFrom(u.getClass())) {
-                    tipoOk = true;
-                    break;
-                }
-            }
-        } else tipoOk = true;
-
-        if (permisoOk || usuarioOk || tipoOk) add = true;
+        if (permisoOk || usuarioOk) add = true;
         return add;
     }
 
     public static boolean check(ReadOnly a) {
-        return check(a.permissions(), a.users(), a.userTypes());
+        return check(a.roles(), a.users());
     }
 
     public static boolean check(ReadWrite a) {
-        return check(a.permissions(), a.users(), a.userTypes());
+        return check(a.roles(), a.users());
     }
 
     public static boolean check(Forbidden a) {
-        return check(a.permissions(), a.users(), a.userTypes());
+        return check(a.roles(), a.users());
     }
 
     public static boolean isReadOnly(FieldInterfaced f) {
         if (f.isAnnotationPresent(ReadOnly.class)) {
             ReadOnly a = f.getAnnotation(ReadOnly.class);
-            return check(a.permissions(), a.users(), a.userTypes());
+            return check(a.roles(), a.users());
         } else return false;
     }
 
@@ -379,11 +373,11 @@ public class MDD {
         boolean r = true;
         if (type.isAnnotationPresent(Forbidden.class)) {
             Forbidden a = type.getAnnotation(Forbidden.class);
-            r &= !check(a.permissions(), a.users(), a.userTypes());
+            r &= !check(a.roles(), a.users());
         }
         if (type.isAnnotationPresent(ReadOnly.class)) {
             ReadOnly a = type.getAnnotation(ReadOnly.class);
-            r &= !check(a.permissions(), a.users(), a.userTypes());
+            r &= !check(a.roles(), a.users());
         }
         return r;
     }

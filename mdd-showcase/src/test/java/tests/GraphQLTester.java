@@ -1,14 +1,11 @@
 package tests;
 
-import graphql.ExecutionResult;
-import graphql.GraphQL;
 import graphql.schema.DataFetcher;
-import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.*;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.JPAHelper;
+import io.mateu.reflection.FieldInterfaced;
+import io.mateu.reflection.ReflectionHelper;
+import io.mateu.util.Helper;
+import io.mateu.util.persistence.JPAHelper;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Id;

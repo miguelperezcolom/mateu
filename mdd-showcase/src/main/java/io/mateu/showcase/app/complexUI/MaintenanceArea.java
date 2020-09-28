@@ -1,6 +1,6 @@
 package io.mateu.showcase.app.complexUI;
 
-import io.mateu.mdd.core.annotations.MenuOption;
+import io.mateu.mdd.shared.annotations.MenuOption;
 import org.example.domain.boundaries.maintenance.entities.Building;
 import org.example.domain.boundaries.maintenance.entities.Issue;
 import org.example.domain.boundaries.maintenance.entities.Provider;

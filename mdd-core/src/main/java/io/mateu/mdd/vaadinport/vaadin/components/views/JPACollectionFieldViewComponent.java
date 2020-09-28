@@ -2,13 +2,13 @@ package io.mateu.mdd.vaadinport.vaadin.components.views;
 
 import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.UseLinkToListView;
+import io.mateu.mdd.shared.annotations.UseLinkToListView;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.JPAHelper;
+import io.mateu.reflection.FieldInterfaced;
+import io.mateu.reflection.ReflectionHelper;
+import io.mateu.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import io.mateu.util.persistence.JPAHelper;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -88,7 +88,7 @@ public class JPACollectionFieldViewComponent extends JPAListViewComponent {
 
                     try {
                         Object parentBean = evfc.getBinder().getBean();
-                        ReflectionHelper.setValue(field, parentBean, Helper.removeAll((Collection) ReflectionHelper.getValue(field, parentBean), getSelection()));
+                        ReflectionHelper.setValue(field, parentBean, ReflectionHelper.removeAll((Collection) ReflectionHelper.getValue(field, parentBean), getSelection()));
                         evfc.getBinder().setBean(parentBean, false);
                     } catch (Throwable throwable) {
                         MDD.alert(throwable);

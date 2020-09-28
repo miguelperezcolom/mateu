@@ -15,7 +15,8 @@ import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonArray;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractApplication;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.mdd.shared.interfaces.RpcView;
+import io.mateu.mdd.shared.ui.IMDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.app.AppComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.app.ViewContainer;
 import io.mateu.mdd.vaadinport.vaadin.components.app.desktop.DesktopAppComponent;
@@ -28,6 +29,7 @@ import io.mateu.mdd.vaadinport.vaadin.navigation.MDDNavigator;
 import io.mateu.mdd.vaadinport.vaadin.navigation.MDDViewProvider;
 import io.mateu.mdd.vaadinport.vaadin.navigation.View;
 import io.mateu.mdd.vaadinport.vaadin.navigation.ViewStack;
+import io.mateu.reflection.ReflectionHelper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
@@ -72,7 +74,7 @@ import java.util.ArrayList;
 //@Push
 @PreserveOnRefresh
 @Slf4j
-public class MDDUI extends UI {
+public class MDDUI extends UI implements IMDDUI {
 
     private MDDNavigator navegador;
     private Navigator navigator;
@@ -161,7 +163,7 @@ public class MDDUI extends UI {
 
 
         if (app == null) {
-            AbstractApplication appFromContext = (AbstractApplication) ((VaadinServletRequest) vaadinRequest).getServletContext().getAttribute((Strings.isNullOrEmpty(MDDUI.get().getUiRootPath())?"/":MDDUI.get().getUiRootPath()) + "_app");
+            AbstractApplication appFromContext = (AbstractApplication) ((VaadinServletRequest) vaadinRequest).getServletContext().getAttribute((Strings.isNullOrEmpty(MDDUI.get().getUiRootPath())?"/": MDDUI.get().getUiRootPath()) + "_app");
             setApp(appFromContext != null?appFromContext:createApp());
 
             if (MDD.getClassPool() == null) MDD.setClassPool(ReflectionHelper.createClassPool(((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getServletContext()));
@@ -173,6 +175,8 @@ public class MDDUI extends UI {
         //setContent(flowComponent);
 
         setContent((Component) (appComponent = new DesktopAppComponent(app, viewContainer)));
+
+
 
     }
 
@@ -210,7 +214,7 @@ public class MDDUI extends UI {
 
     public static MDDUI get() {
         UI ui = UI.getCurrent();
-        return ui != null && ui instanceof MDDUI? (MDDUI) ui :null;
+        return ui != null && ui instanceof MDDUI ? (MDDUI) ui :null;
     }
 
 
@@ -417,5 +421,10 @@ public class MDDUI extends UI {
         });
 
         UI.getCurrent().addWindow(w);
+    }
+
+    @Override
+    public <F, C> void search(RpcView<F, C> view) {
+        getNavegador().getViewProvider().search(view);
     }
 }

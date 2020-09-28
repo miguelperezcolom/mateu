@@ -1,15 +1,13 @@
 package io.mateu.mdd.vaadinport.vaadin.components.views;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.JPAHelper;
+import io.mateu.mdd.shared.data.MDDBinder;
+import io.mateu.reflection.FieldInterfaced;
+import io.mateu.reflection.ReflectionHelper;
+import io.mateu.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.ClassOption;
 import io.mateu.mdd.vaadinport.vaadin.util.VaadinHelper;
@@ -137,7 +135,7 @@ public class OwnedCollectionComponent extends EditorViewComponent {
                                             m = ((ResourceModel) m).getResource();
 
                                         Object parentBean = parentBinder.getBean();
-                                        collection = Helper.remove((Collection) ReflectionHelper.getValue(field, parentBean), m);
+                                        collection = ReflectionHelper.remove((Collection) ReflectionHelper.getValue(field, parentBean), m);
                                         ReflectionHelper.setValue(field, parentBean, collection);
                                         parentBinder.setBean(parentBean, false);
 
@@ -289,7 +287,7 @@ public class OwnedCollectionComponent extends EditorViewComponent {
                     try {
                         Object o = newInstance(((ClassOption)cl).get_class());
                         Object parentBean = parentBinder.getBean();
-                        collection = Helper.extend((Collection) ReflectionHelper.getValue(field, parentBean), o);
+                        collection = ReflectionHelper.extend((Collection) ReflectionHelper.getValue(field, parentBean), o);
                         ReflectionHelper.setValue(field, parentBean, collection);
                         parentBinder.setBean(parentBean, false);
                         consumer.accept(o);

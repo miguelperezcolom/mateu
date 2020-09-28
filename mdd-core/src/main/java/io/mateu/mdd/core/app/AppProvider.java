@@ -1,6 +1,7 @@
 package io.mateu.mdd.core.app;
 
-import io.mateu.mdd.core.interfaces.UserPrincipal;
+
+import io.mateu.util.interfaces.UserPrincipal;
 
 public interface AppProvider {
 

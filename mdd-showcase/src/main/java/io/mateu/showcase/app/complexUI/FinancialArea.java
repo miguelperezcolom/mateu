@@ -1,6 +1,6 @@
 package io.mateu.showcase.app.complexUI;
 
-import io.mateu.mdd.core.annotations.MenuOption;
+import io.mateu.mdd.shared.annotations.MenuOption;
 import org.example.domain.boundaries.financial.entities.*;
 
 public class FinancialArea {

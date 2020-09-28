@@ -1,6 +1,6 @@
 package io.mateu.mdd.core.interfaces;
 
-import io.mateu.mdd.core.data.SupplementOrPositive;
+import io.mateu.util.data.SupplementOrPositive;
 
 public interface ISupplementOrPositive {
 

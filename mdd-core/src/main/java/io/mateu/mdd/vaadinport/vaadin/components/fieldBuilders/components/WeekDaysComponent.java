@@ -6,8 +6,8 @@ import com.vaadin.shared.Registration;
 import com.vaadin.ui.CheckBoxGroup;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Composite;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.mdd.shared.data.MDDBinder;
+import io.mateu.reflection.FieldInterfaced;
 
 import java.util.*;
 

@@ -1,11 +1,11 @@
 package io.mateu.mdd.springboot;
 
 import io.mateu.mdd.shared.JPAAdapter;
-import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.IJPAHelper;
-import io.mateu.mdd.util.JPAHelper;
-import io.mateu.mdd.util.persistence.JPATransaction;
-import io.mateu.mdd.util.runnable.RunnableThrowsThrowable;
+import io.mateu.util.Helper;
+import io.mateu.util.IJPAHelper;
+import io.mateu.util.persistence.JPAHelper;
+import io.mateu.util.persistence.JPATransaction;
+import io.mateu.util.runnable.RunnableThrowsThrowable;
 import org.jinq.jpa.JinqJPAStreamProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

@@ -6,11 +6,10 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.BaseMDDApp;
-import io.mateu.mdd.core.interfaces.GeneralRepository;
-import io.mateu.mdd.core.interfaces.UserPrincipal;
-import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.JPAHelper;
+import io.mateu.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
+import io.mateu.util.interfaces.GeneralRepository;
+import io.mateu.util.interfaces.UserPrincipal;
 
 public class ResetPasswordFlowComponent extends VerticalLayout {
 

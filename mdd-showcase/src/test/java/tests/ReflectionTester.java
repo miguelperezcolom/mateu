@@ -1,7 +1,7 @@
 package tests;
 
 import io.mateu.mdd.core.interfaces.AbstractJPQLListView;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.reflection.ReflectionHelper;
 import lombok.extern.slf4j.Slf4j;
 import tests.reflection.MiJPQLListViewCaso1;
 import tests.reflection.MiJPQLListViewCaso2;

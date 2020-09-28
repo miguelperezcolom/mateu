@@ -1,9 +1,13 @@
 package io.mateu.mdd.core.app;
 
 import com.vaadin.icons.VaadinIcons;
-import io.mateu.mdd.core.annotations.*;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.mdd.shared.annotations.Area;
+import io.mateu.mdd.shared.annotations.Home;
+import io.mateu.mdd.shared.annotations.PrivateHome;
+import io.mateu.mdd.shared.annotations.PublicHome;
+import io.mateu.reflection.FieldInterfaced;
+import io.mateu.reflection.ReflectionHelper;
+import io.mateu.security.Private;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;

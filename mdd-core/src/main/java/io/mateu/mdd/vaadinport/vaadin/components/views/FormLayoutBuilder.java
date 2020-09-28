@@ -10,20 +10,19 @@ import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.core.CSS;
+import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.data.Pair;
+import io.mateu.mdd.shared.data.MDDBinder;
+import io.mateu.mdd.shared.annotations.*;
+import io.mateu.util.data.Pair;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.interfaces.NakedObjectStylist;
 import io.mateu.mdd.core.interfaces.ReadOnly;
 import io.mateu.mdd.core.layout.MiFormLayout;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.JPAHelper;
+import io.mateu.reflection.FieldInterfaced;
+import io.mateu.reflection.ReflectionHelper;
+import io.mateu.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.AbstractFieldBuilder;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.FieldBuilder;
@@ -38,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-public class FormLayoutBuilder implements io.mateu.mdd.core.data.FormLayoutBuilder {
+public class FormLayoutBuilder {
 
     public Pair<Component, AbstractStylist> build(MDDBinder binder, Class<?> modelType, Object model, List<Component> componentsToLookForErrors, FormLayoutBuilderParameters params, Map<String, List<AbstractAction>> attachedActions) {
         return build(null, binder, modelType, model, componentsToLookForErrors, params, attachedActions);

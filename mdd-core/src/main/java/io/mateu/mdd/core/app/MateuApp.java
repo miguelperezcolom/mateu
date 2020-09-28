@@ -1,8 +1,8 @@
 package io.mateu.mdd.core.app;
 
-import io.mateu.mdd.core.annotations.Caption;
-import io.mateu.mdd.core.annotations.Private;
-import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.shared.annotations.Caption;
+import io.mateu.security.Private;
+import io.mateu.util.Helper;
 
 import java.util.List;
 

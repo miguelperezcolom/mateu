@@ -1,7 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.util;
 
 import com.vaadin.ui.Window;
-import io.mateu.mdd.core.data.MDDBinder;
+import io.mateu.mdd.shared.data.MDDBinder;
 
 public abstract class BindedWindow extends Window {
 

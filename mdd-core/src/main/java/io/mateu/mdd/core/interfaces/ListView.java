@@ -1,7 +1,7 @@
 package io.mateu.mdd.core.interfaces;
 
 
-import io.mateu.mdd.core.data.Data;
+import io.mateu.util.data.Data;
 
 import javax.persistence.EntityManager;
 

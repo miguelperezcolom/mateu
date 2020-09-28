@@ -24,7 +24,6 @@
     <module>mdd-core</module>
     <module>mdd-vaadin</module>
       <module>mdd-annotationprocessing</module>
-      <module>mdd-util</module>
     <module>mdd-se</module>
       <module>mdd-util-extended</module>
       <module>mdd-eclipselink</module>

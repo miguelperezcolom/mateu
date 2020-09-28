@@ -1,7 +1,7 @@
 package io.mateu.mdd.core.model.config;
 
-import io.mateu.mdd.core.annotations.TextArea;
-import io.mateu.mdd.core.annotations.UseCheckboxes;
+import io.mateu.mdd.shared.annotations.TextArea;
+import io.mateu.mdd.shared.annotations.UseCheckboxes;
 import lombok.MateuMDDEntity;
 
 import javax.persistence.OneToMany;

@@ -1,6 +1,6 @@
 package io.mateu.showcase.app;
 
-import io.mateu.mdd.core.annotations.MenuOption;
+import io.mateu.mdd.shared.annotations.MenuOption;
 import org.example.domain.boundaries.common.entities.Person;
 import org.example.domain.boundaries.educational.entities.AcademicPlan;
 import org.example.domain.boundaries.educational.entities.Classroom;

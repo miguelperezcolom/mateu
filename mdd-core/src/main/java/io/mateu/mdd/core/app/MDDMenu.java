@@ -2,7 +2,7 @@ package io.mateu.mdd.core.app;
 
 
 import com.vaadin.ui.Component;
-import io.mateu.mdd.core.interfaces.RpcView;
+import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import lombok.extern.slf4j.Slf4j;

@@ -3,7 +3,7 @@ package io.mateu.mdd.core.model.util;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.shared.AppConfigLocator;
 import io.mateu.mdd.shared.IAppConfig;
-import io.mateu.mdd.util.JPAHelper;
+import io.mateu.util.persistence.JPAHelper;
 
 public class JPAAppConfigLocator implements AppConfigLocator {
     @Override

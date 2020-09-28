@@ -1,10 +1,10 @@
 package io.mateu.mdd.core.dev;
 
-import io.mateu.mdd.core.annotations.Action;
-import io.mateu.mdd.core.annotations.Output;
-import io.mateu.mdd.core.annotations.TextArea;
-import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.JPAHelper;
+import io.mateu.mdd.shared.annotations.Action;
+import io.mateu.mdd.shared.annotations.Output;
+import io.mateu.mdd.shared.annotations.TextArea;
+import io.mateu.util.Helper;
+import io.mateu.util.persistence.JPAHelper;
 import lombok.Getter;
 import lombok.Setter;
 

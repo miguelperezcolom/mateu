@@ -1,7 +1,7 @@
 package io.mateu.mdd.core.model;
 
 import com.google.common.base.Strings;
-import io.mateu.mdd.core.interfaces.*;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.model.authentication.Audit;
 import io.mateu.mdd.core.model.authentication.USER_STATUS;
 import io.mateu.mdd.core.model.authentication.User;
@@ -9,11 +9,12 @@ import io.mateu.mdd.core.model.common.Icon;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.model.multilanguage.Literal;
-import io.mateu.mdd.core.util.Notifier;
-import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.JPAHelper;
-import io.mateu.mdd.util.mail.EmailHelper;
-import io.mateu.mdd.util.persistence.JPATransaction;
+import io.mateu.util.Helper;
+import io.mateu.util.interfaces.*;
+import io.mateu.util.notification.Notifier;
+import io.mateu.util.persistence.JPAHelper;
+import io.mateu.util.mail.EmailHelper;
+import io.mateu.util.persistence.JPATransaction;
 
 import javax.persistence.EntityManager;
 import java.net.URL;
@@ -129,7 +130,7 @@ public class GeneralRepositoryImpl implements GeneralRepository {
     @Override
     public List<IIcon> findAllIcons() throws Throwable {
         List<Icon> l = JPAHelper.findAll(Icon.class).stream().sorted((a, b) -> a.getId().compareTo(b.getId())).collect(Collectors.toList());
-        return new ArrayList<>(l);
+        return new ArrayList(l);
     }
 
     @Override
@@ -191,8 +192,8 @@ public class GeneralRepositoryImpl implements GeneralRepository {
     }
 
     @Override
-    public AuditRecord getNewAudit(String login) throws Throwable {
-        return new Audit(JPAHelper.find(User.class, login));
+    public AuditRecord getNewAudit() throws Throwable {
+        return new Audit(JPAHelper.find(User.class, MDD.getCurrentUserLogin()));
     }
 
     private User findUserByPasswordResetKey(EntityManager em, String key) throws Exception {

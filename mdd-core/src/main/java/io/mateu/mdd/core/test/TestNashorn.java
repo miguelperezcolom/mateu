@@ -1,6 +1,6 @@
 package io.mateu.mdd.core.test;
 
-import io.mateu.mdd.core.data.Data;
+import io.mateu.util.data.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.script.Invocable;

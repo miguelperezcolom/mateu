@@ -6,17 +6,21 @@ import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.ui.Grid;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.*;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.data.ChartData;
-import io.mateu.mdd.core.data.ChartValue;
-import io.mateu.mdd.core.data.SumData;
+import io.mateu.mdd.shared.data.ChartData;
+import io.mateu.mdd.shared.data.ChartValue;
+import io.mateu.mdd.shared.data.MDDBinder;
+import io.mateu.mdd.shared.data.SumData;
 import io.mateu.mdd.core.interfaces.*;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.JPAHelper;
-import io.mateu.mdd.util.persistence.JPATransaction;
+import io.mateu.mdd.shared.annotations.*;
+import io.mateu.reflection.FieldInterfaced;
+import io.mateu.reflection.ReflectionHelper;
+import io.mateu.util.Helper;
+import io.mateu.util.interfaces.AuditRecord;
+import io.mateu.util.interfaces.IResource;
+import io.mateu.util.interfaces.Translated;
+import io.mateu.util.persistence.JPAHelper;
+import io.mateu.util.persistence.JPATransaction;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import lombok.extern.slf4j.Slf4j;
 
@@ -343,7 +347,7 @@ public class JPAListViewComponent extends ListViewComponent {
     @Override
     public Class getFiltersType() {
         try {
-            return ReflectionHelper.createClass(entityClass.getName() + "000Filters" + getFilterFieldsSerialized(), getFilterFields(entityClass), true);
+            return ReflectionHelper.createClass(MDD.getClassPool(), MDDBinder.class, MDD.getClassPool().getClassLoader(), entityClass.getName() + "000Filters" + getFilterFieldsSerialized(), getFilterFields(entityClass), true);
         } catch (Exception e) {
             MDD.alert(e);
         }

@@ -2,7 +2,7 @@ package io.mateu.mdd.core.app;
 
 
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 import java.lang.reflect.Method;

@@ -101,7 +101,7 @@ var activeTableTab = "activeTableTab";
 <li><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">java.lang.Object</a></li>
 <li>
 <ul class="inheritance">
-<li><a href="../../../../../io/mateu/mdd/core/app/Callback.html" title="class in io.mateu.mdd.core.app">io.mateu.mdd.core.app.Callback</a>&lt;<a href="../../../../../io/mateu/mdd/core/data/Data.html" title="class in io.mateu.mdd.core.data">Data</a>&gt;</li>
+<li><a href="../../../../../io/mateu/mdd/core/app/Callback.html" title="class in io.mateu.mdd.core.app">io.mateu.mdd.core.app.Callback</a>&lt;<a href="../../../../../io/mateu/mdd/core/data/Data.html" title="class in io.mateu.mdd.shared.data">Data</a>&gt;</li>
 <li>
 <ul class="inheritance">
 <li>io.mateu.mdd.core.app.MDDCallback</li>
@@ -115,12 +115,12 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <dl>
 <dt>All Implemented Interfaces:</dt>
-<dd><a href="../../../../../io/mateu/mdd/core/app/AsyncCallback.html" title="interface in io.mateu.mdd.core.app">AsyncCallback</a>&lt;<a href="../../../../../io/mateu/mdd/core/data/Data.html" title="class in io.mateu.mdd.core.data">Data</a>&gt;</dd>
+<dd><a href="../../../../../io/mateu/mdd/core/app/AsyncCallback.html" title="interface in io.mateu.mdd.core.app">AsyncCallback</a>&lt;<a href="../../../../../io/mateu/mdd/core/data/Data.html" title="class in io.mateu.mdd.shared.data">Data</a>&gt;</dd>
 </dl>
 <hr>
 <br>
 <pre>public class <span class="typeNameLabel">MDDCallback</span>
-extends <a href="../../../../../io/mateu/mdd/core/app/Callback.html" title="class in io.mateu.mdd.core.app">Callback</a>&lt;<a href="../../../../../io/mateu/mdd/core/data/Data.html" title="class in io.mateu.mdd.core.data">Data</a>&gt;</pre>
+extends <a href="../../../../../io/mateu/mdd/core/app/Callback.html" title="class in io.mateu.mdd.core.app">Callback</a>&lt;<a href="../../../../../io/mateu/mdd/core/data/Data.html" title="class in io.mateu.mdd.shared.data">Data</a>&gt;</pre>
 <div class="block">Created by miguel on 12/1/17.</div>
 </li>
 </ul>
@@ -146,10 +146,10 @@ extends <a href="../../../../../io/mateu/mdd/core/app/Callback.html" title="clas
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../../io/mateu/mdd/core/app/MDDCallback.html#MDDCallback-boolean-">MDDCallback</a></span>(boolean&nbsp;modifierPressed)</code>&nbsp;</td>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../io/mateu/mdd/core/app/MDDCallback.html#MDDCallback-io.mateu.mdd.core.data.Data-">MDDCallback</a></span>(<a href="../../../../../io/mateu/mdd/core/data/Data.html" title="class in io.mateu.mdd.core.data">Data</a>&nbsp;initialData)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../io/mateu/mdd/core/app/MDDCallback.html#MDDCallback-io.mateu.mdd.shared.data.Data-">MDDCallback</a></span>(<a href="../../../../../io/mateu/mdd/core/data/Data.html" title="class in io.mateu.mdd.shared.data">Data</a>&nbsp;initialData)</code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../io/mateu/mdd/core/app/MDDCallback.html#MDDCallback-io.mateu.mdd.core.data.Data-boolean-">MDDCallback</a></span>(<a href="../../../../../io/mateu/mdd/core/data/Data.html" title="class in io.mateu.mdd.core.data">Data</a>&nbsp;initialData,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../io/mateu/mdd/core/app/MDDCallback.html#MDDCallback-io.mateu.mdd.shared.data.Data-boolean-">MDDCallback</a></span>(<a href="../../../../../io/mateu/mdd/core/data/Data.html" title="class in io.mateu.mdd.shared.data">Data</a>&nbsp;initialData,
            boolean&nbsp;modifierPressed)</code>&nbsp;</td>
 </tr>
 </table>
@@ -169,7 +169,7 @@ extends <a href="../../../../../io/mateu/mdd/core/app/Callback.html" title="clas
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/mateu/mdd/core/app/MDDCallback.html#onSuccess-io.mateu.mdd.core.data.Data-">onSuccess</a></span>(<a href="../../../../../io/mateu/mdd/core/data/Data.html" title="class in io.mateu.mdd.core.data">Data</a>&nbsp;result)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/mateu/mdd/core/app/MDDCallback.html#onSuccess-io.mateu.mdd.shared.data.Data-">onSuccess</a></span>(<a href="../../../../../io/mateu/mdd/core/data/Data.html" title="class in io.mateu.mdd.shared.data">Data</a>&nbsp;result)</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -218,22 +218,22 @@ extends <a href="../../../../../io/mateu/mdd/core/app/Callback.html" title="clas
 <pre>public&nbsp;MDDCallback(boolean&nbsp;modifierPressed)</pre>
 </li>
 </ul>
-<a name="MDDCallback-io.mateu.mdd.core.data.Data-">
+<a name="MDDCallback-io.mateu.mdd.shared.data.Data-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>MDDCallback</h4>
-<pre>public&nbsp;MDDCallback(<a href="../../../../../io/mateu/mdd/core/data/Data.html" title="class in io.mateu.mdd.core.data">Data</a>&nbsp;initialData)</pre>
+<pre>public&nbsp;MDDCallback(<a href="../../../../../io/mateu/mdd/core/data/Data.html" title="class in io.mateu.mdd.shared.data">Data</a>&nbsp;initialData)</pre>
 </li>
 </ul>
-<a name="MDDCallback-io.mateu.mdd.core.data.Data-boolean-">
+<a name="MDDCallback-io.mateu.mdd.shared.data.Data-boolean-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>MDDCallback</h4>
-<pre>public&nbsp;MDDCallback(<a href="../../../../../io/mateu/mdd/core/data/Data.html" title="class in io.mateu.mdd.core.data">Data</a>&nbsp;initialData,
+<pre>public&nbsp;MDDCallback(<a href="../../../../../io/mateu/mdd/core/data/Data.html" title="class in io.mateu.mdd.shared.data">Data</a>&nbsp;initialData,
                    boolean&nbsp;modifierPressed)</pre>
 </li>
 </ul>
@@ -245,18 +245,18 @@ extends <a href="../../../../../io/mateu/mdd/core/app/Callback.html" title="clas
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="onSuccess-io.mateu.mdd.core.data.Data-">
+<a name="onSuccess-io.mateu.mdd.shared.data.Data-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>onSuccess</h4>
-<pre>public&nbsp;void&nbsp;onSuccess(<a href="../../../../../io/mateu/mdd/core/data/Data.html" title="class in io.mateu.mdd.core.data">Data</a>&nbsp;result)</pre>
+<pre>public&nbsp;void&nbsp;onSuccess(<a href="../../../../../io/mateu/mdd/core/data/Data.html" title="class in io.mateu.mdd.shared.data">Data</a>&nbsp;result)</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../../io/mateu/mdd/core/app/AsyncCallback.html#onSuccess-T-">onSuccess</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../io/mateu/mdd/core/app/AsyncCallback.html" title="interface in io.mateu.mdd.core.app">AsyncCallback</a>&lt;<a href="../../../../../io/mateu/mdd/core/data/Data.html" title="class in io.mateu.mdd.core.data">Data</a>&gt;</code></dd>
+<dd><code><a href="../../../../../io/mateu/mdd/core/app/AsyncCallback.html#onSuccess-T-">onSuccess</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../io/mateu/mdd/core/app/AsyncCallback.html" title="interface in io.mateu.mdd.core.app">AsyncCallback</a>&lt;<a href="../../../../../io/mateu/mdd/core/data/Data.html" title="class in io.mateu.mdd.shared.data">Data</a>&gt;</code></dd>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
-<dd><code><a href="../../../../../io/mateu/mdd/core/app/Callback.html#onSuccess-T-">onSuccess</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../io/mateu/mdd/core/app/Callback.html" title="class in io.mateu.mdd.core.app">Callback</a>&lt;<a href="../../../../../io/mateu/mdd/core/data/Data.html" title="class in io.mateu.mdd.core.data">Data</a>&gt;</code></dd>
+<dd><code><a href="../../../../../io/mateu/mdd/core/app/Callback.html#onSuccess-T-">onSuccess</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../io/mateu/mdd/core/app/Callback.html" title="class in io.mateu.mdd.core.app">Callback</a>&lt;<a href="../../../../../io/mateu/mdd/core/data/Data.html" title="class in io.mateu.mdd.shared.data">Data</a>&gt;</code></dd>
 </dl>
 </li>
 </ul>

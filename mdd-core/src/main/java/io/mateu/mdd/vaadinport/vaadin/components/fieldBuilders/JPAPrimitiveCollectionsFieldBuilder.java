@@ -7,15 +7,15 @@ import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.DataProvider;
-import io.mateu.mdd.core.annotations.ValueClass;
+import io.mateu.mdd.shared.annotations.DataProvider;
+import io.mateu.mdd.shared.annotations.ValueClass;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.data.MDDBinder;
+import io.mateu.mdd.shared.data.MDDBinder;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.util.JPAHelper;
+import io.mateu.reflection.FieldInterfaced;
+import io.mateu.reflection.ReflectionHelper;
+import io.mateu.util.persistence.JPAHelper;
 
 import javax.persistence.Entity;
 import javax.validation.constraints.NotNull;
@@ -131,7 +131,7 @@ public class JPAPrimitiveCollectionsFieldBuilder extends JPAStringFieldBuilder {
             } else {
 
 
-                AbstractTextField tf = (field.isAnnotationPresent(io.mateu.mdd.core.annotations.TextArea.class))?new TextArea():new TextField();
+                AbstractTextField tf = (field.isAnnotationPresent(io.mateu.mdd.shared.annotations.TextArea.class))?new TextArea():new TextField();
                 container.addComponent(tf);
                 tf.setValueChangeMode(ValueChangeMode.BLUR);
 

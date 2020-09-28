@@ -5,10 +5,12 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.Label;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.*;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.util.Helper;
+import io.mateu.mdd.shared.reflection.CoreReflectionHelper;
+import io.mateu.mdd.shared.annotations.*;
+import io.mateu.reflection.FieldInterfaced;
+import io.mateu.reflection.ReflectionHelper;
+import io.mateu.security.Private;
+import io.mateu.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import io.mateu.mdd.vaadinport.vaadin.navigation.ComponentWrapper;
 
@@ -115,7 +117,7 @@ public class MenuBuilder {
                 @Override
                 public List<MenuEntry> buildEntries() {
                     try {
-                        return buildMenu(ReflectionHelper.invokeInjectableParametersOnly(m, app), authenticationAgnostic, publicAccess);
+                        return buildMenu(CoreReflectionHelper.invokeInjectableParametersOnly(m, app), authenticationAgnostic, publicAccess);
                     } catch (Throwable throwable) {
                         MDD.alert(throwable);
                     }
@@ -133,7 +135,7 @@ public class MenuBuilder {
                         List<MenuEntry> l = new ArrayList<>();
                         try {
 
-                            l = (List<MenuEntry>) ReflectionHelper.invokeInjectableParametersOnly(m, app);
+                            l = (List<MenuEntry>) CoreReflectionHelper.invokeInjectableParametersOnly(m, app);
 
                         } catch (Throwable e) {
                             MDD.alert(e);

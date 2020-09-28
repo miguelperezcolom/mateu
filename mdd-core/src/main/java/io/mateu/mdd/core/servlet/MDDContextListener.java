@@ -1,9 +1,9 @@
 package io.mateu.mdd.core.servlet;
 
-import io.mateu.mdd.core.app.MateuApplication;
-import io.mateu.mdd.core.util.SharedHelper;
+import io.mateu.util.SharedHelper;
 import io.mateu.mdd.shared.Command;
-import io.mateu.mdd.util.mail.EmailHelper;
+import io.mateu.util.app.MateuApplication;
+import io.mateu.util.mail.EmailHelper;
 import org.quartz.*;
 
 import javax.servlet.ServletContextEvent;

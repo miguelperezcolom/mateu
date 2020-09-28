@@ -1,14 +1,13 @@
 package io.mateu.mdd.core.model.common;
 
 import com.google.common.base.Strings;
-import io.mateu.mdd.core.data.FileLocator;
-import io.mateu.mdd.core.interfaces.FileType;
-import io.mateu.mdd.core.interfaces.IResource;
+import io.mateu.util.data.FileLocator;
 import io.mateu.mdd.shared.AppConfigLocator;
 import io.mateu.mdd.shared.IAppConfig;
-import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.JPAHelper;
-import io.mateu.mdd.util.common.Utils;
+import io.mateu.util.Helper;
+import io.mateu.util.common.Utils;
+import io.mateu.util.interfaces.FileType;
+import io.mateu.util.interfaces.IResource;
 import lombok.MateuMDDEntity;
 import lombok.extern.slf4j.Slf4j;
 

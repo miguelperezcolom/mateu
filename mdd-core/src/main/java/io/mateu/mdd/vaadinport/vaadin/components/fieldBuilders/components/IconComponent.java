@@ -6,15 +6,13 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.interfaces.GeneralRepository;
-import io.mateu.mdd.core.interfaces.IIcon;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.JPAHelper;
+import io.mateu.mdd.shared.data.MDDBinder;
+import io.mateu.reflection.FieldInterfaced;
+import io.mateu.util.Helper;
+import io.mateu.util.interfaces.GeneralRepository;
+import io.mateu.util.interfaces.IIcon;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class IconComponent extends Composite implements HasValue<IIcon>, Component.Focusable {
     private final MDDBinder binder;

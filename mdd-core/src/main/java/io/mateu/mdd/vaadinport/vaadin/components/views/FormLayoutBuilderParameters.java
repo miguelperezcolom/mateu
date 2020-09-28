@@ -4,7 +4,7 @@ import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
 import com.vaadin.ui.CssLayout;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
+import io.mateu.reflection.FieldInterfaced;
 import lombok.Builder;
 import lombok.Getter;
 

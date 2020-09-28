@@ -3,7 +3,7 @@ package io.mateu.mdd.core.app;
 
 import com.vaadin.ui.Component;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 public class MDDOpenCustomComponentAction extends AbstractAction {

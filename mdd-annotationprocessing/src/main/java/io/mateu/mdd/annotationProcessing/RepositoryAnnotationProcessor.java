@@ -58,7 +58,7 @@ public class RepositoryAnnotationProcessor extends AbstractProcessor {
 
                         out.println("import lombok.extern.slf4j.Slf4j;");
 
-                        out.println("import io.mateu.mdd.util.JPAHelper;");
+                        out.println("import io.mateu.util.persistence.JPAHelper;");
                         out.println("import java.util.List;");
                         out.println("import javax.persistence.EntityManager;");
 

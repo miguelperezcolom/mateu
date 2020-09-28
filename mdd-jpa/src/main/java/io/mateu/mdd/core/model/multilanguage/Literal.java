@@ -1,10 +1,10 @@
 package io.mateu.mdd.core.model.multilanguage;
 
 import com.vaadin.icons.VaadinIcons;
-import io.mateu.mdd.core.annotations.Action;
-import io.mateu.mdd.core.data.Data;
-import io.mateu.mdd.core.interfaces.Translated;
-import io.mateu.mdd.core.util.Notifier;
+import io.mateu.mdd.shared.annotations.Action;
+import io.mateu.util.data.Data;
+import io.mateu.util.interfaces.Translated;
+import io.mateu.util.notification.Notifier;
 import lombok.MateuMDDEntity;
 
 import java.util.Set;

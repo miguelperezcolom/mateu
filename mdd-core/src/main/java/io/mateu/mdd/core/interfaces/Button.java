@@ -1,7 +1,7 @@
 package io.mateu.mdd.core.interfaces;
 
 import com.vaadin.icons.VaadinIcons;
-import io.mateu.mdd.util.runnable.RunnableThrowsThrowable;
+import io.mateu.util.runnable.RunnableThrowsThrowable;
 
 import java.util.ArrayList;
 import java.util.List;

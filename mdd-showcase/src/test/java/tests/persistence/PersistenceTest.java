@@ -1,8 +1,8 @@
 package tests.persistence;
 
 
-import io.mateu.mdd.core.app.MateuApplication;
-import io.mateu.mdd.util.JPAHelper;
+import io.mateu.util.app.MateuApplication;
+import io.mateu.util.persistence.JPAHelper;
 import org.example.domain.boundaries.common.entities.Person;
 import org.junit.Test;
 

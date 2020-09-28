@@ -1,20 +1,14 @@
 package io.mateu.mdd.core.app;
 
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.data.FileLocator;
-import io.mateu.mdd.core.interfaces.GeneralRepository;
-import io.mateu.mdd.core.interfaces.UserPrincipal;
-import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.common.Utils;
-import io.mateu.mdd.util.JPAHelper;
-import io.mateu.mdd.util.mail.EmailHelper;
-import io.mateu.mdd.util.persistence.JPATransaction;
+import io.mateu.util.Helper;
+import io.mateu.util.common.Utils;
+import io.mateu.util.data.FileLocator;
+import io.mateu.util.interfaces.GeneralRepository;
+import io.mateu.util.interfaces.UserPrincipal;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.persistence.EntityManager;
 import java.net.URL;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 @Slf4j

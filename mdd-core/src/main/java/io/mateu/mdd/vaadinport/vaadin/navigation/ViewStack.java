@@ -5,7 +5,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.Window;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.views.AbstractViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.views.EditorViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.views.RpcListViewComponent;

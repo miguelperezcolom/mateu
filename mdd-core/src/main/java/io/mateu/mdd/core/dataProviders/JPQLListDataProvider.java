@@ -2,11 +2,11 @@ package io.mateu.mdd.core.dataProviders;
 
 import com.google.common.base.Strings;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.QLFilter;
-import io.mateu.mdd.core.annotations.QLForCombo;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.util.JPAHelper;
+import io.mateu.mdd.shared.annotations.QLFilter;
+import io.mateu.mdd.shared.annotations.QLForCombo;
+import io.mateu.reflection.FieldInterfaced;
+import io.mateu.reflection.ReflectionHelper;
+import io.mateu.util.persistence.JPAHelper;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;

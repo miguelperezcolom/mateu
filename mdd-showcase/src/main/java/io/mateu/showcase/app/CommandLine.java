@@ -1,6 +1,7 @@
 package io.mateu.showcase.app;
 
-import io.mateu.mdd.core.app.MateuApplication;
+
+import io.mateu.util.app.MateuApplication;
 
 public class CommandLine {
 

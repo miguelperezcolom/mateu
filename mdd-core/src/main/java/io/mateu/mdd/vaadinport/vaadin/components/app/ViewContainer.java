@@ -2,7 +2,7 @@ package io.mateu.mdd.vaadinport.vaadin.components.app;
 
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
-import io.mateu.mdd.core.CSS;
+import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.vaadinport.vaadin.navigation.ComponentWrapper;
 import lombok.extern.slf4j.Slf4j;

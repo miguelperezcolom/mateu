@@ -1,7 +1,7 @@
 package io.mateu.mdd.vaadinport.vaadin.components.views;
 
 
-import io.mateu.mdd.core.interfaces.IResource;
+import io.mateu.util.interfaces.IResource;
 
 public class ResourceModel {
 

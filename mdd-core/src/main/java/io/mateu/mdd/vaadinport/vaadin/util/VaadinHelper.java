@@ -8,18 +8,18 @@ import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.RightAlignedCol;
-import io.mateu.mdd.core.annotations.UseRadioButtons;
-import io.mateu.mdd.core.data.MDDBinder;
-import io.mateu.mdd.core.data.Value;
-import io.mateu.mdd.core.interfaces.RpcView;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.FieldInterfacedFromType;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
+import io.mateu.mdd.shared.annotations.RightAlignedCol;
+import io.mateu.mdd.shared.annotations.UseRadioButtons;
+import io.mateu.mdd.shared.data.MDDBinder;
+import io.mateu.util.data.Value;
+import io.mateu.mdd.shared.interfaces.RpcView;
+import io.mateu.reflection.FieldInterfaced;
+import io.mateu.reflection.FieldInterfacedFromType;
+import io.mateu.reflection.ReflectionHelper;
 import io.mateu.mdd.shared.AppConfigLocator;
-import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.common.EmptyRow;
-import io.mateu.mdd.util.JPAHelper;
+import io.mateu.util.Helper;
+import io.mateu.util.common.EmptyRow;
+import io.mateu.util.persistence.JPAHelper;
 import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.JPAOutputFieldBuilder;
 import io.mateu.mdd.vaadinport.vaadin.components.views.EditorViewComponent;
 import io.mateu.mdd.vaadinport.vaadin.components.views.FormLayoutBuilder;
@@ -251,7 +251,7 @@ public class VaadinHelper {
 
     public static void fill(EditorViewComponent evc, String caption, Constructor c, Consumer onOk, Runnable onClose) {
         try {
-            Class pc = ReflectionHelper.createClass("" + c.getDeclaringClass().getSimpleName() + "_" + c.getName() + "_Parameters000", ReflectionHelper.getAllFields(c), false);
+            Class pc = ReflectionHelper.createClass(MDD.getClassPool(), MDDBinder.class, MDD.getClassPool().getClassLoader(), "" + c.getDeclaringClass().getSimpleName() + "_" + c.getName() + "_Parameters000", ReflectionHelper.getAllFields(c), false);
 
             List<FieldInterfaced> fields = ReflectionHelper.getAllFields(pc);
 

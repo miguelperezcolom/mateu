@@ -6,14 +6,14 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.ui.Grid;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.annotations.Action;
+import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.data.ChartData;
-import io.mateu.mdd.core.data.SumData;
-import io.mateu.mdd.core.reflection.FieldInterfaced;
-import io.mateu.mdd.core.reflection.ReflectionHelper;
-import io.mateu.mdd.util.Helper;
-import io.mateu.mdd.util.JPAHelper;
+import io.mateu.mdd.shared.data.ChartData;
+import io.mateu.mdd.shared.data.MDDBinder;
+import io.mateu.mdd.shared.data.SumData;
+import io.mateu.reflection.FieldInterfaced;
+import io.mateu.reflection.ReflectionHelper;
+import io.mateu.util.Helper;
 import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 
 import java.lang.reflect.InvocationTargetException;
@@ -83,7 +83,7 @@ public class CollectionListViewComponent extends ListViewComponent {
     @Override
     public Class getFiltersType() {
         try {
-            return ReflectionHelper.createClass(columnType.getName() + "000CollectionFilters", getFilterFields(columnType), true);
+            return ReflectionHelper.createClass(MDD.getClassPool(), MDDBinder.class, MDD.getClassPool().getClassLoader(), columnType.getName() + "000CollectionFilters", getFilterFields(columnType), true);
         } catch (Exception e) {
             MDD.alert(e);
         }
