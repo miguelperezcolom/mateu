@@ -1,8 +1,9 @@
 package io.mateu.mdd.core.app;
 
-import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.views.Found;
+import io.mateu.mdd.shared.interfaces.IArea;
+import io.mateu.mdd.shared.interfaces.IModule;
+import io.mateu.mdd.shared.interfaces.MenuEntry;
+import io.mateu.mdd.shared.ui.MDDUIAccessor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -25,26 +26,26 @@ public class Searcher {
 
         List<Found> found = new ArrayList<>();
 
-        boolean autentico = MDD.getCurrentUserLogin() != null;
+        boolean autentico = MDDUIAccessor.getCurrentUserLogin() != null;
 
-        List<AbstractArea> areas = new ArrayList<>();
+        List<IArea> areas = new ArrayList<>();
 
-        for (AbstractArea a : MDD.getApp().getAreas()) {
+        for (IArea a : MDDUIAccessor.getApp().getAreas()) {
             if (autentico) {
                 if (!a.isPublicAccess()) {
                     areas.add(a);
                 }
             } else {
-                if (!MDD.getApp().isAuthenticationNeeded() || a.isPublicAccess()) {
+                if (!MDDUIAccessor.getApp().isAuthenticationNeeded() || a.isPublicAccess()) {
                     areas.add(a);
                 }
             }
         }
-        for (AbstractArea a : areas) {
+        for (IArea a : areas) {
 
-            for (AbstractModule m : a.getModules()) {
+            for (IModule m : a.getModules()) {
                 for (MenuEntry e : m.getMenu()) {
-                    addMenuEntry(found, a, m, e, text, a.getName() + " / " + m.getName());
+                    addMenuEntry(found, (AbstractArea) a, (AbstractModule) m, e, text, a.getName() + " / " + m.getName());
                 }
             }
 
@@ -68,7 +69,7 @@ public class Searcher {
 
             if ("".equals(text) || e.getCaption().toLowerCase().contains(text)) {
 
-                found.add(new Found(MDDUI.get().getNavegador().getPath(e), e.getCaption(), prefix));
+                found.add(new Found(MDDUIAccessor.getPath(e), e.getCaption(), prefix));
 
             }
 

@@ -2,9 +2,9 @@ package io.mateu.mdd.core.app;
 
 
 import com.vaadin.ui.Component;
+import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.core.interfaces.WizardPage;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -38,12 +38,7 @@ public class MDDMenu extends AbstractMenu {
                     if (o instanceof AbstractAction) {
                         m.add(((AbstractAction)o).setCaption(n));
                     } else {
-                        m.add(new AbstractAction(n) {
-                            @Override
-                            public void run() {
-                                MDDUI.get().getNavegador().getViewProvider().pendingResult = o;
-                            }
-                        });
+                        m.add(new MDDViewObject(n, o));
                     }
                 } else log.debug("Wrong class parameters. Found " + args[pos - 1].getClass().getName() + ", " + args[pos].getClass().getName() + " while expected String, Class");
             }

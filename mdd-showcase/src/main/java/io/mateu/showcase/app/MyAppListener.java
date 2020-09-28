@@ -1,9 +1,9 @@
 package io.mateu.showcase.app;
 
+import io.mateu.lifecycle.BaseAppContextListener;
 import io.mateu.mdd.core.annotations.AppListener;
 import io.mateu.mdd.core.model.authentication.UserCreatedEventConsumer;
 import io.mateu.mdd.core.model.config.AppConfig;
-import io.mateu.mdd.lifecycle.BaseAppContextListener;
 import io.mateu.mdd.shared.AppContextListener;
 import io.mateu.util.eventBus.EventBus;
 import io.mateu.util.persistence.JPAHelper;

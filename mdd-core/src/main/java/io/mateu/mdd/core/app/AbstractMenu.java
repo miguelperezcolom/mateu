@@ -1,6 +1,7 @@
 package io.mateu.mdd.core.app;
 
 import com.vaadin.icons.VaadinIcons;
+import io.mateu.mdd.shared.interfaces.MenuEntry;
 
 import java.util.List;
 import java.util.UUID;

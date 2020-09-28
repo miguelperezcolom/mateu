@@ -3,10 +3,11 @@ package io.mateu.mdd.core.interfaces;
 import com.google.common.base.Strings;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.shared.annotations.VisibleIf;
+import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.util.data.Pair;
-import io.mateu.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
+import io.mateu.util.notification.Notifier;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -71,7 +72,7 @@ public abstract class AbstractStylist<S> {
             try {
                 return (getStylistClass().equals(getClass()))?(List<String>) m.invoke(this, model):(List<String>) m.invoke(model);
             } catch (Exception e) {
-                MDD.alert(e);
+                Notifier.alert(e);
             }
         }
         return null;
@@ -129,7 +130,7 @@ public abstract class AbstractStylist<S> {
             try {
                 return (getStylistClass().equals(getClass()))?(boolean) m.invoke(this, model):(boolean) m.invoke(model);
             } catch (Exception e) {
-                MDD.alert(e);
+                Notifier.alert(e);
             }
         } else if (f.isAnnotationPresent(VisibleIf.class) && !Strings.isNullOrEmpty(f.getAnnotation(VisibleIf.class).value())) {
             String s = f.getAnnotation(VisibleIf.class).value();
@@ -146,7 +147,7 @@ public abstract class AbstractStylist<S> {
             try {
                 return (getStylistClass().equals(getClass()))?(boolean) m.invoke(this, model):(boolean) m.invoke(model);
             } catch (Exception e) {
-                MDD.alert(e);
+                Notifier.alert(e);
             }
         }
         return enabled;

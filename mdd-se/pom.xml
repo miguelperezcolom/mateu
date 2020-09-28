@@ -46,8 +46,8 @@
 
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>mdd-lifecycle</artifactId>
-            <version>${project.version}</version>
+            <artifactId>lifecycle</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>

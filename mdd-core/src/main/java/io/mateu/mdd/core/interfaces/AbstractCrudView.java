@@ -2,7 +2,7 @@ package io.mateu.mdd.core.interfaces;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.provider.QuerySortOrder;
-import io.mateu.reflection.FieldInterfaced;
+import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.persistence.JPAHelper;
 

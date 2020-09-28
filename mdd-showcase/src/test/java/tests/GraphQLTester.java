@@ -2,7 +2,7 @@ package tests;
 
 import graphql.schema.DataFetcher;
 import graphql.schema.idl.*;
-import io.mateu.reflection.FieldInterfaced;
+import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
 import io.mateu.util.persistence.JPAHelper;

@@ -1,6 +1,6 @@
 package io.mateu.mdd.shared.data;
 
-import io.mateu.reflection.FieldInterfaced;
+import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import lombok.Getter;
 import lombok.Setter;
 

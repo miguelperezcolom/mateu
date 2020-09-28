@@ -1,5 +1,7 @@
 package io.mateu.mdd.core.app;
 
+import io.mateu.mdd.shared.interfaces.MenuEntry;
+
 import java.util.List;
 
 public class AreaFromMenu extends AbstractArea {

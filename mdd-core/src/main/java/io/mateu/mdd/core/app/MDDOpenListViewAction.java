@@ -1,11 +1,9 @@
 package io.mateu.mdd.core.app;
 
 
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-
 public class MDDOpenListViewAction extends AbstractAction {
 
-    private final Class listViewClass;
+    public final Class listViewClass;
     private final Object id;
 
     public MDDOpenListViewAction(String name, Class listViewClass) {
@@ -18,8 +16,4 @@ public class MDDOpenListViewAction extends AbstractAction {
         this.id = id;
     }
 
-    @Override
-    public void run() throws Exception {
-        MDDUI.get().getNavegador().getViewProvider().openListView(this, listViewClass);
-    }
 }

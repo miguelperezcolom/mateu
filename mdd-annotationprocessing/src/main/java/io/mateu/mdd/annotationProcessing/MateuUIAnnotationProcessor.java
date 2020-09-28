@@ -41,7 +41,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                         out.println("package " + pkgName + ";");
                         out.println("import " + className + ";");
 
-                        out.println("import io.mateu.mdd.vaadinport.vaadin.MDDUI;");
+                        out.println("import io.mateu.mdd.vaadin.MDDUI;");
                         out.println("import com.vaadin.annotations.*;");
                         out.println("import com.vaadin.annotations.JavaScript;");
                         out.println("import com.vaadin.navigator.PushStateNavigation;");
@@ -72,7 +72,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                         out.println("import " + className + ";");
 
                         out.println("import io.mateu.mdd.core.annotations.MateuUIServlet;");
-                        out.println("import io.mateu.mdd.vaadinport.vaadin.MDDUI;");
+                        out.println("import io.mateu.mdd.vaadin.MDDUI;");
                         out.println("import " + pkgName + "." + simpleClassName + "UI;");
                         out.println("import com.vaadin.annotations.VaadinServletConfiguration;");
                         out.println("import com.vaadin.server.DeploymentConfiguration;");

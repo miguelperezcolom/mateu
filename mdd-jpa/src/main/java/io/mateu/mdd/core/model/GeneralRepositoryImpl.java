@@ -9,6 +9,9 @@ import io.mateu.mdd.core.model.common.Icon;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.model.multilanguage.Literal;
+import io.mateu.mdd.shared.interfaces.IResource;
+import io.mateu.mdd.shared.interfaces.UserPrincipal;
+import io.mateu.mdd.shared.ui.MDDUIAccessor;
 import io.mateu.util.Helper;
 import io.mateu.util.interfaces.*;
 import io.mateu.util.notification.Notifier;
@@ -193,7 +196,7 @@ public class GeneralRepositoryImpl implements GeneralRepository {
 
     @Override
     public AuditRecord getNewAudit() throws Throwable {
-        return new Audit(JPAHelper.find(User.class, MDD.getCurrentUserLogin()));
+        return new Audit(JPAHelper.find(User.class, MDDUIAccessor.getCurrentUserLogin()));
     }
 
     private User findUserByPasswordResetKey(EntityManager em, String key) throws Exception {

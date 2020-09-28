@@ -26,7 +26,6 @@
       <module>mdd-annotationprocessing</module>
     <module>mdd-se</module>
       <module>mdd-util-extended</module>
-      <module>mdd-eclipselink</module>
     <module>mdd-sharedinterfaces</module>
       <module>mdd-showcase</module>
       <module>mdd-core14</module>
@@ -35,7 +34,6 @@
       <module>mdd-springboot</module>
       <module>mdd-fakespringboot</module>
     <module>mdd-j2ee</module>
-    <module>mdd-lifecycle</module>
   </modules>
 
   <dependencies>

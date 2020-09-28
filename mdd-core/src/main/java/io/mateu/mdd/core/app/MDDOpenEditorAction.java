@@ -1,13 +1,11 @@
 package io.mateu.mdd.core.app;
 
 
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-
 public class MDDOpenEditorAction extends AbstractAction {
 
-    private final Object bean;
-    private final Class viewClass;
-    private final Object id;
+    public final Object bean;
+    public final Class viewClass;
+    public final Object id;
 
     public MDDOpenEditorAction(String name, Class viewClass) {
         this(name, viewClass, null);
@@ -27,9 +25,4 @@ public class MDDOpenEditorAction extends AbstractAction {
         this.bean = bean;
     }
 
-    @Override
-    public void run() throws Throwable {
-        if (bean != null) MDDUI.get().getNavegador().getViewProvider().openEditor( bean);
-        else MDDUI.get().getNavegador().getViewProvider().openEditor(this, viewClass, id);;
-    }
 }

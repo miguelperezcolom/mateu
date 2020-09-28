@@ -2,6 +2,7 @@ package io.mateu.mdd.core.app;
 
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Button;
+import io.mateu.mdd.shared.interfaces.MenuEntry;
 import lombok.Getter;
 
 import java.util.Objects;
@@ -28,8 +29,6 @@ public abstract class AbstractAction implements MenuEntry {
     public AbstractAction(String caption) {
         this.caption = caption;
     }
-
-    public abstract void run() throws Throwable;
 
 
     public void addShortCut(Button b) {

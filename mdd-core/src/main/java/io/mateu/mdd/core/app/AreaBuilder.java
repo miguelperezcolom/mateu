@@ -5,7 +5,8 @@ import io.mateu.mdd.shared.annotations.Area;
 import io.mateu.mdd.shared.annotations.Home;
 import io.mateu.mdd.shared.annotations.PrivateHome;
 import io.mateu.mdd.shared.annotations.PublicHome;
-import io.mateu.reflection.FieldInterfaced;
+import io.mateu.mdd.shared.interfaces.MenuEntry;
+import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.security.Private;
 
@@ -66,7 +67,7 @@ public class AreaBuilder {
     }
 
     private void addIfNotEmpty(List<AbstractArea> l, AbstractArea a) {
-        if (a.getModules().size() > 0 && a.getModules().get(0).getMenu().size() > 0) l.add(a);
+        if (a.getModules().length > 0 && a.getModules()[0].getMenu().length > 0) l.add(a);
     }
 
     private AbstractArea createArea(FieldInterfaced f, boolean authenticationAgnostic, boolean publicAccess) {

@@ -2,17 +2,15 @@ package io.mateu.mdd.core.app;
 
 import com.google.common.base.Strings;
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.shared.ui.ContentMode;
-import com.vaadin.ui.Label;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.shared.reflection.CoreReflectionHelper;
 import io.mateu.mdd.shared.annotations.*;
-import io.mateu.reflection.FieldInterfaced;
+import io.mateu.mdd.shared.interfaces.MenuEntry;
+import io.mateu.mdd.shared.reflection.CoreReflectionHelper;
+import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.security.Private;
 import io.mateu.util.Helper;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.navigation.ComponentWrapper;
+import io.mateu.util.notification.Notifier;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -119,7 +117,7 @@ public class MenuBuilder {
                     try {
                         return buildMenu(CoreReflectionHelper.invokeInjectableParametersOnly(m, app), authenticationAgnostic, publicAccess);
                     } catch (Throwable throwable) {
-                        MDD.alert(throwable);
+                        Notifier.alert(throwable);
                     }
                     return new ArrayList<>();
                 }
@@ -138,7 +136,7 @@ public class MenuBuilder {
                             l = (List<MenuEntry>) CoreReflectionHelper.invokeInjectableParametersOnly(m, app);
 
                         } catch (Throwable e) {
-                            MDD.alert(e);
+                            Notifier.alert(e);
                         }
                         return l;
                     }
@@ -147,18 +145,7 @@ public class MenuBuilder {
 
             } else {
 
-                l.add(new AbstractAction(caption) {
-                    @Override
-                    public void run() {
-                        try {
-
-                            MDDUI.get().getNavegador().getViewProvider().callMethod(null, m, app, null, true);
-
-                        } catch (Throwable e) {
-                            MDD.alert(e);
-                        }
-                    }
-                }.setIcon(icon).setOrder(order));
+                l.add(new MDDCallMethodAction(caption, null, m, app, null).setIcon(icon).setOrder(order));
 
             }
 
@@ -197,7 +184,7 @@ public class MenuBuilder {
                             try {
                                 return buildMenu(finalV, true, publicAccess);
                             } catch (Throwable throwable) {
-                                MDD.alert(throwable);
+                                Notifier.alert(throwable);
                             }
                             return new ArrayList<>();
                         }
@@ -206,7 +193,7 @@ public class MenuBuilder {
                 }
 
             } catch (Exception e) {
-                MDD.alert(e);
+                Notifier.alert(e);
             }
         } else if (f.isAnnotationPresent(MenuOption.class) || f.isAnnotationPresent(Home.class) || f.isAnnotationPresent(PublicHome.class) || f.isAnnotationPresent(PrivateHome.class)) {
 
@@ -229,7 +216,7 @@ public class MenuBuilder {
                                 l = (List<MenuEntry>) ReflectionHelper.getValue(f, app);
 
                             } catch (Throwable e) {
-                                MDD.alert(e);
+                                Notifier.alert(e);
                             }
                             return l;
                         }
@@ -238,13 +225,13 @@ public class MenuBuilder {
                     Object v = ReflectionHelper.getValue(f, app);
                     if (v == null) v = ReflectionHelper.newInstance(f.getType());
                     if (ReflectionHelper.isBasico(v)) {
-                        if (f.isAnnotationPresent(Home.class) || f.isAnnotationPresent(PublicHome.class) || f.isAnnotationPresent(PrivateHome.class)) l.add(new MDDOpenCustomComponentAction("Home", new ComponentWrapper(VaadinIcons.HOME, "Home", new Label("" + v, ContentMode.HTML), false)).setIcon(VaadinIcons.HOME).setOrder(order));
-                        else l.add(new MDDOpenCustomComponentAction(caption, new ComponentWrapper(caption, new Label("" + v, ContentMode.HTML))).setIcon(icon).setOrder(order));
+                        if (f.isAnnotationPresent(Home.class) || f.isAnnotationPresent(PublicHome.class) || f.isAnnotationPresent(PrivateHome.class)) l.add(new MDDOpenHtml("Home", "" + v).setIcon(VaadinIcons.HOME).setOrder(order));
+                        else l.add(new MDDOpenHtml(caption, "" + v).setIcon(icon).setOrder(order));
                     } else l.add(new MDDOpenEditorAction(caption, v).setIcon(icon).setOrder(order));
                 }
 
             } catch (Exception e) {
-                MDD.alert(e);
+                Notifier.alert(e);
             }
         }
 

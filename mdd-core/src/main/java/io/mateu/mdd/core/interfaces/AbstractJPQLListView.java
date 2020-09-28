@@ -5,16 +5,17 @@ import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.shared.data.sort.SortDirection;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.shared.annotations.*;
+import io.mateu.mdd.shared.interfaces.IResource;
 import io.mateu.mdd.shared.interfaces.RpcView;
-import io.mateu.reflection.FieldInterfaced;
+import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.shared.ui.MDDUIAccessor;
 import io.mateu.reflection.FieldInterfacedFromField;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.mdd.shared.JPAAdapter;
 import io.mateu.util.Helper;
-import io.mateu.util.interfaces.IResource;
+import io.mateu.util.notification.Notifier;
 import io.mateu.util.persistence.JPAHelper;
 import io.mateu.util.persistence.JPATransaction;
-import io.mateu.mdd.vaadinport.vaadin.components.views.ListViewComponent;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
@@ -59,7 +60,7 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
                 }
             });
         } catch (Throwable e) {
-            MDD.alert(e);
+            Notifier.alert(e);
             for (int i = 0; i < limit - offset; i++) l.add(null);
         }
 
@@ -105,7 +106,7 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
                 }
             });
         } catch (Throwable e) {
-            MDD.alert(e);
+            Notifier.alert(e);
         }
 
         return c[0];
@@ -281,7 +282,7 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
     }
 
     public static List<FieldInterfaced> getJPQLColumnFields(Class targetType) {
-        return ListViewComponent.getColumnFields(targetType).stream().filter(f -> !Modifier.isTransient(f.getModifiers())).collect(Collectors.toList());
+        return MDDUIAccessor.getColumnFields(targetType).stream().filter(f -> !Modifier.isTransient(f.getModifiers())).collect(Collectors.toList());
     }
 
 

@@ -8,7 +8,7 @@ import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import graphql.servlet.GraphQLConfiguration;
 import graphql.servlet.GraphQLHttpServlet;
-import io.mateu.reflection.FieldInterfaced;
+import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
 import io.mateu.util.persistence.JPAHelper;

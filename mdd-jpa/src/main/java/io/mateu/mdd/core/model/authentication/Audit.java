@@ -1,8 +1,9 @@
 package io.mateu.mdd.core.model.authentication;
 
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.shared.interfaces.UserPrincipal;
+import io.mateu.mdd.shared.ui.MDDUIAccessor;
 import io.mateu.util.interfaces.AuditRecord;
-import io.mateu.util.interfaces.UserPrincipal;
 import io.mateu.util.persistence.JPAHelper;
 import lombok.Getter;
 import lombok.Setter;
@@ -66,7 +67,7 @@ public class Audit implements AuditRecord {
 
     @Override
     public void touch() throws Throwable {
-        UserPrincipal p = MDD.getCurrentUser();
+        UserPrincipal p = MDDUIAccessor.getCurrentUser();
         if (p != null) {
             User u = JPAHelper.find(User.class, p.getLogin());
             setModifiedBy(u);

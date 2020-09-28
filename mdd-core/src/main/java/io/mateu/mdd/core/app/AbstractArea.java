@@ -2,6 +2,8 @@ package io.mateu.mdd.core.app;
 
 
 import com.vaadin.icons.VaadinIcons;
+import io.mateu.mdd.shared.interfaces.IArea;
+import io.mateu.mdd.shared.interfaces.IModule;
 
 import java.util.List;
 import java.util.UUID;
@@ -9,7 +11,7 @@ import java.util.UUID;
 /**
  * Created by miguel on 9/8/16.
  */
-public abstract class AbstractArea {
+public abstract class AbstractArea implements IArea {
 
     private final String id = UUID.randomUUID().toString();
     private boolean publicAccess = false;
@@ -49,11 +51,11 @@ public abstract class AbstractArea {
         return icon;
     }
 
-    public List<AbstractModule> getModules() {
+    public IModule[] getModules() {
         if (modules == null) synchronized (this) {
             modules = buildModules();
         }
-        return modules;
+        return modules.toArray(new IModule[0]);
     }
 
     public abstract List<AbstractModule> buildModules();

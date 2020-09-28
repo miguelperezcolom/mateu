@@ -1,11 +1,7 @@
 package io.mateu.mdd.core.app;
 
-import io.mateu.mdd.core.MDD;
-import io.mateu.util.Helper;
 import io.mateu.util.common.Utils;
 import io.mateu.util.data.FileLocator;
-import io.mateu.util.interfaces.GeneralRepository;
-import io.mateu.util.interfaces.UserPrincipal;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URL;
@@ -45,21 +41,6 @@ public abstract class BaseMDDApp extends AbstractApplication {
 
 
         return new FileLocator(id, temp.getName(), url.toString(), temp.getAbsolutePath());
-    }
-
-    public void authenticate(String login, String password)throws Throwable {
-        if (login == null || "".equals(login.trim()) || password == null || "".equals(password.trim())) throw new Exception("Username and password are required");
-
-        UserPrincipal u = Helper.getImpl(GeneralRepository.class).authenticate(login, password);
-
-        MDD.setCurrentUserLogin(u.getLogin());
-
-    }
-
-
-    public String recoverPassword(String login) throws Throwable {
-        Helper.getImpl(GeneralRepository.class).recoverPassword(login);
-        return "An email with instructions has been sent to you. Please check you inbox.";
     }
 
 }

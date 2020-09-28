@@ -3,13 +3,16 @@ package io.mateu.mdd.core.app;
 
 import com.google.common.base.Strings;
 import io.mateu.mdd.core.MDD;
-import io.mateu.util.data.Data;
-import io.mateu.mdd.core.interfaces.App;
+import io.mateu.mdd.shared.interfaces.App;
+import io.mateu.mdd.shared.interfaces.IArea;
+import io.mateu.mdd.shared.interfaces.IModule;
+import io.mateu.mdd.shared.interfaces.MenuEntry;
+import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.shared.reflection.IFieldBuilder;
 import io.mateu.mdd.core.interfaces.View;
-import io.mateu.reflection.FieldInterfaced;
 import io.mateu.mdd.shared.VaadinHelper;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.fieldBuilders.AbstractFieldBuilder;
+import io.mateu.mdd.shared.ui.MDDUIAccessor;
+import io.mateu.util.data.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
@@ -27,15 +30,15 @@ public abstract class AbstractApplication implements App {
     private Map<String, MenuEntry> menuIdsReversed;
     private Map<AbstractModule, String> moduleIds;
     private Map<String, AbstractModule> moduleIdsReversed;
-    private Map<AbstractModule, AbstractArea> moduleToArea;
+    private Map<IModule, IArea> moduleToArea;
     private Map<MenuEntry, List<MenuEntry>> menuPaths;
-    List<AbstractArea> areas = null;
+    List<IArea> areas = null;
 
     public static AbstractApplication get() {
         if (!Strings.isNullOrEmpty(System.getProperty("appClassName"))) {
             try {
                 Object app = Class.forName(System.getProperty("appClassName")).newInstance();
-                if (app instanceof AppProvider) app = ((AppProvider) app).getApp(MDD.getCurrentUser());
+                if (app instanceof AppProvider) app = ((AppProvider) app).getApp(MDDUIAccessor.getCurrentUser());
                 return (AbstractApplication) app;
             } catch (Throwable throwable) {
                 throwable.printStackTrace();
@@ -46,7 +49,7 @@ public abstract class AbstractApplication implements App {
         AbstractApplication app = null;
         while (apps.hasNext()) {
             app = (AbstractApplication) apps.next();
-            if (app instanceof AppProvider) app = ((AppProvider) app).getApp(MDD.getCurrentUser());
+            if (app instanceof AppProvider) app = ((AppProvider) app).getApp(MDDUIAccessor.getCurrentUser());
             log.debug("app " + app.getName() + " loaded");
             break;
         }
@@ -101,7 +104,7 @@ public abstract class AbstractApplication implements App {
         return moduleIds.get(m);
     }
 
-    public AbstractArea getArea(AbstractModule m) {
+    public IArea getArea(AbstractModule m) {
         return moduleToArea.get(m);
     }
 
@@ -111,7 +114,7 @@ public abstract class AbstractApplication implements App {
 
 
     public String getState(AbstractArea a) {
-        if (a == null) return (MDD.getCurrentUser() == null)?"public":"private";
+        if (a == null) return (MDDUIAccessor.getCurrentUser() == null)?"public":"private";
         return getAreaId(a);
     }
 
@@ -130,15 +133,15 @@ public abstract class AbstractApplication implements App {
     }
 
 
-    public List<AbstractArea> getAreas() {
+    public IArea[] getAreas() {
         if (areas == null) synchronized (this) {
             areas = new ArrayList<>();
-            boolean autentico = MDD.getCurrentUserLogin() != null;
+            boolean autentico = MDDUIAccessor.getCurrentUserLogin() != null;
             for (AbstractArea a : buildAreas()) {
                 if (isAuthenticationAgnostic() || (!autentico && a.isPublicAccess()) || (autentico && !a.isPublicAccess())) areas.add(a);
             }
         }
-        return areas;
+        return areas.toArray(new IArea[0]);
     }
 
 
@@ -151,9 +154,9 @@ public abstract class AbstractApplication implements App {
         moduleIdsReversed = new HashMap<>();
         menuPaths = new HashMap<>();
         menuToArea = new HashMap<>();
-        moduleToArea = new HashMap<>();
+        moduleToArea = new HashMap<IModule, IArea>();
 
-        for (AbstractArea a : getAreas()) {
+        for (IArea a : getAreas()) {
 
             String areaName = a.getName();
             if (Strings.isNullOrEmpty(areaName)) areaName = "noname";
@@ -162,10 +165,10 @@ public abstract class AbstractApplication implements App {
             int pos = 0;
             String idbase = id;
             while (areaIdsReversed.containsKey(id)) id = idbase + pos++;
-            areaIds.put(a, id);
-            areaIdsReversed.put(id, a);
+            areaIds.put((AbstractArea) a, id);
+            areaIdsReversed.put(id, (AbstractArea) a);
 
-            for (AbstractModule m : a.getModules()) {
+            for (IModule m : a.getModules()) {
 
                 String moduleName = m.getName();
                 if (Strings.isNullOrEmpty(moduleName)) moduleName = "noname";
@@ -174,16 +177,16 @@ public abstract class AbstractApplication implements App {
                 int posm = 0;
                 String idbasem = idm;
                 while (moduleIdsReversed.containsKey(idm)) idm = idbasem + posm++;
-                moduleIds.put(m, idm);
-                moduleIdsReversed.put(idm, m);
+                moduleIds.put((AbstractModule) m, idm);
+                moduleIdsReversed.put(idm, (AbstractModule) m);
                 moduleToArea.put(m, a);
 
                 for (MenuEntry e : m.getMenu()) {
-                    buildMenuIds(a, idm, new ArrayList<>(), e);
+                    buildMenuIds((AbstractArea) a, idm, new ArrayList<>(), e);
                 }
             }
         }
-        MDDUI.get().getNavegador().getViewProvider().clearStack();
+        MDDUIAccessor.clearStack();
     }
 
     private void buildMenuIds(AbstractArea a, String prefijo, List<MenuEntry> incomingPath, MenuEntry e) {
@@ -220,7 +223,7 @@ public abstract class AbstractApplication implements App {
     public View getPrivateHome() { return null; };
 
     public String getBaseUrl() {
-        String u = System.getProperty("baseurl", MDDUI.get() != null? MDDUI.get().getBaseUrl():"");
+        String u = System.getProperty("baseurl", MDDUIAccessor.getBaseUrl());
         if (u.endsWith(VaadinHelper.getAdaptedUIRootPath())) u = u.substring(0, u.lastIndexOf(VaadinHelper.getAdaptedUIRootPath()));
         return u;
     };
@@ -231,7 +234,7 @@ public abstract class AbstractApplication implements App {
 
     public boolean hasPublicContent() {
         boolean r = !isAuthenticationNeeded() && (areas == null || areas.size() == 0);
-        for (AbstractArea a : areas) {
+        for (IArea a : areas) {
             if (a.isPublicAccess()) {
                 r = true;
                 break;
@@ -253,9 +256,9 @@ public abstract class AbstractApplication implements App {
 
     public AbstractArea getDefaultPrivateArea() {
         AbstractArea area = null;
-        for (AbstractArea a : areas) {
+        for (IArea a : areas) {
             if (isAuthenticationAgnostic() || !a.isPublicAccess()) {
-                area = a;
+                area = (AbstractArea) a;
                 break;
             }
         }
@@ -264,9 +267,9 @@ public abstract class AbstractApplication implements App {
 
     public AbstractArea getDefaultPublicArea() {
         AbstractArea area = null;
-        for (AbstractArea a : areas) {
+        for (IArea a : areas) {
             if (isAuthenticationAgnostic() || a.isPublicAccess()) {
-                area = a;
+                area = (AbstractArea) a;
                 break;
             }
         }
@@ -275,20 +278,16 @@ public abstract class AbstractApplication implements App {
 
 
 
-    private static Map<String, AbstractFieldBuilder> fieldBuildersCache = new HashMap<>();
+    private static Map<String, IFieldBuilder> fieldBuildersCache = new HashMap<>();
 
 
-    public AbstractFieldBuilder getFieldBuilder(FieldInterfaced field) {
+    public IFieldBuilder getFieldBuilder(FieldInterfaced field) {
 
-        String k = ((field.getDeclaringClass() != null)?field.getDeclaringClass().getName() + "/" + field.getName() + "/" + (MDDUI.get().isEditingNewRecord()?"newrecord":"editing"):field.getType().getName());
+        String k = ((field.getDeclaringClass() != null)?field.getDeclaringClass().getName() + "/" + field.getName() + "/" + (MDDUIAccessor.isEditingNewRecord()?"newrecord":"editing"):field.getType().getName());
 
         if (fieldBuildersCache.containsKey(k)) return fieldBuildersCache.get(k);
         else {
-            AbstractFieldBuilder r = null;
-            for (AbstractFieldBuilder b : AbstractFieldBuilder.builders) if (b.isSupported(field)) {
-                r = b;
-                break;
-            }
+            IFieldBuilder r = MDDUIAccessor.getFieldBuilder(field);
             fieldBuildersCache.put(k, r);
             return r;
         }

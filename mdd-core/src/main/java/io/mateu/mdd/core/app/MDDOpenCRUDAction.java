@@ -1,8 +1,7 @@
 package io.mateu.mdd.core.app;
 
 
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.views.ExtraFilters;
+import io.mateu.mdd.core.views.ExtraFilters;
 import lombok.Getter;
 
 import java.util.Map;
@@ -27,11 +26,6 @@ public class MDDOpenCRUDAction extends AbstractAction {
         super(null);
         this.entityClass = entityClass;
     }
-
-    public void run() throws Exception {
-        MDDUI.get().getNavegador().getViewProvider().openCRUD(this);
-    }
-
 
     public MDDOpenCRUDAction setQueryFilters(String queryFilters) {
         this.queryFilters = queryFilters;

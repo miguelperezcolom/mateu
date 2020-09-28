@@ -4,8 +4,9 @@ import com.google.common.base.Strings;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.shared.annotations.QLFilter;
 import io.mateu.mdd.shared.annotations.QLForCombo;
-import io.mateu.reflection.FieldInterfaced;
+import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
+import io.mateu.util.notification.Notifier;
 import io.mateu.util.persistence.JPAHelper;
 
 import javax.persistence.EntityManager;
@@ -59,7 +60,7 @@ public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvi
         try {
             JPAHelper.notransact(em -> col.addAll(buildQuery(em, entityClass, null).getResultList()));
         } catch (Throwable throwable) {
-            MDD.alert(throwable);
+            Notifier.alert(throwable);
         }
         return col;
     }
@@ -116,13 +117,13 @@ public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvi
             try {
                 JPAHelper.transact(em -> refresh(buildQuery(em, field)));
             } catch (Throwable throwable) {
-                MDD.alert(throwable);
+                Notifier.alert(throwable);
             }
         } else if (entityClass != null) {
             try {
                 JPAHelper.transact(em -> refresh(buildQuery(em, entityClass, null)));
             } catch (Throwable throwable) {
-                MDD.alert(throwable);
+                Notifier.alert(throwable);
             }
         } else if (jpql != null) {
             try {
@@ -132,7 +133,7 @@ public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvi
                     JPAHelper.transact(em -> refresh(em.createQuery(jpql)));
                 }
             } catch (Throwable throwable) {
-                MDD.alert(throwable);
+                Notifier.alert(throwable);
             }
         }
     }
@@ -148,7 +149,7 @@ public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvi
         try {
             JPAHelper.notransact(em -> refresh(em.createQuery(s)));
         } catch (Throwable throwable) {
-            MDD.alert(throwable);
+            Notifier.alert(throwable);
         }
     }
 }

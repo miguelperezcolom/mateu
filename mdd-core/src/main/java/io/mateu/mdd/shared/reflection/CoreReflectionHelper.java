@@ -3,9 +3,9 @@ package io.mateu.mdd.shared.reflection;
 import com.google.common.base.Strings;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.shared.annotations.Action;
-import io.mateu.mdd.shared.data.MDDBinder;
 import io.mateu.mdd.shared.interfaces.PushWriter;
 import io.mateu.mdd.shared.interfaces.RpcView;
+import io.mateu.mdd.shared.ui.MDDUIAccessor;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.persistence.JPAHelper;
 
@@ -20,12 +20,12 @@ import java.util.*;
 public class CoreReflectionHelper {
 
     public static Object invokeInjectableParametersOnly(Method method, Object instance) throws Throwable {
-        return execute(method, new MDDBinder(new ArrayList<>()), instance, null);
+        return execute(method, new Object(), instance, null);
     }
 
 
-    public static Object execute(Method m, MDDBinder parameters, Object instance, Set pendingSelection) throws Throwable {
-        Object o = parameters.getBean();
+    public static Object execute(Method m, Object parameters, Object instance, Set pendingSelection) throws Throwable {
+        Object o = parameters;
         Map<String, Object> params = null;
         if (o != null && Map.class.isAssignableFrom(o.getClass())) {
             params = (Map<String, Object>) o;
@@ -44,12 +44,12 @@ public class CoreReflectionHelper {
                 vs.add(new PushWriter() {
                     @Override
                     public void push(String message) {
-                        MDD.getPort().push(message);
+                        MDDUIAccessor.push(message);
                     }
 
                     @Override
                     public void done(String message) {
-                        MDD.getPort().pushDone(message);
+                        MDDUIAccessor.pushDone(message);
                     }
                 });
             } else if (((instance instanceof RpcView || Modifier.isStatic(m.getModifiers())) && Set.class.isAssignableFrom(p.getType()) && (m.getDeclaringClass().equals(pgc)

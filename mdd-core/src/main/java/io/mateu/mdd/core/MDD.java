@@ -2,46 +2,23 @@ package io.mateu.mdd.core;
 
 import com.vaadin.data.BinderValidationStatus;
 import com.vaadin.data.BindingValidationStatus;
-import com.vaadin.data.provider.ListDataProvider;
-import com.vaadin.server.ExternalResource;
-import com.vaadin.shared.ui.ContentMode;
-import com.vaadin.ui.*;
-import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.shared.CSS;
+import com.vaadin.ui.AbstractComponent;
+import com.vaadin.ui.Notification;
+import io.mateu.mdd.core.app.AbstractApplication;
 import io.mateu.mdd.shared.annotations.Forbidden;
 import io.mateu.mdd.shared.annotations.ReadOnly;
 import io.mateu.mdd.shared.annotations.ReadWrite;
-import io.mateu.mdd.core.app.*;
-import io.mateu.mdd.core.interfaces.*;
-import io.mateu.mdd.shared.interfaces.RpcView;
-import io.mateu.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
+import io.mateu.mdd.shared.interfaces.UserPrincipal;
+import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.security.Private;
-import io.mateu.util.Helper;
-import io.mateu.mdd.vaadinport.vaadin.MDDUI;
-import io.mateu.mdd.vaadinport.vaadin.components.views.*;
-import io.mateu.mdd.vaadinport.vaadin.mdd.VaadinPort;
-import io.mateu.mdd.vaadinport.vaadin.navigation.ComponentWrapper;
-import io.mateu.util.interfaces.GeneralRepository;
-import io.mateu.util.interfaces.UserPrincipal;
-import io.mateu.util.notification.Notifier;
 import javassist.ClassPool;
-
-import javax.persistence.Entity;
-import javax.persistence.Query;
-import java.net.URL;
-import java.util.Collection;
 
 public class MDD {
 
     private static ClassPool classPool;
     private static AbstractApplication app;
 
-
-    public static VaadinPort getPort() {
-        return (MDDUI.get() != null)? MDDUI.get().getPort():null;
-    }
-
+/*
     public static AbstractApplication getApp() {
         try {
             app = MDDUI.get() != null? MDDUI.get().getApp(): MDDUI.createApp();
@@ -58,6 +35,8 @@ public class MDD {
         System.out.println("setUserData(" + userData + ")");
         getPort().setCurrentUserLogin(userData);
     }
+
+
     public static String getCurrentUserLogin() {
         return (getPort() != null)?getPort().getCurrentUserLogin():null;
     }
@@ -149,6 +128,7 @@ public class MDD {
         return getPort().isViewingCentralCurrency();
     }
 
+*/
 
     public static void setClassPool(ClassPool classPool) {
         MDD.classPool = classPool;
@@ -157,7 +137,7 @@ public class MDD {
     public static ClassPool getClassPool() {
         return classPool;
     }
-
+/*
     public static void refreshUI() {
         MDDUI.get().refreshUI();
     }
@@ -165,6 +145,8 @@ public class MDD {
     public static boolean isIpad() {
         return getPort().isIpad();
     }
+
+ */
 
     public static void alert(BinderValidationStatus s) {
         StringBuffer msg = new StringBuffer();
@@ -179,9 +161,10 @@ public class MDD {
         Notification.show(msg.toString(), Notification.Type.TRAY_NOTIFICATION);
     }
 
+    /*
     public static void openInWindow(String title, Object o) {
         if (o == null) {
-            MDD.alert("Nothing to show");
+            Notifier.alert("Nothing to show");
         } else {
             try {
 
@@ -219,7 +202,7 @@ public class MDD {
                         v = new ComponentWrapper(title, new Label("Empty list", ContentMode.HTML));
                     } else {
 
-                        if (MDD.isMobile()) {
+                        if (MDDUI.get().getPort().isMobile()) {
 
                             VerticalLayout vl = new VerticalLayout();
                             boolean primero = true;
@@ -275,7 +258,7 @@ public class MDD {
                     try {
                         v = new ComponentWrapper(title, new PdfComponent((Query) o));
                     } catch (Throwable throwable) {
-                        MDD.alert(throwable);
+                        Notifier.alert(throwable);
                     }
 
                 } else if (o instanceof RpcView) {
@@ -306,10 +289,11 @@ public class MDD {
                     MDDUI.get().openInWindow(v);
                 }
             } catch (Throwable throwable) {
-                MDD.alert(throwable);
+                Notifier.alert(throwable);
             }
         }
     }
+*/
 
     public static boolean check(Private pa) {
         return check(pa.roles(), pa.users());
@@ -348,6 +332,10 @@ public class MDD {
 
         if (permisoOk || usuarioOk) add = true;
         return add;
+    }
+
+    private static UserPrincipal getCurrentUser() {
+        return null;
     }
 
     public static boolean check(ReadOnly a) {
