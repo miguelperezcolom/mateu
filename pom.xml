@@ -20,20 +20,21 @@
   </properties>
 
   <modules>
-    <module>mdd-addon</module>
-    <module>mdd-core</module>
-    <module>mdd-vaadin</module>
-      <module>mdd-annotationprocessing</module>
-    <module>mdd-se</module>
-      <module>mdd-util-extended</module>
+    <module>mdd-util-extended</module>
     <module>mdd-sharedinterfaces</module>
-      <module>mdd-showcase</module>
-      <module>mdd-core14</module>
+    <module>mdd-annotationprocessing</module>
+    <module>mdd-core</module>
+    <module>mdd-core14</module>
     <module>mdd-jpa</module>
-      <module>lombok-tester</module>
-      <module>mdd-springboot</module>
-      <module>mdd-fakespringboot</module>
+    <module>mdd-addon</module>
+    <module>mdd-vaadin</module>
+    <module>mdd-se</module>
+    <module>mdd-showcase</module>
+    <module>lombok-tester</module>
+    <module>mdd-springboot</module>
+    <module>mdd-fakespringboot</module>
     <module>mdd-j2ee</module>
+      <module>mdd-fakeui</module>
   </modules>
 
   <dependencies>
@@ -137,6 +138,16 @@
           </execution>
         </executions>
       </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.0.0-M2</version>
+        <configuration>
+          <rules><dependencyConvergence/></rules>
+        </configuration>
+      </plugin>
+
     </plugins>
   </build>
 

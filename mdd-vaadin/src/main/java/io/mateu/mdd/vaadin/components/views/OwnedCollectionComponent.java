@@ -2,10 +2,9 @@ package io.mateu.mdd.vaadin.components.views;
 
 import com.google.common.collect.Iterables;
 import com.vaadin.icons.VaadinIcons;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDRunnableAction;
-import io.mateu.mdd.shared.ui.MDDUIAccessor;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;

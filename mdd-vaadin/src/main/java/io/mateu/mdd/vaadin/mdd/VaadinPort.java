@@ -5,13 +5,13 @@ import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServletRequest;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.AbstractApplication;
 import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.AbstractModule;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.vaadin.MDDUI;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
 import io.mateu.util.notification.Notifier;
@@ -248,7 +248,7 @@ public class VaadinPort {
     }
 
     public AbstractApplication getApp() {
-        return MDDUI.get().getApp();
+        return (AbstractApplication) MDDUIAccessor.getApp();
     }
 
     public void setApp(AbstractApplication app) {

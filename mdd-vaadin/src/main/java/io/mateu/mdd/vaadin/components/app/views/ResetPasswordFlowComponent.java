@@ -6,6 +6,7 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.BaseMDDApp;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.interfaces.UserPrincipal;
 import io.mateu.util.Helper;
 import io.mateu.mdd.vaadin.MDDUI;
@@ -31,7 +32,7 @@ public class ResetPasswordFlowComponent extends VerticalLayout {
         addStyleName("logincomponent");
 
 
-        if (!MDDUI.get().getPort().isMobile()) setSizeFull();
+        if (!MDDUIAccessor.isMobile()) setSizeFull();
 
 
         try {
@@ -52,7 +53,7 @@ public class ResetPasswordFlowComponent extends VerticalLayout {
             b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
             b.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
-            if (!MDDUI.get().getPort().isMobile()) addComponentsAndExpand(new Label(""));
+            if (!MDDUIAccessor.isMobile()) addComponentsAndExpand(new Label(""));
 
 
 
@@ -97,7 +98,7 @@ public class ResetPasswordFlowComponent extends VerticalLayout {
                 setError(e.getMessage());
             }
 
-            //((BaseMDDApp)MDDUI.get().getApp()).authenticate(login[0], password.getValue());
+            //((BaseMDDApp)MDDUIAccessor.getApp()).authenticate(login[0], password.getValue());
             MDDUI.get().getNavegador().goTo("welcome");
 
         } catch (Throwable throwable) {

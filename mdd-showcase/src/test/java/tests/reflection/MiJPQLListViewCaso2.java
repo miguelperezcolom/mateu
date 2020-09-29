@@ -18,6 +18,11 @@ public class MiJPQLListViewCaso2 extends SubclaseAbstractJPQLListView<MiJPQLList
         return null;
     }
 
+    @Override
+    public void search() {
+
+    }
+
     class Row {
 
     }

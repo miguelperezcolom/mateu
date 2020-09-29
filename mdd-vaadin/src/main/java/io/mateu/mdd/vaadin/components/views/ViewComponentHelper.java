@@ -4,7 +4,6 @@ import com.google.common.base.Strings;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.MDDRunnableAction;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.core.app.AbstractAction;

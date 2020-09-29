@@ -21,7 +21,7 @@ public class MDD {
 /*
     public static AbstractApplication getApp() {
         try {
-            app = MDDUI.get() != null? MDDUI.get().getApp(): MDDUI.createApp();
+            app = MDDUI.get() != null? MDDUIAccessor.getApp(): MDDUI.createApp();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -202,7 +202,7 @@ public class MDD {
                         v = new ComponentWrapper(title, new Label("Empty list", ContentMode.HTML));
                     } else {
 
-                        if (MDDUI.get().getPort().isMobile()) {
+                        if (MDDUIAccessor.isMobile()) {
 
                             VerticalLayout vl = new VerticalLayout();
                             boolean primero = true;

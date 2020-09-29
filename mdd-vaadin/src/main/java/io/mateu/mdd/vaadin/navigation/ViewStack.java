@@ -4,8 +4,7 @@ import com.vaadin.navigator.View;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.Window;
-import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.vaadin.MDDUI;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
@@ -52,8 +51,8 @@ public class ViewStack {
                     }
                 }
             }
-            if (MDDUI.get().getApp().getMenu(state) != null) {
-                t = MDDUI.get().getApp().getMenu(state).getCaption();
+            if (MDDUIAccessor.getApp().getMenu(state) != null) {
+                t = MDDUIAccessor.getApp().getMenu(state).getCaption();
             }
             if (t != null) ((AbstractViewComponent)component).setTitle(t);
             if (stack.size() > 0 && stack.get(stack.size() - 1).getViewComponent() instanceof AbstractViewComponent) {

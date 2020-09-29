@@ -21,4 +21,9 @@ public class MiJPQLListViewCaso1 extends SubclaseAbstractJPQLListView {
     public int gatherCount(Object filters) throws Throwable {
         return 0;
     }
+
+    @Override
+    public void search() {
+
+    }
 }

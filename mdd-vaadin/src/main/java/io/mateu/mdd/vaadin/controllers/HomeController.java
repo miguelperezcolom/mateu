@@ -1,32 +1,28 @@
 package io.mateu.mdd.vaadin.controllers;
 
 import com.vaadin.navigator.View;
-import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.shared.ui.MDDUIAccessor;
+import com.vaadin.ui.Component;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 
 public class HomeController extends Controller {
 
     @Override
-    public View apply(String s) {
+    public Component apply(String path, String step, String remaining) throws Exception {
 
-        if (!s.startsWith("/")) s = "/" + s;
-
-        if ("/".equals(s)) {
-            if (MDDUIAccessor.getCurrentUser() != null) s = "/private";
-            else s = "/public";
+        if ("".equals(step)) {
+            if (MDDUIAccessor.getCurrentUser() != null) step = "private";
+            else step = "public";
         }
 
         Controller controller = null;
-        if (s.startsWith("/private")) {
+        if (step.equals("private")) {
             controller = new PrivateController();
-            s = s.substring("/private".length());
-        } else if (s.startsWith("/public")) {
+        } else if (step.equals("public")) {
             controller = new PublicController();
-            s = s.substring("/public".length());
         } else {
             controller = new BrokenLinkController();
         }
 
-        return controller.apply(s);
+        return controller.next(path, step, remaining);
     }
 }

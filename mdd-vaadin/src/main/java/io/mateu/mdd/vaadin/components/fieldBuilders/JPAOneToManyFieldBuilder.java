@@ -24,8 +24,7 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.shared.data.FareValue;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.mdd.shared.reflection.IFieldBuilder;
-import io.mateu.mdd.shared.ui.MDDUIAccessor;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.reflection.*;
 import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
@@ -502,7 +501,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                     } else {
 
                         g.addItemClickListener(e -> {
-                            //if (MDDUI.get().getPort().isMobile() || e.getMouseEventDetails().isDoubleClick()) {
+                            //if (MDDUIAccessor.isMobile() || e.getMouseEventDetails().isDoubleClick()) {
                             if (e.getColumn() != null) {
                                 Object i = e.getItem();
                                 if (i != null) {
@@ -765,7 +764,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                     {
 
                         g.addItemClickListener(e -> {
-                            //if (MDDUI.get().getPort().isMobile() || e.getMouseEventDetails().isDoubleClick()) {
+                            //if (MDDUIAccessor.isMobile() || e.getMouseEventDetails().isDoubleClick()) {
                             Object i = e.getItem();
                             if (i != null) {
                                 MDDUI.get().getNavegador().go(field.getName());

@@ -18,7 +18,7 @@ import io.mateu.mdd.core.app.AbstractAction;
 
 import io.mateu.mdd.shared.FormLayoutBuilderParameters;
 import io.mateu.mdd.shared.interfaces.IResource;
-import io.mateu.mdd.shared.ui.MDDUIAccessor;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.ReadOnly;
 import io.mateu.mdd.core.interfaces.*;

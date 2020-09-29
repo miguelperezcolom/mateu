@@ -5,6 +5,7 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
@@ -119,7 +120,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     }
 
     public void setStack(ViewStack stack) {
-        boolean add = MDDUI.get().getPort().isMobile();
+        boolean add = MDDUIAccessor.isMobile();
         int pos = 0;
         if (!add && !(
                 this instanceof WelcomeComponent
@@ -200,7 +201,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
             } else iconLabel.setVisible(false);
         }
         //UI.getCurrent().getPage().setTitle((titleLabel.getValue() != null)?titleLabel.getValue():"No title");
-        applyStyles(MDDUI.get().getViewContainer());
+        if (MDDUI.get() != null) applyStyles(MDDUI.get().getViewContainer());
     }
 
     public HorizontalLayout getHiddens() {

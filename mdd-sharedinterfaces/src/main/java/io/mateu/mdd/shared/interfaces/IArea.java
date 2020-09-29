@@ -10,4 +10,6 @@ public interface IArea {
     String getName();
 
     VaadinIcons getIcon();
+
+    MenuEntry getDefaultAction();
 }

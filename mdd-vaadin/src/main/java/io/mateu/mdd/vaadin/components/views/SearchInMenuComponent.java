@@ -6,9 +6,9 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.app.Found;
 import io.mateu.mdd.shared.CSS;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.Searcher;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
 import io.mateu.mdd.vaadin.MDDUI;
@@ -30,7 +30,7 @@ public abstract class SearchInMenuComponent extends AbstractViewComponent {
 
     @Override
     public String toString() {
-        return "Search in " + MDDUI.get().getApp().getName();
+        return "Search in " + MDDUIAccessor.getApp().getName();
     }
 
     public SearchInMenuComponent(Searcher searcher) {
@@ -52,8 +52,8 @@ public abstract class SearchInMenuComponent extends AbstractViewComponent {
         if (getIcon() == null) hideHeader();
         else addStyleName("searchinmenucomponent");
 
-        Layout marco = MDDUI.get().getPort().isMobile()?new CssLayout():new HorizontalLayout();
-        if (!MDDUI.get().getPort().isMobile()) marco.setSizeFull();
+        Layout marco = MDDUIAccessor.isMobile()?new CssLayout():new HorizontalLayout();
+        if (!MDDUIAccessor.isMobile()) marco.setSizeFull();
         addComponentsAndExpand(marco);
 
         VerticalLayout form;
@@ -90,7 +90,7 @@ public abstract class SearchInMenuComponent extends AbstractViewComponent {
         resultsLayout.addStyleName(CSS.NOPADDING);
 
         marco.addComponent(contentContainer);
-        if (!MDDUI.get().getPort().isMobile()) {
+        if (!MDDUIAccessor.isMobile()) {
             contentContainer.setSizeFull();
             ((HorizontalLayout)marco).setExpandRatio(contentContainer, 1);
         }

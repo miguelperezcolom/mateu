@@ -6,6 +6,7 @@ import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.shared.FormLayoutBuilderParameters;
@@ -52,8 +53,8 @@ public class FiltersComponent extends Composite {
 
         long t0 = System.currentTimeMillis();
 
-        Layout l = new CssLayout(); //MDDUI.get().getPort().isMobile())?new VerticalLayout():new HorizontalLayout();
-        Layout pl = MDDUI.get().getPort().isMobile()?l:new CssLayout(l);
+        Layout l = new CssLayout(); //MDDUIAccessor.isMobile())?new VerticalLayout():new HorizontalLayout();
+        Layout pl = MDDUIAccessor.isMobile()?l:new CssLayout(l);
         setCompositionRoot(pl);
         l.addStyleName(CSS.NOPADDING);
         pl.addStyleName(CSS.NOPADDING);
@@ -76,7 +77,7 @@ public class FiltersComponent extends Composite {
 
         HorizontalLayout botones = new HorizontalLayout();
 
-        if (!MDDUI.get().getPort().isMobile() && allFilterFields.size() > 0) {
+        if (!MDDUIAccessor.isMobile() && allFilterFields.size() > 0) {
             botones.addStyleName("botonerafiltros");
             botones.setSpacing(false);
         }

@@ -9,6 +9,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.reflection.IFieldBuilder;
 import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.shared.annotations.Help;
@@ -96,7 +97,7 @@ public abstract class AbstractFieldBuilder implements IFieldBuilder {
     }
 
     public void addErrorHandler(FieldInterfaced f, AbstractComponent tf) {
-        if (!MDDUI.get().getPort().isMobile() && f.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(f.getAnnotation(Help.class).value())) {
+        if (!MDDUIAccessor.isMobile() && f.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(f.getAnnotation(Help.class).value())) {
             String h = f.getAnnotation(Help.class).value();
             tf.setDescription(h);
             if (tf instanceof AbstractTextField) ((AbstractTextField)tf).setPlaceholder(h);

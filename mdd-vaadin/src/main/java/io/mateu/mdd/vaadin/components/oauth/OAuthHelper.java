@@ -2,10 +2,9 @@ package io.mateu.mdd.vaadin.components.oauth;
 
 import com.google.common.base.Strings;
 import com.vaadin.server.Page;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.shared.VaadinHelper;
 import io.mateu.mdd.shared.interfaces.UserPrincipal;
-import io.mateu.mdd.vaadin.MDDUI;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.util.Helper;
 import io.mateu.util.interfaces.GeneralRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +43,7 @@ grant_type=authorization_code
             Page p = Page.getCurrent();
 
 
-            String callbackUrl = MDDUI.get().getApp().getBaseUrl();
+            String callbackUrl = MDDUIAccessor.getBaseUrl();
             if (!callbackUrl.endsWith("/")) callbackUrl += "/";
             if (!callbackUrl.endsWith(VaadinHelper.getAdaptedUIRootPath())) callbackUrl += VaadinHelper.getAdaptedUIRootPath();
             callbackUrl += "oauth/microsoft/callback";
@@ -225,7 +224,7 @@ grant_type=authorization_code
             String access_token = null;
 
 
-            String callbackUrl = MDDUI.get().getApp().getBaseUrl();
+            String callbackUrl = MDDUIAccessor.getBaseUrl();
             if (!callbackUrl.endsWith("/")) callbackUrl += "/";
             if (!callbackUrl.endsWith(VaadinHelper.getAdaptedUIRootPath())) callbackUrl += VaadinHelper.getAdaptedUIRootPath();
             callbackUrl += "oauth/google/callback";

@@ -5,6 +5,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractModule;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.vaadin.MDDUI;
 import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;
 
@@ -22,7 +23,7 @@ public class ModuleComponent extends AbstractViewComponent {
 
         addStyleName("moduleflowcomponent");
 
-        if (MDDUI.get().getPort().isMobile()) {
+        if (MDDUIAccessor.isMobile()) {
 
             module.getMenu().stream().forEach(a -> {
 
@@ -38,7 +39,7 @@ public class ModuleComponent extends AbstractViewComponent {
 
 
 
-        if (!MDDUI.get().getPort().isMobile()) addComponentsAndExpand(new Label(""));
+        if (!MDDUIAccessor.isMobile()) addComponentsAndExpand(new Label(""));
 
 
     }

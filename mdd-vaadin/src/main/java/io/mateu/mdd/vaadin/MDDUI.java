@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadin;
 
+import com.google.auto.service.AutoService;
 import com.google.common.base.Strings;
 import com.vaadin.annotations.JavaScript;
 import com.vaadin.annotations.*;
@@ -23,6 +24,7 @@ import io.mateu.mdd.shared.interfaces.UserPrincipal;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.shared.reflection.IFieldBuilder;
 import io.mateu.mdd.shared.ui.IMDDUI;
+import io.mateu.mdd.shared.ui.IMDDUIInjector;
 import io.mateu.mdd.vaadin.components.app.AppComponent;
 import io.mateu.mdd.vaadin.components.app.ViewContainer;
 import io.mateu.mdd.vaadin.components.app.desktop.DesktopAppComponent;
@@ -176,6 +178,11 @@ public class MDDUI extends UI implements IMDDUI {
         get().getPort().updateTitle(title);
     }
 
+    @Override
+    public boolean isMobile() {
+        return getPort().isMobile();
+    }
+
     public void setApp(AbstractApplication app) {
         this.app = app;
     }
@@ -225,7 +232,7 @@ public class MDDUI extends UI implements IMDDUI {
 
 
         if (app == null) {
-            AbstractApplication appFromContext = (AbstractApplication) ((VaadinServletRequest) vaadinRequest).getServletContext().getAttribute((Strings.isNullOrEmpty(MDDUI.get().getUiRootPath())?"/": MDDUI.get().getUiRootPath()) + "_app");
+            AbstractApplication appFromContext = (AbstractApplication) ((VaadinServletRequest) vaadinRequest).getServletContext().getAttribute((Strings.isNullOrEmpty(getUiRootPath())?"/": getUiRootPath()) + "_app");
             setApp(appFromContext != null?appFromContext:createApp());
 
             if (MDD.getClassPool() == null) MDD.setClassPool(ReflectionHelper.createClassPool(((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getServletContext()));
@@ -346,14 +353,14 @@ public class MDDUI extends UI implements IMDDUI {
         CssLayout lx = new CssLayout();
         lx.addStyleName("selectarea");
 
-        MDDUI.get().getAppComponent().setSelectingArea();
+        getAppComponent().setSelectingArea();
 
         for (IArea a : getApp().getAreas()) {
             Button b;
             lx.addComponent(b = new Button(a.getName(), VaadinIcons.ADOBE_FLASH.equals(a.getIcon())?null:a.getIcon()));
             b.addClickListener(e -> {
                 w.close();
-                MDDUI.get().getNavegador().goTo(a);
+                getNavegador().goTo(a);
             });
             b.setPrimaryStyleName(ValoTheme.BUTTON_HUGE);
             b.addStyleName("submenuoption");
@@ -453,9 +460,9 @@ public class MDDUI extends UI implements IMDDUI {
 
         w.addCloseListener(e -> {
            if (!"noback".equals(w.getData())) getNavegador().goBack();
-           int pos = MDDUI.get().getNavegador().getStack().indexOf(view);
+           int pos = getNavegador().getStack().indexOf(view);
            if (pos > 0) {
-               Component c = MDDUI.get().getNavegador().getStack().get(pos - 1).getViewComponent();
+               Component c = getNavegador().getStack().get(pos - 1).getViewComponent();
                if (c.getStyleName().contains("refreshOnBack")) {
                    if (c instanceof ListViewComponent) {
                        try {
@@ -483,7 +490,6 @@ public class MDDUI extends UI implements IMDDUI {
         UI.getCurrent().addWindow(w);
     }
 
-    @Override
     public <F, C> void search(RpcView<F, C> view) {
         getNavegador().getViewProvider().search(view);
     }

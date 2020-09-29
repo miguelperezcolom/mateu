@@ -6,6 +6,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.AbstractModule;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.interfaces.IModule;
 import io.mateu.mdd.vaadin.MDDUI;
 import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;
@@ -24,7 +25,7 @@ public class AreaComponent extends AbstractViewComponent {
 
         addStyleName("areaflowcomponent");
 
-        if (MDDUI.get().getPort().isMobile()) {
+        if (MDDUIAccessor.isMobile()) {
 
             if (area.getModules().length == 1) {
 
@@ -60,7 +61,7 @@ public class AreaComponent extends AbstractViewComponent {
 
         }
 
-        if (!MDDUI.get().getPort().isMobile()) addComponentsAndExpand(new Label(""));
+        if (!MDDUIAccessor.isMobile()) addComponentsAndExpand(new Label(""));
     }
 
 }

@@ -5,6 +5,8 @@ import io.mateu.mdd.shared.annotations.Area;
 import io.mateu.mdd.shared.annotations.Home;
 import io.mateu.mdd.shared.annotations.PrivateHome;
 import io.mateu.mdd.shared.annotations.PublicHome;
+import io.mateu.mdd.shared.interfaces.IArea;
+import io.mateu.mdd.shared.interfaces.IModule;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
@@ -16,9 +18,9 @@ import java.util.Arrays;
 import java.util.List;
 
 public class AreaBuilder {
-    private final MateuApp ui;
+    private final Object ui;
 
-    public AreaBuilder(MateuApp ui) {
+    public AreaBuilder(Object ui) {
         this.ui = ui;
     }
 
@@ -40,7 +42,11 @@ public class AreaBuilder {
             }
             if (l.size() == 0) l.add(new FakeArea("", !allPrivate, findDefaultAction(uiclass, allPrivate, allPrivate)));
         } else {
-            if (isPublicHomeDefined()) l.add(new FakeArea("", true, findDefaultAction(uiclass, false, true)));
+            if (isPublicHomeDefined()) {
+                AbstractArea areaPublicaPorDefecto = l.stream().filter(a -> a.isPublicAccess()).findFirst().orElse(null);
+                if (areaPublicaPorDefecto == null) l.add(areaPublicaPorDefecto = new FakeArea("", true, findDefaultAction(uiclass, false, true)));
+                else areaPublicaPorDefecto.defaultAction = findDefaultAction(uiclass, false, true);
+            }
         }
         return l;
     }
@@ -67,14 +73,18 @@ public class AreaBuilder {
     }
 
     private void addIfNotEmpty(List<AbstractArea> l, AbstractArea a) {
-        if (a.getModules().length > 0 && a.getModules()[0].getMenu().length > 0) l.add(a);
+        if (a.getModules().length > 0 && a.getModules()[0].getMenu().size() > 0) l.add(a);
     }
 
     private AbstractArea createArea(FieldInterfaced f, boolean authenticationAgnostic, boolean publicAccess) {
         return new AbstractArea(ReflectionHelper.getCaption(f)) {
-            @Override
-            public List<AbstractModule> buildModules() {
-                List<AbstractModule> m = Arrays.asList(new AbstractModule() {
+
+            {
+                defaultAction = findDefaultAction(f.getType(), authenticationAgnostic, publicAccess);
+                icon = f.isAnnotationPresent(Area.class)?f.getAnnotation(Area.class).icon():VaadinIcons.ADOBE_FLASH;
+                IArea area = this;
+                modules = Arrays.asList(new AbstractModule() {
+
                     @Override
                     public String getName() {
                         return "Menu";
@@ -91,23 +101,23 @@ public class AreaBuilder {
                         }
                         return new ArrayList<>();
                     }
+
+                    @Override
+                    public IArea getArea() {
+                        return area;
+                    }
                 });
-                return m;
+            }
+
+
+            @Override
+            public List<IModule> buildModules() {
+                return modules;
             }
 
             @Override
             public boolean isPublicAccess() {
                 return publicAccess;
-            }
-
-            @Override
-            public AbstractAction getDefaultAction() {
-                return findDefaultAction(f.getType(), authenticationAgnostic, publicAccess);
-            }
-
-            @Override
-            public VaadinIcons getIcon() {
-                return f.isAnnotationPresent(Area.class)?f.getAnnotation(Area.class).icon():VaadinIcons.ADOBE_FLASH;
             }
         };
     }
@@ -151,8 +161,9 @@ public class AreaBuilder {
     private AbstractArea createArea(Method method, boolean authenticationAgnostic, boolean publicAccess) {
         return new AbstractArea(ReflectionHelper.getCaption(method)) {
             @Override
-            public List<AbstractModule> buildModules() {
-                List<AbstractModule> m = Arrays.asList(new AbstractModule() {
+            public List<IModule> buildModules() {
+                IArea area = this;
+                List<IModule> m = Arrays.asList(new AbstractModule() {
                     @Override
                     public String getName() {
                         return "Menu";
@@ -161,6 +172,11 @@ public class AreaBuilder {
                     @Override
                     public List<MenuEntry> buildMenu() {
                         return new MenuBuilder().buildMenu(method.getReturnType(), true, publicAccess);
+                    }
+
+                    @Override
+                    public IArea getArea() {
+                        return area;
                     }
                 });
                 return m;

@@ -4,8 +4,8 @@ package io.mateu.mdd.vaadin.components.oauth;
 import com.vaadin.server.ClassResource;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Button;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.shared.VaadinHelper;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.vaadin.MDDUI;
 import io.mateu.util.notification.Notifier;
 
@@ -27,7 +27,7 @@ public class GoogleButton extends Button {
             Page p = MDDUI.get().getPage();
 
             //String callbackUrl = p.getLocation().toString();
-            String callbackUrl = MDDUI.get().getApp().getBaseUrl();
+            String callbackUrl = MDDUIAccessor.getBaseUrl();
 
 //            if (!Strings.isNullOrEmpty(p.getLocation().getPath())) callbackUrl = callbackUrl.substring(0, callbackUrl.length() - p.getLocation().getPath().length());
 //            callbackUrl += "";

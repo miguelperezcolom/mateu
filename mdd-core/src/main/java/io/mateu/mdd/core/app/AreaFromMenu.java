@@ -1,5 +1,7 @@
 package io.mateu.mdd.core.app;
 
+import io.mateu.mdd.shared.interfaces.IArea;
+import io.mateu.mdd.shared.interfaces.IModule;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 
 import java.util.List;
@@ -16,7 +18,8 @@ public class AreaFromMenu extends AbstractArea {
     }
 
     @Override
-    public List<AbstractModule> buildModules() {
+    public List<IModule> buildModules() {
+        IArea area = this;
         return List.of(new AbstractModule() {
 
             @Override
@@ -27,6 +30,11 @@ public class AreaFromMenu extends AbstractArea {
             @Override
             public List<MenuEntry> buildMenu() {
                 return menu;
+            }
+
+            @Override
+            public IArea getArea() {
+                return area;
             }
         });
     }

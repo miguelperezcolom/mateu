@@ -9,8 +9,8 @@ import com.vaadin.event.selection.SelectionEvent;
 import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.ItemClickListener;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.interfaces.ReadOnly;
 import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
@@ -105,7 +105,7 @@ public class ResultsComponent extends VerticalLayout {
 
         addStyleName("resultscomponent");
 
-        if (!MDDUI.get().getPort().isMobile()) setSizeFull();
+        if (!MDDUIAccessor.isMobile()) setSizeFull();
 
 
         grid = new Grid<>();
@@ -165,7 +165,7 @@ public class ResultsComponent extends VerticalLayout {
         if (esEditable(listViewComponent)) grid.addItemClickListener(new ItemClickListener<Object>() {
             @Override
             public void itemClick(Grid.ItemClick<Object> itemClick) {
-                //if (MDDUI.get().getPort().isMobile() || MDD.isIpad() || itemClick.getMouseEventDetails().isDoubleClick()) {
+                //if (MDDUIAccessor.isMobile() || MDD.isIpad() || itemClick.getMouseEventDetails().isDoubleClick()) {
                 if (itemClick.getColumn() != null) {
                     setLastClickedRowIndex(itemClick.getRowIndex());
                     Object i = itemClick.getItem();

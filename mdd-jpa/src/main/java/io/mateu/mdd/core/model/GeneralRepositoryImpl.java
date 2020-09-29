@@ -1,7 +1,6 @@
 package io.mateu.mdd.core.model;
 
 import com.google.common.base.Strings;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.model.authentication.Audit;
 import io.mateu.mdd.core.model.authentication.USER_STATUS;
 import io.mateu.mdd.core.model.authentication.User;
@@ -11,7 +10,7 @@ import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.model.multilanguage.Literal;
 import io.mateu.mdd.shared.interfaces.IResource;
 import io.mateu.mdd.shared.interfaces.UserPrincipal;
-import io.mateu.mdd.shared.ui.MDDUIAccessor;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.util.Helper;
 import io.mateu.util.interfaces.*;
 import io.mateu.util.notification.Notifier;

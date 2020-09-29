@@ -4,8 +4,7 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.shared.ui.MDDUIAccessor;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.vaadin.MDDUI;
 
 public class SessionComponent extends VerticalLayout {
@@ -58,7 +57,7 @@ public class SessionComponent extends VerticalLayout {
         });
 
         if (MDDUIAccessor.getCurrentUserLogin() != null) signingButton.setVisible(true);
-        if (!MDDUI.get().getApp().isAuthenticationNeeded() && !MDDUI.get().getApp().hasPrivateContent()) signingButton.setVisible(false);
+        if (!MDDUIAccessor.getApp().isAuthenticationNeeded() && !MDDUIAccessor.getApp().hasPrivateContent()) signingButton.setVisible(false);
         else signingButton.setVisible(true);
 
     }
@@ -73,7 +72,7 @@ public class SessionComponent extends VerticalLayout {
             signingButton.setCaption("Logout");
         } else {
             greeting.setVisible(false);
-            if (!MDDUI.get().getApp().isAuthenticationNeeded() && !MDDUI.get().getApp().hasPrivateContent()) signingButton.setVisible(false);
+            if (!MDDUIAccessor.getApp().isAuthenticationNeeded() && !MDDUIAccessor.getApp().hasPrivateContent()) signingButton.setVisible(false);
             else signingButton.setVisible(true);
             signingButton.setIcon(VaadinIcons.SIGN_IN);
             signingButton.setCaption("Login");

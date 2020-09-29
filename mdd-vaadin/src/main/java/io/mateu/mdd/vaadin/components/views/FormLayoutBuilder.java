@@ -14,6 +14,7 @@ import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.shared.FormLayoutBuilderParameters;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.vaadin.actions.AcctionRunner;
 import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.shared.annotations.*;
@@ -122,7 +123,7 @@ public class FormLayoutBuilder {
                 FormLayoutSection s = sections.get(0);
                 if ("general".equalsIgnoreCase(s.getCaption())) s.setCaption(null);
             } else if (sections.size() > 1) {
-                if (!MDDUI.get().getPort().isMobile() && editor != null) editor.setSizeFull();
+                if (!MDDUIAccessor.isMobile() && editor != null) editor.setSizeFull();
                 sectionTabSheet = new TabSheet();
                 if (editor != null) {
                     TabSheet finalSectionTabSheet = sectionTabSheet;
@@ -138,7 +139,7 @@ public class FormLayoutBuilder {
             AbstractStylist finalStylist1 = stylist;
             Component finalRealContainer = realContainer;
             sections.forEach(s -> {
-                Layout form = (MDDUI.get().getPort().isMobile())?new VerticalLayout():new MiFormLayout();
+                Layout form = (MDDUIAccessor.isMobile())?new VerticalLayout():new MiFormLayout();
                 if (false) {
                     form.setSizeUndefined();
                     form.addStyleName("section");
@@ -518,7 +519,7 @@ public class FormLayoutBuilder {
                     Notifier.alert(e);
                 }
             } else {
-                AbstractFieldBuilder b = (AbstractFieldBuilder) MDDUI.get().getApp().getFieldBuilder(f);
+                AbstractFieldBuilder b = (AbstractFieldBuilder) MDDUIAccessor.getApp().getFieldBuilder(f);
                 if (b != null) c = b.build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters, attachedActions);
             }
 

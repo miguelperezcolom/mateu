@@ -7,12 +7,11 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.shared.CSS;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.shared.interfaces.IArea;
 import io.mateu.mdd.shared.interfaces.IModule;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
-import io.mateu.mdd.shared.ui.MDDUIAccessor;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.vaadin.MDDUI;
 import io.mateu.mdd.core.app.Searcher;
 
@@ -69,7 +68,7 @@ public class NavigationComponent extends VerticalLayout {
                                 , ev -> {
                             clicked();
                             MDDUI.get().getNavegador().doAfterCheckSaved(() -> {
-                                if (MDDUI.get().getPort().isMobile()) {
+                                if (MDDUIAccessor.isMobile()) {
                                     setSelectingArea(false);
                                     MDDUI.get().getNavegador().goTo(((a.isPublicAccess())?"public":"private"), ev.isCtrlKey());
                                 } else {
@@ -122,7 +121,7 @@ public class NavigationComponent extends VerticalLayout {
                             , ev -> {
                         clicked();
                         MDDUI.get().getNavegador().doAfterCheckSaved(() -> {
-                            if (MDDUI.get().getPort().isMobile()) {
+                            if (MDDUIAccessor.isMobile()) {
                                 setSearching();
                                 MDDUI.get().getNavegador().goTo("search", ev.isCtrlKey());
                             } else {
@@ -169,7 +168,7 @@ public class NavigationComponent extends VerticalLayout {
                 Button b = bArea = new Button("CHOOSE AN AREA" + ((app.getAreas().length > 1)?"<span class=\"menu-badge\">" + VaadinIcons.ARROW_RIGHT.getHtml() + "</span>":"")
                         , ev -> {
                     clicked();
-                    if (MDDUI.get().getPort().isMobile()) {
+                    if (MDDUIAccessor.isMobile()) {
                         MDDUI.get().getAppComponent().unselectAll();
                         bArea.addStyleName("selected");
                         MDDUI.get().getNavegador().goTo(MDDUIAccessor.getCurrentUser() == null?"public":"private", ev.isCtrlKey());
@@ -235,7 +234,7 @@ public class NavigationComponent extends VerticalLayout {
     }
 
     private boolean canBeSearched(AbstractApplication app) {
-        return app != null && app.getSearcher() != null && !Searcher.class.equals(app.getSearcher().getClass()) || app.getAreas().length > 1  || (app.getAreas().length > 0 && app.getAreas()[0].getModules().length > 0 && app.getAreas()[0].getModules()[0].getMenu().length > 0);
+        return app != null && app.getSearcher() != null && !Searcher.class.equals(app.getSearcher().getClass()) || app.getAreas().length > 1  || (app.getAreas().length > 0 && app.getAreas()[0].getModules().length > 0 && app.getAreas()[0].getModules()[0].getMenu().size() > 0);
     }
 
     public void setArea(AbstractArea a) {

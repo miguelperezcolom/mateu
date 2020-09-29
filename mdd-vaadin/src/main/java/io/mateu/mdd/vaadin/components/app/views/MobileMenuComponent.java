@@ -6,6 +6,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractMenu;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.vaadin.MDDUI;
 
@@ -40,7 +41,7 @@ public class MobileMenuComponent extends VerticalLayout {
 
 
 
-        if (!MDDUI.get().getPort().isMobile()) addComponentsAndExpand(new Label(""));
+        if (!MDDUIAccessor.isMobile()) addComponentsAndExpand(new Label(""));
 
 
     }

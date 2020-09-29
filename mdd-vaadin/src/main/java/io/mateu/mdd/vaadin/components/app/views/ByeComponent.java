@@ -4,6 +4,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.vaadin.MDDUI;
 import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;
 
@@ -21,7 +22,7 @@ public class ByeComponent extends AbstractViewComponent {
         addComponent(new Label("It's been nice to see you."));
         addComponent(new Label("Hace a nice day ;)"));
 
-        if (MDDUI.get().getPort().isMobile()) {
+        if (MDDUIAccessor.isMobile()) {
 
             Button b;
             addComponent(b = new Button("Go to menu"));

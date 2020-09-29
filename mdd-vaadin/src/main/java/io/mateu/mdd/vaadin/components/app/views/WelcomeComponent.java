@@ -8,14 +8,13 @@ import com.vaadin.ui.Image;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.shared.CSS;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.AbstractModule;
 import io.mateu.mdd.shared.AppConfigLocator;
 import io.mateu.mdd.shared.IAppConfig;
 import io.mateu.mdd.shared.interfaces.IArea;
 import io.mateu.mdd.shared.interfaces.IModule;
-import io.mateu.mdd.shared.ui.MDDUIAccessor;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.util.Helper;
 import io.mateu.mdd.vaadin.MDDUI;
 import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;
@@ -36,7 +35,7 @@ public class WelcomeComponent extends AbstractViewComponent {
         addComponent(new Label("Let's have some fun ;)"));
 
 
-        if (MDDUI.get().getPort().isMobile()) {
+        if (MDDUIAccessor.isMobile()) {
 
             Button b;
             addComponent(b = new Button("Go to menu"));
@@ -59,14 +58,14 @@ public class WelcomeComponent extends AbstractViewComponent {
 
     @Override
     public String toString() {
-        return "Hello " + MDDUIAccessor.getCurrentUser().getName() + "." + (MDDUI.get().getApp().getAreas().length > 1?" Please select work area":"");
+        return "Hello " + MDDUIAccessor.getCurrentUser().getName() + "." + (MDDUIAccessor.getApp().getAreas().length > 1?" Please select work area":"");
     }
 
     public WelcomeComponent() {
         addStyleName("privatemenuflowcomponent");
 
         addStyleName(CSS.NOPADDING);
-        if (MDDUI.get().getPort().isMobile()) {
+        if (MDDUIAccessor.isMobile()) {
             addStyleName("mobile");
 
             try {
@@ -78,9 +77,9 @@ public class WelcomeComponent extends AbstractViewComponent {
                 throwable.printStackTrace();
             }
 
-        if (MDDUI.get().getApp().getAreas().length == 1) {
+        if (MDDUIAccessor.getApp().getAreas().length == 1) {
 
-            AbstractArea area = (AbstractArea) MDDUI.get().getApp().getAreas()[0];
+            AbstractArea area = (AbstractArea) MDDUIAccessor.getApp().getAreas()[0];
 
             if (area.getModules().length == 1) {
 
@@ -111,12 +110,12 @@ public class WelcomeComponent extends AbstractViewComponent {
             }
         }
 
-        } else if (MDDUI.get().getApp().getAreas().length > 1) {
+        } else if (MDDUIAccessor.getApp().getAreas().length > 1) {
 
             CssLayout lx;
             addComponent(lx = new CssLayout());
 
-            for (IArea a : MDDUI.get().getApp().getAreas()) {
+            for (IArea a : MDDUIAccessor.getApp().getAreas()) {
                 Button b;
                 lx.addComponent(b = new Button(a.getName(), VaadinIcons.ADOBE_FLASH.equals(a.getIcon())?null:a.getIcon()));
                 b.addClickListener(e -> MDDUI.get().getNavegador().goTo(a));
@@ -125,7 +124,7 @@ public class WelcomeComponent extends AbstractViewComponent {
             };
         }
 
-        if (MDDUI.get().getPort().isMobile()) {
+        if (MDDUIAccessor.isMobile()) {
             Button b;
             addComponent(b = new Button("Logout"));
             b.addClickListener(e -> MDDUI.get().getNavegador().goTo("bye"));

@@ -1,24 +1,29 @@
-package io.mateu.mdd.shared.ui;
+package io.mateu.mdd.core.ui;
 
 import io.mateu.mdd.shared.interfaces.App;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
-import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.shared.interfaces.UserPrincipal;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.shared.reflection.IFieldBuilder;
+import io.mateu.mdd.shared.ui.IMDDUI;
+import io.mateu.mdd.shared.ui.IMDDUIInjector;
+import io.mateu.util.Helper;
 
 import java.util.Collection;
 
 public class MDDUIAccessor {
 
-    static IMDDUI mddui;
+    public static IMDDUIInjector injector;
 
     private static IMDDUI get() {
-        return mddui;
-    }
-
-    public static <F, C> void search(RpcView<F, C> view) {
-        if (get() != null) get().search(view);
+        if (injector == null) {
+            try {
+                injector = Helper.getImpl(IMDDUIInjector.class);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return injector.get();
     }
 
     public static boolean isEditingNewRecord() {
@@ -65,5 +70,9 @@ public class MDDUIAccessor {
 
     public static void updateTitle(String title) {
         if (get() != null) get().updateTitle(title);
+    }
+
+    public static boolean isMobile() {
+        return get() != null && get().isMobile();
     }
 }

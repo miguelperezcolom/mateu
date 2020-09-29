@@ -16,8 +16,8 @@ public abstract class AbstractArea implements IArea {
     private final String id = UUID.randomUUID().toString();
     private boolean publicAccess = false;
     private String name;
-    private VaadinIcons icon = VaadinIcons.ASTERISK;
-    private List<AbstractModule> modules;
+    public VaadinIcons icon = VaadinIcons.ASTERISK;
+    public List<IModule> modules;
     public AbstractAction defaultAction = null;
 
     public String getStyle() {
@@ -58,7 +58,7 @@ public abstract class AbstractArea implements IArea {
         return modules.toArray(new IModule[0]);
     }
 
-    public abstract List<AbstractModule> buildModules();
+    public abstract List<IModule> buildModules();
 
     public boolean isPublicAccess() {
         return publicAccess;

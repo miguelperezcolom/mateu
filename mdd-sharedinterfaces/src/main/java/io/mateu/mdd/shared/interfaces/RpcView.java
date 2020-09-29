@@ -3,7 +3,6 @@ package io.mateu.mdd.shared.interfaces;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.ui.Grid;
 import io.mateu.mdd.shared.data.SumData;
-import io.mateu.mdd.shared.ui.MDDUIAccessor;
 
 import java.util.List;
 
@@ -39,8 +38,6 @@ public interface RpcView<F, C> {
         return null;
     }
 
-    default void search() {
-        MDDUIAccessor.search(this);
-    }
+    void search();
 
 }

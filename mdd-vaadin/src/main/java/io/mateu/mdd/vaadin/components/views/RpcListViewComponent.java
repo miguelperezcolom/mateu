@@ -2,7 +2,6 @@ package io.mateu.mdd.vaadin.components.views;
 
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.ui.Grid;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.shared.data.ChartData;

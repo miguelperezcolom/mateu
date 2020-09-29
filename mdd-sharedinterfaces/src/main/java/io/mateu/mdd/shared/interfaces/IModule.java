@@ -1,7 +1,11 @@
 package io.mateu.mdd.shared.interfaces;
 
+import java.util.List;
+
 public interface IModule {
-    MenuEntry[] getMenu();
+    List<MenuEntry> getMenu();
 
     String getName();
+
+    IArea getArea();
 }

@@ -4,6 +4,7 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Window;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.ExpandOnOpen;
 import io.mateu.mdd.shared.annotations.FullWidth;
 import io.mateu.mdd.core.app.AbstractAction;
@@ -39,7 +40,7 @@ public class ComponentWrapper extends AbstractViewComponent {
         addStyleName("componentwrapper");
 
         if (!(component instanceof Window)) {
-            if (MDDUI.get().getPort().isMobile() || (!expand && !(component instanceof FullWidth))) addComponent(component);
+            if (MDDUIAccessor.isMobile() || (!expand && !(component instanceof FullWidth))) addComponent(component);
             else addComponentsAndExpand(component);
         }
 
@@ -55,7 +56,7 @@ public class ComponentWrapper extends AbstractViewComponent {
 
     @Override
     public String toString() {
-        return wrapped != null?wrapped.toString():"Nothing wrapped";
+        return getTitle() != null?getTitle():wrapped != null?wrapped.toString():"Nothing wrapped";
     }
 
     @Override

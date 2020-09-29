@@ -3,7 +3,7 @@ package io.mateu.mdd.vaadin.components.app.views;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.shared.CSS;
-import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.vaadin.MDDUI;
 
 public class LoggedOutComponent extends VerticalLayout {
@@ -29,7 +29,7 @@ public class LoggedOutComponent extends VerticalLayout {
         info.addStyleName("loggedout");
 
         Label l;
-        info.addComponent(l = new Label("Thanks for using " + MDDUI.get().getApp().getName() + "."));
+        info.addComponent(l = new Label("Thanks for using " + MDDUIAccessor.getApp().getName() + "."));
         l.addStyleName(ValoTheme.LABEL_H1);
         info.addComponent(l = new Label("Have a nice day ;)"));
         l.addStyleName(ValoTheme.LABEL_H2);

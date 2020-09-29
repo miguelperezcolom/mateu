@@ -5,13 +5,14 @@ import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.ViewProvider;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.AbstractModule;
+import io.mateu.mdd.shared.interfaces.IModule;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadin.MDDUI;
 import io.mateu.mdd.vaadin.components.app.AppComponent;
@@ -68,7 +69,7 @@ public class MDDNavigator {
     }
 
     public String getPath(MenuEntry action, Class viewClass) {
-        String u = MDDUI.get().getApp().getState(action);
+        String u = MDDUIAccessor.getApp().getState(action);
         u += "/";
         u += viewClass.getName();
         return u;
@@ -80,17 +81,17 @@ public class MDDNavigator {
     }
 
     public String getPath(MenuEntry e) {
-        String p = MDDUI.get().getApp().getState(e);
+        String p = MDDUIAccessor.getApp().getState(e);
         if (p == null) Notifier.alert("No state for " + e);
         return p;
     }
 
     public String getPath(AbstractArea area) {
-        return MDDUI.get().getApp().getState(area);
+        return MDDUIAccessor.getApp().getState(area);
     }
 
     public String getPath(AbstractModule m) {
-        return MDDUI.get().getApp().getState(m);
+        return MDDUIAccessor.getApp().getState(m);
     }
 
 
@@ -240,11 +241,11 @@ public class MDDNavigator {
             if (!Strings.isNullOrEmpty(u) && u.contains("/")) {
                 u = u.substring(0, u.lastIndexOf("/"));
 
-                if (!MDDUI.get().getPort().isMobile() && esMenu(u)) while (esMenu(u.substring(0, u.lastIndexOf("/")))) {
+                if (!MDDUIAccessor.isMobile() && esMenu(u)) while (esMenu(u.substring(0, u.lastIndexOf("/")))) {
                     u = u.substring(0, u.lastIndexOf("/"));
                 }
 
-                if (MDDUI.get().getPort().isMobile()) {
+                if (MDDUIAccessor.isMobile()) {
                     if (esInutil(u)) while (esInutil(u)) {
                         u = u.substring(0, u.lastIndexOf("/"));
                     }
@@ -296,11 +297,11 @@ public class MDDNavigator {
         String u = stack.getState(stack.getLast()); //
         u = u.substring(0, u.lastIndexOf("/"));
 
-        if (!MDDUI.get().getPort().isMobile() && esMenu(u)) while (esMenu(u.substring(0, u.lastIndexOf("/")))) {
+        if (!MDDUIAccessor.isMobile() && esMenu(u)) while (esMenu(u.substring(0, u.lastIndexOf("/")))) {
             u = u.substring(0, u.lastIndexOf("/"));
         }
 
-        if (MDDUI.get().getPort().isMobile()) {
+        if (MDDUIAccessor.isMobile()) {
             if (esInutil(u)) while (esInutil(u)) {
                 u = u.substring(0, u.lastIndexOf("/"));
             }
@@ -328,10 +329,10 @@ public class MDDNavigator {
             if (v != null) {
                 Component c = v.getComponent();
                 if (c instanceof ModuleComponent) {
-                    return MDDUI.get().getApp().getArea(((ModuleComponent)c).getModule()).getModules().length <= 1;
+                    return MDDUIAccessor.getApp().getArea((IModule) ((ModuleComponent)c).getModule()).getModules().length <= 1;
                 }
                 if (c instanceof AreaComponent) {
-                    return MDDUI.get().getApp().getAreas().length <= 1;
+                    return MDDUIAccessor.getApp().getAreas().length <= 1;
                 }
             }
         }

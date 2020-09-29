@@ -31,7 +31,6 @@ import com.vaadin.ui.renderers.TextRenderer;
 import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonValue;
 import io.mateu.mdd.shared.CSS;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.shared.data.*;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
@@ -39,6 +38,7 @@ import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.shared.interfaces.IResource;
 import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.reflection.FieldInterfacedForCheckboxColumn;
 import io.mateu.reflection.ReflectionHelper;
@@ -99,7 +99,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     public ListViewComponent() {
-        if (!MDDUI.get().getPort().isMobile()) setSizeFull();
+        if (!MDDUIAccessor.isMobile()) setSizeFull();
     }
 
     @Override
@@ -1250,7 +1250,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         }
 
 
-        if (MDDUI.get().getApp().isChartsEnabled()) {
+        if (MDDUIAccessor.getApp().isChartsEnabled()) {
             List<ChartData> charts = getCharts(filters);
 
             if (charts != null && charts.size() > 0) {

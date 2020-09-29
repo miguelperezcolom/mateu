@@ -1,12 +1,11 @@
 package io.mateu.mdd.vaadin.pojos;
 
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.NonDuplicable;
 import io.mateu.mdd.shared.annotations.Password;
 import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.shared.interfaces.UserPrincipal;
-import io.mateu.mdd.shared.ui.MDDUIAccessor;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.util.Helper;
 import io.mateu.util.interfaces.GeneralRepository;
 import io.mateu.mdd.shared.interfaces.IResource;

@@ -7,10 +7,9 @@ import com.vaadin.server.Page;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.shared.CSS;
-import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.app.BaseMDDApp;
 import io.mateu.mdd.shared.AppConfigLocator;
 import io.mateu.mdd.shared.IAppConfig;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.vaadin.MDDUI;
 import io.mateu.mdd.vaadin.components.oauth.GitHubButton;
 import io.mateu.mdd.vaadin.components.oauth.GoogleButton;
@@ -58,7 +57,7 @@ public class LoginComponent extends VerticalLayout {
         }
 
         Label l;
-        vl.addComponent(l = new Label(System.getProperty("welcome.message", "Welcome to " + MDDUI.get().getApp().getName() + ".")));
+        vl.addComponent(l = new Label(System.getProperty("welcome.message", "Welcome to " + MDDUIAccessor.getApp().getName() + ".")));
         l.addStyleName(ValoTheme.LABEL_H1);
         vl.addComponent(l = new Label(System.getProperty("welcome.info", "Here your welcome info")));
         //l.addStyleName(ValoTheme.LABEL_H1);
@@ -71,7 +70,7 @@ public class LoginComponent extends VerticalLayout {
         vl.setWidth("80%");
 
         Label t;
-        vl.addComponent(t = new Label("Sign in " + MDDUI.get().getApp().getName() + ":"));
+        vl.addComponent(t = new Label("Sign in " + MDDUIAccessor.getApp().getName() + ":"));
         t.addStyleName(ValoTheme.LABEL_H3);
         t.addStyleName("signinlabel");
 
@@ -125,7 +124,7 @@ public class LoginComponent extends VerticalLayout {
         if (!Strings.isNullOrEmpty(login.getValue())) {
 
             try {
-                //Notifier.info(((BaseMDDApp)MDDUI.get().getApp()).recoverPassword(login.getValue()));
+                //Notifier.info(((BaseMDDApp)MDDUIAccessor.getApp()).recoverPassword(login.getValue()));
             } catch (Throwable throwable) {
                 Notifier.alert(throwable);
             }
@@ -152,7 +151,7 @@ public class LoginComponent extends VerticalLayout {
         } else {
 
             try {
-               // ((BaseMDDApp)MDDUI.get().getApp()).authenticate(login.getValue(), password.getValue());
+               // ((BaseMDDApp)MDDUIAccessor.getApp()).authenticate(login.getValue(), password.getValue());
                 if (onLogin != null) onLogin.run();
                 MDDUI.get().getAppComponent().unselectAll();
                 String ps = MDDUI.get().getNavegador().getViewProvider().getPendingPrivateState();

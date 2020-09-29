@@ -10,6 +10,7 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.vaadin.MDDUI;
 import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
@@ -228,13 +229,13 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
 
             if (String.class.equals(field.getType())) {
                 if (!forSearchFilter) {
-                    if (MDDUI.get().getPort().isMobile() || field.isAnnotationPresent(FullWidth.class)) tf.setWidth("100%");
+                    if (MDDUIAccessor.isMobile() || field.isAnnotationPresent(FullWidth.class)) tf.setWidth("100%");
                     else {
                         if (field.isAnnotationPresent(Width.class) && !Strings.isNullOrEmpty(field.getAnnotation(Width.class).value())) tf.setWidth(field.getAnnotation(Width.class).value());
                         else tf.setWidth(370, Sizeable.Unit.PIXELS);
                     }
                 } else {
-                    if (MDDUI.get().getPort().isMobile() || field.isAnnotationPresent(FullWidth.class)) tf.setWidth("100%");
+                    if (MDDUIAccessor.isMobile() || field.isAnnotationPresent(FullWidth.class)) tf.setWidth("100%");
                 }
             } else {
                 tf.setWidth(100, Sizeable.Unit.PIXELS);

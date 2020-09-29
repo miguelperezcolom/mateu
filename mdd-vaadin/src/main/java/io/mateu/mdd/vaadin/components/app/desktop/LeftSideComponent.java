@@ -5,10 +5,10 @@ import com.vaadin.server.MouseOverVerticalLayout;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.shared.CSS;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractApplication;
 import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.vaadin.MDDUI;
 
 public class LeftSideComponent extends VerticalLayout {
@@ -134,7 +134,7 @@ public class LeftSideComponent extends VerticalLayout {
     }
 
     public void updateSession() {
-        app = MDDUI.get().getApp();
+        app = (AbstractApplication) MDDUIAccessor.getApp();
         ses.update();
         appTitle.setCaption(app.getName());
         nav.setApp(app);

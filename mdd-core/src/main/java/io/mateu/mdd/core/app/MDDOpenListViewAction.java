@@ -4,7 +4,7 @@ package io.mateu.mdd.core.app;
 public class MDDOpenListViewAction extends AbstractAction {
 
     public final Class listViewClass;
-    private final Object id;
+    public final Object id;
 
     public MDDOpenListViewAction(String name, Class listViewClass) {
         this(name, listViewClass, null);

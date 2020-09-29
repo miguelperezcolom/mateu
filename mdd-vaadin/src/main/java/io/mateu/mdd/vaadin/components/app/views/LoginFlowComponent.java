@@ -4,8 +4,7 @@ import com.google.common.base.Strings;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.app.BaseMDDApp;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.vaadin.MDDUI;
 import io.mateu.mdd.vaadin.components.oauth.GitHubButton;
 import io.mateu.mdd.vaadin.components.oauth.GoogleButton;
@@ -42,7 +41,7 @@ public class LoginFlowComponent extends AbstractViewComponent {
             izda.setSizeUndefined();
 
             Label t;
-            izda.addComponent(t = new Label("Sign in " + MDDUI.get().getApp().getName() + ":"));
+            izda.addComponent(t = new Label("Sign in " + MDDUIAccessor.getApp().getName() + ":"));
             t.addStyleName(ValoTheme.LABEL_H3);
 
             izda.addComponent(login = new TextField("Login"));
@@ -85,7 +84,7 @@ public class LoginFlowComponent extends AbstractViewComponent {
 
 
 
-        if (MDDUI.get().getPort().isMobile()) {
+        if (MDDUIAccessor.isMobile()) {
 
             VerticalLayout l;
             layouts.add(l = new VerticalLayout());
@@ -121,7 +120,7 @@ public class LoginFlowComponent extends AbstractViewComponent {
         if (!Strings.isNullOrEmpty(login.getValue())) {
 
             try {
-                //Notifier.info(((BaseMDDApp)MDDUI.get().getApp()).recoverPassword(login.getValue()));
+                //Notifier.info(((BaseMDDApp)MDDUIAccessor.getApp()).recoverPassword(login.getValue()));
             } catch (Throwable throwable) {
                 Notifier.alert(throwable);
             }
@@ -148,7 +147,7 @@ public class LoginFlowComponent extends AbstractViewComponent {
         } else {
 
             try {
-                //((BaseMDDApp)MDDUI.get().getApp()).authenticate(login.getValue(), password.getValue());
+                //((BaseMDDApp)MDDUIAccessor.getApp()).authenticate(login.getValue(), password.getValue());
                 MDDUI.get().getAppComponent().unselectAll();
                 MDDUI.get().getNavegador().goTo("welcome");
             } catch (Throwable throwable) {

@@ -2,7 +2,6 @@ package io.mateu.mdd.core.app;
 
 
 import com.google.common.base.Strings;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.shared.interfaces.App;
 import io.mateu.mdd.shared.interfaces.IArea;
 import io.mateu.mdd.shared.interfaces.IModule;
@@ -11,7 +10,7 @@ import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.shared.reflection.IFieldBuilder;
 import io.mateu.mdd.core.interfaces.View;
 import io.mateu.mdd.shared.VaadinHelper;
-import io.mateu.mdd.shared.ui.MDDUIAccessor;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.util.data.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -104,14 +103,19 @@ public abstract class AbstractApplication implements App {
         return moduleIds.get(m);
     }
 
-    public IArea getArea(AbstractModule m) {
+    public IArea getArea(IModule m) {
         return moduleToArea.get(m);
     }
 
-    public AbstractModule getModule(String id) {
-        return moduleIdsReversed.get(id);
+    public IModule getModule(String id) {
+        return (IModule) moduleIdsReversed.get(id);
     }
 
+    public String getState(Object o) {
+        if (o instanceof AbstractArea) return getState((AbstractArea) o);
+        else if (o instanceof AbstractModule) return getState((AbstractModule) o);
+        else return getState((MenuEntry) o);
+    }
 
     public String getState(AbstractArea a) {
         if (a == null) return (MDDUIAccessor.getCurrentUser() == null)?"public":"private";
