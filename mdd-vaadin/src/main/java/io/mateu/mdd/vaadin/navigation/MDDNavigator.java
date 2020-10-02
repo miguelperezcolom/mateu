@@ -16,10 +16,7 @@ import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadin.MDDUI;
 import io.mateu.mdd.vaadin.components.app.AppComponent;
-import io.mateu.mdd.vaadin.components.app.desktop.DesktopAppComponent;
-import io.mateu.mdd.vaadin.components.app.views.AreaComponent;
-import io.mateu.mdd.vaadin.components.app.views.MenuFlowComponent;
-import io.mateu.mdd.vaadin.components.app.views.ModuleComponent;
+import io.mateu.mdd.vaadin.components.app.views.firstLevel.AreaComponent;
 import io.mateu.mdd.vaadin.components.views.EditorListener;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
 import io.mateu.mdd.vaadin.components.views.ListViewComponent;
@@ -235,7 +232,7 @@ public class MDDNavigator {
                 l.getWindowContainer().close();
                 stack.pop();
                 viewProvider.setCurrentPath(stack.size() > 0?stack.getState(stack.getLast()):null);
-            } else MDDUI.get().getNavegador().goTo(u);
+            } else MDDUIAccessor.goTo(u);
         } else {
             String u = stack.getState(l);
             if (!Strings.isNullOrEmpty(u) && u.contains("/")) {
@@ -251,14 +248,10 @@ public class MDDNavigator {
                     }
                 }
 
-                MDDUI.get().getNavegador().goTo(u);
+                MDDUIAccessor.goTo(u);
             } else {
 
                 AppComponent appComponent = MDDUI.get().getAppComponent();
-                if (appComponent instanceof DesktopAppComponent) {
-                    DesktopAppComponent dac = (DesktopAppComponent) appComponent;
-                    dac.maximizeLeftSide();
-                }
             }
         }
 
@@ -320,7 +313,7 @@ public class MDDNavigator {
                 Notifier.alert(throwable);
             }
         }
-        else MDDUI.get().getNavegador().goTo(u);
+        else MDDUIAccessor.goTo(u);
     }
 
     private boolean esInutil(String u) {
@@ -328,9 +321,9 @@ public class MDDNavigator {
             View v = stack.get(u);
             if (v != null) {
                 Component c = v.getComponent();
-                if (c instanceof ModuleComponent) {
-                    return MDDUIAccessor.getApp().getArea((IModule) ((ModuleComponent)c).getModule()).getModules().length <= 1;
-                }
+//                if (c instanceof ModuleComponent) {
+//                    return MDDUIAccessor.getApp().getArea((IModule) ((ModuleComponent)c).getModule()).getModules().length <= 1;
+//                }
                 if (c instanceof AreaComponent) {
                     return MDDUIAccessor.getApp().getAreas().length <= 1;
                 }
@@ -344,9 +337,9 @@ public class MDDNavigator {
             View v = stack.get(u);
             if (v != null) {
                 Component c = v.getComponent();
-                if (c instanceof MenuFlowComponent) {
-                    return true;
-                }
+//                if (c instanceof MenuFlowComponent) {
+//                    return true;
+//                }
             }
         }
         return false;

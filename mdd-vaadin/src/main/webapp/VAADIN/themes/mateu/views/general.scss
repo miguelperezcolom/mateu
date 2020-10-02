@@ -1,0 +1,57 @@
+@mixin general {
+
+  .v-app {
+    background-color: white;
+  }
+
+  .v-widget {
+    .nopadding {
+      padding: 0px;
+    }
+
+    .littlepadding {
+      padding: 10px;
+    }
+
+    .labelconlink {
+      margin-top: 7px;
+    }
+
+    .botondeicono {
+      padding: 0px;
+      height: inherit;
+      opacity: 1;
+    }
+  }
+
+
+  .alinearderecha {
+    text-align: right;
+    width: 100%;
+  }
+
+  .alinearcentro {
+    text-align: center;
+  }
+
+
+
+  .clickable {
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+
+  .clickable:hover {
+    border: 1px solid #484860;
+  }
+
+
+
+
+  input, .v-datefield, .v-datefield-textfield, .v-filterselect, .v-filterselect-input, .v-filterselect-button, .v-textarea {
+    background-color: #ececec;
+    border: none;
+  }
+
+
+}

@@ -8,6 +8,7 @@ import com.vaadin.ui.Grid;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDRunnableAction;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
@@ -106,22 +107,22 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
                         VaadinHelper.choose("Please choose type", subClassesOptions, c -> {
                             try {
                                 MDDUI.get().getNavegador().setPendingResult(ReflectionHelper.newInstance(((ClassOption)c).get_class(), model));
-                                MDDUI.get().getNavegador().go("add");
+                                MDDUIAccessor.go("add");
                             } catch (Exception e) {
                                 Notifier.alert(e);
                             }
-                        }, () -> MDDUI.get().getNavegador().goBack());
+                        }, () -> MDDUIAccessor.goBack());
                     } else if (subClasses.size() == 1) {
                         try {
                             MDDUI.get().getNavegador().setPendingResult(ReflectionHelper.newInstance(subClasses.iterator().next(), model));
 
-                            MDDUI.get().getNavegador().go("add");
+                            MDDUIAccessor.go("add");
 
                         } catch (Exception e) {
                             Notifier.alert(e);
                         }
                     } else {
-                        MDDUI.get().getNavegador().go("add");
+                        MDDUIAccessor.go("add");
                     }
 
                 }
@@ -150,7 +151,7 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
                                 evfc.save(false);
 
 
-                                MDDUI.get().getNavegador().goBack();
+                                MDDUIAccessor.goBack();
 
                             } catch (Throwable e) {
                                 Notifier.alert(e);
@@ -211,7 +212,7 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
 
     @Override
     public void edit(Object id) {
-        MDDUI.get().getNavegador().go("" + id);
+        MDDUIAccessor.go("" + id);
     }
 
 

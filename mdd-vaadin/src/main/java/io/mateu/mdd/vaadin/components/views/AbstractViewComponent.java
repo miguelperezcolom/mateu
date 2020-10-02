@@ -7,14 +7,13 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.vaadin.MDDUI;
 import io.mateu.mdd.vaadin.actions.AcctionRunner;
 import io.mateu.mdd.vaadin.components.app.ViewContainer;
-import io.mateu.mdd.vaadin.components.app.views.AreaComponent;
-import io.mateu.mdd.vaadin.components.app.views.*;
-import io.mateu.mdd.vaadin.navigation.ComponentWrapper;
+import io.mateu.mdd.vaadin.components.app.views.firstLevel.*;
+import io.mateu.mdd.vaadin.components.app.views.firstLevel.AreaComponent;
+import io.mateu.mdd.vaadin.components.ComponentWrapper;
 import io.mateu.mdd.vaadin.navigation.View;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.util.notification.Notifier;
@@ -123,15 +122,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
         boolean add = MDDUIAccessor.isMobile();
         int pos = 0;
         if (!add && !(
-                this instanceof WelcomeComponent
-                        || this instanceof ByeComponent
-                        || this instanceof LoginFlowComponent
-                        || this instanceof PrivateMenuFlowComponent
-                        || this instanceof PublicMenuFlowComponent
-                        || this instanceof io.mateu.mdd.vaadin.components.app.views.AreaComponent
-                        || this instanceof ModuleComponent
-                        || this instanceof MenuFlowComponent
-                        || this instanceof SearchInMenuComponent
+                this instanceof AreaComponent || this instanceof SearchInMenuComponent
         ) && stack.size() > 0) {
             add = true;
             while (!add && pos < stack.size()) {
@@ -139,15 +130,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                 Component c = v.getComponent();
                 if (c instanceof ComponentWrapper) c = ((ComponentWrapper) c).getComponent(0);
                 add = true;
-                if (!(c instanceof WelcomeComponent
-                        || c instanceof ByeComponent
-                        || c instanceof LoginFlowComponent
-                        || c instanceof PrivateMenuFlowComponent
-                        || c instanceof PublicMenuFlowComponent
-                        || c instanceof AreaComponent
-                        || c instanceof ModuleComponent
-                        || c instanceof MenuFlowComponent
-                        || c instanceof SearchInMenuComponent)) add = true;
+                if (!(c instanceof AreaComponent || c instanceof SearchInMenuComponent)) add = true;
                 if (!add) pos++;
             }
         }
@@ -259,7 +242,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                 b.addClickListener(e -> {
                     try {
 
-                        if (AbstractViewComponent.this.beforeBack()) MDDUI.get().getNavegador().goBack();
+                        if (AbstractViewComponent.this.beforeBack()) MDDUIAccessor.goBack();
 
                     } catch (Throwable throwable) {
                         Notifier.alert(throwable);

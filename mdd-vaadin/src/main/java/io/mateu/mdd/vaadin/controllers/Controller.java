@@ -1,13 +1,16 @@
 package io.mateu.mdd.vaadin.controllers;
 
-import com.google.common.base.Strings;
 import com.vaadin.ui.Component;
 import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;
-import io.mateu.mdd.vaadin.navigation.ComponentWrapper;
+import io.mateu.mdd.vaadin.components.ComponentWrapper;
+import io.mateu.mdd.vaadin.navigation.View;
+import io.mateu.mdd.vaadin.navigation.ViewStack;
+import io.mateu.mdd.vaadin.views.BrokenLinkView;
+import io.mateu.util.notification.Notifier;
 
 public class Controller {
 
-    public AbstractViewComponent apply(String path) throws Exception {
+    public AbstractViewComponent apply(ViewStack stack, String path) throws Throwable {
         String step = "";
         String remaining = "";
         if (path == null) path = "";
@@ -23,26 +26,33 @@ public class Controller {
             }
         }
 
+        apply(stack, path, step, ViewStack.cleanState(step), remaining);
 
-        AbstractViewComponent r = null;
-        Component component = apply(path, step, remaining);
-        if (component != null) {
-            if (component instanceof AbstractViewComponent) r = (AbstractViewComponent) component;
-            else r = new ComponentWrapper(component.toString(), component);
+        return (AbstractViewComponent) stack.getLastNavigable().getViewComponent();
+    }
+
+    public Component register(ViewStack stack, String path, Component component) {
+        // crear vista a partir del componente y meter en el stack
+        View v;
+        if (component != null) v = new View(stack, component);
+        else v = new BrokenLinkView(stack);
+        try {
+            stack.push(path, v, this);
+        } catch (Exception e) {
+            Notifier.alert(e);
         }
-        return r;
+        return component;
     }
 
-    public Component apply(String path, String step, String remaining) throws Exception {
-        return null;
+    public void apply(ViewStack stack, String path, String step, String cleanStep, String remaining) throws Throwable {
     }
 
-    protected Component next(String path, String step, String remaining) throws Exception {
+    public void next(ViewStack stack, String path, String step, String remaining) throws Throwable {
         String p = path;
         String s = "";
         String r = "";
         if ("".equals(step)) {
-            return apply(p, s, r);
+            apply(stack, p, s, ViewStack.cleanState(s), r);
         } else {
             if (!"".equals(p) && !p.endsWith("/")) p += "/";
             p += step;
@@ -56,6 +66,6 @@ public class Controller {
                 r = "";
             }
         }
-        return apply(p, s, r);
+        apply(stack, p, s, ViewStack.cleanState(s), r);
     }
 }

@@ -35,7 +35,7 @@ import io.mateu.util.persistence.JPAHelper;
 import io.mateu.util.persistence.JPATransaction;
 import io.mateu.mdd.vaadin.MDDUI;
 import io.mateu.mdd.vaadin.components.ClassOption;
-import io.mateu.mdd.vaadin.components.app.views.FiltersViewFlowComponent;
+import io.mateu.mdd.vaadin.components.app.views.secondLevel.FiltersViewFlowComponent;
 import io.mateu.mdd.vaadin.util.BindedWindow;
 import io.mateu.mdd.vaadin.util.VaadinHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -407,7 +407,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         componentsToLookForErrors = new ArrayList<>();
 
-        MDDUI.get().getNavegador().getViewProvider().setCurrentEditor(this);
+        //MDDUI.get().getNavegador().getViewProvider().setCurrentEditor(this);
 
         try {
             if (panel == null) build();
@@ -808,7 +808,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                             Object xid = listViewComponent.getPrevious(modelId);
 
                             if (xid != null) {
-                                MDDUI.get().getNavegador().goSibling(xid);
+                                MDDUIAccessor.goSibling(xid);
                             }
 
 
@@ -837,7 +837,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                             Object xid = listViewComponent.getNext(modelId);
 
                             if (xid != null) {
-                                MDDUI.get().getNavegador().goSibling(xid);
+                                MDDUIAccessor.goSibling(xid);
                             }
 
                         } catch (Throwable throwable) {
@@ -1091,7 +1091,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                                 }
 
                                 if (xid != null) {
-                                    MDDUI.get().getNavegador().goSibling(xid);
+                                    MDDUIAccessor.goSibling(xid);
                                 } else {
                                     goBack();
                                 }
@@ -1135,7 +1135,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         Object bean = (binder != null)?binder.getBean():null;
 
 
-        boolean isEditingNewRecord = MDDUI.get().isEditingNewRecord();
+        boolean isEditingNewRecord = MDDUIAccessor.isEditingNewRecord();
 
 
         List<Method> ms = new ArrayList<>();
@@ -1259,9 +1259,6 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 if (modelType.isAnnotationPresent(Entity.class)) {
 
                     Object m = getModel();
-                    Object[] merged = new Object[1];
-
-                    MDDUI ui = MDDUI.get();
 
                     JPAHelper.transact(new JPATransaction() {
                         @Override
@@ -1270,17 +1267,16 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                             ReflectionHelper.auditar(m);
                             Object d = transferirValores(em, m);
                             setModel(d);
-
                         }
                     }, () -> {
                         System.out.println("entramos en el callback");
                         if (!goBack) {
                             System.out.println("actualizamos el ui");
-                            ui.access(() -> {
+                            UI.getCurrent().access(() -> {
                                 try {
                                     JPAHelper.notransact(em -> {
                                         if (modelId != null) {
-                                            binder.update(em.find(merged[0].getClass(), modelId));
+                                            binder.update(em.find(m.getClass(), modelId));
                                         }
                                         initialValues = buildSignature();
                                     });
@@ -1292,10 +1288,10 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                         }
                     });
 
-                    modelId = ReflectionHelper.getId(merged[0]);
+                    modelId = ReflectionHelper.getId(getModel());
 
                     JPAHelper.notransact(em -> {
-                        binder.update(em.find(merged[0].getClass(), modelId));
+                        binder.update(em.find(m.getClass(), modelId));
                         initialValues = buildSignature();
                     });
 
@@ -1371,7 +1367,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 subClasses.forEach(c -> subClassesOptions.add(new ClassOption(c)));
 
                 VaadinHelper.choose("Please choose type", subClassesOptions, c -> {
-                    if (c == null) MDDUI.get().getNavegador().goBack();
+                    if (c == null) MDDUIAccessor.goBack();
                     else {
                         try {
                             create(((ClassOption)c).get_class(), parent);
@@ -1380,7 +1376,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                         }
                     }
                 }, () -> {
-                    MDDUI.get().getNavegador().goBack();
+                    MDDUIAccessor.goBack();
                 });
             } else if (subClasses.size() == 1) {
                 create(subClasses.iterator().next(), parent);
@@ -1444,7 +1440,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                     Notifier.alert(e);
                 }
                 MDDUI.closeWindow(false);
-            }, () -> MDDUI.get().getNavegador().goBack());
+            }, () -> MDDUIAccessor.goBack());
         } else setModel(ReflectionHelper.newInstance(type, parent));
     }
 
@@ -1471,7 +1467,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     }
 
     public void goBack() {
-        MDDUI.get().getNavegador().goBack();
+        MDDUIAccessor.goBack();
     }
 
     public void setCreatorWindow(BindedWindow creatorWindow) {

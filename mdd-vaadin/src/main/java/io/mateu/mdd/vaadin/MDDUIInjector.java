@@ -10,6 +10,6 @@ public class MDDUIInjector implements IMDDUIInjector {
     @Override
     public IMDDUI get() {
         UI ui = UI.getCurrent();
-        return ui != null && ui instanceof MDDUI ? (MDDUI) ui :null;
+        return ui != null && ui instanceof IMDDUI ? (IMDDUI) ui :null;
     }
 }

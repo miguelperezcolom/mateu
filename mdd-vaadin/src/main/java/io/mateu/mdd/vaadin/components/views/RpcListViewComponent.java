@@ -2,6 +2,7 @@ package io.mateu.mdd.vaadin.components.views;
 
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.ui.Grid;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.shared.data.ChartData;
@@ -41,7 +42,7 @@ public class RpcListViewComponent extends ListViewComponent {
                 if (rpcListView.isEditHandled()) {
                     try {
                         MDDUI.get().getNavegador().setPendingResult(rpcListView.onEdit(id));
-                        MDDUI.get().getNavegador().go("" + id);
+                        MDDUIAccessor.go("" + id);
                     } catch (Throwable throwable) {
                         Notifier.alert(throwable);
                     }
@@ -52,7 +53,7 @@ public class RpcListViewComponent extends ListViewComponent {
             public void onSelect(Object id) {
                 if (rpcListView.isSelectHandled()) {
                     MDDUI.get().getNavegador().setPendingResult(rpcListView.onSelect(id));
-                    MDDUI.get().getNavegador().go("" + id);
+                    MDDUIAccessor.go("" + id);
                 }
             }
         });
@@ -69,12 +70,12 @@ public class RpcListViewComponent extends ListViewComponent {
                 if (rpcListView.isEditHandled()) {
                     try {
                         MDDUI.get().getNavegador().setPendingResult(rpcListView.onEdit(id));
-                        MDDUI.get().getNavegador().go("" + id);
+                        MDDUIAccessor.go("" + id);
                     } catch (Throwable throwable) {
                         Notifier.alert(throwable);
                     }
                 } else {
-                    MDDUI.get().getNavegador().go("" + id);
+                    MDDUIAccessor.go("" + id);
                 }
             }
 
@@ -82,7 +83,7 @@ public class RpcListViewComponent extends ListViewComponent {
             public void onSelect(Object id) {
                 if (rpcListView.isSelectHandled()) {
                     MDDUI.get().getNavegador().setPendingResult(rpcListView.onSelect(id));
-                    MDDUI.get().getNavegador().go("" + id);
+                    MDDUIAccessor.go("" + id);
                 }
             }
         });

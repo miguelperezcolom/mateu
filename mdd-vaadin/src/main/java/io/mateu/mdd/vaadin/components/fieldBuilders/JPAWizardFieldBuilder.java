@@ -5,6 +5,7 @@ import com.vaadin.data.Validator;
 import com.vaadin.shared.Registration;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.Wizard;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.vaadin.data.MDDBinder;
@@ -36,7 +37,7 @@ public class JPAWizardFieldBuilder extends AbstractFieldBuilder {
             container.addComponent(hl = new HorizontalLayout(tf = new Label(), b = new Button("Edit")));
             tf.addStyleName("labelconlink");
             b.addStyleName(ValoTheme.BUTTON_LINK);
-            b.addClickListener(e -> MDDUI.get().getNavegador().goTo(field));
+            b.addClickListener(e -> MDDUIAccessor.go(field.getName()));
 
             if (allFieldContainers != null) allFieldContainers.put(field, tf);
 

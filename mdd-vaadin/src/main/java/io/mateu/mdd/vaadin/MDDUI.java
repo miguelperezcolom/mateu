@@ -1,6 +1,5 @@
 package io.mateu.mdd.vaadin;
 
-import com.google.auto.service.AutoService;
 import com.google.common.base.Strings;
 import com.vaadin.annotations.JavaScript;
 import com.vaadin.annotations.*;
@@ -16,7 +15,6 @@ import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonArray;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractApplication;
-import io.mateu.mdd.core.app.MDDOpenListViewAction;
 import io.mateu.mdd.shared.interfaces.IArea;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.shared.interfaces.RpcView;
@@ -24,10 +22,8 @@ import io.mateu.mdd.shared.interfaces.UserPrincipal;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.shared.reflection.IFieldBuilder;
 import io.mateu.mdd.shared.ui.IMDDUI;
-import io.mateu.mdd.shared.ui.IMDDUIInjector;
 import io.mateu.mdd.vaadin.components.app.AppComponent;
 import io.mateu.mdd.vaadin.components.app.ViewContainer;
-import io.mateu.mdd.vaadin.components.app.desktop.DesktopAppComponent;
 import io.mateu.mdd.vaadin.components.fieldBuilders.AbstractFieldBuilder;
 import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
@@ -46,6 +42,7 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * This UI is the application entry point. A UI may either represent a browser window 
@@ -69,7 +66,6 @@ import java.util.Collection;
 //  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
 //  crossorigin="anonymous"></script>
 @JavaScript({"https://code.jquery.com/jquery-3.4.1.min.js"})
-
 @StyleSheet("https://use.fontawesome.com/releases/v5.13.0/css/all.css")
 
 
@@ -142,8 +138,8 @@ public class MDDUI extends UI implements IMDDUI {
         return r;
     }
 
-    public void openListView(MDDOpenListViewAction action, Class listViewClass) throws Exception {
-        getNavegador().getViewProvider().openListView(action, listViewClass);
+    public void openListView(Class listViewClass) throws Exception {
+        getNavegador().getViewProvider().openListView(listViewClass);
     }
 
     public void callMethod(String state, Method method, Object instance, Component lastViewComponent) {
@@ -181,6 +177,56 @@ public class MDDUI extends UI implements IMDDUI {
     @Override
     public boolean isMobile() {
         return getPort().isMobile();
+    }
+
+    @Override
+    public String getCurrentState() {
+        return getNavigator().getCurrentNavigationState();
+    }
+
+    @Override
+    public void go(String relativePath) {
+        getNavegador().go(relativePath);
+    }
+
+    @Override
+    public void goTo(String path) {
+        getNavegador().goTo(path);
+    }
+
+    @Override
+    public void goBack() {
+        getNavegador().goBack();
+    }
+
+    @Override
+    public void goSibling(Object siblingId) {
+        //todo: implementar
+    }
+
+    @Override
+    public void open(Method m, Set selection) {
+        //todo: implementar
+    }
+
+    @Override
+    public void open(Method m, Object result) {
+        //todo: implementar
+    }
+
+    @Override
+    public Set getPendingSelection() {
+        return null;
+    }
+
+    @Override
+    public void setPendingSelection(Set selecion) {
+
+    }
+
+    @Override
+    public Object getPendingResult() {
+        return null;
     }
 
     public void setApp(AbstractApplication app) {
@@ -242,9 +288,6 @@ public class MDDUI extends UI implements IMDDUI {
         }
 
         //setContent(flowComponent);
-
-        setContent((Component) (appComponent = new DesktopAppComponent(app, viewContainer)));
-
 
 
     }

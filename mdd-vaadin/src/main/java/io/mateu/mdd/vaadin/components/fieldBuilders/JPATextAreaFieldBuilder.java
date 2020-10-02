@@ -10,6 +10,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.TextArea;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.vaadin.data.MDDBinder;
@@ -57,7 +58,7 @@ public class JPATextAreaFieldBuilder extends JPAStringFieldBuilder {
             Button b;
             l.addComponent(b = new Button(VaadinIcons.EXPAND_SQUARE));
             b.addStyleName(ValoTheme.BUTTON_QUIET);
-            b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+            b.addClickListener(e -> MDDUIAccessor.go(field.getName()));
 
             container.addComponent(l);
 

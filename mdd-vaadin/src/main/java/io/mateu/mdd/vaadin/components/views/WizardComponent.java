@@ -101,7 +101,7 @@ public class WizardComponent extends EditorViewComponent {
 
                         currentPage.onOk();
 
-                        if (currentPage.backOnOk()) MDDUI.get().getNavegador().goBack();
+                        if (currentPage.backOnOk()) MDDUIAccessor.goBack();
 
                     } catch (Throwable throwable) {
                         Notifier.alert(throwable);

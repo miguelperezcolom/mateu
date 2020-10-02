@@ -3,6 +3,7 @@ package io.mateu.mdd.vaadin.components.views;
 import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.MDDRunnableAction;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.core.views.ExtraFilters;
 import io.mateu.mdd.shared.annotations.UseLinkToListView;
 import io.mateu.mdd.core.app.AbstractAction;
@@ -82,7 +83,7 @@ public class JPACollectionFieldViewComponent extends JPAListViewComponent {
             l.add(new MDDRunnableAction("Add items") {
                 @Override
                 public void run() {
-                    MDDUI.get().getNavegador().go("add");
+                    MDDUIAccessor.go("add");
                 }
             });
             l.add(new MDDRunnableAction("Remove selected items") {
@@ -102,7 +103,7 @@ public class JPACollectionFieldViewComponent extends JPAListViewComponent {
 
                             evfc.save(false);
 
-                            MDDUI.get().getNavegador().goBack();
+                            MDDUIAccessor.goBack();
 
                         } catch (Throwable throwable) {
                             Notifier.alert(throwable);
@@ -135,7 +136,7 @@ public class JPACollectionFieldViewComponent extends JPAListViewComponent {
 
                     if (field.isAnnotationPresent(UseLinkToListView.class) && addingToCollection) evfc.save(false);
 
-                    MDDUI.get().getNavegador().goBack();
+                    MDDUIAccessor.goBack();
 
                 } catch (Throwable throwable) {
                     Notifier.alert(throwable);

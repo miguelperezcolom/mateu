@@ -1,0 +1,67 @@
+@mixin view {
+  .viewHeader {
+    padding: 0px;
+  }
+
+  .viewcomponent {
+      padding-top: 10px;
+      padding-left: 15px;
+      padding-right: 15px;
+      padding-bottom: 10px;
+  }
+
+  .contenido {
+    padding: 0px;
+  }
+
+  .resultscomponent {
+    padding: 0px;
+  }
+
+
+  .viewHeader {
+    padding: 0px;
+
+    .viewTitle {
+      font-size: 2em;
+    }
+
+    .viewIcon {
+      font-size: 1.5em;
+      padding-top: 7px;
+      color: black;
+    }
+
+  }
+
+
+
+
+  .filterscomponent {
+
+    border-top: 1px dashed lightgrey;
+    border-bottom: 1px dashed lightgrey;
+    padding-bottom: 10px !important;
+    width: 100%;
+
+    > div > * {
+      margin-right: 20px;
+    }
+
+    .v-caption {
+      margin-right: 10px;
+    }
+
+    .v-button {
+      margin-right: 5px;
+    }
+
+  }
+
+  .listsummaryline {
+    margin-top: 20px;
+    font-style: italic;
+  }
+
+
+}

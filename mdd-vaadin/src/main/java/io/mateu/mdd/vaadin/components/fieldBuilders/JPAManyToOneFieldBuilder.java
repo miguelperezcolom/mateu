@@ -7,6 +7,7 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.SerializablePredicate;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
@@ -86,7 +87,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
             if (!MDD.isReadWrite(field.getType())) {
                 Button b = new Button("Select");
                 b.addStyleName(ValoTheme.BUTTON_LINK);
-                b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+                b.addClickListener(e -> MDDUIAccessor.go(field.getName()));
                 wrap.addComponent(b);
             }
             container.addComponent(wrap);
@@ -275,7 +276,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                     b.addStyleName(CSS.NOPADDING);
                     b.addClickListener(e -> {
 
-                        MDDUI.get().getNavegador().go(field.getName() + "_search");
+                        MDDUIAccessor.go(field.getName() + "_search");
 
                     });
                     hl.addComponent(b);
@@ -284,7 +285,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                         botonLink = new Button(null, VaadinIcons.ARROW_RIGHT);
                         botonLink.addStyleName(ValoTheme.BUTTON_QUIET);
                         botonLink.addStyleName(CSS.NOPADDING);
-                        botonLink.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+                        botonLink.addClickListener(e -> MDDUIAccessor.go(field.getName()));
                         botonLink.setVisible(false);
                         hl.addComponent(botonLink);
                     }

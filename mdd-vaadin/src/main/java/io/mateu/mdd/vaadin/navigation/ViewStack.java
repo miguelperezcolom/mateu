@@ -5,6 +5,8 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.Window;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
+import io.mateu.mdd.vaadin.components.views.ListViewComponent;
+import io.mateu.mdd.vaadin.controllers.Controller;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
@@ -36,18 +38,21 @@ public class ViewStack {
         return viewByState;
     }
 
-    public io.mateu.mdd.vaadin.navigation.View push(String state, Component component) throws Exception {
+    public io.mateu.mdd.vaadin.navigation.View push(String state, Component component, Controller c) throws Exception {
         io.mateu.mdd.vaadin.navigation.View v;
 
         if (component != null && component instanceof AbstractViewComponent) {
             String t = null;
+            if (component instanceof ListViewComponent) {
+                ((ListViewComponent) component).setBaseUrl(state);
+            }
             if (component instanceof RpcListViewComponent) {
-                RpcListViewComponent c = (RpcListViewComponent) component;
-                if (c.getRpcListView() != null) {
-                    Class cl = c.getRpcListView().getClass();
+                RpcListViewComponent rlvc = (RpcListViewComponent) component;
+                if (rlvc.getRpcListView() != null) {
+                    Class cl = rlvc.getRpcListView().getClass();
                     Method m = ReflectionHelper.getMethod(cl, "toString");
                     if (m != null && !Object.class.equals(m.getDeclaringClass())) {
-                        t = "" + c.getRpcListView();
+                        t = "" + rlvc.getRpcListView();
                     }
                 }
             }
@@ -60,29 +65,32 @@ public class ViewStack {
             }
         }
 
-        push(state, v = new io.mateu.mdd.vaadin.navigation.View(this, component));
+        push(state, v = new io.mateu.mdd.vaadin.navigation.View(this, component), c);
 
         return v;
     }
 
-    public io.mateu.mdd.vaadin.navigation.View push(String state, io.mateu.mdd.vaadin.navigation.View v) throws Exception {
-
+    public io.mateu.mdd.vaadin.navigation.View push(String state, io.mateu.mdd.vaadin.navigation.View v, Controller c) throws Exception {
+        String cleanState = cleanState(state);
         boolean yaAbierto = false;
         if (v.getViewComponent() instanceof EditorViewComponent) {
-            if (((EditorViewComponent) v.getViewComponent()).getModel() != null) yaAbierto = stack.stream().filter(w -> w.getViewComponent() instanceof EditorViewComponent && ((EditorViewComponent) w.getViewComponent()).getModel() != null && ((EditorViewComponent) w.getViewComponent()).getModel().equals(((EditorViewComponent) v.getViewComponent()).getModel())).findFirst().isPresent();
+            if (((EditorViewComponent) v.getViewComponent()).getModel() != null) yaAbierto = stack.stream().anyMatch(w -> w.getViewComponent() instanceof EditorViewComponent && ((EditorViewComponent) w.getViewComponent()).getModel() != null && ((EditorViewComponent) w.getViewComponent()).getModel().equals(((EditorViewComponent) v.getViewComponent()).getModel()));
+        } else if (v.getViewComponent() instanceof ListViewComponent) {
+            ((ListViewComponent) v.getViewComponent()).setBaseUrl(state);
         }
 
         if (yaAbierto) {
             throw new Exception("You are already editing " + v.getViewComponent().getPageTitle());
         }
 
-        if (viewByState.containsKey(state)) {
-            io.mateu.mdd.vaadin.navigation.View x = viewByState.remove(state);
+        if (viewByState.containsKey(cleanState)) {
+            io.mateu.mdd.vaadin.navigation.View x = viewByState.remove(cleanState);
             stateByView.remove(x);
             stack.remove(x);
         }
-        viewByState.put(state, v);
-        stateByView.put(v, state);
+        viewByState.put(cleanState, v);
+        stateByView.put(v, cleanState);
+        v.setController(c);
         stack.add(v);
         return v;
     }
@@ -90,16 +98,17 @@ public class ViewStack {
 
 
 
-    public void pop() {
-        pop(1);
+    public View pop() {
+        return pop(1);
     }
 
-    public void pop(int positions) {
+    public View pop(int positions) {
+        View r = null;
         if (positions <= stack.size()) {
             int index = stack.size() - positions;
             if (index < 0) index = 0;
             while (index < stack.size()) {
-                View v = stack.remove(stack.size() - 1);
+                View v = r = stack.remove(stack.size() - 1);
                 String state = stateByView.remove(v);
                 viewByState.remove(state);
                 if (viewByState.size() != stateByView.size()) {
@@ -120,6 +129,7 @@ public class ViewStack {
                 }
             }
         }
+        return r;
     }
 
 
@@ -151,7 +161,7 @@ public class ViewStack {
     }
 
     public io.mateu.mdd.vaadin.navigation.View get(String state) {
-        return viewByState.get(state);
+        return viewByState.get(cleanState(state));
     }
 
     public int indexOf(View v) {
@@ -184,5 +194,29 @@ public class ViewStack {
             last = stack.get(pos - 1);
         }
         return last;
+    }
+
+    public View popTo(String state) {
+        String cleanState = cleanState(state);
+        View v = null;
+        while (v == null && stack.size() > 0) {
+            View r = stack.get(stack.size() - 1);
+            if (cleanState.equals(getState(r))) {
+                v = r;
+                break;
+            } else {
+                pop();
+            }
+        }
+        return v;
+    }
+
+    public static String cleanState(String state) {
+        String s = "";
+        for (String t : state.split("/")) {
+            if (!"".equals(s)) s += "/";
+            s += t.contains("&")?t.substring(0, t.indexOf("&")):t;
+        }
+        return s;
     }
 }

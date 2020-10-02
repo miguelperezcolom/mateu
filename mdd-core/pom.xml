@@ -275,7 +275,7 @@
         </dependency>
 
         <dependency>
-            <groupId>org.example</groupId>
+            <groupId>io.mateu</groupId>
             <artifactId>showcase-app</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>

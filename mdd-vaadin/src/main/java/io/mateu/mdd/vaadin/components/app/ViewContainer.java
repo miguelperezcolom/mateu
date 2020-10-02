@@ -4,9 +4,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
-import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.vaadin.MDDUI;
-import io.mateu.mdd.vaadin.navigation.ComponentWrapper;
+import io.mateu.mdd.vaadin.components.ComponentWrapper;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

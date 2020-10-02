@@ -87,7 +87,11 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     private Button excelButton;
     private Button pdfButton;
     private HorizontalLayout matchesComponent;
+    private String baseUrl;
 
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
+    }
 
     @Override
     public VaadinIcons getIcon() {
@@ -1198,6 +1202,13 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
 
     public Object getPrevious(Object current) {
+        if (resultsComponent == null) {
+            try {
+                build();
+            } catch (Exception e) {
+                Notifier.alert(e);
+            }
+        }
         Object x = resultsComponent.getPrevious();
         if (x == null) return null;
         if (getView().getViewComponent() instanceof RpcListViewComponent && ((RpcListViewComponent) getView().getViewComponent()).getRpcListView() instanceof AbstractJPQLListView) {
@@ -1211,6 +1222,13 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     public Object getNext(Object current) {
+        if (resultsComponent == null) {
+            try {
+                build();
+            } catch (Exception e) {
+                Notifier.alert(e);
+            }
+        }
         Object x = resultsComponent.getNext();
         if (x == null) return null;
         if (getView().getViewComponent() instanceof RpcListViewComponent && ((RpcListViewComponent) getView().getViewComponent()).getRpcListView() instanceof AbstractJPQLListView) {
@@ -1592,7 +1610,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             i.addStyleName(ValoTheme.BUTTON_QUIET);
             i.addClickListener(e -> {
                 try {
-                    MDDUI.get().getNavegador().go("new");
+                    MDDUIAccessor.go("new");
                 } catch (Throwable throwable) {
                     Notifier.alert(throwable);
                 }
@@ -1675,11 +1693,13 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     public void searched() {
-        MDDUI.get().getNavegador().goTo(getUrl());
+        MDDUIAccessor.goTo(getUrl());
     }
 
+
     public String getUrl() {
-        String u = MDDUI.get().getNavegador().getStack().getState(getView());
+        String u = baseUrl;
+        if (u == null) u = MDDUIAccessor.getCurrentState();
         if (u.contains("/")) {
             String s = u.substring(u.lastIndexOf("/"));
             if (s.contains("&")) u = u.substring(0, u.length() - (s.length() - s.indexOf("&") - 1));

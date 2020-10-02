@@ -7,7 +7,9 @@ import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.shared.reflection.IFieldBuilder;
 import io.mateu.mdd.shared.ui.IMDDUI;
 
+import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Set;
 
 public class FakeUI implements IMDDUI {
 
@@ -66,5 +68,65 @@ public class FakeUI implements IMDDUI {
     @Override
     public boolean isMobile() {
         return false;
+    }
+
+    @Override
+    public String getUiRootPath() {
+        return "";
+    }
+
+    @Override
+    public String getCurrentState() {
+        return "";
+    }
+
+    @Override
+    public void go(String relativePath) {
+
+    }
+
+    @Override
+    public void goTo(String path) {
+
+    }
+
+    @Override
+    public void goBack() {
+
+    }
+
+    @Override
+    public void goSibling(Object siblingId) {
+
+    }
+
+    @Override
+    public void open(Method m, Set selection) {
+
+    }
+
+    @Override
+    public void open(Method m, Object result) {
+
+    }
+
+    @Override
+    public Collection getPendingSelection() {
+        return null;
+    }
+
+    @Override
+    public void setPendingSelection(Collection selecion) {
+
+    }
+
+    @Override
+    public Object getPendingResult() {
+        return null;
+    }
+
+    @Override
+    public void setPendingResult(Object result) {
+
     }
 }

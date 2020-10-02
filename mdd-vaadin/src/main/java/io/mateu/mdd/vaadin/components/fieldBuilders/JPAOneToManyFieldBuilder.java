@@ -115,7 +115,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             Button b;
             l.addComponent(b = new Button("Add"));
             b.addStyleName(ValoTheme.BUTTON_LINK);
-            b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+            b.addClickListener(e -> MDDUIAccessor.go(field.getName()));
 
             if (allFieldContainers != null) allFieldContainers.put(field, hl);
 
@@ -182,7 +182,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             hl.addStyleName(CSS.CLICKABLE);
             hl.addLayoutClickListener(e -> {
                 //if (e.isDoubleClick())
-                    MDDUI.get().getNavegador().go(field.getName());
+                    MDDUIAccessor.go(field.getName());
             });
 
             hl.setCaption(ReflectionHelper.getCaption(field));
@@ -243,7 +243,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             hl.addStyleName(CSS.CLICKABLE);
             hl.addLayoutClickListener(e -> {
                 //if (e.isDoubleClick())
-                    MDDUI.get().getNavegador().go(field.getName());
+                    MDDUIAccessor.go(field.getName());
             });
 
             hl.setCaption(ReflectionHelper.getCaption(field));
@@ -288,7 +288,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             hl.addStyleName(CSS.CLICKABLE);
             hl.addLayoutClickListener(e -> {
                 //if (e.isDoubleClick())
-                    MDDUI.get().getNavegador().go(field.getName());
+                    MDDUIAccessor.go(field.getName());
             });
 
             addComponent(container, hl, attachedActions.get(field.getName()));
@@ -311,7 +311,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             hl.addLayoutClickListener(e -> {
                 //if (e.isDoubleClick())
-                    MDDUI.get().getNavegador().go(field.getName());
+                    MDDUIAccessor.go(field.getName());
             });
 
             hl.setCaption(ReflectionHelper.getCaption(field));
@@ -544,7 +544,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                                                 } catch (Exception ex) {
                                                     Notifier.alert(ex);
                                                 }
-                                            }, () -> MDDUI.get().getNavegador().goBack());
+                                            }, () -> MDDUIAccessor.goBack());
                                         } else Notifier.alert("No constructor found for " + field.getGenericClass().getSimpleName());
                                     }
 
@@ -722,9 +722,9 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                     g.addStyleName("unclickable");
 
-                    if (MDDUI.get().getNavegador().getViewProvider().pendingSelection != null) {
-                        g.setDataProvider(new ListDataProvider(MDDUI.get().getNavegador().getViewProvider().pendingSelection));
-                        MDDUI.get().getNavegador().getViewProvider().pendingSelection = null;
+                    if (MDDUIAccessor.getPendingSelection() != null) {
+                        g.setDataProvider(new ListDataProvider(MDDUIAccessor.getPendingSelection()));
+                        MDDUIAccessor.setPendingSelection(null);
                     } else {
 
                         if (dpa != null) {
@@ -767,7 +767,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                             //if (MDDUIAccessor.isMobile() || e.getMouseEventDetails().isDoubleClick()) {
                             Object i = e.getItem();
                             if (i != null) {
-                                MDDUI.get().getNavegador().go(field.getName());
+                                MDDUIAccessor.go(field.getName());
                             }
                             //}
                         });
@@ -775,7 +775,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                         hl.addComponent(b = new Button(VaadinIcons.PLUS));
                         b.addStyleName(ValoTheme.BUTTON_QUIET);
                         b.addStyleName(ValoTheme.BUTTON_TINY);
-                        b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+                        b.addClickListener(e -> MDDUIAccessor.go(field.getName()));
 
                         hl.addComponent(b = new Button(VaadinIcons.MINUS));
                         b.addStyleName(ValoTheme.BUTTON_QUIET);
@@ -825,14 +825,15 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
     }
 
     private static void editar(MDDBinder binder, FieldInterfaced field, Object i, int indice) {
-        String state = MDDUI.get().getNavegador().getViewProvider().getCurrentPath();
+        String state = MDDUIAccessor.getCurrentState();
         if (!state.endsWith("/")) state += "/";
         state += field.getName();
 
         try {
+            //todo: ver como resolvemso esto de una manera más elegante
             OwnedCollectionComponent occ;
-            MDDUI.get().getNavegador().getStack().push(state, occ = new OwnedCollectionComponent(binder, field, indice)).setOpenNewWindow(true);
-            MDDUI.get().getNavegador().goTo(state);
+            //MDDUI.get().getNavegador().getStack().push(state, occ = new OwnedCollectionComponent(binder, field, indice)).setOpenNewWindow(true);
+            MDDUIAccessor.goTo(state);
         } catch (Exception e1) {
             e1.printStackTrace();
 
@@ -1769,7 +1770,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                         clickable.addStyleName(CSS.CLICKABLE);
                         clickable.addLayoutClickListener(e -> {
                             //if (e.isDoubleClick())
-                            MDDUI.get().getNavegador().go(field.getName());
+                            MDDUIAccessor.go(field.getName());
                         });
                     }
                 } else {

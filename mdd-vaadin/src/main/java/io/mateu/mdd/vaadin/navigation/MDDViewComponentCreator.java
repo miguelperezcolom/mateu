@@ -20,7 +20,11 @@ import java.util.function.Consumer;
 
 public class MDDViewComponentCreator {
 
-    public static Component createComponent(MDDOpenEditorAction mddOpenEditorAction, Class viewClass, Object id) {
+    public static Component createComponent(MDDOpenEditorAction action) {
+        return createComponent(action.viewClass, action.id);
+    }
+
+    public static Component createComponent(Class viewClass, Object id) {
         Component v = null;
 
         Class modelType = null;
@@ -44,7 +48,34 @@ public class MDDViewComponentCreator {
         return v;
     }
 
-    public static Component createComponent(AbstractAction mddOpenListViewAction, Class viewClass) {
+    public static Component createComponent(Object bean) {
+        Component v = null;
+
+        if (bean != null) {
+            Class modelType = null;
+            try {
+
+                modelType = bean.getClass();
+
+                v = createEditorViewComponent(modelType);
+
+                if (modelType.isAnnotationPresent(Entity.class)) ((EditorViewComponent)v).load(ReflectionHelper.getId(bean));
+                else ((EditorViewComponent)v).setModel(bean);
+
+
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
+            }
+        }
+
+        return v;
+    }
+
+    public static Component createComponent(Class viewClass) {
         Component v = null;
 
         try {

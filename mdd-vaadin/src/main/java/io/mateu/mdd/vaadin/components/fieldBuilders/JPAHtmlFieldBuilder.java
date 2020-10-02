@@ -10,6 +10,7 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.UserError;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.Html;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.vaadin.data.MDDBinder;
@@ -47,7 +48,7 @@ public class JPAHtmlFieldBuilder extends JPAStringFieldBuilder {
             Button b;
             l.addComponent(b = new Button(VaadinIcons.EXPAND_SQUARE));
             b.addStyleName(ValoTheme.BUTTON_QUIET);
-            b.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+            b.addClickListener(e -> MDDUIAccessor.go(field.getName()));
 
             container.addComponent(l);
 

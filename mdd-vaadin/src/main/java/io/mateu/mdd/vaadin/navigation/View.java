@@ -2,9 +2,11 @@ package io.mateu.mdd.vaadin.navigation;
 
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Window;
-import io.mateu.mdd.vaadin.components.app.views.*;
+import io.mateu.mdd.vaadin.components.ComponentWrapper;
+import io.mateu.mdd.vaadin.components.app.views.firstLevel.*;
 import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;
 import io.mateu.mdd.vaadin.components.views.SearchInMenuComponent;
+import io.mateu.mdd.vaadin.controllers.Controller;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -12,6 +14,7 @@ import java.util.UUID;
 public class View implements com.vaadin.navigator.View {
 
     private String uuid = UUID.randomUUID().toString();
+    private Controller controller;
 
     @Override
     public boolean equals(Object o) {
@@ -47,6 +50,10 @@ public class View implements com.vaadin.navigator.View {
 
     }
 
+    public Controller getController() {
+        return controller;
+    }
+
     @Override
     public AbstractViewComponent getViewComponent() {
         return viewComponent;
@@ -60,15 +67,6 @@ public class View implements com.vaadin.navigator.View {
     public String toString() {
         return viewComponent.toString();
     }
-
-
-
-
-    public boolean isMenuExpanded() {
-        boolean exp = component != null && (component instanceof PrivateMenuFlowComponent || component instanceof PublicMenuFlowComponent || component instanceof AreaComponent || component instanceof ModuleComponent || component instanceof MenuFlowComponent || component instanceof SearchInMenuComponent);
-        return exp;
-    }
-
 
 
 
@@ -105,5 +103,9 @@ public class View implements com.vaadin.navigator.View {
 
     public boolean isOpenNewWindow() {
         return openNewWindow;
+    }
+
+    public void setController(Controller c) {
+        this.controller = c;
     }
 }

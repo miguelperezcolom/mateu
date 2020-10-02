@@ -53,18 +53,6 @@ public class VaadinPort {
                 Notification.Type.ERROR_MESSAGE);
     }
 
-    public void openCRUD(AbstractAction action) {
-        log.debug("open crud");
-
-        MDDUI.get().getNavegador().goTo(action);
-    }
-
-    public void openEditor(AbstractAction action, Class viewClass, Object id) {
-        log.debug("open editor");
-
-        MDDUI.get().getNavegador().goTo(action, viewClass, id);
-    }
-
     public void openWizard(Class firstPageClass) {
         log.debug("open wizard");
 
@@ -160,55 +148,11 @@ public class VaadinPort {
     }
 
 
-    public void setCurrentUserLogin(String login) {
-        UI.getCurrent().getSession().setAttribute("_login", login);
-        getApp().updateSession();
-        MDDUI.get().getAppComponent().updateSession();
-    }
-
-    public String getCurrentUserLogin() {
-        return (String) UI.getCurrent().getSession().getAttribute("_login");
-    }
-
-    public void openView(AbstractAction action, Class listViewClass) {
-        MDDUI.get().getNavegador().goTo(action, listViewClass);
-    }
-
-
-
 
     public void openPrivateAreaSelector() {
-        MDDUI.get().getNavegador().goTo("private");
+        MDDUIAccessor.goTo("private");
     }
 
-
-    public void open(AbstractArea a) {
-        MDDUI.get().getNavegador().goTo(a);
-    }
-
-    public void open(MenuEntry m) {
-        MDDUI.get().getNavegador().goTo(m);
-    }
-
-    public void open(AbstractModule m) {
-        MDDUI.get().getNavegador().goTo(m);
-    }
-
-    public void open(Method m) {
-        MDDUI.get().getNavegador().goTo(m);
-    }
-
-    public void open(Method m, Set selection) {
-        MDDUI.get().getNavegador().goTo(m, selection);
-    }
-
-    public void open(Method m, Object result) {
-        MDDUI.get().getNavegador().goTo(m, result);
-    }
-
-    public void open(FieldInterfaced f) {
-        MDDUI.get().getNavegador().goTo(f);
-    }
 
     public void confirm(String msg, Runnable onOk) {
 

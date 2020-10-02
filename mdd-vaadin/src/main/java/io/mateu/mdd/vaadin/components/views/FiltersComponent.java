@@ -128,7 +128,7 @@ public class FiltersComponent extends Composite {
                     @Override
                     public void buttonClick(Button.ClickEvent clickEvent) {
                         listViewComponent.setModelForSearchFilters(binder.getBean());
-                        MDDUI.get().getNavegador().go(listViewComponent.getPathForFilters());
+                        MDDUIAccessor.go(listViewComponent.getPathForFilters());
                     }
                 });
                 b.setClickShortcut(ShortcutAction.KeyCode.F, ShortcutAction.ModifierKey.CTRL);

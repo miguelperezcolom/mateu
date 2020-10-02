@@ -33,6 +33,16 @@ public abstract class AbstractApplication implements App {
     private Map<MenuEntry, List<MenuEntry>> menuPaths;
     List<IArea> areas = null;
 
+    private String logo;
+
+    public String getLogo() {
+        return logo;
+    }
+
+    public void setLogo(String logo) {
+        this.logo = logo;
+    }
+
     public static AbstractApplication get() {
         if (!Strings.isNullOrEmpty(System.getProperty("appClassName"))) {
             try {

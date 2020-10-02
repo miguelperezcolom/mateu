@@ -145,7 +145,7 @@ public abstract class SearchInMenuComponent extends AbstractViewComponent {
                 hl.addComponent(b = new Button(f.getName()));
                 b.addClickListener(ev -> {
                     close();
-                    MDDUI.get().getNavegador().goTo(f.getPath());
+                    MDDUIAccessor.goTo(f.getPath());
                 });
                 b.addStyleName(ValoTheme.BUTTON_LINK);
 

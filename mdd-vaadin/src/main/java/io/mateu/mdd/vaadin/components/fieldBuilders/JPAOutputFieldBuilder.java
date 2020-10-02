@@ -9,6 +9,7 @@ import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.shared.annotations.DataProvider;
@@ -218,7 +219,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
                     botonLink = new Button("None");
                     botonLink.addStyleName(ValoTheme.BUTTON_LINK);
-                    botonLink.addClickListener(e -> MDDUI.get().getNavegador().go(field.getName()));
+                    botonLink.addClickListener(e -> MDDUIAccessor.go(field.getName()));
                     botonLink.setVisible(false);
                     hl.addComponent(botonLink);
 

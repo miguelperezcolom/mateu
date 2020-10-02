@@ -3,17 +3,25 @@ package io.mateu.mdd.vaadin.actions;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.vaadin.MDDUI;
-import io.mateu.mdd.vaadin.navigation.ComponentWrapper;
+import io.mateu.mdd.vaadin.components.ComponentWrapper;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.notification.Notifier;
 
 public class AcctionRunner {
 
-    public void run(AbstractAction action) throws Exception {
-        throw new Exception("Unrecognized action " + action);
+    public void run(AbstractAction action) throws Throwable {
+        if (action instanceof MDDCallMethodAction) run((MDDCallMethodAction) action);
+        else if (action instanceof MDDViewObject) run((MDDViewObject) action);
+        else if (action instanceof MDDOpenCRUDAction) run((MDDOpenCRUDAction) action);
+        else if (action instanceof MDDOpenCustomComponentAction) run((MDDOpenCustomComponentAction) action);
+        else if (action instanceof MDDOpenEditorAction) run((MDDOpenEditorAction) action);
+        else if (action instanceof MDDOpenListViewAction) run((MDDOpenListViewAction) action);
+        else if (action instanceof MDDOpenHtml) run((MDDOpenHtml) action);
+        else if (action instanceof MDDOpenWizardAction) run((MDDOpenWizardAction) action);
+        else if (action instanceof MDDRunnableAction) run((MDDRunnableAction) action);
+        else throw new Exception("Unrecognized action " + action);
     }
 
     public void run(MDDCallMethodAction action) {
@@ -35,11 +43,11 @@ public class AcctionRunner {
 
     public void run(MDDOpenEditorAction action) throws Throwable {
         if (action.bean != null) MDDUI.get().getNavegador().getViewProvider().openEditor( action.bean);
-        else MDDUI.get().getNavegador().getViewProvider().openEditor(action, action.viewClass, action.id);
+        else MDDUI.get().getNavegador().getViewProvider().openEditor(action);
     }
 
     public void run(MDDOpenListViewAction action) throws Exception {
-        MDDUI.get().openListView(action, action.listViewClass);
+        MDDUI.get().openListView(action.listViewClass);
     }
 
     public void run(MDDOpenHtml action) throws Exception {

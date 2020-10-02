@@ -7,6 +7,7 @@ import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.ui.Grid;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.core.views.ExtraFilters;
 import io.mateu.mdd.shared.data.ChartData;
 import io.mateu.mdd.shared.data.ChartValue;
@@ -121,7 +122,7 @@ public class JPAListViewComponent extends ListViewComponent {
             @Override
             public void onEdit(Object id) {
                 try {
-                    MDDUI.get().getNavegador().goTo(getUrl() + "/" + URLEncoder.encode(Helper.encodeState("" + id), "iso-8859-1"));
+                    MDDUIAccessor.goTo(getUrl() + "/" + URLEncoder.encode(Helper.encodeState("" + id), "iso-8859-1"));
                 } catch (UnsupportedEncodingException e) {
                     Notifier.alert(e);
                 }
@@ -142,7 +143,7 @@ public class JPAListViewComponent extends ListViewComponent {
                         }
                     }
                     callback.accept(o);
-                    MDDUI.get().getNavegador().goBack();
+                    MDDUIAccessor.goBack();
                 }
             }
         });

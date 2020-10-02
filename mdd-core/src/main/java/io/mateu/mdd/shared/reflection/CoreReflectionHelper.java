@@ -28,6 +28,11 @@ public class CoreReflectionHelper {
         Map<String, Object> params = null;
         if (o != null && Map.class.isAssignableFrom(o.getClass())) {
             params = (Map<String, Object>) o;
+        } else if (o != null) {
+            params = new HashMap<>();
+            for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(o.getClass())) {
+                params.put(f.getName(), ReflectionHelper.getValue(f, o));
+            }
         }
 
         int posEM = -1;

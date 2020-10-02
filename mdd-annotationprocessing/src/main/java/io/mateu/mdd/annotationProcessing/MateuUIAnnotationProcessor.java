@@ -41,7 +41,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                         out.println("package " + pkgName + ";");
                         out.println("import " + className + ";");
 
-                        out.println("import io.mateu.mdd.vaadin.MDDUI;");
+                        out.println("import io.mateu.mdd.vaadin.MateuUI;");
                         out.println("import com.vaadin.annotations.*;");
                         out.println("import com.vaadin.annotations.JavaScript;");
                         out.println("import com.vaadin.navigator.PushStateNavigation;");
@@ -53,13 +53,15 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                         out.println();
                         out.println("@Theme(\"" + e.getAnnotation(MateuUI.class).theme() + "\")\n" +
                                 "@JavaScript({\"https://code.jquery.com/jquery-3.4.1.min.js\"})\n" +
-                                "@StyleSheet(\"https://use.fontawesome.com/releases/v5.13.0/css/all.css\")\n" +
+                                //"@StyleSheet(\"https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css\")\n" +
+                                "@StyleSheet(\"https://use.fontawesome.com/releases/v5.14.0/js/all.js\")\n" +
+                                //"@JavaScript({\"/js/include.js\"})\n" +
                                 "@Viewport(\"width=device-width, initial-scale=1\")\n" +
                                 "@PushStateNavigation // para urls sin #!\n" +
                                 "//@Push\n" +
                                 "@PreserveOnRefresh\n" +
                                 "@Slf4j\n" +
-                                "public class " + simpleClassName + "UI extends MDDUI {");
+                                "public class " + simpleClassName + "UI extends MateuUI {");
                         out.println("");
                         out.println("}");
                     }
@@ -72,7 +74,6 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                         out.println("import " + className + ";");
 
                         out.println("import io.mateu.mdd.core.annotations.MateuUIServlet;");
-                        out.println("import io.mateu.mdd.vaadin.MDDUI;");
                         out.println("import " + pkgName + "." + simpleClassName + "UI;");
                         out.println("import com.vaadin.annotations.VaadinServletConfiguration;");
                         out.println("import com.vaadin.server.DeploymentConfiguration;");

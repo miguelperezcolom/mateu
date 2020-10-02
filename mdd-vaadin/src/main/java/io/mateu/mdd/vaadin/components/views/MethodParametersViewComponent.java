@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.MDDRunnableAction;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.vaadin.data.MDDBinder;
@@ -58,7 +59,7 @@ public class MethodParametersViewComponent extends EditorViewComponent {
             public void run() {
                 if (validate()) {
                     try {
-                        Object r = CoreReflectionHelper.execute(method, getBinder(), bean, pendingSelection);
+                        Object r = CoreReflectionHelper.execute(method, getBinder().getBean(), bean, pendingSelection);
                         if (bean != null && void.class.equals(method.getReturnType())) {
                             if (method.isAnnotationPresent(Action.class) && method.getAnnotation(Action.class).saveAfter()) {
                                 ViewStack stack = MDDUI.get().getNavegador().getViewProvider().getStack();
@@ -66,13 +67,14 @@ public class MethodParametersViewComponent extends EditorViewComponent {
                                 if (v != null && v.getViewComponent() instanceof EditorViewComponent) ((EditorViewComponent) v.getViewComponent()).save(false);
                             }
                         } else {
-                            MDDUI.get().getNavegador().getViewProvider().pendingResult = r;
-                            MDDUI.get().getNavegador().getViewProvider().lastMethodCall = method;
+                            MDDUIAccessor.setPendingResult(r);
+                            //todo: ver si es necesario rellenar el last method call
+                            //MDDUIAccessor.setLastMethodCall(method);
                         }
                         if (r == null || void.class.equals(method.getReturnType())) {
                             Notifier.info("Done");
-                            MDDUI.get().getNavegador().goBack();
-                        } else MDDUI.get().getNavegador().go("result");
+                            MDDUIAccessor.goBack();
+                        } else MDDUIAccessor.go("result");
                     } catch (Throwable e) {
                         Notifier.alert(e);
                     }

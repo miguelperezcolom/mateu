@@ -1,5 +1,8 @@
 package io.mateu.mdd.core.ui;
 
+import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.app.AbstractArea;
+import io.mateu.mdd.core.app.AbstractModule;
 import io.mateu.mdd.shared.interfaces.App;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.shared.interfaces.UserPrincipal;
@@ -9,7 +12,9 @@ import io.mateu.mdd.shared.ui.IMDDUI;
 import io.mateu.mdd.shared.ui.IMDDUIInjector;
 import io.mateu.util.Helper;
 
+import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Set;
 
 public class MDDUIAccessor {
 
@@ -75,4 +80,53 @@ public class MDDUIAccessor {
     public static boolean isMobile() {
         return get() != null && get().isMobile();
     }
+
+    public static String getUiRootPath() {
+        return get() != null?get().getUiRootPath():"";
+    }
+
+    public static void go(String state) {
+        if (get() != null) get().go(state);
+    }
+
+    public static void goTo(String state) {
+        if (get() != null) get().goTo(state);
+    }
+
+    public static String getCurrentState() {
+        return get() != null?get().getCurrentState():null;
+    }
+
+    public static void goBack() {
+        if (get() != null) get().goBack();
+    }
+
+    public static void goSibling(Object siblingId) {
+        if (get() != null) get().goSibling(siblingId);
+    }
+
+    public static void open(Method m, Set selection) {
+        if (get() != null) get().open(m, selection);
+    }
+
+    public static void open(Method m, Object result) {
+        if (get() != null) get().open(m, result);
+    }
+
+    public static Set getPendingSelection() {
+        return get() != null?get().getPendingSelection():null;
+    }
+
+    public static void setPendingSelection(Set selecion) {
+        if (get() != null) get().setPendingSelection(selecion);
+    }
+
+    public static Object getPendingResult() {
+        return get() != null?get().getPendingResult():null;
+    }
+
+    public static void setPendingResult(Object result) {
+        if (get() != null) get().setPendingResult(result);
+    }
+
 }

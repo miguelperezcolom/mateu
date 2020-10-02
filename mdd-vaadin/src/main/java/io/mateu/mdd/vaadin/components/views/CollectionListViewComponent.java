@@ -6,6 +6,7 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.ui.Grid;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.shared.data.ChartData;
@@ -41,7 +42,7 @@ public class CollectionListViewComponent extends ListViewComponent {
             public void onEdit(Object id) {
                 try {
                     MDDUI.get().getNavegador().setPendingResult(id);
-                    MDDUI.get().getNavegador().go("" + id);
+                    MDDUIAccessor.go("" + id);
                 } catch (Throwable throwable) {
                     Notifier.alert(throwable);
                 }
@@ -52,7 +53,7 @@ public class CollectionListViewComponent extends ListViewComponent {
                 /*
                 if (rpcListView.isSelectHandled()) {
                     MDDUI.get().getNavegador().setPendingResult(rpcListView.onSelect(id));
-                    MDDUI.get().getNavegador().go("" + id);
+                    MDDUIAccessor.go("" + id);
                 }
                 */
             }

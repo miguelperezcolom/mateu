@@ -16,7 +16,10 @@ public @interface MateuUI {
 
     String path();
 
-    String theme() default "mateumddtheme";
+    String theme() default "mateu";
 
     Class serviceProvider() default FakeServiceProvider.class;
+
+    String logo() default "";
+
 }

@@ -1,0 +1,59 @@
+@mixin botones {
+
+  .actionsbar {
+    padding: 0px;
+    padding-top: 2px !important;
+    width: 100%;
+    border-top:1px solid lightgrey;
+    border-bottom:1px solid lightgrey;
+
+
+    div {
+      margin-bottom: 2px;
+      margin-right: 6px;
+    }
+  }
+
+
+
+
+
+
+
+  .v-button.quiet {
+    border: none;
+    background-image: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    text-shadow: none;
+  }
+
+  .v-button.quiet:hover {
+    background-color: lightgray;
+  }
+
+  .v-button.quiet:focus:after {
+    box-shadow: none;
+  }
+
+
+
+
+  .v-button.v-button-link {
+    height: unset;
+    padding: unset;
+  }
+
+  .v-button.v-button-link.v-pressed {
+    outline: none;
+  }
+
+  .v-button.v-button-link:active {
+    outline: none;
+  }
+
+  .v-button.v-button-link:focus {
+    outline: none;
+  }
+
+}

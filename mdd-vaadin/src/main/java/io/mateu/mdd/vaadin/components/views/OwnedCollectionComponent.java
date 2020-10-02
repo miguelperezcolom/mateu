@@ -142,7 +142,7 @@ public class OwnedCollectionComponent extends EditorViewComponent {
                                         parentBinder.setBean(parentBean, false);
 
                                         try {
-                                            if (collection.size() == 0) MDDUI.get().getNavegador().goBack();
+                                            if (collection.size() == 0) MDDUIAccessor.goBack();
                                             else if (currentIndex == collection.size()) setIndex(collection.size() - 1);
                                             else setIndex(currentIndex);
                                         } catch (Throwable throwable) {
@@ -296,7 +296,7 @@ public class OwnedCollectionComponent extends EditorViewComponent {
                     } catch (Exception e) {
                         Notifier.alert(e);
                     }
-                }, () -> MDDUI.get().getNavegador().goBack());
+                }, () -> MDDUIAccessor.goBack());
             } else if (subClasses.size() == 1) {
                 c = subClasses.iterator().next();
             } else {
@@ -335,7 +335,7 @@ public class OwnedCollectionComponent extends EditorViewComponent {
                                 } catch (Exception ex) {
                                     Notifier.alert(ex);
                                 }
-                            }, () -> MDDUI.get().getNavegador().goBack());
+                            }, () -> MDDUIAccessor.goBack());
                         } else Notifier.alert("No constructor found for " + c.getSimpleName());
                     }
 

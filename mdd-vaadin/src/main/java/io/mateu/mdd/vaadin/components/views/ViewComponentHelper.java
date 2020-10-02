@@ -5,6 +5,7 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
 import io.mateu.mdd.core.app.MDDRunnableAction;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.PersistentPojo;
@@ -86,14 +87,14 @@ public class ViewComponentHelper {
 
 
                                     } else if (viewComponent instanceof EditorViewComponent) {
-                                        if (MDDUI.get().getNavegador().getViewProvider().pendingSelection != null) selection.addAll(MDDUI.get().getNavegador().getViewProvider().pendingSelection);
-                                        MDDUI.get().getNavegador().getViewProvider().pendingSelection = null;
+                                        if (MDDUIAccessor.getPendingSelection() != null) selection.addAll(MDDUIAccessor.getPendingSelection());
+                                        MDDUIAccessor.setPendingSelection(null);
                                     }
 
                                     if (needsSelection && selection.size() == 0) throw new Exception("You must first select some records.");
 
                                     if (!allInjectable) { // si necesita rellenar parámetros
-                                        MDDUI.get().getPort().open(m, selection);
+                                        MDDUIAccessor.open(m, selection);
                                     } else { // si no tiene parámetros o si todos son inyectables
 
                                         try {
@@ -226,7 +227,7 @@ public class ViewComponentHelper {
             }
 
         } else {
-            MDDUI.get().getPort().open(m, r);
+            MDDUIAccessor.open(m, r);
         }
 
     }

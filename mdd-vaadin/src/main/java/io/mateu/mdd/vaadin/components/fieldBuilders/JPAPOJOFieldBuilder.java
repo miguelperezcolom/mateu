@@ -9,6 +9,7 @@ import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
@@ -165,7 +166,7 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
                                 subClasses.forEach(c -> subClassesOptions.add(new ClassOption(c)));
 
                                 VaadinHelper.choose("Please choose type", subClassesOptions, c -> {
-                                    if (c == null) MDDUI.get().getNavegador().goBack();
+                                    if (c == null) MDDUIAccessor.goBack();
                                     else {
                                         try {
                                             create(binder, ((ClassOption)c).get_class(), bean);
@@ -174,7 +175,7 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
                                         }
                                     }
                                 }, () -> {
-                                    MDDUI.get().getNavegador().goBack();
+                                    MDDUIAccessor.goBack();
                                 });
                             } else if (subClasses.size() == 1) {
                                 create(binder, subClasses.iterator().next(), bean);
@@ -183,7 +184,7 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
                             }
 
                         } else {
-                            MDDUI.get().getNavegador().go(field.getName());
+                            MDDUIAccessor.go(field.getName());
                         }
 
                     } catch (Throwable ex) {
@@ -253,13 +254,13 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
                      Notifier.alert(e);
                 }
                 MDDUI.closeWindow(false);
-                MDDUI.get().getNavegador().go(field.getName());
-            }, () -> MDDUI.get().getNavegador().goBack());
+                MDDUIAccessor.go(field.getName());
+            }, () -> MDDUIAccessor.goBack());
         } else {
             Object i = ReflectionHelper.newInstance(type, parent);
             ReflectionHelper.setValue(field, parent, i);
             binder.setBean(parent, false);
-            MDDUI.get().getNavegador().go(field.getName());
+            MDDUIAccessor.go(field.getName());
         }
     }
 

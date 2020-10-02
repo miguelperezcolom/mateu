@@ -1,5 +1,6 @@
 package io.mateu.mdd.core.app;
 
+import io.mateu.mdd.core.annotations.MateuUI;
 import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.security.Private;
@@ -39,6 +40,9 @@ public class MateuApp extends BaseMDDApp {
     }
 
     private void init() {
+
+        if (uiclass.isAnnotationPresent(MateuUI.class)) setLogo(((MateuUI)uiclass.getAnnotation(MateuUI.class)).logo());
+
         _areas = new AreaBuilder(ui).buildAreas(uiclass);
 
         _authenticationNeeded = uiclass.isAnnotationPresent(Private.class);

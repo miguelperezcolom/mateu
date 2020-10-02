@@ -37,4 +37,6 @@ public interface App {
     IArea getArea(IModule module);
 
     void updateSession();
+
+    String getLogo();
 }

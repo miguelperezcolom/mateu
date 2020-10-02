@@ -41,7 +41,6 @@ public class MateuUIServletAnnotationProcessor extends AbstractProcessor {
                         out.println("package " + pkgName + ";");
                         out.println("import " + className + ";");
 
-                        out.println("import io.mateu.mdd.vaadin.MDDUI;");
                         out.println("import org.springframework.boot.web.servlet.ServletRegistrationBean;");
                         out.println("import org.springframework.stereotype.Service;");
 

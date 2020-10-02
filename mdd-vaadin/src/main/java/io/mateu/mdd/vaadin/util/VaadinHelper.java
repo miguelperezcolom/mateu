@@ -7,6 +7,7 @@ import com.vaadin.data.Validator;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.shared.annotations.RightAlignedCol;
 import io.mateu.mdd.shared.annotations.UseRadioButtons;
@@ -644,4 +645,48 @@ public class VaadinHelper {
         return temp;
     }
 
+    public static void saveOrDiscard(String msg, EditorViewComponent editor, Runnable afterSave) {
+        Window w = new Window("Please confirm action");
+
+        VerticalLayout l = new VerticalLayout();
+
+        l.addComponent(new Label(msg));
+
+        Button buttonSaveBefore;
+        Button buttonYes;
+        Button buttonNo;
+        HorizontalLayout hl;
+        l.addComponent(hl = new HorizontalLayout(buttonSaveBefore = new Button("Save and proceed", e -> {
+            try {
+                editor.save(false);
+                afterSave.run();
+            } catch (Throwable t) {
+                Notifier.alert(t);
+            }
+            w.close();
+        }), buttonYes = new Button("Exit and discard changes", e -> {
+            try {
+                afterSave.run();
+            } catch (Throwable t) {
+                Notifier.alert(t);
+            }
+            w.close();
+        })
+                //, buttonNo = new Button("Abort and stay here", e -> w.close())
+        ));
+
+        hl.setDefaultComponentAlignment(Alignment.MIDDLE_RIGHT);
+
+        buttonSaveBefore.addStyleName(ValoTheme.BUTTON_FRIENDLY);
+        //buttonNo.addStyleName(ValoTheme.BUTTON_PRIMARY);
+        buttonYes.addStyleName(ValoTheme.BUTTON_DANGER);
+
+
+        w.setContent(l);
+
+        w.center();
+        w.setModal(true);
+
+        UI.getCurrent().addWindow(w);
+    }
 }
