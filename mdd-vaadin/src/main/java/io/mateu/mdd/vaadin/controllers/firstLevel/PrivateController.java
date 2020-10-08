@@ -8,6 +8,7 @@ import io.mateu.mdd.core.app.MDDOpenHtml;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.interfaces.App;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
+import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.actions.AcctionRunner;
 import io.mateu.mdd.vaadin.controllers.BrokenLinkController;
 import io.mateu.mdd.vaadin.controllers.Controller;
@@ -21,7 +22,11 @@ public class PrivateController extends Controller {
 
     public PrivateController(ViewStack stack, String path) {
 
+        if (MateuUI.get() != null) MateuUI.get().getMain().getHeader().refresh(true);
+
         App app = MDDUIAccessor.getApp();
+
+        app.updateSession();
 
         if (app.getDefaultPrivateArea() != null) {
             // existe home?
@@ -41,7 +46,6 @@ public class PrivateController extends Controller {
                 new AreaController(stack, path, (AbstractArea) app.getDefaultPrivateArea());
             }
         }
-
 
     }
 

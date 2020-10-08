@@ -30,6 +30,7 @@ import com.vaadin.ui.renderers.HtmlRenderer;
 import com.vaadin.ui.renderers.TextRenderer;
 import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonValue;
+import io.mateu.i18n.Translator;
 import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.shared.data.*;
 import io.mateu.mdd.shared.annotations.*;
@@ -834,9 +835,11 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                 colBindings.add(col);
                 fieldByCol.put(col, f);
 
-                col.setCaption(nombresColumnas.getOrDefault(columnId, Helper.capitalize(f.getName())));
-                if (f instanceof FieldInterfacedForCheckboxColumn) col.setCaption(((FieldInterfacedForCheckboxColumn)f).getCaption());
-                if (f.isAnnotationPresent(Caption.class)) col.setCaption(f.getAnnotation(Caption.class).value());
+                String caption = nombresColumnas.getOrDefault(columnId, Helper.capitalize(f.getName()));
+                if (f instanceof FieldInterfacedForCheckboxColumn) caption = ((FieldInterfacedForCheckboxColumn)f).getCaption();
+                if (f.isAnnotationPresent(Caption.class)) caption = f.getAnnotation(Caption.class).value();
+
+                col.setCaption(Translator.translate(caption));
 
                 if (columnIds.size() == 1) col.setExpandRatio(1);
                 else col.setWidth(getColumnWidth(f, extras.get(columnId)));

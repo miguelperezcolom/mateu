@@ -93,10 +93,17 @@ public class FiltersComponent extends Composite {
 
             Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(l, binder, modelType, binder.getBean(), new ArrayList<>(), FormLayoutBuilderParameters.builder().validators(validators).allFields(mainFilterFields).forSearchFilters(true).createSections(false).createTabs(false).build(), null);
 
+
+            VerticalLayout vl = new VerticalLayout();
+            vl.addStyleName(CSS.NOPADDING);
+            vl.setSpacing(false);
+            botones.addComponent(vl);
+
             Button b;
-            botones.addComponent(b = new Button(VaadinIcons.CLOSE));
+            vl.addComponent(b = new Button(VaadinIcons.CLOSE));
             //b.setDescription("Reset all filters");
             b.addStyleName(ValoTheme.BUTTON_QUIET);
+            b.addStyleName("boton");
             b.addStyleName("buttonlink");
             b.addClickListener(new Button.ClickListener() {
                 @Override
@@ -120,9 +127,10 @@ public class FiltersComponent extends Composite {
                 allFiltersComponent = r.getKey();
 
 
-                botones.addComponent(b = new Button(VaadinIcons.FILTER));
+                vl.addComponent(b = new Button(VaadinIcons.FILTER));
                 //b.setDescription("All filters. Click Ctrl + F to fire");
                 b.addStyleName(ValoTheme.BUTTON_QUIET);
+                b.addStyleName("boton");
                 b.addStyleName("buttonlink");
                 b.addClickListener(new Button.ClickListener() {
                     @Override
@@ -160,7 +168,6 @@ public class FiltersComponent extends Composite {
 
         Button b;
         botones.addComponent(b = new Button(VaadinIcons.SEARCH));
-        //b.setDescription("Search. Click ENTER to fire");
         b.addStyleName(ValoTheme.BUTTON_QUIET);
         b.addStyleName("buttonlink");
         b.addClickListener(new Button.ClickListener() {
@@ -175,6 +182,7 @@ public class FiltersComponent extends Composite {
         });
         b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
         b.addStyleName("principal");
+        b.addStyleName("botonsearch");
         //b.setStyleName(ValoTheme.BUTTON_PRIMARY);
 
         pl.addComponent(botones);

@@ -333,30 +333,166 @@ public class Pet {
 
 ### Logic
 
+Our domain logic can reside inside an entity method if the code is short enough. If code is larger than we would move it to a dedicated class to hold that logic, usually trying to follow the S of the SOLID principles. Logic would also be located in a dedicated class when it is not clearly owned by an entity but it affects several entities.
+
+As we have said before the logic can be triggered by the user, in response to an event or at a scheduled time. To give the chance to the user of triggering logic (e.g. calling our classes methods) we only need to mark them as @MenuOption if we want to enable it as a menu option of our UI menu, or mark it as an @Action if we want to show it as a button in a listing view or inside an editor.
+
+This is an example of publishing logic as a menu option:
+
+```java
+
+@MateuUI(path = "")
+public class SimpleUI {
+
+    @Menuoption
+    public String sayHello(String yourName) {
+        return "Hello " + yourName;
+    }
+
+}
 
 
-// ejemplo evento: en la parte de lógica
+```
+
+
+This is another example: 
+
+```java
+
+@MateuMDDEntity
+public abstract class Person {
+
+    @Action(icon = VaadinIcons.ENVELOPE, order = 10)
+    public static void sendEmail(Set<Person> selection, @NotEmpty String subject, @NotEmpty @TextArea String text) {
+        Notifier.info("Email sent with subject = \"" + subject + "\" and text = \"" + text + "\" sent to " + 
+            selection.stream().map(p -> p.getName()).collect(Collectors.joining(",")) + "");
+    }
+
+    @Action(icon = VaadinIcons.ENVELOPE, order = 10)
+    public void sendEmail(@NotEmpty String subject, @NotEmpty @TextArea String text) {
+        Notifier.info("Email sent with subject = \"" + subject + "\" and text = \"" + text + "\"");
+    }
+
+}
+
+```
+
+
+This is an example of a Command:
+
+```java
+
+public class StartCourseCommand implements ScheduledCommand {
+    @Override
+    public String getSchedule() {
+        return "0/6 * * * * ?"; // cada cada 6 segundos (0,6,12,18,24,30,36,42,48,54)
+    }
+
+    @Override
+    public void run() {
+        System.out.println("start course command run! " + LocalDateTime.now());
+
+        // here your logic
+
+    }
+}
+
+
+@BoundaryListener
+public class EducationalContextListener implements BoundedContextListener {
+ 
+    @Override
+    public List<Command> getCommands() {
+        return List.of(new StartCourseCommand());
+    }
+
+}
+```
+
+
+If we want to trigger that logic in response to an event we need to first create the event, then trigger it and finally register handlers for that event.
+
+This is an example event:
+
+```java
+
+@Getter
+public class StudentGradedEvent implements Event {
+
+    private final long gradeId;
+
+    public StudentGradedEvent(long gradeId) {
+        this.gradeId = gradeId;
+    }
+}
+
+```
+
+Here we trigger it:
+
+```java
+
+@Getter
+public class StudentGradedEvent implements Event {
+
+    private final long gradeId;
+
+    public StudentGradedEvent(long gradeId) {
+        this.gradeId = gradeId;
+    }
+}
+
+```
+
+This would be a handler:
+
+```java
+
+public class StudentGradedEventConsumer implements Consumer<StudentGradedEvent> {
+    @Override
+    public void accept(StudentGradedEvent studentGradedEvent) {
+        System.out.println("student graded. grade id = " + studentGradedEvent.getGradeId());
+            
+        // here your logic
+
+    }
+}
+
+```
+
+And here we register it:
+
+```java
+
+@BoundaryListener
+public class EducationalContextListener implements BoundedContextListener {
+
+    @Override
+    public void registerEventConsumers() {
+
+        EventBus.register(new StudentGradedEventConsumer());
+
+    }
+}
+
+```
+
+
 
 
 proteger nuestro modelo!
 
 ### Persistence with JPA
 
-ojo: mientras que los casos más simples son sencillos de entender y de implementar, el dominio de la persistencia necesita una dedicación mínima y no es trivial ni inmediato
+You should be aware of that, while JPA is quite trivial and straightforward for the simpler cases, it can become hard to manage when your model starts to grow and becomes more complicated. When this happens you would usually start to worry about bidirectional relationships, cascade options, fields serialization, entities life cycle and entity listeners. Obviously, explaining JPA is our of the scope of this manual, but you can find a lot of references our there. The good new is that Mateu will help us a little and it recognizes both cascade options and bidirectional mappings, so we do not need to worry about them as far as Mateu is involved.    
 
-anotaciones validación, o comandos programados
-
-### Persistence with DDD
-
-como lo hacemos para aprovechar las ventajas de JPA a la vez que beneficiarnos de las ventajas de DDD (protección, deasacoplamiento, estandarización).
-
-### Events
-
-entitylisteners
-
-### Commands
 
 ### Tests
 
-Unit tests y e2e tests
+When we want to create our unit tests in java the obvious option is to use JUnit. If you want to use behavior driven development (BDD) because you want to write your tests in a business understandable language then you would usually use Cucumber. For end to end (integration) tests my option is Cypress. All of these frameworks are perfectly documented, and you will easily find a lot of related articles and contents at Google.       
+
+
+## Conclusion
+
+Along this chapter we have seen what our model is and how to create it using plain java classes. There are some other considerations related to how we organize it - if we use hexagonal architecture, domain driven design (DDD), repositories, ... - but I understand they are out of the scope of Mateu.
 

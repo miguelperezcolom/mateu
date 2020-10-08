@@ -858,7 +858,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             if (!isActionPresent("save")) {
 
                 Button i;
-                bar.addComponent(i = new Button("", VaadinIcons.DOWNLOAD));
+                bar.addComponent(i = new Button("", VaadinIcons.DISC));
                 //bar.addComponent(i = new Button("Save", VaadinIcons.DOWNLOAD));
                 i.addStyleName(ValoTheme.BUTTON_QUIET);
                 i.addClickListener(e -> {

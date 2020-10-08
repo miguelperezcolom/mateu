@@ -1,3 +1,6 @@
+
+$kpi: #7b7e80;
+
 @mixin view {
   .viewHeader {
     padding: 0px;
@@ -36,12 +39,10 @@
 
 
 
-
   .filterscomponent {
 
     border-top: 1px dashed lightgrey;
     border-bottom: 1px dashed lightgrey;
-    padding-bottom: 10px !important;
     width: 100%;
 
     > div > * {
@@ -56,6 +57,25 @@
       margin-right: 5px;
     }
 
+    .boton {
+      font-size: 1.3em;
+      height: inherit;
+    }
+
+    .botonsearch {
+      font-size: 2.7em;
+      height: inherit;
+    }
+
+    .botonerafiltros {
+
+      > div {
+        margin-right: 0px;
+        vertical-align: middle;
+      }
+
+    }
+
   }
 
   .listsummaryline {
@@ -63,5 +83,84 @@
     font-style: italic;
   }
 
+
+
+  .panelContenidoConKpi {
+    min-width: 460px;
+  }
+
+  .kpisContainer {
+    margin-left: 30px;
+    .v-spacing {
+      height: 4px;
+    }
+  }
+
+  .kpi {
+    padding: 2px 9px;
+
+    background-color: #e0e4e8;
+    color: inherit;
+
+    //background-color: $kpi;
+    border-radius: 2px;
+    margin-right: 10px;
+    margin-bottom: -2px;
+    //min-height: 62px;
+    //width: 100%;
+    height: 50px;
+    //color: whitesmoke;
+
+    .valor {
+      white-space: normal;
+      font-size: 1.2em;
+      font-weight: bold;
+      width: 100%;
+      text-align: right;
+      background-color: inherit !important;
+    }
+
+    .v-label-centered {
+      text-align: center;
+    }
+
+    .v-spacing {
+      display: none;
+    }
+
+  }
+
+  .kpi.sectionkpi {
+    width: inherit;
+    background-color: #e0e4e8;
+    color: inherit;
+    min-height: 62px;
+
+  }
+
+
+  .superkpi {
+    padding: 20px;
+    background-color: $kpi;
+    border-radius: 2px;
+    margin-right: 10px;
+    margin-bottom: 7px;
+    height: 160px;
+    width: 100%;
+    text-align: center;
+
+    .valor {
+      font-size: 2.5em;
+      font-weight: bold;
+      width: 100%;
+      text-align: center;
+      background-color: inherit !important;
+    }
+
+    .v-label-centered {
+      text-align: center;
+    }
+
+  }
 
 }

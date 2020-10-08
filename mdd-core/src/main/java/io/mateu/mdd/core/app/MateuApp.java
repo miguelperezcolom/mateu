@@ -1,12 +1,15 @@
 package io.mateu.mdd.core.app;
 
+import io.mateu.i18n.Translator;
 import io.mateu.mdd.core.annotations.MateuUI;
 import io.mateu.mdd.shared.annotations.Caption;
+import io.mateu.mdd.shared.annotations.RegistrationForm;
+import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.security.Private;
 import io.mateu.util.Helper;
 
-import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 
 public class MateuApp extends BaseMDDApp {
@@ -15,6 +18,7 @@ public class MateuApp extends BaseMDDApp {
     private List<AbstractArea> _areas;
     private boolean _authenticationNeeded;
     private Class uiclass;
+    private boolean _hasRegistrationForm;
 
     public MateuApp() throws Exception {
         this(null);
@@ -29,8 +33,8 @@ public class MateuApp extends BaseMDDApp {
     @Override
     public String getName() {
         if (_areas == null) init();
-        if (uiclass.isAnnotationPresent(Caption.class)) return ((Caption)uiclass.getAnnotation(Caption.class)).value();
-        return Helper.capitalize(uiclass.getSimpleName());
+        if (uiclass.isAnnotationPresent(Caption.class)) return Translator.translate(((Caption)uiclass.getAnnotation(Caption.class)).value());
+        return Translator.translate(Helper.capitalize(uiclass.getSimpleName()));
     }
 
     @Override
@@ -49,6 +53,19 @@ public class MateuApp extends BaseMDDApp {
         if (!_authenticationNeeded) {
             _areas.forEach(a -> _authenticationNeeded |= !a.isPublicAccess());
         }
+
+        for (FieldInterfaced f : ReflectionHelper.getAllFields(uiclass)) {
+            if (f.isAnnotationPresent(RegistrationForm.class)) {
+                _hasRegistrationForm = true;
+                break;
+            }
+        }
+        if (!_hasRegistrationForm) for (Method f : ReflectionHelper.getAllMethods(uiclass)) {
+            if (f.isAnnotationPresent(RegistrationForm.class)) {
+                _hasRegistrationForm = true;
+                break;
+            }
+        }
     }
 
     @Override
@@ -61,5 +78,10 @@ public class MateuApp extends BaseMDDApp {
     public AbstractArea getDefaultPublicArea() {
         if (_areas == null) init();
         return _areas.stream().filter(a -> a.isPublicAccess()).findFirst().orElse(null);
+    }
+
+    @Override
+    public boolean hasRegistrationForm() {
+        return _hasRegistrationForm;
     }
 }

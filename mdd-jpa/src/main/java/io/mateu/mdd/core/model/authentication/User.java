@@ -231,7 +231,7 @@ public class User implements EditorViewStyler, UserPrincipal {
     }
 
     @Override
-    public List<Long> getPermissionIds() {
-        return getPermissions().stream().map(p -> p.getId()).collect(Collectors.toList());
+    public List<String> getRoles() {
+        return getPermissions().stream().map(p -> "" + p.getId()).collect(Collectors.toList());
     }
 }

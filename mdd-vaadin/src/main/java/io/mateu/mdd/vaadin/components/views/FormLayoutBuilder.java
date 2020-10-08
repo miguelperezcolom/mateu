@@ -34,6 +34,7 @@ import io.mateu.util.notification.Notifier;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -500,7 +501,7 @@ public class FormLayoutBuilder {
                                                         f.isAnnotationPresent(Output.class)
                                                         || (
                                                             !editor.isNewRecord()
-                                                            && f.getDeclaringClass().isAnnotationPresent(Unmodifiable.class)
+                                                            && (f.getDeclaringClass().isAnnotationPresent(Unmodifiable.class) || f.isAnnotationPresent(Id.class))
                                                         )
                                                 )
                                         )

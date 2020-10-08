@@ -7,6 +7,7 @@ public class MainComponent extends VerticalLayout {
 
     public final CssLayout panel;
     private final MateuUI ui;
+    private final HeaderComponent header;
 
     public MainComponent(MateuUI ui) {
 
@@ -16,7 +17,7 @@ public class MainComponent extends VerticalLayout {
         setSpacing(false);
         addStyleName("maincomponent");
 
-        HeaderComponent header = new HeaderComponent(this);
+        header = new HeaderComponent(this);
 
         panel = new CssLayout();
         panel.setSizeFull();
@@ -28,8 +29,11 @@ public class MainComponent extends VerticalLayout {
     }
 
 
-
     public void irA(String donde) {
         ui.irA(donde);
+    }
+
+    public HeaderComponent getHeader() {
+        return header;
     }
 }

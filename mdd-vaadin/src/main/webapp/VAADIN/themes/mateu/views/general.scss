@@ -34,6 +34,17 @@
     text-align: center;
   }
 
+  .v-textarea {
+    resize: auto;
+  }
+
+  .v-slot .v-slot-hidden {
+    height: 0px !important;
+  }
+
+  .hidden {
+    display: none;
+  }
 
 
   .clickable {

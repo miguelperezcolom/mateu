@@ -6,7 +6,7 @@ public interface UserPrincipal {
 
     String getLogin();
 
-    List<Long> getPermissionIds();
+    List<String> getRoles();
 
     String getName();
 

@@ -8,6 +8,7 @@ import io.mateu.mdd.core.app.MDDOpenHtml;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.interfaces.App;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
+import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.actions.AcctionRunner;
 import io.mateu.mdd.vaadin.controllers.BrokenLinkController;
 import io.mateu.mdd.vaadin.controllers.Controller;
@@ -18,7 +19,13 @@ import io.mateu.util.notification.Notifier;
 public class PublicController extends Controller {
 
     public PublicController(ViewStack stack, String path) {
+
+        if (MateuUI.get() != null) MateuUI.get().getMain().getHeader().refresh(false);
+
         App app = MDDUIAccessor.getApp();
+
+        app.updateSession();
+
         // existe home?
         MenuEntry home = app.getDefaultPublicArea().getDefaultAction();
         if (home != null) {

@@ -282,7 +282,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                     hl.addComponent(b);
 
                     if (!MDD.isReadWrite(field.getType())) {
-                        botonLink = new Button(null, VaadinIcons.ARROW_RIGHT);
+                        botonLink = new Button(null, VaadinIcons.EXTERNAL_LINK);
                         botonLink.addStyleName(ValoTheme.BUTTON_QUIET);
                         botonLink.addStyleName(CSS.NOPADDING);
                         botonLink.addClickListener(e -> MDDUIAccessor.go(field.getName()));

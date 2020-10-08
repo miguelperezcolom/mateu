@@ -176,7 +176,7 @@ public class ViewStack {
         stack = new ArrayList<>();
         viewByState = new HashMap<>();
         stateByView = new HashMap<>();
-        UI.getCurrent().getWindows().forEach(w -> {
+        if (UI.getCurrent() != null) UI.getCurrent().getWindows().forEach(w -> {
             w.setData("noback");
             w.close();
         });

@@ -4,13 +4,13 @@ import com.google.common.base.Strings;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewProvider;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.UI;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
-import io.mateu.mdd.vaadin.MDDUI;
+import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
 import io.mateu.mdd.vaadin.components.views.ListViewComponent;
 import io.mateu.mdd.vaadin.controllers.firstLevel.HomeController;
-import io.mateu.mdd.vaadin.views.BrokenLinkView;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.notification.Notifier;
@@ -19,9 +19,16 @@ public class MateuViewProvider implements ViewProvider {
     private final ViewStack stack;
     private String lastState;
     private View lastView;
+    private int firstViewInWindow;
+    private EditorViewComponent currentEditor;
 
     public MateuViewProvider(ViewStack stack) {
         this.stack = stack;
+    }
+
+    public void setLastView(View lastView) {
+        this.lastView = lastView;
+        lastState = stack.getState(stack.getLast());
     }
 
     @Override
@@ -45,6 +52,8 @@ public class MateuViewProvider implements ViewProvider {
         }
 
 
+        currentEditor = null;
+
         Controller controller = null;
 
         //mirar si ya lo tenemos en el stack
@@ -62,7 +71,11 @@ public class MateuViewProvider implements ViewProvider {
             }
         }
 
-        if ( v!= null) {
+        if (Strings.isNullOrEmpty(aux)) {
+            stack.clear();
+        }
+
+        if ( v != null) {
             controller = v.getController();
             v = null;
         } else {
@@ -86,13 +99,16 @@ public class MateuViewProvider implements ViewProvider {
             } catch (Throwable e) {
                 Notifier.alert(e);
             }
-            v = (io.mateu.mdd.vaadin.navigation.View) stack.getLastNavigable();
+            v = stack.getLast();
         }
 
-
-
-
-
+        if (firstViewInWindow > 0 && stack.size() < firstViewInWindow) {
+            firstViewInWindow = 0;
+            UI.getCurrent().getWindows().forEach(w -> {
+                w.setData("noback");
+                w.close();
+            });
+        }
 
         Component c = ((io.mateu.mdd.vaadin.navigation.View) v).getViewComponent();
         if (c != null && c instanceof AbstractViewComponent) {
@@ -135,19 +151,22 @@ public class MateuViewProvider implements ViewProvider {
                 ((ListViewComponent)c).resultsComponent.getGrid().getSelectionModel().deselectAll();
             }
         }
+        if (c != null && (c instanceof EditorViewComponent)) {
+            currentEditor = (EditorViewComponent) c;
+            if (firstViewInWindow == 0) firstViewInWindow = stack.size() + 1;
+        }
 
 
         lastState = s;
         lastView = v;
 
-
-
-        if (v != null && v.isOpenNewWindow()) {
-            MDDUI.get().openInWindow(v);
+        if (v != null && firstViewInWindow > 0 && stack.size() >= firstViewInWindow && MateuUI.get() != null) {
+            v.setOpenNewWindow(true);
+            MateuUI.get().openInWindow(v);
             if (v != null && v.getViewComponent() != null && v.getViewComponent() instanceof EditorViewComponent && ((EditorViewComponent)v.getViewComponent()).getBeforeOpen() != null) {
                 ((EditorViewComponent)v.getViewComponent()).getBeforeOpen().run();
             }
-            return null;
+            return null; //stack.getLastNavigable();
         } else {
             if (v != null && v.getViewComponent() != null && v.getViewComponent() instanceof EditorViewComponent && ((EditorViewComponent)v.getViewComponent()).getBeforeOpen() != null) {
                 ((EditorViewComponent)v.getViewComponent()).getBeforeOpen().run();
@@ -158,5 +177,13 @@ public class MateuViewProvider implements ViewProvider {
 
     public ViewStack getStack() {
         return stack;
+    }
+
+    public EditorViewComponent getCurrentEditor() {
+        return currentEditor;
+    }
+
+    public void setCurrentEditor(EditorViewComponent currentEditor) {
+        this.currentEditor = currentEditor;
     }
 }

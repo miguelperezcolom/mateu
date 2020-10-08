@@ -39,4 +39,6 @@ public interface App {
     void updateSession();
 
     String getLogo();
+
+    boolean hasRegistrationForm();
 }

@@ -111,12 +111,12 @@ public class FakeUI implements IMDDUI {
     }
 
     @Override
-    public Collection getPendingSelection() {
+    public Set getPendingSelection() {
         return null;
     }
 
     @Override
-    public void setPendingSelection(Collection selecion) {
+    public void setPendingSelection(Set selecion) {
 
     }
 

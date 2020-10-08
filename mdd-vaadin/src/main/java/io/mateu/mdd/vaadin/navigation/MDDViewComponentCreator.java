@@ -6,6 +6,7 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.app.MDDOpenEditorAction;
 import io.mateu.mdd.core.views.ExtraFilters;
+import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.core.interfaces.WizardPage;
@@ -59,6 +60,8 @@ public class MDDViewComponentCreator {
 
                 v = createEditorViewComponent(modelType);
 
+                if (MateuUI.get() != null) MateuUI.get().setCurrentEditor((EditorViewComponent) v);
+
                 if (modelType.isAnnotationPresent(Entity.class)) ((EditorViewComponent)v).load(ReflectionHelper.getId(bean));
                 else ((EditorViewComponent)v).setModel(bean);
 
@@ -93,8 +96,8 @@ public class MDDViewComponentCreator {
         return v;
     }
 
-    public static Component createSearcherComponent(MDDBinder parentBinder, FieldInterfaced field) {
-        Component v = null;
+    public static ListViewComponent createSearcherComponent(MDDBinder parentBinder, FieldInterfaced field) {
+        ListViewComponent v = null;
         Class modelType = null;
         try {
 

@@ -96,6 +96,7 @@ public class MDDUI extends UI implements IMDDUI {
     private String baseUrl;
 
 
+
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
     }

@@ -268,10 +268,14 @@ public abstract class AbstractApplication implements App {
         return r;
     }
 
+    public boolean hasRegistrationForm() {
+        return false;
+    }
+
     public AbstractArea getDefaultPrivateArea() {
         AbstractArea area = null;
         for (IArea a : areas) {
-            if (isAuthenticationAgnostic() || !a.isPublicAccess()) {
+            if (!a.isPublicAccess()) {
                 area = (AbstractArea) a;
                 break;
             }
@@ -282,7 +286,7 @@ public abstract class AbstractApplication implements App {
     public AbstractArea getDefaultPublicArea() {
         AbstractArea area = null;
         for (IArea a : areas) {
-            if (isAuthenticationAgnostic() || a.isPublicAccess()) {
+            if (a.isPublicAccess()) {
                 area = (AbstractArea) a;
                 break;
             }

@@ -8,6 +8,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import io.mateu.mdd.shared.annotations.Unmodifiable;
 import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
@@ -24,7 +25,7 @@ public class JPAUnmodifiableFieldBuilder extends AbstractFieldBuilder {
 
 
     public boolean isSupported(FieldInterfaced field) {
-        return (field.isAnnotationPresent(Unmodifiable.class) || field.isAnnotationPresent(Id.class)) && (MDDUI.get().getNavegador().getViewProvider().getCurrentEditor() != null && !MDDUI.get().isEditingNewRecord());
+        return (field.isAnnotationPresent(Unmodifiable.class) || field.isAnnotationPresent(Id.class)) && (MateuUI.get().getCurrentEditor() != null && !MateuUI.get().isEditingNewRecord());
     }
 
     @Override

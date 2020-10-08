@@ -34,11 +34,12 @@ import io.mateu.mdd.vaadin.util.VaadinHelper;
 import io.mateu.mdd.vaadin.views.BrokenLinkView;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.notification.Notifier;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.persistence.Entity;
+import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Set;
+import java.util.*;
 
 public class MateuUI extends UI implements IMDDUI {
     private Navigator navigator;
@@ -47,6 +48,34 @@ public class MateuUI extends UI implements IMDDUI {
     private ViewStack stack;
     private Set pendingSelection;
     private Object pendingResult;
+    private MainComponent main;
+
+    List<Locale> locales = Arrays.asList(new Locale("en"),
+            new Locale("es"),
+            new Locale("fr"),
+            new Locale("ru"),
+            new Locale("ar"),
+            new Locale("zh"),
+            new Locale("de"),
+            new Locale("it"));
+
+
+    public static MateuUI get() {
+        return (MateuUI) UI.getCurrent();
+    }
+
+    public MainComponent getMain() {
+        return main;
+    }
+
+
+    public void setCurrentEditor(EditorViewComponent editor) {
+        viewProvider.setCurrentEditor(editor);
+    }
+
+    public EditorViewComponent getCurrentEditor() {
+        return viewProvider.getCurrentEditor();
+    }
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -54,7 +83,7 @@ public class MateuUI extends UI implements IMDDUI {
 
 
 
-        com.vaadin.ui.JavaScript.getCurrent().addFunction("pingserver", new JavaScriptFunction() {
+        JavaScript.getCurrent().addFunction("pingserver", new JavaScriptFunction() {
             @Override
             public void call(JsonArray jsonArray) {
                 // esto lo hace para provocar un cambio, y que viaje de arriba para abajo al forzar una actualización de la ui
@@ -67,16 +96,29 @@ public class MateuUI extends UI implements IMDDUI {
         try {
             initApp(vaadinRequest);
 
-            MainComponent home;
-            setContent(home = new MainComponent(this));
+            String language = resolveLocale(vaadinRequest.getHeader("Accept-Language")).getLanguage();
+            System.out.println("accepted language = " + language);
+
+            getSession().setAttribute("__language", language);
+
+            setContent(main = new MainComponent(this));
             stack = new ViewStack();
-            navigator = new Navigator(this, home.panel);
+            navigator = new Navigator(this, main.panel);
             navigator.setErrorView(new BrokenLinkView(stack));
             navigator.addProvider(viewProvider = new MateuViewProvider(stack));
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public Locale resolveLocale(String acceptLanguageHeader) {
+        if (StringUtils.isBlank(acceptLanguageHeader)) {
+            return Locale.getDefault();
+        }
+        List<Locale.LanguageRange> ranges = Locale.LanguageRange.parse(acceptLanguageHeader);
+        Locale locale = Locale.lookup(ranges, locales);
+        return locale ;
     }
 
     private void initApp(VaadinRequest vaadinRequest) throws Exception {
@@ -96,7 +138,7 @@ public class MateuUI extends UI implements IMDDUI {
 
     @Override
     public boolean isEditingNewRecord() {
-        return false;
+        return getCurrentEditor() != null && getCurrentEditor().isNewRecord();
     }
 
     @Override
@@ -162,7 +204,7 @@ public class MateuUI extends UI implements IMDDUI {
 
     @Override
     public void go(String relativePath) {
-        String path = navigator.getCurrentNavigationState(); //stack.getState(stack.getLast());
+        String path = stack.getState(stack.getLast()); //navigator.getCurrentNavigationState(); //stack.getState(stack.getLast());
         if (!path.endsWith("/")) path += "/";
         path += relativePath;
         if (path != null) {
@@ -202,7 +244,7 @@ public class MateuUI extends UI implements IMDDUI {
 
 
 
-    private void yesGoBack() {
+    public void yesGoBack() {
 
         View l = stack.getLast();
 
@@ -214,6 +256,7 @@ public class MateuUI extends UI implements IMDDUI {
                 l.getWindowContainer().setData("noback");
                 l.getWindowContainer().close();
                 stack.pop();
+                viewProvider.setLastView(stack.getLast());
                 //viewProvider.setCurrentPath(stack.size() > 0?stack.getState(stack.getLast()):null); //todo: pendiente ver que pasa con las windows
             } else MDDUIAccessor.goTo(u);
         } else {
@@ -247,7 +290,7 @@ public class MateuUI extends UI implements IMDDUI {
 
     public void goSibling(Object id) {
         if (stack.getLast().getComponent() instanceof EditorViewComponent && ((PersistentPojo.class.isAssignableFrom(((EditorViewComponent)stack.getLast().getComponent()).getModelType()) || ((EditorViewComponent)stack.getLast().getComponent()).getModelType().isAnnotationPresent(Entity.class)) && ((EditorViewComponent)stack.getLast().getComponent()).isModificado())) {
-            MDDUI.get().getPort().saveOrDiscard("There are unsaved changes. What do you want to do?", (EditorViewComponent) stack.getLast().getComponent(), () -> {
+            VaadinHelper.saveOrDiscard("There are unsaved changes. What do you want to do?", (EditorViewComponent) stack.getLast().getComponent(), () -> {
                 try {
                     yesGoSibling(id);
                 } catch (Throwable throwable) {
@@ -355,4 +398,24 @@ public class MateuUI extends UI implements IMDDUI {
         return false;
     }
 
+    public void openInWindow(View view) {
+        // lo mismo para buscar y para navegar en profundidad
+        Window w = new MateuWindow(this, stack, view.getViewComponent().getCaption());
+
+        w.addStyleName("maincomponent");
+
+        int percent = 100 - (UI.getCurrent().getWindows().size() + 1) * 5;
+
+        w.setWidth("" + percent + "%");
+        w.setHeight("" + percent + "%");
+
+        w.setContent(view.getViewComponent());
+        view.setWindowContainer(w);
+
+        w.center();
+        w.setModal(true);
+
+
+        UI.getCurrent().addWindow(w);
+    }
 }

@@ -38,22 +38,35 @@ public class AreaBuilder {
                 if (privateMenu.size() > 0) l.add(new AreaFromMenu("", privateMenu, false, findDefaultAction(uiclass, false, false)));
             } else {
                 if (privateMenu.size() > 0) l.add(new AreaFromMenu("", privateMenu, false, findDefaultAction(uiclass, false, false)));
-                if (publicMenu.size() > 0 || isPublicHomeDefined()) l.add(new AreaFromMenu("", publicMenu, true, findDefaultAction(uiclass, false, true)));
+                if (publicMenu.size() > 0 || isPublicHomeDefined(uiclass)) l.add(new AreaFromMenu("", publicMenu, true, findDefaultAction(uiclass, false, true)));
             }
             if (l.size() == 0) l.add(new FakeArea("", !allPrivate, findDefaultAction(uiclass, allPrivate, allPrivate)));
-        } else {
-            if (isPublicHomeDefined()) {
+        }
+
+        {
+            if (isPublicHomeDefined(uiclass)) {
                 AbstractArea areaPublicaPorDefecto = l.stream().filter(a -> a.isPublicAccess()).findFirst().orElse(null);
                 if (areaPublicaPorDefecto == null) l.add(areaPublicaPorDefecto = new FakeArea("", true, findDefaultAction(uiclass, false, true)));
                 else areaPublicaPorDefecto.defaultAction = findDefaultAction(uiclass, false, true);
+            }
+            if (isPrivateHomeDefined(uiclass)) {
+                AbstractArea areaPrivadaPorDefecto = l.stream().filter(a -> !a.isPublicAccess()).findFirst().orElse(null);
+                if (areaPrivadaPorDefecto == null) l.add(areaPrivadaPorDefecto = new FakeArea("", false, findDefaultAction(uiclass, false, false)));
+                else areaPrivadaPorDefecto.defaultAction = findDefaultAction(uiclass, false, false);
             }
         }
         return l;
     }
 
-    private boolean isPublicHomeDefined() {
+    private boolean isPublicHomeDefined(Class uiclass) {
         return ReflectionHelper.getAllFields(ui.getClass()).stream().filter(f -> f.isAnnotationPresent(PublicHome.class)).map(f -> true).findFirst().orElse(
-                ReflectionHelper.getAllMethods(ui.getClass()).stream().filter(f -> f.isAnnotationPresent(PublicHome.class)).map(m -> true).findFirst().orElse(false)
+                ReflectionHelper.getAllMethods(ui.getClass()).stream().filter(f -> !uiclass.isAnnotationPresent(Private.class) && f.isAnnotationPresent(Home.class)).map(m -> true).findFirst().orElse(false)
+        );
+    }
+
+    private boolean isPrivateHomeDefined(Class uiclass) {
+        return ReflectionHelper.getAllFields(ui.getClass()).stream().filter(f -> f.isAnnotationPresent(PrivateHome.class)).map(f -> true).findFirst().orElse(
+                ReflectionHelper.getAllMethods(ui.getClass()).stream().filter(f -> uiclass.isAnnotationPresent(Private.class) && f.isAnnotationPresent(Home.class)).map(m -> true).findFirst().orElse(false)
         );
     }
 

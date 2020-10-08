@@ -113,6 +113,33 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                         out.println("");
                         out.println("}");
                     }
+
+                    builderFile = processingEnv.getFiler().createSourceFile(pkgName + "." + simpleClassName + "ServletFilter");
+                    try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
+                        // writing generated file to out …
+
+                        out.println("package " + pkgName + ";");
+
+                        out.println("");
+
+                        out.println("import io.mateu.security.web.MateuSecurityFilter;");
+                        out.println("import javax.servlet.annotation.WebFilter;");
+
+                        out.println("");
+
+
+                        out.println();
+
+                        String privatePath = e.getAnnotation(MateuUI.class).path();
+                        if (!privatePath.endsWith("/")) privatePath += "/";
+                        privatePath += "private/*";
+
+                        out.println("@WebFilter(\"" + privatePath + "\")\n" +
+                                "public class " + simpleClassName + "ServletFilter extends MateuSecurityFilter {");
+                        out.println("");
+                        out.println("}");
+                    }
+
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }

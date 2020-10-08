@@ -13,6 +13,7 @@ import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
+import io.mateu.mdd.vaadin.util.VaadinHelper;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadin.MDDUI;
 import io.mateu.mdd.vaadin.components.app.AppComponent;
@@ -213,7 +214,7 @@ public class MDDNavigator {
 
     public void goBack() {
         if (stack.getLast() != null && !(stack.getLast().getComponent() instanceof OwnedCollectionComponent) && stack.getLast().getComponent() instanceof EditorViewComponent && ((PersistentPojo.class.isAssignableFrom(((EditorViewComponent)stack.getLast().getComponent()).getModelType()) || ((EditorViewComponent)stack.getLast().getComponent()).getModelType().isAnnotationPresent(Entity.class)) && ((EditorViewComponent)stack.getLast().getComponent()).isModificado()) && ((EditorViewComponent)stack.getLast().getComponent()).isCreateSaveButton()) {
-            MDDUI.get().getPort().saveOrDiscard("There are unsaved changes. What do you want to do?", (EditorViewComponent) stack.getLast().getComponent(), () -> yesGoBack());
+            VaadinHelper.saveOrDiscard("There are unsaved changes. What do you want to do?", (EditorViewComponent) stack.getLast().getComponent(), () -> yesGoBack());
         } else {
             yesGoBack();
         }
@@ -266,7 +267,7 @@ public class MDDNavigator {
 
     public void goSibling(Object id) {
         if (stack.getLast().getComponent() instanceof EditorViewComponent && ((PersistentPojo.class.isAssignableFrom(((EditorViewComponent)stack.getLast().getComponent()).getModelType()) || ((EditorViewComponent)stack.getLast().getComponent()).getModelType().isAnnotationPresent(Entity.class)) && ((EditorViewComponent)stack.getLast().getComponent()).isModificado())) {
-            MDDUI.get().getPort().saveOrDiscard("There are unsaved changes. What do you want to do?", (EditorViewComponent) stack.getLast().getComponent(), () -> {
+            VaadinHelper.saveOrDiscard("There are unsaved changes. What do you want to do?", (EditorViewComponent) stack.getLast().getComponent(), () -> {
                 try {
                     yesGoSibling(id);
                 } catch (Throwable throwable) {

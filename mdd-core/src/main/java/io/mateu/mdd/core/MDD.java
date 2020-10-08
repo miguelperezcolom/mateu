@@ -319,8 +319,8 @@ public class MDD {
         boolean permisoOk = false;
         if (u != null && (users == null || users.length == 0) && permissions != null && permissions.length > 0) {
             for (int i = 0; i < permissions.length; i++) {
-                for (Long p : u.getPermissionIds()) {
-                    if (permissions[i].equals("" + p)) {
+                for (String p : u.getRoles()) {
+                    if (permissions[i].equals(p)) {
                         permisoOk = true;
                         break;
                     }

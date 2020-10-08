@@ -658,8 +658,10 @@ public class VaadinHelper {
         HorizontalLayout hl;
         l.addComponent(hl = new HorizontalLayout(buttonSaveBefore = new Button("Save and proceed", e -> {
             try {
-                editor.save(false);
-                afterSave.run();
+                if (editor.validate()) {
+                    editor.save(false);
+                    afterSave.run();
+                }
             } catch (Throwable t) {
                 Notifier.alert(t);
             }
@@ -672,7 +674,7 @@ public class VaadinHelper {
             }
             w.close();
         })
-                //, buttonNo = new Button("Abort and stay here", e -> w.close())
+                , buttonNo = new Button("Abort and stay here", e -> w.close())
         ));
 
         hl.setDefaultComponentAlignment(Alignment.MIDDLE_RIGHT);

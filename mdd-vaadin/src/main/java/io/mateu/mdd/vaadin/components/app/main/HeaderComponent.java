@@ -1,11 +1,7 @@
 package io.mateu.mdd.vaadin.components.app.main;
 
 import com.google.common.base.Strings;
-import com.vaadin.icons.VaadinIcons;
-import com.vaadin.server.ClassResource;
-import com.vaadin.server.ExternalResource;
-import com.vaadin.server.Resource;
-import com.vaadin.server.ThemeResource;
+import com.vaadin.server.*;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.app.AbstractAction;
@@ -17,9 +13,9 @@ import io.mateu.mdd.shared.interfaces.IArea;
 import io.mateu.mdd.shared.interfaces.IModule;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class HeaderComponent extends HorizontalLayout {
 
@@ -28,6 +24,14 @@ public class HeaderComponent extends HorizontalLayout {
     public HeaderComponent(MainComponent home) {
         this.home = home;
         setWidthFull();
+        addStyleName("mateu-header");
+
+        refresh(false);
+
+    }
+
+    public void refresh(boolean isPrivate) {
+        removeAllComponents();
 
         App app = MDDUIAccessor.getApp();
 
@@ -54,20 +58,33 @@ public class HeaderComponent extends HorizontalLayout {
         hl.addLayoutClickListener(e -> MDDUIAccessor.goTo(""));
 
         MenuBar bar;
-        addComponent(bar = getMenuBar(app));
+        addComponent(bar = getMenuBar(app, isPrivate));
 
-        Button b;
-        addComponent(b = new Button("Registrarse"));
-        b.addStyleName(ValoTheme.BUTTON_QUIET);
-        addComponent(b = new Button("Login", e -> home.irA("private")));
-        b.addStyleName(ValoTheme.BUTTON_QUIET);
+        String basePath = UI.getCurrent().getUiRootPath();
+        if (!basePath.endsWith("/")) basePath += "/";
+
+        String finalBasePath = basePath;
+        if (isPrivate) {
+            Button b;
+            addComponent(b = new Button("Logout", e -> Page.getCurrent().setLocation(finalBasePath + "private/logout")));
+            b.addStyleName(ValoTheme.BUTTON_QUIET);
+        } else {
+            if (app.hasPrivateContent()) {
+                Button b;
+                if (app.hasRegistrationForm()) {
+                    addComponent(b = new Button("Registrarse", e -> Page.getCurrent().setLocation(finalBasePath + "private/register")));
+                    b.addStyleName(ValoTheme.BUTTON_QUIET);
+                }
+                addComponent(b = new Button("Login", e -> Page.getCurrent().setLocation(finalBasePath + "private")));
+                b.addStyleName(ValoTheme.BUTTON_QUIET);
+            }
+        }
 
         setExpandRatio(bar, 1);
-        addStyleName("mateu-header");
     }
 
 
-    MenuBar getMenuBar(App app) {
+    MenuBar getMenuBar(App app, boolean isPrivate) {
         MenuBar.Command click = new MenuBar.Command() {
             @Override
             public void menuSelected(MenuBar.MenuItem selectedItem) {
@@ -83,7 +100,7 @@ public class HeaderComponent extends HorizontalLayout {
 
 
 
-        List<IArea> areas = Arrays.asList(app.getAreas());
+        List<IArea> areas = Arrays.asList(app.getAreas()).stream().filter(a -> (!isPrivate && a.isPublicAccess()) || (isPrivate && !a.isPublicAccess())).collect(Collectors.toList());
         if (areas.size() == 1) {
             IArea area = areas.get(0);
             for (IModule module : area.getModules()) {
