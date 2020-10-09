@@ -217,6 +217,12 @@
         </dependency>
 
         <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mdd-annotationprocessing</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-themes</artifactId>
         </dependency>
@@ -278,6 +284,7 @@
             <groupId>io.mateu</groupId>
             <artifactId>showcase-app</artifactId>
             <version>1.0-SNAPSHOT</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>

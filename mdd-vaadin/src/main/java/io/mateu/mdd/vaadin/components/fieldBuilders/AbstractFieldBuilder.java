@@ -24,6 +24,7 @@ import io.mateu.util.notification.Notifier;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public abstract class AbstractFieldBuilder implements IFieldBuilder {
 
@@ -85,6 +86,12 @@ public abstract class AbstractFieldBuilder implements IFieldBuilder {
         if (model != null) for (FieldInterfaced f : containers.keySet()) {
             Component c = containers.get(f);
             if (c != null) {
+
+                List<String> styles = stylist.style(f, model);
+                c.setStyleName(styles.stream().collect(Collectors.joining(" ")));
+
+                c.setEnabled(stylist.isEnabled(f, model));
+
                 boolean v = stylist.isVisible(f, model);
                 c.setVisible(v);
                 if (c.getParent() instanceof HorizontalLayout) {

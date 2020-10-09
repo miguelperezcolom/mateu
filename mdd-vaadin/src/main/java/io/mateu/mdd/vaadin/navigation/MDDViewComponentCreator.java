@@ -162,7 +162,7 @@ public class MDDViewComponentCreator {
         return v;
     }
 
-    public static Component createComponent(WizardPage page) throws Exception {
+    public static Component createComponent(WizardPage page) {
         return new WizardComponent(page);
     }
 }

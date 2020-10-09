@@ -1,9 +1,6 @@
 package io.mateu.mdd.vaadin.controllers.secondLevel;
 
-import io.mateu.mdd.core.app.AbstractMenu;
-import io.mateu.mdd.core.app.MDDOpenCRUDAction;
-import io.mateu.mdd.core.app.MDDOpenEditorAction;
-import io.mateu.mdd.core.app.MDDOpenListViewAction;
+import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.interfaces.App;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
@@ -32,6 +29,8 @@ public class ActionController extends Controller {
                         controller = new ListViewController(stack, path + "/" + step, (MDDOpenListViewAction) m);
                     } else if (m instanceof MDDOpenCRUDAction) {
                         controller = new CrudController(stack, path + "/" + step, (MDDOpenCRUDAction)m);
+                    } else if (m instanceof MDDOpenWizardAction) {
+                        controller = new WizardController(stack, path + "/" + step, ((MDDOpenWizardAction)m).firstPage);
                     } else if (m instanceof MDDOpenEditorAction) {
                         controller = new EditorController(stack, path + "/" + step, (MDDOpenEditorAction)m);
                     }

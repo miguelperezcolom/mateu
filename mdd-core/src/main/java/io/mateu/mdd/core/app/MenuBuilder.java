@@ -2,6 +2,7 @@ package io.mateu.mdd.core.app;
 
 import com.google.common.base.Strings;
 import com.vaadin.icons.VaadinIcons;
+import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.shared.reflection.CoreReflectionHelper;
@@ -224,8 +225,11 @@ public class MenuBuilder {
                     Object v = ReflectionHelper.getValue(f, app);
                     if (v == null) v = ReflectionHelper.newInstance(f.getType());
                     if (ReflectionHelper.isBasico(v)) {
-                        if (f.isAnnotationPresent(Home.class) || f.isAnnotationPresent(PublicHome.class) || f.isAnnotationPresent(PrivateHome.class)) l.add(new MDDOpenHtml("Home", "" + v).setIcon(VaadinIcons.HOME).setOrder(order));
+                        if (f.isAnnotationPresent(Home.class) || f.isAnnotationPresent(PublicHome.class) || f.isAnnotationPresent(PrivateHome.class))
+                            l.add(new MDDOpenHtml("Home", "" + v).setIcon(VaadinIcons.HOME).setOrder(order));
                         else l.add(new MDDOpenHtml(caption, "" + v).setIcon(icon).setOrder(order));
+                    } else if (WizardPage.class.isAssignableFrom(f.getType())) {
+                        l.add(new MDDOpenWizardAction(caption, (WizardPage) v).setIcon(icon).setOrder(order));
                     } else l.add(new MDDOpenEditorAction(caption, v).setIcon(icon).setOrder(order));
                 }
 

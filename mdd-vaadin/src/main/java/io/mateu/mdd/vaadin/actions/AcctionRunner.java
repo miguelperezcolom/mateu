@@ -56,7 +56,7 @@ public class AcctionRunner {
     }
 
     public void run(MDDOpenWizardAction action) {
-        Opener.openWizard(action.firstPageClass);
+        Opener.openWizard(action.firstPage);
     }
 
 

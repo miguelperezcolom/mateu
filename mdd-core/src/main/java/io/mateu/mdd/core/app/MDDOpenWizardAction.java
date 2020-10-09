@@ -1,13 +1,15 @@
 package io.mateu.mdd.core.app;
 
 
+import io.mateu.mdd.core.interfaces.WizardPage;
+
 public class MDDOpenWizardAction extends AbstractAction {
 
-    public final Class firstPageClass;
+    public final WizardPage firstPage;
 
-    public MDDOpenWizardAction(String name, Class firstWizardPageClass) {
+    public MDDOpenWizardAction(String name, WizardPage firstWizardPage) {
         super(name);
-        this.firstPageClass = firstWizardPageClass;
+        this.firstPage = firstWizardPage;
     }
 
 }

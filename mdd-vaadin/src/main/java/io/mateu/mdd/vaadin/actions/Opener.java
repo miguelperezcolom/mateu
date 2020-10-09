@@ -22,6 +22,6 @@ public class Opener {
     public static void openListView(Class listViewClass) {
     }
 
-    public static void openWizard(Class firstPageClass) {
+    public static void openWizard(Object firstPage) {
     }
 }

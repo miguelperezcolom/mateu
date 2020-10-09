@@ -1,6 +1,8 @@
 package io.mateu.mdd.core.interfaces;
 
 import com.google.common.base.Strings;
+import io.mateu.mdd.shared.annotations.Css;
+import io.mateu.mdd.shared.annotations.EnabledIf;
 import io.mateu.mdd.shared.annotations.VisibleIf;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
@@ -12,10 +14,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class AbstractStylist<S> {
 
@@ -66,6 +65,7 @@ public abstract class AbstractStylist<S> {
 
 
     public List<String> style(FieldInterfaced field, S model) {
+        List<String> l = new ArrayList<>();
         Method m = ReflectionHelper.getMethod(getStylistClass(), ReflectionHelper.getGetter(field) + "Styles");
         if (m != null) {
             try {
@@ -74,7 +74,12 @@ public abstract class AbstractStylist<S> {
                 Notifier.alert(e);
             }
         }
-        return null;
+        if (field.isAnnotationPresent(Css.class) && !Strings.isNullOrEmpty(field.getAnnotation(Css.class).value())) {
+            String s = field.getAnnotation(Css.class).value();
+            String r = Helper.eval("nashorn", s, Helper.hashmap("$this", model));
+            if (!Strings.isNullOrEmpty(r)) l = Arrays.asList(r.split(" "));
+        }
+        return l;
     };
 
 
@@ -123,6 +128,22 @@ public abstract class AbstractStylist<S> {
 
     public void setViewTitle(String viewTitle) {
         this.viewTitle = viewTitle;
+    }
+
+    public boolean isEnabled(FieldInterfaced f, Object model) {
+        Method m = ReflectionHelper.getMethod(getStylistClass(), ReflectionHelper.getGetter(f).replaceFirst("get", "is") + "Enabled");
+        if (m != null) {
+            try {
+                return (getStylistClass().equals(getClass()))?(boolean) m.invoke(this, model):(boolean) m.invoke(model);
+            } catch (Exception e) {
+                Notifier.alert(e);
+            }
+        } else if (f.isAnnotationPresent(EnabledIf.class) && !Strings.isNullOrEmpty(f.getAnnotation(EnabledIf.class).value())) {
+            String s = f.getAnnotation(EnabledIf.class).value();
+            String r = Helper.eval("nashorn", s, Helper.hashmap("$this", model));
+            return "true".equalsIgnoreCase(r);
+        }
+        return true;
     }
 
     public boolean isVisible(FieldInterfaced f, Object model) {

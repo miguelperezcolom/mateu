@@ -63,6 +63,14 @@
             <version>${project.version}</version>
         </dependency>
 
+
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>showcase-app</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>mdd-fakeui</artifactId>
