@@ -13,14 +13,13 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.Code;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.vaadin.data.MDDBinder;
-import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.reflection.ReflectionHelper;
-import io.mateu.mdd.vaadin.MDDUI;
 import org.vaadin.aceeditor.AceEditor;
 
 import javax.validation.constraints.NotNull;

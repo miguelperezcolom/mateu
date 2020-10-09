@@ -8,14 +8,14 @@ import com.vaadin.shared.Registration;
 import com.vaadin.ui.BrowserFrame;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Layout;
+import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.shared.annotations.FullWidth;
 import io.mateu.mdd.shared.annotations.Height;
 import io.mateu.mdd.shared.annotations.IFrame;
 import io.mateu.mdd.shared.annotations.Width;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.vaadin.data.MDDBinder;
-import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.reflection.ReflectionHelper;
 
 import java.util.List;

@@ -2,7 +2,6 @@ package io.mateu.mdd.vaadin.controllers.thirdLevel;
 
 import com.vaadin.data.Binder;
 import com.vaadin.ui.Component;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.interfaces.EntityProvider;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.UseLinkToListView;

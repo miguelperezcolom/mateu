@@ -4,7 +4,6 @@ import com.vaadin.navigator.View;
 import io.mateu.fake.FakeMDDUIInjector;
 import io.mateu.fake.FakeUI;
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.app.AbstractApplication;
 import io.mateu.mdd.core.app.MateuApp;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.vaadin.controllers.MateuViewProvider;

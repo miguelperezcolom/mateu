@@ -4,17 +4,17 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDRunnableAction;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.Action;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.shared.reflection.CoreReflectionHelper;
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.util.Helper;
-import io.mateu.mdd.vaadin.MDDUI;
+import io.mateu.mdd.vaadin.MateuUI;
+import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.vaadin.navigation.View;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
+import io.mateu.reflection.ReflectionHelper;
+import io.mateu.util.Helper;
 import io.mateu.util.notification.Notifier;
 import lombok.extern.slf4j.Slf4j;
 
@@ -62,7 +62,7 @@ public class MethodParametersViewComponent extends EditorViewComponent {
                         Object r = CoreReflectionHelper.execute(method, getBinder().getBean(), bean, pendingSelection);
                         if (bean != null && void.class.equals(method.getReturnType())) {
                             if (method.isAnnotationPresent(Action.class) && method.getAnnotation(Action.class).saveAfter()) {
-                                ViewStack stack = MDDUI.get().getNavegador().getViewProvider().getStack();
+                                ViewStack stack = MateuUI.get().getStack();
                                 View v = stack.size() >= 2?stack.get(stack.size() - 2):null;
                                 if (v != null && v.getViewComponent() instanceof EditorViewComponent) ((EditorViewComponent) v.getViewComponent()).save(false);
                             }

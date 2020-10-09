@@ -6,16 +6,16 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.ui.Grid;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.Action;
-import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.shared.data.ChartData;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.shared.data.SumData;
+import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.vaadin.MateuUI;
+import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
-import io.mateu.mdd.vaadin.MDDUI;
 import io.mateu.util.notification.Notifier;
 
 import java.lang.reflect.InvocationTargetException;
@@ -41,7 +41,7 @@ public class CollectionListViewComponent extends ListViewComponent {
             @Override
             public void onEdit(Object id) {
                 try {
-                    MDDUI.get().getNavegador().setPendingResult(id);
+                    MateuUI.get().setPendingResult(id);
                     MDDUIAccessor.go("" + id);
                 } catch (Throwable throwable) {
                     Notifier.alert(throwable);

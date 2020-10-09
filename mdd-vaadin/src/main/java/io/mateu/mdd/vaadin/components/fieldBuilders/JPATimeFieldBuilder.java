@@ -7,8 +7,8 @@ import com.vaadin.data.Result;
 import com.vaadin.data.ValueContext;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.ui.TextField;
-import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.vaadin.data.MDDBinder;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;

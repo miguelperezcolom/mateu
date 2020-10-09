@@ -8,8 +8,6 @@ import io.mateu.security.Private;
 import io.mateu.util.persistence.JPAHelper;
 
 import javax.servlet.http.HttpSession;
-import java.security.Principal;
-import java.util.ArrayList;
 import java.util.List;
 
 @AutoService(MateuSecurityManager.class)

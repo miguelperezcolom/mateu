@@ -9,7 +9,6 @@ import io.mateu.mdd.core.app.AbstractMenu;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.interfaces.App;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
-import io.mateu.mdd.vaadin.MDDUI;
 import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;
 
 import java.util.List;

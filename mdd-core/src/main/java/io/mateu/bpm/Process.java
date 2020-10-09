@@ -1,7 +1,6 @@
 package io.mateu.bpm;
 
 import lombok.Getter;
-import lombok.MateuMDDEntity;
 import lombok.Setter;
 
 import java.util.List;

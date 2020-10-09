@@ -8,14 +8,14 @@ import io.mateu.mdd.core.model.common.Icon;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.model.multilanguage.Literal;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.interfaces.IResource;
 import io.mateu.mdd.shared.interfaces.UserPrincipal;
-import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.util.Helper;
 import io.mateu.util.interfaces.*;
+import io.mateu.util.mail.EmailHelper;
 import io.mateu.util.notification.Notifier;
 import io.mateu.util.persistence.JPAHelper;
-import io.mateu.util.mail.EmailHelper;
 import io.mateu.util.persistence.JPATransaction;
 
 import javax.persistence.EntityManager;

@@ -8,7 +8,6 @@ import io.mateu.mdd.core.app.MDDRunnableAction;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.util.Helper;
-import io.mateu.mdd.vaadin.MDDUI;
 import io.mateu.util.notification.Notifier;
 import lombok.extern.slf4j.Slf4j;
 

@@ -1,7 +1,7 @@
 package io.mateu.test.model;
 
-import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.core.annotations.Fake;
+import io.mateu.mdd.shared.annotations.Action;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;

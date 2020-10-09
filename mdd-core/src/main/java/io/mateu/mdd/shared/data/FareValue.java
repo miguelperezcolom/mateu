@@ -1,8 +1,8 @@
 package io.mateu.mdd.shared.data;
 
 import com.google.common.base.Strings;
-import io.mateu.mdd.shared.annotations.SameLine;
 import io.mateu.mdd.core.interfaces.ISupplementOrPositive;
+import io.mateu.mdd.shared.annotations.SameLine;
 import io.mateu.util.Helper;
 import io.mateu.util.data.SupplementOrPositive;
 import io.mateu.util.data.SupplementOrPositiveType;

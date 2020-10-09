@@ -1,9 +1,7 @@
 package io.mateu.mdd.vaadin.controllers.secondLevel;
 
 import io.mateu.mdd.core.app.MDDOpenListViewAction;
-import io.mateu.mdd.core.interfaces.ListView;
 import io.mateu.mdd.vaadin.components.views.ListViewComponent;
-import io.mateu.mdd.vaadin.controllers.secondLevel.ListViewComponentController;
 import io.mateu.mdd.vaadin.navigation.MDDViewComponentCreator;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 

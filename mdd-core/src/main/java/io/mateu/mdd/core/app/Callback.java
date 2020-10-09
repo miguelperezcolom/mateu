@@ -1,7 +1,6 @@
 package io.mateu.mdd.core.app;
 
 
-import io.mateu.mdd.core.MDD;
 import io.mateu.util.notification.Notifier;
 
 /**

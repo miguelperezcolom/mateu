@@ -5,12 +5,12 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.Window;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
-import io.mateu.mdd.vaadin.components.views.ListViewComponent;
-import io.mateu.mdd.vaadin.controllers.Controller;
-import io.mateu.reflection.ReflectionHelper;
 import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
+import io.mateu.mdd.vaadin.components.views.ListViewComponent;
 import io.mateu.mdd.vaadin.components.views.RpcListViewComponent;
+import io.mateu.mdd.vaadin.controllers.Controller;
+import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.notification.Notifier;
 
 import java.lang.reflect.Method;

@@ -2,7 +2,6 @@ package io.mateu.mdd.vaadin.components.views;
 
 import com.vaadin.ui.FormLayout;
 import com.vaadin.ui.Label;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.shared.annotations.Ignored;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;

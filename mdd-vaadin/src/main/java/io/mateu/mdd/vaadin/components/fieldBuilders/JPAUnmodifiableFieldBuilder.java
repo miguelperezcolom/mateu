@@ -6,14 +6,13 @@ import com.vaadin.shared.Registration;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
-import io.mateu.mdd.shared.annotations.Unmodifiable;
 import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.interfaces.AbstractStylist;
+import io.mateu.mdd.shared.annotations.Unmodifiable;
+import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.data.MDDBinder;
-import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
-import io.mateu.mdd.vaadin.MDDUI;
 import org.javamoney.moneta.FastMoney;
 
 import javax.money.MonetaryAmount;

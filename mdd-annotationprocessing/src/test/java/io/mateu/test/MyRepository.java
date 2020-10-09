@@ -6,7 +6,6 @@ import io.mateu.test.model.Entidad;
 import io.mateu.test.model.Estado;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface MyRepository extends IRepository<Entidad, Long> {

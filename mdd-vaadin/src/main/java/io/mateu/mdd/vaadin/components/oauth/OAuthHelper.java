@@ -2,9 +2,9 @@ package io.mateu.mdd.vaadin.components.oauth;
 
 import com.google.common.base.Strings;
 import com.vaadin.server.Page;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.VaadinHelper;
 import io.mateu.mdd.shared.interfaces.UserPrincipal;
-import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.util.Helper;
 import io.mateu.util.interfaces.GeneralRepository;
 import lombok.extern.slf4j.Slf4j;

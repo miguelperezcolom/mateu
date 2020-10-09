@@ -9,7 +9,7 @@ import javax.servlet.annotation.WebServlet;
 import java.util.Properties;
 
 @WebServlet(urlPatterns = {"/VAADIN", "/VAADIN/*"}, name = "VaadinResourcesServlet", asyncSupported = true, loadOnStartup = 500)
-@VaadinServletConfiguration(ui = MDDUI.class, productionMode = false)
+@VaadinServletConfiguration(ui = MateuUI.class, productionMode = false)
 public class VaadinResourcesServlet extends VaadinServlet {
 
     @Override

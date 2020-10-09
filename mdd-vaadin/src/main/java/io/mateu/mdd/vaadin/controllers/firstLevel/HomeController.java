@@ -1,10 +1,8 @@
 package io.mateu.mdd.vaadin.controllers.firstLevel;
 
-import com.vaadin.ui.Component;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.vaadin.controllers.BrokenLinkController;
 import io.mateu.mdd.vaadin.controllers.Controller;
-import io.mateu.mdd.vaadin.navigation.View;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.util.notification.Notifier;
 

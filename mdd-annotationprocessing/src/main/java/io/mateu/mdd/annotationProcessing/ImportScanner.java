@@ -1,13 +1,12 @@
 package io.mateu.mdd.annotationProcessing;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementScanner7;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ImportScanner extends ElementScanner7<Void, Void> {
 

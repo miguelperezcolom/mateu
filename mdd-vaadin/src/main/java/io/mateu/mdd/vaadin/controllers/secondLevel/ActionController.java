@@ -1,6 +1,5 @@
 package io.mateu.mdd.vaadin.controllers.secondLevel;
 
-import com.vaadin.ui.Component;
 import io.mateu.mdd.core.app.AbstractMenu;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.app.MDDOpenEditorAction;
@@ -11,7 +10,6 @@ import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.vaadin.controllers.BrokenLinkController;
 import io.mateu.mdd.vaadin.controllers.Controller;
 import io.mateu.mdd.vaadin.controllers.firstLevel.MenuController;
-import io.mateu.mdd.vaadin.navigation.MDDViewComponentCreator;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.util.notification.Notifier;
 

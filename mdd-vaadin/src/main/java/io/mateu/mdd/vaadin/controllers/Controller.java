@@ -2,7 +2,6 @@ package io.mateu.mdd.vaadin.controllers;
 
 import com.vaadin.ui.Component;
 import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;
-import io.mateu.mdd.vaadin.components.ComponentWrapper;
 import io.mateu.mdd.vaadin.navigation.View;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.mdd.vaadin.views.BrokenLinkView;

@@ -5,11 +5,11 @@ import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.ui.*;
-import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
+import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.reflection.ReflectionHelper;
 
 import java.util.List;

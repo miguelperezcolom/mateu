@@ -6,11 +6,13 @@ import com.vaadin.navigator.ViewProvider;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
+import io.mateu.mdd.shared.interfaces.App;
 import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
 import io.mateu.mdd.vaadin.components.views.ListViewComponent;
 import io.mateu.mdd.vaadin.controllers.firstLevel.HomeController;
+import io.mateu.mdd.vaadin.controllers.secondLevel.EditorController;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.notification.Notifier;
@@ -75,11 +77,13 @@ public class MateuViewProvider implements ViewProvider {
             stack.clear();
         }
 
+        App app = MDDUIAccessor.getApp();
+
         if ( v != null) {
             controller = v.getController();
             v = null;
         } else {
-            controller = new HomeController(stack);
+            controller = app.isForm()?new EditorController(stack, "", app.getBean()):new HomeController(stack);
         }
 
         //clearStack();
@@ -153,7 +157,7 @@ public class MateuViewProvider implements ViewProvider {
         }
         if (c != null && (c instanceof EditorViewComponent)) {
             currentEditor = (EditorViewComponent) c;
-            if (firstViewInWindow == 0) firstViewInWindow = stack.size() + 1;
+            if (firstViewInWindow == 0 && stack.size() > 1) firstViewInWindow = stack.size() + 1;
         }
 
 

@@ -2,7 +2,6 @@ package io.mateu.mdd.core.app;
 
 import com.google.common.base.Strings;
 import com.vaadin.icons.VaadinIcons;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.shared.reflection.CoreReflectionHelper;

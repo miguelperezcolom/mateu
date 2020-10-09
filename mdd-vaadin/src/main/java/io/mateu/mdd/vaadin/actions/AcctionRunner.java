@@ -4,12 +4,13 @@ import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import io.mateu.mdd.core.app.*;
-import io.mateu.mdd.vaadin.MDDUI;
+import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.components.ComponentWrapper;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.notification.Notifier;
 
 public class AcctionRunner {
+
 
     public void run(AbstractAction action) throws Throwable {
         if (action instanceof MDDCallMethodAction) run((MDDCallMethodAction) action);
@@ -26,28 +27,28 @@ public class AcctionRunner {
 
     public void run(MDDCallMethodAction action) {
         if (action.method == null) Notifier.alert("Method " + action.methodName + " does not exist in class " + action.type);
-        else MDDUI.get().callMethod(null, action.method, null, null);
+        else Opener.callMethod(action.method);
     }
 
     public void run(MDDViewObject action) {
-        MDDUI.get().setPendingResult(action.o);
+        MateuUI.get().setPendingResult(action.o);
     }
 
     public void run(MDDOpenCRUDAction action) throws Exception {
-        MDDUI.get().getNavegador().getViewProvider().openCRUD(action);
+        Opener.openCRUD(action);
     }
 
     public void run(MDDOpenCustomComponentAction action) throws Exception {
-        MDDUI.get().getNavegador().getViewProvider().open(action, (Component) (action.component != null?action.component: ReflectionHelper.newInstance(action.viewClass)));
+        Opener.open(action, (Component) (action.component != null?action.component: ReflectionHelper.newInstance(action.viewClass)));
     }
 
     public void run(MDDOpenEditorAction action) throws Throwable {
-        if (action.bean != null) MDDUI.get().getNavegador().getViewProvider().openEditor( action.bean);
-        else MDDUI.get().getNavegador().getViewProvider().openEditor(action);
+        if (action.bean != null) Opener.openEditor( action.bean);
+        else Opener.openEditor(action);
     }
 
     public void run(MDDOpenListViewAction action) throws Exception {
-        MDDUI.get().openListView(action.listViewClass);
+        Opener.openListView(action.listViewClass);
     }
 
     public void run(MDDOpenHtml action) throws Exception {
@@ -55,8 +56,9 @@ public class AcctionRunner {
     }
 
     public void run(MDDOpenWizardAction action) {
-        MDDUI.get().getPort().openWizard(action.firstPageClass);
+        Opener.openWizard(action.firstPageClass);
     }
+
 
     public void run(MDDRunnableAction action) throws Throwable {
         action.run();

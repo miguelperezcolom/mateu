@@ -31,22 +31,24 @@ import com.vaadin.ui.renderers.TextRenderer;
 import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonValue;
 import io.mateu.i18n.Translator;
-import io.mateu.mdd.shared.CSS;
-import io.mateu.mdd.shared.data.*;
-import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.*;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
+import io.mateu.mdd.shared.CSS;
+import io.mateu.mdd.shared.annotations.*;
+import io.mateu.mdd.shared.data.ChartData;
+import io.mateu.mdd.shared.data.ChartValue;
+import io.mateu.mdd.shared.data.FareValue;
+import io.mateu.mdd.shared.data.SumData;
 import io.mateu.mdd.shared.interfaces.IResource;
 import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.mdd.core.ui.MDDUIAccessor;
+import io.mateu.mdd.vaadin.components.fieldBuilders.components.WeekDaysComponent;
 import io.mateu.mdd.vaadin.data.MDDBinder;
+import io.mateu.mdd.vaadin.util.VaadinHelper;
 import io.mateu.reflection.FieldInterfacedForCheckboxColumn;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
-import io.mateu.mdd.vaadin.MDDUI;
-import io.mateu.mdd.vaadin.components.fieldBuilders.components.WeekDaysComponent;
-import io.mateu.mdd.vaadin.util.VaadinHelper;
 import io.mateu.util.interfaces.IIcon;
 import io.mateu.util.notification.Notifier;
 import io.mateu.util.persistence.JPAHelper;
@@ -346,7 +348,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
                             if (wds != null) for (int i = 0; i < wds.length; i++) {
                                 if (!"".equals(s)) s += ",";
-                                s += wds[i]?WeekDaysComponent.days.get(i):"-";
+                                s += wds[i]? WeekDaysComponent.days.get(i):"-";
                             }
 
                             return s;
@@ -1626,7 +1628,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             bar.addComponent(i = new Button("Delete", VaadinIcons.MINUS));
             i.addStyleName(ValoTheme.BUTTON_QUIET);
             i.addClickListener(e -> {
-                MDDUI.get().getPort().confirm("Are you sure you want to delete the selected items?", new Runnable() {
+                VaadinHelper.confirm("Are you sure you want to delete the selected items?", new Runnable() {
                     @Override
                     public void run() {
 

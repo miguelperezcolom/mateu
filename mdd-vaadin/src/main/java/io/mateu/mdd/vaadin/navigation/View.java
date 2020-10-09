@@ -3,9 +3,7 @@ package io.mateu.mdd.vaadin.navigation;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Window;
 import io.mateu.mdd.vaadin.components.ComponentWrapper;
-import io.mateu.mdd.vaadin.components.app.views.firstLevel.*;
 import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;
-import io.mateu.mdd.vaadin.components.views.SearchInMenuComponent;
 import io.mateu.mdd.vaadin.controllers.Controller;
 
 import java.util.Objects;

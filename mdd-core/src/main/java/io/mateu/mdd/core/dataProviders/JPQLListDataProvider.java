@@ -1,7 +1,6 @@
 package io.mateu.mdd.core.dataProviders;
 
 import com.google.common.base.Strings;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.shared.annotations.QLFilter;
 import io.mateu.mdd.shared.annotations.QLForCombo;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;

@@ -2,9 +2,6 @@ package io.mateu.bpm.sample;
 
 import io.mateu.bpm.Block;
 import io.mateu.bpm.Process;
-import lombok.Getter;
-import lombok.MateuMDDEntity;
-import lombok.Setter;
 
 import java.util.List;
 

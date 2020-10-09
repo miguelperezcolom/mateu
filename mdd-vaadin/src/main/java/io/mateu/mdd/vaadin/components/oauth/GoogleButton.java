@@ -4,9 +4,9 @@ package io.mateu.mdd.vaadin.components.oauth;
 import com.vaadin.server.ClassResource;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Button;
-import io.mateu.mdd.shared.VaadinHelper;
+import com.vaadin.ui.UI;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
-import io.mateu.mdd.vaadin.MDDUI;
+import io.mateu.mdd.shared.VaadinHelper;
 import io.mateu.util.notification.Notifier;
 
 import java.io.UnsupportedEncodingException;
@@ -24,7 +24,7 @@ public class GoogleButton extends Button {
 
         addClickListener(e -> {
 
-            Page p = MDDUI.get().getPage();
+            Page p = UI.getCurrent().getPage();
 
             //String callbackUrl = p.getLocation().toString();
             String callbackUrl = MDDUIAccessor.getBaseUrl();
@@ -38,7 +38,7 @@ public class GoogleButton extends Button {
 
 
             try {
-                MDDUI.get().getPage().setLocation("https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=" + key
+                UI.getCurrent().getPage().setLocation("https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=" + key
                         + "&redirect_uri=" + URLEncoder.encode(callbackUrl, "iso-8859-1") + "&scope=" + URLEncoder.encode("https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile", "iso-8859-1"));
             } catch (UnsupportedEncodingException e1) {
                 Notifier.alert(e1);

@@ -37,7 +37,13 @@
   }
 
 
+  .v-button.quiet.primary {
+    color: blue;
+  }
 
+  .v-button.quiet.danger {
+    color: red;
+  }
 
   .v-button.v-button-link {
     height: unset;

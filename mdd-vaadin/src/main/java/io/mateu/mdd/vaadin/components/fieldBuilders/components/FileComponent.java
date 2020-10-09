@@ -9,13 +9,12 @@ import com.vaadin.server.ExternalResource;
 import com.vaadin.shared.Registration;
 import com.vaadin.ui.*;
 import io.mateu.mdd.shared.CSS;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.shared.interfaces.FileType;
-import io.mateu.mdd.vaadin.data.MDDBinder;
+import io.mateu.mdd.shared.interfaces.IResource;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.util.Helper;
 import io.mateu.util.interfaces.GeneralRepository;
-import io.mateu.mdd.shared.interfaces.IResource;
 import io.mateu.util.notification.Notifier;
 import lombok.extern.slf4j.Slf4j;
 

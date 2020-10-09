@@ -10,13 +10,13 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.shared.annotations.KPI;
 import io.mateu.mdd.shared.annotations.KPIInline;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.vaadin.data.MDDBinder;
-import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.reflection.ReflectionHelper;
 
 import java.util.List;

@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadin.components.app.main;
 
-import com.vaadin.ui.*;
+import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.vaadin.MateuUI;
 
 public class MainComponent extends VerticalLayout {
@@ -26,8 +27,9 @@ public class MainComponent extends VerticalLayout {
         addComponents(header, panel);
         setExpandRatio(panel, 1);
 
-    }
+        if (ui.getApp().isForm()) header.setVisible(false);
 
+    }
 
     public void irA(String donde) {
         ui.irA(donde);

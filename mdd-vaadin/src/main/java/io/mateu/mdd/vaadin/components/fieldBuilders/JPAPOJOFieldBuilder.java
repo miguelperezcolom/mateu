@@ -9,19 +9,18 @@ import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
-import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.vaadin.data.MDDBinder;
-import io.mateu.mdd.core.interfaces.AbstractStylist;
+import io.mateu.mdd.shared.FormLayoutBuilderParameters;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.mdd.vaadin.MDDUI;
+import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.components.ClassOption;
 import io.mateu.mdd.vaadin.components.views.FormLayoutBuilder;
-import io.mateu.mdd.shared.FormLayoutBuilderParameters;
+import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.vaadin.util.VaadinHelper;
+import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.notification.Notifier;
 
 import javax.validation.constraints.NotNull;
@@ -253,7 +252,7 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
                 } catch (Throwable e) {
                      Notifier.alert(e);
                 }
-                MDDUI.closeWindow(false);
+                MateuUI.closeWindow(false);
                 MDDUIAccessor.go(field.getName());
             }, () -> MDDUIAccessor.goBack());
         } else {

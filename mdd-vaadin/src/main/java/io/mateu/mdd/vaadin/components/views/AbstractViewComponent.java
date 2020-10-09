@@ -2,20 +2,19 @@ package io.mateu.mdd.vaadin.components.views;
 
 import com.google.common.base.Strings;
 import com.vaadin.icons.VaadinIcons;
+import com.vaadin.server.Resource;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.vaadin.MDDUI;
 import io.mateu.mdd.vaadin.actions.AcctionRunner;
-import io.mateu.mdd.vaadin.components.app.ViewContainer;
-import io.mateu.mdd.vaadin.components.app.views.firstLevel.*;
-import io.mateu.mdd.vaadin.components.app.views.firstLevel.AreaComponent;
 import io.mateu.mdd.vaadin.components.ComponentWrapper;
+import io.mateu.mdd.vaadin.components.app.views.firstLevel.AreaComponent;
 import io.mateu.mdd.vaadin.navigation.View;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
+import io.mateu.mdd.vaadin.util.VaadinHelper;
 import io.mateu.util.notification.Notifier;
 
 import java.lang.reflect.Method;
@@ -24,6 +23,7 @@ import java.util.*;
 public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> extends VerticalLayout {
 
     private final String uuid = UUID.randomUUID().toString();
+    private VaadinIcons icon;
 
     @Override
     public boolean equals(Object o) {
@@ -62,7 +62,11 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     }
 
     public VaadinIcons getIcon() {
-        return null;
+        return icon;
+    }
+
+    public void setIcon(VaadinIcons icon) {
+        this.icon = icon;
     }
 
     public void setParentView(AbstractViewComponent parentView) {
@@ -184,7 +188,6 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
             } else iconLabel.setVisible(false);
         }
         //UI.getCurrent().getPage().setTitle((titleLabel.getValue() != null)?titleLabel.getValue():"No title");
-        if (MDDUI.get() != null) applyStyles(MDDUI.get().getViewContainer());
     }
 
     public HorizontalLayout getHiddens() {
@@ -288,7 +291,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                             };
 
                             if (!Strings.isNullOrEmpty(a.getConfirmationMessage())) {
-                                MDDUI.get().getPort().confirm(a.getConfirmationMessage(), () -> {
+                                VaadinHelper.confirm(a.getConfirmationMessage(), () -> {
 
                                     r.run();
 
@@ -373,10 +376,6 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     public void setBackable(boolean backable) {
         this.backable = backable;
         if (backButton != null) backButton.setVisible(backable);
-    }
-
-    public void applyStyles(ViewContainer viewContainer) {
-
     }
 
     public boolean isBarHidden() {

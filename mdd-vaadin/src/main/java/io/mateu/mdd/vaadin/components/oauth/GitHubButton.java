@@ -4,7 +4,7 @@ package io.mateu.mdd.vaadin.components.oauth;
 import com.vaadin.server.ClassResource;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Button;
-import io.mateu.mdd.vaadin.MDDUI;
+import com.vaadin.ui.UI;
 
 public class GitHubButton extends Button {
 
@@ -78,9 +78,9 @@ Accept: application/xml
 
         addClickListener(e -> {
 
-            Page p = MDDUI.get().getPage();
+            Page p = UI.getCurrent().getPage();
 
-            MDDUI.get().getPage().setLocation("https://github.com/login/oauth/authorize?client_id=" + key);
+            UI.getCurrent().getPage().setLocation("https://github.com/login/oauth/authorize?client_id=" + key);
 
         });
     }

@@ -1,7 +1,6 @@
 package io.mateu.mdd.core.servlet;
 
 import io.mateu.util.Helper;
-import io.mateu.util.persistence.JPAHelper;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

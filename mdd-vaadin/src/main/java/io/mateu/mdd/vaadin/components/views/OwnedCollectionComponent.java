@@ -5,13 +5,12 @@ import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDRunnableAction;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
-import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.vaadin.components.ClassOption;
+import io.mateu.mdd.vaadin.data.MDDBinder;
+import io.mateu.mdd.vaadin.util.VaadinHelper;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
-import io.mateu.mdd.vaadin.MDDUI;
-import io.mateu.mdd.vaadin.components.ClassOption;
-import io.mateu.mdd.vaadin.util.VaadinHelper;
 import io.mateu.util.notification.Notifier;
 import lombok.extern.slf4j.Slf4j;
 
@@ -129,7 +128,7 @@ public class OwnedCollectionComponent extends EditorViewComponent {
                         @Override
                         public void run() {
                             if (currentIndex >= 0 && currentIndex < collection.size())
-                                MDDUI.get().getPort().confirm("Are you sure you want to delete this item?", () -> {
+                                VaadinHelper.confirm("Are you sure you want to delete this item?", () -> {
 
                                     try {
                                         Object m = getModel();

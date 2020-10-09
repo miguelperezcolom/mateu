@@ -6,17 +6,17 @@ import com.vaadin.data.*;
 import com.vaadin.server.UserError;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
-import io.mateu.mdd.shared.reflection.IFieldBuilder;
 import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.shared.annotations.Help;
-import io.mateu.mdd.vaadin.data.MDDBinder;
-import io.mateu.mdd.vaadin.MDDUI;
-import io.mateu.mdd.vaadin.actions.AcctionRunner;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.shared.reflection.IFieldBuilder;
+import io.mateu.mdd.vaadin.MateuUI;
+import io.mateu.mdd.vaadin.actions.AcctionRunner;
+import io.mateu.mdd.vaadin.data.MDDBinder;
+import io.mateu.mdd.vaadin.util.VaadinHelper;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
 import io.mateu.util.data.Pair;
@@ -249,7 +249,7 @@ public abstract class AbstractFieldBuilder implements IFieldBuilder {
 
                                 }
                                  */
-                                if (c instanceof Grid) MDDUI.get().getNavegador().getViewProvider().pendingSelection = ((Grid) c).getSelectedItems();
+                                if (c instanceof Grid) MateuUI.get().setPendingSelection(((Grid) c).getSelectedItems());
                                 try {
                                     new AcctionRunner().run(a);
                                 } catch (Throwable ex) {
@@ -259,7 +259,7 @@ public abstract class AbstractFieldBuilder implements IFieldBuilder {
                         };
 
                         if (!Strings.isNullOrEmpty(a.getConfirmationMessage())) {
-                            MDDUI.get().getPort().confirm(a.getConfirmationMessage(), () -> {
+                            VaadinHelper.confirm(a.getConfirmationMessage(), () -> {
 
                                 r.run();
 

@@ -2,18 +2,18 @@ package io.mateu.mdd.vaadin.components.views;
 
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.ui.Grid;
-import io.mateu.mdd.core.ui.MDDUIAccessor;
-import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.shared.data.ChartData;
-import io.mateu.mdd.shared.data.SumData;
 import io.mateu.mdd.core.interfaces.AbstractCrudView;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
-import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.core.interfaces.StepInterceptor;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
+import io.mateu.mdd.shared.annotations.Action;
+import io.mateu.mdd.shared.data.ChartData;
+import io.mateu.mdd.shared.data.SumData;
+import io.mateu.mdd.shared.interfaces.RpcView;
+import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
-import io.mateu.mdd.vaadin.MDDUI;
 import io.mateu.util.notification.Notifier;
 
 import java.lang.reflect.InvocationTargetException;
@@ -41,7 +41,7 @@ public class RpcListViewComponent extends ListViewComponent {
             public void onEdit(Object id) {
                 if (rpcListView.isEditHandled()) {
                     try {
-                        MDDUI.get().getNavegador().setPendingResult(rpcListView.onEdit(id));
+                        MateuUI.get().setPendingResult(rpcListView.onEdit(id));
                         MDDUIAccessor.go("" + id);
                     } catch (Throwable throwable) {
                         Notifier.alert(throwable);
@@ -52,7 +52,7 @@ public class RpcListViewComponent extends ListViewComponent {
             @Override
             public void onSelect(Object id) {
                 if (rpcListView.isSelectHandled()) {
-                    MDDUI.get().getNavegador().setPendingResult(rpcListView.onSelect(id));
+                    MateuUI.get().setPendingResult(rpcListView.onSelect(id));
                     MDDUIAccessor.go("" + id);
                 }
             }
@@ -69,7 +69,7 @@ public class RpcListViewComponent extends ListViewComponent {
             public void onEdit(Object id) {
                 if (rpcListView.isEditHandled()) {
                     try {
-                        MDDUI.get().getNavegador().setPendingResult(rpcListView.onEdit(id));
+                        MateuUI.get().setPendingResult(rpcListView.onEdit(id));
                         MDDUIAccessor.go("" + id);
                     } catch (Throwable throwable) {
                         Notifier.alert(throwable);
@@ -82,7 +82,7 @@ public class RpcListViewComponent extends ListViewComponent {
             @Override
             public void onSelect(Object id) {
                 if (rpcListView.isSelectHandled()) {
-                    MDDUI.get().getNavegador().setPendingResult(rpcListView.onSelect(id));
+                    MateuUI.get().setPendingResult(rpcListView.onSelect(id));
                     MDDUIAccessor.go("" + id);
                 }
             }

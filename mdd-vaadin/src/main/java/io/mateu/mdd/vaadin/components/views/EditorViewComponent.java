@@ -12,32 +12,30 @@ import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
-
-import io.mateu.mdd.shared.FormLayoutBuilderParameters;
-import io.mateu.mdd.shared.interfaces.IResource;
-import io.mateu.mdd.core.ui.MDDUIAccessor;
-import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.ReadOnly;
 import io.mateu.mdd.core.interfaces.*;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
+import io.mateu.mdd.shared.CSS;
+import io.mateu.mdd.shared.FormLayoutBuilderParameters;
 import io.mateu.mdd.shared.annotations.*;
+import io.mateu.mdd.shared.interfaces.IResource;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.vaadin.MateuUI;
+import io.mateu.mdd.vaadin.components.ClassOption;
+import io.mateu.mdd.vaadin.components.app.views.secondLevel.FiltersViewFlowComponent;
+import io.mateu.mdd.vaadin.data.MDDBinder;
+import io.mateu.mdd.vaadin.util.BindedWindow;
+import io.mateu.mdd.vaadin.util.VaadinHelper;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.reflection.Transferrer;
 import io.mateu.util.common.HasChangesSignature;
 import io.mateu.util.data.Pair;
 import io.mateu.util.interfaces.EditorViewStyler;
-
 import io.mateu.util.notification.Notifier;
 import io.mateu.util.persistence.JPAHelper;
 import io.mateu.util.persistence.JPATransaction;
-import io.mateu.mdd.vaadin.MDDUI;
-import io.mateu.mdd.vaadin.components.ClassOption;
-import io.mateu.mdd.vaadin.components.app.views.secondLevel.FiltersViewFlowComponent;
-import io.mateu.mdd.vaadin.util.BindedWindow;
-import io.mateu.mdd.vaadin.util.VaadinHelper;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Entity;
@@ -49,6 +47,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class EditorViewComponent extends AbstractViewComponent implements IEditorViewComponent {
@@ -128,7 +127,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
     @Override
     public VaadinIcons getIcon() {
-        return VaadinIcons.EDIT;
+        return super.getIcon() != null?super.getIcon():VaadinIcons.EDIT;
     }
 
     public void setKpisContainer(Layout kpisContainer) {
@@ -580,6 +579,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     }
 
     protected void removeUneditableFields(List<FieldInterfaced> fields) {
+        fields.stream().filter(f -> ReflectionHelper.hasGetter(f)).collect(Collectors.toList());
     }
 
     private boolean focusFirstField(Component c) {
@@ -1070,7 +1070,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                     i.addStyleName(ValoTheme.BUTTON_QUIET);
                     i.addClickListener(e -> {
 
-                        MDDUI.get().getPort().confirm("Are you sure you want to delete this item?", () -> {
+                        VaadinHelper.confirm("Are you sure you want to delete this item?", () -> {
 
                             try {
 
@@ -1314,7 +1314,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 if (getView() != null) getView().updateViewTitle(toString());
 
             } catch (OptimisticLockException ole) {
-                MDDUI.get().getPort().confirm("Some objects have been modified by someone else. You should refresh and recover any modification you have done. Do you want to go ahead and overwrite instead?", () -> {
+                VaadinHelper.confirm("Some objects have been modified by someone else. You should refresh and recover any modification you have done. Do you want to go ahead and overwrite instead?", () -> {
                     try {
                         save(goBack, notify, true);
                     } catch (Throwable throwable) {
@@ -1439,7 +1439,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 } catch (Throwable e) {
                     Notifier.alert(e);
                 }
-                MDDUI.closeWindow(false);
+                MateuUI.closeWindow(false);
             }, () -> MDDUIAccessor.goBack());
         } else setModel(ReflectionHelper.newInstance(type, parent));
     }

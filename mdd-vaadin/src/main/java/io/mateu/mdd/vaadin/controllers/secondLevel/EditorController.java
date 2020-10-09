@@ -1,28 +1,19 @@
 package io.mateu.mdd.vaadin.controllers.secondLevel;
 
-import com.vaadin.data.Binder;
-import com.vaadin.ui.Component;
+import com.vaadin.icons.VaadinIcons;
+import io.mateu.mdd.core.annotations.MateuUI;
 import io.mateu.mdd.core.app.MDDOpenEditorAction;
-import io.mateu.mdd.core.interfaces.EntityProvider;
-import io.mateu.mdd.core.ui.MDDUIAccessor;
-import io.mateu.mdd.shared.annotations.UseLinkToListView;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.mdd.vaadin.MDDUI;
-import io.mateu.mdd.vaadin.components.app.views.secondLevel.FieldEditorComponent;
-import io.mateu.mdd.vaadin.components.views.*;
+import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
+import io.mateu.mdd.vaadin.components.views.ListViewComponent;
 import io.mateu.mdd.vaadin.controllers.Controller;
 import io.mateu.mdd.vaadin.controllers.thirdLevel.FieldController;
 import io.mateu.mdd.vaadin.controllers.thirdLevel.MethodController;
-import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.vaadin.navigation.MDDViewComponentCreator;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.reflection.ReflectionHelper;
-import io.mateu.util.notification.Notifier;
-import io.mateu.util.persistence.JPAHelper;
 
-import javax.persistence.*;
 import java.lang.reflect.Method;
-import java.util.Optional;
 
 public class EditorController extends Controller {
 
@@ -35,6 +26,7 @@ public class EditorController extends Controller {
 
     public EditorController(ViewStack stack, String path, Object bean) {
         editorViewComponent = (EditorViewComponent) MDDViewComponentCreator.createComponent(bean);
+        if (bean != null && bean.getClass().isAnnotationPresent(MateuUI.class)) editorViewComponent.setIcon(VaadinIcons.FORM);
         register(stack, path, editorViewComponent);
     }
 

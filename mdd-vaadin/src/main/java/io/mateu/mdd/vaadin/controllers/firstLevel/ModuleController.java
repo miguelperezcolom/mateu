@@ -1,6 +1,5 @@
 package io.mateu.mdd.vaadin.controllers.firstLevel;
 
-import com.vaadin.ui.Component;
 import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.shared.interfaces.IModule;
 import io.mateu.mdd.vaadin.components.app.views.firstLevel.AreaComponent;

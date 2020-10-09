@@ -41,4 +41,8 @@ public interface App {
     String getLogo();
 
     boolean hasRegistrationForm();
+
+    boolean isForm();
+
+    Object getBean();
 }

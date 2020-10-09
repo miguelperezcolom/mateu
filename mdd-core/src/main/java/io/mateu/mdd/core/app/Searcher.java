@@ -1,9 +1,9 @@
 package io.mateu.mdd.core.app;
 
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.interfaces.IArea;
 import io.mateu.mdd.shared.interfaces.IModule;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
-import io.mateu.mdd.core.ui.MDDUIAccessor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;

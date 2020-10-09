@@ -1,18 +1,16 @@
 package io.mateu.mdd.vaadin.navigation;
 
 import com.vaadin.ui.Component;
-import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.app.MDDOpenEditorAction;
-import io.mateu.mdd.core.views.ExtraFilters;
-import io.mateu.mdd.vaadin.MateuUI;
-import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.core.interfaces.WizardPage;
+import io.mateu.mdd.core.views.ExtraFilters;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
+import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.components.views.*;
+import io.mateu.mdd.vaadin.data.MDDBinder;
+import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.notification.Notifier;
 
 import javax.persistence.Entity;

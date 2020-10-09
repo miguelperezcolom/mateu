@@ -5,9 +5,8 @@ import com.google.common.base.Strings;
 import com.vaadin.server.ClassResource;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Button;
-import io.mateu.mdd.core.MDD;
+import com.vaadin.ui.UI;
 import io.mateu.mdd.shared.VaadinHelper;
-import io.mateu.mdd.vaadin.MDDUI;
 import io.mateu.util.notification.Notifier;
 
 import java.io.UnsupportedEncodingException;
@@ -43,7 +42,7 @@ client_id=6731de76-14a6-49ae-97bc-6eba6914391e
 
         addClickListener(e -> {
 
-            Page p = MDDUI.get().getPage();
+            Page p = UI.getCurrent().getPage();
 
             String callbackUrl = p.getLocation().toString();
 
@@ -56,7 +55,7 @@ client_id=6731de76-14a6-49ae-97bc-6eba6914391e
 
 
             try {
-                MDDUI.get().getPage().setLocation("https://login.microsoftonline.com/common/oauth2/authorize?response_type=code&client_id=" + key
+                UI.getCurrent().getPage().setLocation("https://login.microsoftonline.com/common/oauth2/authorize?response_type=code&client_id=" + key
                         + "&redirect_uri=" + URLEncoder.encode(callbackUrl, "iso-8859-1") + "&scope=" + URLEncoder.encode("email profile openid", "iso-8859-1"));
             } catch (UnsupportedEncodingException e1) {
                 Notifier.alert(e1);

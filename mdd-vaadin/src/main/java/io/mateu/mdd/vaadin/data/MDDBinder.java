@@ -2,7 +2,6 @@ package io.mateu.mdd.vaadin.data;
 
 import com.vaadin.data.*;
 import com.vaadin.server.Setter;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.shared.interfaces.IBinder;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;

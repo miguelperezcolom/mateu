@@ -10,26 +10,26 @@ import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.shared.FormLayoutBuilderParameters;
-import io.mateu.mdd.core.ui.MDDUIAccessor;
-import io.mateu.mdd.vaadin.actions.AcctionRunner;
-import io.mateu.mdd.vaadin.data.MDDBinder;
-import io.mateu.mdd.shared.annotations.*;
-import io.mateu.util.data.Pair;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.interfaces.NakedObjectStylist;
 import io.mateu.mdd.core.interfaces.ReadOnly;
 import io.mateu.mdd.core.layout.MiFormLayout;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
+import io.mateu.mdd.shared.CSS;
+import io.mateu.mdd.shared.FormLayoutBuilderParameters;
+import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.util.Helper;
-import io.mateu.mdd.vaadin.MDDUI;
+import io.mateu.mdd.vaadin.MateuUI;
+import io.mateu.mdd.vaadin.actions.AcctionRunner;
 import io.mateu.mdd.vaadin.components.fieldBuilders.AbstractFieldBuilder;
 import io.mateu.mdd.vaadin.components.fieldBuilders.FieldBuilder;
 import io.mateu.mdd.vaadin.components.fieldBuilders.JPAOutputFieldBuilder;
+import io.mateu.mdd.vaadin.data.MDDBinder;
+import io.mateu.reflection.ReflectionHelper;
+import io.mateu.util.Helper;
+import io.mateu.util.data.Pair;
 import io.mateu.util.notification.Notifier;
 import lombok.extern.slf4j.Slf4j;
 
@@ -83,7 +83,6 @@ public class FormLayoutBuilder {
         }
 
         stylist.setViewTitle(Helper.capitalize(modelType.getSimpleName()));
-
 
         stylist.setUp(params.getAllFields());
 
@@ -184,7 +183,7 @@ public class FormLayoutBuilder {
         AbstractFieldBuilder.applyStyles(stylist, model, allFieldContainers, stylist.process(binder.getBean()));
 
         if (sectionTabSheet != null) {
-            String sid = MDDUI.get().getNavegador().getViewProvider().getPendingFocusedSectionId();
+            String sid = MateuUI.get().getPendingFocusedSectionId();
             if (!Strings.isNullOrEmpty(sid)) {
                 sectionTabSheet.setSelectedTab(Integer.parseInt(sid));
             } else if (editor != null && !Strings.isNullOrEmpty(editor.getFocusedSectionId())) {

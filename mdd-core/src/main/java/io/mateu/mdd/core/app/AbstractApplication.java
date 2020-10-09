@@ -2,15 +2,15 @@ package io.mateu.mdd.core.app;
 
 
 import com.google.common.base.Strings;
+import io.mateu.mdd.core.interfaces.View;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
+import io.mateu.mdd.shared.VaadinHelper;
 import io.mateu.mdd.shared.interfaces.App;
 import io.mateu.mdd.shared.interfaces.IArea;
 import io.mateu.mdd.shared.interfaces.IModule;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.shared.reflection.IFieldBuilder;
-import io.mateu.mdd.core.interfaces.View;
-import io.mateu.mdd.shared.VaadinHelper;
-import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.util.data.Data;
 import lombok.extern.slf4j.Slf4j;
 

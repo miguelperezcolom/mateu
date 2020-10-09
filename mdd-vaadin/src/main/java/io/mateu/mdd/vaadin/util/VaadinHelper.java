@@ -9,24 +9,24 @@ import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.shared.AppConfigLocator;
+import io.mateu.mdd.shared.FormLayoutBuilderParameters;
 import io.mateu.mdd.shared.annotations.RightAlignedCol;
 import io.mateu.mdd.shared.annotations.UseRadioButtons;
-import io.mateu.mdd.vaadin.data.MDDBinder;
-import io.mateu.util.data.Value;
 import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.FieldInterfacedFromType;
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.mdd.shared.AppConfigLocator;
-import io.mateu.util.Helper;
-import io.mateu.util.common.EmptyRow;
-import io.mateu.util.notification.Notifier;
-import io.mateu.util.persistence.JPAHelper;
 import io.mateu.mdd.vaadin.components.fieldBuilders.JPAOutputFieldBuilder;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
 import io.mateu.mdd.vaadin.components.views.FormLayoutBuilder;
-import io.mateu.mdd.shared.FormLayoutBuilderParameters;
 import io.mateu.mdd.vaadin.components.views.ListViewComponent;
+import io.mateu.mdd.vaadin.data.MDDBinder;
+import io.mateu.reflection.FieldInterfacedFromType;
+import io.mateu.reflection.ReflectionHelper;
+import io.mateu.util.Helper;
+import io.mateu.util.common.EmptyRow;
+import io.mateu.util.data.Value;
+import io.mateu.util.notification.Notifier;
+import io.mateu.util.persistence.JPAHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
@@ -690,5 +690,44 @@ public class VaadinHelper {
         w.setModal(true);
 
         UI.getCurrent().addWindow(w);
+    }
+
+
+
+    public static void confirm(String msg, Runnable onOk) {
+
+        Window w = new Window("Please confirm action");
+
+        VerticalLayout l = new VerticalLayout();
+
+        l.addComponent(new Label(msg));
+
+        Button buttonYes;
+        Button buttonNo;
+        HorizontalLayout hl;
+        l.addComponent(hl = new HorizontalLayout(buttonYes = new Button("Yes, do it", e -> {
+            try {
+                onOk.run();
+            } catch (Throwable t) {
+                Notifier.alert(t);
+            }
+            w.close();
+        }), buttonNo = new Button("No, thanks", e -> {
+            w.close();
+        })));
+
+        hl.setDefaultComponentAlignment(Alignment.MIDDLE_RIGHT);
+
+        buttonNo.addStyleName(ValoTheme.BUTTON_FRIENDLY);
+        buttonYes.addStyleName(ValoTheme.BUTTON_DANGER);
+
+
+        w.setContent(l);
+
+        w.center();
+        w.setModal(true);
+
+        UI.getCurrent().addWindow(w);
+
     }
 }

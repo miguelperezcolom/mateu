@@ -1,10 +1,10 @@
 package io.mateu.mdd.shared.reflection;
 
 import com.google.common.base.Strings;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.interfaces.PushWriter;
 import io.mateu.mdd.shared.interfaces.RpcView;
-import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.persistence.JPAHelper;
 

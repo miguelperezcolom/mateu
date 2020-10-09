@@ -1,16 +1,14 @@
 package io.mateu.mdd.vaadin.components.views;
 
 import com.vaadin.icons.VaadinIcons;
-import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDRunnableAction;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.core.views.ExtraFilters;
 import io.mateu.mdd.shared.annotations.UseLinkToListView;
-import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
-import io.mateu.mdd.vaadin.MDDUI;
 import io.mateu.util.notification.Notifier;
 import io.mateu.util.persistence.JPAHelper;
 

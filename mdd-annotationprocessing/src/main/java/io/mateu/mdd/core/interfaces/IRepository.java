@@ -1,7 +1,6 @@
 package io.mateu.mdd.core.interfaces;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface IRepository<T,K> {
 

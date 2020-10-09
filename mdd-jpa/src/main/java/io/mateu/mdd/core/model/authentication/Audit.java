@@ -1,7 +1,7 @@
 package io.mateu.mdd.core.model.authentication;
 
-import io.mateu.mdd.shared.interfaces.UserPrincipal;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
+import io.mateu.mdd.shared.interfaces.UserPrincipal;
 import io.mateu.util.interfaces.AuditRecord;
 import io.mateu.util.persistence.JPAHelper;
 import lombok.Getter;

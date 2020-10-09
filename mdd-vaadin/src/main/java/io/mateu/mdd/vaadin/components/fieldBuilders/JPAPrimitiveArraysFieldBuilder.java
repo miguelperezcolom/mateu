@@ -5,9 +5,9 @@ import com.vaadin.data.*;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.reflection.ReflectionHelper;
 
 import java.util.List;

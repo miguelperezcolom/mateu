@@ -2,8 +2,7 @@ package io.mateu.mdd.core.app;
 
 import io.mateu.i18n.Translator;
 import io.mateu.mdd.core.annotations.MateuUI;
-import io.mateu.mdd.shared.annotations.Caption;
-import io.mateu.mdd.shared.annotations.RegistrationForm;
+import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.security.Private;
@@ -83,5 +82,39 @@ public class MateuApp extends BaseMDDApp {
     @Override
     public boolean hasRegistrationForm() {
         return _hasRegistrationForm;
+    }
+
+    @Override
+    public boolean isForm() {
+        boolean hasMenus = false;
+        boolean hasHomes = false;
+
+        for (FieldInterfaced f : ReflectionHelper.getAllFields(uiclass)) {
+            if (f.isAnnotationPresent(Home.class) || f.isAnnotationPresent(PrivateHome.class) || f.isAnnotationPresent(PublicHome.class)) {
+                hasHomes = true;
+                break;
+            }
+            if (f.isAnnotationPresent(Submenu.class) || f.isAnnotationPresent(MenuOption.class)) {
+                hasMenus = true;
+                break;
+            }
+        }
+
+        if (!hasMenus && !hasHomes) for (Method f : ReflectionHelper.getAllMethods(uiclass)) {
+            if (f.isAnnotationPresent(Home.class) || f.isAnnotationPresent(PrivateHome.class) || f.isAnnotationPresent(PublicHome.class)) {
+                hasHomes = true;
+                break;
+            }
+            if (f.isAnnotationPresent(Submenu.class) || f.isAnnotationPresent(MenuOption.class)) {
+                hasMenus = true;
+                break;
+            }
+        }
+
+        return !hasMenus && !hasHomes;
+    }
+
+    public Object getBean() {
+        return ui;
     }
 }

@@ -9,27 +9,26 @@ import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.interfaces.AbstractStylist;
+import io.mateu.mdd.core.interfaces.Card;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.shared.annotations.DataProvider;
 import io.mateu.mdd.shared.annotations.FullWidth;
 import io.mateu.mdd.shared.annotations.Money;
 import io.mateu.mdd.shared.annotations.UseTable;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.vaadin.data.MDDBinder;
-import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.core.interfaces.Card;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.mdd.vaadin.MDDUI;
-import io.mateu.mdd.vaadin.components.views.ListViewComponent;
 import io.mateu.mdd.shared.interfaces.IResource;
+import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.vaadin.components.views.ListViewComponent;
+import io.mateu.mdd.vaadin.data.MDDBinder;
+import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.notification.Notifier;
 import org.javamoney.moneta.FastMoney;
 
 import javax.money.MonetaryAmount;
 import javax.persistence.Entity;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.DecimalFormat;
 import java.util.Collection;
@@ -320,7 +319,14 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
             public Object getValue() {
                 return v;
             }
-        }).bind(field.getName());
+        }).bind(o -> {
+            try {
+                return ReflectionHelper.getValue(field, o);
+            } catch (Exception e) {
+                Notifier.alert(e);
+                return "";
+            }
+        }, (o, v) -> {});
     }
 
     private String objectToString(Object o) {

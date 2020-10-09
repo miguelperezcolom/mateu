@@ -5,16 +5,15 @@ import com.google.common.collect.Lists;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Grid;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDRunnableAction;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.mdd.vaadin.MDDUI;
+import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.components.ClassOption;
 import io.mateu.mdd.vaadin.util.VaadinHelper;
+import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.notification.Notifier;
 import lombok.extern.slf4j.Slf4j;
 
@@ -106,7 +105,7 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
 
                         VaadinHelper.choose("Please choose type", subClassesOptions, c -> {
                             try {
-                                MDDUI.get().getNavegador().setPendingResult(ReflectionHelper.newInstance(((ClassOption)c).get_class(), model));
+                                MateuUI.get().setPendingResult(ReflectionHelper.newInstance(((ClassOption)c).get_class(), model));
                                 MDDUIAccessor.go("add");
                             } catch (Exception e) {
                                 Notifier.alert(e);
@@ -114,7 +113,7 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
                         }, () -> MDDUIAccessor.goBack());
                     } else if (subClasses.size() == 1) {
                         try {
-                            MDDUI.get().getNavegador().setPendingResult(ReflectionHelper.newInstance(subClasses.iterator().next(), model));
+                            MateuUI.get().setPendingResult(ReflectionHelper.newInstance(subClasses.iterator().next(), model));
 
                             MDDUIAccessor.go("add");
 
@@ -132,7 +131,7 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
                 public void run() {
 
                     if (resultsComponent.getSelection().size() == 0) Notifier.alert("No item selected");
-                    else MDDUI.get().getPort().confirm("Are you sure?", new Runnable() {
+                    else VaadinHelper.confirm("Are you sure?", new Runnable() {
                         @Override
                         public void run() {
 
@@ -168,7 +167,7 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
 
         Object bean = (evfc != null)?evfc.getModel():null;
 
-        boolean isEditingNewRecord = MDDUI.get().isEditingNewRecord();
+        boolean isEditingNewRecord = MateuUI.get().isEditingNewRecord();
 
         List<Method> ms = new ArrayList<>();
         for (Method m : ReflectionHelper.getAllMethods(bean != null?bean.getClass():field.getDeclaringClass())) {

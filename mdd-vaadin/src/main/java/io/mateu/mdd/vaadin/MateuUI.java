@@ -13,7 +13,6 @@ import io.mateu.mdd.core.app.MateuApp;
 import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.interfaces.App;
-import io.mateu.mdd.shared.interfaces.IModule;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.shared.interfaces.UserPrincipal;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
@@ -37,7 +36,6 @@ import io.mateu.util.notification.Notifier;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.persistence.Entity;
-import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -48,6 +46,7 @@ public class MateuUI extends UI implements IMDDUI {
     private ViewStack stack;
     private Set pendingSelection;
     private Object pendingResult;
+    private String pendingFocusedSectionId;
     private MainComponent main;
 
     List<Locale> locales = Arrays.asList(new Locale("en"),
@@ -75,6 +74,14 @@ public class MateuUI extends UI implements IMDDUI {
 
     public EditorViewComponent getCurrentEditor() {
         return viewProvider.getCurrentEditor();
+    }
+
+    public String getPendingFocusedSectionId() {
+        return pendingFocusedSectionId;
+    }
+
+    public void setPendingFocusedSectionId(String pendingFocusedSectionId) {
+        this.pendingFocusedSectionId = pendingFocusedSectionId;
     }
 
     @Override
@@ -205,7 +212,7 @@ public class MateuUI extends UI implements IMDDUI {
     @Override
     public void go(String relativePath) {
         String path = stack.getState(stack.getLast()); //navigator.getCurrentNavigationState(); //stack.getState(stack.getLast());
-        if (!path.endsWith("/")) path += "/";
+        if (!"".equals(path) && !path.endsWith("/")) path += "/";
         path += relativePath;
         if (path != null) {
             com.vaadin.navigator.View v = viewProvider.getView(path);
@@ -417,5 +424,22 @@ public class MateuUI extends UI implements IMDDUI {
 
 
         UI.getCurrent().addWindow(w);
+    }
+
+    public static void closeWindow() {
+        closeWindow(true);
+    }
+
+    public static void closeWindow(boolean notifyClosingEvent) {
+        if (UI.getCurrent() != null && UI.getCurrent().getWindows().size() > 0) {
+            ArrayList<Window> l = new ArrayList<>(UI.getCurrent().getWindows());
+            Window w = l.get(l.size() - 1);
+            w.setData(notifyClosingEvent);
+            w.close();
+        }
+    }
+
+    public ViewStack getStack() {
+        return viewProvider.getStack();
     }
 }

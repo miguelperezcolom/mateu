@@ -1,9 +1,7 @@
 package io.mateu.mdd.core.model.authentication;
 
 import io.mateu.util.persistence.JPAHelper;
-import io.mateu.util.persistence.JPATransaction;
 
-import javax.persistence.EntityManager;
 import java.util.function.Consumer;
 
 public class UserCreatedEventConsumer implements Consumer<UserCreatedEvent> {

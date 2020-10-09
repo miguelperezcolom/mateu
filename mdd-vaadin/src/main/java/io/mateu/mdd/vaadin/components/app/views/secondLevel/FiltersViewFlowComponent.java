@@ -1,7 +1,6 @@
 package io.mateu.mdd.vaadin.components.app.views.secondLevel;
 
 import com.vaadin.icons.VaadinIcons;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
 import io.mateu.mdd.vaadin.components.views.ListViewComponent;
 import io.mateu.util.notification.Notifier;
