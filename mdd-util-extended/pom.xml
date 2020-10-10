@@ -26,7 +26,13 @@
 
     <dependency>
       <groupId>io.mateu</groupId>
-      <artifactId>mdd-util</artifactId>
+      <artifactId>util</artifactId>
+      <version>1.0-sNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.mateu</groupId>
+      <artifactId>mdd-sharedinterfaces</artifactId>
       <version>${project.version}</version>
     </dependency>
 

@@ -1,7 +1,7 @@
 package io.mateu.mdd.util.telegram;
 
 import io.mateu.mdd.shared.IAppConfig;
-import io.mateu.mdd.util.Helper;
+import io.mateu.util.Helper;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
 

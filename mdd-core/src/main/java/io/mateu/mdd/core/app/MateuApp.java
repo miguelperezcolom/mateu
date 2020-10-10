@@ -3,7 +3,9 @@ package io.mateu.mdd.core.app;
 import io.mateu.i18n.Translator;
 import io.mateu.mdd.core.annotations.MateuUI;
 import io.mateu.mdd.shared.annotations.*;
+import io.mateu.mdd.shared.reflection.FieldBuilderProvider;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.shared.reflection.IFieldBuilder;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.security.Private;
 import io.mateu.util.Helper;
@@ -116,5 +118,12 @@ public class MateuApp extends BaseMDDApp {
 
     public Object getBean() {
         return ui;
+    }
+
+    @Override
+    public IFieldBuilder getFieldBuilder(FieldInterfaced field) {
+        IFieldBuilder r = null;
+        if (ui instanceof FieldBuilderProvider) r = ((FieldBuilderProvider) ui).getFieldBuilder(field);
+        return r != null?r:super.getFieldBuilder(field);
     }
 }
