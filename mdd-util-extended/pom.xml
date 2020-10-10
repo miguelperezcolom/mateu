@@ -27,7 +27,7 @@
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>util</artifactId>
-      <version>1.0-sNAPSHOT</version>
+      <version>1.0-SNAPSHOT</version>
     </dependency>
 
     <dependency>
