@@ -40,8 +40,8 @@
 
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>mdd-eclipselink</artifactId>
-            <version>${project.version}</version>
+            <artifactId>eclipselink</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
