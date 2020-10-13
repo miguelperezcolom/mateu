@@ -192,7 +192,7 @@ public class JPACollectionFieldListViewComponent extends JPAListViewComponent {
 
         String filter = field.isAnnotationPresent(UseLinkToListView.class)?field.getAnnotation(UseLinkToListView.class).actions():"";
         if (!Strings.isNullOrEmpty(filter)) {
-            List<String> filteredActionIds = List.of(filter.split(","));
+            List<String> filteredActionIds = Lists.newArrayList(filter.split(","));
             l.removeIf(a -> !filteredActionIds.contains(a.getId()));
         }
 
