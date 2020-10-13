@@ -2,7 +2,6 @@ package io.mateu.mdd.annotationProcessing;
 
 import com.sun.source.tree.BlockTree;
 import com.sun.source.tree.ImportTree;
-import com.sun.source.tree.PackageTree;
 import com.sun.source.tree.VariableTree;
 import com.sun.source.util.TreePathScanner;
 import com.sun.source.util.Trees;
@@ -34,11 +33,6 @@ public class Visitante extends TreePathScanner<Object, Trees> {
     @Override
     public Object visitBlock(BlockTree node, Trees trees) {
         return super.visitBlock(node, trees);
-    }
-
-    @Override
-    public Object visitPackage(PackageTree node, Trees trees) {
-        return super.visitPackage(node, trees);
     }
 
     @Override
