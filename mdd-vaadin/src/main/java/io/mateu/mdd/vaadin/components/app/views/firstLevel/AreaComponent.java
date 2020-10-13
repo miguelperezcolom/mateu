@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadin.components.app.views.firstLevel;
 
+import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.themes.ValoTheme;
@@ -20,10 +21,15 @@ public class AreaComponent extends AbstractViewComponent {
 
     public AreaComponent(AbstractArea area) {
         this.area = area;
-
+        setTitle(area.getName());
         addStyleName("areaflowcomponent");
+    }
+
+    @Override
+    public AbstractViewComponent build() throws Exception {
 
         if (MDDUIAccessor.isMobile()) {
+
 
             if (area.getModules().length == 1) {
 
@@ -55,11 +61,11 @@ public class AreaComponent extends AbstractViewComponent {
 
         } else {
 
-            addComponentsAndExpand(new Label("You are now in the " + area.getName() + " area. Please look at the menu at the left side and choose an option."));
+            addComponentsAndExpand(new Label("<h1>You are now in the " + area.getName() + " area.</h1>", ContentMode.HTML));
 
         }
 
         if (!MDDUIAccessor.isMobile()) addComponentsAndExpand(new Label(""));
+        return this;
     }
-
 }

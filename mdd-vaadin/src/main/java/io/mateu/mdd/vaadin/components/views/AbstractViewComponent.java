@@ -78,24 +78,22 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     }
 
     public AbstractViewComponent() {
-        addStyleName("viewcomponent");
+    }
 
-        addComponent(header = createHeader());
+    public boolean esForm() {
+        return false;
+    }
 
+    public void addActionsBar(boolean top) {
         if (!isBarHidden()) {
             bar = new CssLayout();
-            bar.addStyleName("actionsbar");
+            if (top) bar.addStyleName("actionsbar");
+            else bar.addStyleName("formactionsbar");
             bar.addStyleName(CSS.NOPADDING);
             menuItemsById = new HashMap<>();
             addBack(bar);
             getActionsContainer().addComponent(bar);
         }
-
-        addComponent(subheader = new CssLayout());
-        subheader.addStyleName(CSS.NOPADDING);
-        subheader.setWidth("100%");
-        subheader.setVisible(false);
-
     }
 
     public void hideHeader() {
@@ -144,6 +142,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
             ((AbstractViewComponent) this).setBackable(true);
             if (this instanceof EditorViewComponent) {
                 ((EditorViewComponent) this).setKpisContainer(kpisContainer);
+                ((EditorViewComponent) this).buildIfNeeded();
                 ((EditorViewComponent) this).rebuildActions();
             }
         }
@@ -187,7 +186,6 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                 iconLabel.setVisible(true);
             } else iconLabel.setVisible(false);
         }
-        //UI.getCurrent().getPage().setTitle((titleLabel.getValue() != null)?titleLabel.getValue():"No title");
     }
 
     public HorizontalLayout getHiddens() {
@@ -231,7 +229,19 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     }
 
     public A build() throws Exception {
-        addViewActionsMenuItems(bar);
+        addStyleName("viewcomponent");
+
+        addComponent(header = createHeader());
+
+        if (!esForm()) addActionsBar(true);
+
+        addComponent(subheader = new CssLayout());
+        subheader.addStyleName(CSS.NOPADDING);
+        subheader.setWidth("100%");
+        subheader.setVisible(false);
+
+        if (!esForm()) addViewActionsMenuItems(bar);
+
         built = true;
         return (A) this;
     }

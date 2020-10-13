@@ -1,13 +1,17 @@
 package io.mateu.mdd.vaadin.components.app.main;
 
 import com.google.common.base.Strings;
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.*;
+import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.AbstractMenu;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
+import io.mateu.mdd.shared.annotations.FullWidth;
 import io.mateu.mdd.shared.interfaces.App;
 import io.mateu.mdd.shared.interfaces.IArea;
 import io.mateu.mdd.shared.interfaces.IModule;
@@ -20,18 +24,27 @@ import java.util.stream.Collectors;
 public class HeaderComponent extends HorizontalLayout {
 
     private final MainComponent home;
+    private AbstractArea area;
+    private Label labelPosition;
+    private HorizontalLayout positionLayout;
+    private boolean isPrivate;
+    private CssLayout barContainer;
+
 
     public HeaderComponent(MainComponent home) {
         this.home = home;
         setWidthFull();
         addStyleName("mateu-header");
+        App app = MDDUIAccessor.getApp();
+        if (!app.getClass().isAnnotationPresent(FullWidth.class)) addStyleName("container");
 
         refresh(false);
-
     }
 
     public void refresh(boolean isPrivate) {
         removeAllComponents();
+
+        this.isPrivate = isPrivate;
 
         App app = MDDUIAccessor.getApp();
 
@@ -49,16 +62,17 @@ public class HeaderComponent extends HorizontalLayout {
         i.setHeight("37px");
         i.addClickListener(e -> MDDUIAccessor.goTo(""));
         i.addStyleName("clickable");
-        Label l;
-        HorizontalLayout hl;
-        addComponent(hl = new HorizontalLayout(l = new Label(app.getName())));
-        l.addStyleName("appname");
-        l.addStyleName("clickable");
-        hl.addStyleName(CSS.NOPADDING);
-        hl.addLayoutClickListener(e -> MDDUIAccessor.goTo(""));
+        addComponent(positionLayout = new HorizontalLayout(labelPosition = new Label(app.getName())));
+        labelPosition.addStyleName("appname");
+        labelPosition.addStyleName("clickable");
+        positionLayout.addStyleName(CSS.NOPADDING);
+        positionLayout.setSpacing(false);
+        if (app.getAreas().length <= 1) positionLayout.addLayoutClickListener(e -> MDDUIAccessor.goTo(""));
+        else positionLayout.addLayoutClickListener(e -> chooseArea());
 
-        MenuBar bar;
-        addComponent(bar = getMenuBar(app, isPrivate));
+        addComponent(barContainer = new CssLayout());
+        barContainer.addStyleName(CSS.NOPADDING);
+
 
         String basePath = UI.getCurrent().getUiRootPath();
         if (!basePath.endsWith("/")) basePath += "/";
@@ -80,29 +94,59 @@ public class HeaderComponent extends HorizontalLayout {
             }
         }
 
-        setExpandRatio(bar, 1);
+        setExpandRatio(barContainer, 1);
+
+        List<IArea> areas = Arrays.asList(app.getAreas()).stream().filter(a -> (!isPrivate && a.isPublicAccess()) || (isPrivate && !a.isPublicAccess())).collect(Collectors.toList());
+        if (areas.size() > 0) setArea((AbstractArea) areas.get(0));
+
+    }
+
+    private void chooseArea() {
+
+        Window w = new Window("Please select a work area");
+        w.addStyleName("mateu");
+        w.setWidth("80%");
+        w.setHeight("80%");
+        CssLayout lx = new CssLayout();
+        lx.addStyleName("maincomponent");
+        lx.addStyleName("selectarea");
+        App app = MDDUIAccessor.getApp();
+        List<IArea> areas = Arrays.asList(app.getAreas()).stream().filter(a -> (!isPrivate && a.isPublicAccess()) || (isPrivate && !a.isPublicAccess())).collect(Collectors.toList());
+        for (IArea a : areas) {
+
+            Button b;
+            lx.addComponent(b = new Button(a.getName()));
+            if (!VaadinIcons.ADOBE_FLASH.equals(a.getIcon())) b.setIcon(a.getIcon());
+            b.addClickListener((e) -> {
+                w.close();
+                home.irA(app.getState(a));
+            });
+            b.setPrimaryStyleName("huge");
+            b.addStyleName("submenuoption");
+
+        }
+
+        w.setContent(lx);
+        w.center();
+        w.setModal(true);
+        UI.getCurrent().addWindow(w);
+
+
     }
 
 
-    MenuBar getMenuBar(App app, boolean isPrivate) {
-        MenuBar.Command click = new MenuBar.Command() {
-            @Override
-            public void menuSelected(MenuBar.MenuItem selectedItem) {
-                Notification.show("Clicked " + selectedItem.getText());
-                home.irA("home");
-            }
-        };
+    public void refreshMenuBar() {
+
+        App app = MDDUIAccessor.getApp();
+
+        barContainer.removeAllComponents();
 
         MenuBar menubar = new MenuBar();
         menubar.addStyleName(ValoTheme.MENUBAR_BORDERLESS);
-        //menubar.setWidth("100%");
-
-
-
 
         List<IArea> areas = Arrays.asList(app.getAreas()).stream().filter(a -> (!isPrivate && a.isPublicAccess()) || (isPrivate && !a.isPublicAccess())).collect(Collectors.toList());
-        if (areas.size() == 1) {
-            IArea area = areas.get(0);
+        if (area == null && areas.size() > 0) area = ((AbstractArea) areas.get(0));
+        if (area != null) {
             for (IModule module : area.getModules()) {
                 addMenu(app, menubar, module);
             }
@@ -110,7 +154,7 @@ public class HeaderComponent extends HorizontalLayout {
             areas.forEach(area -> addMenu(app, menubar, area));
         }
 
-        return menubar;
+        barContainer.addComponent(menubar);
     }
 
     private void addMenu(App app, MenuBar menubar, IModule module) {
@@ -164,4 +208,17 @@ public class HeaderComponent extends HorizontalLayout {
     }
 
 
+    public void setArea(AbstractArea area) {
+        this.area = area;
+        if (!(Strings.isNullOrEmpty(area.getName()))) {
+            labelPosition.setValue(area.getName());
+            positionLayout.removeAllComponents();
+            Label l;
+            positionLayout.addComponent(l = new Label(VaadinIcons.GRID_SMALL.getHtml(), ContentMode.HTML));
+            l.addStyleName("iconoarea");
+            l.addStyleName("clickable");
+            positionLayout.addComponent(labelPosition);
+        }
+        refreshMenuBar();
+    }
 }

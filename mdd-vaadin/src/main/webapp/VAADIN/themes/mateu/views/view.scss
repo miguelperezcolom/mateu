@@ -15,7 +15,20 @@ $kpi: #7b7e80;
 
   .contenido {
     padding: 0px;
+
+    .nofieldgroup {
+      padding-left: 2px;
+      padding-right: 0px;
+    }
+
   }
+
+  .contenido.container {
+    max-width: 960px;
+    display: block;
+    margin: 0 auto;
+  }
+
 
   .resultscomponent {
     padding: 0px;

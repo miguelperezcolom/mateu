@@ -8,6 +8,13 @@
       color: white;
     }
 
+
+    .iconoarea {
+      padding-top: 6px;
+      font-size: 15px;
+      padding-right: 4px;
+    }
+
     .appname {
       margin-top: 1px;
       font-weight: bold;
@@ -19,5 +26,11 @@
       margin-top: 3px;
     }
 
+  }
+
+  .mateu-header.container {
+    max-width: 960px;
+    display: block;
+    margin: 0 auto;
   }
 }

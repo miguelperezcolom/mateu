@@ -177,6 +177,11 @@ public class MateuViewProvider implements ViewProvider {
             if (v != null && v.getViewComponent() != null && v.getViewComponent() instanceof EditorViewComponent && ((EditorViewComponent)v.getViewComponent()).getBeforeOpen() != null) {
                 ((EditorViewComponent)v.getViewComponent()).getBeforeOpen().run();
             }
+
+            if (v != null && v.getViewComponent() != null) {
+                if (UI.getCurrent() != null && v.getViewComponent().getPageTitle() != null) UI.getCurrent().getPage().setTitle((v.getViewComponent().getPageTitle() != null)?v.getViewComponent().getPageTitle():"No title");
+            }
+
             return v != null && v.getWindowContainer() == null?v:null;
         }
     }

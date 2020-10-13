@@ -9,10 +9,12 @@ import com.vaadin.ui.*;
 import elemental.json.JsonArray;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractApplication;
+import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.MateuApp;
 import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.interfaces.App;
+import io.mateu.mdd.shared.interfaces.IArea;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.shared.interfaces.UserPrincipal;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
@@ -38,6 +40,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.persistence.Entity;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class MateuUI extends UI implements IMDDUI {
     private Navigator navigator;
@@ -48,6 +51,7 @@ public class MateuUI extends UI implements IMDDUI {
     private Object pendingResult;
     private String pendingFocusedSectionId;
     private MainComponent main;
+    private AbstractArea area;
 
     List<Locale> locales = Arrays.asList(new Locale("en"),
             new Locale("es"),
@@ -426,6 +430,25 @@ public class MateuUI extends UI implements IMDDUI {
         UI.getCurrent().addWindow(w);
     }
 
+    public void openInWindow(Component component) {
+        // lo mismo para buscar y para navegar en profundidad
+        Window w = new MateuWindow(this, stack, component.getCaption());
+
+        w.addStyleName("maincomponent");
+
+        int percent = 100 - (UI.getCurrent().getWindows().size() + 1) * 5;
+
+        w.setWidth("" + percent + "%");
+        w.setHeight("" + percent + "%");
+
+        w.setContent(component);
+
+        w.center();
+        w.setModal(true);
+
+        UI.getCurrent().addWindow(w);
+    }
+
     public static void closeWindow() {
         closeWindow(true);
     }
@@ -441,5 +464,10 @@ public class MateuUI extends UI implements IMDDUI {
 
     public ViewStack getStack() {
         return viewProvider.getStack();
+    }
+
+    public void setArea(AbstractArea area) {
+        this.area = area;
+        main.getHeader().setArea(area);
     }
 }

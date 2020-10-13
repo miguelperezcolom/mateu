@@ -188,4 +188,53 @@
   }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+  .huge-submenuoption {
+    border: 1px solid lightgrey;
+    margin: 20px;
+    padding: 20px;
+    border-radius: 2px;
+    min-width: 130px;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .huge-submenuoption:hover {
+    background-color: #efefef;
+  }
+
+
+  .chip {
+    background-color: lightgray;
+    border-radius: 1.5em;
+    padding-left: 1em;
+    margin: 1px;
+    margin-right: 4px;
+
+    .v-label {
+      padding-top: 4px;
+    }
+
+    .v-button {
+      border-radius: 1.5em;
+      width: 2em;
+      padding-left: 8px;
+      height: 2em;
+      padding-top: 3px;
+    }
+
+  }
+
 }

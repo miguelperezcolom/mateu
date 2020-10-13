@@ -12,10 +12,17 @@
       margin-bottom: 2px;
       margin-right: 6px;
     }
+
   }
 
 
-
+  .formactionsbar {
+    //margin-left: 32px;
+    .v-button.quiet {
+      visibility: unset;
+      margin-right: 5px;
+    }
+  }
 
 
 
@@ -26,10 +33,11 @@
     -webkit-box-shadow: none;
     box-shadow: none;
     text-shadow: none;
+    background-color: #d8d8d8;
   }
 
   .v-button.quiet:hover {
-    background-color: lightgray;
+    background-color: #cecece;
   }
 
   .v-button.quiet:focus:after {

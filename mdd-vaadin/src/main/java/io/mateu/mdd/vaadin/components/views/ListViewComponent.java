@@ -114,9 +114,9 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
         addStyleName("listviewcomponent");
 
-        if (!(this instanceof JPACollectionFieldListViewComponent)) addComponent(filtersComponent = new FiltersComponent(this));
-
         super.build();
+
+        if (!(this instanceof JPACollectionFieldListViewComponent)) addComponent(filtersComponent = new FiltersComponent(this));
 
         setSizeFull();
 

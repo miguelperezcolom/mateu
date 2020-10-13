@@ -374,12 +374,17 @@ public class FormLayoutBuilder {
                 VerticalLayout l;
                 css.addComponent(l = new VerticalLayout());
                 l.setSizeUndefined();
-                l.addStyleName("fieldgroup");
-                if (!Strings.isNullOrEmpty(g.getCaption())) {
-                    Label c;
-                    l.addComponent(c = new Label(g.getCaption()));
-                    c.addStyleName(ValoTheme.LABEL_H4);
-                    c.addStyleName("fieldgroupheader");
+
+                if (!editor.esForm() || !g.getCaption().startsWith("Field Group ")) {
+                    l.addStyleName("fieldgroup");
+                    if (!Strings.isNullOrEmpty(g.getCaption())) {
+                        Label c;
+                        l.addComponent(c = new Label(g.getCaption()));
+                        c.addStyleName(ValoTheme.LABEL_H4);
+                        c.addStyleName("fieldgroupheader");
+                    }
+                } else {
+                    l.addStyleName("nofieldgroup");
                 }
 
                 _buildAndAddFields(editor, ofb, model, l, binder, validators, stylist, allFieldContainers, g.getFields(), forSearchFilters, forSearchFiltersExtended, createTabs, componentsToLookForErrors, attachedActions);

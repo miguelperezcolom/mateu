@@ -746,9 +746,19 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         panel.addStyleName(ValoTheme.PANEL_BORDERLESS);
         panel.addStyleName(CSS.NOPADDING);
         panel.addStyleName("panelContenedor");
-        addComponentsAndExpand(panel);
+        if (esForm()) {
+            addComponent(panel);
+            addActionsBar(false);
+        } else {
+            addComponentsAndExpand(panel);
+        }
 
         return this;
+    }
+
+    @Override
+    public boolean esForm() {
+        return !(modelType.isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(modelType));
     }
 
     private void updateActions() {

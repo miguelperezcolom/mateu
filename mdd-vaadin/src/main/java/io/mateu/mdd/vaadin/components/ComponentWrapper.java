@@ -16,6 +16,7 @@ import java.util.List;
 public class ComponentWrapper extends AbstractViewComponent {
     private final Component wrapped;
     private final VaadinIcons _icon;
+    private final boolean expand;
 
     @Override
     public VaadinIcons getIcon() {
@@ -34,15 +35,21 @@ public class ComponentWrapper extends AbstractViewComponent {
         setTitle(title);
         _icon = icon != null?icon:VaadinIcons.FILE;
         this.wrapped = component;
+        this.expand = expand;
 
         addStyleName("componentwrapper");
 
-        if (!(component instanceof Window)) {
-            if (MDDUIAccessor.isMobile() || (!expand && !(component instanceof FullWidth))) addComponent(component);
-            else addComponentsAndExpand(component);
-        }
-
         updatePageTitle();
+    }
+
+    @Override
+    public AbstractViewComponent build() throws Exception {
+        super.build();
+        if (!(wrapped instanceof Window)) {
+            if (MDDUIAccessor.isMobile() || (!expand && !(wrapped instanceof FullWidth))) addComponent(wrapped);
+            else addComponentsAndExpand(wrapped);
+        }
+        return this;
     }
 
     @Override
