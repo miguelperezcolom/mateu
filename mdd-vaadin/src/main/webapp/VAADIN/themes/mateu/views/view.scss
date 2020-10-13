@@ -21,10 +21,14 @@ $kpi: #7b7e80;
       padding-right: 0px;
     }
 
+    .fieldgroup {
+      min-width: 450px;
+    }
+
   }
 
   .contenido.container {
-    max-width: 960px;
+    max-width: 990px;
     display: block;
     margin: 0 auto;
   }
