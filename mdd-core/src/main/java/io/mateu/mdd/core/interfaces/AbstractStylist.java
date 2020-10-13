@@ -76,7 +76,7 @@ public abstract class AbstractStylist<S> {
         }
         if (field.isAnnotationPresent(Css.class) && !Strings.isNullOrEmpty(field.getAnnotation(Css.class).value())) {
             String s = field.getAnnotation(Css.class).value();
-            String r = Helper.eval("nashorn", s, Helper.hashmap("$this", model));
+            String r = Helper.eval("javascript", s, Helper.hashmap("$this", model));
             if (!Strings.isNullOrEmpty(r)) l = Arrays.asList(r.split(" "));
         }
         return l;
@@ -140,7 +140,7 @@ public abstract class AbstractStylist<S> {
             }
         } else if (f.isAnnotationPresent(EnabledIf.class) && !Strings.isNullOrEmpty(f.getAnnotation(EnabledIf.class).value())) {
             String s = f.getAnnotation(EnabledIf.class).value();
-            String r = Helper.eval("nashorn", s, Helper.hashmap("$this", model));
+            String r = Helper.eval("javascript", s, Helper.hashmap("$this", model));
             return "true".equalsIgnoreCase(r);
         }
         return true;
@@ -156,7 +156,7 @@ public abstract class AbstractStylist<S> {
             }
         } else if (f.isAnnotationPresent(VisibleIf.class) && !Strings.isNullOrEmpty(f.getAnnotation(VisibleIf.class).value())) {
             String s = f.getAnnotation(VisibleIf.class).value();
-            String r = Helper.eval("nashorn", s, Helper.hashmap("$this", model));
+            String r = Helper.eval("javascript", s, Helper.hashmap("$this", model));
             return "true".equalsIgnoreCase(r);
         }
         return true;

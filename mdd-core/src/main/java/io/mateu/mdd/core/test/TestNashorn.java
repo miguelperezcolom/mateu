@@ -24,7 +24,9 @@ public class TestNashorn {
 
     private static void test2() throws ScriptException {
         ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
-        ScriptEngine nashorn = scriptEngineManager.getEngineByName("nashorn");
+        ScriptEngine nashorn = scriptEngineManager.getEngineByName("javascript");
+
+        nashorn.eval("print('Hola Mundo')");
 
         nashorn.put("$this", new SamplePojo());
 
@@ -52,7 +54,7 @@ public class TestNashorn {
 
     private static void test1() throws ScriptException, NoSuchMethodException {
         ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
-        ScriptEngine nashorn = scriptEngineManager.getEngineByName("nashorn");
+        ScriptEngine nashorn = scriptEngineManager.getEngineByName("javascript");
         nashorn.eval("print('Hola Mundo')");
 
 
