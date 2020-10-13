@@ -512,13 +512,16 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 for (String fn : a.value().split(",")) {
                     fn = fn.trim();
                     String finalFn = fn;
-                    binder.getBinding(fn).ifPresentOrElse(b -> ((Binder.Binding)b).getField().addValueChangeListener(e -> {
+                    Optional b = binder.getBinding(fn);
+                    if (b.isPresent()) {
+                        ((Binder.Binding)b.get()).getField().addValueChangeListener(e -> {
 
-                        //((AbstractAction)actionsByMethod.get(m)).run(new AbstractMDDExecutionContext());
+                            //((AbstractAction)actionsByMethod.get(m)).run(new AbstractMDDExecutionContext());
 
-                        rebuildActions();
+                            rebuildActions();
 
-                    }), () -> {
+                        });
+                    } else {
                         binder.forField(new AbstractField() {
                             Object v = null;
                             @Override
@@ -531,7 +534,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                                 return v;
                             }
                         }).bind(finalFn);
-                    });
+                    }
                 }
             }
         });
