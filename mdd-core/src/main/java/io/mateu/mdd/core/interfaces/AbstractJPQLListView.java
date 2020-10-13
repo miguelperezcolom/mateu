@@ -48,7 +48,7 @@ public abstract class AbstractJPQLListView<R> implements RpcView<AbstractJPQLLis
 
                     List<FieldInterfaced> fields = getRowClass().isAnnotationPresent(Entity.class) && !getRowClass().isAnnotationPresent(NativeJPQLResult.class)?AbstractJPQLListView.getSelectFields(getRowClass()):ReflectionHelper.getAllFields(getRowClass());
 
-                    for (FieldInterfaced f : fields) if (f instanceof FieldInterfacedFromField) f.getField().trySetAccessible();
+                    for (FieldInterfaced f : fields) if (f instanceof FieldInterfacedFromField) f.getField().setAccessible(true);
 
                     for (Object o : q.getResultList()) {
 

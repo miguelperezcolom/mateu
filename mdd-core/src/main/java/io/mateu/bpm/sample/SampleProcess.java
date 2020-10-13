@@ -1,5 +1,6 @@
 package io.mateu.bpm.sample;
 
+import com.google.common.collect.Lists;
 import io.mateu.bpm.Block;
 import io.mateu.bpm.Process;
 
@@ -14,7 +15,7 @@ public class SampleProcess extends Process<SampleProcessSate> {
 
     @Override
     public List<Block> process(SampleProcessSate state) {
-        if (SampleProcessSate.INITIAL.equals(state)) return List.of(new SampleBlock());
+        if (SampleProcessSate.INITIAL.equals(state)) return Lists.newArrayList(new SampleBlock());
         return null;
     }
 

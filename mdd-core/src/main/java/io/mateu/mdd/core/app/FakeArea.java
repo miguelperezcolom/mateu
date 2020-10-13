@@ -1,5 +1,6 @@
 package io.mateu.mdd.core.app;
 
+import com.google.common.collect.Lists;
 import io.mateu.mdd.shared.interfaces.IArea;
 import io.mateu.mdd.shared.interfaces.IModule;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
@@ -19,7 +20,7 @@ public class FakeArea extends AbstractArea {
     @Override
     public List<IModule> buildModules() {
         IArea area = this;
-        return List.of(new AbstractModule(){
+        return Lists.newArrayList(new AbstractModule(){
 
             @Override
             public String getName() {

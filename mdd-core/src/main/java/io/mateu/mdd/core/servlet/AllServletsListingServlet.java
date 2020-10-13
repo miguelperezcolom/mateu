@@ -6,6 +6,7 @@ import org.glassfish.jersey.server.ServerConfig;
 import org.glassfish.jersey.server.model.Resource;
 import org.glassfish.jersey.servlet.ServletContainer;
 
+import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 import javax.servlet.annotation.WebServlet;
@@ -47,13 +48,15 @@ public class AllServletsListingServlet extends HttpServlet {
 
         Map<String, ? extends ServletRegistration> servletRegistrations = req.getServletContext().getServletRegistrations();
 
-        req.getServletContext().getServlets().asIterator().forEachRemaining(s -> {
+        while (req.getServletContext().getServlets().hasMoreElements()) {
+            Servlet s = req.getServletContext().getServlets().nextElement();
             try {
                 resp.getWriter().println(" ]]> " + s.getServletConfig().getServletName());
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        });
+        }
+
 
         for (Map.Entry<String, ? extends ServletRegistration> entry : servletRegistrations.entrySet()) {
             String p = entry.getKey();
