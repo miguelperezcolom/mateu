@@ -20,7 +20,7 @@ public class PublicController extends Controller {
 
     public PublicController(ViewStack stack, String path) {
 
-        if (MateuUI.get() != null) MateuUI.get().getMain().getHeader().refresh(false);
+        if (MateuUI.get() != null) MateuUI.get().getMain().refreshHeader(false);
 
         App app = MDDUIAccessor.getApp();
 

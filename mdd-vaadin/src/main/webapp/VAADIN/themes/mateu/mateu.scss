@@ -43,6 +43,7 @@ $v-font-size: 14px;
 @import "views/view";
 @import "views/grids";
 @import "views/botones";
+@import "views/mobile";
 
 .blinking{
   animation:blinkingText 1.2s infinite;
@@ -80,9 +81,20 @@ $v-font-size: 14px;
     @include view;
     @include grids;
     @include botones;
+    @include mobile;
 
   }
 
+  .menulateral {
+    left:0px !important;
+    border-radius: 0px !important;
 
+    .v-window-outerheader {
+      display: none;
+    }
+  }
 
 }
+
+
+

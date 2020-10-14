@@ -469,5 +469,6 @@ public class MateuUI extends UI implements IMDDUI {
     public void setArea(AbstractArea area) {
         this.area = area;
         main.getHeader().setArea(area);
+        main.getHeaderForMobile().setArea(area);
     }
 }

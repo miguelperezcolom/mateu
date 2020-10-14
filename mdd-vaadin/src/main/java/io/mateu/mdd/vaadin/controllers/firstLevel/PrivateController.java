@@ -27,7 +27,7 @@ public class PrivateController extends Controller {
 
     public PrivateController(ViewStack stack, String path) {
 
-        if (MateuUI.get() != null) MateuUI.get().getMain().getHeader().refresh(true);
+        if (MateuUI.get() != null) MateuUI.get().getMain().refreshHeader(true);
 
         App app = MDDUIAccessor.getApp();
 

@@ -1,5 +1,6 @@
 @mixin header {
   .mateu-header {
+
     padding: 5px;
     background-color: #664b5f;
     padding-left: 10px;
@@ -28,9 +29,14 @@
 
   }
 
-  .mateu-header.container {
-    max-width: 990px;
-    display: block;
-    margin: 0 auto;
+  .fondomenu {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    opacity: 50%;
   }
+
 }

@@ -3,6 +3,7 @@ package io.mateu.mdd.vaadin.components.app.main;
 import com.google.common.base.Strings;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.*;
+import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
@@ -16,25 +17,30 @@ import io.mateu.mdd.shared.interfaces.App;
 import io.mateu.mdd.shared.interfaces.IArea;
 import io.mateu.mdd.shared.interfaces.IModule;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
+import io.mateu.mdd.vaadin.MateuUI;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class HeaderComponent extends HorizontalLayout {
+public class HeaderForMobileComponent extends HorizontalLayout {
 
     private final MainComponent home;
     private AbstractArea area;
     private Label labelPosition;
     private HorizontalLayout positionLayout;
     private boolean isPrivate;
-    private CssLayout barContainer;
+    private VerticalLayout barContainer;
+    private Window ventanaMenu;
 
 
-    public HeaderComponent(MainComponent home) {
+    public HeaderForMobileComponent(MainComponent home) {
         this.home = home;
         setWidthFull();
-        addStyleName("mateu-header");
+        addStyleName("mateu-header-mobile");
+        App app = MDDUIAccessor.getApp();
+        if (!app.getClass().isAnnotationPresent(FullWidth.class)) addStyleName("container");
 
         refresh(false);
     }
@@ -46,31 +52,26 @@ public class HeaderComponent extends HorizontalLayout {
 
         App app = MDDUIAccessor.getApp();
 
-        String logo = app.getLogo();
-        Image i;
-        Resource resource = new ThemeResource("img/logomateu2.png");
-        if (!Strings.isNullOrEmpty(logo)) {
-            if (logo.startsWith("http")) {
-                resource = new ExternalResource(logo);
-            } else {
-                resource = new ClassResource(logo);
-            }
-        }
-        addComponent(i = new Image(null, resource));
+
+        HorizontalLayout i = new HorizontalLayout();
+        Label l;
+        i.addComponent(l = new Label(VaadinIcons.MENU.getHtml(), ContentMode.HTML));
+        l.addStyleName("iconomenu");
+        l.addStyleName("clickable");
+        addComponent(i);
         i.setHeight("37px");
-        i.addClickListener(e -> MDDUIAccessor.goTo(""));
+        i.addLayoutClickListener(e -> openMenu());
         i.addStyleName("clickable");
         addComponent(positionLayout = new HorizontalLayout(labelPosition = new Label(app.getName())));
         labelPosition.addStyleName("appname");
         labelPosition.addStyleName("clickable");
         positionLayout.addStyleName(CSS.NOPADDING);
+        positionLayout.addStyleName("centro");
         positionLayout.setSpacing(false);
         if (app.getAreas().length <= 1) positionLayout.addLayoutClickListener(e -> MDDUIAccessor.goTo(""));
         else positionLayout.addLayoutClickListener(e -> chooseArea());
 
-        addComponent(barContainer = new CssLayout());
-        barContainer.addStyleName(CSS.NOPADDING);
-
+        barContainer = new VerticalLayout();
 
         String basePath = UI.getCurrent().getUiRootPath();
         if (!basePath.endsWith("/")) basePath += "/";
@@ -92,11 +93,43 @@ public class HeaderComponent extends HorizontalLayout {
             }
         }
 
-        setExpandRatio(barContainer, 1);
+        setExpandRatio(positionLayout, 1);
 
         List<IArea> areas = Arrays.asList(app.getAreas()).stream().filter(a -> (!isPrivate && a.isPublicAccess()) || (isPrivate && !a.isPublicAccess())).collect(Collectors.toList());
         if (areas.size() > 0) setArea((AbstractArea) areas.get(0));
 
+    }
+
+    private void openMenu() {
+        Window w = new Window("Please select a work area");
+        w.addStyleName("mateu");
+        w.addStyleName("menulateral");
+        w.setWidth("300px");
+        w.setHeight("100%");
+        CssLayout lx = new CssLayout();
+        lx.addStyleName("maincomponent");
+        lx.addStyleName("selectarea");
+
+        lx.addComponent(barContainer);
+
+        w.setContent(lx);
+        w.center();
+        //w.setModal(true);
+        UI.getCurrent().addWindow(w);
+
+        VerticalLayout fondo = new VerticalLayout();
+        fondo.addStyleName("fondomenu");
+        MateuUI.get().getMain().addComponent(fondo);
+        fondo.addLayoutClickListener(e -> {
+            w.close();
+        });
+
+        w.addCloseListener(e -> {
+            MateuUI.get().getMain().removeComponent(fondo);
+            ventanaMenu = null;
+        });
+
+        ventanaMenu = w;
     }
 
     private void chooseArea() {
@@ -127,8 +160,8 @@ public class HeaderComponent extends HorizontalLayout {
         w.setContent(lx);
         w.center();
         w.setModal(true);
-        UI.getCurrent().addWindow(w);
 
+        UI.getCurrent().addWindow(w);
 
     }
 
@@ -139,69 +172,81 @@ public class HeaderComponent extends HorizontalLayout {
 
         barContainer.removeAllComponents();
 
-        MenuBar menubar = new MenuBar();
-        menubar.addStyleName(ValoTheme.MENUBAR_BORDERLESS);
-
         List<IArea> areas = Arrays.asList(app.getAreas()).stream().filter(a -> (!isPrivate && a.isPublicAccess()) || (isPrivate && !a.isPublicAccess())).collect(Collectors.toList());
         if (area == null && areas.size() > 0) area = ((AbstractArea) areas.get(0));
         if (area != null) {
             for (IModule module : area.getModules()) {
-                addMenu(app, menubar, module);
+                addMenu(app, barContainer, module);
             }
-        } else {
-            areas.forEach(area -> addMenu(app, menubar, area));
         }
 
-        barContainer.addComponent(menubar);
     }
 
-    private void addMenu(App app, MenuBar menubar, IModule module) {
+    private void addMenu(App app, VerticalLayout menubar, IModule module) {
         for (MenuEntry entry : module.getMenu()) {
             if (entry instanceof AbstractMenu) {
-                MenuBar.MenuItem submenu = menubar.addItem(entry.getCaption(), null);
-                addSubmenu(app, submenu, (AbstractMenu) entry);
+                Button b;
+                menubar.addComponent(b = new Button(entry.getCaption(), e -> {
+                    addSubmenu(app, menubar, (AbstractMenu) entry);
+                }));
+                b.addStyleName("botonmenu");
+                b.addStyleName(ValoTheme.BUTTON_QUIET);
+                if (!VaadinIcons.ADOBE_FLASH.equals(entry.getIcon())) b.setIcon(entry.getIcon());
             } else if (entry instanceof AbstractAction) {
-                menubar.addItem(entry.getCaption(), (item) -> {
+                Button b;
+                menubar.addComponent(b = new Button(entry.getCaption(), e -> {
+                    cerrarMenu();
                     home.irA(app.getState(entry));
-                });
+                }));
+                b.addStyleName("botonmenu");
+                b.addStyleName(ValoTheme.BUTTON_QUIET);
+                if (!VaadinIcons.ADOBE_FLASH.equals(entry.getIcon())) b.setIcon(entry.getIcon());
             }
             //file.addSeparator();
         }
 
     }
 
-    private void addMenu(App app, MenuBar menubar, IArea area) {
-        final MenuBar.MenuItem menu = menubar.addItem(area.getName(), null);
-        for (IModule module : area.getModules()) {
-            addMenu(app, menu, module);
-        }
+    private void cerrarMenu() {
+        if (ventanaMenu != null) ventanaMenu.close();
     }
 
-    private void addMenu(App app, MenuBar.MenuItem menu, IModule module) {
-        for (MenuEntry entry : module.getMenu()) {
-            if (entry instanceof AbstractMenu) {
-                MenuBar.MenuItem submenu = menu.addItem(entry.getCaption(), null);
-                addSubmenu(app, submenu, (AbstractMenu) entry);
-            } else if (entry instanceof AbstractAction) {
-                menu.addItem(entry.getCaption(), (item) -> {
-                    home.irA(app.getState(entry));
-                });
-            }
-            //file.addSeparator();
+    private void addSubmenu(App app, VerticalLayout menubar, AbstractMenu entries) {
+        List<Component> old = new ArrayList<>();
+        for (int i = 0; i < menubar.getComponentCount(); i++) old.add(menubar.getComponent(i));
+        menubar.removeAllComponents();
+        {
+            Button b;
+            menubar.addComponent(b = new Button("Back", e -> {
+                menubar.removeAllComponents();
+                old.forEach(c -> menubar.addComponentsAndExpand(c));
+            }));
+            b.addStyleName("botonmenu");
+            b.addStyleName(ValoTheme.BUTTON_QUIET);
+            b.setIcon(VaadinIcons.CHEVRON_LEFT);
 
         }
-    }
-
-    private void addSubmenu(App app, MenuBar.MenuItem menu, AbstractMenu entries) {
         for (MenuEntry entry : entries.getEntries()) {
             if (entry instanceof AbstractMenu) {
-                MenuBar.MenuItem submenu = menu.addItem(entry.getCaption(), null);
-                addSubmenu(app, submenu, (AbstractMenu) entry);
+                Button b;
+                menubar.addComponent(b = new Button(entry.getCaption(), e -> {
+                    menubar.removeAllComponents();
+                    addSubmenu(app, menubar, (AbstractMenu) entry);
+                }));
+                b.addStyleName("botonmenu");
+                b.addStyleName(ValoTheme.BUTTON_QUIET);
+                if (!VaadinIcons.ADOBE_FLASH.equals(entry.getIcon())) b.setIcon(entry.getIcon());
             } else if (entry instanceof AbstractAction) {
-                menu.addItem(entry.getCaption(), (item) -> {
+                Button b;
+                menubar.addComponent(b = new Button(entry.getCaption(), e -> {
+                    cerrarMenu();
                     home.irA(app.getState(entry));
-                });
+                }));
+                b.addStyleName("botonmenu");
+                b.addStyleName(ValoTheme.BUTTON_QUIET);
+                if (!VaadinIcons.ADOBE_FLASH.equals(entry.getIcon())) b.setIcon(entry.getIcon());
             }
+
         }
     }
 

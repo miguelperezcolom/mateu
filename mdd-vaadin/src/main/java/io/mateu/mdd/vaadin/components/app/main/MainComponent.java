@@ -1,6 +1,8 @@
 package io.mateu.mdd.vaadin.components.app.main;
 
+import com.vaadin.server.Responsive;
 import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.FullWidth;
@@ -12,6 +14,7 @@ public class MainComponent extends VerticalLayout {
     public final CssLayout panel;
     private final MateuUI ui;
     private final HeaderComponent header;
+    private final HeaderForMobileComponent headerForMobile;
 
     public MainComponent(MateuUI ui) {
 
@@ -22,6 +25,12 @@ public class MainComponent extends VerticalLayout {
         addStyleName("maincomponent");
 
         header = new HeaderComponent(this);
+        headerForMobile = new HeaderForMobileComponent(this);
+
+        CssLayout headers = new CssLayout(header, headerForMobile);
+        headers.addStyleName("mateu-headers");
+        headers.setResponsive(true);
+        headers.setWidthFull();
 
         panel = new CssLayout();
         panel.setSizeFull();
@@ -29,12 +38,15 @@ public class MainComponent extends VerticalLayout {
 
         App app = MDDUIAccessor.getApp();
 
-        if (!app.getClass().isAnnotationPresent(FullWidth.class)) panel.addStyleName("container");
+        if (!app.getClass().isAnnotationPresent(FullWidth.class)) {
+            panel.addStyleName("container");
+            headers.addStyleName("container");
+        }
 
-        addComponents(header, panel);
+        addComponents(headers, panel);
         setExpandRatio(panel, 1);
 
-        if (app.isForm()) header.setVisible(false);
+        if (app.isForm()) headers.setVisible(false);
 
     }
 
@@ -46,5 +58,12 @@ public class MainComponent extends VerticalLayout {
         return header;
     }
 
+    public HeaderForMobileComponent getHeaderForMobile() {
+        return headerForMobile;
+    }
 
+    public void refreshHeader(boolean isPrivate) {
+        getHeader().refresh(isPrivate);
+        getHeaderForMobile().refresh(isPrivate);
+    }
 }

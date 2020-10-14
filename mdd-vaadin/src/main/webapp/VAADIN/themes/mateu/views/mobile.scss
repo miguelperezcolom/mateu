@@ -1,0 +1,65 @@
+@mixin mobile {
+
+  .mateu-header-mobile {
+    padding: 5px;
+    background-color: #664b5f;
+    padding-left: 10px;
+
+    * {
+      color: white;
+    }
+
+    .iconomenu {
+      font-size: 18px;
+      padding-top: 2px;
+    }
+
+    .centro {
+      text-align: center;
+      margin: 0 auto;
+      display: block;
+    }
+
+    .iconoarea {
+      padding-top: 5px;
+      font-size: 15px;
+      padding-right: 4px;
+    }
+
+    .appname {
+      margin-top: 1px;
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 1.5em;
+    }
+
+    .v-menubar, .v-button {
+      margin-top: 3px;
+    }
+  }
+
+  .mateu-headers.container {
+    max-width: 990px;
+    display: block;
+    margin: 0 auto;
+  }
+
+  .mateu-headers[width-range~="0-600px"] {
+    .mateu-header {
+      display: none !important;
+    }
+    .mateu-header-mobile {
+      display: inherit !important;
+    }
+  }
+
+  .mateu-headers[width-range~="601px-"] {
+    .mateu-header {
+      display: inherit !important;
+    }
+    .mateu-header-mobile {
+      display: none !important;
+    }
+  }
+
+}
