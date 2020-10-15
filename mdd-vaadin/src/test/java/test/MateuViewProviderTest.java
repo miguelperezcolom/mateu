@@ -38,7 +38,7 @@ public class MateuViewProviderTest {
 
         View v = new MateuViewProvider(new ViewStack()).getView("");
 
-        assertEquals("Home", v.toString());
+        assertEquals("Academics", v.toString());
 
     }
 
@@ -47,7 +47,7 @@ public class MateuViewProviderTest {
 
         View v = new MateuViewProvider(new ViewStack()).getView("/public");
 
-        assertEquals("Home", v.toString());
+        assertEquals("Academics", v.toString());
 
     }
 

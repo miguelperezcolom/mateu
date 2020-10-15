@@ -22,7 +22,7 @@ public class WizardComponent extends EditorViewComponent {
 
     @Override
     public VaadinIcons getIcon() {
-        return VaadinIcons.FAST_FORWARD; //STEP_FORWARD;
+        return VaadinIcons.ELLIPSIS_DOTS_H; //STEP_FORWARD;
 
     }
 

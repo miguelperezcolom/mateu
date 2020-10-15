@@ -142,8 +142,8 @@ public class MateuUI extends UI implements IMDDUI {
 
     private void initApp(VaadinRequest vaadinRequest) throws Exception {
         if (app == null) {
-            Object uiFromContext = ((VaadinServletRequest) vaadinRequest).getServletContext().getAttribute((Strings.isNullOrEmpty(getUiRootPath())?"/": getUiRootPath()) + "_app");
-            app = new MateuApp(uiFromContext != null?uiFromContext.getClass():Object.class);
+            Class uiClassFromContext = (Class) ((VaadinServletRequest) vaadinRequest).getServletContext().getAttribute((Strings.isNullOrEmpty(getUiRootPath())?"/": getUiRootPath()) + "_app");
+            app = new MateuApp(uiClassFromContext != null?uiClassFromContext:Object.class, vaadinRequest);
 
             if (MDD.getClassPool() == null) MDD.setClassPool(ReflectionHelper.createClassPool(((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getServletContext()));
 

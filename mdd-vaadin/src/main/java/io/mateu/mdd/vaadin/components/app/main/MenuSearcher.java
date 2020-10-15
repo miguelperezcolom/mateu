@@ -34,6 +34,7 @@ public class MenuSearcher extends ComboBox<MenuEntry> {
     }
 
     private List<MenuEntry> buildOptionsList(AbstractApplication app) {
+        setVisible(false);
         List<MenuEntry> entries = new ArrayList<>();
         for (IArea a : app.getAreas()) {
             for (IModule m : a.getModules()) {
@@ -47,6 +48,7 @@ public class MenuSearcher extends ComboBox<MenuEntry> {
     }
 
     private void addOptions(List<MenuEntry> entries, AbstractMenu m) {
+        setVisible(true);
         for (MenuEntry e : m.getEntries()) {
             if (e instanceof AbstractMenu) addOptions(entries, (AbstractMenu) e);
             else entries.add(e);

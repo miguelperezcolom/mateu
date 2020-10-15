@@ -105,7 +105,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
 
                         out.println("    @Override\n" +
                                 "    public void init(ServletConfig servletConfig) throws ServletException {\n" +
-                                "        servletConfig.getServletContext().setAttribute(\"" + ("".equals(e.getAnnotation(MateuUI.class).path())?"/":e.getAnnotation(MateuUI.class).path()) + "_app\", new " + className.substring(className.lastIndexOf(".") + 1) + "());\n" +
+                                "        servletConfig.getServletContext().setAttribute(\"" + ("".equals(e.getAnnotation(MateuUI.class).path())?"/":e.getAnnotation(MateuUI.class).path()) + "_app\", " + className.substring(className.lastIndexOf(".") + 1) + ".class);\n" +
                                 "        super.init(servletConfig);\n" +
                                 "    }\n");
 
