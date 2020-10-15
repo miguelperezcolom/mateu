@@ -81,7 +81,7 @@ public class Populator implements IPopulator {
                 u.setStatus(USER_STATUS.ACTIVE);
                 u.getPermissions().add(p);
                 Resource f;
-                u.setPhoto(f = new Resource());
+                u.setAvatar(f = new Resource());
                 f.setName("foto-perfil-ejemplo.png");
                 f.setBytes(ByteStreams.toByteArray(Populator.class.getResourceAsStream("/images/" + f.getName())));
                 em.persist(f);

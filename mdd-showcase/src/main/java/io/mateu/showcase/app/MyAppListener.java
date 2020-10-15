@@ -54,7 +54,7 @@ public class MyAppListener extends BaseAppContextListener implements AppContextL
                 u.setStatus(USER_STATUS.ACTIVE);
                 u.getPermissions().add(p);
                 Resource f;
-                u.setPhoto(f = new Resource());
+                u.setAvatar(f = new Resource());
                 f.setName("foto-perfil-ejemplo.png");
                 f.setBytes(ByteStreams.toByteArray(io.mateu.mdd.core.model.population.Populator.class.getResourceAsStream("/images/" + f.getName())));
                 em.persist(f);

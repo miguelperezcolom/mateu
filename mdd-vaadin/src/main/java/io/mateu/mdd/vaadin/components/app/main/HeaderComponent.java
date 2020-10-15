@@ -7,6 +7,7 @@ import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.app.AbstractApplication;
 import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.AbstractMenu;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
@@ -29,6 +30,7 @@ public class HeaderComponent extends HorizontalLayout {
     private HorizontalLayout positionLayout;
     private boolean isPrivate;
     private CssLayout barContainer;
+    private MenuSearcher menuSearcher;
 
 
     public HeaderComponent(MainComponent home) {
@@ -75,6 +77,9 @@ public class HeaderComponent extends HorizontalLayout {
         String basePath = UI.getCurrent().getUiRootPath();
         if (!basePath.endsWith("/")) basePath += "/";
 
+
+        addComponent(menuSearcher = new MenuSearcher((AbstractApplication) app));
+
         String finalBasePath = basePath;
         if (isPrivate) {
             Button b;
@@ -89,7 +94,7 @@ public class HeaderComponent extends HorizontalLayout {
                 }
                 addComponent(b = new Button("Login", e -> Page.getCurrent().setLocation(finalBasePath + "private")));
                 b.addStyleName(ValoTheme.BUTTON_QUIET);
-            }
+            } else addComponent(new Label(" "));
         }
 
         setExpandRatio(barContainer, 1);
@@ -218,5 +223,9 @@ public class HeaderComponent extends HorizontalLayout {
             positionLayout.addComponent(labelPosition);
         }
         refreshMenuBar();
+    }
+
+    public void updateSession() {
+        menuSearcher.updateDataProvider((AbstractApplication) MDDUIAccessor.getApp());
     }
 }

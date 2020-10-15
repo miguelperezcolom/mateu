@@ -129,4 +129,9 @@ public class FakeUI implements IMDDUI {
     public void setPendingResult(Object result) {
 
     }
+
+    @Override
+    public void updateSession() {
+
+    }
 }

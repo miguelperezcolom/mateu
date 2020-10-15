@@ -1,5 +1,6 @@
 package io.mateu.mdd.shared.interfaces;
 
+import java.net.URL;
 import java.util.List;
 
 public interface UserPrincipal {
@@ -12,5 +13,5 @@ public interface UserPrincipal {
 
     String getEmail();
 
-    IResource getPhoto();
+    URL getPhoto();
 }

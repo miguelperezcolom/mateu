@@ -126,4 +126,7 @@ public class MDDUIAccessor {
         if (get() != null) get().setPendingResult(result);
     }
 
+    public static void updateSession() {
+        if (get() != null) get().updateSession();
+    }
 }

@@ -5,6 +5,7 @@ import com.vaadin.navigator.Navigator;
 import com.vaadin.server.Page;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServletRequest;
+import com.vaadin.server.WrappedHttpSession;
 import com.vaadin.ui.*;
 import elemental.json.JsonArray;
 import io.mateu.mdd.core.MDD;
@@ -34,10 +35,13 @@ import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.mdd.vaadin.util.VaadinHelper;
 import io.mateu.mdd.vaadin.views.BrokenLinkView;
 import io.mateu.reflection.ReflectionHelper;
+import io.mateu.security.MateuSecurityManager;
+import io.mateu.util.Helper;
 import io.mateu.util.notification.Notifier;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.persistence.Entity;
+import javax.servlet.http.HttpSession;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -52,6 +56,7 @@ public class MateuUI extends UI implements IMDDUI {
     private String pendingFocusedSectionId;
     private MainComponent main;
     private AbstractArea area;
+    private MateuSecurityManager securityManager;
 
     List<Locale> locales = Arrays.asList(new Locale("en"),
             new Locale("es"),
@@ -91,9 +96,6 @@ public class MateuUI extends UI implements IMDDUI {
     @Override
     protected void init(VaadinRequest vaadinRequest) {
 
-
-
-
         JavaScript.getCurrent().addFunction("pingserver", new JavaScriptFunction() {
             @Override
             public void call(JsonArray jsonArray) {
@@ -103,8 +105,14 @@ public class MateuUI extends UI implements IMDDUI {
             }
         });
 
+        try {
+            securityManager = Helper.getImpl(MateuSecurityManager.class);
+        } catch (Exception e) {
+            System.out.println("security manager implementation not found");
+        }
 
         try {
+
             initApp(vaadinRequest);
 
             String language = resolveLocale(vaadinRequest.getHeader("Accept-Language")).getLanguage();
@@ -184,7 +192,8 @@ public class MateuUI extends UI implements IMDDUI {
 
     @Override
     public String getCurrentUserLogin() {
-        return null;
+        UserPrincipal p = securityManager != null?securityManager.getPrincipal(((WrappedHttpSession) getSession().getSession()).getHttpSession()):null;
+        return p != null?p.getLogin():null;
     }
 
     @Override
@@ -343,6 +352,11 @@ public class MateuUI extends UI implements IMDDUI {
     @Override
     public void setPendingResult(Object result) {
         this.pendingResult = result;
+    }
+
+    @Override
+    public void updateSession() {
+        main.getHeader().updateSession();
     }
 
     private void yesGoSibling(Object id) {

@@ -90,7 +90,7 @@ public class GeneralRepositoryImpl implements GeneralRepository {
                     u.setLogin(login);
                     u.setEmail((email != null)?email:"");
                     u.setName((name != null)?name:"");
-                    if (!Strings.isNullOrEmpty(avatarUrl)) u.setPhoto(new Resource(new URL(avatarUrl)));
+                    if (!Strings.isNullOrEmpty(avatarUrl)) u.setAvatar(new Resource(new URL(avatarUrl)));
                     u.setStatus(USER_STATUS.ACTIVE);
                     em.persist(u);
                 }
@@ -122,7 +122,7 @@ public class GeneralRepositoryImpl implements GeneralRepository {
 
                 u.setName(name);
                 u.setEmail(email);
-                u.setPhoto((Resource) photo);
+                u.setAvatar((Resource) photo);
 
             }
         });

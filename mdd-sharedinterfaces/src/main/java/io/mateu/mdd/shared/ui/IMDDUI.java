@@ -57,4 +57,6 @@ public interface IMDDUI {
     Object getPendingResult();
 
     void setPendingResult(Object result);
+
+    void updateSession();
 }

@@ -15,6 +15,10 @@ public class GeoLocalization {
 
     private String googleMapsUrl;
 
+    protected GeoLocalization() {
+
+    }
+
     public GeoLocalization(String googleMapsUrl) {
         this.googleMapsUrl = googleMapsUrl;
     }

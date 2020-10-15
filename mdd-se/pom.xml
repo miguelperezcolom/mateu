@@ -347,10 +347,11 @@
             <plugin>
                 <groupId>io.mateu.jpa-utils</groupId>
                 <artifactId>pujoiner-plugin</artifactId>
-                <version>0.0.2</version>
+                <version>0.0.3</version>
 
                 <configuration>
                     <puname>yourapp</puname>
+                    <extendspu>mateu-basic</extendspu>
                 </configuration>
 
                 <executions>

@@ -144,6 +144,7 @@ public abstract class AbstractApplication implements App {
     public void updateSession() {
         this.areas = null;
         buildAreaAndMenuIds();
+        MDDUIAccessor.updateSession();
     }
 
 
@@ -152,6 +153,7 @@ public abstract class AbstractApplication implements App {
             areas = new ArrayList<>();
             boolean autentico = MDDUIAccessor.getCurrentUserLogin() != null;
             for (AbstractArea a : buildAreas()) {
+
                 if (isAuthenticationAgnostic() || (!autentico && a.isPublicAccess()) || (autentico && !a.isPublicAccess())) areas.add(a);
             }
         }

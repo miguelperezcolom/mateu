@@ -5,6 +5,7 @@ import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.NonDuplicable;
 import io.mateu.mdd.shared.annotations.Password;
+import io.mateu.mdd.shared.data.URLResource;
 import io.mateu.mdd.shared.interfaces.IResource;
 import io.mateu.mdd.shared.interfaces.UserPrincipal;
 import io.mateu.util.Helper;
@@ -52,7 +53,7 @@ public class Profile implements PersistentPojo {
 
         setName(u.getName());
         setEmail(u.getEmail());
-        setPhoto(u.getPhoto());
+        setPhoto(u.getPhoto() != null?new URLResource(u.getPhoto()):null);
 
     }
 

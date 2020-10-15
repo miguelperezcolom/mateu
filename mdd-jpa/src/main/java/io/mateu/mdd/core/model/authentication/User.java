@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -81,7 +82,9 @@ public class User implements EditorViewStyler, UserPrincipal {
     @FieldGroup("Photo")
     @NotInList
     @ManyToOne(cascade = CascadeType.ALL)
-    private Resource photo;
+    private Resource avatar;
+
+
 
     @FieldGroup("Comments")
     @TextArea
@@ -233,5 +236,15 @@ public class User implements EditorViewStyler, UserPrincipal {
     @Override
     public List<String> getRoles() {
         return getPermissions().stream().map(p -> "" + p.getId()).collect(Collectors.toList());
+    }
+
+    @Override
+    public URL getPhoto() {
+        try {
+            return avatar != null?new URL(avatar.toFileLocator().getUrl()):null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }
