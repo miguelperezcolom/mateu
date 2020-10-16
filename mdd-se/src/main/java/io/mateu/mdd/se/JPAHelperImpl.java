@@ -1,18 +1,13 @@
-package io.mateu.mdd.springboot;
+package io.mateu.mdd.se;
 
 import com.google.auto.service.AutoService;
 import io.mateu.mdd.shared.JPAAdapter;
 import io.mateu.util.Helper;
 import io.mateu.util.IJPAHelper;
-import io.mateu.util.persistence.JPAHelper;
 import io.mateu.util.persistence.JPATransaction;
 import io.mateu.util.runnable.RunnableThrowsThrowable;
 import org.jinq.jpa.JinqJPAStreamProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.*;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -22,19 +17,11 @@ import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.util.*;
 
-@Component
+@AutoService(IJPAHelper.class)
 public class JPAHelperImpl implements IJPAHelper {
 
     private static Map<String, JinqJPAStreamProvider> streams = new HashMap<>();
-
-    @Autowired
-    private EntityManagerFactory emf;
-
-    @PostConstruct
-    public void post() {
-        JPAHelper.set(this);
-    }
-
+    private static Map<String, EntityManagerFactory> emf = new HashMap<>();
 
     @Override
     public void transact(JPATransaction t) throws Throwable {
@@ -51,12 +38,12 @@ public class JPAHelperImpl implements IJPAHelper {
         transact(persistenceUnit, t, null);
     }
 
-    @Transactional
     @Override
     public void transact(String persistenceUnit, JPATransaction t, RunnableThrowsThrowable callback) throws Throwable {
+
         try {
 
-            EntityManager em = emf.createEntityManager();
+            EntityManager em = getEMF(persistenceUnit).createEntityManager();
 
             try {
 
@@ -113,22 +100,30 @@ public class JPAHelperImpl implements IJPAHelper {
 
     @Override
     public void closeEMFs() {
-
+        emf.values().forEach(x -> {
+            if (x.isOpen()) x.close();
+        });
+        emf.clear();
     }
 
     @Override
     public void setEMF(EntityManagerFactory f) {
-
+        emf.put(System.getProperty("defaultpuname", "default"), f);
     }
 
     @Override
     public EntityManagerFactory getEMF() {
-        return emf;
+        return getEMF(System.getProperty("defaultpuname", "default"));
     }
+
 
     @Override
     public EntityManagerFactory getEMF(String persistenceUnit) {
-        return emf;
+        EntityManagerFactory v;
+        if ((v = emf.get(persistenceUnit)) == null) {
+            emf.put(persistenceUnit, v = Persistence.createEntityManagerFactory(persistenceUnit, System.getProperties()));
+        }
+        return v;
     }
 
     @Override
@@ -146,11 +141,10 @@ public class JPAHelperImpl implements IJPAHelper {
         notransact(persistenceUnit, t, true);
     }
 
-    @Transactional(readOnly = true)
     @Override
     public void notransact(String persistenceUnit, JPATransaction t, boolean printException) throws Throwable {
 
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = getEMF(persistenceUnit).createEntityManager();
 
         try {
 
@@ -165,6 +159,7 @@ public class JPAHelperImpl implements IJPAHelper {
         em.close();
 
     }
+
 
     @Override
     public <T> T find(Class<T> type, Object id) throws Throwable {
@@ -475,4 +470,5 @@ public class JPAHelperImpl implements IJPAHelper {
         // resolviendo cualquier mapeado inverso, tanto en el valor anterior como en el nuevo valor
         //todo: implementar
     }
+
 }
