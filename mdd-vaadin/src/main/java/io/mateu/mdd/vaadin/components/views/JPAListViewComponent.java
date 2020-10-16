@@ -107,6 +107,8 @@ public class JPAListViewComponent extends ListViewComponent {
     public JPAListViewComponent(Class entityClass, ExtraFilters extraFilters, Map<String, Object> initialValues, String columns, String filters, String fields) {
         this(entityClass, extraFilters, initialValues, columns, filters, fields, null);
     }
+
+
     
     public JPAListViewComponent(Class entityClass, ExtraFilters extraFilters, Map<String, Object> initialValues, String columns, String filters, String fields, Consumer<Object> callback) {
         this.entityClass = entityClass;
@@ -241,6 +243,11 @@ public class JPAListViewComponent extends ListViewComponent {
     @Override
     public String getFieldsFilter() {
         return selectColumnsForList;
+    }
+
+    @Override
+    public String getEditableFieldsFilter() {
+        return useFields;
     }
 
     @Override

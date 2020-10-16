@@ -137,7 +137,7 @@ public class AreaBuilder {
 
     private AbstractAction findDefaultAction(Class<?> type, boolean authenticationAgnostic, boolean publicAccess) {
         try {
-            return findDefaultAction(type, ReflectionHelper.newInstance(type), authenticationAgnostic, publicAccess);
+            return findDefaultAction(type, ui, authenticationAgnostic, publicAccess);
         } catch (Exception e) {
             e.printStackTrace();
             return null;

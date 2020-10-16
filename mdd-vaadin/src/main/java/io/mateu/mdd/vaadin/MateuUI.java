@@ -15,7 +15,6 @@ import io.mateu.mdd.core.app.MateuApp;
 import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.interfaces.App;
-import io.mateu.mdd.shared.interfaces.IArea;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.shared.interfaces.UserPrincipal;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
@@ -29,7 +28,7 @@ import io.mateu.mdd.vaadin.components.views.EditorListener;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
 import io.mateu.mdd.vaadin.components.views.ListViewComponent;
 import io.mateu.mdd.vaadin.components.views.OwnedCollectionComponent;
-import io.mateu.mdd.vaadin.controllers.MateuViewProvider;
+import io.mateu.mdd.vaadin.navigation.MateuViewProvider;
 import io.mateu.mdd.vaadin.navigation.View;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.mdd.vaadin.util.VaadinHelper;
@@ -41,10 +40,8 @@ import io.mateu.util.notification.Notifier;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.persistence.Entity;
-import javax.servlet.http.HttpSession;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class MateuUI extends UI implements IMDDUI {
     private Navigator navigator;

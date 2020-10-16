@@ -41,7 +41,7 @@ public class MateuApp extends BaseMDDApp {
     }
 
     private Object instantiate(Class uiclass, VaadinRequest request) throws IllegalAccessException, InvocationTargetException, InstantiationException {
-        Object ui = this;
+        Object ui = null;
         if (uiclass != null) {
             for (Constructor constructor : uiclass.getConstructors()) {
                 if (constructor.getParameterCount() == 1 && constructor.getParameterTypes()[0].equals(VaadinRequest.class)) {
@@ -61,7 +61,13 @@ public class MateuApp extends BaseMDDApp {
                         break;
                     }
                 }
-
+                if (ui == null) {
+                    try {
+                        ui = ReflectionHelper.newInstance(uiclass);
+                    } catch (NoSuchMethodException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
         return ui;

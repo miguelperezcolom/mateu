@@ -7,21 +7,16 @@ import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.core.app.MDDOpenHtml;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.interfaces.App;
-import io.mateu.mdd.shared.interfaces.IArea;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.actions.AcctionRunner;
 import io.mateu.mdd.vaadin.components.ComponentWrapper;
 import io.mateu.mdd.vaadin.controllers.BrokenLinkController;
 import io.mateu.mdd.vaadin.controllers.Controller;
-import io.mateu.mdd.vaadin.navigation.MDDViewComponentCreator;
+import io.mateu.mdd.vaadin.components.MDDViewComponentCreator;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.mdd.vaadin.pojos.Profile;
 import io.mateu.util.notification.Notifier;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class PrivateController extends Controller {
 

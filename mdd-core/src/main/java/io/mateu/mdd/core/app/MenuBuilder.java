@@ -5,6 +5,7 @@ import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
+import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.shared.reflection.CoreReflectionHelper;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
@@ -205,7 +206,14 @@ public class MenuBuilder {
 
                 if (Class.class.isAssignableFrom(f.getType())) {
                     Class type = (Class) ReflectionHelper.getValue(f, app);
-                    if (type != null) l.add(new MDDOpenCRUDAction(caption, type).setIcon(icon).setOrder(order));
+                    if (type != null) {
+                        MDDOpenCRUDAction a = new MDDOpenCRUDAction(caption, type);
+                        a.setIcon(icon).setOrder(order);
+                        if (f.isAnnotationPresent(Columns.class) && !Strings.isNullOrEmpty(f.getAnnotation(Columns.class).value())) a.setColumns(f.getAnnotation(Columns.class).value());
+                        if (f.isAnnotationPresent(EditableFields.class) && !Strings.isNullOrEmpty(f.getAnnotation(EditableFields.class).value())) a.setFields(f.getAnnotation(EditableFields.class).value());
+                        if (f.isAnnotationPresent(FilterFields.class) && !Strings.isNullOrEmpty(f.getAnnotation(FilterFields.class).value())) a.setFilters(f.getAnnotation(FilterFields.class).value());
+                        l.add(a);
+                    }
                 } else if (List.class.isAssignableFrom(f.getType()) && MenuEntry.class.equals(ReflectionHelper.getGenericClass(f.getType()))) {
                     l.add(new AbstractMenu(icon, caption) {
                         @Override
@@ -230,6 +238,8 @@ public class MenuBuilder {
                         else l.add(new MDDOpenHtml(caption, "" + v).setIcon(icon).setOrder(order));
                     } else if (WizardPage.class.isAssignableFrom(f.getType())) {
                         l.add(new MDDOpenWizardAction(caption, (WizardPage) v).setIcon(icon).setOrder(order));
+                    } else if (RpcView.class.isAssignableFrom(f.getType())) {
+                        l.add(new MDDOpenListViewAction(caption, f.getType()).setIcon(icon).setOrder(order));
                     } else l.add(new MDDOpenEditorAction(caption, v).setIcon(icon).setOrder(order));
                 }
 

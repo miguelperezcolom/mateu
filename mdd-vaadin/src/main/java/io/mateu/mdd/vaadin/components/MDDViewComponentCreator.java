@@ -1,4 +1,4 @@
-package io.mateu.mdd.vaadin.navigation;
+package io.mateu.mdd.vaadin.components;
 
 import com.vaadin.ui.Component;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;

@@ -6,7 +6,7 @@ import io.mateu.fake.FakeUI;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.MateuApp;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
-import io.mateu.mdd.vaadin.controllers.MateuViewProvider;
+import io.mateu.mdd.vaadin.navigation.MateuViewProvider;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
@@ -38,7 +38,7 @@ public class MateuViewProviderTest {
 
         View v = new MateuViewProvider(new ViewStack()).getView("");
 
-        assertEquals("Academics", v.toString());
+        assertEquals("Home", v.toString());
 
     }
 
@@ -47,7 +47,7 @@ public class MateuViewProviderTest {
 
         View v = new MateuViewProvider(new ViewStack()).getView("/public");
 
-        assertEquals("Academics", v.toString());
+        assertEquals("Home", v.toString());
 
     }
 

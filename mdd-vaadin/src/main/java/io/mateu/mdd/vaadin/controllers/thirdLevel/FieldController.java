@@ -14,7 +14,7 @@ import io.mateu.mdd.vaadin.controllers.Controller;
 import io.mateu.mdd.vaadin.controllers.secondLevel.EditorController;
 import io.mateu.mdd.vaadin.controllers.secondLevel.ListViewComponentController;
 import io.mateu.mdd.vaadin.data.MDDBinder;
-import io.mateu.mdd.vaadin.navigation.MDDViewComponentCreator;
+import io.mateu.mdd.vaadin.components.MDDViewComponentCreator;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.notification.Notifier;

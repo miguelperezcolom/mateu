@@ -9,11 +9,13 @@ import io.mateu.mdd.vaadin.components.views.ListViewComponent;
 import io.mateu.mdd.vaadin.controllers.Controller;
 import io.mateu.mdd.vaadin.controllers.thirdLevel.FieldController;
 import io.mateu.mdd.vaadin.controllers.thirdLevel.MethodController;
-import io.mateu.mdd.vaadin.navigation.MDDViewComponentCreator;
+import io.mateu.mdd.vaadin.components.MDDViewComponentCreator;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.reflection.ReflectionHelper;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EditorController extends Controller {
 
@@ -36,8 +38,9 @@ public class EditorController extends Controller {
     }
 
     public EditorController(ViewStack stack, String path, ListViewComponent listViewComponent, Object bean) {
-        editorViewComponent = (EditorViewComponent) MDDViewComponentCreator.createComponent(bean);
-        editorViewComponent.setListViewComponent(listViewComponent);
+        List<FieldInterfaced> visibleFields = ReflectionHelper.getAllEditableFilteredFields(bean.getClass(), listViewComponent.getEditableFieldsFilter(), null);
+        List<FieldInterfaced> hiddenFields = new ArrayList<>();
+        editorViewComponent = new EditorViewComponent(listViewComponent, bean, visibleFields, hiddenFields);
         register(stack, path, editorViewComponent);
     }
 

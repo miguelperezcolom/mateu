@@ -105,6 +105,10 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         return null;
     }
 
+    public String getEditableFieldsFilter() {
+        return null;
+    }
+
     public ListViewComponent() {
         if (!MDDUIAccessor.isMobile()) setSizeFull();
     }

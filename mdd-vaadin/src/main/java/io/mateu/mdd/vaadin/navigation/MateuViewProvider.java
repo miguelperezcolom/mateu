@@ -1,4 +1,4 @@
-package io.mateu.mdd.vaadin.controllers;
+package io.mateu.mdd.vaadin.navigation;
 
 import com.google.common.base.Strings;
 import com.vaadin.navigator.View;
@@ -12,6 +12,7 @@ import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
 import io.mateu.mdd.vaadin.components.views.ListViewComponent;
+import io.mateu.mdd.vaadin.controllers.Controller;
 import io.mateu.mdd.vaadin.controllers.firstLevel.HomeController;
 import io.mateu.mdd.vaadin.controllers.secondLevel.EditorController;
 import io.mateu.mdd.vaadin.controllers.secondLevel.WizardController;
@@ -159,7 +160,7 @@ public class MateuViewProvider implements ViewProvider {
         }
         if (c != null && (c instanceof EditorViewComponent)) {
             currentEditor = (EditorViewComponent) c;
-            if (firstViewInWindow == 0 && stack.size() > 1) firstViewInWindow = stack.size() + 1;
+            if (firstViewInWindow == 0) firstViewInWindow = stack.size() + 1;
         }
 
 
