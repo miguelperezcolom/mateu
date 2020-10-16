@@ -7,4 +7,9 @@ public interface RpcCrudView<F, C, T> extends RpcView<F, C> {
     Object deserializeId(String sid);
 
     boolean isAddEnabled();
+
+    @Override
+    default boolean isEditHandled() {
+        return true;
+    }
 }

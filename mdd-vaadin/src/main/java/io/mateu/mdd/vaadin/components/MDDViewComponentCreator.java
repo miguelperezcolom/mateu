@@ -82,7 +82,6 @@ public class MDDViewComponentCreator {
         try {
 
             if (RpcCrudView.class.isAssignableFrom(viewClass)) {
-                Class modelType = ReflectionHelper.getGenericClass(viewClass, RpcCrudView.class, "T");
                 v = new RpcListViewComponent(viewClass);
             } else {
                 v = new RpcListViewComponent(viewClass);

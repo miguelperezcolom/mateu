@@ -1483,8 +1483,15 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
         Method a = null;
 
+        for (Method m : ReflectionHelper.getAllMethods(getFiltersType())) {
+            if (RpcView.class.isAssignableFrom(getFiltersType())&& m.getName().equals(methodName)) {
+                a = m;
+                break;
+            }
+        }
+
         for (Method m : ReflectionHelper.getAllMethods(getModelType())) {
-            if ((RpcView.class.isAssignableFrom(getModelType()) || Modifier.isStatic(m.getModifiers())) && m.getName().equals(methodName)) {
+            if (Modifier.isStatic(m.getModifiers()) && m.getName().equals(methodName)) {
                 a = m;
                 break;
             }

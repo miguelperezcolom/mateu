@@ -375,7 +375,7 @@ public class FormLayoutBuilder {
                 css.addComponent(l = new VerticalLayout());
                 l.setSizeUndefined();
 
-                if (!editor.esForm() || !g.getCaption().startsWith("Field Group ")) {
+                if ((editor != null && !editor.esForm()) || !g.getCaption().startsWith("Field Group ")) {
                     l.addStyleName("fieldgroup");
                     if (!Strings.isNullOrEmpty(g.getCaption())) {
                         Label c;

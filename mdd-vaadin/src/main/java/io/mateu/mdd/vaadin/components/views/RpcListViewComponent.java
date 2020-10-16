@@ -32,6 +32,7 @@ public class RpcListViewComponent extends ListViewComponent {
         return rpcListView;
     }
 
+
     public RpcListViewComponent(RpcView rpcListView) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         this.rpcListViewClass = rpcListView.getClass();
         this.rpcListView = rpcListView;
@@ -196,6 +197,7 @@ public class RpcListViewComponent extends ListViewComponent {
 
     @Override
     public Class getModelType() {
+        if (rpcListView instanceof RpcCrudView) return ReflectionHelper.getGenericClass(rpcListView.getClass(), RpcCrudView.class, "T");
         return rpcListView.getClass();
     }
 
