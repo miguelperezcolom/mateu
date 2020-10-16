@@ -571,7 +571,8 @@ public class MateuUIServletAnnotationProcessor extends AbstractProcessor {
 
 
                 } catch (IOException ex) {
-                    ex.printStackTrace();
+                    if (ex.getMessage() != null && ex.getMessage().startsWith("Attempt to recreate a file for type")) System.out.println(ex.getMessage());
+                    else ex.printStackTrace();
                 }
 
 
