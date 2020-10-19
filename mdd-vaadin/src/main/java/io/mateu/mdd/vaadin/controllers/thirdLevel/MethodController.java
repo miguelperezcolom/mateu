@@ -2,6 +2,7 @@ package io.mateu.mdd.vaadin.controllers.thirdLevel;
 
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.server.ExternalResource;
+import com.vaadin.server.FileResource;
 import com.vaadin.server.Page;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
@@ -31,6 +32,7 @@ import io.mateu.util.notification.Notifier;
 
 import javax.persistence.Entity;
 import javax.persistence.Query;
+import java.io.File;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.net.URL;
@@ -172,6 +174,10 @@ public class MethodController extends Controller {
                 } else {
                     return new ComponentWrapper(title, new Link("Click me to view the result", new ExternalResource(r.toString())));
                 }
+            } else if (File.class.equals(c)) {
+                BrowserFrame b = new BrowserFrame("Result", new FileResource((File) r));
+                b.setSizeFull();
+                return new ComponentWrapper(null, title, b, true);
             } else if (r instanceof Collection && ((Collection) r).size() > 0 && ((Collection) r).iterator().next() != null && ((Collection) r).iterator().next().getClass().isAnnotationPresent(Entity.class)) {
                 return new CollectionListViewComponent((Collection) r, ((Collection) r).iterator().next().getClass());
             } else if (Collection.class.isAssignableFrom(c)) {

@@ -11,6 +11,7 @@ import io.mateu.mdd.shared.interfaces.IModule;
 import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.actions.AcctionRunner;
 import io.mateu.mdd.vaadin.components.ComponentWrapper;
+import io.mateu.mdd.vaadin.components.HomeComponent;
 import io.mateu.mdd.vaadin.components.app.views.firstLevel.AreaComponent;
 import io.mateu.mdd.vaadin.controllers.BrokenLinkController;
 import io.mateu.mdd.vaadin.controllers.Controller;
@@ -28,7 +29,7 @@ public class AreaController extends Controller {
         AbstractAction home = area.getDefaultAction();
         if (home != null) {
             if (home instanceof MDDOpenHtml) {
-                register(stack, path, new ComponentWrapper(home.getIcon(), "" + area.getName(), new Label(((MDDOpenHtml)home).html, ContentMode.HTML), false));
+                register(stack, path, new HomeComponent(home.getIcon(), "" + area.getName(), new Label(((MDDOpenHtml)home).html, ContentMode.HTML), false));
             } else {
                 try {
                     new AcctionRunner().run((AbstractAction) home);

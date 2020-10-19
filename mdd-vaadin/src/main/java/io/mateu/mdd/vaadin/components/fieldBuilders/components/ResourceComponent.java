@@ -6,11 +6,9 @@ import com.vaadin.data.HasValue;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.ClassResource;
 import com.vaadin.server.ExternalResource;
-import com.vaadin.server.FileResource;
 import com.vaadin.shared.Registration;
 import com.vaadin.ui.*;
 import io.mateu.mdd.shared.CSS;
-import io.mateu.mdd.shared.VaadinHelper;
 import io.mateu.mdd.shared.interfaces.FileType;
 import io.mateu.mdd.shared.interfaces.IResource;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
@@ -31,16 +29,18 @@ import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
-public class FileComponent extends Composite implements HasValue<File>, Component.Focusable {
+public class ResourceComponent extends Composite implements HasValue<IResource>, Component.Focusable {
     private final MDDBinder binder;
     private final Link hyperLink;
     private final Upload upload;
     private final Image image;
-    private File file;
+    private final ComboBox<FileType> cb;
+    private final TextField url;
+    private IResource file;
     private Map<UUID, ValueChangeListener> listeners = new HashMap<>();
 
 
-    public FileComponent(FieldInterfaced field, MDDBinder binder) {
+    public ResourceComponent(FieldInterfaced field, MDDBinder binder) {
         this.binder = binder;
 
         class MyUploader implements Upload.Receiver, Upload.SucceededListener {
@@ -55,7 +55,9 @@ public class FileComponent extends Composite implements HasValue<File>, Componen
                 FileOutputStream os = null;
                 if (fileName != null && !"".equals(fileName)) {
 
+                    String id = UUID.randomUUID().toString();
                     String extension = ".tmp";
+                    if (fileName == null || "".equals(fileName.trim())) fileName = "" + id + extension;
                     if (fileName.lastIndexOf(".") < fileName.length() - 1) {
                         extension = fileName.substring(fileName.lastIndexOf("."));
                         fileName = fileName.substring(0, fileName.lastIndexOf("."));
@@ -91,9 +93,15 @@ public class FileComponent extends Composite implements HasValue<File>, Componen
 
                 try {
 
-                    file = filex;
+                    if (file == null) file = Helper.getImpl(GeneralRepository.class).getNewResource();
 
-                    ValueChangeEvent ce = new ValueChangeEvent(FileComponent.this, FileComponent.this, true);
+                    file.set(filex.getName(), filex.getAbsolutePath());
+
+
+
+
+
+                    ValueChangeEvent ce = new ValueChangeEvent(ResourceComponent.this, ResourceComponent.this, true);
                     listeners.values().forEach(l -> l.valueChange(ce));
 
 
@@ -123,9 +131,7 @@ public class FileComponent extends Composite implements HasValue<File>, Componen
             if (file != null) {
                 String u = null;
                 try {
-                    u = VaadinHelper.getAdaptedUIRootPath();
-                    if (!u.endsWith("/")) u += "/";
-                    u += "APP/connector/0/" + image.getConnectorId() + "/source/" + new FileResource(file).getFilename();
+                    u = file.toFileLocator().getUrl();
                 } catch (Exception e1) {
                     Notifier.alert(e1);
                 }
@@ -144,18 +150,90 @@ public class FileComponent extends Composite implements HasValue<File>, Componen
             public void buttonClick(Button.ClickEvent clickEvent) {
                 if (file != null) {
 
-                    file = null;
+                    file.setName(null);
+                    file.setUrl(null);
+                    file.setBytes(null);
+                    file.setUrl(null);
 
                 }
 
-                ValueChangeEvent ce = new ValueChangeEvent(FileComponent.this, FileComponent.this, true);
+
+                ValueChangeEvent ce = new ValueChangeEvent(ResourceComponent.this, ResourceComponent.this, true);
                 listeners.values().forEach(l -> l.valueChange(ce));
+
 
             }
         }));
 
 
+        url = new TextField();
+
+
+        cb = new ComboBox<>(null, Lists.newArrayList(FileType.BYTES, FileType.URL));
+        cb.setWidth("120px");
+        cb.setValue(FileType.BYTES);
+        cb.setEmptySelectionAllowed(false);
+        cb.addValueChangeListener(e -> {
+
+            if (file == null) {
+                try {
+                    file = Helper.getImpl(GeneralRepository.class).getNewResource();
+
+                    if (FileType.BYTES.equals(e.getValue())) {
+                        upload.setVisible(true);
+                        url.setVisible(false);
+                        file.setType(e.getValue());
+                    } else {
+                        upload.setVisible(false);
+                        url.setVisible(true);
+                        file.setType(e.getValue());
+                    }
+
+                } catch (Exception ex) {
+                    Notifier.alert(ex);
+                }
+            }
+
+
+            ValueChangeEvent ce = new ValueChangeEvent(ResourceComponent.this, ResourceComponent.this, true);
+            listeners.values().forEach(l -> l.valueChange(ce));
+
+
+        });
+        v.addComponent(cb);
+
+
+        url.setWidth("250px");
+        url.setVisible(false);
+        url.addValueChangeListener(e -> {
+
+            if (file == null) {
+                try {
+                    file = Helper.getImpl(GeneralRepository.class).getNewResource();
+                } catch (Exception ex) {
+                    Notifier.alert(ex);
+                }
+            }
+
+            if (FileType.URL.equals(cb.getValue())) {
+
+                if (file != null) try {
+                    file.set(e.getValue());
+                } catch (Exception e1) {
+                    Notifier.alert(e1);
+                }
+
+
+                ValueChangeEvent ce = new ValueChangeEvent(ResourceComponent.this, null, true);
+                listeners.values().forEach(l -> l.valueChange(ce));
+
+            }
+
+
+        });
+
         v.addComponent(upload);
+        v.addComponent(url);
 
         // Open the URL in a new window/tab
         hyperLink.setTargetName("_blank");
@@ -174,33 +252,36 @@ public class FileComponent extends Composite implements HasValue<File>, Componen
     }
 
     @Override
-    public void setValue(File o) {
+    public void setValue(IResource o) {
         file = o;
 
         try {
 
             boolean esFoto = false;
-            //if (file != null && FileType.URL.equals(file.getType()) && (file.getUrl() != null && (file.getUrl().toLowerCase().contains("githubusercontent") || file.getUrl().toLowerCase().contains("googleusercontent")))) esFoto = true;
+            if (file != null && FileType.URL.equals(file.getType()) && (file.getUrl() != null && (file.getUrl().toLowerCase().contains("githubusercontent") || file.getUrl().toLowerCase().contains("googleusercontent")))) esFoto = true;
 
-            if (file != null && file.getName () != null && (
+            if (esFoto || (file != null && file.getName () != null && (
                     file.getName().toLowerCase().endsWith(".jpg")
                             || file.getName().toLowerCase().endsWith(".jpeg")
                             || file.getName().toLowerCase().endsWith(".gif")
                             || file.getName().toLowerCase().endsWith(".png")
                             || file.getName().toLowerCase().endsWith(".svg")
                             || file.getName().toLowerCase().endsWith(".webp")
-                    )) {
+                    ))) {
                 hyperLink.setVisible(false);
                 image.setVisible(true);
-                image.setSource(file != null?new FileResource(file):new ClassResource("/images/noimage.png"));
+                String u = file.toFileLocator().getUrl();
+                image.setSource(!Strings.isNullOrEmpty(u)?new ExternalResource(u):new ClassResource("/images/noimage.png"));
             } else {
                 hyperLink.setCaption((file != null) ? file.getName() : null);
-                hyperLink.setResource(file != null ? new FileResource(file):new ClassResource("/images/noimage.png"));
+                if (file != null && file.getName() != null) hyperLink.setResource((file != null && file.toFileLocator().getUrl() != null) ? new ExternalResource(file.toFileLocator().getUrl()):new ClassResource("/images/noimage.png"));
                 hyperLink.setVisible(true);
                 image.setVisible(false);
             }
 
-            if (file != null) {
+            if (file != null && file.toFileLocator().getUrl() != null && !"".equals(file.toFileLocator().getUrl())) {
+                cb.setValue(file.getType());
+                url.setValue((file.getUrl() != null)?file.getUrl():"");
             } else {
                 image.setVisible(true);
                 hyperLink.setVisible(false);
@@ -214,7 +295,7 @@ public class FileComponent extends Composite implements HasValue<File>, Componen
     }
 
     @Override
-    public File getValue() {
+    public IResource getValue() {
         //if (file != null && file.getName() == null) file = null;
         return file;
     }
@@ -242,7 +323,7 @@ public class FileComponent extends Composite implements HasValue<File>, Componen
     }
 
     @Override
-    public Registration addValueChangeListener(ValueChangeListener<File> valueChangeListener) {
+    public Registration addValueChangeListener(ValueChangeListener<IResource> valueChangeListener) {
         UUID _id = UUID.randomUUID();
         listeners.put(_id, valueChangeListener);
         return new Registration() {

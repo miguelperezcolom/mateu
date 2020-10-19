@@ -9,7 +9,7 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.shared.interfaces.IResource;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.mdd.vaadin.components.fieldBuilders.components.FileComponent;
+import io.mateu.mdd.vaadin.components.fieldBuilders.components.ResourceComponent;
 import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.interfaces.Translated;
@@ -19,7 +19,7 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 
-public class JPAFileFieldBuilder extends AbstractFieldBuilder {
+public class JPAResourceFieldBuilder extends AbstractFieldBuilder {
 
 
     private Translated literal;
@@ -31,8 +31,8 @@ public class JPAFileFieldBuilder extends AbstractFieldBuilder {
     @Override
     public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
 
-        FileComponent c;
-        container.addComponent(c = new FileComponent(field, binder));
+        ResourceComponent c;
+        container.addComponent(c = new ResourceComponent(field, binder));
 
         if (allFieldContainers.size() == 0) c.focus();
 
@@ -57,7 +57,7 @@ public class JPAFileFieldBuilder extends AbstractFieldBuilder {
     }
 
 
-    protected void bind(MDDBinder binder, FileComponent c, FieldInterfaced field, boolean forSearchFilter) {
+    protected void bind(MDDBinder binder, ResourceComponent c, FieldInterfaced field, boolean forSearchFilter) {
         Binder.BindingBuilder aux = binder.forField(c);
         //if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
         completeBinding(aux, binder, field);

@@ -11,7 +11,9 @@ import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.vaadin.actions.AcctionRunner;
 import io.mateu.mdd.vaadin.components.ComponentWrapper;
+import io.mateu.mdd.vaadin.components.HomeComponent;
 import io.mateu.mdd.vaadin.components.app.views.firstLevel.AreaComponent;
+import io.mateu.mdd.vaadin.components.app.views.firstLevel.MenuComponent;
 import io.mateu.mdd.vaadin.navigation.View;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.mdd.vaadin.util.VaadinHelper;
@@ -121,24 +123,23 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     }
 
     public void setStack(ViewStack stack) {
-        boolean add = MDDUIAccessor.isMobile();
+        boolean add = false; //MDDUIAccessor.isMobile();
         int pos = 0;
-        if (!add && !(
-                this instanceof AreaComponent || this instanceof SearchInMenuComponent
-        ) && stack.size() > 0) {
-            add = true;
+        if (!add && stack.size() > 0) {
             while (!add && pos < stack.size()) {
                 View v = stack.get(pos);
                 Component c = v.getComponent();
-                if (c instanceof ComponentWrapper) c = ((ComponentWrapper) c).getComponent(0);
-                add = true;
-                if (!(c instanceof AreaComponent || c instanceof SearchInMenuComponent)) add = true;
+                if (!(c instanceof AreaComponent || c instanceof SearchInMenuComponent || c instanceof MenuComponent || c instanceof HomeComponent)) add = true;
+                if (!add) {
+                    if (c instanceof ComponentWrapper && ((ComponentWrapper) c).getComponentCount() > 0) {
+                        c = ((ComponentWrapper) c).getComponent(0);
+                        if (!(c instanceof AreaComponent || c instanceof SearchInMenuComponent || c instanceof MenuComponent || c instanceof HomeComponent)) add = true;
+                    }
+                }
                 if (!add) pos++;
             }
         }
-        if (add
-                //&& stack.size() > pos
-                && this instanceof AbstractViewComponent) {
+        if (add && this instanceof AbstractViewComponent) {
             ((AbstractViewComponent) this).setBackable(true);
             if (this instanceof EditorViewComponent) {
                 ((EditorViewComponent) this).setKpisContainer(kpisContainer);
