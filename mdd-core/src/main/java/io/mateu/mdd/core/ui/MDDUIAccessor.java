@@ -129,4 +129,9 @@ public class MDDUIAccessor {
     public static void updateSession() {
         if (get() != null) get().updateSession();
     }
+
+    public static String getPersistenceUnitName() {
+        return getApp() != null?getApp().getPersistenceUnitName():"";
+    }
+
 }

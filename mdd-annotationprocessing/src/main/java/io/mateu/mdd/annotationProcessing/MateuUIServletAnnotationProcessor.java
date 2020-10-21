@@ -53,6 +53,7 @@ public class MateuUIServletAnnotationProcessor extends AbstractProcessor {
                         out.println("");
                         out.println("    public " + simpleClassName + "Bean() {");
                         out.println("        super(new " + simpleClassName + "(), \"" + e.getAnnotation(MateuUIServlet.class).path() + "\", \"" + ("/".equals(e.getAnnotation(MateuUIServlet.class).path())?"":e.getAnnotation(MateuUIServlet.class).path()) + "/*\");");
+                        out.println("        setLoadOnStartup(500);");
                         out.println("    }");
                         out.println("");
                         out.println("}");
@@ -93,6 +94,7 @@ public class MateuUIServletAnnotationProcessor extends AbstractProcessor {
                                 "\n" +
                                 "import com.google.auto.service.AutoService;\n" +
                                 "import io.mateu.mdd.shared.JPAAdapter;\n" +
+                                "import io.mateu.mdd.shared.ui.MDDUIAccessor;\n" +
                                 "import io.mateu.util.Helper;\n" +
                                 "import io.mateu.util.IJPAHelper;\n" +
                                 "import io.mateu.util.persistence.JPAHelper;\n" +
@@ -129,12 +131,12 @@ public class MateuUIServletAnnotationProcessor extends AbstractProcessor {
                                 "\n" +
                                 "    @Override\n" +
                                 "    public void transact(JPATransaction t) throws Throwable {\n" +
-                                "        transact(System.getProperty(\"defaultpuname\", \"default\"), t, null);\n" +
+                                "        transact(MDDUIAccessor.getPersistenceUnitName(), t, null);\n" +
                                 "    }\n" +
                                 "\n" +
                                 "    @Override\n" +
                                 "    public void transact(JPATransaction t, RunnableThrowsThrowable callback) throws Throwable {\n" +
-                                "        transact(System.getProperty(\"defaultpuname\", \"default\"), t, callback);\n" +
+                                "        transact(MDDUIAccessor.getPersistenceUnitName(), t, callback);\n" +
                                 "    }\n" +
                                 "\n" +
                                 "    @Override\n" +
@@ -224,12 +226,12 @@ public class MateuUIServletAnnotationProcessor extends AbstractProcessor {
                                 "\n" +
                                 "    @Override\n" +
                                 "    public void notransact(JPATransaction t) throws Throwable {\n" +
-                                "        notransact(System.getProperty(\"defaultpuname\", \"default\"), t, true);\n" +
+                                "        notransact(MDDUIAccessor.getPersistenceUnitName(), t, true);\n" +
                                 "    }\n" +
                                 "\n" +
                                 "    @Override\n" +
                                 "    public void notransact(JPATransaction t, boolean printException) throws Throwable {\n" +
-                                "        notransact(System.getProperty(\"defaultpuname\", \"default\"), t, printException);\n" +
+                                "        notransact(MDDUIAccessor.getPersistenceUnitName(), t, printException);\n" +
                                 "    }\n" +
                                 "\n" +
                                 "    @Override\n" +
@@ -302,7 +304,7 @@ public class MateuUIServletAnnotationProcessor extends AbstractProcessor {
                                 "\n" +
                                 "    @Override\n" +
                                 "    public JinqJPAStreamProvider getStreams() {\n" +
-                                "        return getStreams(System.getProperty(\"defaultpuname\", \"default\"));\n" +
+                                "        return getStreams(MDDUIAccessor.getPersistenceUnitName());\n" +
                                 "    }\n" +
                                 "\n" +
                                 "    @Override\n" +

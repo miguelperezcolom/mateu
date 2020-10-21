@@ -52,9 +52,11 @@ public class HeaderComponent extends HorizontalLayout {
         Image i;
         Resource resource = new ThemeResource("img/logomateu2.png");
         if (!Strings.isNullOrEmpty(logo)) {
-            if (logo.startsWith("http")) {
+            if (logo.contains(":")) {
                 resource = new ExternalResource(logo);
             } else {
+                if (!logo.startsWith("/")) logo = "/" + logo;
+                if (!logo.startsWith("/VAADIN")) logo = "/VAADIN" + logo;
                 resource = new ClassResource(logo);
             }
         }

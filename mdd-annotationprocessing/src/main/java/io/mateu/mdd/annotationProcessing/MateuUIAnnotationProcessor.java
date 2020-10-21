@@ -1,6 +1,7 @@
 package io.mateu.mdd.annotationProcessing;
 
 import com.google.auto.service.AutoService;
+import com.google.common.base.Strings;
 import io.mateu.mdd.core.annotations.MateuUI;
 
 import javax.annotation.processing.*;
@@ -60,8 +61,18 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                                 "@PushStateNavigation // para urls sin #!\n" +
                                 "//@Push\n" +
                                 "@PreserveOnRefresh\n" +
-                                "@Slf4j\n" +
-                                "public class " + simpleClassName + "UI extends MateuUI {");
+                                "@Slf4j\n");
+
+                        for (String s : e.getAnnotation(MateuUI.class).stylesheets()) {
+                            if (!s.contains(":")) s = "../../VAADIN/" + s;
+                            out.println("@StyleSheet(\"" + s + "\")");
+                        }
+                        for (String s : e.getAnnotation(MateuUI.class).scripts()) {
+                            if (!s.contains(":")) s = "../../VAADIN/" + s;
+                            out.println("@JavaScript(\"" + s + "\")");
+                        }
+
+                        out.println("public class " + simpleClassName + "UI extends MateuUI {");
                         out.println("");
                         out.println("}");
                     }
@@ -77,7 +88,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                         out.println("import " + pkgName + "." + simpleClassName + "UI;");
                         out.println("import com.vaadin.annotations.VaadinServletConfiguration;");
                         out.println("import com.vaadin.server.DeploymentConfiguration;");
-                        out.println("import com.vaadin.server.VaadinServlet;");
+                        out.println("import com.vaadin.server.*;");
 
                         out.println("");
 
@@ -92,7 +103,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                         out.println("@WebServlet(urlPatterns = {\"" + e.getAnnotation(MateuUI.class).path() + "\", \"" + ("/".equals(e.getAnnotation(MateuUI.class).path())?"":e.getAnnotation(MateuUI.class).path()) + "/*\"}, name = \"" + className.replaceAll("\\.","_") + "UIServlet\", asyncSupported = true, loadOnStartup = 500)");
                         out.println("@VaadinServletConfiguration(ui = " + simpleClassName + "UI.class, productionMode = false)");
                         out.println("@MateuUIServlet(path=\"" + e.getAnnotation(MateuUI.class).path() + "\")");
-                        out.println("public class " + generatedClassName + " extends VaadinServlet {");
+                        out.println("public class " + generatedClassName + " extends VaadinServlet implements SessionInitListener {");
                         out.println("");
 
                         out.println("    @Override");
@@ -108,6 +119,39 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                                 "        servletConfig.getServletContext().setAttribute(\"" + ("".equals(e.getAnnotation(MateuUI.class).path())?"/":e.getAnnotation(MateuUI.class).path()) + "_app\", " + className.substring(className.lastIndexOf(".") + 1) + ".class);\n" +
                                 "        super.init(servletConfig);\n" +
                                 "    }\n");
+
+
+                        out.println("@Override\n" +
+                                "       protected void servletInitialized() throws ServletException {\n" +
+                                "           super.servletInitialized();\n" +
+                                "           getService().addSessionInitListener(this);\n" +
+                                "       }");
+
+                        out.println("@Override\n" +
+                                "    public void sessionInit(SessionInitEvent sessionInitEvent) throws ServiceException {\n");
+                        if (!Strings.isNullOrEmpty(e.getAnnotation(MateuUI.class).favIcon())) {
+                            String fi = e.getAnnotation(MateuUI.class).favIcon();
+                            if (!fi.contains(":")) fi = "./VAADIN/" + fi;
+                            out.println("sessionInitEvent.getSession().addBootstrapListener(new BootstrapListener() {\n" +
+                                    "\n" +
+                                    "        @Override\n" +
+                                    "        public void modifyBootstrapPage(BootstrapPageResponse response) {\n" +
+                                    "            response.getDocument().head()\n" +
+                                    "                    .getElementsByAttributeValue(\"rel\", \"shortcut icon\")\n" +
+                                    "                    .attr(\"href\", \"" + fi + "\");\n" +
+                                    "            response.getDocument().head()\n" +
+                                    "                    .getElementsByAttributeValue(\"rel\", \"icon\")\n" +
+                                    "                    .attr(\"href\", \"" + fi + "\");\n" +
+                                    "        }\n" +
+                                    "\n" +
+                                    "        @Override\n" +
+                                    "        public void modifyBootstrapFragment(BootstrapFragmentResponse response) {\n" +
+                                    "        }\n" +
+                                    "\n" +
+                                    "    });");
+                        }
+
+                        out.println("    }");
 
 
                         out.println("");

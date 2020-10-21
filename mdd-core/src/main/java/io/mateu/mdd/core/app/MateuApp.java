@@ -88,7 +88,10 @@ public class MateuApp extends BaseMDDApp {
 
     private void init() {
 
-        if (uiclass.isAnnotationPresent(MateuUI.class)) setLogo(((MateuUI)uiclass.getAnnotation(MateuUI.class)).logo());
+        if (uiclass.isAnnotationPresent(MateuUI.class)) {
+            setLogo(((MateuUI)uiclass.getAnnotation(MateuUI.class)).logo());
+            setPersistenceUnitName(((MateuUI)uiclass.getAnnotation(MateuUI.class)).persistenceUnitName());
+        }
 
         _areas = new AreaBuilder(ui).buildAreas(uiclass);
 

@@ -113,7 +113,7 @@ public class ViewComponentHelper {
 
                                                 Object finalInstance = instance;
                                                 Set finalSelection = selection;
-                                                JPAHelper.transact(new JPATransaction() {
+                                                JPAHelper.transact( new JPATransaction() {
                                                     @Override
                                                     public void run(EntityManager em) throws Throwable {
 

@@ -1,7 +1,7 @@
 package io.mateu.mdd.springboot;
 
-import com.google.auto.service.AutoService;
 import io.mateu.mdd.shared.JPAAdapter;
+import io.mateu.mdd.shared.ui.MDDUIAccessor;
 import io.mateu.util.Helper;
 import io.mateu.util.IJPAHelper;
 import io.mateu.util.persistence.JPAHelper;
@@ -38,12 +38,12 @@ public class JPAHelperImpl implements IJPAHelper {
 
     @Override
     public void transact(JPATransaction t) throws Throwable {
-        transact(System.getProperty("defaultpuname", "default"), t, null);
+        transact(MDDUIAccessor.getPersistenceUnitName(), t, null);
     }
 
     @Override
     public void transact(JPATransaction t, RunnableThrowsThrowable callback) throws Throwable {
-        transact(System.getProperty("defaultpuname", "default"), t, callback);
+        transact(MDDUIAccessor.getPersistenceUnitName(), t, callback);
     }
 
     @Override
@@ -133,12 +133,12 @@ public class JPAHelperImpl implements IJPAHelper {
 
     @Override
     public void notransact(JPATransaction t) throws Throwable {
-        notransact(System.getProperty("defaultpuname", "default"), t, true);
+        notransact(MDDUIAccessor.getPersistenceUnitName(), t, true);
     }
 
     @Override
     public void notransact(JPATransaction t, boolean printException) throws Throwable {
-        notransact(System.getProperty("defaultpuname", "default"), t, printException);
+        notransact(MDDUIAccessor.getPersistenceUnitName(), t, printException);
     }
 
     @Override
@@ -211,7 +211,7 @@ public class JPAHelperImpl implements IJPAHelper {
 
     @Override
     public JinqJPAStreamProvider getStreams() {
-        return getStreams(System.getProperty("defaultpuname", "default"));
+        return getStreams(MDDUIAccessor.getPersistenceUnitName());
     }
 
     @Override

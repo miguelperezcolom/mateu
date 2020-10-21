@@ -12,6 +12,7 @@ import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.model.config.AppConfig;
 import io.mateu.mdd.core.model.config.TemplateUseCase;
 import io.mateu.mdd.core.model.util.Constants;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.AppConfigLocator;
 import io.mateu.util.Helper;
 import io.mateu.util.interfaces.IPopulator;
@@ -125,7 +126,7 @@ public class Populator implements IPopulator {
     }
 
     private static void createViews() throws Throwable {
-        JPAHelper.transact(em -> {
+        JPAHelper.transact( em -> {
             InputStream r = Populator.class.getResourceAsStream("/sql/vistas.sql");
 
             if (r != null) {

@@ -14,22 +14,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <mateu.version>0.0.14</mateu.version>
+    <mateu.version>0.0.18</mateu.version>
   </properties>
-
-  <repositories>
-    <repository>
-      <id>mateu-central</id>
-      <url>http://nexus.mateu.io/repository/mateu-central</url>
-    </repository>
-  </repositories>
-
-  <pluginRepositories>
-    <pluginRepository>
-      <id>mateu-central</id>
-      <url>http://nexus.mateu.io/repository/mateu-central</url>
-    </pluginRepository>
-  </pluginRepositories>
 
   <dependencies>
     <dependency>
@@ -69,24 +55,9 @@
 
     <dependency>
       <groupId>io.mateu</groupId>
-      <artifactId>mdd-se</artifactId>
+      <artifactId>mdd-j2se</artifactId>
       <version>${mateu.version}</version>
     </dependency>
-
-    <dependency>
-      <groupId>io.mateu</groupId>
-      <artifactId>mdd-annotationprocessing</artifactId>
-      <version>${mateu.version}</version>
-    </dependency>
-
-
-    <dependency>
-      <groupId>io.mateu</groupId>
-      <artifactId>mdd-vaadin</artifactId>
-      <version>${mateu.version}</version>
-      <type>war</type>
-    </dependency>
-
 
   </dependencies>
 
@@ -119,7 +90,7 @@
       <plugin>
         <groupId>io.mateu.jpa-utils</groupId>
         <artifactId>pujoiner-plugin</artifactId>
-        <version>0.0.3</version>
+        <version>0.0.4</version>
 
         <configuration>
           <puname>yourapp</puname>
@@ -142,14 +113,6 @@
         <artifactId>maven-war-plugin</artifactId>
         <configuration>
           <failOnMissingWebXml>false</failOnMissingWebXml>
-
-          <overlays>
-            <overlay></overlay>
-            <overlay>
-              <groupId>io.mateu</groupId>
-              <artifactId>mdd-vaadin</artifactId>
-            </overlay>
-          </overlays>
         </configuration>
 
       </plugin>

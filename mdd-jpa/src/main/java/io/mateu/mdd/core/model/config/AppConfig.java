@@ -7,6 +7,7 @@ import com.vaadin.ui.Link;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.model.common.Resource;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.IAppConfig;
 import io.mateu.mdd.shared.VaadinHelper;
 import io.mateu.mdd.shared.annotations.*;
@@ -186,7 +187,7 @@ public class AppConfig implements IAppConfig {
 
     @Action(value = "Create dummy dates", order = 100)
     public void createDummyDates() throws Throwable {
-        JPAHelper.transact(new JPATransaction() {
+        JPAHelper.transact( new JPATransaction() {
             @Override
             public void run(EntityManager em) throws Throwable {
                 LocalDate d = LocalDate.parse("01/01/2000", DateTimeFormatter.ofPattern("dd/MM/yyyy"));

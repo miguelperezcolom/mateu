@@ -2,12 +2,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <artifactId>mdd-parent</artifactId>
-        <groupId>io.mateu</groupId>
-        <version>0.0.14</version>
-    </parent>
-    <artifactId>mdd-addon</artifactId>
+    <groupId>io.mateu</groupId>
+    <version>0.0.16</version>
+    <artifactId>basics-addon</artifactId>
     <packaging>jar</packaging>
 
     <prerequisites>
@@ -15,7 +12,12 @@
     </prerequisites>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+
         <vaadin.plugin.version>8.11.2</vaadin.plugin.version>
+        <vaadin.version>8.11.2</vaadin.version>
 
         <!-- ZIP Manifest fields -->
         <Implementation-Version>${project.version}</Implementation-Version>
@@ -25,6 +27,12 @@
         <Vaadin-License-Title>Apache License 2.0</Vaadin-License-Title>
         <Vaadin-Addon>${project.artifactId}-${project.version}.jar</Vaadin-Addon>
     </properties>
+
+
+    <organization>
+        <name>Mateu.io</name>
+        <url>https://github.com/miguelperezcolom/mateu-mdd</url>
+    </organization>
 
     <!--
 	<organization>

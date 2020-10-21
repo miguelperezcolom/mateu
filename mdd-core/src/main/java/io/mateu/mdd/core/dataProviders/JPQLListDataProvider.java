@@ -1,6 +1,7 @@
 package io.mateu.mdd.core.dataProviders;
 
 import com.google.common.base.Strings;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.QLFilter;
 import io.mateu.mdd.shared.annotations.QLForCombo;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
@@ -114,22 +115,22 @@ public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvi
     public void refresh() {
         if (field != null) {
             try {
-                JPAHelper.transact(em -> refresh(buildQuery(em, field)));
+                JPAHelper.transact( em -> refresh(buildQuery(em, field)));
             } catch (Throwable throwable) {
                 Notifier.alert(throwable);
             }
         } else if (entityClass != null) {
             try {
-                JPAHelper.transact(em -> refresh(buildQuery(em, entityClass, null)));
+                JPAHelper.transact( em -> refresh(buildQuery(em, entityClass, null)));
             } catch (Throwable throwable) {
                 Notifier.alert(throwable);
             }
         } else if (jpql != null) {
             try {
                 if (targetClass != null) {
-                    JPAHelper.transact(em -> refresh(em.createQuery(jpql, targetClass)));
+                    JPAHelper.transact( em -> refresh(em.createQuery(jpql, targetClass)));
                 } else {
-                    JPAHelper.transact(em -> refresh(em.createQuery(jpql)));
+                    JPAHelper.transact( em -> refresh(em.createQuery(jpql)));
                 }
             } catch (Throwable throwable) {
                 Notifier.alert(throwable);
@@ -146,7 +147,7 @@ public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvi
 
     public void refresh(String s) {
         try {
-            JPAHelper.notransact(em -> refresh(em.createQuery(s)));
+            JPAHelper.notransact(MDDUIAccessor.getApp().getPersistenceUnitName(), em -> refresh(em.createQuery(s)));
         } catch (Throwable throwable) {
             Notifier.alert(throwable);
         }

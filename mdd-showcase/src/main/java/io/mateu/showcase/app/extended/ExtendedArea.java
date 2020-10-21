@@ -8,4 +8,6 @@ public class ExtendedArea {
     @MenuOption
     Class users = User.class;
 
+    @MenuOption
+    Formulario formulario;
 }

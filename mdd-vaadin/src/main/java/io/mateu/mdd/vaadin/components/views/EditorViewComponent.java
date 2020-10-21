@@ -1098,7 +1098,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                                 }
 
                                 if (!isEditingNewRecord) {
-                                    JPAHelper.transact(em -> {
+                                    JPAHelper.transact( em -> {
                                         ReflectionHelper.delete(em, em.find(getModelType(), ReflectionHelper.getId(getModel())));
                                     });
                                 }
@@ -1273,7 +1273,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                     Object m = getModel();
 
-                    JPAHelper.transact(new JPATransaction() {
+                    JPAHelper.transact( new JPATransaction() {
                         @Override
                         public void run(EntityManager em) throws Throwable {
 

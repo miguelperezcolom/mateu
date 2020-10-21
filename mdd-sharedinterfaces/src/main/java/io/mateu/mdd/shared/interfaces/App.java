@@ -45,4 +45,6 @@ public interface App {
     boolean isForm();
 
     Object getBean();
+
+    String getPersistenceUnitName();
 }

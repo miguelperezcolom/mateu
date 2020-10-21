@@ -1,10 +1,7 @@
-package $
+package ${package}.model;
 
 import lombok.MateuMDDEntity;
-
 import javax.validation.constraints.NotNull;
-
-{package}.model;
 
 @MateuMDDEntity
 public class Person {

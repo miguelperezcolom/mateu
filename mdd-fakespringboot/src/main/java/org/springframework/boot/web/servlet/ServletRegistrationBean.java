@@ -5,4 +5,8 @@ public class ServletRegistrationBean {
     public ServletRegistrationBean(Object ... args) {
 
     }
+
+    public void setLoadOnStartup(int i) {
+    }
+
 }

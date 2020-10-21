@@ -22,4 +22,12 @@ public @interface MateuUI {
 
     String logo() default "";
 
+    String persistenceUnitName() default "";
+
+    String[] stylesheets() default {};
+
+    String[] scripts() default {};
+
+    String favIcon() default "";
+
 }

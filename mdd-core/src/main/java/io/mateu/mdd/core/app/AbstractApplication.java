@@ -22,6 +22,7 @@ import java.util.*;
 @Slf4j
 public abstract class AbstractApplication implements App {
 
+    private String persistenceUnitName;
     private Map<AbstractArea, String> areaIds;
     private Map<String, AbstractArea> areaIdsReversed;
     private Map<MenuEntry, AbstractArea> menuToArea;
@@ -41,6 +42,14 @@ public abstract class AbstractApplication implements App {
 
     public void setLogo(String logo) {
         this.logo = logo;
+    }
+
+    public String getPersistenceUnitName() {
+        return persistenceUnitName;
+    }
+
+    public void setPersistenceUnitName(String persistenceUnitName) {
+        this.persistenceUnitName = persistenceUnitName;
     }
 
     public static AbstractApplication get() {

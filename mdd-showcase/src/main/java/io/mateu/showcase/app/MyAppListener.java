@@ -6,6 +6,7 @@ import io.mateu.mdd.core.annotations.AppListener;
 import io.mateu.mdd.core.model.authentication.*;
 import io.mateu.mdd.core.model.common.Resource;
 import io.mateu.mdd.core.model.config.AppConfig;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.AppContextListener;
 import io.mateu.util.eventBus.EventBus;
 import io.mateu.util.persistence.JPAHelper;
@@ -37,7 +38,7 @@ public class MyAppListener extends BaseAppContextListener implements AppContextL
 
     private void populateUsers() throws Throwable {
 
-        JPAHelper.transact(em -> {
+        JPAHelper.transact( em -> {
             // create super admin permission
             Permission p = new Permission();
             p.setId(1);

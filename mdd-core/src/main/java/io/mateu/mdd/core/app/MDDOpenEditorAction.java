@@ -1,6 +1,8 @@
 package io.mateu.mdd.core.app;
 
 
+import io.mateu.reflection.ReflectionHelper;
+
 public class MDDOpenEditorAction extends AbstractAction {
 
     public final Object bean;
@@ -20,8 +22,8 @@ public class MDDOpenEditorAction extends AbstractAction {
 
     public MDDOpenEditorAction(String name, Object bean) {
         super(name);
-        this.viewClass = null;
-        this.id = null;
+        this.viewClass = bean != null?bean.getClass():null;
+        this.id = ReflectionHelper.getId(bean);
         this.bean = bean;
     }
 

@@ -770,7 +770,7 @@ public class JPAListViewComponent extends ListViewComponent {
     @Override
     protected void delete(Set selection) {
         try {
-            JPAHelper.transact(new JPATransaction() {
+            JPAHelper.transact( new JPATransaction() {
                 @Override
                 public void run(EntityManager em) throws Throwable {
 
