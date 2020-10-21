@@ -82,6 +82,7 @@ public class CoreReflectionHelper {
             Object[] r = {null};
 
             int finalPosEM = posEM;
+            Object finalInstance = instance;
 
             JPAHelper.transact( em -> {
 
@@ -112,8 +113,9 @@ public class CoreReflectionHelper {
 
 
                 Object[] args = vs.toArray();
-
-                r[0] = m.invoke(instance, args);
+                Object i = finalInstance;
+                if (!Modifier.isStatic(m.getModifiers())) i = ReflectionHelper.newInstance(m.getDeclaringClass());
+                r[0] = m.invoke(i, args);
 
                 if (r[0] != null && r[0] instanceof Query) r[0] = ((Query)r[0]).getResultList();
 
@@ -124,7 +126,7 @@ public class CoreReflectionHelper {
         } else {
 
             Object[] args = vs.toArray();
-
+            if (!Modifier.isStatic(m.getModifiers())) instance = ReflectionHelper.newInstance(m.getDeclaringClass());
             return m.invoke(instance, args);
 
         }

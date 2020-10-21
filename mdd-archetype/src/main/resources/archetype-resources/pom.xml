@@ -14,7 +14,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <mateu.version>0.0.18</mateu.version>
+    <mateu.version>0.0.19</mateu.version>
   </properties>
 
   <dependencies>
@@ -59,6 +59,18 @@
       <version>${mateu.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>io.mateu</groupId>
+      <artifactId>security-core</artifactId>
+      <version>1.0.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.mateu</groupId>
+      <artifactId>security-fake</artifactId>
+      <version>1.0.1</version>
+    </dependency>
+
   </dependencies>
 
 
@@ -90,7 +102,7 @@
       <plugin>
         <groupId>io.mateu.jpa-utils</groupId>
         <artifactId>pujoiner-plugin</artifactId>
-        <version>0.0.4</version>
+        <version>0.0.5</version>
 
         <configuration>
           <puname>yourapp</puname>

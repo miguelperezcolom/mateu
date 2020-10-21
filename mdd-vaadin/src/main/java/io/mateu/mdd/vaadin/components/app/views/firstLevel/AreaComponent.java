@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadin.components.app.views.firstLevel;
 
+import com.google.common.base.Strings;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Label;
@@ -27,6 +28,8 @@ public class AreaComponent extends AbstractViewComponent {
 
     @Override
     public AbstractViewComponent build() throws Exception {
+
+        removeAllComponents();
 
         if (MDDUIAccessor.isMobile()) {
 
@@ -61,7 +64,7 @@ public class AreaComponent extends AbstractViewComponent {
 
         } else {
 
-            addComponentsAndExpand(new Label("<h1>You are now in the " + area.getName() + " area.</h1>", ContentMode.HTML));
+            if (!Strings.isNullOrEmpty(area.getName())) addComponentsAndExpand(new Label("<h1>You are now in the " + area.getName() + " area.</h1>", ContentMode.HTML));
 
         }
 

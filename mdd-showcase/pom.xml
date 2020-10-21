@@ -2,7 +2,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.mateu</groupId>
-  <version>0.0.17</version>
+  <version>0.0.18</version>
   <artifactId>mdd-showcase</artifactId>
   <packaging>war</packaging>
   <name>mdd-showcase</name>
@@ -118,7 +118,7 @@
       <plugin>
         <groupId>io.mateu.jpa-utils</groupId>
         <artifactId>pujoiner-plugin</artifactId>
-        <version>0.0.4</version>
+        <version>0.0.5</version>
 
         <configuration>
           <puname>yourapp</puname>

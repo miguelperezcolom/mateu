@@ -23,6 +23,7 @@ import io.mateu.mdd.vaadin.actions.AcctionRunner;
 import io.mateu.mdd.vaadin.components.ComponentWrapper;
 import io.mateu.mdd.vaadin.components.views.*;
 import io.mateu.mdd.vaadin.controllers.Controller;
+import io.mateu.mdd.vaadin.controllers.secondLevel.EditorController;
 import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.vaadin.navigation.View;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
@@ -34,6 +35,7 @@ import javax.persistence.Entity;
 import javax.persistence.Query;
 import java.io.File;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.net.URL;
 import java.util.ArrayList;
@@ -59,6 +61,8 @@ public class MethodController extends Controller {
                     instance = ((JPACollectionFieldListViewComponent) lastViewComponent).getEvfc().getModel();
                 } else if (lastViewComponent instanceof EditorViewComponent) {
                     instance = ((EditorViewComponent) lastViewComponent).getModel();
+                } else if (!Modifier.isStatic(method.getModifiers())) {
+                    instance = ReflectionHelper.newInstance(method.getDeclaringClass());
                 }
 
                 if (method.isAnnotationPresent(Action.class) && method.getAnnotation(Action.class).refreshOnBack()) {
@@ -106,6 +110,13 @@ public class MethodController extends Controller {
             }
         } catch (Throwable throwable) {
             Notifier.alert(throwable);
+        }
+    }
+
+    @Override
+    public void apply(ViewStack stack, String path, String step, String cleanStep, String remaining) throws Throwable {
+        if ("result".equalsIgnoreCase(step)) {
+            new EditorController(stack, path + "/" + step, MDDUIAccessor.getPendingResult());
         }
     }
 
@@ -289,4 +300,6 @@ public class MethodController extends Controller {
         }
         return new ComponentWrapper("Error", new Label("Result type not supported"));
     }
+
+
 }

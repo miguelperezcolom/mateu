@@ -7,6 +7,7 @@ import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.vaadin.controllers.BrokenLinkController;
 import io.mateu.mdd.vaadin.controllers.Controller;
 import io.mateu.mdd.vaadin.controllers.firstLevel.MenuController;
+import io.mateu.mdd.vaadin.controllers.thirdLevel.MethodController;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.util.notification.Notifier;
 
@@ -33,6 +34,8 @@ public class ActionController extends Controller {
                         controller = new WizardController(stack, path + "/" + step, ((MDDOpenWizardAction)m).firstPage);
                     } else if (m instanceof MDDOpenEditorAction) {
                         controller = new EditorController(stack, path + "/" + step, (MDDOpenEditorAction)m);
+                    } else if (m instanceof MDDCallMethodAction) {
+                        controller = new MethodController(stack, path + "/" + step, ((MDDCallMethodAction)m).method);
                     }
                 }
                 if (controller == null) controller = new BrokenLinkController(stack, path + "/" + step);
