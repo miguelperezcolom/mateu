@@ -12,6 +12,7 @@ import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.actions.AcctionRunner;
 import io.mateu.mdd.vaadin.components.ComponentWrapper;
 import io.mateu.mdd.vaadin.components.HomeComponent;
+import io.mateu.mdd.vaadin.components.app.views.firstLevel.FakeComponent;
 import io.mateu.mdd.vaadin.controllers.BrokenLinkController;
 import io.mateu.mdd.vaadin.controllers.Controller;
 import io.mateu.mdd.vaadin.components.MDDViewComponentCreator;
@@ -44,7 +45,7 @@ public class PrivateController extends Controller {
                 }
             } else {
                 // si no, seguir hacia el área por defecto
-                new AreaController(stack, path, (AbstractArea) app.getDefaultPrivateArea());
+                register(stack, path, new FakeComponent("Private content"));
             }
         }
 
@@ -63,7 +64,7 @@ public class PrivateController extends Controller {
             App app = MDDUIAccessor.getApp();
 
             AbstractArea area = (AbstractArea) app.getArea(path + "/" + step);
-            Controller controller = area != null?new AreaController(stack, path, area):new BrokenLinkController(stack, path + "/" + step);
+            Controller controller = area != null?new AreaController(stack, path + "/" + step, area):new BrokenLinkController(stack, path + "/" + step);
 
             controller.next(stack, path, step, remaining);
         }

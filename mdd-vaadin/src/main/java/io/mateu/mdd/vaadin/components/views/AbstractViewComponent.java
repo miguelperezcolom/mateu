@@ -13,6 +13,7 @@ import io.mateu.mdd.vaadin.actions.AcctionRunner;
 import io.mateu.mdd.vaadin.components.ComponentWrapper;
 import io.mateu.mdd.vaadin.components.HomeComponent;
 import io.mateu.mdd.vaadin.components.app.views.firstLevel.AreaComponent;
+import io.mateu.mdd.vaadin.components.app.views.firstLevel.FakeComponent;
 import io.mateu.mdd.vaadin.components.app.views.firstLevel.MenuComponent;
 import io.mateu.mdd.vaadin.navigation.View;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
@@ -129,11 +130,11 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
             while (!add && pos < stack.size()) {
                 View v = stack.get(pos);
                 Component c = v.getComponent();
-                if (!(c instanceof AreaComponent || c instanceof SearchInMenuComponent || c instanceof MenuComponent || c instanceof HomeComponent)) add = true;
+                if (!(c instanceof FakeComponent || c instanceof AreaComponent || c instanceof SearchInMenuComponent || c instanceof MenuComponent || c instanceof HomeComponent)) add = true;
                 if (!add) {
                     if (c instanceof ComponentWrapper && ((ComponentWrapper) c).getComponentCount() > 0) {
                         c = ((ComponentWrapper) c).getComponent(0);
-                        if (!(c instanceof AreaComponent || c instanceof SearchInMenuComponent || c instanceof MenuComponent || c instanceof HomeComponent)) add = true;
+                        if (!(c instanceof FakeComponent || c instanceof AreaComponent || c instanceof SearchInMenuComponent || c instanceof MenuComponent || c instanceof HomeComponent)) add = true;
                     }
                 }
                 if (!add) pos++;

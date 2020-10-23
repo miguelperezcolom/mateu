@@ -3,11 +3,13 @@ package io.mateu.mdd.vaadin.navigation;
 import com.google.common.base.Strings;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewProvider;
+import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.interfaces.App;
+import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
@@ -52,6 +54,19 @@ public class MateuViewProvider implements ViewProvider {
         if (s.startsWith(appPrefix)) s = s.substring(appPrefix.length());
         if (!s.startsWith("/")) s = "/" + s;
 
+        App app = MDDUIAccessor.getApp();
+
+        boolean privada = false;
+        if (s.equals("/") || s.startsWith("/public")) {
+            privada = app.isAuthenticationNeeded();
+            if (app.getDefaultPublicArea() == null && privada) {
+                Page.getCurrent().setLocation( MDDUIAccessor.getUiRootPath() + "/private");
+                return null;
+            }
+        } else if (s.startsWith("/private")) {
+            privada = true;
+        }
+
         if (s.equals(lastState)) {
             return lastView;
         }
@@ -80,13 +95,11 @@ public class MateuViewProvider implements ViewProvider {
             stack.clear();
         }
 
-        App app = MDDUIAccessor.getApp();
-
         if ( v != null) {
             controller = v.getController();
             v = null;
         } else {
-            controller = WizardPage.class.isAssignableFrom(app.getBean().getClass())?new WizardController(stack, "", (WizardPage) app.getBean()) :app.isForm()?new EditorController(stack, "", app.getBean()):new HomeController(stack);
+            controller = WizardPage.class.isAssignableFrom(app.getBean().getClass())?new WizardController(stack, "", (WizardPage) app.getBean()) :app.isForm()?new EditorController(stack, "", app.getBean()):new HomeController(stack, privada);
         }
 
         //clearStack();
@@ -136,19 +149,6 @@ public class MateuViewProvider implements ViewProvider {
             }
             c.removeStyleName("refreshOnBack");
         }
-
-        /*
-        if (!nuevo) {
-            if (c != null && c instanceof EditorViewComponent) {
-                EditorViewComponent evc = (EditorViewComponent) c;
-                evc.updateModel(evc.getModel());
-            }
-        }
-
-        if (c != null & c instanceof EditorViewComponent) {
-            currentEditor = (EditorViewComponent) v.getViewComponent();
-        }
-         */
 
         if (c != null && c instanceof AbstractViewComponent) {
             ((AbstractViewComponent)c).updatePageTitle();

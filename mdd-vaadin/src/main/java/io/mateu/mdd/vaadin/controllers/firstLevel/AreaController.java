@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadin.controllers.firstLevel;
 
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.Label;
 import io.mateu.mdd.core.app.AbstractAction;
@@ -24,21 +25,25 @@ public class AreaController extends Controller {
     public AreaController(ViewStack stack, String path, AbstractArea area) {
         super();
         this.area = area;
-        if (MateuUI.get() != null) MateuUI.get().setArea(area);
+        if (area != null) {
+            if (MateuUI.get() != null) MateuUI.get().setArea(area);
 
-        AbstractAction home = area.getDefaultAction();
-        if (home != null) {
-            if (home instanceof MDDOpenHtml) {
-                register(stack, path, new HomeComponent(home.getIcon(), "" + area.getName(), new Label(((MDDOpenHtml)home).html, ContentMode.HTML), false));
-            } else {
-                try {
-                    new AcctionRunner().run((AbstractAction) home);
-                } catch (Throwable e) {
-                    Notifier.alert(e);
+            AbstractAction home = area.getDefaultAction();
+            if (home != null) {
+                if (home instanceof MDDOpenHtml) {
+                    register(stack, path, new HomeComponent(home.getIcon(), "" + area.getName(), new Label(((MDDOpenHtml)home).html, ContentMode.HTML), false));
+                } else {
+                    try {
+                        new AcctionRunner().run((AbstractAction) home);
+                    } catch (Throwable e) {
+                        Notifier.alert(e);
+                    }
                 }
+            } else {
+                register(stack, path, new AreaComponent(area));
             }
         } else {
-            register(stack, path, new AreaComponent(area));
+            register(stack, path, new ComponentWrapper(VaadinIcons.BUG, "No area defined", new Label(""), false));
         }
 
     }

@@ -97,7 +97,8 @@ public class MateuApp extends BaseMDDApp {
 
         _authenticationNeeded = uiclass.isAnnotationPresent(Private.class);
         if (!_authenticationNeeded) {
-            _areas.forEach(a -> _authenticationNeeded |= !a.isPublicAccess());
+            _authenticationNeeded = _areas.size() > 0;
+            _areas.forEach(a -> _authenticationNeeded &= !a.isPublicAccess());
         }
 
         for (FieldInterfaced f : ReflectionHelper.getAllFields(uiclass)) {

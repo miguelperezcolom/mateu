@@ -65,7 +65,7 @@ public class MateuViewProviderTest {
 
         View v = new MateuViewProvider(new ViewStack()).getView("/public/academics/menu");
 
-        assertEquals("Academics", v.toString());
+        assertEquals("Module Menu", v.toString());
 
     }
 

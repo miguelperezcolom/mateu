@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.mateu</groupId>
-    <version>0.0.19</version>
+    <version>0.0.23</version>
   <artifactId>mdd-j2ee</artifactId>
 
   <name>mdd-j2ee</name>
@@ -48,13 +48,13 @@
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>mdd-vaadin</artifactId>
-      <version>0.0.19</version>
+      <version>0.0.23</version>
     </dependency>
 
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>mdd-fakespringboot</artifactId>
-      <version>0.0.16</version>
+      <version>0.0.18</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/javax.ejb/javax.ejb-api -->
     <dependency>

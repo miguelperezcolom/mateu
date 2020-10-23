@@ -8,9 +8,12 @@ import io.mateu.util.notification.Notifier;
 
 public class HomeController extends Controller {
 
-    public HomeController(ViewStack stack) {
+    private final boolean privada;
+
+    public HomeController(ViewStack stack, boolean privada) {
+        this.privada = privada;
         try {
-            if (MDDUIAccessor.getCurrentUser() != null) {
+            if (privada || MDDUIAccessor.getCurrentUser() != null) {
                 new PrivateController(stack, "");
             } else {
                 new PublicController(stack, "");

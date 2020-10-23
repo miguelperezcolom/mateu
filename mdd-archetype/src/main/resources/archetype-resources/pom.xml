@@ -14,7 +14,6 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <mateu.version>0.0.19</mateu.version>
   </properties>
 
   <dependencies>
@@ -56,13 +55,13 @@
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>mdd-j2se</artifactId>
-      <version>${mateu.version}</version>
+      <version>0.0.23</version>
     </dependency>
 
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>security-core</artifactId>
-      <version>1.0.1</version>
+      <version>1.0.5</version>
     </dependency>
 
     <dependency>
