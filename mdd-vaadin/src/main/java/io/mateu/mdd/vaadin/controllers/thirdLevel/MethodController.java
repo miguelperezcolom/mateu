@@ -1,5 +1,7 @@
 package io.mateu.mdd.vaadin.controllers.thirdLevel;
 
+import com.google.common.collect.Lists;
+import com.vaadin.data.ValueProvider;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.server.FileResource;
@@ -12,10 +14,7 @@ import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
-import io.mateu.mdd.shared.annotations.Action;
-import io.mateu.mdd.shared.annotations.IFrame;
-import io.mateu.mdd.shared.annotations.Output;
-import io.mateu.mdd.shared.annotations.Pdf;
+import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.shared.reflection.CoreReflectionHelper;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
@@ -34,13 +33,12 @@ import io.mateu.util.notification.Notifier;
 import javax.persistence.Entity;
 import javax.persistence.Query;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 public class MethodController extends Controller {
     private final Method method;
@@ -191,9 +189,29 @@ public class MethodController extends Controller {
                 return new ComponentWrapper(null, title, b, true);
             } else if (r instanceof Collection && ((Collection) r).size() > 0 && ((Collection) r).iterator().next() != null && ((Collection) r).iterator().next().getClass().isAnnotationPresent(Entity.class)) {
                 return new CollectionListViewComponent((Collection) r, ((Collection) r).iterator().next().getClass());
-            } else if (Collection.class.isAssignableFrom(c)) {
+            } else if (Collection.class.isAssignableFrom(c) || c.isArray()) {
 
-                Collection col = (Collection) r;
+                Collection col = new ArrayList();
+                if (Collection.class.isAssignableFrom(c)) col = (Collection) r;
+                if (c.isArray()) {
+                    col = new ArrayList();
+                    if (r instanceof boolean[]) for (boolean b : ((boolean[]) r)) {
+                        col.add(b);
+                    }
+                    else if (r instanceof int[]) for (int i : ((int[]) r)) {
+                        col.add(i);
+                    }
+                    else if (r instanceof float[]) for (float v : ((float[]) r)) {
+                        col.add(v);
+                    }
+                    else if (r instanceof double[]) for (double v : ((double[]) r)) {
+                        col.add(v);
+                    }
+                    else if (r instanceof Object[]) for (Object o : ((Object[]) r)) {
+                        col.add(o);
+                    }
+                    else Notifier.alert("Unsupported array type");
+                }
 
                 if (col.size() == 0) {
                     return new ComponentWrapper(null, title, new Label("Empty list", ContentMode.HTML), true);
@@ -233,24 +251,50 @@ public class MethodController extends Controller {
 
                     } else {
 
-                        Object primerElemento = col.iterator().next();
+                        Iterator i = col.iterator();
+                        Object first = i.next();
+                        while (i.hasNext() && first == null) first = i.next();
 
-                        Grid g = new Grid();
+                        if (first == null) {
+                            return new ComponentWrapper(null, title, new Label("List with " + col.size() + " nulls", ContentMode.HTML), true);
+                        } else {
+                            Class type = first.getClass();
 
-                        ListViewComponent.buildColumns(g, ListViewComponent.getColumnFields(primerElemento.getClass()), false, false);
+                            Grid g = new Grid();
 
-                        //g.setSelectionMode(Grid.SelectionMode.MULTI);
+                            if (ReflectionHelper.isBasico(type) || type.isArray() || Collection.class.isAssignableFrom(type)) {
+                                g.addColumn(new ValueProvider() {
+                                    @Override
+                                    public Object apply(Object o) {
+                                        String s = null;
+                                        if (o != null) {
+                                            if (ReflectionHelper.isBasico(type)) s = "" + o;
+                                            else {
+                                                try {
+                                                    s = Helper.toJson(o);
+                                                } catch (IOException e) {
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                        }
+                                        return s;
+                                    }
+                                }).setCaption("Value");
+                            } else {
+                                ListViewComponent.buildColumns(g, ListViewComponent.getColumnFields(type), false, false);
+                            }
 
-                        // añadimos columna para que no haga feo
-                        if (g.getColumns().size() == 1) ((Grid.Column)g.getColumns().get(0)).setExpandRatio(1);
-                        else g.addColumn((d) -> null).setWidthUndefined().setCaption("");
+                            // añadimos columna para que no haga feo
+                            if (g.getColumns().size() == 1) ((Grid.Column)g.getColumns().get(0)).setExpandRatio(1);
+                            else g.addColumn((d) -> null).setWidthUndefined().setCaption("");
 
-                        g.setWidth("100%");
-                        g.setHeightByRows(col.size());
+                            g.setWidth("100%");
+                            g.setHeightByRows(col.size());
 
-                        g.setDataProvider(new ListDataProvider((Collection) r));
+                            g.setDataProvider(new ListDataProvider(col));
 
-                        return new ComponentWrapper(null, title, g, true);
+                            return new ComponentWrapper(null, title, g, true);                        }
+
                     }
 
                 }
@@ -276,7 +320,7 @@ public class MethodController extends Controller {
                     return new RpcListViewComponent((RpcView) r);
                 }
 
-            } else if (m != null && m.isAnnotationPresent(Output.class)) {
+            } else if (m != null && (m.isAnnotationPresent(Output.class) || m.isAnnotationPresent(ReadOnly.class))) {
 
                 return new ComponentWrapper(title, new PrintPOJOComponent(r));
 

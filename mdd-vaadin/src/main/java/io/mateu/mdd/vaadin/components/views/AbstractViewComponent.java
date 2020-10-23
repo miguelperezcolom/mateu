@@ -302,15 +302,22 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                                 }
                             };
 
-                            if (!Strings.isNullOrEmpty(a.getConfirmationMessage())) {
-                                VaadinHelper.confirm(a.getConfirmationMessage(), () -> {
+                            boolean doIt = true;
+                            if (AbstractViewComponent.this instanceof EditorViewComponent && a.isValidationNeeded()) {
+                                doIt = ((EditorViewComponent)AbstractViewComponent.this).validate();
+                            }
 
-                                    r.run();
+                            if (doIt) {
+                                if (!Strings.isNullOrEmpty(a.getConfirmationMessage())) {
+                                    VaadinHelper.confirm(a.getConfirmationMessage(), () -> {
 
-                                    //todo: actualizar vista con los cambios en el modelo
+                                        r.run();
 
-                                });
-                            } else r.run();
+                                        //todo: actualizar vista con los cambios en el modelo
+
+                                    });
+                                } else r.run();
+                            }
 
                         } catch (Throwable throwable) {
                             Notifier.alert(throwable);

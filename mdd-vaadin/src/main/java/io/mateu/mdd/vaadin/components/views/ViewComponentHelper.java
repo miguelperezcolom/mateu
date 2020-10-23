@@ -174,7 +174,7 @@ public class ViewComponentHelper {
 
                 }
             }.setStyle(aa.style()).setIcon(VaadinIcons.ADOBE_FLASH.equals(aa.icon())?null:aa.icon())
-                    .setConfirmationMessage(aa.confirmationMessage()).setId(m.getName());
+                    .setConfirmationMessage(aa.confirmationMessage()).setId(m.getName()).setValidationNeeded(aa.validateBefore());
 
             action.setGroup(aa.group());
             viewComponent.setAction(m, action);

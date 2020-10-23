@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import java.lang.reflect.InvocationTargetException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,9 +65,11 @@ public class FormLayoutBuilder {
     }
 
     public Pair<Component, AbstractStylist> build(EditorViewComponent editor, Layout contentContainer, MDDBinder binder, Class modelType, Object model, List<Component> componentsToLookForErrors, FormLayoutBuilderParameters params, Map<String, List<AbstractAction>> attachedActions) {
-
         long t0 = System.currentTimeMillis();
 
+        Map<FieldInterfaced, MDDBinder> binders = new HashMap<>();
+        Map<FieldInterfaced, Class> modelTypes = new HashMap<>();
+        Map<FieldInterfaced, Object> models = new HashMap<>();
 
         AbstractStylist stylist = new NakedObjectStylist(modelType);
 
@@ -84,11 +87,137 @@ public class FormLayoutBuilder {
 
         stylist.setViewTitle(Helper.capitalize(modelType.getSimpleName()));
 
+        List<FieldInterfaced> allFields = new ArrayList<>();
+        for (FieldInterfaced field : params.getAllFields()) {
+            add(field, binder, modelType, model, allFields, binders, modelTypes, models);
+        }
+        params.setAllFields(allFields);
+
+        Map<FieldInterfaced, Component> allFieldContainers = new HashMap<>();
+        TabSheet[] sectionTabSheet = new TabSheet[1];
+
+        Pair<Component, AbstractStylist> r = build(t0, sectionTabSheet, allFieldContainers, editor, contentContainer, binders, modelTypes, models, componentsToLookForErrors, params, attachedActions, stylist);
+
+        log.debug("editor component E.2 in " + (System.currentTimeMillis() - t0) + " ms.");
+
+        //binder.setBean(model);
+
+        AbstractStylist finalStylist = stylist;
+        binder.addValueChangeListener(new HasValue.ValueChangeListener<Object>() {
+            @Override
+            public void valueChange(HasValue.ValueChangeEvent<Object> valueChangeEvent) {
+                AbstractFieldBuilder.applyStyles(finalStylist, binder.getBean(), allFieldContainers, finalStylist.process(binder.getBean()));
+            }
+        });
+
+        AbstractFieldBuilder.applyStyles(stylist, model, allFieldContainers, stylist.process(binder.getBean()));
+
+        if (sectionTabSheet[0] != null) {
+            String sid = MateuUI.get().getPendingFocusedSectionId();
+            if (!Strings.isNullOrEmpty(sid)) {
+                sectionTabSheet[0].setSelectedTab(Integer.parseInt(sid));
+            } else if (editor != null && !Strings.isNullOrEmpty(editor.getFocusedSectionId())) {
+                sectionTabSheet[0].setSelectedTab(Integer.parseInt(editor.getFocusedSectionId()));
+            }
+        }
+
+        log.debug("editor component E.3 in " + (System.currentTimeMillis() - t0) + " ms.");
+
+        return r;
+    }
+
+    private void add(FieldInterfaced field, MDDBinder binder, Class modelType, Object model, List<FieldInterfaced> allFields, Map<FieldInterfaced, MDDBinder> binders, Map<FieldInterfaced, Class> modelTypes, Map<FieldInterfaced, Object> models) {
+        if (field.isAnnotationPresent(Embed.class)) {
+            Object o = null;
+            try {
+                if (model != null) {
+                    o = ReflectionHelper.getValue(field, model);
+                }
+                if (o == null) {
+                    o = ReflectionHelper.newInstance(field.getType());
+                    if (model != null) ReflectionHelper.setValue(field, model, o);
+                }
+                binder.bind(new HasValue() {
+                    private boolean _requiredIndicatorVisible;
+                    private boolean _readOnly;
+                    private List<ValueChangeListener> listeners = new ArrayList<>();
+
+                    @Override
+                    public void setValue(Object o) {
+                        try {
+                            Object old = ReflectionHelper.getValue(field, model);
+                            ReflectionHelper.setValue(field, model, o);
+                            ValueChangeEvent event = new ValueChangeEvent(null, this, old, false);
+                            for (ValueChangeListener listener : listeners) {
+                                listener.valueChange(event);
+                            }
+                        } catch (Throwable e) {
+                            Notifier.alert(e);
+                        }
+                    }
+
+                    @Override
+                    public Object getValue() {
+                        try {
+                            return ReflectionHelper.getValue(field, model);
+                        } catch (Throwable e) {
+                            Notifier.alert(e);
+                            return null;
+                        }
+                    }
+
+                    @Override
+                    public Registration addValueChangeListener(ValueChangeListener valueChangeListener) {
+                        listeners.add(valueChangeListener);
+                        return new Registration() {
+                            @Override
+                            public void remove() {
+                                listeners.remove(valueChangeListener);
+                            }
+                        };
+                    }
+
+                    @Override
+                    public void setRequiredIndicatorVisible(boolean b) {
+                        _requiredIndicatorVisible = b;
+                    }
+
+                    @Override
+                    public boolean isRequiredIndicatorVisible() {
+                        return _requiredIndicatorVisible;
+                    }
+
+                    @Override
+                    public void setReadOnly(boolean b) {
+                        _readOnly = b;
+                    }
+
+                    @Override
+                    public boolean isReadOnly() {
+                        return _readOnly;
+                    }
+                }, field.getName());
+                MDDBinder b = new MDDBinder(field.getType());
+                b.setBean(o);
+                for (FieldInterfaced f : ReflectionHelper.getAllEditableFields(field.getType())) {
+                    add(f, b, field.getType(), o, allFields, binders, modelTypes, models);
+                }
+            } catch (Throwable e) {
+                Notifier.alert(e);
+            }
+        } else {
+            allFields.add(field);
+            binders.put(field, binder);
+            modelTypes.put(field, modelType);
+            models.put(field, model);
+        }
+    }
+
+    public Pair<Component, AbstractStylist> build(long t0, TabSheet[] sectionTabSheets, Map<FieldInterfaced, Component> allFieldContainers, EditorViewComponent editor, Layout contentContainer, Map<FieldInterfaced, MDDBinder> binders, Map<FieldInterfaced, Class> modelTypes, Map<FieldInterfaced, Object> models, List<Component> componentsToLookForErrors, FormLayoutBuilderParameters params, Map<String, List<AbstractAction>> attachedActions, AbstractStylist stylist) {
+
         stylist.setUp(params.getAllFields());
 
         log.debug("editor component E.1 in " + (System.currentTimeMillis() - t0) + " ms.");
-
-        Map<FieldInterfaced, Component> allFieldContainers = new HashMap<>();
 
         JPAOutputFieldBuilder ofb = new JPAOutputFieldBuilder();
 
@@ -153,45 +282,22 @@ public class FormLayoutBuilder {
                     kpisContainer.addStyleName("sectionkpiscontainer");
                     for (FieldInterfaced kpi : s.getKpis()) {
                         Component c;
-                        kpisContainer.addComponent(c = createKpi(binder, kpi));
+                        kpisContainer.addComponent(c = createKpi(binders.get(kpi), kpi));
                     }
                 }
 
                 addActions(form, params.getActionsPerSection().get(s.getCaption()));
-                buildAndAddFields(editor, ofb, model, form, binder, params.getValidators(), finalStylist1, allFieldContainers, s.getFields(), params.isForSearchFilters(), params.isForSearchFiltersExtended(), componentsToLookForErrors, attachedActions);
+                buildAndAddFields(editor, ofb, models, form, binders, params.getValidators(), finalStylist1, allFieldContainers, s.getFields(), params.isForSearchFilters(), params.isForSearchFiltersExtended(), componentsToLookForErrors, attachedActions);
                 Panel p;
                 addSectionToContainer(finalRealContainer, p = new Panel(form), s.getCaption());
                 p.addStyleName(ValoTheme.PANEL_BORDERLESS);
                 if (form.getWidth() == 100 && Sizeable.Unit.PERCENTAGE.equals(form.getWidthUnits())) contentContainer.setWidth("100%");
             });
         } else {
-            buildAndAddFields(editor, ofb, model, contentContainer, binder, params.getValidators(), stylist, allFieldContainers, params.getAllFields(), params.isForSearchFilters(), params.isForSearchFiltersExtended(), componentsToLookForErrors, attachedActions);
+            buildAndAddFields(editor, ofb, models, contentContainer, binders, params.getValidators(), stylist, allFieldContainers, params.getAllFields(), params.isForSearchFilters(), params.isForSearchFiltersExtended(), componentsToLookForErrors, attachedActions);
         }
 
-        log.debug("editor component E.2 in " + (System.currentTimeMillis() - t0) + " ms.");
-
-        //binder.setBean(model);
-
-        AbstractStylist finalStylist = stylist;
-        binder.addValueChangeListener(new HasValue.ValueChangeListener<Object>() {
-            @Override
-            public void valueChange(HasValue.ValueChangeEvent<Object> valueChangeEvent) {
-                AbstractFieldBuilder.applyStyles(finalStylist, binder.getBean(), allFieldContainers, finalStylist.process(binder.getBean()));
-            }
-        });
-
-        AbstractFieldBuilder.applyStyles(stylist, model, allFieldContainers, stylist.process(binder.getBean()));
-
-        if (sectionTabSheet != null) {
-            String sid = MateuUI.get().getPendingFocusedSectionId();
-            if (!Strings.isNullOrEmpty(sid)) {
-                sectionTabSheet.setSelectedTab(Integer.parseInt(sid));
-            } else if (editor != null && !Strings.isNullOrEmpty(editor.getFocusedSectionId())) {
-                sectionTabSheet.setSelectedTab(Integer.parseInt(editor.getFocusedSectionId()));
-            }
-        }
-
-        log.debug("editor component E.3 in " + (System.currentTimeMillis() - t0) + " ms.");
+        sectionTabSheets[0] = sectionTabSheet;
 
         return new Pair(contentContainer, stylist);
     }
@@ -329,18 +435,18 @@ public class FormLayoutBuilder {
         }
     }
 
-    private void buildAndAddFields(EditorViewComponent editor, JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean forSearchFiltersExtended, List<Component> componentsToLookForErrors, Map<String, List<AbstractAction>> attachedActions) {
-        buildAndAddFields(editor, ofb, model, contentContainer, binder, validators, stylist, allFieldContainers, fields, forSearchFilters, forSearchFiltersExtended, true, componentsToLookForErrors, attachedActions);
+    private void buildAndAddFields(EditorViewComponent editor, JPAOutputFieldBuilder ofb, Map<FieldInterfaced, Object> models, Layout contentContainer, Map<FieldInterfaced, MDDBinder> binders, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean forSearchFiltersExtended, List<Component> componentsToLookForErrors, Map<String, List<AbstractAction>> attachedActions) {
+        buildAndAddFields(editor, ofb, models, contentContainer, binders, validators, stylist, allFieldContainers, fields, forSearchFilters, forSearchFiltersExtended, true, componentsToLookForErrors, attachedActions);
     }
 
-    public void buildAndAddFields(EditorViewComponent editor, JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean forSearchFiltersExtended, boolean createTabs, List<Component> componentsToLookForErrors, Map<String, List<AbstractAction>> attachedActions) {
+    public void buildAndAddFields(EditorViewComponent editor, JPAOutputFieldBuilder ofb, Map<FieldInterfaced, Object> models, Layout contentContainer, Map<FieldInterfaced, MDDBinder> binders, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean forSearchFiltersExtended, boolean createTabs, List<Component> componentsToLookForErrors, Map<String, List<AbstractAction>> attachedActions) {
 
         if (forSearchFilters) {
             if (forSearchFiltersExtended) {
                 contentContainer.addComponent(contentContainer = new VerticalLayout());
                 contentContainer.setSizeUndefined();
             }
-            _buildAndAddFields(editor, ofb, model, contentContainer, binder, validators, stylist, allFieldContainers, fields, forSearchFilters, forSearchFiltersExtended, createTabs, componentsToLookForErrors, attachedActions);
+            _buildAndAddFields(editor, ofb, models, contentContainer, binders, validators, stylist, allFieldContainers, fields, forSearchFilters, forSearchFiltersExtended, createTabs, componentsToLookForErrors, attachedActions);
         } else {
 
             contentContainer.setSizeFull();
@@ -387,12 +493,12 @@ public class FormLayoutBuilder {
                     l.addStyleName("nofieldgroup");
                 }
 
-                _buildAndAddFields(editor, ofb, model, l, binder, validators, stylist, allFieldContainers, g.getFields(), forSearchFilters, forSearchFiltersExtended, createTabs, componentsToLookForErrors, attachedActions);
+                _buildAndAddFields(editor, ofb, models, l, binders, validators, stylist, allFieldContainers, g.getFields(), forSearchFilters, forSearchFiltersExtended, createTabs, componentsToLookForErrors, attachedActions);
             });
         }
     }
 
-    public void _buildAndAddFields(EditorViewComponent editor, JPAOutputFieldBuilder ofb, Object model, Layout contentContainer, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean forSearchFiltersExtended, boolean createTabs, List<Component> componentsToLookForErrors, Map<String, List<AbstractAction>> attachedActions) {
+    public void _buildAndAddFields(EditorViewComponent editor, JPAOutputFieldBuilder ofb, Map<FieldInterfaced, Object> models, Layout contentContainer, Map<FieldInterfaced, MDDBinder> binders, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean forSearchFiltersExtended, boolean createTabs, List<Component> componentsToLookForErrors, Map<String, List<AbstractAction>> attachedActions) {
         TabSheet tabs = null;
         TabSheet.Tab tab = null;
 
@@ -403,6 +509,7 @@ public class FormLayoutBuilder {
         List<TabSheet.Tab> tabsStack = new ArrayList<>();
         List<Layout> containersStack = new ArrayList<>();
 
+        Object model = fields.size() > 0?models.get(fields.get(0)):null;
         boolean readOnly = model != null && model instanceof ReadOnly && ((ReadOnly) model).isReadOnly();
 
         for (FieldInterfaced f : fields) {
@@ -502,31 +609,31 @@ public class FormLayoutBuilder {
                                         || (
                                                 editor != null
                                                 && (
-                                                        f.isAnnotationPresent(Output.class)
+                                                        f.isAnnotationPresent(Output.class) || f.isAnnotationPresent(io.mateu.mdd.shared.annotations.ReadOnly.class)
                                                         || (
                                                             !editor.isNewRecord()
-                                                            && (f.getDeclaringClass().isAnnotationPresent(Unmodifiable.class) || f.isAnnotationPresent(Id.class))
+                                                            && (models.get(f).getClass().isAnnotationPresent(Unmodifiable.class) || models.get(f).getClass().isAnnotationPresent(io.mateu.mdd.shared.annotations.ReadOnly.class) || f.isAnnotationPresent(Id.class))
                                                         )
                                                 )
                                         )
                                         || (
                                                 !Component.class.isAssignableFrom(f.getType())
-                                                && ReflectionHelper.getMethod(model.getClass(), ReflectionHelper.getSetter(f)) == null
+                                                && ReflectionHelper.getMethod(models.get(f).getClass(), ReflectionHelper.getSetter(f)) == null
                                         )
                                 )
                         )
                     )
             ) {
-                c = ofb.build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters, attachedActions);
+                c = ofb.build(f, models.get(f), wrapper, binders.get(f), validators, stylist, allFieldContainers, forSearchFilters, attachedActions);
             } else if (f.isAnnotationPresent(FieldBuilder.class)) {
                 try {
-                    c = (f.getAnnotation(FieldBuilder.class).value().newInstance()).build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters, attachedActions);
+                    c = (f.getAnnotation(FieldBuilder.class).value().newInstance()).build(f, models.get(f), wrapper, binders.get(f), validators, stylist, allFieldContainers, forSearchFilters, attachedActions);
                 } catch (Exception e) {
                     Notifier.alert(e);
                 }
             } else {
                 AbstractFieldBuilder b = (AbstractFieldBuilder) MDDUIAccessor.getApp().getFieldBuilder(f);
-                if (b != null) c = b.build(f, model, wrapper, binder, validators, stylist, allFieldContainers, forSearchFilters, attachedActions);
+                if (b != null) c = b.build(f, models.get(f), wrapper, binders.get(f), validators, stylist, allFieldContainers, forSearchFilters, attachedActions);
             }
 
             if (c != null) componentsToLookForErrors.add(c);

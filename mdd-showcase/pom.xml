@@ -59,7 +59,7 @@
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>mdd-j2se</artifactId>
-      <version>0.0.20</version>
+      <version>0.0.23</version>
     </dependency>
 
     <dependency>

@@ -7,6 +7,7 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,7 +19,7 @@ public class FormLayoutBuilderParameters {
 
     @Builder.Default
     private Map<HasValue, java.util.List<Validator>> validators = new HashMap<>();
-    @Builder.Default
+    @Builder.Default@Setter
     private List<FieldInterfaced> allFields = new ArrayList<>();
     @Builder.Default
     private boolean createSections = true;

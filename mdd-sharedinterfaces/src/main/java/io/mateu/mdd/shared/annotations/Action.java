@@ -37,7 +37,7 @@ Action {
 
     boolean refreshOnBack() default false;
 
-    boolean validateBefore() default false;
+    boolean validateBefore() default true;
 
     boolean isGroup() default false;
 }
