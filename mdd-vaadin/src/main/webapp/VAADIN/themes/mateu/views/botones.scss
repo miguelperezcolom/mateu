@@ -45,14 +45,6 @@
   }
 
 
-  .v-button.quiet.primary {
-    color: blue;
-  }
-
-  .v-button.quiet.danger {
-    color: red;
-  }
-
   .v-button.v-button-link {
     height: unset;
     padding: unset;
@@ -69,5 +61,44 @@
   .v-button.v-button-link:focus {
     outline: none;
   }
+
+
+  .v-button.quiet {
+    background-color: #d8d8d8;
+  }
+
+  .v-button.quiet:hover {
+    background-color: #b3b3b3;
+  }
+
+
+
+
+
+
+
+
+
+
+
+  .v-button.quiet.primary {
+    background-color: hsl(171, 100%, 41%);
+    color: white;
+  }
+
+  .v-button.quiet.primary:hover {
+    background-color: hsl(171, 100%, 31%);
+  }
+
+  .v-button.quiet.danger {
+    background-color: hsl(348, 100%, 61%);
+    color: white;
+  }
+
+  .v-button.quiet.danger:hover {
+    background-color: hsl(171, 100%, 51%);
+  }
+
+
 
 }

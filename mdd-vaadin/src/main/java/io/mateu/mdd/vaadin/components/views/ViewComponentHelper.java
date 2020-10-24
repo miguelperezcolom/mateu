@@ -32,17 +32,17 @@ public class ViewComponentHelper {
         if (action == null) {
             Action aa = m.getAnnotation(Action.class);
 
-            action = new MDDRunnableAction((!Strings.isNullOrEmpty(aa.value())) ? aa.value() : Helper.capitalize(m.getName())) {
+            action = new MDDRunnableAction(aa == null?"Submit":(!Strings.isNullOrEmpty(aa.value()) ? aa.value() : Helper.capitalize(m.getName()))) {
                 @Override
                 public void run() {
 
-                    if (aa.isGroup()) {
+                    if (aa != null && aa.isGroup()) {
 
                         UI.getCurrent().addWindow(new ActionGroupWindow(m, (List<Component>) viewComponent.menuItemsByGroup.get(m.getName())));
 
                     } else {
 
-                        boolean needsValidation = aa.validateBefore();
+                        boolean needsValidation = aa == null || aa.validateBefore();
                         if (!needsValidation && viewComponent instanceof EditorViewComponent) needsValidation = ((EditorViewComponent)viewComponent).getModelType().isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(((EditorViewComponent)viewComponent).getModelType());
 
                         if (!needsValidation || ((EditorViewComponent)viewComponent).validate()) {
@@ -173,10 +173,10 @@ public class ViewComponentHelper {
                     }
 
                 }
-            }.setStyle(aa.style()).setIcon(VaadinIcons.ADOBE_FLASH.equals(aa.icon())?null:aa.icon())
-                    .setConfirmationMessage(aa.confirmationMessage()).setId(m.getName()).setValidationNeeded(aa.validateBefore());
+            }.setStyle(aa != null?aa.style():"").setIcon(aa == null || VaadinIcons.ADOBE_FLASH.equals(aa.icon())?null:aa.icon())
+                    .setConfirmationMessage(aa != null?aa.confirmationMessage():"").setId(m.getName()).setValidationNeeded(aa == null || aa.validateBefore());
 
-            action.setGroup(aa.group());
+            action.setGroup(aa != null?aa.group():"");
             viewComponent.setAction(m, action);
         }
 

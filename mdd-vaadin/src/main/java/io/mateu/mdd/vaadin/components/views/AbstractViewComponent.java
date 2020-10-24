@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadin.components.views;
 
 import com.google.common.base.Strings;
+import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.Resource;
 import com.vaadin.shared.ui.ContentMode;
@@ -278,6 +279,8 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
             getMenuItemById("back").setVisible(isBackable());
         }
 
+        boolean firstButton = true;
+
         for (AbstractAction a : getActions()) {
                 Component i = null;
                 if (!isActionPresent(a.getId())) {
@@ -329,7 +332,14 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
                     if (!Strings.isNullOrEmpty(a.getStyle())) i.addStyleName(a.getStyle());
 
-                    if (Strings.isNullOrEmpty(a.getGroup())) bar.addComponent(i);
+                    if (Strings.isNullOrEmpty(a.getGroup())) {
+                        bar.addComponent(i);
+                        if (esForm() && firstButton) {
+                            b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
+                            b.addStyleName(ValoTheme.BUTTON_PRIMARY);
+                            firstButton = false;
+                        }
+                    }
 
                     a.addShortCut(b);
 
