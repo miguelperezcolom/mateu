@@ -20,7 +20,7 @@ import java.util.function.Consumer;
 public class MDDViewComponentCreator {
 
     public static Component createComponent(MDDOpenEditorAction action) {
-        return createComponent(action.viewClass, action.id);
+        return createComponent(action.getViewClass(), action.getBeanId());
     }
 
     public static Component createComponent(Class viewClass, Object id) {

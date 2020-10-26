@@ -1168,14 +1168,19 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                 @Override
                 public void run() throws Throwable {
-                    ((Runnable)bean).run();
-                    setModel(ReflectionHelper.newInstance(modelType));
-                    removeAllComponents();
-                    Label h;
-                    addComponent(h = new Label("Thanks for submitting!"));
-                    h.addStyleName(ValoTheme.LABEL_H1);
+
+                    if (validate()) {
+
+                        ((Runnable)bean).run();
+                        Label h = new Label("Thanks for submitting!");
+                        h.addStyleName(ValoTheme.LABEL_H1);
+                        io.mateu.mdd.shared.ui.MDDUIAccessor.setPendingResult(h);
+                        MDDUIAccessor.go("submitted");
+                    }
+
                 }
             });
+            a.setId("submit");
             a.setOrder(-100);
         } else if (esForm() && (modelType.isAnnotationPresent(Entity.class) || modelType.isAnnotationPresent(PersistentPojo.class))) {
             ArrayList<AbstractAction> l;
@@ -1185,15 +1190,17 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                 @Override
                 public void run() throws Throwable {
-                    save(false);
-                    setModel(ReflectionHelper.newInstance(modelType));
-                    removeAllComponents();
-                    Label h;
-                    addComponent(h = new Label("Thanks for submitting!"));
-                    h.addStyleName(ValoTheme.LABEL_H1);
+                    if (validate()) {
+                        save(false);
+                        Label h = new Label("Thanks for submitting!");
+                        h.addStyleName(ValoTheme.LABEL_H1);
+                        io.mateu.mdd.shared.ui.MDDUIAccessor.setPendingResult(h);
+                        MDDUIAccessor.go("submitted");
+                    }
                 }
             });
             a.setOrder(-100);
+            a.setId("submit");
         }
 
         for (Method m : ReflectionHelper.getAllMethods(modelType)) {

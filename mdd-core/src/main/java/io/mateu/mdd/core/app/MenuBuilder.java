@@ -13,6 +13,7 @@ import io.mateu.security.Private;
 import io.mateu.util.Helper;
 import io.mateu.util.notification.Notifier;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -231,16 +232,29 @@ public class MenuBuilder {
                     }.setOrder(order));
                 } else {
                     Object v = ReflectionHelper.getValue(f, app);
-                    if (v == null) v = ReflectionHelper.newInstance(f.getType());
-                    if (ReflectionHelper.isBasico(v)) {
+                    if (ReflectionHelper.isBasico(f.getType())) {
                         if (f.isAnnotationPresent(Home.class) || f.isAnnotationPresent(PublicHome.class) || f.isAnnotationPresent(PrivateHome.class))
                             l.add(new MDDOpenHtml("Home", "" + v).setIcon(VaadinIcons.HOME).setOrder(order));
                         else l.add(new MDDOpenHtml(caption, "" + v).setIcon(icon).setOrder(order));
                     } else if (WizardPage.class.isAssignableFrom(f.getType())) {
-                        l.add(new MDDOpenWizardAction(caption, (WizardPage) v).setIcon(icon).setOrder(order));
+                        l.add(new MDDOpenWizardAction(caption, () -> {
+                            try {
+                                return v != null?(WizardPage) v: (WizardPage) ReflectionHelper.newInstance(f.getType());
+                            } catch (Exception e) {
+                                Notifier.alert(e);
+                            }
+                            return null;
+                        }).setIcon(icon).setOrder(order));
                     } else if (RpcView.class.isAssignableFrom(f.getType())) {
                         l.add(new MDDOpenListViewAction(caption, f.getType()).setIcon(icon).setOrder(order));
-                    } else l.add(new MDDOpenEditorAction(caption, v).setIcon(icon).setOrder(order));
+                    } else l.add(new MDDOpenEditorAction(caption, () -> {
+                        try {
+                            return v != null?v: ReflectionHelper.newInstance(f.getType());
+                        } catch (Exception e) {
+                            Notifier.alert(e);
+                        }
+                        return null;
+                    }).setIcon(icon).setOrder(order));
                 }
 
             } catch (Exception e) {

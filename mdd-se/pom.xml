@@ -3,7 +3,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <groupId>io.mateu</groupId>
-        <version>0.0.23</version>
+        <version>0.0.24</version>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>mdd-j2se</artifactId>
@@ -56,19 +56,19 @@
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>mdd-vaadin</artifactId>
-            <version>0.0.23</version>
+            <version>0.0.24</version>
         </dependency>
 
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>mdd-jpa</artifactId>
-            <version>0.0.18</version>
+            <version>0.0.19</version>
         </dependency>
 
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>mdd-util-extended</artifactId>
-            <version>0.0.16</version>
+            <version>0.0.17</version>
         </dependency>
 
         <dependency>
@@ -81,13 +81,13 @@
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>eclipselink</artifactId>
-            <version>1.0.1</version>
+            <version>1.0.2</version>
         </dependency>
 
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>lifecycle</artifactId>
-            <version>1.0.1</version>
+            <version>1.0.2</version>
         </dependency>
 
         <dependency>

@@ -27,4 +27,7 @@ public class BuggyUI {
     public String df() throws Exception {
         return Helper.toHtml(Helper.runCommand("df -h"));
     }
+
+    @MenuOption
+    Comando comando;
 }

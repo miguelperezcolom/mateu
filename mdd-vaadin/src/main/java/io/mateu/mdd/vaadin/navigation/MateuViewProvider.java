@@ -167,7 +167,7 @@ public class MateuViewProvider implements ViewProvider {
         lastState = s;
         lastView = v;
 
-        if (v != null && firstViewInWindow > 0 && stack.size() >= firstViewInWindow && MateuUI.get() != null) {
+        if (v != null && openInWindow(v) && MateuUI.get() != null) {
             v.setOpenNewWindow(true);
             MateuUI.get().openInWindow(v);
             if (v != null && v.getViewComponent() != null && v.getViewComponent() instanceof EditorViewComponent && ((EditorViewComponent)v.getViewComponent()).getBeforeOpen() != null) {
@@ -185,6 +185,11 @@ public class MateuViewProvider implements ViewProvider {
 
             return v != null && v.getWindowContainer() == null?v:null;
         }
+    }
+
+    private boolean openInWindow(io.mateu.mdd.vaadin.navigation.View v) {
+        if ("Form submitted".equals(v.getViewComponent().getTitle())) return false;
+        return firstViewInWindow > 0 && stack.size() >= firstViewInWindow;
     }
 
     public ViewStack getStack() {

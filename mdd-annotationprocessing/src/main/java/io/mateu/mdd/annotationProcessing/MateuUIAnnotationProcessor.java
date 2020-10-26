@@ -60,7 +60,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                                 "@Viewport(\"width=device-width, initial-scale=1\")\n" +
                                 "@PushStateNavigation // para urls sin #!\n" +
                                 "//@Push\n" +
-                                "@PreserveOnRefresh\n" +
+                                //"@PreserveOnRefresh\n" +
                                 "@Slf4j\n");
 
                         for (String s : e.getAnnotation(MateuUI.class).stylesheets()) {

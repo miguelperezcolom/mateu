@@ -1,9 +1,14 @@
 package io.mateu.mdd.vaadin.controllers.secondLevel;
 
 import com.vaadin.icons.VaadinIcons;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.annotations.MateuUI;
 import io.mateu.mdd.core.app.MDDOpenEditorAction;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.vaadin.components.ComponentWrapper;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
 import io.mateu.mdd.vaadin.components.views.ListViewComponent;
 import io.mateu.mdd.vaadin.controllers.Controller;
@@ -50,28 +55,48 @@ public class EditorController extends Controller {
 
         if (!"".equals(step)) {
 
-            Object r = null;
-            Method method = null;
-            FieldInterfaced field = null;
+            if ("submitted".equals(step)) {
+                Object r = MDDUIAccessor.getPendingResult();
+                Component c = null;
+                if (r == null) {
+                    Label h = new Label("Done!");
+                    h.addStyleName(ValoTheme.LABEL_H1);
+                    c = h;
+                }
+                else if (r instanceof Component) c = (Component) r;
+                else {
+                    Label h = new Label("" + r);
+                    h.addStyleName(ValoTheme.LABEL_H1);
+                    c = h;
+                }
+                register(stack, path + "/" + step, new ComponentWrapper("Form submitted", c));
+                MDDUIAccessor.setPendingResult(null);
+            } else {
 
-            if (editorViewComponent != null) {
-                r = editorViewComponent.getModel();
-                method = editorViewComponent.getMethod(step);
-                field = editorViewComponent.getField(step);
-            }
-            if (r != null) {
-                method = ReflectionHelper.getMethod(r.getClass(), step);
-                field = ReflectionHelper.getFieldByName(r.getClass(), step.endsWith("_search") ? step.replaceAll("_search", "") : step);
-            }
+                Object r = null;
+                Method method = null;
+                FieldInterfaced field = null;
 
-            if (method != null) {
+                if (editorViewComponent != null) {
+                    r = editorViewComponent.getModel();
+                    method = editorViewComponent.getMethod(step);
+                    field = editorViewComponent.getField(step);
+                }
+                if (r != null) {
+                    method = ReflectionHelper.getMethod(r.getClass(), step);
+                    field = ReflectionHelper.getFieldByName(r.getClass(), step.endsWith("_search") ? step.replaceAll("_search", "") : step);
+                }
 
-                //callMethod(state, method, r, (Component) editorViewComponent);
-                new MethodController(stack, path + "/" + step, method).next(stack, path, step, remaining);
-            } else if (field != null) {
+                if (method != null) {
 
-                if (step.endsWith("_search")) new FieldController(stack, path + "/" + step, field, editorViewComponent).next(stack, path, step, remaining);
-                else new FieldController(stack, path + "/" + step, field, editorViewComponent).next(stack, path, step, remaining);
+                    //callMethod(state, method, r, (Component) editorViewComponent);
+                    new MethodController(stack, path + "/" + step, method).next(stack, path, step, remaining);
+                } else if (field != null) {
+
+                    if (step.endsWith("_search")) new FieldController(stack, path + "/" + step, field, editorViewComponent).next(stack, path, step, remaining);
+                    else new FieldController(stack, path + "/" + step, field, editorViewComponent).next(stack, path, step, remaining);
+
+                }
 
             }
 

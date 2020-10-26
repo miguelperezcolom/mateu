@@ -31,7 +31,7 @@ public class ActionController extends Controller {
                     } else if (m instanceof MDDOpenCRUDAction) {
                         controller = new CrudController(stack, path + "/" + step, (MDDOpenCRUDAction)m);
                     } else if (m instanceof MDDOpenWizardAction) {
-                        controller = new WizardController(stack, path + "/" + step, ((MDDOpenWizardAction)m).firstPage);
+                        controller = new WizardController(stack, path + "/" + step, ((MDDOpenWizardAction)m).firstPageSupplier.get());
                     } else if (m instanceof MDDOpenEditorAction) {
                         controller = new EditorController(stack, path + "/" + step, (MDDOpenEditorAction)m);
                     } else if (m instanceof MDDCallMethodAction) {

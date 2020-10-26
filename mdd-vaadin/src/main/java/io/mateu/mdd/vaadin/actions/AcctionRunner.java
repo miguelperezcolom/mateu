@@ -43,7 +43,8 @@ public class AcctionRunner {
     }
 
     public void run(MDDOpenEditorAction action) throws Throwable {
-        if (action.bean != null) Opener.openEditor( action.bean);
+        Object bean = action.getBean();
+        if (bean != null) Opener.openEditor(bean);
         else Opener.openEditor(action);
     }
 
@@ -56,7 +57,7 @@ public class AcctionRunner {
     }
 
     public void run(MDDOpenWizardAction action) {
-        Opener.openWizard(action.firstPage);
+        Opener.openWizard(action.firstPageSupplier.get());
     }
 
 

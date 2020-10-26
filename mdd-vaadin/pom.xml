@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <groupId>io.mateu</groupId>
-        <version>0.0.23</version>
+        <version>0.0.24</version>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>mdd-vaadin</artifactId>
@@ -99,27 +99,27 @@
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>mdd-core</artifactId>
-            <version>0.0.20</version>
+            <version>0.0.21</version>
         </dependency>
 
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>showcase-model</artifactId>
-            <version>1.0.2</version>
+            <version>1.0.3</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>mdd-fakeui</artifactId>
-            <version>0.0.16</version>
+            <version>0.0.17</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>security-core</artifactId>
-            <version>1.0.5</version>
+            <version>1.0.6</version>
             <scope>test</scope>
         </dependency>
 
@@ -133,7 +133,7 @@
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>eclipselink</artifactId>
-            <version>1.0.1</version>
+            <version>1.0.2</version>
             <scope>test</scope>
         </dependency>
 

@@ -177,6 +177,7 @@ public class ViewComponentHelper {
                     .setConfirmationMessage(aa != null?aa.confirmationMessage():"").setId(m.getName()).setValidationNeeded(aa == null || aa.validateBefore());
 
             action.setGroup(aa != null?aa.group():"");
+            action.setId(m.getName());
             viewComponent.setAction(m, action);
         }
 
