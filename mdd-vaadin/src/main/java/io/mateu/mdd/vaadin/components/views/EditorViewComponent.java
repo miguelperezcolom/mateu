@@ -90,6 +90,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private Runnable beforeOpen;
     private TabSheet sectionTabSheet;
     private Component selectedTab;
+    public String _defaultAction;
 
     public Runnable getBeforeOpen() {
         return beforeOpen;
@@ -1180,7 +1181,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                 }
             });
-            a.setId("submit");
+            a.setId("submitted");
             a.setOrder(-100);
         } else if (esForm() && (modelType.isAnnotationPresent(Entity.class) || modelType.isAnnotationPresent(PersistentPojo.class))) {
             ArrayList<AbstractAction> l;
@@ -1200,7 +1201,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 }
             });
             a.setOrder(-100);
-            a.setId("submit");
+            a.setId("submitted");
         }
 
         for (Method m : ReflectionHelper.getAllMethods(modelType)) {
@@ -1237,7 +1238,13 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             l.add(a = ViewComponentHelper.createAction(m, this));
         });
 
-        return actionsPerSection.getOrDefault("", new ArrayList<>());
+        List<AbstractAction> r = actionsPerSection.getOrDefault("", new ArrayList<>());
+
+        if (esForm() && r.size() > 0) {
+            _defaultAction = r.get(0).getId();
+        }
+
+        return r;
     }
 
     private void addMethod(Method m, Object bean, List<Method> ms, List<Method> mvf) {

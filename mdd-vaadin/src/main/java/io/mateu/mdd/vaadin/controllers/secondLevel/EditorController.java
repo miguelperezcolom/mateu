@@ -55,7 +55,7 @@ public class EditorController extends Controller {
 
         if (!"".equals(step)) {
 
-            if ("submitted".equals(step)) {
+            if ("submitted".equals(step) || editorViewComponent.esForm() && step.equals(editorViewComponent._defaultAction)) {
                 Object r = MDDUIAccessor.getPendingResult();
                 Component c = null;
                 if (r == null) {

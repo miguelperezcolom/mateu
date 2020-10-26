@@ -189,6 +189,7 @@ public class MateuViewProvider implements ViewProvider {
 
     private boolean openInWindow(io.mateu.mdd.vaadin.navigation.View v) {
         if ("Form submitted".equals(v.getViewComponent().getTitle())) return false;
+
         return firstViewInWindow > 0 && stack.size() >= firstViewInWindow;
     }
 
