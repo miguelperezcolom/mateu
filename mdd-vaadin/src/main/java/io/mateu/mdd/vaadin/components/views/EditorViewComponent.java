@@ -48,6 +48,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -230,7 +231,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     }
 
     public EditorViewComponent(ListViewComponent listViewComponent, Class modelType, boolean createSaveButton) {
-        this(null, null, null, modelType, new ArrayList<>(), new ArrayList<>(), createSaveButton);
+        this(listViewComponent, null, null, modelType, new ArrayList<>(), new ArrayList<>(), createSaveButton);
     }
 
     public EditorViewComponent(Object model) {
@@ -453,7 +454,6 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
             panel.setContent(panelContenido);
 
-
             List<FieldInterfaced> fields = ReflectionHelper.getAllEditableFields(model.getClass(), (owner != null) ? owner.getClass() : null, false, field);
 
             removeUneditableFields(fields);
@@ -540,6 +540,11 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 }
             }
         });
+
+        if (esForm()) {
+            addStyleName("contenido");
+            addStyleName("container");
+        }
 
         log.debug("editor component built in " + (System.currentTimeMillis() - t0) + " ms.");
 
@@ -760,7 +765,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
     @Override
     public boolean esForm() {
-        return modelType.isAnnotationPresent(io.mateu.mdd.core.annotations.MateuUI.class) || !(modelType.isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(modelType));
+        return listViewComponent == null && (modelType.isAnnotationPresent(io.mateu.mdd.core.annotations.MateuUI.class) || !(modelType.isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(modelType)));
     }
 
     private void updateActions() {
@@ -1172,7 +1177,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                     if (validate()) {
 
-                        ((Runnable)bean).run();
+                        ((Runnable) bean).run();
                         Label h = new Label("Thanks for submitting!");
                         h.addStyleName(ValoTheme.LABEL_H1);
                         io.mateu.mdd.shared.ui.MDDUIAccessor.setPendingResult(h);
@@ -1183,6 +1188,26 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             });
             a.setId("submitted");
             a.setOrder(-100);
+        } else if (esForm() && Callable.class.isAssignableFrom(modelType)) {
+                ArrayList<AbstractAction> l;
+                actionsPerSection.put("", l = new ArrayList<>());
+                MDDRunnableAction a;
+                l.add(a = new MDDRunnableAction("Submit") {
+
+                    @Override
+                    public void run() throws Throwable {
+
+                        if (validate()) {
+
+                            Object r = ((Callable)bean).call();
+                            io.mateu.mdd.shared.ui.MDDUIAccessor.setPendingResult(r);
+                            MDDUIAccessor.go("submitted");
+                        }
+
+                    }
+                });
+                a.setId("submitted");
+                a.setOrder(-100);
         } else if (esForm() && (modelType.isAnnotationPresent(Entity.class) || modelType.isAnnotationPresent(PersistentPojo.class))) {
             ArrayList<AbstractAction> l;
             actionsPerSection.put("", l = new ArrayList<>());

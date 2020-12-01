@@ -30,4 +30,8 @@ public class BuggyUI {
 
     @MenuOption
     Comando comando;
+
+    @MenuOption
+    Comando2 comando2;
+
 }

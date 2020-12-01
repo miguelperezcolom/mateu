@@ -62,4 +62,12 @@
     }
   }
 
+
+  .contenido[width-range~="0-990px"].container {
+    max-width: 100%;
+    display: block;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
 }

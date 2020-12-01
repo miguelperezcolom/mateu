@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.mateu</groupId>
-    <version>0.0.24</version>
+    <version>0.0.27</version>
   <artifactId>mdd-j2ee</artifactId>
 
   <name>mdd-j2ee</name>
@@ -48,19 +48,32 @@
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>mdd-vaadin</artifactId>
-      <version>0.0.24</version>
+      <version>0.0.27</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.mateu</groupId>
+      <artifactId>security-core</artifactId>
+      <version>1.0.8</version>
     </dependency>
 
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>mdd-fakespringboot</artifactId>
-      <version>0.0.18</version>
+      <version>0.0.19</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/javax.ejb/javax.ejb-api -->
     <dependency>
       <groupId>javax.ejb</groupId>
       <artifactId>javax.ejb-api</artifactId>
       <version>3.2.2</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/javax.enterprise/cdi-api -->
+    <dependency>
+      <groupId>javax.enterprise</groupId>
+      <artifactId>cdi-api</artifactId>
+      <version>2.0</version>
+      <scope>provided</scope>
     </dependency>
 
   </dependencies>

@@ -51,26 +51,37 @@ public class MDDViewComponentCreator {
         Component v = null;
 
         if (bean != null) {
-            Class modelType = null;
-            try {
-
-                modelType = bean.getClass();
-
-                v = createEditorViewComponent(modelType);
-
-                if (MateuUI.get() != null) MateuUI.get().setCurrentEditor((EditorViewComponent) v);
-
-                if (modelType.isAnnotationPresent(Entity.class)) ((EditorViewComponent)v).load(ReflectionHelper.getId(bean));
-                else ((EditorViewComponent)v).setModel(bean);
 
 
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InstantiationException e) {
-                e.printStackTrace();
-            } catch (Throwable throwable) {
-                throwable.printStackTrace();
+            if (bean instanceof Component) {
+
+                v = (Component) bean;
+
+            } else {
+
+                Class modelType = null;
+                try {
+
+                    modelType = bean.getClass();
+
+                    v = createEditorViewComponent(modelType);
+
+                    if (MateuUI.get() != null) MateuUI.get().setCurrentEditor((EditorViewComponent) v);
+
+                    if (modelType.isAnnotationPresent(Entity.class)) ((EditorViewComponent)v).load(ReflectionHelper.getId(bean));
+                    else ((EditorViewComponent)v).setModel(bean);
+
+
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (InstantiationException e) {
+                    e.printStackTrace();
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
+                }
+
             }
+
         }
 
         return v;
@@ -154,7 +165,7 @@ public class MDDViewComponentCreator {
     private static ListViewComponent createListViewComponent(Class modelType, String queryFilters, ExtraFilters extraFilters, Map<String, Object> defaultValues, String columns, String filters, String fields, Consumer<Object> callback) throws Exception {
         ListViewComponent v = null;
         if (modelType.isAnnotationPresent(Entity.class)) {
-            v = new JPAListViewComponent(modelType, extraFilters, defaultValues, columns, filters, fields, callback);
+            v = new JPAListViewComponent(modelType, queryFilters, extraFilters, defaultValues, columns, filters, fields, callback);
         } else {
 
         }

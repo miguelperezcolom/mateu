@@ -1,6 +1,6 @@
-package io.mateu.mdd.j2ee;
+package io.mateu.quarkus;
 
-import io.mateu.mdd.core.ui.MDDUIAccessor;
+import com.google.auto.service.AutoService;
 import io.mateu.mdd.shared.JPAAdapter;
 import io.mateu.util.Helper;
 import io.mateu.util.IJPAHelper;
@@ -10,37 +10,42 @@ import io.mateu.util.runnable.RunnableThrowsThrowable;
 import org.jinq.jpa.JinqJPAStreamProvider;
 
 import javax.annotation.PostConstruct;
-import javax.ejb.*;
+import javax.enterprise.context.ApplicationScoped;
 import javax.persistence.*;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+import javax.transaction.Transactional;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.util.*;
 
-@Singleton
-@Startup
-public class JPAEnterpriseJavaBean implements IJPAHelper {
+@AutoService(IJPAHelper.class)
+@ApplicationScoped
+public class JPAQuarkusHelperImpl implements IJPAHelper, ServletContextListener {
 
-    private static Map<String, JinqJPAStreamProvider> streams = new HashMap<>();
+    @PersistenceContext
+    EntityManager em;
 
     @PostConstruct
     public void post() {
         JPAHelper.set(this);
     }
 
-    @PersistenceContext
-    EntityManager em;
+    private static Map<String, JinqJPAStreamProvider> streams = new HashMap<>();
+    private static Map<String, EntityManagerFactory> emf = new HashMap<>();
 
+    @Override
     public void transact(JPATransaction t) throws Throwable {
-        transact(MDDUIAccessor.getPersistenceUnitName(), t, null);
+        transact(System.getProperty("defaultpuname", "default"), t, null);
     }
 
     @Override
     public void transact(JPATransaction t, RunnableThrowsThrowable callback) throws Throwable {
-        transact(MDDUIAccessor.getPersistenceUnitName(), t, callback);
+        transact(System.getProperty("defaultpuname", "default"), t, callback);
     }
 
     @Override
@@ -48,24 +53,28 @@ public class JPAEnterpriseJavaBean implements IJPAHelper {
         transact(persistenceUnit, t, null);
     }
 
+    @Transactional
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void transact(String persistenceUnit, JPATransaction t, RunnableThrowsThrowable callback) throws Throwable {
+
         try {
+
+            //EntityManager em = getEMF(persistenceUnit).createEntityManager();
 
             try {
 
-                em.getTransaction().begin();
+
+                //em.getTransaction().begin();
 
                 t.run(em);
 
-                em.getTransaction().commit();
+                //em.getTransaction().commit();
 
             } catch (Throwable e) {
 
                 e.printStackTrace();
-                if (em.getTransaction().isActive()) em.getTransaction().rollback();
-
+                //if (em.getTransaction().isActive()) em.getTransaction().rollback();
+                //em.close();
                 e = e.getCause() != null && e.getCause() instanceof ConstraintViolationException ?e.getCause():e;
                 if (e instanceof ConstraintViolationException) {
                     StringBuffer sb = new StringBuffer();
@@ -76,11 +85,11 @@ public class JPAEnterpriseJavaBean implements IJPAHelper {
 
             }
 
+            //em.close();
 
         } catch (Throwable e) {
             rethrow(e.getCause() != null && e.getCause() instanceof ConstraintViolationException?e.getCause():e);
         }
-
     }
 
     public void rethrow(Throwable e) throws Throwable {
@@ -94,35 +103,54 @@ public class JPAEnterpriseJavaBean implements IJPAHelper {
         } else throw e;
     }
 
-    @Override
-    public void closeEMFs() {
-
+    public void printStackTrace(Throwable e) {
+        e.printStackTrace();
+        if (e instanceof ConstraintViolationException) {
+            StringBuffer sb = new StringBuffer();
+            for (ConstraintViolation v : ((ConstraintViolationException)e).getConstraintViolations()) {
+                if (sb.length() > 0) sb.append("\n");
+                sb.append("" + v.getPropertyPath() + " " + v.getMessage() + " at " + Helper.capitalize(v.getRootBeanClass().getSimpleName()));
+            }
+            System.out.println(sb.toString());
+        }
     }
 
     @Override
-    public void setEMF(EntityManagerFactory entityManagerFactory) {
+    public void closeEMFs() {
+        emf.values().forEach(x -> {
+            if (x.isOpen()) x.close();
+        });
+        emf.clear();
+    }
 
+    @Override
+    public void setEMF(EntityManagerFactory f) {
+        emf.put(System.getProperty("defaultpuname", "default"), f);
     }
 
     @Override
     public EntityManagerFactory getEMF() {
-        return null;
+        return getEMF(System.getProperty("defaultpuname", "default"));
     }
+
 
     @Override
-    public EntityManagerFactory getEMF(String s) {
-        return null;
+    public EntityManagerFactory getEMF(String persistenceUnit) {
+        EntityManagerFactory v;
+        if ((v = emf.get(persistenceUnit)) == null) {
+            emf.put(persistenceUnit, v = Persistence.createEntityManagerFactory(persistenceUnit));
+        }
+        return v;
     }
 
-    @TransactionAttribute(TransactionAttributeType.NEVER)
     @Override
     public void notransact(JPATransaction t) throws Throwable {
-        notransact(MDDUIAccessor.getPersistenceUnitName(), t, true);
+        notransact(System.getProperty("defaultpuname", "default"), t, true);
     }
 
     @Override
     public void notransact(JPATransaction t, boolean printException) throws Throwable {
-        notransact(MDDUIAccessor.getPersistenceUnitName(), t, printException);
+        notransact(System.getProperty("defaultpuname", "default"), t, printException);
     }
 
     @Override
@@ -130,17 +158,26 @@ public class JPAEnterpriseJavaBean implements IJPAHelper {
         notransact(persistenceUnit, t, true);
     }
 
+    @Transactional(value = Transactional.TxType.NEVER)
     @Override
     public void notransact(String persistenceUnit, JPATransaction t, boolean printException) throws Throwable {
+
+        //EntityManager em = getEMF(persistenceUnit).createEntityManager();
+
         try {
 
             t.run(em);
 
         } catch (Exception e) {
             if (printException) e.printStackTrace();
+            //em.close();
             throw e;
         }
+
+        //em.close();
+
     }
+
 
     @Override
     public <T> T find(Class<T> type, Object id) throws Throwable {
@@ -187,7 +224,7 @@ public class JPAEnterpriseJavaBean implements IJPAHelper {
 
     @Override
     public JinqJPAStreamProvider getStreams() {
-        return getStreams(MDDUIAccessor.getPersistenceUnitName());
+        return getStreams(System.getProperty("defaultpuname", "default"));
     }
 
     @Override
@@ -450,5 +487,15 @@ public class JPAEnterpriseJavaBean implements IJPAHelper {
         // debe actualizar la propiedad "fieldName" en el objeto a, con el valor value
         // resolviendo cualquier mapeado inverso, tanto en el valor anterior como en el nuevo valor
         //todo: implementar
+    }
+
+    @Override
+    public void contextInitialized(ServletContextEvent servletContextEvent) {
+        JPAHelper.set(this);
+    }
+
+    @Override
+    public void contextDestroyed(ServletContextEvent servletContextEvent) {
+
     }
 }

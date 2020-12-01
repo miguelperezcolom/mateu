@@ -19,6 +19,7 @@ import io.mateu.mdd.vaadin.controllers.firstLevel.HomeController;
 import io.mateu.mdd.vaadin.controllers.secondLevel.EditorController;
 import io.mateu.mdd.vaadin.controllers.secondLevel.WizardController;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
+import io.mateu.mdd.vaadin.views.BrokenLinkView;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.notification.Notifier;
 
@@ -84,6 +85,7 @@ public class MateuViewProvider implements ViewProvider {
         while (!Strings.isNullOrEmpty(aux) && v == null) {
             if (stack.get(aux) != null) {
                 v = (io.mateu.mdd.vaadin.navigation.View) stack.popTo(aux);
+                if (firstViewInWindow > stack.size() + 1) firstViewInWindow = 0;
             }
             if (v == null && !Strings.isNullOrEmpty(aux) && aux.contains("/")) {
                 remaining = aux.substring(aux.lastIndexOf("/")) + remaining;
@@ -91,7 +93,7 @@ public class MateuViewProvider implements ViewProvider {
             }
         }
 
-        if (Strings.isNullOrEmpty(aux)) {
+        if (Strings.isNullOrEmpty(aux) || v == null) {
             stack.clear();
         }
 
@@ -130,6 +132,8 @@ public class MateuViewProvider implements ViewProvider {
             });
         }
 
+
+        if (v == null) v = new BrokenLinkView(stack);
         Component c = ((io.mateu.mdd.vaadin.navigation.View) v).getViewComponent();
         if (c != null && c instanceof AbstractViewComponent) {
             ((AbstractViewComponent)c).buildIfNeeded();

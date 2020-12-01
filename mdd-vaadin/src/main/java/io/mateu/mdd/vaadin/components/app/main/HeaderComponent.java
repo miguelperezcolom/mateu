@@ -1,6 +1,8 @@
 package io.mateu.mdd.vaadin.components.app.main;
 
 import com.google.common.base.Strings;
+import com.vaadin.event.FocusShortcut;
+import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.*;
 import com.vaadin.shared.ui.ContentMode;
@@ -158,6 +160,8 @@ public class HeaderComponent extends HorizontalLayout {
         } else {
             areas.forEach(area -> addMenu(app, menubar, area));
         }
+
+        menubar.addShortcutListener(new FocusShortcut(menubar, ShortcutAction.KeyCode.F1));
 
         barContainer.addComponent(menubar);
     }

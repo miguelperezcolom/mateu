@@ -79,7 +79,7 @@ public class MateuUI extends UI implements IMDDUI {
     }
 
     public EditorViewComponent getCurrentEditor() {
-        return viewProvider.getCurrentEditor();
+        return viewProvider != null?viewProvider.getCurrentEditor():null;
     }
 
     public String getPendingFocusedSectionId() {
@@ -139,7 +139,11 @@ public class MateuUI extends UI implements IMDDUI {
 
     private void initApp(VaadinRequest vaadinRequest) throws Exception {
         if (app == null) {
-            Class uiClassFromContext = (Class) ((VaadinServletRequest) vaadinRequest).getServletContext().getAttribute((Strings.isNullOrEmpty(getUiRootPath())?"/": getUiRootPath()) + "_app");
+            String k = Strings.isNullOrEmpty(getUiRootPath())?"/": getUiRootPath();
+            String cp = ((VaadinServletRequest)vaadinRequest).getServletContext().getContextPath();
+            if (k.startsWith(cp)) k = k.substring(cp.length());
+            if (!k.startsWith("/")) k = "/" + k;
+            Class uiClassFromContext = (Class) ((VaadinServletRequest) vaadinRequest).getServletContext().getAttribute(k + "_app");
             app = new MateuApp(uiClassFromContext != null?uiClassFromContext:Object.class, vaadinRequest);
 
             if (MDD.getClassPool() == null) MDD.setClassPool(ReflectionHelper.createClassPool(((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getServletContext()));
@@ -195,17 +199,18 @@ public class MateuUI extends UI implements IMDDUI {
 
     @Override
     public UserPrincipal getCurrentUser() {
+        //todo: completar
         return null;
     }
 
     @Override
     public Collection<FieldInterfaced> getColumnFields(Class targetType) {
-        return null;
+        return ListViewComponent.getColumnFields(targetType);
     }
 
     @Override
     public void updateTitle(String title) {
-
+        //todo: completar
     }
 
     @Override

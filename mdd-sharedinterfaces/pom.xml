@@ -6,7 +6,7 @@
 
   <artifactId>mdd-sharedinterfaces</artifactId>
   <groupId>io.mateu</groupId>
-  <version>0.0.17</version>
+  <version>0.0.20</version>
 
   <name>mdd-sharedinterfaces</name>
   <description>shared interfaces for mateu mdd</description>

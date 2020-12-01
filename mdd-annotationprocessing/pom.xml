@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.mateu</groupId>
-    <version>0.0.20</version>
+    <version>0.0.22</version>
   <artifactId>mdd-annotationprocessing</artifactId>
 
   <name>mdd-annotationprocessing</name>
@@ -115,21 +115,21 @@
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>util</artifactId>
-      <version>1.0.2</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>io.mateu</groupId>
-      <artifactId>security-core</artifactId>
       <version>1.0.6</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>io.mateu</groupId>
+      <artifactId>security-core</artifactId>
+      <version>1.0.8</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>io.mateu</groupId>
       <artifactId>mdd-fakespringboot</artifactId>
-      <version>0.0.18</version>
+      <version>0.0.19</version>
       <scope>test</scope>
     </dependency>
 

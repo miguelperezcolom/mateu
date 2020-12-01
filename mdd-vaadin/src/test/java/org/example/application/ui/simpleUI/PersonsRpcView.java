@@ -40,11 +40,6 @@ public class PersonsRpcView implements RpcCrudView<org.example.application.ui.si
     }
 
     @Override
-    public void search() {
-
-    }
-
-    @Override
     public Object onEdit(Row row) throws Throwable {
         return JPAHelper.find(Person.class, Long.parseLong(row.getId()));
     }

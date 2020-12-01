@@ -2,7 +2,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.mateu</groupId>
-  <version>0.0.23</version>
+  <version>0.0.27</version>
   <artifactId>mdd-showcase</artifactId>
   <packaging>war</packaging>
   <name>mdd-showcase</name>
@@ -59,25 +59,19 @@
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>mdd-j2se</artifactId>
-      <version>0.0.24</version>
-    </dependency>
-
-    <dependency>
-      <groupId>io.mateu</groupId>
-      <artifactId>mdd-annotationprocessing</artifactId>
-      <version>0.0.20</version>
+      <version>0.0.27</version>
     </dependency>
 
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>showcase-app</artifactId>
-      <version>1.0.4</version>
+      <version>1.0.7</version>
     </dependency>
 
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>security-htpasswd</artifactId>
-      <version>1.0.8</version>
+      <version>1.0.10</version>
     </dependency>
 
 

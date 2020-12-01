@@ -73,6 +73,10 @@ public class MateuApp extends BaseMDDApp {
         return ui;
     }
 
+    public Object getUi() {
+        return ui;
+    }
+
     @Override
     public String getName() {
         if (_areas == null) init();
@@ -142,7 +146,7 @@ public class MateuApp extends BaseMDDApp {
                 hasHomes = true;
                 break;
             }
-            if (f.isAnnotationPresent(Submenu.class) || f.isAnnotationPresent(MenuOption.class)) {
+            if (f.isAnnotationPresent(Area.class) || f.isAnnotationPresent(Submenu.class) || f.isAnnotationPresent(MenuOption.class)) {
                 hasMenus = true;
                 break;
             }
@@ -153,7 +157,7 @@ public class MateuApp extends BaseMDDApp {
                 hasHomes = true;
                 break;
             }
-            if (f.isAnnotationPresent(Submenu.class) || f.isAnnotationPresent(MenuOption.class)) {
+            if (f.isAnnotationPresent(Area.class) || f.isAnnotationPresent(Submenu.class) || f.isAnnotationPresent(MenuOption.class)) {
                 hasMenus = true;
                 break;
             }

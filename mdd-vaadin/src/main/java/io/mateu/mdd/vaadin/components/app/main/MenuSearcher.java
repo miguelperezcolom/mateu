@@ -1,6 +1,8 @@
 package io.mateu.mdd.vaadin.components.app.main;
 
 import com.vaadin.data.provider.ListDataProvider;
+import com.vaadin.event.FocusShortcut;
+import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
@@ -26,6 +28,9 @@ public class MenuSearcher extends ComboBox<MenuEntry> {
             if (e.getValue() != null)
                 MateuUI.get().getMain().irA(app.getState(e.getValue()));
         });
+        setPopupWidth("500px");
+        addShortcutListener(new FocusShortcut(this, ShortcutAction.KeyCode.F2));
+        addFocusListener(e -> setValue(null));
     }
 
     public void updateDataProvider(AbstractApplication app) {

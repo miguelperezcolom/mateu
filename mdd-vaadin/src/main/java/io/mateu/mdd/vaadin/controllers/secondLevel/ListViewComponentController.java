@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadin.controllers.secondLevel;
 
 import com.vaadin.ui.Component;
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.vaadin.components.app.views.secondLevel.FiltersViewFlowComponent;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
@@ -42,14 +43,19 @@ public class ListViewComponentController extends Controller {
                 if (method != null) {
                     new MethodController(stack, path + "/" + step, method).apply(stack, path, step, cleanStep, remaining);
                 } else {
-
                     if (listViewComponent instanceof JPAListViewComponent) {
                         Class type = listViewComponent.getModelType();
                         new EditorController(stack, path + "/" + step, listViewComponent, JPAHelper.find(type, ReflectionHelper.toId(type, step))).next(stack, path, step, remaining);
                     } else {
-                        Object o = ((RpcListViewComponent) listViewComponent).onEdit(step);
+                        Object o = null;
+                        if (MDDUIAccessor.getPendingResult() != null) {
+                            o = MDDUIAccessor.getPendingResult();
+                            MDDUIAccessor.setPendingResult(null);
+                        } else o = ((RpcListViewComponent) listViewComponent).onEdit(step);
+
                         if (o instanceof RpcView) register(stack, path + "/" + step, new RpcListViewComponent((RpcView) o));
-                        else if (!(o instanceof Component)) new EditorController(stack, path + "/" + step, o).next(stack, path, step, remaining);
+                        else if (!(o instanceof Component)) new EditorController(stack, path + "/" + step, listViewComponent, o).next(stack, path, step, remaining);
+                        else register(stack, path + "/" + step, (Component) o);
                     }
 
                 }

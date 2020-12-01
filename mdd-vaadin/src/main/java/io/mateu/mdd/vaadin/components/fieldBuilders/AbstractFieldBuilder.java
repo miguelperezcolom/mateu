@@ -89,7 +89,7 @@ public abstract class AbstractFieldBuilder implements IFieldBuilder {
             if (c != null) {
 
                 List<String> styles = stylist.style(f, model);
-                c.setStyleName(styles.stream().collect(Collectors.joining(" ")));
+                //c.setStyleName(styles.stream().collect(Collectors.joining(" ")));
 
                 c.setEnabled(stylist.isEnabled(f, model));
 
@@ -210,8 +210,8 @@ public abstract class AbstractFieldBuilder implements IFieldBuilder {
                 crearBotonera(vl.getComponent(0), attachedActions, (Layout) vl.getComponent(1));
             } else {
                 vl = new VerticalLayout(c, crearBotonera(c, attachedActions));
-                vl.addStyleName(CSS.NOPADDING);
             }
+            vl.addStyleName(CSS.NOPADDING);
             vl.addStyleName("contenedorbotoneracampo");
             vl.addStyleName("conbotonera");
             container.addComponent(vl);

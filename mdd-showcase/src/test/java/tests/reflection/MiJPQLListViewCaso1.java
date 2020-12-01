@@ -22,8 +22,4 @@ public class MiJPQLListViewCaso1 extends SubclaseAbstractJPQLListView {
         return 0;
     }
 
-    @Override
-    public void search() {
-
-    }
 }

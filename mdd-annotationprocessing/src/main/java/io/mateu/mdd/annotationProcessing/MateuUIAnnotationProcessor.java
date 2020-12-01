@@ -96,11 +96,13 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                         out.println("import javax.servlet.ServletException;");
                         out.println("import javax.servlet.annotation.WebServlet;");
                         out.println("import java.util.Properties;");
+                        out.println("import javax.servlet.annotation.WebInitParam;");
 
 
 
                         out.println();
-                        out.println("@WebServlet(urlPatterns = {\"" + e.getAnnotation(MateuUI.class).path() + "\", \"" + ("/".equals(e.getAnnotation(MateuUI.class).path())?"":e.getAnnotation(MateuUI.class).path()) + "/*\"}, name = \"" + className.replaceAll("\\.","_") + "UIServlet\", asyncSupported = true, loadOnStartup = 500)");
+                        out.println("@WebServlet(urlPatterns = {\"" + e.getAnnotation(MateuUI.class).path() + "\", \"" + ("/".equals(e.getAnnotation(MateuUI.class).path())?"":e.getAnnotation(MateuUI.class).path()) + "/*\"}, name = \"" + className.replaceAll("\\.","_") + "UIServlet\", asyncSupported = true, initParams = {\n" +
+                                "        @WebInitParam(name = \"org.atmosphere.websocket.suppressJSR356\", value = \"true\")})");
                         out.println("@VaadinServletConfiguration(ui = " + simpleClassName + "UI.class, productionMode = false)");
                         out.println("@MateuUIServlet(path=\"" + e.getAnnotation(MateuUI.class).path() + "\")");
                         out.println("public class " + generatedClassName + " extends VaadinServlet implements SessionInitListener {");

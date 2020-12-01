@@ -38,6 +38,4 @@ public interface RpcView<F, C> {
         return null;
     }
 
-    void search();
-
 }

@@ -32,10 +32,12 @@ public class ActionController extends Controller {
                         controller = new CrudController(stack, path + "/" + step, (MDDOpenCRUDAction)m);
                     } else if (m instanceof MDDOpenWizardAction) {
                         controller = new WizardController(stack, path + "/" + step, ((MDDOpenWizardAction)m).firstPageSupplier.get());
+                    } else if (m instanceof MDDOpenCustomComponentAction) {
+                        controller = new CustomComponentController(stack, path + "/" + step, (MDDOpenCustomComponentAction)m);
                     } else if (m instanceof MDDOpenEditorAction) {
                         controller = new EditorController(stack, path + "/" + step, (MDDOpenEditorAction)m);
                     } else if (m instanceof MDDCallMethodAction) {
-                        controller = new MethodController(stack, path + "/" + step, ((MDDCallMethodAction)m).method);
+                        controller = new MethodController(stack, path + "/" + step, ((MDDCallMethodAction)m).instance, ((MDDCallMethodAction)m).method);
                     }
                 }
                 if (controller == null) controller = new BrokenLinkController(stack, path + "/" + step);

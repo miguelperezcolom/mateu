@@ -230,7 +230,6 @@ public class HeaderForMobileComponent extends HorizontalLayout {
             if (entry instanceof AbstractMenu) {
                 Button b;
                 menubar.addComponent(b = new Button(entry.getCaption(), e -> {
-                    menubar.removeAllComponents();
                     addSubmenu(app, menubar, (AbstractMenu) entry);
                 }));
                 b.addStyleName("botonmenu");

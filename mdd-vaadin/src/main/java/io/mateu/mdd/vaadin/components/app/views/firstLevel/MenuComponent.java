@@ -33,6 +33,7 @@ public class MenuComponent extends AbstractViewComponent {
     public MenuComponent(AbstractMenu menu) {
         this.menu = menu;
 
+        /*
         Panel p = new Panel();
         p.setSizeFull();
         p.addStyleName(ValoTheme.PANEL_BORDERLESS);
@@ -58,6 +59,8 @@ public class MenuComponent extends AbstractViewComponent {
         menu.getEntries().stream().filter(e -> e instanceof AbstractMenu).forEach(e -> cssLayout.addComponent(createMenuComponent(e)));
 
         addComponents(p);
+
+         */
     }
 
     public Component createMenuComponent(MenuEntry e) {

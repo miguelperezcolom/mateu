@@ -1,6 +1,13 @@
 package io.mateu.mdd.core.app;
 
 
+import com.vaadin.ui.Component;
+import io.mateu.mdd.core.interfaces.WizardPage;
+import io.mateu.reflection.ReflectionHelper;
+import io.mateu.util.notification.Notifier;
+
+import java.lang.reflect.InvocationTargetException;
+
 public class MDDOpenCustomComponentAction extends AbstractAction {
 
     public final Class viewClass;
@@ -21,5 +28,14 @@ public class MDDOpenCustomComponentAction extends AbstractAction {
     @Override
     public String toString() {
         return "Home";
+    }
+
+    public Component getComponent() {
+        try {
+            return (Component) (component != null?component: ReflectionHelper.newInstance(viewClass));
+        } catch (Exception e) {
+            Notifier.alert(e);
+            return null;
+        }
     }
 }

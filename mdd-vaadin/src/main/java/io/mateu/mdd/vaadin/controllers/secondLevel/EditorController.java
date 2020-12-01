@@ -9,6 +9,7 @@ import io.mateu.mdd.core.app.MDDOpenEditorAction;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.components.ComponentWrapper;
+import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
 import io.mateu.mdd.vaadin.components.views.ListViewComponent;
 import io.mateu.mdd.vaadin.controllers.Controller;
@@ -61,7 +62,7 @@ public class EditorController extends Controller {
                 if (r == null) {
                     Label h = new Label("Done!");
                     h.addStyleName(ValoTheme.LABEL_H1);
-                    c = h;
+                    r = c = h;
                 }
                 else if (r instanceof Component) c = (Component) r;
                 else {
@@ -69,7 +70,9 @@ public class EditorController extends Controller {
                     h.addStyleName(ValoTheme.LABEL_H1);
                     c = h;
                 }
-                register(stack, path + "/" + step, new ComponentWrapper("Form submitted", c));
+                AbstractViewComponent cw = c != null?new ComponentWrapper("Form submitted", c):MethodController.procesarResultado(null, r, null, false);
+                cw.setTitle("Form submitted");
+                register(stack, path + "/" + step, cw);
                 MDDUIAccessor.setPendingResult(null);
             } else {
 
@@ -88,11 +91,8 @@ public class EditorController extends Controller {
                 }
 
                 if (method != null) {
-
-                    //callMethod(state, method, r, (Component) editorViewComponent);
-                    new MethodController(stack, path + "/" + step, method).next(stack, path, step, remaining);
+                    new MethodController(stack, path + "/" + step, editorViewComponent.getModel(), method).next(stack, path, step, remaining);
                 } else if (field != null) {
-
                     if (step.endsWith("_search")) new FieldController(stack, path + "/" + step, field, editorViewComponent).next(stack, path, step, remaining);
                     else new FieldController(stack, path + "/" + step, field, editorViewComponent).next(stack, path, step, remaining);
 

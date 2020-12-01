@@ -35,6 +35,7 @@
     <module>mdd-fakespringboot</module>
     <module>mdd-j2ee</module>
       <module>mdd-fakeui</module>
+      <module>mdd-quarkus</module>
   </modules>
 
   <dependencies>

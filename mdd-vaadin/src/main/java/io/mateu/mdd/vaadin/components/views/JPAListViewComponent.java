@@ -53,6 +53,7 @@ public class JPAListViewComponent extends ListViewComponent {
     private final Map<String, String> aliasedColumnNamesByColId = new HashMap<>();
     private final Map<String, FieldInterfaced> fieldsByColId = new HashMap<>();
     private final Consumer<Object> callback;
+    private final String queryFilters;
     private ExtraFilters extraFilters;
 
     private final Class entityClass;
@@ -89,7 +90,7 @@ public class JPAListViewComponent extends ListViewComponent {
     List<FieldInterfaced> sumFields;
 
     public JPAListViewComponent(Class entityClass, String columns) {
-        this(entityClass, null, null, columns, null, null, null);
+        this(entityClass, null, null, null, columns, null, null, null);
     }
 
     public JPAListViewComponent(Class entityClass) {
@@ -105,13 +106,14 @@ public class JPAListViewComponent extends ListViewComponent {
     }
 
     public JPAListViewComponent(Class entityClass, ExtraFilters extraFilters, Map<String, Object> initialValues, String columns, String filters, String fields) {
-        this(entityClass, extraFilters, initialValues, columns, filters, fields, null);
+        this(entityClass, null, extraFilters, initialValues, columns, filters, fields, null);
     }
 
 
     
-    public JPAListViewComponent(Class entityClass, ExtraFilters extraFilters, Map<String, Object> initialValues, String columns, String filters, String fields, Consumer<Object> callback) {
+    public JPAListViewComponent(Class entityClass, String queryFilters, ExtraFilters extraFilters, Map<String, Object> initialValues, String columns, String filters, String fields, Consumer<Object> callback) {
         this.entityClass = entityClass;
+        this.queryFilters = queryFilters;
         this.extraFilters = extraFilters;
         this.initialValues = initialValues;
         this.useColumns = columns;
@@ -276,10 +278,12 @@ public class JPAListViewComponent extends ListViewComponent {
 
             List<FieldInterfaced> filterFields = fns.stream().map(n -> {
                 FieldInterfaced f = ReflectionHelper.getFieldByName(filtersType, n);
-                filterNames.add(n);
-                fieldsByFilterName.put(n, f);
+                if (f != null) {
+                    filterNames.add(n);
+                    fieldsByFilterName.put(n, f);
+                }
                 return f;
-            }).collect(Collectors.toList());
+            }).filter(f -> f != null).collect(Collectors.toList());
 
             return filterFields;
         }
@@ -512,6 +516,14 @@ public class JPAListViewComponent extends ListViewComponent {
             updateExtraFilters();
         } catch (Exception e) {
             Notifier.alert(e);
+        }
+
+        if (!Strings.isNullOrEmpty(queryFilters)) {
+
+            if (!"".equals(ql)) ql += " and ";
+
+            ql += queryFilters;
+
         }
 
         if (extraFilters != null && !Strings.isNullOrEmpty(extraFilters.getQl())) {

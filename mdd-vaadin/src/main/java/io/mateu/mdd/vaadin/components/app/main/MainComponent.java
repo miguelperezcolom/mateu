@@ -4,6 +4,7 @@ import com.vaadin.server.Responsive;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.VerticalLayout;
+import io.mateu.mdd.core.app.MateuApp;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.FullWidth;
 import io.mateu.mdd.shared.interfaces.App;
@@ -35,10 +36,11 @@ public class MainComponent extends VerticalLayout {
         panel = new CssLayout();
         panel.setSizeFull();
         panel.addStyleName("contenido");
+        panel.setResponsive(true);
 
-        App app = MDDUIAccessor.getApp();
+        MateuApp app = (MateuApp) MDDUIAccessor.getApp();
 
-        if (!app.getClass().isAnnotationPresent(FullWidth.class)) {
+        if (!app.getUi().getClass().isAnnotationPresent(FullWidth.class)) {
             panel.addStyleName("container");
             headers.addStyleName("container");
         }

@@ -44,6 +44,7 @@ public class ViewComponentHelper {
 
                         boolean needsValidation = aa == null || aa.validateBefore();
                         if (!needsValidation && viewComponent instanceof EditorViewComponent) needsValidation = ((EditorViewComponent)viewComponent).getModelType().isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(((EditorViewComponent)viewComponent).getModelType());
+                        needsValidation &= !(viewComponent instanceof ListViewComponent);
 
                         if (!needsValidation || ((EditorViewComponent)viewComponent).validate()) {
 

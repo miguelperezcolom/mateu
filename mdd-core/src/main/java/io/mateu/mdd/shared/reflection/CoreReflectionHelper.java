@@ -114,7 +114,7 @@ public class CoreReflectionHelper {
 
                 Object[] args = vs.toArray();
                 Object i = finalInstance;
-                if (!Modifier.isStatic(m.getModifiers())) i = ReflectionHelper.newInstance(m.getDeclaringClass());
+                if (i == null && !Modifier.isStatic(m.getModifiers())) i = ReflectionHelper.newInstance(m.getDeclaringClass());
                 r[0] = m.invoke(i, args);
 
                 if (r[0] != null && r[0] instanceof Query) r[0] = ((Query)r[0]).getResultList();
@@ -126,7 +126,9 @@ public class CoreReflectionHelper {
         } else {
 
             Object[] args = vs.toArray();
-            if (!Modifier.isStatic(m.getModifiers())) instance = ReflectionHelper.newInstance(m.getDeclaringClass());
+            if (!Modifier.isStatic(m.getModifiers()) && instance == null) instance = ReflectionHelper.newInstance(m.getDeclaringClass());
+            if (instance != null && !Modifier.isPublic(instance.getClass().getModifiers())) m.setAccessible(true);
+            else if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
             return m.invoke(instance, args);
 
         }

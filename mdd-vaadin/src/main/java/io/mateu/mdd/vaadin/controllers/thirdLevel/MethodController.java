@@ -42,25 +42,34 @@ import java.util.*;
 
 public class MethodController extends Controller {
     private final Method method;
+    private final Object instance;
 
     public MethodController(ViewStack stack, String path, Method method) {
+        this(stack, path, null, method);
+    }
+
+    public MethodController(ViewStack stack, String path, Object instance, Method method) {
         this.method = method;
+        this.instance = instance;
         try {
             if (MDDUIAccessor.getPendingResult() != null) {
-                register(stack, path, procesarResultado(method, MDDUIAccessor.getPendingResult(), getLastViewComponent(stack), false));
+                AbstractViewComponent c = procesarResultado(method, MDDUIAccessor.getPendingResult(), getLastViewComponent(stack), false);
+                if (c != null) register(stack, path, c);
+                else MDDUIAccessor.goTo(path.substring(0, path.lastIndexOf("/")));
                 MDDUIAccessor.setPendingResult(null);
             } else {
 
                 Component lastViewComponent = getLastViewComponent(stack);
 
-                Object instance = null;
-
-                if (lastViewComponent instanceof JPACollectionFieldListViewComponent) {
-                    instance = ((JPACollectionFieldListViewComponent) lastViewComponent).getEvfc().getModel();
-                } else if (lastViewComponent instanceof EditorViewComponent) {
-                    instance = ((EditorViewComponent) lastViewComponent).getModel();
-                } else if (!Modifier.isStatic(method.getModifiers())) {
-                    instance = ReflectionHelper.newInstance(method.getDeclaringClass());
+                Object _instance = instance;
+                if (_instance == null) {
+                    if (lastViewComponent instanceof JPACollectionFieldListViewComponent) {
+                        _instance = ((JPACollectionFieldListViewComponent) lastViewComponent).getEvfc().getModel();
+                    } else if (lastViewComponent instanceof EditorViewComponent) {
+                        _instance = ((EditorViewComponent) lastViewComponent).getModel();
+                    } else if (!Modifier.isStatic(method.getModifiers())) {
+                        _instance = ReflectionHelper.newInstance(method.getDeclaringClass());
+                    }
                 }
 
                 if (method.isAnnotationPresent(Action.class) && method.getAnnotation(Action.class).refreshOnBack()) {
@@ -79,7 +88,7 @@ public class MethodController extends Controller {
 
                 if (hasNonInjectedParameters) {
                     MethodParametersViewComponent mpvc;
-                    register(stack, path, mpvc = new MethodParametersViewComponent(instance, method, MDDUIAccessor.getPendingSelection()));
+                    register(stack, path, mpvc = new MethodParametersViewComponent(_instance, method, MDDUIAccessor.getPendingSelection()));
                     mpvc.addEditorListener(new EditorListener() {
                         @Override
                         public void preSave(Object model) throws Throwable {
@@ -103,7 +112,7 @@ public class MethodController extends Controller {
                         }
                     });
                 } else {
-                    register(stack, path,  procesarResultado(method, CoreReflectionHelper.execute(method, new MDDBinder(new ArrayList<>()), instance, MDDUIAccessor.getPendingSelection()), getLastViewComponent(stack), false));
+                    register(stack, path,  procesarResultado(method, CoreReflectionHelper.execute(method, new MDDBinder(new ArrayList<>()), _instance, MDDUIAccessor.getPendingSelection()), getLastViewComponent(stack), false));
                 }
             }
         } catch (Throwable throwable) {
@@ -114,7 +123,9 @@ public class MethodController extends Controller {
     @Override
     public void apply(ViewStack stack, String path, String step, String cleanStep, String remaining) throws Throwable {
         if ("result".equalsIgnoreCase(step)) {
-            new EditorController(stack, path + "/" + step, MDDUIAccessor.getPendingResult());
+            Object o = MDDUIAccessor.getPendingResult();
+            MDDUIAccessor.setPendingResult(null);
+            register(stack, path + "/" + step, procesarResultado(method, o, null, false));
         }
     }
 
@@ -124,7 +135,7 @@ public class MethodController extends Controller {
     }
 
 
-    private AbstractViewComponent procesarResultado(Method m, Object r, Component lastViewComponent, boolean inNewWindow) throws Throwable {
+    public static AbstractViewComponent procesarResultado(Method m, Object r, Component lastViewComponent, boolean inNewWindow) throws Throwable {
         String title = m != null?"Result of " + Helper.capitalize(m.getName()):"Result";
 
         if (m != null && m.isAnnotationPresent(Action.class) && m.getAnnotation(Action.class).refreshOnBack()) {
@@ -176,6 +187,7 @@ public class MethodController extends Controller {
             } else if (URL.class.equals(c)) {
                 if (r.toString().contains("google")) {
                     Page.getCurrent().open(r.toString(), "_blank");
+                    return null;
                 } else if ((m != null && m.isAnnotationPresent(IFrame.class)) || r.toString().endsWith("pdf")) {
                     BrowserFrame b = new BrowserFrame("Result", new ExternalResource(r.toString()));
                     b.setSizeFull();
