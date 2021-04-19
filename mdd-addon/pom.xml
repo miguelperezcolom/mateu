@@ -17,7 +17,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
 
         <vaadin.plugin.version>8.11.2</vaadin.plugin.version>
-        <vaadin.version>8.11.2</vaadin.version>
+        <vaadin.version>8.12.4</vaadin.version>
 
         <!-- ZIP Manifest fields -->
         <Implementation-Version>${project.version}</Implementation-Version>
