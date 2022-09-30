@@ -36,7 +36,13 @@ public class JPACollectionFieldViewComponent extends JPAListViewComponent {
         ExtraFilters ef = null;
         List ids;
         if ((ids =  getIds(evfc, field)).size() > 0) {
-            ef = new ExtraFilters(" x " + ((field.isAnnotationPresent(UseLinkToListView.class) && !addingToCollection) ? "" : " not ") + " in :z ", "z", getIds(evfc, field));
+            String idFieldRef = "";
+            try {
+                idFieldRef = "." + ReflectionHelper.getIdField(field.getGenericClass()).getName();
+            } catch (Exception e) {
+
+            }
+            ef = new ExtraFilters(" x" + idFieldRef + " " + ((field.isAnnotationPresent(UseLinkToListView.class) && !addingToCollection) ? "" : " not ") + " in :z ", "z", getIds(evfc, field));
         }
         return ef;
     }

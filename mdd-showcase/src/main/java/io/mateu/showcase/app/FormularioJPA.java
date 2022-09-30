@@ -4,17 +4,27 @@ import com.google.common.collect.Lists;
 import io.mateu.mdd.core.annotations.MateuUI;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.VisibleIf;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.MateuMDDEntity;
 import lombok.Setter;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import javax.validation.constraints.NotEmpty;
 import java.io.File;
 import java.util.List;
 
 @MateuUI(path = "/formulariojpa")
-@MateuMDDEntity
+@Entity
+@Getter
+@Setter
+@EqualsAndHashCode(of = "id")
 public class FormularioJPA {
+
+    @Id
+    @GeneratedValue
+    private long id;
 
     @NotEmpty
     String nombre;

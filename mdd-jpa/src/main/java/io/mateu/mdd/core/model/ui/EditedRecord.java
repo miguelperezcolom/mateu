@@ -1,14 +1,22 @@
 package io.mateu.mdd.core.model.ui;
 
 import io.mateu.mdd.core.model.authentication.User;
-import lombok.MateuMDDEntity;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
-import javax.persistence.Column;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 
-@MateuMDDEntity
+@Entity
+@Getter
+@Setter
+@EqualsAndHashCode(of = "id")
 public class EditedRecord {
+
+    @Id
+    @GeneratedValue
+    private long id;
 
     private String icon;
 

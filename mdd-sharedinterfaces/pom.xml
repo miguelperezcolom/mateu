@@ -6,7 +6,7 @@
 
   <artifactId>mdd-sharedinterfaces</artifactId>
   <groupId>io.mateu</groupId>
-  <version>0.0.20</version>
+  <version>0.0.22</version>
 
   <name>mdd-sharedinterfaces</name>
   <description>shared interfaces for mateu mdd</description>
@@ -64,9 +64,9 @@
     </dependency>
 
     <dependency>
-      <groupId>io.mateu</groupId>
+      <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>1.18.11.97</version>
+      <version>1.18.24</version>
     </dependency>
 
     <dependency>

@@ -87,9 +87,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>io.mateu</groupId>
+      <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>1.18.11.97</version>
+      <version>1.18.24</version>
       <scope>test</scope>
     </dependency>
     <dependency>

@@ -364,7 +364,8 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                         } else if (LocalTime.class.equals(f.getType())) {
                             return v != null?((LocalTime)v).format(DateTimeFormatter.ofPattern("HH:mm")):null;
                         } else if (Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) {
-                            return "<i class='fas fa-" + ((v != null && (Boolean)v)?"check":"times") + "'></i>";
+                            return (v != null && (Boolean)v)?VaadinIcons.CHECK.getHtml():VaadinIcons.CLOSE.getHtml();
+                            //return "<i class='fas fa-" + ((v != null && (Boolean)v)?"check":"times") + "'></i>";
                         } else if (IIcon.class.isAssignableFrom(f.getType())) {
                             return (v != null)?"" + v:null;
                         } else if (IResource.class.equals(f.getType())) {

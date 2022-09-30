@@ -17,7 +17,9 @@ import io.mateu.util.mail.EmailHelper;
 import io.mateu.util.notification.Notifier;
 import io.mateu.util.persistence.JPAHelper;
 import io.mateu.util.persistence.JPATransaction;
-import lombok.MateuMDDEntity;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.mail.DefaultAuthenticator;
 import org.apache.commons.mail.HtmlEmail;
@@ -31,7 +33,11 @@ import java.time.format.DateTimeFormatter;
 /**
  * Created by miguel on 19/3/17.
  */
-@Slf4j@MateuMDDEntity
+@Slf4j
+@Entity
+@Getter
+@Setter
+@EqualsAndHashCode(of = "id")
 public class AppConfig implements IAppConfig {
 
     @Section("General")

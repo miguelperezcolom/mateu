@@ -65,7 +65,7 @@
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>showcase-app</artifactId>
-      <version>1.0.7</version>
+      <version>1.0.20</version>
     </dependency>
 
     <dependency>

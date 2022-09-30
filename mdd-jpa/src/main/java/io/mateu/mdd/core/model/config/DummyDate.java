@@ -1,7 +1,11 @@
 package io.mateu.mdd.core.model.config;
 
-import lombok.MateuMDDEntity;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+
+import javax.persistence.Entity;
 import javax.persistence.Id;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -9,7 +13,10 @@ import java.time.LocalDateTime;
 /**
  * Created by miguel on 18/4/17.
  */
-@MateuMDDEntity
+@Entity
+@Getter
+@Setter
+@EqualsAndHashCode(of = "id")
 public class DummyDate {
 
     @Id

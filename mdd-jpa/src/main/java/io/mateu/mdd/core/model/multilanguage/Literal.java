@@ -5,8 +5,13 @@ import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.util.data.Data;
 import io.mateu.util.interfaces.Translated;
 import io.mateu.util.notification.Notifier;
-import lombok.MateuMDDEntity;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import java.util.Set;
 
 /**
@@ -14,8 +19,16 @@ import java.util.Set;
  *
  * Created by miguel on 13/9/16.
  */
-@MateuMDDEntity
+@Entity
+@Getter
+@Setter
+@EqualsAndHashCode(of = "id")
 public class Literal implements Translated {
+
+    @Id
+    @GeneratedValue
+    private long id;
+
     private String en;
 
     private String es;

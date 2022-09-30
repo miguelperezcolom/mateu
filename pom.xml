@@ -30,7 +30,6 @@
     <module>mdd-vaadin</module>
     <module>mdd-se</module>
     <module>mdd-showcase</module>
-    <module>lombok-tester</module>
     <module>mdd-springboot</module>
     <module>mdd-fakespringboot</module>
     <module>mdd-j2ee</module>

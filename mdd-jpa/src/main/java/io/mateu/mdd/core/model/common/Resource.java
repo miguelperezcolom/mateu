@@ -8,11 +8,12 @@ import io.mateu.mdd.shared.interfaces.IResource;
 import io.mateu.util.Helper;
 import io.mateu.util.common.Utils;
 import io.mateu.util.data.FileLocator;
-import lombok.MateuMDDEntity;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.*;
 import java.net.URL;
@@ -20,9 +21,16 @@ import java.net.URL;
 /**
  * Created by miguel on 27/3/17.
  */
-@MateuMDDEntity
+@Entity
+@Getter
+@Setter
+@EqualsAndHashCode(of = "id")
 @Slf4j
 public class Resource implements IResource {
+
+    @Id
+    @GeneratedValue
+    private long id;
 
     @NotNull@Enumerated(value = EnumType.STRING)
     private FileType type = FileType.BYTES;

@@ -14,7 +14,9 @@ import io.mateu.util.Helper;
 import io.mateu.util.eventBus.EventBus;
 import io.mateu.util.interfaces.EditorViewStyler;
 import io.mateu.util.mail.EmailHelper;
-import lombok.MateuMDDEntity;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
@@ -32,7 +34,10 @@ import java.util.stream.Collectors;
  * Created by miguel on 13/9/16.
  */
 @Table(name = "_USER")
-@Slf4j@MateuMDDEntity
+@Slf4j
+@Entity@Getter
+@Setter
+@EqualsAndHashCode(of = "login")
 public class User implements EditorViewStyler, UserPrincipal {
 
     @Embedded

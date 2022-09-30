@@ -210,7 +210,7 @@
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>reflection</artifactId>
-            <version>1.0.4</version>
+            <version>1.0.20</version>
         </dependency>
 
         <dependency>

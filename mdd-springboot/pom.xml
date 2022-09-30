@@ -48,7 +48,7 @@
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>mdd-vaadin</artifactId>
-      <version>0.0.27</version>
+      <version>0.0.30</version>
     </dependency>
 
     <dependency>

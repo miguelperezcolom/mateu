@@ -6,12 +6,18 @@ import io.mateu.mdd.shared.annotations.Output;
 import io.mateu.util.Helper;
 import io.mateu.util.interfaces.IIcon;
 import io.mateu.util.persistence.JPAHelper;
-import lombok.MateuMDDEntity;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
+import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.validation.constraints.NotNull;
 
-@MateuMDDEntity
+@Entity
+@Getter
+@Setter
+@EqualsAndHashCode(of = "id")
 public class Icon implements IIcon {
 
     @Id

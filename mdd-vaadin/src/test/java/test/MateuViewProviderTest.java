@@ -16,10 +16,12 @@ import org.example.application.population.Populator;
 import org.example.application.ui.ComplexUI;
 import org.example.domain.boundaries.common.entities.Person;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
+@Ignore
 public class MateuViewProviderTest {
 
     @BeforeClass

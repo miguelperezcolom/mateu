@@ -1,17 +1,26 @@
 package io.mateu.mdd.core.model.authentication;
 
-import lombok.MateuMDDEntity;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 /**
  * holder for a permission grant to user. It also defines the scope of the grant (e.g. a hotel, a customer, an office, ...)
  *
  * Created by miguel on 13/9/16.
  */
-@Table(name = "_GRANT")@MateuMDDEntity
+@Entity
+@Getter
+@Setter
+@EqualsAndHashCode(of = "id")
+@Table(name = "_GRANT")
 public class Grant {
+
+    @Id
+    @GeneratedValue
+    private long id;
 
     @ManyToOne
     private Permission permission;

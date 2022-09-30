@@ -43,6 +43,8 @@ public class MainComponent extends VerticalLayout {
         if (!app.getUi().getClass().isAnnotationPresent(FullWidth.class)) {
             panel.addStyleName("container");
             headers.addStyleName("container");
+        } else {
+            panel.addStyleName("fullwidth");
         }
 
         addComponents(headers, panel);

@@ -1,7 +1,10 @@
 package io.mateu.mdd.core.model.authentication;
 
-import lombok.MateuMDDEntity;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
+import javax.persistence.Entity;
 import javax.persistence.Id;
 
 /**
@@ -11,7 +14,10 @@ import javax.persistence.Id;
  *
  * Created by miguel on 13/9/16.
  */
-@MateuMDDEntity
+@Entity
+@Getter
+@Setter
+@EqualsAndHashCode(of = "id")
 public class Permission {
 
     @Id
