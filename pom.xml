@@ -26,15 +26,10 @@
     <module>mdd-core</module>
     <module>mdd-core14</module>
     <module>mdd-jpa</module>
-    <module>mdd-addon</module>
     <module>mdd-vaadin</module>
-    <module>mdd-se</module>
-    <module>mdd-showcase</module>
     <module>mdd-springboot</module>
     <module>mdd-fakespringboot</module>
-    <module>mdd-j2ee</module>
       <module>mdd-fakeui</module>
-      <module>mdd-quarkus</module>
   </modules>
 
   <dependencies>

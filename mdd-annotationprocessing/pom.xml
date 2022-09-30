@@ -115,21 +115,21 @@
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>util</artifactId>
-      <version>1.0.6</version>
+      <version>1.0.20</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>security-core</artifactId>
-      <version>1.0.8</version>
+      <version>1.0.20</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>mdd-fakespringboot</artifactId>
-      <version>0.0.19</version>
+      <version>1.0.20</version>
       <scope>test</scope>
     </dependency>
 
