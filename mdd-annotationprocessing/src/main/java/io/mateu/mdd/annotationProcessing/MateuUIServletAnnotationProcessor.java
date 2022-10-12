@@ -68,6 +68,10 @@ public class MateuUIServletAnnotationProcessor extends AbstractProcessor {
                         out.println("import io.mateu.mdd.vaadin.VaadinResourcesServlet;");
                         out.println("import org.springframework.boot.web.servlet.ServletRegistrationBean;");
                         out.println("import org.springframework.stereotype.Service;");
+                        out.println("import org.springframework.beans.factory.annotation.Autowired;");
+                        out.println("import org.springframework.context.ApplicationContext;");
+                        out.println("import javax.annotation.PostConstruct;");
+                        out.println("import io.mateu.reflection.ReflectionHelper;");
 
                         out.println("");
                         out.println("");
@@ -76,7 +80,26 @@ public class MateuUIServletAnnotationProcessor extends AbstractProcessor {
 
                         out.println();
                         out.println("@Service");
-                        out.println("public class " + simpleClassName + "VaadinService extends ServletRegistrationBean {");
+                        out.println("public class " + simpleClassName + "VaadinService extends ServletRegistrationBean implements io.mateu.mdd.springboot.BeanProvider {");
+                        out.println("");
+                        out.println("    @Autowired\n" +
+                                "    private ApplicationContext сontext;");
+                        out.println("");
+                        out.println("");
+                        out.println("    @PostConstruct\n" +
+                                "    public void postConstruct() {\n" +
+                                "        ReflectionHelper.setBeanProvider(this);\n" +
+                                "    }\n" +
+                                "\n" +
+                                "    public Object getBean(Class c) {\n" +
+                                "        Object o = null;\n" +
+                                "        try {\n" +
+                                "            o = сontext.getBean(c);\n" +
+                                "        } catch (Exception e) {\n" +
+                                "\n" +
+                                "        }\n" +
+                                "        return o;\n" +
+                                "    }");
                         out.println("");
                         out.println("    public " + simpleClassName + "VaadinService() {");
                         out.println("        super(new VaadinResourcesServlet(), \"/VAADIN\", \"/VAADIN/*\");");

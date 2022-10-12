@@ -4,7 +4,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
     <groupId>io.mateu</groupId>
-    <version>0.0.30</version>
+    <version>0.0.31</version>
   <artifactId>mdd-springboot</artifactId>
   <packaging>jar</packaging>
 
@@ -48,7 +48,7 @@
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>mdd-vaadin</artifactId>
-      <version>0.0.30</version>
+      <version>0.0.31</version>
     </dependency>
 
     <dependency>
