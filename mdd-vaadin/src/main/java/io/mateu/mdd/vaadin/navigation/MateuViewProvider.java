@@ -39,6 +39,10 @@ public class MateuViewProvider implements ViewProvider {
         lastState = stack.getState(stack.getLast());
     }
 
+    public View getLastView() {
+        return lastView;
+    }
+
     @Override
     public String getViewName(String s) {
         return s;

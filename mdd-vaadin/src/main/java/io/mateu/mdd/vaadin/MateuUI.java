@@ -82,6 +82,21 @@ public class MateuUI extends UI implements IMDDUI {
         return viewProvider != null?viewProvider.getCurrentEditor():null;
     }
 
+    public Set getSelectedRows() {
+        Set selectedRows = viewProvider != null && viewProvider.getCurrentEditor() != null
+                && viewProvider.getCurrentEditor().getListViewComponent() != null
+                ? viewProvider.getCurrentEditor().getListViewComponent().getSelection() : null;
+        if (selectedRows == null) {
+            if (viewProvider != null && viewProvider.getLastView() != null && viewProvider.getLastView() != null && viewProvider.getLastView().getViewComponent() instanceof ListViewComponent) {
+                selectedRows = ((ListViewComponent) viewProvider.getLastView().getViewComponent()).getSelection();
+            }
+        }
+        if (selectedRows == null) {
+            selectedRows = new HashSet();
+        }
+        return selectedRows;
+    }
+
     public String getPendingFocusedSectionId() {
         return pendingFocusedSectionId;
     }

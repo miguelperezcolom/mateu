@@ -293,8 +293,13 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         binder = new MDDBinder(model.getClass(), this);
 
-        if (model != null && model.getClass().isAnnotationPresent(Entity.class)) {
-            modelId = ReflectionHelper.getId(model);
+        if (model != null) {
+            if (model.getClass().isAnnotationPresent(Entity.class)) {
+                modelId = ReflectionHelper.getId(model);
+            }
+            if (PersistentPojo.class.isAssignableFrom(model.getClass())) {
+                modelId = ((PersistentPojo) model).getId();
+            }
         }
 
         binder.setBean(model);
@@ -1398,11 +1403,15 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                     ppojo.save();
 
+                    setModel(ppojo);
+
+                    if (goBack) goBack();
+
                 }
 
                 if (notify) listeners.forEach(l -> l.onSave(getModel()));
 
-                if (!goBack && (modelType.isAnnotationPresent(Entity.class)) || PersistentPojo.class.isAssignableFrom(modelType)) {
+                if (!goBack && (modelType.isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(modelType))) {
                     load(modelId);
                 }
 

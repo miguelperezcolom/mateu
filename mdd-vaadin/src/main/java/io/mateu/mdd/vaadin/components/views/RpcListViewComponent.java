@@ -21,11 +21,14 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class RpcListViewComponent extends ListViewComponent {
 
     private final Class rpcListViewClass;
+    private Object filters;
     private RpcView rpcListView;
+    private final Class filtersType;
     private final Class columnType;
 
     public RpcView getRpcListView() {
@@ -36,6 +39,8 @@ public class RpcListViewComponent extends ListViewComponent {
     public RpcListViewComponent(RpcView rpcListView) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         this.rpcListViewClass = rpcListView.getClass();
         this.rpcListView = rpcListView;
+        this.filtersType = ReflectionHelper.getGenericClass(rpcListViewClass, RpcView.class, "F");
+        this.filters = (filtersType.equals(rpcListViewClass))?rpcListView:ReflectionHelper.newInstance(filtersType);
         this.columnType = ReflectionHelper.getGenericClass(rpcListViewClass, RpcView.class, "C");
         addListener(new ListViewComponentListener() {
             @Override
@@ -64,6 +69,8 @@ public class RpcListViewComponent extends ListViewComponent {
     public RpcListViewComponent(Class rpcListViewClass) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         this.rpcListViewClass = rpcListViewClass;
         this.rpcListView = (RpcView) ReflectionHelper.newInstance(rpcListViewClass);
+        this.filtersType = ReflectionHelper.getGenericClass(rpcListViewClass, RpcView.class, "F");
+        this.filters = (filtersType.equals(rpcListViewClass))?rpcListView:ReflectionHelper.newInstance(filtersType);
         this.columnType = ReflectionHelper.getGenericClass(rpcListViewClass, RpcView.class, "C");
         addListener(new ListViewComponentListener() {
             @Override
@@ -92,18 +99,24 @@ public class RpcListViewComponent extends ListViewComponent {
 
     @Override
     public String toString() {
+        try {
+            if (!rpcListViewClass.getMethod("toString").getDeclaringClass().equals(Object.class)) {
+                return rpcListView.toString();
+            }
+        } catch (NoSuchMethodException e) {
+        }
         return Helper.pluralize(Helper.capitalize(rpcListViewClass.getSimpleName()));
     }
 
     @Override
     public Object getModelForSearchFilters() throws InstantiationException, IllegalAccessException {
-        return rpcListView;
+        return filters;
     }
 
     @Override
     public void setModelForSearchFilters(Object filters) {
         filtersComponent.getBinder().setBean(filters);
-        rpcListView = (RpcView) filters;
+        this.filters = filters;
     }
 
     @Override
@@ -119,7 +132,7 @@ public class RpcListViewComponent extends ListViewComponent {
 
     @Override
     public Class getFiltersType() {
-        return rpcListViewClass;
+        return filtersType;
     }
 
     @Override
@@ -188,6 +201,16 @@ public class RpcListViewComponent extends ListViewComponent {
     @Override
     public boolean isAddEnabled() {
         return rpcListView instanceof RpcCrudView &&  ((RpcCrudView)rpcListView).isAddEnabled();
+    }
+
+    @Override
+    public boolean isDeleteEnabled() {
+        return rpcListView instanceof RpcCrudView &&  ((RpcCrudView)rpcListView).isDeleteEnabled();
+    }
+
+    @Override
+    protected void delete(Set selection) {
+        if (rpcListView instanceof RpcCrudView) ((RpcCrudView)rpcListView).delete(selection);
     }
 
     @Override

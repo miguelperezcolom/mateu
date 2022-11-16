@@ -14,6 +14,7 @@ import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.interfaces.NakedObjectStylist;
+import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.interfaces.ReadOnly;
 import io.mateu.mdd.core.layout.MiFormLayout;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
@@ -85,7 +86,9 @@ public class FormLayoutBuilder {
             }
         }
 
-        stylist.setViewTitle(Helper.capitalize(modelType.getSimpleName()));
+        String viewTitle = Helper.capitalize(modelType.getSimpleName());
+        if (model != null && model instanceof PersistentPojo) viewTitle = ((PersistentPojo) model).getEntityName();
+        stylist.setViewTitle(viewTitle);
 
         List<FieldInterfaced> allFields = new ArrayList<>();
         for (FieldInterfaced field : params.getAllFields()) {

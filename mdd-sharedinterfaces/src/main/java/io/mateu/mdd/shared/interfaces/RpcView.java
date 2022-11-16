@@ -3,8 +3,10 @@ package io.mateu.mdd.shared.interfaces;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.ui.Grid;
 import io.mateu.mdd.shared.data.SumData;
+import io.mateu.mdd.shared.ui.MDDUIAccessor;
 
 import java.util.List;
+import java.util.Set;
 
 public interface RpcView<F, C> {
 
@@ -36,6 +38,10 @@ public interface RpcView<F, C> {
 
     default Object onSelect(C row) {
         return null;
+    }
+
+    default Set<C> getSelectedRows() {
+        return MDDUIAccessor.getSelectedRows();
     }
 
 }

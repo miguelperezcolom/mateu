@@ -130,6 +130,10 @@ public class MDDUIAccessor {
         if (get() != null) get().updateSession();
     }
 
+    public static Set getSelectedRows() {
+        return get() != null?get().getSelectedRows():null;
+    }
+
     public static String getPersistenceUnitName() {
         return getApp() != null?getApp().getPersistenceUnitName():"";
     }

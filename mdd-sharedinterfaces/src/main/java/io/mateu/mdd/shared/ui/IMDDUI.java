@@ -59,4 +59,6 @@ public interface IMDDUI {
     void setPendingResult(Object result);
 
     void updateSession();
+
+    Set getSelectedRows();
 }

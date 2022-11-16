@@ -135,7 +135,7 @@ public class ResultsComponent extends VerticalLayout {
             try {
                 setLastQuery(query);
                 found = listViewComponent.findAll(listViewComponent.getModelForSearchFilters(), query.getSortOrders(), query.getOffset(), query.getLimit());
-                return found.stream();
+                return found != null?found.stream():null;
             } catch (Throwable e) {
                 Notifier.alert(e);
                 return null;

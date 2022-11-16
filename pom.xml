@@ -4,16 +4,42 @@
 
   <groupId>io.mateu</groupId>
   <artifactId>mdd-parent</artifactId>
-  <version>0.0.15</version>
+  <version>1.1.9</version>
   <packaging>pom</packaging>
 
   <name>Mateu MDD</name>
+  <description>parent project</description>
 
   <url>http://maven.apache.org</url>
 
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>http://www.opensource.org/licenses/mit-license.php</url>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection>scm:git:git@github.com:miguelperezcolom/mateu-security.git</connection>
+    <developerConnection>scm:git:git@github.com:miguelperezcolom/mateu-security.git</developerConnection>
+    <url>https://github.com/miguelperezcolom/mateu-security</url>
+  </scm>
+
+  <developers>
+    <developer>
+      <id>miguelperezcolom</id>
+      <name>Miguel Pérez Colom</name>
+      <email>miguelperezcolom@gmail.com</email>
+      <url>https://github.com/miguelperezcolom/</url>
+      <organization>Mateu.io</organization>
+      <organizationUrl>http://mateu.io</organizationUrl>
+    </developer>
+  </developers>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <vaadin.version>8.11.2</vaadin.version>
+    <vaadin.version>8.14.3</vaadin.version>
+    <vaadin.plugin.version>8.14.3</vaadin.plugin.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
@@ -24,12 +50,11 @@
     <module>mdd-sharedinterfaces</module>
     <module>mdd-annotationprocessing</module>
     <module>mdd-core</module>
-    <module>mdd-core14</module>
     <module>mdd-jpa</module>
     <module>mdd-vaadin</module>
     <module>mdd-springboot</module>
-    <module>mdd-fakespringboot</module>
-      <module>mdd-fakeui</module>
+      <module>mdd-reflection</module>
+      <module>mdd-util</module>
   </modules>
 
   <dependencies>

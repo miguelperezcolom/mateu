@@ -132,4 +132,8 @@ public class MDDUIAccessor {
         return getApp() != null?getApp().getPersistenceUnitName():"";
     }
 
+    public static Set getSelectedRows() {
+        return get() != null?get().getSelectedRows():null;
+    }
+
 }

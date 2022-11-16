@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>mdd-parent</artifactId>
         <groupId>io.mateu</groupId>
-        <version>0.0.31</version>
+        <version>1.1.9</version>
+    </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>mdd-vaadin</artifactId>
@@ -43,8 +46,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <vaadin.version>8.11.2</vaadin.version>
-        <vaadin.plugin.version>8.11.2</vaadin.plugin.version>
         <jetty.plugin.version>9.4.19.v20190610</jetty.plugin.version>
         <!-- If there are no local customizations, this can also be "fetch" or "cdn" -->
         <vaadin.widgetset.mode>local</vaadin.widgetset.mode>
@@ -106,7 +107,7 @@
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>mdd-core</artifactId>
-            <version>0.0.24</version>
+            <version>${version}</version>
         </dependency>
 
         <dependency>
@@ -126,7 +127,7 @@
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>security-core</artifactId>
-            <version>1.0.20</version>
+            <version>1.0.21</version>
             <scope>test</scope>
         </dependency>
 
@@ -159,6 +160,64 @@
             <version>1.4.197</version>
             <scope>test</scope>
         </dependency>
+
+
+
+        <dependency>
+            <groupId>com.vaadin.tapio</groupId>
+            <artifactId>googlemaps</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.vaadin.patrik</groupId>
+            <artifactId>GridFastNavigation</artifactId>
+            <version>2.2.3</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.vaadin.addons</groupId>
+            <artifactId>vaadin-combobox-multiselect</artifactId>
+            <version>2.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.byteowls</groupId>
+            <artifactId>vaadin-chartjs</artifactId>
+            <version>1.3.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.vaadin.liveimageeditor</groupId>
+            <artifactId>live-image-editor</artifactId>
+            <version>2.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.vaadin.addons</groupId>
+            <artifactId>aceeditor</artifactId>
+            <version>0.8.15</version>
+        </dependency>
+
+        <dependency>
+            <groupId>eu.maxschuster</groupId>
+            <artifactId>vaadin-signaturefield</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.vaadin.hezamu</groupId>
+            <artifactId>canvas</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>grid-renderers-collection-addon</artifactId>
+            <version>2.6.1</version>
+        </dependency>
+
 
 
     </dependencies>

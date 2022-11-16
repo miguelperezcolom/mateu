@@ -10,6 +10,7 @@ import lombok.Setter;
 import org.example.domain.boundaries.common.entities.Person;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Getter
@@ -27,6 +28,11 @@ public class PersonsRpcView implements RpcCrudView<org.example.application.ui.si
     @Override
     public boolean isAddEnabled() {
         return true;
+    }
+
+    @Override
+    public void delete(Set<Row> selection) {
+
     }
 
     @Override
