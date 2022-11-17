@@ -3,6 +3,7 @@ package io.mateu.mdd.vaadin.controllers.thirdLevel;
 import com.vaadin.data.Binder;
 import com.vaadin.ui.Component;
 import io.mateu.mdd.core.interfaces.EntityProvider;
+import io.mateu.mdd.core.interfaces.ListView;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.UseLinkToListView;
 import io.mateu.mdd.shared.interfaces.RpcView;
@@ -186,7 +187,7 @@ public class FieldController extends Controller {
 
                 @Override
                 public void onGoBack(Object model) {
-                    if ((field.isAnnotationPresent(Embedded.class)) || (field.getDeclaringClass().isAnnotationPresent(Entity.class) && field.isAnnotationPresent(Convert.class))) {
+                    if (true || (field.isAnnotationPresent(Embedded.class)) || (field.getDeclaringClass().isAnnotationPresent(Entity.class) && field.isAnnotationPresent(Convert.class))) {
                         Object m = parentBinder.getBean();
                         try {
                             ReflectionHelper.setValue(field, m, model);
@@ -204,6 +205,11 @@ public class FieldController extends Controller {
     @Override
     public void apply(ViewStack stack, String path, String step, String cleanStep, String remaining) throws Throwable {
         if (!"".equals(cleanStep)) {
+
+            AbstractViewComponent topViewComponentInStack = stack.getLast().getViewComponent();
+            ListViewComponent listViewComponent = topViewComponentInStack instanceof ListViewComponent ? (ListViewComponent) topViewComponentInStack : null;
+            EditorViewComponent editorViewComponent = topViewComponentInStack instanceof EditorViewComponent ? (EditorViewComponent) topViewComponentInStack : null;
+
             if (listViewComponent != null) {
                 if ("filters".equals(step)) {
                     register(stack, path + "/" + step, new FiltersViewFlowComponent(listViewComponent));
@@ -230,7 +236,34 @@ public class FieldController extends Controller {
 
                     }
 
-                }            }
+                }
+            } else {
+
+                Object r = null;
+                Method method = null;
+                FieldInterfaced field = null;
+
+                if (editorViewComponent != null) {
+                    r = editorViewComponent.getModel();
+                    method = editorViewComponent.getMethod(step);
+                    field = editorViewComponent.getField(step);
+                }
+                if (r != null) {
+                    method = ReflectionHelper.getMethod(r.getClass(), step);
+                    field = ReflectionHelper.getFieldByName(r.getClass(), step.endsWith("_search") ? step.replaceAll("_search", "") : step);
+                }
+
+                if (method != null) {
+                    new MethodController(stack, path + "/" + step, editorViewComponent.getModel(), method).next(stack, path, step, remaining);
+                } else if (field != null) {
+                    if (step.endsWith("_search")) new FieldController(stack, path + "/" + step, field, editorViewComponent).next(stack, path, step, remaining);
+                    else new FieldController(stack, path + "/" + step, field, editorViewComponent).next(stack, path, step, remaining);
+
+                }
+
+            }
         }
+
+
     }
 }

@@ -30,6 +30,7 @@ import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.FareValue;
 import io.mateu.mdd.shared.interfaces.IResource;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.components.views.ListViewComponent;
 import io.mateu.mdd.vaadin.components.views.OwnedCollectionComponent;
 import io.mateu.mdd.vaadin.data.MDDBinder;
@@ -824,7 +825,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
     }
 
     private static void editar(MDDBinder binder, FieldInterfaced field, Object i, int indice) {
-        String state = MDDUIAccessor.getCurrentState();
+        String state = MateuUI.get().getStack().getState(MateuUI.get().getStack().getLast());
         if (!state.endsWith("/")) state += "/";
         state += field.getName();
 
