@@ -8,6 +8,7 @@ import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.UseLinkToListView;
 import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.components.app.views.secondLevel.FieldEditorComponent;
 import io.mateu.mdd.vaadin.components.app.views.secondLevel.FiltersViewFlowComponent;
 import io.mateu.mdd.vaadin.components.views.*;
@@ -120,7 +121,15 @@ public class FieldController extends Controller {
                 }
             } else if (ownedCollection) {
 
-                register(stack, path, new OwnedCollectionComponent(editorViewComponent.getBinder(), field, field.isAnnotationPresent(UseLinkToListView.class) ? -1 : 0));
+                int indice = 0;
+
+                Object pendingResult = MateuUI.get().getPendingResult();
+                if (pendingResult instanceof Integer) {
+                    indice = (int) pendingResult;
+                    MateuUI.get().setPendingResult(null);
+                }
+
+                register(stack, path, new OwnedCollectionComponent(editorViewComponent.getBinder(), field, field.isAnnotationPresent(UseLinkToListView.class) ? -1 : indice));
 
             } else if (field.isAnnotationPresent(OneToMany.class) || field.isAnnotationPresent(ManyToMany.class)) {
 

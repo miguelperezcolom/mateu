@@ -34,6 +34,7 @@ import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.components.views.ListViewComponent;
 import io.mateu.mdd.vaadin.components.views.OwnedCollectionComponent;
 import io.mateu.mdd.vaadin.data.MDDBinder;
+import io.mateu.mdd.vaadin.navigation.MateuViewProvider;
 import io.mateu.mdd.vaadin.util.VaadinHelper;
 import io.mateu.reflection.*;
 import io.mateu.util.Helper;
@@ -831,8 +832,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
         try {
             //todo: ver como resolvemso esto de una manera más elegante
-            OwnedCollectionComponent occ;
-            //MDDUI.get().getNavegador().getStack().push(state, occ = new OwnedCollectionComponent(binder, field, indice)).setOpenNewWindow(true);
+            MDDUIAccessor.setPendingResult(indice);
             MDDUIAccessor.goTo(state);
         } catch (Exception e1) {
             e1.printStackTrace();
