@@ -56,7 +56,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                                 "@JavaScript({\"https://code.jquery.com/jquery-3.4.1.min.js\"})\n" +
                                 //"@StyleSheet(\"https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css\")\n" +
                                 "@StyleSheet(\"https://use.fontawesome.com/releases/v5.14.0/js/all.js\")\n" +
-                                //"@JavaScript({\"/js/include.js\"})\n" +
+                                "@JavaScript({\"../../VAADIN/js/include.js\"})\n" +
                                 "@Viewport(\"width=device-width, initial-scale=1\")\n" +
                                 "@PushStateNavigation // para urls sin #!\n" +
                                 "//@Push\n" +
