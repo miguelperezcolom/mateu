@@ -2,9 +2,15 @@ package io.mateu.mdd.core.interfaces;
 
 import io.mateu.util.Helper;
 
-import java.io.IOException;
+public interface ReadOnlyPojo {
 
-public interface Loadable {
+    default boolean hasEditor() {
+        return false;
+    }
+
+    default Object getEditor() {
+        return null;
+    }
 
     default String getEntityName() {
         return Helper.capitalize(getClass().getSimpleName());
