@@ -1,0 +1,75 @@
+package com.example.demo.crud1;
+
+import io.mateu.mdd.core.interfaces.PersistentPojo;
+import io.mateu.mdd.shared.annotations.FieldGroup;
+import io.mateu.mdd.shared.annotations.Section;
+import lombok.Getter;
+import lombok.Setter;
+
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import java.io.IOException;
+import java.util.List;
+
+@Getter@Setter
+public class Editor implements PersistentPojo {
+
+    private String nombre;
+
+    @Max(message = "Hola caracola", value = 70)
+    private int edad;
+
+    private Representante representante;
+
+    private List<Direccion> direcciones;
+
+    @Section("S1")
+    private String nombre2;
+
+    @Min(value = 70)
+    private int edad2;
+
+    @Section("S2")
+    @FieldGroup("G2")
+    private String nombre3;
+
+    private int edad3;
+
+    public Editor() {
+
+    }
+
+    public Editor(Fila row) {
+        nombre = row.getNombre();
+        edad = row.getEdad();
+    }
+
+    @Override
+    public void save() throws IOException, Throwable {
+
+    }
+
+    @Override
+    public void load(Object id) throws Throwable {
+
+    }
+
+    public void delete() throws Throwable {
+
+    }
+
+    @Override
+    public Object getId() {
+        return nombre;
+    }
+
+    @Override
+    public String toString() {
+        return nombre;
+    }
+
+    @Override
+    public String getEntityName() {
+        return "Persona";
+    }
+}

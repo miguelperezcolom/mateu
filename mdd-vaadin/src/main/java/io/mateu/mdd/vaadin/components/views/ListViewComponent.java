@@ -138,7 +138,6 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             pdfButton.setCaptionAsHtml(true);
         }
 
-
         addComponentsAndExpand(resultsComponent = buildResultsComponent());
         return this;
     }
@@ -1321,6 +1320,9 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
     @Override
     public String getPageTitle() {
+        if (getModelType().isAnnotationPresent(Caption.class)) {
+            return ((Caption)getModelType().getAnnotation(Caption.class)).value();
+        }
         try {
             return super.getPageTitle() + toCountLabel(getModelForSearchFilters());
         } catch (Exception e) {

@@ -41,8 +41,8 @@
     <vaadin.version>8.14.3</vaadin.version>
     <vaadin.plugin.version>8.14.3</vaadin.plugin.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
   </properties>
 
   <modules>

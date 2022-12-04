@@ -87,6 +87,9 @@ public class FormLayoutBuilder {
         }
 
         String viewTitle = Helper.capitalize(modelType.getSimpleName());
+        if (modelType.isAnnotationPresent(Caption.class)) {
+            viewTitle = ((Caption)modelType.getAnnotation(Caption.class)).value();
+        }
         if (model != null && model instanceof PersistentPojo) viewTitle = ((PersistentPojo) model).getEntityName();
         stylist.setViewTitle(viewTitle);
 

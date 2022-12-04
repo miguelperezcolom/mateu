@@ -269,7 +269,7 @@ public class ResultsComponent extends VerticalLayout {
     }
 
     public void search(Object filters) throws Throwable {
-        boolean updateUrl = listViewComponent.getView().getWindowContainer() == null &&  EditorViewComponent.isModificado(lastSignature, EditorViewComponent.buildSignature(filters));
+        boolean updateUrl = listViewComponent.getView() != null && listViewComponent.getView().getWindowContainer() == null &&  EditorViewComponent.isModificado(lastSignature, EditorViewComponent.buildSignature(filters));
         lastSignature = EditorViewComponent.buildSignature(filters);
         this.filters = filters;
         grid.deselectAll();

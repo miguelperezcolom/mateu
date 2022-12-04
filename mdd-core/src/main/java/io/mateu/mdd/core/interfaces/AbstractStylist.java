@@ -1,6 +1,7 @@
 package io.mateu.mdd.core.interfaces;
 
 import com.google.common.base.Strings;
+import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.Css;
 import io.mateu.mdd.shared.annotations.EnabledIf;
 import io.mateu.mdd.shared.annotations.VisibleIf;
@@ -89,6 +90,7 @@ public abstract class AbstractStylist<S> {
 
     public String getViewTitle(boolean newRecord, S model) {
         if (model != null && !(model instanceof PersistentPojo || model.getClass().isAnnotationPresent(Entity.class))) {
+            if (model.getClass().isAnnotationPresent(Caption.class)) return model.getClass().getAnnotation(Caption.class).value();
             Method toString = ReflectionHelper.getMethod(model.getClass(), "toString");
             if (toString == null || toString.getDeclaringClass().equals(Object.class)) return  Helper.capitalize(model.getClass().getSimpleName());
             return "" + model;

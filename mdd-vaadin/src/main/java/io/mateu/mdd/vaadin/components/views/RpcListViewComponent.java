@@ -8,6 +8,7 @@ import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.core.interfaces.StepInterceptor;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.Action;
+import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.data.ChartData;
 import io.mateu.mdd.shared.data.SumData;
 import io.mateu.mdd.shared.interfaces.RpcView;
@@ -100,6 +101,7 @@ public class RpcListViewComponent extends ListViewComponent {
     @Override
     public String toString() {
         try {
+            if (rpcListViewClass.isAnnotationPresent(Caption.class)) return ((Caption)rpcListViewClass.getAnnotation(Caption.class)).value();
             if (!rpcListViewClass.getMethod("toString").getDeclaringClass().equals(Object.class)) {
                 return rpcListView.toString();
             }
