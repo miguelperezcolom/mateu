@@ -56,7 +56,7 @@
     <dependency>
       <groupId>io.mateu</groupId>
       <artifactId>mdd-core</artifactId>
-      <version>0.0.24</version>
+      <version>${version}</version>
     </dependency>
 
     <dependency>

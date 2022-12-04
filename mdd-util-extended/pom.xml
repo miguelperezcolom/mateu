@@ -56,8 +56,8 @@
 
     <dependency>
       <groupId>io.mateu</groupId>
-      <artifactId>util</artifactId>
-      <version>1.0.20</version>
+      <artifactId>mdd-util</artifactId>
+      <version>${version}</version>
     </dependency>
 
 
