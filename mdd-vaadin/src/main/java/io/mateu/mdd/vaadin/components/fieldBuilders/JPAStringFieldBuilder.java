@@ -230,7 +230,8 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
                     if (MDDUIAccessor.isMobile() || field.isAnnotationPresent(FullWidth.class)) tf.setWidth("100%");
                     else {
                         if (field.isAnnotationPresent(Width.class) && !Strings.isNullOrEmpty(field.getAnnotation(Width.class).value())) tf.setWidth(field.getAnnotation(Width.class).value());
-                        else tf.setWidth(370, Sizeable.Unit.PIXELS);
+                        else tf.setWidthFull();
+                        //else tf.setWidth(370, Sizeable.Unit.PIXELS);
                     }
                 } else {
                     if (MDDUIAccessor.isMobile() || field.isAnnotationPresent(FullWidth.class)) tf.setWidth("100%");

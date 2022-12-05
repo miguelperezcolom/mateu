@@ -19,21 +19,27 @@ public class Editor implements PersistentPojo {
     @Max(message = "Hola caracola", value = 70)
     private int edad;
 
+    @FieldGroup("Más campos")
+    private String nombre2;
+
+    @Max(message = "Hola caracola", value = 70)
+    private int edad2;
+
     private Representante representante;
 
     private List<Direccion> direcciones;
 
     @Section("S1")
-    private String nombre2;
+    private String nombre3;
 
     @Min(value = 70)
-    private int edad2;
+    private int edad3;
 
     @Section("S2")
     @FieldGroup("G2")
-    private String nombre3;
+    private String nombre4;
 
-    private int edad3;
+    private int edad4;
 
     public Editor() {
 

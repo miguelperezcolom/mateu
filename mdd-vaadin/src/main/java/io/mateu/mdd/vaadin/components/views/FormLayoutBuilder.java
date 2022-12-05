@@ -108,7 +108,7 @@ public class FormLayoutBuilder {
         params.setAllFields(allFields);
 
         Map<FieldInterfaced, Component> allFieldContainers = new HashMap<>();
-        TabSheet[] sectionTabSheet = new TabSheet[1];
+        VerticalLayout[] sectionTabSheet = new VerticalLayout[1];
 
         Pair<Component, AbstractStylist> r = build(t0, sectionTabSheet, allFieldContainers, editor, contentContainer, binders, modelTypes, models, componentsToLookForErrors, params, attachedActions, stylist);
 
@@ -129,9 +129,9 @@ public class FormLayoutBuilder {
         if (sectionTabSheet[0] != null) {
             String sid = MateuUI.get().getPendingFocusedSectionId();
             if (!Strings.isNullOrEmpty(sid)) {
-                sectionTabSheet[0].setSelectedTab(Integer.parseInt(sid));
+                //sectionTabSheet[0].setSelectedTab(Integer.parseInt(sid));
             } else if (editor != null && !Strings.isNullOrEmpty(editor.getFocusedSectionId())) {
-                sectionTabSheet[0].setSelectedTab(Integer.parseInt(editor.getFocusedSectionId()));
+                //sectionTabSheet[0].setSelectedTab(Integer.parseInt(editor.getFocusedSectionId()));
             }
         }
 
@@ -227,7 +227,7 @@ public class FormLayoutBuilder {
         }
     }
 
-    public Pair<Component, AbstractStylist> build(long t0, TabSheet[] sectionTabSheets, Map<FieldInterfaced, Component> allFieldContainers, EditorViewComponent editor, Layout contentContainer, Map<FieldInterfaced, MDDBinder> binders, Map<FieldInterfaced, Class> modelTypes, Map<FieldInterfaced, Object> models, List<Component> componentsToLookForErrors, FormLayoutBuilderParameters params, Map<String, List<AbstractAction>> attachedActions, AbstractStylist stylist) {
+    public Pair<Component, AbstractStylist> build(long t0, VerticalLayout[] sectionTabSheets, Map<FieldInterfaced, Component> allFieldContainers, EditorViewComponent editor, Layout contentContainer, Map<FieldInterfaced, MDDBinder> binders, Map<FieldInterfaced, Class> modelTypes, Map<FieldInterfaced, Object> models, List<Component> componentsToLookForErrors, FormLayoutBuilderParameters params, Map<String, List<AbstractAction>> attachedActions, AbstractStylist stylist) {
 
         stylist.setUp(params.getAllFields());
 
@@ -235,7 +235,7 @@ public class FormLayoutBuilder {
 
         JPAOutputFieldBuilder ofb = new JPAOutputFieldBuilder();
 
-        TabSheet sectionTabSheet = null;
+        VerticalLayout sectionTabSheet = null;
 
         if (params.isCreateSections()) {
             List<FormLayoutSection> sections = new ArrayList<>();
@@ -267,14 +267,16 @@ public class FormLayoutBuilder {
                 if ("general".equalsIgnoreCase(s.getCaption())) s.setCaption(null);
             } else if (sections.size() > 1) {
                 if (false && !MDDUIAccessor.isMobile() && editor != null) editor.setSizeFull();
-                sectionTabSheet = new TabSheet();
+                sectionTabSheet = new VerticalLayout();
+
                 if (editor != null) {
-                    TabSheet finalSectionTabSheet = sectionTabSheet;
-                    sectionTabSheet.addSelectedTabChangeListener(e -> editor.setFocusedSection(finalSectionTabSheet, e.getTabSheet().getSelectedTab()));
+                    VerticalLayout finalSectionTabSheet = sectionTabSheet;
+                    //sectionTabSheet.addSelectedTabChangeListener(e -> editor.setFocusedSection(finalSectionTabSheet, e.getTabSheet().getSelectedTab()));
                 }
                 //tabSheet.setSizeFull();
                 if (contentContainer instanceof VerticalLayout) ((VerticalLayout) contentContainer).addComponent(sectionTabSheet);
                 else contentContainer.addComponent(sectionTabSheet);
+                sectionTabSheet.addStyleName(CSS.NOPADDING);
                 //contentContainer.setSizeFull();
                 realContainer = sectionTabSheet;
             }
@@ -283,6 +285,7 @@ public class FormLayoutBuilder {
             Component finalRealContainer = realContainer;
             sections.forEach(s -> {
                 Layout form = (MDDUIAccessor.isMobile())?new VerticalLayout():new MiFormLayout();
+                form.addStyleName("section");
                 if (false) {
                     form.setSizeUndefined();
                     form.addStyleName("section");
@@ -480,7 +483,9 @@ public class FormLayoutBuilder {
                 if (group == null) {
                     group = groupsByCaption.get("Field Group " + posGroup);
                 }
-                if (group == null || (group.getCaption().startsWith("Field Group ") && group.getFields().size() >= 3)) {
+                if (group == null
+                //        || (group.getCaption().startsWith("Field Group ") && group.getFields().size() >= 3)
+                ) {
                     groups.add(group = new FormLayoutGroup("Field Group " + (group == null?posGroup:++posGroup)));
                     groupsByCaption.put(group.getCaption(), group);
                 }
@@ -489,13 +494,17 @@ public class FormLayoutBuilder {
 
             CssLayout css;
             contentContainer.addComponent(css = new CssLayout());
+            css.setWidthFull();
 
             groups.forEach(g -> {
                 VerticalLayout l;
                 css.addComponent(l = new VerticalLayout());
-                l.setSizeUndefined();
+                l.setWidthFull();
+                l.addStyleName(CSS.NOPADDING);
 
-                if ((editor != null && !editor.esForm()) || !g.getCaption().startsWith("Field Group ")) {
+                if ((editor != null
+                //        && !editor.esForm()
+                ) || !g.getCaption().startsWith("Field Group ")) {
                     l.addStyleName("fieldgroup");
                     if (!Strings.isNullOrEmpty(g.getCaption())) {
                         Label c;
@@ -605,6 +614,8 @@ public class FormLayoutBuilder {
                     wrapper.setWidth(f.isAnnotationPresent(Width.class)?f.getAnnotation(Width.class).value():"100%");
                     wrapper.addStyleName(CSS.NOPADDING);
                     wrapper.addStyleName("widthwrapper");
+                } else {
+                    wrapper.setWidthFull();
                 }
 
             }
@@ -652,7 +663,7 @@ public class FormLayoutBuilder {
 
             if (c != null) componentsToLookForErrors.add(c);
 
-            if (c != null && RpcView.class.isAssignableFrom(f.getType())) {
+            if (c != null && RpcView.class.isAssignableFrom(f.getType()) && c instanceof ListViewComponent) {
                 editor.getEmbeddedListViewComponents().put(f, (ListViewComponent) c);
             }
 

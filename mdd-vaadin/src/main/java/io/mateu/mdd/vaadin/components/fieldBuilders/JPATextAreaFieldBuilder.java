@@ -46,7 +46,8 @@ public class JPATextAreaFieldBuilder extends JPAStringFieldBuilder {
 
             com.vaadin.ui.TextArea tf;
             l.addComponent(tf = new com.vaadin.ui.TextArea());
-            tf.setWidth("370px");
+            //tf.setWidth("370px");
+            tf.setWidthFull();
 
             addErrorHandler(field, tf);
 

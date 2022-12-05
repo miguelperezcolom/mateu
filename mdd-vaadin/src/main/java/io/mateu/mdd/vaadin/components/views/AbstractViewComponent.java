@@ -9,6 +9,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
+import io.mateu.mdd.shared.annotations.KPI;
 import io.mateu.mdd.vaadin.actions.AcctionRunner;
 import io.mateu.mdd.vaadin.components.ComponentWrapper;
 import io.mateu.mdd.vaadin.components.HomeComponent;
@@ -45,6 +46,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     private Component header;
     private Label titleLabel;
     private Label subtitleLabel;
+    private CssLayout actionsContainer;
     private CssLayout kpisContainer;
     private View view;
     protected CssLayout bar;
@@ -115,16 +117,20 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
     private Component createHeader() {
         HorizontalLayout l = new HorizontalLayout();
+        l.setSpacing(false);
 
         l.addStyleName("viewHeader");
+        l.setWidthFull();
 
-        l.addComponent(createTitleLabel());
+        Component left;
+        l.addComponent(left = createTitleLabel());
 
         hiddens = new HorizontalLayout();
         hiddens.addStyleName("hidden");
+        hiddens.setWidth("0px");
 
         l.addComponent(hiddens);
-
+        l.setExpandRatio(left, 1.0f);
 
         return l;
     }
@@ -165,6 +171,10 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
         HorizontalLayout hl = new HorizontalLayout();
         hl.addStyleName(CSS.NOPADDING);
+        hl.setWidthFull();
+
+        actionsContainer = new CssLayout();
+        actionsContainer.addStyleName(CSS.NOPADDING);
 
         if (mustCreateHeader()) {
             iconLabel = new Label("", ContentMode.HTML);
@@ -178,15 +188,21 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
             VerticalLayout titles = new VerticalLayout(titleLabel, subtitleLabel);
             titles.addStyleName(CSS.NOPADDING);
+            titles.setWidthUndefined();
 
 
             if (false && getIcon() != null) iconLabel.setValue(getIcon().getHtml());
             else iconLabel.setVisible(false);
 
-            hl.addComponents(iconLabel, titles);
-        }
 
-        hl.addComponent(kpisContainer);
+            hl.addComponents(iconLabel, titles, kpisContainer, actionsContainer);
+            hl.setExpandRatio(actionsContainer, 1);
+        } else {
+            hl.addComponents(actionsContainer, kpisContainer);
+            hl.setExpandRatio(actionsContainer, 1);
+        }
+        hl.setComponentAlignment(actionsContainer, Alignment.TOP_RIGHT);
+        hl.setComponentAlignment(kpisContainer, Alignment.TOP_RIGHT);
 
 
         return hl;
@@ -244,7 +260,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     }
 
     public Layout getActionsContainer() {
-        return this;
+        return esForm()?this:actionsContainer;
     }
 
     public A buildIfNeeded() {
@@ -260,6 +276,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
     public A build() throws Exception {
         addStyleName("viewcomponent");
+        setWidthFull();
 
         addComponent(header = createHeader());
 

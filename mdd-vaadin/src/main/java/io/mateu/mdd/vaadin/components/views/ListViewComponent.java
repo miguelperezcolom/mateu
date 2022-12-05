@@ -126,25 +126,37 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
         super.build();
 
-        if (!(this instanceof JPACollectionFieldListViewComponent)) addComponent(filtersComponent = new FiltersComponent(this));
+        VerticalLayout section = new VerticalLayout();
+        section.addStyleName("section");
+        section.addStyleName(CSS.NOPADDING);
+
+        VerticalLayout fieldGroup = new VerticalLayout();
+        fieldGroup.addStyleName("fieldgroup");
+        fieldGroup.addStyleName(CSS.NOPADDING);
+
+        HorizontalLayout fieldGroupHeader;
+        fieldGroup.addComponent(fieldGroupHeader = new HorizontalLayout(countLabel = new Label("No search done")));
+        fieldGroup.setWidthFull();
+        fieldGroupHeader.setWidthFull();
+        countLabel.addStyleName(ValoTheme.LABEL_H4);
+        countLabel.addStyleName("countlabel");
+        fieldGroupHeader.addStyleName("fieldgroupheader");
+        countLabel.setWidthUndefined();
+
+        if (!(this instanceof JPACollectionFieldListViewComponent)) fieldGroup.addComponent(filtersComponent = new FiltersComponent(this));
 
         //setSizeFull();
 
-        if (!(this instanceof JPACollectionFieldListViewComponent)) {
-            addComponent(matchesComponent = new HorizontalLayout(excelButton = new Button("<i class=\"fas fa-file-excel\"></i>", e -> excel()), pdfButton = new Button("<i class=\"fas fa-file-pdf\"></i>", e -> pdf()), countLabel = new Label()));
+        if (!(this instanceof JPACollectionFieldListViewComponent) && !(this instanceof RpcListViewComponent)) {
+            fieldGroup.addComponent(matchesComponent = new HorizontalLayout(excelButton = new Button("<i class=\"fas fa-file-excel\"></i>", e -> excel()), pdfButton = new Button("<i class=\"fas fa-file-pdf\"></i>", e -> pdf())));
             matchesComponent.addStyleName(CSS.NOPADDING);
-            countLabel.addStyleName("resultsmessage");
-
-            excelButton.addStyleName(ValoTheme.BUTTON_LINK);
-            excelButton.addStyleName("botondeicono");
-            excelButton.setCaptionAsHtml(true);
-
-            pdfButton.addStyleName(ValoTheme.BUTTON_LINK);
-            pdfButton.addStyleName("botondeicono");
-            pdfButton.setCaptionAsHtml(true);
         }
 
-        addComponentsAndExpand(resultsComponent = buildResultsComponent());
+        fieldGroup.addComponentsAndExpand(resultsComponent = buildResultsComponent(fieldGroupHeader));
+
+        section.addComponents(fieldGroup);
+        addComponents(section);
+
         return this;
     }
 
@@ -165,6 +177,11 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         }    }
 
     private ResultsComponent buildResultsComponent() {
+        return buildResultsComponent(null);
+    }
+
+    private ResultsComponent buildResultsComponent(HorizontalLayout countLabel) {
+        if (countLabel != null) matchesComponent = countLabel;
         return new ResultsComponent(this, matchesComponent);
     }
 

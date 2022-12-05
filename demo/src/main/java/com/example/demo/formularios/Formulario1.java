@@ -2,6 +2,8 @@ package com.example.demo.formularios;
 
 import com.example.demo.crud1.Crud2;
 import io.mateu.mdd.shared.annotations.Caption;
+import io.mateu.mdd.shared.annotations.FieldGroup;
+import io.mateu.mdd.shared.annotations.Section;
 import io.mateu.mdd.shared.annotations.Subtitle;
 import lombok.Data;
 
@@ -12,10 +14,14 @@ import java.util.concurrent.Callable;
 @Subtitle("Here is an overview of our insurance products")
 public class Formulario1 implements Callable<String> {
 
+    @FieldGroup("All fields")
     private String name;
 
     private int age;
 
+
+    @Section("")
+    @FieldGroup("Children")
     private Crud2 crud;
 
     public String toString() {

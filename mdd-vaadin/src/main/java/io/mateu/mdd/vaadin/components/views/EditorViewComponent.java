@@ -394,6 +394,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         return s;
     }
 
+
     private void build(Object model) {
 
         if (isResource(model)) {

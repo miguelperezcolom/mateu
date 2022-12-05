@@ -184,7 +184,7 @@ public class ResultsComponent extends VerticalLayout {
         HorizontalLayout hl = new HorizontalLayout();
         hl.addStyleName(CSS.NOPADDING);
         hl.addStyleName("listsummaryline");
-        if (matchesComponent != null) hl.addComponent(matchesComponent);
+        if (false && matchesComponent != null) hl.addComponent(matchesComponent);
         hl.addComponent(labelSelection);
         hl.setDefaultComponentAlignment(Alignment.TOP_LEFT);
 
