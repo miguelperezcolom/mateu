@@ -60,6 +60,9 @@ public class MainComponent extends VerticalLayout {
             footers.setResponsive(true);
             footers.setWidthFull();
             addComponent(footers);
+            if (!app.getUi().getClass().isAnnotationPresent(FullWidth.class)) {
+                footers.addStyleName("container");
+            }
         }
 
         if (app.isForm()) headers.setVisible(false);

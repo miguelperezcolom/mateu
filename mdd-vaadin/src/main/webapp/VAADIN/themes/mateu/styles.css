@@ -16181,6 +16181,28 @@ div.v-layout.v-horizontal.v-widget {
 	display: none !important;
 }
 
+.mateu .maincomponent .mateu-footers.container {
+	max-width: 990px;
+	display: block;
+	margin: 0 auto;
+}
+
+.mateu .maincomponent .mateu-footers[width-range~="0-600px"] .mateu-footer {
+	display: none !important;
+}
+
+.mateu .maincomponent .mateu-footers[width-range~="0-600px"] .mateu-footer-mobile {
+	display: inherit !important;
+}
+
+.mateu .maincomponent .mateu-footers[width-range~="601px-"] .mateu-footer {
+	display: inherit !important;
+}
+
+.mateu .maincomponent .mateu-footers[width-range~="601px-"] .mateu-footer-mobile {
+	display: none !important;
+}
+
 .mateu .maincomponent .contenido[width-range~="0-990px"].container {
 	max-width: 100%;
 	display: block;
