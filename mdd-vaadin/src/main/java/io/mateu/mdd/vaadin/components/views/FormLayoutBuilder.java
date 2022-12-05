@@ -21,6 +21,7 @@ import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.shared.FormLayoutBuilderParameters;
 import io.mateu.mdd.shared.annotations.*;
+import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.actions.AcctionRunner;
@@ -258,14 +259,14 @@ public class FormLayoutBuilder {
                 FormLayoutSection s = sections.get(0);
                 if ("general".equalsIgnoreCase(s.getCaption())) s.setCaption(null);
             } else if (sections.size() > 1) {
-                if (!MDDUIAccessor.isMobile() && editor != null) editor.setSizeFull();
+                if (false && !MDDUIAccessor.isMobile() && editor != null) editor.setSizeFull();
                 sectionTabSheet = new TabSheet();
                 if (editor != null) {
                     TabSheet finalSectionTabSheet = sectionTabSheet;
                     sectionTabSheet.addSelectedTabChangeListener(e -> editor.setFocusedSection(finalSectionTabSheet, e.getTabSheet().getSelectedTab()));
                 }
                 //tabSheet.setSizeFull();
-                if (contentContainer instanceof VerticalLayout) ((VerticalLayout) contentContainer).addComponentsAndExpand(sectionTabSheet);
+                if (contentContainer instanceof VerticalLayout) ((VerticalLayout) contentContainer).addComponent(sectionTabSheet);
                 else contentContainer.addComponent(sectionTabSheet);
                 //contentContainer.setSizeFull();
                 realContainer = sectionTabSheet;
@@ -455,7 +456,7 @@ public class FormLayoutBuilder {
             _buildAndAddFields(editor, ofb, models, contentContainer, binders, validators, stylist, allFieldContainers, fields, forSearchFilters, forSearchFiltersExtended, createTabs, componentsToLookForErrors, attachedActions);
         } else {
 
-            contentContainer.setSizeFull();
+            if (false) contentContainer.setSizeFull();
 
             List<FormLayoutGroup> groups = new ArrayList<>();
             Map<String, FormLayoutGroup> groupsByCaption = new HashMap<>();
@@ -643,6 +644,10 @@ public class FormLayoutBuilder {
             }
 
             if (c != null) componentsToLookForErrors.add(c);
+
+            if (c != null && RpcView.class.isAssignableFrom(f.getType())) {
+                editor.getEmbeddedListViewComponents().put(f, (ListViewComponent) c);
+            }
 
             if (!forSearchFilters || forSearchFiltersExtended) if (wrapper != null && wrapper.getComponentCount() > 0) currentContentContainer.addComponent(currentFieldContainer);
 

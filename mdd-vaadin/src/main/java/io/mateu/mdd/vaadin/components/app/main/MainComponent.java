@@ -1,10 +1,12 @@
 package io.mateu.mdd.vaadin.components.app.main;
 
 import com.vaadin.server.Responsive;
+import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.app.MateuApp;
+import io.mateu.mdd.core.interfaces.HasFooter;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.FullWidth;
 import io.mateu.mdd.shared.interfaces.App;
@@ -21,7 +23,7 @@ public class MainComponent extends VerticalLayout {
 
         this.ui = ui;
 
-        setSizeFull();
+        //setSizeFull();
         setSpacing(false);
         addStyleName("maincomponent");
 
@@ -34,7 +36,7 @@ public class MainComponent extends VerticalLayout {
         headers.setWidthFull();
 
         panel = new CssLayout();
-        panel.setSizeFull();
+        //panel.setSizeFull();
         panel.addStyleName("contenido");
         panel.setResponsive(true);
 
@@ -49,6 +51,16 @@ public class MainComponent extends VerticalLayout {
 
         addComponents(headers, panel);
         setExpandRatio(panel, 1);
+
+        if (app.getUi() instanceof HasFooter) {
+            Component footer = ((HasFooter) app.getUi()).getFooterComponent();
+            footer.addStyleName("mateu-footer");
+            CssLayout footers = new CssLayout(footer);
+            footers.addStyleName("mateu-footers");
+            footers.setResponsive(true);
+            footers.setWidthFull();
+            addComponent(footers);
+        }
 
         if (app.isForm()) headers.setVisible(false);
 

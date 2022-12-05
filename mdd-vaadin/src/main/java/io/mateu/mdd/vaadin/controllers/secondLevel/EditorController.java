@@ -6,6 +6,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.annotations.MateuUI;
 import io.mateu.mdd.core.app.MDDOpenEditorAction;
+import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.components.ComponentWrapper;
@@ -19,6 +20,7 @@ import io.mateu.mdd.vaadin.components.MDDViewComponentCreator;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.reflection.ReflectionHelper;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,11 +45,23 @@ public class EditorController extends Controller {
         register(stack, path, editorViewComponent);
     }
 
-    public EditorController(ViewStack stack, String path, ListViewComponent listViewComponent, Object bean) {
+    public EditorController(ViewStack stack, String path, ListViewComponent listViewComponent, Object bean) throws Throwable {
+        if (bean == null) {
+            if (PersistentPojo.class.isAssignableFrom(listViewComponent.getModelType())) {
+                bean = ReflectionHelper.newInstance(listViewComponent.getModelType());
+                ((PersistentPojo) bean).load(getLastStep(path));
+            }
+        }
         List<FieldInterfaced> visibleFields = ReflectionHelper.getAllEditableFilteredFields(bean.getClass(), listViewComponent.getEditableFieldsFilter(), null);
         List<FieldInterfaced> hiddenFields = new ArrayList<>();
         editorViewComponent = new EditorViewComponent(listViewComponent, bean, visibleFields, hiddenFields);
         register(stack, path, editorViewComponent);
+    }
+
+    private String getLastStep(String path) {
+        String last = path;
+        if (last.contains("/")) last = path.substring(path.lastIndexOf("/") + 1);
+        return last;
     }
 
     @Override

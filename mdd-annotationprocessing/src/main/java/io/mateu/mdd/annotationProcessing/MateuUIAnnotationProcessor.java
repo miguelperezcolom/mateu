@@ -160,67 +160,68 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                         out.println("}");
                     }
 
-                    builderFile = processingEnv.getFiler().createSourceFile(pkgName + "." + simpleClassName + "ServletFilter");
-                    try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
-                        // writing generated file to out …
+                    if (false) {
+                        builderFile = processingEnv.getFiler().createSourceFile(pkgName + "." + simpleClassName + "ServletFilter");
+                        try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
+                            // writing generated file to out …
 
-                        out.println("package " + pkgName + ";");
+                            out.println("package " + pkgName + ";");
 
-                        out.println("");
+                            out.println("");
 
-                        out.println("import io.mateu.security.web.MateuSecurityFilter;");
-                        out.println("import javax.servlet.annotation.WebFilter;" +
-                                "import javax.servlet.Filter;");
+                            out.println("import io.mateu.security.web.MateuSecurityFilter;");
+                            out.println("import javax.servlet.annotation.WebFilter;" +
+                                    "import javax.servlet.Filter;");
 
-                        out.println("import org.springframework.core.annotation.Order;\n" +
-                                "import org.springframework.stereotype.Component;");
+                            out.println("import org.springframework.core.annotation.Order;\n" +
+                                    "import org.springframework.stereotype.Component;");
 
 
-                        out.println();
+                            out.println();
 
-                        String privatePath = e.getAnnotation(MateuUI.class).path();
-                        if (!privatePath.endsWith("/")) privatePath += "/";
-                        privatePath += "private/*";
+                            String privatePath = e.getAnnotation(MateuUI.class).path();
+                            if (!privatePath.endsWith("/")) privatePath += "/";
+                            privatePath += "private/*";
 
-                        out.println("@WebFilter(\"" + privatePath + "\")" +
-                                "public class " + simpleClassName + "ServletFilter extends MateuSecurityFilter implements Filter {");
-                        out.println("");
-                        out.println("}");
+                            out.println("@WebFilter(\"" + privatePath + "\")" +
+                                    "public class " + simpleClassName + "ServletFilter extends MateuSecurityFilter implements Filter {");
+                            out.println("");
+                            out.println("}");
+                        }
+
+                        builderFile = processingEnv.getFiler().createSourceFile(pkgName + "." + simpleClassName + "ServletFilterRegistrationBean");
+                        try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
+                            // writing generated file to out …
+
+                            out.println("package " + pkgName + ";");
+
+                            out.println("");
+
+                            out.println("import org.springframework.boot.web.servlet.FilterRegistrationBean;\n" +
+                                    "import org.springframework.boot.web.servlet.ServletRegistrationBean;\n" +
+                                    "import org.springframework.stereotype.Service;");
+
+                            out.println();
+
+                            String privatePath = e.getAnnotation(MateuUI.class).path();
+                            if (!privatePath.endsWith("/")) privatePath += "/";
+                            privatePath += "private/*";
+
+                            out.println("@Service\n" +
+                                    "public class " + simpleClassName + "ServletFilterRegistrationBean extends FilterRegistrationBean {");
+                            out.println("");
+                            out.println("public " + simpleClassName + "ServletFilterRegistrationBean() {\n" +
+                                    "        super();\n" +
+                                    "        setFilter(new " + simpleClassName + "ServletFilter());\n" +
+                                    "        addUrlPatterns(\"" + privatePath + "\");\n" +
+                                    "        setName(\"" + simpleClassName + "Filter\");\n" +
+                                    "        setOrder(1);\n" +
+                                    "    }");
+                            out.println();
+                            out.println("}");
+                        }
+
                     }
-
-
-                    builderFile = processingEnv.getFiler().createSourceFile(pkgName + "." + simpleClassName + "ServletFilterRegistrationBean");
-                    try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
-                        // writing generated file to out …
-
-                        out.println("package " + pkgName + ";");
-
-                        out.println("");
-
-                        out.println("import org.springframework.boot.web.servlet.FilterRegistrationBean;\n" +
-                                "import org.springframework.boot.web.servlet.ServletRegistrationBean;\n" +
-                                "import org.springframework.stereotype.Service;");
-
-                        out.println();
-
-                        String privatePath = e.getAnnotation(MateuUI.class).path();
-                        if (!privatePath.endsWith("/")) privatePath += "/";
-                        privatePath += "private/*";
-
-                        out.println("@Service\n" +
-                                "public class " + simpleClassName + "ServletFilterRegistrationBean extends FilterRegistrationBean {");
-                        out.println("");
-                        out.println("public " + simpleClassName + "ServletFilterRegistrationBean() {\n" +
-                                "        super();\n" +
-                                "        setFilter(new " + simpleClassName + "ServletFilter());\n" +
-                                "        addUrlPatterns(\"" + privatePath + "\");\n" +
-                                "        setName(\"" + simpleClassName + "Filter\");\n" +
-                                "        setOrder(1);\n" +
-                                "    }");
-                        out.println();
-                        out.println("}");
-                    }
-
 
                 } catch (IOException ex) {
                     ex.printStackTrace();

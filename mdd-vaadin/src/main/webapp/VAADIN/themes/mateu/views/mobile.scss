@@ -63,6 +63,31 @@
   }
 
 
+  .mateu-footers.container {
+    max-width: 990px;
+    display: block;
+    margin: 0 auto;
+  }
+
+  .mateu-footers[width-range~="0-600px"] {
+    .mateu-footer {
+      display: none !important;
+    }
+    .mateu-footer-mobile {
+      display: inherit !important;
+    }
+  }
+
+  .mateu-footers[width-range~="601px-"] {
+    .mateu-footer {
+      display: inherit !important;
+    }
+    .mateu-footer-mobile {
+      display: none !important;
+    }
+  }
+
+
   .contenido[width-range~="0-990px"].container {
     max-width: 100%;
     display: block;

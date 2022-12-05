@@ -46,6 +46,8 @@ public interface IMDDUI {
 
     void goSibling(Object siblingId);
 
+    void open(FieldInterfaced field, Method m, Set selection);
+
     void open(Method m, Set selection);
 
     void open(Method m, Object result);

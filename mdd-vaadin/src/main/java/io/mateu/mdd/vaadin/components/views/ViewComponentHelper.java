@@ -10,6 +10,7 @@ import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.interfaces.RpcView;
+import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
 import io.mateu.util.notification.Notifier;
@@ -26,6 +27,10 @@ import java.util.*;
 
 public class ViewComponentHelper {
     public static AbstractAction createAction(Method m, AbstractViewComponent viewComponent) {
+        return createAction(null, m, viewComponent);
+    }
+
+    public static AbstractAction createAction(FieldInterfaced field, Method m, AbstractViewComponent viewComponent) {
 
         AbstractAction action = viewComponent.getActionByMethod(m);
 
@@ -94,7 +99,7 @@ public class ViewComponentHelper {
                                     if (needsSelection && selection.size() == 0) throw new Exception("You must first select some records.");
 
                                     if (!allInjectable) { // si necesita rellenar parámetros
-                                        MDDUIAccessor.open(m, selection);
+                                        MDDUIAccessor.open(field, m, selection);
                                     } else { // si no tiene parámetros o si todos son inyectables
 
                                         try {

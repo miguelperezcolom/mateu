@@ -161,6 +161,8 @@ public class FieldController extends Controller {
             return listViewComponent = MDDViewComponentCreator.createSearcherComponent(parentBinder, field);
         } else if (ReflectionHelper.isBasico(field.getType())) {
             return new FieldEditorComponent(parentBinder, field);
+        } else if (RpcView.class.isAssignableFrom(field.getType())) {
+            return new RpcViewFieldViewComponent(field, editorViewComponent);
         } else {
             Object o = ReflectionHelper.getValue(field, parentBinder.getBean());
             boolean add = o == null;
@@ -218,6 +220,11 @@ public class FieldController extends Controller {
             AbstractViewComponent topViewComponentInStack = stack.getLast().getViewComponent();
             ListViewComponent listViewComponent = topViewComponentInStack instanceof ListViewComponent ? (ListViewComponent) topViewComponentInStack : null;
             EditorViewComponent editorViewComponent = topViewComponentInStack instanceof EditorViewComponent ? (EditorViewComponent) topViewComponentInStack : null;
+            if (RpcView.class.isAssignableFrom(field.getType())) {
+                RpcViewFieldViewComponent rpcViewFieldViewComponent = (RpcViewFieldViewComponent) topViewComponentInStack;
+                editorViewComponent = rpcViewFieldViewComponent.getEditorViewComponent();
+                listViewComponent = editorViewComponent.getEmbeddedListViewComponents().get(field);
+            }
 
             if (listViewComponent != null) {
                 if ("filters".equals(step)) {
@@ -238,7 +245,9 @@ public class FieldController extends Controller {
                             Class type = listViewComponent.getModelType();
                             new EditorController(stack, path + "/" + step, listViewComponent, JPAHelper.find(type, ReflectionHelper.toId(type, step))).next(stack, path, step, remaining);
                         } else {
-                            Object o = ((RpcListViewComponent) listViewComponent).onEdit(step);
+                            Object o = MateuUI.get().getPendingResult();
+                            MateuUI.get().setPendingResult(null);
+                            if (o == null) ((RpcListViewComponent) listViewComponent).onEdit(step);
                             if (o instanceof RpcView) new ListViewComponentController(stack, path + "/" + step, new RpcListViewComponent((RpcView) o)).next(stack, path, step, remaining);
                             else if (!(o instanceof Component)) new EditorController(stack, path + "/" + step, o).next(stack, path, step, remaining);
                         }

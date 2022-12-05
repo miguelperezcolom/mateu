@@ -54,12 +54,6 @@
       <version>${version}</version>
     </dependency>
 
-    <dependency>
-      <groupId>io.mateu</groupId>
-      <artifactId>security-core</artifactId>
-      <version>1.0.21</version>
-    </dependency>
-
 
     <dependency>
       <groupId>org.hibernate.validator</groupId>

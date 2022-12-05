@@ -28,6 +28,7 @@ import io.mateu.mdd.vaadin.components.views.EditorListener;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
 import io.mateu.mdd.vaadin.components.views.ListViewComponent;
 import io.mateu.mdd.vaadin.components.views.OwnedCollectionComponent;
+import io.mateu.mdd.vaadin.controllers.thirdLevel.FieldController;
 import io.mateu.mdd.vaadin.navigation.MateuViewProvider;
 import io.mateu.mdd.vaadin.navigation.View;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
@@ -286,6 +287,7 @@ public class MateuUI extends UI implements IMDDUI {
         View l = stack.getLast();
 
         if (stack.size() > 1) {
+
             View v = stack.get(stack.size() - 2);
             String u = stack.getState(v);
             if (v.getViewComponent() instanceof ListViewComponent) u = ((ListViewComponent) v.getViewComponent()).getUrl();
@@ -294,8 +296,18 @@ public class MateuUI extends UI implements IMDDUI {
                 l.getWindowContainer().close();
                 stack.pop();
                 viewProvider.setLastView(stack.getLast());
+                if (FieldController.class.equals(v.getController().getClass())) {
+                    stack.pop();
+                    viewProvider.setLastView(stack.getLast());
+                }
                 //viewProvider.setCurrentPath(stack.size() > 0?stack.getState(stack.getLast()):null); //todo: pendiente ver que pasa con las windows
-            } else MDDUIAccessor.goTo(u);
+            } else {
+                if (FieldController.class.equals(v.getController().getClass())) {
+                    v = stack.get(stack.size() - 3);
+                    u = stack.getState(v);
+                }
+                MDDUIAccessor.goTo(u);
+            }
         } else {
             String u = stack.getState(l);
             if (!Strings.isNullOrEmpty(u) && u.contains("/")) {
@@ -337,6 +349,17 @@ public class MateuUI extends UI implements IMDDUI {
         } else {
             yesGoSibling(id);
         }
+    }
+
+    @Override
+    public void open(FieldInterfaced field, Method m, Set selection) {
+        setPendingSelection(selection);
+        go(getFieldPrefix(field) + m.getName());
+    }
+
+    public String getFieldPrefix(FieldInterfaced field) {
+        if (field != null) return field.getName() + "/";
+        return "";
     }
 
     @Override

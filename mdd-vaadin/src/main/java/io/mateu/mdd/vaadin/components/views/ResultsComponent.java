@@ -126,7 +126,7 @@ public class ResultsComponent extends VerticalLayout {
         listViewComponent.decorateGridMain(grid);
 
 
-        grid.setSizeFull();
+        //grid.setSizeFull();
 
         if (listViewComponent.getFrozenColumnCount() > 0) grid.setFrozenColumnCount(listViewComponent.getFrozenColumnCount());
 
@@ -152,6 +152,8 @@ public class ResultsComponent extends VerticalLayout {
         grid.setDataProvider(dataProvider);
         grid.setColumnReorderingAllowed(true);
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
+        grid.setHeight("400px");
+        grid.setWidthFull();
 
 
         grid.addSelectionListener(new SelectionListener() {
@@ -188,7 +190,7 @@ public class ResultsComponent extends VerticalLayout {
 
         addComponent(hl);
 
-        addComponentsAndExpand(grid);
+        addComponent(grid);
 
     }
 

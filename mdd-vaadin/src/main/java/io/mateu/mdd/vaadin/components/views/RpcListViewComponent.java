@@ -12,6 +12,7 @@ import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.data.ChartData;
 import io.mateu.mdd.shared.data.SumData;
 import io.mateu.mdd.shared.interfaces.RpcView;
+import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
@@ -36,6 +37,11 @@ public class RpcListViewComponent extends ListViewComponent {
         return rpcListView;
     }
 
+    public RpcListViewComponent(FieldInterfaced field) throws InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
+        this(field.getType());
+        this.field = field;
+    }
+
 
     public RpcListViewComponent(RpcView rpcListView) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         this.rpcListViewClass = rpcListView.getClass();
@@ -49,7 +55,7 @@ public class RpcListViewComponent extends ListViewComponent {
                 if (rpcListView.isEditHandled()) {
                     try {
                         MateuUI.get().setPendingResult(rpcListView.onEdit(id));
-                        MDDUIAccessor.go("" + id);
+                        MDDUIAccessor.go(getFieldPrefix() + id);
                     } catch (Throwable throwable) {
                         Notifier.alert(throwable);
                     }
@@ -60,7 +66,7 @@ public class RpcListViewComponent extends ListViewComponent {
             public void onSelect(Object id) {
                 if (rpcListView.isSelectHandled()) {
                     MateuUI.get().setPendingResult(rpcListView.onSelect(id));
-                    MDDUIAccessor.go("" + id);
+                    MDDUIAccessor.go(getFieldPrefix() + id);
                 }
             }
         });
@@ -79,12 +85,12 @@ public class RpcListViewComponent extends ListViewComponent {
                 if (rpcListView.isEditHandled()) {
                     try {
                         MateuUI.get().setPendingResult(rpcListView.onEdit(id));
-                        MDDUIAccessor.go("" + id);
+                        MDDUIAccessor.go(getFieldPrefix() + id);
                     } catch (Throwable throwable) {
                         Notifier.alert(throwable);
                     }
                 } else {
-                    MDDUIAccessor.go("" + id);
+                    MDDUIAccessor.go(getFieldPrefix() + id);
                 }
             }
 
@@ -92,7 +98,7 @@ public class RpcListViewComponent extends ListViewComponent {
             public void onSelect(Object id) {
                 if (rpcListView.isSelectHandled()) {
                     MateuUI.get().setPendingResult(rpcListView.onSelect(id));
-                    MDDUIAccessor.go("" + id);
+                    MDDUIAccessor.go(getFieldPrefix() + id);
                 }
             }
         });
@@ -162,7 +168,7 @@ public class RpcListViewComponent extends ListViewComponent {
             return a.getAnnotation(Action.class).order() - b.getAnnotation(Action.class).order();
         });
 
-        ms.forEach(m -> l.add(ViewComponentHelper.createAction(m, this)));
+        ms.forEach(m -> l.add(ViewComponentHelper.createAction(field, m, this)));
 
         return l;
     }
@@ -246,6 +252,7 @@ public class RpcListViewComponent extends ListViewComponent {
     }
 
     public Object onEdit(String step) throws Throwable {
+        if (resultsComponent == null) return null;
         if (getRpcListView() instanceof StepInterceptor) return ((StepInterceptor) getRpcListView()).onEdit(step);
         Object row = resultsComponent.getRow(step);
         return getRpcListView().onEdit(row);

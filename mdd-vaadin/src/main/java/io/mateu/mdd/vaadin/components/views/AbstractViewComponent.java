@@ -108,6 +108,10 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
         return false;
     }
 
+    public boolean mustCreateHeader() {
+        return true;
+    }
+
     private Component createHeader() {
         HorizontalLayout l = new HorizontalLayout();
 
@@ -153,22 +157,29 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
     private Component createTitleLabel() {
 
-        iconLabel = new Label("", ContentMode.HTML);
-        iconLabel.addStyleName("viewIcon");
-
-        titleLabel = new Label("", ContentMode.HTML);
-        titleLabel.addStyleName("viewTitle");
-
         kpisContainer = new CssLayout();
         kpisContainer.addStyleName(CSS.NOPADDING);
         kpisContainer.addStyleName("kpisContainer");
         kpisContainer.setSizeUndefined();
 
-        if (getIcon() != null) iconLabel.setValue(getIcon().getHtml());
-        else iconLabel.setVisible(false);
-
-        HorizontalLayout hl = new HorizontalLayout(iconLabel, titleLabel, kpisContainer);
+        HorizontalLayout hl = new HorizontalLayout();
         hl.addStyleName(CSS.NOPADDING);
+
+        if (mustCreateHeader()) {
+            iconLabel = new Label("", ContentMode.HTML);
+            iconLabel.addStyleName("viewIcon");
+
+            titleLabel = new Label("", ContentMode.HTML);
+            titleLabel.addStyleName("viewTitle");
+
+            if (getIcon() != null) iconLabel.setValue(getIcon().getHtml());
+            else iconLabel.setVisible(false);
+
+            hl.addComponents(iconLabel, titleLabel);
+        }
+
+        hl.addComponent(kpisContainer);
+
 
         return hl;
     }

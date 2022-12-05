@@ -2,15 +2,19 @@ package com.example.demo;
 
 import com.example.demo.crud1.Crud1;
 import com.example.demo.crud1.Crud2;
+import com.example.demo.crud1.Editor;
 import com.example.demo.formularios.Formulario1;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
 import io.mateu.mdd.core.annotations.MateuUI;
+import io.mateu.mdd.core.interfaces.HasFooter;
 import io.mateu.mdd.shared.annotations.MenuOption;
 
 @MateuUI(path = "",
         favIcon = "https://www.wefox.com/favicons/favicon-32x32.png",
         logo = "https://www.wefox.com/favicons/favicon-32x32.png",
         stylesheets = "estilo.css")
-public class MyUI {
+public class MyUI implements HasFooter {
 
     @MenuOption
     private Crud1 crud1;
@@ -21,4 +25,11 @@ public class MyUI {
     @MenuOption
     private Formulario1 formulario1;
 
+    @MenuOption
+    private Editor editor;
+
+    @Override
+    public Component getFooterComponent() {
+        return new Label("footer!");
+    }
 }

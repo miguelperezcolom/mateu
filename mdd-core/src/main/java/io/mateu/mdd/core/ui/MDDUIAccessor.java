@@ -102,6 +102,10 @@ public class MDDUIAccessor {
         if (get() != null) get().goSibling(siblingId);
     }
 
+    public static void open(FieldInterfaced field, Method m, Set selection) {
+        if (get() != null) get().open(field, m, selection);
+    }
+
     public static void open(Method m, Set selection) {
         if (get() != null) get().open(m, selection);
     }

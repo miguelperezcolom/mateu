@@ -91,6 +91,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     private Button pdfButton;
     private HorizontalLayout matchesComponent;
     private String baseUrl;
+    protected FieldInterfaced field;
 
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
@@ -114,6 +115,11 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     @Override
+    public boolean mustCreateHeader() {
+        return field == null;
+    }
+
+    @Override
     public ListViewComponent build() throws Exception {
 
         addStyleName("listviewcomponent");
@@ -122,7 +128,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
         if (!(this instanceof JPACollectionFieldListViewComponent)) addComponent(filtersComponent = new FiltersComponent(this));
 
-        setSizeFull();
+        //setSizeFull();
 
         if (!(this instanceof JPACollectionFieldListViewComponent)) {
             addComponent(matchesComponent = new HorizontalLayout(excelButton = new Button("<i class=\"fas fa-file-excel\"></i>", e -> excel()), pdfButton = new Button("<i class=\"fas fa-file-pdf\"></i>", e -> pdf()), countLabel = new Label()));
@@ -1629,7 +1635,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             i.addStyleName(ValoTheme.BUTTON_QUIET);
             i.addClickListener(e -> {
                 try {
-                    MDDUIAccessor.go("new");
+                    MDDUIAccessor.go(getFieldPrefix() + "new");
                 } catch (Throwable throwable) {
                     Notifier.alert(throwable);
                 }
@@ -1662,6 +1668,11 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         }
 
         super.addViewActionsMenuItems(bar);
+    }
+
+    public String getFieldPrefix() {
+        if (field != null) return field.getName() + "/";
+        return "";
     }
 
     protected void delete(Set selection) {

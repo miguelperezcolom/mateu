@@ -67,7 +67,7 @@ public class RpcViewFieldBuilder extends AbstractFieldBuilder {
         Component r = new Label("Failed to build the list");
 
         try {
-            r = new RpcListViewComponent(field.getType()).build();
+            r = new RpcListViewComponent(field).build();
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         } catch (InstantiationException e) {

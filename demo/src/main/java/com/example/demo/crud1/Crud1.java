@@ -12,7 +12,7 @@ import java.util.Set;
 
 @Component
 @Getter@Setter
-public class Crud1 implements RpcCrudView<Formulario, Fila, Editor> {
+public class Crud1 implements RpcCrudView<Formulario, Fila, Editor1> {
 
     @Override
     public String toString() {
@@ -32,7 +32,7 @@ public class Crud1 implements RpcCrudView<Formulario, Fila, Editor> {
     @Override
     public List<Fila> rpc(Formulario filters, List<QuerySortOrder> sortOrders, int offset, int limit) throws Throwable {
         System.out.println("nombre = " + filters.getNombre());
-        Thread.sleep(5000);
+        Thread.sleep(2000);
         return new ArrayList<>();
     }
 

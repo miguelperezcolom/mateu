@@ -40,12 +40,46 @@ public class Crud2 implements RpcCrudView<Crud2, Fila, Editor> {
         return List.of(
                 new Fila("Mateu", 14)
                 , new Fila("Antonia", 46)
+                , new Fila("Mateu", 14)
+                , new Fila("Antonia", 46)
+                , new Fila("Mateu", 14)
+                , new Fila("Antonia", 46)
+                , new Fila("Mateu", 14)
+                , new Fila("Antonia", 46)
+                , new Fila("Mateu", 14)
+                , new Fila("Antonia", 46)
+                , new Fila("Mateu", 14)
+                , new Fila("Antonia", 46)
+                , new Fila("Mateu", 14)
+                , new Fila("Antonia", 46)
+                , new Fila("Mateu", 14)
+                , new Fila("Antonia", 46)
+                , new Fila("Mateu", 14)
+                , new Fila("Antonia", 46)
+                , new Fila("Mateu", 14)
+                , new Fila("Antonia", 46)
+                , new Fila("Mateu", 14)
+                , new Fila("Antonia", 46)
+                , new Fila("Mateu", 14)
+                , new Fila("Antonia", 46)
+                , new Fila("Mateu", 14)
+                , new Fila("Antonia", 46)
+                , new Fila("Mateu", 14)
+                , new Fila("Antonia", 46)
+                , new Fila("Mateu", 14)
+                , new Fila("Antonia", 46)
+                , new Fila("Mateu", 14)
+                , new Fila("Antonia", 46)
+                , new Fila("Mateu", 14)
+                , new Fila("Antonia", 46)
+                , new Fila("Mateu", 14)
+                , new Fila("Antonia", 46)
         );
     }
 
     @Override
     public int gatherCount(Crud2 filters) throws Throwable {
-        return 2;
+        return 36;
     }
 
     @Override

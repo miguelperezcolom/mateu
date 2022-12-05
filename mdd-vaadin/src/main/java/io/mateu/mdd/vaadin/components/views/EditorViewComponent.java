@@ -62,6 +62,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private FieldInterfaced field = null;
     private Map<HasValue, List<Validator>> validators = new HashMap<>();
     List<Component> componentsToLookForErrors = new ArrayList<>();
+    private Map<FieldInterfaced, ListViewComponent> embeddedListViewComponents = new HashMap<>();
 
     protected boolean newRecord;
     private Class modelType;
@@ -92,6 +93,10 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private TabSheet sectionTabSheet;
     private Component selectedTab;
     public String _defaultAction;
+
+    public Map<FieldInterfaced, ListViewComponent> getEmbeddedListViewComponents() {
+        return embeddedListViewComponents;
+    }
 
     public Runnable getBeforeOpen() {
         return beforeOpen;
