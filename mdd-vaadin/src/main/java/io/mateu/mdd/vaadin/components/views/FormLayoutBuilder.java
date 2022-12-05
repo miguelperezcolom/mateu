@@ -94,6 +94,13 @@ public class FormLayoutBuilder {
         if (model != null && model instanceof PersistentPojo) viewTitle = ((PersistentPojo) model).getEntityName();
         stylist.setViewTitle(viewTitle);
 
+        if (modelType.isAnnotationPresent(Subtitle.class)) {
+            String viewSubtitle = ((Subtitle)modelType.getAnnotation(Subtitle.class)).value();
+            stylist.setViewSubtitle(viewSubtitle);
+        }
+
+
+
         List<FieldInterfaced> allFields = new ArrayList<>();
         for (FieldInterfaced field : params.getAllFields()) {
             add(field, binder, modelType, model, allFields, binders, modelTypes, models);

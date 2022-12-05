@@ -1,10 +1,7 @@
 package io.mateu.mdd.vaadin.components.app.main;
 
 import com.vaadin.server.Responsive;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CssLayout;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import io.mateu.mdd.core.app.MateuApp;
 import io.mateu.mdd.core.interfaces.HasFooter;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
@@ -58,8 +55,9 @@ public class MainComponent extends VerticalLayout {
             CssLayout footers = new CssLayout(footer);
             footers.addStyleName("mateu-footers");
             footers.setResponsive(true);
-            footers.setWidthFull();
+            footers.setSizeFull();
             addComponent(footers);
+            setComponentAlignment(footers, Alignment.MIDDLE_CENTER);
             if (!app.getUi().getClass().isAnnotationPresent(FullWidth.class)) {
                 footers.addStyleName("container");
             }

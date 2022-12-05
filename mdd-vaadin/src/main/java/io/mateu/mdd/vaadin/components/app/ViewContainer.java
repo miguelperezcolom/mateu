@@ -16,14 +16,4 @@ public class ViewContainer extends VerticalLayout {
         else setSizeFull();
     }
 
-
-    public void updateTitle(String title) {
-        log.debug("updateTitle(" + title + ")");
-        if (getComponentCount() > 0) {
-            Component c = getComponent(0);
-            if (c instanceof ComponentWrapper) {
-                ((ComponentWrapper) c).updateViewTitle(title);
-            }
-        }
-    }
 }

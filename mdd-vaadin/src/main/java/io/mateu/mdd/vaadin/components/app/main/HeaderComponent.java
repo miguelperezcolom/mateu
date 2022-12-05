@@ -39,6 +39,7 @@ public class HeaderComponent extends HorizontalLayout {
         this.home = home;
         setWidthFull();
         addStyleName("mateu-header");
+        setHeight("80px");
 
         refresh(false);
     }
@@ -63,7 +64,7 @@ public class HeaderComponent extends HorizontalLayout {
             }
         }
         addComponent(i = new Image(null, resource));
-        i.setHeight("37px");
+        i.setHeight("28px");
         i.addClickListener(e -> MDDUIAccessor.goTo(""));
         i.addStyleName("clickable");
         addComponent(positionLayout = new HorizontalLayout(labelPosition = new Label(app.getName())));
@@ -101,6 +102,9 @@ public class HeaderComponent extends HorizontalLayout {
             } else addComponent(new Label(" "));
         }
 
+        setComponentAlignment(i, Alignment.MIDDLE_LEFT);
+        setComponentAlignment(positionLayout, Alignment.MIDDLE_LEFT);
+        setComponentAlignment(barContainer, Alignment.MIDDLE_CENTER);
         setExpandRatio(barContainer, 1);
 
         List<IArea> areas = Arrays.asList(app.getAreas()).stream().filter(a -> (!isPrivate && a.isPublicAccess()) || (isPrivate && !a.isPublicAccess())).collect(Collectors.toList());

@@ -3,7 +3,6 @@ package io.mateu.mdd.vaadin.components.views;
 import com.google.common.base.Strings;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.server.Resource;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
@@ -45,6 +44,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
     private Component header;
     private Label titleLabel;
+    private Label subtitleLabel;
     private CssLayout kpisContainer;
     private View view;
     protected CssLayout bar;
@@ -54,6 +54,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     protected Map<String, List<Component>> menuItemsByGroup = new HashMap<>();
     protected List<String> menuItemIdsUnseen = new ArrayList<>();
     private String title;
+    private String subtitle;
     private HorizontalLayout hiddens;
     private boolean backable;
     private boolean built;
@@ -172,10 +173,17 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
             titleLabel = new Label("", ContentMode.HTML);
             titleLabel.addStyleName("viewTitle");
 
-            if (getIcon() != null) iconLabel.setValue(getIcon().getHtml());
+            subtitleLabel = new Label("", ContentMode.HTML);
+            subtitleLabel.addStyleName("viewSubtitle");
+
+            VerticalLayout titles = new VerticalLayout(titleLabel, subtitleLabel);
+            titles.addStyleName(CSS.NOPADDING);
+
+
+            if (false && getIcon() != null) iconLabel.setValue(getIcon().getHtml());
             else iconLabel.setVisible(false);
 
-            hl.addComponents(iconLabel, titleLabel);
+            hl.addComponents(iconLabel, titles);
         }
 
         hl.addComponent(kpisContainer);
@@ -185,8 +193,9 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     }
 
 
-    public void updateViewTitle(String newTitle) {
+    public void updateViewTitle(String newTitle, String newSubtitle) {
         title = newTitle;
+        subtitle = newSubtitle;
         updatePageTitle();
     }
 
@@ -194,8 +203,11 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
         if (titleLabel != null) {
             titleLabel.setValue(getTitle());
         }
+        if (subtitleLabel != null) {
+            subtitleLabel.setValue(getSubtitle());
+        }
         if (iconLabel != null) {
-            if (getIcon() != null) {
+            if (false && getIcon() != null) {
                 iconLabel.setValue(getIcon().getHtml());
                 iconLabel.setVisible(true);
             } else iconLabel.setVisible(false);
@@ -208,6 +220,10 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
     public String getTitle() {
         return title != null?title:toString();
+    }
+
+    public String getSubtitle() {
+        return subtitle != null?subtitle:"";
     }
 
     public String getPageTitle() {

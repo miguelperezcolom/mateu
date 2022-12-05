@@ -76,8 +76,8 @@ public class View implements com.vaadin.navigator.View {
 
 
 
-    public void updateViewTitle(String newTitle) {
-        viewComponent.updateViewTitle(newTitle);
+    public void updateViewTitle(String newTitle, String subtitle) {
+        viewComponent.updateViewTitle(newTitle, subtitle);
     }
 
 

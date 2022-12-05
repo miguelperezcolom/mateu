@@ -20,6 +20,7 @@ import java.util.*;
 public abstract class AbstractStylist<S> {
 
     private String viewTitle;
+    private String viewSubtitle;
 
     private Map<FieldInterfaced, List<String>> styles = new HashMap<>();
 
@@ -83,6 +84,9 @@ public abstract class AbstractStylist<S> {
         return l;
     };
 
+    public String getViewSubtitle() {
+        return viewSubtitle;
+    }
 
     public String getViewTitle() {
         return Helper.pluralize(Helper.capitalize(viewTitle));
@@ -132,6 +136,9 @@ public abstract class AbstractStylist<S> {
         this.viewTitle = viewTitle;
     }
 
+    public void setViewSubtitle(String viewSubtitle) {
+        this.viewSubtitle = viewSubtitle;
+    }
     public boolean isEnabled(FieldInterfaced f, Object model) {
         Method m = ReflectionHelper.getMethod(getStylistClass(), ReflectionHelper.getGetter(f).replaceFirst("get", "is") + "Enabled");
         if (m != null) {

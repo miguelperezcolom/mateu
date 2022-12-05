@@ -1,6 +1,94 @@
-body .mateu .maincomponent .mateu-header {
-    background-color: #501e96;
+@font-face {
+    font-family: "Open Sans";
+    src:  url(/VAADIN/Kyn-Regular.woff2) format('woff2');
+    font-weight: 300;
+    font-style: normal;
 }
+
+@font-face {
+    font-family: "Open Sans";
+    src:  url(/VAADIN/Kyn-Semibold.woff2) format('woff2');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Open Sans";
+    src:  url(/VAADIN/Kyn-Bold.woff2) format('woff2');
+    font-weight: 600;
+    font-style: normal;
+}
+
+body .v-app.mateu.myuiui {
+    background-color: #f9f8fa;
+}
+
+body .mateu .maincomponent .mateu-headers.container {
+    max-width: none;
+    box-shadow: 0 1px 0 0 #e9e6ed;
+    z-index: 3;
+}
+
+body .mateu .maincomponent .v-slot-mateu-headers {
+    /* border-bottom: 1px solid slategrey; */
+    background-color: white;
+    box-shadow: 0 1px 3px rgb(51 55 66 / 6%), 0 2px 6px rgb(51 55 66 / 2%);
+}
+
+body .mateu .maincomponent .v-slot-mateu-headers:after {
+    box-sizing: border-box;
+}
+
+body .mateu .maincomponent .mateu-header {
+    background-color: white;
+    height: 80px;
+}
+
+body .mateu .maincomponent .mateu-header * {
+    color: #501e96;
+}
+
+body .mateu .maincomponent .mateu-header .v-menubar, .mateu .maincomponent .mateu-header .v-button {
+    margin-top: unset;
+}
+
+body .mateu .maincomponent .v-slot-contenido {
+    margin-top: 49px;
+    margin-bottom: 49px;
+    min-height: calc(100vh - 260px);
+}
+
+body .mateu .maincomponent .v-slot-mateu-footers {
+    box-shadow: 0 1px 3px rgb(51 55 66 / 6%), 0 2px 6px rgb(51 55 66 / 2%);
+    background-color: white;
+    width:100%;
+    height:80px;
+}
+
+body .mateu .maincomponent .mateu-footers.container {
+    display: inline-block;
+}
+
+body .mateu .maincomponent .mateu-footer a, body .mateu .maincomponent .mateu-footer .v-label {
+    background-color: white;
+    padding: 10px;
+}
+
+body .mateu .maincomponent .mateu-footer .footer {
+    max-width: 1400px;
+}
+
+
+body .mateu .maincomponent .viewTitle {
+    --font-size: 1.5rem;
+    --line-height: 1.3333333333;
+    font-weight: 700;
+    font-size: var(--font-size);
+    line-height: var(--line-height);
+    color: rgba(0,0,0,.85);
+}
+
+
 
 
 body .mateu .v-ui .v-loading-indicator {
