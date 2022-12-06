@@ -3,9 +3,7 @@ package io.mateu.mdd.vaadin.components.fieldBuilders;
 import com.vaadin.data.*;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.shared.ui.ValueChangeMode;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Layout;
-import com.vaadin.ui.TextField;
+import com.vaadin.ui.*;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.shared.data.FareValue;
@@ -24,7 +22,7 @@ public class FareValueFieldBuilder extends AbstractFieldBuilder {
     }
 
     @Override
-    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
+    public Component build(VerticalLayout fieldGroup, HorizontalLayout fieldGroupHeader, FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
 
         TextField tf;
         container.addComponent(tf = new TextField());

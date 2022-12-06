@@ -4,7 +4,9 @@ import com.vaadin.data.Binder;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Layout;
+import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
@@ -28,7 +30,7 @@ public class JPALiteralFieldBuilder extends AbstractFieldBuilder {
     }
 
     @Override
-    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
+    public Component build(VerticalLayout fieldGroup, HorizontalLayout fieldGroupHeader, FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
 
         LiteralComponent c;
         container.addComponent(c = new LiteralComponent(field, binder));

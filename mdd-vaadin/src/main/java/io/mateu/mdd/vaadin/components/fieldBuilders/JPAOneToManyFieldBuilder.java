@@ -69,7 +69,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
     }
 
     @Override
-    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
+    public Component build(VerticalLayout fieldGroup, HorizontalLayout fieldGroupHeader, FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
 
         Component r = null;
 
@@ -85,7 +85,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             if (Map.class.isAssignableFrom(field.getType())) {
 
 
-                r = buildMap(field, object, container, binder, validators, stylist, allFieldContainers, forSearchFilter, owned, attachedActions);
+                r = buildMap(fieldGroup, fieldGroupHeader, field, object, container, binder, validators, stylist, allFieldContainers, forSearchFilter, owned, attachedActions);
 
             } else {
 
@@ -1112,7 +1112,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
     }
 
-    private Component buildMap(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, boolean owned, Map<String, List<AbstractAction>> attachedActions) {
+    private Component buildMap(VerticalLayout fieldGroup, HorizontalLayout fieldGroupHeader, FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, boolean owned, Map<String, List<AbstractAction>> attachedActions) {
         Class keyType = ReflectionHelper.getGenericClass(field, Map.class, "K");
         Class valueType = ReflectionHelper.getGenericClass(field, Map.class, "V");
 
@@ -1168,7 +1168,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         Layout finalHl = lx;
         auxFields.forEach(f -> {
             AbstractFieldBuilder b = (AbstractFieldBuilder) MDDUIAccessor.getFieldBuilder(f);
-            if (b != null) b.build(f, m, finalHl, auxbinder, null, null, null, false, attachedActions);
+            if (b != null) b.build(fieldGroup, fieldGroupHeader, f, m, finalHl, auxbinder, null, null, null, false, attachedActions);
         });
 
         vl.addComponent(lx);

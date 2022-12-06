@@ -115,7 +115,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
         return true;
     }
 
-    private Component createHeader() {
+    protected Component createHeader() {
         HorizontalLayout l = new HorizontalLayout();
         l.setSpacing(false);
 

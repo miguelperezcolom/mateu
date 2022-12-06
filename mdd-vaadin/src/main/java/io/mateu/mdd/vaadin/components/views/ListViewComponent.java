@@ -92,6 +92,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     private HorizontalLayout matchesComponent;
     private String baseUrl;
     protected FieldInterfaced field;
+    private HorizontalLayout fieldGroup;
 
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
@@ -120,27 +121,52 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     @Override
+    public Layout getActionsContainer() {
+        if (fieldGroup != null) {
+            HorizontalLayout l;
+            fieldGroup.addComponent(l = new HorizontalLayout());
+            l.addStyleName(CSS.NOPADDING);
+            fieldGroup.setExpandRatio(l, 1);
+            fieldGroup.setComponentAlignment(l, Alignment.MIDDLE_RIGHT);
+            return l;
+        }
+        return super.getActionsContainer();
+    }
+
+    @Override
     public ListViewComponent build() throws Exception {
+        return build(null, null);
+    }
+
+    public ListViewComponent build(VerticalLayout fieldGroup, HorizontalLayout fieldGroupHeader) throws Exception {
+
+        this.fieldGroup = fieldGroupHeader;
 
         addStyleName("listviewcomponent");
 
         super.build();
 
-        VerticalLayout section = new VerticalLayout();
-        section.addStyleName("section");
-        section.addStyleName(CSS.NOPADDING);
+        if (fieldGroup == null) {
+            VerticalLayout section = new VerticalLayout();
+            section.addStyleName("section");
+            section.addStyleName(CSS.NOPADDING);
 
-        VerticalLayout fieldGroup = new VerticalLayout();
-        fieldGroup.addStyleName("fieldgroup");
-        fieldGroup.addStyleName(CSS.NOPADDING);
+            fieldGroup = new VerticalLayout();
+            fieldGroup.addStyleName("fieldgroup");
+            fieldGroup.addStyleName(CSS.NOPADDING);
 
-        HorizontalLayout fieldGroupHeader;
-        fieldGroup.addComponent(fieldGroupHeader = new HorizontalLayout(countLabel = new Label("No search done")));
-        fieldGroup.setWidthFull();
-        fieldGroupHeader.setWidthFull();
+            fieldGroup.addComponent(fieldGroupHeader = new HorizontalLayout());
+            fieldGroup.setWidthFull();
+            fieldGroupHeader.setWidthFull();
+            fieldGroupHeader.addStyleName("fieldgroupheader");
+
+            section.addComponents(fieldGroup);
+            addComponents(section);
+        }
+
+        fieldGroupHeader.addComponent(countLabel = new Label("No search done"), fieldGroupHeader.getComponentCount() > 0? 1 : 0);
         countLabel.addStyleName(ValoTheme.LABEL_H4);
         countLabel.addStyleName("countlabel");
-        fieldGroupHeader.addStyleName("fieldgroupheader");
         countLabel.setWidthUndefined();
 
         if (!(this instanceof JPACollectionFieldListViewComponent)) fieldGroup.addComponent(filtersComponent = new FiltersComponent(this));
@@ -152,10 +178,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             matchesComponent.addStyleName(CSS.NOPADDING);
         }
 
-        fieldGroup.addComponentsAndExpand(resultsComponent = buildResultsComponent(fieldGroupHeader));
-
-        section.addComponents(fieldGroup);
-        addComponents(section);
+        fieldGroup.addComponents(resultsComponent = buildResultsComponent(fieldGroupHeader));
 
         return this;
     }

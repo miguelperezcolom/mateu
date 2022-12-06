@@ -63,11 +63,11 @@ public class RpcViewFieldBuilder extends AbstractFieldBuilder {
     }
 
     @Override
-    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
+    public Component build(VerticalLayout fieldGroup, HorizontalLayout fieldGroupHeader, FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
         Component r = new Label("Failed to build the list");
 
         try {
-            r = new RpcListViewComponent(field).build();
+            r = new RpcListViewComponent(field).build(fieldGroup, fieldGroupHeader);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         } catch (InstantiationException e) {
@@ -82,7 +82,7 @@ public class RpcViewFieldBuilder extends AbstractFieldBuilder {
 
         if (allFieldContainers != null) allFieldContainers.put(field, r);
 
-        r.setCaption(ReflectionHelper.getCaption(field));
+       if (!field.isAnnotationPresent(FieldGroup.class)) r.setCaption(ReflectionHelper.getCaption(field));
 
         addComponent(container, r, attachedActions.get(field.getName()));
 

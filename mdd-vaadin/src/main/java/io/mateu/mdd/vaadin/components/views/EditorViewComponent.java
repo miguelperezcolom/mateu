@@ -499,7 +499,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             });
              */
 
-            if (getView() != null) getView().updateViewTitle(toString(), "");
+            if (getView() != null) getView().updateViewTitle(getTitle(), getSubtitle());
 
             if (links != null) {
                 if (links.getComponentCount() == 0) links.setVisible(false);
@@ -726,7 +726,18 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
     @Override
     public String toString() {
+        return getTitle();
+    }
+
+    @Override
+    public String getTitle() {
         String t = (stylist != null)?stylist.getViewTitle(newRecord, getModel()):"Not yet";
+        return t;
+    }
+
+    @Override
+    public String getSubtitle() {
+        String t = (stylist != null)?stylist.getViewSubtitle():"Not yet";
         return t;
     }
 
@@ -1421,7 +1432,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                     load(modelId);
                 }
 
-                if (getView() != null) getView().updateViewTitle(toString(), "");
+                if (getView() != null) getView().updateViewTitle(getTitle(), getSubtitle());
 
             } catch (OptimisticLockException ole) {
                 VaadinHelper.confirm("Some objects have been modified by someone else. You should refresh and recover any modification you have done. Do you want to go ahead and overwrite instead?", () -> {

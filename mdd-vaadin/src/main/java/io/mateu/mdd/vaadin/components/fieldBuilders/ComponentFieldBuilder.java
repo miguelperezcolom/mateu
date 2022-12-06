@@ -3,10 +3,7 @@ package io.mateu.mdd.vaadin.components.fieldBuilders;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
 import com.vaadin.shared.Registration;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Composite;
-import com.vaadin.ui.Layout;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.shared.CSS;
@@ -25,7 +22,7 @@ public class ComponentFieldBuilder extends AbstractFieldBuilder {
     }
 
     @Override
-    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
+    public Component build(VerticalLayout fieldGroup, HorizontalLayout fieldGroupHeader, FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
 
         VerticalLayout tf;
         container.addComponent(tf = new VerticalLayout());

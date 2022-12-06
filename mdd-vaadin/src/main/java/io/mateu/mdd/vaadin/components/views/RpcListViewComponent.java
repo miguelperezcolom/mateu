@@ -9,6 +9,7 @@ import io.mateu.mdd.core.interfaces.StepInterceptor;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.Caption;
+import io.mateu.mdd.shared.annotations.Subtitle;
 import io.mateu.mdd.shared.data.ChartData;
 import io.mateu.mdd.shared.data.SumData;
 import io.mateu.mdd.shared.interfaces.RpcView;
@@ -106,6 +107,11 @@ public class RpcListViewComponent extends ListViewComponent {
 
     @Override
     public String toString() {
+        return getTitle();
+    }
+
+    @Override
+    public String getTitle() {
         try {
             if (rpcListViewClass.isAnnotationPresent(Caption.class)) return ((Caption)rpcListViewClass.getAnnotation(Caption.class)).value();
             if (!rpcListViewClass.getMethod("toString").getDeclaringClass().equals(Object.class)) {
@@ -114,6 +120,13 @@ public class RpcListViewComponent extends ListViewComponent {
         } catch (NoSuchMethodException e) {
         }
         return Helper.pluralize(Helper.capitalize(rpcListViewClass.getSimpleName()));
+    }
+
+    @Override
+    public String getSubtitle() {
+        String subtitle ="";
+        if (rpcListViewClass.isAnnotationPresent(Subtitle.class)) subtitle = ((Subtitle)rpcListViewClass.getAnnotation(Subtitle.class)).value();
+        return subtitle;
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.vaadin.data.provider.QuerySortOrder;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.Caption;
+import io.mateu.mdd.shared.annotations.Subtitle;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,7 @@ import java.util.Set;
 @SessionScope
 @Getter@Setter
 @Caption("UUUUUUUUUUUUU")
+@Subtitle("Hola caracola!")
 public class Crud2 implements RpcCrudView<Crud2, Fila, Editor> {
 
     private String nombre;

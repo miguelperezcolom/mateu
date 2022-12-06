@@ -168,7 +168,7 @@ public class MateuViewProvider implements ViewProvider {
         }
         if (c != null && (c instanceof EditorViewComponent)) {
             currentEditor = (EditorViewComponent) c;
-            if (firstViewInWindow == 0) firstViewInWindow = stack.size() + 1;
+            if (false && firstViewInWindow == 0) firstViewInWindow = stack.size() + 1;
         }
 
 

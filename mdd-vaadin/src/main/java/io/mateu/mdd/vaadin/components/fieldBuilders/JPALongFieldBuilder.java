@@ -4,10 +4,7 @@ import com.google.common.base.Strings;
 import com.vaadin.data.*;
 import com.vaadin.data.converter.StringToLongConverter;
 import com.vaadin.data.validator.BeanValidator;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Layout;
-import com.vaadin.ui.Slider;
-import com.vaadin.ui.TextField;
+import com.vaadin.ui.*;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
@@ -28,7 +25,7 @@ public class JPALongFieldBuilder extends JPAStringFieldBuilder {
     }
 
     @Override
-    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
+    public Component build(VerticalLayout fieldGroup, HorizontalLayout fieldGroupHeader, FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
         Component r = null;
         if (field.isAnnotationPresent(Min.class) && field.isAnnotationPresent(Max.class)) {
             Slider tf;
@@ -53,7 +50,7 @@ public class JPALongFieldBuilder extends JPAStringFieldBuilder {
             addErrorHandler(field, tf);
 
             r = tf;
-        } else r = super.build(field, object, container, binder, validators, stylist, allFieldContainers, forSearchFilter, attachedActions);
+        } else r = super.build(fieldGroup, fieldGroupHeader, field, object, container, binder, validators, stylist, allFieldContainers, forSearchFilter, attachedActions);
         return r;
     }
 

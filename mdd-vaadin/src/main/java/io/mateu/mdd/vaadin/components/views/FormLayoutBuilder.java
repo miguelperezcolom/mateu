@@ -303,15 +303,16 @@ public class FormLayoutBuilder {
                     }
                 }
 
-                addActions(form, params.getActionsPerSection().get(s.getCaption()));
-                buildAndAddFields(editor, ofb, models, form, binders, params.getValidators(), finalStylist1, allFieldContainers, s.getFields(), params.isForSearchFilters(), params.isForSearchFiltersExtended(), componentsToLookForErrors, attachedActions);
+                buildAndAddFields(form, editor, ofb, models, form, binders, params.getValidators(), finalStylist1, allFieldContainers, s.getFields(), params.isForSearchFilters(), params.isForSearchFiltersExtended(), componentsToLookForErrors, attachedActions);
+                if (!"".equals(s.getCaption())) addActions(form, params.getActionsPerSection().get(s.getCaption()));
+
                 Panel p;
                 addSectionToContainer(finalRealContainer, p = new Panel(form), s.getCaption());
                 p.addStyleName(ValoTheme.PANEL_BORDERLESS);
                 if (form.getWidth() == 100 && Sizeable.Unit.PERCENTAGE.equals(form.getWidthUnits())) contentContainer.setWidth("100%");
             });
         } else {
-            buildAndAddFields(editor, ofb, models, contentContainer, binders, params.getValidators(), stylist, allFieldContainers, params.getAllFields(), params.isForSearchFilters(), params.isForSearchFiltersExtended(), componentsToLookForErrors, attachedActions);
+            buildAndAddFields(sectionTabSheet, editor, ofb, models, contentContainer, binders, params.getValidators(), stylist, allFieldContainers, params.getAllFields(), params.isForSearchFilters(), params.isForSearchFiltersExtended(), componentsToLookForErrors, attachedActions);
         }
 
         sectionTabSheets[0] = sectionTabSheet;
@@ -452,18 +453,18 @@ public class FormLayoutBuilder {
         }
     }
 
-    private void buildAndAddFields(EditorViewComponent editor, JPAOutputFieldBuilder ofb, Map<FieldInterfaced, Object> models, Layout contentContainer, Map<FieldInterfaced, MDDBinder> binders, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean forSearchFiltersExtended, List<Component> componentsToLookForErrors, Map<String, List<AbstractAction>> attachedActions) {
-        buildAndAddFields(editor, ofb, models, contentContainer, binders, validators, stylist, allFieldContainers, fields, forSearchFilters, forSearchFiltersExtended, true, componentsToLookForErrors, attachedActions);
+    private void buildAndAddFields(Layout section, EditorViewComponent editor, JPAOutputFieldBuilder ofb, Map<FieldInterfaced, Object> models, Layout contentContainer, Map<FieldInterfaced, MDDBinder> binders, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean forSearchFiltersExtended, List<Component> componentsToLookForErrors, Map<String, List<AbstractAction>> attachedActions) {
+        buildAndAddFields(section, editor, ofb, models, contentContainer, binders, validators, stylist, allFieldContainers, fields, forSearchFilters, forSearchFiltersExtended, true, componentsToLookForErrors, attachedActions);
     }
 
-    public void buildAndAddFields(EditorViewComponent editor, JPAOutputFieldBuilder ofb, Map<FieldInterfaced, Object> models, Layout contentContainer, Map<FieldInterfaced, MDDBinder> binders, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean forSearchFiltersExtended, boolean createTabs, List<Component> componentsToLookForErrors, Map<String, List<AbstractAction>> attachedActions) {
+    public void buildAndAddFields(Layout section, EditorViewComponent editor, JPAOutputFieldBuilder ofb, Map<FieldInterfaced, Object> models, Layout contentContainer, Map<FieldInterfaced, MDDBinder> binders, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean forSearchFiltersExtended, boolean createTabs, List<Component> componentsToLookForErrors, Map<String, List<AbstractAction>> attachedActions) {
 
         if (forSearchFilters) {
             if (forSearchFiltersExtended) {
                 contentContainer.addComponent(contentContainer = new VerticalLayout());
                 contentContainer.setSizeUndefined();
             }
-            _buildAndAddFields(editor, ofb, models, contentContainer, binders, validators, stylist, allFieldContainers, fields, forSearchFilters, forSearchFiltersExtended, createTabs, componentsToLookForErrors, attachedActions);
+            _buildAndAddFields(null, null, editor, ofb, models, contentContainer, binders, validators, stylist, allFieldContainers, fields, forSearchFilters, forSearchFiltersExtended, createTabs, componentsToLookForErrors, attachedActions);
         } else {
 
             if (false) contentContainer.setSizeFull();
@@ -497,31 +498,38 @@ public class FormLayoutBuilder {
             css.setWidthFull();
 
             groups.forEach(g -> {
-                VerticalLayout l;
-                css.addComponent(l = new VerticalLayout());
-                l.setWidthFull();
-                l.addStyleName(CSS.NOPADDING);
+                VerticalLayout fieldGroup;
+                css.addComponent(fieldGroup = new VerticalLayout());
+                fieldGroup.setWidthFull();
+                fieldGroup.addStyleName(CSS.NOPADDING);
+
+                HorizontalLayout fieldGroupHeader = null;
+
 
                 if ((editor != null
                 //        && !editor.esForm()
                 ) || !g.getCaption().startsWith("Field Group ")) {
-                    l.addStyleName("fieldgroup");
+                    fieldGroup.addStyleName("fieldgroup");
                     if (!Strings.isNullOrEmpty(g.getCaption())) {
+                        fieldGroup.addComponent(fieldGroupHeader = new HorizontalLayout());
+                        fieldGroup.setWidthFull();
+                        fieldGroupHeader.setWidthFull();
+                        fieldGroupHeader.addStyleName("fieldgroupheader");
+
                         Label c;
-                        l.addComponent(c = new Label(g.getCaption()));
+                        fieldGroupHeader.addComponent(c = new Label(g.getCaption()));
                         c.addStyleName(ValoTheme.LABEL_H4);
-                        c.addStyleName("fieldgroupheader");
                     }
                 } else {
-                    l.addStyleName("nofieldgroup");
+                    fieldGroup.addStyleName("nofieldgroup");
                 }
 
-                _buildAndAddFields(editor, ofb, models, l, binders, validators, stylist, allFieldContainers, g.getFields(), forSearchFilters, forSearchFiltersExtended, createTabs, componentsToLookForErrors, attachedActions);
+                _buildAndAddFields(fieldGroup, fieldGroupHeader, editor, ofb, models, fieldGroup, binders, validators, stylist, allFieldContainers, g.getFields(), forSearchFilters, forSearchFiltersExtended, createTabs, componentsToLookForErrors, attachedActions);
             });
         }
     }
 
-    public void _buildAndAddFields(EditorViewComponent editor, JPAOutputFieldBuilder ofb, Map<FieldInterfaced, Object> models, Layout contentContainer, Map<FieldInterfaced, MDDBinder> binders, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean forSearchFiltersExtended, boolean createTabs, List<Component> componentsToLookForErrors, Map<String, List<AbstractAction>> attachedActions) {
+    public void _buildAndAddFields(VerticalLayout fieldGroup, HorizontalLayout fieldGroupHeader, EditorViewComponent editor, JPAOutputFieldBuilder ofb, Map<FieldInterfaced, Object> models, Layout contentContainer, Map<FieldInterfaced, MDDBinder> binders, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, List<FieldInterfaced> fields, boolean forSearchFilters, boolean forSearchFiltersExtended, boolean createTabs, List<Component> componentsToLookForErrors, Map<String, List<AbstractAction>> attachedActions) {
         TabSheet tabs = null;
         TabSheet.Tab tab = null;
 
@@ -649,16 +657,16 @@ public class FormLayoutBuilder {
                         )
                     )
             ) {
-                c = ofb.build(f, models.get(f), wrapper, binders.get(f), validators, stylist, allFieldContainers, forSearchFilters, attachedActions);
+                c = ofb.build(fieldGroup, fieldGroupHeader, f, models.get(f), wrapper, binders.get(f), validators, stylist, allFieldContainers, forSearchFilters, attachedActions);
             } else if (f.isAnnotationPresent(FieldBuilder.class)) {
                 try {
-                    c = (f.getAnnotation(FieldBuilder.class).value().newInstance()).build(f, models.get(f), wrapper, binders.get(f), validators, stylist, allFieldContainers, forSearchFilters, attachedActions);
+                    c = (f.getAnnotation(FieldBuilder.class).value().newInstance()).build(fieldGroup, fieldGroupHeader, f, models.get(f), wrapper, binders.get(f), validators, stylist, allFieldContainers, forSearchFilters, attachedActions);
                 } catch (Exception e) {
                     Notifier.alert(e);
                 }
             } else {
                 AbstractFieldBuilder b = (AbstractFieldBuilder) MDDUIAccessor.getApp().getFieldBuilder(f);
-                if (b != null) c = b.build(f, models.get(f), wrapper, binders.get(f), validators, stylist, allFieldContainers, forSearchFilters, attachedActions);
+                if (b != null) c = b.build(fieldGroup, fieldGroupHeader, f, models.get(f), wrapper, binders.get(f), validators, stylist, allFieldContainers, forSearchFilters, attachedActions);
             }
 
             if (c != null) componentsToLookForErrors.add(c);

@@ -43,7 +43,7 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
     }
 
     @Override
-    public Component build(FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
+    public Component build(VerticalLayout fieldGroup, HorizontalLayout fieldGroupHeader, FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions) {
 
         this.field = field;
         this.binder = binder;
@@ -270,25 +270,25 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
     }
 
 
-    private void subBuild(Map<String, List<AbstractAction>> attachedActions) {
+    private void subBuild(VerticalLayout fieldGroup, HorizontalLayout fieldGroupHeader, Map<String, List<AbstractAction>> attachedActions) {
         Object i = null;
         try {
             i = ReflectionHelper.getValue(field, binder.getBean());
 
             if (i != null) {
-                subBuild(i.getClass(), i, attachedActions);
+                subBuild(fieldGroup, fieldGroupHeader, i.getClass(), i, attachedActions);
             } else if (subClasses.size() > 1) {
                 try {
 
-                    if (i != null) subBuild(i.getClass(), attachedActions);
+                    if (i != null) subBuild(fieldGroup, fieldGroupHeader, i.getClass(), attachedActions);
 
                 } catch (Exception e) {
                      Notifier.alert(e);
                 }
             } else if (subClasses.size() == 1) {
-                subBuild(subClasses.iterator().next(), attachedActions);
+                subBuild(fieldGroup, fieldGroupHeader, subClasses.iterator().next(), attachedActions);
             } else {
-                subBuild(field.getType(), attachedActions);
+                subBuild(fieldGroup, fieldGroupHeader, field.getType(), attachedActions);
             }
 
         } catch (Exception e) {
@@ -296,11 +296,11 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
         }
     }
 
-    private void subBuild(Class subType, Map<String, List<AbstractAction>> attachedActions) {
-        subBuild(subType, null, attachedActions);
+    private void subBuild(VerticalLayout fieldGroup, HorizontalLayout fieldGroupHeader, Class subType, Map<String, List<AbstractAction>> attachedActions) {
+        subBuild(fieldGroup, fieldGroupHeader, subType, null, attachedActions);
     }
 
-    private void subBuild(Class subType, Object o, Map<String, List<AbstractAction>> attachedActions) {
+    private void subBuild(VerticalLayout fieldGroup, HorizontalLayout fieldGroupHeader, Class subType, Object o, Map<String, List<AbstractAction>> attachedActions) {
 
         formLayout.removeAllComponents();
 
