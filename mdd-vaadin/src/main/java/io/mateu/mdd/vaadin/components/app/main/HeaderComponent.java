@@ -51,6 +51,16 @@ public class HeaderComponent extends HorizontalLayout {
 
         App app = MDDUIAccessor.getApp();
 
+
+        HorizontalLayout left = new HorizontalLayout();
+        HorizontalLayout center = new HorizontalLayout();
+        HorizontalLayout right = new HorizontalLayout();
+        left.addStyleName(CSS.NOPADDING);
+        center.addStyleName(CSS.NOPADDING);
+        right.addStyleName(CSS.NOPADDING);
+
+
+
         String logo = app.getLogo();
         Image i;
         Resource resource = new ThemeResource("img/logomateu2.png");
@@ -63,11 +73,11 @@ public class HeaderComponent extends HorizontalLayout {
                 resource = new ClassResource(logo);
             }
         }
-        addComponent(i = new Image(null, resource));
+        left.addComponent(i = new Image(null, resource));
         i.setHeight("28px");
         i.addClickListener(e -> MDDUIAccessor.goTo(""));
         i.addStyleName("clickable");
-        addComponent(positionLayout = new HorizontalLayout(labelPosition = new Label(app.getName())));
+        left.addComponent(positionLayout = new HorizontalLayout(labelPosition = new Label(app.getName())));
         labelPosition.addStyleName("appname");
         labelPosition.addStyleName("clickable");
         positionLayout.addStyleName(CSS.NOPADDING);
@@ -75,7 +85,7 @@ public class HeaderComponent extends HorizontalLayout {
         if (app.getAreas().length <= 1) positionLayout.addLayoutClickListener(e -> MDDUIAccessor.goTo(""));
         else positionLayout.addLayoutClickListener(e -> chooseArea());
 
-        addComponent(barContainer = new CssLayout());
+        center.addComponent(barContainer = new CssLayout());
         barContainer.addStyleName(CSS.NOPADDING);
 
 
@@ -83,29 +93,33 @@ public class HeaderComponent extends HorizontalLayout {
         if (!basePath.endsWith("/")) basePath += "/";
 
 
-        addComponent(menuSearcher = new MenuSearcher((AbstractApplication) app));
+        right.addComponent(menuSearcher = new MenuSearcher((AbstractApplication) app));
 
         String finalBasePath = basePath;
         if (isPrivate) {
             Button b;
-            addComponent(b = new Button("Logout", e -> Page.getCurrent().setLocation(finalBasePath + "private/logout")));
+            right.addComponent(b = new Button("Logout", e -> Page.getCurrent().setLocation(finalBasePath + "private/logout")));
             b.addStyleName(ValoTheme.BUTTON_QUIET);
         } else {
             if (app.hasPrivateContent()) {
                 Button b;
                 if (app.hasRegistrationForm()) {
-                    addComponent(b = new Button("Registrarse", e -> Page.getCurrent().setLocation(finalBasePath + "private/register")));
+                    right.addComponent(b = new Button("Registrarse", e -> Page.getCurrent().setLocation(finalBasePath + "private/register")));
                     b.addStyleName(ValoTheme.BUTTON_QUIET);
                 }
-                addComponent(b = new Button("Login", e -> Page.getCurrent().setLocation(finalBasePath + "private")));
+                right.addComponent(b = new Button("Login", e -> Page.getCurrent().setLocation(finalBasePath + "private")));
                 b.addStyleName(ValoTheme.BUTTON_QUIET);
-            } else addComponent(new Label(" "));
+            } else right.addComponent(new Label(" "));
         }
 
-        setComponentAlignment(i, Alignment.MIDDLE_LEFT);
-        setComponentAlignment(positionLayout, Alignment.MIDDLE_LEFT);
-        setComponentAlignment(barContainer, Alignment.MIDDLE_CENTER);
-        setExpandRatio(barContainer, 1);
+        addComponents(left, center, right);
+
+        setComponentAlignment(left, Alignment.MIDDLE_LEFT);
+        setComponentAlignment(right, Alignment.MIDDLE_RIGHT);
+        setComponentAlignment(center, Alignment.MIDDLE_CENTER);
+        setExpandRatio(left, 0.5f);
+        setExpandRatio(center, 1);
+        setExpandRatio(right, 0.5f);
 
         List<IArea> areas = Arrays.asList(app.getAreas()).stream().filter(a -> (!isPrivate && a.isPublicAccess()) || (isPrivate && !a.isPublicAccess())).collect(Collectors.toList());
         if (areas.size() > 0) setArea((AbstractArea) areas.get(0));
