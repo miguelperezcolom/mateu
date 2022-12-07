@@ -93,10 +93,19 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     private HorizontalLayout matchesComponent;
     private String baseUrl;
     protected FieldInterfaced field;
-    private HorizontalLayout fieldGroup;
+    private VerticalLayout fieldGroup;
+    private HorizontalLayout fieldGroupHeader;
 
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
+    }
+
+    public VerticalLayout getFieldGroup() {
+        return fieldGroup;
+    }
+
+    public HorizontalLayout getFieldGroupHeader() {
+        return fieldGroupHeader;
     }
 
     @Override
@@ -123,12 +132,12 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
     @Override
     public Layout getActionsContainer() {
-        if (fieldGroup != null) {
+        if (fieldGroupHeader != null) {
             HorizontalLayout l;
-            fieldGroup.addComponent(l = new HorizontalLayout());
+            fieldGroupHeader.addComponent(l = new HorizontalLayout());
             l.addStyleName(CSS.NOPADDING);
-            fieldGroup.setExpandRatio(l, 1);
-            fieldGroup.setComponentAlignment(l, Alignment.MIDDLE_RIGHT);
+            fieldGroupHeader.setExpandRatio(l, 1);
+            fieldGroupHeader.setComponentAlignment(l, Alignment.MIDDLE_RIGHT);
             return l;
         }
         return bar;
@@ -139,9 +148,10 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         return build(null, null);
     }
 
-    public ListViewComponent build(VerticalLayout fieldGroup, HorizontalLayout fieldGroupHeader) throws Exception {
+    public ListViewComponent build(VerticalLayout _fieldGroup, HorizontalLayout _fieldGroupHeader) throws Exception {
 
-        this.fieldGroup = fieldGroupHeader;
+        fieldGroup = _fieldGroup;
+        fieldGroupHeader = _fieldGroupHeader;
 
         addStyleName("listviewcomponent");
 

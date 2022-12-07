@@ -73,13 +73,10 @@ public class FiltersComponent extends Composite {
 
         List<FieldInterfaced> allFilterFields = getAllFilterFields();
 
-        HorizontalLayout botones = new HorizontalLayout();
-
-        if (!MDDUIAccessor.isMobile() && allFilterFields.size() > 0) {
-            botones.addStyleName("botonerafiltros");
-            botones.setSpacing(false);
-        }
-
+        HorizontalLayout botones;
+        listViewComponent.getFieldGroupHeader().addComponent(botones = new HorizontalLayout());
+        botones.setSpacing(true);
+        listViewComponent.getFieldGroupHeader().setComponentAlignment(botones, Alignment.MIDDLE_RIGHT);
 
         if (allFilterFields.size() > 0) {
 
@@ -92,16 +89,11 @@ public class FiltersComponent extends Composite {
             Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(l, binder, modelType, binder.getBean(), new ArrayList<>(), FormLayoutBuilderParameters.builder().validators(validators).allFields(mainFilterFields).forSearchFilters(true).createSections(false).createTabs(false).build(), null);
 
 
-            VerticalLayout vl = new VerticalLayout();
-            vl.addStyleName(CSS.NOPADDING);
-            vl.setSpacing(false);
-            botones.addComponent(vl);
-
             Button b;
-            vl.addComponent(b = new Button(VaadinIcons.CLOSE));
+            botones.addComponent(b = new Button(VaadinIcons.CLOSE));
             //b.setDescription("Reset all filters");
             b.addStyleName(ValoTheme.BUTTON_QUIET);
-            b.addStyleName("boton");
+            //b.addStyleName("boton");
             b.addStyleName("buttonlink");
             b.addClickListener(new Button.ClickListener() {
                 @Override
@@ -125,10 +117,10 @@ public class FiltersComponent extends Composite {
                 allFiltersComponent = r.getKey();
 
 
-                vl.addComponent(b = new Button(VaadinIcons.FILTER));
+                botones.addComponent(b = new Button(VaadinIcons.FILTER));
                 //b.setDescription("All filters. Click Ctrl + F to fire");
                 b.addStyleName(ValoTheme.BUTTON_QUIET);
-                b.addStyleName("boton");
+                //b.addStyleName("boton");
                 b.addStyleName("buttonlink");
                 b.addClickListener(new Button.ClickListener() {
                     @Override
@@ -179,11 +171,9 @@ public class FiltersComponent extends Composite {
             }
         });
         b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
-        b.addStyleName("principal");
-        b.addStyleName("botonsearch");
+        //b.addStyleName("principal");
+        //b.addStyleName("botonsearch");
         //b.setStyleName(ValoTheme.BUTTON_PRIMARY);
-
-        pl.addComponent(botones);
 
 
         log.debug("filters component built in " + (System.currentTimeMillis() - t0) + " ms.");
