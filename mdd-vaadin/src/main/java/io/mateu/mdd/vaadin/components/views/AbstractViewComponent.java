@@ -4,12 +4,19 @@ import com.google.common.base.Strings;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.ui.ContentMode;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Layout;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.layout.MiFormLayout;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
-import io.mateu.mdd.shared.annotations.KPI;
 import io.mateu.mdd.vaadin.actions.AcctionRunner;
 import io.mateu.mdd.vaadin.components.ComponentWrapper;
 import io.mateu.mdd.vaadin.components.HomeComponent;
@@ -22,7 +29,12 @@ import io.mateu.mdd.vaadin.util.VaadinHelper;
 import io.mateu.util.notification.Notifier;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> extends VerticalLayout {
 
@@ -50,6 +62,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     private CssLayout kpisContainer;
     private View view;
     protected CssLayout bar;
+    protected CssLayout actions;
     protected CssLayout subheader;
     protected Map<Method, AbstractAction> actionsByMethod = new HashMap<>();
     protected Map<String, Component> menuItemsById = new HashMap<>();
@@ -93,14 +106,66 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
     public void addActionsBar(boolean top) {
         if (!isBarHidden()) {
-            bar = new CssLayout();
-            if (top) bar.addStyleName("actionsbar");
-            else bar.addStyleName("formactionsbar");
-            bar.addStyleName(CSS.NOPADDING);
-            menuItemsById = new HashMap<>();
-            addBack(bar);
-            getActionsContainer().addComponent(bar);
+
+            if (top) {
+                bar = new CssLayout();
+                bar.addStyleName("actionsbar");
+                bar.addStyleName(CSS.NOPADDING);
+                menuItemsById = new HashMap<>();
+                addBack(bar);
+                getActionsBarContainer().addComponent(bar);
+            } else {
+                Layout form = (MDDUIAccessor.isMobile())?new VerticalLayout():new MiFormLayout();
+                form.addStyleName("section");
+                if (false) {
+                    form.setSizeUndefined();
+                    form.addStyleName("section");
+                }
+                form.addStyleName("sectioncard");
+
+                VerticalLayout fieldGroup;
+                form.addComponent(fieldGroup = new VerticalLayout());
+                fieldGroup.setWidthFull();
+                fieldGroup.addStyleName(CSS.NOPADDING);
+
+                HorizontalLayout fieldGroupHeader = null;
+                fieldGroup.addStyleName("fieldgroup");
+                fieldGroup.addComponent(fieldGroupHeader = new HorizontalLayout());
+                fieldGroup.setWidthFull();
+                fieldGroupHeader.setWidthFull();
+                fieldGroupHeader.addStyleName("fieldgroupheader");
+
+                String actionsTitle = getMainActionsTitle();
+                String actionsText = getMainActionsText();
+
+                Label c;
+                fieldGroupHeader.addComponent(c = new Label(actionsTitle));
+                c.addStyleName(ValoTheme.LABEL_H4);
+
+                if (!"".equals(actionsText)) {
+                    Label l;
+                    fieldGroup.addComponent(l = new Label(actionsText, ContentMode.HTML));
+                    l.setWidthFull();
+                }
+
+                getActionsContainer().addComponent(form);
+
+                actions = new CssLayout();
+                actions.addStyleName("formactionsbar");
+                actions.addStyleName(CSS.NOPADDING);
+                fieldGroup.addComponent(actions);
+                fieldGroup.setComponentAlignment(actions, Alignment.BOTTOM_RIGHT);
+            }
+
         }
+    }
+
+    public String getMainActionsText() {
+        return "";
+    }
+
+    public String getMainActionsTitle() {
+        return "Actions";
     }
 
     public void hideHeader() {
@@ -259,9 +324,13 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
         this.view = view;
     }
 
-    public Layout getActionsContainer() {
-        return esForm()?this:actionsContainer;
+    public Layout getActionsBarContainer() {
+        return actionsContainer;
     }
+    public Layout getActionsContainer() {
+        return this;
+    }
+
 
     public A buildIfNeeded() {
         if (!built) {
@@ -280,14 +349,13 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
         addComponent(header = createHeader());
 
-        if (!esForm()) addActionsBar(true);
+        addActionsBar(true);
+        addViewActionsMenuItems(getActionsContainer(), getActions());
 
         addComponent(subheader = new CssLayout());
         subheader.addStyleName(CSS.NOPADDING);
         subheader.setWidth("100%");
         subheader.setVisible(false);
-
-        if (!esForm()) addViewActionsMenuItems(bar);
 
         built = true;
         return (A) this;
@@ -317,7 +385,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
             if (isBackable()) backButton.setVisible(true);
     }
 
-    public void addViewActionsMenuItems(CssLayout bar) {
+    public void addViewActionsMenuItems(Layout bar, List<AbstractAction> actions) {
 
         if (isActionPresent("back")) {
             getMenuItemById("back").setVisible(isBackable());
@@ -325,7 +393,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
         boolean firstButton = true;
 
-        for (AbstractAction a : getActions()) {
+        for (AbstractAction a : actions) {
                 Component i = null;
                 if (!isActionPresent(a.getId())) {
                     Button b;
@@ -394,7 +462,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                 i.setVisible(a.isVisible());
             }
 
-        if (bar != null) if  (bar.getComponentCount() == 0 || (bar.getComponentCount() == 1 && !bar.getComponent(0).isVisible())) bar.setVisible(false);
+        if (bar != null) if  (bar.getComponentCount() == 0) bar.setVisible(false);
     }
 
     public boolean beforeBack() {
@@ -427,8 +495,15 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
         menuItemsById.put(id, i);
     }
 
+    public List<AbstractAction> getActions(String key) {
+        return new ArrayList<>();
+    }
 
     public List<AbstractAction> getActions() {
+        return new ArrayList<>();
+    }
+
+    public List<AbstractAction> getMainActions() {
         return new ArrayList<>();
     }
 

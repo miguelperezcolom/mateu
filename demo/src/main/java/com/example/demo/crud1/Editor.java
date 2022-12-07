@@ -1,6 +1,7 @@
 package com.example.demo.crud1;
 
 import io.mateu.mdd.core.interfaces.PersistentPojo;
+import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.FieldGroup;
 import io.mateu.mdd.shared.annotations.Section;
 import lombok.Getter;
@@ -77,5 +78,10 @@ public class Editor implements PersistentPojo {
     @Override
     public String getEntityName() {
         return "Persona";
+    }
+
+    @Action
+    public void unaAction() {
+        System.out.println("hola!");
     }
 }

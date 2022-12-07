@@ -31,6 +31,7 @@ import com.vaadin.ui.renderers.TextRenderer;
 import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonValue;
 import io.mateu.i18n.Translator;
+import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
@@ -130,7 +131,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             fieldGroup.setComponentAlignment(l, Alignment.MIDDLE_RIGHT);
             return l;
         }
-        return super.getActionsContainer();
+        return bar;
     }
 
     @Override
@@ -1666,7 +1667,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     @Override
-    public void addViewActionsMenuItems(CssLayout bar) {
+    public void addViewActionsMenuItems(Layout bar, List<AbstractAction> actions) {
 
         if (isAddEnabled()) {
 
@@ -1707,7 +1708,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
         }
 
-        super.addViewActionsMenuItems(bar);
+        super.addViewActionsMenuItems(bar, actions);
     }
 
     public String getFieldPrefix() {

@@ -15,12 +15,31 @@ import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDRunnableAction;
+import io.mateu.mdd.core.interfaces.AbstractStylist;
+import io.mateu.mdd.core.interfaces.HasHeader;
+import io.mateu.mdd.core.interfaces.Header;
+import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.interfaces.ReadOnly;
-import io.mateu.mdd.core.interfaces.*;
+import io.mateu.mdd.core.interfaces.ReadOnly;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.shared.FormLayoutBuilderParameters;
-import io.mateu.mdd.shared.annotations.*;
+import io.mateu.mdd.shared.annotations.Action;
+import io.mateu.mdd.shared.annotations.ActionsText;
+import io.mateu.mdd.shared.annotations.ActionsTitle;
+import io.mateu.mdd.shared.annotations.Balance;
+import io.mateu.mdd.shared.annotations.DependsOn;
+import io.mateu.mdd.shared.annotations.Indelible;
+import io.mateu.mdd.shared.annotations.KPI;
+import io.mateu.mdd.shared.annotations.Keep;
+import io.mateu.mdd.shared.annotations.MainAction;
+import io.mateu.mdd.shared.annotations.ModifyValuesOnly;
+import io.mateu.mdd.shared.annotations.Money;
+import io.mateu.mdd.shared.annotations.NewNotAllowed;
+import io.mateu.mdd.shared.annotations.NonDuplicable;
+import io.mateu.mdd.shared.annotations.NotWhenCreating;
+import io.mateu.mdd.shared.annotations.NotWhenEditing;
+import io.mateu.mdd.shared.annotations.Unmodifiable;
 import io.mateu.mdd.shared.interfaces.IResource;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.MateuUI;
@@ -47,7 +66,14 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
@@ -775,11 +801,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         panel.addStyleName(ValoTheme.PANEL_BORDERLESS);
         panel.addStyleName(CSS.NOPADDING);
         panel.addStyleName("panelContenedor");
-        if (esForm()) {
-            addComponent(panel);
+        addComponent(panel);
+        if (esForm() || (modelType.isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(modelType))) {
             addActionsBar(false);
-        } else {
-            addComponentsAndExpand(panel);
         }
 
         return this;
@@ -791,6 +815,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     }
 
     private void updateActions() {
+
         if (stylist != null) {
             Object model = binder.getBean();
 
@@ -801,13 +826,15 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             }
 
         }
-        if (bar.getComponentCount() == 0) bar.setVisible(false);
-        else bar.setVisible(true);
+        if (bar != null) {
+            if (bar.getComponentCount() == 0) bar.setVisible(false);
+            else bar.setVisible(true);
+        }
     }
 
 
-    @Override
-    public void addViewActionsMenuItems(CssLayout bar) {
+
+    public void addViewActionsMenuItems(CssLayout bar, List actions) {
 
         boolean isEditingNewRecord = newRecord;
         boolean readOnly = getModel() != null && getModel() instanceof ReadOnly && ((ReadOnly) getModel()).isReadOnly();
@@ -900,40 +927,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
             if (!readOnly && createSaveButton && (modelType.isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(modelType)) && (isNewRecord() || !modelType.isAnnotationPresent(Unmodifiable.class))) {
 
-                if (!isActionPresent("save")) {
-
-                    Button i;
-                    bar.addComponent(i = new Button("", VaadinIcons.CHECK));
-                    //bar.addComponent(i = new Button("Save", VaadinIcons.DOWNLOAD));
-                    i.addStyleName(ValoTheme.BUTTON_QUIET);
-                    i.addClickListener(e -> {
-                        try {
-
-                            BinderValidationStatus v = binder.validate();
-
-                            if (v.isOk()) {
-
-                                preSave();
-
-                                save();
-
-                            } else {
-                                for (Component c : componentsToLookForErrors) {
-                                    if (c instanceof AbstractComponent && ((AbstractComponent) c).getComponentError() != null) {
-                                        if (c instanceof Focusable) ((Focusable) c).focus();
-                                        break;
-                                    }
-                                }
-                                MDD.alert(v);
-                            }
-
-
-                        } catch (Throwable throwable) {
-                            Notifier.alert(throwable);
-                        }
-                    });
-                    addMenuItem("save", i);
-                    i.setClickShortcut(ShortcutAction.KeyCode.S, ShortcutAction.ModifierKey.CTRL);
+                if (!isActionPresent("new")) {
 
                     if (!shortcutsCreated.contains("saveandstay")) {
 
@@ -1162,7 +1156,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         }
 
-        super.addViewActionsMenuItems(bar);
+        if (bar != null) super.addViewActionsMenuItems(bar, actions);
     }
 
 
@@ -1174,21 +1168,17 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         this.stylist = stylist;
     }
 
-
     @Override
-    public List<AbstractAction> getActions() {
-
+    public List<AbstractAction> getMainActions() {
         Object bean = (binder != null)?binder.getBean():null;
 
 
         boolean isEditingNewRecord = MDDUIAccessor.isEditingNewRecord();
 
-        actionsPerSection = new HashMap<>();
-
         List<Method> ms = new ArrayList<>();
         List<Method> mvf = new ArrayList<>();
 
-        if (esForm() && Runnable.class.isAssignableFrom(modelType)) {
+        if (Runnable.class.isAssignableFrom(modelType)) {
             ArrayList<AbstractAction> l;
             actionsPerSection.put("", l = new ArrayList<>());
             MDDRunnableAction a;
@@ -1210,27 +1200,27 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             });
             a.setId("submitted");
             a.setOrder(-100);
-        } else if (esForm() && Callable.class.isAssignableFrom(modelType)) {
-                ArrayList<AbstractAction> l;
-                actionsPerSection.put("", l = new ArrayList<>());
-                MDDRunnableAction a;
-                l.add(a = new MDDRunnableAction("Submit") {
+        } else if (Callable.class.isAssignableFrom(modelType)) {
+            ArrayList<AbstractAction> l;
+            actionsPerSection.put("", l = new ArrayList<>());
+            MDDRunnableAction a;
+            l.add(a = new MDDRunnableAction("Submit") {
 
-                    @Override
-                    public void run() throws Throwable {
+                @Override
+                public void run() throws Throwable {
 
-                        if (validate()) {
+                    if (validate()) {
 
-                            Object r = ((Callable)bean).call();
-                            io.mateu.mdd.shared.ui.MDDUIAccessor.setPendingResult(r);
-                            MDDUIAccessor.go("submitted");
-                        }
-
+                        Object r = ((Callable)bean).call();
+                        io.mateu.mdd.shared.ui.MDDUIAccessor.setPendingResult(r);
+                        MDDUIAccessor.go("submitted");
                     }
-                });
-                a.setId("submitted");
-                a.setOrder(-100);
-        } else if (esForm() && (modelType.isAnnotationPresent(Entity.class) || modelType.isAnnotationPresent(PersistentPojo.class))) {
+
+                }
+            });
+            a.setId("submitted");
+            a.setOrder(-100);
+        } else if ((modelType.isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(modelType))) {
             ArrayList<AbstractAction> l;
             actionsPerSection.put("", l = new ArrayList<>());
             MDDRunnableAction a;
@@ -1250,6 +1240,49 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             a.setOrder(-100);
             a.setId("submitted");
         }
+
+        for (Method m : ReflectionHelper.getAllMethods(modelType)) {
+            if (!(
+                    Modifier.isStatic(m.getModifiers())
+                            || (m.isAnnotationPresent(NotWhenCreating.class) && isEditingNewRecord)
+                            || (m.isAnnotationPresent(NotWhenEditing.class) && !isEditingNewRecord))
+                    && m.isAnnotationPresent(MainAction.class) && (isCreateSaveButton() || (!m.getAnnotation(MainAction.class).saveAfter() && !m.getAnnotation(MainAction.class).saveBefore()))
+            ) {
+                addMethod(m, bean, ms, mvf);
+            }
+        }
+
+        ms.sort((a, b) -> (a.getAnnotation(Action.class) != null?a.getAnnotation(Action.class).order():-100) - (b.getAnnotation(Action.class) != null?b.getAnnotation(Action.class).order():-100));
+
+        mvf.sort((a, b) -> (a.getAnnotation(Action.class) != null?a.getAnnotation(Action.class).order():-100) - (b.getAnnotation(Action.class) != null?b.getAnnotation(Action.class).order():-100));
+
+        ms.forEach(m -> {
+            String k = "";
+            actionsPerSection.putIfAbsent(k, new ArrayList<>());
+            List<AbstractAction> l = actionsPerSection.get(k);
+            AbstractAction a;
+            l.add(a = ViewComponentHelper.createAction(m, this));
+        });
+
+        List<AbstractAction> r = actionsPerSection.getOrDefault("", new ArrayList<>());
+
+        if (esForm() && r.size() > 0) {
+            _defaultAction = r.get(0).getId();
+        }
+
+        return r;
+    }
+
+    @Override
+    public List<AbstractAction> getActions(String key) {
+
+        Object bean = (binder != null)?binder.getBean():null;
+
+
+        boolean isEditingNewRecord = MDDUIAccessor.isEditingNewRecord();
+
+        List<Method> ms = new ArrayList<>();
+        List<Method> mvf = new ArrayList<>();
 
         for (Method m : ReflectionHelper.getAllMethods(modelType)) {
             if (!(
@@ -1285,7 +1318,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             l.add(a = ViewComponentHelper.createAction(m, this));
         });
 
-        List<AbstractAction> r = actionsPerSection.getOrDefault("", new ArrayList<>());
+        List<AbstractAction> r = actionsPerSection.getOrDefault(key, new ArrayList<>());
 
         if (esForm() && r.size() > 0) {
             _defaultAction = r.get(0).getId();
@@ -1573,7 +1606,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
     public void rebuildActions() {
         markAllAsUnseen();
-        addViewActionsMenuItems(bar);
+        addViewActionsMenuItems(bar, getActions(""));
+        addViewActionsMenuItems(actions, getMainActions());
         removeUnseen();
         updateActions();
     }
@@ -1595,4 +1629,21 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         this.creatorWindow = creatorWindow;
     }
 
+    @Override
+    public String getMainActionsTitle() {
+        String title = super.getMainActionsTitle();
+        if (getModelType().isAnnotationPresent(ActionsTitle.class)) {
+            title = ((ActionsTitle)getModelType().getAnnotation(ActionsTitle.class)).value();
+        }
+        return title;
+    }
+
+    @Override
+    public String getMainActionsText() {
+        String title = super.getMainActionsText();
+        if (getModelType().isAnnotationPresent(ActionsText.class)) {
+            title = ((ActionsText)getModelType().getAnnotation(ActionsText.class)).value();
+        }
+        return title;
+    }
 }
