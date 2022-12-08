@@ -892,6 +892,10 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             if (bar.getComponentCount() == 0) bar.setVisible(false);
             else bar.setVisible(true);
         }
+        if (actions != null) {
+            if (actions.getComponentCount() == 0) actionsSection.setVisible(false);
+            else actionsSection.setVisible(true);
+        }
     }
 
 

@@ -42,6 +42,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
     private final String uuid = UUID.randomUUID().toString();
     private VaadinIcons icon;
+    protected Layout actionsSection;
 
     @Override
     public boolean equals(Object o) {
@@ -117,16 +118,16 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                 menuItemsById = new HashMap<>();
                 getActionsBarContainer().addComponent(bar);
             } else {
-                Layout form = (MDDUIAccessor.isMobile())?new VerticalLayout():new MiFormLayout();
-                form.addStyleName("section");
+                actionsSection = (MDDUIAccessor.isMobile())?new VerticalLayout():new MiFormLayout();
+                actionsSection.addStyleName("section");
                 if (false) {
-                    form.setSizeUndefined();
-                    form.addStyleName("section");
+                    actionsSection.setSizeUndefined();
+                    actionsSection.addStyleName("section");
                 }
-                form.addStyleName("sectioncard");
+                actionsSection.addStyleName("sectioncard");
 
                 VerticalLayout fieldGroup;
-                form.addComponent(fieldGroup = new VerticalLayout());
+                actionsSection.addComponent(fieldGroup = new VerticalLayout());
                 fieldGroup.setWidthFull();
                 fieldGroup.addStyleName(CSS.NOPADDING);
 
@@ -150,7 +151,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                     l.setWidthFull();
                 }
 
-                getActionsContainer().addComponent(form);
+                getActionsContainer().addComponent(actionsSection);
 
                 actions = new CssLayout();
                 actions.addStyleName("formactionsbar");
