@@ -34,6 +34,7 @@ public class ResultsComponent extends VerticalLayout {
     private Label labelSelection;
     private Collection found;
     private Map<String, Object> lastSignature;
+    private HorizontalLayout sizingAndPagingContainer;
 
     public int getLastClickedRowIndex() {
         return lastClickedRowIndex;
@@ -152,7 +153,7 @@ public class ResultsComponent extends VerticalLayout {
         grid.setDataProvider(dataProvider);
         grid.setColumnReorderingAllowed(true);
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
-        grid.setHeight("400px");
+        grid.setHeightByRows(10);
         grid.setWidthFull();
 
 
@@ -190,6 +191,11 @@ public class ResultsComponent extends VerticalLayout {
         addComponent(hl);
 
         addComponent(grid);
+
+        addComponent(sizingAndPagingContainer = new HorizontalLayout());
+        sizingAndPagingContainer.addStyleName(CSS.NOPADDING);
+        SizingComponent sizing;
+        sizingAndPagingContainer.addComponent(sizing = new SizingComponent(grid));
 
     }
 
