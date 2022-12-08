@@ -810,6 +810,68 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     }
 
     @Override
+    public NavBarComponent createNavBar() {
+        NavBarComponent bar = super.createNavBar();
+        if (true || (!(this instanceof FiltersViewFlowComponent) && !isNewRecord() && listViewComponent != null)) {
+            if (!isActionPresent("prev")) {
+
+                Button i;
+                bar.addComponent(i = new Button("", VaadinIcons.ARROW_UP));
+                //bar.addComponent(i = new Button("Prev", VaadinIcons.ARROW_UP));
+                i.addStyleName(ValoTheme.BUTTON_QUIET);
+                i.addClickListener(e -> {
+                    try {
+
+                        Object xid = listViewComponent.getPrevious(modelId);
+
+                        if (xid != null) {
+                            MDDUIAccessor.goSibling(xid);
+                        }
+
+
+                    } catch (Throwable throwable) {
+                        Notifier.alert(throwable);
+                    }
+                });
+
+                addMenuItem("prev", i);
+
+                i.setClickShortcut(ShortcutAction.KeyCode.ARROW_UP, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
+
+                shortcutsCreated.add("prev");
+
+            }
+
+            if (!isActionPresent("next")) {
+
+                Button i;
+                bar.addComponent(i = new Button("", VaadinIcons.ARROW_DOWN));
+                //bar.addComponent(i = new Button("Next", VaadinIcons.ARROW_DOWN));
+                i.addStyleName(ValoTheme.BUTTON_QUIET);
+                i.addClickListener(e -> {
+                    try {
+
+                        Object xid = listViewComponent.getNext(modelId);
+
+                        if (xid != null) {
+                            MDDUIAccessor.goSibling(xid);
+                        }
+
+                    } catch (Throwable throwable) {
+                        Notifier.alert(throwable);
+                    }
+                });
+                addMenuItem("next", i);
+                i.setClickShortcut(ShortcutAction.KeyCode.ARROW_DOWN, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
+
+                shortcutsCreated.add("next");
+
+            }
+        }
+        return bar;
+    }
+
+    @Override
     public boolean esForm() {
         return listViewComponent == null && (modelType.isAnnotationPresent(io.mateu.mdd.core.annotations.MateuUI.class) || !(modelType.isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(modelType)));
     }
@@ -866,63 +928,6 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                     shortcutsCreated.add("refresh");
                 }
 
-
-                if (true || (!(this instanceof FiltersViewFlowComponent) && !isNewRecord() && listViewComponent != null)) {
-                    if (!isActionPresent("prev")) {
-
-                        Button i;
-                        bar.addComponent(i = new Button("", VaadinIcons.ARROW_UP));
-                        //bar.addComponent(i = new Button("Prev", VaadinIcons.ARROW_UP));
-                        i.addStyleName(ValoTheme.BUTTON_QUIET);
-                        i.addClickListener(e -> {
-                            try {
-
-                                Object xid = listViewComponent.getPrevious(modelId);
-
-                                if (xid != null) {
-                                    MDDUIAccessor.goSibling(xid);
-                                }
-
-
-                            } catch (Throwable throwable) {
-                                Notifier.alert(throwable);
-                            }
-                        });
-
-                        addMenuItem("prev", i);
-
-                        i.setClickShortcut(ShortcutAction.KeyCode.ARROW_UP, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
-
-                        shortcutsCreated.add("prev");
-
-                    }
-
-                    if (!isActionPresent("next")) {
-
-                        Button i;
-                        bar.addComponent(i = new Button("", VaadinIcons.ARROW_DOWN));
-                        //bar.addComponent(i = new Button("Next", VaadinIcons.ARROW_DOWN));
-                        i.addStyleName(ValoTheme.BUTTON_QUIET);
-                        i.addClickListener(e -> {
-                            try {
-
-                                Object xid = listViewComponent.getNext(modelId);
-
-                                if (xid != null) {
-                                    MDDUIAccessor.goSibling(xid);
-                                }
-
-                            } catch (Throwable throwable) {
-                                Notifier.alert(throwable);
-                            }
-                        });
-                        addMenuItem("next", i);
-                        i.setClickShortcut(ShortcutAction.KeyCode.ARROW_DOWN, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
-
-                        shortcutsCreated.add("next");
-
-                    }
-                }
             }
 
             if (!readOnly && createSaveButton && (modelType.isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(modelType)) && (isNewRecord() || !modelType.isAnnotationPresent(Unmodifiable.class))) {

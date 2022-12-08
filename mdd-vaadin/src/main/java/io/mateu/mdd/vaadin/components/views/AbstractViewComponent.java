@@ -17,12 +17,14 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.layout.MiFormLayout;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
+import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.actions.AcctionRunner;
 import io.mateu.mdd.vaadin.components.ComponentWrapper;
 import io.mateu.mdd.vaadin.components.HomeComponent;
 import io.mateu.mdd.vaadin.components.app.views.firstLevel.AreaComponent;
 import io.mateu.mdd.vaadin.components.app.views.firstLevel.FakeComponent;
 import io.mateu.mdd.vaadin.components.app.views.firstLevel.MenuComponent;
+import io.mateu.mdd.vaadin.navigation.MateuViewProvider;
 import io.mateu.mdd.vaadin.navigation.View;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.mdd.vaadin.util.VaadinHelper;
@@ -56,6 +58,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
     }
 
     private Component header;
+    private NavBarComponent navBar;
     private Label titleLabel;
     private Label subtitleLabel;
     private CssLayout actionsContainer;
@@ -112,7 +115,6 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                 bar.addStyleName("actionsbar");
                 bar.addStyleName(CSS.NOPADDING);
                 menuItemsById = new HashMap<>();
-                addBack(bar);
                 getActionsBarContainer().addComponent(bar);
             } else {
                 Layout form = (MDDUIAccessor.isMobile())?new VerticalLayout():new MiFormLayout();
@@ -223,6 +225,19 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                 ((EditorViewComponent) this).setKpisContainer(kpisContainer);
                 ((EditorViewComponent) this).buildIfNeeded();
                 ((EditorViewComponent) this).rebuildActions();
+            }
+        }
+    }
+
+    private void addBreadCrumb() {
+        ViewStack stack = MateuUI.get().getStack();
+        int breadCrumbsNumber = 0;
+        for (int i = 0; i < stack.size(); i++) {
+            View v = stack.get(i);
+            if (v.getViewComponent() != null && v.getViewComponent() != this && (v.getViewComponent() instanceof ListViewComponent || v.getViewComponent() instanceof EditorViewComponent)) {
+                if (breadCrumbsNumber > 0) navBar.addComponent(new Label("/"));
+                navBar.addComponent(new Label(v.getViewComponent().getTitle()));
+                breadCrumbsNumber++;
             }
         }
     }
@@ -347,6 +362,10 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
         addStyleName("viewcomponent");
         setWidthFull();
 
+        addComponent(navBar = createNavBar());
+        addBack(navBar);
+        addBreadCrumb();
+
         addComponent(header = createHeader());
 
         addActionsBar(true);
@@ -361,10 +380,14 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
         return (A) this;
     }
 
+    public NavBarComponent createNavBar() {
+        return new NavBarComponent();
+    }
+
     private void addBack(CssLayout bar) {
             if (!isActionPresent("back")) {
                 Button b;
-                bar.addComponent(backButton = b = new Button("", VaadinIcons.ARROW_LEFT));
+                bar.addComponent(backButton = b = new Button("", VaadinIcons.ARROW_LEFT), 0);
                 //bar.addComponent(i = b = new Button("Back", VaadinIcons.ARROW_LEFT));
                 b.addStyleName(ValoTheme.BUTTON_QUIET);
                 b.addClickListener(e -> {
@@ -376,6 +399,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                         Notifier.alert(throwable);
                     }
                 });
+                b.setVisible(false);
 
                 addMenuItem("back", backButton);
 
