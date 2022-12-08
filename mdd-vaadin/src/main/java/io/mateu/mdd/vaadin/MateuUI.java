@@ -197,6 +197,10 @@ public class MateuUI extends UI implements IMDDUI {
 
     }
 
+    public MateuViewProvider getViewProvider() {
+        return viewProvider;
+    }
+
     @Override
     public String getPath(MenuEntry e) {
         return app.getState(e);

@@ -629,6 +629,7 @@ public class FormLayoutBuilder {
             }
 
             readOnly |= MDD.isReadOnly(f);
+            readOnly |= editor instanceof ReadOnlyViewComponent;
 
             Component c = null;
             if (

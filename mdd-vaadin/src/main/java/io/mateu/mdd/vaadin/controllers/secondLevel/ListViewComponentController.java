@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadin.controllers.secondLevel;
 
 import com.vaadin.ui.Component;
+import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.vaadin.components.app.views.secondLevel.FiltersViewFlowComponent;
@@ -54,8 +55,10 @@ public class ListViewComponentController extends Controller {
                         } else o = ((RpcListViewComponent) listViewComponent).onEdit(step);
 
                         if (o instanceof RpcView) register(stack, path + "/" + step, new RpcListViewComponent((RpcView) o));
-                        else if (!(o instanceof Component)) new EditorController(stack, path + "/" + step, listViewComponent, o).next(stack, path, step, remaining);
-                        else register(stack, path + "/" + step, (Component) o);
+                        else if (!(o instanceof Component)) {
+                            if (o instanceof ReadOnlyPojo) new ReadOnlyController(stack, path + "/" + step, listViewComponent, o).next(stack, path, step, remaining);
+                            else new EditorController(stack, path + "/" + step, listViewComponent, o).next(stack, path, step, remaining);
+                        } else register(stack, path + "/" + step, (Component) o);
                     }
 
                 }

@@ -120,6 +120,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private Component selectedTab;
     public String _defaultAction;
 
+
     public Map<FieldInterfaced, ListViewComponent> getEmbeddedListViewComponents() {
         return embeddedListViewComponents;
     }
@@ -729,7 +730,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
             @Override
             public boolean isReadOnly() {
-                return false;
+                return EditorViewComponent.this instanceof ReadOnlyViewComponent;
             }
         }).bind(kpi.getName());
 

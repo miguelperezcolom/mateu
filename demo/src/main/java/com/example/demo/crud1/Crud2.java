@@ -19,7 +19,7 @@ import java.util.Set;
 @Getter@Setter
 @Caption("UUUUUUUUUUUUU")
 @Subtitle("Hola caracola!")
-public class Crud2 implements RpcCrudView<Crud2, Fila, Editor> {
+public class Crud2 implements RpcCrudView<Crud2, Fila, ReadOnlyPersona> {
 
     private String nombre;
 
@@ -86,7 +86,7 @@ public class Crud2 implements RpcCrudView<Crud2, Fila, Editor> {
 
     @Override
     public Object onEdit(Fila row) throws Throwable {
-        return new Editor(row);
+        return new ReadOnlyPersona(row);
     }
 
     @Action

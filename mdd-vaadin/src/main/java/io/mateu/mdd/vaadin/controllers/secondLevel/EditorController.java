@@ -54,8 +54,16 @@ public class EditorController extends Controller {
         }
         List<FieldInterfaced> visibleFields = ReflectionHelper.getAllEditableFilteredFields(bean.getClass(), listViewComponent.getEditableFieldsFilter(), null);
         List<FieldInterfaced> hiddenFields = new ArrayList<>();
-        editorViewComponent = new EditorViewComponent(listViewComponent, bean, visibleFields, hiddenFields);
+        editorViewComponent = createEditorViewComponent(listViewComponent, bean, visibleFields, hiddenFields);
         register(stack, path, editorViewComponent);
+    }
+
+    protected EditorViewComponent createEditorViewComponent(ListViewComponent listViewComponent, Object bean, List<FieldInterfaced> visibleFields, List<FieldInterfaced> hiddenFields) {
+        return new EditorViewComponent(listViewComponent, bean, visibleFields, hiddenFields);
+    }
+
+    public EditorViewComponent getEditorViewComponent() {
+        return editorViewComponent;
     }
 
     private String getLastStep(String path) {
