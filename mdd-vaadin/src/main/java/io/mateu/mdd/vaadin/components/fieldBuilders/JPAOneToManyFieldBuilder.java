@@ -446,7 +446,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
 
             boolean anchoCompleto = field.isAnnotationPresent(FullWidth.class) || ancho > 900;
-            anchoCompleto = false;
+            anchoCompleto = true;
 
             if (anchoCompleto) g.setWidth("100%");
             else {
