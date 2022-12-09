@@ -46,6 +46,11 @@ public class MethodParametersViewComponent extends EditorViewComponent {
     }
 
     @Override
+    public String getTitle() {
+        return toString();
+    }
+
+    @Override
     public String toString() {
         String t = Helper.capitalize(method.getName());
         if (method.isAnnotationPresent(Action.class) && !Strings.isNullOrEmpty(method.getAnnotation(Action.class).value())) t = method.getAnnotation(Action.class).value();
@@ -53,7 +58,7 @@ public class MethodParametersViewComponent extends EditorViewComponent {
     }
 
     @Override
-    public List<AbstractAction> getActions() {
+    public List<AbstractAction> getMainActions() {
         return Lists.newArrayList(new MDDRunnableAction(toString()) {
             @Override
             public void run() {
