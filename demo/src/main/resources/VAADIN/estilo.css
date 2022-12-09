@@ -115,6 +115,10 @@ body .mateu .maincomponent .contenido .section .fieldgroupheader, body .mateu .m
     font-weight: 900;
 }
 
+body .mateu .maincomponent .contenido .section.result-page .checkmark .v-icon {
+    font-size: 80px;
+}
+
 
 body .mateu .maincomponent .contenido .section .v-grid-cell .v-nativebutton {
     border: none;

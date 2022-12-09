@@ -116,7 +116,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                 bar.addStyleName("actionsbar");
                 bar.addStyleName(CSS.NOPADDING);
                 menuItemsById = new HashMap<>();
-                getActionsBarContainer().addComponent(bar);
+                if (getActionsBarContainer() != null) getActionsBarContainer().addComponent(bar);
             } else {
                 actionsSection = (MDDUIAccessor.isMobile())?new VerticalLayout():new MiFormLayout();
                 actionsSection.addStyleName("section");
@@ -367,7 +367,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
         addBack(navBar);
         if (mustAddBreadcrumb()) addBreadCrumb();
 
-        addComponent(header = createHeader());
+        if (mustAddHeader()) addComponent(header = createHeader());
 
         addActionsBar(true);
         addViewActionsMenuItems(getActionsContainer(), getActions());
@@ -379,6 +379,10 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
         built = true;
         return (A) this;
+    }
+
+    public boolean mustAddHeader() {
+        return true;
     }
 
     public boolean mustAddBreadcrumb() {
