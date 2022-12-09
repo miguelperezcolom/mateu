@@ -809,7 +809,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     @Override
     public NavBarComponent createNavBar() {
         NavBarComponent bar = super.createNavBar();
-        if (true || (!(this instanceof FiltersViewFlowComponent) && !isNewRecord() && listViewComponent != null)) {
+        if ((!(this instanceof FiltersViewFlowComponent) && !isNewRecord() && listViewComponent != null)) {
             if (!isActionPresent("prev")) {
 
                 Button i;
