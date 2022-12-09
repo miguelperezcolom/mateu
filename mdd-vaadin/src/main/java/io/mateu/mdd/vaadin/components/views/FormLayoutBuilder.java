@@ -8,14 +8,13 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.Sizeable;
 import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ContentMode;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.core.interfaces.NakedObjectStylist;
-import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.interfaces.ReadOnly;
+import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.core.layout.MiFormLayout;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
@@ -37,7 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import java.lang.reflect.InvocationTargetException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -541,7 +539,9 @@ public class FormLayoutBuilder {
         List<Layout> containersStack = new ArrayList<>();
 
         Object model = fields.size() > 0?models.get(fields.get(0)):null;
-        boolean readOnly = model != null && model instanceof ReadOnly && ((ReadOnly) model).isReadOnly();
+        boolean readOnlyModel = model != null && (model instanceof ReadOnlyPojo || (model instanceof ReadOnly && ((ReadOnly) model).isReadOnly()));
+
+        int posFieldInLine = 0;
 
         for (FieldInterfaced f : fields) {
 
@@ -605,7 +605,7 @@ public class FormLayoutBuilder {
 
                 }
 
-                if (currentFieldContainer == null || !f.isAnnotationPresent(SameLine.class)) {
+                if (currentFieldContainer == null || (!readOnlyModel && !f.isAnnotationPresent(SameLine.class)) || (readOnlyModel && posFieldInLine % 2 == 0)) {
                     HorizontalLayout wrap;
                     currentFieldContainer = wrap = new HorizontalLayout();
                     wrap.setSpacing(true);
@@ -613,6 +613,7 @@ public class FormLayoutBuilder {
                     if (f.isAnnotationPresent(FullWidth.class)) wrap.setWidth("100%");
                     //currentFieldContainer.setCaption(ReflectionHelper.getCaption(f));
                 }
+                posFieldInLine++;
 
                 wrapper = currentFieldContainer;
 
@@ -628,8 +629,10 @@ public class FormLayoutBuilder {
 
             }
 
+            boolean readOnly = false;
             readOnly |= MDD.isReadOnly(f);
-            readOnly |= editor instanceof ReadOnlyViewComponent;
+            readOnly |= readOnlyModel;
+            if (RpcView.class.isAssignableFrom(f.getType())) readOnly = false;
 
             Component c = null;
             if (
@@ -677,6 +680,10 @@ public class FormLayoutBuilder {
             }
 
             if (!forSearchFilters || forSearchFiltersExtended) if (wrapper != null && wrapper.getComponentCount() > 0) currentContentContainer.addComponent(currentFieldContainer);
+
+            if (readOnlyModel && c != null && c instanceof Label) {
+                c.addStyleName("caption-on-left");
+            }
 
 
             log.debug("editor component field " + f + " in " + (System.currentTimeMillis() - t0) + " ms.");

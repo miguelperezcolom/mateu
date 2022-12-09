@@ -9,6 +9,8 @@ import com.vaadin.event.selection.SelectionEvent;
 import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.ItemClickListener;
+import com.vaadin.ui.renderers.ButtonRenderer;
+import io.mateu.mdd.core.app.ColumnAction;
 import io.mateu.mdd.core.interfaces.ReadOnly;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
@@ -18,6 +20,7 @@ import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.notification.Notifier;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.InvocationTargetException;
 import java.text.DecimalFormat;
 import java.util.*;
 
@@ -111,10 +114,59 @@ public class ResultsComponent extends VerticalLayout {
         grid = new Grid<>();
         grid.addStyleName("gridresultado");
 
-        listViewComponent.buildColumns(grid);
+        listViewComponent.buildColumns(this, grid);
 
         // añadimos columna para que no haga feo
-        grid.addColumn((d) -> null).setWidthUndefined().setCaption("");
+        Grid.Column lastCol = ((Grid.Column) grid.getColumns().get(grid.getColumns().size() - 1));
+        if (lastCol.getRenderer() != null && lastCol.getRenderer() instanceof ButtonRenderer) {
+
+            FieldInterfaced lastRunnableField = null;
+            for (FieldInterfaced f : ReflectionHelper.getAllFields(listViewComponent.getColumnType())) {
+                if (Runnable.class.isAssignableFrom(f.getType())) lastRunnableField = f;
+            }
+
+
+            grid.removeColumn(lastCol);
+            grid.addColumn((d) -> null).setWidthUndefined().setCaption("");
+            FieldInterfaced finalLastRunnableField = lastRunnableField;
+            Grid.Column col = grid.addColumn((d -> {
+                try {
+                    return ((ColumnAction)ReflectionHelper.getValue(finalLastRunnableField, d)).toString();
+                } catch (NoSuchMethodException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }));
+            ButtonRenderer r;
+            col.setRenderer(r = new ButtonRenderer(e -> {
+                try {
+                    ((Runnable)ReflectionHelper.getValue(finalLastRunnableField, e.getItem())).run();
+                    if (true) {
+                        try {
+                            ResultsComponent.this.refresh();
+                        } catch (Throwable ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                } catch (NoSuchMethodException ex) {
+                    ex.printStackTrace();
+                } catch (IllegalAccessException ex) {
+                    ex.printStackTrace();
+                } catch (InvocationTargetException ex) {
+                    ex.printStackTrace();
+                }
+            }, "es null"));
+            r.setHtmlContentAllowed(true);
+            col.setSortable(false);
+            col.setStyleGenerator(c -> "v-align-center");
+            col.setWidth(100);
+        } else {
+            grid.addColumn((d) -> null).setWidthUndefined().setCaption("");
+        }
 
 
         grid.addSortListener(new SortEvent.SortListener<GridSortOrder<Object>>() {

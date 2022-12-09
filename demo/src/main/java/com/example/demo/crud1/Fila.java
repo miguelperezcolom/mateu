@@ -1,5 +1,8 @@
 package com.example.demo.crud1;
 
+import com.vaadin.icons.VaadinIcons;
+import io.mateu.mdd.core.app.ColumnAction;
+import io.mateu.mdd.core.app.ColumnActionGroup;
 import io.mateu.mdd.shared.annotations.Ignored;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,6 +19,22 @@ public class Fila {
     private String nombre;
 
     private int edad;
+
+    private final ColumnAction boton = new ColumnAction(() -> {
+        System.out.println("Hola desde " + this.getId());
+        nombre = "xx";
+    }, () -> this.getNombre(), () -> VaadinIcons.PLAY_CIRCLE_O);
+
+    private final ColumnActionGroup menu = new ColumnActionGroup(new ColumnAction[]{
+            new ColumnAction(() -> {
+                System.out.println("Hola desde " + this.getId());
+                nombre = "xx";
+            }, () -> "Borrar", () -> VaadinIcons.TRASH),
+            new ColumnAction(() -> {
+                System.out.println("Hola desde " + this.getId());
+                nombre = "xx";
+            }, () -> "Refrescar", () -> VaadinIcons.REFRESH)
+    });
 
     @Override
     public String toString() {

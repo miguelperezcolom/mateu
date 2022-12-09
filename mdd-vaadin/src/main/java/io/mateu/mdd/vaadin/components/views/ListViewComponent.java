@@ -25,6 +25,7 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.EditorOpenEvent;
 import com.vaadin.ui.components.grid.EditorOpenListener;
 import com.vaadin.ui.components.grid.SortOrderProvider;
+import com.vaadin.ui.renderers.ButtonRenderer;
 import com.vaadin.ui.renderers.ComponentRenderer;
 import com.vaadin.ui.renderers.HtmlRenderer;
 import com.vaadin.ui.renderers.TextRenderer;
@@ -32,6 +33,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonValue;
 import io.mateu.i18n.Translator;
 import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.app.ColumnAction;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
@@ -224,10 +226,14 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     public void buildColumns(Grid grid) {
+        buildColumns(null, grid);
+    }
+
+    public void buildColumns(ResultsComponent resultsComponent, Grid grid) {
 
         List<FieldInterfaced> colFields = getColumnFields();
 
-        buildColumns(grid, colFields, this instanceof JPAListViewComponent, false, null, null, getFieldsFilter());
+        buildColumns(resultsComponent, grid, colFields, this instanceof JPAListViewComponent, false, null, null, getFieldsFilter());
     }
 
     public static void buildColumns(Grid grid, List<FieldInterfaced> colFields, boolean isJPAListViewComponent, boolean editable) {
@@ -239,10 +245,10 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     public static void buildColumns(Grid grid, List<FieldInterfaced> colFields, boolean isJPAListViewComponent, boolean editable, MDDBinder binder, FieldInterfaced collectionField) {
-        buildColumns(grid, colFields, isJPAListViewComponent, editable, binder, null, null);
+        buildColumns(null, grid, colFields, isJPAListViewComponent, editable, binder, null, null);
     }
 
-    public static void buildColumns(Grid grid, List<FieldInterfaced> colFields, boolean isJPAListViewComponent, boolean editable, MDDBinder binder, FieldInterfaced collectionField, String fieldsFilter) {
+    public static void buildColumns(ResultsComponent resultsComponent, Grid grid, List<FieldInterfaced> colFields, boolean isJPAListViewComponent, boolean editable, MDDBinder binder, FieldInterfaced collectionField, String fieldsFilter) {
         List<String> columnIds = new ArrayList<>();
         Map<String, FieldInterfaced> fieldByColumnId = new HashMap<>();
         if (!Strings.isNullOrEmpty(fieldsFilter)) {
@@ -264,11 +270,10 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             });
         }
 
-        buildColumns(grid, columnIds, fieldByColumnId, isJPAListViewComponent, editable, binder, collectionField, fieldsFilter);
+        buildColumns(resultsComponent, grid, columnIds, fieldByColumnId, isJPAListViewComponent, editable, binder, collectionField, fieldsFilter);
     }
 
-
-    public static void buildColumns(Grid grid, List<String> columnIds, Map<String, FieldInterfaced> fieldByColumnId, boolean isJPAListViewComponent, boolean editable, MDDBinder binder, FieldInterfaced collectionField, String fieldsFilter) {
+    public static void buildColumns(ResultsComponent resultsComponent, Grid grid, List<String> columnIds, Map<String, FieldInterfaced> fieldByColumnId, boolean isJPAListViewComponent, boolean editable, MDDBinder binder, FieldInterfaced collectionField, String fieldsFilter) {
 
         Object bean = binder != null?binder.getBean():null;
 
@@ -444,6 +449,32 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                 if (IResource.class.equals(f.getType())) col.setRenderer(new ComponentRenderer());
                 if (IIcon.class.isAssignableFrom(f.getType())) col.setRenderer(new HtmlRenderer(""));
                 if (Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) col.setRenderer(new HtmlRenderer(""));
+
+                if (Runnable.class.isAssignableFrom(f.getType())) {
+                    ButtonRenderer r;
+                    col.setRenderer(r = new ButtonRenderer(e -> {
+                        try {
+                            ((Runnable)ReflectionHelper.getValue(f, e.getItem())).run();
+                            if (resultsComponent != null) {
+                                try {
+                                    resultsComponent.refresh();
+                                } catch (Throwable ex) {
+                                    ex.printStackTrace();
+                                }
+                            }
+                        } catch (NoSuchMethodException ex) {
+                            ex.printStackTrace();
+                        } catch (IllegalAccessException ex) {
+                            ex.printStackTrace();
+                        } catch (InvocationTargetException ex) {
+                            ex.printStackTrace();
+                        }
+                    }, "es null"));
+                    r.setHtmlContentAllowed(true);
+                    col.setSortable(false);
+                    col.setStyleGenerator(c -> "v-align-center");
+                    col.setWidth(100);
+                }
 
                 if (csg != null) col.setStyleGenerator(new StyleGenerator() {
                     @Override
@@ -1628,10 +1659,15 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                             && (!Collection.class.isAssignableFrom(f.getType()) || (forGrid && f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline()))
                             && !Map.class.isAssignableFrom(f.getType())
                             && !f.isAnnotationPresent(GeneratedValue.class)
-                            && (ReflectionHelper.isBasico(f.getType()) || BigDecimal.class.equals(f.getType()) || f.getType().isEnum() || f.getType().isAnnotationPresent(Entity.class) || java.sql.Date.class.equals(f.getType())
-                            || FareValue.class.equals(f.getType())
-                            || f.isAnnotationPresent(WeekDays.class)
-                            || (forGrid && f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline())
+                            && (ReflectionHelper.isBasico(f.getType())
+                                    || BigDecimal.class.equals(f.getType())
+                                    || f.getType().isEnum()
+                                    || f.getType().isAnnotationPresent(Entity.class)
+                                    || java.sql.Date.class.equals(f.getType())
+                                    || FareValue.class.equals(f.getType())
+                                    || f.isAnnotationPresent(WeekDays.class)
+                                    || (forGrid && f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline())
+                                    || Runnable.class.isAssignableFrom(f.getType())
                     )
             ).filter(f -> f != null).collect(Collectors.toList());
 

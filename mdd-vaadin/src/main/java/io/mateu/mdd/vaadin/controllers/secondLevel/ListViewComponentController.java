@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadin.controllers.secondLevel;
 
 import com.vaadin.ui.Component;
+import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.interfaces.RpcView;
@@ -47,18 +48,36 @@ public class ListViewComponentController extends Controller {
                     if (listViewComponent instanceof JPAListViewComponent) {
                         Class type = listViewComponent.getModelType();
                         new EditorController(stack, path + "/" + step, listViewComponent, JPAHelper.find(type, ReflectionHelper.toId(type, step))).next(stack, path, step, remaining);
-                    } else {
+                    } else if (listViewComponent instanceof RpcListViewComponent) {
                         Object o = null;
                         if (MDDUIAccessor.getPendingResult() != null) {
                             o = MDDUIAccessor.getPendingResult();
                             MDDUIAccessor.setPendingResult(null);
                         } else o = ((RpcListViewComponent) listViewComponent).onEdit(step);
 
-                        if (o instanceof RpcView) register(stack, path + "/" + step, new RpcListViewComponent((RpcView) o));
-                        else if (!(o instanceof Component)) {
-                            if (o instanceof ReadOnlyPojo) new ReadOnlyController(stack, path + "/" + step, listViewComponent, o).next(stack, path, step, remaining);
-                            else new EditorController(stack, path + "/" + step, listViewComponent, o).next(stack, path, step, remaining);
-                        } else register(stack, path + "/" + step, (Component) o);
+                        if (o != null) {
+                            if (o instanceof RpcView) register(stack, path + "/" + step, new RpcListViewComponent((RpcView) o));
+                            else if (!(o instanceof Component)) {
+                                if (o instanceof ReadOnlyPojo) new ReadOnlyController(stack, path + "/" + step, listViewComponent, o).next(stack, path, step, remaining);
+                                else new EditorController(stack, path + "/" + step, listViewComponent, o).next(stack, path, step, remaining);
+                            } else register(stack, path + "/" + step, (Component) o);
+                        } else {
+
+                            Class type = listViewComponent.getModelType();
+                            if (ReadOnlyPojo.class.isAssignableFrom(type)) {
+                                ReadOnlyPojo o2 = (ReadOnlyPojo) ReflectionHelper.newInstance(type);
+                                o2.load(step);
+                                new ReadOnlyController(stack, path + "/" + step, listViewComponent, o2).next(stack, path, step, remaining);
+                            } else if (PersistentPojo.class.isAssignableFrom(type)) {
+                                PersistentPojo o2 = (PersistentPojo) ReflectionHelper.newInstance(type);
+                                o2.load(step);
+                                new EditorController(stack, path + "/" + step, listViewComponent, o2).next(stack, path, step, remaining);
+                            } else {
+                                throw new Exception("" + type + " must be ReadOnlyPojo or PersistentPojo to be loaded");
+                            }
+
+                        }
+
                     }
 
                 }

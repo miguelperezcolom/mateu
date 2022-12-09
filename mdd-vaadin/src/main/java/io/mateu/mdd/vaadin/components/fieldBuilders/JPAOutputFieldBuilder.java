@@ -235,6 +235,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
                 }
 
                 bind(binder, tf, botonLink, field);
+                r = tf;
             }
 
         }

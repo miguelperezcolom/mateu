@@ -91,6 +91,21 @@ body .mateu .maincomponent .contenido .section .fieldgroup > .v-spacing {
     height: 20px;
 }
 
+body .mateu .maincomponent .contenido .section .fieldgroup .v-caption-on-top .v-caption-caption-on-left {
+    display: inline-block;
+}
+
+body .mateu .maincomponent .contenido .section .fieldgroup .v-caption-on-top .caption-on-left {
+    width: unset;
+    position: absolute;
+    right: 0;
+}
+
+body .mateu .maincomponent .contenido .section .fieldgroup .v-slot-caption-on-left {
+    border-bottom: 1px solid whitesmoke;
+}
+
+
 body .mateu .maincomponent .contenido .section .v-slot-fieldgroupheader {
     border-bottom: 1px solid lightgray;
 }
@@ -98,6 +113,17 @@ body .mateu .maincomponent .contenido .section .v-slot-fieldgroupheader {
 body .mateu .maincomponent .contenido .section .fieldgroupheader, body .mateu .maincomponent .contenido .section .countlabel {
     font-size: 16px;
     font-weight: 900;
+}
+
+
+body .mateu .maincomponent .contenido .section .v-grid-cell .v-nativebutton {
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+body .mateu .maincomponent .contenido .section .v-grid-cell .v-nativebutton:hover {
+    color: whitesmoke;
 }
 
 

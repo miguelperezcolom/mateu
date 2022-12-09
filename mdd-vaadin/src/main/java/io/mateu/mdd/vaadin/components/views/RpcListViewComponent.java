@@ -43,6 +43,10 @@ public class RpcListViewComponent extends ListViewComponent {
         this.field = field;
     }
 
+    @Override
+    public boolean mustAddBreadcrumb() {
+        return field == null;
+    }
 
     public RpcListViewComponent(RpcView rpcListView) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         this.rpcListViewClass = rpcListView.getClass();

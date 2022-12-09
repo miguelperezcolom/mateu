@@ -205,7 +205,7 @@ public class JPAListViewComponent extends ListViewComponent {
 
     @Override
     public void buildColumns(Grid grid) {
-        buildColumns(grid, columnIds, fieldsByColId, true, false, null, null, useColumnsToColIds(useColumns));
+        buildColumns(resultsComponent, grid, columnIds, fieldsByColId, true, false, null, null, useColumnsToColIds(useColumns));
     }
 
     private String useColumnsToColIds(String useColumns) {

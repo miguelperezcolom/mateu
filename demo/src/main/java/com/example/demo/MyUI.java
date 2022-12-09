@@ -2,6 +2,7 @@ package com.example.demo;
 
 import com.example.demo.crud1.Crud1;
 import com.example.demo.crud1.Crud2;
+import com.example.demo.crud1.Crud3;
 import com.example.demo.crud1.Editor;
 import com.example.demo.formularios.Formulario1;
 import com.vaadin.ui.Component;
@@ -24,6 +25,9 @@ public class MyUI implements HasFooter {
 
     @MenuOption
     private Crud2 crud2;
+
+    @MenuOption
+    private Crud3 crud3;
 
     @MenuOption
     private Formulario1 formulario1;

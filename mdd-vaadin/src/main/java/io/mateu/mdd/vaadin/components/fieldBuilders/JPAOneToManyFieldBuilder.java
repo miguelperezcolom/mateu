@@ -398,7 +398,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
             }
 
 
-            ListViewComponent.buildColumns(g, colFields, false, inline, binder, field, field.isAnnotationPresent(FieldsFilter.class)?field.getAnnotation(FieldsFilter.class).value():null);
+            ListViewComponent.buildColumns(null, g, colFields, false, inline, binder, field, field.isAnnotationPresent(FieldsFilter.class)?field.getAnnotation(FieldsFilter.class).value():null);
 
 
             GridDecorator decorator = null;

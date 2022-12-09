@@ -15,11 +15,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDRunnableAction;
-import io.mateu.mdd.core.interfaces.AbstractStylist;
-import io.mateu.mdd.core.interfaces.HasHeader;
-import io.mateu.mdd.core.interfaces.Header;
-import io.mateu.mdd.core.interfaces.PersistentPojo;
-import io.mateu.mdd.core.interfaces.ReadOnly;
+import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.core.interfaces.ReadOnly;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
@@ -904,7 +900,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     public void addViewActionsMenuItems(CssLayout bar, List actions) {
 
         boolean isEditingNewRecord = newRecord;
-        boolean readOnly = getModel() != null && getModel() instanceof ReadOnly && ((ReadOnly) getModel()).isReadOnly();
+        Object model = getModel();
+        boolean readOnly = (model instanceof ReadOnlyPojo || (model instanceof ReadOnly && ((ReadOnly) model).isReadOnly()));
 
         if (esForm()) {
 

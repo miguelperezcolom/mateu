@@ -365,7 +365,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
         addComponent(navBar = createNavBar());
         addBack(navBar);
-        addBreadCrumb();
+        if (mustAddBreadcrumb()) addBreadCrumb();
 
         addComponent(header = createHeader());
 
@@ -379,6 +379,10 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
         built = true;
         return (A) this;
+    }
+
+    public boolean mustAddBreadcrumb() {
+        return true;
     }
 
     public NavBarComponent createNavBar() {
