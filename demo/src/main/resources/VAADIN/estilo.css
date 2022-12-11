@@ -29,6 +29,12 @@ body .mateu.v-app .v-button.quiet.primary {
     color: white;
 }
 
+body .mateu .maincomponent .v-button.quiet.primary:hover {
+    background-color: white;
+    border: 1px solid #501e96;
+    color: #501e96;
+}
+
 .section {
     color: black;
 }
