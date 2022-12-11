@@ -15,9 +15,8 @@ import io.mateu.mdd.shared.annotations.Submenu;
 
 @MateuUI(path = "",
         favIcon = "https://www.wefox.com/favicons/favicon-32x32.png",
-        logo = "logo.svg",
         stylesheets = "estilo.css")
-@Caption("")
+@Caption("Demo")
 public class MyUI implements HasFooter {
 
     @MenuOption

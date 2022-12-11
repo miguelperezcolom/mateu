@@ -17,6 +17,23 @@ $kpi: #7b7e80;
      */
   }
 
+  .v-slot-contenido {
+    margin-top: 49px;
+    margin-bottom: 49px;
+    min-height: calc(100vh - 260px);
+  }
+
+  .v-slot-contenido .actionsbar {
+    border-top: unset;
+    border-bottom: unset;
+  }
+
+  .v-slot-contenido .filterscomponent {
+    border-top: unset;
+    border-bottom: unset;
+    width: 100%;
+  }
+
   .contenido {
     padding: 0px;
 
@@ -30,7 +47,69 @@ $kpi: #7b7e80;
       min-width: 450px;
     }
 
+    .section {
+        background-color: white;
+      box-shadow: 0 1px 3px rgba(51, 55, 66, 6%), 0 2px 6px rgba(51, 55, 66, 2%);
+        border-radius: 8px;
+        padding-bottom: 20px;
+
+      .fieldgroup {
+        padding-bottom: 30px;
+      }
+
+      .fieldgroup > * {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      .fieldgroup > .v-spacing {
+        height: 20px;
+      }
+
+      .fieldgroup .v-caption-on-top .v-caption-caption-on-left {
+        display: inline-block;
+      }
+
+      .fieldgroup .v-caption-on-top .caption-on-left {
+        width: unset;
+        position: absolute;
+        right: 0;
+      }
+
+      .fieldgroup .v-slot-caption-on-left {
+        border-bottom: 1px solid whitesmoke;
+      }
+
+
+      .v-slot-fieldgroupheader {
+        border-bottom: 1px solid lightgray;
+      }
+
+      .fieldgroupheader, .countlabel {
+        font-size: 16px;
+        font-weight: 900;
+      }
+
+
+
+
+      .v-grid-cell .v-nativebutton {
+        border: none;
+        background-color: transparent;
+        cursor: pointer;
+      }
+
+      .v-grid-cell .v-nativebutton:hover {
+        color: whitesmoke;
+      }
+
+    }
+
+    .section.result-page .checkmark .v-icon {
+      font-size: 80px;
+    }
   }
+
 
   .contenido.fullwidth {
     padding: 10px;
@@ -52,7 +131,12 @@ $kpi: #7b7e80;
     padding: 0px;
 
     .viewTitle {
-      font-size: 2em;
+      --font-size: 1.5rem;
+      --line-height: 1.3333333333;
+      font-weight: 700;
+      font-size: var(--font-size);
+      line-height: var(--line-height);
+      color: rgba(0,0,0,.85);
     }
 
     .viewIcon {

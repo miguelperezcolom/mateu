@@ -1,9 +1,5 @@
 @mixin general {
 
-  .v-app {
-    background-color: white;
-  }
-
   .v-widget {
     .nopadding {
       padding: 0px;
@@ -236,5 +232,4 @@
     }
 
   }
-
 }
