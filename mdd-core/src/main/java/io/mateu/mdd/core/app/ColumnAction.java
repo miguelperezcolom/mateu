@@ -6,9 +6,9 @@ import java.util.concurrent.Callable;
 
 public class ColumnAction implements Runnable {
 
-    private final Runnable runnable;
-    private final Callable<String> valueProvider;
-    private final Callable<VaadinIcons> iconProvider;
+    protected final Runnable runnable;
+    protected final Callable<String> valueProvider;
+    protected final Callable<VaadinIcons> iconProvider;
 
     public ColumnAction(Runnable runnable, Callable<String> valueProvider, Callable<VaadinIcons> iconProvider) {
         this.runnable = runnable;
@@ -27,6 +27,6 @@ public class ColumnAction implements Runnable {
 
     @Override
     public void run() {
-        runnable.run();
+        if (runnable != null) runnable.run();
     }
 }

@@ -1,10 +1,9 @@
 package io.mateu.mdd.core.app;
 
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.Window;
-import io.mateu.mdd.core.ui.MDDUIAccessor;
+import com.vaadin.ui.*;
+import com.vaadin.ui.renderers.ClickableRenderer;
+import com.vaadin.ui.themes.ValoTheme;
 
 public class ColumnActionGroup extends ColumnAction {
 
@@ -20,13 +19,41 @@ public class ColumnActionGroup extends ColumnAction {
         return VaadinIcons.ELLIPSIS_DOTS_V.getHtml();
     }
 
-    @Override
-    public void run() {
-        System.out.println("Hola!");
+    public void run(ClickableRenderer.RendererClickEvent event, Refreshable resultsComponent) {
         Window w = new Window();
-        w.setContent(new Label("hola!"));
+        VerticalLayout vl = new VerticalLayout();
+        for (ColumnAction action: actions) {
+            try {
+                Button b;
+                vl.addComponent(b = new Button(action.valueProvider != null?action.valueProvider.call():null
+                        , action.iconProvider != null?action.iconProvider.call():null));
+                b.addClickListener(e -> {
+                    action.run();
+                    try {
+                        resultsComponent.refresh();
+                    } catch (Throwable ex) {
+                        ex.printStackTrace();
+                    }
+                });
+                b.addStyleName(ValoTheme.BUTTON_QUIET);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        w.setContent(vl);
         w.setVisible(true);
+        w.setClosable(false);
+        w.setModal(false);
+        w.setResizable(false);
         UI.getCurrent().addWindow(w);
-        w.setPosition(300, 500);
+        w.setPosition(event.getClientX() + 10, event.getClientY() + 10);
+        new Thread(() -> {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            w.close();
+        }).start();
     }
 }

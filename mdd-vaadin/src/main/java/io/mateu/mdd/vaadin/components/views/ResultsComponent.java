@@ -11,6 +11,8 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.ItemClickListener;
 import com.vaadin.ui.renderers.ButtonRenderer;
 import io.mateu.mdd.core.app.ColumnAction;
+import io.mateu.mdd.core.app.ColumnActionGroup;
+import io.mateu.mdd.core.app.Refreshable;
 import io.mateu.mdd.core.interfaces.ReadOnly;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
@@ -25,7 +27,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 
 @Slf4j
-public class ResultsComponent extends VerticalLayout {
+public class ResultsComponent extends VerticalLayout implements Refreshable {
 
     private final ListViewComponent listViewComponent;
     private final Component matchesComponent;
@@ -144,8 +146,9 @@ public class ResultsComponent extends VerticalLayout {
             ButtonRenderer r;
             col.setRenderer(r = new ButtonRenderer(e -> {
                 try {
-                    ((Runnable)ReflectionHelper.getValue(finalLastRunnableField, e.getItem())).run();
-                    if (true) {
+                    Runnable action = ((Runnable) ReflectionHelper.getValue(finalLastRunnableField, e.getItem()));
+                    if (action instanceof ColumnActionGroup) ((ColumnActionGroup) action).run(e, ResultsComponent.this); else action.run();
+                    if (!(action instanceof ColumnActionGroup)) {
                         try {
                             ResultsComponent.this.refresh();
                         } catch (Throwable ex) {
@@ -340,6 +343,7 @@ public class ResultsComponent extends VerticalLayout {
         return grid.getSelectedItems();
     }
 
+    @Override
     public void refresh() throws Throwable {
         search(listViewComponent.getModelForSearchFilters());
     }
