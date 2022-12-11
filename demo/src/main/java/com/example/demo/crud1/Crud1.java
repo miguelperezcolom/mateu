@@ -32,12 +32,12 @@ public class Crud1 implements RpcCrudView<Formulario, Fila, Editor1> {
     @Override
     public List<Fila> rpc(Formulario filters, List<QuerySortOrder> sortOrders, int offset, int limit) throws Throwable {
         System.out.println("nombre = " + filters.getNombre());
-        Thread.sleep(2000);
         return new ArrayList<>();
     }
 
     @Override
     public int gatherCount(Formulario filters) throws Throwable {
+        Thread.sleep(2000);
         return 0;
     }
 

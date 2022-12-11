@@ -393,7 +393,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
         return new NavBarComponent();
     }
 
-    private void addBack(CssLayout bar) {
+    private void addBack(HorizontalLayout bar) {
             if (!isActionPresent("back")) {
                 Button b;
                 bar.addComponent(backButton = b = new Button("", VaadinIcons.ARROW_LEFT), 0);
