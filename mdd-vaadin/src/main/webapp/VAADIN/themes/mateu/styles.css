@@ -15833,11 +15833,6 @@ div.v-layout.v-horizontal.v-widget {
 	border-bottom: 1px solid lightgray;
 }
 
-.mateu .maincomponent .contenido .section .fieldgroupheader, .mateu .maincomponent .contenido .section .countlabel {
-	font-size: 16px;
-	font-weight: 900;
-}
-
 .mateu .maincomponent .contenido .section .v-grid-cell .v-nativebutton {
 	border: none;
 	background-color: transparent;
@@ -15876,7 +15871,6 @@ div.v-layout.v-horizontal.v-widget {
 	font-weight: 700;
 	font-size: var(--font-size);
 	line-height: var(--line-height);
-	color: rgba(0, 0, 0, 0.85);
 }
 
 .mateu .maincomponent .viewHeader .viewIcon {
@@ -15990,10 +15984,6 @@ div.v-layout.v-horizontal.v-widget {
 
 .mateu .maincomponent .superkpi .v-label-centered {
 	text-align: center;
-}
-
-.mateu .maincomponent .v-grid-row {
-	color: black;
 }
 
 .mateu .maincomponent .gridresultado .v-grid-header-deco {
@@ -16380,6 +16370,15 @@ div.v-layout.v-horizontal.v-widget {
 	transform: translateZ(0);
 	-webkit-animation: load8 1.1s infinite linear;
 	animation: load8 1.1s infinite linear;
+}
+
+.mateu .v-button {
+	color: unset;
+	font-weight: unset;
+}
+
+.mateu .v-label-h4 {
+	color: unset;
 }
 
 @keyframes fadein {

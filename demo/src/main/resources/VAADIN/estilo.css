@@ -21,4 +21,14 @@
 
 body .mateu.v-app {
     font-family: "Kyn";
+    color: #501e96;
+}
+
+body .mateu.v-app .v-button.quiet.primary {
+    background-color: #501e96;
+    color: white;
+}
+
+.section {
+    color: black;
 }

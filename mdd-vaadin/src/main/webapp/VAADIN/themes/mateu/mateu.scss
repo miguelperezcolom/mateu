@@ -99,6 +99,15 @@ $v-font-size: 14px;
 
   @include loader;
 
+  .v-button {
+    color: unset;
+    font-weight: unset;
+  }
+
+  .v-label-h4 {
+    color: unset;
+  }
+
 }
 
 

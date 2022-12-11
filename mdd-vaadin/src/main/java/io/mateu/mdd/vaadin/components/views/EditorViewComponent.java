@@ -891,7 +891,10 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         }
         if (actions != null) {
             if (actions.getComponentCount() == 0) actionsSection.setVisible(false);
-            else actionsSection.setVisible(true);
+            else {
+                actions.getComponent(actions.getComponentCount() - 1).addStyleName(ValoTheme.BUTTON_PRIMARY);
+                actionsSection.setVisible(true);
+            }
         }
     }
 

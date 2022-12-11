@@ -86,9 +86,12 @@ $kpi: #7b7e80;
       }
 
       .fieldgroupheader, .countlabel {
+        /*
         font-size: 16px;
         font-weight: 900;
+         */
       }
+
 
 
 
@@ -136,7 +139,6 @@ $kpi: #7b7e80;
       font-weight: 700;
       font-size: var(--font-size);
       line-height: var(--line-height);
-      color: rgba(0,0,0,.85);
     }
 
     .viewIcon {
