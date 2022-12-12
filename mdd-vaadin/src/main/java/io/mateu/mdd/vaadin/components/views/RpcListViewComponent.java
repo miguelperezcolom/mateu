@@ -2,6 +2,8 @@ package io.mateu.mdd.vaadin.components.views;
 
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.ui.Grid;
+import com.vaadin.ui.Notification;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.AbstractCrudView;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
@@ -198,6 +200,7 @@ public class RpcListViewComponent extends ListViewComponent {
             return rpcListView.rpc(filters, sortOrders, offset, limit);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
+            Notifier.alert(throwable);
             return null;
         }
     }
