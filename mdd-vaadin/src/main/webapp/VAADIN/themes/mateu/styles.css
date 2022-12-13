@@ -15800,6 +15800,7 @@ div.v-layout.v-horizontal.v-widget {
 	box-shadow: 0 1px 3px rgba(51, 55, 66, 6%), 0 2px 6px rgba(51, 55, 66, 2%);
 	border-radius: 8px;
 	padding-bottom: 20px;
+	margin-bottom: 30px;
 }
 
 .mateu .maincomponent .contenido .section .fieldgroup {
@@ -16345,6 +16346,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .mateu .v-ui .v-loading-indicator[style*="none"] {
 	height: 0px;
+}
+
+.mateu .v-ui .v-loading-indicator[style*="none"] .spinner {
+	display: none;
 }
 
 .mateu .spinner, .mateu .spinner:after {

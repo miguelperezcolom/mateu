@@ -21,6 +21,9 @@
 }
 
 
+.v-ui .v-loading-indicator[style*="none"] .spinner {
+  display: none;
+}
 
 .spinner,
 .spinner:after {

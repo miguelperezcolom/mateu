@@ -58,20 +58,21 @@ public class ListViewComponentController extends Controller {
                         if (o != null) {
                             if (o instanceof RpcView) register(stack, path + "/" + step, new RpcListViewComponent((RpcView) o));
                             else if (!(o instanceof Component)) {
+                                if (o instanceof PersistentPojo) new EditorController(stack, path + "/" + step, listViewComponent, o).next(stack, path, step, remaining);
                                 if (o instanceof ReadOnlyPojo) new ReadOnlyController(stack, path + "/" + step, listViewComponent, o).next(stack, path, step, remaining);
                                 else new EditorController(stack, path + "/" + step, listViewComponent, o).next(stack, path, step, remaining);
                             } else register(stack, path + "/" + step, (Component) o);
                         } else {
 
                             Class type = listViewComponent.getModelType();
-                            if (ReadOnlyPojo.class.isAssignableFrom(type)) {
-                                ReadOnlyPojo o2 = (ReadOnlyPojo) ReflectionHelper.newInstance(type);
-                                o2.load(step);
-                                new ReadOnlyController(stack, path + "/" + step, listViewComponent, o2).next(stack, path, step, remaining);
-                            } else if (PersistentPojo.class.isAssignableFrom(type)) {
+                            if (PersistentPojo.class.isAssignableFrom(type)) {
                                 PersistentPojo o2 = (PersistentPojo) ReflectionHelper.newInstance(type);
                                 o2.load(step);
                                 new EditorController(stack, path + "/" + step, listViewComponent, o2).next(stack, path, step, remaining);
+                            } else if (ReadOnlyPojo.class.isAssignableFrom(type)) {
+                                ReadOnlyPojo o2 = (ReadOnlyPojo) ReflectionHelper.newInstance(type);
+                                o2.load(step);
+                                new ReadOnlyController(stack, path + "/" + step, listViewComponent, o2).next(stack, path, step, remaining);
                             } else {
                                 throw new Exception("" + type + " must be ReadOnlyPojo or PersistentPojo to be loaded");
                             }

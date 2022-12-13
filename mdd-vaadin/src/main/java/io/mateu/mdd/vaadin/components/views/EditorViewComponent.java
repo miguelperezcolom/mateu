@@ -904,7 +904,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         boolean isEditingNewRecord = newRecord;
         Object model = getModel();
-        boolean readOnly = (model instanceof ReadOnlyPojo || (model instanceof ReadOnly && ((ReadOnly) model).isReadOnly()));
+        boolean readOnly = !(model instanceof PersistentPojo) && (model instanceof ReadOnlyPojo || (model instanceof ReadOnly && ((ReadOnly) model).isReadOnly()));
 
         if (esForm()) {
 

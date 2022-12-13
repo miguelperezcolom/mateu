@@ -4,6 +4,7 @@ import com.vaadin.navigator.View;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.Window;
+import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
@@ -74,7 +75,7 @@ public class ViewStack {
         String cleanState = cleanState(state);
         boolean yaAbierto = false;
         if (v.getViewComponent() instanceof EditorViewComponent) {
-            if (((EditorViewComponent) v.getViewComponent()).getModel() != null) yaAbierto = stack.stream().anyMatch(w -> w.getViewComponent() instanceof EditorViewComponent && ((EditorViewComponent) w.getViewComponent()).getModel() != null && ((EditorViewComponent) w.getViewComponent()).getModel().equals(((EditorViewComponent) v.getViewComponent()).getModel()));
+            if (((EditorViewComponent) v.getViewComponent()).getModel() != null) yaAbierto = stack.stream().anyMatch(w -> w.getViewComponent() instanceof EditorViewComponent && ((EditorViewComponent) w.getViewComponent()).getModel() != null && !(((EditorViewComponent) w.getViewComponent()).getModel() instanceof ReadOnlyPojo) && ((EditorViewComponent) w.getViewComponent()).getModel().equals(((EditorViewComponent) v.getViewComponent()).getModel()));
         } else if (v.getViewComponent() instanceof ListViewComponent) {
             ((ListViewComponent) v.getViewComponent()).setBaseUrl(state);
         }

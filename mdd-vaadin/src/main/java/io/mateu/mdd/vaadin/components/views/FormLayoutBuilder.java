@@ -539,7 +539,7 @@ public class FormLayoutBuilder {
         List<Layout> containersStack = new ArrayList<>();
 
         Object model = fields.size() > 0?models.get(fields.get(0)):null;
-        boolean readOnlyModel = model != null && (model instanceof ReadOnlyPojo || (model instanceof ReadOnly && ((ReadOnly) model).isReadOnly()));
+        boolean readOnlyModel = model != null && !(model instanceof PersistentPojo) && (model instanceof ReadOnlyPojo || (model instanceof ReadOnly && ((ReadOnly) model).isReadOnly()));
 
         int posFieldInLine = 0;
 
