@@ -1,5 +1,6 @@
 package com.example.demo.crud1;
 
+import com.example.demo.formularios.Formulario1;
 import com.vaadin.data.provider.QuerySortOrder;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.shared.annotations.Action;
@@ -24,6 +25,10 @@ public class Crud3 implements RpcCrudView<Crud3, Fila, ReadOnlyIntermediary> {
 
     private int edad;
 
+    @Override
+    public Object onNew() throws Throwable {
+        return new Formulario1();
+    }
 
     @Override
     public Object deserializeId(String sid) {

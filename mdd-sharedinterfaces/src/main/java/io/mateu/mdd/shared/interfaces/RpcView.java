@@ -33,6 +33,10 @@ public interface RpcView<F, C> {
         return null;
     }
 
+    default Object onNew() throws Throwable {
+        return null;
+    }
+
 
     default boolean isSelectHandled() { return false; }
 
