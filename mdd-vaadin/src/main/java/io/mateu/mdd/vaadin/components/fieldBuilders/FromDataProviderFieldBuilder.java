@@ -8,6 +8,7 @@ import com.vaadin.server.UserError;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
+import io.mateu.mdd.shared.annotations.RequestFocus;
 import io.mateu.mdd.shared.annotations.UseRadioButtons;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.data.MDDBinder;
@@ -35,7 +36,7 @@ public class FromDataProviderFieldBuilder extends AbstractFieldBuilder {
             RadioButtonGroup tf;
             container.addComponent(tf = new RadioButtonGroup());
 
-            if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
+            if (field.isAnnotationPresent(RequestFocus.class)) tf.focus();
 
             tf.setDataProvider(field.getDataProvider());
 
@@ -78,7 +79,7 @@ public class FromDataProviderFieldBuilder extends AbstractFieldBuilder {
             ComboBox tf;
             container.addComponent(tf = new ComboBox());
 
-            if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
+            if (field.isAnnotationPresent(RequestFocus.class)) tf.focus();
 
             tf.setDataProvider(field.getDataProvider());
 

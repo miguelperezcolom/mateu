@@ -8,6 +8,7 @@ import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
+import io.mateu.mdd.shared.annotations.RequestFocus;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.reflection.ReflectionHelper;
@@ -45,7 +46,7 @@ public class JPAURLFieldBuilder extends AbstractFieldBuilder {
         container.addComponent(hl = new HorizontalLayout(tf, b));
 
 
-        if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
+        if (field.isAnnotationPresent(RequestFocus.class)) tf.focus();
 
         if (allFieldContainers != null) allFieldContainers.put(field, tf);
 

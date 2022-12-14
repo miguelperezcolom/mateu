@@ -8,6 +8,7 @@ import com.vaadin.ui.*;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.shared.CSS;
+import io.mateu.mdd.shared.annotations.RequestFocus;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.reflection.ReflectionHelper;
@@ -33,7 +34,7 @@ public class JPABooleanFieldBuilder extends AbstractFieldBuilder {
             container.addComponent(cb = new ComboBox<>());
             cb.setDataProvider(new ListDataProvider<>(Lists.newArrayList(true, false)));
 
-            if (allFieldContainers.size() == 0) cb.focus();
+            if (field.isAnnotationPresent(RequestFocus.class)) cb.focus();
 
             if (container.getComponentCount() > 0) cb.setCaption(ReflectionHelper.getCaption(field));
 
@@ -58,7 +59,7 @@ public class JPABooleanFieldBuilder extends AbstractFieldBuilder {
             hl.addComponent(cb = new CheckBox());
             hl.setDefaultComponentAlignment(Alignment.TOP_LEFT);
 
-            if (allFieldContainers.size() == 0) cb.focus();
+            if (field.isAnnotationPresent(RequestFocus.class)) cb.focus();
 
             hl.setCaption(ReflectionHelper.getCaption(field));
 

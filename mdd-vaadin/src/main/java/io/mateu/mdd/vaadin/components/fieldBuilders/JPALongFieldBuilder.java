@@ -7,6 +7,7 @@ import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
+import io.mateu.mdd.shared.annotations.RequestFocus;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.reflection.ReflectionHelper;
@@ -31,7 +32,7 @@ public class JPALongFieldBuilder extends JPAStringFieldBuilder {
             Slider tf;
             container.addComponent(tf = new Slider(new Long(field.getAnnotation(Min.class).value()).intValue(), new Long(field.getAnnotation(Max.class).value()).intValue()));
 
-            if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
+            if (field.isAnnotationPresent(RequestFocus.class)) tf.focus();
 
             if (allFieldContainers != null) allFieldContainers.put(field, tf);
 

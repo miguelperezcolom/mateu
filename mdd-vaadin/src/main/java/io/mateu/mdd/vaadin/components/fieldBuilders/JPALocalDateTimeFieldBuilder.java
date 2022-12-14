@@ -5,6 +5,7 @@ import com.vaadin.data.Validator;
 import com.vaadin.ui.*;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
+import io.mateu.mdd.shared.annotations.RequestFocus;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.reflection.ReflectionHelper;
@@ -27,7 +28,7 @@ public class JPALocalDateTimeFieldBuilder extends AbstractFieldBuilder {
         DateTimeField tf;
         container.addComponent(tf = new DateTimeField());
 
-        if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
+        if (field.isAnnotationPresent(RequestFocus.class)) tf.focus();
 
         if (allFieldContainers != null) allFieldContainers.put(field, tf);
 

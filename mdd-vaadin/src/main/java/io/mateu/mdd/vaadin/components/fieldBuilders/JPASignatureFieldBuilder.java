@@ -10,6 +10,7 @@ import eu.maxschuster.vaadin.signaturefield.SignatureField;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
+import io.mateu.mdd.shared.annotations.RequestFocus;
 import io.mateu.mdd.shared.annotations.Signature;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.data.MDDBinder;
@@ -42,7 +43,7 @@ public class JPASignatureFieldBuilder extends JPAStringFieldBuilder {
 
             r = tf;
 
-            if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
+            if (field.isAnnotationPresent(RequestFocus.class)) tf.focus();
 
             Button b;
             l.addComponent(b = new Button(VaadinIcons.EXPAND_SQUARE));

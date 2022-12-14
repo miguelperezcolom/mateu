@@ -14,6 +14,7 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.Html;
+import io.mateu.mdd.shared.annotations.RequestFocus;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.reflection.ReflectionHelper;
@@ -42,7 +43,7 @@ public class JPAHtmlFieldBuilder extends JPAStringFieldBuilder {
             RichTextArea tf;
             l.addComponent(tf = new RichTextArea());
 
-            if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
+            if (field.isAnnotationPresent(RequestFocus.class)) tf.focus();
 
             Button b;
             l.addComponent(b = new Button(VaadinIcons.EXPAND_SQUARE));

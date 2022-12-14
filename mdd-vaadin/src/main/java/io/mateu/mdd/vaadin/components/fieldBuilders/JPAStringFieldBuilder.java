@@ -122,7 +122,7 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
                 container.addComponent(tf = cb = new ComboBox());
                 cb.addStyleName("combo");
 
-                if (allFieldContainers.size() == 0) cb.focus();
+                if (field.isAnnotationPresent(RequestFocus.class)) cb.focus();
 
                 hv = cb;
 
@@ -243,7 +243,7 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
 
 
 
-            if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
+            if (field.isAnnotationPresent(RequestFocus.class)) tf.focus();
 
             if (allFieldContainers != null) allFieldContainers.put(field, tf);
 

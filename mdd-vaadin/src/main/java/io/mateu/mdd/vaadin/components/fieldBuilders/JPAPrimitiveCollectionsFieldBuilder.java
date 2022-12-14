@@ -10,6 +10,7 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.shared.annotations.DataProvider;
+import io.mateu.mdd.shared.annotations.RequestFocus;
 import io.mateu.mdd.shared.annotations.ValueClass;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.data.MDDBinder;
@@ -139,7 +140,7 @@ public class JPAPrimitiveCollectionsFieldBuilder extends JPAStringFieldBuilder {
 
                 r = tf;
 
-                if (allFieldContainers != null && allFieldContainers.size() == 0) tf.focus();
+                if (field.isAnnotationPresent(RequestFocus.class)) tf.focus();
 
                 if (allFieldContainers != null) allFieldContainers.put(field, tf);
 

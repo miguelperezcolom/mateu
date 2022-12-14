@@ -239,7 +239,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                     if (field.isAnnotationPresent(Width.class)) cb.setWidth(field.getAnnotation(Width.class).value());
 
 
-                    if (allFieldContainers != null && allFieldContainers.size() == 0) cb.focus();
+                    if (field.isAnnotationPresent(RequestFocus.class)) cb.focus();
 
                     hv = cb;
 

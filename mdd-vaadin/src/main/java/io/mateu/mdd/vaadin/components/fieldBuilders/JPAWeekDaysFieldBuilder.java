@@ -9,6 +9,7 @@ import com.vaadin.ui.Layout;
 import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
+import io.mateu.mdd.shared.annotations.RequestFocus;
 import io.mateu.mdd.shared.annotations.WeekDays;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.components.fieldBuilders.components.WeekDaysComponent;
@@ -39,7 +40,7 @@ public class JPAWeekDaysFieldBuilder extends AbstractFieldBuilder {
         addErrorHandler(field, c);
 
 
-        if (allFieldContainers.size() == 0) c.focus();
+        if (field.isAnnotationPresent(RequestFocus.class)) c.focus();
 
         allFieldContainers.put(field, c);
 

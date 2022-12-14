@@ -114,7 +114,7 @@ public class FieldEditorComponent extends AbstractViewComponent{
             com.vaadin.ui.TextArea t;
             addComponentsAndExpand(t = new com.vaadin.ui.TextArea());
             t.setSizeFull();
-            t.focus();
+            if (field.isAnnotationPresent(RequestFocus.class)) t.focus();
             try {
                 String v = (String) ReflectionHelper.getValue(field, binder.getBean());
                 t.setValue((v != null)?v:"");
@@ -138,7 +138,7 @@ public class FieldEditorComponent extends AbstractViewComponent{
             RichTextArea t;
             addComponentsAndExpand(t = new RichTextArea());
             t.setSizeFull();
-            t.focus();
+            if (field.isAnnotationPresent(RequestFocus.class)) t.focus();
             try {
                 String v = (String) ReflectionHelper.getValue(field, binder.getBean());
                 if (v == null) v = "";
@@ -166,7 +166,7 @@ public class FieldEditorComponent extends AbstractViewComponent{
             t.setTheme(field.getAnnotation(Code.class).theme());
 
             t.setSizeFull();
-            t.focus();
+            if (field.isAnnotationPresent(RequestFocus.class)) t.focus();
             try {
                 t.setValue((String) ReflectionHelper.getValue(field, binder.getBean()));
             } catch (Exception e) {

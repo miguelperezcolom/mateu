@@ -9,6 +9,7 @@ import com.vaadin.ui.Layout;
 import com.vaadin.ui.VerticalLayout;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
+import io.mateu.mdd.shared.annotations.RequestFocus;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.components.fieldBuilders.components.LiteralComponent;
 import io.mateu.mdd.vaadin.data.MDDBinder;
@@ -35,7 +36,7 @@ public class JPALiteralFieldBuilder extends AbstractFieldBuilder {
         LiteralComponent c;
         container.addComponent(c = new LiteralComponent(field, binder));
 
-        if (allFieldContainers.size() == 0) c.focus();
+        if (field.isAnnotationPresent(RequestFocus.class)) c.focus();
 
         allFieldContainers.put(field, c);
 
