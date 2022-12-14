@@ -41,6 +41,7 @@ public class ResultsComponent extends VerticalLayout implements Refreshable {
     private Map<String, Object> lastSignature;
     private HorizontalLayout sizingAndPagingContainer;
 
+
     public int getLastClickedRowIndex() {
         return lastClickedRowIndex;
     }
@@ -207,7 +208,7 @@ public class ResultsComponent extends VerticalLayout implements Refreshable {
 
         grid.setDataProvider(dataProvider);
         grid.setColumnReorderingAllowed(true);
-        grid.setSelectionMode(Grid.SelectionMode.MULTI);
+        if (listViewComponent instanceof RpcListViewComponent && ((RpcListViewComponent)listViewComponent).getRpcListView().showCheckboxForSelection()) grid.setSelectionMode(Grid.SelectionMode.MULTI);
         grid.setHeightByRows(10);
         grid.setWidthFull();
 

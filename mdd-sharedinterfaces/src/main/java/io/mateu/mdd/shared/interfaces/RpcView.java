@@ -44,4 +44,8 @@ public interface RpcView<F, C> {
         return MDDUIAccessor.getSelectedRows();
     }
 
+    default boolean showCheckboxForSelection() {
+        return false;
+    }
+
 }

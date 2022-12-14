@@ -102,4 +102,9 @@ public class Crud3 implements RpcCrudView<Crud3, Fila, ReadOnlyIntermediary> {
     public void action() {
         System.out.println("nombre = " + nombre);
     }
+
+    @Override
+    public boolean showCheckboxForSelection() {
+        return true;
+    }
 }
