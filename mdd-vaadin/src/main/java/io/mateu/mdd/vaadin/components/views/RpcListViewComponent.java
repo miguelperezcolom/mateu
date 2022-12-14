@@ -40,8 +40,13 @@ public class RpcListViewComponent extends ListViewComponent {
         return rpcListView;
     }
 
-    public RpcListViewComponent(FieldInterfaced field) throws InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
-        this(field.getType());
+    public RpcListViewComponent(FieldInterfaced field, RpcView rpcListView) throws InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
+        this(rpcListView);
+        this.field = field;
+    }
+
+    public RpcListViewComponent(FieldInterfaced field, Class rpcListViewClass) throws InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
+        this(rpcListViewClass);
         this.field = field;
     }
 
