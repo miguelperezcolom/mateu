@@ -39,10 +39,7 @@ import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.data.ChartData;
-import io.mateu.mdd.shared.data.ChartValue;
-import io.mateu.mdd.shared.data.FareValue;
-import io.mateu.mdd.shared.data.SumData;
+import io.mateu.mdd.shared.data.*;
 import io.mateu.mdd.shared.interfaces.IResource;
 import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
@@ -273,6 +270,10 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         buildColumns(resultsComponent, grid, columnIds, fieldByColumnId, isJPAListViewComponent, editable, binder, collectionField, fieldsFilter);
     }
 
+    private static String getCircleSvg() {
+        return "<svg style='margin-right: 5px; width='10' height='10' viewBox='0 0 10 10'><circle cx='5' cy='5' r='5' fill='currentColor'/></svg>";
+    }
+
     public static void buildColumns(ResultsComponent resultsComponent, Grid grid, List<String> columnIds, Map<String, FieldInterfaced> fieldByColumnId, boolean isJPAListViewComponent, boolean editable, MDDBinder binder, FieldInterfaced collectionField, String fieldsFilter) {
 
         Object bean = binder != null?binder.getBean():null;
@@ -427,6 +428,8 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                         } else if (Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) {
                             return (v != null && (Boolean)v)?VaadinIcons.CHECK.getHtml():VaadinIcons.CLOSE.getHtml();
                             //return "<i class='fas fa-" + ((v != null && (Boolean)v)?"check":"times") + "'></i>";
+                        } else if (Status.class.equals(f.getType())) {
+                            return v != null?getCircleSvg() + " " + ((Status)v).getMessage():null;
                         } else if (IIcon.class.isAssignableFrom(f.getType())) {
                             return (v != null)?"" + v:null;
                         } else if (IResource.class.equals(f.getType())) {
@@ -447,6 +450,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                 });
 
                 if (IResource.class.equals(f.getType())) col.setRenderer(new ComponentRenderer());
+                if (Status.class.equals(f.getType())) col.setRenderer(new HtmlRenderer(""));
                 if (IIcon.class.isAssignableFrom(f.getType())) col.setRenderer(new HtmlRenderer(""));
                 if (Boolean.class.equals(f.getType()) || boolean.class.equals(f.getType())) col.setRenderer(new HtmlRenderer(""));
 
@@ -522,6 +526,23 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                                 } else if (o instanceof Cancellable) {
                                     if (((Cancellable)o).isCancelled()) return "cancelled";
                                 }
+                            } catch (Exception e) {
+                                Notifier.alert(e);
+                            }
+                            return null;
+                        }
+                    });
+                }
+
+                if (Status.class.equals(f.getType())) {
+                    col.setStyleGenerator(new StyleGenerator() {
+                        @Override
+                        public String apply(Object o) {
+                            try {
+                                Status v = (Status) ReflectionHelper.getValue(f, o);
+                                if (v == null) return null;
+                                String s = "statusLabel " + ((Status) v).getType();
+                                return s;
                             } catch (Exception e) {
                                 Notifier.alert(e);
                             }
@@ -1665,6 +1686,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
                                     || f.getType().isAnnotationPresent(Entity.class)
                                     || java.sql.Date.class.equals(f.getType())
                                     || FareValue.class.equals(f.getType())
+                                    || Status.class.equals(f.getType())
                                     || f.isAnnotationPresent(WeekDays.class)
                                     || (forGrid && f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline())
                                     || Runnable.class.isAssignableFrom(f.getType())

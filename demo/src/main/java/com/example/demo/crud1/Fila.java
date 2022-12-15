@@ -3,7 +3,10 @@ package com.example.demo.crud1;
 import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.app.ColumnAction;
 import io.mateu.mdd.core.app.ColumnActionGroup;
+import io.mateu.mdd.shared.annotations.CellStyleGenerator;
 import io.mateu.mdd.shared.annotations.Ignored;
+import io.mateu.mdd.shared.data.Status;
+import io.mateu.mdd.shared.data.StatusType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -19,6 +22,8 @@ public class Fila {
     private String nombre;
 
     private int edad;
+
+    private final Status estado = new Status(StatusType.WARNING, "Hoola");
 
     private final ColumnAction boton = new ColumnAction(() -> {
         System.out.println("Hola desde " + this.getId());
