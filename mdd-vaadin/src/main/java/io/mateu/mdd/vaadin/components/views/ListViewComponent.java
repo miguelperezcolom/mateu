@@ -183,7 +183,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
         //setSizeFull();
 
-        if (!(this instanceof JPACollectionFieldListViewComponent) && !(this instanceof RpcListViewComponent)) {
+        if (false && !(this instanceof JPACollectionFieldListViewComponent) && !(this instanceof RpcListViewComponent)) {
             fieldGroup.addComponent(matchesComponent = new HorizontalLayout(excelButton = new Button("<i class=\"fas fa-file-excel\"></i>", e -> excel()), pdfButton = new Button("<i class=\"fas fa-file-pdf\"></i>", e -> pdf())));
             matchesComponent.addStyleName(CSS.NOPADDING);
         }
@@ -253,7 +253,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             for (String s : fieldsFilter.split(",")) {
                 String n = s.trim();
                 if (n.contains("(")) n = n.substring(0, n.indexOf("("));
-                if (n.contains(" ")) n = n.substring(0, n.indexOf(" "));
+                if (n.contains(" ")) n = n.substring(n.lastIndexOf(" "));
                 fns.add(n);
             }
             for (int i = 0; i < colFields.size(); i++) {

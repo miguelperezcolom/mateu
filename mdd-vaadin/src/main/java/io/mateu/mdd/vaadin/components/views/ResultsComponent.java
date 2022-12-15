@@ -208,7 +208,10 @@ public class ResultsComponent extends VerticalLayout implements Refreshable {
 
         grid.setDataProvider(dataProvider);
         grid.setColumnReorderingAllowed(true);
-        if (listViewComponent instanceof RpcListViewComponent && ((RpcListViewComponent)listViewComponent).getRpcListView().showCheckboxForSelection()) grid.setSelectionMode(Grid.SelectionMode.MULTI);
+        if (listViewComponent instanceof JPAListViewComponent ||
+                (listViewComponent instanceof RpcListViewComponent
+                        && ((RpcListViewComponent)listViewComponent).getRpcListView().showCheckboxForSelection()))
+            grid.setSelectionMode(Grid.SelectionMode.MULTI);
         grid.setHeightByRows(10);
         grid.setWidthFull();
 

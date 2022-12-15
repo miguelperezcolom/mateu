@@ -835,7 +835,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     @Override
     public void addStatusBar() {
         buildStatusBar();
-        addComponent(statusLabel);
+        if (statusLabel != null && statusLabel.getParent() == null) addComponent(statusLabel);
     }
 
     public void buildStatusBar() {
