@@ -187,8 +187,35 @@
 
 
 
+  .statusLabel {
+    margin-bottom: 10px;
+  }
 
+  td {
+    .statusLabel {
+      margin-bottom: unset;
+    }
+  }
 
+  .statusLabel.NONE {
+    color: unset;
+  }
+
+  .statusLabel.INFO {
+    color: lightskyblue;
+  }
+
+  .statusLabel.SUCCESS {
+    color: green;
+  }
+
+  .statusLabel.WARNING {
+    color: orange;
+  }
+
+  .statusLabel.DANGER {
+    color: red;
+  }
 
 
 

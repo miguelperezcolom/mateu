@@ -20,22 +20,8 @@ import io.mateu.mdd.core.interfaces.ReadOnly;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.shared.FormLayoutBuilderParameters;
-import io.mateu.mdd.shared.annotations.Action;
-import io.mateu.mdd.shared.annotations.ActionsText;
-import io.mateu.mdd.shared.annotations.ActionsTitle;
-import io.mateu.mdd.shared.annotations.Balance;
-import io.mateu.mdd.shared.annotations.DependsOn;
-import io.mateu.mdd.shared.annotations.Indelible;
-import io.mateu.mdd.shared.annotations.KPI;
-import io.mateu.mdd.shared.annotations.Keep;
-import io.mateu.mdd.shared.annotations.MainAction;
-import io.mateu.mdd.shared.annotations.ModifyValuesOnly;
-import io.mateu.mdd.shared.annotations.Money;
-import io.mateu.mdd.shared.annotations.NewNotAllowed;
-import io.mateu.mdd.shared.annotations.NonDuplicable;
-import io.mateu.mdd.shared.annotations.NotWhenCreating;
-import io.mateu.mdd.shared.annotations.NotWhenEditing;
-import io.mateu.mdd.shared.annotations.Unmodifiable;
+import io.mateu.mdd.shared.annotations.*;
+import io.mateu.mdd.shared.data.Status;
 import io.mateu.mdd.shared.interfaces.IResource;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.MateuUI;
@@ -59,6 +45,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.OptimisticLockException;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.text.DecimalFormat;
@@ -115,6 +102,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private TabSheet sectionTabSheet;
     private Component selectedTab;
     public String _defaultAction;
+    private Label statusLabel;
+    private Method statusMethod;
+    private FieldInterfaced statusField;
 
 
     public Map<FieldInterfaced, ListViewComponent> getEmbeddedListViewComponents() {
@@ -330,7 +320,13 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             }
         }
 
+        binder.addValueChangeListener((HasValue.ValueChangeListener<Object>) valueChangeEvent -> {
+            updateStatus(valueChangeEvent.getValue());
+        });
+
         binder.setBean(model);
+
+        updateStatus(model);
 
         String oldFocusedSectionId = focusedSectionId;
 
@@ -344,6 +340,38 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         rebuildActions();
 
         if (updateChangesSignature) initialValues = buildSignature();
+    }
+
+    private void updateStatus(Object model) {
+        if (statusLabel == null) buildStatusBar();
+        if (model == null) {
+            applyStatus(null);
+        } else {
+            try {
+                Status s = null;
+                if (statusMethod != null) s = (Status) statusMethod.invoke(model);
+                else if (statusField != null) s = (Status) ReflectionHelper.getValue(statusField, model);
+                applyStatus(s);
+            } catch (Exception e) {
+                statusLabel.setValue("" + e.getClass().getSimpleName() + ": " + e.getMessage());
+            }
+        }
+    }
+
+    private void applyStatus(Status s) {
+        if (statusLabel != null) {
+            statusLabel.setValue(getSquareSvg() + "  "+ (s == null ? "---" : s.getMessage()));
+            statusLabel.removeStyleNames("NONE", "INFO", "SUCCESS", "WARNING", "DANGER");
+            statusLabel.addStyleName(s.getType().toString());
+        }
+    }
+
+    private String getSquareSvg() {
+        return "<svg style='margin-right: 5px;' width='10' height='10' viewBox='0 0 10 10'><rect x='0' y='0' width='10' height='10' fill='currentColor'/></svg>";
+    }
+
+    private String getCircleSvg() {
+        return "<svg style='margin-right: 5px; width='10' height='10' viewBox='0 0 10 10'><circle cx='5' cy='5' r='5' fill='currentColor'/></svg>";
     }
 
     public Map<String,Object> buildSignature() {
@@ -529,7 +557,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 else links.setVisible(true);
             }
 
-            focusFirstField(panelContenido.getContent());
+            if (!(model instanceof ReadOnlyPojo) || model instanceof PersistentPojo) focusFirstField(panelContenido.getContent());
 
         } catch (Exception e) {
             Notifier.alert(e);
@@ -784,8 +812,6 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         super.build();
 
-        log.debug("*******BUILD***************");
-
         addStyleName("editorviewcomponent");
 
         if (false) {
@@ -805,6 +831,34 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         return this;
     }
+
+    @Override
+    public void addStatusBar() {
+        buildStatusBar();
+        addComponent(statusLabel);
+    }
+
+    public void buildStatusBar() {
+        if (statusLabel == null) {
+            statusMethod = getStatusMethod();
+            statusField = getStatusField();
+            if (statusMethod != null || statusField != null) {
+                statusLabel = new Label("---", ContentMode.HTML);
+                statusLabel.addStyleName("statusLabel");
+            }
+        }
+    }
+
+    private FieldInterfaced getStatusField() {
+        return ReflectionHelper.getAllEditableFields(getModelType()).stream()
+                .filter(f -> f.isAnnotationPresent(StatusField.class)).findFirst().orElse(null);
+    }
+
+    private Method getStatusMethod() {
+        return ReflectionHelper.getAllMethods(getModelType()).stream()
+                .filter(f -> f.isAnnotationPresent(StatusField.class)).findFirst().orElse(null);
+    }
+
 
     @Override
     public NavBarComponent createNavBar() {

@@ -16,7 +16,7 @@ public interface RpcCrudView<F, C, T> extends RpcView<F, C> {
         return true;
     }
 
-    void delete(Set<C> selection);
+    default void delete(Set<C> selection) {};
 
     @Override
     default boolean isEditHandled() {

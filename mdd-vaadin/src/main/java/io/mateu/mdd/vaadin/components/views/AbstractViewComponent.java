@@ -369,6 +369,8 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
         if (mustAddHeader()) addComponent(header = createHeader());
 
+        addStatusBar();
+
         addActionsBar(true);
         addViewActionsMenuItems(getActionsContainer(), getActions());
 
@@ -379,6 +381,9 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
         built = true;
         return (A) this;
+    }
+
+    public void addStatusBar() {
     }
 
     public boolean mustAddHeader() {

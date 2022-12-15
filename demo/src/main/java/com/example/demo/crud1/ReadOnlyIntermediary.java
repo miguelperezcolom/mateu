@@ -1,10 +1,9 @@
 package com.example.demo.crud1;
 
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
-import io.mateu.mdd.shared.annotations.Action;
-import io.mateu.mdd.shared.annotations.FieldGroup;
-import io.mateu.mdd.shared.annotations.Ignored;
-import io.mateu.mdd.shared.annotations.Section;
+import io.mateu.mdd.shared.annotations.*;
+import io.mateu.mdd.shared.data.Status;
+import io.mateu.mdd.shared.data.StatusType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -37,6 +36,11 @@ public class ReadOnlyIntermediary implements ReadOnlyPojo {
     @Section("S2")
     @FieldGroup("G2")
     private Crud2 salesAgents;
+
+    @StatusField
+    public Status getStatus() {
+        return new Status(StatusType.DANGER, "gagagagga");
+    }
 
     public ReadOnlyIntermediary() {
 

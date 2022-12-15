@@ -8,7 +8,7 @@ public interface ReadOnlyPojo {
         return false;
     }
 
-    default Object getEditor() {
+    default Object getEditor() throws Throwable {
         return null;
     }
 
@@ -19,4 +19,5 @@ public interface ReadOnlyPojo {
     void load(Object id) throws Throwable;
 
     Object getId();
+
 }
