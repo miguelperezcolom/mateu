@@ -436,7 +436,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                 if (!isActionPresent(a.getId())) {
                     Button b;
                     i = b = new Button(a.getCaption(), a.getIcon());
-                    b.addStyleName(ValoTheme.BUTTON_QUIET);
+                    if (!bar.getStyleName().contains("actionsbar")) b.addStyleName(ValoTheme.BUTTON_QUIET);
                     b.addClickListener(e -> {
                         try {
 

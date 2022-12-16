@@ -1741,7 +1741,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
             Button i;
             bar.addComponent(i = new Button("New", VaadinIcons.PLUS));
-            i.addStyleName(ValoTheme.BUTTON_QUIET);
+            if (!bar.getStyleName().contains("actionsbar")) i.addStyleName(ValoTheme.BUTTON_QUIET);
             i.addClickListener(e -> {
                 try {
                     MDDUIAccessor.go(getFieldPrefix() + "new");
@@ -1755,7 +1755,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         if (isDeleteEnabled()) {
             Button i;
             bar.addComponent(i = new Button("Delete", VaadinIcons.MINUS));
-            i.addStyleName(ValoTheme.BUTTON_QUIET);
+            if (!bar.getStyleName().contains("actionsbar")) i.addStyleName(ValoTheme.BUTTON_QUIET);
             i.addClickListener(e -> {
                 VaadinHelper.confirm("Are you sure you want to delete the selected items?", new Runnable() {
                     @Override
