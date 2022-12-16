@@ -253,7 +253,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             for (String s : fieldsFilter.split(",")) {
                 String n = s.trim();
                 if (n.contains("(")) n = n.substring(0, n.indexOf("("));
-                if (n.contains(" ")) n = n.substring(n.lastIndexOf(" "));
+                if (n.contains(" ")) n = n.substring(n.lastIndexOf(" ") + 1);
                 fns.add(n);
             }
             for (int i = 0; i < colFields.size(); i++) {

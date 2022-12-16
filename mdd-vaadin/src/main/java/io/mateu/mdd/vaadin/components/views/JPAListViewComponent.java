@@ -387,7 +387,12 @@ public class JPAListViewComponent extends ListViewComponent {
                 @Override
                 public void run(EntityManager em) throws Throwable {
 
-                    Query q = buildQuery(em, selectColumnsForList, getFilters(), sortOrders, null, offset, limit, true);
+                    ArrayList<QuerySortOrder> mappedSortOrders = new ArrayList<>();
+                    for (QuerySortOrder sortOrder : sortOrders) {
+                        mappedSortOrders.add(new QuerySortOrder(aliasedColumnNamesByColId.get(sortOrder.getSorted()), sortOrder.getDirection()));
+                    }
+
+                    Query q = buildQuery(em, selectColumnsForList, getFilters(), mappedSortOrders, null, offset, limit, true);
 
                     l.addAll(q.getResultList());
 
@@ -427,7 +432,7 @@ public class JPAListViewComponent extends ListViewComponent {
             String oc = "";
             if (sortOrders != null) for (QuerySortOrder qso : sortOrders) {
                 if (!"".equals(oc)) oc += ", ";
-                oc += "col" + getColumnIndex(qso.getSorted()) + " " + ((SortDirection.DESCENDING.equals(qso.getDirection()))?"desc":"asc");
+                oc += "col" + getColumnIndex(aliasedColumnNamesByColId.entrySet().stream().filter(e -> e.getValue().equals(qso.getSorted())).map(e -> e.getKey()).findFirst().get()) + " " + ((SortDirection.DESCENDING.equals(qso.getDirection()))?"desc":"asc");
             }
             List<FieldInterfaced> orderCols = new ArrayList<>();
             for (FieldInterfaced f : ReflectionHelper.getAllFields(getColumnType())) {
