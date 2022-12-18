@@ -89,6 +89,11 @@ public class Crud2 implements RpcCrudView<Crud2, Fila, ReadOnlyPersona> {
         return new ReadOnlyPersona(row);
     }
 
+    @Override
+    public Object onNew() throws Throwable {
+        return new Formulario2();
+    }
+
     @Action
     public void hacerAlgo() {
         System.out.println("seleccionado " + getSelectedRows().size());

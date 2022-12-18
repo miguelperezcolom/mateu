@@ -4,6 +4,8 @@ import com.vaadin.data.Binder;
 import com.vaadin.ui.Component;
 import io.mateu.mdd.core.interfaces.EntityProvider;
 import io.mateu.mdd.core.interfaces.ListView;
+import io.mateu.mdd.core.interfaces.PersistentPojo;
+import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.UseLinkToListView;
 import io.mateu.mdd.shared.interfaces.RpcView;
@@ -15,6 +17,7 @@ import io.mateu.mdd.vaadin.components.views.*;
 import io.mateu.mdd.vaadin.controllers.Controller;
 import io.mateu.mdd.vaadin.controllers.secondLevel.EditorController;
 import io.mateu.mdd.vaadin.controllers.secondLevel.ListViewComponentController;
+import io.mateu.mdd.vaadin.controllers.secondLevel.ReadOnlyController;
 import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.vaadin.components.MDDViewComponentCreator;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
@@ -230,9 +233,24 @@ public class FieldController extends Controller {
                 if ("filters".equals(step)) {
                     register(stack, path + "/" + step, new FiltersViewFlowComponent(listViewComponent));
                 } else if ("new".equals(step)) {
-                    EditorViewComponent editor = new EditorViewComponent(listViewComponent, listViewComponent.getModelType());
-                    editor.load(null);
-                    new EditorController(stack, path + "/" + step, editor).next(stack, path, step, remaining);
+
+                    Object form = null;
+                    if (listViewComponent instanceof RpcListViewComponent) {
+                        form = ((RpcListViewComponent)listViewComponent).getRpcListView().onNew();
+                    }
+                    EditorViewComponent editor = null;
+                    if (form != null) {
+                        if (form instanceof RpcView) register(stack, path + "/" + step, new RpcListViewComponent((RpcView) form));
+                        else if (!(form instanceof Component)) {
+                            if (form instanceof PersistentPojo) new EditorController(stack, path + "/" + step, form).next(stack, path, step, remaining);
+                            if (form instanceof ReadOnlyPojo) new ReadOnlyController(stack, path + "/" + step, form).next(stack, path, step, remaining);
+                            else new EditorController(stack, path + "/" + step, form).next(stack, path, step, remaining);
+                        } else register(stack, path + "/" + step, (Component) form);
+                    } else {
+                        editor = new EditorViewComponent(listViewComponent, listViewComponent.getModelType());
+                        editor.load(null);
+                        new EditorController(stack, path + "/" + step, editor).next(stack, path, step, remaining);
+                    }
                 } else {
 
                     Method method = listViewComponent.getMethod(step);
