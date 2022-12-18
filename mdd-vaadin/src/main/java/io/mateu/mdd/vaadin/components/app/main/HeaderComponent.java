@@ -92,8 +92,8 @@ public class HeaderComponent extends HorizontalLayout {
         String basePath = UI.getCurrent().getUiRootPath();
         if (!basePath.endsWith("/")) basePath += "/";
 
-
-        right.addComponent(menuSearcher = new MenuSearcher((AbstractApplication) app));
+        menuSearcher = new MenuSearcher((AbstractApplication) app);
+        if (false) right.addComponent(menuSearcher = new MenuSearcher((AbstractApplication) app));
 
         String finalBasePath = basePath;
         if (isPrivate) {

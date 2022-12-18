@@ -269,6 +269,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
 
             VerticalLayout titles = new VerticalLayout(titleLabel, subtitleLabel);
             titles.addStyleName(CSS.NOPADDING);
+            titles.setSpacing(false);
             titles.setWidthUndefined();
 
 
