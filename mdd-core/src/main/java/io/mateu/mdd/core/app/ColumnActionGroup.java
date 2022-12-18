@@ -4,6 +4,7 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.*;
 import com.vaadin.ui.renderers.ClickableRenderer;
 import com.vaadin.ui.themes.ValoTheme;
+import io.mateu.util.notification.Notifier;
 
 public class ColumnActionGroup extends ColumnAction {
 
@@ -20,15 +21,24 @@ public class ColumnActionGroup extends ColumnAction {
     }
 
     public void run(ClickableRenderer.RendererClickEvent event, Refreshable resultsComponent) {
-        Window w = new Window();
+        Window w = (Window) UI.getCurrent().getSession().getAttribute("popup");
+        if (w != null) w.close();
+        w = new Window();
+        UI.getCurrent().getSession().setAttribute("popup", w);
         VerticalLayout vl = new VerticalLayout();
         for (ColumnAction action: actions) {
             try {
                 Button b;
                 vl.addComponent(b = new Button(action.valueProvider != null?action.valueProvider.call():null
                         , action.iconProvider != null?action.iconProvider.call():null));
+                Window finalW1 = w;
                 b.addClickListener(e -> {
-                    action.run();
+                    try {
+                        action.run();
+                    } catch (Exception ex) {
+                        Notifier.alert(ex);
+                    }
+                    finalW1.close();
                     try {
                         resultsComponent.refresh();
                     } catch (Throwable ex) {
@@ -47,13 +57,15 @@ public class ColumnActionGroup extends ColumnAction {
         w.setResizable(false);
         UI.getCurrent().addWindow(w);
         w.setPosition(event.getClientX() + 10, event.getClientY() + 10);
+        Window finalW = w;
+        UI ui = UI.getCurrent();
         new Thread(() -> {
             try {
-                Thread.sleep(100);
+                Thread.sleep(5000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            w.close();
+            ui.access(() -> finalW.close());
         }).start();
     }
 }

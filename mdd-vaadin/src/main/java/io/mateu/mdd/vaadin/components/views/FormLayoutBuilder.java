@@ -86,10 +86,11 @@ public class FormLayoutBuilder {
         }
 
         String viewTitle = Helper.capitalize(modelType.getSimpleName());
+        if (model != null && model instanceof ReadOnlyPojo) viewTitle = ((ReadOnlyPojo) model).getEntityName();
+        if (model != null && model instanceof PersistentPojo) viewTitle = ((PersistentPojo) model).getEntityName();
         if (modelType.isAnnotationPresent(Caption.class)) {
             viewTitle = ((Caption)modelType.getAnnotation(Caption.class)).value();
         }
-        if (model != null && model instanceof PersistentPojo) viewTitle = ((PersistentPojo) model).getEntityName();
         stylist.setViewTitle(viewTitle);
 
         if (modelType.isAnnotationPresent(Subtitle.class)) {
@@ -609,6 +610,7 @@ public class FormLayoutBuilder {
                     HorizontalLayout wrap;
                     currentFieldContainer = wrap = new HorizontalLayout();
                     wrap.setSpacing(true);
+                    wrap.addStyleName("fieldgroup-readonly-row");
                     wrap.setDefaultComponentAlignment(Alignment.TOP_LEFT);
                     if (f.isAnnotationPresent(FullWidth.class)) wrap.setWidth("100%");
                     //currentFieldContainer.setCaption(ReflectionHelper.getCaption(f));

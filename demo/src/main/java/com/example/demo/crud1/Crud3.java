@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Set;
 
 @Component
-@SessionScope
 @Getter@Setter
 @Caption("xxxxxxxxx")
 @Subtitle("Hola caracola!")

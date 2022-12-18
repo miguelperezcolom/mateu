@@ -74,6 +74,7 @@ body .mateu .maincomponent .contenido .section .v-slot-fieldgroupheader {
 body .mateu .maincomponent .contenido .section .v-slot-fieldgroupheader .v-label-h4 {
     font-size: 22px;
     font-weight: 600;
+    text-transform: inherit;
 }
 
 body .mateu .maincomponent input, .mateu .maincomponent .v-datefield, .mateu .maincomponent .v-datefield-textfield,

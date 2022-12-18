@@ -93,7 +93,21 @@ public abstract class AbstractStylist<S> {
     }
 
     public String getViewTitle(boolean newRecord, S model) {
-        if (model != null && !(model instanceof PersistentPojo || model.getClass().isAnnotationPresent(Entity.class))) {
+        if (model != null && (model instanceof ReadOnlyPojo || model instanceof PersistentPojo)) {
+            Class<?> modelType = model.getClass();
+            if (modelType.isAnnotationPresent(Caption.class)) {
+                return ((Caption)modelType.getAnnotation(Caption.class)).value();
+            }
+            String viewTitle = "";
+            if (model != null && model instanceof ReadOnlyPojo) viewTitle = ((ReadOnlyPojo) model).getEntityName();
+            if (model != null && model instanceof PersistentPojo) {
+                viewTitle = ((PersistentPojo) model).getEntityName();
+                if (((PersistentPojo) model).isNew()) return "New " + viewTitle;
+            }
+            String prefix = "";
+            if (!"".equals(viewTitle)) prefix = viewTitle + " ";
+            return prefix + model;
+        } else if (model != null && !(model instanceof PersistentPojo || model.getClass().isAnnotationPresent(Entity.class))) {
             if (model.getClass().isAnnotationPresent(Caption.class)) return model.getClass().getAnnotation(Caption.class).value();
             Method toString = ReflectionHelper.getMethod(model.getClass(), "toString");
             if (toString == null || toString.getDeclaringClass().equals(Object.class)) return  Helper.capitalize(model.getClass().getSimpleName());

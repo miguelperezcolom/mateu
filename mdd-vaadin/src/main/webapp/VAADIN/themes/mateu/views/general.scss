@@ -202,19 +202,19 @@
   }
 
   .statusLabel.INFO {
-    color: lightskyblue;
+    color: lightskyblue !important;
   }
 
   .statusLabel.SUCCESS {
-    color: green;
+    color: green !important;
   }
 
   .statusLabel.WARNING {
-    color: orange;
+    color: orange !important;
   }
 
   .statusLabel.DANGER {
-    color: red;
+    color: red !important;
   }
 
 
