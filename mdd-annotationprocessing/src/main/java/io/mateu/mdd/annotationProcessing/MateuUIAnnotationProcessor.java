@@ -59,7 +59,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                                 "@JavaScript({\"../../VAADIN/js/include.js\"})\n" +
                                 "@Viewport(\"width=device-width, initial-scale=1\")\n" +
                                 "@PushStateNavigation // para urls sin #!\n" +
-                                "@Push\n" +
+                                //"@Push\n" +
                                 //"@PreserveOnRefresh\n" +
                                 "@Slf4j\n");
 

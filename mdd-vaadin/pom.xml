@@ -216,6 +216,12 @@
             <version>2.6.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-context-menu</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+
 
 
     </dependencies>
