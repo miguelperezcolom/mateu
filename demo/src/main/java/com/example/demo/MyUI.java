@@ -6,6 +6,8 @@ import com.example.demo.crud1.Crud3;
 import com.example.demo.crud1.Editor;
 import com.example.demo.entidades.PersonEntity;
 import com.example.demo.formularios.Formulario1;
+import com.vaadin.annotations.Push;
+import com.vaadin.shared.ui.ui.Transport;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import io.mateu.mdd.core.annotations.MateuUI;

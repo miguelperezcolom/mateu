@@ -1631,6 +1631,23 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 }
 
                 setModel(ppojo);
+            } else if (ReadOnlyPojo.class.isAssignableFrom(modelType)) {
+                ReadOnlyPojo ppojo = null;
+
+                if (id != null && modelType.equals(id.getClass())) ppojo = (ReadOnlyPojo) id;
+                else ppojo = (ReadOnlyPojo) modelType.newInstance();
+
+                ppojo.load(id);
+
+
+                if (parent != null) {
+                    for (FieldInterfaced f : ReflectionHelper.getAllFields(ppojo.getClass())) if (f.getType().equals(parent.getClass()) && f.isAnnotationPresent(NotNull.class)) {
+                        ReflectionHelper.setValue(f, ppojo, parent);
+                        break;
+                    }
+                }
+
+                setModel(ppojo);
 
             } else {
 
