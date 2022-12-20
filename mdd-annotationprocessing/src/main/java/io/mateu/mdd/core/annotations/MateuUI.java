@@ -1,7 +1,5 @@
 package io.mateu.mdd.core.annotations;
 
-import io.mateu.mdd.core.services.FakeServiceProvider;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -17,8 +15,6 @@ public @interface MateuUI {
     String path();
 
     String theme() default "mateu";
-
-    Class serviceProvider() default FakeServiceProvider.class;
 
     String logo() default "";
 
