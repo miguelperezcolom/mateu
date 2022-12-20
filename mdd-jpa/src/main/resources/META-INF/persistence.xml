@@ -4,18 +4,6 @@
              xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_2.xsd">
     <persistence-unit name="mateu-basic" transaction-type="RESOURCE_LOCAL">
 
-        <class>io.mateu.mdd.core.model.authentication.AdminUser</class>
-        <class>io.mateu.mdd.core.model.authentication.Audit</class>
-        <class>io.mateu.mdd.core.model.authentication.Grant</class>
-        <class>io.mateu.mdd.core.model.authentication.Permission</class>
-        <class>io.mateu.mdd.core.model.authentication.User</class>
-        <class>io.mateu.mdd.core.model.common.GeoLocalization</class>
-        <class>io.mateu.mdd.core.model.common.Icon</class>
-        <class>io.mateu.mdd.core.model.common.Resource</class>
-        <class>io.mateu.mdd.core.model.config.AppConfig</class>
-        <class>io.mateu.mdd.core.model.config.DummyDate</class>
-        <class>io.mateu.mdd.core.model.config.Template</class>
-        <class>io.mateu.mdd.core.model.config.TemplateUseCase</class>
         <class>io.mateu.mdd.core.model.multilanguage.Literal</class>
         <class>io.mateu.mdd.core.model.util.IntArrayAttributeConverter</class>
         <class>io.mateu.mdd.core.model.util.LocalDateAttributeConverter</class>

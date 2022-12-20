@@ -23,7 +23,6 @@ import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 import io.mateu.mdd.shared.AppConfigLocator;
 import io.mateu.mdd.shared.IAppConfig;
-import io.mateu.util.i18n.DeepLClient;
 import io.mateu.util.runtime.MemInfo;
 import io.mateu.util.xml.XMLSerializable;
 import lombok.extern.slf4j.Slf4j;
@@ -1114,11 +1113,5 @@ and returns the QR Code in the form of a byte array.
     }
 
 
-
-
-
-    public static String translate(String source_lang, String target_lang, String text) throws Throwable {
-        return new DeepLClient().translate(source_lang, target_lang, text);
-    }
 
 }

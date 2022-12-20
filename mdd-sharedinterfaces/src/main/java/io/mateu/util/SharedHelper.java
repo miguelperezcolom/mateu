@@ -2,6 +2,8 @@ package io.mateu.util;
 
 import io.mateu.util.asciiart.Painter;
 import io.mateu.util.beanutils.MiURLConverter;
+import io.mateu.util.exceptions.MoreThanOneImplementationFound;
+import io.mateu.util.exceptions.NoImplementationFound;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.ConvertUtils;
 
@@ -105,16 +107,29 @@ public class SharedHelper {
     }
 
 
-
-    public static <T> T getImpl(Class<T> c) throws Exception {
-        List<T> impls = getImpls(c);
-        if (impls.size() == 0) throw new Exception("No implementation found for " + c.getName());
-        if (impls.size() > 1) throw new Exception("More than 1 implementation found for " + c.getName() + " (" + impls.stream().map(i -> i.getClass()).map(Class::getSimpleName).collect(Collectors.joining(",")) + ")");
+    /**
+     * look for implementation using the service loader (checks only 1 implementation exists)
+     * @param anInterface the interface to look for
+     * @param <T> the actual type
+     * @return implementation
+     * @throws Exception in case of not found or there
+     */
+    public static <T> T getImpl(Class<T> anInterface) throws Exception {
+        List<T> impls = getImpls(anInterface);
+        if (impls.size() == 0) throw new NoImplementationFound(anInterface);
+        if (impls.size() > 1) throw new MoreThanOneImplementationFound(anInterface, impls);
         return impls.get(0);
     }
 
-    public static <T> List<T> getImpls(Class<T> c) throws Exception {
-        Iterator<T> impls = ServiceLoader.load(c).iterator();
+    /**
+     * look for implementations using the service loader
+     *
+     * @param anInterface the interface to look for
+     * @param <T> the actual type
+     * @return list of implementations
+     */
+    public static <T> List<T> getImpls(Class<T> anInterface) {
+        Iterator<T> impls = ServiceLoader.load(anInterface).iterator();
         List<T> i = new ArrayList<>();
         while (impls.hasNext()) {
             i.add(impls.next());

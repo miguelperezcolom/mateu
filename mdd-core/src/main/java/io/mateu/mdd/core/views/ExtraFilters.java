@@ -9,13 +9,8 @@ import java.util.Map;
 @Getter@Setter
 public class ExtraFilters {
 
-    private String ql;
-    private Map<String, Object> parameters = new HashMap<>();
-
-    public ExtraFilters(String ql, Map<String, Object> parameters) {
-        this.ql = ql;
-        this.parameters = parameters;
-    }
+    private final String ql;
+    private final Map<String, Object> parameters;
 
     public ExtraFilters(String ql, Object... params) {
         this.ql = ql;
