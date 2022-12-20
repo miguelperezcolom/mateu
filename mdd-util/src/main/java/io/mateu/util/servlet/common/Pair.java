@@ -1,4 +1,4 @@
-package io.mateu.util.common;
+package io.mateu.util.servlet.common;
 
 public class Pair<S, T> {
 

@@ -1,6 +1,6 @@
 package io.mateu.mdd.core.app;
 
-import io.mateu.util.common.Utils;
+import io.mateu.util.servlet.common.Utils;
 import io.mateu.util.data.FileLocator;
 import lombok.extern.slf4j.Slf4j;
 

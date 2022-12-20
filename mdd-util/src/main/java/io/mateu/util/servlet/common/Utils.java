@@ -1,4 +1,4 @@
-package io.mateu.util.common;
+package io.mateu.util.servlet.common;
 
 import com.google.common.io.Files;
 import com.google.common.io.Resources;

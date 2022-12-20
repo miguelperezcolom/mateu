@@ -23,7 +23,6 @@ import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 import io.mateu.mdd.shared.AppConfigLocator;
 import io.mateu.mdd.shared.IAppConfig;
-import io.mateu.util.runtime.MemInfo;
 import io.mateu.util.xml.XMLSerializable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
@@ -838,11 +837,6 @@ public class Helper {
         if (!Strings.isNullOrEmpty(s)) return s.replaceAll("\\\n", "<br/>");
         else return s;
     }
-
-    public static String getMemInfo() {
-        return new MemInfo().toString();
-    }
-
 
     public static byte[] fop(Source xslfo, Source xml) throws IOException, SAXException {
         long t0 = System.currentTimeMillis();

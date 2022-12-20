@@ -1,4 +1,4 @@
-package io.mateu.util.common;
+package io.mateu.util.servlet.common;
 
 import io.mateu.mdd.shared.annotations.Ignored;
 import io.mateu.util.xml.XMLSerializable;

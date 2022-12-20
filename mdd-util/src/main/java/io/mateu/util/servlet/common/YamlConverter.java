@@ -1,4 +1,4 @@
-package io.mateu.util.common;
+package io.mateu.util.servlet.common;
 
 import io.mateu.util.Helper;
 

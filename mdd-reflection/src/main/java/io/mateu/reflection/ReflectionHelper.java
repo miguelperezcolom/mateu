@@ -647,7 +647,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
 
     public static Object getId(Object model) {
         if (model instanceof Object[]) return ((Object[]) model)[0];
-        else if (model instanceof io.mateu.util.common.Pair) return ((io.mateu.util.common.Pair<Object, Object>)model).getA();
+        else if (model instanceof io.mateu.util.servlet.common.Pair) return ((io.mateu.util.servlet.common.Pair<Object, Object>)model).getA();
         else if (model instanceof Pair) return ((Pair)model).getKey();
         else if (model.getClass().isAnnotationPresent(Entity.class)) {
             Object id = null;
