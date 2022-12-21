@@ -112,7 +112,8 @@ public class MateuUI extends UI implements IMDDUI {
         JavaScript.getCurrent().addFunction("pingserver", new JavaScriptFunction() {
             @Override
             public void call(JsonArray jsonArray) {
-                // esto lo hace para provocar un cambio, y que viaje de arriba para abajo al forzar una actualización de la ui
+                // esto lo hace para provocar un cambio, y que viaje de arriba para abajo
+                // al forzar una actualización de la ui
                 if (getStyleName().contains("xxxxxx")) removeStyleName("xxxxxx");
                 else addStyleName("xxxxxx");
             }
@@ -178,7 +179,8 @@ public class MateuUI extends UI implements IMDDUI {
 
     @Override
     public boolean isEditingNewRecord() {
-        return getCurrentEditor() != null && getCurrentEditor().isNewRecord();
+        return getCurrentEditor() != null
+                && getCurrentEditor().isNewRecord();
     }
 
     @Override
@@ -217,7 +219,8 @@ public class MateuUI extends UI implements IMDDUI {
 
     @Override
     public String getCurrentUserLogin() {
-        UserPrincipal p = securityManager != null?securityManager.getPrincipal(((WrappedHttpSession) getSession()
+        UserPrincipal p = securityManager != null?
+                securityManager.getPrincipal(((WrappedHttpSession) getSession()
                 .getSession()).getHttpSession()):null;
         return p != null?p.getLogin():null;
     }
