@@ -11,6 +11,7 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Map;
 import java.util.Set;
 
 @SupportedAnnotationTypes({"io.mateu.mdd.core.annotations.MateuUI"})
