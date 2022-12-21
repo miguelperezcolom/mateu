@@ -9,7 +9,6 @@ import com.vaadin.ui.UI;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.interfaces.App;
-import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
@@ -18,7 +17,6 @@ import io.mateu.mdd.vaadin.controllers.Controller;
 import io.mateu.mdd.vaadin.controllers.firstLevel.HomeController;
 import io.mateu.mdd.vaadin.controllers.secondLevel.EditorController;
 import io.mateu.mdd.vaadin.controllers.secondLevel.WizardController;
-import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.mdd.vaadin.views.BrokenLinkView;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.notification.Notifier;
@@ -51,6 +49,7 @@ public class MateuViewProvider implements ViewProvider {
     @Override
     public View getView(String s) {
 
+        // clean path
         String appPrefix = MDDUIAccessor.getUiRootPath();
         if (!"".equals(appPrefix)) {
             if (appPrefix.startsWith("/")) appPrefix = appPrefix.substring(1);
@@ -61,6 +60,8 @@ public class MateuViewProvider implements ViewProvider {
 
         App app = MDDUIAccessor.getApp();
 
+
+        // check private/public
         boolean privada = false;
         if (s.equals("/") || s.startsWith("/public")) {
             privada = app.isAuthenticationNeeded();
@@ -72,62 +73,75 @@ public class MateuViewProvider implements ViewProvider {
             privada = true;
         }
 
+
+        // check if we are repeating the last call
         if (s.equals(lastState)) {
             return lastView;
         }
 
 
         currentEditor = null;
-
         Controller controller = null;
 
-        //mirar si ya lo tenemos en el stack
-        io.mateu.mdd.vaadin.navigation.View v = null;
 
-        String aux = s;
-        String remaining = "";
-        while (!Strings.isNullOrEmpty(aux) && v == null) {
-            if (stack.get(aux) != null) {
-                v = (io.mateu.mdd.vaadin.navigation.View) stack.popTo(aux);
+        //bajar a la última parte del path que exista en el stack
+        io.mateu.mdd.vaadin.navigation.View view = null;
+
+        String foundPath = s;
+        String remainingPath = "";
+        while (!Strings.isNullOrEmpty(foundPath) && view == null) {
+            if (stack.get(foundPath) != null) {
+                view = (io.mateu.mdd.vaadin.navigation.View) stack.popTo(foundPath);
                 if (firstViewInWindow > stack.size() + 1) firstViewInWindow = 0;
             }
-            if (v == null && !Strings.isNullOrEmpty(aux) && aux.contains("/")) {
-                remaining = aux.substring(aux.lastIndexOf("/")) + remaining;
-                aux = aux.substring(0, aux.lastIndexOf("/"));
+            if (view == null && !Strings.isNullOrEmpty(foundPath) && foundPath.contains("/")) {
+                remainingPath = foundPath.substring(foundPath.lastIndexOf("/")) + remainingPath;
+                foundPath = foundPath.substring(0, foundPath.lastIndexOf("/"));
             }
         }
 
-        if (Strings.isNullOrEmpty(aux) || v == null) {
+
+        // si no tenemos nada, entonces vaciar el stack (hay que reconstruirlo)
+        if (Strings.isNullOrEmpty(foundPath) || view == null) {
             stack.clear();
         }
 
-        if ( v != null) {
-            controller = v.getController();
-            v = null;
+
+        // obtener el controller
+        if ( view != null) {
+            controller = view.getController();
+            view = null;
         } else {
-            controller = WizardPage.class.isAssignableFrom(app.getBean().getClass())?new WizardController(stack, "", (WizardPage) app.getBean()) :app.isForm()?new EditorController(stack, "", app.getBean()):new HomeController(stack, privada);
+            controller = WizardPage.class.isAssignableFrom(app.getBean().getClass())?
+                    new WizardController(stack, "", (WizardPage) app.getBean()):
+                    app.isForm()?
+                            new EditorController(stack, "", app.getBean()):
+                            new HomeController(stack, privada);
         }
 
-        //clearStack();
 
-        if (v == null) {
-            try {
-                if (aux.startsWith("/")) aux = aux.substring(1);
-                if (remaining.startsWith("/")) remaining = remaining.substring(1);
-                String step = remaining;
-                remaining = "";
-                if (step.contains("/")) {
-                    remaining = step.substring(step.indexOf("/") + 1);
-                    step = step.substring(0, step.indexOf("/"));
-                }
-                String cleanStep = ViewStack.cleanState(step);
-                controller.apply(stack, aux, step, cleanStep, remaining);
-            } catch (Throwable e) {
-                Notifier.alert(e);
+        // aplicamos el path pendiente al controlador (dejará vistas en el stack)
+        try {
+            if (foundPath.startsWith("/")) foundPath = foundPath.substring(1);
+            if (remainingPath.startsWith("/")) remainingPath = remainingPath.substring(1);
+            String step = remainingPath;
+            remainingPath = "";
+            if (step.contains("/")) {
+                remainingPath = step.substring(step.indexOf("/") + 1);
+                step = step.substring(0, step.indexOf("/"));
             }
-            v = stack.getLast();
+            String cleanStep = ViewStack.cleanState(step);
+            controller.apply(stack, foundPath, step, cleanStep, remainingPath);
+        } catch (Throwable e) {
+            Notifier.alert(e);
         }
 
+
+        // la vista a mostrar es la última del stack
+        view = stack.getLast();
+
+
+        // cerrar las ventanas si es necesario (si hemos retrocedido más allá de la primera ventana abierta)
         if (firstViewInWindow > 0 && stack.size() < firstViewInWindow) {
             firstViewInWindow = 0;
             UI.getCurrent().getWindows().forEach(w -> {
@@ -137,11 +151,18 @@ public class MateuViewProvider implements ViewProvider {
         }
 
 
-        if (v == null) v = new BrokenLinkView(stack);
-        Component c = ((io.mateu.mdd.vaadin.navigation.View) v).getViewComponent();
+        // si no hay vista es que no reconocemos el path (broken link)
+        if (view == null) view = new BrokenLinkView(stack);
+
+
+        // construimos el componente si hace falta
+        Component c = ((io.mateu.mdd.vaadin.navigation.View) view).getViewComponent();
         if (c != null && c instanceof AbstractViewComponent) {
             ((AbstractViewComponent)c).buildIfNeeded();
         }
+
+
+        // si estamos volviendo atrás y está marcado, recargar el modelo si es un editor
         if (c.getStyleName().contains("refreshOnBack")) {
 
             if (c != null && c instanceof EditorViewComponent) {
@@ -156,16 +177,25 @@ public class MateuViewProvider implements ViewProvider {
                 } else evc.updateModel(evc.getModel());
             }
             c.removeStyleName("refreshOnBack");
+
         }
 
+
+        // actualizar el título de la página
         if (c != null && c instanceof AbstractViewComponent) {
             ((AbstractViewComponent)c).updatePageTitle();
         }
+
+
+        // si es un listado, limpiamos la selección
         if (c != null && c instanceof ListViewComponent) { // limpiamos selección
             if (((ListViewComponent)c).resultsComponent != null) {
                 ((ListViewComponent)c).resultsComponent.getGrid().getSelectionModel().deselectAll();
             }
         }
+
+
+        // si es un editor, puede ser la primera ventana abierta
         if (c != null && (c instanceof EditorViewComponent)) {
             currentEditor = (EditorViewComponent) c;
             if (false && firstViewInWindow == 0) firstViewInWindow = stack.size() + 1;
@@ -173,25 +203,37 @@ public class MateuViewProvider implements ViewProvider {
 
 
         lastState = s;
-        lastView = v;
+        lastView = view;
 
-        if (v != null && openInWindow(v) && MateuUI.get() != null) {
-            v.setOpenNewWindow(true);
-            MateuUI.get().openInWindow(v);
-            if (v != null && v.getViewComponent() != null && v.getViewComponent() instanceof EditorViewComponent && ((EditorViewComponent)v.getViewComponent()).getBeforeOpen() != null) {
-                ((EditorViewComponent)v.getViewComponent()).getBeforeOpen().run();
+
+        // abrir en ventana si hace falta
+        if (view != null && openInWindow(view) && MateuUI.get() != null) {
+            view.setOpenNewWindow(true);
+            MateuUI.get().openInWindow(view);
+            if (view != null && view.getViewComponent() != null && view.getViewComponent() instanceof EditorViewComponent
+                    && ((EditorViewComponent)view.getViewComponent()).getBeforeOpen() != null) {
+                ((EditorViewComponent)view.getViewComponent()).getBeforeOpen().run();
             }
-            return null; //stack.getLastNavigable();
+            // devolvemos null para que no aparezca en la url del navegador
+            return null;
         } else {
-            if (v != null && v.getViewComponent() != null && v.getViewComponent() instanceof EditorViewComponent && ((EditorViewComponent)v.getViewComponent()).getBeforeOpen() != null) {
-                ((EditorViewComponent)v.getViewComponent()).getBeforeOpen().run();
+
+            // si es un editor, ejecutar el beforeOpen
+            if (view != null && view.getViewComponent() != null && view.getViewComponent() instanceof EditorViewComponent
+                    && ((EditorViewComponent)view.getViewComponent()).getBeforeOpen() != null) {
+                ((EditorViewComponent)view.getViewComponent()).getBeforeOpen().run();
             }
 
-            if (v != null && v.getViewComponent() != null) {
-                if (UI.getCurrent() != null && v.getViewComponent().getPageTitle() != null) UI.getCurrent().getPage().setTitle((v.getViewComponent().getPageTitle() != null)?v.getViewComponent().getPageTitle():"No title");
+            // actualizar el título de la página en el navegador
+            if (view != null && view.getViewComponent() != null) {
+                if (UI.getCurrent() != null && view.getViewComponent().getPageTitle() != null)
+                    UI.getCurrent().getPage().setTitle((view.getViewComponent().getPageTitle() != null)?
+                            view.getViewComponent().getPageTitle():
+                            "No title");
             }
 
-            return v != null && v.getWindowContainer() == null?v:null;
+            // devolver la vista o null si está abierta en una ventana
+            return view != null && view.getWindowContainer() == null?view:null;
         }
     }
 
