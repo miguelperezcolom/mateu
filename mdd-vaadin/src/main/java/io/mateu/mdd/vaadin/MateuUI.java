@@ -142,6 +142,7 @@ public class MateuUI extends UI implements IMDDUI {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
     }
 
     public Locale resolveLocale(String acceptLanguageHeader) {
@@ -159,10 +160,13 @@ public class MateuUI extends UI implements IMDDUI {
             String cp = ((VaadinServletRequest)vaadinRequest).getServletContext().getContextPath();
             if (k.startsWith(cp)) k = k.substring(cp.length());
             if (!k.startsWith("/")) k = "/" + k;
-            Class uiClassFromContext = (Class) ((VaadinServletRequest) vaadinRequest).getServletContext().getAttribute(k + "_app");
+            Class uiClassFromContext = (Class) ((VaadinServletRequest) vaadinRequest).getServletContext()
+                    .getAttribute(k + "_app");
             app = new MateuApp(uiClassFromContext != null?uiClassFromContext:Object.class, vaadinRequest);
 
-            if (MDD.getClassPool() == null) MDD.setClassPool(ReflectionHelper.createClassPool(((VaadinServletRequest)vaadinRequest).getHttpServletRequest().getServletContext()));
+            if (MDD.getClassPool() == null) MDD.setClassPool(ReflectionHelper
+                    .createClassPool(((VaadinServletRequest)vaadinRequest).getHttpServletRequest()
+                            .getServletContext()));
 
             app.buildAreaAndMenuIds();
         }
@@ -213,7 +217,8 @@ public class MateuUI extends UI implements IMDDUI {
 
     @Override
     public String getCurrentUserLogin() {
-        UserPrincipal p = securityManager != null?securityManager.getPrincipal(((WrappedHttpSession) getSession().getSession()).getHttpSession()):null;
+        UserPrincipal p = securityManager != null?securityManager.getPrincipal(((WrappedHttpSession) getSession()
+                .getSession()).getHttpSession()):null;
         return p != null?p.getLogin():null;
     }
 
@@ -246,7 +251,7 @@ public class MateuUI extends UI implements IMDDUI {
 
     @Override
     public void go(String relativePath) {
-        String path = stack.getState(stack.getLast()); //navigator.getCurrentNavigationState(); //stack.getState(stack.getLast());
+        String path = stack.getState(stack.getLast());
         if (!"".equals(path) && !path.endsWith("/")) path += "/";
         path += relativePath;
         if (path != null) {
@@ -277,8 +282,16 @@ public class MateuUI extends UI implements IMDDUI {
 
     @Override
     public void goBack() {
-        if (stack.getLast() != null && !(stack.getLast().getComponent() instanceof OwnedCollectionComponent) && stack.getLast().getComponent() instanceof EditorViewComponent && ((PersistentPojo.class.isAssignableFrom(((EditorViewComponent)stack.getLast().getComponent()).getModelType()) || ((EditorViewComponent)stack.getLast().getComponent()).getModelType().isAnnotationPresent(Entity.class)) && ((EditorViewComponent)stack.getLast().getComponent()).isModificado()) && ((EditorViewComponent)stack.getLast().getComponent()).isCreateSaveButton()) {
-            VaadinHelper.saveOrDiscard("There are unsaved changes. What do you want to do?", (EditorViewComponent) stack.getLast().getComponent(), () -> yesGoBack());
+        if (stack.getLast() != null && !(stack.getLast().getComponent() instanceof OwnedCollectionComponent)
+                && stack.getLast().getComponent() instanceof EditorViewComponent
+                && ((PersistentPojo.class.isAssignableFrom(((EditorViewComponent)stack.getLast().getComponent())
+                    .getModelType())
+                || ((EditorViewComponent)stack.getLast().getComponent()).getModelType()
+                    .isAnnotationPresent(Entity.class))
+                && ((EditorViewComponent)stack.getLast().getComponent()).isModificado())
+                && ((EditorViewComponent)stack.getLast().getComponent()).isCreateSaveButton()) {
+            VaadinHelper.saveOrDiscard("There are unsaved changes. What do you want to do?",
+                    (EditorViewComponent) stack.getLast().getComponent(), () -> yesGoBack());
         } else {
             yesGoBack();
         }
@@ -294,7 +307,8 @@ public class MateuUI extends UI implements IMDDUI {
 
             View v = stack.get(stack.size() - 2);
             String u = stack.getState(v);
-            if (v.getViewComponent() instanceof ListViewComponent) u = ((ListViewComponent) v.getViewComponent()).getUrl();
+            if (v.getViewComponent() instanceof ListViewComponent) u =
+                    ((ListViewComponent) v.getViewComponent()).getUrl();
             if (l.getWindowContainer() != null && !l.getWindowContainer().equals(v.getWindowContainer())) {
                 l.getWindowContainer().setData("noback");
                 l.getWindowContainer().close();
@@ -304,7 +318,6 @@ public class MateuUI extends UI implements IMDDUI {
                     stack.pop();
                     viewProvider.setLastView(stack.getLast());
                 }
-                //viewProvider.setCurrentPath(stack.size() > 0?stack.getState(stack.getLast()):null); //todo: pendiente ver que pasa con las windows
             } else {
                 if (FieldController.class.equals(v.getController().getClass())) {
                     v = stack.get(stack.size() - 3);
@@ -342,8 +355,14 @@ public class MateuUI extends UI implements IMDDUI {
     }
 
     public void goSibling(Object id) {
-        if (stack.getLast().getComponent() instanceof EditorViewComponent && ((PersistentPojo.class.isAssignableFrom(((EditorViewComponent)stack.getLast().getComponent()).getModelType()) || ((EditorViewComponent)stack.getLast().getComponent()).getModelType().isAnnotationPresent(Entity.class)) && ((EditorViewComponent)stack.getLast().getComponent()).isModificado())) {
-            VaadinHelper.saveOrDiscard("There are unsaved changes. What do you want to do?", (EditorViewComponent) stack.getLast().getComponent(), () -> {
+        if (stack.getLast().getComponent() instanceof EditorViewComponent
+                && ((PersistentPojo.class.isAssignableFrom(((EditorViewComponent)stack.getLast()
+                    .getComponent()).getModelType())
+                || ((EditorViewComponent)stack.getLast().getComponent()).getModelType()
+                    .isAnnotationPresent(Entity.class))
+                && ((EditorViewComponent)stack.getLast().getComponent()).isModificado())) {
+            VaadinHelper.saveOrDiscard("There are unsaved changes. What do you want to do?",
+                    (EditorViewComponent) stack.getLast().getComponent(), () -> {
                 try {
                     yesGoSibling(id);
                 } catch (Throwable throwable) {
@@ -409,7 +428,6 @@ public class MateuUI extends UI implements IMDDUI {
         if (stack.getLast().getComponent() instanceof EditorViewComponent) {
             ed = (EditorViewComponent) stack.getLast().getComponent();
             ed.onGoBack();
-            //getViewProvider().pendingFocusedSectionId = ed.getFocusedSectionId(); //todo: pendiente de habilitar el focusedSectionId
         }
 
         String u = stack.getState(stack.getLast()); //
@@ -431,7 +449,8 @@ public class MateuUI extends UI implements IMDDUI {
             try {
                 ed.load(id);
                 //viewProvider.setCurrentPath(u); //todo: pendiente ver que pasa con las windows
-                viewProvider.getStack().getViewByState().remove(viewProvider.getStack().getStateByView().get(ed.getView()));
+                viewProvider.getStack().getViewByState().remove(viewProvider.getStack().getStateByView()
+                        .get(ed.getView()));
                 viewProvider.getStack().getStateByView().put(ed.getView(), u);
                 viewProvider.getStack().getViewByState().put(u, ed.getView());
             } catch (Throwable throwable) {

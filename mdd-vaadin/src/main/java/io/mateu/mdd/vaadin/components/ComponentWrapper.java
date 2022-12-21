@@ -98,7 +98,9 @@ public class ComponentWrapper extends AbstractViewComponent {
         if (backToView != null) {
             Button b;
             View finalBackToView = backToView;
-            section.addComponent(b = new Button("Back to " + backToView.getViewComponent().getTitle(), e -> MDDUIAccessor.goTo(stack.getState(finalBackToView))));
+            section.addComponent(b =
+                    new Button("Back to " + backToView.getViewComponent().getTitle(),
+                            e -> MDDUIAccessor.goTo(stack.getState(finalBackToView))));
             section.setComponentAlignment(b, Alignment.MIDDLE_CENTER);
             b.addStyleName(ValoTheme.BUTTON_QUIET);
         }

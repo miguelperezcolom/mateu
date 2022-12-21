@@ -15,11 +15,11 @@ public class VaadinResourcesServlet extends VaadinServlet {
     @Override
     protected DeploymentConfiguration createDeploymentConfiguration(Properties initParameters) {
 
-        if ("true".equals(System.getProperty("productionMode"))) initParameters.setProperty("productionMode", Boolean.toString(true));
+        if ("true".equals(System.getProperty("productionMode")))
+            initParameters.setProperty("productionMode", Boolean.toString(true));
 
         return super.createDeploymentConfiguration(initParameters);
     }
-
 
 }
 

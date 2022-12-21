@@ -24,8 +24,17 @@ public class MateuWindow extends Window {
     @Override
     public void close() {
         if (!"noback".equals(getData())) {
-            if (stack.getLast() != null && !(stack.getLast().getComponent() instanceof OwnedCollectionComponent) && stack.getLast().getComponent() instanceof EditorViewComponent && ((PersistentPojo.class.isAssignableFrom(((EditorViewComponent)stack.getLast().getComponent()).getModelType()) || ((EditorViewComponent)stack.getLast().getComponent()).getModelType().isAnnotationPresent(Entity.class)) && ((EditorViewComponent)stack.getLast().getComponent()).isModificado()) && ((EditorViewComponent)stack.getLast().getComponent()).isCreateSaveButton()) {
-                VaadinHelper.saveOrDiscard("There are unsaved changes. What do you want to do?", (EditorViewComponent) stack.getLast().getComponent(), () -> yesGoBack());
+            if (stack.getLast() != null
+                    && !(stack.getLast().getComponent() instanceof OwnedCollectionComponent)
+                    && stack.getLast().getComponent() instanceof EditorViewComponent
+                    && ((PersistentPojo.class.isAssignableFrom(((EditorViewComponent)stack.getLast()
+                        .getComponent()).getModelType())
+                    || ((EditorViewComponent)stack.getLast().getComponent()).getModelType()
+                        .isAnnotationPresent(Entity.class))
+                    && ((EditorViewComponent)stack.getLast().getComponent()).isModificado())
+                    && ((EditorViewComponent)stack.getLast().getComponent()).isCreateSaveButton()) {
+                VaadinHelper.saveOrDiscard("There are unsaved changes. What do you want to do?",
+                        (EditorViewComponent) stack.getLast().getComponent(), () -> yesGoBack());
             } else {
                 yesGoBack();
             }

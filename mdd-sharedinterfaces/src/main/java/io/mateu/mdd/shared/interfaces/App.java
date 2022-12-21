@@ -4,6 +4,7 @@ import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.shared.reflection.IFieldBuilder;
 
 public interface App {
+
     IArea[] getAreas();
 
     boolean isAuthenticationNeeded();
@@ -14,8 +15,6 @@ public interface App {
 
     IFieldBuilder getFieldBuilder(FieldInterfaced f);
 
-    boolean hasPublicContent();
-
     IArea getDefaultPrivateArea();
 
     IArea getDefaultPublicArea();
@@ -25,8 +24,6 @@ public interface App {
     boolean hasPrivateContent();
 
     String getMenuId(MenuEntry action);
-
-    Object getSearcher();
 
     IArea getArea(String state);
 
@@ -47,4 +44,5 @@ public interface App {
     Object getBean();
 
     String getPersistenceUnitName();
+
 }

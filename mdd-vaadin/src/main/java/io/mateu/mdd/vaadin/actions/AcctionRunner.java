@@ -26,7 +26,8 @@ public class AcctionRunner {
     }
 
     public void run(MDDCallMethodAction action) {
-        if (action.method == null) Notifier.alert("Method " + action.methodName + " does not exist in class " + action.type);
+        if (action.method == null)
+            Notifier.alert("Method " + action.methodName + " does not exist in class " + action.type);
         else Opener.callMethod(action.method);
     }
 
@@ -39,7 +40,8 @@ public class AcctionRunner {
     }
 
     public void run(MDDOpenCustomComponentAction action) throws Exception {
-        Opener.open(action, (Component) (action.component != null?action.component: ReflectionHelper.newInstance(action.viewClass)));
+        Opener.open(action, (Component) (action.component != null?
+                action.component: ReflectionHelper.newInstance(action.viewClass)));
     }
 
     public void run(MDDOpenEditorAction action) throws Throwable {
@@ -53,7 +55,9 @@ public class AcctionRunner {
     }
 
     public void run(MDDOpenHtml action) throws Exception {
-        run(new MDDOpenCustomComponentAction(action.getCaption(), new ComponentWrapper(action.getIcon(), "Home", new Label(action.html, ContentMode.HTML), true)));
+        run(new MDDOpenCustomComponentAction(action.getCaption(),
+                new ComponentWrapper(action.getIcon(), "Home", new Label(action.html, ContentMode.HTML),
+                        true)));
     }
 
     public void run(MDDOpenWizardAction action) {
