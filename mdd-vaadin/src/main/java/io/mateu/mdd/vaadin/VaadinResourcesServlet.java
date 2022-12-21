@@ -8,7 +8,8 @@ import com.vaadin.server.VaadinServlet;
 import javax.servlet.annotation.WebServlet;
 import java.util.Properties;
 
-@WebServlet(urlPatterns = {"/VAADIN", "/VAADIN/*"}, name = "VaadinResourcesServlet", asyncSupported = true, loadOnStartup = 500)
+@WebServlet(urlPatterns = {"/VAADIN", "/VAADIN/*"}, name = "VaadinResourcesServlet",
+        asyncSupported = true, loadOnStartup = 500)
 @VaadinServletConfiguration(ui = MateuUI.class, productionMode = false)
 public class VaadinResourcesServlet extends VaadinServlet {
 
