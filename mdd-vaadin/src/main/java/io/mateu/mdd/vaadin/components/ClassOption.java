@@ -22,6 +22,7 @@ public class ClassOption {
 
     @Override
     public boolean equals(Object obj) {
-        return this == obj || (obj != null && obj instanceof ClassOption && _class.equals(((ClassOption) obj)._class));
+        return this == obj || (obj != null && obj instanceof ClassOption
+                && _class.equals(((ClassOption) obj)._class));
     }
 }
