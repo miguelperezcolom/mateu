@@ -7,7 +7,6 @@ import io.mateu.util.IJPAHelper;
 import io.mateu.util.persistence.JPAHelper;
 import io.mateu.util.persistence.JPATransaction;
 import io.mateu.util.runnable.RunnableThrowsThrowable;
-import org.jinq.jpa.JinqJPAStreamProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,8 +23,6 @@ import java.util.*;
 
 @Component
 public class JPAHelperImpl implements IJPAHelper {
-
-    private static Map<String, JinqJPAStreamProvider> streams = new HashMap<>();
 
     @Autowired
     private EntityManagerFactory emf;
@@ -208,22 +205,6 @@ public class JPAHelperImpl implements IJPAHelper {
         }
         return null;
     }
-
-    @Override
-    public JinqJPAStreamProvider getStreams() {
-        return getStreams(MDDUIAccessor.getPersistenceUnitName());
-    }
-
-    @Override
-    public JinqJPAStreamProvider getStreams(String persistenceUnit) {
-        JinqJPAStreamProvider s = streams.get(persistenceUnit);
-        if (s == null) {
-            streams.put(persistenceUnit, s = new JinqJPAStreamProvider(getEMF(persistenceUnit)));
-        }
-        return s;
-    }
-
-
 
     @Override
     public <T> Optional<T> selectValue(String jpql) throws Throwable {

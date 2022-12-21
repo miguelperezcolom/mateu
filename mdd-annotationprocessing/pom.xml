@@ -5,7 +5,7 @@
   <parent>
     <artifactId>mdd-parent</artifactId>
     <groupId>io.mateu</groupId>
-    <version>1.1.34</version>
+    <version>1.1.35</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>mdd-annotationprocessing</artifactId>
@@ -60,86 +60,12 @@
   </dependencyManagement>
 
   <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.11</version>
-      <scope>test</scope>
-    </dependency>
 
     <dependency>
       <groupId>com.google.auto.service</groupId>
       <artifactId>auto-service</artifactId>
-      <version>1.0-rc7</version>
+      <version>1.0.1</version>
       <scope>provided</scope>
-    </dependency>
-
-
-    <dependency>
-      <groupId>com.vaadin</groupId>
-      <artifactId>vaadin-server</artifactId>
-      <version>${vaadin.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
-      <version>3.1.0</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-      <version>1.18.24</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.7.25</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.persistence</groupId>
-      <artifactId>jakarta.persistence</artifactId>
-      <version>2.2.2</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-web</artifactId>
-      <version>2.7.5</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>io.mateu</groupId>
-      <artifactId>mdd-util</artifactId>
-      <version>${version}</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>io.mateu</groupId>
-      <artifactId>mdd-fakespringboot</artifactId>
-      <version>0.0.19</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>io.mateu</groupId>
-      <artifactId>mdd-reflection</artifactId>
-      <version>${version}</version>
-      <scope>test</scope>
-    </dependency>
-
-
-    <dependency>
-      <groupId>com.github.olivergondza</groupId>
-      <artifactId>maven-jdk-tools-wrapper</artifactId>
-      <version>0.1</version>
-      <scope>compile</scope>
     </dependency>
 
   </dependencies>

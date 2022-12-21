@@ -1,8 +1,10 @@
 package io.mateu.mdd.core.app;
 
-import com.vaadin.contextmenu.ContextMenu;
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.renderers.ClickableRenderer;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.util.notification.Notifier;

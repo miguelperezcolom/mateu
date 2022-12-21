@@ -84,7 +84,7 @@ public class CoreReflectionHelper {
             int finalPosEM = posEM;
             Object finalInstance = instance;
 
-            JPAHelper.transact( em -> {
+            JPAHelper.transact(em -> {
 
                 vs.add(finalPosEM, em);
 

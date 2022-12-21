@@ -2,7 +2,6 @@ package io.mateu.util;
 
 import io.mateu.util.persistence.JPATransaction;
 import io.mateu.util.runnable.RunnableThrowsThrowable;
-import org.jinq.jpa.JinqJPAStreamProvider;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -45,10 +44,6 @@ public interface IJPAHelper {
     <T> List<T> getAll(Class<T> type);
 
     <T> T get(Class<T> type, Object id);
-
-    JinqJPAStreamProvider getStreams();
-
-    JinqJPAStreamProvider getStreams(String persistenceUnit);
 
     <T> Optional<T> selectValue(String jpql) throws Throwable;
 

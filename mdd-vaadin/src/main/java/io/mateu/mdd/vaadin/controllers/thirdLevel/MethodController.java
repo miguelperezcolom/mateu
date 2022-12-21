@@ -161,15 +161,7 @@ public class MethodController extends Controller {
                     return new JPAListViewComponent(c);
                 } else if (RpcView.class.isAssignableFrom(c)) {
                     r = c.getConstructor().newInstance();
-                    if (m != null && m.isAnnotationPresent(Output.class)) {
-                        try {
-                            return new ComponentWrapper(title, new PdfComponent((RpcView) r, r, null));
-                        } catch (Throwable throwable) {
-                            Notifier.alert(throwable);
-                        }
-                    } else {
-                        return new RpcListViewComponent((RpcView) r);
-                    }
+                    return new RpcListViewComponent((RpcView) r);
                 }
             } else if (int.class.equals(c)
                     || Integer.class.equals(c)
@@ -227,12 +219,6 @@ public class MethodController extends Controller {
 
                 if (col.size() == 0) {
                     return new ComponentWrapper(null, title, new Label("Empty list", ContentMode.HTML), true);
-                } else if (m != null && m.isAnnotationPresent(Pdf.class) || Query.class.isAssignableFrom(m.getReturnType())) {
-                    try {
-                        return new ComponentWrapper(null, title, new PdfComponent((List) r), true);
-                    } catch (Throwable throwable) {
-                        Notifier.alert(throwable);
-                    }
                 } else {
 
                     if (MDDUIAccessor.isMobile()) {
@@ -312,25 +298,9 @@ public class MethodController extends Controller {
                 }
 
 
-            } else if (r instanceof Query) {
-
-                try {
-                    return new ComponentWrapper(title, new PdfComponent((Query) r));
-                } catch (Throwable throwable) {
-                    Notifier.alert(throwable);
-                }
-
             } else if (r instanceof RpcView) {
 
-                if (m != null && m.isAnnotationPresent(Output.class)) {
-                    try {
-                        return new ComponentWrapper(title, new PdfComponent((RpcView) r, r, null));
-                    } catch (Throwable throwable) {
-                        Notifier.alert(throwable);
-                    }
-                } else {
-                    return new RpcListViewComponent((RpcView) r);
-                }
+                return new RpcListViewComponent((RpcView) r);
 
             } else if (m != null && (m.isAnnotationPresent(Output.class) || m.isAnnotationPresent(ReadOnly.class))) {
 

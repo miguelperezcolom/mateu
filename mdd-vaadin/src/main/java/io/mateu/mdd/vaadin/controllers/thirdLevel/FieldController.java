@@ -3,7 +3,6 @@ package io.mateu.mdd.vaadin.controllers.thirdLevel;
 import com.vaadin.data.Binder;
 import com.vaadin.ui.Component;
 import io.mateu.mdd.core.interfaces.EntityProvider;
-import io.mateu.mdd.core.interfaces.ListView;
 import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.core.ui.MDDUIAccessor;

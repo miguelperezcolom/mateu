@@ -1,12 +1,12 @@
 package io.mateu.util.persistence;
 
-import io.mateu.util.Helper;
 import io.mateu.util.IJPAHelper;
 import io.mateu.util.JPAHelperImpl;
 import io.mateu.util.runnable.RunnableThrowsThrowable;
-import org.jinq.jpa.JinqJPAStreamProvider;
 
-import javax.persistence.*;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -99,15 +99,6 @@ public class JPAHelper {
     public static <T> T get(Class<T> type, Object id) {
         return get().get(type, id);
     }
-
-    public static JinqJPAStreamProvider getStreams() {
-        return get().getStreams();
-    }
-
-    public static JinqJPAStreamProvider getStreams(String persistenceUnit) {
-        return get().getStreams(persistenceUnit);
-    }
-
 
 
     public static <T> Optional<T> selectValue(String jpql) throws Throwable {

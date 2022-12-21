@@ -4,7 +4,6 @@ import com.google.auto.service.AutoService;
 import io.mateu.mdd.shared.JPAAdapter;
 import io.mateu.util.persistence.JPATransaction;
 import io.mateu.util.runnable.RunnableThrowsThrowable;
-import org.jinq.jpa.JinqJPAStreamProvider;
 
 import javax.persistence.*;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -18,7 +17,6 @@ import java.util.*;
 @AutoService(IJPAHelper.class)
 public class JPAHelperImpl implements IJPAHelper {
 
-    private static Map<String, JinqJPAStreamProvider> streams = new HashMap<>();
     private static Map<String, EntityManagerFactory> emf = new HashMap<>();
 
     @Override
@@ -201,22 +199,6 @@ public class JPAHelperImpl implements IJPAHelper {
         }
         return null;
     }
-
-    @Override
-    public JinqJPAStreamProvider getStreams() {
-        return getStreams(System.getProperty("defaultpuname", "default"));
-    }
-
-    @Override
-    public JinqJPAStreamProvider getStreams(String persistenceUnit) {
-        JinqJPAStreamProvider s = streams.get(persistenceUnit);
-        if (s == null) {
-            streams.put(persistenceUnit, s = new JinqJPAStreamProvider(getEMF(persistenceUnit)));
-        }
-        return s;
-    }
-
-
 
     @Override
     public <T> Optional<T> selectValue(String jpql) throws Throwable {

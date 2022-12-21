@@ -45,7 +45,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.OptimisticLockException;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.text.DecimalFormat;
@@ -1188,7 +1187,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                                     }
 
                                     if (!isEditingNewRecord) {
-                                        JPAHelper.transact( em -> {
+                                        JPAHelper.transact(em -> {
                                             ReflectionHelper.delete(em, em.find(getModelType(), ReflectionHelper.getId(getModel())));
                                         });
                                     }

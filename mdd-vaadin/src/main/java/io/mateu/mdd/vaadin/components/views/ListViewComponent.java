@@ -33,7 +33,6 @@ import com.vaadin.ui.themes.ValoTheme;
 import elemental.json.JsonValue;
 import io.mateu.i18n.Translator;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.ColumnAction;
 import io.mateu.mdd.core.dataProviders.JPQLListDataProvider;
 import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
@@ -181,33 +180,10 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
 
         if (!(this instanceof JPACollectionFieldListViewComponent)) fieldGroup.addComponent(filtersComponent = new FiltersComponent(this));
 
-        //setSizeFull();
-
-        if (false && !(this instanceof JPACollectionFieldListViewComponent) && !(this instanceof RpcListViewComponent)) {
-            fieldGroup.addComponent(matchesComponent = new HorizontalLayout(excelButton = new Button("<i class=\"fas fa-file-excel\"></i>", e -> excel()), pdfButton = new Button("<i class=\"fas fa-file-pdf\"></i>", e -> pdf())));
-            matchesComponent.addStyleName(CSS.NOPADDING);
-        }
-
         fieldGroup.addComponents(resultsComponent = buildResultsComponent(fieldGroupHeader));
 
         return this;
     }
-
-
-    private void pdf() {
-        try {
-            getUI().getPage().open(VaadinHelper.listViewComponentToPdf(this, getModelForSearchFilters()).toString(), "_blank");
-        } catch (Throwable throwable) {
-            Notifier.alert(throwable);
-        }
-    }
-
-    private void excel() {
-        try {
-            getUI().getPage().open(VaadinHelper.listViewComponentToExcel(this, getModelForSearchFilters()).toString(), "_blank");
-        } catch (Throwable throwable) {
-            Notifier.alert(throwable);
-        }    }
 
     private ResultsComponent buildResultsComponent() {
         return buildResultsComponent(null);

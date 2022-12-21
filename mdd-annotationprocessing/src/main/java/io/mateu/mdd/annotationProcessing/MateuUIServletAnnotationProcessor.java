@@ -123,7 +123,6 @@ public class MateuUIServletAnnotationProcessor extends AbstractProcessor {
                                 "import io.mateu.util.persistence.JPAHelper;\n" +
                                 "import io.mateu.util.persistence.JPATransaction;\n" +
                                 "import io.mateu.util.runnable.RunnableThrowsThrowable;\n" +
-                                "import org.jinq.jpa.JinqJPAStreamProvider;\n" +
                                 "import org.springframework.beans.factory.annotation.Autowired;\n" +
                                 "import org.springframework.stereotype.Component;\n" +
                                 "import org.springframework.transaction.annotation.Transactional;\n" +
@@ -141,7 +140,6 @@ public class MateuUIServletAnnotationProcessor extends AbstractProcessor {
                                 "@Component\n" +
                                 "public class JPAHelperImpl implements IJPAHelper {\n" +
                                 "\n" +
-                                "    private static Map<String, JinqJPAStreamProvider> streams = new HashMap<>();\n" +
                                 "\n" +
                                 "    @Autowired\n" +
                                 "    private EntityManagerFactory emf;\n" +
@@ -323,20 +321,6 @@ public class MateuUIServletAnnotationProcessor extends AbstractProcessor {
                                 "            throwable.printStackTrace();\n" +
                                 "        }\n" +
                                 "        return null;\n" +
-                                "    }\n" +
-                                "\n" +
-                                "    @Override\n" +
-                                "    public JinqJPAStreamProvider getStreams() {\n" +
-                                "        return getStreams(MDDUIAccessor.getPersistenceUnitName());\n" +
-                                "    }\n" +
-                                "\n" +
-                                "    @Override\n" +
-                                "    public JinqJPAStreamProvider getStreams(String persistenceUnit) {\n" +
-                                "        JinqJPAStreamProvider s = streams.get(persistenceUnit);\n" +
-                                "        if (s == null) {\n" +
-                                "            streams.put(persistenceUnit, s = new JinqJPAStreamProvider(getEMF(persistenceUnit)));\n" +
-                                "        }\n" +
-                                "        return s;\n" +
                                 "    }\n" +
                                 "\n" +
                                 "\n" +
