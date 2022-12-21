@@ -88,8 +88,11 @@ public class MateuUI extends UI implements IMDDUI {
                 && viewProvider.getCurrentEditor().getListViewComponent() != null
                 ? viewProvider.getCurrentEditor().getListViewComponent().getSelection() : null;
         if (selectedRows == null) {
-            if (viewProvider != null && viewProvider.getLastView() != null && viewProvider.getLastView() != null && viewProvider.getLastView().getViewComponent() instanceof ListViewComponent) {
-                selectedRows = ((ListViewComponent) viewProvider.getLastView().getViewComponent()).getSelection();
+            if (viewProvider != null && viewProvider.getLastView() != null
+                    && viewProvider.getLastView() != null
+                    && viewProvider.getLastView().getViewComponent() instanceof ListViewComponent) {
+                selectedRows = ((ListViewComponent) viewProvider.getLastView()
+                        .getViewComponent()).getSelection();
             }
         }
         if (selectedRows == null) {
@@ -333,9 +336,10 @@ public class MateuUI extends UI implements IMDDUI {
             if (!Strings.isNullOrEmpty(u) && u.contains("/")) {
                 u = u.substring(0, u.lastIndexOf("/"));
 
-                if (!MDDUIAccessor.isMobile() && esMenu(u)) while (esMenu(u.substring(0, u.lastIndexOf("/")))) {
-                    u = u.substring(0, u.lastIndexOf("/"));
-                }
+                if (!MDDUIAccessor.isMobile() && esMenu(u))
+                    while (esMenu(u.substring(0, u.lastIndexOf("/")))) {
+                        u = u.substring(0, u.lastIndexOf("/"));
+                    }
 
                 if (MDDUIAccessor.isMobile()) {
                     if (esInutil(u)) while (esInutil(u)) {

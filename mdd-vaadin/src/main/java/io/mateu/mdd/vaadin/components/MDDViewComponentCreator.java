@@ -68,7 +68,8 @@ public class MDDViewComponentCreator {
 
                     if (MateuUI.get() != null) MateuUI.get().setCurrentEditor((EditorViewComponent) v);
 
-                    if (modelType.isAnnotationPresent(Entity.class)) ((EditorViewComponent)v).load(ReflectionHelper.getId(bean));
+                    if (modelType.isAnnotationPresent(Entity.class))
+                        ((EditorViewComponent)v).load(ReflectionHelper.getId(bean));
                     else ((EditorViewComponent)v).setModel(bean);
 
 
@@ -110,7 +111,9 @@ public class MDDViewComponentCreator {
         try {
 
             modelType = field.getType();
-            v = createListViewComponent(modelType, null, null, null, null, null, null, (o) -> {
+            v = createListViewComponent(modelType,
+                    null, null, null, null,
+                    null, null, (o) -> {
                 try {
                     Object bean = parentBinder.getBean();
                     ReflectionHelper.setValue(field, bean, o);
@@ -132,7 +135,8 @@ public class MDDViewComponentCreator {
         try {
 
             modelType = action.getEntityClass();
-            v = createListViewComponent(modelType, action.getQueryFilters(), action.getExtraFilters(), action.getDefaultValues(), action.getColumns(), action.getFilters(), action.getFields());
+            v = createListViewComponent(modelType, action.getQueryFilters(), action.getExtraFilters(),
+                    action.getDefaultValues(), action.getColumns(), action.getFilters(), action.getFields());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -144,28 +148,43 @@ public class MDDViewComponentCreator {
         return createEditorViewComponent(modelType, true);
     }
 
-    public static EditorViewComponent createEditorViewComponent(Class modelType, boolean createSaveBUtton) throws Exception {
+    public static EditorViewComponent createEditorViewComponent(Class modelType, boolean createSaveBUtton)
+            throws Exception {
         EditorViewComponent v = new EditorViewComponent(modelType, createSaveBUtton);
         return v;
     }
 
-    public static EditorViewComponent createEditorViewComponent(Object owner, FieldInterfaced field, Class modelType, boolean createSaveBUtton) throws Exception {
+    public static EditorViewComponent createEditorViewComponent(Object owner, FieldInterfaced field,
+                                                                Class modelType, boolean createSaveBUtton)
+            throws Exception {
         EditorViewComponent v = new EditorViewComponent(owner, field, modelType, createSaveBUtton);
         return v;
     }
 
-    private static ListViewComponent createListViewComponent(Class modelType, String queryFilters, ExtraFilters extraFilters, Map<String, Object> defaultValues) throws Exception {
-        return createListViewComponent(modelType, queryFilters, extraFilters, defaultValues, null, null, null);
+    private static ListViewComponent createListViewComponent(Class modelType, String queryFilters,
+                                                             ExtraFilters extraFilters,
+                                                             Map<String, Object> defaultValues) throws Exception {
+        return createListViewComponent(modelType, queryFilters, extraFilters, defaultValues,
+                null, null, null);
     }
 
-    private static ListViewComponent createListViewComponent(Class modelType, String queryFilters, ExtraFilters extraFilters, Map<String, Object> defaultValues, String columns, String filters, String fields) throws Exception {
-        return createListViewComponent(modelType, queryFilters, extraFilters, defaultValues, columns, filters, fields, null);
+    private static ListViewComponent createListViewComponent(Class modelType, String queryFilters,
+                                                             ExtraFilters extraFilters,
+                                                             Map<String, Object> defaultValues, String columns,
+                                                             String filters, String fields) throws Exception {
+        return createListViewComponent(modelType, queryFilters, extraFilters, defaultValues, columns,
+                filters, fields, null);
     }
 
-    private static ListViewComponent createListViewComponent(Class modelType, String queryFilters, ExtraFilters extraFilters, Map<String, Object> defaultValues, String columns, String filters, String fields, Consumer<Object> callback) throws Exception {
+    private static ListViewComponent createListViewComponent(Class modelType, String queryFilters,
+                                                             ExtraFilters extraFilters,
+                                                             Map<String, Object> defaultValues, String columns,
+                                                             String filters, String fields, Consumer<Object> callback)
+            throws Exception {
         ListViewComponent v = null;
         if (modelType.isAnnotationPresent(Entity.class)) {
-            v = new JPAListViewComponent(modelType, queryFilters, extraFilters, defaultValues, columns, filters, fields, callback);
+            v = new JPAListViewComponent(modelType, queryFilters, extraFilters, defaultValues, columns, filters,
+                    fields, callback);
         } else {
 
         }

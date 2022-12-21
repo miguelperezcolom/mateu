@@ -27,9 +27,12 @@ public class Profile implements PersistentPojo {
 
 
     @Action(value = "Change password")
-    public void changePassword(@NotNull @Password String currentPassword, @NotNull @Password String newPassword, @NotNull @Password String newPasswordAgain) throws Throwable {
+    public void changePassword(@NotNull @Password String currentPassword,
+                               @NotNull @Password String newPassword,
+                               @NotNull @Password String newPasswordAgain) throws Throwable {
 
-        if (!newPassword.equals(newPasswordAgain)) throw new Exception("New password fieldBuilders must be equal");
+        if (!newPassword.equals(newPasswordAgain))
+            throw new Exception("New password fieldBuilders must be equal");
 
         GeneralRepository repo = Helper.getImpl(GeneralRepository.class);
         repo.changePassword(MDDUIAccessor.getCurrentUser().getLogin(), currentPassword, newPassword);
@@ -65,6 +68,7 @@ public class Profile implements PersistentPojo {
 
     @Override
     public String toString() {
-        return "Profile for user " + (MDDUIAccessor.getCurrentUserLogin() != null?MDDUIAccessor.getCurrentUserLogin():"unknown");
+        return "Profile for user " + (MDDUIAccessor.getCurrentUserLogin() != null?
+                MDDUIAccessor.getCurrentUserLogin():"unknown");
     }
 }
