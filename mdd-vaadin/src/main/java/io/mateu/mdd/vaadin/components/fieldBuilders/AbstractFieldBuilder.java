@@ -71,10 +71,16 @@ public abstract class AbstractFieldBuilder implements IFieldBuilder {
 
     public abstract boolean isSupported(FieldInterfaced field);
 
-    public abstract Component build(VerticalLayout fieldGroup, HorizontalLayout fieldGroupHeader, FieldInterfaced field, Object object, Layout container, MDDBinder binder, Map<HasValue, List<Validator>> validators, AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers, boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions);
+    public abstract Component build(VerticalLayout fieldGroup, HorizontalLayout fieldGroupHeader,
+                                    FieldInterfaced field, Object object, Layout container,
+                                    MDDBinder binder, Map<HasValue, List<Validator>> validators,
+                                    AbstractStylist stylist, Map<FieldInterfaced, Component> allFieldContainers,
+                                    boolean forSearchFilter, Map<String, List<AbstractAction>> attachedActions);
 
 
-    public static void applyStyles(AbstractStylist stylist, Object model, Map<FieldInterfaced, Component> containers, Pair<Map<FieldInterfaced, List<String>>, Map<FieldInterfaced, List<String>>> styleChanges) {
+    public static void applyStyles(AbstractStylist stylist, Object model, Map<FieldInterfaced, Component> containers,
+                                   Pair<Map<FieldInterfaced, List<String>>,
+                                           Map<FieldInterfaced, List<String>>> styleChanges) {
         Map<FieldInterfaced, List<String>> remove = styleChanges.getKey();
         Map<FieldInterfaced, List<String>> add = styleChanges.getValue();
 
@@ -98,7 +104,8 @@ public abstract class AbstractFieldBuilder implements IFieldBuilder {
                 c.setVisible(v);
                 if (c.getParent() instanceof HorizontalLayout) {
                     final boolean[] algunoVisible = {false};
-                    ((Layout) c.getParent()).getComponentIterator().forEachRemaining(x -> algunoVisible[0] |= x.isVisible());
+                    ((Layout) c.getParent()).getComponentIterator()
+                            .forEachRemaining(x -> algunoVisible[0] |= x.isVisible());
                     c.getParent().setVisible(algunoVisible[0]);
                 }
             }
@@ -106,7 +113,8 @@ public abstract class AbstractFieldBuilder implements IFieldBuilder {
     }
 
     public void addErrorHandler(FieldInterfaced f, AbstractComponent tf) {
-        if (!MDDUIAccessor.isMobile() && f.isAnnotationPresent(Help.class) && !Strings.isNullOrEmpty(f.getAnnotation(Help.class).value())) {
+        if (!MDDUIAccessor.isMobile() && f.isAnnotationPresent(Help.class)
+                && !Strings.isNullOrEmpty(f.getAnnotation(Help.class).value())) {
             String h = f.getAnnotation(Help.class).value();
             tf.setDescription(h);
             if (tf instanceof AbstractTextField) ((AbstractTextField)tf).setPlaceholder(h);
@@ -121,11 +129,13 @@ public abstract class AbstractFieldBuilder implements IFieldBuilder {
         });
     }
 
-    public static Binder.Binding completeBinding(Binder.BindingBuilder aux, MDDBinder binder, FieldInterfaced field) {
+    public static Binder.Binding completeBinding(Binder.BindingBuilder aux, MDDBinder binder,
+                                                 FieldInterfaced field) {
         return completeBinding(aux, binder, field, null);
     }
 
-    public static Binder.Binding completeBinding(Binder.BindingBuilder aux, MDDBinder binder, FieldInterfaced field, AbstractComponent captionOwner) {
+    public static Binder.Binding completeBinding(Binder.BindingBuilder aux, MDDBinder binder,
+                                                 FieldInterfaced field, AbstractComponent captionOwner) {
         aux.withValidator(new Validator() {
 
             boolean initialized = false;
@@ -152,7 +162,8 @@ public abstract class AbstractFieldBuilder implements IFieldBuilder {
                                     th = th.getCause();
                                 }
                                 th.printStackTrace();
-                                return lastResult = ValidationResult.error(th.getMessage() != null?th.getMessage():th.getClass().getSimpleName());
+                                return lastResult = ValidationResult.error(th.getMessage() != null?
+                                        th.getMessage():th.getClass().getSimpleName());
                             }
                         }
                     }
@@ -171,21 +182,8 @@ public abstract class AbstractFieldBuilder implements IFieldBuilder {
                else captionOwner.setComponentError(null);
             });
         }
-        Binder.Binding binding = aux.bind(o -> ReflectionHelper.getValue(field, o, getDefaultValueForField(field)), (o, v) -> {
-            /*
-            try {
-                ReflectionHelper.setValue(field, o, v);
-                tf.setComponentError(null);
-            } catch (Exception e) {
-                Throwable th = e;
-                while (th != null && th.getCause() != null) {
-                    th = th.getCause();
-                }
-
-                BindingValidationStatus<?> status = new BindingValidationStatus<Object>(Result.error(th.getMessage()), (Binder.Binding<?, Object>) tf.getData());
-                binder.getValidationStatusHandler().statusChange(new BinderValidationStatus(binder, Arrays.asList(status), Collections.emptyList()));
-            }
-            */
+        Binder.Binding binding = aux.bind(o ->
+                ReflectionHelper.getValue(field, o, getDefaultValueForField(field)), (o, v) -> {
             binder.update(o); // entra en bucle!!!
         });
         return binding;
@@ -206,7 +204,8 @@ public abstract class AbstractFieldBuilder implements IFieldBuilder {
         if (attachedActions == null || attachedActions.size() == 0) container.addComponent(c);
         else {
             VerticalLayout vl = null;
-            if (c instanceof VerticalLayout && ((VerticalLayout)c).getComponentCount() == 2 && ((VerticalLayout) c).getComponent(1) instanceof HorizontalLayout) {
+            if (c instanceof VerticalLayout && ((VerticalLayout)c).getComponentCount() == 2
+                    && ((VerticalLayout) c).getComponent(1) instanceof HorizontalLayout) {
                 vl = (VerticalLayout) c;
                 crearBotonera(vl.getComponent(0), attachedActions, (Layout) vl.getComponent(1));
             } else {
@@ -240,25 +239,8 @@ public abstract class AbstractFieldBuilder implements IFieldBuilder {
                         Runnable r = new Runnable() {
                             @Override
                             public void run() {
-
-                                /*
-                                boolean needsValidation = AbstractViewComponent.this instanceof EditorViewComponent && a.isValidationNeeded();
-
-                                if (!needsValidation || ((EditorViewComponent)AbstractViewComponent.this).validate()) {
-
-                                    a.run(new AbstractMDDExecutionContext());
-
-                                    if (AbstractViewComponent.this instanceof EditorViewComponent) {
-
-                                        EditorViewComponent evc = (EditorViewComponent) AbstractViewComponent.this;
-
-                                        evc.getBinder().update(evc.getModel());
-
-                                    }
-
-                                }
-                                 */
-                                if (c instanceof Grid) MateuUI.get().setPendingSelection(((Grid) c).getSelectedItems());
+                                if (c instanceof Grid)
+                                    MateuUI.get().setPendingSelection(((Grid) c).getSelectedItems());
                                 try {
                                     new AcctionRunner().run(a);
                                 } catch (Throwable ex) {
@@ -281,12 +263,6 @@ public abstract class AbstractFieldBuilder implements IFieldBuilder {
                         Notifier.alert(throwable);
                     }
                 });
-
-                /*
-                if (!Strings.isNullOrEmpty(a.getGroup())) menuItemsByGroup.computeIfAbsent(a.getGroup(), k -> new ArrayList<>()).add(i);
-                addMenuItem(a.getId(), i);
-
-                 */
 
                 if (!Strings.isNullOrEmpty(a.getStyle())) i.addStyleName(a.getStyle());
 
