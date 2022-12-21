@@ -55,7 +55,8 @@ public class VaadinHelper {
 
     public static void choose(String caption, Set possibleValues, Consumer onOk, Runnable onClose) {
 
-        FieldInterfaced field = new FieldInterfacedFromType(Object.class, "value", new ListDataProvider(possibleValues)) {
+        FieldInterfaced field = new FieldInterfacedFromType(Object.class, "value",
+                new ListDataProvider(possibleValues)) {
             @Override
             public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
                 if (UseRadioButtons.class.equals(annotationClass) && possibleValues.size() < 15) return true;
@@ -87,7 +88,9 @@ public class VaadinHelper {
         Map<HasValue, List<Validator>> validators = new HashMap<>();
 
         List<Component> componentsToLookForErrors = new ArrayList<>();
-        FormLayoutBuilder.get().build(vl, binder, model.getClass(), model, componentsToLookForErrors, FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).build(), null);
+        FormLayoutBuilder.get().build(vl, binder, model.getClass(), model, componentsToLookForErrors,
+                FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).build(),
+                null);
 
         // Put some components in it
         subContent.addComponent(vl);
@@ -158,7 +161,9 @@ public class VaadinHelper {
         Map<HasValue, List<Validator>> validators = new HashMap<>();
 
         List<Component> componentsToLookForErrors = new ArrayList<>();
-        FormLayoutBuilder.get().build(vl, binder, model.getClass(), model, componentsToLookForErrors, FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).build(), null);
+        FormLayoutBuilder.get().build(vl, binder, model.getClass(), model, componentsToLookForErrors,
+                FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).build(),
+                null);
 
         // Put some components in it
         subContent.addComponent(vl);
@@ -211,7 +216,9 @@ public class VaadinHelper {
         Map<HasValue, List<Validator>> validators = new HashMap<>();
 
         List<Component> componentsToLookForErrors = new ArrayList<>();
-        FormLayoutBuilder.get().build(vl, binder, model.getClass(), model, componentsToLookForErrors, FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).build(), null);
+        FormLayoutBuilder.get().build(vl, binder, model.getClass(), model, componentsToLookForErrors,
+                FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).build(),
+                null);
 
         // Put some components in it
         subContent.addComponent(vl);
@@ -249,7 +256,10 @@ public class VaadinHelper {
 
     public static void fill(EditorViewComponent evc, String caption, Constructor c, Consumer onOk, Runnable onClose) {
         try {
-            Class pc = ReflectionHelper.createClass(MDD.getClassPool(), MDDBinder.class, MDD.getClassPool().getClassLoader(), "" + c.getDeclaringClass().getSimpleName() + "_" + c.getName() + "_Parameters000", ReflectionHelper.getAllFields(c), false);
+            Class pc = ReflectionHelper.createClass(MDD.getClassPool(), MDDBinder.class,
+                    MDD.getClassPool().getClassLoader(),
+                    "" + c.getDeclaringClass().getSimpleName() + "_" + c.getName() + "_Parameters000",
+                    ReflectionHelper.getAllFields(c), false);
 
             List<FieldInterfaced> fields = ReflectionHelper.getAllFields(pc);
 
@@ -275,7 +285,9 @@ public class VaadinHelper {
             Map<HasValue, List<Validator>> validators = new HashMap<>();
 
             List<Component> componentsToLookForErrors = new ArrayList<>();
-            FormLayoutBuilder.get().build(vl, binder, model.getClass(), model, componentsToLookForErrors, FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).build(), null);
+            FormLayoutBuilder.get().build(vl, binder, model.getClass(), model, componentsToLookForErrors,
+                    FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).build(),
+                    null);
 
             // Put some components in it
             subContent.addComponent(vl);
@@ -304,7 +316,8 @@ public class VaadinHelper {
 
             subWindow.addCloseListener(e -> {
                 if (evc != null) evc.setCreatorWindow(null);
-                if (subWindow.getData() == null || !(subWindow.getData() instanceof Boolean) || (Boolean) subWindow.getData()) if (!okd.get()) onClose.run();
+                if (subWindow.getData() == null || !(subWindow.getData() instanceof Boolean)
+                        || (Boolean) subWindow.getData()) if (!okd.get()) onClose.run();
             });
 
             // Open it in the UI
