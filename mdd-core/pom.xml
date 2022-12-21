@@ -121,14 +121,6 @@
             <version>${version}</version>
         </dependency>
 
-
-        <dependency>
-            <groupId>io.mateu</groupId>
-            <artifactId>security-api</artifactId>
-            <version>1.0.21</version>
-        </dependency>
-
-
         <dependency>
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-context-menu</artifactId>

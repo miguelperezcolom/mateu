@@ -2,7 +2,7 @@ package io.mateu.mdd.vaadin.components.app;
 
 import io.mateu.mdd.core.app.AbstractArea;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
-import io.mateu.util.common.Pair;
+import io.mateu.util.data.Pair;
 
 public interface AppComponent {
     void setArea(AbstractArea a);

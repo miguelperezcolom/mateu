@@ -32,12 +32,12 @@ import io.mateu.mdd.vaadin.util.BindedWindow;
 import io.mateu.mdd.vaadin.util.VaadinHelper;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.reflection.Transferrer;
-import io.mateu.util.common.HasChangesSignature;
 import io.mateu.util.data.Pair;
 import io.mateu.util.interfaces.EditorViewStyler;
 import io.mateu.util.notification.Notifier;
 import io.mateu.util.persistence.JPAHelper;
 import io.mateu.util.persistence.JPATransaction;
+import io.mateu.util.servlet.common.HasChangesSignature;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Entity;
