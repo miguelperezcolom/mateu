@@ -10,7 +10,6 @@ import io.mateu.mdd.shared.interfaces.App;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.actions.AcctionRunner;
-import io.mateu.mdd.vaadin.components.ComponentWrapper;
 import io.mateu.mdd.vaadin.components.HomeComponent;
 import io.mateu.mdd.vaadin.components.app.views.firstLevel.FakeComponent;
 import io.mateu.mdd.vaadin.controllers.BrokenLinkController;
@@ -32,7 +31,7 @@ public class PublicController extends Controller {
         MenuEntry home = app.getDefaultPublicArea() != null?app.getDefaultPublicArea().getDefaultAction():null;
         if (home != null) {
             if (home instanceof MDDOpenHtml) {
-                register(stack, path, new HomeComponent(home.getIcon(), "Home", new Label(((MDDOpenHtml)home).html, ContentMode.HTML), false));
+                registerComponentInStack(stack, path, new HomeComponent(home.getIcon(), "Home", new Label(((MDDOpenHtml)home).html, ContentMode.HTML), false));
             } else {
                 try {
                     new AcctionRunner().run((AbstractAction) home);
@@ -42,7 +41,7 @@ public class PublicController extends Controller {
             }
         } else {
             // si no, seguir hacia el área por defecto
-            register(stack, path, new FakeComponent("Public content"));
+            registerComponentInStack(stack, path, new FakeComponent("Public content"));
         }
 
     }

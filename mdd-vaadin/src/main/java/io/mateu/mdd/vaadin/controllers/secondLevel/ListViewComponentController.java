@@ -24,7 +24,7 @@ public class ListViewComponentController extends Controller {
 
     public ListViewComponentController(ViewStack stack, String path, ListViewComponent listViewComponent) {
         this.listViewComponent = listViewComponent;
-        register(stack, path, listViewComponent);
+        registerComponentInStack(stack, path, listViewComponent);
     }
 
 
@@ -33,7 +33,7 @@ public class ListViewComponentController extends Controller {
 
         if (!"".equals(cleanStep)) {
             if ("filters".equals(step)) {
-                register(stack, path + "/" + step, new FiltersViewFlowComponent(listViewComponent));
+                registerComponentInStack(stack, path + "/" + step, new FiltersViewFlowComponent(listViewComponent));
             } else if ("new".equals(step)) {
                 Object form = null;
                 if (listViewComponent instanceof RpcListViewComponent) {
@@ -41,12 +41,12 @@ public class ListViewComponentController extends Controller {
                 }
                 EditorViewComponent editor = null;
                 if (form != null) {
-                    if (form instanceof RpcView) register(stack, path + "/" + step, new RpcListViewComponent((RpcView) form));
+                    if (form instanceof RpcView) registerComponentInStack(stack, path + "/" + step, new RpcListViewComponent((RpcView) form));
                     else if (!(form instanceof Component)) {
                         if (form instanceof PersistentPojo) new EditorController(stack, path + "/" + step, form).next(stack, path, step, remaining);
                         if (form instanceof ReadOnlyPojo) new ReadOnlyController(stack, path + "/" + step, form).next(stack, path, step, remaining);
                         else new EditorController(stack, path + "/" + step, form).next(stack, path, step, remaining);
-                    } else register(stack, path + "/" + step, (Component) form);
+                    } else registerComponentInStack(stack, path + "/" + step, (Component) form);
                 } else {
                     editor = new EditorViewComponent(listViewComponent, listViewComponent.getModelType());
                     editor.load(null);
@@ -70,12 +70,12 @@ public class ListViewComponentController extends Controller {
                         } else o = ((RpcListViewComponent) listViewComponent).onEdit(step);
 
                         if (o != null) {
-                            if (o instanceof RpcView) register(stack, path + "/" + step, new RpcListViewComponent((RpcView) o));
+                            if (o instanceof RpcView) registerComponentInStack(stack, path + "/" + step, new RpcListViewComponent((RpcView) o));
                             else if (!(o instanceof Component)) {
                                 if (o instanceof PersistentPojo) new EditorController(stack, path + "/" + step, listViewComponent, o).next(stack, path, step, remaining);
                                 if (o instanceof ReadOnlyPojo) new ReadOnlyController(stack, path + "/" + step, listViewComponent, o).next(stack, path, step, remaining);
                                 else new EditorController(stack, path + "/" + step, listViewComponent, o).next(stack, path, step, remaining);
-                            } else register(stack, path + "/" + step, (Component) o);
+                            } else registerComponentInStack(stack, path + "/" + step, (Component) o);
                         } else {
 
                             Class type = listViewComponent.getModelType();

@@ -1,6 +1,8 @@
 package io.mateu.mdd.vaadin.controllers.firstLevel;
 
 import io.mateu.mdd.core.ui.MDDUIAccessor;
+import io.mateu.mdd.shared.pojos.PrivateHome;
+import io.mateu.mdd.shared.pojos.PublicHome;
 import io.mateu.mdd.vaadin.controllers.BrokenLinkController;
 import io.mateu.mdd.vaadin.controllers.Controller;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
@@ -24,20 +26,14 @@ public class HomeController extends Controller {
     }
 
     @Override
-    public void apply(ViewStack stack, String path, String step, String cleanStep, String remaining) throws Throwable {
-
+    public Object apply(ViewStack stack, String path, String step, String cleanStep, String remaining) throws Throwable {
         if (!"".equals(step)) {
-            Controller controller = null;
             if ("private".equals(step)) {
-                controller = new PrivateController(stack, path + "/" + step);
+                return new PrivateHome();
             } else if ("public".equals(step)) {
-                controller = new PublicController(stack, path + "/" + step);
-            } else {
-                controller = new BrokenLinkController(stack, path + "/" + step);
+                return new PublicHome();
             }
-
-            controller.next(stack, path, step, remaining);
         }
-
+        return null;
     }
 }

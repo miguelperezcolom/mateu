@@ -10,7 +10,6 @@ import io.mateu.mdd.shared.interfaces.App;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.actions.AcctionRunner;
-import io.mateu.mdd.vaadin.components.ComponentWrapper;
 import io.mateu.mdd.vaadin.components.HomeComponent;
 import io.mateu.mdd.vaadin.components.app.views.firstLevel.FakeComponent;
 import io.mateu.mdd.vaadin.controllers.BrokenLinkController;
@@ -35,7 +34,7 @@ public class PrivateController extends Controller {
             MenuEntry home = app.getDefaultPrivateArea().getDefaultAction();
             if (home != null) {
                 if (home instanceof MDDOpenHtml) {
-                    register(stack, path, new HomeComponent(home.getIcon(), "Home", new Label(((MDDOpenHtml)home).html, ContentMode.HTML), false));
+                    registerComponentInStack(stack, path, new HomeComponent(home.getIcon(), "Home", new Label(((MDDOpenHtml)home).html, ContentMode.HTML), false));
                 } else {
                     try {
                         new AcctionRunner().run((AbstractAction) home);
@@ -45,7 +44,7 @@ public class PrivateController extends Controller {
                 }
             } else {
                 // si no, seguir hacia el área por defecto
-                register(stack, path, new FakeComponent("Private content"));
+                registerComponentInStack(stack, path, new FakeComponent("Private content"));
             }
         }
 
@@ -58,7 +57,7 @@ public class PrivateController extends Controller {
         if ("".equals(step)) {
 
         } else if ("profile".equals(step)) {
-            register(stack, path + "/" + step, MDDViewComponentCreator.createComponent(Profile.class, MDDUIAccessor.getCurrentUserLogin()));
+            registerComponentInStack(stack, path + "/" + step, MDDViewComponentCreator.createComponent(Profile.class, MDDUIAccessor.getCurrentUserLogin()));
         } else {
             // si ya no es "/", entonces localizar el área y seguir
             App app = MDDUIAccessor.getApp();

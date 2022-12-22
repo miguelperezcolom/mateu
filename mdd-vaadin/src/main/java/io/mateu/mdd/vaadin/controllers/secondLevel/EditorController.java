@@ -20,7 +20,6 @@ import io.mateu.mdd.vaadin.components.MDDViewComponentCreator;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.reflection.ReflectionHelper;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,18 +30,18 @@ public class EditorController extends Controller {
 
     public EditorController(ViewStack stack, String path, EditorViewComponent editorViewComponent) {
         this.editorViewComponent = editorViewComponent;
-        register(stack, path, editorViewComponent);
+        registerComponentInStack(stack, path, editorViewComponent);
     }
 
     public EditorController(ViewStack stack, String path, Object bean) {
         editorViewComponent = (EditorViewComponent) MDDViewComponentCreator.createComponent(bean);
         if (bean != null && bean.getClass().isAnnotationPresent(MateuUI.class)) editorViewComponent.setIcon(VaadinIcons.FORM);
-        register(stack, path, editorViewComponent);
+        registerComponentInStack(stack, path, editorViewComponent);
     }
 
     public EditorController(ViewStack stack, String path, MDDOpenEditorAction action) throws Exception {
         editorViewComponent = (EditorViewComponent) MDDViewComponentCreator.createComponent(action);
-        register(stack, path, editorViewComponent);
+        registerComponentInStack(stack, path, editorViewComponent);
     }
 
     public EditorController(ViewStack stack, String path, ListViewComponent listViewComponent, Object bean) throws Throwable {
@@ -55,7 +54,7 @@ public class EditorController extends Controller {
         List<FieldInterfaced> visibleFields = ReflectionHelper.getAllEditableFilteredFields(bean.getClass(), listViewComponent.getEditableFieldsFilter(), null);
         List<FieldInterfaced> hiddenFields = new ArrayList<>();
         editorViewComponent = createEditorViewComponent(listViewComponent, bean, visibleFields, hiddenFields);
-        register(stack, path, editorViewComponent);
+        registerComponentInStack(stack, path, editorViewComponent);
     }
 
     protected EditorViewComponent createEditorViewComponent(ListViewComponent listViewComponent, Object bean, List<FieldInterfaced> visibleFields, List<FieldInterfaced> hiddenFields) {
@@ -94,7 +93,7 @@ public class EditorController extends Controller {
                 }
                 AbstractViewComponent cw = c != null?new ComponentWrapper("Form submitted", c):MethodController.procesarResultado(null, r, null, false);
                 cw.setTitle("Form submitted");
-                register(stack, path + "/" + step, cw);
+                registerComponentInStack(stack, path + "/" + step, cw);
                 MDDUIAccessor.setPendingResult(null);
             } else {
 

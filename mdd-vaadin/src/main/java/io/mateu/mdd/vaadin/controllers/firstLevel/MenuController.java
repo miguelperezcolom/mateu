@@ -11,7 +11,7 @@ public class MenuController extends ActionController {
     public MenuController(ViewStack stack, String path, AbstractMenu menu) {
         super(stack, path);
         this.menu = menu;
-        register(stack, path, new MenuComponent(menu));
+        registerComponentInStack(stack, path, new MenuComponent(menu));
     }
 
 }
