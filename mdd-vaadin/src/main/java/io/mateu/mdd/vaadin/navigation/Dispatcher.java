@@ -7,9 +7,8 @@ import io.mateu.mdd.vaadin.controllers.Controller;
 import io.mateu.mdd.vaadin.controllers.firstLevel.HomeController;
 import io.mateu.mdd.vaadin.controllers.secondLevel.EditorController;
 import io.mateu.mdd.vaadin.controllers.secondLevel.WizardController;
-import io.mateu.util.notification.Notifier;
 
-public class PathProcessor {
+public class Dispatcher {
 
     private final MateuViewProvider mateuViewProvider;
     private final String path;
@@ -17,7 +16,7 @@ public class PathProcessor {
     private final ViewStack stack;
     private final boolean privada;
 
-    public PathProcessor(MateuViewProvider mateuViewProvider, String path, boolean privada) {
+    public Dispatcher(MateuViewProvider mateuViewProvider, String path, boolean privada) {
         this.mateuViewProvider = mateuViewProvider;
         this.path = path;
         this.app = mateuViewProvider.getApp();
@@ -25,7 +24,10 @@ public class PathProcessor {
         this.privada = privada;
     }
 
-    public void processPath() {
+    /**
+     * the main method. It will add to the stack all the necessary views until completing the path in the stack
+     */
+    public void dispatch() {
 
         mateuViewProvider.setCurrentEditor(null);
         Controller controller = null;
@@ -58,14 +60,19 @@ public class PathProcessor {
             controller = view.getController();
             view = null;
         } else {
-            controller = getFirstController();
+            controller = createBaseController();
         }
 
         // aplicamos el path pendiente al controlador (dejará vistas en el stack)
         new ControllerPathApplier(controller, stack, foundPath, remainingPath).apply();
     }
 
-    private Controller getFirstController() {
+    /**
+     * returns the first controller to be placed in the stack, in position 0
+     *
+     * @return the first controller to be placed in the stack
+     */
+    private Controller createBaseController() {
         return WizardPage.class.isAssignableFrom(app.getBean().getClass())?
                 new WizardController(stack, "", (WizardPage) app.getBean()):
                 app.isForm()?

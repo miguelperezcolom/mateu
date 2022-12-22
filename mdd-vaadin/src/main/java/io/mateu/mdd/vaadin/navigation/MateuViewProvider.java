@@ -15,6 +15,14 @@ import io.mateu.mdd.vaadin.views.BrokenLinkView;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.notification.Notifier;
 
+/**
+ * Mateu's implementation of Vaadin's ViewProvider
+ *
+ * It basically converts a path to a View. Views are stored in a stack,
+ * so they are kept in memory and reused when possible.
+ *
+ * It also controls if the View must be opened in a new modal window or in the main plane.
+ */
 public class MateuViewProvider implements ViewProvider {
     private final ViewStack stack;
     private final App app;
@@ -54,6 +62,12 @@ public class MateuViewProvider implements ViewProvider {
         this.firstViewInWindow = firstViewInWindow;
     }
 
+    /**
+     * This is the main method.
+     *
+     * @param path the path as in the browser
+     * @return the view, or null if we do not want to update the browser url
+     */
     @Override
     public View getView(String path) {
 
@@ -75,8 +89,8 @@ public class MateuViewProvider implements ViewProvider {
             return lastView;
         }
 
-        // will save the view in stack
-        new PathProcessor(this, path, privada).processPath();
+        // will save the view/s in stack
+        new Dispatcher(this, path, privada).dispatch();
 
 
         // la vista a mostrar es la última del stack

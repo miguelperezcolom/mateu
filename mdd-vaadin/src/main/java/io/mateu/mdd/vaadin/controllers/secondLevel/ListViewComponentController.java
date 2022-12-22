@@ -29,7 +29,7 @@ public class ListViewComponentController extends Controller {
 
 
     @Override
-    public void apply(ViewStack stack, String path, String step, String cleanStep, String remaining) throws Throwable {
+    public Object apply(ViewStack stack, String path, String step, String cleanStep, String remaining) throws Throwable {
 
         if (!"".equals(cleanStep)) {
             if ("filters".equals(step)) {
