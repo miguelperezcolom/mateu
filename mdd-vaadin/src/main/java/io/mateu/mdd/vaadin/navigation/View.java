@@ -33,9 +33,10 @@ public class View implements com.vaadin.navigator.View {
     private Window windowContainer;
     private boolean openNewWindow;
 
-    public View(ViewStack stack, Component component) {
+    public View(ViewStack stack, Component component, Controller controller) {
         this.stack = stack;
         this.component = component;
+        this.controller = controller;
 
         if (component instanceof AbstractViewComponent) viewComponent = (AbstractViewComponent) component;
         else viewComponent = wrapComponent(null, component);

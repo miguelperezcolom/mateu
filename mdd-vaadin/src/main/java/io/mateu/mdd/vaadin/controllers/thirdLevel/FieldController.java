@@ -118,7 +118,7 @@ public class FieldController extends Controller {
 
                     }
 
-                    register(stack, path, vc);
+                    registerComponentInStack(stack, path, vc);
 
                 }
             } else if (ownedCollection) {
@@ -131,7 +131,7 @@ public class FieldController extends Controller {
                     MateuUI.get().setPendingResult(null);
                 }
 
-                register(stack, path, new OwnedCollectionComponent(editorViewComponent.getBinder(), field, field.isAnnotationPresent(UseLinkToListView.class) ? -1 : indice));
+                registerComponentInStack(stack, path, new OwnedCollectionComponent(editorViewComponent.getBinder(), field, field.isAnnotationPresent(UseLinkToListView.class) ? -1 : indice));
 
             } else if (field.isAnnotationPresent(OneToMany.class) || field.isAnnotationPresent(ManyToMany.class)) {
 
@@ -142,13 +142,13 @@ public class FieldController extends Controller {
 
                 vc = new JPACollectionFieldViewComponent(field.getGenericClass(), field, editorViewComponent, false);
 
-                register(stack, path, vc);
+                registerComponentInStack(stack, path, vc);
 
             } else {
 
                 MDDBinder binder = editorViewComponent.getBinder();
                 if (editorViewComponent.getCreatorWindow() != null) binder = editorViewComponent.getCreatorWindow().getBinder();
-                register(stack, path, procesarFieldEditor(binder, field, path));
+                registerComponentInStack(stack, path, procesarFieldEditor(binder, field, path));
 
             }
 
@@ -230,7 +230,7 @@ public class FieldController extends Controller {
 
             if (listViewComponent != null) {
                 if ("filters".equals(step)) {
-                    register(stack, path + "/" + step, new FiltersViewFlowComponent(listViewComponent));
+                    registerComponentInStack(stack, path + "/" + step, new FiltersViewFlowComponent(listViewComponent));
                 } else if ("new".equals(step)) {
 
                     Object form = null;
@@ -239,12 +239,12 @@ public class FieldController extends Controller {
                     }
                     EditorViewComponent editor = null;
                     if (form != null) {
-                        if (form instanceof RpcView) register(stack, path + "/" + step, new RpcListViewComponent((RpcView) form));
+                        if (form instanceof RpcView) registerComponentInStack(stack, path + "/" + step, new RpcListViewComponent((RpcView) form));
                         else if (!(form instanceof Component)) {
                             if (form instanceof PersistentPojo) new EditorController(stack, path + "/" + step, form).next(stack, path, step, remaining);
                             if (form instanceof ReadOnlyPojo) new ReadOnlyController(stack, path + "/" + step, form).next(stack, path, step, remaining);
                             else new EditorController(stack, path + "/" + step, form).next(stack, path, step, remaining);
-                        } else register(stack, path + "/" + step, (Component) form);
+                        } else registerComponentInStack(stack, path + "/" + step, (Component) form);
                     } else {
                         editor = new EditorViewComponent(listViewComponent, listViewComponent.getModelType());
                         editor.load(null);

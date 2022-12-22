@@ -1,28 +1,31 @@
 package io.mateu.mdd.vaadin.navigation;
 
-import com.google.common.base.Strings;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewProvider;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
-import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.interfaces.App;
 import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
 import io.mateu.mdd.vaadin.components.views.ListViewComponent;
-import io.mateu.mdd.vaadin.controllers.Controller;
-import io.mateu.mdd.vaadin.controllers.firstLevel.HomeController;
-import io.mateu.mdd.vaadin.controllers.secondLevel.EditorController;
-import io.mateu.mdd.vaadin.controllers.secondLevel.WizardController;
 import io.mateu.mdd.vaadin.views.BrokenLinkView;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.notification.Notifier;
 
+/**
+ * Mateu's implementation of Vaadin's ViewProvider
+ *
+ * It basically converts a path to a View. Views are stored in a stack,
+ * so they are kept in memory and reused when possible.
+ *
+ * It also controls if the View must be opened in a new modal window or in the main plane.
+ */
 public class MateuViewProvider implements ViewProvider {
     private final ViewStack stack;
+    private final App app;
     private String lastState;
     private View lastView;
     private int firstViewInWindow;
@@ -30,6 +33,7 @@ public class MateuViewProvider implements ViewProvider {
 
     public MateuViewProvider(ViewStack stack) {
         this.stack = stack;
+        app = MDDUIAccessor.getApp();
     }
 
     public void setLastView(View lastView) {
@@ -46,109 +50,55 @@ public class MateuViewProvider implements ViewProvider {
         return s;
     }
 
+    public App getApp() {
+        return app;
+    }
+
+    public int getFirstViewInWindow() {
+        return firstViewInWindow;
+    }
+
+    public void setFirstViewInWindow(int firstViewInWindow) {
+        this.firstViewInWindow = firstViewInWindow;
+    }
+
+    /**
+     * This is the main method.
+     *
+     * @param path the path as in the browser
+     * @return the view, or null if we do not want to update the browser url
+     */
     @Override
-    public View getView(String s) {
+    public View getView(String path) {
 
-        // clean path
-        String appPrefix = MDDUIAccessor.getUiRootPath();
-        if (!"".equals(appPrefix)) {
-            if (appPrefix.startsWith("/")) appPrefix = appPrefix.substring(1);
-            if (!appPrefix.endsWith("/")) appPrefix += "/";
-        }
-        if (s.startsWith(appPrefix)) s = s.substring(appPrefix.length());
-        if (!s.startsWith("/")) s = "/" + s;
-
-        App app = MDDUIAccessor.getApp();
+        path = sanitizePath(path);
 
 
         // check private/public
-        boolean privada = false;
-        if (s.equals("/") || s.startsWith("/public")) {
-            privada = app.isAuthenticationNeeded();
-            if (app.getDefaultPublicArea() == null && privada) {
-                Page.getCurrent().setLocation( MDDUIAccessor.getUiRootPath() + "/private");
-                return null;
-            }
-        } else if (s.startsWith("/private")) {
-            privada = true;
+        boolean privada = checkPrivate(path);
+
+        // way out if private and not authenticated
+        if (app.getDefaultPublicArea() == null && privada) {
+            Page.getCurrent().setLocation( MDDUIAccessor.getUiRootPath() + "/private");
+            return null;
         }
 
 
         // check if we are repeating the last call
-        if (s.equals(lastState)) {
+        if (path.equals(lastState)) {
             return lastView;
         }
 
-
-        currentEditor = null;
-        Controller controller = null;
-
-
-        //bajar a la última parte del path que exista en el stack
-        io.mateu.mdd.vaadin.navigation.View view = null;
-
-        String foundPath = s;
-        String remainingPath = "";
-        while (!Strings.isNullOrEmpty(foundPath) && view == null) {
-            if (stack.get(foundPath) != null) {
-                view = (io.mateu.mdd.vaadin.navigation.View) stack.popTo(foundPath);
-                if (firstViewInWindow > stack.size() + 1) firstViewInWindow = 0;
-            }
-            if (view == null && !Strings.isNullOrEmpty(foundPath) && foundPath.contains("/")) {
-                remainingPath = foundPath.substring(foundPath.lastIndexOf("/")) + remainingPath;
-                foundPath = foundPath.substring(0, foundPath.lastIndexOf("/"));
-            }
-        }
-
-
-        // si no tenemos nada, entonces vaciar el stack (hay que reconstruirlo)
-        if (Strings.isNullOrEmpty(foundPath) || view == null) {
-            stack.clear();
-        }
-
-
-        // obtener el controller
-        if ( view != null) {
-            controller = view.getController();
-            view = null;
-        } else {
-            controller = WizardPage.class.isAssignableFrom(app.getBean().getClass())?
-                    new WizardController(stack, "", (WizardPage) app.getBean()):
-                    app.isForm()?
-                            new EditorController(stack, "", app.getBean()):
-                            new HomeController(stack, privada);
-        }
-
-
-        // aplicamos el path pendiente al controlador (dejará vistas en el stack)
-        try {
-            if (foundPath.startsWith("/")) foundPath = foundPath.substring(1);
-            if (remainingPath.startsWith("/")) remainingPath = remainingPath.substring(1);
-            String step = remainingPath;
-            remainingPath = "";
-            if (step.contains("/")) {
-                remainingPath = step.substring(step.indexOf("/") + 1);
-                step = step.substring(0, step.indexOf("/"));
-            }
-            String cleanStep = ViewStack.cleanState(step);
-            controller.apply(stack, foundPath, step, cleanStep, remainingPath);
-        } catch (Throwable e) {
-            Notifier.alert(e);
-        }
+        // will save the view/s in stack
+        new Dispatcher(this, path, privada).dispatch();
 
 
         // la vista a mostrar es la última del stack
-        view = stack.getLast();
+        io.mateu.mdd.vaadin.navigation.View view = stack.getLast();
 
 
         // cerrar las ventanas si es necesario (si hemos retrocedido más allá de la primera ventana abierta)
-        if (firstViewInWindow > 0 && stack.size() < firstViewInWindow) {
-            firstViewInWindow = 0;
-            UI.getCurrent().getWindows().forEach(w -> {
-                w.setData("noback");
-                w.close();
-            });
-        }
+        closeWindowsIfNeeded();
 
 
         // si no hay vista es que no reconocemos el path (broken link)
@@ -177,7 +127,6 @@ public class MateuViewProvider implements ViewProvider {
                 } else evc.updateModel(evc.getModel());
             }
             c.removeStyleName("refreshOnBack");
-
         }
 
 
@@ -202,7 +151,7 @@ public class MateuViewProvider implements ViewProvider {
         }
 
 
-        lastState = s;
+        lastState = path;
         lastView = view;
 
 
@@ -237,6 +186,38 @@ public class MateuViewProvider implements ViewProvider {
         }
     }
 
+    private void closeWindowsIfNeeded() {
+        if (firstViewInWindow > 0 && stack.size() < firstViewInWindow) {
+            firstViewInWindow = 0;
+            UI.getCurrent().getWindows().forEach(w -> {
+                w.setData("noback");
+                w.close();
+            });
+        }
+    }
+
+    private boolean checkPrivate(String path) {
+        boolean privada = false;
+        if (path.equals("/") || path.startsWith("/public")) {
+            privada = app.isAuthenticationNeeded();
+        } else if (path.startsWith("/private")) {
+            privada = true;
+        }
+        return privada;
+    }
+
+    private String sanitizePath(String path) {
+        String sanitizedPath = path;
+        String appPrefix = MDDUIAccessor.getUiRootPath();
+        if (!"".equals(appPrefix)) {
+            if (appPrefix.startsWith("/")) appPrefix = appPrefix.substring(1);
+            if (!appPrefix.endsWith("/")) appPrefix += "/";
+        }
+        if (sanitizedPath.startsWith(appPrefix)) sanitizedPath = sanitizedPath.substring(appPrefix.length());
+        if (!sanitizedPath.startsWith("/")) sanitizedPath = "/" + sanitizedPath;
+        return sanitizedPath;
+    }
+
     private boolean openInWindow(io.mateu.mdd.vaadin.navigation.View v) {
         if ("Form submitted".equals(v.getViewComponent().getTitle())) return false;
 
@@ -253,5 +234,9 @@ public class MateuViewProvider implements ViewProvider {
 
     public void setCurrentEditor(EditorViewComponent currentEditor) {
         this.currentEditor = currentEditor;
+    }
+
+    public String getLastState() {
+        return lastState;
     }
 }

@@ -66,12 +66,11 @@ public class ViewStack {
             }
         }
 
-        push(state, v = new io.mateu.mdd.vaadin.navigation.View(this, component), c);
-
+        push(state, v = new io.mateu.mdd.vaadin.navigation.View(this, component, c));
         return v;
     }
 
-    public io.mateu.mdd.vaadin.navigation.View push(String state, io.mateu.mdd.vaadin.navigation.View v, Controller c) throws Exception {
+    public io.mateu.mdd.vaadin.navigation.View push(String state, io.mateu.mdd.vaadin.navigation.View v) throws Exception {
         String cleanState = cleanState(state);
         boolean yaAbierto = false;
         if (v.getViewComponent() instanceof EditorViewComponent) {
@@ -91,7 +90,6 @@ public class ViewStack {
         }
         viewByState.put(cleanState, v);
         stateByView.put(v, cleanState);
-        v.setController(c);
         stack.add(v);
         return v;
     }

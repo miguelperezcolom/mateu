@@ -31,7 +31,7 @@ public class AreaController extends Controller {
             AbstractAction home = area.getDefaultAction();
             if (home != null) {
                 if (home instanceof MDDOpenHtml) {
-                    register(stack, path, new HomeComponent(home.getIcon(), "" + area.getName(), new Label(((MDDOpenHtml)home).html, ContentMode.HTML), false));
+                    registerComponentInStack(stack, path, new HomeComponent(home.getIcon(), "" + area.getName(), new Label(((MDDOpenHtml)home).html, ContentMode.HTML), false));
                 } else {
                     try {
                         new AcctionRunner().run((AbstractAction) home);
@@ -40,26 +40,21 @@ public class AreaController extends Controller {
                     }
                 }
             } else {
-                register(stack, path, new AreaComponent(area));
+                registerComponentInStack(stack, path, new AreaComponent(area));
             }
         } else {
-            register(stack, path, new ComponentWrapper(VaadinIcons.BUG, "No area defined", new Label(""), false));
+            registerComponentInStack(stack, path, new ComponentWrapper(VaadinIcons.BUG, "No area defined", new Label(""), false));
         }
 
     }
 
     @Override
-    public void apply(ViewStack stack, String path, String step, String cleanStep, String remaining) throws Throwable {
+    public Object apply(ViewStack stack, String path, String step, String cleanStep, String remaining) throws Throwable {
         if (!"".equals(step)) {
             App app = MDDUIAccessor.getApp();
             IModule m = app.getModule(path + "/" + step);
-            Controller controller = null;
-            if (m != null) {
-                controller = new ModuleController(stack, path + "/" + step, m);
-            } else {
-                controller = new BrokenLinkController(stack, path + "/" + step);
-            }
-            controller.next(stack, path, step, remaining);
+            return m;
         }
+        return null;
     }
 }

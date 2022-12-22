@@ -1,6 +1,5 @@
 package io.mateu.mdd.vaadin.controllers.thirdLevel;
 
-import com.google.common.collect.Lists;
 import com.vaadin.data.ValueProvider;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.server.ExternalResource;
@@ -22,7 +21,6 @@ import io.mateu.mdd.vaadin.actions.AcctionRunner;
 import io.mateu.mdd.vaadin.components.ComponentWrapper;
 import io.mateu.mdd.vaadin.components.views.*;
 import io.mateu.mdd.vaadin.controllers.Controller;
-import io.mateu.mdd.vaadin.controllers.secondLevel.EditorController;
 import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.vaadin.navigation.View;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
@@ -31,7 +29,6 @@ import io.mateu.util.Helper;
 import io.mateu.util.notification.Notifier;
 
 import javax.persistence.Entity;
-import javax.persistence.Query;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -54,7 +51,7 @@ public class MethodController extends Controller {
         try {
             if (MDDUIAccessor.getPendingResult() != null) {
                 AbstractViewComponent c = procesarResultado(method, MDDUIAccessor.getPendingResult(), getLastViewComponent(stack), false);
-                if (c != null) register(stack, path, c);
+                if (c != null) registerComponentInStack(stack, path, c);
                 else MDDUIAccessor.goTo(path.substring(0, path.lastIndexOf("/")));
                 MDDUIAccessor.setPendingResult(null);
             } else {
@@ -88,7 +85,7 @@ public class MethodController extends Controller {
 
                 if (hasNonInjectedParameters) {
                     MethodParametersViewComponent mpvc;
-                    register(stack, path, mpvc = new MethodParametersViewComponent(_instance, method, MDDUIAccessor.getPendingSelection()));
+                    registerComponentInStack(stack, path, mpvc = new MethodParametersViewComponent(_instance, method, MDDUIAccessor.getPendingSelection()));
                     mpvc.addEditorListener(new EditorListener() {
                         @Override
                         public void preSave(Object model) throws Throwable {
@@ -112,7 +109,7 @@ public class MethodController extends Controller {
                         }
                     });
                 } else {
-                    register(stack, path,  procesarResultado(method, CoreReflectionHelper.execute(method, new MDDBinder(new ArrayList<>()), _instance, MDDUIAccessor.getPendingSelection()), getLastViewComponent(stack), false));
+                    registerComponentInStack(stack, path,  procesarResultado(method, CoreReflectionHelper.execute(method, new MDDBinder(new ArrayList<>()), _instance, MDDUIAccessor.getPendingSelection()), getLastViewComponent(stack), false));
                 }
             }
         } catch (Throwable throwable) {
@@ -125,7 +122,7 @@ public class MethodController extends Controller {
         if ("result".equalsIgnoreCase(step)) {
             Object o = MDDUIAccessor.getPendingResult();
             MDDUIAccessor.setPendingResult(null);
-            register(stack, path + "/" + step, procesarResultado(method, o, null, false));
+            registerComponentInStack(stack, path + "/" + step, procesarResultado(method, o, null, false));
         }
     }
 
