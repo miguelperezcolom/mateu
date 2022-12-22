@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadin.views;
 
 import com.vaadin.icons.VaadinIcons;
+import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;

@@ -1,14 +1,12 @@
 package io.mateu.mdd.vaadin.navigation;
 
-import com.vaadin.ui.Component;
 import io.mateu.mdd.vaadin.controllers.Controller;
-import io.mateu.mdd.vaadin.views.BrokenLinkView;
 import io.mateu.mdd.vaadin.views.ViewMapper;
 import io.mateu.util.notification.Notifier;
 
 public class ControllerPathApplier {
 
-    private final Controller controller;
+    private Controller controller;
     private final ViewStack stack;
     private final ViewMapper viewMapper;
     private String foundPath;
@@ -34,21 +32,25 @@ public class ControllerPathApplier {
             }
             String cleanStep = ViewStack.cleanState(step);
             Object model = controller.apply(stack, foundPath, step, cleanStep, remainingPath);
-            View view = viewMapper.toView(model);
-            regis
+            View view = viewMapper.toView(model, step);
+            foundPath = foundPath + "/" + step;
+            registerViewInStack(foundPath, view);
+
+            if (!remainingPath.isEmpty()) {
+                // move forward to the next step
+                controller = view.getController();
+                apply();
+            }
 
         } catch (Throwable e) {
             Notifier.alert(e);
         }
     }
 
-    public void registerComponentInStack(ViewStack stack, String path, Component component) {
-        // crear vista a partir del componente y meter en el stack
-        View v;
-        if (component != null) v = new View(stack, component);
-        else v = new BrokenLinkView(stack);
+    public void registerViewInStack(String path, View view) {
+        // meter la vista en el stack
         try {
-            stack.push(path, v);
+            stack.push(path, view);
         } catch (Exception e) {
             Notifier.alert(e);
         }
