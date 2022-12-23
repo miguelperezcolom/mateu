@@ -20,7 +20,11 @@ import io.mateu.mdd.vaadin.pojos.MethodCall;
 import io.mateu.mdd.vaadin.pojos.ModelField;
 import io.mateu.mdd.vaadin.pojos.Result;
 import io.mateu.reflection.ReflectionHelper;
+import io.mateu.reflection.Transferrer;
+import io.mateu.util.persistence.JPAHelper;
+import io.mateu.util.persistence.JPATransaction;
 
+import javax.persistence.Entity;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -86,6 +90,8 @@ public class EditorController extends Controller {
             } else if ("submitted".equals(step) && model instanceof Callable) {
                 method = model.getClass().getMethod("call");
                 returnAsResult = true;
+            } else if ("submitted".equals(step) && model.getClass().isAnnotationPresent(Entity.class)) {
+                return new Result("Saved");
             } else {
                 if (model != null) {
                     method = ReflectionHelper.getMethod(model.getClass(), step);
@@ -95,7 +101,7 @@ public class EditorController extends Controller {
             }
 
             if (method != null) {
-                Object result = new MethodCall(editorViewComponent.getModel(), method, null).process();
+                Object result = new MethodCall(model, method, null).process();
                 if (returnAsResult) {
                     return new Result(result);
                 } else {
@@ -108,7 +114,7 @@ public class EditorController extends Controller {
                 } else {
                     field = editorViewComponent.getField(step);
                 }
-                return new ModelField(editorViewComponent.getModel(), field);
+                return new ModelField(model, field);
             }
 
         }

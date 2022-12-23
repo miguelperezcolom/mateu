@@ -50,7 +50,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
         if (!forSearchFilter) {
 
-            if (IResource.class.equals(field.getGenericClass())) {
+            if (IResource.class.isAssignableFrom(field.getType())) {
 
                 VerticalLayout hl = new VerticalLayout();
 

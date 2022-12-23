@@ -2,6 +2,8 @@ package com.example.demo.crud1;
 
 import com.example.demo.formularios.Formulario1;
 import com.vaadin.data.provider.QuerySortOrder;
+import io.mateu.mdd.core.interfaces.HasSubtitle;
+import io.mateu.mdd.core.interfaces.HasTitle;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.Caption;
@@ -16,9 +18,7 @@ import java.util.Set;
 
 @Component
 @Getter@Setter
-@Caption("xxxxxxxxx")
-@Subtitle("Hola caracola!")
-public class Crud3 implements RpcCrudView<Crud3, Fila, ReadOnlyIntermediary> {
+public class Crud3 implements RpcCrudView<Crud3, Fila, ReadOnlyIntermediary>, HasTitle, HasSubtitle {
 
     private String nombre;
 
@@ -110,5 +110,15 @@ public class Crud3 implements RpcCrudView<Crud3, Fila, ReadOnlyIntermediary> {
     @Override
     public boolean showCheckboxForSelection() {
         return true;
+    }
+
+    @Override
+    public String getSubtitle() {
+        return "This is a subtilte";
+    }
+
+    @Override
+    public String getTitle() {
+        return "Xxxxxxxx";
     }
 }

@@ -113,6 +113,9 @@ public class ViewMapper {
             ComponentWrapper componentWrapper = (ComponentWrapper) model;
             return new ComponentView(stack, componentWrapper.getTitle(), componentWrapper.getIcon(), (Component) model);
         }
+        if (model instanceof MethodParametersViewComponent) {
+            return new View(stack, (MethodParametersViewComponent) model, new VoidController());
+        }
         if (model instanceof Component) {
             return new ComponentView(stack, Helper.capitalize(step), null,
                     (Component) model);
@@ -129,20 +132,16 @@ public class ViewMapper {
                 return new ProblemView(stack, "Error", new Error(e));
             }
         }
-        if (model instanceof MDDOpenEditorAction) {
-            MDDOpenEditorAction action = (MDDOpenEditorAction) model;
-            action.getBean();
-            Class listViewClass = ((MDDOpenListViewAction) model).getListViewClass();
-            if (RpcView.class.isAssignableFrom(listViewClass)) {
-                try {
-                    RpcListViewComponent component =
-                            new RpcListViewComponent(((MDDOpenListViewAction) model).getListViewClass());
-                   return new View(stack, component, new ListViewController(component));
-                } catch (Exception e) {
-                    return new ProblemView(stack, "Error", new Error(e));
-                }
+        if (model instanceof MDDOpenCRUDAction) {
+            MDDOpenCRUDAction action = (MDDOpenCRUDAction) model;
+            Class entityClass = ((MDDOpenCRUDAction) model).getEntityClass();
+            try {
+                JPAListViewComponent component =
+                        new JPAListViewComponent(entityClass);
+               return new View(stack, component, new ListViewController(component));
+            } catch (Exception e) {
+                return new ProblemView(stack, "Error", new Error(e));
             }
-            return new ProblemView(stack, "Error", new Error("Not a recognized list view class"));
         }
 
         // es un pojo o una clase diferente de null

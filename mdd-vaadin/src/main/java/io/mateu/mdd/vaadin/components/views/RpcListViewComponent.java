@@ -5,9 +5,7 @@ import com.vaadin.ui.Grid;
 import com.vaadin.ui.Notification;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.interfaces.AbstractCrudView;
-import io.mateu.mdd.core.interfaces.RpcCrudView;
-import io.mateu.mdd.core.interfaces.StepInterceptor;
+import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.Caption;
@@ -124,7 +122,7 @@ public class RpcListViewComponent extends ListViewComponent {
     @Override
     public String getTitle() {
         try {
-            if (rpcListViewClass.isAnnotationPresent(Caption.class)) return ((Caption)rpcListViewClass.getAnnotation(Caption.class)).value();
+            if (rpcListView instanceof HasTitle) return ((HasTitle) rpcListView).getTitle();
             if (!rpcListViewClass.getMethod("toString").getDeclaringClass().equals(Object.class)) {
                 return rpcListView.toString();
             }
@@ -136,7 +134,7 @@ public class RpcListViewComponent extends ListViewComponent {
     @Override
     public String getSubtitle() {
         String subtitle ="";
-        if (rpcListViewClass.isAnnotationPresent(Subtitle.class)) subtitle = ((Subtitle)rpcListViewClass.getAnnotation(Subtitle.class)).value();
+        if (rpcListView instanceof HasSubtitle) subtitle = ((HasSubtitle) rpcListView).getSubtitle();
         return subtitle;
     }
 

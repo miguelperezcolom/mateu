@@ -1,6 +1,8 @@
 package com.example.demo.crud1;
 
 import com.vaadin.data.provider.QuerySortOrder;
+import io.mateu.mdd.core.interfaces.HasSubtitle;
+import io.mateu.mdd.core.interfaces.HasTitle;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.Caption;
@@ -17,9 +19,7 @@ import java.util.Set;
 @Component
 @SessionScope
 @Getter@Setter
-@Caption("UUUUUUUUUUUUU")
-@Subtitle("Hola caracola!")
-public class Crud2 implements RpcCrudView<Crud2, Fila, ReadOnlyPersona> {
+public class Crud2 implements RpcCrudView<Crud2, Fila, ReadOnlyPersona>, HasTitle, HasSubtitle {
 
     private String nombre;
 
@@ -107,5 +107,15 @@ public class Crud2 implements RpcCrudView<Crud2, Fila, ReadOnlyPersona> {
     @Action
     public void action() {
         System.out.println("nombre = " + nombre);
+    }
+
+    @Override
+    public String getTitle() {
+        return "This is the crud 2";
+    }
+
+    @Override
+    public String getSubtitle() {
+        return "This is a subtitle";
     }
 }

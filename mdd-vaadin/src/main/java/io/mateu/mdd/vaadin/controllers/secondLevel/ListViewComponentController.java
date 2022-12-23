@@ -35,7 +35,7 @@ public class ListViewComponentController extends Controller {
                 if (form != null) {
                     return form;
                 } else {
-                    return listViewComponent.getModelType();
+                    return ReflectionHelper.newInstance(listViewComponent.getModelType());
                 }
             } else {
 
@@ -44,7 +44,7 @@ public class ListViewComponentController extends Controller {
                 if (method != null) {
                     if (listViewComponent instanceof RpcListViewComponent) {
                         return new MethodCall(((RpcListViewComponent)listViewComponent).getRpcListView()
-                                , method, null);
+                                , method, null).process();
                     }
                     return new MethodCall(null, method, null).process();
                 } else {
