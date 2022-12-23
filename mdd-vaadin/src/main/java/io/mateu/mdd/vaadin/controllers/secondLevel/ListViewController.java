@@ -12,7 +12,7 @@ public class ListViewController extends ListViewComponentController {
     }
 
     public ListViewController(MDDOpenListViewAction action) {
-        super((ListViewComponent) MDDViewComponentCreator.createComponent(action.listViewClass));
+        super((ListViewComponent) MDDViewComponentCreator.createComponent(action.getListViewClass()));
     }
 
 }

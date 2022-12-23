@@ -11,6 +11,7 @@ import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.interfaces.App;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
+import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.shared.pojos.PrivateHome;
 import io.mateu.mdd.shared.pojos.PublicHome;
 import io.mateu.mdd.shared.reflection.CoreReflectionHelper;
@@ -22,12 +23,10 @@ import io.mateu.mdd.vaadin.components.ResultView;
 import io.mateu.mdd.vaadin.components.app.views.firstLevel.AreaComponent;
 import io.mateu.mdd.vaadin.components.app.views.firstLevel.FakeComponent;
 import io.mateu.mdd.vaadin.components.app.views.firstLevel.MenuComponent;
-import io.mateu.mdd.vaadin.components.views.EditorListener;
-import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
-import io.mateu.mdd.vaadin.components.views.ListViewComponent;
-import io.mateu.mdd.vaadin.components.views.MethodParametersViewComponent;
+import io.mateu.mdd.vaadin.components.views.*;
 import io.mateu.mdd.vaadin.controllers.firstLevel.*;
 import io.mateu.mdd.vaadin.controllers.secondLevel.EditorController;
+import io.mateu.mdd.vaadin.controllers.secondLevel.ListViewController;
 import io.mateu.mdd.vaadin.controllers.secondLevel.ReadOnlyController;
 import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.vaadin.navigation.View;
@@ -40,6 +39,7 @@ import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
 import io.mateu.util.notification.Notifier;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
@@ -127,6 +127,37 @@ public class ViewMapper {
             return new ComponentView(stack, Helper.capitalize(step), null,
                     (Component) model);
         }
+        if (model instanceof RpcView) {
+            RpcView rpcView = (RpcView) model;
+            try {
+                RpcListViewComponent component =
+                        new RpcListViewComponent(rpcView);
+                View view = new ComponentView(stack, component.getTitle(), component.getIcon(), component);
+                view.setController(new ListViewController(component));
+                return view;
+            } catch (Exception e) {
+                return new ProblemView(stack, "Error", new Error(e));
+            }
+        }
+        if (model instanceof MDDOpenEditorAction) {
+            MDDOpenEditorAction action = (MDDOpenEditorAction) model;
+            action.getBean();
+            Class listViewClass = ((MDDOpenListViewAction) model).getListViewClass();
+            if (RpcView.class.isAssignableFrom(listViewClass)) {
+                try {
+                    RpcListViewComponent component =
+                            new RpcListViewComponent(((MDDOpenListViewAction) model).getListViewClass());
+                    component.build();
+                    View view = new ComponentView(stack, action.getCaption(), action.getIcon(), component);
+                    view.setController(new ListViewController(component));
+                    return view;
+                } catch (Exception e) {
+                    return new ProblemView(stack, "Error", new Error(e));
+                }
+            }
+            return new ProblemView(stack, "Error", new Error("Not a recognized list view class"));
+        }
+
         // es un pojo o una clase diferente de null
         EditorViewComponent editorViewComponent = (EditorViewComponent) MDDViewComponentCreator.createComponent(model);
         if (model != null && model.getClass().isAnnotationPresent(MateuUI.class))

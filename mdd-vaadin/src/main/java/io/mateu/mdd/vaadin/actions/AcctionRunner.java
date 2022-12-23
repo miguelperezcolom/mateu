@@ -51,7 +51,7 @@ public class AcctionRunner {
     }
 
     public void run(MDDOpenListViewAction action) throws Exception {
-        Opener.openListView(action.listViewClass);
+        Opener.openListView(action.getListViewClass());
     }
 
     public void run(MDDOpenHtml action) throws Exception {
