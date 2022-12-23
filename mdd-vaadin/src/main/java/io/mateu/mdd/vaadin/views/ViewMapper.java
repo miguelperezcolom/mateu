@@ -24,6 +24,7 @@ import io.mateu.mdd.vaadin.components.app.views.firstLevel.AreaComponent;
 import io.mateu.mdd.vaadin.components.app.views.firstLevel.FakeComponent;
 import io.mateu.mdd.vaadin.components.app.views.firstLevel.MenuComponent;
 import io.mateu.mdd.vaadin.components.views.*;
+import io.mateu.mdd.vaadin.controllers.Controller;
 import io.mateu.mdd.vaadin.controllers.firstLevel.*;
 import io.mateu.mdd.vaadin.controllers.secondLevel.EditorController;
 import io.mateu.mdd.vaadin.controllers.secondLevel.ListViewController;
@@ -132,8 +133,8 @@ public class ViewMapper {
             try {
                 RpcListViewComponent component =
                         new RpcListViewComponent(rpcView);
-                View view = new ComponentView(stack, component.getTitle(), component.getIcon(), component);
-                view.setController(new ListViewController(component));
+                component.buildIfNeeded();
+                View view = new View(stack, component, new ListViewController(component));
                 return view;
             } catch (Exception e) {
                 return new ProblemView(stack, "Error", new Error(e));
@@ -147,10 +148,7 @@ public class ViewMapper {
                 try {
                     RpcListViewComponent component =
                             new RpcListViewComponent(((MDDOpenListViewAction) model).getListViewClass());
-                    component.build();
-                    View view = new ComponentView(stack, action.getCaption(), action.getIcon(), component);
-                    view.setController(new ListViewController(component));
-                    return view;
+                   return new View(stack, component, new ListViewController(component));
                 } catch (Exception e) {
                     return new ProblemView(stack, "Error", new Error(e));
                 }
@@ -162,15 +160,11 @@ public class ViewMapper {
         EditorViewComponent editorViewComponent = (EditorViewComponent) MDDViewComponentCreator.createComponent(model);
         if (model != null && model.getClass().isAnnotationPresent(MateuUI.class))
             editorViewComponent.setIcon(VaadinIcons.FORM);
-        ComponentView view =
-                new ComponentView(stack, editorViewComponent.getTitle(),
-                        editorViewComponent.getIcon(), editorViewComponent);
+        Controller controller = new EditorController(model);
         if (model instanceof ReadOnlyPojo) {
-            view.setController(new ReadOnlyController(model));
-        } else {
-            view.setController(new EditorController(model));
+            controller = new ReadOnlyController(model);
         }
-        return view;
+        return new View(stack, editorViewComponent, controller);
 
     }
 
