@@ -92,6 +92,8 @@ public class EditorController extends Controller {
                 returnAsResult = true;
             } else if ("submitted".equals(step) && model.getClass().isAnnotationPresent(Entity.class)) {
                 return new Result("Saved");
+            } else if ("submitted".equals(step) && model instanceof PersistentPojo) {
+                return new Result("Saved");
             } else {
                 if (model != null) {
                     method = ReflectionHelper.getMethod(model.getClass(), step);

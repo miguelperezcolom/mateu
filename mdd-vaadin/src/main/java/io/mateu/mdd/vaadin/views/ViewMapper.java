@@ -6,6 +6,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import io.mateu.mdd.core.annotations.MateuUI;
 import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.interfaces.App;
@@ -149,7 +150,8 @@ public class ViewMapper {
         if (model != null && model.getClass().isAnnotationPresent(MateuUI.class))
             editorViewComponent.setIcon(VaadinIcons.FORM);
         Controller controller = new EditorController(model);
-        if (model instanceof ReadOnlyPojo) {
+        if (model instanceof PersistentPojo) {
+        } else if (model instanceof ReadOnlyPojo) {
             controller = new ReadOnlyController(model);
         }
         return new View(stack, editorViewComponent, controller);
