@@ -26,6 +26,7 @@ import io.mateu.mdd.vaadin.components.views.EditorListener;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
 import io.mateu.mdd.vaadin.components.views.ListViewComponent;
 import io.mateu.mdd.vaadin.components.views.MethodParametersViewComponent;
+import io.mateu.mdd.vaadin.controllers.firstLevel.*;
 import io.mateu.mdd.vaadin.controllers.secondLevel.EditorController;
 import io.mateu.mdd.vaadin.controllers.secondLevel.ReadOnlyController;
 import io.mateu.mdd.vaadin.data.MDDBinder;
@@ -59,10 +60,14 @@ public class ViewMapper {
             return new BrokenLinkView(stack);
         }
         if (model instanceof PublicHome) {
-            return new ComponentView(stack, "Home", null, new Label("Public content"));
+            ComponentView view = new ComponentView(stack, "Home", null, new Label("Public content"));
+            view.setController(new PublicController());
+            return view;
         }
         if (model instanceof PrivateHome) {
-            return new ComponentView(stack, "Home", null, new Label("Private content"));
+            ComponentView view = new ComponentView(stack, "Home", null, new Label("Private content"));
+            view.setController(new PrivateController());
+            return view;
         }
         if (model instanceof AbstractArea) {
             AbstractArea area = (AbstractArea) model;
@@ -80,21 +85,24 @@ public class ViewMapper {
                     }
                 }
             } else {
-                return new ComponentView(stack, area.getName(), null, new AreaComponent(area));
+                ComponentView view = new ComponentView(stack, area.getName(), null, new AreaComponent(area));
+                view.setController(new AreaController(area));
+                return view;
             }
         }
         if (model instanceof AbstractModule) {
             AbstractModule module = (AbstractModule) model;
-            return new ComponentView(stack, module.getName(), null,
-                    new FakeComponent("Module "  + module.getName()));
+            ComponentView view = new ComponentView(stack, module.getName(), null,
+                    new FakeComponent("Module " + module.getName()));
+            view.setController(new ModuleController(module));
+            return view;
         }
         if (model instanceof AbstractMenu) {
-            return new ComponentView(stack, Helper.capitalize(step), null,
-                    new MenuComponent((AbstractMenu) model));
-        }
-        if (model instanceof AbstractModule) {
-            return new ComponentView(stack, Helper.capitalize(step), null,
-                    new FakeComponent("Module " + ((AbstractModule) model).getName()));
+            AbstractMenu menu = (AbstractMenu) model;
+            ComponentView view = new ComponentView(stack, Helper.capitalize(step), null,
+                    new MenuComponent(menu));
+            view.setController(new MenuController(menu));
+            return view;
         }
         if (model instanceof MDDOpenHtml) {
             MDDOpenHtml openHtml = (MDDOpenHtml) model;

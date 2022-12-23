@@ -7,6 +7,7 @@ import io.mateu.mdd.vaadin.controllers.Controller;
 import io.mateu.mdd.vaadin.controllers.firstLevel.HomeController;
 import io.mateu.mdd.vaadin.controllers.secondLevel.EditorController;
 import io.mateu.mdd.vaadin.controllers.secondLevel.WizardController;
+import io.mateu.mdd.vaadin.controllers.zeroLevel.AppController;
 
 public class Dispatcher {
 
@@ -58,7 +59,6 @@ public class Dispatcher {
         // obtener el controller
         if ( view != null) {
             controller = view.getController();
-            view = null;
         } else {
             controller = createBaseController();
         }
@@ -77,6 +77,6 @@ public class Dispatcher {
                 new WizardController((WizardPage) app.getBean()):
                 app.isForm()?
                         new EditorController(app.getBean()):
-                        new HomeController(privada);
+                        new AppController(privada);
     }
 }
