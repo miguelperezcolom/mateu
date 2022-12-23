@@ -7,7 +7,7 @@ import io.mateu.mdd.vaadin.navigation.ViewStack;
 
 public class ActionController extends Controller {
 
-    public ActionController(ViewStack stack, String path) {
+    public ActionController() {
     }
 
     @Override

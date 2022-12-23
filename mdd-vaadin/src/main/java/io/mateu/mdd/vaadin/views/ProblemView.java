@@ -7,13 +7,13 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.vaadin.components.ComponentWrapper;
-import io.mateu.mdd.vaadin.navigation.View;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
+import io.mateu.mdd.vaadin.pojos.Error;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-public class ProblemView extends View {
+public class ProblemView extends ComponentView {
 
     private String title = "Problem";
 
@@ -22,15 +22,18 @@ public class ProblemView extends View {
         return title;
     }
 
-    public ProblemView(ViewStack stack, String title, String text) {
-        super(stack, getContent(title, text));
+    public ProblemView(ViewStack stack, String title, Error error) {
+        super(stack, title, VaadinIcons.BUG, getContent(title, error));
         this.title = title;
     }
 
-    public ProblemView(ViewStack stack, String title, Throwable throwable) {
-        super(stack, getContent(title, throwable));
-        this.title = title;
+    private static Component getContent(String title, Error error) {
+        if (error.getThrowable() != null) {
+            return getContent(title, error.getThrowable());
+        }
+        return getContent(title, error.getMessage());
     }
+
 
     private static Component getContent(String title, String text) {
         Label h = new Label("Oops! it seems we have a problem.");

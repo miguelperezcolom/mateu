@@ -18,6 +18,7 @@ import io.mateu.util.Helper;
 import io.mateu.util.notification.Notifier;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Set;
@@ -37,12 +38,44 @@ public class MethodParametersViewComponent extends EditorViewComponent {
     private Class parametersType;
     private Object paremetersModel;
 
-    public MethodParametersViewComponent(Object bean, Method method, Set pendingSelection) throws Exception {
-        super(ReflectionHelper.createClass(MDD.getClassPool(), MDDBinder.class, MDD.getClassPool().getClassLoader(), "" + method.getDeclaringClass().getSimpleName() + "_" + method.getName() + "_Parameters000", ReflectionHelper.getAllFields(method), false));
+    public MethodParametersViewComponent(Object bean, Method method, Set pendingSelection) {
+        super(createClass(method));
         this.bean = bean;
         this.method = method;
         this.pendingSelection = pendingSelection;
-        setModel(getModelType().newInstance());
+        setModel(createInstance());
+    }
+
+    private Object createInstance() {
+        Object instance = null;
+        try {
+            instance = ReflectionHelper.newInstance(getModelType());
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        }
+        return instance;
+    }
+
+    private static Class createClass(Method method) {
+        Class type = null;
+        try {
+            type = ReflectionHelper.createClass(
+                    MDD.getClassPool(),
+                    MDDBinder.class,
+                    MDD.getClassPool().getClassLoader(),
+                    "" + method.getDeclaringClass().getSimpleName()
+                            + "_" + method.getName() + "_Parameters000",
+                    ReflectionHelper.getAllFields(method), false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return type;
     }
 
     @Override
@@ -53,7 +86,9 @@ public class MethodParametersViewComponent extends EditorViewComponent {
     @Override
     public String toString() {
         String t = Helper.capitalize(method.getName());
-        if (method.isAnnotationPresent(Action.class) && !Strings.isNullOrEmpty(method.getAnnotation(Action.class).value())) t = method.getAnnotation(Action.class).value();
+        if (method.isAnnotationPresent(Action.class)
+                && !Strings.isNullOrEmpty(method.getAnnotation(Action.class).value()))
+            t = method.getAnnotation(Action.class).value();
         return t;
     }
 
@@ -66,10 +101,12 @@ public class MethodParametersViewComponent extends EditorViewComponent {
                     try {
                         Object r = CoreReflectionHelper.execute(method, getBinder().getBean(), bean, pendingSelection);
                         if (bean != null && void.class.equals(method.getReturnType())) {
-                            if (method.isAnnotationPresent(Action.class) && method.getAnnotation(Action.class).saveAfter()) {
+                            if (method.isAnnotationPresent(Action.class)
+                                    && method.getAnnotation(Action.class).saveAfter()) {
                                 ViewStack stack = MateuUI.get().getStack();
                                 View v = stack.size() >= 2?stack.get(stack.size() - 2):null;
-                                if (v != null && v.getViewComponent() instanceof EditorViewComponent) ((EditorViewComponent) v.getViewComponent()).save(false);
+                                if (v != null && v.getViewComponent() instanceof EditorViewComponent)
+                                    ((EditorViewComponent) v.getViewComponent()).save(false);
                             }
                         } else {
                             MDDUIAccessor.setPendingResult(r);

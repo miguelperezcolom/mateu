@@ -8,8 +8,7 @@ import io.mateu.mdd.vaadin.navigation.ViewStack;
 public class ModuleController extends ActionController {
     private final IModule module;
 
-    public ModuleController(ViewStack stack, String path, IModule module) {
-        super(stack, path);
+    public ModuleController(IModule module) {
         this.module = module;
     }
 

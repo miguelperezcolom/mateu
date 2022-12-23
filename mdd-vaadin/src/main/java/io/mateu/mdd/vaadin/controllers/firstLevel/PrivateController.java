@@ -8,6 +8,7 @@ import io.mateu.mdd.core.app.MDDOpenHtml;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.interfaces.App;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
+import io.mateu.mdd.shared.pojos.PrivateHome;
 import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.actions.AcctionRunner;
 import io.mateu.mdd.vaadin.components.HomeComponent;
@@ -21,7 +22,7 @@ import io.mateu.util.notification.Notifier;
 
 public class PrivateController extends Controller {
 
-    public PrivateController(ViewStack stack, String path) {
+    public PrivateController() {
     }
 
     @Override
@@ -33,15 +34,14 @@ public class PrivateController extends Controller {
 
         app.updateSession();
 
-
-        if ("".equals(step)) {
-            return null;
-        } else if ("profile".equals(step)) {
+        if ("profile".equals(step)) {
             return MDDUIAccessor.getCurrentUser();
-        } else {
+        }
+        if (!"".equals(step)) {
             // si ya no es "/", entonces localizar el área y seguir
             return app.getArea(path + "/" + step);
         }
 
+        return null;
     }
 }

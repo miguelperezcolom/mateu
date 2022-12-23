@@ -7,12 +7,12 @@ import io.mateu.mdd.vaadin.navigation.ViewStack;
 
 public class ListViewController extends ListViewComponentController {
 
-    public ListViewController(ViewStack stack, String path, ListViewComponent listViewComponent) {
-        super(stack, path, listViewComponent);
+    public ListViewController(ListViewComponent listViewComponent) {
+        super(listViewComponent);
     }
 
-    public ListViewController(ViewStack stack, String path, MDDOpenListViewAction action) throws Exception {
-        super(stack, path, (ListViewComponent) MDDViewComponentCreator.createComponent(action.listViewClass));
+    public ListViewController(MDDOpenListViewAction action) {
+        super((ListViewComponent) MDDViewComponentCreator.createComponent(action.listViewClass));
     }
 
 }

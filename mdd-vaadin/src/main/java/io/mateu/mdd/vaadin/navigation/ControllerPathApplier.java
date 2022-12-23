@@ -1,6 +1,14 @@
 package io.mateu.mdd.vaadin.navigation;
 
+import com.vaadin.shared.ui.ContentMode;
+import com.vaadin.ui.Label;
+import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.app.MDDOpenHtml;
+import io.mateu.mdd.shared.annotations.MenuOption;
+import io.mateu.mdd.vaadin.actions.AcctionRunner;
+import io.mateu.mdd.vaadin.components.HomeComponent;
 import io.mateu.mdd.vaadin.controllers.Controller;
+import io.mateu.mdd.vaadin.views.ComponentView;
 import io.mateu.mdd.vaadin.views.ViewMapper;
 import io.mateu.util.notification.Notifier;
 
@@ -32,6 +40,20 @@ public class ControllerPathApplier {
             }
             String cleanStep = ViewStack.cleanState(step);
             Object model = controller.apply(stack, foundPath, step, cleanStep, remainingPath);
+
+            //todo: revisar esto
+            if (model != null && model instanceof AbstractAction) {
+                if (model instanceof MDDOpenHtml) {
+
+                } else {
+                    try {
+                        new AcctionRunner().run((AbstractAction) model);
+                    } catch (Throwable e) {
+                        Notifier.alert(e);
+                    }
+                }
+            }
+
             View view = viewMapper.toView(model, step);
             foundPath = foundPath + "/" + step;
             registerViewInStack(foundPath, view);

@@ -28,7 +28,6 @@ import io.mateu.mdd.vaadin.components.views.EditorListener;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
 import io.mateu.mdd.vaadin.components.views.ListViewComponent;
 import io.mateu.mdd.vaadin.components.views.OwnedCollectionComponent;
-import io.mateu.mdd.vaadin.controllers.thirdLevel.FieldController;
 import io.mateu.mdd.vaadin.navigation.MateuViewProvider;
 import io.mateu.mdd.vaadin.navigation.View;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
@@ -320,15 +319,7 @@ public class MateuUI extends UI implements IMDDUI {
                 l.getWindowContainer().close();
                 stack.pop();
                 viewProvider.setLastView(stack.getLast());
-                if (FieldController.class.equals(v.getController().getClass())) {
-                    stack.pop();
-                    viewProvider.setLastView(stack.getLast());
-                }
             } else {
-                if (FieldController.class.equals(v.getController().getClass())) {
-                    v = stack.get(stack.size() - 3);
-                    u = stack.getState(v);
-                }
                 MDDUIAccessor.goTo(u);
             }
         } else {

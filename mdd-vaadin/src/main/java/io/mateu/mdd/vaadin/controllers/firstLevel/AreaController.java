@@ -27,25 +27,7 @@ public class AreaController extends Controller {
         this.area = area;
         if (area != null) {
             if (MateuUI.get() != null) MateuUI.get().setArea(area);
-
-            AbstractAction home = area.getDefaultAction();
-            if (home != null) {
-                if (home instanceof MDDOpenHtml) {
-                    registerComponentInStack(stack, path, new HomeComponent(home.getIcon(), "" + area.getName(), new Label(((MDDOpenHtml)home).html, ContentMode.HTML), false));
-                } else {
-                    try {
-                        new AcctionRunner().run((AbstractAction) home);
-                    } catch (Throwable e) {
-                        Notifier.alert(e);
-                    }
-                }
-            } else {
-                registerComponentInStack(stack, path, new AreaComponent(area));
-            }
-        } else {
-            registerComponentInStack(stack, path, new ComponentWrapper(VaadinIcons.BUG, "No area defined", new Label(""), false));
         }
-
     }
 
     @Override

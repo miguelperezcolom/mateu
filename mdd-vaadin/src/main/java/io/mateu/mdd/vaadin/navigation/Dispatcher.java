@@ -74,9 +74,9 @@ public class Dispatcher {
      */
     private Controller createBaseController() {
         return WizardPage.class.isAssignableFrom(app.getBean().getClass())?
-                new WizardController(stack, "", (WizardPage) app.getBean()):
+                new WizardController((WizardPage) app.getBean()):
                 app.isForm()?
-                        new EditorController(stack, "", app.getBean()):
-                        new HomeController(stack, privada);
+                        new EditorController(app.getBean()):
+                        new HomeController(privada);
     }
 }

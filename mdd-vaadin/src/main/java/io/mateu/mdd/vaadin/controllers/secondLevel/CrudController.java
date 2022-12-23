@@ -8,8 +8,8 @@ import io.mateu.mdd.vaadin.navigation.ViewStack;
 public class CrudController extends ListViewComponentController {
 
 
-    public CrudController(ViewStack stack, String path, MDDOpenCRUDAction action) throws Exception {
-        super(stack, path, (ListViewComponent) MDDViewComponentCreator.createComponent(action));
+    public CrudController(MDDOpenCRUDAction action) {
+        super((ListViewComponent) MDDViewComponentCreator.createComponent(action));
     }
 
 }

@@ -10,8 +10,7 @@ import io.mateu.mdd.vaadin.navigation.ViewStack;
 public class MenuController extends ActionController {
     private final AbstractMenu menu;
 
-    public MenuController(ViewStack stack, String path, AbstractMenu menu) {
-        super(stack, path);
+    public MenuController(AbstractMenu menu) {
         this.menu = menu;
     }
 

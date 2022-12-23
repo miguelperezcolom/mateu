@@ -19,24 +19,22 @@ import io.mateu.util.notification.Notifier;
 
 public class PublicController extends Controller {
 
-    public PublicController(ViewStack stack, String path) {
+    public PublicController() {
     }
 
 
     @Override
     public Object apply(ViewStack stack, String path, String step, String cleanStep, String remaining) throws Throwable {
 
+        if (MateuUI.get() != null) MateuUI.get().getMain().refreshHeader(false);
+
+        App app = MDDUIAccessor.getApp();
+
+        app.updateSession();
+
         if (!"".equals(step)) {
-
-            if (MateuUI.get() != null) MateuUI.get().getMain().refreshHeader(false);
-
-            App app = MDDUIAccessor.getApp();
-
-            app.updateSession();
-
             // si ya no es "/", entonces localizar el área y seguir
             return app.getArea(path + "/" + step);
-
         }
         return null;
     }

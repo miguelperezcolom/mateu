@@ -14,47 +14,44 @@ import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
 import io.mateu.mdd.vaadin.components.views.ListViewComponent;
 import io.mateu.mdd.vaadin.controllers.Controller;
-import io.mateu.mdd.vaadin.controllers.thirdLevel.FieldController;
-import io.mateu.mdd.vaadin.controllers.thirdLevel.MethodController;
 import io.mateu.mdd.vaadin.components.MDDViewComponentCreator;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
+import io.mateu.mdd.vaadin.pojos.MethodCall;
+import io.mateu.mdd.vaadin.pojos.ModelField;
 import io.mateu.reflection.ReflectionHelper;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 public class EditorController extends Controller {
 
     private final EditorViewComponent editorViewComponent;
 
-    public EditorController(ViewStack stack, String path, EditorViewComponent editorViewComponent) {
+    public EditorController(EditorViewComponent editorViewComponent) {
         this.editorViewComponent = editorViewComponent;
-        registerComponentInStack(stack, path, editorViewComponent);
     }
 
-    public EditorController(ViewStack stack, String path, Object bean) {
+    public EditorController(Object bean) {
         editorViewComponent = (EditorViewComponent) MDDViewComponentCreator.createComponent(bean);
         if (bean != null && bean.getClass().isAnnotationPresent(MateuUI.class)) editorViewComponent.setIcon(VaadinIcons.FORM);
-        registerComponentInStack(stack, path, editorViewComponent);
     }
 
-    public EditorController(ViewStack stack, String path, MDDOpenEditorAction action) throws Exception {
+    public EditorController(MDDOpenEditorAction action) {
         editorViewComponent = (EditorViewComponent) MDDViewComponentCreator.createComponent(action);
-        registerComponentInStack(stack, path, editorViewComponent);
     }
 
-    public EditorController(ViewStack stack, String path, ListViewComponent listViewComponent, Object bean) throws Throwable {
+    public EditorController(ListViewComponent listViewComponent, Object bean) throws Throwable {
         if (bean == null) {
             if (PersistentPojo.class.isAssignableFrom(listViewComponent.getModelType())) {
                 bean = ReflectionHelper.newInstance(listViewComponent.getModelType());
-                ((PersistentPojo) bean).load(getLastStep(path));
+                ((PersistentPojo) bean).load(ReflectionHelper.getId(bean));
             }
         }
         List<FieldInterfaced> visibleFields = ReflectionHelper.getAllEditableFilteredFields(bean.getClass(), listViewComponent.getEditableFieldsFilter(), null);
         List<FieldInterfaced> hiddenFields = new ArrayList<>();
         editorViewComponent = createEditorViewComponent(listViewComponent, bean, visibleFields, hiddenFields);
-        registerComponentInStack(stack, path, editorViewComponent);
     }
 
     protected EditorViewComponent createEditorViewComponent(ListViewComponent listViewComponent, Object bean, List<FieldInterfaced> visibleFields, List<FieldInterfaced> hiddenFields) {
@@ -72,56 +69,37 @@ public class EditorController extends Controller {
     }
 
     @Override
-    public void apply(ViewStack stack, String path, String step, String cleanStep, String remaining) throws Throwable {
+    public Object apply(ViewStack stack, String path, String step, String cleanStep, String remaining) throws Throwable {
 
 
         if (!"".equals(step)) {
 
-            if ("submitted".equals(step) || editorViewComponent.esForm() && step.equals(editorViewComponent._defaultAction)) {
-                Object r = MDDUIAccessor.getPendingResult();
-                Component c = null;
-                if (r == null) {
-                    Label h = new Label("Done!");
-                    h.addStyleName(ValoTheme.LABEL_H1);
-                    r = c = h;
-                }
-                else if (r instanceof Component) c = (Component) r;
-                else {
-                    Label h = new Label("" + r);
-                    h.addStyleName(ValoTheme.LABEL_H1);
-                    c = h;
-                }
-                AbstractViewComponent cw = c != null?new ComponentWrapper("Form submitted", c):MethodController.procesarResultado(null, r, null, false);
-                cw.setTitle("Form submitted");
-                registerComponentInStack(stack, path + "/" + step, cw);
-                MDDUIAccessor.setPendingResult(null);
+            Object model = editorViewComponent.getModel();
+            Method method = null;
+            FieldInterfaced field = null;
+
+            model = editorViewComponent.getModel();
+            if ("submitted".equals(step) && model instanceof Runnable) {
+                method = model.getClass().getMethod("run");
+            } else if ("submitted".equals(step) && model instanceof Callable) {
+                method = model.getClass().getMethod("call");
             } else {
+                method = editorViewComponent.getMethod(step);
+                field = editorViewComponent.getField(step);
+            }
+            if (model != null) {
+                method = ReflectionHelper.getMethod(model.getClass(), step);
+                field = ReflectionHelper.getFieldByName(model.getClass(), step.endsWith("_search") ? step.replaceAll("_search", "") : step);
+            }
 
-                Object r = null;
-                Method method = null;
-                FieldInterfaced field = null;
-
-                if (editorViewComponent != null) {
-                    r = editorViewComponent.getModel();
-                    method = editorViewComponent.getMethod(step);
-                    field = editorViewComponent.getField(step);
-                }
-                if (r != null) {
-                    method = ReflectionHelper.getMethod(r.getClass(), step);
-                    field = ReflectionHelper.getFieldByName(r.getClass(), step.endsWith("_search") ? step.replaceAll("_search", "") : step);
-                }
-
-                if (method != null) {
-                    new MethodController(stack, path + "/" + step, editorViewComponent.getModel(), method).next(stack, path, step, remaining);
-                } else if (field != null) {
-                    if (step.endsWith("_search")) new FieldController(stack, path + "/" + step, field, editorViewComponent).next(stack, path, step, remaining);
-                    else new FieldController(stack, path + "/" + step, field, editorViewComponent).next(stack, path, step, remaining);
-
-                }
-
+            if (method != null) {
+                return new MethodCall(editorViewComponent.getModel(), method, null).process();
+            } else if (field != null) {
+                return new ModelField(editorViewComponent.getModel(), field);
             }
 
         }
+        return null;
 
     }
 

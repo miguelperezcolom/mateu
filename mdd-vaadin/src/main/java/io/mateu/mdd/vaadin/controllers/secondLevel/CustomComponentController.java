@@ -6,8 +6,14 @@ import io.mateu.mdd.vaadin.controllers.Controller;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 
 public class CustomComponentController extends Controller {
-    public CustomComponentController(ViewStack stack, String path, MDDOpenCustomComponentAction action) {
-        registerComponentInStack(stack, path, new ComponentWrapper(action.getIcon(), action.getCaption(), action.getComponent(), false));
+    private final MDDOpenCustomComponentAction action;
+
+    public CustomComponentController(MDDOpenCustomComponentAction action) {
+        this.action = action;
     }
 
+    @Override
+    public Object apply(ViewStack stack, String path, String step, String cleanStep, String remaining) throws Throwable {
+        return new ComponentWrapper(action.getIcon(), action.getCaption(), action.getComponent(), false);
+    }
 }
