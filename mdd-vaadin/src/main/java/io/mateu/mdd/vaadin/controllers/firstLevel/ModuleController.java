@@ -11,7 +11,14 @@ public class ModuleController extends ActionController {
     public ModuleController(ViewStack stack, String path, IModule module) {
         super(stack, path);
         this.module = module;
-        registerComponentInStack(stack, path, new FakeComponent("Module " + module.getName()));
+    }
+
+    @Override
+    public Object apply(ViewStack stack, String path, String step, String cleanStep, String remaining) throws Throwable {
+        if ("".equals(step)) {
+            return module;
+        }
+        return super.apply(stack, path, step, cleanStep, remaining);
     }
 
 }

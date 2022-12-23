@@ -22,6 +22,10 @@ import io.mateu.util.notification.Notifier;
 public class PrivateController extends Controller {
 
     public PrivateController(ViewStack stack, String path) {
+    }
+
+    @Override
+    public Object apply(ViewStack stack, String path, String step, String cleanStep, String remaining) throws Throwable {
 
         if (MateuUI.get() != null) MateuUI.get().getMain().refreshHeader(true);
 
@@ -29,43 +33,14 @@ public class PrivateController extends Controller {
 
         app.updateSession();
 
-        if (app.getDefaultPrivateArea() != null) {
-            // existe home?
-            MenuEntry home = app.getDefaultPrivateArea().getDefaultAction();
-            if (home != null) {
-                if (home instanceof MDDOpenHtml) {
-                    registerComponentInStack(stack, path, new HomeComponent(home.getIcon(), "Home", new Label(((MDDOpenHtml)home).html, ContentMode.HTML), false));
-                } else {
-                    try {
-                        new AcctionRunner().run((AbstractAction) home);
-                    } catch (Throwable e) {
-                        Notifier.alert(e);
-                    }
-                }
-            } else {
-                // si no, seguir hacia el área por defecto
-                registerComponentInStack(stack, path, new FakeComponent("Private content"));
-            }
-        }
-
-    }
-
-    @Override
-    public void apply(ViewStack stack, String path, String step, String cleanStep, String remaining) throws Throwable {
-
 
         if ("".equals(step)) {
-
+            return null;
         } else if ("profile".equals(step)) {
-            registerComponentInStack(stack, path + "/" + step, MDDViewComponentCreator.createComponent(Profile.class, MDDUIAccessor.getCurrentUserLogin()));
+            return MDDUIAccessor.getCurrentUser();
         } else {
             // si ya no es "/", entonces localizar el área y seguir
-            App app = MDDUIAccessor.getApp();
-
-            AbstractArea area = (AbstractArea) app.getArea(path + "/" + step);
-            Controller controller = area != null?new AreaController(stack, path + "/" + step, area):new BrokenLinkController(stack, path + "/" + step);
-
-            controller.next(stack, path, step, remaining);
+            return app.getArea(path + "/" + step);
         }
 
     }

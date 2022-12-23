@@ -14,15 +14,6 @@ public class HomeController extends Controller {
 
     public HomeController(ViewStack stack, boolean privada) {
         this.privada = privada;
-        try {
-            if (privada || MDDUIAccessor.getCurrentUser() != null) {
-                new PrivateController(stack, "");
-            } else {
-                new PublicController(stack, "");
-            }
-        } catch (Throwable throwable) {
-            Notifier.alert(throwable);
-        }
     }
 
     @Override

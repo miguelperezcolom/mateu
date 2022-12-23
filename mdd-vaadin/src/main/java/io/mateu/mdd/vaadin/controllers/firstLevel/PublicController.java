@@ -20,47 +20,24 @@ import io.mateu.util.notification.Notifier;
 public class PublicController extends Controller {
 
     public PublicController(ViewStack stack, String path) {
-
-        if (MateuUI.get() != null) MateuUI.get().getMain().refreshHeader(false);
-
-        App app = MDDUIAccessor.getApp();
-
-        app.updateSession();
-
-        // existe home?
-        MenuEntry home = app.getDefaultPublicArea() != null?app.getDefaultPublicArea().getDefaultAction():null;
-        if (home != null) {
-            if (home instanceof MDDOpenHtml) {
-                registerComponentInStack(stack, path, new HomeComponent(home.getIcon(), "Home", new Label(((MDDOpenHtml)home).html, ContentMode.HTML), false));
-            } else {
-                try {
-                    new AcctionRunner().run((AbstractAction) home);
-                } catch (Throwable e) {
-                    Notifier.alert(e);
-                }
-            }
-        } else {
-            // si no, seguir hacia el área por defecto
-            registerComponentInStack(stack, path, new FakeComponent("Public content"));
-        }
-
     }
 
 
     @Override
-    public void apply(ViewStack stack, String path, String step, String cleanStep, String remaining) throws Throwable {
+    public Object apply(ViewStack stack, String path, String step, String cleanStep, String remaining) throws Throwable {
 
         if (!"".equals(step)) {
 
+            if (MateuUI.get() != null) MateuUI.get().getMain().refreshHeader(false);
+
             App app = MDDUIAccessor.getApp();
 
-            // si ya no es "/", entonces localizar el área y seguir
-            AbstractArea area = (AbstractArea) app.getArea(path + "/" + step);
-            Controller controller = area != null?new AreaController(stack, path + "/" + step, area):new BrokenLinkController(stack, path + "/" + step);
+            app.updateSession();
 
-            controller.next(stack, path, step, remaining);
+            // si ya no es "/", entonces localizar el área y seguir
+            return app.getArea(path + "/" + step);
 
         }
-
+        return null;
     }
 }
