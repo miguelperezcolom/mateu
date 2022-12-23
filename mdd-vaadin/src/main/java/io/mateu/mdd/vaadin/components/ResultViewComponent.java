@@ -6,35 +6,30 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.HasActions;
-import io.mateu.mdd.core.interfaces.HasIcon;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
-import io.mateu.mdd.shared.annotations.ExpandOnOpen;
 import io.mateu.mdd.vaadin.MateuUI;
-import io.mateu.mdd.vaadin.components.app.views.firstLevel.FakeComponent;
 import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
 import io.mateu.mdd.vaadin.components.views.ListViewComponent;
 import io.mateu.mdd.vaadin.navigation.View;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.mdd.vaadin.pojos.Result;
-import io.mateu.mdd.vaadin.views.ComponentView;
 
-import java.util.List;
-
-public class ResultView extends ComponentView {
+public class ResultViewComponent extends AbstractViewComponent {
     private final Result result;
 
-    private static VaadinIcons getIcon(Result result) {
-        return result.getModel() instanceof HasIcon?((HasIcon)result.getModel()).getIcon():VaadinIcons.CHECK_CIRCLE;
-    }
-
-    public ResultView(ViewStack stack, String title, Result result) {
-        super(stack, title, getIcon(result), getContent(result));
+    public ResultViewComponent(Result result) {
         this.result = result;
     }
 
-    private static Component getContent(Result result) {
+    @Override
+    public AbstractViewComponent build() throws Exception {
+        addComponent(getContent());
+        return this;
+    }
+
+    private Component getContent() {
 
         VerticalLayout section = new VerticalLayout();
         section.addStyleName("section");
@@ -58,11 +53,11 @@ public class ResultView extends ComponentView {
         return section;
     }
 
-    private static void addAction(AbstractAction action) {
+    private void addAction(AbstractAction action) {
         //todo: añadir botón / link
     }
 
-    private static void addBack(VerticalLayout section) {
+    private void addBack(VerticalLayout section) {
         ViewStack stack = MateuUI.get().getStack();
         View backToView = null;
         boolean listViewFound = false;

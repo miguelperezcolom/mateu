@@ -14,6 +14,7 @@ import com.vaadin.ui.Layout;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.interfaces.ListView;
 import io.mateu.mdd.core.layout.MiFormLayout;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
@@ -210,14 +211,11 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
             while (!add && pos < stack.size()) {
                 View v = stack.get(pos);
                 Component c = v.getComponent();
-                if (!(c instanceof FakeComponent || c instanceof AreaComponent || c instanceof SearchInMenuComponent || c instanceof MenuComponent || c instanceof HomeComponent)) add = true;
-                if (!add) {
-                    if (c instanceof ComponentWrapper && ((ComponentWrapper) c).getComponentCount() > 0) {
-                        c = ((ComponentWrapper) c).getComponent(0);
-                        if (!(c instanceof FakeComponent || c instanceof AreaComponent || c instanceof SearchInMenuComponent || c instanceof MenuComponent || c instanceof HomeComponent)) add = true;
-                    }
+                if (c instanceof EditorViewComponent || c instanceof ListViewComponent) {
+                    add = true;
+                    break;
                 }
-                if (!add) pos++;
+                pos++;
             }
         }
         if (add && this instanceof AbstractViewComponent) {

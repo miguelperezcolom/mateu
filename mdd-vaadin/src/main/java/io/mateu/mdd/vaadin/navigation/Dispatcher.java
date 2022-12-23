@@ -64,7 +64,7 @@ public class Dispatcher {
         }
 
         // aplicamos el path pendiente al controlador (dejará vistas en el stack)
-        new ControllerPathApplier(controller, stack, foundPath, remainingPath).apply();
+        if (!"".equals(remainingPath)) new ControllerPathApplier(controller, stack, foundPath, remainingPath).apply();
     }
 
     /**

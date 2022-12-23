@@ -6,44 +6,33 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import io.mateu.mdd.core.annotations.MateuUI;
 import io.mateu.mdd.core.app.*;
-import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.interfaces.App;
-import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.shared.pojos.PrivateHome;
 import io.mateu.mdd.shared.pojos.PublicHome;
-import io.mateu.mdd.shared.reflection.CoreReflectionHelper;
 import io.mateu.mdd.vaadin.actions.AcctionRunner;
 import io.mateu.mdd.vaadin.components.ComponentWrapper;
 import io.mateu.mdd.vaadin.components.HomeComponent;
 import io.mateu.mdd.vaadin.components.MDDViewComponentCreator;
-import io.mateu.mdd.vaadin.components.ResultView;
+import io.mateu.mdd.vaadin.components.ResultViewComponent;
 import io.mateu.mdd.vaadin.components.app.views.firstLevel.AreaComponent;
 import io.mateu.mdd.vaadin.components.app.views.firstLevel.FakeComponent;
 import io.mateu.mdd.vaadin.components.app.views.firstLevel.MenuComponent;
 import io.mateu.mdd.vaadin.components.views.*;
 import io.mateu.mdd.vaadin.controllers.Controller;
+import io.mateu.mdd.vaadin.controllers.VoidController;
 import io.mateu.mdd.vaadin.controllers.firstLevel.*;
 import io.mateu.mdd.vaadin.controllers.secondLevel.EditorController;
 import io.mateu.mdd.vaadin.controllers.secondLevel.ListViewController;
 import io.mateu.mdd.vaadin.controllers.secondLevel.ReadOnlyController;
-import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.vaadin.navigation.View;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.mdd.vaadin.pojos.Error;
-import io.mateu.mdd.vaadin.pojos.MethodCall;
-import io.mateu.mdd.vaadin.pojos.ModelField;
 import io.mateu.mdd.vaadin.pojos.Result;
-import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
 import io.mateu.util.notification.Notifier;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.util.ArrayList;
 
 public class ViewMapper {
 
@@ -117,7 +106,7 @@ public class ViewMapper {
         }
         if (model instanceof Result) {
             Result result = (Result) model;
-            return new ResultView(stack, "Result", result);
+            return new View(stack, new ResultViewComponent(result), new VoidController());
         }
 
         if (model instanceof ComponentWrapper) {
