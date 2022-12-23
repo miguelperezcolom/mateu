@@ -18,6 +18,7 @@ import io.mateu.mdd.vaadin.components.MDDViewComponentCreator;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.mdd.vaadin.pojos.MethodCall;
 import io.mateu.mdd.vaadin.pojos.ModelField;
+import io.mateu.mdd.vaadin.pojos.Result;
 import io.mateu.reflection.ReflectionHelper;
 
 import java.lang.reflect.Method;
@@ -75,26 +76,38 @@ public class EditorController extends Controller {
         if (!"".equals(step)) {
 
             Object model = editorViewComponent.getModel();
-            Method method = null;
-            FieldInterfaced field = null;
+            Method method;
+            FieldInterfaced field;
 
-            model = editorViewComponent.getModel();
+            boolean returnAsResult = false;
             if ("submitted".equals(step) && model instanceof Runnable) {
                 method = model.getClass().getMethod("run");
+                returnAsResult = true;
             } else if ("submitted".equals(step) && model instanceof Callable) {
                 method = model.getClass().getMethod("call");
+                returnAsResult = true;
             } else {
-                method = editorViewComponent.getMethod(step);
-                field = editorViewComponent.getField(step);
-            }
-            if (model != null) {
-                method = ReflectionHelper.getMethod(model.getClass(), step);
-                field = ReflectionHelper.getFieldByName(model.getClass(), step.endsWith("_search") ? step.replaceAll("_search", "") : step);
+                if (model != null) {
+                    method = ReflectionHelper.getMethod(model.getClass(), step);
+                } else {
+                    method = editorViewComponent.getMethod(step);
+                }
             }
 
             if (method != null) {
-                return new MethodCall(editorViewComponent.getModel(), method, null).process();
-            } else if (field != null) {
+                Object result = new MethodCall(editorViewComponent.getModel(), method, null).process();
+                if (returnAsResult) {
+                    return new Result(result);
+                } else {
+                    return result;
+                }
+            } else {
+                if (model != null) {
+                    field = ReflectionHelper.getFieldByName(model.getClass(), step.endsWith("_search") ?
+                            step.replaceAll("_search", "") : step);
+                } else {
+                    field = editorViewComponent.getField(step);
+                }
                 return new ModelField(editorViewComponent.getModel(), field);
             }
 

@@ -18,6 +18,7 @@ import io.mateu.mdd.vaadin.actions.AcctionRunner;
 import io.mateu.mdd.vaadin.components.ComponentWrapper;
 import io.mateu.mdd.vaadin.components.HomeComponent;
 import io.mateu.mdd.vaadin.components.MDDViewComponentCreator;
+import io.mateu.mdd.vaadin.components.ResultView;
 import io.mateu.mdd.vaadin.components.app.views.firstLevel.AreaComponent;
 import io.mateu.mdd.vaadin.components.app.views.firstLevel.FakeComponent;
 import io.mateu.mdd.vaadin.components.app.views.firstLevel.MenuComponent;
@@ -33,6 +34,7 @@ import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.mdd.vaadin.pojos.Error;
 import io.mateu.mdd.vaadin.pojos.MethodCall;
 import io.mateu.mdd.vaadin.pojos.ModelField;
+import io.mateu.mdd.vaadin.pojos.Result;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
 import io.mateu.util.notification.Notifier;
@@ -57,10 +59,10 @@ public class ViewMapper {
             return new BrokenLinkView(stack);
         }
         if (model instanceof PublicHome) {
-            return new ComponentView(stack, "Home", null, new FakeComponent("Public content"));
+            return new ComponentView(stack, "Home", null, new Label("Public content"));
         }
         if (model instanceof PrivateHome) {
-            return new ComponentView(stack, "Home", null, new FakeComponent("Private content"));
+            return new ComponentView(stack, "Home", null, new Label("Private content"));
         }
         if (model instanceof AbstractArea) {
             AbstractArea area = (AbstractArea) model;
@@ -103,6 +105,10 @@ public class ViewMapper {
         if (model instanceof Error) {
             Error error = (Error) model;
             return new ProblemView(stack, "Error", error);
+        }
+        if (model instanceof Result) {
+            Result result = (Result) model;
+            return new ResultView(stack, "Result", result);
         }
 
         if (model instanceof ComponentWrapper) {

@@ -60,18 +60,6 @@ public class ComponentWrapper extends AbstractViewComponent {
             section.addStyleName("section");
             section.addStyleName("result-page");
 
-            /*
-            if (MDDUIAccessor.isMobile() || (!expand && !(wrapped instanceof FullWidth))) addComponent(wrapped);
-            else addComponentsAndExpand(wrapped);
-             */
-
-            Label check;
-            section.addComponent(check = new Label(VaadinIcons.CHECK_CIRCLE.getHtml(), ContentMode.HTML));
-            check.addStyleName(CSS.GREENFGD);
-            check.addStyleName(ValoTheme.LABEL_H1);
-            check.addStyleName("checkmark");
-            section.setComponentAlignment(check, Alignment.MIDDLE_CENTER);
-
             section.addComponent(wrapped);
             section.setComponentAlignment(wrapped, Alignment.MIDDLE_CENTER);
 
