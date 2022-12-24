@@ -41,14 +41,16 @@ import io.mateu.util.notification.Notifier;
 
 import java.util.Collection;
 
-public class ViewMapper {
+public class ObjectToViewMapper {
 
     private final ViewStack stack;
     private final App app;
+    private final FieldToViewMapper fieldToViewMapper;
 
-    public ViewMapper(ViewStack stack) {
+    public ObjectToViewMapper(ViewStack stack) {
         this.stack = stack;
         this.app = MDDUIAccessor.getApp();
+        fieldToViewMapper = new FieldToViewMapper(stack);
     }
 
     //todo: open for extension, close for modification
@@ -116,8 +118,7 @@ public class ViewMapper {
             return new View(stack, new ResultViewComponent(result), new VoidController());
         }
         if (model instanceof ModelField) {
-            ModelField modelField = (ModelField) model;
-            return getViewForField(modelField);
+            return fieldToViewMapper.toView((ModelField) model, step);
         }
 
         if (model instanceof ComponentWrapper) {

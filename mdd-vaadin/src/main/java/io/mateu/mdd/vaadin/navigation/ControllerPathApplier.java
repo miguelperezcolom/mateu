@@ -1,22 +1,17 @@
 package io.mateu.mdd.vaadin.navigation;
 
-import com.vaadin.shared.ui.ContentMode;
-import com.vaadin.ui.Label;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDOpenHtml;
-import io.mateu.mdd.shared.annotations.MenuOption;
 import io.mateu.mdd.vaadin.actions.AcctionRunner;
-import io.mateu.mdd.vaadin.components.HomeComponent;
 import io.mateu.mdd.vaadin.controllers.Controller;
-import io.mateu.mdd.vaadin.views.ComponentView;
-import io.mateu.mdd.vaadin.views.ViewMapper;
+import io.mateu.mdd.vaadin.views.ObjectToViewMapper;
 import io.mateu.util.notification.Notifier;
 
 public class ControllerPathApplier {
 
     private Controller controller;
     private final ViewStack stack;
-    private final ViewMapper viewMapper;
+    private final ObjectToViewMapper viewMapper;
     private String foundPath;
     private String remainingPath;
 
@@ -25,7 +20,7 @@ public class ControllerPathApplier {
         this.stack = stack;
         this.foundPath = foundPath;
         this.remainingPath = remainingPath;
-        this.viewMapper = new ViewMapper(stack);
+        this.viewMapper = new ObjectToViewMapper(stack);
     }
 
     public void apply() {
