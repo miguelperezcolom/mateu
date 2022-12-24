@@ -12,4 +12,12 @@ public class ModelField {
         this.instance = instance;
         this.field = field;
     }
+
+    public Object getInstance() {
+        return instance;
+    }
+
+    public FieldInterfaced getField() {
+        return field;
+    }
 }

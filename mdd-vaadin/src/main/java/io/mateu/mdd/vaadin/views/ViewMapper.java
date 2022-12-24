@@ -28,12 +28,18 @@ import io.mateu.mdd.vaadin.controllers.firstLevel.*;
 import io.mateu.mdd.vaadin.controllers.secondLevel.EditorController;
 import io.mateu.mdd.vaadin.controllers.secondLevel.ListViewController;
 import io.mateu.mdd.vaadin.controllers.secondLevel.ReadOnlyController;
+import io.mateu.mdd.vaadin.controllers.thirdLevel.CollectionController;
+import io.mateu.mdd.vaadin.controllers.thirdLevel.FieldController;
 import io.mateu.mdd.vaadin.navigation.View;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.mdd.vaadin.pojos.Error;
+import io.mateu.mdd.vaadin.pojos.ModelField;
 import io.mateu.mdd.vaadin.pojos.Result;
+import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
 import io.mateu.util.notification.Notifier;
+
+import java.util.Collection;
 
 public class ViewMapper {
 
@@ -109,6 +115,10 @@ public class ViewMapper {
             Result result = (Result) model;
             return new View(stack, new ResultViewComponent(result), new VoidController());
         }
+        if (model instanceof ModelField) {
+            ModelField modelField = (ModelField) model;
+            return getViewForField(modelField);
+        }
 
         if (model instanceof ComponentWrapper) {
             ComponentWrapper componentWrapper = (ComponentWrapper) model;
@@ -156,6 +166,24 @@ public class ViewMapper {
         }
         return new View(stack, editorViewComponent, controller);
 
+    }
+
+    private View getViewForField(ModelField modelField) {
+        if (Collection.class.isAssignableFrom(modelField.getField().getType())) {
+            ComponentView view = null;
+            try {
+                view = new ComponentView(stack, modelField.getField().getName(), null,
+                        new CollectionListViewComponent((Collection) ReflectionHelper.getValue(modelField.getField(), modelField.getInstance()), ReflectionHelper.getGenericClass(modelField.getField(), Collection.class, "T")).build());
+            } catch (Exception e) {
+                return new ProblemView(stack, "Error", new Error(e));
+            }
+            view.setController(new CollectionController(modelField));
+            return view;
+        }
+        ComponentView view = new ComponentView(stack, modelField.getField().getName(), null,
+                new FakeComponent("Field " + modelField.getField().getName()));
+        view.setController(new FieldController(modelField));
+        return view;
     }
 
 }
