@@ -26,6 +26,8 @@ jobs:
       env:
         GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
         PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+    - name: Cat settings.xml
+      run: cat ~/.m2/settings.xml
     - name: Copy settings.xml
       run: cp -f settings.xml ~/.m2
     - name: Build with Maven
