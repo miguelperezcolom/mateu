@@ -37,6 +37,10 @@ jobs:
 
     # Install NPM dependencies, cache them correctly
     # and run all Cypress tests
+    - name: Pwd
+      run: pwd
+    - name: Ls
+      run: ls -lh
     - name: Cypress run
       uses: cypress-io/github-action@v5
       with:
