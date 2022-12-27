@@ -38,9 +38,10 @@ jobs:
     # Install NPM dependencies, cache them correctly
     # and run all Cypress tests
     - name: Cypress run
-      uses: cypress-io/github-action@v2
+      uses: cypress-io/github-action@v5.2.0
       with:
         working-directory: e2e_tests
+        #build: npm install
         start: mvn jetty:run -f ../demo/pom.xml
         wait-on: 'http://localhost:8080'
 
