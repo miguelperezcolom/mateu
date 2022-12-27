@@ -18,11 +18,11 @@ jobs:
         server-id: mateu-central # Value of the distributionManagement/repository/id field of the pom.xml
         server-username: MAVEN_USERNAME
         server-password: MAVEN_CENTRAL_TOKEN
-  - name: Configure GPG Key
-    run: |
-      echo -n "$GPG_SIGNING_KEY" | base64 --decode | gpg --import
-    env:
-      GPG_SIGNING_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+    - name: Configure GPG Key
+      run: |
+        echo -n "$GPG_SIGNING_KEY" | base64 --decode | gpg --import
+      env:
+        GPG_SIGNING_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
     - name: Build with Maven
       run: mvn -B install --file pom.xml
 
