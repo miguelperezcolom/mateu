@@ -1,0 +1,16 @@
+<settings>
+    <mirrors>
+        <mirror>
+            <id>vaadin-addons-http-unblocker</id>
+            <mirrorOf>vaadin-addons</mirrorOf>
+            <name>vaadin-addons mirrored</name>
+            <url>http://maven.vaadin.com/vaadin-addons</url>
+        </mirror>
+        <mirror>
+            <id>vaadin-prereleases-http-unblocker</id>
+            <mirrorOf>vaadin-prereleases</mirrorOf>
+            <name>vaadin-prereleases mirrored</name>
+            <url>http://maven.vaadin.com/vaadin-prereleases</url>
+        </mirror>
+    </mirrors>
+</settings>
