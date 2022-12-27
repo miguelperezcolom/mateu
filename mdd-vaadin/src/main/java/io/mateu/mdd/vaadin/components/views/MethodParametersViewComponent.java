@@ -114,7 +114,7 @@ public class MethodParametersViewComponent extends EditorViewComponent {
                             //MDDUIAccessor.setLastMethodCall(method);
                         }
                         if (r == null || void.class.equals(method.getReturnType())) {
-                            Notifier.info("Done");
+                            //Notifier.info("Done");
                             MDDUIAccessor.goBack();
                         } else MDDUIAccessor.go("result");
                     } catch (Throwable e) {

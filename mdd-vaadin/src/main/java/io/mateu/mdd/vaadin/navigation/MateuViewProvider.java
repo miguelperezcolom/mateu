@@ -113,7 +113,7 @@ public class MateuViewProvider implements ViewProvider {
 
 
         // si estamos volviendo atrás y está marcado, recargar el modelo si es un editor
-        if (c.getStyleName().contains("refreshOnBack")) {
+        if (lastState != null && lastState.contains(path)) {
 
             if (c != null && c instanceof EditorViewComponent) {
                 EditorViewComponent evc = (EditorViewComponent) c;
@@ -126,7 +126,7 @@ public class MateuViewProvider implements ViewProvider {
                     }
                 } else evc.updateModel(evc.getModel());
             }
-            c.removeStyleName("refreshOnBack");
+
         }
 
 
