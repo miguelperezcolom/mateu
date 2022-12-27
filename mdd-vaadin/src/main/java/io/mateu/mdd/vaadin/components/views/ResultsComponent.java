@@ -357,6 +357,17 @@ public class ResultsComponent extends VerticalLayout implements Refreshable {
     }
 
     public Object getRow(String step) {
+        if (found == null) {
+            grid.getDataProvider().refreshAll();
+        }
+        int times = 0;
+        while (found == null && times++ < 20) {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         if (found != null) {
             return found.stream().filter(o -> step.equals(o.toString())).findAny().orElse(null);
         }

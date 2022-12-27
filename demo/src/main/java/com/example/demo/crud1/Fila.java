@@ -43,7 +43,7 @@ public class Fila {
 
     @Override
     public String toString() {
-        return nombre;
+        return id;
     }
 
     @Override

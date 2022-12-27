@@ -30,6 +30,7 @@ import io.mateu.mdd.vaadin.controllers.secondLevel.ListViewController;
 import io.mateu.mdd.vaadin.controllers.secondLevel.ReadOnlyController;
 import io.mateu.mdd.vaadin.controllers.thirdLevel.CollectionController;
 import io.mateu.mdd.vaadin.controllers.thirdLevel.FieldController;
+import io.mateu.mdd.vaadin.controllers.thirdLevel.RpcViewFieldController;
 import io.mateu.mdd.vaadin.navigation.View;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.mdd.vaadin.pojos.Error;
@@ -58,22 +59,25 @@ public class FieldToViewMapper {
         }
 
         if (RpcView.class.isAssignableFrom(modelField.getField().getType())) {
-            try {
-                RpcListViewComponent component =
-                        new RpcListViewComponent((RpcView) ReflectionHelper.getValue(modelField.getField(), modelField.getInstance()));
-                component.buildIfNeeded();
-                View view = new View(stack, component, new ListViewController(component));
-                return view;
-            } catch (Exception e) {
-                return new ProblemView(stack, "Error", new Error(e));
-            }
+            ComponentView view = new ComponentView(stack, modelField.getField().getName(), null,
+                    new FakeComponent("Field " + modelField.getField().getName()));
+            EditorViewComponent editorViewComponent =
+                    (EditorViewComponent) stack.getLast().getViewComponent();
+            RpcListViewComponent rpcListViewComponent =
+                    (RpcListViewComponent) editorViewComponent.getEmbeddedListViewComponents().get(modelField.getField());
+            view.setController(new RpcViewFieldController(modelField, rpcListViewComponent));
+            return view;
         }
 
         if (Collection.class.isAssignableFrom(modelField.getField().getType())) {
             ComponentView view = null;
             try {
                 view = new ComponentView(stack, modelField.getField().getName(), null,
-                        new CollectionListViewComponent((Collection) ReflectionHelper.getValue(modelField.getField(), modelField.getInstance()), ReflectionHelper.getGenericClass(modelField.getField(), Collection.class, "T")).build());
+                        new CollectionListViewComponent((Collection) ReflectionHelper
+                                .getValue(modelField.getField(), modelField.getInstance()),
+                                ReflectionHelper.getGenericClass(modelField.getField(),
+                                        Collection.class, "T")
+                        ).build());
             } catch (Exception e) {
                 return new ProblemView(stack, "Error", new Error(e));
             }
