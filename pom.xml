@@ -46,6 +46,7 @@
   </properties>
 
   <modules>
+    <module>mdd-addon</module>
     <module>mdd-sharedinterfaces</module>
     <module>mdd-annotationprocessing</module>
     <module>mdd-core</module>
