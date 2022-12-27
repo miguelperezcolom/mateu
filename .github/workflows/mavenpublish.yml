@@ -23,6 +23,10 @@ jobs:
       env:
         GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
         PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+    - name: Set up Maven
+      uses: aahmed-se/setup-maven@v3
+      with:
+        maven-version: 3.6.3
     - name: Build with Maven
       run: mvn -B install --file pom.xml
 
