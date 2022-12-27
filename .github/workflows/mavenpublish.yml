@@ -18,6 +18,7 @@ jobs:
         server-id: mateu-central # Value of the distributionManagement/repository/id field of the pom.xml
         server-username: MAVEN_USERNAME
         server-password: MAVEN_CENTRAL_TOKEN
+        overwrite-settings: false
         settings-path: ./settings.xml
     - name: Import GPG Key
       uses: crazy-max/ghaction-import-gpg@v1
