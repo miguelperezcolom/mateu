@@ -224,7 +224,6 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
             container.addComponent(tf = (field.isAnnotationPresent(Password.class)) ? new PasswordField() : new TextField());
             tf.setValueChangeMode(ValueChangeMode.BLUR);
 
-
             if (String.class.equals(field.getType())) {
                 if (!forSearchFilter) {
                     if (MDDUIAccessor.isMobile() || field.isAnnotationPresent(FullWidth.class)) tf.setWidth("100%");
@@ -263,6 +262,9 @@ public class JPAStringFieldBuilder extends AbstractFieldBuilder {
 
             r = tf;
         }
+
+        r.addStyleName("test-" + field.getId());
+
 
         return r;
     }

@@ -211,19 +211,12 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
     private String toHtml(Object o) {
         String h = "";
         if (o != null) {
-            Method m = ReflectionHelper.getMethod(o.getClass(), "toHtml");
-            if (m != null) {
-                try {
-                    h = (String) m.invoke(o);
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
-                }
+            if (ReflectionHelper.isBasico(o)) {
+                h = "" + o;
             } else {
 
-                m = ReflectionHelper.getMethod(o.getClass(), "toString");
-                if (m != null && !Object.class.equals(m.getDeclaringClass())) {
+                Method m = ReflectionHelper.getMethod(o.getClass(), "toHtml");
+                if (m != null) {
                     try {
                         h = (String) m.invoke(o);
                     } catch (IllegalAccessException e) {
@@ -233,11 +226,23 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
                     }
                 } else {
 
-                    h = ReflectionHelper.toHtml(o);
+                    m = ReflectionHelper.getMethod(o.getClass(), "toString");
+                    if (m != null && !"java.lang".equals(m.getDeclaringClass().getPackageName())) {
+                        try {
+                            h = (String) m.invoke(o);
+                        } catch (Exception e) {
+                            h = "" + o;
+                        }
+                    } else {
+
+                        h = ReflectionHelper.toHtml(o);
+
+                    }
 
                 }
 
             }
+
         }
         return h;
     }

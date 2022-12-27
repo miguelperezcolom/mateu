@@ -509,7 +509,7 @@ public class FormLayoutBuilder {
                 //        && !editor.esForm()
                 ) || !g.getCaption().startsWith("Field Group ")) {
                     fieldGroup.addStyleName("fieldgroup");
-                    if (!Strings.isNullOrEmpty(g.getCaption())) {
+                    if (!Strings.isNullOrEmpty(g.getCaption()) && !g.getCaption().startsWith("Field Group ")) {
                         fieldGroup.addComponent(fieldGroupHeader = new HorizontalLayout());
                         fieldGroup.setWidthFull();
                         fieldGroupHeader.setWidthFull();
@@ -518,6 +518,8 @@ public class FormLayoutBuilder {
                         Label c;
                         fieldGroupHeader.addComponent(c = new Label(g.getCaption()));
                         c.addStyleName(ValoTheme.LABEL_H4);
+                    } else {
+                        fieldGroup.addStyleName("nofieldgroupheader");
                     }
                 } else {
                     fieldGroup.addStyleName("nofieldgroup");

@@ -20,6 +20,8 @@ jobs:
         server-password: MAVEN_CENTRAL_TOKEN
 
     - name: Build with Maven
+      env:
+        GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
       run: mvn -B install --file pom.xml
 
 # already done
@@ -40,3 +42,4 @@ jobs:
       env:
         MAVEN_USERNAME: ${{ secrets.REPO_USERNAME }}
         MAVEN_CENTRAL_TOKEN: ${{ secrets.REPO_PASSWORD }}
+        GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}

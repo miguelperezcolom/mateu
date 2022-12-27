@@ -14,6 +14,7 @@ public class BaseReflectionHelper {
         basicos.add(String.class);
         basicos.add(Integer.class);
         basicos.add(Long.class);
+        basicos.add(Float.class);
         basicos.add(Double.class);
         basicos.add(Boolean.class);
         basicos.add(LocalDate.class);
@@ -21,6 +22,7 @@ public class BaseReflectionHelper {
         basicos.add(LocalTime.class);
         basicos.add(int.class);
         basicos.add(long.class);
+        basicos.add(float.class);
         basicos.add(double.class);
         basicos.add(boolean.class);
     }

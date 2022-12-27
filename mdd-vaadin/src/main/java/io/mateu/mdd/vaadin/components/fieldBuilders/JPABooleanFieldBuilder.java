@@ -33,6 +33,7 @@ public class JPABooleanFieldBuilder extends AbstractFieldBuilder {
             ComboBox<Object> cb;
             container.addComponent(cb = new ComboBox<>());
             cb.setDataProvider(new ListDataProvider<>(Lists.newArrayList(true, false)));
+            cb.addStyleName("test-" + field.getId());
 
             if (field.isAnnotationPresent(RequestFocus.class)) cb.focus();
 
@@ -58,6 +59,7 @@ public class JPABooleanFieldBuilder extends AbstractFieldBuilder {
             CheckBox cb;
             hl.addComponent(cb = new CheckBox());
             hl.setDefaultComponentAlignment(Alignment.TOP_LEFT);
+            cb.getInputElement().addStyleName("test-" + field.getId());
 
             if (field.isAnnotationPresent(RequestFocus.class)) cb.focus();
 
@@ -74,7 +76,6 @@ public class JPABooleanFieldBuilder extends AbstractFieldBuilder {
             r = cb;
 
         }
-
 
         return r;
     }

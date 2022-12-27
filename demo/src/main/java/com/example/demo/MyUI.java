@@ -4,6 +4,7 @@ import com.example.demo.crud1.Crud1;
 import com.example.demo.crud1.Crud2;
 import com.example.demo.crud1.Crud3;
 import com.example.demo.crud1.Editor;
+import com.example.demo.e2e.E2eMenu;
 import com.example.demo.entidades.PersonEntity;
 import com.example.demo.formularios.Formulario1;
 import com.vaadin.annotations.Push;
@@ -42,6 +43,9 @@ public class MyUI implements HasFooter {
 
     @MenuOption
     public Class prsonas = PersonEntity.class;
+
+    @Submenu(value = "E2E")
+    private E2eMenu e2e;
 
     @Override
     public Component getFooterComponent() {

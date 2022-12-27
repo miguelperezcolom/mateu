@@ -57,6 +57,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
                 Label l;
                 hl.addComponent(l = new Label("", ContentMode.HTML));
                 l.addStyleName("collectionlinklabel");
+                l.addStyleName("test-" + field.getId());
                 hl.addStyleName(CSS.NOPADDING);
 
                 hl.setCaption(ReflectionHelper.getCaption(field));
@@ -76,6 +77,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
                     Label l;
                     l = new Label("", ContentMode.HTML);
                     l.setCaption(ReflectionHelper.getCaption(field));
+                    l.addStyleName("test-" + field.getId());
 
                     addComponent(container, l, attachedActions.get(field.getName()));
 
@@ -105,6 +107,7 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
                     Label l;
                     hl.addComponent(l = new Label("", ContentMode.HTML));
                     hl.addStyleName(CSS.NOPADDING);
+                    l.addStyleName("test-" + field.getId());
 
                     hl.setCaption(ReflectionHelper.getCaption(field));
 
@@ -194,6 +197,8 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
                 Label tf = new Label();
                 tf.setContentMode(ContentMode.HTML);
                 tf.addStyleName("outputlabel");
+                tf.addStyleName("test-" + field.getId());
+
 
                 if (Integer.class.equals(field.getType()) || int.class.equals(field.getType())
                         || Long.class.equals(field.getType()) || long.class.equals(field.getType())

@@ -55,6 +55,7 @@ public abstract class AbstractFieldBuilder implements IFieldBuilder {
             , new JPATimeFieldBuilder()
             , new JPAIntegerFieldBuilder()
             , new JPALongFieldBuilder()
+            , new JPAFloatFieldBuilder()
             , new JPADoubleFieldBuilder()
             , new JPABooleanFieldBuilder()
             , new JPAEnumerationFieldBuilder()

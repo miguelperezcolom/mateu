@@ -133,3 +133,9 @@ body .mateu .maincomponent .contenido .section {
     margin-bottom: 80px;
 }
 
+
+
+
+body .mateu .maincomponent .contenido .fieldgroup.nofieldgroupheader {
+    padding-top: 20px;
+}
