@@ -38,7 +38,9 @@ public class RpcViewFieldBuilder extends AbstractFieldBuilder {
                 if (rpcView != null) {
                     r = new RpcListViewComponent(field, rpcView).build(fieldGroup, fieldGroupHeader);
                 } else {
-                    r = new RpcListViewComponent(field, field.getType()).build(fieldGroup, fieldGroupHeader);
+                    rpcView = (RpcView) ReflectionHelper.newInstance(field.getType());
+                    ReflectionHelper.setValue(field, object, rpcView);
+                    r = new RpcListViewComponent(field, rpcView).build(fieldGroup, fieldGroupHeader);
                 }
             } else {
                 r = new RpcListViewComponent(field, field.getType()).build(fieldGroup, fieldGroupHeader);

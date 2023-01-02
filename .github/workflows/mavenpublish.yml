@@ -44,13 +44,13 @@ jobs:
     - name: Cypress run
       uses: cypress-io/github-action@v5
       with:
-        working-directory: ../../e2e_tests
+        working-directory: e2e
         #build: npm install
-        start: mvn jetty:run -f ../../demo/pom.xml
+        start: mvn spring-boot:run -f ../demo/pom.xml
         wait-on: 'http://localhost:8080'
 
-    - name: Publish to GitHub Packages Apache Maven
-      run: mvn deploy
-      env:
-        MAVEN_USERNAME: ${{ secrets.REPO_USERNAME }}
-        MAVEN_CENTRAL_TOKEN: ${{ secrets.REPO_PASSWORD }}
+#    - name: Publish to GitHub Packages Apache Maven
+#      run: mvn deploy
+#      env:
+#        MAVEN_USERNAME: ${{ secrets.REPO_USERNAME }}
+#        MAVEN_CENTRAL_TOKEN: ${{ secrets.REPO_PASSWORD }}

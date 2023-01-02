@@ -689,7 +689,6 @@ public class FormLayoutBuilder {
                 c.addStyleName("caption-on-left");
             }
 
-
             log.debug("editor component field " + f + " in " + (System.currentTimeMillis() - t0) + " ms.");
 
         }
