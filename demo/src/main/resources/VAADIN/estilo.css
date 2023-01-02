@@ -139,3 +139,8 @@ body .mateu .maincomponent .contenido .section {
 body .mateu .maincomponent .contenido .fieldgroup.nofieldgroupheader {
     padding-top: 20px;
 }
+
+body .mateu .maincomponent .contenido .section .v-slot-fieldgroupheader .v-label-h4.countlabel {
+    font-size: 16px;
+    font-weight: 200;
+}
