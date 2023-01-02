@@ -42,7 +42,7 @@ public class ReadOnlyController extends EditorController {
             if ("edit".equals(cleanStep)) {
                 return ((ReadOnlyPojo)getEditorViewComponent().getModel()).getEditor();
             } else {
-                super.apply(stack, path, step, cleanStep, remaining);
+                return super.apply(stack, path, step, cleanStep, remaining);
             }
 
         }
