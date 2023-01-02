@@ -163,6 +163,7 @@ public class ObjectToViewMapper {
         Controller controller = new EditorController(model);
         if (model instanceof PersistentPojo) {
         } else if (model instanceof ReadOnlyPojo) {
+            editorViewComponent = new ReadOnlyViewComponent(model);
             controller = new ReadOnlyController(model);
         }
         return new View(stack, editorViewComponent, controller);

@@ -275,6 +275,11 @@ public class RpcListViewComponent extends ListViewComponent {
     }
 
     public Object onEdit(String step) throws Throwable {
+        if (MDDUIAccessor.getPendingResult() != null) {
+            Object r = MDDUIAccessor.getPendingResult();
+            MDDUIAccessor.setPendingResult(null);
+            return r;
+        }
         if (resultsComponent == null) return null;
         if (getRpcListView() instanceof StepInterceptor) return ((StepInterceptor) getRpcListView()).onEdit(step);
         Object row = resultsComponent.getRow(step);
