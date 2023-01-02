@@ -79,6 +79,17 @@ public class FieldToViewMapper {
             }
         }
 
+        if (!ReflectionHelper.isBasico(modelField.getField().getType())) {
+            try {
+                EditorViewComponent currentEditor = (EditorViewComponent) stack.getLast().getViewComponent();
+
+                return new View(stack, new OwnedPojoViewComponent(currentEditor.getBinder(), modelField.getField()), new EditorController(ReflectionHelper.getValue(modelField.getField(), currentEditor.getModel())));
+            } catch (Exception e) {
+                return new ProblemView(stack, "Error", new Error(e));
+            }
+        }
+
+
         ComponentView view = new ComponentView(stack, modelField.getField().getName(), null,
                 new FakeComponent("Field " + modelField.getField().getName()));
         view.setController(new FieldController(modelField));
