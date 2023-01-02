@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadin.components;
 
+import com.vaadin.event.ShortcutAction;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
@@ -91,6 +92,7 @@ public class ComponentWrapper extends AbstractViewComponent {
                             e -> MDDUIAccessor.goTo(stack.getState(finalBackToView))));
             section.setComponentAlignment(b, Alignment.MIDDLE_CENTER);
             b.addStyleName(ValoTheme.BUTTON_QUIET);
+            b.setClickShortcut(ShortcutAction.KeyCode.ENTER);
         }
     }
 

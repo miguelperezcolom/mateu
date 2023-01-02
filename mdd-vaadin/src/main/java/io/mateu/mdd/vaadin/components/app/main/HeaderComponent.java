@@ -21,7 +21,9 @@ import io.mateu.mdd.shared.interfaces.IModule;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class HeaderComponent extends HorizontalLayout {
@@ -33,6 +35,7 @@ public class HeaderComponent extends HorizontalLayout {
     private boolean isPrivate;
     private CssLayout barContainer;
     private MenuSearcher menuSearcher;
+    private Map<String, MenuBar.MenuItem> itemsByState = new HashMap<>();
 
 
     public HeaderComponent(MainComponent home) {
@@ -167,6 +170,7 @@ public class HeaderComponent extends HorizontalLayout {
         barContainer.removeAllComponents();
 
         MenuBar menubar = new MenuBar();
+        itemsByState = new HashMap<>();
         menubar.addStyleName(ValoTheme.MENUBAR_BORDERLESS);
 
         List<IArea> areas = Arrays.asList(app.getAreas()).stream().filter(a -> (!isPrivate && a.isPublicAccess()) || (isPrivate && !a.isPublicAccess())).collect(Collectors.toList());
@@ -190,9 +194,10 @@ public class HeaderComponent extends HorizontalLayout {
                 MenuBar.MenuItem submenu = menubar.addItem(entry.getCaption(), null);
                 addSubmenu(app, submenu, (AbstractMenu) entry);
             } else if (entry instanceof AbstractAction) {
-                menubar.addItem(entry.getCaption(), (item) -> {
+                MenuBar.MenuItem item = menubar.addItem(entry.getCaption(), (i) -> {
                     home.irA(app.getState(entry));
                 });
+                itemsByState.put("/" + app.getState(entry), item);
             }
             //file.addSeparator();
         }
@@ -251,5 +256,13 @@ public class HeaderComponent extends HorizontalLayout {
 
     public void updateSession() {
         menuSearcher.updateDataProvider((AbstractApplication) MDDUIAccessor.getApp());
+    }
+
+    public void markMenu(String path) {
+        String k = itemsByState.keySet().stream().filter(s -> path.startsWith(s)).findFirst().orElse(null);
+        itemsByState.values().forEach(i -> i.setStyleName(null));
+        if (k != null) {
+            itemsByState.get(k).setStyleName("selected");
+        }
     }
 }

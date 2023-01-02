@@ -263,4 +263,8 @@ public class HeaderForMobileComponent extends HorizontalLayout {
         }
         refreshMenuBar();
     }
+
+    public void markMenu(String path) {
+        //todo: mark menu option in mobile menu
+    }
 }

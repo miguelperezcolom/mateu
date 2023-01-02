@@ -83,4 +83,9 @@ public class MainComponent extends VerticalLayout {
         getHeader().refresh(isPrivate);
         getHeaderForMobile().refresh(isPrivate);
     }
+
+    public void markMenu(String path) {
+        getHeader().markMenu(path);
+        getHeaderForMobile().markMenu(path);
+    }
 }
