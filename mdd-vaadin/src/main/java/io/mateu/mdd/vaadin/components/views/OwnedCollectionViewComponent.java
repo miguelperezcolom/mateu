@@ -24,11 +24,12 @@ import java.util.*;
 import java.util.function.Consumer;
 
 @Slf4j
-public class OwnedCollectionComponent extends EditorViewComponent {
+public class OwnedCollectionViewComponent extends EditorViewComponent {
 
     private final MDDBinder parentBinder;
     private final FieldInterfaced field;
     private Collection collection;
+    List<AbstractAction> myActions;
 
     private int currentIndex = 0;
 
@@ -56,6 +57,14 @@ public class OwnedCollectionComponent extends EditorViewComponent {
 
     @Override
     public List<AbstractAction> getActions() {
+        if (myActions == null) {
+            myActions = buildActions();
+            getActionsPerSection().put("", myActions);
+        }
+        return myActions;
+    }
+
+    private List<AbstractAction> buildActions() {
         List<AbstractAction> l = new ArrayList<>();
 
         if (field != null) {
@@ -68,7 +77,7 @@ public class OwnedCollectionComponent extends EditorViewComponent {
 
             if (!isActionPresent("col_prev")) {
                 l.add(new MDDRunnableAction("") {
-                //l.add(new AbstractAction("col_prev", VaadinIcons.ARROW_UP, "Prev") {
+                    //l.add(new AbstractAction("col_prev", VaadinIcons.ARROW_UP, "Prev") {
 
                     @Override
                     public void run() {
@@ -87,7 +96,7 @@ public class OwnedCollectionComponent extends EditorViewComponent {
 
             if (!isActionPresent("col_next")) {
                 l.add(new MDDRunnableAction("") {
-                //l.add(new AbstractAction("col_next", VaadinIcons.ARROW_DOWN, "Next") {
+                    //l.add(new AbstractAction("col_next", VaadinIcons.ARROW_DOWN, "Next") {
                     @Override
                     public void run() {
                         if (validate()) {
@@ -204,7 +213,7 @@ public class OwnedCollectionComponent extends EditorViewComponent {
         });
     }
 
-    public OwnedCollectionComponent(MDDBinder parentBinder, FieldInterfaced field, int index) throws Exception {
+    public OwnedCollectionViewComponent(MDDBinder parentBinder, FieldInterfaced field, int index) throws Exception {
         super(field.getGenericClass());
         this.parentBinder = parentBinder;
         this.field = field;

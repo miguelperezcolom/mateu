@@ -105,6 +105,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private Method statusMethod;
     private FieldInterfaced statusField;
 
+    public Map<String, List<AbstractAction>> getActionsPerSection() {
+        return actionsPerSection;
+    }
 
     public Map<FieldInterfaced, ListViewComponent> getEmbeddedListViewComponents() {
         return embeddedListViewComponents;
@@ -280,7 +283,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         this.modelType = model.getClass();
         this.visibleFields = visibleFields;
         this.hiddenFields = hiddenFields;
-        this.createSaveButton = !(this instanceof OwnedCollectionComponent) && createSaveButton;
+        this.createSaveButton = !(this instanceof OwnedCollectionViewComponent) && createSaveButton;
         setModel(model);
     }
 
@@ -963,7 +966,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         } else {
             if (modelType.isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(modelType)) {
-                if (field == null && !(this instanceof OwnedCollectionComponent) && !isActionPresent("refresh")) {
+                if (field == null && !(this instanceof OwnedCollectionViewComponent) && !isActionPresent("refresh")) {
 
                     Button i;
                     bar.addComponent(i = new Button("", VaadinIcons.REFRESH));
@@ -1213,9 +1216,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             if (getMenuItemById("prev") != null) getMenuItemById("prev").setVisible(!isNewRecord() && listViewComponent != null);
             if (getMenuItemById("next") != null) getMenuItemById("next").setVisible(!isNewRecord() && listViewComponent != null);
             if (getMenuItemById("duplicate") != null) getMenuItemById("duplicate").setVisible(!isNewRecord());
-            if (getMenuItemById("add") != null && (getView() == null || getView().getWindowContainer() != null || this instanceof OwnedCollectionComponent)) getMenuItemById("add").setVisible(false);
-            if (getMenuItemById("remove") != null && (getView() == null || getView().getWindowContainer() != null || this instanceof OwnedCollectionComponent)) getMenuItemById("remove").setVisible(false);
-            if (getMenuItemById("save") != null && this instanceof OwnedCollectionComponent) getMenuItemById("save").setVisible(false);
+            if (getMenuItemById("add") != null && (getView() == null || getView().getWindowContainer() != null || this instanceof OwnedCollectionViewComponent)) getMenuItemById("add").setVisible(false);
+            if (getMenuItemById("remove") != null && (getView() == null || getView().getWindowContainer() != null || this instanceof OwnedCollectionViewComponent)) getMenuItemById("remove").setVisible(false);
+            if (getMenuItemById("save") != null && this instanceof OwnedCollectionViewComponent) getMenuItemById("save").setVisible(false);
 
         }
 

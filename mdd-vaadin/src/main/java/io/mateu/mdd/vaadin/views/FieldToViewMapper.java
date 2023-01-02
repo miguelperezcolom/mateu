@@ -4,7 +4,6 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
-import io.mateu.mdd.core.annotations.MateuUI;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
@@ -13,6 +12,7 @@ import io.mateu.mdd.shared.interfaces.App;
 import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.shared.pojos.PrivateHome;
 import io.mateu.mdd.shared.pojos.PublicHome;
+import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.actions.AcctionRunner;
 import io.mateu.mdd.vaadin.components.ComponentWrapper;
 import io.mateu.mdd.vaadin.components.HomeComponent;
@@ -70,16 +70,15 @@ public class FieldToViewMapper {
         }
 
         if (Collection.class.isAssignableFrom(modelField.getField().getType())) {
-            ComponentView view = null;
             try {
-                view = new ComponentView(stack, modelField.getField().getName(), null,
-                        new CollectionListViewComponent((Collection) ReflectionHelper.getValue(modelField.getField(), modelField.getInstance()), ReflectionHelper.getGenericClass(modelField.getField(), Collection.class, "T")).build());
+                EditorViewComponent currentEditor = (EditorViewComponent) stack.getLast().getViewComponent();
+
+                return new View(stack, new OwnedCollectionViewComponent(currentEditor.getBinder(), modelField.getField(), (Integer) MDDUIAccessor.getPendingResult()), new VoidController());
             } catch (Exception e) {
                 return new ProblemView(stack, "Error", new Error(e));
             }
-            view.setController(new CollectionController(modelField));
-            return view;
         }
+
         ComponentView view = new ComponentView(stack, modelField.getField().getName(), null,
                 new FakeComponent("Field " + modelField.getField().getName()));
         view.setController(new FieldController(modelField));

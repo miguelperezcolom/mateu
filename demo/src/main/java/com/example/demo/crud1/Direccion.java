@@ -5,12 +5,13 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import javax.persistence.Id;
 import java.util.UUID;
 
 @Data@EqualsAndHashCode(of = "id")
 public class Direccion {
 
-    @Ignored
+    @Ignored@Id
     private String id = UUID.randomUUID().toString();
 
     private String calle;
@@ -19,7 +20,7 @@ public class Direccion {
 
     @Override
     public String toString() {
-        return id;
+        return id.substring(0, 7);
     }
 
 }

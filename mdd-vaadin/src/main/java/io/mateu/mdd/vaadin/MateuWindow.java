@@ -3,7 +3,7 @@ package io.mateu.mdd.vaadin;
 import com.vaadin.ui.Window;
 import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
-import io.mateu.mdd.vaadin.components.views.OwnedCollectionComponent;
+import io.mateu.mdd.vaadin.components.views.OwnedCollectionViewComponent;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.mdd.vaadin.util.VaadinHelper;
 
@@ -25,7 +25,7 @@ public class MateuWindow extends Window {
     public void close() {
         if (!"noback".equals(getData())) {
             if (stack.getLast() != null
-                    && !(stack.getLast().getComponent() instanceof OwnedCollectionComponent)
+                    && !(stack.getLast().getComponent() instanceof OwnedCollectionViewComponent)
                     && stack.getLast().getComponent() instanceof EditorViewComponent
                     && ((PersistentPojo.class.isAssignableFrom(((EditorViewComponent)stack.getLast()
                         .getComponent()).getModelType())

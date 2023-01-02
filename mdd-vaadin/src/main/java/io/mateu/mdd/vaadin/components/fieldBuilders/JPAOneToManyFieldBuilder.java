@@ -32,9 +32,7 @@ import io.mateu.mdd.shared.interfaces.IResource;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.components.views.ListViewComponent;
-import io.mateu.mdd.vaadin.components.views.OwnedCollectionComponent;
 import io.mateu.mdd.vaadin.data.MDDBinder;
-import io.mateu.mdd.vaadin.navigation.MateuViewProvider;
 import io.mateu.mdd.vaadin.util.VaadinHelper;
 import io.mateu.reflection.*;
 import io.mateu.util.Helper;
@@ -531,7 +529,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                                         try {
                                             Collection col;
                                             Object i = Iterables.getLast(col = ReflectionHelper.addToCollection(field, binder.getBean()));
-                                            editar(binder, field, i, col.size() - 1);
+                                            //editar(binder, field, i, col.size() - 1);
+                                            binder.setBean(binder.getBean(), false);
                                         } catch (Exception ex) {
                                             Notifier.alert(ex);
                                         }
@@ -541,7 +540,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                                             VaadinHelper.fill("I need some data", con, i -> {
                                                 try {
                                                     Collection col = ReflectionHelper.addToCollection(field, binder.getBean(), i);
-                                                    editar(binder, field, i, col.size() - 1);
+                                                    //editar(binder, field, i, col.size() - 1);
+                                                    binder.setBean(binder.getBean(), false);
                                                 } catch (Exception ex) {
                                                     Notifier.alert(ex);
                                                 }

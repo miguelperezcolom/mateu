@@ -371,7 +371,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
         addStatusBar();
 
         addActionsBar(true);
-        addViewActionsMenuItems(getActionsContainer(), getActions());
+//        addViewActionsMenuItems(getActionsContainer(), getActions());
 
         addComponent(subheader = new CssLayout());
         subheader.addStyleName(CSS.NOPADDING);

@@ -27,7 +27,7 @@ import io.mateu.mdd.vaadin.components.fieldBuilders.AbstractFieldBuilder;
 import io.mateu.mdd.vaadin.components.views.EditorListener;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
 import io.mateu.mdd.vaadin.components.views.ListViewComponent;
-import io.mateu.mdd.vaadin.components.views.OwnedCollectionComponent;
+import io.mateu.mdd.vaadin.components.views.OwnedCollectionViewComponent;
 import io.mateu.mdd.vaadin.navigation.MateuViewProvider;
 import io.mateu.mdd.vaadin.navigation.View;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
@@ -287,7 +287,7 @@ public class MateuUI extends UI implements IMDDUI {
 
     @Override
     public void goBack() {
-        if (stack.getLast() != null && !(stack.getLast().getComponent() instanceof OwnedCollectionComponent)
+        if (stack.getLast() != null && !(stack.getLast().getComponent() instanceof OwnedCollectionViewComponent)
                 && stack.getLast().getComponent() instanceof EditorViewComponent
                 && ((PersistentPojo.class.isAssignableFrom(((EditorViewComponent)stack.getLast().getComponent())
                     .getModelType())
