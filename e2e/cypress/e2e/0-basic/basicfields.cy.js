@@ -17,7 +17,7 @@ describe('basic fields', () => {
         cy.get('.viewTitle').contains('Basic form').should('be.visible')
     })
 
-    it('displays the menu', () => {
+    it('fields and actions should work as expected', () => {
 
         cy.get('.test-name').should('be.visible')
         cy.get('.test-name').type('Mateu');
@@ -39,4 +39,36 @@ describe('basic fields', () => {
 
         cy.get('.test-assessment').contains('Mateu,14,1200.25,62.43,true').should('exist')
     })
+
+    it('mandatory fields are checked', () => {
+
+        cy.get('.test-name').type('Mateu');
+
+        cy.get('.test-age').type('14');
+
+        cy.get('.test-rating').type('1200.25');
+
+        cy.get('.test-width').type('62.43');
+
+        cy.get('.test-selected').check({force: true});
+
+        cy.get('.test-canNotBeEmpty').clear();
+
+        cy.get('.v-button').contains('One action').click({force: true})
+
+        cy.get('.v-Notification.error').contains('Please solve errors for all fields').should('be.visible');
+
+        cy.get('.v-Notification.error').contains('Please solve errors for all fields').click();
+
+        cy.get('.v-Notification.error').should('not.exist');
+
+        cy.get('.test-canNotBeEmpty').type('x');
+
+        cy.get('.v-button').contains('One action').click({force: true})
+
+        cy.get('.test-assessment').contains('Mateu,14,1200.25,62.43,true').should('exist')
+    })
+
+
+
 })
