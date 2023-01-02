@@ -34,33 +34,32 @@ public class OwnedPojoViewComponent extends EditorViewComponent {
         return VaadinIcons.LIST_SELECT;
     }
 
-    public boolean beforeBack() {
-        if (!validate()) return false;
-        Object bean = getParentBinder().getBean();
-        try {
-            ReflectionHelper.setValue(field, bean, getBinder().getBean());
-            getParentBinder().setBean(bean, false);
-        } catch (Exception e) {
-            Notifier.alert(e);
-            return false;
-        }
-        return true;
-    }
-
-    public MDDBinder getParentBinder() {
-        return parentBinder;
-    }
-
     public OwnedPojoViewComponent(MDDBinder parentBinder, FieldInterfaced field) throws Exception {
         super(field.getType());
         this.parentBinder = parentBinder;
         this.field = field;
-        setModel(ReflectionHelper.getValue(field, parentBinder.getBean()));
+        setModel(ReflectionHelper.clone(ReflectionHelper.getValue(field, parentBinder.getBean())));
     }
 
     @Override
-    public void onGoBack() {
+    public List<AbstractAction> getMainActions() {
+        return List.of(new MDDRunnableAction("Save") {
+            @Override
+            public void run() throws Throwable {
+                doSave();
+                setInitialValues(buildSignature());
+                goBack();
+            }
+        });
+    }
 
+    @Override
+    public void save(boolean goBack, boolean notify, boolean copyEditableValues) throws Throwable {
+        doSave();
+        if (goBack) goBack();
+    }
+
+    private void doSave() {
         if (parentBinder != null) {
             try {
                 Object o = parentBinder.getBean();
@@ -70,7 +69,5 @@ public class OwnedPojoViewComponent extends EditorViewComponent {
                 Notifier.alert(e);
             }
         }
-
     }
-
 }

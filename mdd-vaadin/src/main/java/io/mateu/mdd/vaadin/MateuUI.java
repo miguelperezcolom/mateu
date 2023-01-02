@@ -24,10 +24,7 @@ import io.mateu.mdd.vaadin.components.app.main.MainComponent;
 import io.mateu.mdd.vaadin.components.app.views.firstLevel.AreaComponent;
 import io.mateu.mdd.vaadin.components.app.views.firstLevel.MenuComponent;
 import io.mateu.mdd.vaadin.components.fieldBuilders.AbstractFieldBuilder;
-import io.mateu.mdd.vaadin.components.views.EditorListener;
-import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
-import io.mateu.mdd.vaadin.components.views.ListViewComponent;
-import io.mateu.mdd.vaadin.components.views.OwnedCollectionViewComponent;
+import io.mateu.mdd.vaadin.components.views.*;
 import io.mateu.mdd.vaadin.navigation.MateuViewProvider;
 import io.mateu.mdd.vaadin.navigation.View;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
@@ -289,10 +286,15 @@ public class MateuUI extends UI implements IMDDUI {
     public void goBack() {
         if (stack.getLast() != null && !(stack.getLast().getComponent() instanceof OwnedCollectionViewComponent)
                 && stack.getLast().getComponent() instanceof EditorViewComponent
-                && ((PersistentPojo.class.isAssignableFrom(((EditorViewComponent)stack.getLast().getComponent())
-                    .getModelType())
-                || ((EditorViewComponent)stack.getLast().getComponent()).getModelType()
-                    .isAnnotationPresent(Entity.class))
+                && ((
+                    stack.getLast().getComponent() instanceof OwnedPojoViewComponent
+                    || stack.getLast().getComponent() instanceof OwnedPojoViewComponent
+                    || stack.getLast().getComponent() instanceof OwnedCollectionViewComponent
+                    ||(PersistentPojo.class.isAssignableFrom(((EditorViewComponent)stack.getLast().getComponent())
+                        .getModelType())
+                    || ((EditorViewComponent)stack.getLast().getComponent()).getModelType()
+                        .isAnnotationPresent(Entity.class))
+                )
                 && ((EditorViewComponent)stack.getLast().getComponent()).isModificado())
                 && ((EditorViewComponent)stack.getLast().getComponent()).isCreateSaveButton()) {
             VaadinHelper.saveOrDiscard("There are unsaved changes. What do you want to do?",

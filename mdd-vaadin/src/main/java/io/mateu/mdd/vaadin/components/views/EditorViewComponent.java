@@ -105,6 +105,14 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private Method statusMethod;
     private FieldInterfaced statusField;
 
+    public Map<String, Object> getInitialValues() {
+        return initialValues;
+    }
+
+    public void setInitialValues(Map<String, Object> initialValues) {
+        this.initialValues = initialValues;
+    }
+
     public Map<String, List<AbstractAction>> getActionsPerSection() {
         return actionsPerSection;
     }
@@ -1636,11 +1644,12 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             } else if (ReadOnlyPojo.class.isAssignableFrom(modelType)) {
                 ReadOnlyPojo ppojo = null;
 
-                if (id != null && modelType.equals(id.getClass())) ppojo = (ReadOnlyPojo) id;
-                else ppojo = (ReadOnlyPojo) modelType.newInstance();
-
-                ppojo.load(id);
-
+                if (id != null && modelType.equals(id.getClass())) {
+                    ppojo = (ReadOnlyPojo) id;
+                } else {
+                    ppojo = (ReadOnlyPojo) modelType.newInstance();
+                    ppojo.load(id);
+                }
 
                 if (parent != null) {
                     for (FieldInterfaced f : ReflectionHelper.getAllFields(ppojo.getClass())) if (f.getType().equals(parent.getClass()) && f.isAnnotationPresent(NotNull.class)) {

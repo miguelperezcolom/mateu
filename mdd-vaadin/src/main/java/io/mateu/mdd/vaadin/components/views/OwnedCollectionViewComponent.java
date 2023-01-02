@@ -51,6 +51,7 @@ public class OwnedCollectionViewComponent extends EditorViewComponent {
         return true;
     }
 
+
     public MDDBinder getParentBinder() {
         return parentBinder;
     }
