@@ -9,6 +9,7 @@ import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.Caption;
+import io.mateu.mdd.shared.annotations.ReadOnly;
 import io.mateu.mdd.shared.annotations.Subtitle;
 import io.mateu.mdd.shared.data.ChartData;
 import io.mateu.mdd.shared.data.SumData;
@@ -283,6 +284,13 @@ public class RpcListViewComponent extends ListViewComponent {
         if (resultsComponent == null) return null;
         if (getRpcListView() instanceof StepInterceptor) return ((StepInterceptor) getRpcListView()).onEdit(step);
         Object row = resultsComponent.getRow(step);
+        if (row == null) {
+            if (ReadOnlyPojo.class.isAssignableFrom(getModelType())) {
+                Object i = ReflectionHelper.newInstance(getModelType());
+                ((ReadOnlyPojo)i).load(step);
+                return i;
+            }
+        }
         return getRpcListView().onEdit(row);
     }
 }

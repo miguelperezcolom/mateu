@@ -193,11 +193,12 @@ public class HeaderComponent extends HorizontalLayout {
             if (entry instanceof AbstractMenu) {
                 MenuBar.MenuItem submenu = menubar.addItem(entry.getCaption(), null);
                 addSubmenu(app, submenu, (AbstractMenu) entry);
+                itemsByState.put(app.getState(entry), submenu);
             } else if (entry instanceof AbstractAction) {
                 MenuBar.MenuItem item = menubar.addItem(entry.getCaption(), (i) -> {
                     home.irA(app.getState(entry));
                 });
-                itemsByState.put("/" + app.getState(entry), item);
+                itemsByState.put(app.getState(entry), item);
             }
             //file.addSeparator();
         }
@@ -259,7 +260,7 @@ public class HeaderComponent extends HorizontalLayout {
     }
 
     public void markMenu(String path) {
-        String k = itemsByState.keySet().stream().filter(s -> path.startsWith(s)).findFirst().orElse(null);
+        String k = itemsByState.keySet().stream().filter(s -> path.startsWith(s) || path.startsWith("/" + s)).findFirst().orElse(null);
         itemsByState.values().forEach(i -> i.setStyleName(null));
         if (k != null) {
             itemsByState.get(k).setStyleName("selected");

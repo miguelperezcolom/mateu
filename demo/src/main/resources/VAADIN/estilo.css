@@ -133,7 +133,11 @@ body .mateu .maincomponent .contenido .section {
     margin-bottom: 80px;
 }
 
-
+body .mateu .v-menubar > .v-menubar-menuitem.selected {
+    font-weight: 600;
+    font-size: 18px;
+    text-decoration: underline;
+}
 
 
 body .mateu .maincomponent .contenido .fieldgroup.nofieldgroupheader {

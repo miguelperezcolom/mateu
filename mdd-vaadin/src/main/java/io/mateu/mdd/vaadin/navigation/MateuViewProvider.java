@@ -73,8 +73,6 @@ public class MateuViewProvider implements ViewProvider {
 
         path = sanitizePath(path);
 
-        MateuUI.get().getMain().markMenu(path);
-
         // check private/public
         boolean privada = checkPrivate(path);
 
@@ -154,6 +152,8 @@ public class MateuViewProvider implements ViewProvider {
 
         lastState = path;
         lastView = view;
+
+        MateuUI.get().getMain().markMenu(path);
 
         // abrir en ventana si hace falta
         if (view != null && openInWindow(view) && MateuUI.get() != null) {
