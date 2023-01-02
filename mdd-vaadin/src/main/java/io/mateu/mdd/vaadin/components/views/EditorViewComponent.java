@@ -105,6 +105,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private Method statusMethod;
     private FieldInterfaced statusField;
 
+    private boolean firstBuild = true;
+
     public Map<String, Object> getInitialValues() {
         return initialValues;
     }
@@ -567,7 +569,8 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 else links.setVisible(true);
             }
 
-            if (!(model instanceof ReadOnlyPojo) || model instanceof PersistentPojo) focusFirstField(panelContenido.getContent());
+            if (firstBuild && (!(model instanceof ReadOnlyPojo) || model instanceof PersistentPojo)) focusFirstField(panelContenido.getContent());
+            firstBuild = false;
 
         } catch (Exception e) {
             Notifier.alert(e);
