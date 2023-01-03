@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadin.controllers.secondLevel;
 
+import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.vaadin.components.app.views.secondLevel.FiltersViewFlowComponent;
 import io.mateu.mdd.vaadin.components.views.JPAListViewComponent;
 import io.mateu.mdd.vaadin.components.views.ListViewComponent;
@@ -13,6 +14,7 @@ import io.mateu.util.persistence.JPAHelper;
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 public class ListViewComponentController extends Controller {
 
@@ -37,7 +39,11 @@ public class ListViewComponentController extends Controller {
                 if (form != null) {
                     return form;
                 } else {
-                    return ReflectionHelper.newInstance(listViewComponent.getModelType());
+                    try {
+                        return ReflectionHelper.newInstance(listViewComponent.getModelType());
+                    } catch (IllegalArgumentException e) {
+                        throw new Exception(listViewComponent.getModelType().getSimpleName() + " needs a no args constructor");
+                    }
                 }
             } else {
 
@@ -54,10 +60,16 @@ public class ListViewComponentController extends Controller {
                         Class type = listViewComponent.getModelType();
                         return JPAHelper.find(type, ReflectionHelper.toId(type, step));
                     } else if (listViewComponent instanceof RpcListViewComponent) {
-                        Object form = ((RpcListViewComponent) listViewComponent).onEdit(URLDecoder.decode(step, StandardCharsets.UTF_8));
+                        Object form = ((RpcListViewComponent) listViewComponent).onEdit(new String(Base64.getDecoder().decode(step)));
+                        Class type = listViewComponent.getModelType();
                         if (form == null) {
-                            Class type = listViewComponent.getModelType();
                             form = ReflectionHelper.newInstance(type);
+                        } else if (!form.getClass().equals(type)) {
+                            try {
+                                form = ReflectionHelper.newInstance(type, form);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
                         return form;
                     }

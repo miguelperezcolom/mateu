@@ -85,11 +85,9 @@ public class EditorController extends Controller {
 
             boolean returnAsResult = false;
             if ("submitted".equals(step) && model instanceof Runnable) {
-                method = model.getClass().getMethod("run");
-                returnAsResult = true;
+                return new Result("Done");
             } else if ("submitted".equals(step) && model instanceof Callable) {
-                method = model.getClass().getMethod("call");
-                returnAsResult = true;
+                return new Result(MDDUIAccessor.getPendingResult());
             } else if ("submitted".equals(step) && model.getClass().isAnnotationPresent(Entity.class)) {
                 return new Result("Saved");
             } else if ("submitted".equals(step) && model instanceof PersistentPojo) {

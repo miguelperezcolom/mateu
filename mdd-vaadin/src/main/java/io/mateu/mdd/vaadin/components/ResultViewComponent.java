@@ -45,10 +45,10 @@ public class ResultViewComponent extends AbstractViewComponent {
         section.setComponentAlignment(check, Alignment.MIDDLE_CENTER);
 
         Label label;
-        section.addComponent(label = new Label(result.getModel().toString()));
+        section.addComponent(label = new Label(result.getModel() != null?result.getModel().toString():"Done!"));
         section.setComponentAlignment(label, Alignment.MIDDLE_CENTER);
 
-        if (result.getModel() instanceof HasActions) ((HasActions) result.getModel()).getActions().forEach(action -> addAction(action));
+        if (result.getModel() != null && result.getModel() instanceof HasActions) ((HasActions) result.getModel()).getActions().forEach(action -> addAction(action));
 
         addBack(section);
 

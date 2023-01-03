@@ -3,24 +3,26 @@ package com.example.demo.e2e.dtos;
 import io.mateu.mdd.core.interfaces.HasTitle;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.Ignored;
+import io.mateu.mdd.shared.annotations.NotInList;
 import io.mateu.mdd.shared.annotations.Output;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
 @Data@EqualsAndHashCode(of = "id")
+@AllArgsConstructor@NoArgsConstructor
 public class SamplePojo implements HasTitle {
 
-    @Ignored
-    private final String id = UUID.randomUUID().toString();
+    private String id = UUID.randomUUID().toString();
 
     private String name;
 
     private int age;
 
-    @Output
+    @Output@NotInList
     private String assessment;
 
     @Action
@@ -41,5 +43,10 @@ public class SamplePojo implements HasTitle {
     public SamplePojo(String name, int age) {
         this.name = name;
         this.age = age;
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }

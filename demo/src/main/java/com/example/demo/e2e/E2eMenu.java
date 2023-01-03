@@ -1,6 +1,7 @@
 package com.example.demo.e2e;
 
 import com.example.demo.e2e.cruds.basic.BasicCrud;
+import com.example.demo.e2e.cruds.notSoBasic.NotSoBasicCrud;
 import com.example.demo.e2e.forms.BasicForm;
 import com.example.demo.e2e.forms.CollectionFieldForm;
 import com.example.demo.e2e.forms.PojoFieldForm;
@@ -20,4 +21,6 @@ public class E2eMenu {
     @MenuOption
     private BasicCrud basicCrud;
 
+    @MenuOption
+    private NotSoBasicCrud notSoBasicCrud;
 }

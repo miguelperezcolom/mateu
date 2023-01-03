@@ -25,10 +25,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class RpcListViewComponent extends ListViewComponent {
 
@@ -68,8 +65,10 @@ public class RpcListViewComponent extends ListViewComponent {
             public void onEdit(Object id) {
                 if (rpcListView.isEditHandled()) {
                     try {
-                        MateuUI.get().setPendingResult(rpcListView.onEdit(id));
-                        MDDUIAccessor.go(getFieldPrefix() + URLEncoder.encode("" + id, StandardCharsets.UTF_8));
+                        Object dto = rpcListView.onEdit(id);
+                        if (dto == null) dto = id;
+                        MateuUI.get().setPendingResult(dto);
+                        MDDUIAccessor.go(getFieldPrefix() + Base64.getEncoder().encodeToString(("" + id).getBytes(StandardCharsets.UTF_8)));
                     } catch (Throwable throwable) {
                         Notifier.alert(throwable);
                     }
@@ -79,8 +78,10 @@ public class RpcListViewComponent extends ListViewComponent {
             @Override
             public void onSelect(Object id) {
                 if (rpcListView.isSelectHandled()) {
-                    MateuUI.get().setPendingResult(rpcListView.onSelect(id));
-                    MDDUIAccessor.go(getFieldPrefix() + URLEncoder.encode("" + id, StandardCharsets.UTF_8));
+                    Object dto = rpcListView.onSelect(id);
+                    if (dto == null) dto = id;
+                    MateuUI.get().setPendingResult(dto);
+                    MDDUIAccessor.go(getFieldPrefix() + Base64.getEncoder().encodeToString(("" + id).getBytes(StandardCharsets.UTF_8)));
                 }
             }
         });
@@ -98,21 +99,25 @@ public class RpcListViewComponent extends ListViewComponent {
             public void onEdit(Object id) {
                 if (rpcListView.isEditHandled()) {
                     try {
-                        MateuUI.get().setPendingResult(rpcListView.onEdit(id));
-                        MDDUIAccessor.go(getFieldPrefix() + URLEncoder.encode("" + id, StandardCharsets.UTF_8));
+                        Object dto = rpcListView.onEdit(id);
+                        if (dto == null) dto = id;
+                        MateuUI.get().setPendingResult(dto);
+                        MDDUIAccessor.go(getFieldPrefix() + Base64.getEncoder().encodeToString(("" + id).getBytes(StandardCharsets.UTF_8)));
                     } catch (Throwable throwable) {
                         Notifier.alert(throwable);
                     }
                 } else {
-                    MDDUIAccessor.go(getFieldPrefix() + URLEncoder.encode("" + id, StandardCharsets.UTF_8));
+                    MDDUIAccessor.go(getFieldPrefix() + Base64.getEncoder().encodeToString(("" + id).getBytes(StandardCharsets.UTF_8)));
                 }
             }
 
             @Override
             public void onSelect(Object id) {
                 if (rpcListView.isSelectHandled()) {
-                    MateuUI.get().setPendingResult(rpcListView.onSelect(id));
-                    MDDUIAccessor.go(getFieldPrefix() + URLEncoder.encode("" + id, StandardCharsets.UTF_8));
+                    Object dto = rpcListView.onSelect(id);
+                    if (dto == null) dto = id;
+                    MateuUI.get().setPendingResult(dto);
+                    MDDUIAccessor.go(getFieldPrefix() + Base64.getEncoder().encodeToString(("" + id).getBytes(StandardCharsets.UTF_8)));
                 }
             }
         });
@@ -207,7 +212,7 @@ public class RpcListViewComponent extends ListViewComponent {
         try {
             rows = rpcListView.rpc(filters, sortOrders, offset, limit);
             if (rows == null) throw new Exception("Returned rows can not be null");
-            if (rows.size() < limit) throw new Exception("Returned rows should be at least " + limit);
+            //if (rows.size() < limit) throw new Exception("Returned rows should be at least " + limit);
             return rows;
         } catch (Throwable throwable) {
             Notifier.alert(throwable);
@@ -302,6 +307,7 @@ public class RpcListViewComponent extends ListViewComponent {
                 ((ReadOnlyPojo)i).load(step);
                 return i;
             }
+            row = deserializeId(step);
         }
         return getRpcListView().onEdit(row);
     }

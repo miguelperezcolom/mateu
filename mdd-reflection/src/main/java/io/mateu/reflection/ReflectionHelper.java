@@ -1,5 +1,8 @@
 package io.mateu.reflection;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -33,6 +36,7 @@ import org.apache.commons.beanutils.converters.LongConverter;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.XMLOutputter;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 
@@ -65,6 +69,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     static List<Class> notFromString = new ArrayList<>();
     public static IMDDUIInjector injector;
     private static BeanProvider beanProvider;
+    private static ObjectMapper mapper = new ObjectMapper();
 
 
     static {
@@ -2552,6 +2557,10 @@ public class ReflectionHelper extends BaseReflectionHelper {
         return toXml(o, new ArrayList<>());
     }
 
+    public static String toString(Element o) {
+        return new XMLOutputter().outputString(o);
+    }
+
     public static Element toXml(Object o, List visited) {
         if (o == null) {
             return null;
@@ -2598,10 +2607,33 @@ public class ReflectionHelper extends BaseReflectionHelper {
                 //todo: acabar
 
                 if (root.getAttribute("className") != null && !Strings.isNullOrEmpty(root.getAttributeValue("className"))) {
-                    o = Class.forName(root.getAttributeValue("className")).newInstance();
+                    o = newInstance(Class.forName(root.getAttributeValue("className")));
+
+                    for (FieldInterfaced f : getAllFields(o.getClass())) {
+                        try {
+                            String sv = root.getAttributeValue(f.getId());
+
+                            if (sv != null) {
+                                if (BaseReflectionHelper.isBasico(f.getType())) {
+                                    setValue(f, o, newInstance(f.getType(), sv));
+                                } else {
+
+                                    //todo: añadir casos collection y map
+
+
+                                }
+                            }
+
+                        } catch (Exception e1) {
+                            e1.printStackTrace();
+                        }
+                    }
+
                 } else {
                     o = new HashMap<>();
                 }
+
+
 
                 return o;
 
@@ -2612,6 +2644,26 @@ public class ReflectionHelper extends BaseReflectionHelper {
         }
     }
 
+    public static String toJson(Object o) {
+        if (o == null) return null;
+        ObjectWriter ow = mapper.writer().withDefaultPrettyPrinter();
+        try {
+            String json = ow.writeValueAsString(o);
+            return json;
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static Object fromJson(String json) {
+        try {
+            return mapper.reader().readValue(json);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
 
     public static <T> Collection<T> extend(Collection<T> list, T o) {
