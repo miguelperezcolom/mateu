@@ -28,6 +28,8 @@ public class JPALocalDateTimeFieldBuilder extends AbstractFieldBuilder {
         DateTimeField tf;
         container.addComponent(tf = new DateTimeField());
 
+        tf.addStyleName("test-" + field.getId());
+
         if (field.isAnnotationPresent(RequestFocus.class)) tf.focus();
 
         if (allFieldContainers != null) allFieldContainers.put(field, tf);

@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.validation.constraints.NotBlank;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter@Setter
 public class BasicForm {
@@ -19,6 +21,10 @@ public class BasicForm {
     private float width;
 
     private boolean selected;
+
+    private LocalDate date;
+
+    private LocalDateTime dateTime;
 
     @NotBlank
     private String canNotBeEmpty = "aa";
@@ -39,7 +45,7 @@ public class BasicForm {
 
 
     private String dump() {
-        return "" + name + "," + age + "," + rating + "," + width + "," + selected;
+        return "" + name + "," + age + "," + rating + "," + width + "," + selected + "," + date + "," + dateTime;
     }
 
 }
