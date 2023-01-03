@@ -62,6 +62,7 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
 
                 tf = hl = new HorizontalLayout();
                 container.addComponent(hl);
+                hl.addStyleName("test-" + field.getId());
 
                 addErrorHandler(field, hl);
 
@@ -94,7 +95,7 @@ public class JPAPOJOFieldBuilder extends AbstractFieldBuilder {
                         Object oldValue = value;
                         value = o;
                         if (true || oldValue != value || (value != null && !value.equals(oldValue))) {
-                            String v = (o != null) ? "" + toHtml(o) : "No value";
+                            String v = (o != null) ? "" + toHtml(o) : "No value. Click here to set";
                             l.setValue(v);
                             HasValue finalHv = this;
                             listeners.forEach(l -> l.valueChange(new ValueChangeEvent(hl, finalHv, oldValue, false)));
