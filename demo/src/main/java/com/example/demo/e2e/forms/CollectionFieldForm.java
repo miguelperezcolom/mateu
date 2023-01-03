@@ -7,10 +7,12 @@ import io.mateu.mdd.shared.annotations.Output;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter@Setter
-public class PojoFieldForm implements HasTitle {
+import java.util.List;
 
-    private SamplePojo pojo;
+@Getter@Setter
+public class CollectionFieldForm implements HasTitle {
+
+    private List<SamplePojo> pojos;
 
     @Output
     private String assessment;
@@ -21,7 +23,7 @@ public class PojoFieldForm implements HasTitle {
     }
 
     private String dump() {
-        return "" + pojo;
+        return "" + pojos.size();
     }
 
     @Override

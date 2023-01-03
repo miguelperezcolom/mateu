@@ -23,9 +23,12 @@ import io.mateu.util.notification.Notifier;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 public class RpcListViewComponent extends ListViewComponent {
 
@@ -66,7 +69,7 @@ public class RpcListViewComponent extends ListViewComponent {
                 if (rpcListView.isEditHandled()) {
                     try {
                         MateuUI.get().setPendingResult(rpcListView.onEdit(id));
-                        MDDUIAccessor.go(getFieldPrefix() + id);
+                        MDDUIAccessor.go(getFieldPrefix() + URLEncoder.encode("" + id, StandardCharsets.UTF_8));
                     } catch (Throwable throwable) {
                         Notifier.alert(throwable);
                     }
@@ -77,7 +80,7 @@ public class RpcListViewComponent extends ListViewComponent {
             public void onSelect(Object id) {
                 if (rpcListView.isSelectHandled()) {
                     MateuUI.get().setPendingResult(rpcListView.onSelect(id));
-                    MDDUIAccessor.go(getFieldPrefix() + id);
+                    MDDUIAccessor.go(getFieldPrefix() + URLEncoder.encode("" + id, StandardCharsets.UTF_8));
                 }
             }
         });
@@ -96,12 +99,12 @@ public class RpcListViewComponent extends ListViewComponent {
                 if (rpcListView.isEditHandled()) {
                     try {
                         MateuUI.get().setPendingResult(rpcListView.onEdit(id));
-                        MDDUIAccessor.go(getFieldPrefix() + id);
+                        MDDUIAccessor.go(getFieldPrefix() + URLEncoder.encode("" + id, StandardCharsets.UTF_8));
                     } catch (Throwable throwable) {
                         Notifier.alert(throwable);
                     }
                 } else {
-                    MDDUIAccessor.go(getFieldPrefix() + id);
+                    MDDUIAccessor.go(getFieldPrefix() + URLEncoder.encode("" + id, StandardCharsets.UTF_8));
                 }
             }
 
@@ -109,7 +112,7 @@ public class RpcListViewComponent extends ListViewComponent {
             public void onSelect(Object id) {
                 if (rpcListView.isSelectHandled()) {
                     MateuUI.get().setPendingResult(rpcListView.onSelect(id));
-                    MDDUIAccessor.go(getFieldPrefix() + id);
+                    MDDUIAccessor.go(getFieldPrefix() + URLEncoder.encode("" + id, StandardCharsets.UTF_8));
                 }
             }
         });
@@ -200,12 +203,21 @@ public class RpcListViewComponent extends ListViewComponent {
 
     @Override
     public List findAll(Object filters, List<QuerySortOrder> sortOrders, int offset, int limit) {
+        List rows = null;
         try {
-            return rpcListView.rpc(filters, sortOrders, offset, limit);
+            rows = rpcListView.rpc(filters, sortOrders, offset, limit);
+            if (rows == null) throw new Exception("Returned rows can not be null");
+            if (rows.size() < limit) throw new Exception("Returned rows should be at least " + limit);
+            return rows;
         } catch (Throwable throwable) {
-            throwable.printStackTrace();
             Notifier.alert(throwable);
-            return null;
+            if (rows == null) {
+                rows = new ArrayList();
+            }
+            for (int i = rows.size(); i < limit; i++) {
+                rows.add(UUID.randomUUID().toString());
+            }
+            return rows;
         }
     }
 

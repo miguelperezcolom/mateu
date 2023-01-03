@@ -11,6 +11,8 @@ import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.persistence.JPAHelper;
 
 import java.lang.reflect.Method;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 public class ListViewComponentController extends Controller {
 
@@ -52,7 +54,7 @@ public class ListViewComponentController extends Controller {
                         Class type = listViewComponent.getModelType();
                         return JPAHelper.find(type, ReflectionHelper.toId(type, step));
                     } else if (listViewComponent instanceof RpcListViewComponent) {
-                        Object form = ((RpcListViewComponent) listViewComponent).onEdit(step);
+                        Object form = ((RpcListViewComponent) listViewComponent).onEdit(URLDecoder.decode(step, StandardCharsets.UTF_8));
                         if (form == null) {
                             Class type = listViewComponent.getModelType();
                             form = ReflectionHelper.newInstance(type);

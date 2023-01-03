@@ -120,57 +120,62 @@ public class ResultsComponent extends VerticalLayout implements Refreshable {
         listViewComponent.buildColumns(this, grid);
 
         // añadimos columna para que no haga feo
-        Grid.Column lastCol = ((Grid.Column) grid.getColumns().get(grid.getColumns().size() - 1));
-        if (lastCol.getRenderer() != null && lastCol.getRenderer() instanceof ButtonRenderer) {
+        if (grid.getColumns().size() > 0) {
+            Grid.Column lastCol = ((Grid.Column) grid.getColumns().get(grid.getColumns().size() - 1));
+            if (lastCol.getRenderer() != null && lastCol.getRenderer() instanceof ButtonRenderer) {
 
-            FieldInterfaced lastRunnableField = null;
-            for (FieldInterfaced f : ReflectionHelper.getAllFields(listViewComponent.getColumnType())) {
-                if (Runnable.class.isAssignableFrom(f.getType())) lastRunnableField = f;
-            }
-
-
-            grid.removeColumn(lastCol);
-            grid.addColumn((d) -> null).setWidthUndefined().setCaption("");
-            FieldInterfaced finalLastRunnableField = lastRunnableField;
-            Grid.Column col = grid.addColumn((d -> {
-                try {
-                    return ((ColumnAction)ReflectionHelper.getValue(finalLastRunnableField, d)).toString();
-                } catch (NoSuchMethodException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
+                FieldInterfaced lastRunnableField = null;
+                for (FieldInterfaced f : ReflectionHelper.getAllFields(listViewComponent.getColumnType())) {
+                    if (Runnable.class.isAssignableFrom(f.getType())) lastRunnableField = f;
                 }
-                return null;
-            }));
-            ButtonRenderer r;
-            col.setRenderer(r = new ButtonRenderer(e -> {
-                try {
-                    Runnable action = ((Runnable) ReflectionHelper.getValue(finalLastRunnableField, e.getItem()));
-                    if (action instanceof ColumnActionGroup) ((ColumnActionGroup) action).run(e, ResultsComponent.this); else action.run();
-                    if (!(action instanceof ColumnActionGroup)) {
-                        try {
-                            ResultsComponent.this.refresh();
-                        } catch (Throwable ex) {
-                            ex.printStackTrace();
-                        }
+
+
+                grid.removeColumn(lastCol);
+                grid.addColumn((d) -> null).setWidthUndefined().setCaption("");
+                FieldInterfaced finalLastRunnableField = lastRunnableField;
+                Grid.Column col = grid.addColumn((d -> {
+                    try {
+                        return ((ColumnAction)ReflectionHelper.getValue(finalLastRunnableField, d)).toString();
+                    } catch (NoSuchMethodException e) {
+                        e.printStackTrace();
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
                     }
-                } catch (NoSuchMethodException ex) {
-                    ex.printStackTrace();
-                } catch (IllegalAccessException ex) {
-                    ex.printStackTrace();
-                } catch (InvocationTargetException ex) {
-                    ex.printStackTrace();
-                }
-            }, "es null"));
-            r.setHtmlContentAllowed(true);
-            col.setSortable(false);
-            col.setStyleGenerator(c -> "v-align-center");
-            col.setWidth(100);
+                    return null;
+                }));
+                ButtonRenderer r;
+                col.setRenderer(r = new ButtonRenderer(e -> {
+                    try {
+                        Runnable action = ((Runnable) ReflectionHelper.getValue(finalLastRunnableField, e.getItem()));
+                        if (action instanceof ColumnActionGroup) ((ColumnActionGroup) action).run(e, ResultsComponent.this); else action.run();
+                        if (!(action instanceof ColumnActionGroup)) {
+                            try {
+                                ResultsComponent.this.refresh();
+                            } catch (Throwable ex) {
+                                ex.printStackTrace();
+                            }
+                        }
+                    } catch (NoSuchMethodException ex) {
+                        ex.printStackTrace();
+                    } catch (IllegalAccessException ex) {
+                        ex.printStackTrace();
+                    } catch (InvocationTargetException ex) {
+                        ex.printStackTrace();
+                    }
+                }, "es null"));
+                r.setHtmlContentAllowed(true);
+                col.setSortable(false);
+                col.setStyleGenerator(c -> "v-align-center");
+                col.setWidth(100);
+            } else {
+                grid.addColumn((d) -> null).setWidthUndefined().setCaption("");
+            }
         } else {
             grid.addColumn((d) -> null).setWidthUndefined().setCaption("");
         }
+
 
 
         grid.addSortListener(new SortEvent.SortListener<GridSortOrder<Object>>() {
@@ -212,7 +217,7 @@ public class ResultsComponent extends VerticalLayout implements Refreshable {
                 (listViewComponent instanceof RpcListViewComponent
                         && ((RpcListViewComponent)listViewComponent).getRpcListView().showCheckboxForSelection()))
             grid.setSelectionMode(Grid.SelectionMode.MULTI);
-        grid.setHeightByRows(10);
+        grid.setHeightByRows(5);
         grid.setWidthFull();
 
 
