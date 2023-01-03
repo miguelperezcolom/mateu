@@ -2,19 +2,17 @@ package com.example.demo.e2e.dtos;
 
 import io.mateu.mdd.core.interfaces.HasTitle;
 import io.mateu.mdd.shared.annotations.Action;
-import io.mateu.mdd.shared.annotations.Ignored;
 import io.mateu.mdd.shared.annotations.NotInList;
 import io.mateu.mdd.shared.annotations.Output;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
 @Data@EqualsAndHashCode(of = "id")
-@AllArgsConstructor@NoArgsConstructor
-public class SamplePojo implements HasTitle {
+@AllArgsConstructor
+public class SampleWithConstructorPojo implements HasTitle {
 
     private String id = UUID.randomUUID().toString();
 
@@ -40,7 +38,7 @@ public class SamplePojo implements HasTitle {
         return "Sample pojo " + name;
     }
 
-    public SamplePojo(String name, int age) {
+    public SampleWithConstructorPojo(String name, int age) {
         this.name = name;
         this.age = age;
     }

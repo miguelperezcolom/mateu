@@ -1,4 +1,4 @@
-package com.example.demo.entidades;
+package com.example.demo.e2e.entities;
 
 import lombok.*;
 

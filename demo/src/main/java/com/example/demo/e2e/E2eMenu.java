@@ -2,25 +2,18 @@ package com.example.demo.e2e;
 
 import com.example.demo.e2e.cruds.basic.BasicCrud;
 import com.example.demo.e2e.cruds.notSoBasic.NotSoBasicCrud;
-import com.example.demo.e2e.forms.BasicForm;
-import com.example.demo.e2e.forms.CollectionFieldForm;
-import com.example.demo.e2e.forms.PojoFieldForm;
+import com.example.demo.e2e.forms.*;
 import io.mateu.mdd.shared.annotations.MenuOption;
+import io.mateu.mdd.shared.annotations.Submenu;
 
 public class E2eMenu {
 
-    @MenuOption
-    private BasicForm basicForm;
+    @Submenu
+    private E2eFormsMenu forms;
 
-    @MenuOption
-    private PojoFieldForm pojoFieldForm;
+    @Submenu
+    private E2eCrudsMenu cruds;
 
-    @MenuOption
-    private CollectionFieldForm collectionFieldForm;
-
-    @MenuOption
-    private BasicCrud basicCrud;
-
-    @MenuOption
-    private NotSoBasicCrud notSoBasicCrud;
+    @Submenu
+    private E2eJpaMenu jpa;
 }
