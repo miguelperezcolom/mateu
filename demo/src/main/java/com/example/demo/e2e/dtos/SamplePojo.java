@@ -1,10 +1,7 @@
 package com.example.demo.e2e.dtos;
 
 import io.mateu.mdd.core.interfaces.HasTitle;
-import io.mateu.mdd.shared.annotations.Action;
-import io.mateu.mdd.shared.annotations.Ignored;
-import io.mateu.mdd.shared.annotations.NotInList;
-import io.mateu.mdd.shared.annotations.Output;
+import io.mateu.mdd.shared.annotations.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,8 +15,10 @@ public class SamplePojo implements HasTitle {
 
     private String id = UUID.randomUUID().toString();
 
+    @SearchFilter
     private String name;
 
+    @SearchFilter
     private int age;
 
     @Output@NotInList

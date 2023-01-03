@@ -51,7 +51,7 @@ public class Service {
     }
 
     private boolean match(SamplePojo i, SamplePojo filters) {
-       // if (filters.getId() != null && !filters.getId().isEmpty() && !filters.getId().equals(i.getId())) return false;
+        if (filters.getAge() != 0 && filters.getAge() != i.getAge()) return false;
         if (filters.getName() != null && !filters.getName().isEmpty()
                 && i.getName() != null && !removeDiacriticalMarks(i.getName()).toLowerCase()
                 .contains(removeDiacriticalMarks(filters.getName()).toLowerCase()))
