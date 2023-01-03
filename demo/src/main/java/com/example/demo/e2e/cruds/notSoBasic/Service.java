@@ -41,10 +41,12 @@ public class Service {
             int result = 0;
             for (QuerySortOrder sortOrder : sortOrders) {
                 if (result == 0 && "name".equals(sortOrder.getSorted())) {
-                    result = o1.getName().compareTo(o2.getName()) * (SortDirection.ASCENDING.equals(sortOrder.getDirection())?1:-1);
+                    result = o1.getName().compareTo(o2.getName())
+                            * (SortDirection.ASCENDING.equals(sortOrder.getDirection())?1:-1);
                 }
                 if (result == 0 && "age".equals(sortOrder.getSorted())) {
-                    result = (o1.getAge() - o2.getAge()) * (SortDirection.ASCENDING.equals(sortOrder.getDirection())?1:-1);
+                    result = (o1.getAge() - o2.getAge())
+                            * (SortDirection.ASCENDING.equals(sortOrder.getDirection())?1:-1);
                 }
             }
             return result;

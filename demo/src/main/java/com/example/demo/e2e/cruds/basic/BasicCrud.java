@@ -11,12 +11,7 @@ public class BasicCrud implements RpcCrudView<SamplePojo, SamplePojo, SamplePojo
     private final Service service = new Service();
 
     @Override
-    public Object deserializeId(String sid) {
-        return null;
-    }
-
-    @Override
-    public List<SamplePojo> rpc(SamplePojo filters, List<QuerySortOrder> sortOrders, int offset, int limit) throws Throwable {
+    public List<SamplePojo> rpc(SamplePojo filters, List<QuerySortOrder> sortOrders, int offset, int limit) {
         return service.rpc(filters, sortOrders, offset, limit);
     }
 

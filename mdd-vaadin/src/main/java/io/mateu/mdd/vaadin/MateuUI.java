@@ -1,6 +1,7 @@
 package io.mateu.mdd.vaadin;
 
 import com.google.common.base.Strings;
+import com.vaadin.navigator.CustomNavigator;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.server.Page;
 import com.vaadin.server.VaadinRequest;
@@ -135,7 +136,7 @@ public class MateuUI extends UI implements IMDDUI {
 
             setContent(main = new MainComponent(this));
             stack = new ViewStack();
-            navigator = new Navigator(this, main.panel);
+            navigator = new CustomNavigator(this, main.panel, stack);
             navigator.setErrorView(new BrokenLinkView(stack));
             navigator.addProvider(viewProvider = new MateuViewProvider(stack));
 
