@@ -43,6 +43,12 @@ describe('basic fields', () => {
 
         cy.get('.test-age').should('have.value', '14')
 
+        cy.get('.v-button').contains('Save').click({force: true})
+
+        cy.get('.test-pojo .v-button').click()
+        cy.get('.test-pojo').contains('No value. Click here to set').should('be.visible')
+
+
     })
 
 
