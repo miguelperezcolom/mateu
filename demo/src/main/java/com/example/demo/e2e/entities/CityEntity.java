@@ -4,23 +4,23 @@ import lombok.*;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 
 @Entity
-@Getter@Setter@EqualsAndHashCode(of = "id")
-@AllArgsConstructor@NoArgsConstructor
-public class PersonEntity {
+@Getter
+@Setter
+@EqualsAndHashCode(of = "id")
+@AllArgsConstructor
+@NoArgsConstructor
+public class CityEntity {
 
     @Id
     private String id;
 
     private String name;
 
-    @ManyToOne
-    private CityEntity city;
-
     @Override
     public String toString() {
         return name;
     }
+
 }
