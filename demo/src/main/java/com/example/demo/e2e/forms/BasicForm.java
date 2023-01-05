@@ -8,6 +8,7 @@ import lombok.Setter;
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Getter@Setter
 public class BasicForm {
@@ -45,7 +46,9 @@ public class BasicForm {
 
 
     private String dump() {
-        return "" + name + "," + age + "," + rating + "," + width + "," + selected + "," + date + "," + dateTime;
+        return "" + name + "," + age + "," + rating + "," + width + "," + selected + "," +
+                (date != null?date.format(DateTimeFormatter.ISO_LOCAL_DATE):"null") + "," +
+                (dateTime != null?dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME):"null");
     }
 
 }
