@@ -19,6 +19,9 @@ public class PersonEntity {
     @ManyToOne
     private CityEntity city;
 
+    @ManyToOne
+    private ClassroomEntity classroom;
+
     @Override
     public String toString() {
         return name;

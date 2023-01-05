@@ -9,10 +9,28 @@ public class E2eFormsMenu {
     private BasicForm basicForm;
 
     @MenuOption
+    private StringArrayFieldForm stringArrayFieldForm;
+
+    @MenuOption
+    private IntArrayFieldForm intArrayFieldForm;
+
+    @MenuOption
+    private BooleanArrayFieldForm booleanArrayFieldForm;
+
+    @MenuOption
     private PojoFieldForm pojoFieldForm;
 
     @MenuOption
     private CollectionFieldForm collectionFieldForm;
+
+    @MenuOption
+    private MapFieldForm mapFieldForm;
+
+    @MenuOption
+    private MapStringToPojoFieldForm mapToPojoFieldForm;
+
+    @MenuOption
+    private MapPojoToStringFieldForm mapPojoToStringFieldForm;
 
     @MenuOption
     private CollectionOfPojoWithConstructorFieldForm collectionOfPojoWithConstructorFieldForm;
