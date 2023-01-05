@@ -39,15 +39,15 @@ describe('basic fields', () => {
         cy.get('.test-selected').check({force: true});
 
         cy.get('.test-date input').should('exist')
-        cy.get('.test-date input').type('231001');
+        cy.get('.test-date input').type('20231001');
 
         cy.get('.test-dateTime input').should('exist')
-        cy.get('.test-dateTime input').type('231001 1236');
+        cy.get('.test-dateTime input').type('20231001 1236');
 
         cy.get('.v-button').contains('One action').should('exist')
         cy.get('.v-button').contains('One action').click({force: true})
 
-        cy.get('.test-assessment').contains('Mateu,14,1200.25,62.43,true,2001-10-23,2001-10-23T12:36').should('exist')
+        cy.get('.test-assessment').contains('Mateu,14,1200.25,62.43,true,2023-10-01,2023-10-01T12:36').should('exist')
     })
 
     it('mandatory fields are checked', () => {

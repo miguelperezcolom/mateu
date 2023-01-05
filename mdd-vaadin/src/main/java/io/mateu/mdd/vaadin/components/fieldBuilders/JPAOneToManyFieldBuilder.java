@@ -331,6 +331,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
             g.addStyleName("gridonetomany");
             g.addStyleName("nooutput");
+            g.addStyleName("test-" + field.getId() + "-grid");
 
             String colsFilter = "";
             if (field.isAnnotationPresent(UseTable.class)) colsFilter = field.getAnnotation(UseTable.class).fields();
@@ -485,6 +486,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                             hl.addComponent(b = new Button(VaadinIcons.PLUS));
                             b.addStyleName(ValoTheme.BUTTON_QUIET);
                             b.addStyleName(ValoTheme.BUTTON_TINY);
+                            b.addStyleName("test-" + field.getId() + "-add");
                             b.addClickListener(e -> {
                                 try {
                                     Object bean = binder.getBean();
@@ -520,6 +522,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                             hl.addComponent(b = new Button(VaadinIcons.PLUS));
                             b.addStyleName(ValoTheme.BUTTON_QUIET);
                             b.addStyleName(ValoTheme.BUTTON_TINY);
+                            b.addStyleName("test-" + field.getId() + "-add");
                             b.addClickListener(e -> {
 
                                 try {
@@ -568,6 +571,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                         hl.addComponent(b = new Button(VaadinIcons.COPY));
                         b.addStyleName(ValoTheme.BUTTON_QUIET);
                         b.addStyleName(ValoTheme.BUTTON_TINY);
+                        b.addStyleName("test-" + field.getId() + "-clone");
                         b.addClickListener(e -> {
                             try {
 
@@ -595,6 +599,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                         hl.addComponent(b = new Button(VaadinIcons.MINUS));
                         b.addStyleName(ValoTheme.BUTTON_QUIET);
                         b.addStyleName(ValoTheme.BUTTON_TINY);
+                        b.addStyleName("test-" + field.getId() + "-delete");
                         b.addClickListener(e -> {
                             try {
                                 Object bean = binder.getBean();
@@ -614,6 +619,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                         hl.addComponent(b = new Button(VaadinIcons.ARROW_UP));
                         b.addStyleName(ValoTheme.BUTTON_QUIET);
                         b.addStyleName(ValoTheme.BUTTON_TINY);
+                        b.addStyleName("test-" + field.getId() + "-up");
                         b.addClickListener(e -> {
                             try {
 
@@ -659,6 +665,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                         hl.addComponent(b = new Button(VaadinIcons.ARROW_DOWN));
                         b.addStyleName(ValoTheme.BUTTON_QUIET);
                         b.addStyleName(ValoTheme.BUTTON_TINY);
+                        b.addStyleName("test-" + field.getId() + "-down");
                         b.addClickListener(e -> {
                             try {
 
