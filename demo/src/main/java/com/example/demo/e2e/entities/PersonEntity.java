@@ -1,10 +1,17 @@
 package com.example.demo.e2e.entities;
 
+import io.mateu.mdd.shared.annotations.UseCheckboxes;
+import io.mateu.mdd.shared.annotations.UseChips;
 import lombok.*;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter@Setter@EqualsAndHashCode(of = "id")
@@ -21,6 +28,9 @@ public class PersonEntity {
 
     @ManyToOne
     private ClassroomEntity classroom;
+
+    @ManyToMany@UseCheckboxes
+    private Set<TeamEntity> fanOf = new HashSet<>();
 
     @Override
     public String toString() {
