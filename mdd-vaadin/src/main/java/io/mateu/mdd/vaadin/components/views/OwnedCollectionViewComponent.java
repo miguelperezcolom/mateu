@@ -77,7 +77,7 @@ public class OwnedCollectionViewComponent extends EditorViewComponent {
          */
 
             if (!isActionPresent("col_prev")) {
-                l.add(new MDDRunnableAction("") {
+                l.add(new MDDRunnableAction("Prev") {
                     //l.add(new AbstractAction("col_prev", VaadinIcons.ARROW_UP, "Prev") {
 
                     @Override
@@ -96,7 +96,7 @@ public class OwnedCollectionViewComponent extends EditorViewComponent {
             } else getMenuItemById("col_prev").setVisible(true);
 
             if (!isActionPresent("col_next")) {
-                l.add(new MDDRunnableAction("") {
+                l.add(new MDDRunnableAction("Next") {
                     //l.add(new AbstractAction("col_next", VaadinIcons.ARROW_DOWN, "Next") {
                     @Override
                     public void run() {

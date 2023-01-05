@@ -983,6 +983,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                     bar.addComponent(i = new Button("", VaadinIcons.REFRESH));
                     //bar.addComponent(i = new Button("Refresh", VaadinIcons.REFRESH));
                     i.addStyleName(ValoTheme.BUTTON_QUIET);
+                    i.addStyleName("test-action-refresh");
                     i.addClickListener(e -> {
                         try {
 
@@ -1132,6 +1133,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                     if (!isActionPresent("add")) {
                         Button i;
                         bar.addComponent(i = new Button("", VaadinIcons.PLUS));
+                        i.addStyleName("test-action-add");
                         //bar.addComponent(i = new Button("Add", VaadinIcons.PLUS));
                         //i.addStyleName(ValoTheme.BUTTON_QUIET);
                         i.addClickListener(e -> {
@@ -1184,6 +1186,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                         bar.addComponent(i = new Button("", VaadinIcons.MINUS));
                         //bar.addComponent(i = new Button("Remove", VaadinIcons.MINUS));
                         //i.addStyleName(ValoTheme.BUTTON_QUIET);
+                        i.addStyleName("test-action-remove");
                         i.addClickListener(e -> {
 
                             VaadinHelper.confirm("Are you sure you want to delete this item?", () -> {

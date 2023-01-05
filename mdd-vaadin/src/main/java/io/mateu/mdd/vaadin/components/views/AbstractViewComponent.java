@@ -403,6 +403,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                 bar.addComponent(backButton = b = new Button("", VaadinIcons.ARROW_LEFT), 0);
                 //bar.addComponent(i = b = new Button("Back", VaadinIcons.ARROW_LEFT));
                 b.addStyleName(ValoTheme.BUTTON_QUIET);
+                b.addStyleName("test-back");
                 b.addClickListener(e -> {
                     try {
 
@@ -436,6 +437,7 @@ public abstract class AbstractViewComponent<A extends AbstractViewComponent<A>> 
                     Button b;
                     i = b = new Button(a.getCaption(), a.getIcon());
                     if (!bar.getStyleName().contains("actionsbar")) b.addStyleName(ValoTheme.BUTTON_QUIET);
+                    i.addStyleName("test-action-" + a.getId());
                     b.addClickListener(e -> {
                         try {
 

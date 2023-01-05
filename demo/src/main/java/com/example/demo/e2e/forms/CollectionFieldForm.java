@@ -23,7 +23,12 @@ public class CollectionFieldForm implements HasTitle {
     }
 
     private String dump() {
-        return "" + pojos.size();
+        if (pojos == null) return "collection is null";
+        if (pojos.size() == 0) return "empty collection";
+        StringBuilder sb = new StringBuilder();
+        sb.append("size = " + pojos.size());
+        pojos.forEach(p -> sb.append("," + p));
+        return sb.toString();
     }
 
     @Override
