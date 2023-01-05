@@ -4,7 +4,6 @@ import lombok.*;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 
 @Entity
 @Getter
@@ -12,15 +11,12 @@ import javax.persistence.ManyToOne;
 @EqualsAndHashCode(of = "id")
 @AllArgsConstructor
 @NoArgsConstructor
-public class CityEntity {
+public class CountryEntity {
 
     @Id
     private String id;
 
     private String name;
-
-    @ManyToOne
-    private CountryEntity country;
 
     @Override
     public String toString() {

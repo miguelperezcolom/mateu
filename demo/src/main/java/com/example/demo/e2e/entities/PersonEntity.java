@@ -4,10 +4,7 @@ import io.mateu.mdd.shared.annotations.UseCheckboxes;
 import io.mateu.mdd.shared.annotations.UseChips;
 import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -22,6 +19,9 @@ public class PersonEntity {
     private String id;
 
     private String name;
+
+    @OneToOne
+    private DriverLicenseEntity driverLicense;
 
     @ManyToOne
     private CityEntity city;

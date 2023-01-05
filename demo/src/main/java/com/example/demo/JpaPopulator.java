@@ -1,9 +1,6 @@
 package com.example.demo;
 
-import com.example.demo.e2e.entities.CityEntity;
-import com.example.demo.e2e.entities.ClassroomEntity;
-import com.example.demo.e2e.entities.PersonEntity;
-import com.example.demo.e2e.entities.TeamEntity;
+import com.example.demo.e2e.entities.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,10 +27,16 @@ public class JpaPopulator {
         ClassroomEntity room1;
         em.persist(room1 = new ClassroomEntity("3A", "3 A", new ArrayList<>()));
 
+        CountryEntity es;
+        em.persist(es = new CountryEntity("ES", "Spain"));
+        CountryEntity de;
+        em.persist(de = new CountryEntity("DE", "Germany"));
+
 
         CityEntity pmi;
-        em.persist(pmi = new CityEntity("PMI", "Palma"));
-        em.persist(new CityEntity("MAD", "Madrid"));
+        em.persist(pmi = new CityEntity("PMI", "Palma", es));
+        em.persist(new CityEntity("MAD", "Madrid", es));
+        em.persist(new CityEntity("BER", "Berlin", de));
 
 
         em.persist(new TeamEntity("NEW", "Patriots", null));
@@ -43,9 +46,12 @@ public class JpaPopulator {
 
 
         PersonEntity mateu;
-        em.persist(mateu = new PersonEntity("1", "Mateu", pmi, room1, new HashSet<>()));
+        em.persist(mateu = new PersonEntity("1", "Mateu", null, pmi, room1, new HashSet<>()));
         PersonEntity antonia;
-        em.persist(antonia = new PersonEntity("2", "Antònia", pmi, room1, new HashSet<>()));
+        em.persist(antonia = new PersonEntity("2", "Antònia", null, pmi, room1, new HashSet<>()));
+        DriverLicenseEntity lic;
+        em.persist(lic = new DriverLicenseEntity("18226091J", "C1", antonia));
+        antonia.setDriverLicense(lic);
 
         room1.getStudents().add(mateu);
         room1.getStudents().add(antonia);

@@ -2,25 +2,22 @@ package com.example.demo.e2e.entities;
 
 import lombok.*;
 
+import javax.persistence.Embeddable;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 
-@Entity
+@Embeddable
 @Getter
 @Setter
 @EqualsAndHashCode(of = "id")
 @AllArgsConstructor
 @NoArgsConstructor
-public class CityEntity {
+public class AddressEntity {
 
     @Id
     private String id;
 
     private String name;
-
-    @ManyToOne
-    private CountryEntity country;
 
     @Override
     public String toString() {

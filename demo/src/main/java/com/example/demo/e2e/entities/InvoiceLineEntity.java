@@ -2,9 +2,10 @@ package com.example.demo.e2e.entities;
 
 import lombok.*;
 
+import javax.persistence.Embeddable;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -12,19 +13,19 @@ import javax.persistence.ManyToOne;
 @EqualsAndHashCode(of = "id")
 @AllArgsConstructor
 @NoArgsConstructor
-public class CityEntity {
+public class InvoiceLineEntity {
 
     @Id
-    private String id;
+    private String id = UUID.randomUUID().toString();
 
-    private String name;
+    private String description;
 
-    @ManyToOne
-    private CountryEntity country;
+    private double amount;
+
 
     @Override
     public String toString() {
-        return name;
+        return "" + description + "x" + amount;
     }
 
 }

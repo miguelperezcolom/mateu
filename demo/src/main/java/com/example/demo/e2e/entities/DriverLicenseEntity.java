@@ -4,7 +4,7 @@ import lombok.*;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 
 @Entity
 @Getter
@@ -12,19 +12,19 @@ import javax.persistence.ManyToOne;
 @EqualsAndHashCode(of = "id")
 @AllArgsConstructor
 @NoArgsConstructor
-public class CityEntity {
+public class DriverLicenseEntity {
 
     @Id
     private String id;
 
-    private String name;
+    private String type;
 
-    @ManyToOne
-    private CountryEntity country;
+    @OneToOne(mappedBy = "driverLicense")
+    private PersonEntity owner;
 
     @Override
     public String toString() {
-        return name;
+        return id + " - " + type;
     }
 
 }
