@@ -10,6 +10,10 @@ describe('basic fields', () => {
 
         cy.get('.v-menubar-menuitem').contains('E2E').click();
 
+        cy.get('.v-menubar-menuitem').contains('Forms').should('be.visible')
+
+        cy.get('.v-menubar-menuitem').contains('Forms').click();
+
         cy.get('.v-menubar-menuitem').contains('Basic form').should('be.visible')
 
         cy.get('.v-menubar-menuitem').contains('Basic form').click();

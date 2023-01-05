@@ -94,6 +94,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
         }
 
+        if (r != null) r.addStyleName("test-" + field.getId());
+
         return r;
     }
 
