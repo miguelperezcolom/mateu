@@ -23,10 +23,9 @@ describe('basic fields', () => {
 
     it('fields and actions should work as expected', () => {
 
-        /*
+        cy.get('.test-action-reset').click({force: true})
 
-        cy.get('.test-pojo').contains('No value. Click here to set').should('be.visible')
-        cy.get('.test-pojo').click()
+        cy.get('.test-allRecordedRuns').contains('Not run yet').should('exist')
 
         cy.get('.test-name').should('be.visible')
         cy.get('.test-name').type('Mateu');
@@ -34,28 +33,16 @@ describe('basic fields', () => {
         cy.get('.test-age').should('exist')
         cy.get('.test-age').type('14');
 
-        cy.get('.v-button').contains('One action').should('exist')
-        cy.get('.v-button').contains('One action').click({force: true})
 
-        cy.get('.test-assessment').contains('Mateu,14').should('exist')
+        //test-action-submitted
+        cy.get('.test-action-submitted').should('exist')
+        cy.get('.test-action-submitted').click({force: true})
 
-        cy.get('.v-button').contains('Save').should('exist')
-        cy.get('.v-button').contains('Save').click({force: true})
+        cy.get('.v-label').contains('Done').should('be.visible')
+        cy.get('.v-button').contains('Back to Runnable form').should('exist')
+        cy.get('.v-button').contains('Back to Runnable form').click({force: true})
 
-        cy.get('.test-pojo').contains('Mateu').contains('14').should('be.visible')
-        cy.get('.test-pojo').click()
-
-        cy.get('.test-name').should('have.value', 'Mateu')
-
-        cy.get('.test-age').should('have.value', '14')
-
-        cy.get('.v-button').contains('Save').click({force: true})
-
-        cy.get('.test-pojo .v-button').click()
-        cy.get('.test-pojo').contains('No value. Click here to set').should('be.visible')
-
-
-         */
+        cy.get('.test-allRecordedRuns').contains('runned for Mateu,14').should('exist')
 
     })
 
