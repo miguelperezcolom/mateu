@@ -34,6 +34,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.time.LocalDate;
@@ -125,11 +126,7 @@ public class JPAListViewComponent extends ListViewComponent {
         addListener(new ListViewComponentListener() {
             @Override
             public void onEdit(Object id) {
-                try {
-                    MDDUIAccessor.goTo(getUrl() + "/" + URLEncoder.encode(Helper.encodeState("" + id), "iso-8859-1"));
-                } catch (UnsupportedEncodingException e) {
-                    Notifier.alert(e);
-                }
+                MDDUIAccessor.goTo(getUrl() + "/" + Base64.getEncoder().encodeToString(id.toString().getBytes(StandardCharsets.UTF_8)));
             }
 
             @Override

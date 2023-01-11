@@ -150,7 +150,13 @@ public class MDDViewComponentCreator {
 
     public static EditorViewComponent createEditorViewComponent(Class modelType, boolean createSaveBUtton)
             throws Exception {
-        EditorViewComponent v = new EditorViewComponent(modelType, createSaveBUtton);
+        ListViewComponent listViewComponent = null;
+        try {
+            listViewComponent = (ListViewComponent) MateuUI.get().getStack().getLast().getViewComponent();
+        } catch (Exception e) {
+
+        }
+        EditorViewComponent v = new EditorViewComponent(listViewComponent, modelType, createSaveBUtton);
         return v;
     }
 

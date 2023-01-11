@@ -39,6 +39,9 @@ import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
 import io.mateu.util.notification.Notifier;
 
+import javax.persistence.Entity;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import java.util.Collection;
 
 public class FieldToViewMapper {
@@ -69,11 +72,27 @@ public class FieldToViewMapper {
             }
         }
 
+
+        if (Collection.class.isAssignableFrom(modelField.getField().getType()) && (
+                modelField.getField().isAnnotationPresent(OneToMany.class)
+                || modelField.getField().isAnnotationPresent(ManyToMany.class)
+                )) {
+            try {
+                EditorViewComponent currentEditor = (EditorViewComponent) stack.getLast().getViewComponent();
+
+                return new View(stack, new JPACollectionFieldViewComponent(modelField.getField().getGenericClass(), modelField.getField(), currentEditor, true), new VoidController());
+            } catch (Exception e) {
+                return new ProblemView(stack, "Error", new Error(e));
+            }
+        }
+
+
         if (Collection.class.isAssignableFrom(modelField.getField().getType())) {
             try {
                 EditorViewComponent currentEditor = (EditorViewComponent) stack.getLast().getViewComponent();
 
-                return new View(stack, new OwnedCollectionViewComponent(currentEditor.getBinder(), modelField.getField(), (Integer) MDDUIAccessor.getPendingResult()), new VoidController());
+                return new View(stack, new OwnedCollectionViewComponent(currentEditor.getBinder(),
+                        modelField.getField(), (Integer) MDDUIAccessor.getPendingResult()), new VoidController());
             } catch (Exception e) {
                 return new ProblemView(stack, "Error", new Error(e));
             }
@@ -83,7 +102,13 @@ public class FieldToViewMapper {
             try {
                 EditorViewComponent currentEditor = (EditorViewComponent) stack.getLast().getViewComponent();
 
-                return new View(stack, new OwnedPojoViewComponent(currentEditor.getBinder(), modelField.getField()), new EditorController(ReflectionHelper.getValue(modelField.getField(), currentEditor.getModel())));
+                EditorViewComponent refEditorViewComponent =
+                        modelField.getField().getType().isAnnotationPresent(Entity.class) ?
+                                new ReferencedEntityViewComponent(currentEditor.getBinder(), modelField.getField())
+                        : new OwnedPojoViewComponent(currentEditor.getBinder(), modelField.getField());
+
+                return new View(stack, refEditorViewComponent,
+                        new EditorController(ReflectionHelper.getValue(modelField.getField(), currentEditor.getModel())));
             } catch (Exception e) {
                 return new ProblemView(stack, "Error", new Error(e));
             }

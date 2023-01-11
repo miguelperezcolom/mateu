@@ -16,6 +16,7 @@ import io.mateu.mdd.vaadin.components.views.ListViewComponent;
 import io.mateu.mdd.vaadin.controllers.Controller;
 import io.mateu.mdd.vaadin.components.MDDViewComponentCreator;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
+import io.mateu.mdd.vaadin.pojos.FieldSearch;
 import io.mateu.mdd.vaadin.pojos.MethodCall;
 import io.mateu.mdd.vaadin.pojos.ModelField;
 import io.mateu.mdd.vaadin.pojos.Result;
@@ -113,6 +114,9 @@ public class EditorController extends Controller {
                             step.replaceAll("_search", "") : step);
                 } else {
                     field = editorViewComponent.getField(step);
+                }
+                if (step.endsWith("_search")) {
+                    return new FieldSearch(model, field);
                 }
                 return new ModelField(model, field);
             }

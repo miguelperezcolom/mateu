@@ -227,6 +227,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
 
                     ComboBox cb;
                     hl.addComponent(cb = new ComboBox());
+                    cb.setId(field.getId());
 
                     captionOwner = cb;
 
@@ -266,7 +267,7 @@ public class JPAManyToOneFieldBuilder extends AbstractFieldBuilder {
                         b = new Button(null, VaadinIcons.REFRESH);
                         b.addStyleName(ValoTheme.BUTTON_QUIET);
                         b.addStyleName(CSS.NOPADDING);
-                        b.addClickListener(e -> ((JPQLListDataProvider)dpx).refresh());
+                        b.addClickListener(e -> ((JPQLListDataProvider)dpx).refreshAll());
                         hl.addComponent(b);
                     }
 

@@ -5,6 +5,8 @@ import com.vaadin.navigator.ViewProvider;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
+import io.mateu.mdd.core.interfaces.PersistentPojo;
+import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.interfaces.App;
 import io.mateu.mdd.vaadin.MateuUI;
@@ -14,6 +16,8 @@ import io.mateu.mdd.vaadin.components.views.ListViewComponent;
 import io.mateu.mdd.vaadin.views.BrokenLinkView;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.notification.Notifier;
+
+import javax.persistence.Entity;
 
 /**
  * Mateu's implementation of Vaadin's ViewProvider
@@ -73,6 +77,8 @@ public class MateuViewProvider implements ViewProvider {
 
         path = sanitizePath(path);
 
+        System.out.println("getView(" + path + ")");
+
         // check private/public
         boolean privada = checkPrivate(path);
 
@@ -111,19 +117,21 @@ public class MateuViewProvider implements ViewProvider {
         }
 
 
-        // si estamos volviendo atrás y está marcado, recargar el modelo si es un editor
+        // si estamos volviendo atrás y está marcado, recargar el modelo si es un editor de un readonlypojo
         if (lastState != null && lastState.contains(path)) {
 
             if (c != null && c instanceof EditorViewComponent) {
                 EditorViewComponent evc = (EditorViewComponent) c;
-                Object id = ReflectionHelper.getId(evc.getModel());
-                if (id != null) {
-                    try {
-                        evc.load(id);
-                    } catch (Throwable throwable) {
-                        Notifier.alert(throwable);
-                    }
-                } else evc.updateModel(evc.getModel());
+                if (!evc.getModelType().isAnnotationPresent(Entity.class) && (ReadOnlyPojo.class.isAssignableFrom(evc.getModelType()) && !PersistentPojo.class.isAssignableFrom(evc.getModelType()))) {
+                    Object id = ReflectionHelper.getId(evc.getModel());
+                    if (id != null) {
+                        try {
+                            evc.load(id);
+                        } catch (Throwable throwable) {
+                            Notifier.alert(throwable);
+                        }
+                    } else evc.updateModel(evc.getModel());
+                }
             }
 
         }

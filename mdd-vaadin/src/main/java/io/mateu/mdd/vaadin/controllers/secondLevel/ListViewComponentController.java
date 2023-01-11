@@ -58,7 +58,7 @@ public class ListViewComponentController extends Controller {
                 } else {
                     if (listViewComponent instanceof JPAListViewComponent) {
                         Class type = listViewComponent.getModelType();
-                        return JPAHelper.find(type, ReflectionHelper.toId(type, step));
+                        return JPAHelper.find(type, ReflectionHelper.toId(type, new String(Base64.getDecoder().decode(step))));
                     } else if (listViewComponent instanceof RpcListViewComponent) {
                         Object form = ((RpcListViewComponent) listViewComponent).onEdit(new String(Base64.getDecoder().decode(step)));
                         Class type = listViewComponent.getModelType();

@@ -39,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.persistence.Entity;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class MateuUI extends UI implements IMDDUI {
@@ -444,7 +445,7 @@ public class MateuUI extends UI implements IMDDUI {
             }
         }
 
-        u += "/" + id;
+        u += "/" + Base64.getEncoder().encodeToString(id.toString().getBytes(StandardCharsets.UTF_8));
 
         if (ed != null && ed.getView().getWindowContainer() != null) {
             try {

@@ -152,4 +152,9 @@ public class JPQLListDataProvider extends com.vaadin.data.provider.ListDataProvi
             Notifier.alert(throwable);
         }
     }
+
+    @Override
+    public void refreshAll() {
+        super.refreshAll();
+    }
 }

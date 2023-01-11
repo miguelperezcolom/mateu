@@ -30,9 +30,11 @@ import io.mateu.mdd.vaadin.controllers.secondLevel.ListViewController;
 import io.mateu.mdd.vaadin.controllers.secondLevel.ReadOnlyController;
 import io.mateu.mdd.vaadin.controllers.thirdLevel.CollectionController;
 import io.mateu.mdd.vaadin.controllers.thirdLevel.FieldController;
+import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.vaadin.navigation.View;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.mdd.vaadin.pojos.Error;
+import io.mateu.mdd.vaadin.pojos.FieldSearch;
 import io.mateu.mdd.vaadin.pojos.ModelField;
 import io.mateu.mdd.vaadin.pojos.Result;
 import io.mateu.reflection.ReflectionHelper;
@@ -120,7 +122,12 @@ public class ObjectToViewMapper {
         if (model instanceof ModelField) {
             return fieldToViewMapper.toView((ModelField) model, step);
         }
-
+        if (model instanceof FieldSearch) {
+            MDDBinder parentBinder = ((EditorViewComponent)io.mateu.mdd.vaadin.MateuUI.get().getStack().getLastNavigable().getViewComponent()).getBinder();
+            ListViewComponent listViewComponent = MDDViewComponentCreator.createSearcherComponent(parentBinder,
+                    ((FieldSearch) model).getField());
+            return new View(stack, listViewComponent, new ListViewController(listViewComponent));
+        }
         if (model instanceof ComponentWrapper) {
             ComponentWrapper componentWrapper = (ComponentWrapper) model;
             return new ComponentView(stack, componentWrapper.getTitle(), componentWrapper.getIcon(), (Component) model);

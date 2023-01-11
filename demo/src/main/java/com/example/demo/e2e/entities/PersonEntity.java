@@ -29,7 +29,7 @@ public class PersonEntity {
     @ManyToOne
     private ClassroomEntity classroom;
 
-    @ManyToMany@UseCheckboxes
+    @ManyToMany(fetch = FetchType.EAGER)@UseCheckboxes
     private Set<TeamEntity> fanOf = new HashSet<>();
 
     @Override
