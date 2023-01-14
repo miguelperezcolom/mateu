@@ -48,6 +48,8 @@ public class JPAPrimitiveArraysFieldBuilder extends JPAStringFieldBuilder {
 
             AbstractTextField tf = (field.isAnnotationPresent(io.mateu.mdd.shared.annotations.TextArea.class))?new TextArea():new TextField();
             container.addComponent(tf);
+            tf.setId(field.getId());
+            tf.setStyleName("test-" + field.getId());
             tf.setValueChangeMode(ValueChangeMode.BLUR);
 
             addErrorHandler(field, tf);
@@ -119,13 +121,27 @@ public class JPAPrimitiveArraysFieldBuilder extends JPAStringFieldBuilder {
                         for (int i = 0; i < tokens.length; i++) x[i] = new Double(tokens[i]);
                         r = x;
                     } else if (Boolean[].class.equals(field.getType())) {
-                        Boolean[] x = new Boolean[tokens.length];
-                        for (int i = 0; i < tokens.length; i++) x[i] = new Boolean(tokens[i]);
-                        r = x;
+                        if (tokens.length == 1 && (tokens[0].contains("0") || tokens[0].contains("1"))) {
+                            String t = tokens[0];
+                            Boolean[] x = new Boolean[t.length()];
+                            for (int i = 0; i < t.length(); i++) x[i] = new Boolean("1".equals(t.substring(i, i + 1))?"true":"false");
+                            r = x;
+                        } else {
+                            Boolean[] x = new Boolean[tokens.length];
+                            for (int i = 0; i < tokens.length; i++) x[i] = new Boolean(tokens[i]);
+                            r = x;
+                        }
                     } else if (boolean[].class.equals(field.getType())) {
-                        boolean[] x = new boolean[tokens.length];
-                        for (int i = 0; i < tokens.length; i++) x[i] = new Boolean(tokens[i]);
-                        r = x;
+                        if (tokens.length == 1 && (tokens[0].contains("0") || tokens[0].contains("1"))) {
+                            String t = tokens[0];
+                            boolean[] x = new boolean[t.length()];
+                            for (int i = 0; i < t.length(); i++) x[i] = new Boolean("1".equals(t.substring(i, i + 1))?"true":"false");
+                            r = x;
+                        } else {
+                            boolean[] x = new boolean[tokens.length];
+                            for (int i = 0; i < tokens.length; i++) x[i] = new Boolean(tokens[i]);
+                            r = x;
+                        }
                     } else if (String[].class.equals(field.getType())) {
                         r = tokens;
                     }
@@ -165,8 +181,8 @@ public class JPAPrimitiveArraysFieldBuilder extends JPAStringFieldBuilder {
                     } else if (o instanceof boolean[]) {
                         boolean[] col = (boolean[]) o;
                         for (Object v : col) {
-                            if (!"".equals(s)) s += (tf instanceof TextArea) ? "\n" : ",";
-                            s += v;
+                            if (!"".equals(s)) s += (tf instanceof TextArea) ? "\n" : "";
+                            s += ((boolean)v)?"1":"0";
                         }
                     } else {
                         Object[] col = (Object[]) o;
