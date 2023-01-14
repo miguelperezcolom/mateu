@@ -19,6 +19,7 @@ public class Footer extends HorizontalLayout {
         addComponent(right = new Label("2022 © guifox Bookings AG. All rights reserved."));
         setComponentAlignment(left, Alignment.MIDDLE_LEFT);
         setComponentAlignment(right, Alignment.MIDDLE_RIGHT);
+        setExpandRatio(left, 1);
 
     }
 
