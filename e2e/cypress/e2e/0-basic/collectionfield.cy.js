@@ -30,7 +30,6 @@ describe('basic fields', () => {
         cy.get('.test-assessment').contains('empty collection').should('exist')
 
         cy.get('.test-pojos tbody tr').should('not.exist')
-        cy.get('.test-pojos').click()
 
         // collection has 1 element when add
         cy.get('.test-pojos-add').should('exist')
@@ -95,6 +94,7 @@ describe('basic fields', () => {
         cy.get('.test-pojos tbody tr input[type = "checkbox"]').first().click({force: true})
 
         // move it down
+        cy.get('.test-pojos-down').click({force: true});
         cy.get('.test-pojos-down').click({force: true});
 
         // check the whole list

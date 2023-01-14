@@ -627,8 +627,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                                 Collection col = (Collection) ReflectionHelper.getValue(field, bean);
 
-                                if (col instanceof  List) {
-                                    List l = (List) col;
+                                if (col != null && col instanceof  List) {
+                                    List l = new ArrayList(col);
 
                                     Set sel = new HashSet(g.getSelectedItems());
                                     boolean posible = true;
@@ -650,8 +650,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                                         }
 
                                         ReflectionHelper.setValue(field, bean, l);
-                                        g.deselectAll();
                                         binder.update(bean);
+                                        g.deselectAll();
                                         sel.forEach(i -> g.select(i));
                                     }
 
@@ -673,8 +673,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                                 Collection col = (Collection) ReflectionHelper.getValue(field, bean);
 
-                                if (col instanceof  List) {
-                                    List l = (List) col;
+                                if (col != null && col instanceof  List) {
+                                    List l = new ArrayList(col);
 
                                     Set sel = new HashSet(g.getSelectedItems());
                                     boolean posible = true;
@@ -696,8 +696,8 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                                         }
 
                                         ReflectionHelper.setValue(field, bean, l);
-                                        g.deselectAll();
                                         binder.update(bean);
+                                        g.deselectAll();
                                         sel.forEach(i -> g.select(i));
                                     }
                                 }
