@@ -1270,6 +1270,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                     if (validate()) {
 
                         ((Runnable) bean).run();
+                        updateModel(bean);
                         Label h = new Label("Thanks for submitting!");
                         h.addStyleName(ValoTheme.LABEL_H1);
                         io.mateu.mdd.shared.ui.MDDUIAccessor.setPendingResult(h);
@@ -1292,6 +1293,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                     if (validate()) {
 
                         Object r = ((Callable)bean).call();
+                        updateModel(bean);
                         io.mateu.mdd.shared.ui.MDDUIAccessor.setPendingResult(r);
                         MDDUIAccessor.go("submitted");
                     }
@@ -1310,6 +1312,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 public void run() throws Throwable {
                     if (validate()) {
                         save(false);
+                        updateModel(bean);
                         Label h = new Label("Thanks for submitting!");
                         h.addStyleName(ValoTheme.LABEL_H1);
                         io.mateu.mdd.shared.ui.MDDUIAccessor.setPendingResult(h);
