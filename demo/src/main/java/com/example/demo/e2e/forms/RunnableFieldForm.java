@@ -2,6 +2,7 @@ package com.example.demo.e2e.forms;
 
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.Output;
+import io.mateu.mdd.shared.annotations.SameLine;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,6 +17,7 @@ public class RunnableFieldForm {
 
     private int age;
 
+    @SameLine
     private Runnable runnable = () -> {
         System.out.println(getClass().getSimpleName() + ".run()");
         if ("Not run yet".equals(lastRun)) lastRun = "";

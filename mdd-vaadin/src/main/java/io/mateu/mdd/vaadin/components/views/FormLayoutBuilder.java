@@ -615,6 +615,7 @@ public class FormLayoutBuilder {
                     wrap.addStyleName("fieldgroup-readonly-row");
                     wrap.setDefaultComponentAlignment(Alignment.TOP_LEFT);
                     if (f.isAnnotationPresent(FullWidth.class)) wrap.setWidth("100%");
+                    wrap.setWidthFull();
                     //currentFieldContainer.setCaption(ReflectionHelper.getCaption(f));
                 }
                 posFieldInLine++;
@@ -627,8 +628,10 @@ public class FormLayoutBuilder {
                     wrapper.setWidth(f.isAnnotationPresent(Width.class)?f.getAnnotation(Width.class).value():"100%");
                     wrapper.addStyleName(CSS.NOPADDING);
                     wrapper.addStyleName("widthwrapper");
-                } else {
-                    wrapper.setWidthFull();
+                }
+
+                if (f.isAnnotationPresent(SameLine.class)) {
+                    wrapper.setWidthUndefined();
                 }
 
             }
