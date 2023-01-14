@@ -56,8 +56,9 @@
 
 
   input, .v-datefield, .v-datefield-textfield, .v-filterselect, .v-filterselect-input, .v-filterselect-button, .v-textarea {
-    background-color: #ececec;
-    border: none;
+    color: #301254;
+    background-color: white;
+    border: 1px solid #ada5b6;
   }
 
 
@@ -258,5 +259,12 @@
       padding-top: 3px;
     }
 
+  }
+
+  .v-link {
+    color: rgb(80, 30, 160);
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 400;
   }
 }

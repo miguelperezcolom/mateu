@@ -118,12 +118,14 @@
 
 
   .v-button.quiet.primary {
-    background-color: hsl(171, 100%, 41%);
+    background-color: #501e96;
     color: white;
   }
 
   .v-button.quiet.primary:hover {
-    background-color: hsl(171, 100%, 31%);
+    background-color: white;
+    border: 1px solid #501e96;
+    color: #501e96;
   }
 
   .v-button.quiet.danger {

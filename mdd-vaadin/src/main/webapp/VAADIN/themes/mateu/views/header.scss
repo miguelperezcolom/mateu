@@ -74,9 +74,11 @@
       margin-top: unset;
     }
 
-
-
-
+    .v-menubar > .v-menubar-menuitem.selected {
+      font-weight: 600;
+      font-size: 18px;
+      text-decoration: underline;
+    }
 
   }
 
@@ -99,6 +101,7 @@
 
   .mateu-footers.container {
     display: inline-block;
+    max-width: 1184px;
   }
 
   .mateu-footer a, .mateu-footer .v-label {

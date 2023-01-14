@@ -369,6 +369,9 @@ body {
     }
 
     .v-grid-cell {
+      height: 60px;
+      line-height: 60px;
+
       i {
         padding-right: 2px;
       }
@@ -1504,13 +1507,24 @@ body {
     padding: 0px;
 
     .viewTitle {
-      font-size: 2em;
+      font-size: 2rem;
+      line-height: 1.25;
+      color: rgba(0,0,0,.85);
     }
 
     .viewIcon {
       font-size: 1.5em;
       padding-top: 7px;
       color: grey;
+    }
+
+    .viewSubtitle {
+      height: 80px;
+    }
+
+    .v-slot-viewSubtitle {
+      font-size: 1.25rem;
+      color: rgba(0,0,0,.85);
     }
 
   }
@@ -1730,6 +1744,7 @@ body {
     margin-right: 50px;
     max-width: 500px;
     min-width: 500px;
+    color: black;
   }
 
   .section-fullwidth {
@@ -1980,6 +1995,20 @@ body {
       margin-bottom: 2px;
       margin-right: 6px;
     }
+  }
+
+  .v-menubar {
+
+    .v-menubar-menuitem {
+      font-size: 16px;
+    }
+
+    .v-menubar-menuitem.selected {
+      font-weight: 600;
+      font-size: 18px;
+      text-decoration: underline;
+    }
+
   }
 
   .v-menubar.actionsbar {
@@ -3213,6 +3242,7 @@ body {
       border-right: none;
     }
 
+
     .v-grid-header {
       .v-grid-cell {
         background-color: white;
@@ -3222,14 +3252,25 @@ body {
       .v-grid-row {
         th {
           border-left: none;
+          color: #6e5987;
+          font-size: 16px;
+          font-weight: 600;
         }
       }
     }
     .v-grid-row {
       td {
         border-left: none;
+        color: #301254;
       }
     }
+
+    .v-grid-row-stripe {
+      td {
+        background-color: white;
+      }
+    }
+
     .v-grid-row-selected {
       .v-grid-cell {
         background-image: none;
@@ -3244,9 +3285,9 @@ body {
 
     .v-grid-row:hover, .v-grid-row-selected:hover {
       td {
-        background-color: #484860 !important;
-        color: white !important;
-        font-weight: bold;
+        background-color: rgb(250,250,250) !important;
+        color: unset !important;
+        font-weight: inherit !important;
         cursor: pointer;
       }
     }
@@ -3278,7 +3319,10 @@ body {
     }
 
     .v-link a {
-      color: blue;
+      color: rgb(80, 30, 160);
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: 400;
     }
 
   }

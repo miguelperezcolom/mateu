@@ -2,9 +2,6 @@
 $kpi: #7b7e80;
 
 @mixin view {
-  .viewHeader {
-    padding: 0px;
-  }
 
   .viewcomponent {
     padding: 0px;
@@ -48,14 +45,19 @@ $kpi: #7b7e80;
     }
 
     .section {
-        background-color: white;
-      box-shadow: 0 1px 3px rgba(51, 55, 66, 6%), 0 2px 6px rgba(51, 55, 66, 2%);
-        border-radius: 8px;
-        padding-bottom: 20px;
-      margin-bottom: 30px;
+      background-color: white;
+      color: black;
+      box-shadow: 0 2px 4px rgba(48,18,84,.04),0 4px 8px rgba(48,18,84,.04),0 4px 12px rgba(48,18,84,.02);;
+      margin-bottom: 80px;
+      border-radius: 8px;
+      padding-bottom: 20px;
 
       .fieldgroup {
         padding-bottom: 30px;
+      }
+
+      .fieldgroup.nofieldgroupheader {
+        padding-top: 20px;
       }
 
       .fieldgroup > * {
@@ -84,6 +86,20 @@ $kpi: #7b7e80;
 
       .v-slot-fieldgroupheader {
         border-bottom: 1px solid lightgray;
+        padding: 24px;
+        color: rgb(48,18,84);
+
+        .v-label-h4 {
+          font-size: 22px;
+          font-weight: 600;
+          text-transform: inherit;
+        }
+
+        .v-label-h4.countlabel {
+          font-size: 16px;
+          font-weight: 200;
+        }
+
       }
 
       .fieldgroupheader, .countlabel {
@@ -120,7 +136,7 @@ $kpi: #7b7e80;
   }
 
   .contenido.container {
-    max-width: 990px;
+    max-width: 1184px;
     display: block;
     margin: 0 auto;
   }
@@ -135,11 +151,21 @@ $kpi: #7b7e80;
     padding: 0px;
 
     .viewTitle {
-      --font-size: 1.5rem;
-      --line-height: 1.3333333333;
+      --font-size: 2rem;
+      --line-height: 1.25;
+      color: rgba(0,0,0,.85);
       font-weight: 700;
       font-size: var(--font-size);
       line-height: var(--line-height);
+    }
+
+    .v-slot-viewSubtitle {
+      font-size: 1.25rem;
+      color: rgba(0,0,0,.85);
+    }
+
+    .viewSubtitle {
+      height: 80px;
     }
 
     .viewIcon {

@@ -6,7 +6,7 @@
 // Defines the plaintext font size, weight and family. Font size affects general component sizing.
 //$v-font-size: 16px;
 //$v-font-weight: 300;
-//$v-font-family: "Open Sans", sans-serif;
+$v-font-family: var(--font-family, 'Roboto Light');
 
 // Defines the border used by all components.
 //$v-border: 1px solid (v-shade 0.7);
@@ -73,6 +73,8 @@ $v-font-size: 14px;
   @include valo;
 
   // Insert your own theme rules here
+
+  color: #501e96;
 
 
   .maincomponent {
