@@ -41,4 +41,12 @@ public class E2eFormsMenu {
     @MenuOption
     private CallableForm callableForm;
 
+    @MenuOption
+    private CallableFieldForm callableFieldForm;
+
+    @MenuOption
+    private RunnableFieldForm runnableFieldForm;
+
+    @MenuOption
+    private ButtonFieldForm buttonFieldForm;
 }

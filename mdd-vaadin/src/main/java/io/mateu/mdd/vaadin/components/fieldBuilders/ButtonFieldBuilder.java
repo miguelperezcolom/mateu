@@ -2,6 +2,7 @@ package io.mateu.mdd.vaadin.components.fieldBuilders;
 
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
+import com.vaadin.server.Resource;
 import com.vaadin.shared.Registration;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
@@ -15,15 +16,21 @@ import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.components.views.EditorViewComponent;
 import io.mateu.mdd.vaadin.data.MDDBinder;
+import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.notification.Notifier;
+import io.mateu.util.runnable.RunnableThrowsThrowable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 public class ButtonFieldBuilder extends AbstractFieldBuilder {
     @Override
     public boolean isSupported(FieldInterfaced field) {
-        return Button.class.isAssignableFrom(field.getType());
+        return Button.class.isAssignableFrom(field.getType())
+                || Runnable.class.isAssignableFrom(field.getType())
+                || Callable.class.isAssignableFrom(field.getType());
     }
 
     @Override
@@ -39,25 +46,26 @@ public class ButtonFieldBuilder extends AbstractFieldBuilder {
     private void bind(MDDBinder binder, HorizontalLayout hl, FieldInterfaced field) {
         binder.forField(new HasValue() {
 
-            Button v = null;
+            Object v = null;
 
             @Override
             public void setValue(Object o) {
                 hl.removeAllComponents();
-                v = (Button) o;
+                v = o;
                 if (v != null) {
                     com.vaadin.ui.Button b = new com.vaadin.ui.Button();
                     hl.addComponent(b);
-                    b.setCaption(v.getCaption());
-                    b.setIcon(v.getIcon());
+                    b.setCaption(getCaption(field, v));
+                    b.setIcon(getIcon(v));
                     b.setPrimaryStyleName("");
                     b.setStyleName("");
-                    b.addStyleName(ValoTheme.BUTTON_QUIET);
+                    b.setId(field.getId());
                     b.addStyleName("mddbutton");
-                    v.getStyles().forEach(s -> b.addStyleName(s));
+                    b.addStyleName("test-" + field.getId());
+                    getStyles(v).forEach(s -> b.addStyleName(s));
                     b.addClickListener(e -> {
                         try {
-                            v.getRunnable().run();
+                            getRunnable(v).run();
                         } catch (Throwable throwable) {
                             Notifier.alert(throwable);
                         }
@@ -97,5 +105,28 @@ public class ButtonFieldBuilder extends AbstractFieldBuilder {
                 return false;
             }
         }).bind(field.getName());
+    }
+
+    private RunnableThrowsThrowable getRunnable(Object v) {
+        if (v instanceof Button) return ((Button) v).getRunnable();
+        if (v instanceof Runnable) return () -> ((Runnable) v).run();
+        if (v instanceof RunnableThrowsThrowable) return (RunnableThrowsThrowable) v;
+        if (v instanceof Callable) return () -> Notifier.info("" + ((Callable<?>) v).call());
+        return () -> Notifier.alert("" + v + " is not runnable");
+    }
+
+    private List<String> getStyles(Object v) {
+        if (v instanceof Button) return ((Button) v).getStyles();
+        return new ArrayList<>();
+    }
+
+    private Resource getIcon(Object v) {
+        if (v instanceof Button) return ((Button) v).getIcon();
+        return null;
+    }
+
+    private String getCaption(FieldInterfaced field, Object v) {
+        if (v instanceof Button) return ((Button) v).getCaption();
+        return ReflectionHelper.getCaption(field);
     }
 }
