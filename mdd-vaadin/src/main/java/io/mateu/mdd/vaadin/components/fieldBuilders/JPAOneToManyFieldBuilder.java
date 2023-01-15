@@ -1128,8 +1128,9 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         Grid g = new Grid();
         g.addStyleName("gridonetomany");
         g.addStyleName("nooutput");
+        g.addStyleName("test-" + field.getId() + "-grid");
 
-        ListViewComponent.buildColumns(g, getColumnFields(field), false, true);
+        ListViewComponent.buildColumns(g, getColumnFields(field), false, false);
 
         int ancho = 0;
         for (Grid.Column col : (List<Grid.Column>)g.getColumns()) ancho += col.getWidth();
@@ -1158,6 +1159,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
         VerticalLayout vl = new VerticalLayout();
         vl.addStyleName(CSS.NOPADDING);
+        vl.addStyleName("test-" + field.getId());
 
         vl.addComponent(g);
 
@@ -1185,12 +1187,22 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         HorizontalLayout hl = new HorizontalLayout();
         Button b;
 
-        g.getEditor().setEnabled(true);
-        ((Grid.Column)g.getColumns().get(0)).setEditable(false);
-        g.getEditor().setBuffered(false);
         g.setHeightMode(HeightMode.UNDEFINED);
 
+        g.addItemClickListener(e -> {
+            MapEntry value = (MapEntry) e.getItem();
+            try {
+                Map<String, Object> aux = (Map<String, Object>) auxbinder.getBean();
+                aux.put("key", value.getKey());
+                aux.put("value", value.getValue());
+                auxbinder.update(aux);
+            } catch (Exception ex) {
+                Notifier.alert(ex);
+            }
+        });
+
         hl.addComponent(b = new Button("Put", VaadinIcons.PLUS));
+        b.addStyleName("test-" + field.getId() + "-put");
         b.addStyleName(ValoTheme.BUTTON_QUIET);
         b.addStyleName(ValoTheme.BUTTON_TINY);
         b.addClickListener(e -> {
@@ -1219,6 +1231,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
         hl.addComponent(b = new Button("Remove selected lines", VaadinIcons.MINUS));
         b.addStyleName(ValoTheme.BUTTON_QUIET);
         b.addStyleName(ValoTheme.BUTTON_TINY);
+        b.addStyleName("test-" + field.getId() + "-remove");
         b.addClickListener(e -> {
 
 
