@@ -116,6 +116,7 @@ public class ResultsComponent extends VerticalLayout implements Refreshable {
 
         grid = new Grid<>();
         grid.addStyleName("gridresultado");
+        grid.addStyleName("test-gridresultado");
 
         listViewComponent.buildColumns(this, grid);
 
@@ -249,6 +250,7 @@ public class ResultsComponent extends VerticalLayout implements Refreshable {
         HorizontalLayout hl = new HorizontalLayout();
         hl.addStyleName(CSS.NOPADDING);
         hl.addStyleName("listsummaryline");
+        hl.addStyleName("test-listsummaryline");
         hl.addComponent(labelSelection);
         hl.setDefaultComponentAlignment(Alignment.TOP_LEFT);
 

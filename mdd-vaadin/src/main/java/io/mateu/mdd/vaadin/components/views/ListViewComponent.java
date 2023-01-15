@@ -176,6 +176,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         fieldGroupHeader.addComponent(countLabel = new Label("No search done"), fieldGroupHeader.getComponentCount() > 0? 1 : 0);
         countLabel.addStyleName(ValoTheme.LABEL_H4);
         countLabel.addStyleName("countlabel");
+        countLabel.addStyleName("test-countlabel");
         countLabel.setWidthUndefined();
 
         if (!(this instanceof JPACollectionFieldListViewComponent)) fieldGroup.addComponent(filtersComponent = new FiltersComponent(this));
