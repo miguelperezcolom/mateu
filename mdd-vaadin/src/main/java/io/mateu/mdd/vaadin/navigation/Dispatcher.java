@@ -8,6 +8,8 @@ import io.mateu.mdd.vaadin.controllers.firstLevel.HomeController;
 import io.mateu.mdd.vaadin.controllers.secondLevel.EditorController;
 import io.mateu.mdd.vaadin.controllers.secondLevel.WizardController;
 import io.mateu.mdd.vaadin.controllers.zeroLevel.AppController;
+import io.mateu.mdd.vaadin.views.ObjectToViewMapper;
+import io.mateu.util.notification.Notifier;
 
 public class Dispatcher {
 
@@ -64,7 +66,7 @@ public class Dispatcher {
         }
 
         // aplicamos el path pendiente al controlador (dejará vistas en el stack)
-        if (!"".equals(remainingPath)) new ControllerPathApplier(controller, stack, foundPath, remainingPath).apply();
+        if (!"".equals(remainingPath) && !"/".equals(remainingPath)) new ControllerPathApplier(controller, stack, foundPath, remainingPath).apply();
     }
 
     /**
@@ -73,10 +75,24 @@ public class Dispatcher {
      * @return the first controller to be placed in the stack
      */
     private Controller createBaseController() {
+
+        ObjectToViewMapper viewMapper = new ObjectToViewMapper(stack);
+        View view = viewMapper.toView(app.getBean(), "");
+        registerViewInStack("", view);
+
         return WizardPage.class.isAssignableFrom(app.getBean().getClass())?
                 new WizardController((WizardPage) app.getBean()):
                 app.isForm()?
                         new EditorController(app.getBean()):
                         new AppController(privada);
+    }
+
+    public void registerViewInStack(String path, View view) {
+        // meter la vista en el stack
+        try {
+            stack.push(path, view);
+        } catch (Exception e) {
+            Notifier.alert(e);
+        }
     }
 }
