@@ -12,10 +12,6 @@ import java.net.URL;
 @Getter@Setter
 public class UrlFieldForm {
 
-    private String name;
-
-    private int age;
-
     private URL editable;
 
     @Output
