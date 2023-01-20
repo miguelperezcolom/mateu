@@ -4,6 +4,8 @@ import com.vaadin.data.Binder;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.Validator;
 import com.vaadin.data.validator.BeanValidator;
+import com.vaadin.server.ExternalResource;
+import com.vaadin.server.Resource;
 import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.shared.ui.grid.HeightMode;
@@ -30,6 +32,7 @@ import javax.money.MonetaryAmount;
 import javax.persistence.Entity;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.Collection;
 import java.util.List;
@@ -50,7 +53,24 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
 
         if (!forSearchFilter) {
 
-            if (IResource.class.isAssignableFrom(field.getType())) {
+            if (URL.class.equals(field.getType())) {
+
+                VerticalLayout hl = new VerticalLayout();
+
+                Link l = new Link();
+                l.addStyleName("test-" + field.getId());
+                hl.addStyleName(CSS.NOPADDING);
+                hl.addComponent(l);
+
+                hl.setCaption(ReflectionHelper.getCaption(field));
+
+                addComponent(container, hl, attachedActions.get(field.getName()));
+
+                bind(binder, l, field);
+
+                if (allFieldContainers != null) allFieldContainers.put(field, hl);
+
+            } else if (IResource.class.isAssignableFrom(field.getType())) {
 
                 VerticalLayout hl = new VerticalLayout();
 
@@ -319,6 +339,30 @@ public class JPAOutputFieldBuilder extends AbstractFieldBuilder {
                     botonLink.setVisible(o != null);
                     botonLink.setCaption((o != null)?objectToString(o):"None");
                 }
+            }
+
+            @Override
+            public Object getValue() {
+                return v;
+            }
+        }).bind(o -> {
+            try {
+                return ReflectionHelper.getValue(field, o);
+            } catch (Exception e) {
+                Notifier.alert(e);
+                return "";
+            }
+        }, (o, v) -> {});
+    }
+
+    protected void bind(MDDBinder binder, Link tf, FieldInterfaced field) {
+        binder.forField(new AbstractField() {
+            URL v;
+            @Override
+            protected void doSetValue(Object o) {
+                v = (URL) o;
+                tf.setResource(new ExternalResource(v));
+                tf.setCaption(v == null?"--":v.toString());
             }
 
             @Override

@@ -49,4 +49,8 @@ public class E2eFormsMenu {
 
     @MenuOption
     private ButtonFieldForm buttonFieldForm;
+
+    @MenuOption
+    private UrlFieldForm urlFieldForm;
+
 }
