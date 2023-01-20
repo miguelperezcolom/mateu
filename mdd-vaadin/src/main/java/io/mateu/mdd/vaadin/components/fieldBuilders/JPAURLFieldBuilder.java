@@ -76,6 +76,7 @@ public class JPAURLFieldBuilder extends AbstractFieldBuilder {
                     if (!Strings.isNullOrEmpty((String) o)) u = new URL((String) o);
                 } catch (Exception e) {
                     Notifier.alert(e);
+                    return Result.error(e.getMessage());
                 }
                 return Result.ok(u);
             }
