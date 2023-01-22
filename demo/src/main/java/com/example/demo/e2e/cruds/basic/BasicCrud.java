@@ -19,4 +19,9 @@ public class BasicCrud implements RpcCrudView<SamplePojo, SamplePojo, SamplePojo
     public int gatherCount(SamplePojo filters) throws Throwable {
         return service.gatherCount(filters);
     }
+
+    @Override
+    public void save(SamplePojo value) throws Throwable {
+
+    }
 }

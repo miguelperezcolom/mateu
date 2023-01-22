@@ -38,7 +38,9 @@ public interface RpcCrudView<F, C, T> extends RpcView<F, C> {
         return true;
     }
 
-    default void delete(Set<C> selection) {};
+    default void delete(Set<C> selection) throws Throwable {
+        throw new Exception("You must override the delete method for class " + getClass().getSimpleName());
+    };
 
     @Override
     default boolean isEditHandled() {
@@ -47,6 +49,7 @@ public interface RpcCrudView<F, C, T> extends RpcView<F, C> {
 
     @Override
     default Object onEdit(C row) throws Throwable {
+        if (getEditorClass().equals(row.getClass())) return row;
         try {
             return ReflectionHelper.newInstance(getEditorClass(), row);
         } catch (Exception e) {
@@ -61,5 +64,14 @@ public interface RpcCrudView<F, C, T> extends RpcView<F, C> {
         } catch (Exception e) {
         }
         return null;
+    }
+
+    default void save(T value) throws Throwable {
+        throw new Exception("You must override the save method at " + getClass().getSimpleName());
+    }
+
+    @Override
+    default boolean showCheckboxForSelection() {
+        return isDeleteEnabled();
     }
 }

@@ -1761,8 +1761,8 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         return "";
     }
 
-    protected void delete(Set selection) {
-
+    protected void delete(Set selection) throws Throwable {
+        throw new Exception("You must override the delete method for " + getClass().getSimpleName());
     }
 
     public Object toId(Object row) {
@@ -1825,7 +1825,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
     }
 
     private String getModelForSearchFiltersSerialized() {
-        Base64.Encoder b64 = Base64.getEncoder();
+        Base64.Encoder b64 = Base64.getUrlEncoder();
         String s = "";
         try {
             Object m = getModelForSearchFilters();

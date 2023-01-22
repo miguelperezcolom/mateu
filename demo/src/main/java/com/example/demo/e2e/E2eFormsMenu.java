@@ -1,5 +1,6 @@
 package com.example.demo.e2e;
 
+import com.example.demo.e2e.documents.DocumentForm;
 import com.example.demo.e2e.forms.*;
 import io.mateu.mdd.shared.annotations.MenuOption;
 
@@ -53,4 +54,9 @@ public class E2eFormsMenu {
     @MenuOption
     private UrlFieldForm urlFieldForm;
 
+    @MenuOption
+    private TextAreaFieldForm textAreaFieldForm;
+
+    @MenuOption
+    private DocumentForm documentForm;
 }

@@ -80,6 +80,11 @@
       text-decoration: underline;
     }
 
+    .v-menubar > .v-menubar-menuitem.v-menubar-menuitem-selected {
+      background-color: #3c3c3c;
+      color: white;
+      background-image: unset;
+    }
   }
 
   .fondomenu {

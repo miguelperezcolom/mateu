@@ -1,43 +1,21 @@
 package io.mateu.mdd.vaadin.views;
 
-import com.vaadin.icons.VaadinIcons;
-import com.vaadin.shared.ui.ContentMode;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Label;
-import io.mateu.mdd.core.app.*;
-import io.mateu.mdd.core.interfaces.PersistentPojo;
-import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
+import com.vaadin.data.Binder;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
+import io.mateu.mdd.shared.annotations.TextArea;
 import io.mateu.mdd.shared.interfaces.App;
 import io.mateu.mdd.shared.interfaces.RpcView;
-import io.mateu.mdd.shared.pojos.PrivateHome;
-import io.mateu.mdd.shared.pojos.PublicHome;
-import io.mateu.mdd.vaadin.MateuUI;
-import io.mateu.mdd.vaadin.actions.AcctionRunner;
-import io.mateu.mdd.vaadin.components.ComponentWrapper;
-import io.mateu.mdd.vaadin.components.HomeComponent;
-import io.mateu.mdd.vaadin.components.MDDViewComponentCreator;
-import io.mateu.mdd.vaadin.components.ResultViewComponent;
-import io.mateu.mdd.vaadin.components.app.views.firstLevel.AreaComponent;
 import io.mateu.mdd.vaadin.components.app.views.firstLevel.FakeComponent;
-import io.mateu.mdd.vaadin.components.app.views.firstLevel.MenuComponent;
 import io.mateu.mdd.vaadin.components.views.*;
-import io.mateu.mdd.vaadin.controllers.Controller;
 import io.mateu.mdd.vaadin.controllers.VoidController;
-import io.mateu.mdd.vaadin.controllers.firstLevel.*;
 import io.mateu.mdd.vaadin.controllers.secondLevel.EditorController;
 import io.mateu.mdd.vaadin.controllers.secondLevel.ListViewController;
-import io.mateu.mdd.vaadin.controllers.secondLevel.ReadOnlyController;
-import io.mateu.mdd.vaadin.controllers.thirdLevel.CollectionController;
 import io.mateu.mdd.vaadin.controllers.thirdLevel.FieldController;
 import io.mateu.mdd.vaadin.navigation.View;
 import io.mateu.mdd.vaadin.navigation.ViewStack;
 import io.mateu.mdd.vaadin.pojos.Error;
 import io.mateu.mdd.vaadin.pojos.ModelField;
-import io.mateu.mdd.vaadin.pojos.Result;
 import io.mateu.reflection.ReflectionHelper;
-import io.mateu.util.Helper;
-import io.mateu.util.notification.Notifier;
 
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
@@ -98,14 +76,32 @@ public class FieldToViewMapper {
             }
         }
 
+        if (modelField.getField().isAnnotationPresent(TextArea.class)) {
+            try {
+                EditorViewComponent currentEditor = (EditorViewComponent) stack.getLast().getViewComponent();
+
+                EditorViewComponent refEditorViewComponent = new TextAreaViewComponent(currentEditor.getBinder(), modelField.getField()
+                            , ((Binder.Binding)currentEditor.getBinder().getBinding(modelField.getField().getId()).get()).getField());
+                return new View(stack, refEditorViewComponent,
+                        new EditorController(ReflectionHelper.getValue(modelField.getField(), currentEditor.getModel())));
+            } catch (Exception e) {
+                return new ProblemView(stack, "Error", new Error(e));
+            }
+        }
+
         if (!ReflectionHelper.isBasico(modelField.getField().getType())) {
             try {
                 EditorViewComponent currentEditor = (EditorViewComponent) stack.getLast().getViewComponent();
 
-                EditorViewComponent refEditorViewComponent =
-                        modelField.getField().getType().isAnnotationPresent(Entity.class) ?
-                                new ReferencedEntityViewComponent(currentEditor.getBinder(), modelField.getField())
-                        : new OwnedPojoViewComponent(currentEditor.getBinder(), modelField.getField());
+                EditorViewComponent refEditorViewComponent = null;
+                if (modelField.getField().getType().isAnnotationPresent(Entity.class)) {
+                    refEditorViewComponent = new ReferencedEntityViewComponent(currentEditor.getBinder(), modelField.getField());
+                } else if (Object.class.equals(modelField.getField().getType())) {
+                    refEditorViewComponent = new TextAreaViewComponent(currentEditor.getBinder(), modelField.getField()
+                    , ((Binder.Binding)currentEditor.getBinder().getBinding(modelField.getField().getId()).get()).getField());
+                } else {
+                    refEditorViewComponent = new OwnedPojoViewComponent(currentEditor.getBinder(), modelField.getField());
+                }
 
                 return new View(stack, refEditorViewComponent,
                         new EditorController(ReflectionHelper.getValue(modelField.getField(), currentEditor.getModel())));

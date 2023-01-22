@@ -93,6 +93,8 @@ public class EditorController extends Controller {
                 return new Result("Saved");
             } else if ("submitted".equals(step) && model instanceof PersistentPojo) {
                 return new Result("Saved");
+            } else if ("submitted".equals(step) && (editorViewComponent.getListViewComponent() != null)) {
+                return new Result("Saved");
             } else {
                 if (model != null) {
                     method = ReflectionHelper.getMethod(model.getClass(), step);

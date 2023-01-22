@@ -4,6 +4,7 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDOpenHtml;
 import io.mateu.mdd.vaadin.actions.AcctionRunner;
 import io.mateu.mdd.vaadin.controllers.Controller;
+import io.mateu.mdd.vaadin.controllers.secondLevel.EditorController;
 import io.mateu.mdd.vaadin.views.ObjectToViewMapper;
 import io.mateu.util.notification.Notifier;
 
@@ -24,6 +25,7 @@ public class ControllerPathApplier {
     }
 
     public void apply() {
+        if ("/".equals(remainingPath) && controller instanceof EditorController) return;
         try {
             if (foundPath.startsWith("/")) foundPath = foundPath.substring(1);
             if (remainingPath.startsWith("/")) remainingPath = remainingPath.substring(1);

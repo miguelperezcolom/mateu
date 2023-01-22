@@ -126,7 +126,7 @@ public class JPAListViewComponent extends ListViewComponent {
         addListener(new ListViewComponentListener() {
             @Override
             public void onEdit(Object id) {
-                MDDUIAccessor.goTo(getUrl() + "/" + Base64.getEncoder().encodeToString(id.toString().getBytes(StandardCharsets.UTF_8)));
+                MDDUIAccessor.goTo(getUrl() + "/" + Base64.getUrlEncoder().encodeToString(id.toString().getBytes(StandardCharsets.UTF_8)));
             }
 
             @Override

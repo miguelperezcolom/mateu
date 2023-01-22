@@ -445,7 +445,7 @@ public class MateuUI extends UI implements IMDDUI {
             }
         }
 
-        u += "/" + Base64.getEncoder().encodeToString(id.toString().getBytes(StandardCharsets.UTF_8));
+        u += "/" + Base64.getUrlEncoder().encodeToString(id.toString().getBytes(StandardCharsets.UTF_8));
 
         if (ed != null && ed.getView().getWindowContainer() != null) {
             try {

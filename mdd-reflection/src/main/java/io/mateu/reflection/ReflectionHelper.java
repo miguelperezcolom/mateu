@@ -2438,7 +2438,12 @@ public class ReflectionHelper extends BaseReflectionHelper {
 
             } else {
                 Constructor con = getConstructor(c);
-                o = con.newInstance();
+                if (con != null) {
+                    o = con.newInstance();
+                } else if (c.getMethod("builder") != null) {
+                    Object builder = c.getMethod("builder").invoke(null);
+                    o = builder.getClass().getMethod("build").invoke(builder);
+                }
             }
             notFromString.add(c);
         }
@@ -2461,7 +2466,12 @@ public class ReflectionHelper extends BaseReflectionHelper {
             }
         } else {
             Constructor con = getConstructor(c);
-            i = con.newInstance();
+            if (con != null) {
+                i = con.newInstance();
+            } else if (c.getMethod("builder") != null) {
+                Object builder = c.getMethod("builder").invoke(null);
+                i = builder.getClass().getMethod("build").invoke(builder);
+            }
         }
         auditar(i);
         return i;

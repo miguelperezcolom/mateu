@@ -67,6 +67,7 @@ public abstract class AbstractFieldBuilder implements IFieldBuilder {
             , new JPALocalDateFieldBuilder()
             , new JPALocalDateTimeFieldBuilder()
             , new ComponentFieldBuilder()
+            , new MongoObjectFieldBuilder()
             , new JPAPOJOFieldBuilder()
     );
 

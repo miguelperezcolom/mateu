@@ -66,7 +66,7 @@ public class Dispatcher {
         }
 
         // aplicamos el path pendiente al controlador (dejará vistas en el stack)
-        if (!"".equals(remainingPath) && !"/".equals(remainingPath)) new ControllerPathApplier(controller, stack, foundPath, remainingPath).apply();
+        if (!"".equals(remainingPath)) new ControllerPathApplier(controller, stack, foundPath, remainingPath).apply();
     }
 
     /**
@@ -75,16 +75,19 @@ public class Dispatcher {
      * @return the first controller to be placed in the stack
      */
     private Controller createBaseController() {
+        Controller controller = null;
+        if (WizardPage.class.isAssignableFrom(app.getBean().getClass())) {
+            controller = new WizardController((WizardPage) app.getBean());
+        } else if (app.isForm()) {
+            ObjectToViewMapper viewMapper = new ObjectToViewMapper(stack);
+            View view = viewMapper.toView(app.getBean(), "");
+            registerViewInStack("", view);
+            controller = new EditorController(app.getBean());
+        } else {
+            controller = new AppController(privada);
+        }
 
-        ObjectToViewMapper viewMapper = new ObjectToViewMapper(stack);
-        View view = viewMapper.toView(app.getBean(), "");
-        registerViewInStack("", view);
-
-        return WizardPage.class.isAssignableFrom(app.getBean().getClass())?
-                new WizardController((WizardPage) app.getBean()):
-                app.isForm()?
-                        new EditorController(app.getBean()):
-                        new AppController(privada);
+        return controller;
     }
 
     public void registerViewInStack(String path, View view) {

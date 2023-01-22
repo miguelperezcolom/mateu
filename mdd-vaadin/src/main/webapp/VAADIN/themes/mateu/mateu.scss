@@ -110,6 +110,19 @@ $v-font-size: 14px;
     color: unset;
   }
 
+
+  .v-menubar-popup .v-menubar-menuitem-selected {
+    background-color: #3c3c3c;
+    color: white;
+    background-image: unset;
+  }
+
+  .v-menubar-popup > .v-menubar-menuitem.v-menubar-menuitem-selected {
+    background-color: #3c3c3c;
+    color: white;
+    background-image: unset;
+  }
+
 }
 
 

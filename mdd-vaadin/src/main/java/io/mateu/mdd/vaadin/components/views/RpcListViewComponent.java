@@ -68,7 +68,7 @@ public class RpcListViewComponent extends ListViewComponent {
                         Object dto = rpcListView.onEdit(id);
                         if (dto == null) dto = id;
                         MateuUI.get().setPendingResult(dto);
-                        MDDUIAccessor.go(getFieldPrefix() + Base64.getEncoder().encodeToString(("" + id).getBytes(StandardCharsets.UTF_8)));
+                        MDDUIAccessor.go(getFieldPrefix() + Base64.getUrlEncoder().encodeToString(("" + id).getBytes(StandardCharsets.UTF_8)));
                     } catch (Throwable throwable) {
                         Notifier.alert(throwable);
                     }
@@ -81,7 +81,7 @@ public class RpcListViewComponent extends ListViewComponent {
                     Object dto = rpcListView.onSelect(id);
                     if (dto == null) dto = id;
                     MateuUI.get().setPendingResult(dto);
-                    MDDUIAccessor.go(getFieldPrefix() + Base64.getEncoder().encodeToString(("" + id).getBytes(StandardCharsets.UTF_8)));
+                    MDDUIAccessor.go(getFieldPrefix() + Base64.getUrlEncoder().encodeToString(("" + id).getBytes(StandardCharsets.UTF_8)));
                 }
             }
         });
@@ -102,12 +102,12 @@ public class RpcListViewComponent extends ListViewComponent {
                         Object dto = rpcListView.onEdit(id);
                         if (dto == null) dto = id;
                         MateuUI.get().setPendingResult(dto);
-                        MDDUIAccessor.go(getFieldPrefix() + Base64.getEncoder().encodeToString(("" + id).getBytes(StandardCharsets.UTF_8)));
+                        MDDUIAccessor.go(getFieldPrefix() + Base64.getUrlEncoder().encodeToString(("" + id).getBytes(StandardCharsets.UTF_8)));
                     } catch (Throwable throwable) {
                         Notifier.alert(throwable);
                     }
                 } else {
-                    MDDUIAccessor.go(getFieldPrefix() + Base64.getEncoder().encodeToString(("" + id).getBytes(StandardCharsets.UTF_8)));
+                    MDDUIAccessor.go(getFieldPrefix() + Base64.getUrlEncoder().encodeToString(("" + id).getBytes(StandardCharsets.UTF_8)));
                 }
             }
 
@@ -117,7 +117,7 @@ public class RpcListViewComponent extends ListViewComponent {
                     Object dto = rpcListView.onSelect(id);
                     if (dto == null) dto = id;
                     MateuUI.get().setPendingResult(dto);
-                    MDDUIAccessor.go(getFieldPrefix() + Base64.getEncoder().encodeToString(("" + id).getBytes(StandardCharsets.UTF_8)));
+                    MDDUIAccessor.go(getFieldPrefix() + Base64.getUrlEncoder().encodeToString(("" + id).getBytes(StandardCharsets.UTF_8)));
                 }
             }
         });
@@ -258,7 +258,7 @@ public class RpcListViewComponent extends ListViewComponent {
     }
 
     @Override
-    protected void delete(Set selection) {
+    protected void delete(Set selection) throws Throwable {
         if (rpcListView instanceof RpcCrudView) ((RpcCrudView)rpcListView).delete(selection);
     }
 

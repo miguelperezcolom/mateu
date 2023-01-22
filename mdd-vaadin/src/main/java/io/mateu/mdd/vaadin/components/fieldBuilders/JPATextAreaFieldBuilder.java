@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadin.components.fieldBuilders;
 
+import com.google.common.base.Strings;
 import com.vaadin.data.*;
 import com.vaadin.data.validator.BeanValidator;
 import com.vaadin.data.validator.StringLengthValidator;
@@ -10,14 +11,17 @@ import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
+import io.mateu.mdd.shared.annotations.Height;
 import io.mateu.mdd.shared.annotations.RequestFocus;
 import io.mateu.mdd.shared.annotations.TextArea;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.reflection.ReflectionHelper;
+import io.mateu.util.notification.Notifier;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -41,11 +45,15 @@ public class JPATextAreaFieldBuilder extends JPAStringFieldBuilder {
         } else {
 
             HorizontalLayout l = new HorizontalLayout();
-
+            l.setWidthFull();
             com.vaadin.ui.TextArea tf;
             l.addComponent(tf = new com.vaadin.ui.TextArea());
+            tf.setId(field.getId());
+            tf.addStyleName("test-" + field.getId());
             //tf.setWidth("370px");
             tf.setWidthFull();
+            if (field.isAnnotationPresent(Height.class)) tf.setHeight(field.getAnnotation(Height.class).value());
+            l.setExpandRatio(tf, 1);
 
             addErrorHandler(field, tf);
 
@@ -66,7 +74,7 @@ public class JPATextAreaFieldBuilder extends JPAStringFieldBuilder {
 
             validators.put(tf, new ArrayList<>());
 
-            tf.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
+            if (validateOnChange()) tf.addValueChangeListener(new HasValue.ValueChangeListener<String>() {
                 @Override
                 public void valueChange(HasValue.ValueChangeEvent<String> valueChangeEvent) {
                     ValidationResult result = null;
@@ -86,15 +94,22 @@ public class JPATextAreaFieldBuilder extends JPAStringFieldBuilder {
 
             if (field.isAnnotationPresent(NotNull.class) || field.isAnnotationPresent(NotEmpty.class)) validators.get(tf).add(new StringLengthValidator("Required field", 1, Integer.MAX_VALUE));
 
-            Binder.BindingBuilder aux = binder.forField(tf);
-            if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
-
             addErrorHandler(field, tf);
 
-            completeBinding(aux, binder, field);
+            bind(binder, tf, field, forSearchFilter);
         }
 
         return r;
+    }
+
+    protected boolean validateOnChange() {
+        return true;
+    }
+
+    protected void bind(MDDBinder binder, com.vaadin.ui.TextArea tf, FieldInterfaced field, boolean forSearchFilter) {
+        Binder.BindingBuilder aux = binder.forField(tf);
+        if (!forSearchFilter && field.getDeclaringClass() != null) aux.withValidator(new BeanValidator(field.getDeclaringClass(), field.getName()));
+        aux.bind(field.getId());
     }
 
 }

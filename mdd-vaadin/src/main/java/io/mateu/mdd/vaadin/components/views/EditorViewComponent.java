@@ -326,9 +326,10 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         if (model != null) {
             if (model.getClass().isAnnotationPresent(Entity.class)) {
                 modelId = ReflectionHelper.getId(model);
-            }
-            if (PersistentPojo.class.isAssignableFrom(model.getClass())) {
+            } else if (PersistentPojo.class.isAssignableFrom(model.getClass())) {
                 modelId = ((PersistentPojo) model).getId();
+            } else {
+                modelId = model.toString();
             }
         }
 
@@ -838,7 +839,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         panel.addStyleName(CSS.NOPADDING);
         panel.addStyleName("panelContenedor");
         addComponent(panel);
-        if (esForm() || (modelType.isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(modelType))) {
+        if (esForm() || (modelType.isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(modelType)
+        || (listViewComponent != null && listViewComponent instanceof RpcListViewComponent
+                && ((RpcListViewComponent)listViewComponent).getRpcListView() instanceof RpcCrudView))) {
             addActionsBar(false);
         }
 
@@ -1302,7 +1305,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             });
             a.setId("submitted");
             a.setOrder(-100);
-        } else if ((modelType.isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(modelType))) {
+        } else if ((modelType.isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(modelType)
+                || (listViewComponent != null && listViewComponent instanceof RpcListViewComponent
+        && ((RpcListViewComponent)listViewComponent).getRpcListView() instanceof RpcCrudView))) {
             ArrayList<AbstractAction> l;
             actionsPerSection.put("", l = new ArrayList<>());
             MDDRunnableAction a;
@@ -1540,6 +1545,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
                     if (goBack) goBack();
 
+                } else if (listViewComponent != null && listViewComponent instanceof RpcListViewComponent
+                        && ((RpcListViewComponent)listViewComponent).getRpcListView() instanceof RpcCrudView) {
+                    ((RpcCrudView) ((RpcListViewComponent)listViewComponent).getRpcListView()).save(getModel());
                 }
 
                 if (notify) listeners.forEach(l -> l.onSave(getModel()));
