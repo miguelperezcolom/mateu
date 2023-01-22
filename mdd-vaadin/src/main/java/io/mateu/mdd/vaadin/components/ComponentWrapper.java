@@ -61,12 +61,14 @@ public class ComponentWrapper extends AbstractViewComponent {
             section.addStyleName("section");
             section.addStyleName("result-page");
 
-            section.addComponent(wrapped);
-            section.setComponentAlignment(wrapped, Alignment.MIDDLE_CENTER);
+            if (wrapped != null) {
+                section.addComponent(wrapped);
+                section.setComponentAlignment(wrapped, Alignment.MIDDLE_CENTER);
 
-            addBack(section);
+                addBack(section);
 
-            addComponent(section);
+                addComponent(section);
+            }
         }
         return this;
     }

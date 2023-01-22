@@ -61,7 +61,8 @@ public class ObjectToViewMapper {
             return new BrokenLinkView(stack);
         }
         if (model instanceof PublicHome) {
-            ComponentView view = new ComponentView(stack, "Home", null, new Label("Public content"));
+            ComponentView view = new ComponentView(stack, "Home", null, null);
+
             view.setController(new PublicController());
             return view;
         }

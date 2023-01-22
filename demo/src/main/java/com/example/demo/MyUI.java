@@ -12,6 +12,7 @@ import io.mateu.mdd.core.annotations.MateuUI;
 import io.mateu.mdd.core.interfaces.HasFooter;
 import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.MenuOption;
+import io.mateu.mdd.shared.annotations.PublicHome;
 import io.mateu.mdd.shared.annotations.Submenu;
 
 @MateuUI(path = "",
@@ -19,6 +20,9 @@ import io.mateu.mdd.shared.annotations.Submenu;
         stylesheets = "estilo.css")
 @Caption("Demo")
 public class MyUI implements HasFooter {
+
+    @PublicHome
+    private String home = "Hello world!";
 
     @MenuOption
     private Crud1 crud1;
