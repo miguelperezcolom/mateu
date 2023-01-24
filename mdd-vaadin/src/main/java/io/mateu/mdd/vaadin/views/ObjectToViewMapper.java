@@ -76,9 +76,11 @@ public class ObjectToViewMapper {
             AbstractAction home = area.getDefaultAction();
             if (home != null) {
                 if (home instanceof MDDOpenHtml) {
-                    return new ComponentView(stack, area.getName(), null,
+                    ComponentView view = new ComponentView(stack, area.getName(), null,
                             new HomeComponent(home.getIcon(), "" + area.getName(),
-                                    new Label(((MDDOpenHtml)home).html, ContentMode.HTML), false));
+                                    new Label(((MDDOpenHtml) home).html, ContentMode.HTML), false));
+                    view.setController(new AreaController(area));
+                    return view;
                 } else {
                     try {
                         new AcctionRunner().run((AbstractAction) home);

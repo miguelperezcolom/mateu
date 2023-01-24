@@ -3,7 +3,10 @@ package io.mateu.mdd.vaadin.pojos;
 import io.mateu.mdd.core.app.Callback;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.reflection.CoreReflectionHelper;
+import io.mateu.mdd.vaadin.MateuUI;
+import io.mateu.mdd.vaadin.components.views.AbstractViewComponent;
 import io.mateu.mdd.vaadin.components.views.EditorListener;
+import io.mateu.mdd.vaadin.components.views.ListViewComponent;
 import io.mateu.mdd.vaadin.components.views.MethodParametersViewComponent;
 import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.vaadin.views.ComponentView;
@@ -50,6 +53,10 @@ public class MethodCall {
         if (hasNonInjectedParameters) {
             MethodParametersViewComponent mpvc =
                     new MethodParametersViewComponent(instance, method, MDDUIAccessor.getPendingSelection());
+            AbstractViewComponent lastViewComponent = MateuUI.get().getStack().getLast().getViewComponent();
+            if (lastViewComponent instanceof ListViewComponent) {
+                mpvc.setListViewComponent((ListViewComponent) lastViewComponent);
+            }
             mpvc.addEditorListener(new EditorListener() {
                 @Override
                 public void preSave(Object model) throws Throwable {

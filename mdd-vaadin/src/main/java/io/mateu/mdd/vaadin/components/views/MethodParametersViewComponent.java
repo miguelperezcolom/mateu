@@ -107,6 +107,11 @@ public class MethodParametersViewComponent extends EditorViewComponent {
                                 View v = stack.size() >= 2?stack.get(stack.size() - 2):null;
                                 if (v != null && v.getViewComponent() instanceof EditorViewComponent)
                                     ((EditorViewComponent) v.getViewComponent()).save(false);
+                            } else {
+                                ViewStack stack = MateuUI.get().getStack();
+                                View v = stack.size() >= 2?stack.get(stack.size() - 2):null;
+                                if (v != null && v.getViewComponent() instanceof EditorViewComponent)
+                                    ((EditorViewComponent) v.getViewComponent()).getBinder().update(bean);
                             }
                         } else {
                             MDDUIAccessor.setPendingResult(r);

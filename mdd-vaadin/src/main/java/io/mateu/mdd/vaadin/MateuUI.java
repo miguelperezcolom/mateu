@@ -94,6 +94,14 @@ public class MateuUI extends UI implements IMDDUI {
             }
         }
         if (selectedRows == null) {
+            if (viewProvider != null && viewProvider.getLastView() != null
+                    && viewProvider.getLastView() != null
+                    && viewProvider.getLastView().getViewComponent() instanceof MethodParametersViewComponent
+            && ((MethodParametersViewComponent) viewProvider.getLastView().getViewComponent()).getListViewComponent() != null) {
+                selectedRows = ((MethodParametersViewComponent) viewProvider.getLastView().getViewComponent()).getListViewComponent().getSelection();
+            }
+        }
+        if (selectedRows == null) {
             selectedRows = new HashSet();
         }
         return selectedRows;
