@@ -5,6 +5,7 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Component;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.shared.annotations.*;
+import io.mateu.mdd.shared.interfaces.JpaCrud;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.shared.reflection.CoreReflectionHelper;
@@ -14,7 +15,6 @@ import io.mateu.security.Private;
 import io.mateu.util.Helper;
 import io.mateu.util.notification.Notifier;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -206,7 +206,19 @@ public class MenuBuilder {
                     f.getField().setAccessible(true);
                 }
 
-                if (Class.class.isAssignableFrom(f.getType())) {
+                if (JpaCrud.class.isAssignableFrom(f.getType())) {
+                    Class entityType = ReflectionHelper.getGenericClass(f, JpaCrud.class, "E");
+                    if (entityType != null) {
+                        MDDOpenCRUDAction a = new MDDOpenCRUDAction(caption, entityType);
+                        a.setIcon(icon).setOrder(order);
+                        JpaCrud v = (JpaCrud) ReflectionHelper.getValue(f, app);
+                        if (v != null && v.getColumnFields() != null) a.setColumns(String.join(",", v.getColumnFields()));
+                        if (v != null && v.getEditableFields() != null) a.setFields(String.join(",", v.getEditableFields()));
+                        if (v != null && v.getSearchFilterFields() != null) a.setFilters(String.join(",", v.getSearchFilterFields()));
+                        if (v != null && !Strings.isNullOrEmpty(v.getExtraWhereFilter())) a.setQueryFilters(v.getExtraWhereFilter());
+                        l.add(a);
+                    }
+                } else if (Class.class.isAssignableFrom(f.getType())) {
                     Class type = (Class) ReflectionHelper.getValue(f, app);
                     if (type != null) {
                         MDDOpenCRUDAction a = new MDDOpenCRUDAction(caption, type);
