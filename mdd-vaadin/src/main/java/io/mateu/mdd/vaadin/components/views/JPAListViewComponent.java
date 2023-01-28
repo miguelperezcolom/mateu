@@ -447,8 +447,8 @@ public class JPAListViewComponent extends ListViewComponent {
 
         Query q = em.createQuery(jpql).setFirstResult(offset).setMaxResults(limit);
         for (String k : parameterValues.keySet()) q.setParameter(k, parameterValues.get(k));
-        System.out.println(jpql);
-        System.out.println(q.toString());
+        log.info(jpql);
+        log.info(q.toString());
         return q;
     }
 

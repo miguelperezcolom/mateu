@@ -1,10 +1,12 @@
 package io.mateu.i18n;
 
 import com.vaadin.ui.UI;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+@Slf4j
 public class Translator {
 
     static ResourceBundle es;
@@ -27,7 +29,7 @@ public class Translator {
             ar = ResourceBundle.getBundle("messages", new Locale("ar"));
             cz = ResourceBundle.getBundle("messages", new Locale("cz"));
         } catch (Exception e) {
-            System.out.println("Translations not available: " + e.getMessage());
+            log.warn("Translations not available: " + e.getMessage());
         }
     }
 

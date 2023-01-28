@@ -6,12 +6,13 @@ import io.mateu.mdd.shared.data.Status;
 import io.mateu.mdd.shared.data.StatusType;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import java.util.List;
 
-@Getter@Setter
+@Getter@Setter@Slf4j
 public class ReadOnlyIntermediary implements ReadOnlyPojo {
 
     @Ignored
@@ -78,6 +79,6 @@ public class ReadOnlyIntermediary implements ReadOnlyPojo {
 
     @Action
     public void unaAction() {
-        System.out.println("hola!");
+        log.info("hola!");
     }
 }

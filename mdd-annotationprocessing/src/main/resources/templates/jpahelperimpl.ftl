@@ -12,6 +12,7 @@ import io.mateu.util.runnable.RunnableThrowsThrowable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
@@ -32,6 +33,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Component
+@Slf4j
 public class JPAHelperImpl implements IJPAHelper {
 
 
@@ -367,7 +369,7 @@ public class JPAHelperImpl implements IJPAHelper {
     public String runNativeSqlUpdate(String sql) throws Throwable {
         StringBuffer sb = new StringBuffer();
         transact(em -> {
-            System.out.println("running " + sql);
+            log.info("running " + sql);
             int r = em.createNativeQuery(sql).executeUpdate();
             sb.append(r);
         });

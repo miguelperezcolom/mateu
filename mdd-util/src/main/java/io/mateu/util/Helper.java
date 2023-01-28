@@ -571,18 +571,18 @@ public class Helper {
 
         // Print the details of each engine
         for (ScriptEngineFactory f : list) {
-            System.out.println("Engine Name:" + f.getEngineName());
-            System.out.println("Engine Version:" + f.getEngineVersion());
-            System.out.println("Language Name:" + f.getLanguageName());
-            System.out.println("Language Version:" + f.getLanguageVersion());
-            System.out.println("Engine Short Names:" + f.getNames());
-            System.out.println("Mime Types:" + f.getMimeTypes());
-            System.out.println("===");
+            log.info("Engine Name:" + f.getEngineName());
+            log.info("Engine Version:" + f.getEngineVersion());
+            log.info("Language Name:" + f.getLanguageName());
+            log.info("Language Version:" + f.getLanguageVersion());
+            log.info("Engine Short Names:" + f.getNames());
+            log.info("Mime Types:" + f.getMimeTypes());
+            log.info("===");
         }
          */
         
         ScriptEngine engine = scriptEngineManager.getEngineByName(engineName);
-        //System.out.println("engine.eval('" + operations + "') instantiating engine took " + (System.currentTimeMillis() - t0) + "ms");
+        //log.info("engine.eval('" + operations + "') instantiating engine took " + (System.currentTimeMillis() - t0) + "ms");
 
         ScriptContext context = engine.getContext();
         if (params != null) params.forEach((k,v) -> engine.put(k, v));
@@ -595,11 +595,11 @@ public class Helper {
         } catch (ScriptException e) {
             writer.append(e.getMessage());
         }
-        //System.out.println("engine.eval('" + operations + "') took " + (System.currentTimeMillis() - t1) + "ms");
+        //log.info("engine.eval('" + operations + "') took " + (System.currentTimeMillis() - t1) + "ms");
 
         String output = writer.toString();
 
-        //System.out.println("eval('" + operations + "') took " + (System.currentTimeMillis() - t0) + "ms");
+        //log.info("eval('" + operations + "') took " + (System.currentTimeMillis() - t0) + "ms");
         return output;
     }
 

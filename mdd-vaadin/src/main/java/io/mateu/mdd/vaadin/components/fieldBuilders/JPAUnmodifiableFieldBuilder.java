@@ -22,7 +22,11 @@ public class JPAUnmodifiableFieldBuilder extends AbstractFieldBuilder {
 
 
     public boolean isSupported(FieldInterfaced field) {
-        return (field.isAnnotationPresent(Unmodifiable.class) || field.isAnnotationPresent(Id.class)) && (MateuUI.get().getCurrentEditor() != null && !MateuUI.get().isEditingNewRecord());
+        return (field.isAnnotationPresent(Unmodifiable.class)
+                || field.isAnnotationPresent(Id.class)
+                || field.isAnnotationPresent(org.springframework.data.annotation.Id.class))
+                && (MateuUI.get().getCurrentEditor() != null
+                && !MateuUI.get().isEditingNewRecord());
     }
 
     @Override

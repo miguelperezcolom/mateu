@@ -4,8 +4,9 @@ import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.Output;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
-@Getter@Setter
+@Getter@Setter@Slf4j
 public class RunnableForm implements Runnable {
 
     private static String lastRun = "Not run yet";
@@ -23,7 +24,7 @@ public class RunnableForm implements Runnable {
 
     @Override
     public void run() {
-        System.out.println(getClass().getSimpleName() + ".run()");
+        log.info(getClass().getSimpleName() + ".run()");
         if ("Not run yet".equals(lastRun)) lastRun = "";
         else lastRun += "|";
         lastRun += "runned for " + name + "," + age;

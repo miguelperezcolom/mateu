@@ -5,8 +5,9 @@ import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.Output;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
-@Getter@Setter
+@Getter@Setter@Slf4j
 public class ButtonFieldForm {
 
     private static String lastRun = "Not run yet";
@@ -16,7 +17,7 @@ public class ButtonFieldForm {
     private int age;
 
     private Button button = new Button("Hello button!", () -> {
-        System.out.println(getClass().getSimpleName() + ".run()");
+        log.info(getClass().getSimpleName() + ".run()");
         if ("Not run yet".equals(lastRun)) lastRun = "";
         else lastRun += "|";
         lastRun += "runned for " + name + "," + age;

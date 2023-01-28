@@ -76,6 +76,7 @@ public class MateuUIServletAnnotationProcessor extends AbstractProcessor {
                     "import org.springframework.beans.factory.annotation.Autowired;\n" +
                     "import org.springframework.stereotype.Component;\n" +
                     "import org.springframework.transaction.annotation.Transactional;\n" +
+                    "import lombok.extern.slf4j.Slf4j;\n" +
                     "\n" +
                     "import javax.annotation.PostConstruct;\n" +
                     "import javax.persistence.*;\n" +
@@ -88,6 +89,7 @@ public class MateuUIServletAnnotationProcessor extends AbstractProcessor {
                     "import java.util.*;\n" +
                     "\n" +
                     "@Component\n" +
+                    "@Slf4j\n" +
                     "public class JPAHelperImpl implements IJPAHelper {\n" +
                     "\n" +
                     "\n" +
@@ -174,7 +176,7 @@ public class MateuUIServletAnnotationProcessor extends AbstractProcessor {
                     "    }\n" +
                     "\n" +
                     "    public void printStackTrace(Throwable e) {\n" +
-                    "        e.printStackTrace();\n" +
+                    "        log.error(\"\", e);\n" +
                     "        if (e instanceof ConstraintViolationException) {\n" +
                     "            StringBuffer sb = new StringBuffer();\n" +
                     "            for (ConstraintViolation v : ((ConstraintViolationException)e)" +
@@ -183,7 +185,9 @@ public class MateuUIServletAnnotationProcessor extends AbstractProcessor {
                     "                sb.append(\"\" + v.getPropertyPath() + \" \" + v.getMessage() " +
                     "+ \" at \" + Helper.capitalize(v.getRootBeanClass().getSimpleName()));\n" +
                     "            }\n" +
-                    "            System.out.println(sb.toString());\n" +
+                    "            log.warn(sb.toString());\n" +
+                    "        } else {" +
+                    "           log.error(\"JPA related error\", e);" +
                     "        }\n" +
                     "    }\n" +
                     "\n" +
@@ -432,7 +436,7 @@ public class MateuUIServletAnnotationProcessor extends AbstractProcessor {
                     "    public String runNativeSqlUpdate(String sql) throws Throwable {\n" +
                     "        StringBuffer sb = new StringBuffer();\n" +
                     "        transact(em -> {\n" +
-                    "            System.out.println(\"running \" + sql);\n" +
+                    "            log.info(\"running \" + sql);\n" +
                     "            int r = em.createNativeQuery(sql).executeUpdate();\n" +
                     "            sb.append(r);\n" +
                     "        });\n" +

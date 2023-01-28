@@ -2,10 +2,12 @@ package io.mateu.mdd.shared.data;
 
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
 import java.net.URL;
 
+@Slf4j
 public class DataHelper {
 
     public static boolean isEmpty(String s) {
@@ -46,7 +48,7 @@ public class DataHelper {
     }
 
     public static void write(File f, byte[] bytes) {
-        System.out.println("writing " + f.getAbsolutePath());
+        log.info("writing " + f.getAbsolutePath());
         FileOutputStream w;
         try {
             if (!f.getParentFile().exists()) f.getParentFile().mkdirs();
@@ -63,7 +65,7 @@ public class DataHelper {
     }
 
     public static byte[] readBytes(File f) throws IOException {
-        System.out.println("reading " + f.getAbsolutePath());
+        log.info("reading " + f.getAbsolutePath());
         return Files.asByteSource(f).read();
     }
 

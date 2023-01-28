@@ -4,10 +4,11 @@ import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.Output;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.Callable;
 
-@Getter@Setter
+@Getter@Setter@Slf4j
 public class CallableForm implements Callable<String> {
 
     private static String lastRun = "Not run yet";
@@ -30,7 +31,7 @@ public class CallableForm implements Callable<String> {
 
     @Override
     public String call() throws Exception {
-        System.out.println(getClass().getSimpleName() + ".run()");
+        log.info(getClass().getSimpleName() + ".run()");
         if ("Not run yet".equals(lastRun)) lastRun = "";
         else lastRun += "|";
         String msg;

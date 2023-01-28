@@ -4,6 +4,7 @@ import com.google.auto.service.AutoService;
 import io.mateu.mdd.shared.JPAAdapter;
 import io.mateu.util.persistence.JPATransaction;
 import io.mateu.util.runnable.RunnableThrowsThrowable;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -14,7 +15,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.util.*;
 
-@AutoService(IJPAHelper.class)
+@AutoService(IJPAHelper.class)@Slf4j
 public class JPAHelperImpl implements IJPAHelper {
 
     private static Map<String, EntityManagerFactory> emf = new HashMap<>();
@@ -83,14 +84,15 @@ public class JPAHelperImpl implements IJPAHelper {
     }
 
     public void printStackTrace(Throwable e) {
-        e.printStackTrace();
         if (e instanceof ConstraintViolationException) {
             StringBuffer sb = new StringBuffer();
             for (ConstraintViolation v : ((ConstraintViolationException)e).getConstraintViolations()) {
                 if (sb.length() > 0) sb.append("\n");
                 sb.append("" + v.getPropertyPath() + " " + v.getMessage() + " at " + Helper.capitalize(v.getRootBeanClass().getSimpleName()));
             }
-            System.out.println(sb.toString());
+            log.warn(sb.toString());
+        } else {
+            log.error("JPA related error", e);
         }
     }
 
@@ -338,7 +340,7 @@ public class JPAHelperImpl implements IJPAHelper {
     public String runNativeSqlUpdate(String sql) throws Throwable {
         StringBuffer sb = new StringBuffer();
         transact(em -> {
-            System.out.println("running " + sql);
+            log.info("running " + sql);
             int r = em.createNativeQuery(sql).executeUpdate();
             sb.append(r);
         });

@@ -7,6 +7,7 @@ import io.mateu.util.IJPAHelper;
 import io.mateu.util.persistence.JPAHelper;
 import io.mateu.util.persistence.JPATransaction;
 import io.mateu.util.runnable.RunnableThrowsThrowable;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,7 @@ import javax.validation.ConstraintViolationException;
 import java.util.*;
 
 @Component
+@Slf4j
 public class JPAHelperImpl implements IJPAHelper {
 
     @Autowired
@@ -94,18 +96,6 @@ public class JPAHelperImpl implements IJPAHelper {
             }
             throw new Exception(sb.toString());
         } else throw e;
-    }
-
-    public void printStackTrace(Throwable e) {
-        e.printStackTrace();
-        if (e instanceof ConstraintViolationException) {
-            StringBuffer sb = new StringBuffer();
-            for (ConstraintViolation v : ((ConstraintViolationException)e).getConstraintViolations()) {
-                if (sb.length() > 0) sb.append("\n");
-                sb.append("" + v.getPropertyPath() + " " + v.getMessage() + " at " + Helper.capitalize(v.getRootBeanClass().getSimpleName()));
-            }
-            System.out.println(sb.toString());
-        }
     }
 
     @Override
@@ -344,7 +334,7 @@ public class JPAHelperImpl implements IJPAHelper {
     public String runNativeSqlUpdate(String sql) throws Throwable {
         StringBuffer sb = new StringBuffer();
         transact(em -> {
-            System.out.println("running " + sql);
+            log.info("running " + sql);
             int r = em.createNativeQuery(sql).executeUpdate();
             sb.append(r);
         });

@@ -3,11 +3,13 @@ package com.example.demo.e2e.cruds.basic;
 import com.example.demo.e2e.dtos.SamplePojo;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.shared.data.sort.SortDirection;
+import lombok.extern.slf4j.Slf4j;
 
 import java.text.Normalizer;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class Service {
 
     private List<SamplePojo> all;
@@ -30,7 +32,7 @@ public class Service {
     }
 
     public List<SamplePojo> rpc(SamplePojo filters, List<QuerySortOrder> sortOrders, int offset, int limit) {
-        System.out.println("rpc(" + offset + ", " + limit + ")");
+        log.info("rpc(" + offset + ", " + limit + ")");
         return all.stream().filter(p -> match(p, filters)).sorted(getComparator(sortOrders)).skip(offset).limit(limit)
                 .collect(Collectors.toList());
     }

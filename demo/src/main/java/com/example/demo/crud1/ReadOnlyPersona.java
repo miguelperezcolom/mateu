@@ -1,6 +1,5 @@
 package com.example.demo.crud1;
 
-import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.FieldGroup;
@@ -8,13 +7,13 @@ import io.mateu.mdd.shared.annotations.Ignored;
 import io.mateu.mdd.shared.annotations.Section;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-import java.io.IOException;
 import java.util.List;
 
-@Getter@Setter
+@Getter@Setter@Slf4j
 public class ReadOnlyPersona implements ReadOnlyPojo {
 
     @Ignored
@@ -88,6 +87,6 @@ public class ReadOnlyPersona implements ReadOnlyPojo {
 
     @Action
     public void unaAction() {
-        System.out.println("hola!");
+        log.info("hola!");
     }
 }

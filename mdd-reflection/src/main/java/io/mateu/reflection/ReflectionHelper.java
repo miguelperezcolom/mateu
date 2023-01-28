@@ -763,7 +763,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
                 break;
             }
         }
-        if (field == null) System.out.println("No field " + fieldName + " at " + sourceClass);
+        if (field == null) log.warn("No field " + fieldName + " at " + sourceClass);
         return field;
     }
 
@@ -1206,7 +1206,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
             try {
                 m.invoke(o, v);
             } catch (Exception e) {
-                System.out.println("Exception when setting value " + v + " for field " + f.getName());
+                log.error("Exception when setting value " + v + " for field " + f.getName());
                 throw e;
             }
         }

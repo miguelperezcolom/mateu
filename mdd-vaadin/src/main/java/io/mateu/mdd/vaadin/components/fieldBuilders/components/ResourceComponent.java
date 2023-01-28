@@ -50,7 +50,7 @@ public class ResourceComponent extends Composite implements HasValue<IResource>,
                                               String mimeType) {
                 // Create and return a file output stream
 
-                System.out.println("receiveUpload(" + fileName + "," + mimeType + ")");
+                log.info("receiveUpload(" + fileName + "," + mimeType + ")");
 
                 FileOutputStream os = null;
                 if (fileName != null && !"".equals(fileName)) {
@@ -89,7 +89,7 @@ public class ResourceComponent extends Composite implements HasValue<IResource>,
                 }
 
 
-                System.out.println("uploadSucceeded(" + filex.getAbsolutePath() + ")");
+                log.info("uploadSucceeded(" + filex.getAbsolutePath() + ")");
 
                 try {
 
@@ -243,7 +243,7 @@ public class ResourceComponent extends Composite implements HasValue<IResource>,
          upload.addChangeListener(e -> {
 
 
-             System.out.println("UPLOAD HA CAMBIADO!");
+             log.info("UPLOAD HA CAMBIADO!");
 
 
          });

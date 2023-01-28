@@ -9,6 +9,7 @@ import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.Subtitle;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 import org.springframework.web.context.annotation.SessionScope;
@@ -19,6 +20,7 @@ import java.util.Set;
 @Component
 @SessionScope
 @Getter@Setter
+@Slf4j
 public class Crud2 implements RpcCrudView<Crud2, Fila, ReadOnlyPersona>, HasTitle, HasSubtitle {
 
     private String nombre;
@@ -38,7 +40,6 @@ public class Crud2 implements RpcCrudView<Crud2, Fila, ReadOnlyPersona>, HasTitl
 
     @Override
     public List<Fila> rpc(Crud2 filters, List<QuerySortOrder> sortOrders, int offset, int limit) throws Throwable {
-        System.out.println("nombre = " + filters.getNombre());
         return List.of(
                 new Fila("Mateu", 14)
                 , new Fila("Antonia", 46)
@@ -96,17 +97,17 @@ public class Crud2 implements RpcCrudView<Crud2, Fila, ReadOnlyPersona>, HasTitl
 
     @Action
     public void hacerAlgo() {
-        System.out.println("seleccionado " + getSelectedRows().size());
+        log.info("seleccionado " + getSelectedRows().size());
     }
 
     @Action
     public void hacerAlgo2(String que) {
-        System.out.println("seleccionado " + que + ": " + getSelectedRows().size());
+        log.info("seleccionado " + que + ": " + getSelectedRows().size());
     }
 
     @Action
     public void action() {
-        System.out.println("nombre = " + nombre);
+        log.info("nombre = " + nombre);
     }
 
     @Override

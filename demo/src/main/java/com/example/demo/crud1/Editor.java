@@ -6,6 +6,7 @@ import io.mateu.mdd.shared.annotations.FieldGroup;
 import io.mateu.mdd.shared.annotations.Section;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.util.List;
 
 @Getter@Setter
+@Slf4j
 public class Editor implements PersistentPojo {
 
     private String nombre;
@@ -82,6 +84,6 @@ public class Editor implements PersistentPojo {
 
     @Action
     public void unaAction() {
-        System.out.println("hola!");
+        log.info("hola!");
     }
 }

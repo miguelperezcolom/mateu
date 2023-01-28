@@ -16,6 +16,7 @@ import io.mateu.mdd.vaadin.components.views.ListViewComponent;
 import io.mateu.mdd.vaadin.views.BrokenLinkView;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.notification.Notifier;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Entity;
 
@@ -27,6 +28,7 @@ import javax.persistence.Entity;
  *
  * It also controls if the View must be opened in a new modal window or in the main plane.
  */
+@Slf4j
 public class MateuViewProvider implements ViewProvider {
     private final ViewStack stack;
     private final App app;
@@ -77,7 +79,7 @@ public class MateuViewProvider implements ViewProvider {
 
         path = sanitizePath(path);
 
-        System.out.println("getView(" + path + ")");
+        log.info("getView(" + path + ")");
 
         // check private/public
         boolean privada = checkPrivate(path);

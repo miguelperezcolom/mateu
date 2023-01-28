@@ -197,7 +197,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                                 && !(v != null && v instanceof String && "".equals(v) && v0 == null)
                                 && ((v0 == null && v != null) || (v0 != null && !v0.equals(v)))
                 ) {
-                    System.out.println("modificado. k=" + k + ",v0=" + v0 + ",v=" + v);
+                    log.debug("modificado. k=" + k + ",v0=" + v0 + ",v=" + v);
                     modificado = true;
                     break;
                 }
@@ -1507,9 +1507,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                             setModel(d);
                         }
                     }, () -> {
-                        System.out.println("entramos en el callback");
+                        log.info("entramos en el callback");
                         if (!goBack) {
-                            System.out.println("actualizamos el ui");
+                            log.info("actualizamos el ui");
                             UI.getCurrent().access(() -> {
                                 try {
                                     JPAHelper.notransact(em -> {

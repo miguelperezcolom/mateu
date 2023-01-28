@@ -50,7 +50,7 @@ public class FileComponent extends Composite implements HasValue<File>, Componen
                                               String mimeType) {
                 // Create and return a file output stream
 
-                System.out.println("receiveUpload(" + fileName + "," + mimeType + ")");
+                log.info("receiveUpload(" + fileName + "," + mimeType + ")");
 
                 FileOutputStream os = null;
                 if (fileName != null && !"".equals(fileName)) {
@@ -87,7 +87,7 @@ public class FileComponent extends Composite implements HasValue<File>, Componen
                 }
 
 
-                System.out.println("uploadSucceeded(" + filex.getAbsolutePath() + ")");
+                log.info("uploadSucceeded(" + filex.getAbsolutePath() + ")");
 
                 try {
 
@@ -165,7 +165,7 @@ public class FileComponent extends Composite implements HasValue<File>, Componen
          upload.addChangeListener(e -> {
 
 
-             System.out.println("UPLOAD HA CAMBIADO!");
+             log.info("UPLOAD HA CAMBIADO!");
 
 
          });

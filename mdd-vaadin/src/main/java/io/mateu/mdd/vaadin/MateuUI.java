@@ -35,6 +35,7 @@ import io.mateu.reflection.ReflectionHelper;
 import io.mateu.security.MateuSecurityManager;
 import io.mateu.util.Helper;
 import io.mateu.util.notification.Notifier;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.persistence.Entity;
@@ -42,6 +43,7 @@ import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+@Slf4j
 public class MateuUI extends UI implements IMDDUI {
     private Navigator navigator;
     private AbstractApplication app;
@@ -131,7 +133,7 @@ public class MateuUI extends UI implements IMDDUI {
         try {
             securityManager = Helper.getImpl(MateuSecurityManager.class);
         } catch (Exception e) {
-            System.out.println("security manager implementation not found");
+            log.warn("security manager implementation not found");
         }
 
         try {
@@ -139,7 +141,7 @@ public class MateuUI extends UI implements IMDDUI {
             initApp(vaadinRequest);
 
             String language = resolveLocale(vaadinRequest.getHeader("Accept-Language")).getLanguage();
-            System.out.println("accepted language = " + language);
+            log.info("accepted language = " + language);
 
             getSession().setAttribute("__language", language);
 

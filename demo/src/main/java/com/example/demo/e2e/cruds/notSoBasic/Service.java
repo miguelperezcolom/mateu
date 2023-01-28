@@ -4,11 +4,13 @@ import com.example.demo.e2e.dtos.SamplePojo;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.shared.data.sort.SortDirection;
 import io.mateu.reflection.ReflectionHelper;
+import lombok.extern.slf4j.Slf4j;
 
 import java.text.Normalizer;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class Service {
 
     private static List<SamplePojo> all;
@@ -31,7 +33,7 @@ public class Service {
     }
 
     public List<Row> rpc(SearchForm filters, List<QuerySortOrder> sortOrders, int offset, int limit) {
-        System.out.println("rpc(" + offset + ", " + limit + ")");
+        log.info("rpc(" + offset + ", " + limit + ")");
         return all.stream().filter(p -> match(p, filters)).sorted(getComparator(sortOrders)).skip(offset).limit(limit)
                 .map(p -> new Row(p.getId(), p.getName(), p.getAge())).collect(Collectors.toList());
     }

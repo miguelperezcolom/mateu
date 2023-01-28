@@ -2,22 +2,22 @@ package io.mateu.util.notification;
 
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.UI;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationTargetException;
 
+@Slf4j
 public class Notifier {
 
     public static void alert(String msg) {
-        System.out.println(msg);
+        log.info(msg);
         if (UI.getCurrent() != null) Notification.show("Alert",
                 msg,
                 Notification.Type.ERROR_MESSAGE);
     }
 
-
-
     public static void alert(Throwable throwable) {
-        throwable.printStackTrace();
+        log.error("Exception raised", throwable);
 
         if (throwable instanceof InvocationTargetException) {
             throwable = throwable.getCause();
@@ -25,11 +25,8 @@ public class Notifier {
 
         String msg = (throwable.getMessage() != null)?throwable.getMessage():throwable.getClass().getName();
 
-        //StringWriter sw = new StringWriter();
-        //throwable.printStackTrace(new PrintWriter(sw));
         if (UI.getCurrent() != null) Notification.show("Error",
                 msg,
-                //sw.toString(),
                 Notification.Type.ERROR_MESSAGE);
     }
 
@@ -44,4 +41,5 @@ public class Notifier {
     public static void pushDone(String msg) {
         Notification.show(msg, Notification.Type.HUMANIZED_MESSAGE);
     }
+
 }

@@ -37,6 +37,7 @@ import io.mateu.mdd.vaadin.util.VaadinHelper;
 import io.mateu.reflection.*;
 import io.mateu.util.Helper;
 import io.mateu.util.notification.Notifier;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
@@ -52,6 +53,7 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
 
@@ -1866,7 +1868,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
 
                                         // handle possible server side drag data, if the drag source was in the same UI
                                         event.getDragData().ifPresent(data -> {
-                                            System.out.println("recibido: " + data);
+                                            log.info("recibido: " + data);
                                             if (!i.equals(data)) {
                                                 Object bean = binder.getBean();
                                                 try {
@@ -1907,7 +1909,7 @@ public class JPAOneToManyFieldBuilder extends AbstractFieldBuilder {
                             if (dragSourcex.isPresent() && dragSourcex.get() instanceof HorizontalLayout) {
                                 // handle possible server side drag data, if the drag source was in the same UI
                                 event.getDragData().ifPresent(data -> {
-                                    System.out.println("recibido: " + data);
+                                    log.info("recibido: " + data);
                                     Object bean = binder.getBean();
                                     try {
                                         List l = new ArrayList((Collection) ReflectionHelper.getValue(field, bean));
