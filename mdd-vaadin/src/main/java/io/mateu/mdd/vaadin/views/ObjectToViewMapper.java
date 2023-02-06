@@ -110,9 +110,8 @@ public class ObjectToViewMapper {
         }
         if (model instanceof MDDOpenHtmlAction) {
             MDDOpenHtmlAction openHtml = (MDDOpenHtmlAction) model;
-            return new ComponentView(stack, "Home", null,
-                    new HomeComponent(openHtml.getIcon(), "Home",
-                            new Label(openHtml.html, ContentMode.HTML), false));
+            return new ComponentView(stack, openHtml.getCaption(), openHtml.getIcon(),
+                    new Label(openHtml.html, ContentMode.HTML));
         }
         if (model instanceof Error) {
             Error error = (Error) model;

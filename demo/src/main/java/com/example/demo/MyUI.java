@@ -57,6 +57,9 @@ public class MyUI implements HasFooter {
     @MenuOption
     private URL elPais = new URL("https://www.elpais.com");
 
+    @MenuOption
+    private String privateThing = "Eyes only";
+
     public MyUI() throws MalformedURLException {
     }
 

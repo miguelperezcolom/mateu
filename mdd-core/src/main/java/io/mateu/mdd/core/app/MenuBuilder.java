@@ -252,7 +252,7 @@ public class MenuBuilder {
                     l.add(new MDDOpenUrlAction(caption, (URL) ReflectionHelper.getValue(f, app)));
                 } else {
                     Object v = ReflectionHelper.getValue(f, app);
-                    if (ReflectionHelper.isBasico(f.getType())) {
+                    if (ReflectionHelper.isBasico(f.getType()) || String.class.equals(f.getType())) {
                         if (f.isAnnotationPresent(Home.class) || f.isAnnotationPresent(PublicHome.class) || f.isAnnotationPresent(PrivateHome.class))
                             l.add(new MDDOpenHtmlAction("Home", "" + v).setIcon(VaadinIcons.HOME).setOrder(order));
                         else l.add(new MDDOpenHtmlAction(caption, "" + v).setIcon(icon).setOrder(order));
