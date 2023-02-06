@@ -1,7 +1,8 @@
 package io.mateu.mdd.vaadin.navigation;
 
 import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.MDDOpenHtml;
+import io.mateu.mdd.core.app.MDDOpenHtmlAction;
+import io.mateu.mdd.core.app.MDDOpenUrlAction;
 import io.mateu.mdd.vaadin.actions.AcctionRunner;
 import io.mateu.mdd.vaadin.controllers.Controller;
 import io.mateu.mdd.vaadin.controllers.secondLevel.EditorController;
@@ -39,26 +40,18 @@ public class ControllerPathApplier {
             Object model = controller.apply(stack, foundPath, step, cleanStep, remainingPath);
 
             //todo: revisar esto
-            if (model != null && model instanceof AbstractAction) {
-                if (model instanceof MDDOpenHtml) {
+            if (model != null && model instanceof MDDOpenUrlAction) {
+                new AcctionRunner().run((MDDOpenUrlAction) model);
+            } else {
+                View view = viewMapper.toView(model, step);
+                foundPath = foundPath + "/" + step;
+                registerViewInStack(foundPath, view);
 
-                } else {
-                    try {
-                        new AcctionRunner().run((AbstractAction) model);
-                    } catch (Throwable e) {
-                        Notifier.alert(e);
-                    }
+                if (!remainingPath.isEmpty()) {
+                    // move forward to the next step
+                    controller = view.getController();
+                    apply();
                 }
-            }
-
-            View view = viewMapper.toView(model, step);
-            foundPath = foundPath + "/" + step;
-            registerViewInStack(foundPath, view);
-
-            if (!remainingPath.isEmpty()) {
-                // move forward to the next step
-                controller = view.getController();
-                apply();
             }
 
         } catch (Throwable e) {

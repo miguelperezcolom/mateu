@@ -8,10 +8,7 @@ import com.vaadin.server.*;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.AbstractApplication;
-import io.mateu.mdd.core.app.AbstractArea;
-import io.mateu.mdd.core.app.AbstractMenu;
+import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.shared.annotations.FullWidth;
@@ -19,7 +16,10 @@ import io.mateu.mdd.shared.interfaces.App;
 import io.mateu.mdd.shared.interfaces.IArea;
 import io.mateu.mdd.shared.interfaces.IModule;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
+import io.mateu.mdd.vaadin.MateuUI;
+import io.mateu.util.notification.Notifier;
 
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -194,9 +194,19 @@ public class HeaderComponent extends HorizontalLayout {
                 MenuBar.MenuItem submenu = menubar.addItem(entry.getCaption(), null);
                 addSubmenu(app, submenu, (AbstractMenu) entry);
                 itemsByState.put(app.getState(entry), submenu);
+            } else if (entry instanceof MDDOpenUrlAction) {
+                MenuBar.MenuItem item = menubar.addItem(entry.getCaption(), (i) -> {
+                    URL url = ((MDDOpenUrlAction) entry).getUrl();
+                    if (url == null) {
+                        Notifier.alert("Empty url");
+                    } else {
+                        Page.getCurrent().open(url.toString(), "_blank");
+                    }
+                });
+                itemsByState.put(app.getState(entry), item);
             } else if (entry instanceof AbstractAction) {
                 MenuBar.MenuItem item = menubar.addItem(entry.getCaption(), (i) -> {
-                    home.irA(app.getState(entry));
+                        home.irA(app.getState(entry));
                 });
                 itemsByState.put(app.getState(entry), item);
             }
@@ -232,6 +242,16 @@ public class HeaderComponent extends HorizontalLayout {
             if (entry instanceof AbstractMenu) {
                 MenuBar.MenuItem submenu = menu.addItem(entry.getCaption(), null);
                 addSubmenu(app, submenu, (AbstractMenu) entry);
+            } else if (entry instanceof MDDOpenUrlAction) {
+                MenuBar.MenuItem item = menu.addItem(entry.getCaption(), (i) -> {
+                    URL url = ((MDDOpenUrlAction) entry).getUrl();
+                    if (url == null) {
+                        Notifier.alert("Empty url");
+                    } else {
+                        Page.getCurrent().open(url.toString(), "_blank");
+                    }
+                });
+                itemsByState.put(app.getState(entry), item);
             } else if (entry instanceof AbstractAction) {
                 menu.addItem(entry.getCaption(), (item) -> {
                     home.irA(app.getState(entry));

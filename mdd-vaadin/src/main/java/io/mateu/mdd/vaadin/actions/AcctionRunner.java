@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadin.actions;
 
+import com.vaadin.server.Page;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
@@ -8,6 +9,8 @@ import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.components.ComponentWrapper;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.notification.Notifier;
+
+import java.net.URL;
 
 public class AcctionRunner {
 
@@ -19,9 +22,10 @@ public class AcctionRunner {
         else if (action instanceof MDDOpenCustomComponentAction) run((MDDOpenCustomComponentAction) action);
         else if (action instanceof MDDOpenEditorAction) run((MDDOpenEditorAction) action);
         else if (action instanceof MDDOpenListViewAction) run((MDDOpenListViewAction) action);
-        else if (action instanceof MDDOpenHtml) run((MDDOpenHtml) action);
+        else if (action instanceof MDDOpenHtmlAction) run((MDDOpenHtmlAction) action);
         else if (action instanceof MDDOpenWizardAction) run((MDDOpenWizardAction) action);
         else if (action instanceof MDDRunnableAction) run((MDDRunnableAction) action);
+        else if (action instanceof MDDOpenUrlAction) run((MDDOpenUrlAction) action);
         else throw new Exception("Unrecognized action " + action);
     }
 
@@ -54,7 +58,7 @@ public class AcctionRunner {
         Opener.openListView(action.getListViewClass());
     }
 
-    public void run(MDDOpenHtml action) throws Exception {
+    public void run(MDDOpenHtmlAction action) throws Exception {
         run(new MDDOpenCustomComponentAction(action.getCaption(),
                 new ComponentWrapper(action.getIcon(), "Home", new Label(action.html, ContentMode.HTML),
                         true)));
@@ -62,6 +66,16 @@ public class AcctionRunner {
 
     public void run(MDDOpenWizardAction action) {
         Opener.openWizard(action.firstPageSupplier.get());
+    }
+
+    public void run(MDDOpenUrlAction action) throws Throwable {
+        URL url = action.getUrl();
+        if (url != null) {
+            Page.getCurrent().open(url.toString(), "_blank");
+        } else {
+            Notifier.alert("Empty url");
+        }
+
     }
 
 

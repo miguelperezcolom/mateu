@@ -15,6 +15,9 @@ import io.mateu.mdd.shared.annotations.MenuOption;
 import io.mateu.mdd.shared.annotations.PublicHome;
 import io.mateu.mdd.shared.annotations.Submenu;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 @MateuUI(path = "",
         favIcon = "https://www.wefox.com/favicons/favicon-32x32.png",
         stylesheets = "estilo.css")
@@ -47,6 +50,15 @@ public class MyUI implements HasFooter {
 
     @Submenu(value = "E2E")
     private E2eMenu e2e;
+
+    @Submenu
+    private URL google = new URL("https://www.google.es");
+
+    @MenuOption
+    private URL elPais = new URL("https://www.elpais.com");
+
+    public MyUI() throws MalformedURLException {
+    }
 
     @Override
     public Component getFooterComponent() {

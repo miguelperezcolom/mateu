@@ -6,6 +6,9 @@ import com.example.demo.e2e.forms.*;
 import io.mateu.mdd.shared.annotations.MenuOption;
 import io.mateu.mdd.shared.annotations.Submenu;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 public class E2eMenu {
 
     @Submenu
@@ -16,4 +19,10 @@ public class E2eMenu {
 
     @Submenu
     private E2eJpaMenu jpa;
+
+    @MenuOption
+    private URL google = new URL("https://www.google.es");
+
+    public E2eMenu() throws MalformedURLException {
+    }
 }

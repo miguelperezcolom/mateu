@@ -1,11 +1,11 @@
 package io.mateu.mdd.core.app;
 
 
-public class MDDOpenHtml extends AbstractAction {
+public class MDDOpenHtmlAction extends AbstractAction {
 
     public final String html;
 
-    public MDDOpenHtml(String name, String html) {
+    public MDDOpenHtmlAction(String name, String html) {
         super(name);
         this.html = html;
     }

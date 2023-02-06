@@ -1,30 +1,37 @@
 package com.example.demo.e2e;
 
 import com.example.demo.e2e.entities.*;
-import com.example.demo.e2e.forms.*;
 import io.mateu.mdd.shared.annotations.MenuOption;
+import io.mateu.mdd.shared.interfaces.JpaCrud;
+
+import java.util.List;
 
 public class E2eJpaMenu {
 
     @MenuOption
-    private Class teams = TeamEntity.class;
+    private JpaCrud<TeamEntity> teams = new JpaCrud<TeamEntity>() {
+        @Override
+        public List<String> getEditableFields() {
+            return List.of("id,name");
+        }
+    };
 
     @MenuOption
-    private Class classrooms = ClassroomEntity.class;
+    private JpaCrud<ClassroomEntity> classrooms;
 
     @MenuOption
-    private Class persons = PersonEntity.class;
+    private JpaCrud<PersonEntity> persons;
 
     @MenuOption
-    private Class driverLicenses = DriverLicenseEntity.class;
+    private JpaCrud<DriverLicenseEntity> driverLicenses;
 
     @MenuOption
-    private Class cities = CityEntity.class;
+    private JpaCrud<CityEntity> cities;
 
     @MenuOption
-    private Class countries = CountryEntity.class;
+    private JpaCrud<CountryEntity> countries;
 
     @MenuOption
-    private Class invoices = InvoiceEntity.class;
+    private JpaCrud<InvoiceEntity> invoices;
 
 }

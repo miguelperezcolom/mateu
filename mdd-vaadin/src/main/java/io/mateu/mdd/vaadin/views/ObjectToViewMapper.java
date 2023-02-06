@@ -75,10 +75,10 @@ public class ObjectToViewMapper {
             AbstractArea area = (AbstractArea) model;
             AbstractAction home = area.getDefaultAction();
             if (home != null) {
-                if (home instanceof MDDOpenHtml) {
+                if (home instanceof MDDOpenHtmlAction) {
                     ComponentView view = new ComponentView(stack, area.getName(), null,
                             new HomeComponent(home.getIcon(), "" + area.getName(),
-                                    new Label(((MDDOpenHtml) home).html, ContentMode.HTML), false));
+                                    new Label(((MDDOpenHtmlAction) home).html, ContentMode.HTML), false));
                     view.setController(new AreaController(area));
                     return view;
                 } else {
@@ -108,8 +108,8 @@ public class ObjectToViewMapper {
             view.setController(new MenuController(menu));
             return view;
         }
-        if (model instanceof MDDOpenHtml) {
-            MDDOpenHtml openHtml = (MDDOpenHtml) model;
+        if (model instanceof MDDOpenHtmlAction) {
+            MDDOpenHtmlAction openHtml = (MDDOpenHtmlAction) model;
             return new ComponentView(stack, "Home", null,
                     new HomeComponent(openHtml.getIcon(), "Home",
                             new Label(openHtml.html, ContentMode.HTML), false));
