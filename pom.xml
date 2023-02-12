@@ -55,6 +55,7 @@
     <module>mdd-springboot</module>
       <module>mdd-reflection</module>
       <module>mdd-util</module>
+      <module>mdd-remote</module>
   </modules>
 
   <dependencies>
