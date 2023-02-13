@@ -50,7 +50,7 @@ public class MyUI implements HasFooter {
     private RemoteForm remoteForm = new RemoteForm("localhost:8081", "com.example.demoremote.MyForm");
 
     @MenuOption
-    public Class prsonas = PersonEntity.class;
+    public Class personas = PersonEntity.class;
 
     @Submenu(value = "E2E")
     private E2eMenu e2e;
@@ -62,7 +62,7 @@ public class MyUI implements HasFooter {
     private URL elPais = new URL("https://www.elpais.com");
 
     @MenuOption@Private(roles = "USER")
-    private String privateThing = "Eyes only";
+    private String privateThing1 = "Eyes only 1";
 
     @MenuOption@Private(roles = "USER")
     private String privateThing2 = "Eyes only 2";

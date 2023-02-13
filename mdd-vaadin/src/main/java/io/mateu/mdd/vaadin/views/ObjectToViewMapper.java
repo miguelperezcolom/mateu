@@ -67,7 +67,7 @@ public class ObjectToViewMapper {
             return view;
         }
         if (model instanceof PrivateHome) {
-            ComponentView view = new ComponentView(stack, "Home", null, new Label("Private content"));
+            ComponentView view = new ComponentView(stack, "Private home", null, null);
             view.setController(new PrivateController());
             return view;
         }
