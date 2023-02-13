@@ -20,7 +20,8 @@ import java.net.URL;
 
 @MateuUI(path = "",
         favIcon = "https://www.wefox.com/favicons/favicon-32x32.png",
-        stylesheets = "estilo.css")
+        stylesheets = "estilo.css",
+        scripts = {"https://unpkg.com/keycloak-js@20.0.3/dist/keycloak.min.js", "test.js"})
 @Caption("Demo")
 public class MyUI implements HasFooter {
 
