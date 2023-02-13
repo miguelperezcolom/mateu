@@ -28,6 +28,31 @@ public class E2eJpaMenu {
     };
 
     @MenuOption
+    private JpaCrud<TeamEntity> winners = new JpaCrud<TeamEntity>() {
+
+        @Override
+        public List<String> getSearchFilterFields() {
+            return List.of("name");
+        }
+
+        @Override
+        public List<String> getColumnFields() {
+            return List.of("id, name");
+        }
+
+        @Override
+        public List<String> getEditableFields() {
+            return List.of("id,name");
+        }
+
+        @Override
+        public String getExtraWhereFilter() {
+            return "x.superBowls > 0";
+        }
+    };
+
+
+    @MenuOption
     private JpaCrud<ClassroomEntity> classrooms;
 
     @MenuOption

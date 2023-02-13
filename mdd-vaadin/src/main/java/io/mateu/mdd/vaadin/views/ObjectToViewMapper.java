@@ -158,7 +158,8 @@ public class ObjectToViewMapper {
             Class entityClass = ((MDDOpenCRUDAction) model).getEntityClass();
             try {
                 JPAListViewComponent component =
-                        new JPAListViewComponent(entityClass, null, null, action.getColumns(), action.getFilters(), action.getFields());
+                        new JPAListViewComponent(entityClass, action.getQueryFilters(), null, null, action.getColumns(), action.getFilters(), action.getFields(), null);
+                component.setCaption(action.getCaption());
                return new View(stack, component, new ListViewController(component));
             } catch (Exception e) {
                 return new ProblemView(stack, "Error", new Error(e));
