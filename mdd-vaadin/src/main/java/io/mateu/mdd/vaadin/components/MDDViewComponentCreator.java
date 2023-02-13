@@ -1,5 +1,6 @@
 package io.mateu.mdd.vaadin.components;
 
+import com.google.common.base.Strings;
 import com.vaadin.ui.Component;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.app.MDDOpenEditorAction;
@@ -14,8 +15,11 @@ import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.notification.Notifier;
 
 import javax.persistence.Entity;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class MDDViewComponentCreator {
 
@@ -150,13 +154,21 @@ public class MDDViewComponentCreator {
 
     public static EditorViewComponent createEditorViewComponent(Class modelType, boolean createSaveBUtton)
             throws Exception {
+        List<FieldInterfaced> visibleFields = new ArrayList<>();
         ListViewComponent listViewComponent = null;
         try {
             listViewComponent = (ListViewComponent) MateuUI.get().getStack().getLast().getViewComponent();
+            if (!Strings.isNullOrEmpty(listViewComponent.getEditableFieldsFilter())) {
+                List<FieldInterfaced> allFEditableFields = ReflectionHelper.getAllEditableFields(modelType);
+                for (String vfn : listViewComponent.getEditableFieldsFilter().split(",")) {
+                    System.out.println(vfn);
+                    visibleFields.addAll(allFEditableFields.stream().filter(f -> f.getId().equals(vfn)).collect(Collectors.toList()));
+                }
+            }
         } catch (Exception e) {
 
         }
-        EditorViewComponent v = new EditorViewComponent(listViewComponent, modelType, createSaveBUtton);
+        EditorViewComponent v = new EditorViewComponent(listViewComponent, modelType, createSaveBUtton, visibleFields);
         return v;
     }
 

@@ -846,4 +846,9 @@ public class JPAListViewComponent extends ListViewComponent {
 
         return sel;
     }
+
+    @Override
+    public List<FieldInterfaced> getColumnFields() {
+        return super.getColumnFields().stream().filter(f -> Strings.isNullOrEmpty(useColumns) || useColumns.contains(f.getId())).collect(Collectors.toList());
+    }
 }

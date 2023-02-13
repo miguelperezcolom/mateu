@@ -10,6 +10,17 @@ public class E2eJpaMenu {
 
     @MenuOption
     private JpaCrud<TeamEntity> teams = new JpaCrud<TeamEntity>() {
+
+        @Override
+        public List<String> getSearchFilterFields() {
+            return List.of("name");
+        }
+
+        @Override
+        public List<String> getColumnFields() {
+            return List.of("id, name");
+        }
+
         @Override
         public List<String> getEditableFields() {
             return List.of("id,name");

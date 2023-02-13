@@ -264,6 +264,10 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         this(listViewComponent, null, null, modelType, new ArrayList<>(), new ArrayList<>(), createSaveButton);
     }
 
+    public EditorViewComponent(ListViewComponent listViewComponent, Class modelType, boolean createSaveButton, List<FieldInterfaced> visibleFields) {
+        this(listViewComponent, null, null, modelType, visibleFields, new ArrayList<>(), createSaveButton);
+    }
+
     public EditorViewComponent(Object model) {
         this(model, true);
     }

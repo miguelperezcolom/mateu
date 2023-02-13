@@ -22,6 +22,10 @@ public class TeamEntity {
 
     private String name;
 
+    private String owner;
+
+    private int superBowls;
+
     @ManyToMany(mappedBy = "fanOf")
     private List<PersonEntity> fans = new ArrayList<>();
 

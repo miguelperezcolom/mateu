@@ -39,10 +39,10 @@ public class JpaPopulator {
         em.persist(new CityEntity("BER", "Berlin", de));
 
 
-        em.persist(new TeamEntity("NEW", "New England Patriots", null));
-        em.persist(new TeamEntity("KAN", "Kansas City Chiefs", null));
-        em.persist(new TeamEntity("BUF", "Buffalo Bills", null));
-        em.persist(new TeamEntity("CIN", "Cincinnati Bengals", null));
+        em.persist(new TeamEntity("NEW", "New England Patriots", "No idea", 2, null));
+        em.persist(new TeamEntity("KAN", "Kansas City Chiefs", "No idea", 6, null));
+        em.persist(new TeamEntity("BUF", "Buffalo Bills", "No idea", 0, null));
+        em.persist(new TeamEntity("CIN", "Cincinnati Bengals", "No idea", 0, null));
 
 
         PersonEntity mateu;
