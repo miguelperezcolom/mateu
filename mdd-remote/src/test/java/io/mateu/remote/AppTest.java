@@ -1,4 +1,4 @@
-package io.mateu;
+package io.mateu.remote;
 
 import static org.junit.Assert.assertTrue;
 

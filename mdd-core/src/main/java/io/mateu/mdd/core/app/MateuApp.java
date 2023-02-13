@@ -30,6 +30,12 @@ public class MateuApp extends BaseMDDApp {
         this(null, null);
     }
 
+    public MateuApp(Object ui) throws Exception {
+        this.ui = ui;
+        uiclass = ui.getClass();
+        init();
+    }
+
     public MateuApp(Class uiclass) throws Exception {
         this(uiclass, null);
     }

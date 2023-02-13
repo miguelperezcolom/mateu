@@ -44,7 +44,7 @@ public class HeaderComponent extends HorizontalLayout {
         addStyleName("mateu-header");
         setHeight("80px");
 
-        refresh(false);
+        refresh(VaadinRequest.getCurrent().getPathInfo() != null && VaadinRequest.getCurrent().getPathInfo().startsWith("/private"));
     }
 
     public void refresh(boolean isPrivate) {
@@ -100,8 +100,10 @@ public class HeaderComponent extends HorizontalLayout {
 
         String finalBasePath = basePath;
         if (isPrivate) {
-            Button b;
-            right.addComponent(b = new Button("Logout", e -> Page.getCurrent().setLocation(finalBasePath + "private/logout")));
+            Link b;
+            right.addComponent(b = new Link("Logout", new ExternalResource(
+                    //finalBasePath +
+                            "/logout")));
             b.addStyleName(ValoTheme.BUTTON_QUIET);
         } else {
             if (app.hasPrivateContent()) {

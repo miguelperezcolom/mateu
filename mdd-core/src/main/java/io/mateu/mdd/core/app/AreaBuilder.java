@@ -31,13 +31,13 @@ public class AreaBuilder {
         addAreas(uiclass, l, true);
         addAreas(uiclass, l, false);
         if (l.size() == 0) {
-            List<MenuEntry> privateMenu = new MenuBuilder().buildMenu(ui,false, false);
-            List<MenuEntry> publicMenu = new MenuBuilder().buildMenu(ui,false, true);
+            List<MenuEntry> privateMenu = new MenuBuilder().buildMenu(ui,true, false);
+            List<MenuEntry> publicMenu = new MenuBuilder().buildMenu(ui,true, true);
             if (allPrivate) {
                 privateMenu.addAll(publicMenu);
                 if (privateMenu.size() > 0) l.add(new AreaFromMenu("", privateMenu, false, findDefaultAction(uiclass, false, false)));
             } else {
-                if (privateMenu.size() > 0) l.add(new AreaFromMenu("", privateMenu, false, findDefaultAction(uiclass, false, false)));
+                if (privateMenu.size() > 0) l.add(new AreaFromMenu("", new MenuBuilder().buildMenu(ui,false, false), false, findDefaultAction(uiclass, false, false)));
                 if (publicMenu.size() > 0 || isPublicHomeDefined(uiclass)) l.add(new AreaFromMenu("", publicMenu, true, findDefaultAction(uiclass, false, true)));
             }
             if (l.size() == 0) l.add(new FakeArea("", !allPrivate, findDefaultAction(uiclass, allPrivate, allPrivate)));

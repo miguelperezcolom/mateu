@@ -79,7 +79,7 @@ public class HeaderForMobileComponent extends HorizontalLayout {
         String finalBasePath = basePath;
         if (isPrivate) {
             Button b;
-            addComponent(b = new Button("Logout", e -> Page.getCurrent().setLocation(finalBasePath + "private/logout")));
+            addComponent(b = new Button("Logout", e -> Page.getCurrent().setLocation(finalBasePath + "logout")));
             b.addStyleName(ValoTheme.BUTTON_QUIET);
         } else {
             if (app.hasPrivateContent()) {

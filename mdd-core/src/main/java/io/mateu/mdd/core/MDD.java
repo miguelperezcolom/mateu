@@ -2,6 +2,8 @@ package io.mateu.mdd.core;
 
 import com.vaadin.data.BinderValidationStatus;
 import com.vaadin.data.BindingValidationStatus;
+import com.vaadin.server.VaadinSession;
+import com.vaadin.server.WrappedHttpSession;
 import com.vaadin.ui.AbstractComponent;
 import com.vaadin.ui.Notification;
 import io.mateu.mdd.core.app.AbstractApplication;
@@ -10,8 +12,12 @@ import io.mateu.mdd.shared.annotations.ReadOnly;
 import io.mateu.mdd.shared.annotations.ReadWrite;
 import io.mateu.mdd.shared.interfaces.UserPrincipal;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.security.MateuSecurityManager;
 import io.mateu.security.Private;
+import io.mateu.util.Helper;
 import javassist.ClassPool;
+
+import javax.servlet.http.HttpSession;
 
 public class MDD {
 
@@ -62,10 +68,10 @@ public class MDD {
         if (!usuarioOk) return false;
 
         boolean permisoOk = false;
-        if (u != null && (users == null || users.length == 0) && permissions != null && permissions.length > 0) {
+        if (u != null && permissions != null && permissions.length > 0) {
             for (int i = 0; i < permissions.length; i++) {
                 for (String p : u.getRoles()) {
-                    if (permissions[i].equals(p)) {
+                    if (("ROLE_" + permissions[i]).equals(p)) {
                         permisoOk = true;
                         break;
                     }
@@ -75,11 +81,18 @@ public class MDD {
         } else permisoOk = true;
 
 
-        if (permisoOk || usuarioOk) add = true;
-        return add;
+        if (!permisoOk) return false;
+        return true;
     }
 
     private static UserPrincipal getCurrentUser() {
+        try {
+            MateuSecurityManager sm = Helper.getImpl(MateuSecurityManager.class);
+            UserPrincipal p = sm.getPrincipal(((WrappedHttpSession) VaadinSession.getCurrent().getSession()).getHttpSession());
+            return p;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return null;
     }
 

@@ -158,9 +158,9 @@ public abstract class AbstractApplication implements App {
 
 
     public IArea[] getAreas() {
-        if (areas == null) synchronized (this) {
+        if (true || areas == null) synchronized (this) {
             areas = new ArrayList<>();
-            boolean autentico = MDDUIAccessor.getCurrentUserLogin() != null;
+            boolean autentico = MDDUIAccessor.getCurrentUserLogin() != null && !"anonymousUser".equals(MDDUIAccessor.getCurrentUserLogin());
             for (AbstractArea a : buildAreas()) {
 
                 if (isAuthenticationAgnostic() || (!autentico && a.isPublicAccess()) || (autentico && !a.isPublicAccess())) areas.add(a);

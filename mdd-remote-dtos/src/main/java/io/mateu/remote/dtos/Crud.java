@@ -1,0 +1,18 @@
+package io.mateu.remote.dtos;
+
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+public class Crud implements ViewMetadata {
+
+    private SearchForm searchForm;
+
+    private List<Column> columns;
+
+    private Form newItemForm;
+
+    private Form detailForm;
+
+}

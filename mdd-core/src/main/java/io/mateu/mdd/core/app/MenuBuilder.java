@@ -3,10 +3,12 @@ package io.mateu.mdd.core.app;
 import com.google.common.base.Strings;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Component;
+import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.interfaces.JpaCrud;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
+import io.mateu.mdd.shared.interfaces.RemoteForm;
 import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.shared.reflection.CoreReflectionHelper;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
@@ -38,19 +40,14 @@ public class MenuBuilder {
 
             boolean add = false;
 
-            if (authenticationAgnostic) {
+            if (publicAccess && !f.isAnnotationPresent(Private.class)) {
                 add = true;
-            } else {
-                if (publicAccess && !f.isAnnotationPresent(Private.class)) {
-                    add = true;
-                }
-                if (!publicAccess && f.isAnnotationPresent(Private.class)) {
-                    Private pa = f.getAnnotation(Private.class);
-                    if (pa != null) {
-                        //todo: el check debemos hacerlo en tiempo de ejecución
-                        add = true; //MDD.check(pa);
-                    } else add = true;
-                }
+            }
+            if (!publicAccess && f.isAnnotationPresent(Private.class)) {
+                Private pa = f.getAnnotation(Private.class);
+                if (pa != null) {
+                    add = authenticationAgnostic || MDD.check(pa);
+                } else add = true;
             }
 
             if (add) {
@@ -81,8 +78,7 @@ public class MenuBuilder {
                 if (!publicAccess && m.isAnnotationPresent(Private.class)) {
                     Private pa = m.getAnnotation(Private.class);
                     if (pa != null) {
-                        //todo: el check debemos hacerlo en tiempo de ejecución
-                        add = true; //MDD.check(pa);
+                        add = MDD.check(pa);
                     } else add = true;
                 }
             }
@@ -210,7 +206,11 @@ public class MenuBuilder {
                     f.getField().setAccessible(true);
                 }
 
-                if (JpaCrud.class.isAssignableFrom(f.getType())) {
+                if (RemoteForm.class.isAssignableFrom(f.getType())) {
+
+                    //l.add(new MDDOpenEditorAction());
+
+                } else if (JpaCrud.class.isAssignableFrom(f.getType())) {
                     Class entityType = ReflectionHelper.getGenericClass(f, JpaCrud.class, "E");
                     if (entityType != null) {
                         MDDOpenCRUDAction a = new MDDOpenCRUDAction(caption, entityType);
