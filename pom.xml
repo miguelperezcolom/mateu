@@ -4,7 +4,7 @@
 
   <groupId>io.mateu</groupId>
   <artifactId>mdd-parent</artifactId>
-  <version>1.1.49</version>
+  <version>1.1.50</version>
   <packaging>pom</packaging>
 
   <name>Mateu MDD</name>
@@ -57,6 +57,7 @@
       <module>mdd-util</module>
       <module>mdd-remote</module>
       <module>mdd-remote-dtos</module>
+      <module>mdd-springboot-security</module>
   </modules>
 
   <dependencies>
