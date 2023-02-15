@@ -29,11 +29,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -70,6 +68,7 @@ public class JPAListViewComponent extends ListViewComponent {
     private final String useFilters;
 
     private final String useFields;
+    private String readOnlyFields;
 
     public Map<String, FieldInterfaced> getFieldsByColId() {
         return fieldsByColId;
@@ -87,6 +86,10 @@ public class JPAListViewComponent extends ListViewComponent {
 
     String selectColumnsForCount;
     String selectColumnsForList;
+
+    private boolean addEnabled;
+    private boolean deleteEnabled;
+    private boolean readOnly;
 
     List<FieldInterfaced> sumFields;
 
@@ -106,13 +109,16 @@ public class JPAListViewComponent extends ListViewComponent {
         this(entityClass, extraFilters, initialValues, null, null, null);
     }
 
-    public JPAListViewComponent(Class entityClass, ExtraFilters extraFilters, Map<String, Object> initialValues, String columns, String filters, String fields) {
+    public JPAListViewComponent(Class entityClass, ExtraFilters extraFilters, Map<String, Object> initialValues,
+                                String columns, String filters, String fields) {
         this(entityClass, null, extraFilters, initialValues, columns, filters, fields, null);
     }
 
 
     
-    public JPAListViewComponent(Class entityClass, String queryFilters, ExtraFilters extraFilters, Map<String, Object> initialValues, String columns, String filters, String fields, Consumer<Object> callback) {
+    public JPAListViewComponent(Class entityClass, String queryFilters, ExtraFilters extraFilters,
+                                Map<String, Object> initialValues, String columns, String filters, String fields,
+                                Consumer<Object> callback) {
         this.entityClass = entityClass;
         this.queryFilters = queryFilters;
         this.extraFilters = extraFilters;
@@ -122,6 +128,9 @@ public class JPAListViewComponent extends ListViewComponent {
         this.useFields = fields;
         this.callback = callback;
 
+        addEnabled = !entityClass.isAnnotationPresent(NewNotAllowed.class);
+        deleteEnabled = callback == null && !entityClass.isAnnotationPresent(Indelible.class);
+        readOnly = entityClass.isAnnotationPresent(ReadOnly.class) || entityClass.isAnnotationPresent(Output.class);
 
         addListener(new ListViewComponentListener() {
             @Override
@@ -249,16 +258,39 @@ public class JPAListViewComponent extends ListViewComponent {
         return useFields;
     }
 
+    public String getReadOnlyFields() {
+        return readOnlyFields;
+    }
+
+    public void setReadOnlyFields(String readOnlyFields) {
+        this.readOnlyFields = readOnlyFields;
+    }
+
     @Override
     public List<FieldInterfaced> getFilterFields(Class filtersType) {
         if (Strings.isNullOrEmpty(useFilters)) {
 
             List<FieldInterfaced> filterFields = ReflectionHelper.getAllFields(filtersType).stream().filter(
-                    (f) -> !f.isAnnotationPresent(Password.class) && !f.isAnnotationPresent(Version.class) && !f.isAnnotationPresent(Ignored.class) && (f.isAnnotationPresent(SearchFilter.class) || f.isAnnotationPresent(MainSearchFilter.class))
+                    (f) -> !f.isAnnotationPresent(Password.class) && !f.isAnnotationPresent(Version.class)
+                            && !f.isAnnotationPresent(Ignored.class)
+                            && (f.isAnnotationPresent(SearchFilter.class)
+                            || f.isAnnotationPresent(MainSearchFilter.class))
             ).collect(Collectors.toList());
             if (filterFields.size() == 0) {
                 filterFields = ReflectionHelper.getAllFields(filtersType).stream().filter(
-                        (f) ->  !f.isAnnotationPresent(Password.class) && !f.isAnnotationPresent(Version.class) && !f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(Output.class) &&  !IResource.class.isAssignableFrom(f.getType()) && (String.class.equals(f.getType()) || LocalDate.class.equals(f.getType()) || LocalDateTime.class.equals(f.getType()) || LocalTime.class.equals(f.getType()) || Date.class.equals(f.getType()) || boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType()) || f.getType().isEnum() || f.isAnnotationPresent(ManyToOne.class) || f.getType().isAnnotationPresent(Entity.class))
+                        (f) ->  !f.isAnnotationPresent(Password.class) && !f.isAnnotationPresent(Version.class)
+                                && !f.isAnnotationPresent(Ignored.class) && !f.isAnnotationPresent(Output.class)
+                                &&  !IResource.class.isAssignableFrom(f.getType())
+                                && (String.class.equals(f.getType())
+                                || LocalDate.class.equals(f.getType())
+                                || LocalDateTime.class.equals(f.getType())
+                                || LocalTime.class.equals(f.getType())
+                                || Date.class.equals(f.getType())
+                                || boolean.class.equals(f.getType())
+                                || Boolean.class.equals(f.getType())
+                                || f.getType().isEnum()
+                                || f.isAnnotationPresent(ManyToOne.class)
+                                || f.getType().isAnnotationPresent(Entity.class))
                 ).collect(Collectors.toList());
             }
 
@@ -289,12 +321,30 @@ public class JPAListViewComponent extends ListViewComponent {
 
     @Override
     public boolean isAddEnabled() {
-        return !entityClass.isAnnotationPresent(NewNotAllowed.class);
+        return addEnabled;
     }
 
     @Override
     public boolean isDeleteEnabled() {
-        return callback == null && !entityClass.isAnnotationPresent(Indelible.class);
+        return deleteEnabled;
+    }
+
+    public void setAddEnabled(boolean addEnabled) {
+        this.addEnabled = addEnabled;
+    }
+
+    public void setDeleteEnabled(boolean deleteEnabled) {
+        this.deleteEnabled = deleteEnabled;
+    }
+
+    @Override
+    public boolean isReadOnly() {
+        return readOnly;
+    }
+
+    @Override
+    public void setReadOnly(boolean readOnly) {
+        this.readOnly = readOnly;
     }
 
     @Override
@@ -358,7 +408,9 @@ public class JPAListViewComponent extends ListViewComponent {
     @Override
     public Class getFiltersType() {
         try {
-            return ReflectionHelper.createClass(MDD.getClassPool(), MDDBinder.class, MDD.getClassPool().getClassLoader(), entityClass.getName() + "000Filters" + getFilterFieldsSerialized(), getFilterFields(entityClass), true);
+            return ReflectionHelper.createClass(MDD.getClassPool(), MDDBinder.class, MDD.getClassPool().getClassLoader(),
+                    entityClass.getName() + "000Filters" + getFilterFieldsSerialized(),
+                    getFilterFields(entityClass), true);
         } catch (Exception e) {
             Notifier.alert(e);
         }
@@ -386,10 +438,13 @@ public class JPAListViewComponent extends ListViewComponent {
 
                     ArrayList<QuerySortOrder> mappedSortOrders = new ArrayList<>();
                     for (QuerySortOrder sortOrder : sortOrders) {
-                        mappedSortOrders.add(new QuerySortOrder(aliasedColumnNamesByColId.get(sortOrder.getSorted()), sortOrder.getDirection()));
+                        mappedSortOrders.add(
+                                new QuerySortOrder(aliasedColumnNamesByColId.get(sortOrder.getSorted()),
+                                        sortOrder.getDirection()));
                     }
 
-                    Query q = buildQuery(em, selectColumnsForList, getFilters(), mappedSortOrders, null, offset, limit, true);
+                    Query q = buildQuery(em, selectColumnsForList, getFilters(), mappedSortOrders, null,
+                            offset, limit, true);
 
                     l.addAll(q.getResultList());
 
@@ -402,11 +457,15 @@ public class JPAListViewComponent extends ListViewComponent {
         return l;
     }
 
-    private Query buildQuery(EntityManager em, String selectedColumns, Object filters, List<QuerySortOrder> sortOrders, int offset, int limit) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    private Query buildQuery(EntityManager em, String selectedColumns, Object filters,
+                             List<QuerySortOrder> sortOrders, int offset, int limit)
+            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         return buildQuery(em, selectedColumns, filters, sortOrders, null, offset, limit, false);
     }
 
-    private Query buildQuery(EntityManager em, String selectedColumns, Object filters, List<QuerySortOrder> sortOrders, String groupClause, int offset, int limit, boolean addOrderClause) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    private Query buildQuery(EntityManager em, String selectedColumns, Object filters, List<QuerySortOrder> sortOrders,
+                             String groupClause, int offset, int limit, boolean addOrderClause)
+            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
 
         Map<String, Object> parameterValues = new HashMap<>();
@@ -429,7 +488,11 @@ public class JPAListViewComponent extends ListViewComponent {
             String oc = "";
             if (sortOrders != null) for (QuerySortOrder qso : sortOrders) {
                 if (!"".equals(oc)) oc += ", ";
-                oc += "col" + getColumnIndex(aliasedColumnNamesByColId.entrySet().stream().filter(e -> e.getValue().equals(qso.getSorted())).map(e -> e.getKey()).findFirst().get()) + " " + ((SortDirection.DESCENDING.equals(qso.getDirection()))?"desc":"asc");
+                oc += "col" + getColumnIndex(aliasedColumnNamesByColId.entrySet().stream()
+                        .filter(e -> e.getValue().equals(qso.getSorted()))
+                        .map(e -> e.getKey())
+                        .findFirst()
+                        .get()) + " " + ((SortDirection.DESCENDING.equals(qso.getDirection()))?"desc":"asc");
             }
             List<FieldInterfaced> orderCols = new ArrayList<>();
             for (FieldInterfaced f : ReflectionHelper.getAllFields(getColumnType())) {
@@ -440,7 +503,10 @@ public class JPAListViewComponent extends ListViewComponent {
                 if (!"".equals(oc)) oc += ", ";
                 oc += aliasedColumnNames.get(f.getName()) + " " + (f.getAnnotation(Order.class).desc()?"desc":"asc");
             }
-            if ("".equals(oc) && ReflectionHelper.getFieldByName(entityClass, "audit") != null && AuditRecord.class.isAssignableFrom(ReflectionHelper.getFieldByName(entityClass, "audit").getType())) oc += "x" + ".audit.modified desc";
+            if ("".equals(oc) && ReflectionHelper.getFieldByName(entityClass, "audit") != null
+                    && AuditRecord.class.isAssignableFrom(
+                            ReflectionHelper.getFieldByName(entityClass, "audit").getType()))
+                oc += "x" + ".audit.modified desc";
             if ("".equals(oc) && columnNames.size() > 1) oc += aliasedColumnNames.get(columnNames.get(1)) + " desc";
             if (!"".equals(oc)) jpql += " order by " + oc;
         }
@@ -458,7 +524,9 @@ public class JPAListViewComponent extends ListViewComponent {
         return i;
     }
 
-    private void createAliases(Class sourceType, List<String> paths, Map<String, FieldInterfaced> fieldsByPath, Map<String, String> alias, Map<String, String> aliasedColumnNames, List<String> aliasedColumnNamesList) {
+    private void createAliases(Class sourceType, List<String> paths, Map<String, FieldInterfaced> fieldsByPath,
+                               Map<String, String> alias, Map<String, String> aliasedColumnNames,
+                               List<String> aliasedColumnNamesList) {
         for (String path: paths) {
             FieldInterfaced f = fieldsByPath.get(path);
             String p = path;
@@ -495,7 +563,8 @@ public class JPAListViewComponent extends ListViewComponent {
 
     }
 
-    public static List<String> getSelectFields(Class targetType, String useColumns, List<String> columnNames, Map<String, FieldInterfaced> fieldsByColumnName) {
+    public static List<String> getSelectFields(Class targetType, String useColumns, List<String> columnNames,
+                                               Map<String, FieldInterfaced> fieldsByColumnName) {
         List<FieldInterfaced> cols = getColumnFields(targetType, false, useColumns, columnNames, fieldsByColumnName);
 
         FieldInterfaced idField = null;
@@ -510,7 +579,8 @@ public class JPAListViewComponent extends ListViewComponent {
 
 
 
-    private String buildWhereClause(Object filters, Class entityClass, Map<String, Object> parameterValues) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    private String buildWhereClause(Object filters, Class entityClass, Map<String, Object> parameterValues)
+            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
         String ql = "";
 
@@ -543,7 +613,10 @@ public class JPAListViewComponent extends ListViewComponent {
         List<FieldInterfaced> allFields = getFilterFields();
 
         allFields = allFields.stream().filter((f) ->
-                !(f.isAnnotationPresent(Version.class) || f.isAnnotationPresent(Ignored.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class) && !f.isAnnotationPresent(MainSearchFilter.class) && !f.isAnnotationPresent(SearchFilter.class)))
+                !(f.isAnnotationPresent(Version.class) || f.isAnnotationPresent(Ignored.class)
+                        || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class)
+                        && !f.isAnnotationPresent(MainSearchFilter.class)
+                        && !f.isAnnotationPresent(SearchFilter.class)))
         ).collect(Collectors.toList());
 
         //todo: contemplar caso varias anotaciones @SearchFilter para un mismo campo
@@ -575,7 +648,8 @@ public class JPAListViewComponent extends ListViewComponent {
 
                     if (!Strings.isNullOrEmpty(s)) {
                         if (!"".equals(ql)) ql += " and ";
-                        ql += " lower(x." + f.getName() + (f.isAnnotationPresent(LiteralSearchFilter.class)?".es":"") + ") like :" + f.getName() + " ";
+                        ql += " lower(x." + f.getName() + (f.isAnnotationPresent(LiteralSearchFilter.class)?".es":"")
+                                + ") like :" + f.getName() + " ";
                         parameterValues.put(f.getName(), "%" + ((String) v).toLowerCase() + "%");
                     }
                 } else if (Boolean.class.equals(v.getClass()) || boolean.class.equals(v.getClass())) {
@@ -600,10 +674,13 @@ public class JPAListViewComponent extends ListViewComponent {
                     if (fname.endsWith("Value")) fname = fname.substring(0, fname.lastIndexOf("Value"));
 
                     if (!"".equals(ql)) ql += " and ";
-                    ql += " x." + fname + " " + (f.getName().endsWith("From")?">=":(f.getName().endsWith("To")?"<=":"=")) + " :" + f.getName() + " ";
+                    ql += " x." + fname + " " +
+                            (f.getName().endsWith("From")?">=":(f.getName().endsWith("To")?"<=":"="))
+                            + " :" + f.getName() + " ";
                     parameterValues.put(f.getName(), v);
 
-                } else if (LocalDate.class.equals(v.getClass()) || LocalDateTime.class.equals(v.getClass()) || Date.class.equals(v.getClass())) {
+                } else if (LocalDate.class.equals(v.getClass()) || LocalDateTime.class.equals(v.getClass())
+                        || Date.class.equals(v.getClass())) {
 
                     String fname = f.getName();
                     if (fname.endsWith("From")) fname = fname.substring(0, fname.lastIndexOf("From"));
@@ -675,7 +752,8 @@ public class JPAListViewComponent extends ListViewComponent {
                         for (FieldInterfaced f : sumFields) {
                             String caption = Helper.capitalize(f.getName());
                             if (!caption.startsWith("Total")) caption = "Total " + caption;
-                            if (!Strings.isNullOrEmpty(f.getAnnotation(Sum.class).caption())) caption = f.getAnnotation(Sum.class).caption();
+                            if (!Strings.isNullOrEmpty(f.getAnnotation(Sum.class).caption()))
+                                caption = f.getAnnotation(Sum.class).caption();
 
                             Object x = v[pos++];
                             if (x != null && x instanceof Double) {
@@ -707,7 +785,11 @@ public class JPAListViewComponent extends ListViewComponent {
     protected List<ChartData> getCharts(Object filters) {
         List<ChartData> l = new ArrayList<>();
 
-        getColumnFields(entityClass).stream().filter(f -> !f.isAnnotationPresent(NoChart.class) && !Translated.class.isAssignableFrom(f.getType()) && (f.getType().isEnum() || (!IResource.class.isAssignableFrom(f.getType()) && f.isAnnotationPresent(ManyToOne.class)) || boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType()))).forEach(f -> l.add(gatherChartData(filters, f)));
+        getColumnFields(entityClass).stream().filter(f -> !f.isAnnotationPresent(NoChart.class)
+                && !Translated.class.isAssignableFrom(f.getType()) && (f.getType().isEnum()
+                || (!IResource.class.isAssignableFrom(f.getType()) && f.isAnnotationPresent(ManyToOne.class))
+                || boolean.class.equals(f.getType()) || Boolean.class.equals(f.getType())))
+                .forEach(f -> l.add(gatherChartData(filters, f)));
 
         return l;
     }
@@ -722,7 +804,8 @@ public class JPAListViewComponent extends ListViewComponent {
                 @Override
                 public void run(EntityManager em) throws Throwable {
 
-                    Query q = buildQuery(em, "x." + f.getName() + ", count(x)" , filters, null, "group by x." + f.getName(), 0, 1000, false);
+                    Query q = buildQuery(em, "x." + f.getName() + ", count(x)" , filters, null,
+                            "group by x." + f.getName(), 0, 1000, false);
                     log.debug(q.toString());
 
                     List<Object[]> r = q.getResultList();
@@ -849,6 +932,8 @@ public class JPAListViewComponent extends ListViewComponent {
 
     @Override
     public List<FieldInterfaced> getColumnFields() {
-        return super.getColumnFields().stream().filter(f -> Strings.isNullOrEmpty(useColumns) || useColumns.contains(f.getId())).collect(Collectors.toList());
+        return super.getColumnFields().stream()
+                .filter(f -> Strings.isNullOrEmpty(useColumns) || useColumns.contains(f.getId()))
+                .collect(Collectors.toList());
     }
 }

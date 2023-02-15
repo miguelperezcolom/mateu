@@ -125,7 +125,8 @@ public class ObjectToViewMapper {
             return fieldToViewMapper.toView((ModelField) model, step);
         }
         if (model instanceof FieldSearch) {
-            MDDBinder parentBinder = ((EditorViewComponent)io.mateu.mdd.vaadin.MateuUI.get().getStack().getLastNavigable().getViewComponent()).getBinder();
+            MDDBinder parentBinder = ((EditorViewComponent)io.mateu.mdd.vaadin.MateuUI.get().getStack()
+                    .getLastNavigable().getViewComponent()).getBinder();
             ListViewComponent listViewComponent = MDDViewComponentCreator.createSearcherComponent(parentBinder,
                     ((FieldSearch) model).getField());
             return new View(stack, listViewComponent, new ListViewController(listViewComponent));
@@ -158,8 +159,13 @@ public class ObjectToViewMapper {
             Class entityClass = ((MDDOpenCRUDAction) model).getEntityClass();
             try {
                 JPAListViewComponent component =
-                        new JPAListViewComponent(entityClass, action.getQueryFilters(), null, null, action.getColumns(), action.getFilters(), action.getFields(), null);
+                        new JPAListViewComponent(entityClass, action.getQueryFilters(), null, null,
+                                action.getColumns(), action.getFilters(), action.getFields(), null);
                 component.setCaption(action.getCaption());
+                component.setAddEnabled(action.isCanAdd());
+                component.setReadOnlyFields(action.getReadOnlyFields());
+                component.setDeleteEnabled(action.isCanDelete());
+                component.setReadOnly(action.isReadOnly());
                return new View(stack, component, new ListViewController(component));
             } catch (Exception e) {
                 return new ProblemView(stack, "Error", new Error(e));
@@ -185,7 +191,10 @@ public class ObjectToViewMapper {
             ComponentView view = null;
             try {
                 view = new ComponentView(stack, modelField.getField().getName(), null,
-                        new CollectionListViewComponent((Collection) ReflectionHelper.getValue(modelField.getField(), modelField.getInstance()), ReflectionHelper.getGenericClass(modelField.getField(), Collection.class, "T")).build());
+                        new CollectionListViewComponent((Collection) ReflectionHelper.getValue(modelField.getField(),
+                                modelField.getInstance()),
+                                ReflectionHelper.getGenericClass(
+                                        modelField.getField(), Collection.class, "T")).build());
             } catch (Exception e) {
                 return new ProblemView(stack, "Error", new Error(e));
             }

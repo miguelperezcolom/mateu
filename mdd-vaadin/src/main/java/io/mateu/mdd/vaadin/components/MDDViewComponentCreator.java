@@ -7,15 +7,19 @@ import io.mateu.mdd.core.app.MDDOpenEditorAction;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.core.views.ExtraFilters;
+import io.mateu.mdd.shared.annotations.Output;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.MateuUI;
 import io.mateu.mdd.vaadin.components.views.*;
 import io.mateu.mdd.vaadin.data.MDDBinder;
+import io.mateu.reflection.FieldInterfacedFromField;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.notification.Notifier;
 
 import javax.persistence.Entity;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -154,36 +158,38 @@ public class MDDViewComponentCreator {
 
     public static EditorViewComponent createEditorViewComponent(Class modelType, boolean createSaveBUtton)
             throws Exception {
-        List<FieldInterfaced> visibleFields = new ArrayList<>();
+        List<FieldInterfaced> visibleFields = ReflectionHelper.getAllEditableFields(modelType);
         ListViewComponent listViewComponent = null;
         try {
             listViewComponent = (ListViewComponent) MateuUI.get().getStack().getLast().getViewComponent();
             if (!Strings.isNullOrEmpty(listViewComponent.getEditableFieldsFilter())) {
-                List<FieldInterfaced> allFEditableFields = ReflectionHelper.getAllEditableFields(modelType);
-                for (String vfn : listViewComponent.getEditableFieldsFilter().split(",")) {
-                    System.out.println(vfn);
-                    visibleFields.addAll(allFEditableFields.stream().filter(f -> f.getId().equals(vfn)).collect(Collectors.toList()));
+                List<String> editableFields = Arrays.asList(listViewComponent.getEditableFieldsFilter().split(","));
+                visibleFields = visibleFields.stream()
+                        .filter(f -> editableFields.contains(f.getId()))
+                        .collect(Collectors.toList());
+            }
+            if (listViewComponent instanceof JPAListViewComponent) {
+                JPAListViewComponent jpaListViewComponent = (JPAListViewComponent) listViewComponent;
+                createSaveBUtton = !jpaListViewComponent.isReadOnly();
+
+                if (!Strings.isNullOrEmpty(jpaListViewComponent.getReadOnlyFields())) {
+                    Output output = new Output() {
+
+                        @Override
+                        public Class<? extends Annotation> annotationType() {
+                            return Output.class;
+                        }
+                    };
+                    List<String> readOnlyFields = Arrays.asList(jpaListViewComponent.getReadOnlyFields().split(","));
+                    visibleFields = visibleFields.stream().map(f -> readOnlyFields.contains(f.getId())?new FieldInterfacedFromField(f, output):f).collect(Collectors.toList());
                 }
+
             }
         } catch (Exception e) {
 
         }
         EditorViewComponent v = new EditorViewComponent(listViewComponent, modelType, createSaveBUtton, visibleFields);
         return v;
-    }
-
-    public static EditorViewComponent createEditorViewComponent(Object owner, FieldInterfaced field,
-                                                                Class modelType, boolean createSaveBUtton)
-            throws Exception {
-        EditorViewComponent v = new EditorViewComponent(owner, field, modelType, createSaveBUtton);
-        return v;
-    }
-
-    private static ListViewComponent createListViewComponent(Class modelType, String queryFilters,
-                                                             ExtraFilters extraFilters,
-                                                             Map<String, Object> defaultValues) throws Exception {
-        return createListViewComponent(modelType, queryFilters, extraFilters, defaultValues,
-                null, null, null);
     }
 
     private static ListViewComponent createListViewComponent(Class modelType, String queryFilters,
@@ -212,4 +218,5 @@ public class MDDViewComponentCreator {
     public static Component createComponent(WizardPage page) {
         return new WizardComponent(page);
     }
+
 }

@@ -15,7 +15,11 @@ public class MDDOpenCRUDAction extends AbstractAction {
     private Map<String, Object> defaultValues;
     private String columns;
     private String fields;
+    private String readOnlyFields;
     private String filters;
+    private boolean canAdd = true;
+    private boolean canDelete = true;
+    private boolean readOnly;
 
     public MDDOpenCRUDAction(String name, Class entityClass) {
         super(name);
@@ -54,6 +58,26 @@ public class MDDOpenCRUDAction extends AbstractAction {
 
     public MDDOpenCRUDAction setFilters(String filters) {
         this.filters = filters;
+        return this;
+    }
+
+    public MDDOpenCRUDAction setReadOnlyFields(String fields) {
+        this.readOnlyFields = fields;
+        return this;
+    }
+
+    public MDDOpenCRUDAction setCanAdd(boolean canAdd) {
+        this.canAdd = canAdd;
+        return this;
+    }
+
+    public MDDOpenCRUDAction setCanDelete(boolean canDelete) {
+        this.canDelete = canDelete;
+        return this;
+    }
+
+    public MDDOpenCRUDAction setReadOnly(boolean readOnly) {
+        this.readOnly = readOnly;
         return this;
     }
 }

@@ -45,7 +45,7 @@ public class FieldInterfacedFromField implements FieldInterfaced {
     @Override
     public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
         if (extraAnnotations.size() > 0) {
-            for (Annotation a : extraAnnotations) if (a.getClass().equals(annotationClass)) return true;
+            for (Annotation a : extraAnnotations) if (annotationClass.isAssignableFrom(a.getClass())) return true;
         }
         return (ff != null)?ff.isAnnotationPresent(annotationClass):f.isAnnotationPresent(annotationClass);
     }

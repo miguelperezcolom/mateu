@@ -22,7 +22,7 @@ public class E2eJpaMenu {
         }
 
         @Override
-        public List<String> getEditableFields() {
+        public List<String> getVisibleFields() {
             return List.of("id,name");
         }
     };
@@ -37,17 +37,37 @@ public class E2eJpaMenu {
 
         @Override
         public List<String> getColumnFields() {
-            return List.of("id, name");
+            return List.of("id,name");
         }
 
         @Override
-        public List<String> getEditableFields() {
-            return List.of("id,name");
+        public List<String> getVisibleFields() {
+            return List.of("id,name,owner");
+        }
+
+        @Override
+        public List<String> getReadOnlyFields() {
+            return List.of("name");
         }
 
         @Override
         public String getExtraWhereFilter() {
             return "x.superBowls > 0";
+        }
+
+        @Override
+        public boolean canAdd() {
+            return false;
+        }
+
+        @Override
+        public boolean canDelete() {
+            return false;
+        }
+
+        @Override
+        public boolean isReadOnly() {
+            return true;
         }
     };
 

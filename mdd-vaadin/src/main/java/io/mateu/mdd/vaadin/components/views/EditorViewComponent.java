@@ -545,7 +545,7 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
                 fields.removeIf(f -> hiddenFields.contains(f));
             }
 
-            FormLayoutBuilderParameters.FormLayoutBuilderParametersBuilder params = FormLayoutBuilderParameters.builder().validators(validators).allFields(fields).links(links).actionsPerSection(actionsPerSection);
+            FormLayoutBuilderParameters.FormLayoutBuilderParametersBuilder params = FormLayoutBuilderParameters.builder().validators(validators).allFields(visibleFields).links(links).actionsPerSection(actionsPerSection);
             if (this instanceof FiltersViewFlowComponent) params = params.forSearchFilters(true).forSearchFiltersExtended(true).createSections(false).createTabs(false);
             Pair<Component, AbstractStylist> r = FormLayoutBuilder.get().build(this, binder, model.getClass(), model, componentsToLookForErrors, params.build(), actionsPerField);
 
@@ -978,7 +978,11 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
         boolean isEditingNewRecord = newRecord;
         Object model = getModel();
-        boolean readOnly = !(model instanceof PersistentPojo) && (model instanceof ReadOnlyPojo || (model instanceof ReadOnly && ((ReadOnly) model).isReadOnly()));
+        boolean readOnly = !createSaveButton ||
+                (!(model instanceof PersistentPojo)
+                        && (model instanceof ReadOnlyPojo ||
+                        (model instanceof ReadOnly
+                                && ((ReadOnly) model).isReadOnly())));
 
         if (esForm()) {
 

@@ -217,8 +217,12 @@ public class MenuBuilder {
                         a.setIcon(icon).setOrder(order);
                         JpaCrud v = (JpaCrud) ReflectionHelper.getValue(f, app);
                         if (v != null && v.getColumnFields() != null) a.setColumns(String.join(",", v.getColumnFields()));
-                        if (v != null && v.getEditableFields() != null) a.setFields(String.join(",", v.getEditableFields()));
+                        if (v != null && v.getVisibleFields() != null) a.setFields(String.join(",", v.getVisibleFields()));
                         if (v != null && v.getSearchFilterFields() != null) a.setFilters(String.join(",", v.getSearchFilterFields()));
+                        if (v != null && v.getReadOnlyFields() != null) a.setReadOnlyFields(String.join(",", v.getReadOnlyFields()));
+                        if (v != null) a.setCanAdd(v.canAdd());
+                        if (v != null) a.setCanDelete(v.canDelete());
+                        if (v != null) a.setReadOnly(v.isReadOnly());
                         if (v != null && !Strings.isNullOrEmpty(v.getExtraWhereFilter())) a.setQueryFilters(v.getExtraWhereFilter());
                         l.add(a);
                     }
