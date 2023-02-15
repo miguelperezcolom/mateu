@@ -64,11 +64,21 @@ public class E2eJpaMenu {
         public boolean canDelete() {
             return false;
         }
+    };
+
+    @MenuOption
+    private JpaCrud<TeamEntity> loosers = new JpaCrud<TeamEntity>() {
+
+        @Override
+        public String getExtraWhereFilter() {
+            return "x.superBowls = 0";
+        }
 
         @Override
         public boolean isReadOnly() {
             return true;
         }
+
     };
 
 

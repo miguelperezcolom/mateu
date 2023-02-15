@@ -172,16 +172,21 @@ public class MDDViewComponentCreator {
                 JPAListViewComponent jpaListViewComponent = (JPAListViewComponent) listViewComponent;
                 createSaveBUtton = !jpaListViewComponent.isReadOnly();
 
-                if (!Strings.isNullOrEmpty(jpaListViewComponent.getReadOnlyFields())) {
-                    Output output = new Output() {
+                Output output = new Output() {
 
-                        @Override
-                        public Class<? extends Annotation> annotationType() {
-                            return Output.class;
-                        }
-                    };
-                    List<String> readOnlyFields = Arrays.asList(jpaListViewComponent.getReadOnlyFields().split(","));
-                    visibleFields = visibleFields.stream().map(f -> readOnlyFields.contains(f.getId())?new FieldInterfacedFromField(f, output):f).collect(Collectors.toList());
+                    @Override
+                    public Class<? extends Annotation> annotationType() {
+                        return Output.class;
+                    }
+                };
+
+                if (jpaListViewComponent.isReadOnly()) {
+                    visibleFields = visibleFields.stream().map(f -> f.isAnnotationPresent(Output.class)?f:new FieldInterfacedFromField(f, output)).collect(Collectors.toList());
+                } else {
+                    if (!Strings.isNullOrEmpty(jpaListViewComponent.getReadOnlyFields())) {
+                        List<String> readOnlyFields = Arrays.asList(jpaListViewComponent.getReadOnlyFields().split(","));
+                        visibleFields = visibleFields.stream().map(f -> readOnlyFields.contains(f.getId())?new FieldInterfacedFromField(f, output):f).collect(Collectors.toList());
+                    }
                 }
 
             }
@@ -189,6 +194,7 @@ public class MDDViewComponentCreator {
 
         }
         EditorViewComponent v = new EditorViewComponent(listViewComponent, modelType, createSaveBUtton, visibleFields);
+
         return v;
     }
 

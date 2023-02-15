@@ -44,7 +44,7 @@
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>mdd-springboot</artifactId>
-            <version>1.1.51</version>
+            <version>1.1.52</version>
         </dependency>
 
     </dependencies>

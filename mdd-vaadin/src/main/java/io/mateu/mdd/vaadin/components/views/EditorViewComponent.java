@@ -1313,9 +1313,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
             });
             a.setId("submitted");
             a.setOrder(-100);
-        } else if ((modelType.isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(modelType)
+        } else if (createSaveButton && ((modelType.isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(modelType)
                 || (listViewComponent != null && listViewComponent instanceof RpcListViewComponent
-        && ((RpcListViewComponent)listViewComponent).getRpcListView() instanceof RpcCrudView))) {
+        && ((RpcListViewComponent)listViewComponent).getRpcListView() instanceof RpcCrudView)))) {
             ArrayList<AbstractAction> l;
             actionsPerSection.put("", l = new ArrayList<>());
             MDDRunnableAction a;
