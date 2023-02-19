@@ -103,6 +103,10 @@ public class MateuApp extends BaseMDDApp {
             setPersistenceUnitName(((MateuUI)uiclass.getAnnotation(MateuUI.class)).persistenceUnitName());
         }
 
+        if (uiclass.isAnnotationPresent(LogoutUrl.class)) {
+            setLogoutUrl(((LogoutUrl)uiclass.getAnnotation(LogoutUrl.class)).value());
+        }
+
         _areas = new AreaBuilder(ui).buildAreas(uiclass);
 
         _authenticationNeeded = uiclass.isAnnotationPresent(Private.class);

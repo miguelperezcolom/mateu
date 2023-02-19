@@ -1,9 +1,16 @@
 package io.mateu.remote.dtos;
 
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-import java.util.List;
-
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = Form.class, name = "Form"),
+        @JsonSubTypes.Type(value = Crud.class, name = "Crud")
+})
 public interface ViewMetadata {
 
 }

@@ -1,0 +1,59 @@
+{
+  "title": "My form",
+  "subtitle": "",
+  "menu": null,
+  "home": {
+    "metadata": {
+      "type": "Form",
+      "title": "This is a sample form",
+      "subtitle": null,
+      "sections": [
+        {
+          "caption": "",
+          "actions": null,
+          "fieldGroups": [
+            {
+              "caption": "",
+              "fields": [
+                {
+                  "id": "name",
+                  "type": "class java.lang.String",
+                  "caption": "Name",
+                  "description": null,
+                  "validations": null
+                },
+                {
+                  "id": "age",
+                  "type": "int",
+                  "caption": "Age",
+                  "description": null,
+                  "validations": null
+                },
+                {
+                  "id": "assessment",
+                  "type": "class java.lang.String",
+                  "caption": "Assessment",
+                  "description": null,
+                  "validations": null
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "assess",
+          "caption": "Assess",
+          "type": "Primary"
+        }
+      ],
+      "mainActions": []
+    },
+    "data": {
+      "name": "Mateu",
+      "age": 0,
+      "assessment": null
+    }
+  }
+}

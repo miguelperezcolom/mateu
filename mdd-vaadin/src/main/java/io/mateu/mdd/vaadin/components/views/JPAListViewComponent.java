@@ -338,7 +338,7 @@ public class JPAListViewComponent extends ListViewComponent {
     }
 
     @Override
-    public boolean isReadOnly() {
+    public boolean isReadOnlyListView() {
         return readOnly;
     }
 

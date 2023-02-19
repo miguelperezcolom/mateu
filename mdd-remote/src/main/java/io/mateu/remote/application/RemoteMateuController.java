@@ -29,15 +29,8 @@ public class RemoteMateuController {
         return ui.get();
     }
 
-    @GetMapping("uis/{uiClassName}/{viewClassName}")
-    public View getView(@PathVariable String uiClassName, @PathVariable String viewClassName) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException {
-        Optional<UI> ui = mateuService.getUi(uiClassName);
-
-        if (!ui.isPresent()) {
-            throw new NotFoundException("No class with name " + uiClassName + " found");
-        }
-
-
+    @GetMapping("views/{viewClassName}")
+    public View getView(@PathVariable String viewClassName) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException {
         Optional<View> view = mateuService.getView(viewClassName);
 
         if (!view.isPresent()) {
@@ -47,18 +40,11 @@ public class RemoteMateuController {
         return view.get();
     }
 
-    @PostMapping("uis/{uiClassName}/{viewClassName}/{actionId}")
-    public View runAction(@PathVariable String uiClassName, @PathVariable String viewClassName,
+    @PostMapping("views/{viewClassName}/{actionId}")
+    public View runAction(@PathVariable String viewClassName,
                           @PathVariable String actionId,
                           @RequestBody ActionData actionData
                           ) {
-        Optional<UI> ui = mateuService.getUi(uiClassName);
-
-        if (!ui.isPresent()) {
-            throw new NotFoundException("No class with name " + uiClassName + " found");
-        }
-
-
         Optional<View> view = mateuService.getView(viewClassName);
 
         if (!view.isPresent()) {

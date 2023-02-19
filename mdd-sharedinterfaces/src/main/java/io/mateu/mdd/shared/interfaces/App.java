@@ -45,4 +45,6 @@ public interface App {
 
     String getPersistenceUnitName();
 
+    String getLogoutUrl();
+
 }

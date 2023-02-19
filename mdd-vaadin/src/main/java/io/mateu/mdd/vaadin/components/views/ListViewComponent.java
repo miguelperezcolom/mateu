@@ -1711,10 +1711,14 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
         return false;
     }
 
+    public boolean isReadOnlyListView() {
+        return false;
+    }
+
     @Override
     public void addViewActionsMenuItems(Layout bar, List<AbstractAction> actions) {
 
-        if (!isReadOnly() && isAddEnabled()) {
+        if (!isReadOnlyListView() && isAddEnabled()) {
 
             Button i;
             bar.addComponent(i = new Button("New", VaadinIcons.PLUS));
@@ -1729,7 +1733,7 @@ public abstract class ListViewComponent extends AbstractViewComponent<ListViewCo
             i.setClickShortcut(ShortcutAction.KeyCode.N, ShortcutAction.ModifierKey.CTRL, ShortcutAction.ModifierKey.ALT);
         }
 
-        if (!isReadOnly() && isDeleteEnabled()) {
+        if (!isReadOnlyListView() && isDeleteEnabled()) {
             Button i;
             bar.addComponent(i = new Button("Delete", VaadinIcons.MINUS));
             if (!bar.getStyleName().contains("actionsbar")) i.addStyleName(ValoTheme.BUTTON_QUIET);

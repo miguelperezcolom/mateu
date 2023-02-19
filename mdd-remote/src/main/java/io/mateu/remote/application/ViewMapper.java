@@ -20,10 +20,11 @@ import java.util.stream.Collectors;
 
 public class ViewMapper {
     public View map(Object uiInstance) throws IOException {
-        View view = new View();
 
-        view.setMetadata(getMetadata(uiInstance));
-        view.setData(getData(uiInstance));
+        View view = View.builder()
+                .metadata(getMetadata(uiInstance))
+                .data(getData(uiInstance))
+                .build();
 
         return view;
     }
@@ -47,11 +48,12 @@ public class ViewMapper {
     }
 
     private Form getForm(Object uiInstance) {
-        Form form = new Form();
-        form.setCaption(getCaption(uiInstance));
-        form.setSections(getSections(uiInstance));
-        form.setActions(getActions(uiInstance));
-        form.setMainActions(getMainActions(uiInstance));
+        Form form = Form.builder()
+                .title(getCaption(uiInstance))
+                .sections(getSections(uiInstance))
+                .actions(getActions(uiInstance))
+                .mainActions(getMainActions(uiInstance))
+        .build();
         return form;
     }
 
@@ -65,10 +67,11 @@ public class ViewMapper {
     }
 
     private Action getAction(Method m) {
-        Action action = new Action();
-        action.setId(m.getName());
-        action.setCaption(ReflectionHelper.getCaption(m));
-        action.setType(ActionType.Primary);
+        Action action = Action.builder()
+                .id(m.getName())
+                .caption(ReflectionHelper.getCaption(m))
+                .type(ActionType.Primary)
+                .build();
         return action;
     }
 
@@ -89,22 +92,20 @@ public class ViewMapper {
         List<FieldInterfaced> allEditableFields = ReflectionHelper.getAllEditableFields(uiInstance.getClass());
         for (FieldInterfaced fieldInterfaced : allEditableFields) {
             if (section == null || fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Section.class)) {
-                section = new Section();
+                String caption = "";
                 if (fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Section.class)) {
-                    section.setCaption(fieldInterfaced.getAnnotation(io.mateu.mdd.shared.annotations.Section.class).value());
-                } else {
-                    section.setCaption("");
+                    caption = fieldInterfaced.getAnnotation(io.mateu.mdd.shared.annotations.Section.class).value();
                 }
+                section = Section.builder().caption(caption).fieldGroups(new ArrayList<>()).build();
                 sections.add(section);
                 fieldGroup = null;
             }
             if (fieldGroup == null || fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.FieldGroup.class)) {
-                fieldGroup = new FieldGroup();
+                String caption = "";
                 if (fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.FieldGroup.class)) {
-                    fieldGroup.setCaption(fieldInterfaced.getAnnotation(io.mateu.mdd.shared.annotations.FieldGroup.class).value());
-                } else {
-                    fieldGroup.setCaption("");
+                    caption = fieldInterfaced.getAnnotation(io.mateu.mdd.shared.annotations.FieldGroup.class).value();
                 }
+                fieldGroup = FieldGroup.builder().caption(caption).fields(new ArrayList<>()).build();
                 section.getFieldGroups().add(fieldGroup);
             }
             fieldGroup.getFields().add(getField(fieldInterfaced));
@@ -114,11 +115,12 @@ public class ViewMapper {
     }
 
     private Field getField(FieldInterfaced fieldInterfaced) {
-        Field field = new Field();
-        field.setId(fieldInterfaced.getId());
-        field.setCaption(ReflectionHelper.getCaption(fieldInterfaced));
-        field.setDescription(getDescription(fieldInterfaced));
-        field.setType(fieldInterfaced.getType().toString());
+        Field field = Field.builder()
+                .id(fieldInterfaced.getId())
+                .caption(ReflectionHelper.getCaption(fieldInterfaced))
+                .description(getDescription(fieldInterfaced))
+                .type(fieldInterfaced.getType().toString())
+                .build();
         addValidations(field, fieldInterfaced);
         return field;
     }

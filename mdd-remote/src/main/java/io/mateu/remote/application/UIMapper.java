@@ -1,8 +1,6 @@
 package io.mateu.remote.application;
 
-import io.mateu.mdd.core.app.AbstractMenu;
 import io.mateu.mdd.core.app.MateuApp;
-import io.mateu.remote.dtos.Form;
 import io.mateu.remote.dtos.Menu;
 import io.mateu.remote.dtos.UI;
 
@@ -15,7 +13,7 @@ public class UIMapper {
     public UI map(Object uiInstance) throws Exception {
         MateuApp app = new MateuApp(uiInstance);
 
-        UI ui = new UI();
+        UI ui = UI.builder().build();
 
         if (app.isForm()) {
             ui.setTitle(app.getName());
@@ -26,7 +24,7 @@ public class UIMapper {
             ui.setSubtitle("");
             List<Menu> menuOptions = app.buildAreas().stream().map(a -> Arrays.asList(a.getModules()))
                     .flatMap(Collection::stream).map(m -> m.getMenu())
-                    .flatMap(Collection::stream).map(e -> new Menu()).collect(Collectors.toList());
+                    .flatMap(Collection::stream).map(e -> Menu.builder().build()).collect(Collectors.toList());
             ui.setMenu(menuOptions);
             ui.setHome(null);
         }

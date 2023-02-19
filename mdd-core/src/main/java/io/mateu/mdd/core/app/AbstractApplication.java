@@ -33,6 +33,7 @@ public abstract class AbstractApplication implements App {
     private Map<IModule, IArea> moduleToArea;
     private Map<MenuEntry, List<MenuEntry>> menuPaths;
     List<IArea> areas = null;
+    private String logoutUrl;
 
     private String logo;
 
@@ -46,6 +47,15 @@ public abstract class AbstractApplication implements App {
 
     public String getPersistenceUnitName() {
         return persistenceUnitName;
+    }
+
+    public void setLogoutUrl(String logoutUrl) {
+        this.logoutUrl = logoutUrl;
+    }
+
+    @Override
+    public String getLogoutUrl() {
+        return logoutUrl;
     }
 
     public void setPersistenceUnitName(String persistenceUnitName) {

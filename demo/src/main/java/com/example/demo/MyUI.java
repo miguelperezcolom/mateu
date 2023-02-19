@@ -47,7 +47,7 @@ public class MyUI implements HasFooter {
     private Editor editor;
 
     @MenuOption
-    private RemoteForm remoteForm = new RemoteForm("localhost:8081", "com.example.demoremote.MyForm");
+    private RemoteForm remoteForm = new RemoteForm("http://localhost:8081", "com.example.demoremote.MyForm");
 
     @MenuOption
     public Class personas = PersonEntity.class;

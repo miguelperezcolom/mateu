@@ -1,13 +1,17 @@
 package io.mateu.remote.dtos;
 
-import lombok.Data;
+import lombok.*;
 
 import java.util.List;
 
-@Data
+@Data@Builder@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class Form implements ViewMetadata {
 
-    private String caption;
+    private final ViewMetadataType type = ViewMetadataType.Form;
+
+    private String title;
+
+    private String subtitle;
 
     private List<Section> sections;
 

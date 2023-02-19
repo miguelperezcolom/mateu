@@ -113,6 +113,14 @@ public class ObjectToViewMapper {
             return new ComponentView(stack, openHtml.getCaption(), openHtml.getIcon(),
                     new Label(openHtml.html, ContentMode.HTML));
         }
+        if (model instanceof MDDOpenRemoteFormAction) {
+            // crear clase al vuelo. Quizás cachear
+            try {
+                model = RemoteHelper.createBean(((MDDOpenRemoteFormAction) model).getRemoteForm());
+            } catch (Exception e) {
+                return new ProblemView(stack, "Error", new Error(e));
+            }
+        }
         if (model instanceof Error) {
             Error error = (Error) model;
             return new ProblemView(stack, "Error", error);

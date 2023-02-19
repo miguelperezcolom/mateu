@@ -5,7 +5,7 @@
   <parent>
     <artifactId>mdd-parent</artifactId>
     <groupId>io.mateu</groupId>
-    <version>1.1.52</version>
+    <version>1.1.55</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>mdd-springboot</artifactId>
@@ -73,6 +73,12 @@
       <artifactId>spring-boot-starter-data-jpa</artifactId>
       <version>2.7.5</version>
       <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+      <version>6.0.0</version>
     </dependency>
 
   </dependencies>

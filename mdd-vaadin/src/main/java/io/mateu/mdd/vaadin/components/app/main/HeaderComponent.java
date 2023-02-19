@@ -100,10 +100,13 @@ public class HeaderComponent extends HorizontalLayout {
 
         String finalBasePath = basePath;
         if (isPrivate) {
+            String logoutUrl = //finalBasePath +
+                    "/logout";
+            if (!Strings.isNullOrEmpty(app.getLogoutUrl())) {
+                logoutUrl = app.getLogoutUrl();
+            }
             Link b;
-            right.addComponent(b = new Link("Logout", new ExternalResource(
-                    //finalBasePath +
-                            "/logout")));
+            right.addComponent(b = new Link("Logout", new ExternalResource(logoutUrl)));
             b.addStyleName(ValoTheme.BUTTON_QUIET);
         } else {
             if (app.hasPrivateContent()) {
@@ -114,7 +117,16 @@ public class HeaderComponent extends HorizontalLayout {
                 }
                 right.addComponent(b = new Button("Login", e -> Page.getCurrent().setLocation(finalBasePath + "private")));
                 b.addStyleName(ValoTheme.BUTTON_QUIET);
-            } else right.addComponent(new Label(" "));
+            } else {
+                if (!Strings.isNullOrEmpty(app.getLogoutUrl())) {
+                    String logoutUrl = app.getLogoutUrl();
+                    Link b;
+                    right.addComponent(b = new Link("Logout", new ExternalResource(logoutUrl)));
+                    b.addStyleName(ValoTheme.BUTTON_QUIET);
+                } else {
+                    right.addComponent(new Label(" "));
+                }
+            }
         }
 
         addComponents(left, center, right);

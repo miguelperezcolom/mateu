@@ -170,7 +170,7 @@ public class MDDViewComponentCreator {
             }
             if (listViewComponent instanceof JPAListViewComponent) {
                 JPAListViewComponent jpaListViewComponent = (JPAListViewComponent) listViewComponent;
-                createSaveBUtton = !jpaListViewComponent.isReadOnly();
+                createSaveBUtton = !jpaListViewComponent.isReadOnlyListView();
 
                 Output output = new Output() {
 
@@ -180,7 +180,7 @@ public class MDDViewComponentCreator {
                     }
                 };
 
-                if (jpaListViewComponent.isReadOnly()) {
+                if (jpaListViewComponent.isReadOnlyListView()) {
                     visibleFields = visibleFields.stream().map(f -> f.isAnnotationPresent(Output.class)?f:new FieldInterfacedFromField(f, output)).collect(Collectors.toList());
                 } else {
                     if (!Strings.isNullOrEmpty(jpaListViewComponent.getReadOnlyFields())) {

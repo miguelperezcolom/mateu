@@ -1,8 +1,8 @@
 package io.mateu.remote.dtos;
 
-import lombok.Data;
+import lombok.*;
 
-@Data
+@Data@Builder@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class Action {
 
     private String id;

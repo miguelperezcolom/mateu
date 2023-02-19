@@ -208,7 +208,7 @@ public class MenuBuilder {
 
                 if (RemoteForm.class.isAssignableFrom(f.getType())) {
 
-                    //l.add(new MDDOpenEditorAction());
+                    l.add(new MDDOpenRemoteFormAction(caption, (RemoteForm) ReflectionHelper.getValue(f, app)));
 
                 } else if (JpaCrud.class.isAssignableFrom(f.getType())) {
                     Class entityType = ReflectionHelper.getGenericClass(f, JpaCrud.class, "E");

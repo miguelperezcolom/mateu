@@ -2,6 +2,7 @@ package io.mateu.mdd.vaadin.navigation;
 
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDOpenHtmlAction;
+import io.mateu.mdd.core.app.MDDOpenRemoteFormAction;
 import io.mateu.mdd.core.app.MDDOpenUrlAction;
 import io.mateu.mdd.vaadin.actions.AcctionRunner;
 import io.mateu.mdd.vaadin.controllers.Controller;
