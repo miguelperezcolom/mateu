@@ -65,6 +65,7 @@ public class JPATextAreaFieldBuilder extends JPAStringFieldBuilder {
             l.addComponent(b = new Button(VaadinIcons.EXPAND_SQUARE));
             b.addStyleName(ValoTheme.BUTTON_QUIET);
             b.addClickListener(e -> MDDUIAccessor.go(field.getName()));
+            b.addStyleName("test-" + field.getId() + "-button-expand");
 
             container.addComponent(l);
 
