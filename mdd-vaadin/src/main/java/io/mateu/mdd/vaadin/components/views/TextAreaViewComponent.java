@@ -6,6 +6,7 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDRunnableAction;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.data.MDDBinder;
+import io.mateu.util.Helper;
 import io.mateu.util.notification.Notifier;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,6 +22,11 @@ public class TextAreaViewComponent extends EditorViewComponent {
     @Override
     public VaadinIcons getIcon() {
         return VaadinIcons.LIST_SELECT;
+    }
+
+    @Override
+    public String getTitle() {
+        return Helper.capitalize(field.getId());
     }
 
     public TextAreaViewComponent(MDDBinder parentBinder, FieldInterfaced field, HasValue hasValue) throws Exception {
