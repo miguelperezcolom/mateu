@@ -22,8 +22,12 @@ public class ViewMapper {
     public View map(Object uiInstance) throws IOException {
 
         View view = View.builder()
-                .metadata(getMetadata(uiInstance))
-                .data(getData(uiInstance))
+                .components(List.of(
+                        Component.builder()
+                                .metadata(getMetadata(uiInstance))
+                                .data(getData(uiInstance))
+                                .build()
+                ))
                 .build();
 
         return view;
