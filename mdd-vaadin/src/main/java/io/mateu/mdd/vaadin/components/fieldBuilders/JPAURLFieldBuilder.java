@@ -32,6 +32,7 @@ public class JPAURLFieldBuilder extends AbstractFieldBuilder {
 
         TextField tf;
         container.addComponent(tf = new TextField());
+        tf.addStyleName("test-" + field.getId());
         tf.setValueChangeMode(ValueChangeMode.BLUR);
 
         addErrorHandler(field, tf);
@@ -40,6 +41,8 @@ public class JPAURLFieldBuilder extends AbstractFieldBuilder {
         Button b = new Button("Go", e -> {
             if (!Strings.isNullOrEmpty(tf.getValue())) Page.getCurrent().open(tf.getValue(), "_blank");
         });
+        b.addStyleName("test-" + field.getId() + "-button-go");
+
 
 
         HorizontalLayout hl;

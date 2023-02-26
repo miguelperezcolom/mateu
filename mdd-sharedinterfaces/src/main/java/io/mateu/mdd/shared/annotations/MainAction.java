@@ -33,6 +33,8 @@ MainAction {
 
     boolean refreshOnBack() default false;
 
+    String group() default "";
+
     boolean validateBefore() default true;
 
     boolean isGroup() default false;

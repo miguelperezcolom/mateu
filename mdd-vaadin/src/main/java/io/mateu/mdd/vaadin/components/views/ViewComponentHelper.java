@@ -9,6 +9,7 @@ import io.mateu.mdd.core.app.MDDRunnableAction;
 import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.Action;
+import io.mateu.mdd.shared.annotations.MainAction;
 import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
@@ -35,19 +36,21 @@ public class ViewComponentHelper {
         AbstractAction action = viewComponent.getActionByMethod(m);
 
         if (action == null) {
-            Action aa = m.getAnnotation(Action.class);
+            //Action aa = m.getAnnotation(Action.class);
 
-            action = new MDDRunnableAction(aa == null?"Submit":(!Strings.isNullOrEmpty(aa.value()) ? aa.value() : Helper.capitalize(m.getName()))) {
+            String caption = getCaption(m);
+
+            action = new MDDRunnableAction(caption) {
                 @Override
                 public void run() {
 
-                    if (aa != null && aa.isGroup()) {
+                    if (isGroup(m)) {
 
                         UI.getCurrent().addWindow(new ActionGroupWindow(m, (List<Component>) viewComponent.menuItemsByGroup.get(m.getName())));
 
                     } else {
 
-                        boolean needsValidation = aa == null || aa.validateBefore();
+                        boolean needsValidation = validateBefore(m);
                         if (!needsValidation && viewComponent instanceof EditorViewComponent) needsValidation = ((EditorViewComponent)viewComponent).getModelType().isAnnotationPresent(Entity.class) || PersistentPojo.class.isAssignableFrom(((EditorViewComponent)viewComponent).getModelType());
                         needsValidation &= !(viewComponent instanceof ListViewComponent);
 
@@ -179,16 +182,101 @@ public class ViewComponentHelper {
                     }
 
                 }
-            }.setStyle(aa != null?aa.style():"").setIcon(aa == null || VaadinIcons.ADOBE_FLASH.equals(aa.icon())?null:aa.icon())
-                    .setConfirmationMessage(aa != null?aa.confirmationMessage():"").setId(m.getName()).setValidationNeeded(aa == null || aa.validateBefore());
+            }.setStyle(getStyle(m)).setIcon(getIcon(m))
+                    .setConfirmationMessage(getConfirmationMessage(m))
+            .setId(m.getName()).setValidationNeeded(validateBefore(m));
 
-            action.setGroup(aa != null?aa.group():"");
+            action.setGroup(getGroup(m));
             action.setId(m.getName());
             viewComponent.setAction(m, action);
         }
 
         return action;
 
+    }
+
+    private static String getGroup(Method m) {
+        Action aa = m.getAnnotation(Action.class);
+        MainAction ma = m.getAnnotation(MainAction.class);
+        if (aa != null) {
+            return aa.group();
+        }
+        if (ma != null) {
+            return ma.group();
+        }
+        return "";
+    }
+
+    private static String getConfirmationMessage(Method m) {
+        Action aa = m.getAnnotation(Action.class);
+        MainAction ma = m.getAnnotation(MainAction.class);
+        if (aa != null) {
+            return aa.confirmationMessage();
+        }
+        if (ma != null) {
+            return ma.confirmationMessage();
+        }
+        return "";
+    }
+
+    private static VaadinIcons getIcon(Method m) {
+        Action aa = m.getAnnotation(Action.class);
+        MainAction ma = m.getAnnotation(MainAction.class);
+        if (aa != null) {
+            return VaadinIcons.ADOBE_FLASH.equals(aa.icon())?null:aa.icon();
+        }
+        if (ma != null) {
+            return VaadinIcons.ADOBE_FLASH.equals(ma.icon())?null:ma.icon();
+        }
+        return null;
+    }
+
+    private static String getStyle(Method m) {
+        Action aa = m.getAnnotation(Action.class);
+        MainAction ma = m.getAnnotation(MainAction.class);
+        if (aa != null) {
+            return aa.style();
+        }
+        if (ma != null) {
+            return ma.style();
+        }
+        return "";
+    }
+
+    private static boolean validateBefore(Method m) {
+        Action aa = m.getAnnotation(Action.class);
+        MainAction ma = m.getAnnotation(MainAction.class);
+        if (aa != null) {
+            return aa.validateBefore();
+        }
+        if (ma != null) {
+            return ma.validateBefore();
+        }
+        return false;
+    }
+
+    private static boolean isGroup(Method m) {
+        Action aa = m.getAnnotation(Action.class);
+        MainAction ma = m.getAnnotation(MainAction.class);
+        if (aa != null) {
+            return aa.isGroup();
+        }
+        if (ma != null) {
+            return ma.isGroup();
+        }
+        return false;
+    }
+
+    private static String getCaption(Method m) {
+        Action aa = m.getAnnotation(Action.class);
+        MainAction ma = m.getAnnotation(MainAction.class);
+        if (aa != null) {
+            return (!Strings.isNullOrEmpty(aa.value()) ? aa.value() : Helper.capitalize(m.getName()));
+        }
+        if (ma != null) {
+            return (!Strings.isNullOrEmpty(ma.value()) ? ma.value() : Helper.capitalize(m.getName()));
+        }
+        return "Submit";
     }
 
     private static void invoke(AbstractViewComponent viewComponent, Method m, Object instance, Set selection, EntityManager em, Map<String, Object> parameterValues) throws InvocationTargetException, IllegalAccessException {

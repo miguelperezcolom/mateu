@@ -113,10 +113,29 @@ public class ObjectToViewMapper {
             return new ComponentView(stack, openHtml.getCaption(), openHtml.getIcon(),
                     new Label(openHtml.html, ContentMode.HTML));
         }
+        if (model instanceof Result && ((Result) model).getModel() instanceof MDDOpenUserJourneyAction) {
+            model = ((Result) model).getModel();
+        }
         if (model instanceof MDDOpenRemoteFormAction) {
             // crear clase al vuelo. Quizás cachear
             try {
                 model = RemoteHelper.createBean(((MDDOpenRemoteFormAction) model).getRemoteForm());
+            } catch (Exception e) {
+                return new ProblemView(stack, "Error", new Error(e));
+            }
+        }
+        if (model instanceof MDDRunUserJourneyAction) {
+            // crear clase al vuelo. Quizás cachear
+            try {
+                model = UserJourneyHelper.completeStep((MDDRunUserJourneyAction) model);
+            } catch (Exception e) {
+                return new ProblemView(stack, "Error", new Error(e));
+            }
+        }
+        if (model instanceof MDDOpenUserJourneyAction) {
+            // crear clase al vuelo. Quizás cachear
+            try {
+                model = UserJourneyHelper.createBean(((MDDOpenUserJourneyAction) model).getUserJourney());
             } catch (Exception e) {
                 return new ProblemView(stack, "Error", new Error(e));
             }
@@ -184,7 +203,7 @@ public class ObjectToViewMapper {
         EditorViewComponent editorViewComponent = (EditorViewComponent) MDDViewComponentCreator.createComponent(model);
         if (model != null && model.getClass().isAnnotationPresent(MateuUI.class))
             editorViewComponent.setIcon(VaadinIcons.FORM);
-        Controller controller = new EditorController(model);
+        Controller controller = new EditorController(editorViewComponent);
         if (model instanceof PersistentPojo) {
         } else if (model instanceof ReadOnlyPojo) {
             editorViewComponent = new ReadOnlyViewComponent(model);

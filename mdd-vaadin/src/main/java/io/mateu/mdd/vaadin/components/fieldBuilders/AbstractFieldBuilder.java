@@ -3,7 +3,9 @@ package io.mateu.mdd.vaadin.components.fieldBuilders;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.vaadin.data.*;
+import com.vaadin.server.ErrorMessage;
 import com.vaadin.server.UserError;
+import com.vaadin.shared.ui.ErrorLevel;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import io.mateu.mdd.core.app.AbstractAction;
@@ -11,6 +13,7 @@ import io.mateu.mdd.core.interfaces.AbstractStylist;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.shared.annotations.Help;
+import io.mateu.mdd.shared.interfaces.Choice;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.shared.reflection.IFieldBuilder;
 import io.mateu.mdd.vaadin.MateuUI;
@@ -22,6 +25,7 @@ import io.mateu.util.Helper;
 import io.mateu.util.data.Pair;
 import io.mateu.util.notification.Notifier;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -31,6 +35,7 @@ public abstract class AbstractFieldBuilder implements IFieldBuilder {
     public static List<AbstractFieldBuilder> builders = Lists.newArrayList(
             new KPIInlineFieldBuilder()
             , new ButtonFieldBuilder()
+            , new ChoiceFieldBuilder()
             , new FareValueFieldBuilder()
             , new JPAUnmodifiableFieldBuilder()
             , new FromDataProviderFieldBuilder()
@@ -151,6 +156,38 @@ public abstract class AbstractFieldBuilder implements IFieldBuilder {
                     } else {
                         if (!initialized || lastValue != v || (v != null && !v.equals(lastValue))) {
                             initialized = true;
+
+                            boolean isChoice = Choice.class.isAssignableFrom(field.getType());
+                            if (isChoice) {
+                                if (field.isAnnotationPresent(NotNull.class)) {
+                                    try {
+                                        Choice choice = (Choice) ReflectionHelper.getValue(field, binder.getBean());
+                                        if (choice.getValue() == null) {
+                                            if (captionOwner != null) captionOwner.setComponentError(new ErrorMessage() {
+
+                                                @Override
+                                                public ErrorLevel getErrorLevel() {
+                                                    return ErrorLevel.ERROR;
+                                                }
+
+                                                @Override
+                                                public String getFormattedHtmlMessage() {
+                                                    return "Can not be null";
+                                                }
+                                            });
+                                            return ValidationResult.error("Can not be null");
+                                        } else {
+                                            return ValidationResult.ok();
+                                        }
+                                    } catch (Exception e) {
+                                        Notifier.alert(e);
+                                        return ValidationResult.error(e.getClass().getSimpleName() + ": " + e.getMessage());
+                                    }
+                                } else {
+                                    return ValidationResult.ok();
+                                }
+                            }
+
                             try {
                                 Object old = ReflectionHelper.getValue(field, binder.getBean());
                                 if (!Helper.equals(v, old)) {

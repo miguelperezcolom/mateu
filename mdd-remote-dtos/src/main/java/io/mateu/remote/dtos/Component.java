@@ -6,8 +6,12 @@ import java.util.List;
 import java.util.Map;
 
 @Data@Builder@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
-public class View {
+public class Component {
 
-    private List<Component> components;
+    private ViewMetadata metadata;
+
+    private Map<String, Object> data;
+
+    private List<Rule> rules;
 
 }

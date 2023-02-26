@@ -18,5 +18,6 @@ public class Field {
 
     private List<Validation> validations = new ArrayList<>();
 
+    private List<Pair> attributes = new ArrayList<>();
 
 }

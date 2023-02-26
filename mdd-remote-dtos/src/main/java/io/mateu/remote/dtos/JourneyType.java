@@ -5,10 +5,12 @@ import lombok.*;
 @Data
 @Builder
 @NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
-public class Validation {
+public class JourneyType {
 
-    private ValidationType type;
+    private String id;
 
-    private Object data;
+    private String name;
+
+    private String description;
 
 }

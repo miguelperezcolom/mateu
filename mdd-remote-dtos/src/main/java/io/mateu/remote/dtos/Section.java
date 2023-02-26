@@ -10,7 +10,10 @@ public class Section {
 
     private String caption;
 
+    private SectionType type;
+
     private List<Action> actions = new ArrayList<>();
 
     private List<FieldGroup> fieldGroups = new ArrayList<>();
+
 }

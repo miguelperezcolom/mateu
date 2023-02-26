@@ -409,7 +409,7 @@ public class JPAListViewComponent extends ListViewComponent {
     public Class getFiltersType() {
         try {
             return ReflectionHelper.createClass(MDD.getClassPool(), MDDBinder.class, MDD.getClassPool().getClassLoader(),
-                    entityClass.getName() + "000Filters" + getFilterFieldsSerialized(),
+                    entityClass.getName() + "000Filters" + getFilterFieldsSerialized(), "", null, null, null, List.of(),
                     getFilterFields(entityClass), true);
         } catch (Exception e) {
             Notifier.alert(e);

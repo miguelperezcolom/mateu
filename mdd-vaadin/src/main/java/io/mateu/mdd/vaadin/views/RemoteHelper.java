@@ -1,21 +1,16 @@
 package io.mateu.mdd.vaadin.views;
 
 import io.mateu.mdd.core.MDD;
-import io.mateu.mdd.core.app.MDDOpenRemoteFormAction;
 import io.mateu.mdd.shared.interfaces.RemoteForm;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.data.MDDBinder;
 import io.mateu.mdd.vaadin.remote.RemoteViewReader;
-import io.mateu.reflection.FieldInterfacedFromField;
 import io.mateu.reflection.FieldInterfacedFromRemoteField;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
 import io.mateu.util.Helper;
 import io.mateu.util.notification.Notifier;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +29,7 @@ public class RemoteHelper {
                     MDDBinder.class,
                     MDD.getClassPool().getClassLoader(),
                     targetClassName,
+                    Helper.capitalize(targetClassName), null, null, null, List.of(),
                     getFields(view), false);
 
             instance = ReflectionHelper.newInstance(type);
@@ -48,12 +44,14 @@ public class RemoteHelper {
 
     private static List<FieldInterfaced> getFields(View view) {
         List<FieldInterfaced> fields = new ArrayList<>();
-        if (view.getMetadata() instanceof Form) {
-            Form form = (Form) view.getMetadata();
-            for (Section section : form.getSections()) {
-                for (FieldGroup fieldGroup : section.getFieldGroups()) {
-                    for (Field field : fieldGroup.getFields()) {
-                        fields.add(new FieldInterfacedFromRemoteField(field));
+        for (Component component : view.getComponents()) {
+            if (component.getMetadata() instanceof Form) {
+                Form form = (Form) component.getMetadata();
+                for (Section section : form.getSections()) {
+                    for (FieldGroup fieldGroup : section.getFieldGroups()) {
+                        for (Field field : fieldGroup.getFields()) {
+                            fields.add(new FieldInterfacedFromRemoteField(field));
+                        }
                     }
                 }
             }

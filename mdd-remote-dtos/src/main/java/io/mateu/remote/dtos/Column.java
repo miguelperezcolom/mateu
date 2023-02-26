@@ -1,5 +1,8 @@
 package io.mateu.remote.dtos;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Column {
 
     private String id;
@@ -11,5 +14,7 @@ public class Column {
     private String description;
 
     private String width;
+
+    private List<Pair> attributes = new ArrayList<>();
 
 }

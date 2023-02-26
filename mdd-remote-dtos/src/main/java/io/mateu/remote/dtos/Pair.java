@@ -5,10 +5,10 @@ import lombok.*;
 @Data
 @Builder
 @NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
-public class Validation {
+public class Pair {
 
-    private ValidationType type;
+    private String key;
 
-    private Object data;
+    private Object value;
 
 }

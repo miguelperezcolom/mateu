@@ -85,7 +85,7 @@ public class CollectionListViewComponent extends ListViewComponent {
     @Override
     public Class getFiltersType() {
         try {
-            return ReflectionHelper.createClass(MDD.getClassPool(), MDDBinder.class, MDD.getClassPool().getClassLoader(), columnType.getName() + "000CollectionFilters", getFilterFields(columnType), true);
+            return ReflectionHelper.createClass(MDD.getClassPool(), MDDBinder.class, MDD.getClassPool().getClassLoader(), columnType.getName() + "000CollectionFilters", "", null, null, null, List.of(), getFilterFields(columnType), true);
         } catch (Exception e) {
             Notifier.alert(e);
         }

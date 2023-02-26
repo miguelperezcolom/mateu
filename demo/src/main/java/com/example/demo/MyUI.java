@@ -6,6 +6,7 @@ import com.example.demo.crud1.Crud3;
 import com.example.demo.crud1.Editor;
 import com.example.demo.e2e.E2eMenu;
 import com.example.demo.e2e.entities.PersonEntity;
+import com.example.demo.e2e.forms.UserJourneyStarter;
 import com.example.demo.formularios.Formulario1;
 import com.vaadin.ui.Component;
 import io.mateu.mdd.core.annotations.MateuUI;
@@ -15,6 +16,7 @@ import io.mateu.mdd.shared.annotations.MenuOption;
 import io.mateu.mdd.shared.annotations.PublicHome;
 import io.mateu.mdd.shared.annotations.Submenu;
 import io.mateu.mdd.shared.interfaces.RemoteForm;
+import io.mateu.mdd.shared.interfaces.UserJourney;
 import io.mateu.security.Private;
 
 import java.net.MalformedURLException;
@@ -48,6 +50,14 @@ public class MyUI implements HasFooter {
 
     @MenuOption
     private RemoteForm remoteForm = new RemoteForm("http://localhost:8081", "com.example.demoremote.MyForm");
+
+    @MenuOption
+    private UserJourneyStarter startUserJourney = new UserJourneyStarter("https://remote.mateu.io");
+
+    @MenuOption
+    private UserJourney termLife = new UserJourney("https://remote.mateu.io", "Process_1bxh4ag:6:20c176ea-b559-11ed-a424-960001f240a0");
+    // term life
+
 
     @MenuOption
     public Class personas = PersonEntity.class;

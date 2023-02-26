@@ -6,10 +6,7 @@ import com.vaadin.ui.Component;
 import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.interfaces.JpaCrud;
-import io.mateu.mdd.shared.interfaces.MenuEntry;
-import io.mateu.mdd.shared.interfaces.RemoteForm;
-import io.mateu.mdd.shared.interfaces.RpcView;
+import io.mateu.mdd.shared.interfaces.*;
 import io.mateu.mdd.shared.reflection.CoreReflectionHelper;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
@@ -209,6 +206,10 @@ public class MenuBuilder {
                 if (RemoteForm.class.isAssignableFrom(f.getType())) {
 
                     l.add(new MDDOpenRemoteFormAction(caption, (RemoteForm) ReflectionHelper.getValue(f, app)));
+
+                } else if (UserJourney.class.isAssignableFrom(f.getType())) {
+
+                    l.add(new MDDOpenUserJourneyAction(caption, (UserJourney) ReflectionHelper.getValue(f, app)));
 
                 } else if (JpaCrud.class.isAssignableFrom(f.getType())) {
                     Class entityType = ReflectionHelper.getGenericClass(f, JpaCrud.class, "E");

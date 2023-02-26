@@ -259,6 +259,7 @@ public class VaadinHelper {
             Class pc = ReflectionHelper.createClass(MDD.getClassPool(), MDDBinder.class,
                     MDD.getClassPool().getClassLoader(),
                     "" + c.getDeclaringClass().getSimpleName() + "_" + c.getName() + "_Parameters000",
+                    Helper.capitalize(c.getName()), null, null, null, List.of(),
                     ReflectionHelper.getAllFields(c), false);
 
             List<FieldInterfaced> fields = ReflectionHelper.getAllFields(pc);

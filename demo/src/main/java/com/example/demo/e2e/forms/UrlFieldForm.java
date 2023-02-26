@@ -17,7 +17,19 @@ public class UrlFieldForm {
     @Output
     private URL output = new URL("https://www.google.es");
 
+    @Output
+    private String assessment;
+
     public UrlFieldForm() throws MalformedURLException {
+    }
+
+    @Action
+    public void oneAction() {
+        assessment = dump();
+    }
+
+    private String dump() {
+        return editable != null?editable.toString():"url is null";
     }
 
 }

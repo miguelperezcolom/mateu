@@ -71,6 +71,7 @@ public class MethodParametersViewComponent extends EditorViewComponent {
                     MDD.getClassPool().getClassLoader(),
                     "" + method.getDeclaringClass().getSimpleName()
                             + "_" + method.getName() + "_Parameters000",
+                    Helper.capitalize(method.getName()), null, null, null, List.of(),
                     ReflectionHelper.getAllFields(method), false);
         } catch (Exception e) {
             e.printStackTrace();

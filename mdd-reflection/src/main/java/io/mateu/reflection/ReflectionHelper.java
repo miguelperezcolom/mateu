@@ -195,7 +195,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
 
     }
 
-    private static Object getValue(String id, Object o) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    public static Object getValue(String id, Object o) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         Object v = null;
 
         if (id.contains(".")) {
@@ -1826,11 +1826,17 @@ public class ReflectionHelper extends BaseReflectionHelper {
         return Class.forName(fullClassName);
     }
 
-    public static Class createClassUsingJavassist2(ClassPool pool, Class mddBinderClass, String fullClassName, List<FieldInterfaced> fields, boolean forFilters) throws Exception {
-        return createClassUsingJavassist2(pool, mddBinderClass, fullClassName, fields, forFilters, false, null, null);
+    public static Class createClassUsingJavassist2(ClassPool pool, Class mddBinderClass, String fullClassName, String caption,
+                                                   String baseUrl, String journeyId, String stepId,
+                                                   List<io.mateu.remote.dtos.Action> actions, List<FieldInterfaced> fields, boolean forFilters) throws Exception {
+        return createClassUsingJavassist2(pool, mddBinderClass, fullClassName, caption,
+                baseUrl, journeyId, stepId,
+                actions, fields, forFilters, false, null, null);
     }
 
-    public static Class createClassUsingJavassist2(ClassPool pool, Class mddBinderClass, String fullClassName, List<FieldInterfaced> fields, boolean forFilters, boolean forInlineEditing, FieldInterfaced collectionField, Object owner) throws Exception {
+    public static Class createClassUsingJavassist2(ClassPool pool, Class mddBinderClass, String fullClassName, String caption,
+                                                   String baseUrl, String journeyId, String stepId,
+                                                   List<io.mateu.remote.dtos.Action> actions, List<FieldInterfaced> fields, boolean forFilters, boolean forInlineEditing, FieldInterfaced collectionField, Object owner) throws Exception {
 
         log.debug("creating class " + fullClassName);
 
@@ -1839,10 +1845,65 @@ public class ReflectionHelper extends BaseReflectionHelper {
         CtClass cc = pool.makeClass(fullClassName);
         cc.setModifiers(Modifier.PUBLIC);
 
+        if (!Strings.isNullOrEmpty(baseUrl) && !Strings.isNullOrEmpty(journeyId) && !Strings.isNullOrEmpty(stepId)) {
+            CtField ctf;
+            cc.addField(ctf = new CtField(pool.get(String.class.getName()), "_baseUrl", cc));
+            ctf.setModifiers(Modifier.PRIVATE);
+            cc.addMethod(CtNewMethod.setter(getSetter(String.class, "_baseUrl"), ctf));
+
+            cc.addField(ctf = new CtField(pool.get(String.class.getName()), "_journeyTypeId", cc));
+            ctf.setModifiers(Modifier.PRIVATE);
+            cc.addMethod(CtNewMethod.setter(getSetter(String.class, "_journeyTypeId"), ctf));
+
+            cc.addField(ctf = new CtField(pool.get(String.class.getName()), "_journeyId", cc));
+            ctf.setModifiers(Modifier.PRIVATE);
+            cc.addMethod(CtNewMethod.setter(getSetter(String.class, "_journeyId"), ctf));
+
+            cc.addField(ctf = new CtField(pool.get(String.class.getName()), "_stepId", cc));
+            ctf.setModifiers(Modifier.PRIVATE);
+            cc.addMethod(CtNewMethod.setter(getSetter(String.class, "_stepId"), ctf));
+
+        }
+
+        if (!Strings.isNullOrEmpty(caption)) {
+            cc.addMethod(CtNewMethod.make("public String toString() { return \"" + caption.replaceAll("\"", "\\\"") + "\"; }", cc));
+        }
+        
+        if (actions != null) {
+            ClassFile cf = cc.getClassFile();
+            ConstPool constpool = cf.getConstPool();
+            for (io.mateu.remote.dtos.Action action : actions) {
+
+                CtMethod m = CtNewMethod.make("public Object " + action.getId() + "() { System.out.println(\"You have called " + action.getId() + "\"); return new io.mateu.mdd.core.app.MDDRunUserJourneyAction(" +
+                        "_baseUrl, " +
+                        "_journeyId, " +
+                        "_stepId, " +
+                        "\"" + action.getId() + "\", this" +
+                        "); }", cc);
+
+                AnnotationsAttribute annotationsAttribute = new AnnotationsAttribute(constpool, AnnotationsAttribute.visibleTag);
+                {
+                    javassist.bytecode.annotation.Annotation annotation = new javassist.bytecode.annotation.Annotation(MainAction.class.getName(), constpool);
+                    annotation.addMemberValue("value", new StringMemberValue(action.getCaption(), constpool));
+                    //annotation.addMemberValue("frequency", new IntegerMemberValue(classFile.getConstPool(), frequency));
+                    annotationsAttribute.addAnnotation(annotation);
+                }
+
+                if (false) {
+                    javassist.bytecode.annotation.Annotation annotation = new javassist.bytecode.annotation.Annotation(Caption.class.getName(), constpool);
+                    annotation.addMemberValue("value", new StringMemberValue(action.getCaption(), constpool));
+                    annotationsAttribute.addAnnotation(annotation);
+                }
+                m.getMethodInfo().addAttribute(annotationsAttribute);
+
+
+                cc.addMethod(m);
+            }
+        }
+
         if (forInlineEditing) {
 
             cc.addInterface(pool.get(ProxyClass.class.getName()));
-
 
             CtField ctf;
             cc.addField(ctf = new CtField(pool.get(collectionField.getGenericClass().getName()), "_proxied", cc));
@@ -2191,23 +2252,29 @@ public class ReflectionHelper extends BaseReflectionHelper {
         return mv;
     }
 
-    public static Class createClass(ClassPool classPool, Class mddBinderClass, ClassLoader classLoader, String fullClassName, List<FieldInterfaced> fields, boolean forFilters) throws Exception {
+    public static Class createClass(ClassPool classPool, Class mddBinderClass, ClassLoader classLoader, String fullClassName, String caption,
+                                    String baseUrl, String journeyId, String stepId,
+                                    List<io.mateu.remote.dtos.Action> actions, List<FieldInterfaced> fields, boolean forFilters) throws Exception {
 
         try {
             Class c = Class.forName(fullClassName, false, classLoader);
             log.debug("class " + fullClassName + " already exists");
             return c;
         } catch (ClassNotFoundException e) {
-            Class c = createClassUsingJavassist2(classPool, mddBinderClass, fullClassName, fields, forFilters);
+            Class c = createClassUsingJavassist2(classPool, mddBinderClass, fullClassName, caption,
+                    baseUrl, journeyId, stepId, actions, fields, forFilters);
             return c;
         }
     }
 
 
-    public static Class createClass(ClassPool classPool, Class mddBinderClass, ClassLoader classLoader, String fullClassName, List<FieldInterfaced> fields, boolean forFilters, boolean forInlineEditing, FieldInterfaced collectionField, Object owner) throws Exception {
+    public static Class createClass(ClassPool classPool, Class mddBinderClass, ClassLoader classLoader, String fullClassName, String caption,
+                                    String baseUrl, String journeyId, String stepId,
+                                    List<io.mateu.remote.dtos.Action> actions, List<FieldInterfaced> fields, boolean forFilters, boolean forInlineEditing, FieldInterfaced collectionField, Object owner) throws Exception {
 
         if (forInlineEditing) {
-            Class c = createClassUsingJavassist2(classPool, mddBinderClass, fullClassName, fields, forFilters, forInlineEditing, collectionField, owner);
+            Class c = createClassUsingJavassist2(classPool, mddBinderClass, fullClassName, caption,
+                    baseUrl, journeyId, stepId, actions, fields, forFilters, forInlineEditing, collectionField, owner);
             return c;
         } else {
             try {
@@ -2215,7 +2282,8 @@ public class ReflectionHelper extends BaseReflectionHelper {
                 log.debug("class " + fullClassName + " already exists");
                 return c;
             } catch (ClassNotFoundException e) {
-                Class c = createClassUsingJavassist2(classPool, mddBinderClass, fullClassName, fields, forFilters, forInlineEditing, collectionField, owner);
+                Class c = createClassUsingJavassist2(classPool, mddBinderClass, fullClassName, caption,
+                        baseUrl, journeyId, stepId, actions, fields, forFilters, forInlineEditing, collectionField, owner);
                 return c;
             }
         }
@@ -2366,7 +2434,9 @@ public class ReflectionHelper extends BaseReflectionHelper {
 
     public static Class getProxy(ClassPool classPool, Class mddBinderClass, ClassLoader classLoader, String fieldsFilter, Class sourceClass, FieldInterfaced collectionField, Object owner, List<FieldInterfaced> editableFields) {
         try {
-            return createClass(classPool, mddBinderClass, classLoader, sourceClass.getName() + "000EditableInline" + UUID.randomUUID().toString(), getAllEditableFilteredFields(sourceClass, fieldsFilter, editableFields), false, true, collectionField, owner);
+            return createClass(classPool, mddBinderClass, classLoader, sourceClass.getName() + "000EditableInline" + UUID.randomUUID(), Helper.capitalize(sourceClass.getSimpleName()),
+                    null, null, null,
+                    List.of(), getAllEditableFilteredFields(sourceClass, fieldsFilter, editableFields), false, true, collectionField, owner);
         } catch (Exception e) {
             Notifier.alert(e);
         }

@@ -2,13 +2,13 @@ package io.mateu.remote.dtos;
 
 import lombok.*;
 
+import java.util.Map;
+
 @Data
 @Builder
 @NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
-public class Validation {
+public class RunActionRq {
 
-    private ValidationType type;
-
-    private Object data;
+    private Map<String, Object> data;
 
 }

@@ -2,12 +2,11 @@ package io.mateu.remote.dtos;
 
 import lombok.*;
 
-import java.util.List;
-import java.util.Map;
-
 @Data@Builder@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
-public class View {
+public class Step {
 
-    private List<Component> components;
+    private String name;
+
+    private View view;
 
 }
