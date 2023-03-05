@@ -8,6 +8,8 @@ import java.util.List;
 @Data@Builder@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class FieldGroup {
 
+    private String id;
+
     private String caption;
 
     private List<Field> fields = new ArrayList<>();

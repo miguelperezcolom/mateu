@@ -13,8 +13,4 @@ public class Crud implements ViewMetadata {
 
     private List<Column> columns;
 
-    private Form newItemForm;
-
-    private Form detailForm;
-
 }

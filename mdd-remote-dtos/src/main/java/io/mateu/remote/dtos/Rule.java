@@ -22,4 +22,6 @@ public class Rule {
     // ['name', 'age', 'address']
     private Object data;
 
+    private RuleResult result;
+
 }

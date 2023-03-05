@@ -205,11 +205,15 @@ public class MenuBuilder {
 
                 if (RemoteForm.class.isAssignableFrom(f.getType())) {
 
-                    l.add(new MDDOpenRemoteFormAction(caption, (RemoteForm) ReflectionHelper.getValue(f, app)));
+                    MDDOpenRemoteFormAction a;
+                    l.add(a = new MDDOpenRemoteFormAction(caption, (RemoteForm) ReflectionHelper.getValue(f, app)));
+                    a.setOrder(order);
 
                 } else if (UserJourney.class.isAssignableFrom(f.getType())) {
 
-                    l.add(new MDDOpenUserJourneyAction(caption, (UserJourney) ReflectionHelper.getValue(f, app)));
+                    MDDOpenUserJourneyAction a;
+                    l.add(a = new MDDOpenUserJourneyAction(caption, (UserJourney) ReflectionHelper.getValue(f, app)));
+                    a.setOrder(order);
 
                 } else if (JpaCrud.class.isAssignableFrom(f.getType())) {
                     Class entityType = ReflectionHelper.getGenericClass(f, JpaCrud.class, "E");

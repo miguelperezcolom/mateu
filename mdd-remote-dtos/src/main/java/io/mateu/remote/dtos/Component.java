@@ -10,6 +10,8 @@ public class Component {
 
     private ViewMetadata metadata;
 
+    private String id;
+
     private Map<String, Object> data;
 
     private List<Rule> rules;

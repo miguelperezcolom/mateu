@@ -8,6 +8,8 @@ import java.util.List;
 @Data@Builder@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class Section {
 
+    private String id;
+
     private String caption;
 
     private SectionType type;
