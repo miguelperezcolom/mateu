@@ -18,7 +18,6 @@ public class UIMapper {
         if (app.isForm()) {
             ui.setTitle(app.getName());
             ui.setSubtitle("");
-            ui.setHome(new ViewMapper().map(uiInstance));
         } else {
             ui.setTitle(app.getName());
             ui.setSubtitle("");
@@ -26,7 +25,6 @@ public class UIMapper {
                     .flatMap(Collection::stream).map(m -> m.getMenu())
                     .flatMap(Collection::stream).map(e -> Menu.builder().build()).collect(Collectors.toList());
             ui.setMenu(menuOptions);
-            ui.setHome(null);
         }
 
         return ui;
