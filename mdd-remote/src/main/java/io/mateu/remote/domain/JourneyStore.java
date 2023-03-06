@@ -9,7 +9,6 @@ public interface JourneyStore {
 
     Journey getJourney(String journeyId);
 
-
     void putStep(String stepId, Step step);
 
     Step getStep(String stepId);
@@ -19,4 +18,10 @@ public interface JourneyStore {
 
     Object getViewInstance(String stepId);
 
+
+    void putJourneyPerType(String journeyTypeId, Journey journey, Object formInstance);
+
+    Journey getJourneyPerType(String journeyTypeId);
+
+    Object getFormInstancePerType(String journeyTypeId);
 }

@@ -8,9 +8,7 @@ import io.mateu.remote.domain.StepMapper;
 import lombok.Builder;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -29,22 +27,10 @@ public class RunStepActionCommand {
 
         Object viewInstance = JourneyStoreAccessor.get().getViewInstance(stepId);
 
-        data.entrySet().forEach(e -> {
+        data.entrySet().forEach(entry -> {
             try {
-                Object v = null;
-                if (e.getValue() != null) {
-                    Field f = viewInstance.getClass().getDeclaredField(e.getKey());
-                    if (f.getType().isAssignableFrom(e.getValue().getClass())) {
-                        v = e.getValue();
-                    } else {
-                        if (long.class.equals(f.getType())) {
-                            v = Long.valueOf((String) e.getValue());
-                        } else if (int.class.equals(f.getType())) {
-                            v = Integer.valueOf((String) e.getValue());
-                        }
-                    }
-                }
-                ReflectionHelper.setValue(e.getKey(), viewInstance, v);
+                Object actualValue = getActualValue(entry, viewInstance);
+                ReflectionHelper.setValue(entry.getKey(), viewInstance, actualValue);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -67,5 +53,22 @@ public class RunStepActionCommand {
             throw new Exception("Unkonwn action " + actionId);
         }
 
+    }
+
+    private Object getActualValue(Map.Entry<String, Object> entry, Object viewInstance) throws NoSuchFieldException {
+        Object targetValue = entry.getValue();
+        if (entry.getValue() != null) {
+            Field f = viewInstance.getClass().getDeclaredField(entry.getKey());
+            if (!f.getType().isAssignableFrom(entry.getValue().getClass())) {
+                if (entry.getValue() instanceof String) {
+                    if (long.class.equals(f.getType())) {
+                        targetValue = Long.valueOf((String) entry.getValue());
+                    } else if (int.class.equals(f.getType())) {
+                        targetValue = Integer.valueOf((String) entry.getValue());
+                    }
+                }
+            }
+        }
+        return targetValue;
     }
 }

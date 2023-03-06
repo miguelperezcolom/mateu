@@ -9,6 +9,8 @@ public class Menu {
 
     private MenuType type;
 
+    private String icon;
+
     private String caption;
 
     private String journeyTypeId;

@@ -17,6 +17,10 @@ public class MemoryJourneyStore implements JourneyStore {
 
     private final Map<String, Object> _viewInstances = new HashMap<>();
 
+    private final Map<String, Journey> _journeysPerType = new HashMap<>();
+
+    private final Map<String, Object> _formInstancesPerType = new HashMap<>();
+
 
     @Override
     public void putJourney(String journeyId, Journey journey) {
@@ -46,5 +50,21 @@ public class MemoryJourneyStore implements JourneyStore {
     @Override
     public Object getViewInstance(String stepId) {
         return _viewInstances.get(stepId);
+    }
+
+    @Override
+    public void putJourneyPerType(String journeyTypeId, Journey journey, Object formInstance) {
+        _journeysPerType.put(journeyTypeId, journey);
+        _formInstancesPerType.put(journeyTypeId, formInstance);
+    }
+
+    @Override
+    public Journey getJourneyPerType(String journeyTypeId) {
+        return _journeysPerType.get(journeyTypeId);
+    }
+
+    @Override
+    public Object getFormInstancePerType(String journeyTypeId) {
+        return _formInstancesPerType.get(journeyTypeId);
     }
 }

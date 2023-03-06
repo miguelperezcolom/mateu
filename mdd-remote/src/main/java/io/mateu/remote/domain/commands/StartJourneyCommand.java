@@ -24,27 +24,33 @@ public class StartJourneyCommand {
     public void run() throws Exception {
         JourneyStore store = JourneyStoreAccessor.get();
 
-        try {
-            Class formClass = Class.forName(journeyTypeId);
-            Object formInstance = ReflectionHelper.newInstance(formClass);
+        Journey journey = store.getJourneyPerType(journeyTypeId);
+        Object formInstance = store.getFormInstancePerType(journeyTypeId);
 
-            if (formInstance == null) {
-                throw new Exception();
+        if (journey == null) {
+            try {
+                Class formClass = Class.forName(journeyTypeId);
+                formInstance = ReflectionHelper.newInstance(formClass);
+
+                if (formInstance == null) {
+                    throw new Exception();
+                }
+
+                // we are passing the form instance to avoid creating a new form instance,
+                // even though we already have the step definition id, and we could recreate it
+                journey = new JourneyMapper().map(formInstance);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                log.error("error on getUi", e);
+                throw new NotFoundException("No class with name " + journeyTypeId + " found");
             }
 
-            // we are passing the form instance to avoid creating a new form instance,
-            // even though we already have the step definition id, and we could recreate it
-            Journey journey = new JourneyMapper().map(formInstance);
-
-            createStep(store, journey, formInstance);
-
-            store.putJourney(journeyId, journey);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.error("error on getUi", e);
-            throw new NotFoundException("No class with name " + journeyTypeId + " found");
         }
+
+        createStep(store, journey, formInstance);
+
+        store.putJourney(journeyId, journey);
 
     }
 
