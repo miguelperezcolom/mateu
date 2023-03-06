@@ -1,11 +1,11 @@
 package com.example.demoremote;
 
+import io.mateu.remote.ReferenceForPackageScanning;
 import io.mateu.remote.application.RemoteMateuController;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ComponentScan;
 
-@SpringBootApplication(scanBasePackageClasses = {DemoRemoteApplication.class, RemoteMateuController.class})
+@SpringBootApplication(scanBasePackageClasses = {DemoRemoteApplication.class, ReferenceForPackageScanning.class, })
 public class DemoRemoteApplication {
 
     public static void main(String[] args) {

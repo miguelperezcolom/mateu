@@ -1,57 +1,105 @@
 package io.mateu.remote.application;
 
-import io.mateu.mdd.core.app.MateuApp;
+import io.mateu.remote.domain.MateuService;
+import io.mateu.remote.domain.commands.RunStepActionCommand;
+import io.mateu.remote.domain.commands.StartJourneyCommand;
+import io.mateu.remote.domain.queries.GetJourneyQuery;
+import io.mateu.remote.domain.queries.GetStepQuery;
+import io.mateu.remote.domain.queries.GetUIQuery;
 import io.mateu.remote.dtos.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
 
 @RestController
 @RequestMapping("mateu/v1")
 public class RemoteMateuController {
 
-    @Autowired
-    MateuService mateuService;
 
-    @GetMapping(value = "uis/{uiClassName}")
-    public UI getUI(@PathVariable String uiClassName) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException {
-        Optional<UI> ui = mateuService.getUi(uiClassName);
-
-        if (!ui.isPresent()) {
-            throw new NotFoundException("No class with name " + uiClassName + " found");
-        }
-
-        return ui.get();
+    @GetMapping(value = "uis/{uiId}")
+    public UI getUI(@PathVariable String uiId) throws Exception {
+        return GetUIQuery.builder().uiId(uiId).build().run();
     }
 
-    @GetMapping("views/{viewClassName}")
-    public View getView(@PathVariable String viewClassName) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException {
-        Optional<View> view = mateuService.getView(viewClassName);
-
-        if (!view.isPresent()) {
-            throw new NotFoundException("No class with name " + viewClassName + " found");
-        }
-
-        return view.get();
+    @GetMapping("journey-types")
+    public List<JourneyType> getJourneyTypes() throws Exception {
+        //todo: does not make sense for mateu uis?
+        return List.of();
     }
 
-    @PostMapping("views/{viewClassName}/{actionId}")
-    public View runAction(@PathVariable String viewClassName,
-                          @PathVariable String actionId,
-                          @RequestBody ActionData actionData
-                          ) {
-        Optional<View> view = mateuService.getView(viewClassName);
-
-        if (!view.isPresent()) {
-            throw new NotFoundException("No class with name " + viewClassName + " found");
-        }
-
-        return mateuService.runAction(viewClassName, actionId, actionData);
+    @PostMapping("journeys/{journeyId}")
+    public void createJourney(@PathVariable String journeyId, @RequestBody JourneyCreationRq rq) throws Exception {
+        StartJourneyCommand.builder()
+                .journeyId(journeyId)
+                .journeyTypeId(rq.getJourneyTypeId())
+                .build().run();
     }
+
+    @GetMapping("journeys/{journeyId}")
+    public Journey getJourney(@PathVariable String journeyId) throws Exception {
+        return GetJourneyQuery.builder().journeyId(journeyId).build().run();
+    }
+
+    @GetMapping("journeys/{journeyId}/steps/{stepId}")
+    public Step getStep(@PathVariable String journeyId, @PathVariable String stepId) throws Exception {
+        return GetStepQuery.builder().journeyId(journeyId).stepId(stepId).build().run();
+    }
+
+    @PostMapping("journeys/{journeyId}/steps/{stepId}/{actionId}")
+    public void runStep(@PathVariable String journeyId,
+                        @PathVariable String stepId,
+                        @PathVariable String actionId,
+                        @RequestBody RunActionRq rq) throws Exception {
+        RunStepActionCommand.builder()
+                .journeyId(journeyId)
+                .stepId(stepId)
+                .actionId(actionId)
+                .data(rq.getData())
+                .build().run();
+    }
+
+    /*
+    @GetMapping("journeys/{journeyId}/steps/{stepId}/lists/{listId}/rows")
+    public List<Map<String, Object>> getListRows(@PathVariable String journeyId,
+                                                 @PathVariable String stepId,
+                                                 @PathVariable String listId,
+                                                 @RequestParam int page,
+                                                 @RequestParam int page_size,
+// urlencoded form of filters json serialized
+                                                 @RequestParam String filters,
+// urlencoded form of orders json serialized
+                                                 @RequestParam String ordering
+                                             ) throws Exception {
+        return GetListRowsQuery.builder()
+                .journeyId(journeyId)
+                .stepId(stepId)
+                .listId(listId)
+                .page(page)
+                .pageSize(page_size)
+                .filters(new FiltersDeserializer(filters).deserialize())
+                .ordering(new OrderingDeserializer(ordering).deserialize())
+                .build().run();
+    }
+
+    @GetMapping("journeys/{journeyId}/steps/{stepId}/lists/{listId}/count")
+    public long getListCount(@PathVariable String journeyId,
+                             @PathVariable String stepId,
+                             @PathVariable String listId,
+// urlencoded form of filters json serialized
+                             @RequestParam String filters
+    ) throws Exception {
+        return GetListCountQuery.builder()
+                .journeyId(journeyId)
+                .stepId(stepId)
+                .listId(listId)
+                .filters(new FiltersDeserializer(filters).deserialize())
+                .build().run();
+    }
+
+     */
 
 }

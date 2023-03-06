@@ -1,4 +1,4 @@
-package io.mateu.remote.application;
+package io.mateu.remote.domain;
 
 import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
@@ -26,6 +26,7 @@ public class ViewMapper {
                         Component.builder()
                                 .metadata(getMetadata(uiInstance))
                                 .data(getData(uiInstance))
+                                .rules(List.of())
                                 .build()
                 ))
                 .build();
@@ -131,6 +132,7 @@ public class ViewMapper {
 
     private void addValidations(Field field, FieldInterfaced fieldInterfaced) {
         //todo: implement
+        field.setValidations(List.of());
     }
 
     private String getDescription(FieldInterfaced fieldInterfaced) {

@@ -17,5 +17,6 @@ public class UI {
 
     private List<Menu> menu;
 
+    private String homeJourneyTypeId;
 
 }

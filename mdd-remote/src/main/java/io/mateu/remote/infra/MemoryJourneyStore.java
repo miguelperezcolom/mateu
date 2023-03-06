@@ -1,0 +1,50 @@
+package io.mateu.remote.infra;
+
+import io.mateu.remote.domain.JourneyStore;
+import io.mateu.remote.dtos.Journey;
+import io.mateu.remote.dtos.Step;
+import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Service
+public class MemoryJourneyStore implements JourneyStore {
+
+    private final Map<String, Journey> _journeys = new HashMap<>();
+
+    private final Map<String, Step> _steps = new HashMap<>();
+
+    private final Map<String, Object> _viewInstances = new HashMap<>();
+
+
+    @Override
+    public void putJourney(String journeyId, Journey journey) {
+        _journeys.put(journeyId, journey);
+    }
+
+    @Override
+    public Journey getJourney(String journeyId) {
+        return _journeys.get(journeyId);
+    }
+
+    @Override
+    public void putStep(String stepId, Step step) {
+        _steps.put(stepId, step);
+    }
+
+    @Override
+    public Step getStep(String stepId) {
+        return _steps.get(stepId);
+    }
+
+    @Override
+    public void putViewInstance(String stepId, Object viewInstance) {
+        _viewInstances.put(stepId, viewInstance);
+    }
+
+    @Override
+    public Object getViewInstance(String stepId) {
+        return _viewInstances.get(stepId);
+    }
+}

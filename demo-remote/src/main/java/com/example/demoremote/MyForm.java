@@ -14,10 +14,10 @@ public class MyForm {
 
     private String assessment;
 
-    
+
     @Action
-    private void assess() {
-        assessment = "All good!";
+    public void assess() {
+        assessment = "" + name + ", " + age;
     }
 
     public String toString() {

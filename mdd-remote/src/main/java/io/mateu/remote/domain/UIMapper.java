@@ -1,4 +1,4 @@
-package io.mateu.remote.application;
+package io.mateu.remote.domain;
 
 import io.mateu.mdd.core.app.MateuApp;
 import io.mateu.remote.dtos.Menu;
@@ -18,6 +18,7 @@ public class UIMapper {
         if (app.isForm()) {
             ui.setTitle(app.getName());
             ui.setSubtitle("");
+            ui.setHomeJourneyTypeId(uiInstance.getClass().getName());
         } else {
             ui.setTitle(app.getName());
             ui.setSubtitle("");

@@ -1,4 +1,4 @@
-package io.mateu.remote.application;
+package io.mateu.remote.domain;
 
 import io.mateu.mdd.shared.ui.IMDDUI;
 import io.mateu.mdd.shared.ui.IMDDUIInjector;

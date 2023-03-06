@@ -11,12 +11,8 @@ public class Menu {
 
     private String caption;
 
-    private String data;
+    private String journeyTypeId;
 
     private List<Menu> submenus;
-
-    private List<String> roles;
-
-    private List<String> users;
 
 }
