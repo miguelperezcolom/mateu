@@ -3,9 +3,7 @@ package io.mateu.remote.application;
 import io.mateu.remote.domain.MateuService;
 import io.mateu.remote.domain.commands.RunStepActionCommand;
 import io.mateu.remote.domain.commands.StartJourneyCommand;
-import io.mateu.remote.domain.queries.GetJourneyQuery;
-import io.mateu.remote.domain.queries.GetStepQuery;
-import io.mateu.remote.domain.queries.GetUIQuery;
+import io.mateu.remote.domain.queries.*;
 import io.mateu.remote.dtos.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -62,7 +60,7 @@ public class RemoteMateuController {
                 .build().run();
     }
 
-    /*
+
     @GetMapping("journeys/{journeyId}/steps/{stepId}/lists/{listId}/rows")
     public List<Map<String, Object>> getListRows(@PathVariable String journeyId,
                                                  @PathVariable String stepId,
@@ -99,7 +97,5 @@ public class RemoteMateuController {
                 .filters(new FiltersDeserializer(filters).deserialize())
                 .build().run();
     }
-
-     */
 
 }
