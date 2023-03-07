@@ -1,9 +1,7 @@
 package io.mateu.remote.domain;
 
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.AbstractMenu;
-import io.mateu.mdd.core.app.MDDOpenEditorAction;
-import io.mateu.mdd.core.app.MateuApp;
+import com.vaadin.icons.VaadinIcons;
+import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.remote.dtos.Menu;
 import io.mateu.remote.dtos.MenuType;
@@ -38,7 +36,7 @@ public class UIMapper {
         if (menuEntry instanceof AbstractMenu) {
             return Menu.builder()
                     .type(MenuType.Submenu)
-                    .icon(menuEntry.getIcon() != null?menuEntry.getIcon().toString().toLowerCase(Locale.ROOT):null)
+                    .icon(getIcon(menuEntry.getIcon()))
                     .caption(menuEntry.getCaption())
                     .submenus(createSubmenus((AbstractMenu) menuEntry))
                     .build();
@@ -47,16 +45,32 @@ public class UIMapper {
             if (menuEntry instanceof MDDOpenEditorAction) {
                 MDDOpenEditorAction action = (MDDOpenEditorAction) menuEntry;
                 JourneyStoreAccessor.get().putJourneyPerType(menuEntry.getId(), new JourneyMapper().map(action.getBean()), action.getBean());
+            } else if (menuEntry instanceof MDDOpenCRUDAction) {
+                MDDOpenCRUDAction action = (MDDOpenCRUDAction) menuEntry;
+                JourneyStoreAccessor.get().putJourneyPerType(menuEntry.getId(), new JourneyMapper().map(action), action);
+            } else if (menuEntry instanceof MDDOpenListViewAction) {
+                MDDOpenListViewAction action = (MDDOpenListViewAction) menuEntry;
+                JourneyStoreAccessor.get().putJourneyPerType(menuEntry.getId(), new JourneyMapper().map(action), action.getListViewClass());
             } else {
                 JourneyStoreAccessor.get().putJourneyPerType(menuEntry.getId(), new JourneyMapper().map(menuEntry), menuEntry);
             }
         }
         return Menu.builder()
                 .type(MenuType.MenuOption)
-                .icon(menuEntry.getIcon() != null?menuEntry.getIcon().toString().toLowerCase(Locale.ROOT):null)
+                .icon(getIcon(menuEntry.getIcon()))
                 .journeyTypeId(menuEntry.getId())
                 .caption(menuEntry.getCaption())
                 .build();
+    }
+
+    private String getIcon(VaadinIcons icon) {
+        if (icon == null) return null;
+        Map<VaadinIcons, String> map = Map.of(
+                VaadinIcons.USER, "sap-icon://person-placeholder",
+                VaadinIcons.GROUP, "sap-icon://group",
+                VaadinIcons.AIRPLANE, "sap-icon://flight"
+        );
+        return map.get(icon);
     }
 
     private List<Menu> createSubmenus(AbstractMenu m) {

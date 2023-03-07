@@ -1,5 +1,6 @@
 package io.mateu.remote.domain;
 
+import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.shared.annotations.Caption;
@@ -11,6 +12,7 @@ import io.mateu.remote.dtos.*;
 import io.mateu.util.Helper;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,7 +21,15 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ViewMapper {
-    public View map(Object uiInstance) throws IOException {
+    public View map(Object uiInstance) throws Exception {
+        //mddopencrudaction, crud class
+
+        if (uiInstance instanceof MDDOpenCRUDAction) {
+
+        } else if (uiInstance instanceof Class && RpcView.class.isAssignableFrom((Class<?>) uiInstance)) {
+            uiInstance = ReflectionHelper.newInstance((Class) uiInstance);
+        }
+
 
         View view = View.builder()
                 .components(List.of(
@@ -36,7 +46,12 @@ public class ViewMapper {
 
     private Map<String, Object> getData(Object uiInstance) throws IOException {
         Map<String, Object> data = new HashMap<>();
-        data = Helper.fromJson(Helper.toJson(uiInstance));
+        for (FieldInterfaced field : ReflectionHelper.getAllEditableFields(uiInstance.getClass())) {
+            try {
+                data.put(field.getId(), ReflectionHelper.getValue(field, uiInstance));
+            } catch (Exception e) {
+            }
+        }
         return data;
     }
 
@@ -44,7 +59,7 @@ public class ViewMapper {
         ViewMetadata metadata;
 
         if (uiInstance instanceof RpcView) {
-            metadata = new Crud();
+            metadata = getCrud((RpcView) uiInstance);
         } else {
             metadata = getForm(uiInstance);
         }
@@ -53,117 +68,12 @@ public class ViewMapper {
     }
 
     private Form getForm(Object uiInstance) {
-        Form form = Form.builder()
-                .title(getCaption(uiInstance))
-                .sections(getSections(uiInstance))
-                .actions(getActions(uiInstance))
-                .mainActions(getMainActions(uiInstance))
-        .build();
-        return form;
+        return new FormMetadataBuilder().build(uiInstance);
     }
 
-    private List<Action> getMainActions(Object uiInstance) {
-        List<Method> allMethods = ReflectionHelper.getAllMethods(uiInstance.getClass());
-        List<Action> actions = allMethods.stream()
-                .filter(m -> m.isAnnotationPresent(io.mateu.mdd.shared.annotations.MainAction.class))
-                .map(m -> getAction(m))
-                .collect(Collectors.toList());
-        return actions;
+    private Crud getCrud(RpcView rpcView) {
+        return new CrudMetadataBuilder().build(rpcView);
     }
 
-    private Action getAction(Method m) {
-        Action action = Action.builder()
-                .id(m.getName())
-                .caption(ReflectionHelper.getCaption(m))
-                .type(ActionType.Primary)
-                .build();
-        return action;
-    }
 
-    private List<Action> getActions(Object uiInstance) {
-        List<Method> allMethods = ReflectionHelper.getAllMethods(uiInstance.getClass());
-        List<Action> actions = allMethods.stream()
-                .filter(m -> m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class))
-                .map(m -> getAction(m))
-                .collect(Collectors.toList());
-        return actions;
-    }
-
-    private List<Section> getSections(Object uiInstance) {
-        List<Section> sections = new ArrayList<>();
-        Section section = null;
-        FieldGroup fieldGroup = null;
-
-        List<FieldInterfaced> allEditableFields = ReflectionHelper.getAllEditableFields(uiInstance.getClass());
-        for (FieldInterfaced fieldInterfaced : allEditableFields) {
-            if (section == null || fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Section.class)) {
-                String caption = "";
-                if (fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Section.class)) {
-                    caption = fieldInterfaced.getAnnotation(io.mateu.mdd.shared.annotations.Section.class).value();
-                }
-                section = Section.builder().caption(caption).fieldGroups(new ArrayList<>()).build();
-                sections.add(section);
-                fieldGroup = null;
-            }
-            if (fieldGroup == null || fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.FieldGroup.class)) {
-                String caption = "";
-                if (fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.FieldGroup.class)) {
-                    caption = fieldInterfaced.getAnnotation(io.mateu.mdd.shared.annotations.FieldGroup.class).value();
-                }
-                fieldGroup = FieldGroup.builder().caption(caption).fields(new ArrayList<>()).build();
-                section.getFieldGroups().add(fieldGroup);
-            }
-            fieldGroup.getFields().add(getField(fieldInterfaced));
-        }
-
-        return sections;
-    }
-
-    private Field getField(FieldInterfaced fieldInterfaced) {
-        Field field = Field.builder()
-                .id(fieldInterfaced.getId())
-                .caption(ReflectionHelper.getCaption(fieldInterfaced))
-                .description(getDescription(fieldInterfaced))
-                .type(fieldInterfaced.getType().toString())
-                .build();
-        addValidations(field, fieldInterfaced);
-        return field;
-    }
-
-    private void addValidations(Field field, FieldInterfaced fieldInterfaced) {
-        //todo: implement
-        field.setValidations(List.of());
-    }
-
-    private String getDescription(FieldInterfaced fieldInterfaced) {
-        String description = null;
-        if (fieldInterfaced.isAnnotationPresent(Help.class)) {
-            description = fieldInterfaced.getAnnotation(Help.class).value();
-        }
-        return description;
-    }
-
-    private String getCaption(Object uiInstance) {
-        Class<?> modelType = uiInstance.getClass();
-        if (modelType.isAnnotationPresent(Caption.class)) {
-            return modelType.getAnnotation(Caption.class).value();
-        }
-        String viewTitle = "";
-        if (uiInstance != null && uiInstance instanceof ReadOnlyPojo) viewTitle = ((ReadOnlyPojo) uiInstance).getEntityName();
-        if (uiInstance != null && uiInstance instanceof PersistentPojo) {
-            viewTitle = ((PersistentPojo) uiInstance).getEntityName();
-            if (((PersistentPojo) uiInstance).isNew()) return "New " + viewTitle;
-        }
-        String prefix = "";
-        if (!"".equals(viewTitle)) prefix = viewTitle + " ";
-
-        try {
-            if (Object.class.equals(modelType.getMethod("toString").getDeclaringClass())) {
-                return Helper.capitalize(modelType.getSimpleName());
-            }
-        } catch (NoSuchMethodException e) {
-        }
-
-        return prefix + uiInstance;
-    }
 }

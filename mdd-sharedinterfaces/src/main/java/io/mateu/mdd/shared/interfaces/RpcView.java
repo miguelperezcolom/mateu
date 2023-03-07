@@ -5,6 +5,7 @@ import com.vaadin.ui.Grid;
 import io.mateu.mdd.shared.data.SumData;
 import io.mateu.mdd.shared.ui.MDDUIAccessor;
 
+import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import java.util.Set;
 
@@ -50,6 +51,14 @@ public interface RpcView<F, C> {
 
     default boolean showCheckboxForSelection() {
         return false;
+    }
+
+    default Class<F> getSearchFormClass() {
+        return (Class<F>) ((ParameterizedType) getClass().getGenericInterfaces()[0]).getActualTypeArguments()[0];
+    }
+
+    default Class<C> getRowClass() {
+        return (Class<C>) ((ParameterizedType) getClass().getGenericInterfaces()[0]).getActualTypeArguments()[1];
     }
 
 }

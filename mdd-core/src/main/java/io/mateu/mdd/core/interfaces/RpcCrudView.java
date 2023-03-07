@@ -22,10 +22,6 @@ public interface RpcCrudView<F, C, T> extends RpcView<F, C> {
         return null;
     }
 
-    default Class<C> getRowClass() {
-        return (Class<C>) ((ParameterizedType) getClass().getGenericInterfaces()[0]).getActualTypeArguments()[1];
-    }
-
     default Class<T> getEditorClass() {
         return (Class<T>) ((ParameterizedType) getClass().getGenericInterfaces()[0]).getActualTypeArguments()[2];
     }

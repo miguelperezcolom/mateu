@@ -2,6 +2,7 @@ package com.example.demoremote.nfl;
 
 import com.vaadin.data.provider.QuerySortOrder;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
+import io.mateu.mdd.shared.annotations.Caption;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,6 +10,7 @@ import lombok.Setter;
 
 import java.util.List;
 
+@Caption("Players")
 @Getter@Setter
 public class PlayersCrud implements RpcCrudView<PlayersCrud, PlayersCrud.Row, PlayersCrud.Row> {
 

@@ -6,11 +6,13 @@ import io.mateu.mdd.shared.interfaces.UserPrincipal;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.shared.reflection.IFieldBuilder;
 import io.mateu.util.SharedHelper;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Set;
 
+@Slf4j
 public class MDDUIAccessor {
 
     public static IMDDUIInjector injector;
@@ -20,7 +22,143 @@ public class MDDUIAccessor {
             try {
                 injector = SharedHelper.getImpl(IMDDUIInjector.class);
             } catch (Exception e) {
-                e.printStackTrace();
+                log.warn("No implementation found for " + IMDDUI.class.getName());
+                injector = new IMDDUIInjector() {
+                    @Override
+                    public IMDDUI get() {
+                        return new IMDDUI() {
+                            @Override
+                            public boolean isEditingNewRecord() {
+                                return false;
+                            }
+
+                            @Override
+                            public IFieldBuilder getFieldBuilder(FieldInterfaced field) {
+                                return null;
+                            }
+
+                            @Override
+                            public String getBaseUrl() {
+                                return null;
+                            }
+
+                            @Override
+                            public void clearStack() {
+
+                            }
+
+                            @Override
+                            public String getPath(MenuEntry e) {
+                                return null;
+                            }
+
+                            @Override
+                            public App getApp() {
+                                return null;
+                            }
+
+                            @Override
+                            public String getCurrentUserLogin() {
+                                return null;
+                            }
+
+                            @Override
+                            public UserPrincipal getCurrentUser() {
+                                return null;
+                            }
+
+                            @Override
+                            public Collection<FieldInterfaced> getColumnFields(Class targetType) {
+                                return null;
+                            }
+
+                            @Override
+                            public void updateTitle(String title) {
+
+                            }
+
+                            @Override
+                            public boolean isMobile() {
+                                return false;
+                            }
+
+                            @Override
+                            public String getUiRootPath() {
+                                return null;
+                            }
+
+                            @Override
+                            public String getCurrentState() {
+                                return null;
+                            }
+
+                            @Override
+                            public void go(String relativePath) {
+
+                            }
+
+                            @Override
+                            public void goTo(String path) {
+
+                            }
+
+                            @Override
+                            public void goBack() {
+
+                            }
+
+                            @Override
+                            public void goSibling(Object siblingId) {
+
+                            }
+
+                            @Override
+                            public void open(FieldInterfaced field, Method m, Set selection) {
+
+                            }
+
+                            @Override
+                            public void open(Method m, Set selection) {
+
+                            }
+
+                            @Override
+                            public void open(Method m, Object result) {
+
+                            }
+
+                            @Override
+                            public Set getPendingSelection() {
+                                return null;
+                            }
+
+                            @Override
+                            public void setPendingSelection(Set selecion) {
+
+                            }
+
+                            @Override
+                            public Object getPendingResult() {
+                                return null;
+                            }
+
+                            @Override
+                            public void setPendingResult(Object result) {
+
+                            }
+
+                            @Override
+                            public void updateSession() {
+
+                            }
+
+                            @Override
+                            public Set getSelectedRows() {
+                                return null;
+                            }
+                        };
+                    }
+                };
             }
         }
         return injector.get();

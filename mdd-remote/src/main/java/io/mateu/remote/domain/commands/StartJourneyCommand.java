@@ -54,7 +54,7 @@ public class StartJourneyCommand {
 
     }
 
-    private void createStep(JourneyStore store, Journey journey, Object formInstance) throws IOException {
+    private void createStep(JourneyStore store, Journey journey, Object formInstance) throws Exception {
         Step step = new StepMapper().map(formInstance);
         store.putStep(journey.getCurrentStepId(), step);
         store.putViewInstance(journey.getCurrentStepId(), formInstance);
