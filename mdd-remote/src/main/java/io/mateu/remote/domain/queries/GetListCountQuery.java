@@ -21,7 +21,7 @@ public class GetListCountQuery {
     private Map<String, Object> filters;
 
     public long run() throws Exception {
-        return 0;
+        return 2;
     }
 
 }

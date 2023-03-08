@@ -29,7 +29,10 @@ public class GetListRowsQuery {
     private List<SortCriteria> ordering;
 
     public List<Map<String, Object>> run() throws Exception {
-        return List.of();
+        return List.of(
+                Map.of("name", "Mateu", "age", 14),
+                Map.of("name", "Antonia", "age", 47)
+        );
     }
 
 
