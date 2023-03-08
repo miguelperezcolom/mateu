@@ -129,12 +129,8 @@ public class SharedHelper {
      * @return list of implementations
      */
     public static <T> List<T> getImpls(Class<T> anInterface) {
-        Iterator<T> impls = ServiceLoader.load(anInterface).iterator();
-        List<T> i = new ArrayList<>();
-        while (impls.hasNext()) {
-            i.add(impls.next());
-        }
-        return i;
+        return ServiceLoader.load(anInterface).stream()
+                .map(p -> p.get()).collect(Collectors.toList());
     }
 
 }

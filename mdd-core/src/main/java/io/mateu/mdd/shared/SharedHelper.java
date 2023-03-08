@@ -109,17 +109,15 @@ public class SharedHelper {
     public static <T> T getImpl(Class<T> c) throws Exception {
         List<T> impls = getImpls(c);
         if (impls.size() == 0) throw new Exception("No implementation found for " + c.getName());
-        if (impls.size() > 1) throw new Exception("More than 1 implementation found for " + c.getName() + " (" + impls.stream().map(i -> i.getClass()).map(Class::getSimpleName).collect(Collectors.joining(",")) + ")");
+        if (impls.size() > 1) throw new Exception("More than 1 implementation found for " + c.getName() +
+                " (" + impls.stream().map(i -> i.getClass())
+                .map(Class::getSimpleName).collect(Collectors.joining(",")) + ")");
         return impls.get(0);
     }
 
-    public static <T> List<T> getImpls(Class<T> c) throws Exception {
-        Iterator<T> impls = ServiceLoader.load(c).iterator();
-        List<T> i = new ArrayList<>();
-        while (impls.hasNext()) {
-            i.add(impls.next());
-        }
-        return i;
+    public static <T> List<T> getImpls(Class<T> c) {
+        return ServiceLoader.load(c).stream()
+                .map(p -> p.get()).collect(Collectors.toList());
     }
 
 }
