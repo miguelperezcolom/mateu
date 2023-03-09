@@ -62,7 +62,7 @@ public class RemoteMateuController {
 
 
     @GetMapping("journeys/{journeyId}/steps/{stepId}/lists/{listId}/rows")
-    public List<Map<String, Object>> getListRows(@PathVariable String journeyId,
+    public List<Object> getListRows(@PathVariable String journeyId,
                                                  @PathVariable String stepId,
                                                  @PathVariable String listId,
                                                  @RequestParam int page,
@@ -71,14 +71,14 @@ public class RemoteMateuController {
                                                  @RequestParam String filters,
 // urlencoded form of orders json serialized
                                                  @RequestParam String ordering
-                                             ) throws Exception {
+                                             ) throws Throwable {
         return GetListRowsQuery.builder()
                 .journeyId(journeyId)
                 .stepId(stepId)
                 .listId(listId)
                 .page(page)
                 .pageSize(page_size)
-                .filters(new FiltersDeserializer(filters).deserialize())
+                .filters(new FiltersDeserializer(journeyId, stepId, listId, filters).deserialize())
                 .ordering(new OrderingDeserializer(ordering).deserialize())
                 .build().run();
     }
@@ -89,12 +89,12 @@ public class RemoteMateuController {
                              @PathVariable String listId,
 // urlencoded form of filters json serialized
                              @RequestParam String filters
-    ) throws Exception {
+    ) throws Throwable {
         return GetListCountQuery.builder()
                 .journeyId(journeyId)
                 .stepId(stepId)
                 .listId(listId)
-                .filters(new FiltersDeserializer(filters).deserialize())
+                .filters(new FiltersDeserializer(journeyId, stepId, listId, filters).deserialize())
                 .build().run();
     }
 

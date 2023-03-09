@@ -137,21 +137,6 @@ public class MDDViewComponentCreator {
         return v;
     }
 
-    public static Component createComponent(MDDOpenCRUDAction action) {
-        Component v = null;
-        Class modelType = null;
-        try {
-
-            modelType = action.getEntityClass();
-            v = createListViewComponent(modelType, action.getQueryFilters(), action.getExtraFilters(),
-                    action.getDefaultValues(), action.getColumns(), action.getFilters(), action.getFields());
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return v;
-    }
-
     public static EditorViewComponent createEditorViewComponent(Class modelType) throws Exception {
         return createEditorViewComponent(modelType, true);
     }
@@ -196,14 +181,6 @@ public class MDDViewComponentCreator {
         EditorViewComponent v = new EditorViewComponent(listViewComponent, modelType, createSaveBUtton, visibleFields);
 
         return v;
-    }
-
-    private static ListViewComponent createListViewComponent(Class modelType, String queryFilters,
-                                                             ExtraFilters extraFilters,
-                                                             Map<String, Object> defaultValues, String columns,
-                                                             String filters, String fields) throws Exception {
-        return createListViewComponent(modelType, queryFilters, extraFilters, defaultValues, columns,
-                filters, fields, null);
     }
 
     private static ListViewComponent createListViewComponent(Class modelType, String queryFilters,

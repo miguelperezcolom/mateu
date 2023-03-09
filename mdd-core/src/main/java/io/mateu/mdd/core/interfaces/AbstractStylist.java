@@ -88,9 +88,6 @@ public abstract class AbstractStylist<S> {
         return viewSubtitle;
     }
 
-    public String getViewTitle() {
-        return Helper.pluralize(Helper.capitalize(viewTitle));
-    }
 
     public String getViewTitle(boolean newRecord, S model) {
         if (model != null && (model instanceof ReadOnlyPojo || model instanceof PersistentPojo)) {

@@ -20,10 +20,6 @@ public abstract class AbstractArea implements IArea {
     public List<IModule> modules;
     public AbstractAction defaultAction = null;
 
-    public String getStyle() {
-        return null;
-    }
-
     public AbstractArea(String name) {
         this.name = name;
     }
@@ -64,13 +60,6 @@ public abstract class AbstractArea implements IArea {
         return publicAccess;
     }
 
-    public void setPublicAccess(boolean publicAccess) {
-        this.publicAccess = publicAccess;
-    }
-
-    public String getId() {
-        return id;
-    }
 
     @Override
     public int hashCode() {

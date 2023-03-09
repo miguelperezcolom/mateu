@@ -62,31 +62,6 @@ public abstract class AbstractApplication implements App {
         this.persistenceUnitName = persistenceUnitName;
     }
 
-    public static AbstractApplication get() {
-        if (!Strings.isNullOrEmpty(System.getProperty("appClassName"))) {
-            try {
-                Object app = Class.forName(System.getProperty("appClassName")).newInstance();
-                if (app instanceof AppProvider) app = ((AppProvider) app).getApp(MDDUIAccessor.getCurrentUser());
-                return (AbstractApplication) app;
-            } catch (Throwable throwable) {
-                throwable.printStackTrace();
-            }
-        }
-
-        Iterator<App> apps = ServiceLoader.load(App.class).iterator();
-        AbstractApplication app = null;
-        while (apps.hasNext()) {
-            app = (AbstractApplication) apps.next();
-            if (app instanceof AppProvider) app = ((AppProvider) app).getApp(MDDUIAccessor.getCurrentUser());
-            log.debug("app " + app.getName() + " loaded");
-            break;
-        }
-        return app;
-    }
-
-    public void search(Callback<Data> callback) {
-        callback.onFailure(new Exception("Search is not available for this app."));
-    }
 
     public abstract String getName();
 
@@ -253,31 +228,6 @@ public abstract class AbstractApplication implements App {
 
     public abstract List<AbstractArea> buildAreas();
 
-    public View getPublicHome() { return null; };
-
-    public View getPrivateHome() { return null; };
-
-    public String getBaseUrl() {
-        String u = System.getProperty("baseurl", MDDUIAccessor.getBaseUrl());
-        if (u.endsWith(VaadinHelper.getAdaptedUIRootPath())) u = u.substring(0, u.lastIndexOf(VaadinHelper.getAdaptedUIRootPath()));
-        return u;
-    };
-
-    public String translate(String text, String toLanguage) {
-        return null;
-    }
-
-    public boolean hasPublicContent() {
-        boolean r = !isAuthenticationNeeded() && (areas == null || areas.size() == 0);
-        for (IArea a : areas) {
-            if (a.isPublicAccess()) {
-                r = true;
-                break;
-            }
-        }
-        return r;
-    }
-
     public boolean hasPrivateContent() {
         boolean r = false;
         for (AbstractArea a : buildAreas()) {
@@ -330,10 +280,6 @@ public abstract class AbstractApplication implements App {
             fieldBuildersCache.put(k, r);
             return r;
         }
-    }
-
-    public Searcher getSearcher() {
-        return new Searcher();
     }
 
 }

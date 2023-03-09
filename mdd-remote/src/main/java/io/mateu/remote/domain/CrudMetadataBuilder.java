@@ -8,7 +8,6 @@ import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
 import io.mateu.util.Helper;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,7 +37,7 @@ public class CrudMetadataBuilder extends AbstractMetadataBuilder {
 
 
     private List<Column> buildColumns(RpcView rpcView) {
-        Class rowClass = rpcView.getSearchFormClass();
+        Class rowClass = rpcView.getRowClass();
         List<FieldInterfaced> allRowFields = ReflectionHelper.getAllFields(rowClass);
         return allRowFields.stream().map(fieldInterfaced -> getColumn(fieldInterfaced))
                 .collect(Collectors.toList());

@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Component;
 import io.mateu.mdd.core.MDD;
+import io.mateu.mdd.core.app.menuResolvers.MenuResolver;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.interfaces.*;
@@ -14,6 +15,7 @@ import io.mateu.security.Private;
 import io.mateu.util.Helper;
 import io.mateu.util.notification.Notifier;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
@@ -203,99 +205,53 @@ public class MenuBuilder {
                     f.getField().setAccessible(true);
                 }
 
-                if (RemoteForm.class.isAssignableFrom(f.getType())) {
+                List<MenuResolver> menuResolvers = Helper.getImpls(MenuResolver.class);
+                
+                boolean menuResolved = false;
 
-                    MDDOpenRemoteFormAction a;
-                    l.add(a = new MDDOpenRemoteFormAction(caption, (RemoteForm) ReflectionHelper.getValue(f, app)));
-                    a.setOrder(order);
+                for (MenuResolver menuResolver : menuResolvers) {
+                    menuResolved = menuResolver.addMenuEntry(app, l, f, caption, order, icon);
+                }
 
-                } else if (UserJourney.class.isAssignableFrom(f.getType())) {
-
-                    MDDOpenUserJourneyAction a;
-                    l.add(a = new MDDOpenUserJourneyAction(caption, (UserJourney) ReflectionHelper.getValue(f, app)));
-                    a.setOrder(order);
-
-                } else if (JpaCrud.class.isAssignableFrom(f.getType())) {
-                    Class entityType = ReflectionHelper.getGenericClass(f, JpaCrud.class, "E");
-                    if (entityType != null) {
-                        MDDOpenCRUDAction a = new MDDOpenCRUDAction(caption, entityType);
-                        a.setIcon(icon).setOrder(order);
-                        JpaCrud v = (JpaCrud) ReflectionHelper.getValue(f, app);
-                        if (v != null && v.getColumnFields() != null) a.setColumns(String.join(",", v.getColumnFields()));
-                        if (v != null && v.getVisibleFields() != null) a.setFields(String.join(",", v.getVisibleFields()));
-                        if (v != null && v.getSearchFilterFields() != null) a.setFilters(String.join(",", v.getSearchFilterFields()));
-                        if (v != null && v.getReadOnlyFields() != null) a.setReadOnlyFields(String.join(",", v.getReadOnlyFields()));
-                        if (v != null) a.setCanAdd(v.canAdd());
-                        if (v != null) a.setCanDelete(v.canDelete());
-                        if (v != null) a.setReadOnly(v.isReadOnly());
-                        if (v != null && !Strings.isNullOrEmpty(v.getExtraWhereFilter())) a.setQueryFilters(v.getExtraWhereFilter());
-                        l.add(a);
-                    }
-                } else if (Class.class.isAssignableFrom(f.getType())) {
-                    Class type = (Class) ReflectionHelper.getValue(f, app);
-                    if (type != null) {
-                        MDDOpenCRUDAction a = new MDDOpenCRUDAction(caption, type);
-                        a.setIcon(icon).setOrder(order);
-                        if (f.isAnnotationPresent(Columns.class) && !Strings.isNullOrEmpty(f.getAnnotation(Columns.class).value())) a.setColumns(f.getAnnotation(Columns.class).value());
-                        if (f.isAnnotationPresent(EditableFields.class) && !Strings.isNullOrEmpty(f.getAnnotation(EditableFields.class).value())) a.setFields(f.getAnnotation(EditableFields.class).value());
-                        if (f.isAnnotationPresent(FilterFields.class) && !Strings.isNullOrEmpty(f.getAnnotation(FilterFields.class).value())) a.setFilters(f.getAnnotation(FilterFields.class).value());
-                        if (f.isAnnotationPresent(Where.class) && !Strings.isNullOrEmpty(f.getAnnotation(Where.class).value())) a.setQueryFilters(f.getAnnotation(Where.class).value());
-                        l.add(a);
-                    }
-                } else if (List.class.isAssignableFrom(f.getType()) && MenuEntry.class.equals(ReflectionHelper.getGenericClass(f.getType()))) {
-                    l.add(new AbstractMenu(icon, caption) {
-                        @Override
-                        public List<MenuEntry> buildEntries() {
-                            List<MenuEntry> l = new ArrayList<>();
-                            try {
-
-                                l = (List<MenuEntry>) ReflectionHelper.getValue(f, app);
-
-                            } catch (Throwable e) {
-                                Notifier.alert(e);
-                            }
-                            return l;
-                        }
-                    }.setOrder(order));
-                } else if (URL.class.equals(f.getType())) {
-                    l.add(new MDDOpenUrlAction(caption, (URL) ReflectionHelper.getValue(f, app)));
-                } else {
-                    Object v = ReflectionHelper.getValue(f, app);
-                    if (ReflectionHelper.isBasico(f.getType()) || String.class.equals(f.getType())) {
-                        if (f.isAnnotationPresent(Home.class) || f.isAnnotationPresent(PublicHome.class) || f.isAnnotationPresent(PrivateHome.class))
-                            l.add(new MDDOpenHtmlAction("Home", "" + v).setIcon(VaadinIcons.HOME).setOrder(order));
-                        else l.add(new MDDOpenHtmlAction(caption, "" + v).setIcon(icon).setOrder(order));
-                    } else if (WizardPage.class.isAssignableFrom(f.getType())) {
-                        l.add(new MDDOpenWizardAction(caption, () -> {
-                            try {
-                                return v != null?(WizardPage) v: (WizardPage) ReflectionHelper.newInstance(f.getType());
-                            } catch (Exception e) {
-                                Notifier.alert(e);
-                            }
-                            return null;
-                        }).setIcon(icon).setOrder(order));
-                    } else if (RpcView.class.isAssignableFrom(f.getType())) {
-                        l.add(new MDDOpenListViewAction(caption, f.getType()).setIcon(icon).setOrder(order));
-                    } else if (Component.class.isAssignableFrom(f.getType())) {
-                        if (v != null) l.add(new MDDOpenCustomComponentAction(caption, v));
-                        else l.add(new MDDOpenCustomComponentAction(caption, f.getType()));
-                    } else l.add(new MDDOpenEditorAction(caption, () -> {
-                        try {
-                            return v != null?v: ReflectionHelper.newInstance(f.getType());
-                        } catch (Exception e) {
-                            Notifier.alert(e);
-                        }
-                        return null;
-                    }).setIcon(icon).setOrder(order));
+                if (!menuResolved) {
+                    addDefaultMenuEntry(app, l, f, caption, order, icon);
                 }
 
             } catch (Exception e) {
                 Notifier.alert(e);
             }
         }
-
     }
 
+    private static void addDefaultMenuEntry(Object app, List<MenuEntry> l, FieldInterfaced f, String caption, int order, VaadinIcons icon) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+        Object v = ReflectionHelper.getValue(f, app);
+        if (ReflectionHelper.isBasico(f.getType()) || String.class.equals(f.getType())) {
+            if (f.isAnnotationPresent(Home.class) || f.isAnnotationPresent(PublicHome.class) || f.isAnnotationPresent(PrivateHome.class))
+                l.add(new MDDOpenHtmlAction("Home", "" + v).setIcon(VaadinIcons.HOME).setOrder(order));
+            else l.add(new MDDOpenHtmlAction(caption, "" + v).setIcon(icon).setOrder(order));
+        } else if (WizardPage.class.isAssignableFrom(f.getType())) {
+            l.add(new MDDOpenWizardAction(caption, () -> {
+                try {
+                    return v != null?(WizardPage) v: (WizardPage) ReflectionHelper.newInstance(f.getType());
+                } catch (Exception e) {
+                    Notifier.alert(e);
+                }
+                return null;
+            }).setIcon(icon).setOrder(order));
+        } else if (RpcView.class.isAssignableFrom(f.getType())) {
+            l.add(new MDDOpenListViewAction(caption, f.getType()).setIcon(icon).setOrder(order));
+        } else if (Component.class.isAssignableFrom(f.getType())) {
+            if (v != null) l.add(new MDDOpenCustomComponentAction(caption, v));
+            else l.add(new MDDOpenCustomComponentAction(caption, f.getType()));
+        } else l.add(new MDDOpenEditorAction(caption, () -> {
+            try {
+                return v != null?v: ReflectionHelper.newInstance(f.getType());
+            } catch (Exception e) {
+                Notifier.alert(e);
+            }
+            return null;
+        }).setIcon(icon).setOrder(order));
+    }
 
     static List<Method> getAllMenuMethods(Class c) {
         List<Method> l = new ArrayList<>();

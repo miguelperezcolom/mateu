@@ -181,14 +181,6 @@ public class RpcListViewComponent extends ListViewComponent {
 
         List<Method> ms = new ArrayList<>();
 
-        if (AbstractCrudView.class.isAssignableFrom(rpcListViewClass)) {
-            for (Method m : ReflectionHelper.getAllMethods(ReflectionHelper.getGenericClass(rpcListViewClass, AbstractCrudView.class, "R"))) {
-                if (Modifier.isStatic(m.getModifiers()) && m.isAnnotationPresent(Action.class)) {
-                    ms.add(m);
-                }
-            }
-        }
-
         for (Method m : ReflectionHelper.getAllMethods(rpcListViewClass)) {
             if (m.isAnnotationPresent(Action.class)) {
                 ms.add(m);
@@ -276,15 +268,12 @@ public class RpcListViewComponent extends ListViewComponent {
     @Override
     public Method getMethod(String methodName) {
         Method a = super.getMethod(methodName);
-
         if (a == null) {
-            if (AbstractCrudView.class.isAssignableFrom(rpcListViewClass)) {
-                for (Method m : ReflectionHelper.getAllMethods(ReflectionHelper.getGenericClass(rpcListViewClass, AbstractCrudView.class, "R"))) {
-                    if (Modifier.isStatic(m.getModifiers()) && m.isAnnotationPresent(Action.class)) {
-                        if (methodName.equals(m.getName())) {
-                            a = m;
-                            break;
-                        }
+            for (Method m : ReflectionHelper.getAllMethods(rpcListView.getClass())) {
+                if (Modifier.isStatic(m.getModifiers()) && m.isAnnotationPresent(Action.class)) {
+                    if (methodName.equals(m.getName())) {
+                        a = m;
+                        break;
                     }
                 }
             }
