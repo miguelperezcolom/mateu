@@ -1,5 +1,6 @@
 package io.mateu.remote.domain;
 
+import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
@@ -14,8 +15,8 @@ public class ViewMapper {
     public View map(Object uiInstance) throws Exception {
         //mddopencrudaction, crud class
 
-        if (AbstractCrudView.class.isAssignableFrom(uiInstance.getClass())) {
-            System.out.println("es una crud");
+        if (false) { //todo: check si es un crud jpa
+            System.out.println("es una crud jpa");
         } else if (uiInstance instanceof Class && RpcView.class.isAssignableFrom((Class<?>) uiInstance)) {
             uiInstance = ReflectionHelper.newInstance((Class) uiInstance);
         }
@@ -36,9 +37,14 @@ public class ViewMapper {
 
     private Map<String, Object> getData(Object uiInstance) throws IOException {
         Map<String, Object> data = new HashMap<>();
-        for (FieldInterfaced field : ReflectionHelper.getAllEditableFields(uiInstance.getClass())) {
+        Class dataContainerClass = uiInstance.getClass();
+        Object dataContainer = uiInstance;
+        if (uiInstance instanceof RpcView) {
+            return Map.of();
+        }
+        for (FieldInterfaced field : ReflectionHelper.getAllEditableFields(dataContainerClass)) {
             try {
-                data.put(field.getId(), ReflectionHelper.getValue(field, uiInstance));
+                data.put(field.getId(), ReflectionHelper.getValue(field, dataContainer));
             } catch (Exception e) {
             }
         }

@@ -8,5 +8,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 public interface MenuResolver {
-    boolean addMenuEntry(Object app, List<MenuEntry> l, FieldInterfaced f, String caption, int order, VaadinIcons icon) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException;
+    boolean addMenuEntry(Object app, List<MenuEntry> l, FieldInterfaced f, String caption, int order, VaadinIcons icon)
+            throws InvocationTargetException, NoSuchMethodException, IllegalAccessException;
 }

@@ -1,4 +1,4 @@
-package io.mateu.mdd.core.model.cruds;
+package io.mateu.mdd.ui.cruds;
 
 import com.google.auto.service.AutoService;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
