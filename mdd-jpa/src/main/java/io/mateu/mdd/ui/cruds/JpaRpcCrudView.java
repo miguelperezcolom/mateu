@@ -58,16 +58,12 @@ public class JpaRpcCrudView implements RpcCrudView<Object, Object, Object> {
         createAliases(action.getEntityClass(), columnNames, fieldsByColumnName, alias, aliasedColumnNames, aliasedColumnNamesList);
         sumFields = fieldsByColumnName.values().stream().filter(f -> f.isAnnotationPresent(Sum.class)).collect(Collectors.toList());
 
-        {
-            String ql = "count(x)";
-
-            for (FieldInterfaced f : sumFields) {
-                if (!"".equals(ql)) ql += ", ";
-                ql += " sum(x." + f.getName() + ") ";
-            }
-
-            selectColumnsForCount = ql;
+        String ql = "count(x)";
+        for (FieldInterfaced f : sumFields) {
+            if (!"".equals(ql)) ql += ", ";
+            ql += " sum(x." + f.getName() + ") ";
         }
+        selectColumnsForCount = ql;
 
         selectColumnsForList = buildFieldsPart(columnFields);
 
@@ -219,7 +215,9 @@ public class JpaRpcCrudView implements RpcCrudView<Object, Object, Object> {
                                                Map<String, FieldInterfaced> fieldsByColumnName) {
         List<FieldInterfaced> cols = getColumnFields(targetType, false, useColumns, columnNames, fieldsByColumnName);
         FieldInterfaced idField = null;
-        for (FieldInterfaced f : ReflectionHelper.getAllFields(targetType)) if (f.isAnnotationPresent(Id.class)) idField = f;
+        for (FieldInterfaced f : ReflectionHelper.getAllFields(targetType)) {
+            if (f.isAnnotationPresent(Id.class)) idField = f;
+        }
         if (idField != null) columnNames.add(0, idField.getName());
 
         return columnNames;
@@ -365,7 +363,6 @@ public class JpaRpcCrudView implements RpcCrudView<Object, Object, Object> {
             String colId = aliasedColumnNames.get(columnName);
             s += colId + " as col" + pos++;
         }
-
         return s;
     }
 

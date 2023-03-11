@@ -5,6 +5,9 @@ import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.remote.domain.JourneyStoreAccessor;
 import io.mateu.util.Helper;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
 public class FiltersDeserializer {
 
     private final String journeyId;
@@ -21,9 +24,10 @@ public class FiltersDeserializer {
 
     public Object deserialize() throws Exception {
         RpcView rpcView = (RpcView) JourneyStoreAccessor.get().getViewInstance(stepId);
-        if ("JpaRpcCrudView".equals(rpcView.getClass().getSimpleName())) { //todo: check si es jpa
-            return Helper.fromJson(raw);
+        if ("JpaRpcCrudView".equals(rpcView.getClass().getSimpleName())) {
+            return Helper.fromJson(new String(Base64.getDecoder().decode(raw)));
         }
-        return Helper.fromJson(raw, rpcView.getSearchFormClass());
+        return Helper.fromJson(new String(Base64.getDecoder().decode(raw)),
+                rpcView.getSearchFormClass());
     }
 }

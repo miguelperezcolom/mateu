@@ -1410,7 +1410,11 @@ public class ReflectionHelper extends BaseReflectionHelper {
 
 
         allFields = allFields.stream().filter((f) ->
-                !(f.isAnnotationPresent(Version.class) || f.isAnnotationPresent(Ignored.class) || f.isAnnotationPresent(KPI.class) || f.isAnnotationPresent(NotInEditor.class) || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class))
+                !(f.isAnnotationPresent(Version.class)
+                        || f.isAnnotationPresent(Ignored.class)
+                        || f.isAnnotationPresent(KPI.class)
+                        || f.isAnnotationPresent(NotInEditor.class)
+                        || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class))
                         || (f.isAnnotationPresent(NotWhenCreating.class) && isEditingNewRecord)
                         || (f.isAnnotationPresent(NotWhenEditing.class) && !isEditingNewRecord))
         ).collect(Collectors.toList());
@@ -1498,7 +1502,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     }
 
     private static boolean check(Annotation a) {
-        return false;
+        return true;
     }
 
     private static boolean check(Method m) {

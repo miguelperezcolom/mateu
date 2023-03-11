@@ -9,6 +9,9 @@ import lombok.Builder;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -65,6 +68,12 @@ public class RunStepActionCommand {
                         targetValue = Long.valueOf((String) entry.getValue());
                     } else if (int.class.equals(f.getType())) {
                         targetValue = Integer.valueOf((String) entry.getValue());
+                    } else if (LocalDate.class.equals(f.getType())) {
+                        targetValue = LocalDate.parse((String) entry.getValue());
+                    } else if (LocalDateTime.class.equals(f.getType())) {
+                        targetValue = LocalDateTime.parse((String) entry.getValue());
+                    } else if (LocalTime.class.equals(f.getType())) {
+                        targetValue = LocalTime.parse((String) entry.getValue());
                     }
                 }
             }

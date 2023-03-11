@@ -6,8 +6,10 @@ import io.mateu.remote.domain.commands.StartJourneyCommand;
 import io.mateu.remote.domain.queries.*;
 import io.mateu.remote.dtos.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -96,6 +98,16 @@ public class RemoteMateuController {
                 .listId(listId)
                 .filters(new FiltersDeserializer(journeyId, stepId, listId, filters).deserialize())
                 .build().run();
+    }
+
+    //todo: add file upload, update and get url
+
+    @GetMapping(value = "entrypoints/**", produces = MediaType.TEXT_HTML_VALUE)
+    public String getListCount(HttpServletRequest request) {
+        String[] tokens = request.getRequestURI()
+                .split(request.getContextPath() + "/entrypoints/");
+        String path = tokens.length > 1?tokens[1]:"";
+        return "<html><body><h1>Is this html for " + path + "?</h1></body></html>";
     }
 
 }
