@@ -68,12 +68,16 @@ public class RunStepActionCommand {
                         targetValue = Long.valueOf((String) entry.getValue());
                     } else if (int.class.equals(f.getType())) {
                         targetValue = Integer.valueOf((String) entry.getValue());
+                    } else if (double.class.equals(f.getType())) {
+                        targetValue = Double.valueOf((String) entry.getValue());
                     } else if (LocalDate.class.equals(f.getType())) {
                         targetValue = LocalDate.parse((String) entry.getValue());
                     } else if (LocalDateTime.class.equals(f.getType())) {
                         targetValue = LocalDateTime.parse((String) entry.getValue());
                     } else if (LocalTime.class.equals(f.getType())) {
                         targetValue = LocalTime.parse((String) entry.getValue());
+                    } else if (f.getType().isEnum()) {
+                        targetValue = Enum.valueOf((Class) f.getType(), (String) entry.getValue());
                     }
                 }
             }

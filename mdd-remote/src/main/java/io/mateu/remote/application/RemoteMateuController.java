@@ -5,6 +5,8 @@ import io.mateu.remote.domain.commands.RunStepActionCommand;
 import io.mateu.remote.domain.commands.StartJourneyCommand;
 import io.mateu.remote.domain.queries.*;
 import io.mateu.remote.dtos.*;
+import io.mateu.util.Helper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +19,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("mateu/v1")
+@Slf4j
 public class RemoteMateuController {
 
 
@@ -46,7 +49,9 @@ public class RemoteMateuController {
 
     @GetMapping("journeys/{journeyId}/steps/{stepId}")
     public Step getStep(@PathVariable String journeyId, @PathVariable String stepId) throws Exception {
-        return GetStepQuery.builder().journeyId(journeyId).stepId(stepId).build().run();
+        Step step = GetStepQuery.builder().journeyId(journeyId).stepId(stepId).build().run();
+        log.info(Helper.toJson(step));
+        return step;
     }
 
     @PostMapping("journeys/{journeyId}/steps/{stepId}/{actionId}")

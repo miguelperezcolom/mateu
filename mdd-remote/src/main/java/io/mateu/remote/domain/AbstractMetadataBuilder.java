@@ -6,14 +6,16 @@ import io.mateu.mdd.shared.annotations.ReadOnly;
 import io.mateu.mdd.shared.annotations.TextArea;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
-import io.mateu.remote.dtos.Action;
-import io.mateu.remote.dtos.ActionType;
-import io.mateu.remote.dtos.Field;
+import io.mateu.remote.dtos.*;
+import io.mateu.util.Helper;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,12 +28,49 @@ public abstract class AbstractMetadataBuilder {
                 .description(getDescription(fieldInterfaced))
                 .type(mapFieldType(fieldInterfaced.getType()))
                 .stereotype(mapStereotype(fieldInterfaced))
+                .attributes(buildAttributes(fieldInterfaced))
                 .build();
         addValidations(field, fieldInterfaced);
         return field;
     }
 
+    private List<Pair> buildAttributes(FieldInterfaced field) {
+        if (field.getType().isEnum()) {
+            List<Pair> attributes = new ArrayList<>();
+            Method m = null;
+            try {
+                m = field.getType().getMethod("value", null);
+                for (Object enumConstant : field.getType().getEnumConstants()) {
+                    Object value = m.invoke(enumConstant, null);
+                    attributes.add(Pair.builder()
+                            .key("choice")
+                            .value(Value.builder()
+                                    .key(enumConstant.toString())
+                                    .value(value)
+                                    .build()
+                            ).build());
+                }
+            } catch (Exception e) {
+                for (Object enumConstant : field.getType().getEnumConstants()) {
+                    attributes.add(Pair.builder()
+                            .key("choice")
+                            .value(Value.builder()
+                                    .key(enumConstant.toString())
+                                    .value(Helper.capitalize(enumConstant.toString()))
+                                    .build()
+                            ).build());
+                }
+            }
+
+            return attributes;
+        }
+        return List.of();
+    }
+
     private String mapStereotype(FieldInterfaced field) {
+        if (field.getType().isEnum()) {
+            return "radiobuttons";
+        }
         if (field.isAnnotationPresent(ReadOnly.class) || field.isAnnotationPresent(Output.class)) {
             return "readonly";
         }
@@ -42,6 +81,9 @@ public abstract class AbstractMetadataBuilder {
     }
 
     private String mapFieldType(Class<?> type) {
+        if (type.isEnum()) {
+            return "enum";
+        }
         if (String.class.equals(type)) {
             return "string";
         }

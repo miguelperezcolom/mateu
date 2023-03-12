@@ -18,6 +18,8 @@ public class MyForm {
 
     private int age;
 
+    private double balance = 20.31;
+
     @TextArea
     private String text = """
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec vel semper libero. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae.
@@ -33,6 +35,8 @@ public class MyForm {
 
     private boolean check;
 
+    private Conference conference;
+
     @ReadOnly
     private String assessment;
 
@@ -41,11 +45,13 @@ public class MyForm {
     public void assess() {
         assessment = "" + name
                 + ", " + age
+                + ", " + balance
                 + ", " + text
                 + ", " + date
                 + ", " + dateAndTime
                 + ", " + time
                 + ", " + check
+                + ", " + conference
         ;
     }
 
