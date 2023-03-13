@@ -1,18 +1,19 @@
 package com.example.demoremote;
 
 import io.mateu.mdd.core.annotations.MateuUI;
-import io.mateu.mdd.shared.annotations.Action;
-import io.mateu.mdd.shared.annotations.ReadOnly;
-import io.mateu.mdd.shared.annotations.TextArea;
+import io.mateu.mdd.shared.annotations.*;
+import io.mateu.mdd.shared.data.*;
+import io.mateu.mdd.shared.interfaces.HasBadges;
 import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 @MateuUI(path = "")
 @Data
-public class MyForm {
+public class MyForm implements HasBadges {
 
     private String name = "Mateu";
 
@@ -35,11 +36,19 @@ public class MyForm {
 
     private boolean check;
 
+    @UseRadioButtons
     private Conference conference;
+
+    private Division division;
 
     @ReadOnly
     private String assessment;
 
+    @ItemsProvider(TeamsProvider.class)
+    private ExternalReference yourFavouriteTeam;
+
+    @ItemsProvider(TeamsProvider.class)
+    private ExternalReference teamAtSanFrancisco = new ExternalReference("25", "San Francisco 49ers");
 
     @Action
     public void assess() {
@@ -52,6 +61,9 @@ public class MyForm {
                 + ", " + time
                 + ", " + check
                 + ", " + conference
+                + ", " + division
+                + ", " + yourFavouriteTeam
+                + ", " + teamAtSanFrancisco
         ;
     }
 
@@ -59,4 +71,8 @@ public class MyForm {
         return "This is a sample form";
     }
 
+    @Override
+    public List<Badge> getBadges() {
+        return List.of(new Badge(BadgeType.SUCCESS, "It works!"));
+    }
 }

@@ -1,20 +1,17 @@
 package io.mateu.remote.application;
 
-import io.mateu.remote.domain.MateuService;
+import io.mateu.mdd.shared.data.Value;
 import io.mateu.remote.domain.commands.RunStepActionCommand;
 import io.mateu.remote.domain.commands.StartJourneyCommand;
 import io.mateu.remote.domain.queries.*;
 import io.mateu.remote.dtos.*;
 import io.mateu.util.Helper;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 
 @RestController
@@ -102,6 +99,31 @@ public class RemoteMateuController {
                 .stepId(stepId)
                 .listId(listId)
                 .filters(new FiltersDeserializer(journeyId, stepId, listId, filters).deserialize())
+                .build().run();
+    }
+
+
+    @GetMapping("itemproviders/{itemProviderId}/items")
+    public List<Value> getListRows(@PathVariable String itemProviderId,
+                                   @RequestParam int page,
+                                   @RequestParam int page_size,
+                                   @RequestParam String search_text
+    ) throws Throwable {
+        return GetItemsRowsQuery.builder()
+                .itemsProviderId(itemProviderId)
+                .page(page)
+                .pageSize(page_size)
+                .searchText(search_text)
+                .build().run();
+    }
+
+    @GetMapping("itemproviders/{itemProviderId}/count")
+    public long getListCount(@PathVariable String itemProviderId,
+                             @RequestParam String search_text
+    ) throws Throwable {
+        return GetItemsCountQuery.builder()
+                .itemsProviderId(itemProviderId)
+                .searchText(search_text)
                 .build().run();
     }
 

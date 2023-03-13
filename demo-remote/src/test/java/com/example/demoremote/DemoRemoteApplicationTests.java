@@ -1,6 +1,5 @@
 package com.example.demoremote;
 
-import io.mateu.remote.dtos.Form;
 import io.mateu.util.Helper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,10 +9,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 @SpringBootTest
@@ -46,6 +48,21 @@ class DemoRemoteApplicationTests {
 
     public String normalize(String json) throws IOException {
         return Helper.toJson(Helper.fromJson(json));
+    }
+
+    @Autowired
+    TeamsProvider teamsProvider;
+
+    @Autowired
+    RestTemplate restTemplate;
+
+    @Test
+    void testItemsProvider() {
+
+        List characters = teamsProvider.find("49", 0, 100);
+
+        assertTrue(characters.size() > 0);
+
     }
 
 }

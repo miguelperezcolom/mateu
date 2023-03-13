@@ -2,6 +2,7 @@ package io.mateu.remote.domain.commands;
 
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.MainAction;
+import io.mateu.mdd.shared.data.ExternalReference;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.JourneyStoreAccessor;
 import io.mateu.remote.domain.StepMapper;
@@ -63,6 +64,10 @@ public class RunStepActionCommand {
         if (entry.getValue() != null) {
             Field f = viewInstance.getClass().getDeclaredField(entry.getKey());
             if (!f.getType().isAssignableFrom(entry.getValue().getClass())) {
+                if (ExternalReference.class.isAssignableFrom(f.getType())) {
+                    Map<String, Object> value = (Map<String, Object>) entry.getValue();
+                    targetValue = new ExternalReference(value.get("value"), (String) value.get("key"));
+                }
                 if (entry.getValue() instanceof String) {
                     if (long.class.equals(f.getType())) {
                         targetValue = Long.valueOf((String) entry.getValue());

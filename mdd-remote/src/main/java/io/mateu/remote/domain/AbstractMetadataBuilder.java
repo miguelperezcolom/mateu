@@ -1,12 +1,11 @@
 package io.mateu.remote.domain;
 
-import io.mateu.mdd.shared.annotations.Help;
-import io.mateu.mdd.shared.annotations.Output;
-import io.mateu.mdd.shared.annotations.ReadOnly;
-import io.mateu.mdd.shared.annotations.TextArea;
+import io.mateu.mdd.shared.annotations.*;
+import io.mateu.mdd.shared.data.ExternalReference;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
+import io.mateu.remote.dtos.Action;
 import io.mateu.util.Helper;
 
 import java.lang.reflect.InvocationTargetException;
@@ -35,8 +34,14 @@ public abstract class AbstractMetadataBuilder {
     }
 
     private List<Pair> buildAttributes(FieldInterfaced field) {
+        List<Pair> attributes = new ArrayList<>();
+        if (field.isAnnotationPresent(ItemsProvider.class)) {
+            attributes.add(Pair.builder()
+                            .key("itemprovider")
+                            .value(field.getAnnotation(ItemsProvider.class).value().getName())
+                    .build());
+        }
         if (field.getType().isEnum()) {
-            List<Pair> attributes = new ArrayList<>();
             Method m = null;
             try {
                 m = field.getType().getMethod("value", null);
@@ -61,21 +66,25 @@ public abstract class AbstractMetadataBuilder {
                             ).build());
                 }
             }
-
-            return attributes;
         }
-        return List.of();
+        return attributes;
     }
 
     private String mapStereotype(FieldInterfaced field) {
-        if (field.getType().isEnum()) {
+        if (field.isAnnotationPresent(UseRadioButtons.class)) {
             return "radiobuttons";
+        }
+        if (field.getType().isEnum()) {
+            return "combobox";
         }
         if (field.isAnnotationPresent(ReadOnly.class) || field.isAnnotationPresent(Output.class)) {
             return "readonly";
         }
         if (field.isAnnotationPresent(TextArea.class)) {
             return "textarea";
+        }
+        if (field.isAnnotationPresent(ItemsProvider.class)) {
+            return "externalref";
         }
         return "input";
     }

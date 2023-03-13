@@ -6,15 +6,19 @@ import io.mateu.mdd.shared.annotations.MenuOption;
 import io.mateu.mdd.shared.annotations.Submenu;
 
 @MateuUI(path = "")
-public class DemoApp {
+public class DemoApp implements Runnable {
 
     @MenuOption(icon = VaadinIcons.AIRPLANE)
     private MyForm myForm;
 
     @MenuOption
-    private MyForm myFormAgain;
+    private AnotherForm anotherForm;
 
     @Submenu("NFL")
     private NflSubmenu nfl;
 
+    @Override
+    public void run() {
+        System.out.println("Hola");
+    }
 }
