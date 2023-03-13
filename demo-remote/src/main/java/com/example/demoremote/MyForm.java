@@ -73,6 +73,6 @@ public class MyForm implements HasBadges {
 
     @Override
     public List<Badge> getBadges() {
-        return List.of(new Badge(BadgeType.SUCCESS, "It works!"));
+        return List.of(new Badge(BadgeType.WARNING, "It works!"));
     }
 }
