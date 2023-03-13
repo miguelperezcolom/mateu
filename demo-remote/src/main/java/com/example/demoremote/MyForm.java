@@ -15,6 +15,7 @@ import java.util.List;
 @Data
 public class MyForm implements HasBadges {
 
+    @Section("Basic")
     private String name = "Mateu";
 
     private int age;
@@ -28,6 +29,7 @@ public class MyForm implements HasBadges {
             Proin volutpat, sapien ut facilisis ultricies, eros purus blandit velit, at ultrices mi libero quis ante. Curabitur scelerisque metus et libero convallis consequat. Pellentesque feugiat pulvinar nisl sed pellentesque.
             """;
 
+    @Section("Dates")
     private LocalDate date;
 
     private LocalDateTime dateAndTime;
@@ -36,19 +38,15 @@ public class MyForm implements HasBadges {
 
     private boolean check;
 
+    @Section("Enums")
     @UseRadioButtons
     private Conference conference;
 
     private Division division;
 
+    @Section("Assessment")
     @ReadOnly
     private String assessment;
-
-    @ItemsProvider(TeamsProvider.class)
-    private ExternalReference yourFavouriteTeam;
-
-    @ItemsProvider(TeamsProvider.class)
-    private ExternalReference teamAtSanFrancisco = new ExternalReference("25", "San Francisco 49ers");
 
     @Action
     public void assess() {
@@ -62,8 +60,6 @@ public class MyForm implements HasBadges {
                 + ", " + check
                 + ", " + conference
                 + ", " + division
-                + ", " + yourFavouriteTeam
-                + ", " + teamAtSanFrancisco
         ;
     }
 

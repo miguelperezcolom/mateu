@@ -20,8 +20,22 @@ public class AnotherForm {
 
     private String name = "Mateu";
 
-    private int age;
+    @ItemsProvider(TeamsProvider.class)
+    private ExternalReference yourFavouriteTeam;
 
-    private double balance = 20.31;
+    @ItemsProvider(TeamsProvider.class)
+    private ExternalReference teamAtSanFrancisco = new ExternalReference("25", "San Francisco 49ers");
+
+    @ReadOnly
+    private String assessment;
+
+
+    @Action
+    public void assess() {
+        assessment = "" + name
+                + ", " + yourFavouriteTeam
+                + ", " + teamAtSanFrancisco
+        ;
+    }
 
 }
