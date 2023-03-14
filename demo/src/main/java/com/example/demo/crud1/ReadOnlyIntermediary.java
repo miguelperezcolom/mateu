@@ -4,16 +4,15 @@ import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.Status;
 import io.mateu.mdd.shared.data.StatusType;
+import io.mateu.mdd.shared.interfaces.HasStatus;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import java.util.List;
 
 @Getter@Setter@Slf4j
-public class ReadOnlyIntermediary implements ReadOnlyPojo {
+public class ReadOnlyIntermediary implements ReadOnlyPojo, HasStatus {
 
     @Ignored
     private Fila row;
@@ -38,7 +37,6 @@ public class ReadOnlyIntermediary implements ReadOnlyPojo {
     @FieldGroup("G2")
     private Crud2 salesAgents;
 
-    @StatusField
     public Status getStatus() {
         return new Status(StatusType.DANGER, "gagagagga");
     }

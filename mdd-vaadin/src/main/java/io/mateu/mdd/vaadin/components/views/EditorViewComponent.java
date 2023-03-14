@@ -22,6 +22,7 @@ import io.mateu.mdd.shared.CSS;
 import io.mateu.mdd.shared.FormLayoutBuilderParameters;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.Status;
+import io.mateu.mdd.shared.interfaces.HasStatus;
 import io.mateu.mdd.shared.interfaces.IResource;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.vaadin.MateuUI;
@@ -102,8 +103,6 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
     private Component selectedTab;
     public String _defaultAction;
     private Label statusLabel;
-    private Method statusMethod;
-    private FieldInterfaced statusField;
 
     private boolean firstBuild = true;
 
@@ -366,8 +365,9 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
         } else {
             try {
                 Status s = null;
-                if (statusMethod != null) s = (Status) statusMethod.invoke(model);
-                else if (statusField != null) s = (Status) ReflectionHelper.getValue(statusField, model);
+                if (model instanceof HasStatus) {
+                    s = ((HasStatus) model).getStatus();
+                }
                 applyStatus(s);
             } catch (Exception e) {
                 statusLabel.setValue("" + e.getClass().getSimpleName() + ": " + e.getMessage());
@@ -860,23 +860,11 @@ public class EditorViewComponent extends AbstractViewComponent implements IEdito
 
     public void buildStatusBar() {
         if (statusLabel == null) {
-            statusMethod = getStatusMethod();
-            statusField = getStatusField();
-            if (statusMethod != null || statusField != null) {
+            if (HasStatus.class.isAssignableFrom(getModelType())) {
                 statusLabel = new Label("---", ContentMode.HTML);
                 statusLabel.addStyleName("statusLabel");
             }
         }
-    }
-
-    private FieldInterfaced getStatusField() {
-        return ReflectionHelper.getAllEditableFields(getModelType()).stream()
-                .filter(f -> f.isAnnotationPresent(StatusField.class)).findFirst().orElse(null);
-    }
-
-    private Method getStatusMethod() {
-        return ReflectionHelper.getAllMethods(getModelType()).stream()
-                .filter(f -> f.isAnnotationPresent(StatusField.class)).findFirst().orElse(null);
     }
 
 

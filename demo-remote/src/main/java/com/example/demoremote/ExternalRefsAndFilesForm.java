@@ -1,39 +1,44 @@
 package com.example.demoremote;
 
-import io.mateu.mdd.core.annotations.MateuUI;
 import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.data.Badge;
-import io.mateu.mdd.shared.data.BadgeType;
 import io.mateu.mdd.shared.data.ExternalReference;
-import io.mateu.mdd.shared.interfaces.HasBadges;
 import lombok.Data;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.io.File;
 import java.util.List;
 
-@MateuUI(path = "anotherform")
 @Data
-@Caption("This is another form")
-public class AnotherForm {
+@Caption("External refs and files")
+public class ExternalRefsAndFilesForm {
 
-    private String name = "Mateu";
-
+    @Section("External refs")
     @ItemsProvider(TeamsProvider.class)
     private ExternalReference yourFavouriteTeam;
 
     @ItemsProvider(TeamsProvider.class)
     private ExternalReference teamAtSanFrancisco = new ExternalReference("25", "San Francisco 49ers");
 
+    @Section("Files")
+    private File singleFile;
+
+    private File[] files;
+
+    @Section("Files using strings")
+    @io.mateu.mdd.shared.annotations.File
+    private String singleFileAsString;
+
+    @io.mateu.mdd.shared.annotations.File
+    private List<String> filesAsStrings;
+
+    @Section("Assessment")
     @ReadOnly
     private String assessment;
 
 
+
     @Action
     public void assess() {
-        assessment = "" + name
-                + ", " + yourFavouriteTeam
+        assessment = "" + yourFavouriteTeam
                 + ", " + teamAtSanFrancisco
         ;
     }

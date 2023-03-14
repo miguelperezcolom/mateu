@@ -74,6 +74,9 @@ public abstract class AbstractMetadataBuilder {
         if (field.isAnnotationPresent(UseRadioButtons.class)) {
             return "radiobuttons";
         }
+        if (field.isAnnotationPresent(Toggle.class)) {
+            return "toggle";
+        }
         if (field.getType().isEnum()) {
             return "combobox";
         }
@@ -85,6 +88,9 @@ public abstract class AbstractMetadataBuilder {
         }
         if (field.isAnnotationPresent(ItemsProvider.class)) {
             return "externalref";
+        }
+        if (field.isAnnotationPresent(File.class)) {
+            return "file";
         }
         return "input";
     }
@@ -110,6 +116,9 @@ public abstract class AbstractMetadataBuilder {
         }
         if (Long.class.equals(type) || Double.class.equals(type)) {
             return type.getSimpleName().toLowerCase();
+        }
+        if (java.io.File.class.equals(type)) {
+            return "file";
         }
         return type.getSimpleName();
     }

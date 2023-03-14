@@ -14,6 +14,8 @@ public class Form implements ViewMetadata {
 
     private String subtitle;
 
+    private Status status;
+
     private List<Badge> badges;
 
     private List<Section> sections;

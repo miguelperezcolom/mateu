@@ -9,10 +9,10 @@ import io.mateu.mdd.shared.annotations.Submenu;
 public class DemoApp implements Runnable {
 
     @MenuOption(icon = VaadinIcons.AIRPLANE)
-    private MyForm myForm;
+    private BasicFieldsForm basicFields;
 
-    @MenuOption
-    private AnotherForm anotherForm;
+    @Submenu
+    private ExplorerSubmenu explorer;
 
     @Submenu("NFL")
     private NflSubmenu nfl;

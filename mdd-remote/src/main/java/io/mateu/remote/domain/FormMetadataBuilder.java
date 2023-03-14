@@ -4,6 +4,7 @@ import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.interfaces.HasBadges;
+import io.mateu.mdd.shared.interfaces.HasStatus;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
@@ -18,12 +19,26 @@ public class FormMetadataBuilder extends AbstractMetadataBuilder {
     public Form build(Object uiInstance) {
         Form form = Form.builder()
                 .title(getCaption(uiInstance))
+                .status(getStatus(uiInstance))
                 .badges(getBadges(uiInstance))
                 .sections(getSections(uiInstance))
                 .actions(getActions(uiInstance))
                 .mainActions(getMainActions(uiInstance))
                 .build();
         return form;
+    }
+
+    private Status getStatus(Object uiInstance) {
+        if (!(uiInstance instanceof HasStatus)) {
+            return null;
+        }
+        HasStatus hasStatus = (HasStatus) uiInstance;
+        if (hasStatus.getStatus() == null) return null;
+        return new Status(mapStatusType(hasStatus.getStatus().getType()), hasStatus.getStatus().getMessage());
+    }
+
+    private StatusType mapStatusType(io.mateu.mdd.shared.data.StatusType type) {
+        return StatusType.valueOf(type.toString());
     }
 
     private List<Badge> getBadges(Object uiInstance) {

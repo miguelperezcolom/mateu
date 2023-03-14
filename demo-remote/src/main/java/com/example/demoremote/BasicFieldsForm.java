@@ -6,14 +6,14 @@ import io.mateu.mdd.shared.data.*;
 import io.mateu.mdd.shared.interfaces.HasBadges;
 import lombok.Data;
 
+import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
-@MateuUI(path = "")
 @Data
-public class MyForm implements HasBadges {
+public class BasicFieldsForm implements HasBadges {
 
     @Section("Basic")
     private String name = "Mateu";
@@ -36,13 +36,18 @@ public class MyForm implements HasBadges {
 
     private LocalTime time;
 
+    @Section("Checks")
     private boolean check;
+
+    @Toggle
+    private boolean toggle;
 
     @Section("Enums")
     @UseRadioButtons
     private Conference conference;
 
     private Division division;
+
 
     @Section("Assessment")
     @ReadOnly
