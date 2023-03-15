@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.vaadin.data.provider.QuerySortOrder;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
+import io.mateu.mdd.core.interfaces.RpcCrudViewExtended;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.core.views.ExtraFilters;
 import io.mateu.mdd.shared.annotations.*;
@@ -29,7 +30,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class JpaRpcCrudView implements RpcCrudView<Object, Object, Object> {
+public class JpaRpcCrudView implements RpcCrudView<Object, Object, Object>, RpcCrudViewExtended {
 
     private final MDDOpenCRUDAction action;
     private final Map<String, String> aliasedColumnNamesByColId = new HashMap<>();
@@ -211,7 +212,7 @@ public class JpaRpcCrudView implements RpcCrudView<Object, Object, Object> {
         }
 
     }
-    public static List<String> getSelectFields(Class targetType, String useColumns, List<String> columnNames,
+    public List<String> getSelectFields(Class targetType, String useColumns, List<String> columnNames,
                                                Map<String, FieldInterfaced> fieldsByColumnName) {
         List<FieldInterfaced> cols = getColumnFields(targetType, false, useColumns, columnNames, fieldsByColumnName);
         FieldInterfaced idField = null;
@@ -223,7 +224,7 @@ public class JpaRpcCrudView implements RpcCrudView<Object, Object, Object> {
         return columnNames;
     }
 
-    public static List<FieldInterfaced> getColumnFields(Class objectType, boolean forGrid, String fieldsFilter, List<String> columNames, Map<String, FieldInterfaced> fieldsByColumnName) {
+    public List<FieldInterfaced> getColumnFields(Class objectType, boolean forGrid, String fieldsFilter, List<String> columNames, Map<String, FieldInterfaced> fieldsByColumnName) {
 
         List<FieldInterfaced> explicitColumns = null;
 
@@ -300,6 +301,7 @@ public class JpaRpcCrudView implements RpcCrudView<Object, Object, Object> {
 
     }
 
+    @Override
     public List<FieldInterfaced> getFilterFields() {
         return getFilterFields(action.getEntityClass());
     }
@@ -365,5 +367,11 @@ public class JpaRpcCrudView implements RpcCrudView<Object, Object, Object> {
         }
         return s;
     }
+
+    @Override
+    public List<String> getColumnFields() {
+        return columnFields;
+    }
+
 
 }

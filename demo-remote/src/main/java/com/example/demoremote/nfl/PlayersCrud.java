@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-@Caption("Players")
+@Caption("A few players")
 @Getter@Setter
 public class PlayersCrud implements RpcCrudView<PlayersCrud, PlayersCrud.Row, PlayersCrud.Row> {
 

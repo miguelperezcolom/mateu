@@ -1,5 +1,6 @@
 package io.mateu.remote.domain;
 
+import io.mateu.mdd.core.interfaces.RpcCrudViewExtended;
 import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.Width;
 import io.mateu.mdd.shared.interfaces.RpcView;
@@ -39,6 +40,13 @@ public class CrudMetadataBuilder extends AbstractMetadataBuilder {
     private List<Column> buildColumns(RpcView rpcView) {
         Class rowClass = rpcView.getRowClass();
         List<FieldInterfaced> allRowFields = ReflectionHelper.getAllFields(rowClass);
+        if (rpcView instanceof RpcCrudViewExtended) {
+            List<String> validColumnIds = ((RpcCrudViewExtended) rpcView).getColumnFields();
+            if (validColumnIds.size() > 0) {
+                allRowFields = allRowFields.stream().filter(f -> validColumnIds.contains(f.getId()))
+                        .collect(Collectors.toList());
+            }
+        }
         return allRowFields.stream().map(fieldInterfaced -> getColumn(fieldInterfaced))
                 .collect(Collectors.toList());
     }
@@ -69,6 +77,14 @@ public class CrudMetadataBuilder extends AbstractMetadataBuilder {
     private List<Field> buildSearchFields(RpcView rpcView) {
         Class searchFormClass = rpcView.getSearchFormClass();
         List<FieldInterfaced> allEditableFields = ReflectionHelper.getAllEditableFields(searchFormClass);
+        if (rpcView instanceof RpcCrudViewExtended) {
+            List<String> validFieldIds = ((RpcCrudViewExtended) rpcView).getFilterFields().stream()
+                    .map(f -> f.getId()).collect(Collectors.toList());
+            if (validFieldIds.size() > 0) {
+                allEditableFields = allEditableFields.stream().filter(f -> validFieldIds.contains(f.getId()))
+                        .collect(Collectors.toList());
+            }
+        }
         return allEditableFields.stream().map(fieldInterfaced -> getField(fieldInterfaced))
                 .collect(Collectors.toList());
     }
