@@ -88,9 +88,8 @@ public abstract class AbstractAction implements MenuEntry {
         return this;
     }
 
-    public AbstractAction setId(String id) {
+    public void setId(String id) {
         this.id = id;
-        return this;
     }
 
     @Override

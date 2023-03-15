@@ -24,6 +24,7 @@ public abstract class AbstractMetadataBuilder {
         Field field = Field.builder()
                 .id(fieldInterfaced.getId())
                 .caption(ReflectionHelper.getCaption(fieldInterfaced))
+                .placeholder(getPlaceholder(fieldInterfaced))
                 .description(getDescription(fieldInterfaced))
                 .type(mapFieldType(fieldInterfaced.getType()))
                 .stereotype(mapStereotype(fieldInterfaced))
@@ -33,6 +34,13 @@ public abstract class AbstractMetadataBuilder {
         return field;
     }
 
+    private String getPlaceholder(FieldInterfaced fieldInterfaced) {
+        if (fieldInterfaced.isAnnotationPresent(Placeholder.class)) {
+            return fieldInterfaced.getAnnotation(Placeholder.class).value();
+        }
+        return null;
+    }
+
     private List<Pair> buildAttributes(FieldInterfaced field) {
         List<Pair> attributes = new ArrayList<>();
         if (field.isAnnotationPresent(ItemsProvider.class)) {
@@ -40,6 +48,23 @@ public abstract class AbstractMetadataBuilder {
                             .key("itemprovider")
                             .value(field.getAnnotation(ItemsProvider.class).value().getName())
                     .build());
+        }
+        if (isFile(field)) {
+            attributes.add(Pair.builder()
+                    .key("fileidprefix")
+                    .value("mateuremoteistheremoteflavourofmateu")
+                    .build());
+            if (List.class.isAssignableFrom(field.getType()) || field.getType().isArray()) {
+                attributes.add(Pair.builder()
+                        .key("maxfiles")
+                        .value(3)
+                        .build());
+            } else {
+                attributes.add(Pair.builder()
+                        .key("maxfiles")
+                        .value(1)
+                        .build());
+            }
         }
         if (field.getType().isEnum()) {
             Method m = null;
@@ -70,6 +95,13 @@ public abstract class AbstractMetadataBuilder {
         return attributes;
     }
 
+    private boolean isFile(FieldInterfaced field) {
+        return java.io.File.class.equals(field.getType())
+                || java.io.File[].class.equals(field.getType())
+                || java.io.File.class.equals(ReflectionHelper.getGenericClass(field, List.class, "E"))
+                || field.isAnnotationPresent(File.class);
+    }
+
     private String mapStereotype(FieldInterfaced field) {
         if (field.isAnnotationPresent(UseRadioButtons.class)) {
             return "radiobuttons";
@@ -89,7 +121,7 @@ public abstract class AbstractMetadataBuilder {
         if (field.isAnnotationPresent(ItemsProvider.class)) {
             return "externalref";
         }
-        if (field.isAnnotationPresent(File.class)) {
+        if (isFile(field)) {
             return "file";
         }
         return "input";
@@ -155,7 +187,7 @@ public abstract class AbstractMetadataBuilder {
     }
 
     protected String getType(FieldInterfaced fieldInterfaced) {
-        return fieldInterfaced.getType().getName();
+        return mapFieldType(fieldInterfaced.getType());
     }
 
 

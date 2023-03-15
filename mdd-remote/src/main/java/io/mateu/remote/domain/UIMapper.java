@@ -17,7 +17,8 @@ public class UIMapper {
     public UI map(Object uiInstance) throws Exception {
         MateuApp app = new MateuApp(uiInstance);
 
-        UI ui = UI.builder().build();
+        UI ui = UI.builder()
+                .build();
 
         if (app.isForm()) {
             ui.setTitle(app.getName());

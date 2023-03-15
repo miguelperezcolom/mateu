@@ -1,6 +1,8 @@
 package io.mateu.remote.infra;
 
+import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.JourneyStore;
+import io.mateu.remote.domain.commands.StartJourneyCommand;
 import io.mateu.remote.dtos.Journey;
 import io.mateu.remote.dtos.Step;
 import org.springframework.stereotype.Service;
@@ -48,7 +50,17 @@ public class MemoryJourneyStore implements JourneyStore {
     }
 
     @Override
-    public Object getViewInstance(String stepId) {
+    public Object getViewInstance(String journeyId, String stepId) {
+        if (!_viewInstances.containsKey(stepId)) {
+            try {
+                StartJourneyCommand.builder()
+                        .journeyTypeId(journeyId)
+                        .journeyId(journeyId)
+                        .build().run();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         return _viewInstances.get(stepId);
     }
 

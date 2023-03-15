@@ -33,7 +33,7 @@ public class GetListRowsQuery {
     private List<SortCriteria> ordering;
 
     public List<Object> run() throws Throwable {
-        RpcView rpcView = (RpcView) JourneyStoreAccessor.get().getViewInstance(stepId);
+        RpcView rpcView = (RpcView) JourneyStoreAccessor.get().getViewInstance(journeyId, stepId);
         return rpcView.rpc(filters, buildSortOrders(), page * pageSize, (page + 1) * pageSize - 1);
     }
 

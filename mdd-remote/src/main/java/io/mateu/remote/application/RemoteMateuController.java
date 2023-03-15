@@ -1,15 +1,23 @@
 package io.mateu.remote.application;
 
 import io.mateu.mdd.shared.data.Value;
+import io.mateu.remote.domain.StorageService;
 import io.mateu.remote.domain.commands.RunStepActionCommand;
 import io.mateu.remote.domain.commands.StartJourneyCommand;
 import io.mateu.remote.domain.queries.*;
 import io.mateu.remote.dtos.*;
 import io.mateu.util.Helper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.naming.AuthenticationException;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
@@ -27,8 +35,7 @@ public class RemoteMateuController {
 
     @GetMapping("journey-types")
     public List<JourneyType> getJourneyTypes() throws Exception {
-        //todo: does not make sense for mateu uis?
-        return List.of();
+        return GetJourneyTypesQuery.builder().build().run();
     }
 
     @PostMapping("journeys/{journeyId}")
@@ -127,14 +134,41 @@ public class RemoteMateuController {
                 .build().run();
     }
 
-    //todo: add file upload, update and get url
-
     @GetMapping(value = "entrypoints/**", produces = MediaType.TEXT_HTML_VALUE)
     public String getListCount(HttpServletRequest request) {
         String[] tokens = request.getRequestURI()
                 .split(request.getContextPath() + "/entrypoints/");
         String path = tokens.length > 1?tokens[1]:"";
         return "<html><body><h1>Is this html for " + path + "?</h1></body></html>";
+    }
+
+    @Autowired
+    StorageService storageService;
+
+    @GetMapping("cdn/{fileId}/{filename:.+}")
+    @ResponseBody
+    public ResponseEntity<Resource> serveFile(@PathVariable String fileId, @PathVariable String filename)
+            throws AuthenticationException {
+
+        Resource file = storageService.loadAsResource(fileId, filename);
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
+                "attachment; filename=\"" + file.getFilename() + "\"").body(file);
+    }
+
+    @GetMapping(value = "files/{fileId}", produces = MediaType.TEXT_PLAIN_VALUE)
+    public String getFileUrl(@PathVariable String fileId) throws AuthenticationException {
+        return storageService.getUrl(fileId);
+    }
+
+    @PostMapping("files/{fileId}")
+    public String handleFileUpload(@PathVariable String fileId, @RequestParam("file") MultipartFile file,
+                                   RedirectAttributes redirectAttributes) throws AuthenticationException {
+
+        storageService.store(fileId, file);
+        redirectAttributes.addFlashAttribute("message",
+                "You successfully uploaded " + file.getOriginalFilename() + "!");
+
+        return "redirect:/";
     }
 
 }

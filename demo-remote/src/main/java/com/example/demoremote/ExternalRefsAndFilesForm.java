@@ -40,6 +40,10 @@ public class ExternalRefsAndFilesForm {
     public void assess() {
         assessment = "" + yourFavouriteTeam
                 + ", " + teamAtSanFrancisco
+                + ", " + singleFile
+                + ", " + files
+                + ", " + singleFileAsString
+                + ", " + filesAsStrings
         ;
     }
 

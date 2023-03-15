@@ -23,7 +23,7 @@ public class FiltersDeserializer {
     }
 
     public Object deserialize() throws Exception {
-        RpcView rpcView = (RpcView) JourneyStoreAccessor.get().getViewInstance(stepId);
+        RpcView rpcView = (RpcView) JourneyStoreAccessor.get().getViewInstance(journeyId, stepId);
         if ("JpaRpcCrudView".equals(rpcView.getClass().getSimpleName())) {
             return Helper.fromJson(new String(Base64.getDecoder().decode(raw)));
         }

@@ -123,7 +123,7 @@ public class FormTest {
         Step step = JourneyStoreAccessor.get().getStep(journey.getCurrentStepId());
         Assertions.assertTrue(Helper.toJson(step)
                 .contains("Mateu, 14"));
-        Object viewInstance = JourneyStoreAccessor.get().getViewInstance(journey.getCurrentStepId());
+        Object viewInstance = JourneyStoreAccessor.get().getViewInstance(journeyId, journey.getCurrentStepId());
         Assertions.assertTrue(Helper.toJson(viewInstance)
                 .contains("Mateu, 14"));
 

@@ -16,6 +16,8 @@ public class Field {
 
     private String caption;
 
+    private String placeholder;
+
     private String description;
 
     private List<Validation> validations = new ArrayList<>();

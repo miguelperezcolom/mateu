@@ -18,6 +18,9 @@ public class BasicFieldsForm implements HasBadges {
     @Section("Basic")
     private String name = "Mateu";
 
+    @Placeholder("This should appear as the placeholder")
+    private String withPlaceholder;
+
     private int age;
 
     private double balance = 20.31;

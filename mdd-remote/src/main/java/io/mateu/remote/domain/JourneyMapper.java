@@ -11,7 +11,7 @@ public class JourneyMapper {
 
         return Journey.builder()
                 .type(formInstance.getClass().getName())
-                .currentStepId(UUID.randomUUID().toString())
+                .currentStepId(formInstance.getClass().getName())
                 .currentStepDefinitionId(formInstance.getClass().getName())
                 .status(JourneyStatus.Pending)
                 .statusMessage("Please fill the form")

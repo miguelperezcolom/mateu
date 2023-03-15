@@ -25,7 +25,7 @@ public class GetListCountQuery {
     private Object filters;
 
     public long run() throws Throwable {
-        RpcView rpcView = (RpcView) JourneyStoreAccessor.get().getViewInstance(stepId);
+        RpcView rpcView = (RpcView) JourneyStoreAccessor.get().getViewInstance(journeyId, stepId);
         return rpcView.gatherCount(filters);
     }
 

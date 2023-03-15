@@ -11,7 +11,7 @@ import java.util.UUID;
  */
 public abstract class AbstractMenu implements MenuEntry {
 
-    private final String id = UUID.randomUUID().toString();
+    private String id = UUID.randomUUID().toString();
 
     private VaadinIcons icon;
     private String name;
@@ -48,6 +48,11 @@ public abstract class AbstractMenu implements MenuEntry {
 
     public String getId() {
         return id;
+    }
+
+    @Override
+    public void setId(String id) {
+        this.id = id;
     }
 
     @Override

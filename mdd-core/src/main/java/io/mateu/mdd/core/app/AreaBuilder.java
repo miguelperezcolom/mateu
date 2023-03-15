@@ -11,6 +11,7 @@ import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.security.Private;
+import io.mateu.util.Helper;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -55,7 +56,40 @@ public class AreaBuilder {
                 else areaPrivadaPorDefecto.defaultAction = findDefaultAction(uiclass, false, false);
             }
         }
+
+        // set fixed ids fro menus
+        String uiPrefix = "fixed_" + uiclass.getName();
+        for (AbstractArea area : l) {
+            String areaPrefix = uiPrefix + "_" + Helper.camelcasize(area.getName());
+            if (area.modules != null) {
+                for (IModule module : area.modules) {
+                    String modulePrefix = areaPrefix + "_" + Helper.camelcasize(module.getName());
+                    for (MenuEntry menu : module.getMenu()) {
+                        String menuPrefix = areaPrefix + "_" + Helper.camelcasize(module.getName());
+                        setId(menuPrefix, menu);
+                    }
+                }
+            }
+            if (area instanceof AreaFromMenu) {
+                for (MenuEntry menu : ((AreaFromMenu) area).getMenu()) {
+                    String menuPrefix = areaPrefix;
+                    setId(menuPrefix, menu);
+                }
+            }
+        }
+
         return l;
+    }
+
+    private void setId(String prefix, MenuEntry menu) {
+        if (menu instanceof AbstractMenu) {
+            String newPrefix = prefix + "_" + Helper.camelcasize(menu.getCaption());
+            for (MenuEntry entry : ((AbstractMenu) menu).getEntries()) {
+                setId(newPrefix, entry);
+            }
+        } else {
+            menu.setId(prefix + "_" + Helper.camelcasize(menu.getCaption()));
+        }
     }
 
     private boolean isPublicHomeDefined(Class uiclass) {

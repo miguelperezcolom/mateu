@@ -44,4 +44,8 @@ public class AreaFromMenu extends AbstractArea {
     public boolean isPublicAccess() {
         return publicAccess;
     }
+
+    public List<MenuEntry> getMenu() {
+        return menu;
+    }
 }

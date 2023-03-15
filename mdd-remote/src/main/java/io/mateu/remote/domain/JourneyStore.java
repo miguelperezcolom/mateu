@@ -16,7 +16,7 @@ public interface JourneyStore {
 
     void putViewInstance(String stepId, Object viewInstance);
 
-    Object getViewInstance(String stepId);
+    Object getViewInstance(String journeyId, String stepId);
 
 
     void putJourneyPerType(String journeyTypeId, Journey journey, Object formInstance);

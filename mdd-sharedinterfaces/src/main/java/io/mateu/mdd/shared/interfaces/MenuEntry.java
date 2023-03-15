@@ -13,5 +13,7 @@ public interface MenuEntry {
 
     String getId();
 
+    void setId(String id);
+
     int getOrder();
 }
