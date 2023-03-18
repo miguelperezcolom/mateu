@@ -39,6 +39,7 @@ public class JpaRpcCrudView implements RpcCrudView<Object, Object, Object>, RpcC
     private final List<String> filterNames = new ArrayList<>();
     private final Map<String, FieldInterfaced> fieldsByFilterName = new HashMap<>();
     private List<String> columnFields;
+    private List<String> visibleColumns;
     private List<FieldInterfaced> filterFields;
     private final List<String> aliasedColumnNamesList = new ArrayList<>();
     private final List<String> columnIds;
@@ -55,6 +56,10 @@ public class JpaRpcCrudView implements RpcCrudView<Object, Object, Object>, RpcC
     public JpaRpcCrudView(MDDOpenCRUDAction action) {
         this.action = action;
         columnFields = getSelectFields(action.getEntityClass(), action.getColumns(), columnNames, fieldsByColumnName);
+        visibleColumns = Strings.isNullOrEmpty(action.getColumns())?null: Arrays.stream(action.getColumns().split(",")).toList();
+        if (visibleColumns == null || visibleColumns.size() == 0) {
+            visibleColumns = columnFields.stream().skip(1).collect(Collectors.toList());
+        }
         filterFields = getFilterFields();
         createAliases(action.getEntityClass(), columnNames, fieldsByColumnName, alias, aliasedColumnNames, aliasedColumnNamesList);
         sumFields = fieldsByColumnName.values().stream().filter(f -> f.isAnnotationPresent(Sum.class)).collect(Collectors.toList());
@@ -370,7 +375,7 @@ public class JpaRpcCrudView implements RpcCrudView<Object, Object, Object>, RpcC
 
     @Override
     public List<String> getColumnFields() {
-        return columnFields;
+        return visibleColumns;
     }
 
 

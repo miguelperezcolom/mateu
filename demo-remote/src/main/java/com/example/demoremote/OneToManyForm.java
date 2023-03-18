@@ -5,6 +5,7 @@ import io.mateu.mdd.shared.data.ExternalReference;
 import lombok.Data;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 
 @Data
@@ -24,7 +25,9 @@ public class OneToManyForm {
 
     @Action
     public void assess() {
-        assessment = "" + array
+        assessment =
+                "" + Arrays.toString(array)
+                        + ", " + list.toString()
         ;
     }
 
