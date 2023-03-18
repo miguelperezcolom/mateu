@@ -27,7 +27,7 @@ public abstract class AbstractMetadataBuilder {
                 .caption(ReflectionHelper.getCaption(fieldInterfaced))
                 .placeholder(getPlaceholder(fieldInterfaced))
                 .description(getDescription(fieldInterfaced))
-                .type(mapFieldType(fieldInterfaced.getType()))
+                .type(mapFieldType(fieldInterfaced))
                 .stereotype(mapStereotype(fieldInterfaced))
                 .attributes(buildAttributes(fieldInterfaced))
                 .build();
@@ -67,11 +67,17 @@ public abstract class AbstractMetadataBuilder {
                         .build());
             }
         }
-        if (field.getType().isEnum()) {
+        if (field.getType().isEnum()
+                || (field.getType().isArray() && field.getType().getComponentType().isEnum())
+                || (List.class.isAssignableFrom(field.getType()) && field.getGenericClass().isEnum())
+        ) {
+            Class enumType = field.getType();
+            if (enumType.isArray()) enumType = enumType.getComponentType();
+            if (List.class.isAssignableFrom(enumType)) enumType = field.getGenericClass();
             Method m = null;
             try {
-                m = field.getType().getMethod("value", null);
-                for (Object enumConstant : field.getType().getEnumConstants()) {
+                m = enumType.getMethod("value", null);
+                for (Object enumConstant : enumType.getEnumConstants()) {
                     Object value = m.invoke(enumConstant, null);
                     attributes.add(Pair.builder()
                             .key("choice")
@@ -82,7 +88,7 @@ public abstract class AbstractMetadataBuilder {
                             ).build());
                 }
             } catch (Exception e) {
-                for (Object enumConstant : field.getType().getEnumConstants()) {
+                for (Object enumConstant : enumType.getEnumConstants()) {
                     attributes.add(Pair.builder()
                             .key("choice")
                             .value(Value.builder()
@@ -128,12 +134,16 @@ public abstract class AbstractMetadataBuilder {
         return "input";
     }
 
-    private String mapFieldType(Class<?> type) {
+    private String mapFieldType(FieldInterfaced field) {
+        Class<?> type = field.getType();
         if (type.isEnum()) {
             return "enum";
         }
         if (String.class.equals(type)) {
             return "string";
+        }
+        if (String[].class.equals(type)) {
+            return "string[]";
         }
         if (LocalDate.class.equals(type)) {
             return "date";
@@ -152,6 +162,21 @@ public abstract class AbstractMetadataBuilder {
         }
         if (java.io.File.class.equals(type)) {
             return "file";
+        }
+        if (type.isArray()) {
+            if (type.getComponentType().isEnum()) {
+                return "enum[]";
+            }
+        }
+        if (List.class.isAssignableFrom(type)) {
+            String value = field.getGenericClass().getSimpleName().toLowerCase();
+            if (Integer.class.equals(field.getGenericClass())) {
+                value = "int";
+            }
+            if (field.getGenericClass().isEnum()) {
+                value = "enum";
+            }
+            return value + "[]";
         }
         return type.getSimpleName();
     }
@@ -207,7 +232,7 @@ public abstract class AbstractMetadataBuilder {
     }
 
     protected String getType(FieldInterfaced fieldInterfaced) {
-        return mapFieldType(fieldInterfaced.getType());
+        return mapFieldType(fieldInterfaced);
     }
 
 

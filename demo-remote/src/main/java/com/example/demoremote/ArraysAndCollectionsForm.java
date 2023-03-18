@@ -4,54 +4,68 @@ import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.ExternalReference;
 import lombok.Data;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Data
 @Caption("Arrays and collections")
 public class ArraysAndCollectionsForm {
 
+    /*
     @Section("Arrays")
-    private boolean[] booleans;
+    private boolean[] booleans = {false, false, true, false};
 
-    private int[] ints;
 
-    private double[] doubles;
+    private int[] ints = {1,2,3,5};
 
-    private String[] strings;
+    private double[] doubles = {1.2, 3.4, 5.1};
+
+    private String[] strings = {"Mateu", "Antònia", "Miguel"};
 
     @Section("Collections")
-    private List<Boolean> booleansCollection;
+    private List<Boolean> booleansCollection = List.of(false, false, true, false);
 
-    private List<Integer> intsCollection;
+    private List<Integer> intsCollection = List.of(1, 2, 3, 6);
 
-    private List<Double> doublesCollection;
+    private List<Double> doublesCollection = List.of(10.2, 3.1, 8.21);
 
-    private List<String> stringsCollection;
+    private List<String> stringsCollection = List.of("Mateu", "Antonia", "Miguel");
+*/
+
 
     @Section("With enums")
-    private Division[] enums;
+    private Division[] enums = {Division.East, Division.South};
 
-    private List<Division> enumsCollection;
+    private List<Division> enumsCollection = List.of(Division.South, Division.West);
 
+    /*
     @Section("With external refs")
     @ItemsProvider(TeamsProvider.class)
-    private ExternalReference[] teams;
+    private ExternalReference[] teams = {
+            new ExternalReference("2", "Las Vegas Raiders")
+            , new ExternalReference("5", "Seattle Seahawks")
+    };
 
     @ItemsProvider(TeamsProvider.class)
-    private List<ExternalReference> temasCollection;
+    private List<ExternalReference> teamsCollection = List.of(
+            new ExternalReference("2", "Las Vegas Raiders")
+            , new ExternalReference("5", "Seattle Seahawks")
+    );
 
     @Section("With value providers")
     @ValuesProvider(ColorsProvider.class)
-    private String[] chooseStrings;
+    private String[] chooseStrings = {"Red", "Blue"};
 
     @ValuesProvider(ColorsProvider.class)
-    private List<String> chooseStringsForColection;
+    private List<String> chooseStringsForColection = List.of("Yellow", "Blue");
 
     @ValuesProvider(IntegersProvider.class)
-    private int[] chooseInts;
+    private int[] chooseInts = {3, 7};
 
     @ValuesProvider(IntegersProvider.class)
-    private List<Integer> chooseIntsForColection;
+    private List<Integer> chooseIntsForColection = List.of(1,7);
+
+     */
 
     @Section("Assessment")
     @ReadOnly
@@ -61,7 +75,20 @@ public class ArraysAndCollectionsForm {
 
     @Action
     public void assess() {
-        assessment = "" + booleans;
+        assessment = ""
+//                + Arrays.toString(booleans)
+//        + "," + Arrays.toString(ints)
+//                + "," + Arrays.toString(doubles)
+//                + "," + Arrays.toString(strings)
+
+//                + Arrays.toString(booleans)
+//        + "," + Arrays.toString(ints)
+//                + "," + Arrays.toString(doubles)
+//                + "," + Arrays.toString(strings)
+
+        + ", " + Arrays.toString(enums)
+                + ", " + enumsCollection.toString()
+
         ;
     }
 

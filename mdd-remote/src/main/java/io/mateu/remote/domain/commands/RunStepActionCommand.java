@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.naming.AuthenticationException;
 import javax.persistence.Entity;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
@@ -143,6 +144,52 @@ public class RunStepActionCommand {
         Object targetValue = entry.getValue();
         if (entry.getValue() != null) {
             Field f = viewInstance.getClass().getDeclaredField(entry.getKey());
+            if (f.getType().isArray()) {
+                if (List.class.isAssignableFrom(entry.getValue().getClass())) {
+                    List l = (List) entry.getValue();
+                    if (boolean[].class.equals(f.getType())) {
+                        boolean[] t = new boolean[l.size()];
+                        for (int i = 0; i < l.size(); i++) {
+                            Object v = l.get(i);
+                            boolean tv = false;
+                            if (v instanceof Boolean) tv = ((Boolean) v).booleanValue();
+                            t[i] = tv;
+                        }
+                        return t;
+                    }
+                    if (int[].class.equals(f.getType())) {
+                        int[] t = new int[l.size()];
+                        for (int i = 0; i < l.size(); i++) {
+                            Object v = l.get(i);
+                            int tv = 0;
+                            if (v instanceof Integer) tv = ((Integer) v).intValue();
+                            t[i] = tv;
+                        }
+                        return t;
+                    }
+                    if (double[].class.equals(f.getType())) {
+                        double[] t = new double[l.size()];
+                        for (int i = 0; i < l.size(); i++) {
+                            Object v = l.get(i);
+                            double tv = 0;
+                            if (v instanceof Double) tv = ((Double) v).doubleValue();
+                            t[i] = tv;
+                        }
+                        return t;
+                    }
+                    if (String[].class.equals(f.getType())) {
+                        return l.toArray(new String[0]);
+                    }
+                    if (f.getType().getComponentType().isEnum()) {
+                        List t = new ArrayList();
+                        for (int i = 0; i < l.size(); i++) {
+                            Object v = l.get(i);
+                            t.add(Enum.valueOf((Class) f.getType().getComponentType(), (String) v));
+                        }
+                        return t.toArray((Object[]) Array.newInstance(f.getType().getComponentType(), 0));
+                    }
+                }
+            }
             if (!f.getType().isAssignableFrom(entry.getValue().getClass())) {
                 if (isFile(f)) {
                     List<Map<String, Object>> files = (List) entry.getValue();
