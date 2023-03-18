@@ -74,24 +74,26 @@ public class RunStepActionCommand {
                 throw new Exception("Crud onNew returned null");
             }
 
-            JourneyStoreAccessor.get().putStep(stepId, new StepMapper().map(editor));
+            String newStepId = "new_" + UUID.randomUUID().toString();
+            JourneyStoreAccessor.get().putStep(newStepId, new StepMapper().map(editor));
+            JourneyStoreAccessor.get().putViewInstance(newStepId, editor);
+            JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepId(newStepId);
+            JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepDefinitionId(newStepId);
 
         } else if (viewInstance instanceof RpcCrudView && "delete".equals(actionId)) {
 
-            Object[] selectedRows = (Object[]) data.get("_selectedRows");
+            List selectedRows = (List) data.get("_selectedRows");
 
             if (selectedRows == null) {
                 throw new Exception("No row selected");
             }
 
             try {
-                Set<Object> targetSet = new HashSet<>(Arrays.asList(selectedRows));
+                Set<Object> targetSet = new HashSet<>(selectedRows);
                 ((RpcCrudView) viewInstance).delete(targetSet);
             } catch (Throwable e) {
                 throw new Exception("Crud delete thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
             }
-
-            JourneyStoreAccessor.get().putStep(stepId, new StepMapper().map(viewInstance));
 
         } else if (viewInstance instanceof RpcCrudView && "edit".equals(actionId)) {
 
@@ -114,13 +116,21 @@ public class RunStepActionCommand {
                 throw new Exception("Crud onEdit returned null");
             }
 
-            JourneyStoreAccessor.get().putStep(stepId, new StepMapper().map(editor));
+            String newStepId = "edit_" + UUID.randomUUID().toString();
+            JourneyStoreAccessor.get().putStep(newStepId, new StepMapper().map(editor));
+            JourneyStoreAccessor.get().putViewInstance(newStepId, editor);
+            JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepId(newStepId);
+            JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepDefinitionId(newStepId);
         } else if (viewInstance instanceof PersistentPojo && "save".equals(actionId)) {
             ((PersistentPojo) viewInstance).save();
+            JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepId("list");
+            JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepDefinitionId("list");
         } else if (viewInstance.getClass().isAnnotationPresent(Entity.class) && "save".equals(actionId)) {
             JPAHelper.transact(em -> {
                 em.merge(viewInstance);
             });
+            JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepId("list");
+            JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepDefinitionId("list");
         } else if (actions.containsKey(actionId)) {
 
             Method m = actions.get(actionId);
@@ -128,11 +138,13 @@ public class RunStepActionCommand {
             Object result = m.invoke(viewInstance);
 
             Object whatToShow = result;
-            if (void.class.equals(m.getReturnType())) {
-                whatToShow = viewInstance;
+            if (!void.class.equals(m.getReturnType())) {
+                String newStepId = "result_" + UUID.randomUUID().toString();
+                JourneyStoreAccessor.get().putStep(newStepId, new StepMapper().map(whatToShow));
+                JourneyStoreAccessor.get().putViewInstance(newStepId, whatToShow);
+                JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepId(newStepId);
+                JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepDefinitionId(newStepId);
             }
-
-            JourneyStoreAccessor.get().putStep(stepId, new StepMapper().map(whatToShow));
 
         } else {
             throw new Exception("Unkonwn action " + actionId);

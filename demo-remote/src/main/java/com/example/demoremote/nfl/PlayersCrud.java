@@ -45,7 +45,7 @@ public class PlayersCrud implements RpcCrudView<PlayersCrud, PlayersCrud.Row, Pl
     }
 
     @Getter@Setter@AllArgsConstructor@NoArgsConstructor
-    public class Row {
+    public static class Row {
 
         private String name;
 
