@@ -3,6 +3,7 @@ package io.mateu.remote.domain;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.ExternalReference;
+import io.mateu.mdd.shared.data.ValuesListProvider;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
@@ -49,6 +50,22 @@ public abstract class AbstractMetadataBuilder {
                             .key("itemprovider")
                             .value(field.getAnnotation(ItemsProvider.class).value().getName())
                     .build());
+        }
+        if (field.isAnnotationPresent(ValuesProvider.class)) {
+            try {
+                ValuesListProvider provider = (ValuesListProvider) ReflectionHelper.newInstance(field.getAnnotation(ValuesProvider.class).value());
+                provider.getAll().forEach(v -> {
+                    attributes.add(Pair.builder()
+                            .key("choice")
+                            .value(Value.builder()
+                                    .key("" + v)
+                                    .value(v)
+                                    .build()
+                            ).build());
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         if (isFile(field)) {
             attributes.add(Pair.builder()
@@ -130,6 +147,9 @@ public abstract class AbstractMetadataBuilder {
         }
         if (isFile(field)) {
             return "file";
+        }
+        if (field.isAnnotationPresent(ValuesProvider.class)) {
+            return "closedlist";
         }
         return "input";
     }

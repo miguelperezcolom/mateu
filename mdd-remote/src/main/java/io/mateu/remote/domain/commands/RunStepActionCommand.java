@@ -154,6 +154,18 @@ public class RunStepActionCommand {
                     }
                     return t;
                 }
+                if (Integer.class.equals(ReflectionHelper.getGenericClass(f.getGenericType()))) {
+                    List t = new ArrayList();
+                    List l = (List) entry.getValue();
+                    for (Object v : l) {
+                        if (v instanceof String) {
+                            v = Integer.parseInt((String) v);
+                        }
+                        t.add(v);
+                    }
+                    return t;
+                }
+                return entry.getValue();
             }
             if (f.getType().isArray()) {
                 if (List.class.isAssignableFrom(entry.getValue().getClass())) {
@@ -174,6 +186,7 @@ public class RunStepActionCommand {
                             Object v = l.get(i);
                             int tv = 0;
                             if (v instanceof Integer) tv = ((Integer) v).intValue();
+                            else if (v instanceof String) tv = Integer.parseInt((String) v);
                             t[i] = tv;
                         }
                         return t;

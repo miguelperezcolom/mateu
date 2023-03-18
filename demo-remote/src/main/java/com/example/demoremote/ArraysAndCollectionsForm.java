@@ -11,10 +11,9 @@ import java.util.List;
 @Caption("Arrays and collections")
 public class ArraysAndCollectionsForm {
 
-    /*
+
     @Section("Arrays")
     private boolean[] booleans = {false, false, true, false};
-
 
     private int[] ints = {1,2,3,5};
 
@@ -30,14 +29,12 @@ public class ArraysAndCollectionsForm {
     private List<Double> doublesCollection = List.of(10.2, 3.1, 8.21);
 
     private List<String> stringsCollection = List.of("Mateu", "Antonia", "Miguel");
-*/
 
-/*
     @Section("With enums")
     private Division[] enums = {Division.East, Division.South};
 
     private List<Division> enumsCollection = List.of(Division.South, Division.West);
-*/
+
     @Section("With external refs")
     @ItemsProvider(TeamsProvider.class)
     private ExternalReference[] teams = {
@@ -50,7 +47,6 @@ public class ArraysAndCollectionsForm {
             new ExternalReference("1", "Las Vegas Raiders")
             , new ExternalReference("5", "Seattle Seahawks")
     );
-    /*
 
     @Section("With value providers")
     @ValuesProvider(ColorsProvider.class)
@@ -65,8 +61,6 @@ public class ArraysAndCollectionsForm {
     @ValuesProvider(IntegersProvider.class)
     private List<Integer> chooseIntsForColection = List.of(1,7);
 
-     */
-
     @Section("Assessment")
     @ReadOnly
     private String assessment;
@@ -76,21 +70,26 @@ public class ArraysAndCollectionsForm {
     @Action
     public void assess() {
         assessment = ""
-//                + Arrays.toString(booleans)
-//        + "," + Arrays.toString(ints)
-//                + "," + Arrays.toString(doubles)
-//                + "," + Arrays.toString(strings)
+                + Arrays.toString(booleans)
+        + "," + Arrays.toString(ints)
+                + "," + Arrays.toString(doubles)
+                + "," + Arrays.toString(strings)
 
-//                + Arrays.toString(booleans)
-//        + "," + Arrays.toString(ints)
-//                + "," + Arrays.toString(doubles)
-//                + "," + Arrays.toString(strings)
+                + Arrays.toString(booleans)
+        + "," + Arrays.toString(ints)
+                + "," + Arrays.toString(doubles)
+                + "," + Arrays.toString(strings)
 
-//        + ", " + Arrays.toString(enums)
-//                + ", " + enumsCollection.toString()
+        + ", " + Arrays.toString(enums)
+                + ", " + enumsCollection.toString()
 
                 + ", " + Arrays.toString(teams)
                 + ", " + teamsCollection.toString()
+
+                + ", " + Arrays.toString(chooseStrings)
+                + ", " + chooseStringsForColection.toString()
+                + ", " + Arrays.toString(chooseInts)
+                + ", " + chooseIntsForColection.toString()
 
         ;
     }
