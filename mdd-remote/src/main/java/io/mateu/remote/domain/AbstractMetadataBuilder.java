@@ -173,6 +173,9 @@ public abstract class AbstractMetadataBuilder {
             if (Integer.class.equals(field.getGenericClass())) {
                 value = "int";
             }
+            if (ExternalReference.class.equals(field.getGenericClass())) {
+                value = ExternalReference.class.getSimpleName();
+            }
             if (field.getGenericClass().isEnum()) {
                 value = "enum";
             }

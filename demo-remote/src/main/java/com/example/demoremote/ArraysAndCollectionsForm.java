@@ -32,25 +32,25 @@ public class ArraysAndCollectionsForm {
     private List<String> stringsCollection = List.of("Mateu", "Antonia", "Miguel");
 */
 
-
+/*
     @Section("With enums")
     private Division[] enums = {Division.East, Division.South};
 
     private List<Division> enumsCollection = List.of(Division.South, Division.West);
-
-    /*
+*/
     @Section("With external refs")
     @ItemsProvider(TeamsProvider.class)
     private ExternalReference[] teams = {
-            new ExternalReference("2", "Las Vegas Raiders")
+            new ExternalReference("1", "Las Vegas Raiders")
             , new ExternalReference("5", "Seattle Seahawks")
     };
 
     @ItemsProvider(TeamsProvider.class)
     private List<ExternalReference> teamsCollection = List.of(
-            new ExternalReference("2", "Las Vegas Raiders")
+            new ExternalReference("1", "Las Vegas Raiders")
             , new ExternalReference("5", "Seattle Seahawks")
     );
+    /*
 
     @Section("With value providers")
     @ValuesProvider(ColorsProvider.class)
@@ -86,8 +86,11 @@ public class ArraysAndCollectionsForm {
 //                + "," + Arrays.toString(doubles)
 //                + "," + Arrays.toString(strings)
 
-        + ", " + Arrays.toString(enums)
-                + ", " + enumsCollection.toString()
+//        + ", " + Arrays.toString(enums)
+//                + ", " + enumsCollection.toString()
+
+                + ", " + Arrays.toString(teams)
+                + ", " + teamsCollection.toString()
 
         ;
     }

@@ -144,6 +144,17 @@ public class RunStepActionCommand {
         Object targetValue = entry.getValue();
         if (entry.getValue() != null) {
             Field f = viewInstance.getClass().getDeclaredField(entry.getKey());
+            if (List.class.isAssignableFrom(f.getType())) {
+                if (ExternalReference.class.equals(ReflectionHelper.getGenericClass(f.getGenericType()))) {
+                    List t = new ArrayList();
+                    List l = (List) entry.getValue();
+                    for (Object o : l) {
+                        Map<String, Object> m = (Map<String, Object>) o;
+                        t.add(new ExternalReference(m.get("value"), (String) m.get("key")));
+                    }
+                    return t;
+                }
+            }
             if (f.getType().isArray()) {
                 if (List.class.isAssignableFrom(entry.getValue().getClass())) {
                     List l = (List) entry.getValue();
@@ -179,6 +190,14 @@ public class RunStepActionCommand {
                     }
                     if (String[].class.equals(f.getType())) {
                         return l.toArray(new String[0]);
+                    }
+                    if (ExternalReference[].class.equals(f.getType())) {
+                        List t = new ArrayList();
+                        for (int i = 0; i < l.size(); i++) {
+                            Map<String, Object> v = (Map<String, Object>) l.get(i);
+                            t.add(new ExternalReference(v.get("value"), (String) v.get("key")));
+                        }
+                        return t.toArray(new ExternalReference[0]);
                     }
                     if (f.getType().getComponentType().isEnum()) {
                         List t = new ArrayList();
