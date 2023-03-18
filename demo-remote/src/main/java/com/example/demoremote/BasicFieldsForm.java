@@ -35,6 +35,7 @@ public class BasicFieldsForm implements HasBadges {
     @Section("Dates")
     private LocalDate date;
 
+
     private LocalDateTime dateAndTime;
 
     private LocalTime time;
@@ -59,6 +60,7 @@ public class BasicFieldsForm implements HasBadges {
     @Action
     public void assess() {
         assessment = "" + name
+                + ", " + toggle
                 + ", " + age
                 + ", " + balance
                 + ", " + text

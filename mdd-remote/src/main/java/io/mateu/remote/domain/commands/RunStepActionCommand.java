@@ -1,5 +1,7 @@
 package io.mateu.remote.domain.commands;
 
+import io.mateu.mdd.core.interfaces.PersistentPojo;
+import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.File;
 import io.mateu.mdd.shared.annotations.MainAction;
@@ -10,10 +12,14 @@ import io.mateu.remote.domain.JourneyStoreAccessor;
 import io.mateu.remote.domain.StepMapper;
 import io.mateu.remote.domain.StorageService;
 import io.mateu.remote.domain.StorageServiceAccessor;
+import io.mateu.remote.dtos.ActionType;
+import io.mateu.util.Helper;
+import io.mateu.util.persistence.JPAHelper;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.naming.AuthenticationException;
+import javax.persistence.Entity;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -21,9 +27,7 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Builder
@@ -38,7 +42,7 @@ public class RunStepActionCommand {
 
     private Map<String, Object> data;
 
-    public void run() throws Exception {
+    public void run() throws Throwable {
 
         Object viewInstance = JourneyStoreAccessor.get().getViewInstance(journeyId, stepId);
 
@@ -47,7 +51,7 @@ public class RunStepActionCommand {
                 Object actualValue = getActualValue(entry, viewInstance);
                 ReflectionHelper.setValue(entry.getKey(), viewInstance, actualValue);
             } catch (Exception ex) {
-                ex.printStackTrace();
+                System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
             }
         });
 
@@ -56,13 +60,78 @@ public class RunStepActionCommand {
                 .collect(Collectors.toMap(m -> m.getName(), m -> m));
 
 
-        if (actions.containsKey(actionId)) {
+        if (viewInstance instanceof RpcCrudView && "new".equals(actionId)) {
+
+            Object editor = null;
+            try {
+                editor = ((RpcCrudView) viewInstance).onNew();
+            } catch (Throwable e) {
+                throw new Exception("Crud onNew thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
+            }
+
+            if (editor == null) {
+                throw new Exception("Crud onNew returned null");
+            }
+
+            JourneyStoreAccessor.get().putStep(stepId, new StepMapper().map(editor));
+
+        } else if (viewInstance instanceof RpcCrudView && "delete".equals(actionId)) {
+
+            Object[] selectedRows = (Object[]) data.get("_selectedRows");
+
+            if (selectedRows == null) {
+                throw new Exception("No row selected");
+            }
+
+            try {
+                Set<Object> targetSet = new HashSet<>(Arrays.asList(selectedRows));
+                ((RpcCrudView) viewInstance).delete(targetSet);
+            } catch (Throwable e) {
+                throw new Exception("Crud delete thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
+            }
+
+            JourneyStoreAccessor.get().putStep(stepId, new StepMapper().map(viewInstance));
+
+        } else if (viewInstance instanceof RpcCrudView && "edit".equals(actionId)) {
+
+            Object row = data.get("_selectedRow");
+
+            if (row == null) {
+                throw new Exception("No row selected");
+            }
+
+            Object editor = null;
+            try {
+
+                editor = ((RpcCrudView) viewInstance).onEdit(Helper.fromJson(Helper.toJson(row),
+                        ((RpcCrudView) viewInstance).getRowClass()));
+            } catch (Throwable e) {
+                throw new Exception("Crud onEdit thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
+            }
+
+            if (editor == null) {
+                throw new Exception("Crud onEdit returned null");
+            }
+
+            JourneyStoreAccessor.get().putStep(stepId, new StepMapper().map(editor));
+        } else if (viewInstance instanceof PersistentPojo && "save".equals(actionId)) {
+            ((PersistentPojo) viewInstance).save();
+        } else if (viewInstance.getClass().isAnnotationPresent(Entity.class) && "save".equals(actionId)) {
+            JPAHelper.transact(em -> {
+                em.merge(viewInstance);
+            });
+        } else if (actions.containsKey(actionId)) {
 
             Method m = actions.get(actionId);
 
             Object result = m.invoke(viewInstance);
 
-            JourneyStoreAccessor.get().putStep(stepId, new StepMapper().map(viewInstance));
+            Object whatToShow = result;
+            if (void.class.equals(m.getReturnType())) {
+                whatToShow = viewInstance;
+            }
+
+            JourneyStoreAccessor.get().putStep(stepId, new StepMapper().map(whatToShow));
 
         } else {
             throw new Exception("Unkonwn action " + actionId);

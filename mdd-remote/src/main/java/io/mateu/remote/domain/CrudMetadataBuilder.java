@@ -48,6 +48,7 @@ public class CrudMetadataBuilder extends AbstractMetadataBuilder {
             }
         }
         return allRowFields.stream().map(fieldInterfaced -> getColumn(fieldInterfaced))
+                .skip(1)
                 .collect(Collectors.toList());
     }
 
@@ -56,6 +57,7 @@ public class CrudMetadataBuilder extends AbstractMetadataBuilder {
                 .id(fieldInterfaced.getId())
                 .caption(ReflectionHelper.getCaption(fieldInterfaced))
                 .type(getType(fieldInterfaced))
+                .stereotype("column")
                 .attributes(List.of())
                 .width(getWidth(fieldInterfaced))
                 .build();

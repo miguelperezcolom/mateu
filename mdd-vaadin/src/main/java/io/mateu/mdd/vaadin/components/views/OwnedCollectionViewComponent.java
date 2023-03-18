@@ -92,7 +92,7 @@ public class OwnedCollectionViewComponent extends EditorViewComponent {
                             } else Notifier.info("This was already the first item of the list");
                         }
                     }
-                }.setIcon(VaadinIcons.ARROW_UP).setId("col_prev"));
+                }.setIcon(VaadinIcons.ARROW_UP).setFluentId("col_prev"));
             } else getMenuItemById("col_prev").setVisible(true);
 
             if (!isActionPresent("col_next")) {
@@ -110,7 +110,7 @@ public class OwnedCollectionViewComponent extends EditorViewComponent {
                             } else Notifier.info("This was already the last item of the list");
                         }
                     }
-                }.setIcon(VaadinIcons.ARROW_DOWN).setId("col_next"));
+                }.setIcon(VaadinIcons.ARROW_DOWN).setFluentId("col_next"));
             } else getMenuItemById("col_next").setVisible(true);
 
             if (ReflectionHelper.puedeAnadir(field)) {
@@ -128,7 +128,7 @@ public class OwnedCollectionViewComponent extends EditorViewComponent {
                                 }
                             }
                         }
-                    }.setIcon(VaadinIcons.PLUS).setId("col_add"));
+                    }.setIcon(VaadinIcons.PLUS).setFluentId("col_add"));
                 } else getMenuItemById("col_add").setVisible(true);
             }
 
@@ -165,7 +165,7 @@ public class OwnedCollectionViewComponent extends EditorViewComponent {
                             else Notifier.info("Can not remove this item");
 
                         }
-                    }.setIcon(VaadinIcons.MINUS).setId("col_remove"));
+                    }.setIcon(VaadinIcons.MINUS).setFluentId("col_remove"));
                 } else getMenuItemById("col_remove").setVisible(true);
             }
 
@@ -194,7 +194,7 @@ public class OwnedCollectionViewComponent extends EditorViewComponent {
                             }
 
                         }
-                    }.setIcon(VaadinIcons.COPY).setId("col_copy"));
+                    }.setIcon(VaadinIcons.COPY).setFluentId("col_copy"));
                 } else getMenuItemById("col_copy").setVisible(true);
             }
 

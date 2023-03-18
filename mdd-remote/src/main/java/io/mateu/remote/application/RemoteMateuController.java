@@ -62,7 +62,7 @@ public class RemoteMateuController {
     public void runStep(@PathVariable String journeyId,
                         @PathVariable String stepId,
                         @PathVariable String actionId,
-                        @RequestBody RunActionRq rq) throws Exception {
+                        @RequestBody RunActionRq rq) throws Throwable {
         RunStepActionCommand.builder()
                 .journeyId(journeyId)
                 .stepId(stepId)

@@ -14,6 +14,8 @@ public class Column {
 
     private String type;
 
+    private String stereotype;
+
     private String caption;
 
     private String description;

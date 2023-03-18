@@ -1,5 +1,6 @@
 package com.example.demoremote;
 
+import com.example.demoremote.entities.TeamRepository;
 import io.mateu.mdd.shared.data.ItemsListProvider;
 import io.mateu.mdd.shared.data.Value;
 import org.springframework.stereotype.Service;

@@ -1,13 +1,19 @@
 package com.example.demoremote;
 
-import com.example.demoremote.nfl.downloader.Reader;
-import com.example.demoremote.nfl.downloader.TargetPlayerDto;
+import com.example.demoremote.cities.City;
+import com.example.demoremote.cities.CityDto;
+import com.example.demoremote.cities.CityRepository;
+import com.example.demoremote.entities.*;
+import com.example.demoremote.nfl.dtos.Reader;
+import com.example.demoremote.nfl.dtos.TargetPlayerDto;
+import com.example.demoremote.swapi.dtos.CharacterDto;
 import io.mateu.util.Helper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -22,9 +28,27 @@ public class Populator {
     @Autowired
     private PlayerRepository playerRepository;
 
+    @Autowired
+    private CityRepository cityRepository;
+
+    @Autowired
+    private SWCharacterRepository swCharacterRepository;
+
     @PostConstruct
     public void populate() throws IOException {
 
+        new Thread(() -> {
+            try {
+                doPopulate();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
+
+
+    }
+
+    public void doPopulate() throws IOException {
         String json = Helper.leerFichero(Reader.class, "/nfl.json");
         TargetPlayerDto[] players = Helper.fromJson(json, TargetPlayerDto[].class);
         for (TargetPlayerDto player : players) {
@@ -49,6 +73,34 @@ public class Populator {
         positions.forEach(t -> System.out.println(t));
 
         System.out.println(positions.size());
+
+        json = Helper.leerFichero(Reader.class, "/cities.json"); // 140k cities
+        CityDto[] cities = Helper.fromJson(json, CityDto[].class);
+        for (CityDto city : cities) {
+            City p = new City();
+            p.setName(city.getName());
+            p.setPopulation(city.getPopulation());
+            p.setCountry(city.getCou_name_en());
+            p.setTimezone(city.getTimezone());
+            p.setModificationDate(LocalDate.parse(city.getModification_date()));
+            p.setId(city.getGeoname_id());
+            cityRepository.save(p);
+        }
+
+        json = Helper.leerFichero(Reader.class, "/swapi_characters.json"); // 140k cities
+        CharacterDto[] characters = Helper.fromJson(json, CharacterDto[].class);
+        for (CharacterDto characterDto : characters) {
+            SWCharacter p = new SWCharacter();
+            p.setName(characterDto.getName());
+            p.setGender(characterDto.getGender());
+            p.setHair_color(characterDto.getHair_color());
+            p.setHomeworld(characterDto.getHomeworld());
+            p.setMass(Helper.toInt(characterDto.getMass()));
+            p.setHeight(Helper.toInt(characterDto.getHeight()));
+            p.setId(characterDto.getUrl());
+            swCharacterRepository.save(p);
+        }
+
     }
 
 }

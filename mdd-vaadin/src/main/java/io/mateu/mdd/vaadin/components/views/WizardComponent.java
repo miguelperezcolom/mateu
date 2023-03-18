@@ -58,7 +58,7 @@ public class WizardComponent extends EditorViewComponent {
                 return stack.size() > 0;
             }
 
-        }.setIcon(VaadinIcons.STEP_BACKWARD).setId("wizardprev"));
+        }.setIcon(VaadinIcons.STEP_BACKWARD).setFluentId("wizardprev"));
 
         l.add(new MDDRunnableAction("Next") {
 
@@ -84,7 +84,7 @@ public class WizardComponent extends EditorViewComponent {
                 return currentPage.hasNext();
             }
 
-        }.setIcon(VaadinIcons.STEP_FORWARD).setId("wizardnext"));
+        }.setIcon(VaadinIcons.STEP_FORWARD).setFluentId("wizardnext"));
 
         l.add(new MDDRunnableAction(currentPage.getOkCaption()) {
 
@@ -113,7 +113,7 @@ public class WizardComponent extends EditorViewComponent {
                 return !currentPage.hasNext();
             }
 
-        }.setIcon(VaadinIcons.CHECK).setId("wizarddone"));
+        }.setIcon(VaadinIcons.CHECK).setFluentId("wizarddone"));
 
         l.add(new MDDRunnableAction(currentPage.getOkAndStayCaption()) {
 
@@ -142,7 +142,7 @@ public class WizardComponent extends EditorViewComponent {
                 return !currentPage.hasNext() && currentPage.backOnOk();
             }
 
-        }.setIcon(VaadinIcons.CHECK_CIRCLE).setId("wizarddonealt"));
+        }.setIcon(VaadinIcons.CHECK_CIRCLE).setFluentId("wizarddonealt"));
 
         l.addAll(super.getActions());
 

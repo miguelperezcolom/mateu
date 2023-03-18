@@ -12,8 +12,8 @@ import java.util.List;
 public class ExternalRefsAndFilesForm {
 
     @Section("External refs")
-    @ItemsProvider(TeamsProvider.class)
-    private ExternalReference yourFavouriteTeam;
+    @ItemsProvider(PlayersProvider.class)
+    private ExternalReference yourFavouritePlayer;
 
     @ItemsProvider(TeamsProvider.class)
     private ExternalReference teamAtSanFrancisco = new ExternalReference("25", "San Francisco 49ers");
@@ -38,7 +38,7 @@ public class ExternalRefsAndFilesForm {
 
     @Action
     public void assess() {
-        assessment = "" + yourFavouriteTeam
+        assessment = "" + yourFavouritePlayer
                 + ", " + teamAtSanFrancisco
                 + ", " + singleFile
                 + ", " + files

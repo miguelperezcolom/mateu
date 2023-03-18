@@ -184,7 +184,7 @@ public class ViewComponentHelper {
                 }
             }.setStyle(getStyle(m)).setIcon(getIcon(m))
                     .setConfirmationMessage(getConfirmationMessage(m))
-            .setId(m.getName()).setValidationNeeded(validateBefore(m));
+            .setFluentId(m.getName()).setValidationNeeded(validateBefore(m));
 
             action.setGroup(getGroup(m));
             action.setId(m.getName());

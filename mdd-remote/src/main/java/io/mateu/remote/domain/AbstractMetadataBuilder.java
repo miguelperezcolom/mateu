@@ -1,5 +1,6 @@
 package io.mateu.remote.domain;
 
+import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.ExternalReference;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
@@ -183,6 +184,25 @@ public abstract class AbstractMetadataBuilder {
                 .filter(m -> m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class))
                 .map(m -> getAction(m))
                 .collect(Collectors.toList());
+        if (uiInstance instanceof RpcCrudView) {
+            RpcCrudView rpcCrudView = (RpcCrudView) uiInstance;
+            if (rpcCrudView.isAddEnabled()) {
+                Action action = Action.builder()
+                        .id("new")
+                        .caption("New")
+                        .type(ActionType.Primary)
+                        .build();
+                actions.add(action);
+            }
+            if (rpcCrudView.isDeleteEnabled()) {
+                Action action = Action.builder()
+                        .id("delete")
+                        .caption("Delete")
+                        .type(ActionType.Primary)
+                        .build();
+                actions.add(action);
+            }
+        }
         return actions;
     }
 

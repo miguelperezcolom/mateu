@@ -10,6 +10,7 @@ import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
 import io.mateu.util.Helper;
 
+import javax.persistence.Entity;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,6 +59,21 @@ public class FormMetadataBuilder extends AbstractMetadataBuilder {
                 .filter(m -> m.isAnnotationPresent(io.mateu.mdd.shared.annotations.MainAction.class))
                 .map(m -> getAction(m))
                 .collect(Collectors.toList());
+        if (uiInstance instanceof PersistentPojo) {
+            Action action = Action.builder()
+                    .id("save")
+                    .caption("Save")
+                    .type(ActionType.Primary)
+                    .build();
+            actions.add(action);
+        } else if (uiInstance.getClass().isAnnotationPresent(Entity.class)) {
+            Action action = Action.builder()
+                    .id("save")
+                    .caption("Save")
+                    .type(ActionType.Primary)
+                    .build();
+            actions.add(action);
+        }
         return actions;
     }
 

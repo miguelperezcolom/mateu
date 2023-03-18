@@ -20,8 +20,8 @@ public class DemoApp implements Runnable {
     @Submenu
     private ExplorerSubmenu explorer;
 
-    @Submenu("NFL")
-    private NflSubmenu nfl;
+    @Submenu("Some cruds")
+    private CrudsSubmenu cruds;
 
     @Override
     public void run() {
