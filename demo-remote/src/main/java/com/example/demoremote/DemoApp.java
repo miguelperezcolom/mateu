@@ -13,6 +13,10 @@ public class DemoApp implements Runnable {
     @MenuOption(icon = VaadinIcons.AIRPLANE)
     private BasicFieldsForm basicFields;
 
+
+    @MenuOption(icon = VaadinIcons.EYE_SLASH)
+    private MyReadOnlyPojo readOnlyPojo;
+
     @Submenu
     private ExplorerSubmenu explorer;
 

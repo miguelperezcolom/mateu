@@ -21,6 +21,7 @@ public class FormMetadataBuilder extends AbstractMetadataBuilder {
         Form form = Form.builder()
                 .title(getCaption(uiInstance))
                 .status(getStatus(uiInstance))
+                .readOnly(uiInstance instanceof ReadOnlyPojo)
                 .badges(getBadges(uiInstance))
                 .sections(getSections(uiInstance))
                 .actions(getActions(uiInstance))
@@ -89,7 +90,9 @@ public class FormMetadataBuilder extends AbstractMetadataBuilder {
                 if (fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Section.class)) {
                     caption = fieldInterfaced.getAnnotation(io.mateu.mdd.shared.annotations.Section.class).value();
                 }
-                section = Section.builder().caption(caption).fieldGroups(new ArrayList<>()).build();
+                section = Section.builder()
+                        .caption(caption).readOnly(uiInstance instanceof ReadOnlyPojo)
+                        .fieldGroups(new ArrayList<>()).build();
                 sections.add(section);
                 fieldGroup = null;
             }

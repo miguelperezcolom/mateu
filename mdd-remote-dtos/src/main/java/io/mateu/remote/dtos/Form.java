@@ -12,6 +12,8 @@ public class Form implements ViewMetadata {
 
     private String title;
 
+    private boolean readOnly;
+
     private String subtitle;
 
     private Status status;

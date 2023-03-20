@@ -12,6 +12,8 @@ public class Section {
 
     private String caption;
 
+    private boolean readOnly;
+
     private SectionType type;
 
     private List<Action> actions = new ArrayList<>();
