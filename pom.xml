@@ -4,7 +4,7 @@
 
   <groupId>io.mateu</groupId>
   <artifactId>mdd-parent</artifactId>
-  <version>1.1.60</version>
+  <version>1.2.1</version>
   <packaging>pom</packaging>
 
   <name>Mateu MDD</name>
@@ -46,18 +46,16 @@
   </properties>
 
   <modules>
-    <module>mdd-addon</module>
     <module>mdd-sharedinterfaces</module>
     <module>mdd-annotationprocessing</module>
     <module>mdd-core</module>
     <module>mdd-jpa</module>
-    <module>mdd-vaadin</module>
-    <module>mdd-springboot</module>
       <module>mdd-reflection</module>
       <module>mdd-util</module>
       <module>mdd-remote</module>
       <module>mdd-remote-dtos</module>
       <module>mdd-springboot-security</module>
+      <module>mdd-remote-lit</module>
   </modules>
 
   <dependencies>

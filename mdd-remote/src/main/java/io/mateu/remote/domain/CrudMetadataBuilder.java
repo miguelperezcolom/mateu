@@ -16,26 +16,12 @@ public class CrudMetadataBuilder extends AbstractMetadataBuilder {
 
     public Crud build(RpcView rpcView) {
         return Crud.builder()
-                .title(getTitle(rpcView))
+                .title(rpcView.getCaption())
                 .searchForm(buildSearchForm(rpcView))
                 .columns(buildColumns(rpcView))
                 .actions(getActions(rpcView))
                 .build();
     }
-
-    private String getTitle(RpcView rpcView) {
-        if (rpcView.getClass().isAnnotationPresent(Caption.class)) {
-            return rpcView.getClass().getAnnotation(Caption.class).value();
-        }
-        try {
-            if (!rpcView.getClass().getMethod("toString").getDeclaringClass().equals(Object.class)) {
-                return rpcView.toString();
-            }
-        } catch (NoSuchMethodException e) {
-        }
-        return Helper.capitalize(rpcView.getClass().getSimpleName());
-    }
-
 
     private List<Column> buildColumns(RpcView rpcView) {
         Class rowClass = rpcView.getRowClass();

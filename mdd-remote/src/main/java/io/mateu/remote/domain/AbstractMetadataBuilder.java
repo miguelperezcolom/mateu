@@ -10,6 +10,7 @@ import io.mateu.remote.dtos.*;
 import io.mateu.remote.dtos.Action;
 import io.mateu.util.Helper;
 
+import javax.persistence.Id;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -110,7 +111,7 @@ public abstract class AbstractMetadataBuilder {
                             .key("choice")
                             .value(Value.builder()
                                     .key(enumConstant.toString())
-                                    .value(Helper.capitalize(enumConstant.toString()))
+                                    .value(enumConstant)
                                     .build()
                             ).build());
                 }
@@ -136,7 +137,8 @@ public abstract class AbstractMetadataBuilder {
         if (field.getType().isEnum()) {
             return "combobox";
         }
-        if (field.isAnnotationPresent(ReadOnly.class) || field.isAnnotationPresent(Output.class)) {
+        if (field.isAnnotationPresent(ReadOnly.class) || field.isAnnotationPresent(Output.class)
+        || (field.isAnnotationPresent(Id.class))) {
             return "readonly";
         }
         if (field.isAnnotationPresent(TextArea.class)) {

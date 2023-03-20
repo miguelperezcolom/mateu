@@ -211,6 +211,9 @@ public class MenuBuilder {
 
                 for (MenuResolver menuResolver : menuResolvers) {
                     menuResolved = menuResolver.addMenuEntry(app, l, f, caption, order, icon);
+                    if (menuResolved) {
+                        break;
+                    }
                 }
 
                 if (!menuResolved) {

@@ -19,6 +19,7 @@ import java.util.List;
 
 @AutoService(MenuResolver.class)
 public class JpaMenuResolver implements MenuResolver {
+
     @Override
     public boolean addMenuEntry(Object app, List<MenuEntry> l, FieldInterfaced f, String caption, int order, VaadinIcons icon) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         if (JpaCrud.class.isAssignableFrom(f.getType())) {

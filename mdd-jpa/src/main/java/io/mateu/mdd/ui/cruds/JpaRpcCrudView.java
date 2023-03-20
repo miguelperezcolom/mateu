@@ -388,4 +388,9 @@ public class JpaRpcCrudView implements RpcCrudView<Object, Object, Object>, RpcC
             }
         });
     }
+
+    @Override
+    public String getCaption() {
+        return action.getCaption();
+    }
 }

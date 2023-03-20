@@ -39,8 +39,8 @@
 
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>mdd-remote</artifactId>
-            <version>1.1.60</version>
+            <artifactId>mdd-remote-lit</artifactId>
+            <version>1.2.1</version>
         </dependency>
 
         <dependency>
@@ -51,7 +51,7 @@
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>mdd-jpa</artifactId>
-            <version>1.1.60</version>
+            <version>1.2.1</version>
             <scope>compile</scope>
         </dependency>
 

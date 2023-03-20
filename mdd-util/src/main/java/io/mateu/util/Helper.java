@@ -12,6 +12,7 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import io.mateu.mdd.shared.AppConfigLocator;
 import io.mateu.mdd.shared.IAppConfig;
+import io.mateu.mdd.shared.SlimHelper;
 import io.mateu.util.xml.XMLSerializable;
 import lombok.extern.slf4j.Slf4j;
 import org.jdom2.Element;
@@ -36,7 +37,7 @@ import static java.time.temporal.ChronoUnit.DAYS;
  * Created by miguel on 13/9/16.
  */
 @Slf4j
-public class Helper {
+public class Helper extends SlimHelper {
 
     private static ScriptEngineManager scriptEngineManager;
 
@@ -130,63 +131,6 @@ public class Helper {
         return new DecimalFormat("##,###,###,###,###,###.00").format(value);
     }
 
-    public static String capitalize(String s) {
-        return capitalize(s, true);
-    }
-
-    public static String capitalize(String s, boolean startWithUppercase) {
-        if (s == null || "".equals(s)) return s;
-        s = s.replaceAll("\\.", " ");
-        String c = s.replaceAll(
-                String.format("%s|%s|%s",
-                        "(?<=[A-Z])(?=[A-Z][a-z])",
-                        "(?<=[^A-Z])(?=[A-Z])",
-                        "(?<=[A-Za-z])(?=[^A-Za-z])"
-                ),
-                " "
-        ).toLowerCase();
-        c = c.replaceAll("[ ]+", " ");
-        if (startWithUppercase && c.length() > 1) c = c.substring(0, 1).toUpperCase() + c.substring(1);
-
-        return c;
-    }
-
-    public static String camelcasize(String s) {
-        if (s == null || "".equals(s)) return s;
-        s = s.replaceAll("\\.", " ");
-        String c = s.replaceAll(
-                String.format("%s|%s|%s",
-                        "(?<=[A-Z])(?=[A-Z][a-z])",
-                        "(?<=[^A-Z])(?=[A-Z])",
-                        "(?<=[A-Za-z])(?=[^A-Za-z])"
-                ),
-                " "
-        ).toLowerCase();
-        c = c.replaceAll("[ ]+", " ");
-        if (c.length() > 1) {
-            String aux = c;
-            c = "";
-            int pos = 0;
-            for (String z : aux.split(" ")) {
-                if (pos++ > 0 && !Strings.isNullOrEmpty(z)) c += z.substring(0, 1).toUpperCase() + z.substring(1);
-                else c += z;
-            }
-        }
-
-        return c;
-    }
-
-    public static String urlize(String s) {
-        return new Slugify().slugify(s);
-    }
-
-    public static String pluralize(String s) {
-        if (s == null || "".equals(s)) return s;
-        if (s.endsWith("s")) s += "es";
-        else s += "s";
-        if (s.endsWith("ys")) s = s.replaceAll("ys$", "ies") ;
-        return s;
-    }
 
     public static String httpGet(String url) throws IOException {
         log.debug("HTTP GET " + url);
@@ -617,5 +561,8 @@ public class Helper {
         return sw.toString();
     }
 
+    public static String urlize(String s) {
+        return new Slugify().slugify(s);
+    }
 
 }

@@ -19,7 +19,7 @@ public class Formatter {
     static {
         cfg = new Configuration(Configuration.VERSION_2_3_29);
         //cfg.setDirectoryForTemplateLoading(new File("/where/you/store/templates"));
-        cfg.setClassForTemplateLoading(Formatter.class, "templates");
+        cfg.setClassForTemplateLoading(Formatter.class, "/templates");
         // Recommended settings for new projects:
         cfg.setDefaultEncoding("UTF-8");
         cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);

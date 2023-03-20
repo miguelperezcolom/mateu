@@ -3,7 +3,7 @@ package io.mateu.remote.domain.queries;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.application.NotFoundException;
 import io.mateu.remote.domain.UIMapper;
-import io.mateu.remote.domain.UIRegistryAccessor;
+import io.mateu.remote.domain.UIRegistry;
 import io.mateu.remote.dtos.JourneyType;
 import io.mateu.remote.dtos.Menu;
 import io.mateu.remote.dtos.UI;
@@ -30,7 +30,7 @@ public class GetJourneyTypesQuery {
 
         try {
 
-            for (Class uiClass : UIRegistryAccessor.get().getUiClasses()) {
+            for (Class uiClass : UIRegistry.getUiClasses()) {
 
                 Object uiInstance = ReflectionHelper.newInstance(uiClass);
 

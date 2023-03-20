@@ -2,8 +2,11 @@ package io.mateu.mdd.shared.interfaces;
 
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.ui.Grid;
+import io.mateu.mdd.shared.SlimHelper;
+import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.data.SumData;
 import io.mateu.mdd.shared.ui.MDDUIAccessor;
+import lombok.experimental.Helper;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
@@ -23,6 +26,18 @@ public interface RpcView<F, C> {
 
     };
 
+    default String getCaption() {
+        if (getClass().isAnnotationPresent(Caption.class)) {
+            return getClass().getAnnotation(Caption.class).value();
+        }
+        try {
+            if (!getClass().getMethod("toString").getDeclaringClass().equals(Object.class)) {
+                return toString();
+            }
+        } catch (NoSuchMethodException e) {
+        }
+        return SlimHelper.capitalize(getClass().getSimpleName());
+    }
 
     default void buildColumns(Grid<C> grid) {
 

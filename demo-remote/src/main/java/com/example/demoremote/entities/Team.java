@@ -16,7 +16,10 @@ public class Team {
     @Id
     private String id = UUID.randomUUID().toString();
 
-
     private String name;
 
+    @Override
+    public String toString() {
+        return name != null?"" + name:"No name";
+    }
 }

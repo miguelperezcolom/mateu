@@ -1,8 +1,8 @@
 package com.example.demoremote;
 
-import com.example.demoremote.cities.City;
+import com.example.demoremote.entities.City;
 import com.example.demoremote.cities.CityDto;
-import com.example.demoremote.cities.CityRepository;
+import com.example.demoremote.entities.CityRepository;
 import com.example.demoremote.entities.*;
 import com.example.demoremote.nfl.dtos.Reader;
 import com.example.demoremote.nfl.dtos.TargetPlayerDto;
@@ -56,7 +56,7 @@ public class Populator {
             p.setName(player.getName());
             p.setAge(player.getAge());
             p.setHeight(player.getHeight());
-            p.setPosition(player.getPosition());
+            p.setPosition(Position.getEnum(player.getPosition()));
             p.setId(player.getId());
             p.setTeam(player.getTeam());
             p.setWeight(player.getWeight());

@@ -5,14 +5,11 @@ import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.File;
 import io.mateu.mdd.shared.annotations.MainAction;
-import io.mateu.mdd.shared.data.ExternalReference;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.shared.data.*;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.JourneyStoreAccessor;
 import io.mateu.remote.domain.StepMapper;
-import io.mateu.remote.domain.StorageService;
 import io.mateu.remote.domain.StorageServiceAccessor;
-import io.mateu.remote.dtos.ActionType;
 import io.mateu.util.Helper;
 import io.mateu.util.persistence.JPAHelper;
 import lombok.Builder;
@@ -24,7 +21,6 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -71,7 +67,7 @@ public class RunStepActionCommand {
             }
 
             if (editor == null) {
-                throw new Exception("Crud onNew returned null");
+                throw new Exception("Crud onNew and onEdit returned null");
             }
 
             String newStepId = "new_" + UUID.randomUUID().toString();
@@ -91,6 +87,16 @@ public class RunStepActionCommand {
             try {
                 Set<Object> targetSet = new HashSet<>(selectedRows);
                 ((RpcCrudView) viewInstance).delete(targetSet);
+
+                Result whatToShow = new Result(ResultType.Success,
+                        "" + selectedRows + " elements have been deleted", List.of(),
+                        new Destination(DestinationType.ActionId, "list"));
+                String newStepId = "result_" + UUID.randomUUID().toString();
+                JourneyStoreAccessor.get().putStep(newStepId, new StepMapper().map(whatToShow));
+                JourneyStoreAccessor.get().putViewInstance(newStepId, whatToShow);
+                JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepId(newStepId);
+                JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepDefinitionId(newStepId);
+
             } catch (Throwable e) {
                 throw new Exception("Crud delete thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
             }
@@ -121,16 +127,36 @@ public class RunStepActionCommand {
             JourneyStoreAccessor.get().putViewInstance(newStepId, editor);
             JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepId(newStepId);
             JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepDefinitionId(newStepId);
-        } else if (viewInstance instanceof PersistentPojo && "save".equals(actionId)) {
-            ((PersistentPojo) viewInstance).save();
+        } else if ((viewInstance instanceof PersistentPojo
+        || viewInstance.getClass().isAnnotationPresent(Entity.class)) && "cancel".equals(actionId)) {
             JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepId("list");
             JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepDefinitionId("list");
+        } else if (viewInstance instanceof PersistentPojo && "save".equals(actionId)) {
+            ((PersistentPojo) viewInstance).save();
+
+            Result whatToShow = new Result(ResultType.Success,
+                    "" + viewInstance.toString() + " has been saved", List.of(),
+                    new Destination(DestinationType.ActionId, "list"));
+            String newStepId = "result_" + UUID.randomUUID().toString();
+            JourneyStoreAccessor.get().putStep(newStepId, new StepMapper().map(whatToShow));
+            JourneyStoreAccessor.get().putViewInstance(newStepId, whatToShow);
+            JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepId(newStepId);
+            JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepDefinitionId(newStepId);
+
         } else if (viewInstance.getClass().isAnnotationPresent(Entity.class) && "save".equals(actionId)) {
             JPAHelper.transact(em -> {
                 em.merge(viewInstance);
             });
-            JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepId("list");
-            JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepDefinitionId("list");
+
+            Result whatToShow = new Result(ResultType.Success,
+                    "" + viewInstance.toString() + " has been saved", List.of(),
+                    new Destination(DestinationType.ActionId, "list"));
+            String newStepId = "result_" + UUID.randomUUID().toString();
+            JourneyStoreAccessor.get().putStep(newStepId, new StepMapper().map(whatToShow));
+            JourneyStoreAccessor.get().putViewInstance(newStepId, whatToShow);
+            JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepId(newStepId);
+            JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepDefinitionId(newStepId);
+
         } else if (actions.containsKey(actionId)) {
 
             Method m = actions.get(actionId);
@@ -294,7 +320,8 @@ public class RunStepActionCommand {
                 e.printStackTrace();
             }
         } else {
-            log.warn("field " + f.getName() + " from " + f.getDeclaringClass().getName() + " is not valid for a file type");
+            log.warn("field " + f.getName() + " from " + f.getDeclaringClass().getName() +
+                    " is not valid for a file type");
         }
         return targetValue;
     }

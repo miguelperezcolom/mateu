@@ -1,10 +1,10 @@
 package com.example.demoremote;
 
-import com.example.demoremote.cities.City;
+import com.example.demoremote.entities.City;
 import com.example.demoremote.entities.Player;
 import com.example.demoremote.entities.SWCharacter;
 import com.example.demoremote.entities.Team;
-import com.example.demoremote.nfl.PlayersCrud;
+import com.example.demoremote.rpcCruds.ProgrammingLanguages;
 import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.MenuOption;
@@ -22,8 +22,8 @@ public class CrudsSubmenu {
         }
     };
 
-    @MenuOption(icon = VaadinIcons.USER)
-    private PlayersCrud players;
+    @MenuOption(icon = VaadinIcons.TAG)
+    private ProgrammingLanguages programmingLanguages;
 
     @MenuOption(icon = VaadinIcons.USERS)
     private JpaCrud<Player> allPlayers = new JpaCrud<Player>() {
