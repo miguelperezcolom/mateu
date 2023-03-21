@@ -9,7 +9,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = Form.class, name = "Form"),
-        @JsonSubTypes.Type(value = Crud.class, name = "Crud")
+        @JsonSubTypes.Type(value = Crud.class, name = "Crud"),
+        @JsonSubTypes.Type(value = Result.class, name = "Result")
 })
 public interface ViewMetadata {
 

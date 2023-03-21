@@ -1,17 +1,19 @@
 package io.mateu.mdd.shared.data;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Getter
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Destination {
 
-    private final DestinationType type;
+    private DestinationType type;
 
-    private final String value;
+    private String description;
 
-    public Destination(DestinationType type, String value) {
-        this.type = type;
-        this.value = value;
-    }
+    private String value;
 
 }

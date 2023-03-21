@@ -1,7 +1,7 @@
 package io.mateu.remote.application;
 
 import io.mateu.mdd.shared.data.Value;
-import io.mateu.remote.domain.StorageService;
+import io.mateu.remote.domain.files.StorageService;
 import io.mateu.remote.domain.commands.RunStepActionCommand;
 import io.mateu.remote.domain.commands.StartJourneyCommand;
 import io.mateu.remote.domain.queries.*;

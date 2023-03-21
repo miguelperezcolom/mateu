@@ -1,34 +1,17 @@
 package io.mateu.mdd.shared.data;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
+@Data@NoArgsConstructor@AllArgsConstructor
 public class Result {
 
-    private final ResultType type;
-    private final String message;
-    private final List<Destination> interestingLinks;
-    private final Destination nowTo;
+    private ResultType type;
+    private String message;
+    private List<Destination> interestingLinks;
+    private Destination nowTo;
 
-    public Result(ResultType type, String message, List<Destination> interestingLinks, Destination nowTo) {
-        this.type = type;
-        this.message = message;
-        this.interestingLinks = interestingLinks;
-        this.nowTo = nowTo;
-    }
-
-    public ResultType getType() {
-        return type;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public List<Destination> getInterestingLinks() {
-        return interestingLinks;
-    }
-
-    public Destination getNowTo() {
-        return nowTo;
-    }
 }

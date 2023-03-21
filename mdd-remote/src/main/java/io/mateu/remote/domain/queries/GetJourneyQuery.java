@@ -1,6 +1,6 @@
 package io.mateu.remote.domain.queries;
 
-import io.mateu.remote.domain.JourneyStoreAccessor;
+import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.Journey;
 import lombok.Builder;
 
@@ -12,7 +12,7 @@ public class GetJourneyQuery {
 
     public Journey run() throws Exception {
 
-        return JourneyStoreAccessor.get().getJourney(journeyId);
+        return JourneyStoreService.get().getJourney(journeyId);
 
     }
 }

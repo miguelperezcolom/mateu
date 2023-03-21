@@ -1,16 +1,15 @@
 package io.mateu.mdd.shared.data;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Getter
+@Data@NoArgsConstructor@AllArgsConstructor
 public class Badge {
 
     private BadgeType type;
 
     private String message;
 
-    public Badge(BadgeType type, String message) {
-        this.type = type;
-        this.message = message;
-    }
 }

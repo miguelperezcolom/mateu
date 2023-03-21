@@ -1,6 +1,6 @@
 package io.mateu.remote.domain.queries;
 
-import io.mateu.remote.domain.JourneyStoreAccessor;
+import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.Step;
 import lombok.Builder;
 
@@ -15,8 +15,7 @@ public class GetStepQuery {
 
     public Step run() throws Exception {
 
-        return JourneyStoreAccessor.get().getStep(stepId);
-
+        return JourneyStoreService.get().getStep(journeyId, stepId);
 
     }
 

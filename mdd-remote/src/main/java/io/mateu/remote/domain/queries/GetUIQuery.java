@@ -2,13 +2,10 @@ package io.mateu.remote.domain.queries;
 
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.application.NotFoundException;
-import io.mateu.remote.domain.MateuService;
-import io.mateu.remote.domain.UIMapper;
+import io.mateu.remote.domain.mappers.UIMapper;
 import io.mateu.remote.dtos.UI;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Optional;
 
 @Builder
 @Slf4j

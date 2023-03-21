@@ -1,8 +1,10 @@
 package io.mateu.mdd.shared.data;
 
+import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Getter
+@Data@NoArgsConstructor
 public class ExternalReference {
 
     private Object value;

@@ -1,6 +1,6 @@
 package io.mateu.remote;
 
-import io.mateu.remote.domain.JourneyStoreAccessor;
+import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.Journey;
 import io.mateu.remote.dtos.JourneyCreationRq;
 import io.mateu.remote.dtos.RunActionRq;
@@ -53,7 +53,7 @@ public class FormTest {
 
         createJourney(journeyId);
 
-        Assertions.assertNotNull(JourneyStoreAccessor.get().getJourney(journeyId));
+        Assertions.assertNotNull(JourneyStoreService.get().getJourney(journeyId));
     }
 
     private void createJourney(String journeyId) throws Exception {
@@ -88,7 +88,7 @@ public class FormTest {
     public void returnsStep() throws Exception {
         String journeyId = "journey3";
         createJourney(journeyId);
-        Journey journey = JourneyStoreAccessor.get().getJourney(journeyId);
+        Journey journey = JourneyStoreService.get().getJourney(journeyId);
 
         MvcResult result = mockMvc.perform(get("/mateu/v1/journeys/" + journeyId + "/steps/" + journey.getCurrentStepId()))
                 .andDo(MockMvcResultHandlers.print())
@@ -102,7 +102,7 @@ public class FormTest {
     public void runsAction() throws Exception {
         String journeyId = "journey4";
         createJourney(journeyId);
-        Journey journey = JourneyStoreAccessor.get().getJourney(journeyId);
+        Journey journey = JourneyStoreService.get().getJourney(journeyId);
 
         RunActionRq rq = RunActionRq.builder()
                 .data(Map.of("name", "Mateu", "age", 14))
@@ -120,10 +120,10 @@ public class FormTest {
         String content = result.getResponse().getContentAsString();
         System.out.println(content);
 
-        Step step = JourneyStoreAccessor.get().getStep(journey.getCurrentStepId());
+        Step step = JourneyStoreService.get().getStep(journeyId, journey.getCurrentStepId());
         Assertions.assertTrue(Helper.toJson(step)
                 .contains("Mateu, 14"));
-        Object viewInstance = JourneyStoreAccessor.get().getViewInstance(journeyId, journey.getCurrentStepId());
+        Object viewInstance = JourneyStoreService.get().getViewInstance(journeyId, journey.getCurrentStepId());
         Assertions.assertTrue(Helper.toJson(viewInstance)
                 .contains("Mateu, 14"));
 

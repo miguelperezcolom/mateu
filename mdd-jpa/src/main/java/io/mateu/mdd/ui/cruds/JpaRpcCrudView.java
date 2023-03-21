@@ -17,6 +17,7 @@ import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.notification.Notifier;
 import io.mateu.util.persistence.JPAHelper;
+import lombok.Data;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -30,28 +31,33 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+@Data
 public class JpaRpcCrudView implements RpcCrudView<Object, Object, Object>, RpcCrudViewExtended {
 
-    private final MDDOpenCRUDAction action;
-    private final Map<String, String> aliasedColumnNamesByColId = new HashMap<>();
-    private final List<String> columnNames = new ArrayList<>();
-    private final Map<String, FieldInterfaced> fieldsByColumnName = new HashMap<>();
-    private final List<String> filterNames = new ArrayList<>();
-    private final Map<String, FieldInterfaced> fieldsByFilterName = new HashMap<>();
+    private MDDOpenCRUDAction action;
+    private Map<String, String> aliasedColumnNamesByColId = new HashMap<>();
+    private List<String> columnNames = new ArrayList<>();
+    private Map<String, FieldInterfaced> fieldsByColumnName = new HashMap<>();
+    private List<String> filterNames = new ArrayList<>();
+    private Map<String, FieldInterfaced> fieldsByFilterName = new HashMap<>();
     private List<String> columnFields;
     private List<String> visibleColumns;
     private List<FieldInterfaced> filterFields;
-    private final List<String> aliasedColumnNamesList = new ArrayList<>();
-    private final List<String> columnIds;
-    private final Map<String, FieldInterfaced> fieldsByAliasedColumnName;
-    private final Map<String, FieldInterfaced> fieldsByColId = new HashMap<>();
-    private final Map<String, String> alias = new HashMap<>();
-    private final Map<String, String> aliasedColumnNames = new HashMap<>();
-    private final List<FieldInterfaced> sumFields;
+    private List<String> aliasedColumnNamesList = new ArrayList<>();
+    private List<String> columnIds;
+    private Map<String, FieldInterfaced> fieldsByAliasedColumnName;
+    private Map<String, FieldInterfaced> fieldsByColId = new HashMap<>();
+    private Map<String, String> alias = new HashMap<>();
+    private Map<String, String> aliasedColumnNames = new HashMap<>();
+    private List<FieldInterfaced> sumFields;
     private List<SumData> sums;
 
     String selectColumnsForCount;
     String selectColumnsForList;
+
+    public JpaRpcCrudView() {
+
+    }
 
     public JpaRpcCrudView(MDDOpenCRUDAction action) {
         this.action = action;

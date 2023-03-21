@@ -2,6 +2,8 @@ package io.mateu.remote.domain;
 
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.application.NotFoundException;
+import io.mateu.remote.domain.mappers.UIMapper;
+import io.mateu.remote.domain.mappers.ViewMapper;
 import io.mateu.remote.dtos.ActionData;
 import io.mateu.remote.dtos.UI;
 import io.mateu.remote.dtos.View;

@@ -1,15 +1,20 @@
 package io.mateu.remote.domain.commands;
 
 import io.mateu.mdd.core.interfaces.PersistentPojo;
+import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.File;
 import io.mateu.mdd.shared.annotations.MainAction;
 import io.mateu.mdd.shared.data.*;
+import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.reflection.ReflectionHelper;
-import io.mateu.remote.domain.JourneyStoreAccessor;
-import io.mateu.remote.domain.StepMapper;
-import io.mateu.remote.domain.StorageServiceAccessor;
+import io.mateu.remote.domain.files.StorageServiceAccessor;
+import io.mateu.remote.domain.mappers.ViewMapper;
+import io.mateu.remote.domain.store.JourneyContainer;
+import io.mateu.remote.domain.store.JourneyStoreService;
+import io.mateu.remote.dtos.Journey;
+import io.mateu.remote.dtos.Step;
 import io.mateu.util.Helper;
 import io.mateu.util.persistence.JPAHelper;
 import lombok.Builder;
@@ -41,7 +46,9 @@ public class RunStepActionCommand {
 
     public void run() throws Throwable {
 
-        Object viewInstance = JourneyStoreAccessor.get().getViewInstance(journeyId, stepId);
+        JourneyStoreService store = JourneyStoreService.get();
+
+        Object viewInstance = store.getViewInstance(journeyId, stepId);
 
         data.entrySet().forEach(entry -> {
             try {
@@ -51,6 +58,7 @@ public class RunStepActionCommand {
                 System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
             }
         });
+        store.getStep(journeyId, stepId).getView().getComponents().get(0).setData(data);
 
         Map<String, Method> actions = ReflectionHelper.getAllMethods(viewInstance.getClass()).stream()
                 .filter(m -> m.isAnnotationPresent(Action.class) || m.isAnnotationPresent(MainAction.class))
@@ -71,10 +79,7 @@ public class RunStepActionCommand {
             }
 
             String newStepId = "new_" + UUID.randomUUID().toString();
-            JourneyStoreAccessor.get().putStep(newStepId, new StepMapper().map(editor));
-            JourneyStoreAccessor.get().putViewInstance(newStepId, editor);
-            JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepId(newStepId);
-            JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepDefinitionId(newStepId);
+            store.setStep(journeyId, newStepId, editor);
 
         } else if (viewInstance instanceof RpcCrudView && "delete".equals(actionId)) {
 
@@ -85,17 +90,18 @@ public class RunStepActionCommand {
             }
 
             try {
-                Set<Object> targetSet = new HashSet<>(selectedRows);
+                Set<Object> targetSet = new HashSet((Collection) selectedRows.stream().map(o -> (Map)o)
+                        .map(m -> deserializeRow(m, (RpcView) viewInstance))
+                        .collect(Collectors.toList()));
                 ((RpcCrudView) viewInstance).delete(targetSet);
+
+                boolean isCrud = store.isCrud(journeyId);
 
                 Result whatToShow = new Result(ResultType.Success,
                         "" + selectedRows + " elements have been deleted", List.of(),
-                        new Destination(DestinationType.ActionId, "list"));
+                        new Destination(DestinationType.ActionId, "Back to " + store.getStep(journeyId, "list").getName(), "list"));
                 String newStepId = "result_" + UUID.randomUUID().toString();
-                JourneyStoreAccessor.get().putStep(newStepId, new StepMapper().map(whatToShow));
-                JourneyStoreAccessor.get().putViewInstance(newStepId, whatToShow);
-                JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepId(newStepId);
-                JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepDefinitionId(newStepId);
+                store.setStep(journeyId, newStepId, whatToShow);
 
             } catch (Throwable e) {
                 throw new Exception("Crud delete thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
@@ -122,41 +128,62 @@ public class RunStepActionCommand {
                 throw new Exception("Crud onEdit returned null");
             }
 
-            String newStepId = "edit_" + UUID.randomUUID().toString();
-            JourneyStoreAccessor.get().putStep(newStepId, new StepMapper().map(editor));
-            JourneyStoreAccessor.get().putViewInstance(newStepId, editor);
-            JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepId(newStepId);
-            JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepDefinitionId(newStepId);
-        } else if ((viewInstance instanceof PersistentPojo
-        || viewInstance.getClass().isAnnotationPresent(Entity.class)) && "cancel".equals(actionId)) {
-            JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepId("list");
-            JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepDefinitionId("list");
+            String newStepId = "editor";
+            if (editor instanceof ReadOnlyPojo && !(editor instanceof PersistentPojo)) {
+                newStepId = "detail";
+            }
+            store.setStep(journeyId, newStepId, editor);
+
+        } else if ((viewInstance instanceof ReadOnlyPojo
+                || viewInstance instanceof PersistentPojo
+        || viewInstance.getClass().isAnnotationPresent(Entity.class))
+                && "cancel".equals(actionId)) {
+            store.backToStep(journeyId, "list");
+        } else if (viewInstance instanceof ReadOnlyPojo && "edit".equals(actionId)) {
+            Object editor = ((ReadOnlyPojo) viewInstance).getEditor();
+
+            if (editor ==  null) {
+                throw new Exception("getEditor returned null for the ReadOnlyPojo " +
+                        viewInstance.getClass().getSimpleName());
+            }
+
+            store.setStep(journeyId, "editor", editor);
         } else if (viewInstance instanceof PersistentPojo && "save".equals(actionId)) {
             ((PersistentPojo) viewInstance).save();
 
+            Step initialStep = store.getInitialStep(journeyId);
+
+            List<Destination> youMayBeInterestedIn = new ArrayList<>();
+            Step detail = store.getStep(journeyId, "detail");
+            if (detail != null) {
+                youMayBeInterestedIn.add(new Destination(DestinationType.ActionId,
+                        "Return to " + detail.getName() + " detail", "detail"));
+            }
+
             Result whatToShow = new Result(ResultType.Success,
-                    "" + viewInstance.toString() + " has been saved", List.of(),
-                    new Destination(DestinationType.ActionId, "list"));
+                    "" + viewInstance.toString() + " has been saved", youMayBeInterestedIn,
+                    new Destination(DestinationType.ActionId,
+                            "Return to " + initialStep.getName(), initialStep.getId()));
             String newStepId = "result_" + UUID.randomUUID().toString();
-            JourneyStoreAccessor.get().putStep(newStepId, new StepMapper().map(whatToShow));
-            JourneyStoreAccessor.get().putViewInstance(newStepId, whatToShow);
-            JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepId(newStepId);
-            JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepDefinitionId(newStepId);
+            store.setStep(journeyId, newStepId, whatToShow);
 
         } else if (viewInstance.getClass().isAnnotationPresent(Entity.class) && "save".equals(actionId)) {
             JPAHelper.transact(em -> {
                 em.merge(viewInstance);
             });
 
+            Step initialStep = store.getInitialStep(journeyId);
+
             Result whatToShow = new Result(ResultType.Success,
                     "" + viewInstance.toString() + " has been saved", List.of(),
-                    new Destination(DestinationType.ActionId, "list"));
+                    new Destination(DestinationType.ActionId, "Back to " + initialStep.getName(), initialStep.getId()));
             String newStepId = "result_" + UUID.randomUUID().toString();
-            JourneyStoreAccessor.get().putStep(newStepId, new StepMapper().map(whatToShow));
-            JourneyStoreAccessor.get().putViewInstance(newStepId, whatToShow);
-            JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepId(newStepId);
-            JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepDefinitionId(newStepId);
+            store.setStep(journeyId, newStepId, whatToShow);
 
+        } else if (viewInstance instanceof Result) {
+            Step step = store.getStep(journeyId, actionId);
+            store.getJourney(journeyId).setCurrentStepId(step.getId());
+            store.getJourney(journeyId).setCurrentStepDefinitionId(step.getType());
         } else if (actions.containsKey(actionId)) {
 
             Method m = actions.get(actionId);
@@ -166,11 +193,10 @@ public class RunStepActionCommand {
             Object whatToShow = result;
             if (!void.class.equals(m.getReturnType())) {
                 String newStepId = "result_" + UUID.randomUUID().toString();
-                JourneyStoreAccessor.get().putStep(newStepId, new StepMapper().map(whatToShow));
-                JourneyStoreAccessor.get().putViewInstance(newStepId, whatToShow);
-                JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepId(newStepId);
-                JourneyStoreAccessor.get().getJourney(journeyId).setCurrentStepDefinitionId(newStepId);
+                store.setStep(journeyId, newStepId, whatToShow);
             }
+
+            store.getStep(journeyId, stepId).getView().getComponents().get(0).setData(getData(viewInstance));
 
         } else {
             throw new Exception("Unkonwn action " + actionId);
@@ -178,7 +204,20 @@ public class RunStepActionCommand {
 
     }
 
-    private Object getActualValue(Map.Entry<String, Object> entry, Object viewInstance) throws NoSuchFieldException {
+    private Object deserializeRow(Object m, RpcView viewInstance) {
+        try {
+            return Helper.fromJson(Helper.toJson(m), viewInstance.getRowClass());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private Map<String, Object> getData(Object viewInstance) throws IOException {
+        return ViewMapper.getData(viewInstance);
+    }
+
+    public static Object getActualValue(Map.Entry<String, Object> entry, Object viewInstance) throws NoSuchFieldException {
         Object targetValue = entry.getValue();
         if (entry.getValue() != null) {
             Field f = viewInstance.getClass().getDeclaredField(entry.getKey());
@@ -306,7 +345,7 @@ public class RunStepActionCommand {
         return targetValue;
     }
 
-    private Object toFile(Field f, Class<?> genericType, Map<String, Object> value) {
+    private static Object toFile(Field f, Class<?> genericType, Map<String, Object> value) {
         Object targetValue = null;
         if (String.class.equals(genericType)) {
             targetValue =  value.get("targetUrl") + "/" + value.get("name");
@@ -327,7 +366,7 @@ public class RunStepActionCommand {
     }
 
 
-    private boolean isFile(Field field) {
+    private static boolean isFile(Field field) {
         return java.io.File.class.equals(field.getType())
                 || java.io.File[].class.equals(field.getType())
                 || java.io.File.class.equals(field.getGenericType())

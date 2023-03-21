@@ -39,6 +39,7 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.XMLOutputter;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.persistence.*;
 import javax.servlet.ServletContext;
@@ -1405,6 +1406,8 @@ public class ReflectionHelper extends BaseReflectionHelper {
 
         allFields = filterAuthorized(allFields);
 
+        allFields = filterInjected(allFields);
+
 
         boolean isEditingNewRecord = getUI() != null && getUI().isEditingNewRecord();
 
@@ -1462,6 +1465,14 @@ public class ReflectionHelper extends BaseReflectionHelper {
 
 
         return allFields;
+    }
+
+    private static List<FieldInterfaced> filterInjected(List<FieldInterfaced> allFields) {
+        List<FieldInterfaced> r = new ArrayList<>();
+        for (FieldInterfaced f : allFields) {
+            if (!f.isAnnotationPresent(Autowired.class)) r.add(f);
+        }
+        return r;
     }
 
     private static List<FieldInterfaced> filterAccesible(List<FieldInterfaced> allFields) {
@@ -1628,6 +1639,24 @@ public class ReflectionHelper extends BaseReflectionHelper {
         };
     }
 
+    public static String getCaption(Object o) {
+        if (o.getClass().isAnnotationPresent(Caption.class)) {
+            return Translator.translate(o.getClass().getAnnotation(Caption.class).value());
+        }
+        if (o instanceof RpcView) {
+            return ((RpcView) o).getCaption();
+        }
+        String caption = "";
+        try {
+            if (!o.getClass().getMethod("toString").getDeclaringClass().equals(Object.class)) {
+                caption = o.toString();
+            }
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+        if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(o.getClass().getSimpleName());
+        return Translator.translate(caption);
+    }
 
     public static String getCaption(FieldInterfaced f) {
         if (f.isAnnotationPresent(Caption.class)) {
