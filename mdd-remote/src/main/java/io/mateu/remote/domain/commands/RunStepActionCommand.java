@@ -134,6 +134,25 @@ public class RunStepActionCommand {
             }
             store.setStep(journeyId, newStepId, editor);
 
+        } else if (viewInstance instanceof RpcCrudView && actionId.startsWith("__row__")) {
+
+            Object row = data.get("_clickedRow");
+
+            if (row == null) {
+                throw new Exception("No row clicked");
+            }
+
+            String methodName = actionId.replaceAll("__row__", "");
+            try {
+
+                Method method = viewInstance.getClass().getMethod(methodName, ((RpcCrudView) viewInstance).getRowClass());
+
+                method.invoke(viewInstance, Helper.fromJson(Helper.toJson(row),
+                        ((RpcCrudView) viewInstance).getRowClass()));
+            } catch (Throwable e) {
+                throw new Exception("Crud " + methodName + " thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
+            }
+
         } else if ((viewInstance instanceof ReadOnlyPojo
                 || viewInstance instanceof PersistentPojo
         || viewInstance.getClass().isAnnotationPresent(Entity.class))

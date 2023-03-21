@@ -1,32 +1,20 @@
 package io.mateu.mdd.core.app;
 
-import com.vaadin.icons.VaadinIcons;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.concurrent.Callable;
+@Data@NoArgsConstructor
+public class ColumnAction {
 
-public class ColumnAction implements Runnable {
+    private String id;
 
-    protected final Runnable runnable;
-    protected final Callable<String> valueProvider;
-    protected final Callable<VaadinIcons> iconProvider;
+    private String caption;
 
-    public ColumnAction(Runnable runnable, Callable<String> valueProvider, Callable<VaadinIcons> iconProvider) {
-        this.runnable = runnable;
-        this.valueProvider = valueProvider;
-        this.iconProvider = iconProvider;
-    }
+    private String icon;
 
-    @Override
-    public String toString() {
-        try {
-            return iconProvider != null? iconProvider.call().getHtml():valueProvider.call();
-        } catch (Exception e) {
-            return e.getClass().getSimpleName() + ": " + e.getMessage();
-        }
-    }
-
-    @Override
-    public void run() {
-        if (runnable != null) runnable.run();
+    public ColumnAction(String id, String caption, String icon) {
+        this.id = id;
+        this.caption = caption;
+        this.icon = icon;
     }
 }

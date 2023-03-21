@@ -2,8 +2,8 @@ package com.example.demoremote.rpcCruds;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.provider.QuerySortOrder;
-import com.vaadin.icons.VaadinIcons;
-import io.mateu.mdd.core.interfaces.PersistentPojo;
+import io.mateu.mdd.core.app.ColumnAction;
+import io.mateu.mdd.core.app.ColumnActionGroup;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.Ignored;
@@ -75,12 +75,19 @@ public class ProgrammingLanguages implements RpcCrudView<ProgrammingLanguages, P
             this.status = status;
         }
 
-        private ColumnActionGroup actions = new ColumnActionGroup(new ColumnAction[]{
-                new ColumnAction("Block"),
-                new ColumnAction("Delete")
+        private ColumnActionGroup actions;
 
-        });
-
+        public ColumnActionGroup getActions() {
+            if (status != null && StatusType.INFO.equals(status.getType())) {
+                return new ColumnActionGroup(new ColumnAction[]{
+                        new ColumnAction("unblockRow", "Unblock", null),
+                        new ColumnAction("deleteRow", "Delete", null)
+                });
+            }
+            return new ColumnActionGroup(new ColumnAction[]{
+                    new ColumnAction("blockRow", "Block", null)
+            });
+        }
     }
 
     @Override
@@ -92,5 +99,17 @@ public class ProgrammingLanguages implements RpcCrudView<ProgrammingLanguages, P
     public Object onEdit(Row row) throws Throwable {
         detail.load(row.getId());
         return detail;
+    }
+
+    public void unblockRow(Row row) {
+        System.out.println("unblocking " + row);
+    }
+
+    public void blockRow(Row row) {
+        System.out.println("blocking " + row);
+    }
+
+    public void deleteRow(Row row) {
+        System.out.println("deleting " + row);
     }
 }
