@@ -1,4 +1,4 @@
-import{i as i$2,r as registerStyles,E as ElementMixin,T as ThemableMixin,P as PolymerElement,h as html,C as ControllerMixin,F as FlattenedNodesObserver,d as dedupingMixin,m as microTask,a as TooltipController,D as Debouncer$1,t as timeOut,b as DirHelper,s as s$2,y as y$1,c as DirMixin$1,e as requiredField,f as fieldButton,S as SlotController,g as generateUniqueId,o as overlay,j as PropertyEffects,k as strictTemplatePolicy,w as wrap$1,l as legacyWarnings,n as menuOverlay,p as ElementMixin$1,q as legacyOptimizations,u as useShadow,v as suppressTemplateNotifications,x as matches,z as translate,A as timeOut$1,B as microTask$1,G as menuOverlayCore,H as idlePeriod,I as animationFrame,J as flush$1,K as enqueueDebouncer$1,L as cancelSyntheticClickEvents,M as passiveTouchGestures$1,N as PropertyAccessors,O as builtCSS,Q as legacyNoObservedAttributes,R as register$2,U as get$1,V as fastDomIf,W as root,X as calculateSplices,Y as cssFromModules,Z as ThemePropertyMixin,_ as n$3,$ as Z$1,a0 as i$3,a1 as t$2,a2 as b$1,a3 as e$2,a4 as badge,a5 as e$3}from"./index-f2fe03d5.js";/**
+import{i as i$2,r as registerStyles,E as ElementMixin,T as ThemableMixin,P as PolymerElement,h as html,C as ControllerMixin,F as FlattenedNodesObserver,d as dedupingMixin,m as microTask,a as TooltipController,D as Debouncer$1,t as timeOut,b as DirHelper,s as s$2,y as y$1,c as DirMixin$1,e as requiredField,f as fieldButton,S as SlotController,g as generateUniqueId,o as overlay,j as PropertyEffects,k as strictTemplatePolicy,w as wrap$1,l as legacyWarnings,n as menuOverlay,p as ElementMixin$1,q as legacyOptimizations,u as useShadow,v as suppressTemplateNotifications,x as matches,z as translate,A as timeOut$1,B as microTask$1,G as menuOverlayCore,H as idlePeriod,I as animationFrame,J as flush$1,K as enqueueDebouncer$1,L as cancelSyntheticClickEvents,M as passiveTouchGestures$1,N as PropertyAccessors,O as builtCSS,Q as legacyNoObservedAttributes,R as register$2,U as get$1,V as fastDomIf,W as root,X as calculateSplices,Y as cssFromModules,Z as ThemePropertyMixin,_ as n$3,$ as Z$1,a0 as i$3,a1 as t$2,a2 as b$1,a3 as e$2,a4 as badge,a5 as e$3}from"./index-8a19cb36.js";/**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
@@ -8464,7 +8464,143 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
  * @license
  * Copyright (c) 2017 - 2022 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */class AbstractGridColumnRendererDirective extends LitRendererDirective{get rendererProperty(){throw new Error("The `rendererProperty` getter must be implemented.")}addRenderer(){this.element[this.rendererProperty]=(C,T)=>{this.renderRenderer(C,T)}}runRenderer(){const C=this.element._grid;C[CONTENT_UPDATE_DEBOUNCER]=Debouncer$1.debounce(C[CONTENT_UPDATE_DEBOUNCER],microTask,()=>{C.requestContentUpdate()})}removeRenderer(){this.element[this.rendererProperty]=null}}class GridColumnBodyRendererDirective extends AbstractGridColumnRendererDirective{get rendererProperty(){return"renderer"}addRenderer(){this.element[this.rendererProperty]=(C,T,V)=>{this.renderRenderer(C,V.item,V,T)}}}const columnBodyRenderer=e$2(GridColumnBodyRendererDirective);var StatusType=($=>($.NONE="NONE",$.INFO="INFO",$.SUCCESS="SUCCESS",$.WARNING="WARNING",$.DANGER="DANGER",$))(StatusType||{});const contextMenuOverlay=i$2`
+ */class AbstractGridColumnRendererDirective extends LitRendererDirective{get rendererProperty(){throw new Error("The `rendererProperty` getter must be implemented.")}addRenderer(){this.element[this.rendererProperty]=(C,T)=>{this.renderRenderer(C,T)}}runRenderer(){const C=this.element._grid;C[CONTENT_UPDATE_DEBOUNCER]=Debouncer$1.debounce(C[CONTENT_UPDATE_DEBOUNCER],microTask,()=>{C.requestContentUpdate()})}removeRenderer(){this.element[this.rendererProperty]=null}}class GridColumnBodyRendererDirective extends AbstractGridColumnRendererDirective{get rendererProperty(){return"renderer"}addRenderer(){this.element[this.rendererProperty]=(C,T,V)=>{this.renderRenderer(C,V.item,V,T)}}}const columnBodyRenderer=e$2(GridColumnBodyRendererDirective);var StatusType=($=>($.NONE="NONE",$.INFO="INFO",$.SUCCESS="SUCCESS",$.WARNING="WARNING",$.DANGER="DANGER",$))(StatusType||{});const menuBarButton=i$2`
+  :host {
+    margin: calc(var(--lumo-space-xs) / 2);
+    margin-left: 0;
+    border-radius: 0;
+  }
+
+  [part='label'] {
+    width: 100%;
+  }
+
+  /* NOTE(web-padawan): avoid using shorthand padding property for IE11 */
+  [part='label'] ::slotted(vaadin-context-menu-item) {
+    justify-content: center;
+    background-color: transparent;
+    height: var(--lumo-button-size);
+    margin: 0 calc((var(--lumo-size-m) / 3 + var(--lumo-border-radius-m) / 2) * -1);
+    padding-left: calc(var(--lumo-size-m) / 3 + var(--lumo-border-radius-m) / 2);
+    padding-right: calc(var(--lumo-size-m) / 3 + var(--lumo-border-radius-m) / 2);
+  }
+
+  :host([theme~='small']) [part='label'] ::slotted(vaadin-context-menu-item) {
+    min-height: var(--lumo-size-s);
+    margin: 0 calc((var(--lumo-size-s) / 3 + var(--lumo-border-radius-m) / 2) * -1);
+    padding-left: calc(var(--lumo-size-s) / 3 + var(--lumo-border-radius-m) / 2);
+    padding-right: calc(var(--lumo-size-s) / 3 + var(--lumo-border-radius-m) / 2);
+  }
+
+  :host([theme~='tertiary']) [part='label'] ::slotted(vaadin-context-menu-item) {
+    margin: 0 calc((var(--lumo-button-size) / 6) * -1);
+    padding-left: calc(var(--lumo-button-size) / 6);
+    padding-right: calc(var(--lumo-button-size) / 6);
+  }
+
+  :host([theme~='tertiary-inline']) {
+    margin-top: calc(var(--lumo-space-xs) / 2);
+    margin-bottom: calc(var(--lumo-space-xs) / 2);
+    margin-right: calc(var(--lumo-space-xs) / 2);
+  }
+
+  :host([theme~='tertiary-inline']) [part='label'] ::slotted(vaadin-context-menu-item) {
+    margin: 0;
+    padding: 0;
+  }
+
+  :host(:first-of-type) {
+    border-radius: var(--lumo-border-radius-m) 0 0 var(--lumo-border-radius-m);
+
+    /* Needed to retain the focus-ring with border-radius */
+    margin-left: calc(var(--lumo-space-xs) / 2);
+  }
+
+  :host(:nth-last-of-type(2)),
+  :host([part='overflow-button']) {
+    border-radius: 0 var(--lumo-border-radius-m) var(--lumo-border-radius-m) 0;
+  }
+
+  :host([theme~='tertiary']),
+  :host([theme~='tertiary-inline']) {
+    border-radius: var(--lumo-border-radius-m);
+  }
+
+  :host([part='overflow-button']) {
+    min-width: var(--lumo-button-size);
+    padding-left: calc(var(--lumo-button-size) / 4);
+    padding-right: calc(var(--lumo-button-size) / 4);
+  }
+
+  :host([part='overflow-button']) ::slotted(*) {
+    font-size: var(--lumo-font-size-xl);
+  }
+
+  :host([part='overflow-button']) [part='prefix'],
+  :host([part='overflow-button']) [part='suffix'] {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  /* RTL styles */
+  :host([dir='rtl']) {
+    margin-left: calc(var(--lumo-space-xs) / 2);
+    margin-right: 0;
+    border-radius: 0;
+  }
+
+  :host([dir='rtl']:first-of-type) {
+    border-radius: 0 var(--lumo-border-radius-m) var(--lumo-border-radius-m) 0;
+    margin-right: calc(var(--lumo-space-xs) / 2);
+  }
+
+  :host([dir='rtl']:nth-last-of-type(2)),
+  :host([dir='rtl'][part='overflow-button']) {
+    border-radius: var(--lumo-border-radius-m) 0 0 var(--lumo-border-radius-m);
+  }
+`;registerStyles("vaadin-menu-bar-button",[button,menuBarButton],{moduleId:"lumo-menu-bar-button"});/**
+ * @license
+ * Copyright (c) 2019 - 2022 Vaadin Ltd.
+ * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
+ */registerStyles("vaadin-menu-bar-button",i$2`
+    [part='label'] ::slotted(vaadin-context-menu-item) {
+      position: relative;
+      z-index: 1;
+    }
+  `,{moduleId:"vaadin-menu-bar-button-styles"});class MenuBarButton extends Button{static get is(){return"vaadin-menu-bar-button"}}customElements.define(MenuBarButton.is,MenuBarButton);registerStyles("vaadin-context-menu-item",i$2`
+    :host([theme='menu-bar-item']) [part='content'] {
+      display: flex;
+      /* tweak to inherit centering from menu bar button */
+      align-items: inherit;
+      justify-content: inherit;
+    }
+
+    :host([theme='menu-bar-item']) [part='content'] ::slotted(vaadin-icon),
+    :host([theme='menu-bar-item']) [part='content'] ::slotted(iron-icon) {
+      display: inline-block;
+      width: var(--lumo-icon-size-m);
+      height: var(--lumo-icon-size-m);
+    }
+
+    :host([theme='menu-bar-item']) [part='content'] ::slotted(vaadin-icon[icon^='vaadin:']),
+    :host([theme='menu-bar-item']) [part='content'] ::slotted(iron-icon[icon^='vaadin:']) {
+      padding: var(--lumo-space-xs);
+      box-sizing: border-box !important;
+    }
+  `,{moduleId:"lumo-menu-bar-item"});registerStyles("vaadin-context-menu-overlay",i$2`
+    :host(:first-of-type) {
+      padding-top: var(--lumo-space-xs);
+    }
+  `,{moduleId:"lumo-menu-bar-overlay"});registerStyles("vaadin-menu-bar",i$2`
+    :host([has-single-button]) [part$='button'] {
+      border-radius: var(--lumo-border-radius-m);
+    }
+
+    :host([theme~='end-aligned']) [part$='button']:first-child,
+    :host([theme~='end-aligned'][has-single-button]) [part$='button'] {
+      margin-inline-start: auto;
+    }
+  `,{moduleId:"lumo-menu-bar"});const contextMenuOverlay=i$2`
   :host([phone]) {
     top: 0 !important;
     right: 0 !important;
@@ -8685,15 +8821,78 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         theme$="[[_theme]]"
       >
       </vaadin-context-menu-overlay>
-    `}static get is(){return"vaadin-context-menu"}static get properties(){return{selector:{type:String},opened:{type:Boolean,value:!1,notify:!0,readOnly:!0},openOn:{type:String,value:"vaadin-contextmenu"},listenOn:{type:Object,value(){return this}},closeOn:{type:String,value:"click",observer:"_closeOnChanged"},renderer:{type:Function},_context:Object,_boundClose:Object,_boundOpen:Object,_phone:{type:Boolean},_touch:{type:Boolean,value:isTouch},_wide:{type:Boolean},_wideMediaQuery:{type:String,value:"(min-device-width: 750px)"}}}static get observers(){return["_openedChanged(opened)","_targetOrOpenOnChanged(listenOn, openOn)","_rendererChanged(renderer, items)","_touchOrWideChanged(_touch, _wide)"]}constructor(){super(),this._boundOpen=this.open.bind(this),this._boundClose=this.close.bind(this),this._boundOnGlobalContextMenu=this._onGlobalContextMenu.bind(this)}connectedCallback(){super.connectedCallback(),this.__boundOnScroll=this.__onScroll.bind(this),window.addEventListener("scroll",this.__boundOnScroll,!0)}disconnectedCallback(){super.disconnectedCallback(),window.removeEventListener("scroll",this.__boundOnScroll,!0),this.close()}ready(){super.ready(),this._overlayElement=this.$.overlay,this.addController(new MediaQueryController(this._wideMediaQuery,C=>{this._wide=C})),processTemplates(this)}_onOverlayOpened(C){this._setOpened(C.detail.value),this.__alignOverlayPosition()}_onVaadinOverlayOpen(){this.__alignOverlayPosition(),this.$.overlay.style.opacity="",this.__forwardFocus()}_targetOrOpenOnChanged(C,T){this._oldListenOn&&this._oldOpenOn&&(this._unlisten(this._oldListenOn,this._oldOpenOn,this._boundOpen),this._oldListenOn.style.webkitTouchCallout="",this._oldListenOn.style.webkitUserSelect="",this._oldListenOn.style.userSelect="",this._oldListenOn=null,this._oldOpenOn=null),C&&T&&(this._listen(C,T,this._boundOpen),this._oldListenOn=C,this._oldOpenOn=T)}_touchOrWideChanged(C,T){this._phone=!T&&C}_setListenOnUserSelect(C){this.listenOn.style.webkitTouchCallout=C,this.listenOn.style.webkitUserSelect=C,this.listenOn.style.userSelect=C,document.getSelection().removeAllRanges()}_closeOnChanged(C,T){const V="vaadin-overlay-outside-click";T&&(this._unlisten(this.$.overlay,T,this._boundClose),this._unlisten(this.$.overlay.root,T,this._boundClose)),C?(this._listen(this.$.overlay,C,this._boundClose),this._listen(this.$.overlay.root,C,this._boundClose),this._unlisten(this.$.overlay,V,this._preventDefault)):this._listen(this.$.overlay,V,this._preventDefault)}_preventDefault(C){C.preventDefault()}_openedChanged(C){C?(document.documentElement.addEventListener("contextmenu",this._boundOnGlobalContextMenu,!0),this._setListenOnUserSelect("none")):(document.documentElement.removeEventListener("contextmenu",this._boundOnGlobalContextMenu,!0),this._setListenOnUserSelect("")),this.$.overlay.opened=C}requestContentUpdate(){!this._overlayElement||!this.renderer||this._overlayElement.requestContentUpdate()}_rendererChanged(C,T){if(T){if(C)throw new Error("The items API cannot be used together with a renderer");this.closeOn==="click"&&(this.closeOn=""),C=this.__itemsRenderer}this.$.overlay.setProperties({owner:this,renderer:C})}close(){this._setOpened(!1)}_contextTarget(C){if(this.selector){const T=this.listenOn.querySelectorAll(this.selector);return Array.prototype.filter.call(T,V=>C.composedPath().indexOf(V)>-1)[0]}return C.target}open(C){C&&!this.opened&&(this._context={detail:C.detail,target:this._contextTarget(C)},this._context.target&&(this._preventDefault(C),C.stopPropagation(),this.__x=this._getEventCoordinate(C,"x"),this.__pageXOffset=window.pageXOffset,this.__y=this._getEventCoordinate(C,"y"),this.__pageYOffset=window.pageYOffset,this.$.overlay.style.opacity="0",this._setOpened(!0)))}__onScroll(){if(!this.opened)return;const C=window.pageYOffset-this.__pageYOffset,T=window.pageXOffset-this.__pageXOffset;this.__adjustPosition("left",-T),this.__adjustPosition("right",T),this.__adjustPosition("top",-C),this.__adjustPosition("bottom",C),this.__pageYOffset+=C,this.__pageXOffset+=T}__adjustPosition(C,T){const K=this.$.overlay.style;K[C]=`${(parseInt(K[C])||0)+T}px`}__alignOverlayPosition(){const C=this.$.overlay;if(C.positionTarget)return;const T=C.style;["top","right","bottom","left"].forEach(re=>T.removeProperty(re)),["right-aligned","end-aligned","bottom-aligned"].forEach(re=>C.removeAttribute(re));const{xMax:V,xMin:K,yMax:Y}=C.getBoundaries(),J=this.__x,ee=this.__y,te=document.documentElement.clientWidth,ie=document.documentElement.clientHeight;this.__isRTL?J>te/2||J>K?T.right=`${Math.max(0,te-J)}px`:(T.left=`${J}px`,this._setEndAligned(C)):J<te/2||J<V?T.left=`${J}px`:(T.right=`${Math.max(0,te-J)}px`,this._setEndAligned(C)),ee<ie/2||ee<Y?T.top=`${ee}px`:(T.bottom=`${Math.max(0,ie-ee)}px`,C.setAttribute("bottom-aligned",""))}_setEndAligned(C){C.setAttribute("end-aligned",""),this.__isRTL||C.setAttribute("right-aligned","")}_getEventCoordinate(C,T){if(C.detail instanceof Object){if(C.detail[T])return C.detail[T];if(C.detail.sourceEvent)return this._getEventCoordinate(C.detail.sourceEvent,T)}else{const V=`client${T.toUpperCase()}`,K=C.changedTouches?C.changedTouches[0][V]:C[V];if(K===0){const Y=C.target.getBoundingClientRect();return T==="x"?Y.left:Y.top+Y.height}return K}}_listen(C,T,V){gestures$1[T]?addListener$1(C,T,V):C.addEventListener(T,V)}_unlisten(C,T,V){gestures$1[T]?removeListener$1(C,T,V):C.removeEventListener(T,V)}_onGlobalContextMenu(C){C.shiftKey||(C.preventDefault(),this.close())}}customElements.define(ContextMenu.is,ContextMenu);var __defProp$7=Object.defineProperty,__getOwnPropDesc$7=Object.getOwnPropertyDescriptor,__decorateClass$7=($,C,T,V)=>{for(var K=V>1?void 0:V?__getOwnPropDesc$7(C,T):C,Y=$.length-1,J;Y>=0;Y--)(J=$[Y])&&(K=(V?J(C,T,K):J(K))||K);return V&&K&&__defProp$7(C,T,K),K};let MateuCrud=class extends connect(store)(s$2){constructor(){super(...arguments),this.contextMenuItems=[],this.dataProvider=async($,C)=>{const{page:T,pageSize:V,sortOrders:K}=$,{rows:Y,count:J}=await this.fetchData({page:T,pageSize:V,sortOrders:K,filters:btoa(JSON.stringify(this.data))});C(Y,J)}}search(){this.shadowRoot.getElementById("grid").clearCache()}async fetchData($){const C=await this.fetchRows($),T=await this.fetchCount($.filters);return{rows:C,count:T}}async fetchRows($){return(await api.get("/journeys/"+this.journeyId+"/steps/"+this.stepId+"/lists/main/rows?page="+$.page+"&page_size="+$.pageSize+"&ordering=&filters="+$.filters)).data}async fetchCount($){return(await api.get("/journeys/"+this.journeyId+"/steps/"+this.stepId+"/lists/main/count?filters="+$)).data}connectedCallback(){super.connectedCallback()}firstUpdated($){this.addEventListener("keydown",this.handleKey)}handleKey($){$.code=="Enter"&&setTimeout(()=>this.search())}stateChanged($){console.log("state changed in crud",$)}filterChanged($){const C=$.target,T={};T[C.id]=C.value,this.data={...this.data,...T}}edit($){const C=$.currentTarget;console.log(C.row);const T={_selectedRow:C.row};this.data={...this.data,...T},store.dispatch(runStepAction(this.journeyId,this.stepId,"edit",this.data))}showMenu($){const C=$.currentTarget;console.log(C.row),console.log(C.actions),this.contextMenuItems=C.actions}runAction($){var Y;const C=$.currentTarget,V={_selectedRows:((Y=this.shadowRoot)==null?void 0:Y.getElementById("grid")).selectedItems},K={...this.data,...V};store.dispatch(runStepAction(this.journeyId,this.stepId,C.getAttribute("actionid"),K))}getThemeForBadgetType($){switch($){case StatusType.SUCCESS:return"success";case StatusType.WARNING:return"warning";case StatusType.DANGER:return"error";case StatusType.NONE:return"contrast"}return""}getColumn($){return $.type=="Status"?y$1`
+    `}static get is(){return"vaadin-context-menu"}static get properties(){return{selector:{type:String},opened:{type:Boolean,value:!1,notify:!0,readOnly:!0},openOn:{type:String,value:"vaadin-contextmenu"},listenOn:{type:Object,value(){return this}},closeOn:{type:String,value:"click",observer:"_closeOnChanged"},renderer:{type:Function},_context:Object,_boundClose:Object,_boundOpen:Object,_phone:{type:Boolean},_touch:{type:Boolean,value:isTouch},_wide:{type:Boolean},_wideMediaQuery:{type:String,value:"(min-device-width: 750px)"}}}static get observers(){return["_openedChanged(opened)","_targetOrOpenOnChanged(listenOn, openOn)","_rendererChanged(renderer, items)","_touchOrWideChanged(_touch, _wide)"]}constructor(){super(),this._boundOpen=this.open.bind(this),this._boundClose=this.close.bind(this),this._boundOnGlobalContextMenu=this._onGlobalContextMenu.bind(this)}connectedCallback(){super.connectedCallback(),this.__boundOnScroll=this.__onScroll.bind(this),window.addEventListener("scroll",this.__boundOnScroll,!0)}disconnectedCallback(){super.disconnectedCallback(),window.removeEventListener("scroll",this.__boundOnScroll,!0),this.close()}ready(){super.ready(),this._overlayElement=this.$.overlay,this.addController(new MediaQueryController(this._wideMediaQuery,C=>{this._wide=C})),processTemplates(this)}_onOverlayOpened(C){this._setOpened(C.detail.value),this.__alignOverlayPosition()}_onVaadinOverlayOpen(){this.__alignOverlayPosition(),this.$.overlay.style.opacity="",this.__forwardFocus()}_targetOrOpenOnChanged(C,T){this._oldListenOn&&this._oldOpenOn&&(this._unlisten(this._oldListenOn,this._oldOpenOn,this._boundOpen),this._oldListenOn.style.webkitTouchCallout="",this._oldListenOn.style.webkitUserSelect="",this._oldListenOn.style.userSelect="",this._oldListenOn=null,this._oldOpenOn=null),C&&T&&(this._listen(C,T,this._boundOpen),this._oldListenOn=C,this._oldOpenOn=T)}_touchOrWideChanged(C,T){this._phone=!T&&C}_setListenOnUserSelect(C){this.listenOn.style.webkitTouchCallout=C,this.listenOn.style.webkitUserSelect=C,this.listenOn.style.userSelect=C,document.getSelection().removeAllRanges()}_closeOnChanged(C,T){const V="vaadin-overlay-outside-click";T&&(this._unlisten(this.$.overlay,T,this._boundClose),this._unlisten(this.$.overlay.root,T,this._boundClose)),C?(this._listen(this.$.overlay,C,this._boundClose),this._listen(this.$.overlay.root,C,this._boundClose),this._unlisten(this.$.overlay,V,this._preventDefault)):this._listen(this.$.overlay,V,this._preventDefault)}_preventDefault(C){C.preventDefault()}_openedChanged(C){C?(document.documentElement.addEventListener("contextmenu",this._boundOnGlobalContextMenu,!0),this._setListenOnUserSelect("none")):(document.documentElement.removeEventListener("contextmenu",this._boundOnGlobalContextMenu,!0),this._setListenOnUserSelect("")),this.$.overlay.opened=C}requestContentUpdate(){!this._overlayElement||!this.renderer||this._overlayElement.requestContentUpdate()}_rendererChanged(C,T){if(T){if(C)throw new Error("The items API cannot be used together with a renderer");this.closeOn==="click"&&(this.closeOn=""),C=this.__itemsRenderer}this.$.overlay.setProperties({owner:this,renderer:C})}close(){this._setOpened(!1)}_contextTarget(C){if(this.selector){const T=this.listenOn.querySelectorAll(this.selector);return Array.prototype.filter.call(T,V=>C.composedPath().indexOf(V)>-1)[0]}return C.target}open(C){C&&!this.opened&&(this._context={detail:C.detail,target:this._contextTarget(C)},this._context.target&&(this._preventDefault(C),C.stopPropagation(),this.__x=this._getEventCoordinate(C,"x"),this.__pageXOffset=window.pageXOffset,this.__y=this._getEventCoordinate(C,"y"),this.__pageYOffset=window.pageYOffset,this.$.overlay.style.opacity="0",this._setOpened(!0)))}__onScroll(){if(!this.opened)return;const C=window.pageYOffset-this.__pageYOffset,T=window.pageXOffset-this.__pageXOffset;this.__adjustPosition("left",-T),this.__adjustPosition("right",T),this.__adjustPosition("top",-C),this.__adjustPosition("bottom",C),this.__pageYOffset+=C,this.__pageXOffset+=T}__adjustPosition(C,T){const K=this.$.overlay.style;K[C]=`${(parseInt(K[C])||0)+T}px`}__alignOverlayPosition(){const C=this.$.overlay;if(C.positionTarget)return;const T=C.style;["top","right","bottom","left"].forEach(re=>T.removeProperty(re)),["right-aligned","end-aligned","bottom-aligned"].forEach(re=>C.removeAttribute(re));const{xMax:V,xMin:K,yMax:Y}=C.getBoundaries(),J=this.__x,ee=this.__y,te=document.documentElement.clientWidth,ie=document.documentElement.clientHeight;this.__isRTL?J>te/2||J>K?T.right=`${Math.max(0,te-J)}px`:(T.left=`${J}px`,this._setEndAligned(C)):J<te/2||J<V?T.left=`${J}px`:(T.right=`${Math.max(0,te-J)}px`,this._setEndAligned(C)),ee<ie/2||ee<Y?T.top=`${ee}px`:(T.bottom=`${Math.max(0,ie-ee)}px`,C.setAttribute("bottom-aligned",""))}_setEndAligned(C){C.setAttribute("end-aligned",""),this.__isRTL||C.setAttribute("right-aligned","")}_getEventCoordinate(C,T){if(C.detail instanceof Object){if(C.detail[T])return C.detail[T];if(C.detail.sourceEvent)return this._getEventCoordinate(C.detail.sourceEvent,T)}else{const V=`client${T.toUpperCase()}`,K=C.changedTouches?C.changedTouches[0][V]:C[V];if(K===0){const Y=C.target.getBoundingClientRect();return T==="x"?Y.left:Y.top+Y.height}return K}}_listen(C,T,V){gestures$1[T]?addListener$1(C,T,V):C.addEventListener(T,V)}_unlisten(C,T,V){gestures$1[T]?removeListener$1(C,T,V):C.removeEventListener(T,V)}_onGlobalContextMenu(C){C.shiftKey||(C.preventDefault(),this.close())}}customElements.define(ContextMenu.is,ContextMenu);/**
+ * @license
+ * Copyright (c) 2019 - 2022 Vaadin Ltd.
+ * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
+ */class MenuBarSubmenu extends ContextMenu{static get is(){return"vaadin-menu-bar-submenu"}constructor(){super(),this.openOn="opensubmenu"}_openedChanged(C){this.$.overlay.opened=C}close(){super.close(),this.hasAttribute("is-root")&&this.getRootNode().host._close()}}customElements.define(MenuBarSubmenu.is,MenuBarSubmenu);/**
+ * @license
+ * Copyright (c) 2019 - 2022 Vaadin Ltd.
+ * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
+ */const ButtonsMixin=$=>class extends ResizeMixin($){static get properties(){return{_hasOverflow:{type:Boolean,value:!1}}}static get observers(){return["_menuItemsChanged(items, items.splices)"]}get _observeParent(){return!0}ready(){super.ready(),this.setAttribute("role","menubar")}connectedCallback(){super.connectedCallback(),this._initButtonAttrs(this._overflow)}get _buttons(){return Array.from(this.shadowRoot.querySelectorAll('[part$="button"]'))}get _container(){return this.shadowRoot.querySelector('[part="container"]')}get _overflow(){return this.shadowRoot.querySelector('[part="overflow-button"]')}_menuItemsChanged(C){C!==this._oldItems&&(this._oldItems=C,this.__renderButtons(C))}__getOverflowCount(C){return C.item&&C.item.children&&C.item.children.length||0}__restoreButtons(C){for(let T=0;T<C.length;T++){const V=C[T];V.disabled=V.item&&V.item.disabled||this.disabled,V.style.visibility="",V.style.position="";const K=V.item&&V.item.component;K instanceof HTMLElement&&K.classList.contains("vaadin-menu-item")&&(V.appendChild(K),K.classList.remove("vaadin-menu-item"))}this.__updateOverflow([])}__updateOverflow(C){this._overflow.item={children:C},this._hasOverflow=C.length>0}__setOverflowItems(C,T){const V=this._container;if(V.offsetWidth<V.scrollWidth){this._hasOverflow=!0;const K=this.getAttribute("dir")==="rtl";let Y;for(Y=C.length;Y>0;Y--){const ee=C[Y-1],te=getComputedStyle(ee);if(!K&&ee.offsetLeft+ee.offsetWidth<V.offsetWidth-T.offsetWidth||K&&ee.offsetLeft>=T.offsetWidth)break;ee.disabled=!0,ee.style.visibility="hidden",ee.style.position="absolute",ee.style.width=te.width}const J=C.filter((ee,te)=>te>=Y).map(ee=>ee.item);this.__updateOverflow(J)}}__detectOverflow(){const C=this._overflow,T=this._buttons.filter(J=>J!==C),V=this.__getOverflowCount(C);this.__restoreButtons(T),this.__setOverflowItems(T,C);const K=this.__getOverflowCount(C);V!==K&&this._subMenu.opened&&this._subMenu.close();const Y=K===T.length||K===0&&T.length===1;this.toggleAttribute("has-single-button",Y)}_removeButtons(){const C=this._container;for(;C.children.length>1;)C.removeChild(C.firstElementChild)}_initButton(C){const T=document.createElement("vaadin-menu-bar-button");T.setAttribute("part","menu-bar-button");const V={...C};if(T.item=V,C.component){const K=this.__getComponent(V);V.component=K,K.item=V,T.appendChild(K)}else C.text&&(T.textContent=C.text);return T}_initButtonAttrs(C){C.setAttribute("role","menuitem"),(C===this._overflow||C.item&&C.item.children)&&(C.setAttribute("aria-haspopup","true"),C.setAttribute("aria-expanded","false"))}_setButtonDisabled(C,T){C.disabled=T,C.setAttribute("tabindex",T?"-1":"0")}_setButtonTheme(C,T){let V=T;const K=C.item&&C.item.theme;K!=null&&(V=Array.isArray(K)?K.join(" "):K),V?C.setAttribute("theme",V):C.removeAttribute("theme")}_appendButton(C){this._container.insertBefore(C,this._overflow)}__getComponent(C){const T=C.component;let V;const K=T instanceof HTMLElement;if(K&&T.localName==="vaadin-context-menu-item"?V=T:(V=document.createElement("vaadin-context-menu-item"),V.appendChild(K?T:document.createElement(T))),C.text){const Y=V.firstChild||V;Y.textContent=C.text}return V.setAttribute("theme","menu-bar-item"),V}__renderButtons(C=[]){this._removeButtons(),C.length!==0&&(C.forEach(T=>{const V=this._initButton(T);this._appendButton(V),this._setButtonDisabled(V,T.disabled),this._initButtonAttrs(V),this._setButtonTheme(V,this._theme)}),this.__detectOverflow())}_onResize(){this.__detectOverflow()}};/**
+ * @license
+ * Copyright (c) 2019 - 2022 Vaadin Ltd.
+ * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
+ */const InteractionsMixin=$=>class extends KeyboardDirectionMixin(FocusMixin($)){static get properties(){return{openOnHover:{type:Boolean}}}constructor(){super(),this.__boundOnContextMenuKeydown=this.__onContextMenuKeydown.bind(this)}static get observers(){return["_itemsChanged(items, items.splices)"]}ready(){super.ready(),this.addEventListener("mousedown",()=>this._hideTooltip()),this.addEventListener("mouseleave",()=>this._hideTooltip()),this._subMenu.addEventListener("item-selected",this.__onItemSelected.bind(this)),this._subMenu.addEventListener("close-all-menus",this.__onEscapeClose.bind(this)),this._subMenu.$.overlay.addEventListener("keydown",this.__boundOnContextMenuKeydown);const V=this._container;V.addEventListener("click",this.__onButtonClick.bind(this)),V.addEventListener("mouseover",K=>this._onMouseOver(K))}get focused(){return this.shadowRoot.activeElement||this._expandedButton}get _vertical(){return!1}_getItems(){return this._buttons}get __isRTL(){return this.getAttribute("dir")==="rtl"}disconnectedCallback(){super.disconnectedCallback(),this._hideTooltip(!0)}_showTooltip(T,V){const K=this._tooltipController.node;K&&K.isConnected&&(K.generator===void 0&&(K.generator=({item:Y})=>Y&&Y.tooltip),this._subMenu.opened||(this._tooltipController.setTarget(T),this._tooltipController.setContext({item:T.item}),K._stateController.open({hover:V,focus:!V})))}_hideTooltip(T){const V=this._tooltipController.node;V&&V._stateController.close(T)}_setExpanded(T,V){T.toggleAttribute("expanded",V),T.toggleAttribute("active",V),T.setAttribute("aria-expanded",V?"true":"false")}_setTabindex(T,V){T.setAttribute("tabindex",V?"0":"-1")}_focusItem(T,V){const K=V&&this.focused===this._expandedButton;K&&this._close(),super._focusItem(T,V),this._buttons.forEach(Y=>{this._setTabindex(Y,Y===T)}),K&&T.item&&T.item.children?this.__openSubMenu(T,!0,{keepFocus:!0}):T===this._overflow?this._hideTooltip():this._showTooltip(T)}_getButtonFromEvent(T){return Array.from(T.composedPath()).find(V=>V.localName==="vaadin-menu-bar-button")}_setFocused(T){if(T){const V=this.shadowRoot.querySelector('[part$="button"][tabindex="0"]');V&&this._buttons.forEach(K=>{this._setTabindex(K,K===V),K===V&&K!==this._overflow&&isKeyboardActive()&&this._showTooltip(K)})}else this._hideTooltip()}_onArrowDown(T){T.preventDefault();const V=this._getButtonFromEvent(T);V===this._expandedButton?this._focusFirstItem():this.__openSubMenu(V,!0)}_onArrowUp(T){T.preventDefault();const V=this._getButtonFromEvent(T);V===this._expandedButton?this._focusLastItem():this.__openSubMenu(V,!0,{focusLast:!0})}_onEscape(T){T.composedPath().includes(this._expandedButton)&&this._close(!0),this._hideTooltip(!0)}_onKeyDown(T){switch(T.key){case"ArrowDown":this._onArrowDown(T);break;case"ArrowUp":this._onArrowUp(T);break;default:super._onKeyDown(T);break}}get _subMenu(){return this.shadowRoot.querySelector("vaadin-menu-bar-submenu")}_itemsChanged(){const T=this._subMenu;T&&T.opened&&T.close()}_onMouseOver(T){const V=this._getButtonFromEvent(T);if(!V)this._hideTooltip();else if(V!==this._expandedButton){const K=this._subMenu.opened;V.item.children&&(this.openOnHover||K)?this.__openSubMenu(V,!1):K&&this._close(),V===this._overflow||this.openOnHover&&V.item.children?this._hideTooltip():this._showTooltip(V,!0)}}__onContextMenuKeydown(T){const V=Array.from(T.composedPath()).find(K=>K._item);if(V){const K=V.parentNode;T.keyCode===38&&V===K.items[0]&&this._close(!0),(T.keyCode===37||T.keyCode===39&&!V._item.children)&&(T.stopImmediatePropagation(),this._onKeyDown(T))}}__fireItemSelected(T){this.dispatchEvent(new CustomEvent("item-selected",{detail:{value:T}}))}__onButtonClick(T){T.stopPropagation();const V=this._getButtonFromEvent(T);V&&this.__openSubMenu(V,!1)}__openSubMenu(T,V,K={}){const Y=this._subMenu,J=T.item;if(Y.opened&&(this._close(),Y.listenOn===T))return;const ee=J&&J.children;if(!ee||ee.length===0){this.__fireItemSelected(J);return}Y.items=ee,Y.listenOn=T;const te=Y.$.overlay;te.positionTarget=T,te.noVerticalOverlap=!0,this._expandedButton=T,requestAnimationFrame(()=>{T.dispatchEvent(new CustomEvent("opensubmenu",{detail:{children:ee}})),this._hideTooltip(!0),this._setExpanded(T,!0)}),this.style.pointerEvents="auto",te.addEventListener("vaadin-overlay-open",()=>{K.focusLast&&this._focusLastItem(),K.keepFocus&&this._focusItem(this._expandedButton,!1),V||te.$.overlay.focus(),te._updatePosition()},{once:!0})}_focusFirstItem(){this._subMenu.$.overlay.firstElementChild.focus()}_focusLastItem(){const T=this._subMenu.$.overlay.firstElementChild,V=T.items[T.items.length-1];V&&V.focus()}__onItemSelected(T){T.stopPropagation(),this._close(),this.__fireItemSelected(T.detail.value)}__onEscapeClose(){this.__deactivateButton(!0)}__deactivateButton(T){const V=this._expandedButton;V&&V.hasAttribute("expanded")&&(this._setExpanded(V,!1),T&&this._focusItem(V,!1),this._expandedButton=null)}_close(T){this.style.pointerEvents="",this.__deactivateButton(T),this._subMenu.opened&&this._subMenu.close()}};/**
+ * @license
+ * Copyright (c) 2019 - 2022 Vaadin Ltd.
+ * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
+ */class MenuBar extends ButtonsMixin(DisabledMixin(InteractionsMixin(ElementMixin(ThemableMixin(ControllerMixin(PolymerElement)))))){static get template(){return html`
+      <style>
+        :host {
+          display: block;
+        }
+
+        :host([hidden]) {
+          display: none !important;
+        }
+
+        [part='container'] {
+          position: relative;
+          display: flex;
+          width: 100%;
+          flex-wrap: nowrap;
+          overflow: hidden;
+        }
+
+        [part$='button'] {
+          flex-shrink: 0;
+        }
+
+        [part='overflow-button'] {
+          margin-right: 0;
+        }
+
+        .dots::before {
+          display: block;
+          content: '\\00B7\\00B7\\00B7';
+          font-size: inherit;
+          line-height: inherit;
+        }
+      </style>
+
+      <div part="container">
+        <vaadin-menu-bar-button part="overflow-button" hidden$="[[!_hasOverflow]]" aria-label$="[[i18n.moreOptions]]">
+          <div class="dots"></div>
+        </vaadin-menu-bar-button>
+      </div>
+      <vaadin-menu-bar-submenu is-root=""></vaadin-menu-bar-submenu>
+
+      <slot name="tooltip"></slot>
+    `}static get is(){return"vaadin-menu-bar"}static get properties(){return{items:{type:Array,value:()=>[]},i18n:{type:Object,value:()=>({moreOptions:"More options"})}}}static get observers(){return["_themeChanged(_theme)"]}ready(){super.ready(),this._tooltipController=new TooltipController(this),this._tooltipController.setManual(!0),this.addController(this._tooltipController)}_disabledChanged(C,T){super._disabledChanged(C,T),T!==C&&this.__updateButtonsDisabled(C)}_themeChanged(C){this.shadowRoot&&(this._buttons.forEach(T=>this._setButtonTheme(T,C)),this.__detectOverflow()),C?this._subMenu.setAttribute("theme",C):this._subMenu.removeAttribute("theme")}__updateButtonsDisabled(C){this._buttons.forEach(T=>{T.disabled=C||T.item&&T.item.disabled})}}customElements.define(MenuBar.is,MenuBar);var __defProp$7=Object.defineProperty,__getOwnPropDesc$7=Object.getOwnPropertyDescriptor,__decorateClass$7=($,C,T,V)=>{for(var K=V>1?void 0:V?__getOwnPropDesc$7(C,T):C,Y=$.length-1,J;Y>=0;Y--)(J=$[Y])&&(K=(V?J(C,T,K):J(K))||K);return V&&K&&__defProp$7(C,T,K),K};let MateuCrud=class extends connect(store)(s$2){constructor(){super(...arguments),this.dataProvider=async($,C)=>{const{page:T,pageSize:V,sortOrders:K}=$,{rows:Y,count:J}=await this.fetchData({page:T,pageSize:V,sortOrders:K,filters:btoa(JSON.stringify(this.data))});C(Y,J)}}search(){this.shadowRoot.getElementById("grid").clearCache()}async fetchData($){const C=await this.fetchRows($),T=await this.fetchCount($.filters);return{rows:C,count:T}}async fetchRows($){return(await api.get("/journeys/"+this.journeyId+"/steps/"+this.stepId+"/lists/main/rows?page="+$.page+"&page_size="+$.pageSize+"&ordering=&filters="+$.filters)).data}async fetchCount($){return(await api.get("/journeys/"+this.journeyId+"/steps/"+this.stepId+"/lists/main/count?filters="+$)).data}connectedCallback(){super.connectedCallback()}firstUpdated($){this.addEventListener("keydown",this.handleKey)}handleKey($){$.code=="Enter"&&setTimeout(()=>this.search())}stateChanged($){console.log("state changed in crud",$)}filterChanged($){const C=$.target,T={};T[C.id]=C.value,this.data={...this.data,...T}}edit($){const C=$.currentTarget;console.log(C.row);const T={_selectedRow:C.row};this.data={...this.data,...T},store.dispatch(runStepAction(this.journeyId,this.stepId,"edit",this.data))}runAction($){var Y;const C=$.currentTarget,V={_selectedRows:((Y=this.shadowRoot)==null?void 0:Y.getElementById("grid")).selectedItems,_clickedRow:this.clickedRow},K={...this.data,...V};store.dispatch(runStepAction(this.journeyId,this.stepId,C.getAttribute("actionid"),K))}itemSelected($){const C={_clickedRow:$.target.row},T={...this.data,...C};store.dispatch(runStepAction(this.journeyId,this.stepId,"__row__"+$.detail.value.id,T))}getThemeForBadgetType($){switch($){case StatusType.SUCCESS:return"success";case StatusType.WARNING:return"warning";case StatusType.DANGER:return"error";case StatusType.NONE:return"contrast"}return""}getColumn($){return $.type=="Status"?y$1`
             <vaadin-grid-column  path="${$.id}" header="${$.caption}"
                 ${columnBodyRenderer(C=>{const T=C[$.id];return y$1`<span theme="badge ${this.getThemeForBadgetType(T.type)}">${T.message}</span>`},[])}
             </vaadin-grid-column>
           `:$.type=="ColumnActionGroup"?y$1`
         <vaadin-grid-column  path="${$.id}" header="${$.caption}"
-                             ${columnBodyRenderer(C=>{const T=C[$.id];return y$1`<vaadin-icon icon="vaadin:ellipsis-dots-v" class="menu" size="s"
-                                                            .row="${C}" .actions="${T}" @click="${this.showMenu}"
-                                   ></vaadin-icon>`},[])}
+                             ${columnBodyRenderer(C=>{const T=C[$.id].actions.map(V=>({...V,text:V.caption}));return y$1`
+                                     <vaadin-menu-bar
+                                         .items=${[{text:"···",children:T}]}
+                                         theme="tertiary"
+                                         .row="${C}"
+                                         @item-selected="${this.itemSelected}"
+                                     ></vaadin-menu-bar>
+                                   </vaadin-icon>`},[])}
         </vaadin-grid-column>
       `:y$1`
             <vaadin-grid-column path="${$.id}" header="${$.caption}"></vaadin-grid-column>
@@ -8740,15 +8939,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           `:""}
         `)}
       </vaadin-horizontal-layout>
-
-
-
-      <vaadin-context-menu
-          open-on="click"
-          .items=${this.contextMenuItems}
-          @opened-changed="${V=>{this.contextMenuOpened=V.detail.value}}"
-      >
-
       <vaadin-grid id="grid" .dataProvider="${this.dataProvider}">
         <vaadin-grid-selection-column></vaadin-grid-selection-column>
 
@@ -8761,7 +8951,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             ${columnBodyRenderer(V=>y$1`<vaadin-button theme="tertiary-inline" .row="${V}" @click="${this.edit}">Edit</vaadin-button>`,[])}
         
         </vaadin-grid>
-      
     `}};MateuCrud.styles=i$2`
   ${badge}
     
@@ -8777,13 +8966,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   .menu {
     /* color: var(--lumo-secondary-text-color); */
     color: grey;
+    height: 1.2rem;
   }
   
     :host {
 
     }
 
-  `;__decorateClass$7([e()],MateuCrud.prototype,"journeyId",2);__decorateClass$7([e()],MateuCrud.prototype,"stepId",2);__decorateClass$7([e()],MateuCrud.prototype,"metadata",2);__decorateClass$7([e()],MateuCrud.prototype,"data",2);__decorateClass$7([t$1()],MateuCrud.prototype,"contextMenuItems",2);__decorateClass$7([t$1()],MateuCrud.prototype,"dataProvider",2);MateuCrud=__decorateClass$7([e$1("mateu-crud")],MateuCrud);var ResultType=($=>($.Success="Success",$.Info="Info",$.Warning="Warning",$.Error="Error",$))(ResultType||{}),__defProp$6=Object.defineProperty,__getOwnPropDesc$6=Object.getOwnPropertyDescriptor,__decorateClass$6=($,C,T,V)=>{for(var K=V>1?void 0:V?__getOwnPropDesc$6(C,T):C,Y=$.length-1,J;Y>=0;Y--)(J=$[Y])&&(K=(V?J(C,T,K):J(K))||K);return V&&K&&__defProp$6(C,T,K),K};let MateuResult=class extends connect(store)(s$2){connectedCallback(){super.connectedCallback()}runAction($){const C=$.currentTarget;store.dispatch(runStepAction(this.journeyId,this.stepId,C.getAttribute("actionid"),{}))}getIcon($){switch($){case ResultType.Success:return"vaadin:check-circle";case ResultType.Info:return"vaadin:info-circle";case ResultType.Warning:return"vaadin:warning";case ResultType.Error:return"lumo:error"}return"vaadin:question"}getClass($){switch($){case ResultType.Success:return"success";case ResultType.Info:return"info";case ResultType.Warning:return"warning";case ResultType.Error:return"error"}return""}render(){return y$1`
+  `;__decorateClass$7([e()],MateuCrud.prototype,"journeyId",2);__decorateClass$7([e()],MateuCrud.prototype,"stepId",2);__decorateClass$7([e()],MateuCrud.prototype,"metadata",2);__decorateClass$7([e()],MateuCrud.prototype,"data",2);__decorateClass$7([t$1()],MateuCrud.prototype,"clickedRow",2);__decorateClass$7([t$1()],MateuCrud.prototype,"dataProvider",2);MateuCrud=__decorateClass$7([e$1("mateu-crud")],MateuCrud);var ResultType=($=>($.Success="Success",$.Info="Info",$.Warning="Warning",$.Error="Error",$))(ResultType||{}),__defProp$6=Object.defineProperty,__getOwnPropDesc$6=Object.getOwnPropertyDescriptor,__decorateClass$6=($,C,T,V)=>{for(var K=V>1?void 0:V?__getOwnPropDesc$6(C,T):C,Y=$.length-1,J;Y>=0;Y--)(J=$[Y])&&(K=(V?J(C,T,K):J(K))||K);return V&&K&&__defProp$6(C,T,K),K};let MateuResult=class extends connect(store)(s$2){connectedCallback(){super.connectedCallback()}runAction($){const C=$.currentTarget;store.dispatch(runStepAction(this.journeyId,this.stepId,C.getAttribute("actionid"),{}))}getIcon($){switch($){case ResultType.Success:return"vaadin:check-circle";case ResultType.Info:return"vaadin:info-circle";case ResultType.Warning:return"vaadin:warning";case ResultType.Error:return"lumo:error"}return"vaadin:question"}getClass($){switch($){case ResultType.Success:return"success";case ResultType.Info:return"info";case ResultType.Warning:return"warning";case ResultType.Error:return"error"}return""}render(){return y$1`
 
       <vaadin-horizontal-layout class="header">
         <div>
@@ -9052,201 +9242,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 
 
-  `;__decorateClass$2([e()],JourneyStarter.prototype,"journeyTypeId",2);__decorateClass$2([e()],JourneyStarter.prototype,"loading",2);__decorateClass$2([e()],JourneyStarter.prototype,"cargando",2);__decorateClass$2([e()],JourneyStarter.prototype,"error",2);__decorateClass$2([e()],JourneyStarter.prototype,"tipos",2);__decorateClass$2([e()],JourneyStarter.prototype,"journeyType",2);__decorateClass$2([e()],JourneyStarter.prototype,"journeyId",2);__decorateClass$2([e()],JourneyStarter.prototype,"journey",2);__decorateClass$2([e()],JourneyStarter.prototype,"stepId",2);__decorateClass$2([e()],JourneyStarter.prototype,"step",2);__decorateClass$2([e()],JourneyStarter.prototype,"completed",2);JourneyStarter=__decorateClass$2([e$1("journey-starter")],JourneyStarter);var MenuType=($=>($.MenuOption="MenuOption",$.Submenu="Submenu",$))(MenuType||{});const menuBarButton=i$2`
-  :host {
-    margin: calc(var(--lumo-space-xs) / 2);
-    margin-left: 0;
-    border-radius: 0;
-  }
-
-  [part='label'] {
-    width: 100%;
-  }
-
-  /* NOTE(web-padawan): avoid using shorthand padding property for IE11 */
-  [part='label'] ::slotted(vaadin-context-menu-item) {
-    justify-content: center;
-    background-color: transparent;
-    height: var(--lumo-button-size);
-    margin: 0 calc((var(--lumo-size-m) / 3 + var(--lumo-border-radius-m) / 2) * -1);
-    padding-left: calc(var(--lumo-size-m) / 3 + var(--lumo-border-radius-m) / 2);
-    padding-right: calc(var(--lumo-size-m) / 3 + var(--lumo-border-radius-m) / 2);
-  }
-
-  :host([theme~='small']) [part='label'] ::slotted(vaadin-context-menu-item) {
-    min-height: var(--lumo-size-s);
-    margin: 0 calc((var(--lumo-size-s) / 3 + var(--lumo-border-radius-m) / 2) * -1);
-    padding-left: calc(var(--lumo-size-s) / 3 + var(--lumo-border-radius-m) / 2);
-    padding-right: calc(var(--lumo-size-s) / 3 + var(--lumo-border-radius-m) / 2);
-  }
-
-  :host([theme~='tertiary']) [part='label'] ::slotted(vaadin-context-menu-item) {
-    margin: 0 calc((var(--lumo-button-size) / 6) * -1);
-    padding-left: calc(var(--lumo-button-size) / 6);
-    padding-right: calc(var(--lumo-button-size) / 6);
-  }
-
-  :host([theme~='tertiary-inline']) {
-    margin-top: calc(var(--lumo-space-xs) / 2);
-    margin-bottom: calc(var(--lumo-space-xs) / 2);
-    margin-right: calc(var(--lumo-space-xs) / 2);
-  }
-
-  :host([theme~='tertiary-inline']) [part='label'] ::slotted(vaadin-context-menu-item) {
-    margin: 0;
-    padding: 0;
-  }
-
-  :host(:first-of-type) {
-    border-radius: var(--lumo-border-radius-m) 0 0 var(--lumo-border-radius-m);
-
-    /* Needed to retain the focus-ring with border-radius */
-    margin-left: calc(var(--lumo-space-xs) / 2);
-  }
-
-  :host(:nth-last-of-type(2)),
-  :host([part='overflow-button']) {
-    border-radius: 0 var(--lumo-border-radius-m) var(--lumo-border-radius-m) 0;
-  }
-
-  :host([theme~='tertiary']),
-  :host([theme~='tertiary-inline']) {
-    border-radius: var(--lumo-border-radius-m);
-  }
-
-  :host([part='overflow-button']) {
-    min-width: var(--lumo-button-size);
-    padding-left: calc(var(--lumo-button-size) / 4);
-    padding-right: calc(var(--lumo-button-size) / 4);
-  }
-
-  :host([part='overflow-button']) ::slotted(*) {
-    font-size: var(--lumo-font-size-xl);
-  }
-
-  :host([part='overflow-button']) [part='prefix'],
-  :host([part='overflow-button']) [part='suffix'] {
-    margin-left: 0;
-    margin-right: 0;
-  }
-
-  /* RTL styles */
-  :host([dir='rtl']) {
-    margin-left: calc(var(--lumo-space-xs) / 2);
-    margin-right: 0;
-    border-radius: 0;
-  }
-
-  :host([dir='rtl']:first-of-type) {
-    border-radius: 0 var(--lumo-border-radius-m) var(--lumo-border-radius-m) 0;
-    margin-right: calc(var(--lumo-space-xs) / 2);
-  }
-
-  :host([dir='rtl']:nth-last-of-type(2)),
-  :host([dir='rtl'][part='overflow-button']) {
-    border-radius: var(--lumo-border-radius-m) 0 0 var(--lumo-border-radius-m);
-  }
-`;registerStyles("vaadin-menu-bar-button",[button,menuBarButton],{moduleId:"lumo-menu-bar-button"});/**
- * @license
- * Copyright (c) 2019 - 2022 Vaadin Ltd.
- * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */registerStyles("vaadin-menu-bar-button",i$2`
-    [part='label'] ::slotted(vaadin-context-menu-item) {
-      position: relative;
-      z-index: 1;
-    }
-  `,{moduleId:"vaadin-menu-bar-button-styles"});class MenuBarButton extends Button{static get is(){return"vaadin-menu-bar-button"}}customElements.define(MenuBarButton.is,MenuBarButton);registerStyles("vaadin-context-menu-item",i$2`
-    :host([theme='menu-bar-item']) [part='content'] {
-      display: flex;
-      /* tweak to inherit centering from menu bar button */
-      align-items: inherit;
-      justify-content: inherit;
-    }
-
-    :host([theme='menu-bar-item']) [part='content'] ::slotted(vaadin-icon),
-    :host([theme='menu-bar-item']) [part='content'] ::slotted(iron-icon) {
-      display: inline-block;
-      width: var(--lumo-icon-size-m);
-      height: var(--lumo-icon-size-m);
-    }
-
-    :host([theme='menu-bar-item']) [part='content'] ::slotted(vaadin-icon[icon^='vaadin:']),
-    :host([theme='menu-bar-item']) [part='content'] ::slotted(iron-icon[icon^='vaadin:']) {
-      padding: var(--lumo-space-xs);
-      box-sizing: border-box !important;
-    }
-  `,{moduleId:"lumo-menu-bar-item"});registerStyles("vaadin-context-menu-overlay",i$2`
-    :host(:first-of-type) {
-      padding-top: var(--lumo-space-xs);
-    }
-  `,{moduleId:"lumo-menu-bar-overlay"});registerStyles("vaadin-menu-bar",i$2`
-    :host([has-single-button]) [part$='button'] {
-      border-radius: var(--lumo-border-radius-m);
-    }
-
-    :host([theme~='end-aligned']) [part$='button']:first-child,
-    :host([theme~='end-aligned'][has-single-button]) [part$='button'] {
-      margin-inline-start: auto;
-    }
-  `,{moduleId:"lumo-menu-bar"});/**
- * @license
- * Copyright (c) 2019 - 2022 Vaadin Ltd.
- * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */class MenuBarSubmenu extends ContextMenu{static get is(){return"vaadin-menu-bar-submenu"}constructor(){super(),this.openOn="opensubmenu"}_openedChanged(C){this.$.overlay.opened=C}close(){super.close(),this.hasAttribute("is-root")&&this.getRootNode().host._close()}}customElements.define(MenuBarSubmenu.is,MenuBarSubmenu);/**
- * @license
- * Copyright (c) 2019 - 2022 Vaadin Ltd.
- * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const ButtonsMixin=$=>class extends ResizeMixin($){static get properties(){return{_hasOverflow:{type:Boolean,value:!1}}}static get observers(){return["_menuItemsChanged(items, items.splices)"]}get _observeParent(){return!0}ready(){super.ready(),this.setAttribute("role","menubar")}connectedCallback(){super.connectedCallback(),this._initButtonAttrs(this._overflow)}get _buttons(){return Array.from(this.shadowRoot.querySelectorAll('[part$="button"]'))}get _container(){return this.shadowRoot.querySelector('[part="container"]')}get _overflow(){return this.shadowRoot.querySelector('[part="overflow-button"]')}_menuItemsChanged(C){C!==this._oldItems&&(this._oldItems=C,this.__renderButtons(C))}__getOverflowCount(C){return C.item&&C.item.children&&C.item.children.length||0}__restoreButtons(C){for(let T=0;T<C.length;T++){const V=C[T];V.disabled=V.item&&V.item.disabled||this.disabled,V.style.visibility="",V.style.position="";const K=V.item&&V.item.component;K instanceof HTMLElement&&K.classList.contains("vaadin-menu-item")&&(V.appendChild(K),K.classList.remove("vaadin-menu-item"))}this.__updateOverflow([])}__updateOverflow(C){this._overflow.item={children:C},this._hasOverflow=C.length>0}__setOverflowItems(C,T){const V=this._container;if(V.offsetWidth<V.scrollWidth){this._hasOverflow=!0;const K=this.getAttribute("dir")==="rtl";let Y;for(Y=C.length;Y>0;Y--){const ee=C[Y-1],te=getComputedStyle(ee);if(!K&&ee.offsetLeft+ee.offsetWidth<V.offsetWidth-T.offsetWidth||K&&ee.offsetLeft>=T.offsetWidth)break;ee.disabled=!0,ee.style.visibility="hidden",ee.style.position="absolute",ee.style.width=te.width}const J=C.filter((ee,te)=>te>=Y).map(ee=>ee.item);this.__updateOverflow(J)}}__detectOverflow(){const C=this._overflow,T=this._buttons.filter(J=>J!==C),V=this.__getOverflowCount(C);this.__restoreButtons(T),this.__setOverflowItems(T,C);const K=this.__getOverflowCount(C);V!==K&&this._subMenu.opened&&this._subMenu.close();const Y=K===T.length||K===0&&T.length===1;this.toggleAttribute("has-single-button",Y)}_removeButtons(){const C=this._container;for(;C.children.length>1;)C.removeChild(C.firstElementChild)}_initButton(C){const T=document.createElement("vaadin-menu-bar-button");T.setAttribute("part","menu-bar-button");const V={...C};if(T.item=V,C.component){const K=this.__getComponent(V);V.component=K,K.item=V,T.appendChild(K)}else C.text&&(T.textContent=C.text);return T}_initButtonAttrs(C){C.setAttribute("role","menuitem"),(C===this._overflow||C.item&&C.item.children)&&(C.setAttribute("aria-haspopup","true"),C.setAttribute("aria-expanded","false"))}_setButtonDisabled(C,T){C.disabled=T,C.setAttribute("tabindex",T?"-1":"0")}_setButtonTheme(C,T){let V=T;const K=C.item&&C.item.theme;K!=null&&(V=Array.isArray(K)?K.join(" "):K),V?C.setAttribute("theme",V):C.removeAttribute("theme")}_appendButton(C){this._container.insertBefore(C,this._overflow)}__getComponent(C){const T=C.component;let V;const K=T instanceof HTMLElement;if(K&&T.localName==="vaadin-context-menu-item"?V=T:(V=document.createElement("vaadin-context-menu-item"),V.appendChild(K?T:document.createElement(T))),C.text){const Y=V.firstChild||V;Y.textContent=C.text}return V.setAttribute("theme","menu-bar-item"),V}__renderButtons(C=[]){this._removeButtons(),C.length!==0&&(C.forEach(T=>{const V=this._initButton(T);this._appendButton(V),this._setButtonDisabled(V,T.disabled),this._initButtonAttrs(V),this._setButtonTheme(V,this._theme)}),this.__detectOverflow())}_onResize(){this.__detectOverflow()}};/**
- * @license
- * Copyright (c) 2019 - 2022 Vaadin Ltd.
- * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const InteractionsMixin=$=>class extends KeyboardDirectionMixin(FocusMixin($)){static get properties(){return{openOnHover:{type:Boolean}}}constructor(){super(),this.__boundOnContextMenuKeydown=this.__onContextMenuKeydown.bind(this)}static get observers(){return["_itemsChanged(items, items.splices)"]}ready(){super.ready(),this.addEventListener("mousedown",()=>this._hideTooltip()),this.addEventListener("mouseleave",()=>this._hideTooltip()),this._subMenu.addEventListener("item-selected",this.__onItemSelected.bind(this)),this._subMenu.addEventListener("close-all-menus",this.__onEscapeClose.bind(this)),this._subMenu.$.overlay.addEventListener("keydown",this.__boundOnContextMenuKeydown);const V=this._container;V.addEventListener("click",this.__onButtonClick.bind(this)),V.addEventListener("mouseover",K=>this._onMouseOver(K))}get focused(){return this.shadowRoot.activeElement||this._expandedButton}get _vertical(){return!1}_getItems(){return this._buttons}get __isRTL(){return this.getAttribute("dir")==="rtl"}disconnectedCallback(){super.disconnectedCallback(),this._hideTooltip(!0)}_showTooltip(T,V){const K=this._tooltipController.node;K&&K.isConnected&&(K.generator===void 0&&(K.generator=({item:Y})=>Y&&Y.tooltip),this._subMenu.opened||(this._tooltipController.setTarget(T),this._tooltipController.setContext({item:T.item}),K._stateController.open({hover:V,focus:!V})))}_hideTooltip(T){const V=this._tooltipController.node;V&&V._stateController.close(T)}_setExpanded(T,V){T.toggleAttribute("expanded",V),T.toggleAttribute("active",V),T.setAttribute("aria-expanded",V?"true":"false")}_setTabindex(T,V){T.setAttribute("tabindex",V?"0":"-1")}_focusItem(T,V){const K=V&&this.focused===this._expandedButton;K&&this._close(),super._focusItem(T,V),this._buttons.forEach(Y=>{this._setTabindex(Y,Y===T)}),K&&T.item&&T.item.children?this.__openSubMenu(T,!0,{keepFocus:!0}):T===this._overflow?this._hideTooltip():this._showTooltip(T)}_getButtonFromEvent(T){return Array.from(T.composedPath()).find(V=>V.localName==="vaadin-menu-bar-button")}_setFocused(T){if(T){const V=this.shadowRoot.querySelector('[part$="button"][tabindex="0"]');V&&this._buttons.forEach(K=>{this._setTabindex(K,K===V),K===V&&K!==this._overflow&&isKeyboardActive()&&this._showTooltip(K)})}else this._hideTooltip()}_onArrowDown(T){T.preventDefault();const V=this._getButtonFromEvent(T);V===this._expandedButton?this._focusFirstItem():this.__openSubMenu(V,!0)}_onArrowUp(T){T.preventDefault();const V=this._getButtonFromEvent(T);V===this._expandedButton?this._focusLastItem():this.__openSubMenu(V,!0,{focusLast:!0})}_onEscape(T){T.composedPath().includes(this._expandedButton)&&this._close(!0),this._hideTooltip(!0)}_onKeyDown(T){switch(T.key){case"ArrowDown":this._onArrowDown(T);break;case"ArrowUp":this._onArrowUp(T);break;default:super._onKeyDown(T);break}}get _subMenu(){return this.shadowRoot.querySelector("vaadin-menu-bar-submenu")}_itemsChanged(){const T=this._subMenu;T&&T.opened&&T.close()}_onMouseOver(T){const V=this._getButtonFromEvent(T);if(!V)this._hideTooltip();else if(V!==this._expandedButton){const K=this._subMenu.opened;V.item.children&&(this.openOnHover||K)?this.__openSubMenu(V,!1):K&&this._close(),V===this._overflow||this.openOnHover&&V.item.children?this._hideTooltip():this._showTooltip(V,!0)}}__onContextMenuKeydown(T){const V=Array.from(T.composedPath()).find(K=>K._item);if(V){const K=V.parentNode;T.keyCode===38&&V===K.items[0]&&this._close(!0),(T.keyCode===37||T.keyCode===39&&!V._item.children)&&(T.stopImmediatePropagation(),this._onKeyDown(T))}}__fireItemSelected(T){this.dispatchEvent(new CustomEvent("item-selected",{detail:{value:T}}))}__onButtonClick(T){T.stopPropagation();const V=this._getButtonFromEvent(T);V&&this.__openSubMenu(V,!1)}__openSubMenu(T,V,K={}){const Y=this._subMenu,J=T.item;if(Y.opened&&(this._close(),Y.listenOn===T))return;const ee=J&&J.children;if(!ee||ee.length===0){this.__fireItemSelected(J);return}Y.items=ee,Y.listenOn=T;const te=Y.$.overlay;te.positionTarget=T,te.noVerticalOverlap=!0,this._expandedButton=T,requestAnimationFrame(()=>{T.dispatchEvent(new CustomEvent("opensubmenu",{detail:{children:ee}})),this._hideTooltip(!0),this._setExpanded(T,!0)}),this.style.pointerEvents="auto",te.addEventListener("vaadin-overlay-open",()=>{K.focusLast&&this._focusLastItem(),K.keepFocus&&this._focusItem(this._expandedButton,!1),V||te.$.overlay.focus(),te._updatePosition()},{once:!0})}_focusFirstItem(){this._subMenu.$.overlay.firstElementChild.focus()}_focusLastItem(){const T=this._subMenu.$.overlay.firstElementChild,V=T.items[T.items.length-1];V&&V.focus()}__onItemSelected(T){T.stopPropagation(),this._close(),this.__fireItemSelected(T.detail.value)}__onEscapeClose(){this.__deactivateButton(!0)}__deactivateButton(T){const V=this._expandedButton;V&&V.hasAttribute("expanded")&&(this._setExpanded(V,!1),T&&this._focusItem(V,!1),this._expandedButton=null)}_close(T){this.style.pointerEvents="",this.__deactivateButton(T),this._subMenu.opened&&this._subMenu.close()}};/**
- * @license
- * Copyright (c) 2019 - 2022 Vaadin Ltd.
- * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */class MenuBar extends ButtonsMixin(DisabledMixin(InteractionsMixin(ElementMixin(ThemableMixin(ControllerMixin(PolymerElement)))))){static get template(){return html`
-      <style>
-        :host {
-          display: block;
-        }
-
-        :host([hidden]) {
-          display: none !important;
-        }
-
-        [part='container'] {
-          position: relative;
-          display: flex;
-          width: 100%;
-          flex-wrap: nowrap;
-          overflow: hidden;
-        }
-
-        [part$='button'] {
-          flex-shrink: 0;
-        }
-
-        [part='overflow-button'] {
-          margin-right: 0;
-        }
-
-        .dots::before {
-          display: block;
-          content: '\\00B7\\00B7\\00B7';
-          font-size: inherit;
-          line-height: inherit;
-        }
-      </style>
-
-      <div part="container">
-        <vaadin-menu-bar-button part="overflow-button" hidden$="[[!_hasOverflow]]" aria-label$="[[i18n.moreOptions]]">
-          <div class="dots"></div>
-        </vaadin-menu-bar-button>
-      </div>
-      <vaadin-menu-bar-submenu is-root=""></vaadin-menu-bar-submenu>
-
-      <slot name="tooltip"></slot>
-    `}static get is(){return"vaadin-menu-bar"}static get properties(){return{items:{type:Array,value:()=>[]},i18n:{type:Object,value:()=>({moreOptions:"More options"})}}}static get observers(){return["_themeChanged(_theme)"]}ready(){super.ready(),this._tooltipController=new TooltipController(this),this._tooltipController.setManual(!0),this.addController(this._tooltipController)}_disabledChanged(C,T){super._disabledChanged(C,T),T!==C&&this.__updateButtonsDisabled(C)}_themeChanged(C){this.shadowRoot&&(this._buttons.forEach(T=>this._setButtonTheme(T,C)),this.__detectOverflow()),C?this._subMenu.setAttribute("theme",C):this._subMenu.removeAttribute("theme")}__updateButtonsDisabled(C){this._buttons.forEach(T=>{T.disabled=C||T.item&&T.item.disabled})}}customElements.define(MenuBar.is,MenuBar);var __defProp$1=Object.defineProperty,__getOwnPropDesc$1=Object.getOwnPropertyDescriptor,__decorateClass$1=($,C,T,V)=>{for(var K=V>1?void 0:V?__getOwnPropDesc$1(C,T):C,Y=$.length-1,J;Y>=0;Y--)(J=$[Y])&&(K=(V?J(C,T,K):J(K))||K);return V&&K&&__defProp$1(C,T,K),K};let MateuUi=class extends connect(store)(s$2){constructor(){super(...arguments),this.uiId="",this.ui=void 0,this.loading=!1}stateChanged($){var C;this.loading=!1,this.ui=$.tiposJourney.ui,this.journeyTypeId=$.tiposJourney.journeyType,this.items=(C=this.ui)==null?void 0:C.menu.map(T=>{var V;return{journeyTypeId:T.journeyTypeId,text:T.caption,children:T.type==MenuType.Submenu?(V=T.submenus)==null?void 0:V.map(K=>({journeyTypeId:K.journeyTypeId,text:K.caption})):void 0}})}connectedCallback(){super.connectedCallback(),this.loading=!0,store.dispatch(getUi(this.uiId))}selectJourney($){let C=$.currentTarget.getAttribute("journeytypeid");store.dispatch(setJourneyType(C))}itemSelected($){let C=$.detail.value;store.dispatch(setJourneyType(C.journeyTypeId))}render(){return y$1`
+  `;__decorateClass$2([e()],JourneyStarter.prototype,"journeyTypeId",2);__decorateClass$2([e()],JourneyStarter.prototype,"loading",2);__decorateClass$2([e()],JourneyStarter.prototype,"cargando",2);__decorateClass$2([e()],JourneyStarter.prototype,"error",2);__decorateClass$2([e()],JourneyStarter.prototype,"tipos",2);__decorateClass$2([e()],JourneyStarter.prototype,"journeyType",2);__decorateClass$2([e()],JourneyStarter.prototype,"journeyId",2);__decorateClass$2([e()],JourneyStarter.prototype,"journey",2);__decorateClass$2([e()],JourneyStarter.prototype,"stepId",2);__decorateClass$2([e()],JourneyStarter.prototype,"step",2);__decorateClass$2([e()],JourneyStarter.prototype,"completed",2);JourneyStarter=__decorateClass$2([e$1("journey-starter")],JourneyStarter);var MenuType=($=>($.MenuOption="MenuOption",$.Submenu="Submenu",$))(MenuType||{}),__defProp$1=Object.defineProperty,__getOwnPropDesc$1=Object.getOwnPropertyDescriptor,__decorateClass$1=($,C,T,V)=>{for(var K=V>1?void 0:V?__getOwnPropDesc$1(C,T):C,Y=$.length-1,J;Y>=0;Y--)(J=$[Y])&&(K=(V?J(C,T,K):J(K))||K);return V&&K&&__defProp$1(C,T,K),K};let MateuUi=class extends connect(store)(s$2){constructor(){super(...arguments),this.uiId="",this.ui=void 0,this.loading=!1}stateChanged($){var C;this.loading=!1,this.ui=$.tiposJourney.ui,this.journeyTypeId=$.tiposJourney.journeyType,this.items=(C=this.ui)==null?void 0:C.menu.map(T=>{var V;return{journeyTypeId:T.journeyTypeId,text:T.caption,children:T.type==MenuType.Submenu?(V=T.submenus)==null?void 0:V.map(K=>({journeyTypeId:K.journeyTypeId,text:K.caption})):void 0}})}connectedCallback(){super.connectedCallback(),this.loading=!0,store.dispatch(getUi(this.uiId))}selectJourney($){let C=$.currentTarget.getAttribute("journeytypeid");store.dispatch(setJourneyType(C))}itemSelected($){let C=$.detail.value;store.dispatch(setJourneyType(C.journeyTypeId))}render(){return y$1`
         ${this.ui?y$1`
 
             <vaadin-vertical-layout style="align-items: center">
