@@ -1,5 +1,7 @@
 package io.mateu.remote.domain.metadata;
 
+import io.mateu.mdd.core.interfaces.HasSubtitle;
+import io.mateu.mdd.core.interfaces.HasTitle;
 import io.mateu.mdd.core.interfaces.RpcCrudViewExtended;
 import io.mateu.mdd.shared.annotations.Ignored;
 import io.mateu.mdd.shared.annotations.Width;
@@ -15,11 +17,26 @@ public class CrudMetadataBuilder extends AbstractMetadataBuilder {
 
     public Crud build(RpcView rpcView) {
         return Crud.builder()
-                .title(rpcView.getCaption())
+                .title(getTitle(rpcView))
+                .subtitle(getSubtitle(rpcView))
                 .searchForm(buildSearchForm(rpcView))
                 .columns(buildColumns(rpcView))
                 .actions(getActions(rpcView))
                 .build();
+    }
+
+    private String getSubtitle(RpcView rpcView) {
+        if (rpcView instanceof HasSubtitle) {
+            return ((HasSubtitle) rpcView).getSubtitle();
+        }
+        return null;
+    }
+
+    private String getTitle(RpcView rpcView) {
+        if (rpcView instanceof HasTitle) {
+            return ((HasTitle) rpcView).getTitle();
+        }
+        return rpcView.getCaption();
     }
 
     private List<Column> buildColumns(RpcView rpcView) {

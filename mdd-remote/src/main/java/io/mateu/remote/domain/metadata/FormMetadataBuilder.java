@@ -1,5 +1,7 @@
 package io.mateu.remote.domain.metadata;
 
+import io.mateu.mdd.core.interfaces.HasSubtitle;
+import io.mateu.mdd.core.interfaces.HasTitle;
 import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.shared.annotations.Caption;
@@ -20,6 +22,7 @@ public class FormMetadataBuilder extends AbstractMetadataBuilder {
     public Form build(Object uiInstance) {
         Form form = Form.builder()
                 .title(getCaption(uiInstance))
+                .subtitle(getSubtitle(uiInstance))
                 .status(getStatus(uiInstance))
                 .readOnly(uiInstance instanceof ReadOnlyPojo && !(uiInstance instanceof PersistentPojo))
                 .badges(getBadges(uiInstance))
@@ -28,6 +31,13 @@ public class FormMetadataBuilder extends AbstractMetadataBuilder {
                 .mainActions(getMainActions(uiInstance))
                 .build();
         return form;
+    }
+
+    private String getSubtitle(Object uiInstance) {
+        if (uiInstance instanceof HasSubtitle) {
+            return ((HasSubtitle) uiInstance).getSubtitle();
+        }
+        return null;
     }
 
     private Status getStatus(Object uiInstance) {
@@ -116,6 +126,11 @@ public class FormMetadataBuilder extends AbstractMetadataBuilder {
 
 
     private String getCaption(Object uiInstance) {
+
+        if (uiInstance instanceof HasTitle) {
+            return ((HasTitle) uiInstance).getTitle();
+        }
+
         Class<?> modelType = uiInstance.getClass();
         if (modelType.isAnnotationPresent(Caption.class)) {
             return modelType.getAnnotation(Caption.class).value();
@@ -132,7 +147,7 @@ public class FormMetadataBuilder extends AbstractMetadataBuilder {
         try {
             if (Object.class.equals(modelType.getMethod("toString").getDeclaringClass())) {
                 return Helper.capitalize(modelType.getSimpleName());
-            }
+            } else return Helper.capitalize(uiInstance.toString());
         } catch (NoSuchMethodException e) {
         }
 

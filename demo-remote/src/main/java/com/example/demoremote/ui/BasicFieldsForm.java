@@ -2,9 +2,12 @@ package com.example.demoremote.ui;
 
 import com.example.demoremote.nfl.dtos.Conference;
 import com.example.demoremote.nfl.dtos.Division;
+import io.mateu.mdd.core.interfaces.HasSubtitle;
+import io.mateu.mdd.core.interfaces.HasTitle;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.*;
 import io.mateu.mdd.shared.interfaces.HasBadges;
+import io.mateu.mdd.shared.interfaces.HasStatus;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -13,7 +16,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 @Data
-public class BasicFieldsForm implements HasBadges {
+public class BasicFieldsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
 
     @Section("Basic")
     private String name = "Mateu";
@@ -74,11 +77,26 @@ public class BasicFieldsForm implements HasBadges {
     }
 
     public String toString() {
-        return "This is a sample form";
+        return "This is a sample form (toString)";
     }
 
     @Override
     public List<Badge> getBadges() {
         return List.of(new Badge(BadgeType.WARNING, "It works!"));
+    }
+
+    @Override
+    public Status getStatus() {
+        return new Status(StatusType.SUCCESS, "This is the status!");
+    }
+
+    @Override
+    public String getSubtitle() {
+        return "This is the subtitle";
+    }
+
+    @Override
+    public String getTitle() {
+        return "This is the title";
     }
 }

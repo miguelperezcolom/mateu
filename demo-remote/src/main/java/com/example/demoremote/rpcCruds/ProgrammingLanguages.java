@@ -4,6 +4,8 @@ import com.google.common.base.Strings;
 import com.vaadin.data.provider.QuerySortOrder;
 import io.mateu.mdd.core.app.ColumnAction;
 import io.mateu.mdd.core.app.ColumnActionGroup;
+import io.mateu.mdd.core.interfaces.HasSubtitle;
+import io.mateu.mdd.core.interfaces.HasTitle;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.Ignored;
@@ -20,7 +22,7 @@ import java.util.stream.Collectors;
 @Caption("Some programming languages")
 @Getter@Setter
 @Service
-public class ProgrammingLanguages implements RpcCrudView<ProgrammingLanguages, ProgrammingLanguages.Row, ProgrammingLanguages.Row> {
+public class ProgrammingLanguages implements RpcCrudView<ProgrammingLanguages, ProgrammingLanguages.Row, ProgrammingLanguages.Row>, HasTitle, HasSubtitle {
 
     @Autowired
     private LanguagesRepository repo;
@@ -54,6 +56,16 @@ public class ProgrammingLanguages implements RpcCrudView<ProgrammingLanguages, P
     @Override
     public void delete(Set<Row> selection) throws Throwable {
         repo.findAll().removeAll(selection);
+    }
+
+    @Override
+    public String getSubtitle() {
+        return "This is the subtitle";
+    }
+
+    @Override
+    public String getTitle() {
+        return "Programming languages";
     }
 
     @Getter@Setter@NoArgsConstructor@EqualsAndHashCode(of = "id")

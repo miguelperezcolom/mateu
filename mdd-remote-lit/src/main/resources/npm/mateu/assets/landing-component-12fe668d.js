@@ -1,4 +1,4 @@
-import{i as i$2,r as registerStyles,E as ElementMixin,T as ThemableMixin,P as PolymerElement,h as html,C as ControllerMixin,F as FlattenedNodesObserver,d as dedupingMixin,m as microTask,a as TooltipController,D as Debouncer$1,t as timeOut,b as DirHelper,s as s$2,y as y$1,c as DirMixin$1,e as requiredField,f as fieldButton,S as SlotController,g as generateUniqueId,o as overlay,j as PropertyEffects,k as strictTemplatePolicy,w as wrap$1,l as legacyWarnings,n as menuOverlay,p as ElementMixin$1,q as legacyOptimizations,u as useShadow,v as suppressTemplateNotifications,x as matches,z as translate,A as timeOut$1,B as microTask$1,G as menuOverlayCore,H as idlePeriod,I as animationFrame,J as flush$1,K as enqueueDebouncer$1,L as cancelSyntheticClickEvents,M as passiveTouchGestures$1,N as PropertyAccessors,O as builtCSS,Q as legacyNoObservedAttributes,R as register$2,U as get$1,V as fastDomIf,W as root,X as calculateSplices,Y as cssFromModules,Z as ThemePropertyMixin,_ as n$3,$ as Z$1,a0 as i$3,a1 as t$2,a2 as b$1,a3 as e$2,a4 as badge,a5 as e$3}from"./index-8a19cb36.js";/**
+import{i as i$2,r as registerStyles,E as ElementMixin,T as ThemableMixin,P as PolymerElement,h as html,C as ControllerMixin,F as FlattenedNodesObserver,d as dedupingMixin,m as microTask,a as TooltipController,D as Debouncer$1,t as timeOut,b as DirHelper,s as s$2,y as y$1,c as DirMixin$1,e as requiredField,f as fieldButton,S as SlotController,g as generateUniqueId,o as overlay,j as PropertyEffects,k as strictTemplatePolicy,w as wrap$1,l as legacyWarnings,n as menuOverlay,p as ElementMixin$1,q as legacyOptimizations,u as useShadow,v as suppressTemplateNotifications,x as matches,z as translate,A as timeOut$1,B as microTask$1,G as menuOverlayCore,H as idlePeriod,I as animationFrame,J as flush$1,K as enqueueDebouncer$1,L as cancelSyntheticClickEvents,M as passiveTouchGestures$1,N as PropertyAccessors,O as builtCSS,Q as legacyNoObservedAttributes,R as register$2,U as get$1,V as fastDomIf,W as root,X as calculateSplices,Y as cssFromModules,Z as ThemePropertyMixin,_ as n$3,$ as Z$1,a0 as i$3,a1 as t$2,a2 as b$1,a3 as e$2,a4 as badge,a5 as e$3}from"./index-5d26a494.js";/**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
@@ -146,7 +146,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         backdrop-filter: blur(24px);
       }
     }
-  `,{moduleId:"lumo-app-layout"});const template$8=document.createElement("template");template$8.innerHTML=`
+  `,{moduleId:"lumo-app-layout"});const template$9=document.createElement("template");template$9.innerHTML=`
   <style>
     /* Use units so that the values can be used in calc() */
     html {
@@ -156,7 +156,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       --safe-area-inset-left: env(safe-area-inset-left, 0px);
     }
   </style>
-`;document.head.appendChild(template$8.content);/**
+`;document.head.appendChild(template$9.content);/**
  * @license
  * Copyright (c) 2021 - 2022 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
@@ -1479,7 +1479,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </style>
 
       <slot></slot>
-    `}static get is(){return"vaadin-horizontal-layout"}}customElements.define(HorizontalLayout.is,HorizontalLayout);var ViewType=($=>($.Form="Form",$.Crud="Crud",$.Result="Result",$))(ViewType||{});const mapInputTypeToFieldType=($,C)=>{switch(C){case"readonly":return"field-readonly";case"textarea":return"field-textarea";case"radiobuttons":return"field-radiobuttons";case"toggle":return"field-toggle";case"combobox":return"field-combobox";case"file":return"field-file";case"closedlist":return"field-closedlist"}switch($){case"string":return"field-text";case"long":return"field-number";case"int":return"field-number";case"double":return"field-double";case"enum":return"field-radiobuttons";case"boolean":return"field-boolean";case"date":return"field-date";case"datetime":return"field-datetime";case"time":return"field-time";case"file":return"field-file";case"ExternalReference":return"field-externalref";case"boolean[]":return"field-boolean-array";case"int[]":return"field-int-array";case"double[]":return"field-double-array";case"string[]":return"field-string-array";case"enum[]":return"field-enum-array";case"ExternalReference[]":return"field-externalref-array"}return"field-text"};registerStyles("vaadin-input-container",i$2`
+    `}static get is(){return"vaadin-horizontal-layout"}}customElements.define(HorizontalLayout.is,HorizontalLayout);var ViewType=($=>($.Form="Form",$.Crud="Crud",$.Result="Result",$.JourneyRunner="JourneyRunner",$.JourneyStarter="JourneyStarter",$))(ViewType||{});const mapInputTypeToFieldType=($,C)=>{switch(C){case"readonly":return"field-readonly";case"textarea":return"field-textarea";case"radiobuttons":return"field-radiobuttons";case"toggle":return"field-toggle";case"combobox":return"field-combobox";case"file":return"field-file";case"closedlist":return"field-closedlist"}switch($){case"string":return"field-text";case"long":return"field-number";case"int":return"field-number";case"double":return"field-double";case"enum":return"field-radiobuttons";case"boolean":return"field-boolean";case"date":return"field-date";case"datetime":return"field-datetime";case"time":return"field-time";case"file":return"field-file";case"ExternalReference":return"field-externalref";case"boolean[]":return"field-boolean-array";case"int[]":return"field-int-array";case"double[]":return"field-double-array";case"string[]":return"field-string-array";case"enum[]":return"field-enum-array";case"ExternalReference[]":return"field-externalref-array"}return"field-text"};registerStyles("vaadin-input-container",i$2`
     :host {
       border-radius: var(--lumo-border-radius-m);
       background-color: var(--lumo-contrast-10pct);
@@ -3326,7 +3326,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     :host([disabled]) * {
       color: var(--lumo-disabled-text-color) !important;
     }
-  `,{moduleId:"lumo-month-calendar"});const template$7=document.createElement("template");template$7.innerHTML=`
+  `,{moduleId:"lumo-month-calendar"});const template$8=document.createElement("template");template$8.innerHTML=`
   <style>
     @keyframes vaadin-date-picker-month-calendar-focus-date {
       50% {
@@ -3334,7 +3334,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     }
   </style>
-`;document.head.appendChild(template$7.content);const datePicker=i$2`
+`;document.head.appendChild(template$8.content);const datePicker=i$2`
   :host {
     outline: none;
   }
@@ -4990,7 +4990,7 @@ http://polymer.github.io/AUTHORS.txt The complete set of contributors may be
 found at http://polymer.github.io/CONTRIBUTORS.txt Code distributed by Google as
 part of the polymer project is also subject to an additional IP rights grant
 found at http://polymer.github.io/PATENTS.txt
-*/const template$6=html`
+*/const template$7=html`
 <custom-style>
   <style is="custom-style">
     [hidden] {
@@ -5342,7 +5342,7 @@ found at http://polymer.github.io/PATENTS.txt
 
     }
   </style>
-</custom-style>`;template$6.setAttribute("style","display: none;");document.head.appendChild(template$6.content);var style=document.createElement("style");style.textContent="[hidden] { display: none !important; }";document.head.appendChild(style);/**
+</custom-style>`;template$7.setAttribute("style","display: none;");document.head.appendChild(template$7.content);var style=document.createElement("style");style.textContent="[hidden] { display: none !important; }";document.head.appendChild(style);/**
 @license
 Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
 This code may only be used under the BSD style license found at
@@ -5351,7 +5351,7 @@ http://polymer.github.io/AUTHORS.txt The complete set of contributors may be
 found at http://polymer.github.io/CONTRIBUTORS.txt Code distributed by Google as
 part of the polymer project is also subject to an additional IP rights grant
 found at http://polymer.github.io/PATENTS.txt
-*/const template$5=html`
+*/const template$6=html`
 <custom-style>
   <style is="custom-style">
     html {
@@ -5674,7 +5674,7 @@ found at http://polymer.github.io/PATENTS.txt
 
   </style>
 </custom-style>
-`;template$5.setAttribute("style","display: none;");document.head.appendChild(template$5.content);/**
+`;template$6.setAttribute("style","display: none;");document.head.appendChild(template$6.content);/**
 @license
 Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
 This code may only be used under the BSD style license found at
@@ -5683,7 +5683,7 @@ http://polymer.github.io/AUTHORS.txt The complete set of contributors may be
 found at http://polymer.github.io/CONTRIBUTORS.txt Code distributed by Google as
 part of the polymer project is also subject to an additional IP rights grant
 found at http://polymer.github.io/PATENTS.txt
-*/const template$4=html`
+*/const template$5=html`
 <custom-style>
   <style is="custom-style">
     html {
@@ -5739,7 +5739,7 @@ found at http://polymer.github.io/PATENTS.txt
       --default-primary-color: var(--primary-color);
     }
   </style>
-</custom-style>`;template$4.setAttribute("style","display: none;");document.head.appendChild(template$4.content);/**
+</custom-style>`;template$5.setAttribute("style","display: none;");document.head.appendChild(template$5.content);/**
 @license
 Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
 This code may only be used under the BSD style license found at
@@ -5916,7 +5916,7 @@ The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
 The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
 Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
-*/const template$3=html`
+*/const template$4=html`
 
     <style>
       :host {
@@ -6057,7 +6057,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <div class="toggle-label"><slot></slot></div>
 
-  `;template$3.setAttribute("strip-whitespace","");Polymer({_template:template$3,is:"paper-toggle-button",behaviors:[PaperCheckedElementBehavior],hostAttributes:{role:"button","aria-pressed":"false",tabindex:0},properties:{},listeners:{track:"_ontrack"},attached:function(){afterNextRender(this,function(){setTouchAction(this,"pan-y")})},_ontrack:function($){var C=$.detail;C.state==="start"?this._trackStart(C):C.state==="track"?this._trackMove(C):C.state==="end"&&this._trackEnd(C)},_trackStart:function($){this._width=this.$.toggleBar.offsetWidth/2,this._trackChecked=this.checked,this.$.toggleButton.classList.add("dragging")},_trackMove:function($){var C=$.dx;this._x=Math.min(this._width,Math.max(0,this._trackChecked?this._width+C:C)),this.translate3d(this._x+"px",0,0,this.$.toggleButton),this._userActivate(this._x>this._width/2)},_trackEnd:function($){this.$.toggleButton.classList.remove("dragging"),this.transform("",this.$.toggleButton)},_createRipple:function(){this._rippleContainer=this.$.toggleButton;var $=PaperRippleBehavior._createRipple();return $.id="ink",$.setAttribute("recenters",""),$.classList.add("circle","toggle-ink"),$}});var __defProp$k=Object.defineProperty,__getOwnPropDesc$k=Object.getOwnPropertyDescriptor,__decorateClass$k=($,C,T,V)=>{for(var K=V>1?void 0:V?__getOwnPropDesc$k(C,T):C,Y=$.length-1,J;Y>=0;Y--)(J=$[Y])&&(K=(V?J(C,T,K):J(K))||K);return V&&K&&__defProp$k(C,T,K),K};let FieldToggle=class extends s$2{constructor(){super(...arguments),this.required=!1,this.label="",this.placeholder="",this.name="",this.onChange=$=>{const C=$.target;this.onValueChanged({value:C.checked})},this.enabled=!0}setRequired($){this.required=$}setField($){this.field=$}setLabel($){this.label=$}setPlaceholder($){this.placeholder=$}setEnabled($){this.enabled=$}onValueChanged($){console.log($)}setValue($){this.value=$}render(){return y$1`
+  `;template$4.setAttribute("strip-whitespace","");Polymer({_template:template$4,is:"paper-toggle-button",behaviors:[PaperCheckedElementBehavior],hostAttributes:{role:"button","aria-pressed":"false",tabindex:0},properties:{},listeners:{track:"_ontrack"},attached:function(){afterNextRender(this,function(){setTouchAction(this,"pan-y")})},_ontrack:function($){var C=$.detail;C.state==="start"?this._trackStart(C):C.state==="track"?this._trackMove(C):C.state==="end"&&this._trackEnd(C)},_trackStart:function($){this._width=this.$.toggleBar.offsetWidth/2,this._trackChecked=this.checked,this.$.toggleButton.classList.add("dragging")},_trackMove:function($){var C=$.dx;this._x=Math.min(this._width,Math.max(0,this._trackChecked?this._width+C:C)),this.translate3d(this._x+"px",0,0,this.$.toggleButton),this._userActivate(this._x>this._width/2)},_trackEnd:function($){this.$.toggleButton.classList.remove("dragging"),this.transform("",this.$.toggleButton)},_createRipple:function(){this._rippleContainer=this.$.toggleButton;var $=PaperRippleBehavior._createRipple();return $.id="ink",$.setAttribute("recenters",""),$.classList.add("circle","toggle-ink"),$}});var __defProp$k=Object.defineProperty,__getOwnPropDesc$k=Object.getOwnPropertyDescriptor,__decorateClass$k=($,C,T,V)=>{for(var K=V>1?void 0:V?__getOwnPropDesc$k(C,T):C,Y=$.length-1,J;Y>=0;Y--)(J=$[Y])&&(K=(V?J(C,T,K):J(K))||K);return V&&K&&__defProp$k(C,T,K),K};let FieldToggle=class extends s$2{constructor(){super(...arguments),this.required=!1,this.label="",this.placeholder="",this.name="",this.onChange=$=>{const C=$.target;this.onValueChanged({value:C.checked})},this.enabled=!0}setRequired($){this.required=$}setField($){this.field=$}setLabel($){this.label=$}setPlaceholder($){this.placeholder=$}setEnabled($){this.enabled=$}onValueChanged($){console.log($)}setValue($){this.value=$}render(){return y$1`
             <div class="vaadin-field-container">
                 <vaadin-horizontal-layout>
                     <h5 style="flex-grow: 1;">${this.label}</h5>
@@ -6332,7 +6332,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var(--lumo-success-color)
       );
     }
-  `,{moduleId:"lumo-progress-bar"});const template$2=document.createElement("template");template$2.innerHTML=`
+  `,{moduleId:"lumo-progress-bar"});const template$3=document.createElement("template");template$3.innerHTML=`
   <style>
     @keyframes vaadin-progress-pulse3 {
       0% { opacity: 1; }
@@ -6345,7 +6345,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       100% { opacity: 1; }
     }
   </style>
-`;document.head.appendChild(template$2.content);/**
+`;document.head.appendChild(template$3.content);/**
  * @license
  * Copyright (c) 2017 - 2022 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
@@ -6556,7 +6556,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
  * @license
  * Copyright (c) 2016 - 2022 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const template$1=document.createElement("template");template$1.innerHTML=`
+ */const template$2=document.createElement("template");template$2.innerHTML=`
   <style>
     @font-face {
       font-family: 'vaadin-upload-icons';
@@ -6565,7 +6565,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       font-style: normal;
     }
   </style>
-`;document.head.appendChild(template$1.content);/**
+`;document.head.appendChild(template$2.content);/**
  * @license
  * Copyright (c) 2016 - 2022 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
@@ -7523,7 +7523,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
  * @license
  * Copyright (c) 2017 - 2022 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const template=document.createElement("template");template.innerHTML=`<vaadin-iconset name="lumo" size="1000">
+ */const template$1=document.createElement("template");template$1.innerHTML=`<vaadin-iconset name="lumo" size="1000">
 <svg xmlns="http://www.w3.org/2000/svg">
 <defs>
 <g id="lumo:align-center"><path d="M167 217c0-18 17-33 38-34H795c21 0 38 15 38 34 0 18-17 33-38 33H205C184 250 167 235 167 217z m83 191c0-18 13-33 29-33H721c16 0 29 15 29 33 0 18-13 33-29 34H279C263 442 250 427 250 408zM250 792c0-18 13-33 29-34H721c16 0 29 15 29 34s-13 33-29 33H279C263 825 250 810 250 792z m-83-192c0-18 17-33 38-33H795c21 0 38 15 38 33s-17 33-38 33H205C184 633 167 618 167 600z" fill-rule="evenodd" clip-rule="evenodd"></path></g>
@@ -7570,7 +7570,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <g id="lumo:user"><path d="M500 500c-69 0-125-56-125-125s56-125 125-125 125 56 125 125-56 125-125 125z m-292 292c0-115 131-208 292-209s292 93 292 209H208z"></path></g>
 </defs>
 </svg>
-</vaadin-iconset>`;document.head.appendChild(template.content);var BadgeType=($=>($.NONE="NONE",$.INFO="INFO",$.SUCCESS="SUCCESS",$.WARNING="WARNING",$.DANGER="DANGER",$))(BadgeType||{}),ActionType=($=>($.Primary="Primary",$.Secondary="Secondary",$))(ActionType||{}),__defProp$8=Object.defineProperty,__getOwnPropDesc$8=Object.getOwnPropertyDescriptor,__decorateClass$8=($,C,T,V)=>{for(var K=V>1?void 0:V?__getOwnPropDesc$8(C,T):C,Y=$.length-1,J;Y>=0;Y--)(J=$[Y])&&(K=(V?J(C,T,K):J(K))||K);return V&&K&&__defProp$8(C,T,K),K};let MateuForm=class extends s$2{constructor(){super(...arguments),this.notificationOpened=!1,this.notificationMessage="",this.fieldsMap=new FieldsMap,this.renderNotification=()=>y$1`${this.notificationMessage}`}getFieldWrapper($){return this.fieldsMap.map.get($)}valueChanged($,C){const T={};T[$]=C,this.data={...this.data,...T},this.runRules()}getValue($){return this.data[$]}runRules(){this.metadata.sections.flatMap($=>$.fieldGroups).flatMap($=>$.fields).map($=>this.fieldsMap.map.get($)).filter($=>$).forEach($=>$.setVisible(!0)),this.rules.forEach($=>this.applyRule($))}applyRule(r){try{const applies=eval(this.buildJs(r.filter));if(applies&&r.action=="Hide"){const $=r.data;this.metadata.sections.flatMap(C=>C.fieldGroups).flatMap(C=>C.fields).filter(C=>$.includes(C.id)).map(C=>this.fieldsMap.map.get(C)).forEach(C=>C.setVisible(!1))}}catch($){}}buildJs($){let C="";for(let T in this.data)C+="const "+T+' = this.getValue("'+T+'");';return C+=""+$,C}connectedCallback(){super.connectedCallback(),this.metadata.sections.flatMap($=>$.fieldGroups.flatMap(C=>C.fields)).forEach($=>this.fieldsMap.map.set($,new FieldWrapper($))),setTimeout(()=>this.runRules())}runAction($){const T=this.metadata.sections.flatMap(V=>V.fieldGroups.flatMap(K=>K.fields)).filter(V=>V.validations.length>0).filter(V=>!this.data[V.id]);if(T.length>0){const V=T.map(K=>K.caption);this.notificationMessage="All mandatory fields must be filled ("+V+")",this.notificationOpened=!0}else{const V=$.target.getAttribute("actionId");this.setLoading(!0),store.dispatch(runStepAction(this.journeyId,this.stepId,V,this.data))}}render(){return y$1`
+</vaadin-iconset>`;document.head.appendChild(template$1.content);var BadgeType=($=>($.NONE="NONE",$.INFO="INFO",$.SUCCESS="SUCCESS",$.WARNING="WARNING",$.DANGER="DANGER",$))(BadgeType||{}),ActionType=($=>($.Primary="Primary",$.Secondary="Secondary",$))(ActionType||{}),__defProp$8=Object.defineProperty,__getOwnPropDesc$8=Object.getOwnPropertyDescriptor,__decorateClass$8=($,C,T,V)=>{for(var K=V>1?void 0:V?__getOwnPropDesc$8(C,T):C,Y=$.length-1,J;Y>=0;Y--)(J=$[Y])&&(K=(V?J(C,T,K):J(K))||K);return V&&K&&__defProp$8(C,T,K),K};let MateuForm=class extends s$2{constructor(){super(...arguments),this.notificationOpened=!1,this.notificationMessage="",this.fieldsMap=new FieldsMap,this.renderNotification=()=>y$1`${this.notificationMessage}`}getFieldWrapper($){return this.fieldsMap.map.get($)}valueChanged($,C){const T={};T[$]=C,this.data={...this.data,...T},this.runRules()}getValue($){return this.data[$]}runRules(){this.metadata.sections.flatMap($=>$.fieldGroups).flatMap($=>$.fields).map($=>this.fieldsMap.map.get($)).filter($=>$).forEach($=>$.setVisible(!0)),this.rules.forEach($=>this.applyRule($))}applyRule(r){try{const applies=eval(this.buildJs(r.filter));if(applies&&r.action=="Hide"){const $=r.data;this.metadata.sections.flatMap(C=>C.fieldGroups).flatMap(C=>C.fields).filter(C=>$.includes(C.id)).map(C=>this.fieldsMap.map.get(C)).forEach(C=>C.setVisible(!1))}}catch($){}}buildJs($){let C="";for(let T in this.data)C+="const "+T+' = this.getValue("'+T+'");';return C+=""+$,C}connectedCallback(){super.connectedCallback(),this.metadata.sections.flatMap($=>$.fieldGroups.flatMap(C=>C.fields)).forEach($=>this.fieldsMap.map.set($,new FieldWrapper($))),setTimeout(()=>this.runRules())}runAction($){const T=this.metadata.sections.flatMap(V=>V.fieldGroups.flatMap(K=>K.fields)).filter(V=>V.validations.length>0).filter(V=>!this.data[V.id]);if(T.length>0){const V=T.map(K=>K.caption);this.notificationMessage="All mandatory fields must be filled ("+V+")",this.notificationOpened=!0}else{const V=$.target.getAttribute("actionId");this.setLoading(!0),store.dispatch(runStepAction(this.journeyId,this.stepId,V,this.data))}}render(){return y$1`
       <div>
         
         <vaadin-horizontal-layout class="header">
@@ -7585,8 +7585,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </vaadin-horizontal-layout>
         </vaadin-horizontal-layout>
           
-        ${this.metadata.badges?y$1`
+        ${this.metadata.status||this.metadata.badges?y$1`
             <div class="badges">
+              ${this.metadata.status?y$1`<span theme="badge ${this.getThemeForBadgetType(this.metadata.status.type)}">${this.metadata.status.message}</span>`:""}
               ${this.metadata.badges.map($=>y$1`<span theme="badge ${this.getThemeForBadgetType($.type)}">${$.message}</span>`)}
             </div>        
         `:""}
@@ -8448,7 +8449,114 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
  * @license
  * Copyright (c) 2016 - 2022 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */class GridSelectionColumn extends GridColumn{static get is(){return"vaadin-grid-selection-column"}static get properties(){return{width:{type:String,value:"58px"},flexGrow:{type:Number,value:0},selectAll:{type:Boolean,value:!1,notify:!0},autoSelect:{type:Boolean,value:!1},__indeterminate:Boolean,__previousActiveItem:Object,__selectAllHidden:Boolean}}static get observers(){return["__onSelectAllChanged(selectAll)","_onHeaderRendererOrBindingChanged(_headerRenderer, _headerCell, path, header, selectAll, __indeterminate, __selectAllHidden)"]}constructor(){super(),this.__boundOnActiveItemChanged=this.__onActiveItemChanged.bind(this),this.__boundOnDataProviderChanged=this.__onDataProviderChanged.bind(this),this.__boundOnSelectedItemsChanged=this.__onSelectedItemsChanged.bind(this)}disconnectedCallback(){this._grid.removeEventListener("active-item-changed",this.__boundOnActiveItemChanged),this._grid.removeEventListener("data-provider-changed",this.__boundOnDataProviderChanged),this._grid.removeEventListener("filter-changed",this.__boundOnSelectedItemsChanged),this._grid.removeEventListener("selected-items-changed",this.__boundOnSelectedItemsChanged),super.disconnectedCallback()}connectedCallback(){super.connectedCallback(),this._grid&&(this._grid.addEventListener("active-item-changed",this.__boundOnActiveItemChanged),this._grid.addEventListener("data-provider-changed",this.__boundOnDataProviderChanged),this._grid.addEventListener("filter-changed",this.__boundOnSelectedItemsChanged),this._grid.addEventListener("selected-items-changed",this.__boundOnSelectedItemsChanged))}_defaultHeaderRenderer(C,T){let V=C.firstElementChild;V||(V=document.createElement("vaadin-checkbox"),V.setAttribute("aria-label","Select All"),V.classList.add("vaadin-grid-select-all-checkbox"),V.addEventListener("checked-changed",this.__onSelectAllCheckedChanged.bind(this)),C.appendChild(V));const K=this.__isChecked(this.selectAll,this.__indeterminate);V.__rendererChecked=K,V.checked=K,V.hidden=this.__selectAllHidden,V.indeterminate=this.__indeterminate}_defaultRenderer(C,T,{item:V,selected:K}){let Y=C.firstElementChild;Y||(Y=document.createElement("vaadin-checkbox"),Y.setAttribute("aria-label","Select Row"),Y.addEventListener("checked-changed",this.__onSelectRowCheckedChanged.bind(this)),C.appendChild(Y)),Y.__item=V,Y.__rendererChecked=K,Y.checked=K}__onSelectAllChanged(C){if(!(C===void 0||!this._grid)){if(!this.__selectAllInitialized){this.__selectAllInitialized=!0;return}this._selectAllChangeLock||(C&&this.__hasArrayDataProvider()?this.__withFilteredItemsArray(T=>{this._grid.selectedItems=T}):this._grid.selectedItems=[])}}__arrayContains(C,T){return Array.isArray(C)&&Array.isArray(T)&&T.every(V=>C.includes(V))}__onSelectAllCheckedChanged(C){C.target.checked!==C.target.__rendererChecked&&(this.selectAll=this.__indeterminate||C.target.checked)}__onSelectRowCheckedChanged(C){C.target.checked!==C.target.__rendererChecked&&(C.target.checked?this._grid.selectItem(C.target.__item):this._grid.deselectItem(C.target.__item))}__isChecked(C,T){return T||C}__onActiveItemChanged(C){const T=C.detail.value;if(this.autoSelect){const V=T||this.__previousActiveItem;V&&this._grid._toggleItem(V)}this.__previousActiveItem=T}__hasArrayDataProvider(){return Array.isArray(this._grid.items)&&!!this._grid.dataProvider}__onSelectedItemsChanged(){this._selectAllChangeLock=!0,this.__hasArrayDataProvider()&&this.__withFilteredItemsArray(C=>{this._grid.selectedItems.length?this.__arrayContains(this._grid.selectedItems,C)?(this.selectAll=!0,this.__indeterminate=!1):(this.selectAll=!1,this.__indeterminate=!0):(this.selectAll=!1,this.__indeterminate=!1)}),this._selectAllChangeLock=!1}__onDataProviderChanged(){this.__selectAllHidden=!Array.isArray(this._grid.items)}__withFilteredItemsArray(C){const T={page:0,pageSize:1/0,sortOrders:[],filters:this._grid._mapFilters()};this._grid.dataProvider(T,V=>C(V))}}customElements.define(GridSelectionColumn.is,GridSelectionColumn);/**
+ */class GridSelectionColumn extends GridColumn{static get is(){return"vaadin-grid-selection-column"}static get properties(){return{width:{type:String,value:"58px"},flexGrow:{type:Number,value:0},selectAll:{type:Boolean,value:!1,notify:!0},autoSelect:{type:Boolean,value:!1},__indeterminate:Boolean,__previousActiveItem:Object,__selectAllHidden:Boolean}}static get observers(){return["__onSelectAllChanged(selectAll)","_onHeaderRendererOrBindingChanged(_headerRenderer, _headerCell, path, header, selectAll, __indeterminate, __selectAllHidden)"]}constructor(){super(),this.__boundOnActiveItemChanged=this.__onActiveItemChanged.bind(this),this.__boundOnDataProviderChanged=this.__onDataProviderChanged.bind(this),this.__boundOnSelectedItemsChanged=this.__onSelectedItemsChanged.bind(this)}disconnectedCallback(){this._grid.removeEventListener("active-item-changed",this.__boundOnActiveItemChanged),this._grid.removeEventListener("data-provider-changed",this.__boundOnDataProviderChanged),this._grid.removeEventListener("filter-changed",this.__boundOnSelectedItemsChanged),this._grid.removeEventListener("selected-items-changed",this.__boundOnSelectedItemsChanged),super.disconnectedCallback()}connectedCallback(){super.connectedCallback(),this._grid&&(this._grid.addEventListener("active-item-changed",this.__boundOnActiveItemChanged),this._grid.addEventListener("data-provider-changed",this.__boundOnDataProviderChanged),this._grid.addEventListener("filter-changed",this.__boundOnSelectedItemsChanged),this._grid.addEventListener("selected-items-changed",this.__boundOnSelectedItemsChanged))}_defaultHeaderRenderer(C,T){let V=C.firstElementChild;V||(V=document.createElement("vaadin-checkbox"),V.setAttribute("aria-label","Select All"),V.classList.add("vaadin-grid-select-all-checkbox"),V.addEventListener("checked-changed",this.__onSelectAllCheckedChanged.bind(this)),C.appendChild(V));const K=this.__isChecked(this.selectAll,this.__indeterminate);V.__rendererChecked=K,V.checked=K,V.hidden=this.__selectAllHidden,V.indeterminate=this.__indeterminate}_defaultRenderer(C,T,{item:V,selected:K}){let Y=C.firstElementChild;Y||(Y=document.createElement("vaadin-checkbox"),Y.setAttribute("aria-label","Select Row"),Y.addEventListener("checked-changed",this.__onSelectRowCheckedChanged.bind(this)),C.appendChild(Y)),Y.__item=V,Y.__rendererChecked=K,Y.checked=K}__onSelectAllChanged(C){if(!(C===void 0||!this._grid)){if(!this.__selectAllInitialized){this.__selectAllInitialized=!0;return}this._selectAllChangeLock||(C&&this.__hasArrayDataProvider()?this.__withFilteredItemsArray(T=>{this._grid.selectedItems=T}):this._grid.selectedItems=[])}}__arrayContains(C,T){return Array.isArray(C)&&Array.isArray(T)&&T.every(V=>C.includes(V))}__onSelectAllCheckedChanged(C){C.target.checked!==C.target.__rendererChecked&&(this.selectAll=this.__indeterminate||C.target.checked)}__onSelectRowCheckedChanged(C){C.target.checked!==C.target.__rendererChecked&&(C.target.checked?this._grid.selectItem(C.target.__item):this._grid.deselectItem(C.target.__item))}__isChecked(C,T){return T||C}__onActiveItemChanged(C){const T=C.detail.value;if(this.autoSelect){const V=T||this.__previousActiveItem;V&&this._grid._toggleItem(V)}this.__previousActiveItem=T}__hasArrayDataProvider(){return Array.isArray(this._grid.items)&&!!this._grid.dataProvider}__onSelectedItemsChanged(){this._selectAllChangeLock=!0,this.__hasArrayDataProvider()&&this.__withFilteredItemsArray(C=>{this._grid.selectedItems.length?this.__arrayContains(this._grid.selectedItems,C)?(this.selectAll=!0,this.__indeterminate=!1):(this.selectAll=!1,this.__indeterminate=!0):(this.selectAll=!1,this.__indeterminate=!1)}),this._selectAllChangeLock=!1}__onDataProviderChanged(){this.__selectAllHidden=!Array.isArray(this._grid.items)}__withFilteredItemsArray(C){const T={page:0,pageSize:1/0,sortOrders:[],filters:this._grid._mapFilters()};this._grid.dataProvider(T,V=>C(V))}}customElements.define(GridSelectionColumn.is,GridSelectionColumn);registerStyles("vaadin-grid-sorter",i$2`
+    :host {
+      justify-content: flex-start;
+      align-items: baseline;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none;
+      cursor: var(--lumo-clickable-cursor);
+    }
+
+    [part='content'] {
+      display: inline-block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    [part='indicators'] {
+      margin-left: var(--lumo-space-s);
+    }
+
+    [part='indicators']::before {
+      transform: scale(0.8);
+    }
+
+    :host(:not([direction]):not(:hover)) [part='indicators'] {
+      color: var(--lumo-tertiary-text-color);
+    }
+
+    :host([direction]) {
+      color: var(--lumo-primary-text-color);
+    }
+
+    [part='order'] {
+      font-size: var(--lumo-font-size-xxs);
+      line-height: 1;
+    }
+
+    /* RTL specific styles */
+
+    :host([dir='rtl']) [part='indicators'] {
+      margin-right: var(--lumo-space-s);
+      margin-left: 0;
+    }
+  `,{moduleId:"lumo-grid-sorter"});/**
+ * @license
+ * Copyright (c) 2016 - 2022 Vaadin Ltd.
+ * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
+ */const template=document.createElement("template");template.innerHTML=`
+  <style>
+    @font-face {
+      font-family: 'vaadin-grid-sorter-icons';
+      src: url(data:application/font-woff;charset=utf-8;base64,d09GRgABAAAAAAQwAA0AAAAABuwAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAABGRlRNAAAEFAAAABkAAAAcfep+mUdERUYAAAP4AAAAHAAAAB4AJwAOT1MvMgAAAZgAAAA/AAAAYA8TBPpjbWFwAAAB7AAAAFUAAAFeF1fZ4mdhc3AAAAPwAAAACAAAAAgAAAAQZ2x5ZgAAAlgAAABcAAAAnMvguMloZWFkAAABMAAAAC8AAAA2C5Ap72hoZWEAAAFgAAAAHQAAACQGbQPHaG10eAAAAdgAAAAUAAAAHAoAAABsb2NhAAACRAAAABIAAAASAIwAYG1heHAAAAGAAAAAFgAAACAACwAKbmFtZQAAArQAAAECAAACZxWCgKhwb3N0AAADuAAAADUAAABZCrApUXicY2BkYGAA4rDECVrx/DZfGbhZGEDgyqNPOxH0/wNMq5kPALkcDEwgUQBWRA0dAHicY2BkYGA+8P8AAwMLAwgwrWZgZEAFbABY4QM8AAAAeJxjYGRgYOAAQiYGEICQSAAAAi8AFgAAeJxjYGY6yziBgZWBgWkm0xkGBoZ+CM34msGYkZMBFTAKoAkwODAwvmRiPvD/AIMDMxCD1CDJKjAwAgBktQsXAHicY2GAAMZQCM0EwqshbAALxAEKeJxjYGBgZoBgGQZGBhCIAPIYwXwWBhsgzcXAwcAEhIwMCi+Z/v/9/x+sSuElA4T9/4k4K1gHFwMMMILMY2QDYmaoABOQYGJABUA7WBiGNwAAJd4NIQAAAAAAAAAACAAIABAAGAAmAEAATgAAeJyNjLENgDAMBP9tIURJwQCMQccSZgk2i5fIYBDAidJjycXr7x5EPwE2wY8si7jmyBNXGo/bNBerxJNrpxhbO3/fEFpx8ZICpV+ghxJ74fAMe+h7Ox14AbrsHB14nK2QQWrDMBRER4mTkhQK3ZRQKOgCNk7oGQqhhEIX2WSlWEI1BAlkJ5CDdNsj5Ey9Rncdi38ES+jzNJo/HwTgATcoDEthhY3wBHc4CE+pfwsX5F/hGe7Vo/AcK/UhvMSz+mGXKhZU6pww8ISz3oWn1BvhgnwTnuEJf8Jz1OpFeIlX9YULDLdFi4ASHolkSR0iuYdjLak1vAequBhj21D61Nqyi6l3qWybGPjySbPHGScGJl6dP58MYcQRI0bts7mjebBqrFENH7t3qWtj0OuqHnXcW7b0HOTZFnKryRGW2hFX1m0O2vEM3opNMfTau+CS6Z3Vx6veNnEXY6jwDxhsc2gAAHicY2BiwA84GBgYmRiYGJkZmBlZGFkZ2djScyoLMgzZS/MyDQwMwLSrpYEBlIbxjQDrzgsuAAAAAAEAAf//AA94nGNgZGBg4AFiMSBmYmAEQnYgZgHzGAAD6wA2eJxjYGBgZACCKyoz1cD0o087YTQATOcIewAAAA==) format('woff');
+      font-weight: normal;
+      font-style: normal;
+    }
+  </style>
+`;document.head.appendChild(template.content);class GridSorter extends ThemableMixin(DirMixin$1(PolymerElement)){static get template(){return html`
+      <style>
+        :host {
+          display: inline-flex;
+          cursor: pointer;
+          max-width: 100%;
+        }
+
+        [part='content'] {
+          flex: 1 1 auto;
+        }
+
+        [part='indicators'] {
+          position: relative;
+          align-self: center;
+          flex: none;
+        }
+
+        [part='order'] {
+          display: inline;
+          vertical-align: super;
+        }
+
+        [part='indicators']::before {
+          font-family: 'vaadin-grid-sorter-icons';
+          display: inline-block;
+        }
+
+        :host(:not([direction])) [part='indicators']::before {
+          content: '\\e901';
+        }
+
+        :host([direction='asc']) [part='indicators']::before {
+          content: '\\e900';
+        }
+
+        :host([direction='desc']) [part='indicators']::before {
+          content: '\\e902';
+        }
+      </style>
+
+      <div part="content">
+        <slot></slot>
+      </div>
+      <div part="indicators">
+        <span part="order">[[_getDisplayOrder(_order)]]</span>
+      </div>
+    `}static get is(){return"vaadin-grid-sorter"}static get properties(){return{path:String,direction:{type:String,reflectToAttribute:!0,notify:!0,value:null},_order:{type:Number,value:null},_isConnected:{type:Boolean,observer:"__isConnectedChanged"}}}static get observers(){return["_pathOrDirectionChanged(path, direction)"]}ready(){super.ready(),this.addEventListener("click",this._onClick.bind(this))}connectedCallback(){super.connectedCallback(),this._isConnected=!0}disconnectedCallback(){super.disconnectedCallback(),this._isConnected=!1,!this.parentNode&&this._grid&&this._grid.__removeSorters([this])}_pathOrDirectionChanged(){this.__dispatchSorterChangedEvenIfPossible()}__isConnectedChanged(C,T){T!==!1&&this.__dispatchSorterChangedEvenIfPossible()}__dispatchSorterChangedEvenIfPossible(){this.path===void 0||this.direction===void 0||!this._isConnected||(this.dispatchEvent(new CustomEvent("sorter-changed",{detail:{shiftClick:Boolean(this._shiftClick),fromSorterClick:Boolean(this._fromSorterClick)},bubbles:!0,composed:!0})),this._fromSorterClick=!1,this._shiftClick=!1)}_getDisplayOrder(C){return C===null?"":C+1}_onClick(C){if(C.defaultPrevented)return;const T=this.getRootNode().activeElement;this!==T&&this.contains(T)||(C.preventDefault(),this._shiftClick=C.shiftKey,this._fromSorterClick=!0,this.direction==="asc"?this.direction="desc":this.direction==="desc"?this.direction=null:this.direction="asc")}}customElements.define(GridSorter.is,GridSorter);/**
+ * @license
+ * Copyright (c) 2016 - 2022 Vaadin Ltd.
+ * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
+ */class GridSortColumn extends GridColumn{static get is(){return"vaadin-grid-sort-column"}static get properties(){return{path:String,direction:{type:String,notify:!0}}}static get observers(){return["_onHeaderRendererOrBindingChanged(_headerRenderer, _headerCell, path, header, direction)"]}constructor(){super(),this.__boundOnDirectionChanged=this.__onDirectionChanged.bind(this)}_defaultHeaderRenderer(C,T){let V=C.firstElementChild;V||(V=document.createElement("vaadin-grid-sorter"),V.addEventListener("direction-changed",this.__boundOnDirectionChanged),C.appendChild(V)),V.path=this.path,V.__rendererDirection=this.direction,V.direction=this.direction,V.textContent=this.__getHeader(this.header,this.path)}_computeHeaderRenderer(){return this._defaultHeaderRenderer}__onDirectionChanged(C){C.detail.value!==C.target.__rendererDirection&&(this.direction=C.detail.value)}__getHeader(C,T){if(C)return C;if(T)return this._generateHeader(T)}}customElements.define(GridSortColumn.is,GridSortColumn);/**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
@@ -8879,12 +8987,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <vaadin-menu-bar-submenu is-root=""></vaadin-menu-bar-submenu>
 
       <slot name="tooltip"></slot>
-    `}static get is(){return"vaadin-menu-bar"}static get properties(){return{items:{type:Array,value:()=>[]},i18n:{type:Object,value:()=>({moreOptions:"More options"})}}}static get observers(){return["_themeChanged(_theme)"]}ready(){super.ready(),this._tooltipController=new TooltipController(this),this._tooltipController.setManual(!0),this.addController(this._tooltipController)}_disabledChanged(C,T){super._disabledChanged(C,T),T!==C&&this.__updateButtonsDisabled(C)}_themeChanged(C){this.shadowRoot&&(this._buttons.forEach(T=>this._setButtonTheme(T,C)),this.__detectOverflow()),C?this._subMenu.setAttribute("theme",C):this._subMenu.removeAttribute("theme")}__updateButtonsDisabled(C){this._buttons.forEach(T=>{T.disabled=C||T.item&&T.item.disabled})}}customElements.define(MenuBar.is,MenuBar);var __defProp$7=Object.defineProperty,__getOwnPropDesc$7=Object.getOwnPropertyDescriptor,__decorateClass$7=($,C,T,V)=>{for(var K=V>1?void 0:V?__getOwnPropDesc$7(C,T):C,Y=$.length-1,J;Y>=0;Y--)(J=$[Y])&&(K=(V?J(C,T,K):J(K))||K);return V&&K&&__defProp$7(C,T,K),K};let MateuCrud=class extends connect(store)(s$2){constructor(){super(...arguments),this.dataProvider=async($,C)=>{const{page:T,pageSize:V,sortOrders:K}=$,{rows:Y,count:J}=await this.fetchData({page:T,pageSize:V,sortOrders:K,filters:btoa(JSON.stringify(this.data))});C(Y,J)}}search(){this.shadowRoot.getElementById("grid").clearCache()}async fetchData($){const C=await this.fetchRows($),T=await this.fetchCount($.filters);return{rows:C,count:T}}async fetchRows($){return(await api.get("/journeys/"+this.journeyId+"/steps/"+this.stepId+"/lists/main/rows?page="+$.page+"&page_size="+$.pageSize+"&ordering=&filters="+$.filters)).data}async fetchCount($){return(await api.get("/journeys/"+this.journeyId+"/steps/"+this.stepId+"/lists/main/count?filters="+$)).data}connectedCallback(){super.connectedCallback()}firstUpdated($){this.addEventListener("keydown",this.handleKey)}handleKey($){$.code=="Enter"&&setTimeout(()=>this.search())}stateChanged($){console.log("state changed in crud",$)}filterChanged($){const C=$.target,T={};T[C.id]=C.value,this.data={...this.data,...T}}edit($){const C=$.currentTarget;console.log(C.row);const T={_selectedRow:C.row};this.data={...this.data,...T},store.dispatch(runStepAction(this.journeyId,this.stepId,"edit",this.data))}runAction($){var Y;const C=$.currentTarget,V={_selectedRows:((Y=this.shadowRoot)==null?void 0:Y.getElementById("grid")).selectedItems,_clickedRow:this.clickedRow},K={...this.data,...V};store.dispatch(runStepAction(this.journeyId,this.stepId,C.getAttribute("actionid"),K))}itemSelected($){const C={_clickedRow:$.target.row},T={...this.data,...C};store.dispatch(runStepAction(this.journeyId,this.stepId,"__row__"+$.detail.value.id,T))}getThemeForBadgetType($){switch($){case StatusType.SUCCESS:return"success";case StatusType.WARNING:return"warning";case StatusType.DANGER:return"error";case StatusType.NONE:return"contrast"}return""}getColumn($){return $.type=="Status"?y$1`
-            <vaadin-grid-column  path="${$.id}" header="${$.caption}"
+    `}static get is(){return"vaadin-menu-bar"}static get properties(){return{items:{type:Array,value:()=>[]},i18n:{type:Object,value:()=>({moreOptions:"More options"})}}}static get observers(){return["_themeChanged(_theme)"]}ready(){super.ready(),this._tooltipController=new TooltipController(this),this._tooltipController.setManual(!0),this.addController(this._tooltipController)}_disabledChanged(C,T){super._disabledChanged(C,T),T!==C&&this.__updateButtonsDisabled(C)}_themeChanged(C){this.shadowRoot&&(this._buttons.forEach(T=>this._setButtonTheme(T,C)),this.__detectOverflow()),C?this._subMenu.setAttribute("theme",C):this._subMenu.removeAttribute("theme")}__updateButtonsDisabled(C){this._buttons.forEach(T=>{T.disabled=C||T.item&&T.item.disabled})}}customElements.define(MenuBar.is,MenuBar);var __defProp$7=Object.defineProperty,__getOwnPropDesc$7=Object.getOwnPropertyDescriptor,__decorateClass$7=($,C,T,V)=>{for(var K=V>1?void 0:V?__getOwnPropDesc$7(C,T):C,Y=$.length-1,J;Y>=0;Y--)(J=$[Y])&&(K=(V?J(C,T,K):J(K))||K);return V&&K&&__defProp$7(C,T,K),K};let MateuCrud=class extends connect(store)(s$2){constructor(){super(...arguments),this.message="",this.canDownload=!0,this.dataProvider=async($,C)=>{const{page:T,pageSize:V,sortOrders:K}=$,{rows:Y,count:J}=await this.fetchData({page:T,pageSize:V,sortOrders:K,filters:btoa(JSON.stringify(this.data))});C(Y,J)}}search(){this.shadowRoot.getElementById("grid").clearCache()}async fetchData($){const C=await this.fetchRows($),T=await this.fetchCount($.filters);return{rows:C,count:T}}async fetchRows($){return(await api.get("/journeys/"+this.journeyId+"/steps/"+this.stepId+"/lists/main/rows?page="+$.page+"&page_size="+$.pageSize+"&ordering=&filters="+$.filters)).data}async fetchCount($){const C=await api.get("/journeys/"+this.journeyId+"/steps/"+this.stepId+"/lists/main/count?filters="+$);return this.message=`${C.data} elements found.`,C.data}connectedCallback(){super.connectedCallback()}firstUpdated($){this.addEventListener("keydown",this.handleKey)}handleKey($){$.code=="Enter"&&setTimeout(()=>this.search())}stateChanged($){console.log("state changed in crud",$)}filterChanged($){const C=$.target,T={};T[C.id]=C.value,this.data={...this.data,...T}}edit($){const C=$.currentTarget;console.log(C.row);const T={_selectedRow:C.row};this.data={...this.data,...T},store.dispatch(runStepAction(this.journeyId,this.stepId,"edit",this.data))}runAction($){var Y;const C=$.currentTarget,V={_selectedRows:((Y=this.shadowRoot)==null?void 0:Y.getElementById("grid")).selectedItems,_clickedRow:this.clickedRow},K={...this.data,...V};store.dispatch(runStepAction(this.journeyId,this.stepId,C.getAttribute("actionid"),K))}itemSelected($){const C={_clickedRow:$.target.row},T={...this.data,...C};store.dispatch(runStepAction(this.journeyId,this.stepId,"__row__"+$.detail.value.id,T))}getThemeForBadgetType($){switch($){case StatusType.SUCCESS:return"success";case StatusType.WARNING:return"warning";case StatusType.DANGER:return"error";case StatusType.NONE:return"contrast"}return""}getColumn($){return $.type=="Status"?y$1`
+            <vaadin-grid-sort-column  path="${$.id}" header="${$.caption}" resizable 
                 ${columnBodyRenderer(C=>{const T=C[$.id];return y$1`<span theme="badge ${this.getThemeForBadgetType(T.type)}">${T.message}</span>`},[])}
-            </vaadin-grid-column>
+            </vaadin-grid-sort-column>
           `:$.type=="ColumnActionGroup"?y$1`
-        <vaadin-grid-column  path="${$.id}" header="${$.caption}"
+        <vaadin-grid-column  path="${$.id}" header="${$.caption}" width="60px"
                              ${columnBodyRenderer(C=>{const T=C[$.id].actions.map(V=>({...V,text:V.caption}));return y$1`
                                      <vaadin-menu-bar
                                          .items=${[{text:"···",children:T}]}
@@ -8895,7 +9003,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                                    </vaadin-icon>`},[])}
         </vaadin-grid-column>
       `:y$1`
-            <vaadin-grid-column path="${$.id}" header="${$.caption}"></vaadin-grid-column>
+            <vaadin-grid-sort-column path="${$.id}" header="${$.caption}" resizable></vaadin-grid-sort-column>
         `}render(){var $,C,T;return y$1`
 
       <vaadin-horizontal-layout class="header">
@@ -8948,9 +9056,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             frozen-to-end
             auto-width
             flex-grow="0"
-            ${columnBodyRenderer(V=>y$1`<vaadin-button theme="tertiary-inline" .row="${V}" @click="${this.edit}">Edit</vaadin-button>`,[])}
+            ${columnBodyRenderer(V=>y$1`<vaadin-button theme="tertiary-inline" .row="${V}" @click="${this.edit}">Edit</vaadin-button>`,[])}></vaadin-grid-column>
         
         </vaadin-grid>
+      
+      <vaadin-horizontal-layout style="align-items: baseline; width: 100%;" theme="spacing">
+        <div style=" flex-grow: 1;">${this.message}</div>
+        <div style="justify-content: end;">
+          <vaadin-menu-bar
+              .items=${[{text:"Export as ...",children:[{text:"Excel"},{text:"Csv"}]}]}
+              theme="tertiary"
+          ></vaadin-menu-bar>
+        </div>
+      </vaadin-horizontal-layout>
     `}};MateuCrud.styles=i$2`
   ${badge}
     
@@ -8973,7 +9091,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     }
 
-  `;__decorateClass$7([e()],MateuCrud.prototype,"journeyId",2);__decorateClass$7([e()],MateuCrud.prototype,"stepId",2);__decorateClass$7([e()],MateuCrud.prototype,"metadata",2);__decorateClass$7([e()],MateuCrud.prototype,"data",2);__decorateClass$7([t$1()],MateuCrud.prototype,"clickedRow",2);__decorateClass$7([t$1()],MateuCrud.prototype,"dataProvider",2);MateuCrud=__decorateClass$7([e$1("mateu-crud")],MateuCrud);var ResultType=($=>($.Success="Success",$.Info="Info",$.Warning="Warning",$.Error="Error",$))(ResultType||{}),__defProp$6=Object.defineProperty,__getOwnPropDesc$6=Object.getOwnPropertyDescriptor,__decorateClass$6=($,C,T,V)=>{for(var K=V>1?void 0:V?__getOwnPropDesc$6(C,T):C,Y=$.length-1,J;Y>=0;Y--)(J=$[Y])&&(K=(V?J(C,T,K):J(K))||K);return V&&K&&__defProp$6(C,T,K),K};let MateuResult=class extends connect(store)(s$2){connectedCallback(){super.connectedCallback()}runAction($){const C=$.currentTarget;store.dispatch(runStepAction(this.journeyId,this.stepId,C.getAttribute("actionid"),{}))}getIcon($){switch($){case ResultType.Success:return"vaadin:check-circle";case ResultType.Info:return"vaadin:info-circle";case ResultType.Warning:return"vaadin:warning";case ResultType.Error:return"lumo:error"}return"vaadin:question"}getClass($){switch($){case ResultType.Success:return"success";case ResultType.Info:return"info";case ResultType.Warning:return"warning";case ResultType.Error:return"error"}return""}render(){return y$1`
+  `;__decorateClass$7([e()],MateuCrud.prototype,"journeyId",2);__decorateClass$7([e()],MateuCrud.prototype,"stepId",2);__decorateClass$7([e()],MateuCrud.prototype,"metadata",2);__decorateClass$7([e()],MateuCrud.prototype,"data",2);__decorateClass$7([t$1()],MateuCrud.prototype,"clickedRow",2);__decorateClass$7([t$1()],MateuCrud.prototype,"message",2);__decorateClass$7([t$1()],MateuCrud.prototype,"canDownload",2);__decorateClass$7([t$1()],MateuCrud.prototype,"dataProvider",2);MateuCrud=__decorateClass$7([e$1("mateu-crud")],MateuCrud);var ResultType=($=>($.Success="Success",$.Info="Info",$.Warning="Warning",$.Error="Error",$))(ResultType||{}),__defProp$6=Object.defineProperty,__getOwnPropDesc$6=Object.getOwnPropertyDescriptor,__decorateClass$6=($,C,T,V)=>{for(var K=V>1?void 0:V?__getOwnPropDesc$6(C,T):C,Y=$.length-1,J;Y>=0;Y--)(J=$[Y])&&(K=(V?J(C,T,K):J(K))||K);return V&&K&&__defProp$6(C,T,K),K};let MateuResult=class extends connect(store)(s$2){connectedCallback(){super.connectedCallback()}runAction($){const C=$.currentTarget;store.dispatch(runStepAction(this.journeyId,this.stepId,C.getAttribute("actionid"),{}))}getIcon($){switch($){case ResultType.Success:return"vaadin:check-circle";case ResultType.Info:return"vaadin:info-circle";case ResultType.Warning:return"vaadin:warning";case ResultType.Error:return"lumo:error"}return"vaadin:question"}getClass($){switch($){case ResultType.Success:return"success";case ResultType.Info:return"info";case ResultType.Warning:return"warning";case ResultType.Error:return"error"}return""}render(){return y$1`
 
       <vaadin-horizontal-layout class="header">
         <div>
@@ -9046,7 +9164,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       color: red;
     }
 
-  `;__decorateClass$6([e()],MateuResult.prototype,"journeyId",2);__decorateClass$6([e()],MateuResult.prototype,"stepId",2);__decorateClass$6([e()],MateuResult.prototype,"metadata",2);__decorateClass$6([e()],MateuResult.prototype,"data",2);MateuResult=__decorateClass$6([e$1("mateu-result")],MateuResult);var __defProp$5=Object.defineProperty,__getOwnPropDesc$5=Object.getOwnPropertyDescriptor,__decorateClass$5=($,C,T,V)=>{for(var K=V>1?void 0:V?__getOwnPropDesc$5(C,T):C,Y=$.length-1,J;Y>=0;Y--)(J=$[Y])&&(K=(V?J(C,T,K):J(K))||K);return V&&K&&__defProp$5(C,T,K),K};let MateuComponent=class extends s$2{connectedCallback(){super.connectedCallback()}render(){var $,C,T;return y$1`
+  `;__decorateClass$6([e()],MateuResult.prototype,"journeyId",2);__decorateClass$6([e()],MateuResult.prototype,"stepId",2);__decorateClass$6([e()],MateuResult.prototype,"metadata",2);__decorateClass$6([e()],MateuResult.prototype,"data",2);MateuResult=__decorateClass$6([e$1("mateu-result")],MateuResult);var __defProp$5=Object.defineProperty,__getOwnPropDesc$5=Object.getOwnPropertyDescriptor,__decorateClass$5=($,C,T,V)=>{for(var K=V>1?void 0:V?__getOwnPropDesc$5(C,T):C,Y=$.length-1,J;Y>=0;Y--)(J=$[Y])&&(K=(V?J(C,T,K):J(K))||K);return V&&K&&__defProp$5(C,T,K),K};let MateuComponent=class extends s$2{connectedCallback(){super.connectedCallback()}render(){var $,C,T,V,K;return y$1`
         
             ${(($=this.component)==null?void 0:$.metadata.type)==ViewType.Form?y$1`<mateu-form 
                             .metadata=${this.component.metadata} 
@@ -9072,6 +9190,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                             .rules=${this.component.rules}
                     ><slot></slot></mateu-result>`:y$1``}
 
+            ${((V=this.component)==null?void 0:V.metadata.type)==ViewType.JourneyStarter?y$1`<journey-starter remoteUrl="${this.component.metadata.baseUrl}"></journey-starter>`:y$1``}
+
+            ${((K=this.component)==null?void 0:K.metadata.type)==ViewType.JourneyRunner?y$1`<journey-starter journeyType="${this.component.metadata.journeyType}"></journey-starter>`:y$1``}
+        
         `}};MateuComponent.styles=i$2`
     
   `;__decorateClass$5([e()],MateuComponent.prototype,"component",2);__decorateClass$5([e()],MateuComponent.prototype,"journeyId",2);__decorateClass$5([e()],MateuComponent.prototype,"stepId",2);__decorateClass$5([e()],MateuComponent.prototype,"setLoading",2);MateuComponent=__decorateClass$5([e$1("mateu-component")],MateuComponent);var __defProp$4=Object.defineProperty,__getOwnPropDesc$4=Object.getOwnPropertyDescriptor,__decorateClass$4=($,C,T,V)=>{for(var K=V>1?void 0:V?__getOwnPropDesc$4(C,T):C,Y=$.length-1,J;Y>=0;Y--)(J=$[Y])&&(K=(V?J(C,T,K):J(K))||K);return V&&K&&__defProp$4(C,T,K),K};let MateuView=class extends s$2{connectedCallback(){super.connectedCallback()}render(){var $;return y$1`
