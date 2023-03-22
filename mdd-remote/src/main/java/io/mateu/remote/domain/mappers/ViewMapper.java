@@ -57,7 +57,11 @@ public class ViewMapper {
     private ViewMetadata getMetadata(Object uiInstance) {
         ViewMetadata metadata;
 
-        if (uiInstance instanceof Result) {
+        if (uiInstance instanceof io.mateu.mdd.shared.interfaces.JourneyStarter) {
+            metadata = getJourneyStarter((io.mateu.mdd.shared.interfaces.JourneyStarter) uiInstance);
+        } else if (uiInstance instanceof io.mateu.mdd.shared.interfaces.JourneyRunner) {
+            metadata = getJourneyRunner((io.mateu.mdd.shared.interfaces.JourneyRunner) uiInstance);
+        } else if (uiInstance instanceof Result) {
             metadata = getResult((Result) uiInstance);
         } else if (uiInstance instanceof RpcView) {
             metadata = getCrud((RpcView) uiInstance);
@@ -66,6 +70,19 @@ public class ViewMapper {
         }
 
         return metadata;
+    }
+
+    private JourneyRunner getJourneyRunner(io.mateu.mdd.shared.interfaces.JourneyRunner uiInstance) {
+        return JourneyRunner.builder()
+                .baseUrl(uiInstance.getBaseUrl())
+                .journeyType(uiInstance.getJourneyType())
+                .build();
+    }
+
+    private JourneyStarter getJourneyStarter(io.mateu.mdd.shared.interfaces.JourneyStarter uiInstance) {
+        return JourneyStarter.builder()
+                .baseUrl(uiInstance.getBaseUrl())
+                .build();
     }
 
     private io.mateu.remote.dtos.Result getResult(Result uiInstance) {

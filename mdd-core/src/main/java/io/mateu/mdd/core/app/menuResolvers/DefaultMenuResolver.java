@@ -1,16 +1,11 @@
 package io.mateu.mdd.core.app.menuResolvers;
 
 import com.google.auto.service.AutoService;
-import com.google.common.base.Strings;
 import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.app.*;
-import io.mateu.mdd.shared.annotations.Columns;
-import io.mateu.mdd.shared.annotations.EditableFields;
-import io.mateu.mdd.shared.annotations.FilterFields;
-import io.mateu.mdd.shared.annotations.Where;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.shared.interfaces.RemoteForm;
-import io.mateu.mdd.shared.interfaces.UserJourney;
+import io.mateu.mdd.shared.interfaces.JourneyRunner;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.notification.Notifier;
@@ -31,10 +26,10 @@ public class DefaultMenuResolver implements MenuResolver {
             l.add(a = new MDDOpenRemoteFormAction(caption, (RemoteForm) ReflectionHelper.getValue(f, app)));
             a.setOrder(order);
 
-        } else if (UserJourney.class.isAssignableFrom(f.getType())) {
+        } else if (JourneyRunner.class.isAssignableFrom(f.getType())) {
 
             MDDOpenUserJourneyAction a;
-            l.add(a = new MDDOpenUserJourneyAction(caption, (UserJourney) ReflectionHelper.getValue(f, app)));
+            l.add(a = new MDDOpenUserJourneyAction(caption, (JourneyRunner) ReflectionHelper.getValue(f, app)));
             a.setOrder(order);
 
         } else if (List.class.isAssignableFrom(f.getType()) && MenuEntry.class.equals(ReflectionHelper.getGenericClass(f.getType()))) {

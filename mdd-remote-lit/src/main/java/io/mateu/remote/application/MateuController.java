@@ -30,6 +30,9 @@ public class MateuController {
         httpHeaders.add("Content-Type", Map.of("js", "application/javascript",
                         "css", "text/css")
                 .getOrDefault(suffix, MediaType.TEXT_PLAIN_VALUE.toString()));
+        if (path.startsWith("/")) {
+            path = path.substring(1);
+        }
         String html = Helper.leerFichero(this.getClass(), "/npm/mateu/assets/" + path);
         return new ResponseEntity(html, httpHeaders, HttpStatus.OK);
     }

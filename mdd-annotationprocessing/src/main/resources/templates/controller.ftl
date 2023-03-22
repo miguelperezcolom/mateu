@@ -23,7 +23,7 @@ public class ${simpleClassName}Controller {
         String path = tokens.length > 1?tokens[1]:"";
         String html = Helper.leerFichero(this.getClass(), "/npm/mateu/index.html");
         html = html.replaceAll("http:\\/\\/localhost:8081\\/mateu\\/v1", "/mateu/v1");
-        html = html.replaceAll("com\\.example\\.demoremote\\.DemoApp", "${className}");
+        html = html.replaceAll("com\\.example\\.demoremote\\.ui\\.DemoApp", "${className}");
         return html;
     }
 

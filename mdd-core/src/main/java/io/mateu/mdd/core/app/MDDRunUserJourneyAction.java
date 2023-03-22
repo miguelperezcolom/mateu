@@ -1,8 +1,5 @@
 package io.mateu.mdd.core.app;
 
-import io.mateu.mdd.shared.interfaces.UserJourney;
-import io.mateu.remote.dtos.Action;
-
 public class MDDRunUserJourneyAction extends AbstractAction {
 
     private final String baseUrl;
