@@ -16,6 +16,7 @@ import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -42,11 +43,13 @@ public class ProgrammingLanguages implements RpcCrudView<ProgrammingLanguages, P
 
     @Override
     public List<Row> rpc(ProgrammingLanguages filters, List<QuerySortOrder> sortOrders, int offset, int limit) throws Throwable {
+        RowComparator comparator = new RowComparator(sortOrders);
         return repo.findAll().stream()
                 .filter(p -> Strings.isNullOrEmpty(filters.getName())
                         || p.getName().toLowerCase().contains(filters.getName().toLowerCase()))
                 .filter(p -> filters.getTarget() == null
                         || filters.getTarget().equals(p.getTarget()))
+                .sorted(comparator)
                 .skip(offset)
                 .limit(limit)
                 .collect(Collectors.toList());
