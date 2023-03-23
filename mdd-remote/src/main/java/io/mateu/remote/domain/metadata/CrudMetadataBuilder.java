@@ -70,7 +70,7 @@ public class CrudMetadataBuilder extends AbstractMetadataBuilder {
         if (fieldInterfaced.isAnnotationPresent(Width.class)) {
             return fieldInterfaced.getAnnotation(Width.class).value();
         }
-        return null;
+        return "150px";
     }
 
     private SearchForm buildSearchForm(RpcView rpcView) {

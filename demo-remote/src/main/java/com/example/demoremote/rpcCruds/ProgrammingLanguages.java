@@ -10,6 +10,7 @@ import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.Ignored;
 import io.mateu.mdd.shared.annotations.Placeholder;
+import io.mateu.mdd.shared.annotations.Width;
 import io.mateu.mdd.shared.data.Status;
 import io.mateu.mdd.shared.data.StatusType;
 import lombok.*;
@@ -88,8 +89,10 @@ public class ProgrammingLanguages implements RpcCrudView<ProgrammingLanguages, P
 
         private String name;
 
+        @Width("80px")
         private LanguageTarget target;
 
+        @Width("90px")
         private Status status = new Status(StatusType.INFO, "New record");
 
         public enum LanguageTarget {
