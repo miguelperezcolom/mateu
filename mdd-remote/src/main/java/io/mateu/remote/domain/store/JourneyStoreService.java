@@ -47,7 +47,7 @@ public class JourneyStoreService {
             throw new Exception("No step with id " + stepId + " for journey with id " + journeyId + " found");
         }
         if ("io.mateu.mdd.ui.cruds.JpaRpcCrudView".equals(step.getType())) {
-            Object jpaRpcCrudView = createInstanceFromJourneyId(journeyId);
+            Object jpaRpcCrudView = createInstanceFromJourneyTypeId(container.get().getJourneyTypeId());
             return jpaRpcCrudView;
         } else {
             Object viewInstance = ReflectionHelper.newInstance(Class.forName(step.getType()));
@@ -155,8 +155,8 @@ public class JourneyStoreService {
         return menuMappingRepo.findById(actionId).orElse(null);
     }
 
-    public Object createInstanceFromJourneyId(String journeyId) {
-        MenuToBeanMapping menuMapping = getMenuMapping(journeyId);
+    public Object createInstanceFromJourneyTypeId(String journeyTypeId) {
+        MenuToBeanMapping menuMapping = getMenuMapping(journeyTypeId);
         Object formInstance = null;
         try {
             formInstance = createInstanceFromMenuMapping(menuMapping.getBean());

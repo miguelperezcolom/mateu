@@ -15,11 +15,11 @@ import java.util.List;
 public class LanguagesRepository {
 
     private final List<ProgrammingLanguages.Row> all = new ArrayList<>(List.of(
-            new ProgrammingLanguages.Row("java", "Java", "Backend", new Status(StatusType.SUCCESS, "Success")),
-            new ProgrammingLanguages.Row("js", "Javascript", "Frontend", new Status(StatusType.DANGER, "Error")),
-            new ProgrammingLanguages.Row("c#", "C#", "Backend", new Status(StatusType.SUCCESS, "Success")),
-            new ProgrammingLanguages.Row("c", "C", "Backend", new Status(StatusType.WARNING, "Warning")),
-            new ProgrammingLanguages.Row("c++", "C++", "Backend", new Status(StatusType.INFO, "Info"))
+            new ProgrammingLanguages.Row("java", "Java", ProgrammingLanguages.Row.LanguageTarget.Backend, new Status(StatusType.SUCCESS, "Success")),
+            new ProgrammingLanguages.Row("js", "Javascript", ProgrammingLanguages.Row.LanguageTarget.Frontend, new Status(StatusType.DANGER, "Error")),
+            new ProgrammingLanguages.Row("c#", "C#", ProgrammingLanguages.Row.LanguageTarget.Backend, new Status(StatusType.SUCCESS, "Success")),
+            new ProgrammingLanguages.Row("c", "C", ProgrammingLanguages.Row.LanguageTarget.Backend, new Status(StatusType.WARNING, "Warning")),
+            new ProgrammingLanguages.Row("c++", "C++", ProgrammingLanguages.Row.LanguageTarget.Backend, new Status(StatusType.INFO, "Info"))
     ));
 
 

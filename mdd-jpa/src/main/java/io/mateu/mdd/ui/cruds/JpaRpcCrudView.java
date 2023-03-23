@@ -100,7 +100,7 @@ public class JpaRpcCrudView implements RpcCrudView<Object, Object, Object>, RpcC
         return new JpaCrudRowsQuery(
                 action,
                 filters,
-                null,
+                sortOrders,
                 offset,
                 limit,
                 aliasedColumnNamesByColId,

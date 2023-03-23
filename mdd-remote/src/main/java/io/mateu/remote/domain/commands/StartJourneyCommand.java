@@ -1,20 +1,13 @@
 package io.mateu.remote.domain.commands;
 
-import io.mateu.mdd.core.app.MDDOpenCRUDAction;
-import io.mateu.mdd.core.app.MDDOpenCRUDActionViewBuilder;
-import io.mateu.mdd.core.app.MDDOpenEditorAction;
-import io.mateu.mdd.core.app.MDDOpenListViewAction;
 import io.mateu.mdd.shared.interfaces.RpcView;
-import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.application.NotFoundException;
 import io.mateu.remote.domain.mappers.JourneyMapper;
 import io.mateu.remote.domain.mappers.StepMapper;
 import io.mateu.remote.domain.store.JourneyContainer;
 import io.mateu.remote.domain.store.JourneyStoreService;
-import io.mateu.remote.domain.store.MenuToBeanMapping;
 import io.mateu.remote.dtos.Journey;
 import io.mateu.remote.dtos.Step;
-import io.mateu.util.Helper;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,7 +32,7 @@ public class StartJourneyCommand {
 
             try {
 
-                formInstance = store.createInstanceFromJourneyId(journeyId);
+                formInstance = store.createInstanceFromJourneyTypeId(journeyTypeId);
 
                 if (formInstance == null) {
                     throw new Exception();

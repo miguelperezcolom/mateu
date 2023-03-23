@@ -9,6 +9,7 @@ import io.mateu.mdd.core.interfaces.HasTitle;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.Ignored;
+import io.mateu.mdd.shared.annotations.Placeholder;
 import io.mateu.mdd.shared.data.Status;
 import io.mateu.mdd.shared.data.StatusType;
 import lombok.*;
@@ -34,13 +35,18 @@ public class ProgrammingLanguages implements RpcCrudView<ProgrammingLanguages, P
     private LanguageDetail detail;
 
 
+    @Placeholder("here the language name")
     private String name;
+
+    private Row.LanguageTarget target;
 
     @Override
     public List<Row> rpc(ProgrammingLanguages filters, List<QuerySortOrder> sortOrders, int offset, int limit) throws Throwable {
         return repo.findAll().stream()
                 .filter(p -> Strings.isNullOrEmpty(filters.getName())
                         || p.getName().toLowerCase().contains(filters.getName().toLowerCase()))
+                .filter(p -> filters.getTarget() == null
+                        || filters.getTarget().equals(p.getTarget()))
                 .skip(offset)
                 .limit(limit)
                 .collect(Collectors.toList());
@@ -50,7 +56,10 @@ public class ProgrammingLanguages implements RpcCrudView<ProgrammingLanguages, P
     public int gatherCount(ProgrammingLanguages filters) throws Throwable {
         return (int) repo.findAll().stream()
                 .filter(p -> Strings.isNullOrEmpty(filters.getName())
-                        || p.getName().toLowerCase().contains(filters.getName().toLowerCase())).count();
+                        || p.getName().toLowerCase().contains(filters.getName().toLowerCase()))
+                .filter(p -> filters.getTarget() == null
+                        || filters.getTarget().equals(p.getTarget()))
+                .count();
     }
 
     @Override
@@ -76,11 +85,15 @@ public class ProgrammingLanguages implements RpcCrudView<ProgrammingLanguages, P
 
         private String name;
 
-        private String target;
+        private LanguageTarget target;
 
         private Status status = new Status(StatusType.INFO, "New record");
 
-        public Row(String id, String name, String target, Status status) {
+        public enum LanguageTarget {
+            Backend, Frontend
+        }
+
+        public Row(String id, String name, LanguageTarget target, Status status) {
             this.id = id;
             this.name = name;
             this.target = target;

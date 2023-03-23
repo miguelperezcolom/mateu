@@ -37,7 +37,7 @@ public abstract class JpaCrudQuery {
     protected String selectColumnsForCount;
     protected String selectColumnsForList;
     private Map<String, String> alias;
-    private Map<String, String> aliasedColumnNames;
+    protected Map<String, String> aliasedColumnNames;
     private List<String> columnNames;
     protected List<String> aliasedColumnNamesList;
     private List<FieldInterfaced> filterFields;

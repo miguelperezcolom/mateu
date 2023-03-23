@@ -1,8 +1,13 @@
 package io.mateu.remote.application;
 
+import com.google.common.base.Strings;
 import io.mateu.remote.dtos.SortCriteria;
+import io.mateu.remote.dtos.SortType;
+import io.mateu.util.Helper;
 
-import java.util.List;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class OrderingDeserializer {
 
@@ -13,6 +18,18 @@ public class OrderingDeserializer {
     }
 
     public List<SortCriteria> deserialize() {
+        if (Strings.isNullOrEmpty(raw)) {
+            return List.of();
+        }
+        try {
+            List<Map<String, Object>> data = (List<Map<String, Object>>) Helper.fromJson(new String(Base64.getDecoder().decode(raw)), ArrayList.class);
+            return data.stream().map(m -> new SortCriteria(
+                    (String) m.get("column"),
+                    SortType.valueOf((String) m.get("order"))
+            )).collect(Collectors.toList());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return List.of();
     }
 }

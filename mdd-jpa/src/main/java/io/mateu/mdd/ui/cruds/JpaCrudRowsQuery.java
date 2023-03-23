@@ -18,11 +18,13 @@ public class JpaCrudRowsQuery extends JpaCrudQuery {
 
     private int offset;
     private int limit;
+    private List<QuerySortOrder> sortOrders;
 
     JpaCrudRowsQuery(MDDOpenCRUDAction action, Object filters, List<QuerySortOrder> sortOrders, int offset, int limit, Map<String, String> aliasedColumnNamesByColId, String queryFilters, ExtraFilters extraFilters, String selectColumnsForCount, String selectColumnsForList, Map<String, String> alias, Map<String, String> aliasedColumnNames, List<String> columnNames, List<String> aliasedColumnNamesList, List<FieldInterfaced> filterFields) {
         super(action, filters, sortOrders, offset, limit, aliasedColumnNamesByColId, queryFilters, extraFilters, selectColumnsForCount, selectColumnsForList, alias, aliasedColumnNames, columnNames, aliasedColumnNamesList, filterFields);
         this.offset = offset;
         this.limit = limit;
+        this.sortOrders = sortOrders;
     }
 
     public List run() {
@@ -35,7 +37,7 @@ public class JpaCrudRowsQuery extends JpaCrudQuery {
                 if (sortOrders != null) {
                     for (QuerySortOrder sortOrder : sortOrders) {
                         mappedSortOrders.add(
-                                new QuerySortOrder(aliasedColumnNamesByColId.get(sortOrder.getSorted()),
+                                new QuerySortOrder(aliasedColumnNames.get(sortOrder.getSorted()),
                                         sortOrder.getDirection()));
                     }
                 }
