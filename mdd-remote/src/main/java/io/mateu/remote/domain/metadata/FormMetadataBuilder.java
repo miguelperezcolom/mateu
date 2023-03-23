@@ -119,10 +119,21 @@ public class FormMetadataBuilder extends AbstractMetadataBuilder {
             fieldGroup.getFields().add(getField(fieldInterfaced));
         }
 
+        fillSectionIds(sections);
+
         return sections;
     }
 
-
+    private void fillSectionIds(List<Section> sections) {
+        int i = 0;
+        for (Section s : sections) {
+            s.setId("" + i++);
+            int j = 0;
+            for (FieldGroup g : s.getFieldGroups()) {
+                g.setId("" + i + "_" + j++);
+            }
+        }
+    }
 
 
     private String getCaption(Object uiInstance) {
