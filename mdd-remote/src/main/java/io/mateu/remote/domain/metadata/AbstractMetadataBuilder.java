@@ -256,7 +256,7 @@ public abstract class AbstractMetadataBuilder {
                 actions.add(action);
             }
         }
-        if (uiInstance instanceof ReadOnlyPojo) {
+        if (uiInstance instanceof ReadOnlyPojo && !(uiInstance instanceof PersistentPojo)) {
             Action action = Action.builder()
                     .id("edit")
                     .caption("Edit")

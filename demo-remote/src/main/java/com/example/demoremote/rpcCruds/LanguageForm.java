@@ -24,7 +24,7 @@ public class LanguageForm implements PersistentPojo {
 
     private String name;
 
-    private String target;
+    private ProgrammingLanguages.Row.LanguageTarget target;
 
     @Override
     public void save() throws Throwable {

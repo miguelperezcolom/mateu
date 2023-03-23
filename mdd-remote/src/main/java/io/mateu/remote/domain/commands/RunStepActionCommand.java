@@ -175,6 +175,11 @@ public class RunStepActionCommand {
             List<Destination> youMayBeInterestedIn = new ArrayList<>();
             Step detail = store.getStep(journeyId, "detail");
             if (detail != null) {
+                Object pojo = store.getViewInstance(journeyId, "detail");
+                    if (pojo instanceof ReadOnlyPojo) {
+                    ((ReadOnlyPojo) pojo).load(((ReadOnlyPojo) pojo).getId());
+                    store.setStep(journeyId, "detail", pojo);
+                }
                 youMayBeInterestedIn.add(new Destination(DestinationType.ActionId,
                         "Return to " + detail.getName() + " detail", "detail"));
             }

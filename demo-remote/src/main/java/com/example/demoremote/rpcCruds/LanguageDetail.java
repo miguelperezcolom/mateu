@@ -2,6 +2,7 @@ package com.example.demoremote.rpcCruds;
 
 import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
+import io.mateu.mdd.shared.annotations.Ignored;
 import io.mateu.reflection.ReflectionHelper;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +22,12 @@ public class LanguageDetail implements ReadOnlyPojo {
     LanguageForm form;
 
     @Id
+    @Ignored
     private String id;
 
     private String name;
 
-    private String target;
+    private ProgrammingLanguages.Row.LanguageTarget target;
 
     @Override
     public void load(Object id) throws Throwable {

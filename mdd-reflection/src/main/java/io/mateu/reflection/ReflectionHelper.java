@@ -1360,6 +1360,15 @@ public class ReflectionHelper extends BaseReflectionHelper {
         return allFields;
     }
 
+    public static List<FieldInterfaced> getAllTransferrableFields(Class modelType) {
+        List<FieldInterfaced> allFields = getAllFields(modelType);
+
+        allFields = filterAccesible(allFields);
+
+        allFields = filterInjected(allFields);
+
+        return allFields;
+    }
 
     public static List<FieldInterfaced> getAllEditableFields(Class modelType) {
         return getAllEditableFilteredFields(modelType, null, null);
@@ -1374,10 +1383,6 @@ public class ReflectionHelper extends BaseReflectionHelper {
             l.removeAll(borrar);
         }
         return l;
-    }
-
-    public static List<FieldInterfaced> getAllEditableFields(Class modelType, Class superType) {
-        return getAllEditableFields(modelType, superType, true);
     }
 
     public static List<FieldInterfaced> getAllEditableFields(Class modelType, Class superType, boolean includeReverseMappers) {
@@ -1399,7 +1404,6 @@ public class ReflectionHelper extends BaseReflectionHelper {
                 }
             }
             allFields.removeAll(borrar);
-
         }
 
         allFields = filterAccesible(allFields);
@@ -2623,7 +2627,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     public static void copy(Object o1, Object o2) {
         if (o1 != null && o2 != null) {
             if (o1.getClass().equals(o2.getClass())) {
-                for (FieldInterfaced f : getAllEditableFields(o2.getClass())) {
+                for (FieldInterfaced f : getAllTransferrableFields(o2.getClass())) {
                     try {
                         setValue(f, o2, getValue(f, o1));
                     } catch (Exception e) {
@@ -2631,7 +2635,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
                     }
                 }
             } else {
-                for (FieldInterfaced f2 : getAllEditableFields(o2.getClass())) {
+                for (FieldInterfaced f2 : getAllTransferrableFields(o2.getClass())) {
                     try {
                         FieldInterfaced f1 = getFieldByName(o1.getClass(), f2.getName());
                         if (f1 != null && f1.getType().equals(f2.getType())) setValue(f2, o2, getValue(f1, o1));

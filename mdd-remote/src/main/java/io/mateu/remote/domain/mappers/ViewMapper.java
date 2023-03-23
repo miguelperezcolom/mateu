@@ -45,7 +45,7 @@ public class ViewMapper {
         if (uiInstance instanceof RpcView) {
             return Map.of();
         }
-        for (FieldInterfaced field : ReflectionHelper.getAllEditableFields(dataContainerClass)) {
+        for (FieldInterfaced field : ReflectionHelper.getAllTransferrableFields(dataContainerClass)) {
             try {
                 data.put(field.getId(), ReflectionHelper.getValue(field, dataContainer));
             } catch (Exception e) {
