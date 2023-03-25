@@ -4,6 +4,7 @@ import com.google.auto.service.AutoService;
 import com.google.common.base.Strings;
 import freemarker.template.TemplateException;
 import io.mateu.mdd.core.annotations.MateuUI;
+import io.mateu.mdd.shared.annotations.Caption;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -36,9 +37,10 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                         generatedFullClassName.lastIndexOf("."));
                 String generatedClassName = generatedFullClassName.substring(
                         generatedFullClassName.lastIndexOf(".") + 1);
+                String caption = getCaption(e, simpleClassName);
 
                 try {
-                    createController(generatedFullClassName, pkgName, className, simpleClassName, e, generatedClassName);
+                    createController(generatedFullClassName, pkgName, className, simpleClassName, e, generatedClassName, caption);
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
@@ -50,8 +52,16 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
         return true;
     }
 
+    private String getCaption(Element e, String simpleClassName) {
+        if (e.getAnnotation(Caption.class) != null) {
+            return e.getAnnotation(Caption.class).value();
+        }
+        return Helper.capitalize(simpleClassName);
+    }
+
     private void createController(String generatedFullClassName, String pkgName, String className,
-                               String simpleClassName, Element e, String generatedClassName)
+                               String simpleClassName, Element e, String generatedClassName,
+                                  String caption)
             throws IOException {
         JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(generatedFullClassName);
         try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
@@ -63,6 +73,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                     , "simpleClassName", simpleClassName
                     , "generatedClassName", generatedClassName
                     , "generatedFullClassName", generatedFullClassName
+                    , "caption", caption
             ));
             try {
                 out.println(formatter.apply());

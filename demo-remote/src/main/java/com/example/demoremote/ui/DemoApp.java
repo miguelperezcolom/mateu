@@ -2,12 +2,14 @@ package com.example.demoremote.ui;
 
 import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.annotations.MateuUI;
+import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.MenuOption;
 import io.mateu.mdd.shared.annotations.Submenu;
 import org.springframework.stereotype.Component;
 
 @MateuUI(path = "")
 @Component
+@Caption("This is a demo")
 public class DemoApp implements Runnable {
 
     @MenuOption(icon = VaadinIcons.AIRPLANE)

@@ -22,6 +22,7 @@ public class ${simpleClassName}Controller {
         String[] tokens = request.getRequestURI().split(request.getContextPath());
         String path = tokens.length > 1?tokens[1]:"";
         String html = Helper.leerFichero(this.getClass(), "/npm/mateu/index.html");
+        html = html.replaceAll("AQUIELTITULODELAPAGINA", "${caption}");
         html = html.replaceAll("http:\\/\\/localhost:8081\\/mateu\\/v1", "/mateu/v1");
         html = html.replaceAll("com\\.example\\.demoremote\\.ui\\.DemoApp", "${className}");
         return html;
