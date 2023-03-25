@@ -388,9 +388,14 @@ public class JpaRpcCrudView implements RpcCrudView<Object, Object, Object>, RpcC
     public void delete(Set<Object> selection) throws Throwable {
         JPAHelper.transact(em -> {
             for (Object o : selection) {
-                Map<String, Object> m = (Map<String, Object>) o;
-                Object e = em.find(action.getEntityClass(), m.get("id"));
-                em.remove(e);
+                if (o instanceof Map) {
+                    Map<String, Object> m = (Map<String, Object>) o;
+                    Object e = em.find(action.getEntityClass(), m.get("id"));
+                    em.remove(e);
+                } else {
+                    o = em.merge(o);
+                    em.remove(o);
+                }
             }
         });
     }

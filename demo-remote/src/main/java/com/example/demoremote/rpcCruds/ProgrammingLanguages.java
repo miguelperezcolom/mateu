@@ -44,6 +44,7 @@ public class ProgrammingLanguages implements RpcCrudView<ProgrammingLanguages, P
 
     @Override
     public List<Row> rpc(ProgrammingLanguages filters, List<QuerySortOrder> sortOrders, int offset, int limit) throws Throwable {
+        Thread.sleep(2000);
         RowComparator comparator = new RowComparator(sortOrders);
         return repo.findAll().stream()
                 .filter(p -> Strings.isNullOrEmpty(filters.getName())
