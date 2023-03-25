@@ -8,6 +8,7 @@ import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.commands.RunStepActionCommand;
 import io.mateu.remote.domain.mappers.StepMapper;
+import io.mateu.remote.domain.mappers.UIMapper;
 import io.mateu.remote.dtos.Journey;
 import io.mateu.remote.dtos.Step;
 import io.mateu.util.Helper;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -152,7 +154,19 @@ public class JourneyStoreService {
     }
 
     public MenuToBeanMapping getMenuMapping(String actionId) {
-        return menuMappingRepo.findById(actionId).orElse(null);
+        Optional<MenuToBeanMapping> menuToBeanMapping = menuMappingRepo.findById(actionId);
+        if (menuToBeanMapping.isEmpty()) {
+            String uiClassName = actionId.split("_")[1];
+            Object uiInstance = null;
+            try {
+                uiInstance = ReflectionHelper.newInstance(Class.forName(uiClassName));
+                new UIMapper().map(uiInstance);
+                menuToBeanMapping = menuMappingRepo.findById(actionId);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return menuToBeanMapping.orElse(null);
     }
 
     public Object createInstanceFromJourneyTypeId(String journeyTypeId) {

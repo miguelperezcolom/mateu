@@ -54,7 +54,7 @@ public class RemoteMateuController {
     @GetMapping("journeys/{journeyId}/steps/{stepId}")
     public Step getStep(@PathVariable String journeyId, @PathVariable String stepId) throws Exception {
         Step step = GetStepQuery.builder().journeyId(journeyId).stepId(stepId).build().run();
-        log.info(Helper.toJson(step));
+        //log.info(Helper.toJson(step));
         return step;
     }
 
