@@ -2,6 +2,7 @@ package com.example.demoremote.ui;
 
 import com.example.demoremote.nfl.dtos.Conference;
 import com.example.demoremote.nfl.dtos.Division;
+import com.example.demoremote.rpcCruds.ProgrammingLanguages;
 import io.mateu.mdd.core.interfaces.HasSubtitle;
 import io.mateu.mdd.core.interfaces.HasTitle;
 import io.mateu.mdd.shared.annotations.*;
@@ -10,6 +11,8 @@ import io.mateu.mdd.shared.interfaces.HasBadges;
 import io.mateu.mdd.shared.interfaces.HasStatus;
 import lombok.Data;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -19,11 +22,13 @@ import java.util.List;
 public class BasicFieldsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
 
     @Section("Basic")
+    @NotEmpty
     private String name = "Mateu";
 
     @Placeholder("This should appear as the placeholder")
     private String withPlaceholder;
 
+    @NotNull
     private int age;
 
     private double balance = 20.31;
@@ -54,7 +59,6 @@ public class BasicFieldsForm implements HasBadges, HasStatus, HasTitle, HasSubti
     private Conference conference;
 
     private Division division;
-
 
     @Section("Assessment")
     @ReadOnly

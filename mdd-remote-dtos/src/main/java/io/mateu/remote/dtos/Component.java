@@ -16,4 +16,8 @@ public class Component {
 
     private List<Rule> rules;
 
+    String slot;
+
+    private Map<String, Object> attributes;
+
 }

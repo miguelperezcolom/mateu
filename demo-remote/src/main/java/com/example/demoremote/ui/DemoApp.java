@@ -19,6 +19,9 @@ public class DemoApp implements Runnable {
     @MenuOption(icon = VaadinIcons.EYE_SLASH)
     private MyReadOnlyPojo readOnlyPojo;
 
+    @MenuOption(icon = VaadinIcons.EYE_SLASH)
+    private MyReadOnlyPojoWithCrud readOnlyPojoWithCrud;
+
     @Submenu
     private ExplorerSubmenu explorer;
 

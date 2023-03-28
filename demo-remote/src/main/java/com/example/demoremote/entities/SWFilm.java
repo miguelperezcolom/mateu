@@ -6,8 +6,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -15,28 +17,23 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class SWCharacter {
+public class SWFilm {
 
     @Id
     String id = UUID.randomUUID().toString();
 
-    @FieldGroup("Main data")
-    private String name;
-
-    private int height;
-
-    private double mass;
-
-    @FieldGroup("More data")
-    private String hair_color;
-
-    private String gender;
-
-    private String homeworld;
+    String title;
+    String episode_id;
+    @Column(length = 6000)
+    String opening_crawl;
+    String director;
+    String producer;
+    LocalDate release_date;
+    String url;
 
     @Override
     public String toString() {
-        return name != null?"" + name:"No name";
+        return title != null?"" + title:"No name";
     }
 
 }

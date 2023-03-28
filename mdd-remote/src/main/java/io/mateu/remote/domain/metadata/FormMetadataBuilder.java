@@ -19,16 +19,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class FormMetadataBuilder extends AbstractMetadataBuilder {
-    public Form build(Object uiInstance) {
+    public Form build(String stepId, Object uiInstance) {
         Form form = Form.builder()
                 .title(getCaption(uiInstance))
                 .subtitle(getSubtitle(uiInstance))
                 .status(getStatus(uiInstance))
-                .readOnly(uiInstance instanceof ReadOnlyPojo && !(uiInstance instanceof PersistentPojo))
+                .readOnly("view".equals(stepId) || (uiInstance instanceof ReadOnlyPojo && !(uiInstance instanceof PersistentPojo)))
                 .badges(getBadges(uiInstance))
-                .sections(getSections(uiInstance))
-                .actions(getActions(uiInstance))
-                .mainActions(getMainActions(uiInstance))
+                .sections(getSections(stepId, uiInstance))
+                .actions(getActions(stepId, "", uiInstance))
+                .mainActions(getMainActions(stepId, uiInstance))
                 .build();
         return form;
     }
@@ -64,7 +64,7 @@ public class FormMetadataBuilder extends AbstractMetadataBuilder {
         return BadgeType.valueOf(type.toString());
     }
 
-    private List<Action> getMainActions(Object uiInstance) {
+    private List<Action> getMainActions(String stepId, Object uiInstance) {
         List<Method> allMethods = ReflectionHelper.getAllMethods(uiInstance.getClass());
         List<Action> actions = allMethods.stream()
                 .filter(m -> m.isAnnotationPresent(io.mateu.mdd.shared.annotations.MainAction.class))
@@ -78,7 +78,7 @@ public class FormMetadataBuilder extends AbstractMetadataBuilder {
                     .build();
             actions.add(action);
         }
-        if (uiInstance instanceof PersistentPojo || uiInstance.getClass().isAnnotationPresent(Entity.class)) {
+        if (!"view".equals(stepId) && (uiInstance instanceof PersistentPojo || uiInstance.getClass().isAnnotationPresent(Entity.class))) {
             Action action = Action.builder()
                     .id("save")
                     .caption("Save")
@@ -89,7 +89,7 @@ public class FormMetadataBuilder extends AbstractMetadataBuilder {
         return actions;
     }
 
-    private List<Section> getSections(Object uiInstance) {
+    private List<Section> getSections(String stepId, Object uiInstance) {
         List<Section> sections = new ArrayList<>();
         Section section = null;
         FieldGroup fieldGroup = null;
@@ -102,8 +102,8 @@ public class FormMetadataBuilder extends AbstractMetadataBuilder {
                     caption = fieldInterfaced.getAnnotation(io.mateu.mdd.shared.annotations.Section.class).value();
                 }
                 section = Section.builder()
-                        .caption(caption).readOnly(uiInstance instanceof ReadOnlyPojo
-                        && !(uiInstance instanceof PersistentPojo))
+                        .caption(caption).readOnly("view".equals(stepId) || (uiInstance instanceof ReadOnlyPojo
+                        && !(uiInstance instanceof PersistentPojo)))
                         .fieldGroups(new ArrayList<>()).build();
                 sections.add(section);
                 fieldGroup = null;
@@ -127,10 +127,10 @@ public class FormMetadataBuilder extends AbstractMetadataBuilder {
     private void fillSectionIds(List<Section> sections) {
         int i = 0;
         for (Section s : sections) {
-            s.setId("" + i++);
+            s.setId("section_" + i++);
             int j = 0;
             for (FieldGroup g : s.getFieldGroups()) {
-                g.setId("" + i + "_" + j++);
+                g.setId("fieldgroup_" + i + "_" + j++);
             }
         }
     }

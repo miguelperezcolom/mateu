@@ -1,9 +1,6 @@
 package com.example.demoremote.ui;
 
-import com.example.demoremote.entities.City;
-import com.example.demoremote.entities.Player;
-import com.example.demoremote.entities.SWCharacter;
-import com.example.demoremote.entities.Team;
+import com.example.demoremote.entities.*;
 import com.example.demoremote.rpcCruds.ProgrammingLanguages;
 import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.shared.annotations.Caption;
@@ -52,6 +49,22 @@ public class CrudsSubmenu {
         @Override
         public List<String> getColumnFields() {
             return List.of("name", "gender", "height");
+        }
+
+    };
+
+    @MenuOption(icon = VaadinIcons.FILE_MOVIE)
+    @Caption("Star Wars Films")
+    private JpaCrud<SWFilm> swFilms = new JpaCrud<SWFilm>() {
+
+        @Override
+        public List<String> getSearchFilterFields() {
+            return List.of("title");
+        }
+
+        @Override
+        public List<String> getColumnFields() {
+            return List.of("title", "director", "release_date");
         }
 
     };

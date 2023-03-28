@@ -7,6 +7,8 @@ import com.example.demoremote.entities.*;
 import com.example.demoremote.nfl.dtos.Reader;
 import com.example.demoremote.nfl.dtos.TargetPlayerDto;
 import com.example.demoremote.swapi.dtos.CharacterDto;
+import com.example.demoremote.swapi.dtos.FilmDto;
+import com.example.demoremote.swapi.dtos.FilmsDto;
 import io.mateu.util.Helper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -33,6 +35,10 @@ public class Populator {
 
     @Autowired
     private SWCharacterRepository swCharacterRepository;
+
+    @Autowired
+    private SWFilmRepository swFilmRepository;
+
 
     @PostConstruct
     public void populate() throws IOException {
@@ -95,12 +101,26 @@ public class Populator {
             p.setGender(characterDto.getGender());
             p.setHair_color(characterDto.getHair_color());
             p.setHomeworld(characterDto.getHomeworld());
-            p.setMass(Helper.toInt(characterDto.getMass()));
-            p.setHeight(Helper.toInt(characterDto.getHeight()));
+            if (!"unknown".equals(characterDto.getMass())) p.setMass(Helper.toDouble(characterDto.getMass().replaceAll(",", ".")));
+            if (!"unknown".equals(characterDto.getMass())) p.setHeight(Helper.toInt(characterDto.getHeight()));
             p.setId(characterDto.getUrl());
             swCharacterRepository.save(p);
         }
 
+        json = Helper.leerFichero(Reader.class, "/swapi_films.json"); // 140k cities
+        FilmsDto films = Helper.fromJson(json, FilmsDto.class);
+        for (FilmDto filmDto : films.getResults()) {
+            SWFilm p = new SWFilm();
+            p.setId(filmDto.getUrl());
+            p.setDirector(filmDto.getDirector());
+            p.setEpisode_id(filmDto.getEpisode_id());
+            p.setProducer(filmDto.getProducer());
+            p.setOpening_crawl(filmDto.getOpening_crawl());
+            p.setTitle(filmDto.getTitle());
+            p.setRelease_date(filmDto.getRelease_date());
+            p.setUrl(filmDto.getUrl());
+            swFilmRepository.save(p);
+        }
     }
 
 }

@@ -18,7 +18,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 @Data
-public class MyReadOnlyPojo implements io.mateu.mdd.core.interfaces.ReadOnlyPojo, HasBadges, HasStatus {
+public class MyReadOnlyPojoWithCrud implements io.mateu.mdd.core.interfaces.ReadOnlyPojo, HasBadges, HasStatus {
 
     @Section("Basic")
     private String name = "Mateu";
@@ -30,32 +30,7 @@ public class MyReadOnlyPojo implements io.mateu.mdd.core.interfaces.ReadOnlyPojo
 
     private double balance = 20.31;
 
-    @TextArea
-    private String text = """
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec vel semper libero. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae.
-                        
-            Proin volutpat, sapien ut facilisis ultricies, eros purus blandit velit, at ultrices mi libero quis ante. Curabitur scelerisque metus et libero convallis consequat. Pellentesque feugiat pulvinar nisl sed pellentesque.
-            """;
-
-    @Section("Dates")
-    private LocalDate date;
-
-
-    private LocalDateTime dateAndTime;
-
-    private LocalTime time;
-
-    @Section("Checks")
-    private boolean check;
-
-    @Toggle
-    private boolean toggle;
-
-    @Section("Enums")
-    @UseRadioButtons
-    private Conference conference;
-
-    private Division division;
+    private ProgrammingLanguages programmingLanguages;
 
     @Section("Assessment")
     @ReadOnly
@@ -64,16 +39,8 @@ public class MyReadOnlyPojo implements io.mateu.mdd.core.interfaces.ReadOnlyPojo
     @Action
     public void assess() {
         assessment = "" + name
-                + ", " + toggle
                 + ", " + age
                 + ", " + balance
-                + ", " + text
-                + ", " + date
-                + ", " + dateAndTime
-                + ", " + time
-                + ", " + check
-                + ", " + conference
-                + ", " + division
         ;
     }
 

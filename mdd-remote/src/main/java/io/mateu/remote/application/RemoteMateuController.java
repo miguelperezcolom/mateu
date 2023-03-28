@@ -39,7 +39,7 @@ public class RemoteMateuController {
     }
 
     @PostMapping("journeys/{journeyId}")
-    public void createJourney(@PathVariable String journeyId, @RequestBody JourneyCreationRq rq) throws Exception {
+    public void createJourney(@PathVariable String journeyId, @RequestBody JourneyCreationRq rq) throws Throwable {
         StartJourneyCommand.builder()
                 .journeyId(journeyId)
                 .journeyTypeId(rq.getJourneyTypeId())

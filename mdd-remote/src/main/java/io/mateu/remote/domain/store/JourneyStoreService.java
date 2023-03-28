@@ -1,9 +1,11 @@
 package io.mateu.remote.domain.store;
 
+import com.vaadin.server.communication.UIInitHandler;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.app.MDDOpenCRUDActionViewBuilder;
 import io.mateu.mdd.core.app.MDDOpenEditorAction;
 import io.mateu.mdd.core.app.MDDOpenListViewAction;
+import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.commands.RunStepActionCommand;
@@ -68,6 +70,20 @@ public class JourneyStoreService {
         }
     }
 
+    public RpcView getRpcViewInstance(String journeyId, String stepId, String listId) throws Exception {
+        Object viewInstance = getViewInstance(journeyId, stepId);
+        if (viewInstance instanceof RpcView) {
+            return (RpcView) viewInstance;
+        }
+        RpcView rpcView = (RpcView) ReflectionHelper.getValue(listId, viewInstance);
+        if (rpcView == null) {
+            rpcView = (RpcView) ReflectionHelper.newInstance(
+                    ReflectionHelper.getFieldByName(viewInstance.getClass(), listId).getType());
+            ReflectionHelper.setValue(listId, viewInstance, rpcView);
+        }
+        return rpcView;
+    }
+
     private boolean checkNotInjected(Object viewInstance, String fieldName) {
         FieldInterfaced field = ReflectionHelper.getFieldByName(viewInstance.getClass(), fieldName);
         return field != null && !field.isAnnotationPresent(Autowired.class);
@@ -81,12 +97,12 @@ public class JourneyStoreService {
         journeyRepo.save(journeyContainer);
     }
 
-    public void setStep(String journeyId, String stepId, Object editor) throws Exception {
+    public void setStep(String journeyId, String stepId, Object editor) throws Throwable {
         Optional<JourneyContainer> container = journeyRepo.findById(journeyId);
         if (!container.isPresent()) {
             throw new Exception("No journey with id " + journeyId + " found");
         }
-        container.get().setSteps(extendMap(container.get().getSteps(), stepId, new StepMapper().map(stepId, editor)));
+        container.get().setSteps(extendMap(container.get().getSteps(), stepId, new StepMapper().map(container.get(), stepId, editor)));
         container.get().getJourney().setCurrentStepId(stepId);
         container.get().getJourney().setCurrentStepDefinitionId(editor.getClass().getName());
     }

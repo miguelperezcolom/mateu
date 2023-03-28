@@ -11,12 +11,15 @@ import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.Ignored;
 import io.mateu.mdd.shared.annotations.Placeholder;
 import io.mateu.mdd.shared.annotations.Width;
+import io.mateu.mdd.shared.data.DatesRange;
 import io.mateu.mdd.shared.data.Status;
 import io.mateu.mdd.shared.data.StatusType;
 import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -36,15 +39,23 @@ public class ProgrammingLanguages implements RpcCrudView<ProgrammingLanguages, P
     @Autowired
     private LanguageDetail detail;
 
+    @Autowired
+    ApplicationContext context;
+
 
     @Placeholder("here the language name")
     private String name;
 
     private Row.LanguageTarget target;
 
+    private boolean jvm;
+
+    private DatesRange born;
+
     @Override
-    public List<Row> rpc(ProgrammingLanguages filters, List<QuerySortOrder> sortOrders, int offset, int limit) throws Throwable {
-        Thread.sleep(2000);
+    public List<Row> rpc(ProgrammingLanguages filters, List<QuerySortOrder> sortOrders, int offset, int limit)
+            throws Throwable {
+        Thread.sleep(500);
         RowComparator comparator = new RowComparator(sortOrders);
         return repo.findAll().stream()
                 .filter(p -> Strings.isNullOrEmpty(filters.getName())
@@ -120,11 +131,17 @@ public class ProgrammingLanguages implements RpcCrudView<ProgrammingLanguages, P
                     new ColumnAction("blockRow", "Block", null)
             });
         }
+
+        @Override
+        public String toString() {
+            return name;
+        }
+
     }
 
     @Override
     public Object onNew() throws Throwable {
-        return form;
+        return context.getBean(LanguageForm.class);
     }
 
     @Override

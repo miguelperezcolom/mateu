@@ -10,4 +10,6 @@ public interface RpcCrudViewExtended {
 
     List<FieldInterfaced> getFilterFields();
 
+    Class getEntityClass();
+
 }

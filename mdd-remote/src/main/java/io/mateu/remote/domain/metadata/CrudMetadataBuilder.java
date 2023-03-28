@@ -15,13 +15,14 @@ import java.util.stream.Collectors;
 
 public class CrudMetadataBuilder extends AbstractMetadataBuilder {
 
-    public Crud build(RpcView rpcView) {
+    public Crud build(String stepId, String listId, RpcView rpcView) {
         return Crud.builder()
                 .title(getTitle(rpcView))
                 .subtitle(getSubtitle(rpcView))
                 .searchForm(buildSearchForm(rpcView))
                 .columns(buildColumns(rpcView))
-                .actions(getActions(rpcView))
+                .actions(getActions(stepId, listId, rpcView))
+                .listId(listId)
                 .build();
     }
 

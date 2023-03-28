@@ -317,6 +317,11 @@ public class JpaRpcCrudView implements RpcCrudView<Object, Object, Object>, RpcC
         return getFilterFields(action.getEntityClass());
     }
 
+    @Override
+    public Class getEntityClass() {
+        return action.getEntityClass();
+    }
+
     public List<FieldInterfaced> getFilterFields(Class filtersType) {
         if (Strings.isNullOrEmpty(action.getFilters())) {
 

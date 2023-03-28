@@ -64,100 +64,116 @@ public class RunStepActionCommand {
                 .filter(m -> m.isAnnotationPresent(Action.class) || m.isAnnotationPresent(MainAction.class))
                 .collect(Collectors.toMap(m -> m.getName(), m -> m));
 
-
-        if (viewInstance instanceof RpcCrudView && "new".equals(actionId)) {
-
-            Object editor = null;
-            try {
-                editor = ((RpcCrudView) viewInstance).onNew();
-            } catch (Throwable e) {
-                throw new Exception("Crud onNew thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
+        if (actionId.startsWith("__list__")) {
+            RpcView rpcView;
+            if (viewInstance instanceof RpcView) {
+                rpcView = (RpcView) viewInstance;
+            } else {
+                String listId = actionId.split("__")[2];
+                rpcView = JourneyStoreService.get().getRpcViewInstance(journeyId, stepId, listId);
             }
+            actionId = actionId.substring(actionId.indexOf("__") + 2);
+            actionId = actionId.substring(actionId.indexOf("__") + 2);
+            actionId = actionId.substring(actionId.indexOf("__") + 2);
+            if (rpcView instanceof RpcCrudView && "new".equals(actionId)) {
 
-            if (editor == null) {
-                throw new Exception("Crud onNew and onEdit returned null");
-            }
+                Object editor = null;
+                try {
+                    editor = ((RpcCrudView) rpcView).onNew();
+                } catch (Throwable e) {
+                    throw new Exception("Crud onNew thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
+                }
 
-            String newStepId = "new_" + UUID.randomUUID().toString();
-            store.setStep(journeyId, newStepId, editor);
+                if (editor == null) {
+                    throw new Exception("Crud onNew and onEdit returned null");
+                }
 
-        } else if (viewInstance instanceof RpcCrudView && "delete".equals(actionId)) {
+                String newStepId = "new_" + UUID.randomUUID().toString();
+                store.setStep(journeyId, newStepId, editor);
 
-            List selectedRows = (List) data.get("_selectedRows");
+            } else if (rpcView instanceof RpcCrudView && "delete".equals(actionId)) {
 
-            if (selectedRows == null) {
-                throw new Exception("No row selected");
-            }
+                List selectedRows = (List) data.get("_selectedRows");
 
-            try {
-                Set<Object> targetSet = new HashSet((Collection) selectedRows.stream().map(o -> (Map)o)
-                        .map(m -> deserializeRow(m, (RpcView) viewInstance))
-                        .collect(Collectors.toList()));
-                ((RpcCrudView) viewInstance).delete(targetSet);
+                if (selectedRows == null) {
+                    throw new Exception("No row selected");
+                }
 
-                boolean isCrud = store.isCrud(journeyId);
+                try {
+                    Set<Object> targetSet = new HashSet((Collection) selectedRows.stream().map(o -> (Map)o)
+                            .map(m -> deserializeRow(m, rpcView))
+                            .collect(Collectors.toList()));
+                    ((RpcCrudView) rpcView).delete(targetSet);
 
-                Result whatToShow = new Result(ResultType.Success,
-                        "" + selectedRows + " elements have been deleted", List.of(),
-                        new Destination(DestinationType.ActionId, "Back to " + store.getStep(journeyId, "list").getName(), "list"));
-                String newStepId = "result_" + UUID.randomUUID().toString();
-                store.setStep(journeyId, newStepId, whatToShow);
+                    boolean isCrud = store.isCrud(journeyId);
 
-            } catch (Throwable e) {
-                throw new Exception("Crud delete thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
-            }
+                    Result whatToShow = new Result(ResultType.Success,
+                            "" + selectedRows + " elements have been deleted", List.of(),
+                            new Destination(DestinationType.ActionId, "Back to " +
+                                    store.getInitialStep(journeyId).getName(), store.getInitialStep(journeyId).getId()));
+                    String newStepId = "result_" + UUID.randomUUID().toString();
+                    store.setStep(journeyId, newStepId, whatToShow);
 
-        } else if (viewInstance instanceof RpcCrudView && "edit".equals(actionId)) {
+                } catch (Throwable e) {
+                    throw new Exception("Crud delete thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
+                }
 
-            Object row = data.get("_selectedRow");
+            } else if (rpcView instanceof RpcCrudView && "edit".equals(actionId)) {
 
-            if (row == null) {
-                throw new Exception("No row selected");
-            }
+                Object row = data.get("_selectedRow");
 
-            Object editor = null;
-            try {
+                if (row == null) {
+                    throw new Exception("No row selected");
+                }
 
-                editor = ((RpcCrudView) viewInstance).onEdit(Helper.fromJson(Helper.toJson(row),
-                        ((RpcCrudView) viewInstance).getRowClass()));
-            } catch (Throwable e) {
-                throw new Exception("Crud onEdit thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
-            }
+                Object editor = null;
+                try {
+                    editor = ((RpcCrudView) rpcView).onEdit(Helper.fromJson(Helper.toJson(row),
+                            ((RpcCrudView) rpcView).getRowClass()));
+                } catch (Throwable e) {
+                    throw new Exception("Crud onEdit thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
+                }
 
-            if (editor == null) {
-                throw new Exception("Crud onEdit returned null");
-            }
+                if (editor == null) {
+                    throw new Exception("Crud onEdit returned null");
+                }
 
-            String newStepId = "editor";
-            if (editor instanceof ReadOnlyPojo && !(editor instanceof PersistentPojo)) {
-                newStepId = "detail";
-            }
-            store.setStep(journeyId, newStepId, editor);
+                String newStepId = "view";
+                if (editor instanceof PersistentPojo) {
+                    newStepId = "edit";
+                }
+                store.setStep(journeyId, newStepId, editor);
 
-        } else if (viewInstance instanceof RpcCrudView && actionId.startsWith("__row__")) {
+            } else if (rpcView instanceof RpcCrudView && actionId.startsWith("row__")) {
 
-            Object row = data.get("_clickedRow");
+                Object row = data.get("_clickedRow");
 
-            if (row == null) {
-                throw new Exception("No row clicked");
-            }
+                if (row == null) {
+                    throw new Exception("No row clicked");
+                }
 
-            String methodName = actionId.replaceAll("__row__", "");
-            try {
+                String methodName = actionId.replaceAll("row__", "");
+                try {
 
-                Method method = viewInstance.getClass().getMethod(methodName, ((RpcCrudView) viewInstance).getRowClass());
+                    Method method = rpcView.getClass().getMethod(methodName, ((RpcCrudView) rpcView).getRowClass());
 
-                method.invoke(viewInstance, Helper.fromJson(Helper.toJson(row),
-                        ((RpcCrudView) viewInstance).getRowClass()));
-            } catch (Throwable e) {
-                throw new Exception("Crud " + methodName + " thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
+                    method.invoke(rpcView, Helper.fromJson(Helper.toJson(row),
+                            ((RpcCrudView) rpcView).getRowClass()));
+                } catch (Throwable e) {
+                    throw new Exception("Crud " + methodName + " thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
+                }
+
             }
 
         } else if ((viewInstance instanceof ReadOnlyPojo
                 || viewInstance instanceof PersistentPojo
         || viewInstance.getClass().isAnnotationPresent(Entity.class))
                 && "cancel".equals(actionId)) {
-            store.backToStep(journeyId, "list");
+            store.backToStep(journeyId, store.getInitialStep(journeyId).getId());
+        } else if (viewInstance.getClass().isAnnotationPresent(Entity.class) && "edit".equals(actionId)) {
+            Object editor = viewInstance;
+
+            store.setStep(journeyId, "edit", editor);
         } else if (viewInstance instanceof ReadOnlyPojo && "edit".equals(actionId)) {
             Object editor = ((ReadOnlyPojo) viewInstance).getEditor();
 
@@ -166,22 +182,22 @@ public class RunStepActionCommand {
                         viewInstance.getClass().getSimpleName());
             }
 
-            store.setStep(journeyId, "editor", editor);
+            store.setStep(journeyId, "edit", editor);
         } else if (viewInstance instanceof PersistentPojo && "save".equals(actionId)) {
             ((PersistentPojo) viewInstance).save();
 
             Step initialStep = store.getInitialStep(journeyId);
 
             List<Destination> youMayBeInterestedIn = new ArrayList<>();
-            Step detail = store.getStep(journeyId, "detail");
+            Step detail = store.getStep(journeyId, "view");
             if (detail != null) {
-                Object pojo = store.getViewInstance(journeyId, "detail");
+                Object pojo = store.getViewInstance(journeyId, "view");
                     if (pojo instanceof ReadOnlyPojo) {
                     ((ReadOnlyPojo) pojo).load(((ReadOnlyPojo) pojo).getId());
-                    store.setStep(journeyId, "detail", pojo);
+                    store.setStep(journeyId, "view", pojo);
                 }
                 youMayBeInterestedIn.add(new Destination(DestinationType.ActionId,
-                        "Return to " + detail.getName() + " detail", "detail"));
+                        "Return to " + detail.getName() + " detail", "view"));
             }
 
             Result whatToShow = new Result(ResultType.Success,
@@ -367,6 +383,7 @@ public class RunStepActionCommand {
             }
         }
         return targetValue;
+
     }
 
     private static Object toFile(Field f, Class<?> genericType, Map<String, Object> value) {

@@ -1,5 +1,6 @@
 package io.mateu.remote.domain.metadata;
 
+import com.google.common.base.Strings;
 import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.core.interfaces.RpcCrudView;
@@ -10,13 +11,13 @@ import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
 import io.mateu.remote.dtos.Action;
-import io.mateu.util.Helper;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import java.lang.reflect.InvocationTargetException;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -210,8 +211,18 @@ public abstract class AbstractMetadataBuilder {
     }
 
     private void addValidations(Field field, FieldInterfaced fieldInterfaced) {
-        //todo: implement
-        field.setValidations(List.of());
+        List<Validation> validations = new ArrayList<>();
+        //todo: añadir otros tipos de validación, y mensaje de error
+        if (fieldInterfaced.isAnnotationPresent(NotEmpty.class)
+                || fieldInterfaced.isAnnotationPresent(NotNull.class)
+                || fieldInterfaced.isAnnotationPresent(NotBlank.class)
+        ) {
+            validations.add(Validation.builder()
+                            .type(ValidationType.NotEmpty)
+                            .data(null)
+                    .build());
+        }
+        field.setValidations(validations);
     }
 
     private String getDescription(FieldInterfaced fieldInterfaced) {
@@ -231,17 +242,18 @@ public abstract class AbstractMetadataBuilder {
         return action;
     }
 
-    protected List<Action> getActions(Object uiInstance) {
+    protected List<Action> getActions(String stepId, String listId, Object uiInstance) {
         List<Method> allMethods = ReflectionHelper.getAllMethods(uiInstance.getClass());
         List<Action> actions = allMethods.stream()
                 .filter(m -> m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class))
                 .map(m -> getAction(m))
                 .collect(Collectors.toList());
+        if (!Strings.isNullOrEmpty(listId)) actions.forEach(a -> a.setId("__list__" + listId + "__" + a.getId()));
         if (uiInstance instanceof RpcCrudView) {
             RpcCrudView rpcCrudView = (RpcCrudView) uiInstance;
             if (rpcCrudView.isAddEnabled()) {
                 Action action = Action.builder()
-                        .id("new")
+                        .id("__list__" + listId + "__new")
                         .caption("New")
                         .type(ActionType.Primary)
                         .build();
@@ -249,14 +261,15 @@ public abstract class AbstractMetadataBuilder {
             }
             if (rpcCrudView.isDeleteEnabled()) {
                 Action action = Action.builder()
-                        .id("delete")
+                        .id("__list__" + listId + "__delete")
                         .caption("Delete")
                         .type(ActionType.Primary)
                         .build();
                 actions.add(action);
             }
         }
-        if (uiInstance instanceof ReadOnlyPojo && !(uiInstance instanceof PersistentPojo)) {
+        if (("view".equals(stepId) && uiInstance.getClass().isAnnotationPresent(Entity.class))
+        || (uiInstance instanceof ReadOnlyPojo && !(uiInstance instanceof PersistentPojo))) {
             Action action = Action.builder()
                     .id("edit")
                     .caption("Edit")
