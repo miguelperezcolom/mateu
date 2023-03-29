@@ -13,4 +13,7 @@ public class Badge {
         this.type = type;
         this.message = message;
     }
+
+    public Badge() {
+    }
 }

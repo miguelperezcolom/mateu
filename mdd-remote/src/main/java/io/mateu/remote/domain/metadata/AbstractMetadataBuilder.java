@@ -132,6 +132,9 @@ public abstract class AbstractMetadataBuilder {
     }
 
     private String mapStereotype(FieldInterfaced field) {
+        if (field.isAnnotationPresent(CustomElement.class)) {
+            return "custom:" + field.getAnnotation(CustomElement.class).value();
+        }
         if (field.isAnnotationPresent(UseRadioButtons.class)) {
             return "radiobuttons";
         }
@@ -238,8 +241,19 @@ public abstract class AbstractMetadataBuilder {
                 .id(m.getName())
                 .caption(ReflectionHelper.getCaption(m))
                 .type(ActionType.Primary)
+                .validationRequired(getValidationRequired(m))
                 .build();
         return action;
+    }
+
+    private boolean getValidationRequired(Method m) {
+        if (m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class)) {
+            return m.getAnnotation(io.mateu.mdd.shared.annotations.Action.class).validateBefore();
+        }
+        if (m.isAnnotationPresent(io.mateu.mdd.shared.annotations.MainAction.class)) {
+            return m.getAnnotation(io.mateu.mdd.shared.annotations.MainAction.class).validateBefore();
+        }
+        return true;
     }
 
     protected List<Action> getActions(String stepId, String listId, Object uiInstance) {

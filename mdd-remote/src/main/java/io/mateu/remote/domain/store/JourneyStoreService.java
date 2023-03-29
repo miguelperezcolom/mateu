@@ -105,6 +105,7 @@ public class JourneyStoreService {
         container.get().setSteps(extendMap(container.get().getSteps(), stepId, new StepMapper().map(container.get(), stepId, editor)));
         container.get().getJourney().setCurrentStepId(stepId);
         container.get().getJourney().setCurrentStepDefinitionId(editor.getClass().getName());
+        journeyRepo.save(container.get());
     }
 
     private Map<String, Step> extendMap(Map<String, Step> steps, String stepId, Step step) {
@@ -133,6 +134,8 @@ public class JourneyStoreService {
         }
         container.get().getJourney().setCurrentStepId(stepId);
         container.get().getJourney().setCurrentStepDefinitionId(step.getType());
+        journeyRepo.save(container.get());
+
     }
 
     public boolean isCrud(String journeyId) throws Exception {

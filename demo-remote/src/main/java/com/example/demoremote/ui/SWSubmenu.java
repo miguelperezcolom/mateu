@@ -9,49 +9,46 @@ import io.mateu.mdd.shared.interfaces.JpaCrud;
 
 import java.util.List;
 
-public class CrudsSubmenu {
-
-    @MenuOption(icon = VaadinIcons.GROUP)
-    private JpaCrud<Team> teams = new JpaCrud<Team>() {
-        @Override
-        public boolean isReadOnly() {
-            return true;
-        }
-    };
-
-    @MenuOption(icon = VaadinIcons.TAG)
-    private ProgrammingLanguages programmingLanguages;
+public class SWSubmenu {
 
     @MenuOption(icon = VaadinIcons.USERS)
-    private JpaCrud<Player> allPlayers = new JpaCrud<Player>() {
+    @Caption("Star Wars Characters")
+    private JpaCrud<SWCharacter> characters = new JpaCrud<SWCharacter>() {
 
         @Override
         public List<String> getSearchFilterFields() {
-            return List.of("name", "position", "team");
+            return List.of("name");
         }
 
         @Override
         public List<String> getColumnFields() {
-            return List.of("name", "position", "team", "age");
+            return List.of("name", "gender", "height");
         }
 
     };
 
-    @MenuOption(icon = VaadinIcons.BUILDING)
-    private JpaCrud<City> cities = new JpaCrud<City>() {
+    @MenuOption(icon = VaadinIcons.FILE_MOVIE)
+    @Caption("Star Wars Films")
+    private JpaCrud<SWFilm> films = new JpaCrud<SWFilm>() {
 
         @Override
         public List<String> getSearchFilterFields() {
-            return List.of("name", "country", "population");
+            return List.of("title");
         }
 
         @Override
         public List<String> getColumnFields() {
-            return List.of("name", "country", "population");
+            return List.of("title", "director", "release_date");
         }
 
     };
 
+    @MenuOption(icon = VaadinIcons.ROCKET)
+    @Caption("Star Wars Starships")
+    private JpaCrud<SWStarship> starships;
 
+    @MenuOption(icon = VaadinIcons.ROCKET)
+    @Caption("Star Wars Species")
+    private JpaCrud<SWSpecie> species;
 
 }

@@ -15,5 +15,4 @@ public class AdditionalFilter {
     String sourceName;
     List<Source> sources;
 
-
 }

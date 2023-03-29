@@ -1,13 +1,18 @@
 package com.example.demoremote.entities;
 
 import io.mateu.mdd.shared.annotations.FieldGroup;
+import io.mateu.mdd.shared.annotations.UseCheckboxes;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -33,6 +38,13 @@ public class SWCharacter {
     private String gender;
 
     private String homeworld;
+
+    @OneToMany
+    @UseCheckboxes
+    private List<SWFilm> films = new ArrayList<>();
+
+    @OneToMany
+    private List<SWStarship> starships = new ArrayList<>();
 
     @Override
     public String toString() {

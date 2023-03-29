@@ -11,4 +11,6 @@ public class Action {
 
     private ActionType type;
 
+    private boolean validationRequired;
+
 }

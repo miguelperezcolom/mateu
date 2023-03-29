@@ -230,14 +230,13 @@ public class RunStepActionCommand {
 
             Object result = m.invoke(viewInstance);
 
+            store.setStep(journeyId, stepId, viewInstance);
+
             Object whatToShow = result;
             if (!void.class.equals(m.getReturnType())) {
                 String newStepId = "result_" + UUID.randomUUID().toString();
                 store.setStep(journeyId, newStepId, whatToShow);
             }
-
-            store.getStep(journeyId, stepId).getView().getComponents().get(0).setData(getData(viewInstance));
-
         } else {
             throw new Exception("Unkonwn action " + actionId);
         }

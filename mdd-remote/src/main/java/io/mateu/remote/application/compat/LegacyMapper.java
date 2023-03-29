@@ -7,6 +7,7 @@ import io.mateu.util.Helper;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class LegacyMapper {
@@ -80,10 +81,10 @@ public class LegacyMapper {
         if ("enum".equals(field.getType())) {
             builder.type("FILTER_SINGLE_OPTION");
             builder.options(field.getAttributes().stream().filter(a -> "choice".equals(a.getKey()))
-                    .flatMap(a -> ((List<Value>) a.getValue()).stream())
+                    .map(a -> (Map) a.getValue())
                     .map(v -> FilterConfigOption.builder()
-                            .label(v.getKey())
-                            .value("" + v.getValue())
+                            .label("" + v.get("key"))
+                            .value("" + v.get("value"))
                             .build())
                     .collect(Collectors.toList()));
         } else if ("multiple".equals(field.getStereotype())) {

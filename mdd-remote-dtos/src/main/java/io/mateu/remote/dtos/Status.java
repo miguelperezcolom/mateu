@@ -13,4 +13,7 @@ public class Status {
         this.type = type;
         this.message = message;
     }
+
+    public Status() {
+    }
 }

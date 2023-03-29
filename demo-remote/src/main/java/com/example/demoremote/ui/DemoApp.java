@@ -28,6 +28,9 @@ public class DemoApp implements Runnable {
     @Submenu("Some cruds")
     private CrudsSubmenu cruds;
 
+    @Submenu("Star Wars")
+    private SWSubmenu sw;
+
     @Override
     public void run() {
         System.out.println("Hola");

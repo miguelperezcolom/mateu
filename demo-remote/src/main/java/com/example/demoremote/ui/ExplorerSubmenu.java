@@ -11,6 +11,9 @@ public class ExplorerSubmenu {
     private ArraysAndCollectionsForm arraysAndCollections;
 
     @MenuOption
+    private CustomComponentForm customComponents;
+
+    @MenuOption
     private OneToManyForm oneToManyRelationships;
 
     @MenuOption

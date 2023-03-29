@@ -83,6 +83,7 @@ public class FormMetadataBuilder extends AbstractMetadataBuilder {
                     .id("save")
                     .caption("Save")
                     .type(ActionType.Primary)
+                    .validationRequired(true)
                     .build();
             actions.add(action);
         }
