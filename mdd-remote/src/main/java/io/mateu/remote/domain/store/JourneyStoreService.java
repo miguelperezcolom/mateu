@@ -175,14 +175,28 @@ public class JourneyStoreService {
     public MenuToBeanMapping getMenuMapping(String actionId) {
         Optional<MenuToBeanMapping> menuToBeanMapping = menuMappingRepo.findById(actionId);
         if (menuToBeanMapping.isEmpty()) {
-            String uiClassName = actionId.split("_")[1];
-            Object uiInstance = null;
-            try {
-                uiInstance = ReflectionHelper.newInstance(Class.forName(uiClassName));
-                new UIMapper().map(uiInstance);
-                menuToBeanMapping = menuMappingRepo.findById(actionId);
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (actionId.contains("_")) { // it's a ui
+                String uiClassName = actionId.split("_")[1];
+                Object uiInstance = null;
+                try {
+                    uiInstance = ReflectionHelper.newInstance(Class.forName(uiClassName));
+                    new UIMapper().map(uiInstance);
+                    menuToBeanMapping = menuMappingRepo.findById(actionId);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else { // it's a form
+                String uiClassName = actionId;
+                Object uiInstance = null;
+                try {
+                    //todo: refactor for improving
+                    uiInstance = ReflectionHelper.newInstance(Class.forName(uiClassName));
+                    new UIMapper().map(uiInstance);
+                    JourneyStoreService.get().storeMenuAction(actionId, new MDDOpenEditorAction("", uiInstance));
+                    menuToBeanMapping = menuMappingRepo.findById(actionId);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
         return menuToBeanMapping.orElse(null);

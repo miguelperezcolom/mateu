@@ -1,5 +1,11 @@
-package com.example.demoremote.ui;
+package com.example.demoremote.ui.demoApp;
 
+import com.example.demoremote.ui.demoApp.firstLevelStuff.BasicFieldsForm;
+import com.example.demoremote.ui.demoApp.firstLevelStuff.MyReadOnlyPojo;
+import com.example.demoremote.ui.demoApp.firstLevelStuff.MyReadOnlyPojoWithCrud;
+import com.example.demoremote.ui.demoApp.menus.CrudsSubmenu;
+import com.example.demoremote.ui.demoApp.menus.ExplorerSubmenu;
+import com.example.demoremote.ui.demoApp.menus.SWSubmenu;
 import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.annotations.MateuUI;
 import io.mateu.mdd.shared.annotations.Caption;

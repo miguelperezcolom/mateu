@@ -1,4 +1,4 @@
-package com.example.demoremote.ui;
+package com.example.demoremote.ui.demoApp.menus;
 
 import com.example.demoremote.entities.*;
 import com.example.demoremote.rpcCruds.ProgrammingLanguages;

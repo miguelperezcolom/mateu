@@ -8,6 +8,7 @@ import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.util.Helper;
 
+import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +29,7 @@ public class FiltersDeserializer {
 
     public Object deserialize() throws Exception {
         RpcView rpcView = (RpcView) JourneyStoreService.get().getRpcViewInstance(journeyId, stepId, listId);
-        Map<String, Object> map = Helper.fromJson(new String(Base64.getDecoder().decode(raw)));
+        Map<String, Object> map = decodeAndParse(raw);
         for (FieldInterfaced field : ReflectionHelper.getAllEditableFields(rpcView.getSearchFormClass())) {
             if (DatesRange.class.equals(field.getType())) {
                 String rawDatesRangeValue = "";
@@ -67,5 +68,9 @@ public class FiltersDeserializer {
         }
         return Helper.fromJson(Helper.toJson(map),
                 rpcView.getSearchFormClass());
+    }
+
+    protected Map<String, Object> decodeAndParse(String raw) throws IOException {
+        return Helper.fromJson(new String(Base64.getDecoder().decode(raw)));
     }
 }

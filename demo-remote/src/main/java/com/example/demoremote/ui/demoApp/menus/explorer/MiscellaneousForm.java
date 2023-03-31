@@ -1,4 +1,4 @@
-package com.example.demoremote.ui;
+package com.example.demoremote.ui.demoApp.menus.explorer;
 
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.Badge;

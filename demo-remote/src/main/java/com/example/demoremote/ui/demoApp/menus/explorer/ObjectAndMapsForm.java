@@ -1,4 +1,4 @@
-package com.example.demoremote.ui;
+package com.example.demoremote.ui.demoApp.menus.explorer;
 
 import com.example.demoremote.providers.TeamsProvider;
 import com.example.demoremote.records.Address;

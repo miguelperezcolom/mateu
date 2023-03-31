@@ -1,9 +1,10 @@
-package com.example.demoremote.ui;
+package com.example.demoremote.ui.demoApp.firstLevelStuff;
 
-import com.example.demoremote.nfl.dtos.Conference;
-import com.example.demoremote.nfl.dtos.Division;
 import com.example.demoremote.rpcCruds.ProgrammingLanguages;
-import io.mateu.mdd.shared.annotations.*;
+import io.mateu.mdd.shared.annotations.Action;
+import io.mateu.mdd.shared.annotations.Placeholder;
+import io.mateu.mdd.shared.annotations.ReadOnly;
+import io.mateu.mdd.shared.annotations.Section;
 import io.mateu.mdd.shared.data.Badge;
 import io.mateu.mdd.shared.data.BadgeType;
 import io.mateu.mdd.shared.data.Status;
@@ -12,9 +13,6 @@ import io.mateu.mdd.shared.interfaces.HasBadges;
 import io.mateu.mdd.shared.interfaces.HasStatus;
 import lombok.Data;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 
 @Data

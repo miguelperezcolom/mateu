@@ -1,5 +1,6 @@
-package com.example.demoremote.ui;
+package com.example.demoremote.ui.demoApp.menus;
 
+import com.example.demoremote.ui.demoApp.menus.explorer.*;
 import io.mateu.mdd.shared.annotations.MenuOption;
 
 public class ExplorerSubmenu {

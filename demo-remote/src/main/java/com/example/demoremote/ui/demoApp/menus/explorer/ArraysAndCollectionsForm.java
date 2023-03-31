@@ -1,4 +1,4 @@
-package com.example.demoremote.ui;
+package com.example.demoremote.ui.demoApp.menus.explorer;
 
 import com.example.demoremote.nfl.dtos.Division;
 import com.example.demoremote.providers.IntegersProvider;

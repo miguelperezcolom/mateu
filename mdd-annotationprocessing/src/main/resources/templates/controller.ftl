@@ -13,7 +13,7 @@ import javax.annotation.PostConstruct;
 
 
 @RestController
-@RequestMapping("/")
+@RequestMapping("${path}")
 @Slf4j
 public class ${simpleClassName}Controller {
 
@@ -24,7 +24,7 @@ public class ${simpleClassName}Controller {
         String html = Helper.leerFichero(this.getClass(), "/npm/mateu/index.html");
         html = html.replaceAll("AQUIELTITULODELAPAGINA", "${caption}");
         html = html.replaceAll("http:\\/\\/localhost:8081\\/mateu\\/v1", "/mateu/v1");
-        html = html.replaceAll("com\\.example\\.demoremote\\.ui\\.DemoApp", "${className}");
+        html = html.replaceAll("com\\.example\\.demoremote\\.ui\\.demoApp\\.DemoApp", "${className}");
         return html;
     }
 

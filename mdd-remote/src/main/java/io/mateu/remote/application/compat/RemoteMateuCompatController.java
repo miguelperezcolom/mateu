@@ -87,7 +87,7 @@ public class RemoteMateuCompatController {
                 .journeyId(journeyId)
                 .stepId(stepId)
                 .listId(listId)
-                .filters(new FiltersDeserializer(journeyId, stepId, listId, filters).deserialize())
+                .filters(new CompatFiltersDeserializer(journeyId, stepId, listId, filters).deserialize())
                 .build().run();
         List<Object> rows = GetListRowsQuery.builder()
                 .journeyId(journeyId)
@@ -95,7 +95,7 @@ public class RemoteMateuCompatController {
                 .listId(listId)
                 .page(page)
                 .pageSize(size)
-                .filters(new FiltersDeserializer(journeyId, stepId, listId, filters).deserialize())
+                .filters(new CompatFiltersDeserializer(journeyId, stepId, listId, filters).deserialize())
                 .ordering(new OrderingDeserializer(ordering).deserialize())
                 .build().run();
 

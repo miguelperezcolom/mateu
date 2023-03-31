@@ -1,31 +1,34 @@
-package com.example.demoremote.ui;
+package com.example.demoremote.ui.demoApp.firstLevelStuff;
 
 import com.example.demoremote.nfl.dtos.Conference;
 import com.example.demoremote.nfl.dtos.Division;
 import com.example.demoremote.rpcCruds.ProgrammingLanguages;
+import io.mateu.mdd.core.interfaces.HasSubtitle;
+import io.mateu.mdd.core.interfaces.HasTitle;
 import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.data.Badge;
-import io.mateu.mdd.shared.data.BadgeType;
-import io.mateu.mdd.shared.data.Status;
-import io.mateu.mdd.shared.data.StatusType;
+import io.mateu.mdd.shared.data.*;
 import io.mateu.mdd.shared.interfaces.HasBadges;
 import io.mateu.mdd.shared.interfaces.HasStatus;
 import lombok.Data;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
 @Data
-public class MyReadOnlyPojo implements io.mateu.mdd.core.interfaces.ReadOnlyPojo, HasBadges, HasStatus {
+public class BasicFieldsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
 
     @Section("Basic")
+    @NotEmpty
     private String name = "Mateu";
 
     @Placeholder("This should appear as the placeholder")
     private String withPlaceholder;
 
+    @NotNull
     private int age;
 
     private double balance = 20.31;
@@ -78,7 +81,7 @@ public class MyReadOnlyPojo implements io.mateu.mdd.core.interfaces.ReadOnlyPojo
     }
 
     public String toString() {
-        return "This is a sample form (from toString)";
+        return "This is a sample form (toString)";
     }
 
     @Override
@@ -87,18 +90,17 @@ public class MyReadOnlyPojo implements io.mateu.mdd.core.interfaces.ReadOnlyPojo
     }
 
     @Override
-    public void load(Object id) throws Throwable {
-
-    }
-
-    @Override
-    public Object getId() {
-        return "010100101";
-    }
-
-    @Override
     public Status getStatus() {
         return new Status(StatusType.SUCCESS, "This is the status!");
     }
 
+    @Override
+    public String getSubtitle() {
+        return "This is the subtitle";
+    }
+
+    @Override
+    public String getTitle() {
+        return "This is the title";
+    }
 }

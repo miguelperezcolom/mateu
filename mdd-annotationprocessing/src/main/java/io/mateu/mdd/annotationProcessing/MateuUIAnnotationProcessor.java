@@ -29,6 +29,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
             for (Element e : annotatedElements) {
                 String className = ((TypeElement) e).getQualifiedName().toString();
                 String simpleClassName = e.getSimpleName().toString();
+                String path = e.getAnnotation(MateuUI.class).path();
 
                 System.out.println("MateuUIAnnotationProcessor running on " + simpleClassName);
 
@@ -40,7 +41,8 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                 String caption = getCaption(e, simpleClassName);
 
                 try {
-                    createController(generatedFullClassName, pkgName, className, simpleClassName, e, generatedClassName, caption);
+                    createController(generatedFullClassName, pkgName, className, simpleClassName, e,
+                            generatedClassName, caption, path);
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
@@ -61,7 +63,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
 
     private void createController(String generatedFullClassName, String pkgName, String className,
                                String simpleClassName, Element e, String generatedClassName,
-                                  String caption)
+                                  String caption, String path)
             throws IOException {
         JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(generatedFullClassName);
         try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
@@ -74,6 +76,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                     , "generatedClassName", generatedClassName
                     , "generatedFullClassName", generatedFullClassName
                     , "caption", caption
+                    , "path", path
             ));
             try {
                 out.println(formatter.apply());
