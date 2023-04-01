@@ -5,12 +5,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.util.persistence.EntityDeserializer;
 import io.mateu.util.persistence.EntitySerializer;
 import io.mateu.util.reflection.MiniReflectionHelper;
 
 import javax.persistence.Entity;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 public class Serializer {
@@ -40,6 +42,11 @@ public class Serializer {
         if (c.isAnnotationPresent(Entity.class)) {
             return entityFromJson(json, c);
         }
+        return pojoFromJson(json, c);
+    }
+
+    public static <T> T pojoFromJson(String json, Class<T> c) throws Exception {
+        if (json == null || "".equals(json)) json = "{}";
         return mapper.readValue(json, c);
     }
 
@@ -55,9 +62,27 @@ public class Serializer {
     }
 
     private static String entityToJson(Object o) throws Exception {
-        return Helper.getImpl(EntitySerializer.class).toJson(o);
+        return toJson(Helper.getImpl(EntitySerializer.class).toMap(o));
     }
 
+    public static Map<String, Object> toMap(Object o) throws Exception {
+        return fromJson(toJson(o));
+    }
+
+    public static <T> T fromMap(Map<String, Object> map, Class<T> c) throws Exception {
+        if (map == null) {
+            return null;
+        }
+        String json = toJson(map);
+        if (c.isAnnotationPresent(Entity.class)) {
+            return entityFromJson(json, c);
+        }
+        return pojoFromJson(json, c);
+    }
+
+    private static Map<String, Object> entityToMap(Object o) throws Exception {
+        return Helper.getImpl(EntitySerializer.class).toMap(o);
+    }
 
     public static Map<String, Object> fromYaml(String yaml) throws IOException {
         if (yaml == null) yaml = "";

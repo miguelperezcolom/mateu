@@ -6,14 +6,19 @@ import io.mateu.mdd.shared.data.Result;
 import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
+import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.metadata.CrudMetadataBuilder;
 import io.mateu.remote.domain.metadata.FormMetadataBuilder;
 import io.mateu.remote.domain.metadata.ResultMetadataBuilder;
 import io.mateu.remote.domain.store.JourneyContainer;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.*;
+import io.mateu.util.Serializer;
 import io.mateu.util.persistence.JPAHelper;
+import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -22,26 +27,33 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Service
 public class ViewMapper {
+    @PersistenceContext
+    EntityManager em;
+
     public View map(JourneyContainer journeyContainer, String stepId, Object uiInstance) throws Throwable {
         //mddopencrudaction, crud class
 
-        if (("view".equals(stepId) || "edit".equals(stepId)) && journeyContainer.getInitialStep() != null
+        Object actualUiInstance = uiInstance;
+        if (uiInstance instanceof EntityEditor) {
+            actualUiInstance = em.find(((EntityEditor) uiInstance).getEntityClass(), ((EntityEditor)uiInstance).getData().get("id"));
+        } else if (("view".equals(stepId) || "edit".equals(stepId)) && journeyContainer.getInitialStep() != null
                 && "io.mateu.mdd.ui.cruds.JpaRpcCrudView".equals(journeyContainer.getInitialStep().getType())) { //todo: check si es un crud jpa
             RpcCrudViewExtended rpcCrudView = (RpcCrudViewExtended) JourneyStoreService.get()
                     .getViewInstance(journeyContainer.getJourneyId(), journeyContainer.getInitialStep().getId());
-            uiInstance = JPAHelper.find(rpcCrudView.getEntityClass(), ReflectionHelper.getValue("id", uiInstance));
+            actualUiInstance = em.find(rpcCrudView.getEntityClass(), ((EntityEditor)uiInstance).getData().get("id"));
         } else if (uiInstance instanceof Class && RpcView.class.isAssignableFrom((Class<?>) uiInstance)) {
-            uiInstance = ReflectionHelper.newInstance((Class) uiInstance);
+            actualUiInstance = ReflectionHelper.newInstance((Class) uiInstance);
         }
 
 
-        ViewMetadata metadata = getMetadata(stepId, uiInstance);
+        ViewMetadata metadata = getMetadata(stepId, actualUiInstance);
         List<Component> components = new ArrayList<>();
         components.add(
                 Component.builder()
                         .metadata(metadata)
-                        .data(getData(uiInstance))
+                        .data(getData(uiInstance, actualUiInstance))
                         .rules(List.of())
                         .slot("main")
                         .attributes(new HashMap<>())
@@ -83,12 +95,12 @@ public class ViewMapper {
                         try {
                             return Component.builder()
                                     .metadata(getMetadata(stepId, crud))
-                                    .data(getData(crud.getRpcView()))
+                                    .data(getData(null, crud.getRpcView()))
                                     .rules(List.of())
                                     .slot("main")
                                     .attributes(new HashMap<>())
                                     .build();
-                        } catch (IOException e) {
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                         return null;
@@ -99,19 +111,28 @@ public class ViewMapper {
         }
     }
 
-    public static Map<String, Object> getData(Object uiInstance) throws IOException {
+    public static Map<String, Object> getData(Object uiInstance, Object actualUiInstance) throws Exception {
+        if (uiInstance instanceof EntityEditor) {
+            Map<String, Object> data = new HashMap<>();
+            data.putAll(((EntityEditor) uiInstance).getData());
+            data.put("__entityClassName__", ((EntityEditor) uiInstance).getEntityClass().getName());
+            return data;
+        }
+        return getData(actualUiInstance);
+    }
+
+    public static Map<String, Object> getData(Object uiInstance) throws Exception {
         Map<String, Object> data = new HashMap<>();
+        if (uiInstance instanceof EntityEditor) {
+            data.putAll(((EntityEditor) uiInstance).getData());
+            data.put("__entityClassName__", ((EntityEditor) uiInstance).getEntityClass().getName());
+        }
         Class dataContainerClass = uiInstance.getClass();
         Object dataContainer = uiInstance;
         if (uiInstance instanceof RpcView) {
             return Map.of();
         }
-        for (FieldInterfaced field : ReflectionHelper.getAllTransferrableFields(dataContainerClass)) {
-            try {
-                data.put(field.getId(), ReflectionHelper.getValue(field, dataContainer));
-            } catch (Exception e) {
-            }
-        }
+        data = Serializer.toMap(uiInstance);
         return data;
     }
 

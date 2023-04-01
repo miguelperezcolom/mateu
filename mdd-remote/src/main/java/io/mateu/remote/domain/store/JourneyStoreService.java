@@ -9,15 +9,20 @@ import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.commands.RunStepActionCommand;
+import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.mappers.StepMapper;
 import io.mateu.remote.domain.mappers.UIMapper;
 import io.mateu.remote.dtos.Journey;
 import io.mateu.remote.dtos.Step;
 import io.mateu.util.Helper;
+import io.mateu.util.Serializer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,9 +42,14 @@ public class JourneyStoreService {
         _instance = this;
     }
 
+    @Autowired
+    private StepMapper stepMapper;
 
     @Autowired
     private JourneyRepository journeyRepo;
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     public Object getViewInstance(String journeyId, String stepId) throws Exception {
         Optional<JourneyContainer> container = journeyRepo.findById(journeyId);
@@ -56,16 +66,21 @@ public class JourneyStoreService {
         } else {
             Object viewInstance = ReflectionHelper.newInstance(Class.forName(step.getType()));
             Map<String, Object> data = step.getView().getComponents().get(0).getData();
-            data.entrySet()
-                    .stream().filter(entry -> checkNotInjected(viewInstance, entry.getKey()))
-                    .forEach(entry -> {
-                try {
-                    Object actualValue = RunStepActionCommand.getActualValue(entry, viewInstance);
-                    ReflectionHelper.setValue(entry.getKey(), viewInstance, actualValue);
-                } catch (Exception ex) {
-                    System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
-                }
-            });
+            if (viewInstance instanceof EntityEditor) {
+                ((EntityEditor) viewInstance).setEntityClass(Class.forName((String) data.get("__entityClassName__")));
+                ((EntityEditor) viewInstance).setData(data);
+            } else {
+                data.entrySet()
+                        .stream().filter(entry -> checkNotInjected(viewInstance, entry.getKey()))
+                        .forEach(entry -> {
+                            try {
+                                Object actualValue = RunStepActionCommand.getActualValue(entry, viewInstance);
+                                ReflectionHelper.setValue(entry.getKey(), viewInstance, actualValue);
+                            } catch (Exception ex) {
+                                System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
+                            }
+                        });
+            }
             return viewInstance;
         }
     }
@@ -102,7 +117,7 @@ public class JourneyStoreService {
         if (!container.isPresent()) {
             throw new Exception("No journey with id " + journeyId + " found");
         }
-        container.get().setSteps(extendMap(container.get().getSteps(), stepId, new StepMapper().map(container.get(), stepId, editor)));
+        container.get().setSteps(extendMap(container.get().getSteps(), stepId, stepMapper.map(container.get(), stepId, editor)));
         container.get().getJourney().setCurrentStepId(stepId);
         container.get().getJourney().setCurrentStepDefinitionId(editor.getClass().getName());
         journeyRepo.save(container.get());
@@ -229,5 +244,11 @@ public class JourneyStoreService {
         return null;
     }
 
+    public StepMapper getStepMapper() {
+        return stepMapper;
+    }
 
+    public ApplicationContext getApplicationContext() {
+        return applicationContext;
+    }
 }

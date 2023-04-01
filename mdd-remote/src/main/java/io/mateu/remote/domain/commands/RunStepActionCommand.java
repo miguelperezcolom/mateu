@@ -9,16 +9,20 @@ import io.mateu.mdd.shared.annotations.MainAction;
 import io.mateu.mdd.shared.data.*;
 import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.reflection.ReflectionHelper;
+import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.files.StorageServiceAccessor;
 import io.mateu.remote.domain.mappers.ViewMapper;
+import io.mateu.remote.domain.persistence.Merger;
 import io.mateu.remote.domain.store.JourneyContainer;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.Journey;
 import io.mateu.remote.dtos.Step;
 import io.mateu.util.Helper;
+import io.mateu.util.Serializer;
 import io.mateu.util.persistence.JPAHelper;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.naming.AuthenticationException;
 import javax.persistence.Entity;
@@ -44,6 +48,7 @@ public class RunStepActionCommand {
 
     private Map<String, Object> data;
 
+    @Transactional
     public void run() throws Throwable {
 
         JourneyStoreService store = JourneyStoreService.get();
@@ -138,6 +143,10 @@ public class RunStepActionCommand {
                     throw new Exception("Crud onEdit returned null");
                 }
 
+                if (editor.getClass().isAnnotationPresent(Entity.class)) {
+                    editor = new EntityEditor(editor);
+                }
+
                 String newStepId = "view";
                 if (editor instanceof PersistentPojo) {
                     newStepId = "edit";
@@ -170,6 +179,10 @@ public class RunStepActionCommand {
         || viewInstance.getClass().isAnnotationPresent(Entity.class))
                 && "cancel".equals(actionId)) {
             store.backToStep(journeyId, store.getInitialStep(journeyId).getId());
+        } else if (viewInstance instanceof EntityEditor && "edit".equals(actionId)) {
+            Object editor = viewInstance;
+
+            store.setStep(journeyId, "edit", editor);
         } else if (viewInstance.getClass().isAnnotationPresent(Entity.class) && "edit".equals(actionId)) {
             Object editor = viewInstance;
 
@@ -220,6 +233,23 @@ public class RunStepActionCommand {
             String newStepId = "result_" + UUID.randomUUID().toString();
             store.setStep(journeyId, newStepId, whatToShow);
 
+        } else if (viewInstance instanceof EntityEditor && "save".equals(actionId)) {
+            EntityEditor entityEditor = (EntityEditor) viewInstance;
+            Object entity = Serializer.fromMap(data, entityEditor.getEntityClass());
+            Merger merger = store.getApplicationContext().getBean(Merger.class);
+            merger.mergeAndCommit(entity);
+            data.remove("__entityClassName__");
+            entityEditor.setData(data);
+            store.setStep(journeyId, stepId, entityEditor);
+
+            Step initialStep = store.getInitialStep(journeyId);
+
+            Result whatToShow = new Result(ResultType.Success,
+                    "" + viewInstance.toString() + " has been saved", List.of(),
+                    new Destination(DestinationType.ActionId, "Back to " + initialStep.getName(), initialStep.getId()));
+            String newStepId = "result_" + UUID.randomUUID().toString();
+            store.setStep(journeyId, newStepId, whatToShow);
+
         } else if (viewInstance instanceof Result) {
             Step step = store.getStep(journeyId, actionId);
             store.getJourney(journeyId).setCurrentStepId(step.getId());
@@ -250,10 +280,6 @@ public class RunStepActionCommand {
             e.printStackTrace();
         }
         return null;
-    }
-
-    private Map<String, Object> getData(Object viewInstance) throws IOException {
-        return ViewMapper.getData(viewInstance);
     }
 
     public static Object getActualValue(Map.Entry<String, Object> entry, Object viewInstance) throws NoSuchFieldException {
