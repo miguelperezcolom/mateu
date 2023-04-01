@@ -1,7 +1,7 @@
 package com.example.demoremote.ui.demoApp.menus.explorer;
 
-import com.example.demoremote.providers.TeamsProvider;
-import com.example.demoremote.records.Address;
+import com.example.demoremote.domains.nfl.providers.TeamsProvider;
+import com.example.demoremote.domains.agnostic.records.Address;
 import io.mateu.mdd.shared.annotations.Embed;
 import io.mateu.mdd.shared.annotations.ItemsProvider;
 import io.mateu.mdd.shared.annotations.Section;

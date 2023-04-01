@@ -1,7 +1,7 @@
 package com.example.demoremote.ui.demoApp.menus.explorer;
 
-import com.example.demoremote.providers.PlayersProvider;
-import com.example.demoremote.providers.TeamsProvider;
+import com.example.demoremote.domains.nfl.providers.PlayersProvider;
+import com.example.demoremote.domains.nfl.providers.TeamsProvider;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.ExternalReference;
 import lombok.Data;

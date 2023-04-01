@@ -1,7 +1,9 @@
 package com.example.demoremote.ui.demoApp.menus;
 
-import com.example.demoremote.entities.*;
-import com.example.demoremote.rpcCruds.ProgrammingLanguages;
+import com.example.demoremote.domains.swapi.entities.SWCharacter;
+import com.example.demoremote.domains.swapi.entities.SWFilm;
+import com.example.demoremote.domains.swapi.entities.SWSpecie;
+import com.example.demoremote.domains.swapi.entities.SWStarship;
 import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.MenuOption;

@@ -246,7 +246,7 @@ public class RunStepActionCommand {
     private Object deserializeRow(Object m, RpcView viewInstance) {
         try {
             return Helper.fromJson(Helper.toJson(m), viewInstance.getRowClass());
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;

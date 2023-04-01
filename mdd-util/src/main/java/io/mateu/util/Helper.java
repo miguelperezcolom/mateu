@@ -81,11 +81,11 @@ public class Helper extends SlimHelper {
         return Serializer.fromJson(json);
     }
 
-    public static <T> T fromJson(String json, Class<T> c) throws IOException {
+    public static <T> T fromJson(String json, Class<T> c) throws Exception {
         return Serializer.fromJson(json, c);
     }
 
-    public static String toJson(Object o) throws IOException {
+    public static String toJson(Object o) throws Exception {
         return Serializer.toJson(o);
     }
 
@@ -477,7 +477,7 @@ public class Helper extends SlimHelper {
             log.debug("" + Helper.get(o, "smtp/host"));
 
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

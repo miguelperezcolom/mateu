@@ -19,7 +19,7 @@ public class JsonConverter implements AttributeConverter<Object, String> {
                 String json = Helper.toJson(jsonSerializable);
                 json = json.substring(0, 1) + " \"className\":\"" + jsonSerializable.getClass().getName() + "\"," + json.substring(1);
                 return json;
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 return null;
             }
@@ -34,9 +34,7 @@ public class JsonConverter implements AttributeConverter<Object, String> {
             String className = (String) m.get("className");
             Object o = Helper.fromJson(s, Class.forName(className));
             return o;
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;

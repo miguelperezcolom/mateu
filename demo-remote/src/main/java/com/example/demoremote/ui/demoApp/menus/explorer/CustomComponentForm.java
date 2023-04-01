@@ -1,14 +1,8 @@
 package com.example.demoremote.ui.demoApp.menus.explorer;
 
 
-import com.example.demoremote.providers.PlayersProvider;
-import com.example.demoremote.providers.TeamsProvider;
 import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.data.ExternalReference;
 import lombok.Data;
-
-import java.io.File;
-import java.util.List;
 
 @Data
 @Caption("Custom components")

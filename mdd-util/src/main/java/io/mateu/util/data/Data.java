@@ -193,13 +193,13 @@ public class Data extends HashMap<String, Object> {
         if (containsKey("_nameproperty")) return get(get("_nameproperty"));
         try {
             return Serializer.toJson(this);
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    public String toJson() throws IOException {
+    public String toJson() throws Exception {
         return Serializer.toJson(this);
     }
 

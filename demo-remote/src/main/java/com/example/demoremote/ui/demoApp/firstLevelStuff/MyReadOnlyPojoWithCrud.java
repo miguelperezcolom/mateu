@@ -1,6 +1,6 @@
 package com.example.demoremote.ui.demoApp.firstLevelStuff;
 
-import com.example.demoremote.rpcCruds.ProgrammingLanguages;
+import com.example.demoremote.domains.programmingLanguages.ProgrammingLanguages;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.Placeholder;
 import io.mateu.mdd.shared.annotations.ReadOnly;

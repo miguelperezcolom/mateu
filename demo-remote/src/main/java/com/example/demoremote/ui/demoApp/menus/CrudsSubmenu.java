@@ -1,9 +1,10 @@
 package com.example.demoremote.ui.demoApp.menus;
 
-import com.example.demoremote.entities.*;
-import com.example.demoremote.rpcCruds.ProgrammingLanguages;
+import com.example.demoremote.domains.cities.City;
+import com.example.demoremote.domains.nfl.entities.Player;
+import com.example.demoremote.domains.nfl.entities.Team;
+import com.example.demoremote.domains.programmingLanguages.ProgrammingLanguages;
 import com.vaadin.icons.VaadinIcons;
-import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.MenuOption;
 import io.mateu.mdd.shared.interfaces.JpaCrud;
 

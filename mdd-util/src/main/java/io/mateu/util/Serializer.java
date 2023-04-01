@@ -5,7 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.mateu.util.persistence.EntityDeserializer;
+import io.mateu.util.persistence.EntitySerializer;
+import io.mateu.util.reflection.MiniReflectionHelper;
 
+import javax.persistence.Entity;
 import java.io.IOException;
 import java.util.Map;
 
@@ -31,18 +35,28 @@ public class Serializer {
         return mapper.readValue(json, Map.class);
     }
 
-    public static <T> T fromJson(String json, Class<T> c) throws IOException {
+    public static <T> T fromJson(String json, Class<T> c) throws Exception {
         if (json == null || "".equals(json)) json = "{}";
+        if (c.isAnnotationPresent(Entity.class)) {
+            return entityFromJson(json, c);
+        }
         return mapper.readValue(json, c);
     }
 
-    public static String toJson(Object o) throws IOException {
+    private static <T> T entityFromJson(String json, Class<T> c) throws Exception {
+        return Helper.getImpl(EntityDeserializer.class).fromJson(json, c);
+    }
+
+    public static String toJson(Object o) throws Exception {
+        if (o != null && o.getClass().isAnnotationPresent(Entity.class)) {
+            return entityToJson(o);
+        }
         return mapper.writeValueAsString(o);
     }
 
-
-
-
+    private static String entityToJson(Object o) throws Exception {
+        return Helper.getImpl(EntitySerializer.class).toJson(o);
+    }
 
 
     public static Map<String, Object> fromYaml(String yaml) throws IOException {

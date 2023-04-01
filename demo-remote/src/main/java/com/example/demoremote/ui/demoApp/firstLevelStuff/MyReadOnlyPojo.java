@@ -1,8 +1,7 @@
 package com.example.demoremote.ui.demoApp.firstLevelStuff;
 
-import com.example.demoremote.nfl.dtos.Conference;
-import com.example.demoremote.nfl.dtos.Division;
-import com.example.demoremote.rpcCruds.ProgrammingLanguages;
+import com.example.demoremote.domains.nfl.dtos.Conference;
+import com.example.demoremote.domains.nfl.dtos.Division;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.Badge;
 import io.mateu.mdd.shared.data.BadgeType;

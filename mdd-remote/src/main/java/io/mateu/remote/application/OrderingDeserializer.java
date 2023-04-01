@@ -27,7 +27,7 @@ public class OrderingDeserializer {
                     (String) m.get("column"),
                     SortType.valueOf((String) m.get("order"))
             )).collect(Collectors.toList());
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return List.of();

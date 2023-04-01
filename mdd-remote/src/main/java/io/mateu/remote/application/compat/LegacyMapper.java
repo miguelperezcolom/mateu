@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 public class LegacyMapper {
 
-    public String map(Component c) throws IOException {
+    public String map(Component c) throws Exception {
         if (!(c.getMetadata() instanceof Crud)) {
             return null;
         }

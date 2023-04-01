@@ -1,6 +1,6 @@
 package com.example.demoremote;
 
-import com.example.demoremote.providers.TeamsProvider;
+import com.example.demoremote.domains.nfl.providers.TeamsProvider;
 import io.mateu.util.Helper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +47,7 @@ class DemoRemoteApplicationTests {
         assertEquals(normalize(expectedJson), normalize(mvcResult.getResponse().getContentAsString()));
     }
 
-    public String normalize(String json) throws IOException {
+    public String normalize(String json) throws Exception {
         return Helper.toJson(Helper.fromJson(json));
     }
 
