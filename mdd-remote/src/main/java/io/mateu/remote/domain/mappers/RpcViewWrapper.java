@@ -1,6 +1,6 @@
 package io.mateu.remote.domain.mappers;
 
-import io.mateu.mdd.shared.interfaces.RpcView;
+import io.mateu.mdd.shared.interfaces.Listing;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data@AllArgsConstructor@NoArgsConstructor
 public class RpcViewWrapper {
 
-    private RpcView rpcView;
+    private Listing rpcView;
 
     private String id;
 

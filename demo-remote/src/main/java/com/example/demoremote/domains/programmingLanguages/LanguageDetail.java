@@ -25,7 +25,7 @@ public class LanguageDetail implements ReadOnlyPojo {
 
     private String name;
 
-    private ProgrammingLanguages.Row.LanguageTarget target;
+    private LanguageRow.LanguageTarget target;
 
     @Override
     public void load(Object id) throws Throwable {

@@ -4,10 +4,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.vaadin.data.provider.QuerySortOrder;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
-import io.mateu.mdd.core.interfaces.RpcCrudView;
-import io.mateu.mdd.core.interfaces.RpcCrudViewExtended;
-import io.mateu.mdd.core.ui.MDDUIAccessor;
-import io.mateu.mdd.core.views.ExtraFilters;
+import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.FareValue;
 import io.mateu.mdd.shared.data.Status;
@@ -15,7 +12,6 @@ import io.mateu.mdd.shared.data.SumData;
 import io.mateu.mdd.shared.interfaces.IResource;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
-import io.mateu.util.notification.Notifier;
 import io.mateu.util.persistence.JPAHelper;
 import lombok.Data;
 
@@ -23,16 +19,15 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Data
-public class JpaRpcCrudView implements RpcCrudView<Object, Object, Object>, RpcCrudViewExtended {
+public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended,
+        Adds, Deletes<Object>, Edits<Object> {
 
     private MDDOpenCRUDAction action;
     private Map<String, String> aliasedColumnNamesByColId = new HashMap<>();
@@ -96,7 +91,7 @@ public class JpaRpcCrudView implements RpcCrudView<Object, Object, Object>, RpcC
     }
 
     @Override
-    public List rpc(Object filters, List<QuerySortOrder> sortOrders, int offset, int limit) throws Throwable {
+    public List fetchRows(Object filters, List<QuerySortOrder> sortOrders, int offset, int limit) throws Throwable {
         return new JpaCrudRowsQuery(
                 action,
                 filters,
@@ -116,7 +111,7 @@ public class JpaRpcCrudView implements RpcCrudView<Object, Object, Object>, RpcC
     }
 
     @Override
-    public int gatherCount(Object filters) throws Throwable {
+    public int fetchCount(Object filters) throws Throwable {
         sums = new JpaCrudSumsQuery(
                 action,
                 filters,
@@ -163,22 +158,14 @@ public class JpaRpcCrudView implements RpcCrudView<Object, Object, Object>, RpcC
         return action.getEntityClass();
     }
 
-    @Override
-    public Class getEditorClass() {
-        return action.getEntityClass();
-    }
-
-    @Override
     public boolean isAddEnabled() {
         return action.isCanAdd();
     }
 
-    @Override
     public boolean isEditHandled() {
         return !action.isReadOnly();
     }
 
-    @Override
     public boolean isDeleteEnabled() {
         return action.isCanDelete();
     }
@@ -389,7 +376,6 @@ public class JpaRpcCrudView implements RpcCrudView<Object, Object, Object>, RpcC
         return visibleColumns;
     }
 
-    @Override
     public void delete(Set<Object> selection) throws Throwable {
         JPAHelper.transact(em -> {
             for (Object o : selection) {
@@ -408,5 +394,13 @@ public class JpaRpcCrudView implements RpcCrudView<Object, Object, Object>, RpcC
     @Override
     public String getCaption() {
         return action.getCaption();
+    }
+
+    public Object getDetail(Object o) throws Throwable {
+        return JPAHelper.find(getEntityClass(), ReflectionHelper.getId(o));
+    }
+
+    public Object getNewRecordForm() throws Throwable {
+        return ReflectionHelper.newInstance(getEntityClass());
     }
 }

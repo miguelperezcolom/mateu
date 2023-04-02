@@ -2,7 +2,7 @@ package io.mateu.remote.application;
 
 import com.google.common.base.Strings;
 import io.mateu.mdd.shared.data.DatesRange;
-import io.mateu.mdd.shared.interfaces.RpcView;
+import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.store.JourneyStoreService;
@@ -28,7 +28,7 @@ public class FiltersDeserializer {
     }
 
     public Object deserialize() throws Exception {
-        RpcView rpcView = (RpcView) JourneyStoreService.get().getRpcViewInstance(journeyId, stepId, listId);
+        Listing rpcView = (Listing) JourneyStoreService.get().getRpcViewInstance(journeyId, stepId, listId);
         Map<String, Object> map = decodeAndParse(raw);
         for (FieldInterfaced field : ReflectionHelper.getAllEditableFields(rpcView.getSearchFormClass())) {
             if (DatesRange.class.equals(field.getType())) {

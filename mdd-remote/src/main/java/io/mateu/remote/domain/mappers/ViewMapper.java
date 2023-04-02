@@ -3,8 +3,7 @@ package io.mateu.remote.domain.mappers;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.core.interfaces.RpcCrudViewExtended;
 import io.mateu.mdd.shared.data.Result;
-import io.mateu.mdd.shared.interfaces.RpcView;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.metadata.CrudMetadataBuilder;
@@ -14,13 +13,10 @@ import io.mateu.remote.domain.store.JourneyContainer;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.*;
 import io.mateu.util.Serializer;
-import io.mateu.util.persistence.JPAHelper;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,7 +39,7 @@ public class ViewMapper {
             RpcCrudViewExtended rpcCrudView = (RpcCrudViewExtended) JourneyStoreService.get()
                     .getViewInstance(journeyContainer.getJourneyId(), journeyContainer.getInitialStep().getId());
             actualUiInstance = em.find(rpcCrudView.getEntityClass(), ((EntityEditor)uiInstance).getData().get("id"));
-        } else if (uiInstance instanceof Class && RpcView.class.isAssignableFrom((Class<?>) uiInstance)) {
+        } else if (uiInstance instanceof Class && Listing.class.isAssignableFrom((Class<?>) uiInstance)) {
             actualUiInstance = ReflectionHelper.newInstance((Class) uiInstance);
         }
 
@@ -78,13 +74,13 @@ public class ViewMapper {
     private void addChildCruds(List<Component> components, String stepId, Object uiInstance) {
         if ("view".equals(stepId) || uiInstance instanceof ReadOnlyPojo) {
             List<Component> cruds = ReflectionHelper.getAllFields(uiInstance.getClass()).stream()
-                    .filter(f -> RpcView.class.isAssignableFrom(f.getType()))
+                    .filter(f -> Listing.class.isAssignableFrom(f.getType()))
                     .map(f -> {
-                        RpcView crud = null;
+                        Listing crud = null;
                         try {
-                            crud = (RpcView) ReflectionHelper.getValue(f, uiInstance);
+                            crud = (Listing) ReflectionHelper.getValue(f, uiInstance);
                             if (crud == null) {
-                                crud = (RpcView) ReflectionHelper.newInstance(f.getType());
+                                crud = (Listing) ReflectionHelper.newInstance(f.getType());
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -129,7 +125,7 @@ public class ViewMapper {
         }
         Class dataContainerClass = uiInstance.getClass();
         Object dataContainer = uiInstance;
-        if (uiInstance instanceof RpcView) {
+        if (uiInstance instanceof Listing) {
             return Map.of();
         }
         data = Serializer.toMap(uiInstance);
@@ -145,8 +141,8 @@ public class ViewMapper {
             metadata = getJourneyRunner((io.mateu.mdd.shared.interfaces.JourneyRunner) uiInstance);
         } else if (uiInstance instanceof Result) {
             metadata = getResult((Result) uiInstance);
-        } else if (uiInstance instanceof RpcView) {
-            metadata = getCrud(stepId, "main", (RpcView) uiInstance);
+        } else if (uiInstance instanceof Listing) {
+            metadata = getCrud(stepId, "main", (Listing) uiInstance);
         } else if (uiInstance instanceof RpcViewWrapper) {
             metadata = getCrud(stepId, ((RpcViewWrapper) uiInstance).getId(), ((RpcViewWrapper) uiInstance).getRpcView());
         } else {
@@ -177,7 +173,7 @@ public class ViewMapper {
         return new FormMetadataBuilder().build(stepId, uiInstance);
     }
 
-    private Crud getCrud(String stepId, String listId, RpcView rpcView) {
+    private Crud getCrud(String stepId, String listId, Listing rpcView) {
         return new CrudMetadataBuilder().build(stepId, listId, rpcView);
     }
 

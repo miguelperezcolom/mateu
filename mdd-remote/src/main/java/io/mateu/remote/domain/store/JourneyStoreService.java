@@ -1,11 +1,10 @@
 package io.mateu.remote.domain.store;
 
-import com.vaadin.server.communication.UIInitHandler;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.app.MDDOpenCRUDActionViewBuilder;
 import io.mateu.mdd.core.app.MDDOpenEditorAction;
 import io.mateu.mdd.core.app.MDDOpenListViewAction;
-import io.mateu.mdd.shared.interfaces.RpcView;
+import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.commands.RunStepActionCommand;
@@ -15,15 +14,11 @@ import io.mateu.remote.domain.mappers.UIMapper;
 import io.mateu.remote.dtos.Journey;
 import io.mateu.remote.dtos.Step;
 import io.mateu.util.Helper;
-import io.mateu.util.Serializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -85,14 +80,14 @@ public class JourneyStoreService {
         }
     }
 
-    public RpcView getRpcViewInstance(String journeyId, String stepId, String listId) throws Exception {
+    public Listing getRpcViewInstance(String journeyId, String stepId, String listId) throws Exception {
         Object viewInstance = getViewInstance(journeyId, stepId);
-        if (viewInstance instanceof RpcView) {
-            return (RpcView) viewInstance;
+        if (viewInstance instanceof Listing) {
+            return (Listing) viewInstance;
         }
-        RpcView rpcView = (RpcView) ReflectionHelper.getValue(listId, viewInstance);
+        Listing rpcView = (Listing) ReflectionHelper.getValue(listId, viewInstance);
         if (rpcView == null) {
-            rpcView = (RpcView) ReflectionHelper.newInstance(
+            rpcView = (Listing) ReflectionHelper.newInstance(
                     ReflectionHelper.getFieldByName(viewInstance.getClass(), listId).getType());
             ReflectionHelper.setValue(listId, viewInstance, rpcView);
         }

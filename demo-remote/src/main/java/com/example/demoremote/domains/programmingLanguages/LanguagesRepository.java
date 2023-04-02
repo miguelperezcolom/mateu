@@ -5,7 +5,6 @@ import io.mateu.mdd.shared.data.StatusType;
 import io.mateu.util.Helper;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -13,21 +12,21 @@ import java.util.List;
 @Service
 public class LanguagesRepository {
 
-    private final List<ProgrammingLanguages.Row> all = new ArrayList<>(List.of(
-            new ProgrammingLanguages.Row("java", "Java", ProgrammingLanguages.Row.LanguageTarget.Backend, new Status(StatusType.SUCCESS, "Success")),
-            new ProgrammingLanguages.Row("js", "Javascript", ProgrammingLanguages.Row.LanguageTarget.Frontend, new Status(StatusType.DANGER, "Error")),
-            new ProgrammingLanguages.Row("c#", "C#", ProgrammingLanguages.Row.LanguageTarget.Backend, new Status(StatusType.SUCCESS, "Success")),
-            new ProgrammingLanguages.Row("c", "C", ProgrammingLanguages.Row.LanguageTarget.Backend, new Status(StatusType.WARNING, "Warning")),
-            new ProgrammingLanguages.Row("c++", "C++", ProgrammingLanguages.Row.LanguageTarget.Backend, new Status(StatusType.INFO, "Info"))
+    private final List<LanguageRow> all = new ArrayList<>(List.of(
+            new LanguageRow("java", "Java", LanguageRow.LanguageTarget.Backend, new Status(StatusType.SUCCESS, "Success")),
+            new LanguageRow("js", "Javascript", LanguageRow.LanguageTarget.Frontend, new Status(StatusType.DANGER, "Error")),
+            new LanguageRow("c#", "C#", LanguageRow.LanguageTarget.Backend, new Status(StatusType.SUCCESS, "Success")),
+            new LanguageRow("c", "C", LanguageRow.LanguageTarget.Backend, new Status(StatusType.WARNING, "Warning")),
+            new LanguageRow("c++", "C++", LanguageRow.LanguageTarget.Backend, new Status(StatusType.INFO, "Info"))
     ));
 
 
-    public Collection<ProgrammingLanguages.Row> findAll() {
+    public Collection<LanguageRow> findAll() {
         return all;
     }
 
     public void save(LanguageForm form) throws Exception {
-        ProgrammingLanguages.Row language = Helper.fromJson(Helper.toJson(form), ProgrammingLanguages.Row.class);
+        LanguageRow language = Helper.fromJson(Helper.toJson(form), LanguageRow.class);
         if (all.contains(language)) {
             all.set(all.indexOf(language), language);
         } else {
@@ -35,7 +34,7 @@ public class LanguagesRepository {
         }
     }
 
-    public ProgrammingLanguages.Row findById(String id) {
+    public LanguageRow findById(String id) {
         return all.stream().filter(r -> r.getId().equals(id)).findFirst().get();
     }
 }

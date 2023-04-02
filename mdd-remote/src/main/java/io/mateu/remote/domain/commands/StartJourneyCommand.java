@@ -1,9 +1,8 @@
 package io.mateu.remote.domain.commands;
 
-import io.mateu.mdd.shared.interfaces.RpcView;
+import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.remote.application.NotFoundException;
 import io.mateu.remote.domain.mappers.JourneyMapper;
-import io.mateu.remote.domain.mappers.StepMapper;
 import io.mateu.remote.domain.store.JourneyContainer;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.Journey;
@@ -60,7 +59,7 @@ public class StartJourneyCommand {
     }
 
     private String getStepId(Object formInstance) {
-        if (formInstance instanceof RpcView) return "list";
+        if (formInstance instanceof Listing) return "list";
         return "form";
     }
 

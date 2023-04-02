@@ -241,7 +241,7 @@ public class MenuBuilder {
                 }
                 return null;
             }).setIcon(icon).setOrder(order));
-        } else if (RpcView.class.isAssignableFrom(f.getType())) {
+        } else if (Listing.class.isAssignableFrom(f.getType())) {
             l.add(new MDDOpenListViewAction(caption, f.getType()).setIcon(icon).setOrder(order));
         } else if (Component.class.isAssignableFrom(f.getType())) {
             if (v != null) l.add(new MDDOpenCustomComponentAction(caption, v));

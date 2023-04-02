@@ -1,9 +1,9 @@
 package io.mateu.mdd.core.app;
 
-import io.mateu.mdd.core.interfaces.RpcCrudView;
+import io.mateu.mdd.core.interfaces.Crud;
 
 public interface MDDOpenCRUDActionViewBuilder {
 
-    RpcCrudView buildView(MDDOpenCRUDAction action);
+    Crud buildView(MDDOpenCRUDAction action);
 
 }

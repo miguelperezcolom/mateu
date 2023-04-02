@@ -1,21 +1,16 @@
 package io.mateu.remote.domain.commands;
 
-import io.mateu.mdd.core.interfaces.PersistentPojo;
-import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
-import io.mateu.mdd.core.interfaces.RpcCrudView;
+import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.File;
 import io.mateu.mdd.shared.annotations.MainAction;
 import io.mateu.mdd.shared.data.*;
-import io.mateu.mdd.shared.interfaces.RpcView;
+import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.files.StorageServiceAccessor;
-import io.mateu.remote.domain.mappers.ViewMapper;
 import io.mateu.remote.domain.persistence.Merger;
-import io.mateu.remote.domain.store.JourneyContainer;
 import io.mateu.remote.domain.store.JourneyStoreService;
-import io.mateu.remote.dtos.Journey;
 import io.mateu.remote.dtos.Step;
 import io.mateu.util.Helper;
 import io.mateu.util.Serializer;
@@ -74,9 +69,9 @@ public class RunStepActionCommand {
                 .collect(Collectors.toMap(m -> m.getName(), m -> m));
 
         if (actionId.startsWith("__list__")) {
-            RpcView rpcView;
-            if (viewInstance instanceof RpcView) {
-                rpcView = (RpcView) viewInstance;
+            Listing rpcView;
+            if (viewInstance instanceof Listing) {
+                rpcView = (Listing) viewInstance;
             } else {
                 String listId = actionId.split("__")[2];
                 rpcView = JourneyStoreService.get().getRpcViewInstance(journeyId, stepId, listId);
@@ -84,11 +79,11 @@ public class RunStepActionCommand {
             actionId = actionId.substring(actionId.indexOf("__") + 2);
             actionId = actionId.substring(actionId.indexOf("__") + 2);
             actionId = actionId.substring(actionId.indexOf("__") + 2);
-            if (rpcView instanceof RpcCrudView && "new".equals(actionId)) {
+            if (rpcView instanceof Adds && "new".equals(actionId)) {
 
                 Object editor = null;
                 try {
-                    editor = ((RpcCrudView) rpcView).onNew();
+                    editor = ((Adds) rpcView).getNewRecordForm();
                 } catch (Throwable e) {
                     throw new Exception("Crud onNew thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
                 }
@@ -100,7 +95,7 @@ public class RunStepActionCommand {
                 String newStepId = "new_" + UUID.randomUUID().toString();
                 store.setStep(journeyId, newStepId, editor);
 
-            } else if (rpcView instanceof RpcCrudView && "delete".equals(actionId)) {
+            } else if (rpcView instanceof Deletes && "delete".equals(actionId)) {
 
                 List selectedRows = (List) data.get("_selectedRows");
 
@@ -112,7 +107,7 @@ public class RunStepActionCommand {
                     Set<Object> targetSet = new HashSet((Collection) selectedRows.stream().map(o -> (Map)o)
                             .map(m -> deserializeRow(m, rpcView))
                             .collect(Collectors.toList()));
-                    ((RpcCrudView) rpcView).delete(targetSet);
+                    ((Deletes) rpcView).delete(targetSet);
 
                     boolean isCrud = store.isCrud(journeyId);
 
@@ -127,7 +122,7 @@ public class RunStepActionCommand {
                     throw new Exception("Crud delete thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
                 }
 
-            } else if (rpcView instanceof RpcCrudView && "edit".equals(actionId)) {
+            } else if (rpcView instanceof Edits && "edit".equals(actionId)) {
 
                 Object row = data.get("_selectedRow");
 
@@ -137,8 +132,8 @@ public class RunStepActionCommand {
 
                 Object editor = null;
                 try {
-                    editor = ((RpcCrudView) rpcView).onEdit(Helper.fromJson(Helper.toJson(row),
-                            ((RpcCrudView) rpcView).getRowClass()));
+                    editor = ((Edits) rpcView).getDetail(Helper.fromJson(Helper.toJson(row),
+                            rpcView.getRowClass()));
                 } catch (Throwable e) {
                     throw new Exception("Crud onEdit thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
                 }
@@ -157,7 +152,7 @@ public class RunStepActionCommand {
                 }
                 store.setStep(journeyId, newStepId, editor);
 
-            } else if (rpcView instanceof RpcCrudView && actionId.startsWith("row__")) {
+            } else if (rpcView instanceof Crud && actionId.startsWith("row__")) {
 
                 Object row = data.get("_clickedRow");
 
@@ -168,10 +163,10 @@ public class RunStepActionCommand {
                 String methodName = actionId.replaceAll("row__", "");
                 try {
 
-                    Method method = rpcView.getClass().getMethod(methodName, ((RpcCrudView) rpcView).getRowClass());
+                    Method method = rpcView.getClass().getMethod(methodName, ((Crud) rpcView).getRowClass());
 
                     method.invoke(rpcView, Helper.fromJson(Helper.toJson(row),
-                            ((RpcCrudView) rpcView).getRowClass()));
+                            ((Crud) rpcView).getRowClass()));
                 } catch (Throwable e) {
                     throw new Exception("Crud " + methodName + " thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
                 }
@@ -180,6 +175,7 @@ public class RunStepActionCommand {
 
         } else if ((viewInstance instanceof ReadOnlyPojo
                 || viewInstance instanceof PersistentPojo
+                || viewInstance instanceof EntityEditor
         || viewInstance.getClass().isAnnotationPresent(Entity.class))
                 && "cancel".equals(actionId)) {
             store.backToStep(journeyId, store.getInitialStep(journeyId).getId());
@@ -277,7 +273,7 @@ public class RunStepActionCommand {
 
     }
 
-    private Object deserializeRow(Object m, RpcView viewInstance) {
+    private Object deserializeRow(Object m, Listing viewInstance) {
         try {
             return Helper.fromJson(Helper.toJson(m), viewInstance.getRowClass());
         } catch (Exception e) {

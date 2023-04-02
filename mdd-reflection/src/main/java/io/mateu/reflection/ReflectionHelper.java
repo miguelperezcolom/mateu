@@ -681,7 +681,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
                 gc = getGenericClass(getFieldByName(m.getDeclaringClass(), m.getAnnotation(Action.class).attachToField()), List.class, "E");
             } else {
                 gc = m.getDeclaringClass();
-                if (RpcView.class.isAssignableFrom(gc)) gc = getGenericClass(gc, RpcView.class, "C");
+                if (Listing.class.isAssignableFrom(gc)) gc = getGenericClass(gc, Listing.class, "C");
                 else if (Modifier.isStatic(m.getModifiers())) gc = m.getDeclaringClass();
             }
             if (!(gc !=  null && gc.equals(new FieldInterfacedFromParameter(m, p).getGenericClass()))) {
@@ -1647,8 +1647,8 @@ public class ReflectionHelper extends BaseReflectionHelper {
         if (o.getClass().isAnnotationPresent(Caption.class)) {
             return Translator.translate(o.getClass().getAnnotation(Caption.class).value());
         }
-        if (o instanceof RpcView) {
-            return ((RpcView) o).getCaption();
+        if (o instanceof Listing) {
+            return ((Listing) o).getCaption();
         }
         String caption = "";
         try {

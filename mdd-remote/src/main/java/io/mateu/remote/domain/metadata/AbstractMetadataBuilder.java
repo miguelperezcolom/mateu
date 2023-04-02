@@ -1,10 +1,9 @@
 package io.mateu.remote.domain.metadata;
 
 import com.google.common.base.Strings;
-import io.mateu.mdd.core.interfaces.PersistentPojo;
-import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
-import io.mateu.mdd.core.interfaces.RpcCrudView;
+import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.shared.annotations.*;
+import io.mateu.mdd.shared.annotations.ReadOnly;
 import io.mateu.mdd.shared.data.ExternalReference;
 import io.mateu.mdd.shared.data.ValuesListProvider;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
@@ -263,24 +262,21 @@ public abstract class AbstractMetadataBuilder {
                 .map(m -> getAction(m))
                 .collect(Collectors.toList());
         if (!Strings.isNullOrEmpty(listId)) actions.forEach(a -> a.setId("__list__" + listId + "__" + a.getId()));
-        if (uiInstance instanceof RpcCrudView) {
-            RpcCrudView rpcCrudView = (RpcCrudView) uiInstance;
-            if (rpcCrudView.isAddEnabled()) {
-                Action action = Action.builder()
-                        .id("__list__" + listId + "__new")
-                        .caption("New")
-                        .type(ActionType.Primary)
-                        .build();
-                actions.add(action);
-            }
-            if (rpcCrudView.isDeleteEnabled()) {
-                Action action = Action.builder()
-                        .id("__list__" + listId + "__delete")
-                        .caption("Delete")
-                        .type(ActionType.Primary)
-                        .build();
-                actions.add(action);
-            }
+        if (canAdd(uiInstance)) {
+            Action action = Action.builder()
+                    .id("__list__" + listId + "__new")
+                    .caption("New")
+                    .type(ActionType.Primary)
+                    .build();
+            actions.add(action);
+        }
+        if (canDelete(uiInstance)) {
+            Action action = Action.builder()
+                    .id("__list__" + listId + "__delete")
+                    .caption("Delete")
+                    .type(ActionType.Primary)
+                    .build();
+            actions.add(action);
         }
         if (("view".equals(stepId) && uiInstance.getClass().isAnnotationPresent(Entity.class))
         || (uiInstance instanceof ReadOnlyPojo && !(uiInstance instanceof PersistentPojo))) {
@@ -292,6 +288,26 @@ public abstract class AbstractMetadataBuilder {
             actions.add(action);
         }
         return actions;
+    }
+
+    private boolean canAdd(Object uiInstance) {
+        if (uiInstance instanceof CanAdd) {
+            return true;
+        }
+        if (uiInstance instanceof RpcCrudViewExtended) {
+            return ((RpcCrudViewExtended) uiInstance).isAddEnabled();
+        }
+        return false;
+    }
+
+    private boolean canDelete(Object uiInstance) {
+        if (uiInstance instanceof CanDelete) {
+            return true;
+        }
+        if (uiInstance instanceof RpcCrudViewExtended) {
+            return ((RpcCrudViewExtended) uiInstance).isDeleteEnabled();
+        }
+        return false;
     }
 
     protected String getType(FieldInterfaced fieldInterfaced) {

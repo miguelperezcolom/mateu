@@ -1,11 +1,8 @@
 package io.mateu.remote.domain.mappers;
 
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
-import io.mateu.mdd.core.interfaces.RpcCrudView;
 import io.mateu.remote.dtos.Journey;
 import io.mateu.remote.dtos.JourneyStatus;
-
-import java.util.UUID;
 
 public class JourneyMapper {
 

@@ -2,7 +2,7 @@ package io.mateu.remote.domain.queries;
 
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.shared.data.sort.SortDirection;
-import io.mateu.mdd.shared.interfaces.RpcView;
+import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.SortCriteria;
 import io.mateu.remote.dtos.SortType;
@@ -33,8 +33,8 @@ public class GetListRowsQuery {
     private List<SortCriteria> ordering;
 
     public List<Object> run() throws Throwable {
-        RpcView rpcView = (RpcView) JourneyStoreService.get().getRpcViewInstance(journeyId, stepId, listId);
-        return rpcView.rpc(filters, buildSortOrders(), page * pageSize, (page + 1) * pageSize - 1);
+        Listing rpcView = (Listing) JourneyStoreService.get().getRpcViewInstance(journeyId, stepId, listId);
+        return rpcView.fetchRows(filters, buildSortOrders(), page * pageSize, (page + 1) * pageSize - 1);
     }
 
     private List<QuerySortOrder> buildSortOrders() {

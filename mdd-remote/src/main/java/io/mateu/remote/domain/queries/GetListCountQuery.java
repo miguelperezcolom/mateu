@@ -1,6 +1,6 @@
 package io.mateu.remote.domain.queries;
 
-import io.mateu.mdd.shared.interfaces.RpcView;
+import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import lombok.*;
 
@@ -21,8 +21,8 @@ public class GetListCountQuery {
     private Object filters;
 
     public long run() throws Throwable {
-        RpcView rpcView = (RpcView) JourneyStoreService.get().getRpcViewInstance(journeyId, stepId, listId);
-        return rpcView.gatherCount(filters);
+        Listing rpcView = (Listing) JourneyStoreService.get().getRpcViewInstance(journeyId, stepId, listId);
+        return rpcView.fetchCount(filters);
     }
 
 }

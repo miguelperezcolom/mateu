@@ -6,7 +6,7 @@ import com.vaadin.shared.data.sort.SortDirection;
 import java.util.Comparator;
 import java.util.List;
 
-public class RowComparator implements Comparator<ProgrammingLanguages.Row> {
+public class RowComparator implements Comparator<LanguageRow> {
     private final List<QuerySortOrder> sortOrders;
 
     public RowComparator(List<QuerySortOrder> sortOrders) {
@@ -14,7 +14,7 @@ public class RowComparator implements Comparator<ProgrammingLanguages.Row> {
     }
 
     @Override
-    public int compare(ProgrammingLanguages.Row o1, ProgrammingLanguages.Row o2) {
+    public int compare(LanguageRow o1, LanguageRow o2) {
         int result = 0;
         if (sortOrders != null) {
             for (QuerySortOrder sortOrder : sortOrders) {
@@ -26,7 +26,7 @@ public class RowComparator implements Comparator<ProgrammingLanguages.Row> {
         return result;
     }
 
-    private int compare(String sorted, ProgrammingLanguages.Row o1, ProgrammingLanguages.Row o2) {
+    private int compare(String sorted, LanguageRow o1, LanguageRow o2) {
         if ("name".equals(sorted)) {
             return o1.getName().compareTo(o2.getName());
         }

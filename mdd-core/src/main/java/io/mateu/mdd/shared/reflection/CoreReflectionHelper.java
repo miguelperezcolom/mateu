@@ -3,8 +3,8 @@ package io.mateu.mdd.shared.reflection;
 import com.google.common.base.Strings;
 import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.Action;
+import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.interfaces.PushWriter;
-import io.mateu.mdd.shared.interfaces.RpcView;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.persistence.JPAHelper;
 
@@ -56,8 +56,8 @@ public class CoreReflectionHelper {
                         MDDUIAccessor.pushDone(message);
                     }
                 });
-            } else if (((instance instanceof RpcView || Modifier.isStatic(m.getModifiers())) && Set.class.isAssignableFrom(p.getType()) && (m.getDeclaringClass().equals(pgc)
-                    || (instance instanceof RpcView && ReflectionHelper.getGenericClass(instance.getClass(), RpcView.class, "C").equals(pgc))))
+            } else if (((instance instanceof Listing || Modifier.isStatic(m.getModifiers())) && Set.class.isAssignableFrom(p.getType()) && (m.getDeclaringClass().equals(pgc)
+                    || (instance instanceof Listing && ReflectionHelper.getGenericClass(instance.getClass(), Listing.class, "C").equals(pgc))))
                     || (pendingSelection != null && Set.class.isAssignableFrom(p.getType()) && !Strings.isNullOrEmpty(m.getAnnotation(Action.class).attachToField()))
             ) {
                 vs.add(pendingSelection);
