@@ -55,14 +55,18 @@ public class RunStepActionCommand {
 
         Object viewInstance = store.getViewInstance(journeyId, stepId);
 
-        data.entrySet().forEach(entry -> {
-            try {
-                Object actualValue = getActualValue(entry, viewInstance);
-                ReflectionHelper.setValue(entry.getKey(), viewInstance, actualValue);
-            } catch (Exception ex) {
-                System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
-            }
-        });
+        if (viewInstance instanceof EntityEditor) {
+            // no need to fill the entityEditor
+        } else {
+            data.entrySet().forEach(entry -> {
+                try {
+                    Object actualValue = getActualValue(entry, viewInstance);
+                    ReflectionHelper.setValue(entry.getKey(), viewInstance, actualValue);
+                } catch (Exception ex) {
+                    System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
+                }
+            });
+        }
         store.getStep(journeyId, stepId).getView().getComponents().get(0).setData(data);
 
         Map<String, Method> actions = ReflectionHelper.getAllMethods(viewInstance.getClass()).stream()
