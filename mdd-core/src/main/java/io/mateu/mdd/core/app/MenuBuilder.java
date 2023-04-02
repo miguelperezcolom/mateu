@@ -3,7 +3,6 @@ package io.mateu.mdd.core.app;
 import com.google.common.base.Strings;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.ui.Component;
-import io.mateu.mdd.core.MDD;
 import io.mateu.mdd.core.app.menuResolvers.MenuResolver;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.shared.annotations.*;
@@ -11,6 +10,7 @@ import io.mateu.mdd.shared.interfaces.*;
 import io.mateu.mdd.shared.reflection.CoreReflectionHelper;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
+import io.mateu.security.MateuSecurityManager;
 import io.mateu.security.Private;
 import io.mateu.util.Helper;
 import io.mateu.util.notification.Notifier;
@@ -45,7 +45,7 @@ public class MenuBuilder {
             if (!publicAccess && f.isAnnotationPresent(Private.class)) {
                 Private pa = f.getAnnotation(Private.class);
                 if (pa != null) {
-                    add = authenticationAgnostic || MDD.check(pa);
+                    add = authenticationAgnostic || check(pa);
                 } else add = true;
             }
 
@@ -77,7 +77,7 @@ public class MenuBuilder {
                 if (!publicAccess && m.isAnnotationPresent(Private.class)) {
                     Private pa = m.getAnnotation(Private.class);
                     if (pa != null) {
-                        add = MDD.check(pa);
+                        add = check(pa);
                     } else add = true;
                 }
             }
@@ -91,6 +91,12 @@ public class MenuBuilder {
         l.sort(Comparator.comparingInt(MenuEntry::getOrder));
 
         return l;
+    }
+
+    private static boolean check(Private pa) {
+        return true;
+        //todo: check
+        //Helper.getImpl(MateuSecurityManager.class).check(pa)
     }
 
     public static void addMenuEntry(List<MenuEntry> l, Object app, Method m, boolean authenticationAgnostic, boolean publicAccess) {
@@ -259,7 +265,7 @@ public class MenuBuilder {
     static List<Method> getAllMenuMethods(Class c) {
         List<Method> l = new ArrayList<>();
 
-        if (c.getSuperclass() != null && !MateuApp.class.equals(c.getSuperclass()))
+        if (c.getSuperclass() != null)
             l.addAll(getAllMenuMethods(c.getSuperclass()));
 
         for (Method f : c.getDeclaredMethods()) if (f.isAnnotationPresent(MenuOption.class) || f.isAnnotationPresent(Submenu.class)) l.add(f);

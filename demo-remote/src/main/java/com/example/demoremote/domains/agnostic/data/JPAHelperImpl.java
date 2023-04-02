@@ -2,7 +2,6 @@ package com.example.demoremote.domains.agnostic.data;
 
 
 import io.mateu.mdd.shared.JPAAdapter;
-import io.mateu.mdd.shared.ui.MDDUIAccessor;
 import io.mateu.util.Helper;
 import io.mateu.util.IJPAHelper;
 import io.mateu.util.persistence.JPAHelper;

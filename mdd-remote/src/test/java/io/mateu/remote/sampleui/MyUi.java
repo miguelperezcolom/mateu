@@ -1,11 +1,9 @@
 package io.mateu.remote.sampleui;
 
-import io.mateu.mdd.core.annotations.MateuUI;
 import io.mateu.mdd.shared.annotations.Action;
 import lombok.Getter;
 import lombok.Setter;
 
-@MateuUI("")
 @Getter@Setter
 public class MyUi {
 

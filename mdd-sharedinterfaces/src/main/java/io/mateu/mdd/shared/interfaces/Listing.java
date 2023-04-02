@@ -3,7 +3,6 @@ package io.mateu.mdd.shared.interfaces;
 import com.vaadin.data.provider.QuerySortOrder;
 import io.mateu.mdd.shared.SlimHelper;
 import io.mateu.mdd.shared.annotations.Caption;
-import io.mateu.mdd.shared.ui.MDDUIAccessor;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
@@ -26,10 +25,6 @@ public interface Listing<SearchForm, Row> {
         } catch (NoSuchMethodException e) {
         }
         return SlimHelper.capitalize(getClass().getSimpleName());
-    }
-
-    default Set<Row> getSelectedRows() {
-        return MDDUIAccessor.getSelectedRows();
     }
 
     default boolean showCheckboxForSelection() {

@@ -1,7 +1,6 @@
 package io.mateu.mdd.shared.reflection;
 
 import com.google.common.base.Strings;
-import io.mateu.mdd.core.ui.MDDUIAccessor;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.interfaces.PushWriter;
@@ -48,12 +47,12 @@ public class CoreReflectionHelper {
                 vs.add(new PushWriter() {
                     @Override
                     public void push(String message) {
-                        MDDUIAccessor.push(message);
+                        //todo: implementar
                     }
 
                     @Override
                     public void done(String message) {
-                        MDDUIAccessor.pushDone(message);
+                        //todo: implementar
                     }
                 });
             } else if (((instance instanceof Listing || Modifier.isStatic(m.getModifiers())) && Set.class.isAssignableFrom(p.getType()) && (m.getDeclaringClass().equals(pgc)

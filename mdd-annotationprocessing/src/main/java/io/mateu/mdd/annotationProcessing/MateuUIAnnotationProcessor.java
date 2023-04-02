@@ -16,7 +16,7 @@ import java.io.PrintWriter;
 import java.util.Map;
 import java.util.Set;
 
-@SupportedAnnotationTypes({"io.mateu.mdd.core.annotations.MateuUI"})
+@SupportedAnnotationTypes({"io.mateu.mdd.shared.annotations.MateuUI"})
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor.class)
 public class MateuUIAnnotationProcessor extends AbstractProcessor {

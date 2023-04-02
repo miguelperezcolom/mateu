@@ -12,9 +12,6 @@ import io.mateu.i18n.Translator;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.interfaces.*;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.mdd.shared.reflection.IFieldBuilder;
-import io.mateu.mdd.shared.ui.IMDDUI;
-import io.mateu.mdd.shared.ui.IMDDUIInjector;
 import io.mateu.mdd.springboot.BeanProvider;
 import io.mateu.util.Helper;
 import io.mateu.util.data.Pair;
@@ -68,7 +65,6 @@ public class ReflectionHelper extends BaseReflectionHelper {
     static Map<Class, List<Method>> allMethodsCache = new HashMap<>();
     static Map<String, Method> methodCache = new HashMap<>();
     static List<Class> notFromString = new ArrayList<>();
-    public static IMDDUIInjector injector;
     private static BeanProvider beanProvider;
     private static ObjectMapper mapper = new ObjectMapper();
 
@@ -84,155 +80,6 @@ public class ReflectionHelper extends BaseReflectionHelper {
     public static void setBeanProvider(BeanProvider aBeanProvider) {
         beanProvider = aBeanProvider;
     }
-
-
-    public static IMDDUI getUI() {
-        if (injector == null) {
-            try {
-                injector = Helper.getImpl(IMDDUIInjector.class);
-            } catch (Exception e) {
-                log.warn("No implementation found for " + IMDDUI.class.getName());
-                injector = new IMDDUIInjector() {
-                    @Override
-                    public IMDDUI get() {
-                        return new IMDDUI() {
-                            @Override
-                            public boolean isEditingNewRecord() {
-                                return false;
-                            }
-
-                            @Override
-                            public IFieldBuilder getFieldBuilder(FieldInterfaced field) {
-                                return null;
-                            }
-
-                            @Override
-                            public String getBaseUrl() {
-                                return null;
-                            }
-
-                            @Override
-                            public void clearStack() {
-
-                            }
-
-                            @Override
-                            public String getPath(MenuEntry e) {
-                                return null;
-                            }
-
-                            @Override
-                            public App getApp() {
-                                return null;
-                            }
-
-                            @Override
-                            public String getCurrentUserLogin() {
-                                return null;
-                            }
-
-                            @Override
-                            public UserPrincipal getCurrentUser() {
-                                return null;
-                            }
-
-                            @Override
-                            public Collection<FieldInterfaced> getColumnFields(Class targetType) {
-                                return null;
-                            }
-
-                            @Override
-                            public void updateTitle(String title) {
-
-                            }
-
-                            @Override
-                            public boolean isMobile() {
-                                return false;
-                            }
-
-                            @Override
-                            public String getUiRootPath() {
-                                return null;
-                            }
-
-                            @Override
-                            public String getCurrentState() {
-                                return null;
-                            }
-
-                            @Override
-                            public void go(String relativePath) {
-
-                            }
-
-                            @Override
-                            public void goTo(String path) {
-
-                            }
-
-                            @Override
-                            public void goBack() {
-
-                            }
-
-                            @Override
-                            public void goSibling(Object siblingId) {
-
-                            }
-
-                            @Override
-                            public void open(FieldInterfaced field, Method m, Set selection) {
-
-                            }
-
-                            @Override
-                            public void open(Method m, Set selection) {
-
-                            }
-
-                            @Override
-                            public void open(Method m, Object result) {
-
-                            }
-
-                            @Override
-                            public Set getPendingSelection() {
-                                return null;
-                            }
-
-                            @Override
-                            public void setPendingSelection(Set selecion) {
-
-                            }
-
-                            @Override
-                            public Object getPendingResult() {
-                                return null;
-                            }
-
-                            @Override
-                            public void setPendingResult(Object result) {
-
-                            }
-
-                            @Override
-                            public void updateSession() {
-
-                            }
-
-                            @Override
-                            public Set getSelectedRows() {
-                                return null;
-                            }
-                        };
-                    }
-                };
-            }
-        }
-        return injector != null?injector.get():null;
-    }
-
 
 
     public static Object getValue(Field f, Object o) {
@@ -1413,7 +1260,8 @@ public class ReflectionHelper extends BaseReflectionHelper {
         allFields = filterInjected(allFields);
 
 
-        boolean isEditingNewRecord = getUI() != null && getUI().isEditingNewRecord();
+        //todo: ver como resolvemos esto
+        boolean isEditingNewRecord = false;
 
 
         allFields = allFields.stream().filter((f) ->

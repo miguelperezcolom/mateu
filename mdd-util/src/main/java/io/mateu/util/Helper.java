@@ -10,8 +10,6 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
-import io.mateu.mdd.shared.AppConfigLocator;
-import io.mateu.mdd.shared.IAppConfig;
 import io.mateu.mdd.shared.SlimHelper;
 import io.mateu.util.xml.XMLSerializable;
 import lombok.extern.slf4j.Slf4j;
@@ -454,18 +452,6 @@ public class Helper extends SlimHelper {
     public static <T> List<T> getImpls(Class<T> c) throws Exception {
         return SharedHelper.getImpls(c);
     }
-
-    public static Map<String, Object> getGeneralData() throws Throwable {
-        Map<String, Object> data = new HashMap<>();
-
-        IAppConfig c = Helper.getImpl(AppConfigLocator.class).get();
-        data.put("businessname", c.getBusinessName());
-        String l = c.getLogoUrl();
-        if (!Strings.isNullOrEmpty(l)) data.put("logourl", l);
-
-        return data;
-    }
-
 
     public static void main(String[] args) {
         try {
