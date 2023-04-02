@@ -5,7 +5,7 @@ import io.mateu.mdd.shared.annotations.Action;
 import lombok.Getter;
 import lombok.Setter;
 
-@MateuUI(path = "")
+@MateuUI("")
 @Getter@Setter
 public class MyUi {
 

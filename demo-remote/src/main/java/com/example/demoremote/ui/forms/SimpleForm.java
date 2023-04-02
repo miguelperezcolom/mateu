@@ -6,7 +6,7 @@ import io.mateu.mdd.shared.annotations.ReadOnly;
 import lombok.Getter;
 import lombok.Setter;
 
-@MateuUI(path = "/simpleform")
+@MateuUI("/simpleform")
 @Getter@Setter
 public class SimpleForm {
 

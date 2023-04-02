@@ -29,7 +29,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
             for (Element e : annotatedElements) {
                 String className = ((TypeElement) e).getQualifiedName().toString();
                 String simpleClassName = e.getSimpleName().toString();
-                String path = e.getAnnotation(MateuUI.class).path();
+                String path = e.getAnnotation(MateuUI.class).value();
 
                 System.out.println("MateuUIAnnotationProcessor running on " + simpleClassName);
 

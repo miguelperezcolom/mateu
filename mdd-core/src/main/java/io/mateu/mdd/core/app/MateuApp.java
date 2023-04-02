@@ -4,6 +4,7 @@ import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServletRequest;
 import io.mateu.i18n.Translator;
 import io.mateu.mdd.core.annotations.MateuUI;
+import io.mateu.mdd.core.interfaces.HasLogo;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.reflection.FieldBuilderProvider;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
@@ -99,8 +100,9 @@ public class MateuApp extends BaseMDDApp {
     private void init() {
 
         if (uiclass.isAnnotationPresent(MateuUI.class)) {
-            setLogo(((MateuUI)uiclass.getAnnotation(MateuUI.class)).logo());
-            setPersistenceUnitName(((MateuUI)uiclass.getAnnotation(MateuUI.class)).persistenceUnitName());
+            if (ui instanceof HasLogo) {
+                setLogo(((HasLogo) ui).getLogoUrl());
+            }
         }
 
         if (uiclass.isAnnotationPresent(LogoutUrl.class)) {
