@@ -5,7 +5,6 @@ import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.interfaces.PushWriter;
 import io.mateu.reflection.ReflectionHelper;
-import io.mateu.util.persistence.JPAHelper;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
@@ -34,16 +33,12 @@ public class CoreReflectionHelper {
             }
         }
 
-        int posEM = -1;
-
         List<Object> vs = new ArrayList<>();
         int pos = 0;
         for (Parameter p : m.getParameters()) {
             Class<?> pgc = ReflectionHelper.getGenericClass(p.getParameterizedType());
 
-            if (EntityManager.class.equals(p.getType())) {
-                posEM = pos;
-            } else if (PushWriter.class.equals(p.getType())) {
+            if (PushWriter.class.equals(p.getType())) {
                 vs.add(new PushWriter() {
                     @Override
                     public void push(String message) {
@@ -76,53 +71,7 @@ public class CoreReflectionHelper {
             pos++;
         }
 
-        if (posEM >= 0) {
-
-            Object[] r = {null};
-
-            int finalPosEM = posEM;
-            Object finalInstance = instance;
-
-            JPAHelper.transact(em -> {
-
-                vs.add(finalPosEM, em);
-
-                for (Object p : vs) {
-                    if (p instanceof Set) {
-                        Set s = (Set) p;
-                        Set<Object> aux = new HashSet<>();
-                        for (Object i : s) {
-                            if (i != null && i.getClass().isAnnotationPresent(Entity.class)) {
-                                aux.add(em.find(i.getClass(), ReflectionHelper.getId(i)));
-                            } else aux.add(i);
-                        }
-                        s.clear();
-                        s.addAll(aux);
-                    }
-                }
-
-                List<Object> aux = new ArrayList<>();
-                for (Object i : vs) {
-                    if (i != null && i.getClass().isAnnotationPresent(Entity.class)) {
-                        aux.add(em.find(i.getClass(), ReflectionHelper.getId(i)));
-                    } else aux.add(i);
-                }
-                vs.clear();
-                vs.addAll(aux);
-
-
-                Object[] args = vs.toArray();
-                Object i = finalInstance;
-                if (i == null && !Modifier.isStatic(m.getModifiers())) i = ReflectionHelper.newInstance(m.getDeclaringClass());
-                r[0] = m.invoke(i, args);
-
-                if (r[0] != null && r[0] instanceof Query) r[0] = ((Query)r[0]).getResultList();
-
-            });
-
-            return r[0];
-
-        } else {
+        {
 
             Object[] args = vs.toArray();
             if (!Modifier.isStatic(m.getModifiers()) && instance == null) instance = ReflectionHelper.newInstance(m.getDeclaringClass());

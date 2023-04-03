@@ -14,7 +14,6 @@ import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.Step;
 import io.mateu.util.Helper;
 import io.mateu.util.Serializer;
-import io.mateu.util.persistence.JPAHelper;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
@@ -221,9 +220,7 @@ public class RunStepActionCommand {
             store.setStep(journeyId, newStepId, whatToShow);
 
         } else if (viewInstance.getClass().isAnnotationPresent(Entity.class) && "save".equals(actionId)) {
-            JPAHelper.transact(em -> {
-                em.merge(viewInstance);
-            });
+            ReflectionHelper.newInstance(Merger.class).merge(viewInstance);
 
             Step initialStep = store.getInitialStep(journeyId);
 

@@ -1,7 +1,6 @@
 package com.example.demoremote;
 
-import io.mateu.remote.ReferenceForPackageScanning;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import io.mateu.ReferenceForPackageScanning;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;

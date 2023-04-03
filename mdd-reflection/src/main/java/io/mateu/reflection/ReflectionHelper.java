@@ -2514,7 +2514,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
         return c.newInstance(args);
     }
 
-    public static Object newInstance(Class c) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    public static <T> T  newInstance(Class<T> c) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         Object o = null;
         if (!notFromString.contains(c)) {
             // intentar recuperar del contexto
@@ -2538,7 +2538,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
             }
             notFromString.add(c);
         }
-        return o;
+        return (T) o;
     }
 
     public static Object newInstance(Class c, Object parent) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {

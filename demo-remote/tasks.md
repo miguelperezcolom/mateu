@@ -8,7 +8,7 @@
 - Html
 - Section y FieldGroup interfaces
 - Autenticación en el explorer
-- Inyección ciente axios para autenticación
+- Inyección cliente axios para autenticación
 - Cambio prefijo web components
 - Exportar dtos e interfaz Component? documentar solo? openapi?
 - revisar urls. Meter el id del registro?
@@ -29,6 +29,9 @@
 - Entidades utilizando persistence.xml?
 - Implementar los repositorios a mano? con JPAHelper?
 - records
+- Visor repo journeys y memoria utilizada
+- Hacer reactivo
+
 
 ## Middle term
 

@@ -1,18 +1,14 @@
-package io.mateu.mdd.ui.cruds;
+package io.mateu.mdd.ui.cruds.queries;
 
 import com.google.common.base.Strings;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.shared.data.sort.SortDirection;
-import io.mateu.mdd.core.app.MDDOpenCRUDAction;
-import io.mateu.mdd.core.views.ExtraFilters;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.interfaces.AuditRecord;
 import io.mateu.util.notification.Notifier;
-import io.mateu.util.persistence.JPAHelper;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
@@ -24,39 +20,25 @@ import java.util.stream.Collectors;
 
 
 @Slf4j@AllArgsConstructor
-public abstract class JpaCrudQuery {
+public class QueryHelper {
 
-    protected MDDOpenCRUDAction action;
-    protected Object filters;
-    protected List<QuerySortOrder> sortOrders;
-    private int offset;
-    private int limit;
-    protected Map<String, String> aliasedColumnNamesByColId;
-    private String queryFilters;
-    private ExtraFilters extraFilters;
-    protected String selectColumnsForCount;
-    protected String selectColumnsForList;
-    private Map<String, String> alias;
-    protected Map<String, String> aliasedColumnNames;
-    private List<String> columnNames;
-    protected List<String> aliasedColumnNamesList;
-    private List<FieldInterfaced> filterFields;
-
-    protected Query buildQuery(EntityManager em, String selectedColumns, Object filters, List<QuerySortOrder> sortOrders,
-                               String groupClause, int offset, int limit, boolean addOrderClause)
+    public javax.persistence.Query buildJpaQuery(Query query, EntityManager em, String selectedColumns,
+                                                 Object filters, List<QuerySortOrder> sortOrders,
+                                                 String groupClause, int offset, int limit, boolean addOrderClause)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
+        Class entityClass = query.getAction().getEntityClass();
 
         Map<String, Object> parameterValues = new HashMap<>();
         String w = "";
-        w = buildWhereClause(filters, action.getEntityClass(), parameterValues);
+        w = buildWhereClause(query, filters, entityClass, parameterValues);
 
         // SELECT f from Student f LEFT JOIN f.classTbls s WHERE s.ClassName = 'abc' <=== ejemplo left outer join
 
-        String jpql = "select " + selectedColumns + " from " + action.getEntityClass().getName() + " x ";
+        String jpql = "select " + selectedColumns + " from " + entityClass.getName() + " x ";
 
-        for (String c : alias.keySet()) {
-            jpql += " left join " + c + " " + alias.get(c);
+        for (String c : query.getAlias().keySet()) {
+            jpql += " left join " + c + " " + query.getAlias().get(c);
         }
 
         if (!"".equals(w)) jpql += " where " + w;
@@ -67,36 +49,36 @@ public abstract class JpaCrudQuery {
             String oc = "";
             if (sortOrders != null) for (QuerySortOrder qso : sortOrders) {
                 if (!"".equals(oc)) oc += ", ";
-                oc += "col" + getColumnIndex(aliasedColumnNamesByColId.entrySet().stream()
+                oc += "col" + getColumnIndex(query, query.getAliasedColumnNamesByColId().entrySet().stream()
                         .filter(e -> e.getValue().equals(qso.getSorted()))
                         .map(e -> e.getKey())
                         .findFirst()
                         .get()) + " " + ((SortDirection.DESCENDING.equals(qso.getDirection()))?"desc":"asc");
             }
             List<FieldInterfaced> orderCols = new ArrayList<>();
-            for (FieldInterfaced f : ReflectionHelper.getAllFields(action.getEntityClass())) {
+            for (FieldInterfaced f : ReflectionHelper.getAllFields(entityClass)) {
                 if (f.isAnnotationPresent(Order.class)) orderCols.add(f);
             }
-            Collections.sort(orderCols, (f1, f2) -> f1.getAnnotation(Order.class).priority() - f2.getAnnotation(Order.class).priority());
+            Collections.sort(orderCols, Comparator.comparingInt(f -> f.getAnnotation(Order.class).priority()));
             for (FieldInterfaced f : orderCols) {
                 if (!"".equals(oc)) oc += ", ";
-                oc += aliasedColumnNames.get(f.getName()) + " " + (f.getAnnotation(Order.class).desc()?"desc":"asc");
+                oc += query.getAliasedColumnNames().get(f.getName()) + " " + (f.getAnnotation(Order.class).desc()?"desc":"asc");
             }
-            if ("".equals(oc) && ReflectionHelper.getFieldByName(action.getEntityClass(), "audit") != null
+            if ("".equals(oc) && ReflectionHelper.getFieldByName(entityClass, "audit") != null
                     && AuditRecord.class.isAssignableFrom(
-                    ReflectionHelper.getFieldByName(action.getEntityClass(), "audit").getType()))
+                    ReflectionHelper.getFieldByName(entityClass, "audit").getType()))
                 oc += "x" + ".audit.modified desc";
-            if ("".equals(oc) && columnNames.size() > 1) oc += aliasedColumnNames.get(columnNames.get(1)) + " desc";
+            if ("".equals(oc) && query.getColumnNames().size() > 1) oc += query.getAliasedColumnNames().get(query.getColumnNames().get(1)) + " desc";
             if (!"".equals(oc)) jpql += " order by " + oc;
         }
 
-        Query q = em.createQuery(jpql).setFirstResult(offset).setMaxResults(limit);
+        javax.persistence.Query q = em.createQuery(jpql).setFirstResult(offset).setMaxResults(limit);
         for (String k : parameterValues.keySet()) q.setParameter(k, parameterValues.get(k));
         log.info(jpql);
         return q;
     }
 
-    private String buildWhereClause(Object filters, Class entityClass, Map<String, Object> parameterValues)
+    private String buildWhereClause(Query query, Object filters, Class entityClass, Map<String, Object> parameterValues)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
         String ql = "";
@@ -107,27 +89,27 @@ public abstract class JpaCrudQuery {
             Notifier.alert(e);
         }
 
-        if (!Strings.isNullOrEmpty(queryFilters)) {
+        if (!Strings.isNullOrEmpty(query.getQueryFilters())) {
 
             if (!"".equals(ql)) ql += " and ";
 
-            ql += queryFilters;
+            ql += query.getQueryFilters();
 
         }
 
-        if (extraFilters != null && !Strings.isNullOrEmpty(extraFilters.getQl())) {
+        if (query.getExtraFilters() != null && !Strings.isNullOrEmpty(query.getExtraFilters().getQl())) {
 
             if (!"".equals(ql)) ql += " and ";
 
-            ql += extraFilters.getQl();
+            ql += query.getExtraFilters().getQl();
 
-            if (extraFilters.getParameters() != null) parameterValues.putAll(extraFilters.getParameters());
+            if (query.getExtraFilters().getParameters() != null) parameterValues.putAll(query.getExtraFilters().getParameters());
 
         }
 
         if (filters == null) return ql;
 
-        List<FieldInterfaced> allFields = filterFields;
+        List<FieldInterfaced> allFields = query.getFilterFields();
 
         allFields = allFields.stream().filter((f) ->
                 !(f.isAnnotationPresent(Version.class) || f.isAnnotationPresent(Ignored.class)
@@ -226,20 +208,8 @@ public abstract class JpaCrudQuery {
     public void updateExtraFilters() throws Exception {
     }
 
-    private String buildFieldsPart(List<String> columnFieldNames) {
-        String s = "";
-        int pos = 0;
-        for (String columnName : columnFieldNames) {
-            if (!"".equals(s)) s += ", ";
-            String colId = aliasedColumnNames.get(columnName);
-            s += colId + " as col" + pos++;
-        }
-
-        return s;
-    }
-
-    private int getColumnIndex(String columnId) {
-        int i = aliasedColumnNamesList.indexOf(columnId);
+    private int getColumnIndex(Query query, String columnId) {
+        int i = query.getAliasedColumnNamesList().indexOf(columnId);
         if (i < 0 && columnId.startsWith("col")) i = Integer.parseInt(columnId.substring("col".length()));
         return i;
     }

@@ -11,12 +11,25 @@ import io.mateu.mdd.shared.data.Status;
 import io.mateu.mdd.shared.data.SumData;
 import io.mateu.mdd.shared.interfaces.IResource;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.mdd.ui.cruds.commands.DeleteRowsCommand;
+import io.mateu.mdd.ui.cruds.commands.DeleteRowsCommandHandler;
+import io.mateu.mdd.ui.cruds.queries.count.CountQuery;
+import io.mateu.mdd.ui.cruds.queries.count.CountQueryHandler;
+import io.mateu.mdd.ui.cruds.queries.findById.FindByIdQuery;
+import io.mateu.mdd.ui.cruds.queries.findById.FindByIdQueryHandler;
+import io.mateu.mdd.ui.cruds.queries.rows.RowsQuery;
+import io.mateu.mdd.ui.cruds.queries.rows.RowsQueryHandler;
+import io.mateu.mdd.ui.cruds.queries.sums.SumsQuery;
+import io.mateu.mdd.ui.cruds.queries.sums.SumsQueryHandler;
 import io.mateu.reflection.ReflectionHelper;
-import io.mateu.util.persistence.JPAHelper;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -26,6 +39,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Data
+@Component
+@Scope("stereotype")
 public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended,
         Adds, Deletes<Object>, Edits<Object> {
 
@@ -50,11 +65,15 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     String selectColumnsForCount;
     String selectColumnsForList;
 
+    CountQueryHandler countQueryHandler;
+    RowsQueryHandler rowsQueryHandler;
+    SumsQueryHandler sumsQueryHandler;
+
     public JpaRpcCrudView() {
 
     }
 
-    public JpaRpcCrudView(MDDOpenCRUDAction action) {
+    public JpaRpcCrudView(MDDOpenCRUDAction action) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException {
         this.action = action;
         columnFields = getSelectFields(action.getEntityClass(), action.getColumns(), columnNames, fieldsByColumnName);
         visibleColumns = Strings.isNullOrEmpty(action.getColumns())?null: Arrays.stream(action.getColumns().split(",")).toList();
@@ -87,12 +106,14 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
             fieldsByAliasedColumnName.put(aliasedColumnNames.get(n), fieldsByColumnName.get(n));
         });
 
-
+        countQueryHandler = ReflectionHelper.newInstance(CountQueryHandler.class);
+        rowsQueryHandler = ReflectionHelper.newInstance(RowsQueryHandler.class);
+        sumsQueryHandler = ReflectionHelper.newInstance(SumsQueryHandler.class);
     }
 
     @Override
     public List fetchRows(Object filters, List<QuerySortOrder> sortOrders, int offset, int limit) throws Throwable {
-        return new JpaCrudRowsQuery(
+        return rowsQueryHandler.run(new RowsQuery(
                 action,
                 filters,
                 sortOrders,
@@ -107,12 +128,12 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
                 aliasedColumnNames,
                 aliasedColumnNamesList,
                 columnNames,
-                filterFields).run();
+                filterFields));
     }
 
     @Override
     public int fetchCount(Object filters) throws Throwable {
-        sums = new JpaCrudSumsQuery(
+        sums = sumsQueryHandler.run(new SumsQuery(
                 action,
                 filters,
                 null,
@@ -128,8 +149,8 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
                 aliasedColumnNamesList,
                 columnNames,
                 filterFields,
-                sumFields).run();
-        return new JpaCrudCountQuery(
+                sumFields));
+        return countQueryHandler.run(new CountQuery(
                 action,
                 filters,
                 null,
@@ -145,7 +166,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
                 aliasedColumnNamesList,
                 columnNames,
                 filterFields
-        ).run();
+        ));
     }
 
     @Override
@@ -365,6 +386,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
         int pos = 0;
         for (String columnName : columnFieldNames) {
             if (!"".equals(s)) s += ", ";
+
             String colId = aliasedColumnNames.get(columnName);
             s += colId + " as col" + pos++;
         }
@@ -377,18 +399,9 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     }
 
     public void delete(Set<Object> selection) throws Throwable {
-        JPAHelper.transact(em -> {
-            for (Object o : selection) {
-                if (o instanceof Map) {
-                    Map<String, Object> m = (Map<String, Object>) o;
-                    Object e = em.find(action.getEntityClass(), m.get("id"));
-                    em.remove(e);
-                } else {
-                    o = em.merge(o);
-                    em.remove(o);
-                }
-            }
-        });
+        ReflectionHelper.newInstance(DeleteRowsCommandHandler.class).run(
+                DeleteRowsCommand.builder().rows(selection).entityClass(action.getEntityClass()).build()
+        );
     }
 
     @Override
@@ -396,8 +409,10 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
         return action.getCaption();
     }
 
-    public Object getDetail(Object o) throws Throwable {
-        return JPAHelper.find(getEntityClass(), ReflectionHelper.getId(o));
+    public Object getDetail(Object id) throws Throwable {
+        return ReflectionHelper.newInstance(FindByIdQueryHandler.class).run(
+                FindByIdQuery.builder().id(ReflectionHelper.getId(id)).entityClass(action.getEntityClass()).build()
+        );
     }
 
     public Object getNewRecordForm() throws Throwable {

@@ -1,4 +1,4 @@
-package io.mateu.remote;
+package io.mateu;
 
 public class ReferenceForPackageScanning {
 }
