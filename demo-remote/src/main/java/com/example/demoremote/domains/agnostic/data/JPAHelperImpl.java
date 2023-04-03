@@ -38,12 +38,12 @@ public class JPAHelperImpl implements IJPAHelper {
 
     @Override
     public void transact(JPATransaction t) throws Throwable {
-        transact(MDDUIAccessor.getPersistenceUnitName(), t, null);
+        transact("", t, null);
     }
 
     @Override
     public void transact(JPATransaction t, RunnableThrowsThrowable callback) throws Throwable {
-        transact(MDDUIAccessor.getPersistenceUnitName(), t, callback);
+        transact("", t, callback);
     }
 
     @Override
@@ -133,12 +133,12 @@ public class JPAHelperImpl implements IJPAHelper {
 
     @Override
     public void notransact(JPATransaction t) throws Throwable {
-        notransact(MDDUIAccessor.getPersistenceUnitName(), t, true);
+        notransact("", t, true);
     }
 
     @Override
     public void notransact(JPATransaction t, boolean printException) throws Throwable {
-        notransact(MDDUIAccessor.getPersistenceUnitName(), t, printException);
+        notransact("", t, printException);
     }
 
     @Override

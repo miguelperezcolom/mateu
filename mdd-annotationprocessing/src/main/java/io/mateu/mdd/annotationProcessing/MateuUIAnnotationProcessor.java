@@ -1,9 +1,8 @@
 package io.mateu.mdd.annotationProcessing;
 
 import com.google.auto.service.AutoService;
-import com.google.common.base.Strings;
 import freemarker.template.TemplateException;
-import io.mateu.mdd.core.annotations.MateuUI;
+import io.mateu.mdd.shared.annotations.MateuUI;
 import io.mateu.mdd.shared.annotations.Caption;
 
 import javax.annotation.processing.*;

@@ -2,7 +2,12 @@ package io.mateu.remote.domain.mappers;
 
 import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.interfaces.HasSubtitle;
+import io.mateu.mdd.core.interfaces.HasTitle;
+import io.mateu.mdd.shared.annotations.MenuOption;
+import io.mateu.mdd.shared.annotations.Submenu;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
+import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.Menu;
@@ -15,25 +20,46 @@ import java.util.stream.Collectors;
 
 public class UIMapper {
     public UI map(Object uiInstance) throws Exception {
-        MateuApp app = new MateuApp(uiInstance);
-
         UI ui = UI.builder()
                 .build();
 
-        if (app.isForm()) {
-            ui.setTitle(app.getName());
-            ui.setSubtitle("");
+        ui.setTitle(getTitle(uiInstance));
+        ui.setSubtitle(getSubtitle(uiInstance));
+        if (isForm(uiInstance)) {
             ui.setHomeJourneyTypeId(uiInstance.getClass().getName());
         } else {
-            ui.setTitle(app.getName());
-            ui.setSubtitle("");
-            List<Menu> menuOptions = app.buildAreas().stream().map(a -> Arrays.asList(a.getModules()))
-                    .flatMap(Collection::stream).map(m -> m.getMenu())
-                    .flatMap(Collection::stream).map(e -> createMenu(e)).collect(Collectors.toList());
+            List<Menu> menuOptions = getMenu(uiInstance);
             ui.setMenu(menuOptions);
         }
 
         return ui;
+    }
+
+    private List<Menu> getMenu(Object uiInstance) {
+        return new MenuParser(uiInstance).parse().stream().map(e -> createMenu(e)).collect(Collectors.toList());
+    }
+
+    private boolean isForm(Object uiInstance) {
+        for (FieldInterfaced field : ReflectionHelper.getAllFields(uiInstance.getClass())) {
+            if (field.isAnnotationPresent(MenuOption.class) || field.isAnnotationPresent(Submenu.class)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private String getSubtitle(Object uiInstance) {
+        if (uiInstance instanceof HasSubtitle) {
+            return ((HasSubtitle) uiInstance).getSubtitle();
+        }
+        return "";
+    }
+
+    private String getTitle(Object uiInstance) {
+        if (uiInstance instanceof HasTitle) {
+            return ((HasTitle) uiInstance).getTitle();
+        }
+        return ReflectionHelper.getCaption(uiInstance);
     }
 
     private Menu createMenu(MenuEntry menuEntry) {

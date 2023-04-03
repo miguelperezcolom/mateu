@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Service
 public class ProgrammingLanguages implements Crud<ProgrammingLanguages, LanguageRow>,
         HasTitle, HasSubtitle,
-        CanDelete<LanguageRow>, CanAdd<LanguageRow>, CanEdit<LanguageRow> {
+        CanDelete<LanguageRow>, CanAdd, CanEdit<LanguageRow> {
 
     @Autowired
     private LanguagesRepository repo;

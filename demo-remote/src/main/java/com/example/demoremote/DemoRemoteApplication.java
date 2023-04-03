@@ -8,9 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.client.RestTemplate;
 
-@SpringBootApplication(scanBasePackageClasses = {DemoRemoteApplication.class, ReferenceForPackageScanning.class, })
-@EnableJpaRepositories(basePackageClasses = {DemoRemoteApplication.class, ReferenceForPackageScanning.class, })
-@EntityScan(basePackageClasses = {DemoRemoteApplication.class, ReferenceForPackageScanning.class, })
+@SpringBootApplication
 public class DemoRemoteApplication {
 
     public static void main(String[] args) {
