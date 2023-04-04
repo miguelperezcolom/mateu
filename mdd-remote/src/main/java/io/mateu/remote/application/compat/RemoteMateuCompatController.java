@@ -76,12 +76,12 @@ public class RemoteMateuCompatController {
                                     @PathVariable String stepId,
                                     @PathVariable String listId,
                                     @RequestParam int page,
-                                    @RequestParam int size
+                                    @RequestParam int size,
+// urlencoded form of filters json serialized
+                                    @RequestParam String filters,
+// urlencoded form of orders json serialized
+                                    @RequestParam String ordering
                                              ) throws Throwable {
-
-        //todo: create object and serialize, for filters and ordering
-        String filters = "";
-        String ordering = "";
 
         long count = GetListCountQuery.builder()
                 .journeyId(journeyId)
