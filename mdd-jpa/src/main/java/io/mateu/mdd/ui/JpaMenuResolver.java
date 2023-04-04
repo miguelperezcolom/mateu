@@ -2,7 +2,6 @@ package io.mateu.mdd.ui;
 
 import com.google.auto.service.AutoService;
 import com.google.common.base.Strings;
-import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.app.menuResolvers.MenuResolver;
 import io.mateu.mdd.shared.annotations.Columns;
@@ -21,7 +20,7 @@ import java.util.List;
 public class JpaMenuResolver implements MenuResolver {
 
     @Override
-    public boolean addMenuEntry(Object app, List<MenuEntry> l, FieldInterfaced f, String caption, int order, VaadinIcons icon) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+    public boolean addMenuEntry(Object app, List<MenuEntry> l, FieldInterfaced f, String caption, int order, String icon) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         if (JpaCrud.class.isAssignableFrom(f.getType())) {
             Class entityType = ReflectionHelper.getGenericClass(f, JpaCrud.class, "E");
             if (entityType != null) {

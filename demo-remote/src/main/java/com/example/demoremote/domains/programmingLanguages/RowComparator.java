@@ -1,15 +1,15 @@
 package com.example.demoremote.domains.programmingLanguages;
 
-import com.vaadin.data.provider.QuerySortOrder;
-import com.vaadin.shared.data.sort.SortDirection;
+import io.mateu.mdd.shared.interfaces.SortCriteria;
+import io.mateu.mdd.shared.interfaces.SortType;
 
 import java.util.Comparator;
 import java.util.List;
 
 public class RowComparator implements Comparator<LanguageRow> {
-    private final List<QuerySortOrder> sortOrders;
+    private final List<SortCriteria> sortOrders;
 
-    public RowComparator(List<QuerySortOrder> sortOrders) {
+    public RowComparator(List<SortCriteria> sortOrders) {
         this.sortOrders = sortOrders;
     }
 
@@ -17,9 +17,9 @@ public class RowComparator implements Comparator<LanguageRow> {
     public int compare(LanguageRow o1, LanguageRow o2) {
         int result = 0;
         if (sortOrders != null) {
-            for (QuerySortOrder sortOrder : sortOrders) {
-                result = compare(sortOrder.getSorted(), o1, o2);
-                if (SortDirection.DESCENDING.equals(sortOrder.getDirection())) result *= -1;
+            for (SortCriteria sortOrder : sortOrders) {
+                result = compare(sortOrder.getColumn(), o1, o2);
+                if (SortType.Descending.equals(sortOrder.getOrder())) result *= -1;
                 if (result != 0) break;
             }
         }

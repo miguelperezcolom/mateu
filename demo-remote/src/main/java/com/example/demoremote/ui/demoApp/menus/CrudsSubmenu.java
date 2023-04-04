@@ -4,15 +4,15 @@ import com.example.demoremote.domains.cities.City;
 import com.example.demoremote.domains.nfl.entities.Player;
 import com.example.demoremote.domains.nfl.entities.Team;
 import com.example.demoremote.domains.programmingLanguages.ProgrammingLanguages;
-import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.shared.annotations.MenuOption;
 import io.mateu.mdd.shared.interfaces.JpaCrud;
+import io.mateu.remote.infra.jpa.JourneyContainerEntity;
 
 import java.util.List;
 
 public class CrudsSubmenu {
 
-    @MenuOption(icon = VaadinIcons.GROUP)
+    @MenuOption
     private JpaCrud<Team> teams = new JpaCrud<Team>() {
         @Override
         public boolean isReadOnly() {
@@ -20,10 +20,10 @@ public class CrudsSubmenu {
         }
     };
 
-    @MenuOption(icon = VaadinIcons.TAG)
+    @MenuOption
     private ProgrammingLanguages programmingLanguages;
 
-    @MenuOption(icon = VaadinIcons.USERS)
+    @MenuOption
     private JpaCrud<Player> allPlayers = new JpaCrud<Player>() {
 
         @Override
@@ -38,7 +38,7 @@ public class CrudsSubmenu {
 
     };
 
-    @MenuOption(icon = VaadinIcons.BUILDING)
+    @MenuOption
     private JpaCrud<City> cities = new JpaCrud<City>() {
 
         @Override
@@ -54,5 +54,7 @@ public class CrudsSubmenu {
     };
 
 
+    @MenuOption
+    JpaCrud<JourneyContainerEntity> journeyContainers;
 
 }

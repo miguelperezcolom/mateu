@@ -6,9 +6,9 @@ import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.interfaces.PushWriter;
 import io.mateu.reflection.ReflectionHelper;
 
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;

@@ -1,6 +1,5 @@
 package io.mateu.mdd.core.interfaces;
 
-import com.vaadin.icons.VaadinIcons;
 import io.mateu.util.runnable.RunnableThrowsThrowable;
 
 import java.util.ArrayList;
@@ -10,7 +9,7 @@ public class Button {
 
     String caption;
     final RunnableThrowsThrowable runnable;
-    VaadinIcons icon;
+    String icon;
     List<String> styles = new ArrayList<>();
 
 
@@ -18,7 +17,7 @@ public class Button {
         this(caption, null, runnable);
     }
 
-    public Button(String caption, VaadinIcons icon, RunnableThrowsThrowable runnable) {
+    public Button(String caption, String icon, RunnableThrowsThrowable runnable) {
         this.caption = caption;
         this.runnable = runnable;
         this.icon = icon;
@@ -38,11 +37,11 @@ public class Button {
         return runnable;
     }
 
-    public VaadinIcons getIcon() {
+    public String getIcon() {
         return icon;
     }
 
-    public Button setIcon(VaadinIcons icon) {
+    public Button setIcon(String icon) {
         this.icon = icon;
         return this;
     }

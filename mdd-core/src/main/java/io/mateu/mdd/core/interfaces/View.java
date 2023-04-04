@@ -1,6 +1,6 @@
 package io.mateu.mdd.core.interfaces;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 public interface View<T> extends ListView<T> {
 

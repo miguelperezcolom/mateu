@@ -1,6 +1,7 @@
 package com.example.demoremote.domains.agnostic.data;
 
 import io.mateu.remote.domain.files.StorageService;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.Resource;
@@ -9,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.PostConstruct;
 import javax.naming.AuthenticationException;
 import java.io.File;
 import java.io.IOException;

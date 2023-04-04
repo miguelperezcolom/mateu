@@ -1,14 +1,15 @@
 package io.mateu.mdd.core.app.menuResolvers;
 
 import com.google.auto.service.AutoService;
-import com.vaadin.icons.VaadinIcons;
-import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.app.AbstractMenu;
+import io.mateu.mdd.core.app.MDDOpenRemoteFormAction;
+import io.mateu.mdd.core.app.MDDOpenUrlAction;
+import io.mateu.mdd.core.app.MDDOpenUserJourneyAction;
+import io.mateu.mdd.shared.interfaces.JourneyRunner;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.shared.interfaces.RemoteForm;
-import io.mateu.mdd.shared.interfaces.JourneyRunner;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
-import io.mateu.util.notification.Notifier;
 
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
@@ -19,7 +20,7 @@ import java.util.List;
 public class DefaultMenuResolver implements MenuResolver {
 
     @Override
-    public boolean addMenuEntry(Object app, List<MenuEntry> l, FieldInterfaced f, String caption, int order, VaadinIcons icon) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+    public boolean addMenuEntry(Object app, List<MenuEntry> l, FieldInterfaced f, String caption, int order, String icon) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         if (RemoteForm.class.isAssignableFrom(f.getType())) {
 
             MDDOpenRemoteFormAction a;
@@ -42,7 +43,7 @@ public class DefaultMenuResolver implements MenuResolver {
                         l = (List<MenuEntry>) ReflectionHelper.getValue(f, app);
 
                     } catch (Throwable e) {
-                        Notifier.alert(e);
+                       e.printStackTrace();
                     }
                     return l;
                 }

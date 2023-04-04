@@ -1,8 +1,6 @@
 package io.mateu.remote.domain.mappers;
 
 import com.google.common.base.Strings;
-import com.vaadin.icons.VaadinIcons;
-import com.vaadin.ui.Component;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.app.menuResolvers.MenuResolver;
 import io.mateu.mdd.core.interfaces.WizardPage;
@@ -14,7 +12,6 @@ import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.security.Private;
 import io.mateu.util.Helper;
-import io.mateu.util.notification.Notifier;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -112,10 +109,9 @@ public class MenuParser {
         String caption = (m.isAnnotationPresent(Submenu.class))?m.getAnnotation(Submenu.class).value():m.getAnnotation(MenuOption.class).value();
         if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(m.getName());
 
-        VaadinIcons icon = VaadinIcons.ADOBE_FLASH;
+        String icon = null;
         if (m.isAnnotationPresent(Submenu.class)) icon = m.getAnnotation(Submenu.class).icon();
         if (m.isAnnotationPresent(MenuOption.class)) icon = m.getAnnotation(MenuOption.class).icon();
-        if (VaadinIcons.ADOBE_FLASH.equals(icon)) icon = null;
 
         int order = 0;
         if (m.isAnnotationPresent(MenuOption.class)) order = m.getAnnotation(MenuOption.class).order();
@@ -131,7 +127,7 @@ public class MenuParser {
                     try {
                         return new MenuParser(CoreReflectionHelper.invokeInjectableParametersOnly(m, uiInstance)).parse();
                     } catch (Throwable throwable) {
-                        Notifier.alert(throwable);
+                        throwable.printStackTrace();
                     }
                     return new ArrayList<>();
                 }
@@ -150,7 +146,7 @@ public class MenuParser {
                             l = (List<MenuEntry>) CoreReflectionHelper.invokeInjectableParametersOnly(m, uiInstance);
 
                         } catch (Throwable e) {
-                            Notifier.alert(e);
+                            e.printStackTrace();
                         }
                         return l;
                     }
@@ -159,7 +155,7 @@ public class MenuParser {
 
             } else {
 
-                l.add(new MDDCallMethodAction(caption, null, m, uiInstance, null).setIcon(icon).setOrder(order));
+                l.add(new MDDCallMethodAction(caption, null, m, uiInstance).setIcon(icon).setOrder(order));
 
             }
 
@@ -170,10 +166,9 @@ public class MenuParser {
     private void addMenuEntry(List<MenuEntry> l, FieldInterfaced f, boolean authenticationAgnostic, boolean publicAccess) {
         String caption = ReflectionHelper.getCaption(f);
 
-        VaadinIcons icon = VaadinIcons.ADOBE_FLASH;
+        String icon = null;
         if (f.isAnnotationPresent(Submenu.class)) icon = f.getAnnotation(Submenu.class).icon();
         if (f.isAnnotationPresent(MenuOption.class)) icon = f.getAnnotation(MenuOption.class).icon();
-        if (VaadinIcons.ADOBE_FLASH.equals(icon)) icon = null;
 
         int order = 0;
         if (f.isAnnotationPresent(MenuOption.class)) order = f.getAnnotation(MenuOption.class).order();
@@ -200,7 +195,7 @@ public class MenuParser {
                             try {
                                 return new MenuParser(finalV).parse();
                             } catch (Throwable throwable) {
-                                Notifier.alert(throwable);
+                                throwable.printStackTrace();
                             }
                             return new ArrayList<>();
                         }
@@ -209,7 +204,7 @@ public class MenuParser {
                 }
 
             } catch (Exception e) {
-                Notifier.alert(e);
+                e.printStackTrace();
             }
 
         } else if (f.isAnnotationPresent(MenuOption.class) || f.isAnnotationPresent(Home.class) || f.isAnnotationPresent(PublicHome.class) || f.isAnnotationPresent(PrivateHome.class)) {
@@ -236,36 +231,33 @@ public class MenuParser {
                 }
 
             } catch (Exception e) {
-                Notifier.alert(e);
+                e.printStackTrace();
             }
         }
     }
 
-    private void addDefaultMenuEntry(List<MenuEntry> l, FieldInterfaced f, String caption, int order, VaadinIcons icon) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+    private void addDefaultMenuEntry(List<MenuEntry> l, FieldInterfaced f, String caption, int order, String icon) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         Object v = ReflectionHelper.getValue(f, uiInstance);
         if (ReflectionHelper.isBasico(f.getType()) || String.class.equals(f.getType())) {
             if (f.isAnnotationPresent(Home.class) || f.isAnnotationPresent(PublicHome.class) || f.isAnnotationPresent(PrivateHome.class))
-                l.add(new MDDOpenHtmlAction("Home", "" + v).setIcon(VaadinIcons.HOME).setOrder(order));
+                l.add(new MDDOpenHtmlAction("Home", "" + v).setIcon("home").setOrder(order));
             else l.add(new MDDOpenHtmlAction(caption, "" + v).setIcon(icon).setOrder(order));
         } else if (WizardPage.class.isAssignableFrom(f.getType())) {
             l.add(new MDDOpenWizardAction(caption, () -> {
                 try {
                     return v != null?(WizardPage) v: (WizardPage) ReflectionHelper.newInstance(f.getType());
                 } catch (Exception e) {
-                    Notifier.alert(e);
+                    e.printStackTrace();
                 }
                 return null;
             }).setIcon(icon).setOrder(order));
         } else if (Listing.class.isAssignableFrom(f.getType())) {
             l.add(new MDDOpenListViewAction(caption, f.getType()).setIcon(icon).setOrder(order));
-        } else if (Component.class.isAssignableFrom(f.getType())) {
-            if (v != null) l.add(new MDDOpenCustomComponentAction(caption, v));
-            else l.add(new MDDOpenCustomComponentAction(caption, f.getType()));
         } else l.add(new MDDOpenEditorAction(caption, () -> {
             try {
                 return v != null?v: ReflectionHelper.newInstance(f.getType());
             } catch (Exception e) {
-                Notifier.alert(e);
+                e.printStackTrace();
             }
             return null;
         }).setIcon(icon).setOrder(order));

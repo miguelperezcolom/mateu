@@ -275,7 +275,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
    <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;defaultValue)</code>&nbsp;</td>
 </tr>
 <tr id="i22" class="altColor">
-<td class="colFirst"><code>static javax.persistence.EntityManager</code></td>
+<td class="colFirst"><code>static jakarta.persistence.EntityManager</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/mateu/mdd/core/util/Helper.html#getEMFromThreadLocal--">getEMFromThreadLocal</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i23" class="rowColor">
@@ -423,11 +423,11 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </tr>
 <tr id="i55" class="rowColor">
 <td class="colFirst"><code>static <a href="https://docs.oracle.com/javase/8/docs/api/java/net/URL.html?is-external=true" title="class or interface in java.net">URL</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/mateu/mdd/core/util/Helper.html#queryToExcel-javax.persistence.Query-">queryToExcel</a></span>(javax.persistence.Query&nbsp;query)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/mateu/mdd/core/util/Helper.html#queryToExcel-jakarta.persistence.Query-">queryToExcel</a></span>(jakarta.persistence.Query&nbsp;query)</code>&nbsp;</td>
 </tr>
 <tr id="i56" class="altColor">
 <td class="colFirst"><code>static <a href="https://docs.oracle.com/javase/8/docs/api/java/net/URL.html?is-external=true" title="class or interface in java.net">URL</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/mateu/mdd/core/util/Helper.html#queryToPdf-javax.persistence.Query-">queryToPdf</a></span>(javax.persistence.Query&nbsp;query)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/mateu/mdd/core/util/Helper.html#queryToPdf-jakarta.persistence.Query-">queryToPdf</a></span>(jakarta.persistence.Query&nbsp;query)</code>&nbsp;</td>
 </tr>
 <tr id="i57" class="rowColor">
 <td class="colFirst"><code>static <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>[][][]</code></td>
@@ -542,8 +542,8 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </tr>
 <tr id="i78" class="altColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/mateu/mdd/core/util/Helper.html#touch-java.lang.Object-javax.persistence.EntityManager-java.lang.String-">touch</a></span>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;o,
-     javax.persistence.EntityManager&nbsp;em,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/mateu/mdd/core/util/Helper.html#touch-java.lang.Object-jakarta.persistence.EntityManager-java.lang.String-">touch</a></span>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;o,
+     jakarta.persistence.EntityManager&nbsp;em,
      <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;login)</code>&nbsp;</td>
 </tr>
 <tr id="i79" class="rowColor">
@@ -758,7 +758,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <ul class="blockList">
 <li class="blockList">
 <h4>getEMFromThreadLocal</h4>
-<pre>public static&nbsp;javax.persistence.EntityManager&nbsp;getEMFromThreadLocal()</pre>
+<pre>public static&nbsp;jakarta.persistence.EntityManager&nbsp;getEMFromThreadLocal()</pre>
 </li>
 </ul>
 <a name="transact-io.mateu.mdd.util.persistence.JPATransaction-">
@@ -912,14 +912,14 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <pre>public static&nbsp;void&nbsp;setDataSource(<a href="https://docs.oracle.com/javase/8/docs/api/javax/sql/DataSource.html?is-external=true" title="class or interface in javax.sql">DataSource</a>&nbsp;dataSource)</pre>
 </li>
 </ul>
-<a name="touch-java.lang.Object-javax.persistence.EntityManager-java.lang.String-">
+<a name="touch-java.lang.Object-jakarta.persistence.EntityManager-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>touch</h4>
 <pre>public static&nbsp;void&nbsp;touch(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;o,
-                         javax.persistence.EntityManager&nbsp;em,
+                         jakarta.persistence.EntityManager&nbsp;em,
                          <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;login)</pre>
 </li>
 </ul>
@@ -1546,13 +1546,13 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </dl>
 </li>
 </ul>
-<a name="queryToPdf-javax.persistence.Query-">
+<a name="queryToPdf-jakarta.persistence.Query-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>queryToPdf</h4>
-<pre>public static&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/net/URL.html?is-external=true" title="class or interface in java.net">URL</a>&nbsp;queryToPdf(javax.persistence.Query&nbsp;query)
+<pre>public static&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/net/URL.html?is-external=true" title="class or interface in java.net">URL</a>&nbsp;queryToPdf(jakarta.persistence.Query&nbsp;query)
                       throws <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Throwable.html?is-external=true" title="class or interface in java.lang">Throwable</a></pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
@@ -1620,13 +1620,13 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </dl>
 </li>
 </ul>
-<a name="queryToExcel-javax.persistence.Query-">
+<a name="queryToExcel-jakarta.persistence.Query-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>queryToExcel</h4>
-<pre>public static&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/net/URL.html?is-external=true" title="class or interface in java.net">URL</a>&nbsp;queryToExcel(javax.persistence.Query&nbsp;query)
+<pre>public static&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/net/URL.html?is-external=true" title="class or interface in java.net">URL</a>&nbsp;queryToExcel(jakarta.persistence.Query&nbsp;query)
                         throws <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Throwable.html?is-external=true" title="class or interface in java.lang">Throwable</a></pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>

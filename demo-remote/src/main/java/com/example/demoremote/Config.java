@@ -7,9 +7,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @Configuration
-@ComponentScan(basePackageClasses = {ReferenceForPackageScanning.class, })
-@EnableJpaRepositories(basePackageClasses = {ReferenceForPackageScanning.class, DemoRemoteApplication.class})
-@EntityScan(basePackageClasses = {ReferenceForPackageScanning.class, DemoRemoteApplication.class})
+//@ComponentScan(basePackageClasses = {ReferenceForPackageScanning.class, DemoRemoteApplication.class})
+//@EnableJpaRepositories(basePackageClasses = {ReferenceForPackageScanning.class, DemoRemoteApplication.class})
+//@EntityScan(basePackageClasses = {ReferenceForPackageScanning.class, DemoRemoteApplication.class})
 public class Config {
 }
 

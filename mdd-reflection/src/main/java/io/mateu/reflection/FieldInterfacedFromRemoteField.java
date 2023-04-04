@@ -1,16 +1,11 @@
 package io.mateu.reflection;
 
-import com.vaadin.data.provider.ListDataProvider;
 import io.mateu.fakeAnnotations.Caption;
-import io.mateu.mdd.shared.annotations.GenericClass;
-import io.mateu.mdd.shared.annotations.ValueClass;
-import io.mateu.mdd.shared.annotations.ValueQL;
 import io.mateu.mdd.shared.interfaces.Choice;
 import io.mateu.mdd.shared.interfaces.Option;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.remote.dtos.Field;
 import io.mateu.remote.dtos.ValidationType;
-import io.mateu.util.data.Pair;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
@@ -18,7 +13,6 @@ import javax.validation.constraints.NotNull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -187,11 +181,6 @@ public class FieldInterfacedFromRemoteField implements FieldInterfaced {
     @Override
     public int getModifiers() {
         return 0;
-    }
-
-    @Override
-    public com.vaadin.data.provider.DataProvider getDataProvider() {
-        return new ListDataProvider(choice.getOptions());
     }
 
     @Override

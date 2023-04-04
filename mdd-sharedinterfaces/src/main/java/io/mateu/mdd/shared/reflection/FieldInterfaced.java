@@ -1,7 +1,5 @@
 package io.mateu.mdd.shared.reflection;
 
-import com.vaadin.data.provider.DataProvider;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Field;
@@ -22,14 +20,13 @@ public interface FieldInterfaced {
 
     Class<?> getDeclaringClass();
 
-    public Type getGenericType();
+    Type getGenericType();
 
     String getName();
 
     String getId();
 
     <T extends Annotation> T getAnnotation(Class<T> annotationClass);
-
 
     Class<?> getOptionsClass();
 
@@ -41,17 +38,12 @@ public interface FieldInterfaced {
 
     Field getField();
 
-    public <T extends Annotation> T[] getDeclaredAnnotationsByType(Class<T> annotationClass);
+    <T extends Annotation> T[] getDeclaredAnnotationsByType(Class<T> annotationClass);
 
-    public void setValue(Object o, Object v) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException;
+    void setValue(Object o, Object v) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException;
 
     int getModifiers();
 
-    DataProvider getDataProvider();
-
     Annotation[] getDeclaredAnnotations();
 
-    default boolean forceInput() {
-        return false;
-    }
 }

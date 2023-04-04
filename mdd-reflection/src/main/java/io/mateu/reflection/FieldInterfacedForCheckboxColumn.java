@@ -1,11 +1,10 @@
 package io.mateu.reflection;
 
-import com.vaadin.data.provider.DataProvider;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.util.Helper;
 
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
+import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToOne;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Field;
@@ -20,12 +19,10 @@ public class FieldInterfacedForCheckboxColumn implements FieldInterfaced {
     private final String name;
     private final FieldInterfaced collectionField;
     private final Object value;
-    private DataProvider dataProvider;
 
     public FieldInterfacedForCheckboxColumn(String name, FieldInterfaced collectionField, Object value) {
         this.type = boolean.class;
         this.name = name;
-        this.dataProvider = null;
         this.collectionField = collectionField;
         this.value = value;
     }
@@ -134,11 +131,6 @@ public class FieldInterfacedForCheckboxColumn implements FieldInterfaced {
     @Override
     public int getModifiers() {
         return 0;
-    }
-
-    @Override
-    public DataProvider getDataProvider() {
-        return dataProvider;
     }
 
     @Override

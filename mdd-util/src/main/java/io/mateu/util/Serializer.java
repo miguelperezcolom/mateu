@@ -10,7 +10,7 @@ import io.mateu.util.persistence.EntityDeserializer;
 import io.mateu.util.persistence.EntitySerializer;
 import io.mateu.util.reflection.MiniReflectionHelper;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;

@@ -1,11 +1,10 @@
 package io.mateu.remote.application;
 
 import com.google.common.base.Strings;
-import io.mateu.remote.dtos.SortCriteria;
-import io.mateu.remote.dtos.SortType;
+import io.mateu.mdd.shared.interfaces.SortCriteria;
+import io.mateu.mdd.shared.interfaces.SortType;
 import io.mateu.util.Helper;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 

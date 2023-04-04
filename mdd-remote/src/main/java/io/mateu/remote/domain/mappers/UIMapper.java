@@ -1,6 +1,5 @@
 package io.mateu.remote.domain.mappers;
 
-import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.interfaces.HasSubtitle;
 import io.mateu.mdd.core.interfaces.HasTitle;
@@ -66,7 +65,7 @@ public class UIMapper {
         if (menuEntry instanceof AbstractMenu) {
             return Menu.builder()
                     .type(MenuType.Submenu)
-                    .icon(getIcon(menuEntry.getIcon()))
+                    .icon(menuEntry.getIcon())
                     .caption(menuEntry.getCaption())
                     .submenus(createSubmenus((AbstractMenu) menuEntry))
                     .build();
@@ -76,20 +75,10 @@ public class UIMapper {
         }
         return Menu.builder()
                 .type(MenuType.MenuOption)
-                .icon(getIcon(menuEntry.getIcon()))
+                .icon(menuEntry.getIcon())
                 .journeyTypeId(menuEntry.getId())
                 .caption(menuEntry.getCaption())
                 .build();
-    }
-
-    private String getIcon(VaadinIcons icon) {
-        if (icon == null) return null;
-        Map<VaadinIcons, String> map = Map.of(
-                VaadinIcons.USER, "sap-icon://person-placeholder",
-                VaadinIcons.GROUP, "sap-icon://group",
-                VaadinIcons.AIRPLANE, "sap-icon://flight"
-        );
-        return map.get(icon);
     }
 
     private List<Menu> createSubmenus(AbstractMenu m) {

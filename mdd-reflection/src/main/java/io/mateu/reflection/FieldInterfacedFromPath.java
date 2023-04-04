@@ -135,11 +135,6 @@ public class FieldInterfacedFromPath implements FieldInterfaced {
     }
 
     @Override
-    public com.vaadin.data.provider.DataProvider getDataProvider() {
-        return null;
-    }
-
-    @Override
     public Annotation[] getDeclaredAnnotations() {
         return (ff != null)?ff.getDeclaredAnnotations():f.getDeclaredAnnotations();
     }

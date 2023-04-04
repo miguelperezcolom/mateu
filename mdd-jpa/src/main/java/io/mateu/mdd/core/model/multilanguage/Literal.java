@@ -1,17 +1,15 @@
 package io.mateu.mdd.core.model.multilanguage;
 
-import com.vaadin.icons.VaadinIcons;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.util.data.Data;
 import io.mateu.util.interfaces.Translated;
-import io.mateu.util.notification.Notifier;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 import java.util.Set;
 
 /**
@@ -119,9 +117,9 @@ public class Literal implements Translated {
     }
 
 
-    @Action(icon = VaadinIcons.CLOUD_UPLOAD)
-    public static void translateWithDeepL(Set<Literal> selection) {
-        Notifier.alert("DeepL is not configured. Please contact your administrator.");
+    @Action(icon = "upload")
+    public static void translateWithDeepL(Set<Literal> selection) throws Exception {
+        throw new Exception("DeepL is not configured. Please contact your administrator.");
     }
 
 }

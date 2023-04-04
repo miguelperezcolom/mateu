@@ -1,12 +1,11 @@
 package io.mateu.reflection;
 
-import com.vaadin.data.provider.DataProvider;
 import io.mateu.mdd.shared.annotations.ValueClass;
 import io.mateu.mdd.shared.annotations.ValueQL;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
+import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToOne;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.ArrayList;
@@ -144,11 +143,6 @@ public class FieldInterfacedFromParameter implements FieldInterfaced {
     @Override
     public int getModifiers() {
         return p.getModifiers();
-    }
-
-    @Override
-    public DataProvider getDataProvider() {
-        return null;
     }
 
     @Override

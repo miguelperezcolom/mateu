@@ -1,7 +1,7 @@
 package io.mateu.mdd.core.model.util;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 

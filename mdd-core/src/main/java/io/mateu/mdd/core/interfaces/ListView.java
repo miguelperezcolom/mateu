@@ -3,7 +3,7 @@ package io.mateu.mdd.core.interfaces;
 
 import io.mateu.util.data.Data;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 public interface ListView<T> {
 

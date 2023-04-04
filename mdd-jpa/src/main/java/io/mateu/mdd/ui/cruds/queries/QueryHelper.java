@@ -1,17 +1,18 @@
 package io.mateu.mdd.ui.cruds.queries;
 
 import com.google.common.base.Strings;
-import com.vaadin.data.provider.QuerySortOrder;
-import com.vaadin.shared.data.sort.SortDirection;
 import io.mateu.mdd.shared.annotations.*;
+import io.mateu.mdd.shared.interfaces.SortCriteria;
+import io.mateu.mdd.shared.interfaces.SortType;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
-import io.mateu.util.interfaces.AuditRecord;
-import io.mateu.util.notification.Notifier;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.persistence.*;
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -22,8 +23,8 @@ import java.util.stream.Collectors;
 @Slf4j@AllArgsConstructor
 public class QueryHelper {
 
-    public javax.persistence.Query buildJpaQuery(Query query, EntityManager em, String selectedColumns,
-                                                 Object filters, List<QuerySortOrder> sortOrders,
+    public jakarta.persistence.Query buildJpaQuery(Query query, EntityManager em, String selectedColumns,
+                                                 Object filters, List<SortCriteria> sortOrders,
                                                  String groupClause, int offset, int limit, boolean addOrderClause)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
@@ -47,13 +48,13 @@ public class QueryHelper {
 
         if (addOrderClause) {
             String oc = "";
-            if (sortOrders != null) for (QuerySortOrder qso : sortOrders) {
+            if (sortOrders != null) for (SortCriteria qso : sortOrders) {
                 if (!"".equals(oc)) oc += ", ";
                 oc += "col" + getColumnIndex(query, query.getAliasedColumnNamesByColId().entrySet().stream()
-                        .filter(e -> e.getValue().equals(qso.getSorted()))
+                        .filter(e -> e.getValue().equals(qso.getColumn()))
                         .map(e -> e.getKey())
                         .findFirst()
-                        .get()) + " " + ((SortDirection.DESCENDING.equals(qso.getDirection()))?"desc":"asc");
+                        .get()) + " " + ((SortType.Descending.equals(qso.getOrder()))?"desc":"asc");
             }
             List<FieldInterfaced> orderCols = new ArrayList<>();
             for (FieldInterfaced f : ReflectionHelper.getAllFields(entityClass)) {
@@ -64,15 +65,12 @@ public class QueryHelper {
                 if (!"".equals(oc)) oc += ", ";
                 oc += query.getAliasedColumnNames().get(f.getName()) + " " + (f.getAnnotation(Order.class).desc()?"desc":"asc");
             }
-            if ("".equals(oc) && ReflectionHelper.getFieldByName(entityClass, "audit") != null
-                    && AuditRecord.class.isAssignableFrom(
-                    ReflectionHelper.getFieldByName(entityClass, "audit").getType()))
-                oc += "x" + ".audit.modified desc";
+
             if ("".equals(oc) && query.getColumnNames().size() > 1) oc += query.getAliasedColumnNames().get(query.getColumnNames().get(1)) + " desc";
             if (!"".equals(oc)) jpql += " order by " + oc;
         }
 
-        javax.persistence.Query q = em.createQuery(jpql).setFirstResult(offset).setMaxResults(limit);
+        jakarta.persistence.Query q = em.createQuery(jpql).setFirstResult(offset).setMaxResults(limit);
         for (String k : parameterValues.keySet()) q.setParameter(k, parameterValues.get(k));
         log.info(jpql);
         return q;
@@ -86,7 +84,7 @@ public class QueryHelper {
         try {
             updateExtraFilters();
         } catch (Exception e) {
-            Notifier.alert(e);
+            e.printStackTrace();
         }
 
         if (!Strings.isNullOrEmpty(query.getQueryFilters())) {

@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.naming.AuthenticationException;
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;

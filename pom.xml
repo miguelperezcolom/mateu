@@ -4,7 +4,7 @@
 
   <groupId>io.mateu</groupId>
   <artifactId>mdd-parent</artifactId>
-  <version>1.2.14</version>
+  <version>1.2.15</version>
   <packaging>pom</packaging>
 
   <name>Mateu MDD</name>
@@ -38,8 +38,6 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <vaadin.version>8.14.3</vaadin.version>
-    <vaadin.plugin.version>8.14.3</vaadin.plugin.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>

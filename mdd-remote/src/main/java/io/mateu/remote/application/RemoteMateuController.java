@@ -7,6 +7,7 @@ import io.mateu.remote.domain.commands.StartJourneyCommand;
 import io.mateu.remote.domain.queries.*;
 import io.mateu.remote.dtos.*;
 import io.mateu.util.Helper;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -18,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.naming.AuthenticationException;
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 

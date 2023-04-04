@@ -75,19 +75,19 @@ public class SharedHelper {
 
 
                         System.setProperty("eclipselink.target-database", "io.mateu.mdd.se.postgresql.MiPostgreSQLPlatform");
-                        System.setProperty("javax.persistence.jdbc.driver", "org.postgresql.Driver");
+                        System.setProperty("jakarta.persistence.jdbc.driver", "org.postgresql.Driver");
 
                         String username = dbUri.getUserInfo().split(":")[0];
                         String password = dbUri.getUserInfo().split(":")[1];
                         String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ':' + dbUri.getPort() + dbUri.getPath() + "?sslmode=require&user=" + username + "&password=" + password;
 
 
-                        System.setProperty("javax.persistence.jdbc.url", dbUrl);
-                        System.getProperties().remove("javax.persistence.jdbc.user");
-                        System.getProperties().remove("javax.persistence.jdbc.password");
+                        System.setProperty("jakarta.persistence.jdbc.url", dbUrl);
+                        System.getProperties().remove("jakarta.persistence.jdbc.user");
+                        System.getProperties().remove("jakarta.persistence.jdbc.password");
 
 
-                    } else if (System.getProperty("javax.persistence.jdbc.url", "").contains("postgres")) {
+                    } else if (System.getProperty("jakarta.persistence.jdbc.url", "").contains("postgres")) {
                         System.setProperty("eclipselink.target-database", "io.mateu.mdd.se.postgresql.MiPostgreSQLPlatform");
                     }
                     s.close();

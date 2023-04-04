@@ -2,9 +2,10 @@ package io.mateu.remote.domain.store;
 
 import io.mateu.remote.dtos.Journey;
 import io.mateu.remote.dtos.Step;
+import io.mateu.util.Helper;
 import lombok.*;
 
-import javax.persistence.Id;
+import jakarta.persistence.Id;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Map;

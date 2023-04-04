@@ -12,11 +12,12 @@ import io.mateu.remote.domain.metadata.ResultMetadataBuilder;
 import io.mateu.remote.domain.store.JourneyContainer;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.*;
+import io.mateu.util.Helper;
 import io.mateu.util.Serializer;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +34,9 @@ public class ViewMapper {
 
         Object actualUiInstance = uiInstance;
         if (uiInstance instanceof EntityEditor) {
-            actualUiInstance = em.find(((EntityEditor) uiInstance).getEntityClass(), ((EntityEditor)uiInstance).getData().get("id"));
+            EntityEditor entityEditor = (EntityEditor) uiInstance;
+            actualUiInstance = em.find(entityEditor.getEntityClass(),
+                    ReflectionHelper.getId(Helper.fromJson(Helper.toJson(entityEditor.getData()), entityEditor.getEntityClass())));
         } else if (("view".equals(stepId) || "edit".equals(stepId)) && journeyContainer.getInitialStep() != null
                 && "io.mateu.mdd.ui.cruds.JpaRpcCrudView".equals(journeyContainer.getInitialStep().getType())) { //todo: check si es un crud jpa
             RpcCrudViewExtended rpcCrudView = (RpcCrudViewExtended) JourneyStoreService.get()

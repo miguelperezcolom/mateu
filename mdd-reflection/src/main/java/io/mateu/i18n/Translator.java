@@ -1,6 +1,5 @@
 package io.mateu.i18n;
 
-import com.vaadin.ui.UI;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Locale;
@@ -36,9 +35,6 @@ public class Translator {
     public static String translate(String text) {
         String l = null;
         String traduccion = text;
-        if (UI.getCurrent() != null) {
-            l = (String) UI.getCurrent().getSession().getAttribute("__language");
-        }
         if (l == null) l = Locale.getDefault().getLanguage();
         ResourceBundle traducciones = null;
         if ("es".equals(l)) traducciones = es;

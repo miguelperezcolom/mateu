@@ -9,11 +9,10 @@ import com.example.demoremote.domains.swapi.entities.*;
 import com.example.demoremote.domains.nfl.dtos.Reader;
 import com.example.demoremote.domains.nfl.dtos.TargetPlayerDto;
 import io.mateu.util.Helper;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;

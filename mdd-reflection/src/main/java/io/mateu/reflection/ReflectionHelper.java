@@ -15,15 +15,6 @@ import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.springboot.BeanProvider;
 import io.mateu.util.Helper;
 import io.mateu.util.data.Pair;
-import io.mateu.util.interfaces.AuditRecord;
-import io.mateu.util.interfaces.GeneralRepository;
-import io.mateu.util.interfaces.Translated;
-import io.mateu.util.notification.Notifier;
-import javassist.*;
-import javassist.bytecode.AnnotationsAttribute;
-import javassist.bytecode.ClassFile;
-import javassist.bytecode.ConstPool;
-import javassist.bytecode.annotation.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.converters.BooleanConverter;
@@ -38,24 +29,16 @@ import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.persistence.*;
-import javax.servlet.ServletContext;
-import javax.tools.*;
+import jakarta.persistence.*;
+
 import javax.validation.constraints.NotNull;
 import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
-import java.net.URI;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static java.util.Collections.singletonList;
-import static javax.tools.JavaFileObject.Kind.SOURCE;
 
 @Slf4j
 public class ReflectionHelper extends BaseReflectionHelper {
@@ -1480,11 +1463,6 @@ public class ReflectionHelper extends BaseReflectionHelper {
             }
 
             @Override
-            public com.vaadin.data.provider.DataProvider getDataProvider() {
-                return null;
-            }
-
-            @Override
             public Annotation[] getDeclaredAnnotations() {
                 return p.getDeclaredAnnotations();
             }
@@ -1641,39 +1619,6 @@ public class ReflectionHelper extends BaseReflectionHelper {
         return gc;
     }
 
-    public static Method getMethod(Function methodReference) {
-        //todo: en principio no es posible llegar al método desde una methodReference. Investigar!
-        return null;
-    }
-
-    public static boolean isOwnedCollection(FieldInterfaced field) {
-        boolean owned = false;
-
-        if (!Set.class.isAssignableFrom(field.getType()) && Collection.class.isAssignableFrom(field.getType())) {
-            owned = isOwner(field);
-
-            if (field.isAnnotationPresent(ElementCollection.class)) owned = true;
-            else if (!getGenericClass(field.getGenericType()).isAnnotationPresent(Entity.class)) owned = true;
-
-            if (owned) {
-
-                io.mateu.mdd.shared.annotations.DataProvider dpa = (field.isAnnotationPresent(io.mateu.mdd.shared.annotations.DataProvider.class)) ? field.getAnnotation(io.mateu.mdd.shared.annotations.DataProvider.class) : null;
-
-                if (dpa == null) {
-
-                    Method mdp = getMethod(field.getDeclaringClass(), getGetter(field.getName()) + "DataProvider");
-
-                    owned = mdp == null;
-
-                } else owned = false;
-
-            }
-
-        }
-
-        return owned;
-    }
-
     public static boolean isOwner(FieldInterfaced field) {
         OneToOne oo = field.getAnnotation(OneToOne.class);
         OneToMany aa = field.getAnnotation(OneToMany.class);
@@ -1718,13 +1663,6 @@ public class ReflectionHelper extends BaseReflectionHelper {
         return puede;
     }
 
-    public static boolean puedeOrdenar(FieldInterfaced field) {
-        boolean puede = List.class.isAssignableFrom(field.getType());
-        Class<?> gc = field.getGenericClass();
-        if (gc != null && gc.isAnnotationPresent(Entity.class)) puede = field.isAnnotationPresent(OrderColumn.class);
-        return puede;
-    }
-
     public static boolean puedeAnadir(FieldInterfaced field) {
         if (field.isAnnotationPresent(ModifyValuesOnly.class)) return false;
         boolean puede = true;
@@ -1741,573 +1679,6 @@ public class ReflectionHelper extends BaseReflectionHelper {
             }
         }
         return puede;
-    }
-
-
-    public static boolean puedeClonar(FieldInterfaced field) {
-        boolean puede = puedeAnadir(field);
-        if (puede) {
-            Class targetType = field.getType();
-            if (Collection.class.isAssignableFrom(field.getType())) {
-                targetType = field.getGenericClass();
-            }
-            Constructor con = getConstructor(targetType);
-            puede = con != null && con.getParameterCount() == 0;
-        }
-        return puede;
-    }
-
-    public static Class createClassUsingJavac(String fullClassName, List<FieldInterfaced> fields) throws CannotCompileException, IOException, NoSuchFieldException, IllegalAccessException, ClassNotFoundException {
-
-        String java = "public class " + fullClassName + " {\n";
-        for (FieldInterfaced f : fields) {
-
-            java += "\n";
-            java += "\n";
-
-            java += "  private " + f.getType().getName() + " " + f.getName()+ ";";
-
-            java += "\n";
-            java += "\n";
-
-            java += "  private " + f.getType().getName() + " " + getGetter(f) + "() {\n";
-            java += "    return this." + f.getName() + ";\n";
-            java += "  }";
-
-        }
-
-        java += "\n";
-        java += "\n";
-
-        java += "}";
-
-        log.debug(java);
-
-        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
-        String finalJava = java;
-        final SimpleJavaFileObject simpleJavaFileObject = new SimpleJavaFileObject(URI.create(fullClassName + ".java"), SOURCE) {
-
-            @Override
-            public CharSequence getCharContent(boolean ignoreEncodingErrors) {
-                return finalJava;
-            }
-
-            @Override
-            public OutputStream openOutputStream() throws IOException{
-                return byteArrayOutputStream;
-            }
-        };
-
-        final JavaFileManager javaFileManager = new ForwardingJavaFileManager(
-                ToolProvider.getSystemJavaCompiler().
-                        getStandardFileManager(null, null, null)) {
-
-            @Override
-            public JavaFileObject getJavaFileForOutput(
-                    Location location,String className,
-                    JavaFileObject.Kind kind,
-                    FileObject sibling) throws IOException {
-                return simpleJavaFileObject;
-            }
-        };
-
-        ToolProvider.getSystemJavaCompiler().getTask(null, javaFileManager, null, null, null, singletonList(simpleJavaFileObject)).call();
-
-
-        return Class.forName(fullClassName);
-
-    }
-
-    public static Class createClassUsingJavassist(String fullClassName, List<FieldInterfaced> fields) throws CannotCompileException, IOException, NoSuchFieldException, IllegalAccessException, ClassNotFoundException, NotFoundException {
-        ClassPool pool = ClassPool.getDefault();
-        CtClass cc = pool.get(FakeClass.class.getName());
-        cc.setName(fullClassName);
-
-
-
-
-        for (FieldInterfaced f : fields) {
-
-            CtField ctf;
-            cc.addField(ctf = new CtField(pool.get(f.getType().getName()), f.getName(), cc));
-            ctf.setModifiers(Modifier.PRIVATE);
-
-            CtMethod ctm;
-            cc.addMethod(ctm = new CtMethod(ctf.getType(), getGetter(f), new CtClass[0], cc));
-            ctm.setModifiers(Modifier.PUBLIC);
-            ctm.setBody(" return this."+ f.getName() + "; ");
-
-        }
-
-        cc.writeFile();
-        cc.detach();
-
-        cc.toClass(BaseReflectionHelper.class.getClassLoader(), BaseReflectionHelper.class.getProtectionDomain());
-        return Class.forName(fullClassName);
-    }
-
-    public static Class createClassUsingJavassist2(ClassPool pool, Class mddBinderClass, String fullClassName, String caption,
-                                                   String baseUrl, String journeyId, String stepId,
-                                                   List<io.mateu.remote.dtos.Action> actions, List<FieldInterfaced> fields, boolean forFilters) throws Exception {
-        return createClassUsingJavassist2(pool, mddBinderClass, fullClassName, caption,
-                baseUrl, journeyId, stepId,
-                actions, fields, forFilters, false, null, null);
-    }
-
-    public static Class createClassUsingJavassist2(ClassPool pool, Class mddBinderClass, String fullClassName, String caption,
-                                                   String baseUrl, String journeyId, String stepId,
-                                                   List<io.mateu.remote.dtos.Action> actions, List<FieldInterfaced> fields, boolean forFilters, boolean forInlineEditing, FieldInterfaced collectionField, Object owner) throws Exception {
-
-        log.debug("creating class " + fullClassName);
-
-        List<String> avoidedAnnotationNames = forFilters?Lists.newArrayList("Id", "GeneratedValue", "NotNull", "NotEmpty", "SameLine", "Unmodifiable"):new ArrayList<>();
-
-        CtClass cc = pool.makeClass(fullClassName);
-        cc.setModifiers(Modifier.PUBLIC);
-
-        if (!Strings.isNullOrEmpty(baseUrl) && !Strings.isNullOrEmpty(journeyId) && !Strings.isNullOrEmpty(stepId)) {
-            CtField ctf;
-            cc.addField(ctf = new CtField(pool.get(String.class.getName()), "_baseUrl", cc));
-            ctf.setModifiers(Modifier.PRIVATE);
-            cc.addMethod(CtNewMethod.setter(getSetter(String.class, "_baseUrl"), ctf));
-
-            cc.addField(ctf = new CtField(pool.get(String.class.getName()), "_journeyTypeId", cc));
-            ctf.setModifiers(Modifier.PRIVATE);
-            cc.addMethod(CtNewMethod.setter(getSetter(String.class, "_journeyTypeId"), ctf));
-
-            cc.addField(ctf = new CtField(pool.get(String.class.getName()), "_journeyId", cc));
-            ctf.setModifiers(Modifier.PRIVATE);
-            cc.addMethod(CtNewMethod.setter(getSetter(String.class, "_journeyId"), ctf));
-
-            cc.addField(ctf = new CtField(pool.get(String.class.getName()), "_stepId", cc));
-            ctf.setModifiers(Modifier.PRIVATE);
-            cc.addMethod(CtNewMethod.setter(getSetter(String.class, "_stepId"), ctf));
-
-        }
-
-        if (!Strings.isNullOrEmpty(caption)) {
-            cc.addMethod(CtNewMethod.make("public String toString() { return \"" + caption.replaceAll("\"", "\\\"") + "\"; }", cc));
-        }
-        
-        if (actions != null) {
-            ClassFile cf = cc.getClassFile();
-            ConstPool constpool = cf.getConstPool();
-            for (io.mateu.remote.dtos.Action action : actions) {
-
-                CtMethod m = CtNewMethod.make("public Object " + action.getId() + "() { System.out.println(\"You have called " + action.getId() + "\"); return new io.mateu.mdd.core.app.MDDRunUserJourneyAction(" +
-                        "_baseUrl, " +
-                        "_journeyId, " +
-                        "_stepId, " +
-                        "\"" + action.getId() + "\", this" +
-                        "); }", cc);
-
-                AnnotationsAttribute annotationsAttribute = new AnnotationsAttribute(constpool, AnnotationsAttribute.visibleTag);
-                {
-                    javassist.bytecode.annotation.Annotation annotation = new javassist.bytecode.annotation.Annotation(MainAction.class.getName(), constpool);
-                    annotation.addMemberValue("value", new StringMemberValue(action.getCaption(), constpool));
-                    //annotation.addMemberValue("frequency", new IntegerMemberValue(classFile.getConstPool(), frequency));
-                    annotationsAttribute.addAnnotation(annotation);
-                }
-
-                if (false) {
-                    javassist.bytecode.annotation.Annotation annotation = new javassist.bytecode.annotation.Annotation(Caption.class.getName(), constpool);
-                    annotation.addMemberValue("value", new StringMemberValue(action.getCaption(), constpool));
-                    annotationsAttribute.addAnnotation(annotation);
-                }
-                m.getMethodInfo().addAttribute(annotationsAttribute);
-
-
-                cc.addMethod(m);
-            }
-        }
-
-        if (forInlineEditing) {
-
-            cc.addInterface(pool.get(ProxyClass.class.getName()));
-
-            CtField ctf;
-            cc.addField(ctf = new CtField(pool.get(collectionField.getGenericClass().getName()), "_proxied", cc));
-            ctf.setModifiers(Modifier.PRIVATE);
-
-
-            cc.addField(ctf = new CtField(pool.get(Map.class.getName()), "_possibleValues", cc));
-            ctf.setModifiers(Modifier.PRIVATE);
-
-            cc.addField(ctf = new CtField(pool.get(mddBinderClass.getName()), "_binder", cc));
-            ctf.setModifiers(Modifier.PRIVATE);
-
-
-            CtConstructor cons;
-            cc.addConstructor(cons = new CtConstructor(new CtClass[] {pool.get(collectionField.getGenericClass().getName())}, cc));
-            //cons.setBody("{super();this._proxied = $1;}");
-            cons.setBody("this._proxied = $1;");
-
-
-            cc.addConstructor(cons = new CtConstructor(new CtClass[] {pool.get(collectionField.getGenericClass().getName()), pool.get(Map.class.getName())}, cc));
-            cons.setBody("{super();this._proxied = $1;this._possibleValues = $2;}");
-
-            cc.addConstructor(cons = new CtConstructor(new CtClass[] {pool.get(collectionField.getGenericClass().getName()), pool.get(Map.class.getName()), pool.get(mddBinderClass.getName())}, cc));
-            cons.setBody("{super();this._proxied = $1;this._possibleValues = $2;this._binder = $3;}");
-
-            cc.addMethod(CtNewMethod.make("public Object toObject() { return this._proxied; }", cc));
-        }
-
-        ClassFile cfile = cc.getClassFile();
-        ConstPool cpool = cfile.getConstPool();
-
-        for (FieldInterfaced f : fields) {
-
-            Class t = f.getType();
-
-            if (forFilters) {
-
-                if (t.isAnnotationPresent(UseIdToSelect.class)) {
-                    t = getIdField(t).getType();
-                }
-
-                if (boolean.class.equals(t)) t = Boolean.class;
-                if (int.class.equals(t)) t = Integer.class;
-                if (long.class.equals(t)) t = Long.class;
-                if (double.class.equals(t)) t = Double.class;
-                boolean esLiteral = false;
-                if (Translated.class.isAssignableFrom(t)) {
-                    t = String.class;
-                    esLiteral = true;
-                }
-
-
-                if (Double.class.equals(t) || double.class.equals(t)
-                        || Long.class.equals(t) || long.class.equals(t)
-                        || Integer.class.equals(t) || int.class.equals(t)) {
-                    addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName(), f.getDeclaredAnnotations(), false);
-                    Annotation[] sfa = new Annotation[]{
-                            new SearchFilter() {
-
-                                @Override
-                                public Class<? extends Annotation> annotationType() {
-                                    return SearchFilter.class;
-                                }
-
-                                @Override
-                                public String field() {
-                                    return null;
-                                }
-                            }
-                    };
-                    addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName() + "From", sfa, true);
-                    addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName() + "To", sfa, true);
-                } else if (LocalDate.class.equals(t) || LocalDateTime.class.equals(t) || Date.class.equals(t)) {
-                    addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName() + "From", f.getDeclaredAnnotations(), false);
-                    addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName() + "To", f.getDeclaredAnnotations(), true);
-                } else addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName(), esLiteral?addAnnotation(f.getDeclaredAnnotations(),
-                        new LiteralSearchFilter() {
-
-                            @Override
-                            public Class<? extends Annotation> annotationType() {
-                                return LiteralSearchFilter.class;
-                            }
-
-                        }
-                ):f.getDeclaredAnnotations(), false);
-
-            } else if (forInlineEditing) {
-
-                if (f.isAnnotationPresent(UseCheckboxes.class) && f.getAnnotation(UseCheckboxes.class).editableInline()) {
-
-                    Collection possibleValues = null;
-
-                    String vmn = getGetter(collectionField.getName() + getFirstUpper(f.getName())) + "Values";
-
-                    Method mdp = getMethod(collectionField.getDeclaringClass(), vmn);
-
-                    if (mdp != null) {
-                        possibleValues = (Collection) mdp.invoke(owner);
-                    } else {
-                        Notifier.alert("Missing " + vmn + " method at " + collectionField.getDeclaringClass().getName());
-                    }
-
-
-                    int pos = 0;
-                    if (possibleValues != null) for (Object v : possibleValues) if (v != null) {
-                        addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, boolean.class, f.getName() + "" + pos, f.getDeclaredAnnotations(), false, true, "" + v, pos, f);
-                        pos++;
-                    }
-
-
-                } else addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, t, f.getName(), f.getDeclaredAnnotations(), false, forInlineEditing, null, -1, null);
-
-            } else {
-                addField(avoidedAnnotationNames, pool, cfile, cpool, cc, forFilters, f.getAnnotatedType(), f.getName(), f.getDeclaredAnnotations(), false);
-            }
-
-
-        }
-
-        return cc.toClass(BaseReflectionHelper.class.getClassLoader(), BaseReflectionHelper.class.getProtectionDomain());
-    }
-
-    private static Annotation[] addAnnotation(Annotation[] list, Annotation annotation) {
-        Annotation[] l = new Annotation[list == null?1:list.length + 1];
-        int pos = 0;
-        if (list != null) for(Annotation a : list) l[pos++] = a;
-        l[pos] = annotation;
-        return l;
-    }
-
-    private static Annotation[] expand(Annotation[] original, Class<? extends Annotation> annotationClass) {
-        Annotation[] r = original != null?Arrays.copyOf(original, original.length + 1):new Annotation[1];
-
-        r[r.length - 1] = new Annotation() {
-            @Override
-            public Class<? extends Annotation> annotationType() {
-                return annotationClass;
-            }
-        };
-
-        return r;
-    }
-
-    private static void addField(List<String> avoidedAnnotationNames, ClassPool pool, ClassFile cfile, ConstPool cpool, CtClass cc, boolean forFilters, Class t, String fieldName, Annotation[] declaredAnnotations, boolean forceSameLine) throws Exception {
-        CtField ctf;
-        cc.addField(ctf = new CtField(pool.get(t.getName()), fieldName, cc));
-        ctf.setModifiers(Modifier.PRIVATE);
-        addField(avoidedAnnotationNames, pool, cfile, cpool, cc, ctf, forFilters, t, fieldName, declaredAnnotations, forceSameLine, false, null, -1, null);
-    }
-
-    private static void addField(List<String> avoidedAnnotationNames, ClassPool pool, ClassFile cfile, ConstPool cpool, CtClass cc, boolean forFilters, AnnotatedType t, String fieldName, Annotation[] declaredAnnotations, boolean forceSameLine) throws Exception {
-        Type type = t.getType() instanceof ParameterizedType?((ParameterizedType)t.getType()).getRawType():t.getType();
-        CtField ctf;
-        cc.addField(ctf = new CtField(pool.get(type.getTypeName()), fieldName, cc));
-        ctf.setModifiers(Modifier.PRIVATE);
-        Class gc = getGenericClass(t.getType());
-        if (gc != null) {
-            declaredAnnotations = Arrays.copyOf(declaredAnnotations, declaredAnnotations.length + 1);
-            declaredAnnotations[declaredAnnotations.length - 1] = new GenericClass() {
-
-                @Override
-                public Class clazz() {
-                    return gc;
-                }
-
-                @Override
-                public Class<? extends Annotation> annotationType() {
-                    return GenericClass.class;
-                }
-            };
-        }
-        addField(avoidedAnnotationNames, pool, cfile, cpool, cc, ctf, forFilters, (Class) type, fieldName, declaredAnnotations, forceSameLine, false, null, -1, null);
-    }
-
-    private static void addField(List<String> avoidedAnnotationNames, ClassPool pool, ClassFile cfile, ConstPool cpool, CtClass cc, boolean forFilters, Class t, String fieldName, Annotation[] declaredAnnotations, boolean forceSameLine, boolean forInlineEditing, String caption, int valueKey, FieldInterfaced collectionField) throws Exception {
-        CtField ctf;
-        cc.addField(ctf = new CtField(pool.get(t.getName()), fieldName, cc));
-        ctf.setModifiers(Modifier.PRIVATE);
-        addField(avoidedAnnotationNames, pool, cfile, cpool, cc, ctf, forFilters, t, fieldName, declaredAnnotations, forceSameLine, false, null, -1, null);
-    }
-
-    private static void addField(List<String> avoidedAnnotationNames, ClassPool pool, ClassFile cfile, ConstPool cpool, CtClass cc, CtField ctf, boolean forFilters, Class t, String fieldName, Annotation[] declaredAnnotations, boolean forceSameLine, boolean forInlineEditing, String caption, int valueKey, FieldInterfaced collectionField) throws Exception {
-
-
-        if (forceSameLine) {
-
-            boolean yaEsta = false;
-            for (Annotation a : declaredAnnotations) if (SameLine.class.equals(a.annotationType())) {
-                yaEsta = true;
-                break;
-            }
-
-            if (!yaEsta) {
-                declaredAnnotations = Arrays.copyOf(declaredAnnotations, declaredAnnotations.length + 1);
-                declaredAnnotations[declaredAnnotations.length - 1] = new SameLine() {
-
-                    @Override
-                    public Class<? extends Annotation> annotationType() {
-                        return SameLine.class;
-                    }
-                };
-            }
-        }
-
-        if (caption != null) {
-
-            boolean yaEsta = false;
-            for (Annotation a : declaredAnnotations) if (Caption.class.equals(a.annotationType())) {
-                yaEsta = true;
-                break;
-            }
-
-            if (!yaEsta) {
-                declaredAnnotations = Arrays.copyOf(declaredAnnotations, declaredAnnotations.length + 1);
-                declaredAnnotations[declaredAnnotations.length - 1] = new Caption() {
-
-                    @Override
-                    public String value() {
-                        return caption;
-                    }
-
-                    @Override
-                    public Class<? extends Annotation> annotationType() {
-                        return Caption.class;
-                    }
-                };
-            }
-
-        }
-
-
-        if (declaredAnnotations.length > 0) {
-
-            boolean hay = !forFilters;
-
-            if (!hay) {
-                for (Annotation a : declaredAnnotations) {
-                    String n = a.annotationType().getSimpleName();
-                    if (!avoidedAnnotationNames.contains(n) || (forceSameLine && "SameLine".equals(n)) || (caption != null && "Caption".equals(n))) {
-                        hay = true;
-                        break;
-                    }
-                }
-            }
-
-            if (hay) {
-                AnnotationsAttribute attr = new AnnotationsAttribute(cpool, AnnotationsAttribute.visibleTag);
-                for (Annotation a : declaredAnnotations) {
-                    String n = a.annotationType().getSimpleName();
-                    if (!forFilters || !avoidedAnnotationNames.contains(n) || (forceSameLine && "SameLine".equals(n)) || (caption != null && "Caption".equals(n))) {
-                        addAnnotation(cc, cfile, cpool, ctf, a, attr);
-                    }
-                }
-                ctf.getFieldInfo().addAttribute(attr);
-            }
-
-        }
-
-        if (forInlineEditing) {
-            CtMethod g;
-            cc.addMethod(g = CtNewMethod.getter(getGetter(t, fieldName), ctf));
-            if (valueKey >= 0) {
-                String b = "return this._proxied." + getGetter(collectionField) + "().contains(((" + Map.class.getName() + ")this._possibleValues.get(\"" + collectionField.getName() + "\")).get(new Integer(" + valueKey + ")));";
-                //g.setBody("{log.debug(\"Hola getter!!! " + b.replaceAll("\"", "'") + "\");" + b + "}");
-                g.setBody("{" + b + "}");
-            } else g.setBody("return this._proxied." + g.getName() + "();");
-            CtMethod s;
-            cc.addMethod(s = CtNewMethod.setter(getSetter(t, fieldName), ctf));
-            if (valueKey >= 0) {
-                String b = "if ($1) {" +
-                        "Object tercero = ((" + Map.class.getName() + ")this._possibleValues.get(\"" + collectionField.getName() + "\")).get(new Integer(" + valueKey + "));" +
-                        "this._proxied." + getGetter(collectionField) + "().add(tercero); " +
-                        "this._binder.getMergeables().add(tercero);" +
-                        FieldInterfaced.class.getName() + " field = " + ReflectionHelper.class.getName() + ".getFieldByName(this._proxied.getClass(), \"" + collectionField.getName() + "\");" +
-                        "this._binder.getMergeables().add(tercero);" +
-                        "" + ReflectionHelper.class.getName() + ".reverseMap(this._binder, field, this._proxied, tercero);" +
-                        "} else {" +
-                        "Object tercero = ((" + Map.class.getName() + ")this._possibleValues.get(\"" + collectionField.getName() + "\")).get(new Integer(" + valueKey + "));" +
-                        "this._proxied." + getGetter(collectionField) + "().remove(tercero);" +
-                        FieldInterfaced.class.getName() + " field = " + ReflectionHelper.class.getName() + ".getFieldByName(this._proxied.getClass(), \"" + collectionField.getName() + "\");" +
-                        "this._binder.getMergeables().add(tercero);" +
-                        "" + ReflectionHelper.class.getName() + ".unReverseMap(this._binder, field, this._proxied, tercero);" +
-                        "}";
-                log.debug(b);
-                //s.setBody("{log.debug(\"Hola setter!!! " + b.replaceAll("\"", "'") + "\");" + b + "}");
-                s.setBody("{" + b + "}");
-            } else s.setBody("this._proxied." + s.getName() + "($1);");
-        } else {
-            cc.addMethod(CtNewMethod.getter(getGetter(t, fieldName), ctf));
-            cc.addMethod(CtNewMethod.setter(getSetter(t, fieldName), ctf));
-        }
-
-
-    }
-
-    private static void addAnnotation(CtClass cc, ClassFile cfile, ConstPool cpool, CtField ctf, Annotation a, AnnotationsAttribute attr) throws InvocationTargetException, IllegalAccessException {
-        javassist.bytecode.annotation.Annotation annot = new javassist.bytecode.annotation.Annotation(a.annotationType().getName(), cpool);
-        for (Method m : a.annotationType().getDeclaredMethods()) {
-            log.debug("" + m.getName());
-            Object v = m.invoke(a);
-            if (v != null) {
-                MemberValue mv = getAnnotationMemberValue(cpool, m.getReturnType(), v);
-                if (mv != null) annot.addMemberValue(m.getName(), mv);
-            }
-        }
-        attr.addAnnotation(annot);
-    }
-
-    private static MemberValue getAnnotationMemberValue(ConstPool cpool, Class t, Object v) {
-        MemberValue mv = null;
-        if (v != null) {
-            if (int.class.equals(t)) mv = new IntegerMemberValue(cpool, (Integer) v);
-            else if (long.class.equals(t)) mv = new LongMemberValue((Long) v, cpool);
-            else if (double.class.equals(t)) mv = new DoubleMemberValue((Double) v, cpool);
-            else if (boolean.class.equals(t)) mv = new BooleanMemberValue((Boolean) v, cpool);
-            else if (t.isEnum()) {
-                EnumMemberValue emv;
-                mv = emv = new EnumMemberValue(cpool);
-                emv.setType(t.getName());
-                emv.setValue(v.toString());
-            }
-            else if (String.class.equals(t)) mv = new StringMemberValue((String) v, cpool);
-            else if (Class.class.equals(t)) mv = new ClassMemberValue(((Class)v).getName(), cpool);
-            else if (v instanceof javassist.bytecode.annotation.Annotation) mv = new AnnotationMemberValue((javassist.bytecode.annotation.Annotation) v, cpool);
-            else if (byte.class.equals(t)) mv = new ByteMemberValue((Byte) v, cpool);
-            else if (float.class.equals(t)) mv = new FloatMemberValue((Float) v, cpool);
-            else if (short.class.equals(t)) mv = new ShortMemberValue((Short) v, cpool);
-            else if (t.isArray()) {
-                ArrayMemberValue amv;
-                mv = amv = new ArrayMemberValue(cpool);
-
-                List<MemberValue> mvs = new ArrayList<>();
-
-                for (Object c : (Object[])v) {
-
-                    MemberValue mvx = getAnnotationMemberValue(cpool, c.getClass(), c);
-                    if (mvx != null) mvs.add(mvx);
-
-                }
-
-                amv.setValue(mvs.toArray(new MemberValue[0]));
-            } else {
-                log.debug("ups");
-            }
-        }
-        return mv;
-    }
-
-    public static Class createClass(ClassPool classPool, Class mddBinderClass, ClassLoader classLoader, String fullClassName, String caption,
-                                    String baseUrl, String journeyId, String stepId,
-                                    List<io.mateu.remote.dtos.Action> actions, List<FieldInterfaced> fields, boolean forFilters) throws Exception {
-
-        try {
-            Class c = Class.forName(fullClassName, false, classLoader);
-            log.debug("class " + fullClassName + " already exists");
-            return c;
-        } catch (ClassNotFoundException e) {
-            Class c = createClassUsingJavassist2(classPool, mddBinderClass, fullClassName, caption,
-                    baseUrl, journeyId, stepId, actions, fields, forFilters);
-            return c;
-        }
-    }
-
-
-    public static Class createClass(ClassPool classPool, Class mddBinderClass, ClassLoader classLoader, String fullClassName, String caption,
-                                    String baseUrl, String journeyId, String stepId,
-                                    List<io.mateu.remote.dtos.Action> actions, List<FieldInterfaced> fields, boolean forFilters, boolean forInlineEditing, FieldInterfaced collectionField, Object owner) throws Exception {
-
-        if (forInlineEditing) {
-            Class c = createClassUsingJavassist2(classPool, mddBinderClass, fullClassName, caption,
-                    baseUrl, journeyId, stepId, actions, fields, forFilters, forInlineEditing, collectionField, owner);
-            return c;
-        } else {
-            try {
-                Class c = Class.forName(fullClassName, false, classLoader);
-                log.debug("class " + fullClassName + " already exists");
-                return c;
-            } catch (ClassNotFoundException e) {
-                Class c = createClassUsingJavassist2(classPool, mddBinderClass, fullClassName, caption,
-                        baseUrl, journeyId, stepId, actions, fields, forFilters, forInlineEditing, collectionField, owner);
-                return c;
-            }
-        }
     }
 
     public static void main(String[] args) throws Exception {
@@ -2345,15 +1716,6 @@ public class ReflectionHelper extends BaseReflectionHelper {
         }
          */
 
-    }
-
-    public static ClassPool createClassPool(ServletContext servletContext) {
-        ClassPool pool = ClassPool.getDefault(); //new ClassPool();
-        //pool.appendClassPath(new URLClassPath());
-        //pool.appendClassPath(new ClassClassPath(MDD.getApp().getClass()));
-        //pool.appendClassPath(new ClassClassPath(servletContext.getClass()));
-        //pool.appendClassPath(new ClassClassPath(FakeClass.class));
-        return pool;
     }
 
     public static String getFirstUpper(String fieldName) {
@@ -2453,25 +1815,6 @@ public class ReflectionHelper extends BaseReflectionHelper {
         }
     }
 
-    public static Class getProxy(ClassPool classPool, Class mddBinderClass, ClassLoader classLoader, String fieldsFilter, Class sourceClass, FieldInterfaced collectionField, Object owner, List<FieldInterfaced> editableFields) {
-        try {
-            return createClass(classPool, mddBinderClass, classLoader, sourceClass.getName() + "000EditableInline" + UUID.randomUUID(), Helper.capitalize(sourceClass.getSimpleName()),
-                    null, null, null,
-                    List.of(), getAllEditableFilteredFields(sourceClass, fieldsFilter, editableFields), false, true, collectionField, owner);
-        } catch (Exception e) {
-            Notifier.alert(e);
-        }
-        return null;
-    }
-
-    public static Object toId(Class c, String s) {
-        Object id = s;
-        FieldInterfaced f = getIdField(c);
-        if (Long.class.equals(f.getType()) || long.class.equals(f.getType())) id = Long.parseLong(s);
-        if (Integer.class.equals(f.getType()) || int.class.equals(f.getType())) id = Integer.parseInt(s);
-        return id;
-    }
-
     public static void copy(Object o1, Object o2) {
         if (o1 != null && o2 != null) {
             if (o1.getClass().equals(o2.getClass())) {
@@ -2564,7 +1907,6 @@ public class ReflectionHelper extends BaseReflectionHelper {
                 i = builder.getClass().getMethod("build").invoke(builder);
             }
         }
-        auditar(i);
         return i;
     }
 
@@ -2592,28 +1934,6 @@ public class ReflectionHelper extends BaseReflectionHelper {
             }
         }
         return con;
-    }
-
-    public static void auditar(Object bean) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-
-        for (FieldInterfaced f : getAllFields(bean.getClass())) if (AuditRecord.class.isAssignableFrom(f.getType())) {
-            AuditRecord a = (AuditRecord) getValue(f, bean);
-            if (a == null) {
-                try {
-                    a = Helper.getImpl(GeneralRepository.class).getNewAudit();
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                }
-                setValue(f, bean, a);
-            } else {
-                try {
-                    a.touch();
-                } catch (Throwable throwable) {
-                    Notifier.alert(throwable);
-                }
-            }
-        }
-
     }
 
     public static String toHtml(Object o) {

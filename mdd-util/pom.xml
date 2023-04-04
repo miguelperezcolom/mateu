@@ -5,7 +5,7 @@
     <parent>
         <artifactId>mdd-parent</artifactId>
         <groupId>io.mateu</groupId>
-        <version>1.2.14</version>
+        <version>1.2.15</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -30,15 +30,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.eclipse.persistence</groupId>
-            <artifactId>jakarta.persistence</artifactId>
-            <version>2.2.2</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.vaadin</groupId>
-            <artifactId>vaadin-server</artifactId>
-            <version>${vaadin.version}</version>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+            <version>3.1.0</version>
         </dependency>
 
         <dependency>
@@ -123,14 +117,6 @@
             <version>1.32.1</version>
         </dependency>
 
-
-
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
-            <scope>compile</scope>
-        </dependency>
 
         <dependency>
             <groupId>javax.validation</groupId>

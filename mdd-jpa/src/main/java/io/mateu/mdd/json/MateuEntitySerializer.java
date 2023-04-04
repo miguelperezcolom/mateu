@@ -8,8 +8,8 @@ import io.mateu.util.Helper;
 import io.mateu.util.persistence.EntityDeserializer;
 import io.mateu.util.persistence.EntitySerializer;
 
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import java.util.*;
 
 @AutoService(EntitySerializer.class)

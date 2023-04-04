@@ -5,7 +5,7 @@
   <parent>
     <artifactId>mdd-parent</artifactId>
     <groupId>io.mateu</groupId>
-    <version>1.2.14</version>
+    <version>1.2.15</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -68,7 +68,7 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
-      <version>2.7.5</version>
+      <version>3.0.5</version>
       <scope>provided</scope>
     </dependency>
 

@@ -1,11 +1,11 @@
 package com.example.demoremote.domains.programmingLanguages;
 
 import com.google.common.base.Strings;
-import com.vaadin.data.provider.QuerySortOrder;
 import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.Placeholder;
 import io.mateu.mdd.shared.data.DatesRange;
+import io.mateu.mdd.shared.interfaces.SortCriteria;
 import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -45,7 +45,7 @@ public class ProgrammingLanguages implements Crud<ProgrammingLanguages, Language
     private DatesRange born;
 
     @Override
-    public List<LanguageRow> fetchRows(ProgrammingLanguages filters, List<QuerySortOrder> sortOrders, int offset, int limit)
+    public List<LanguageRow> fetchRows(ProgrammingLanguages filters, List<SortCriteria> sortOrders, int offset, int limit)
             throws Throwable {
         Thread.sleep(500);
         RowComparator comparator = new RowComparator(sortOrders);

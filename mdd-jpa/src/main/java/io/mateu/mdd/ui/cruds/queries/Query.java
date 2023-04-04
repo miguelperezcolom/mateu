@@ -1,8 +1,8 @@
 package io.mateu.mdd.ui.cruds.queries;
 
-import com.vaadin.data.provider.QuerySortOrder;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.views.ExtraFilters;
+import io.mateu.mdd.shared.interfaces.SortCriteria;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,7 +15,7 @@ public abstract class Query {
 
     private MDDOpenCRUDAction action;
     private Object filters;
-    private List<QuerySortOrder> sortOrders;
+    private List<SortCriteria> sortOrders;
     private int offset;
     private int limit;
     private Map<String, String> aliasedColumnNamesByColId;

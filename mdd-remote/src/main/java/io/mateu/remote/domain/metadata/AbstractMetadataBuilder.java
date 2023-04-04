@@ -11,8 +11,8 @@ import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
 import io.mateu.remote.dtos.Action;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;

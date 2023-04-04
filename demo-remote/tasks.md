@@ -17,10 +17,11 @@
 - @ManyToOne
 - byte[]
 - @Embedded
+- Object
 - URL
 - RemoteUI
 - gestión errores
-- rpcView --> Crud
+- rpcView --> Crud *********HECHO*********
 - confimación acciones
 - Validación antes
 - validaciones javax
@@ -31,6 +32,9 @@
 - records
 - Visor repo journeys y memoria utilizada
 - Hacer reactivo
+- springboot 3
+- adaptador pageable y sort springboot
+- si no CanEdit, entonces no enseñar botón Edit
 
 
 ## Middle term
@@ -41,7 +45,7 @@
 - inferencia en base a los datos (longitud, tamaño de la tabla en bd, ejemplos)
 - almacén de journeys en redis
 - More filters
-- 
+- reactivo
 
 ## Long term
 

@@ -2,7 +2,6 @@ package io.mateu.mdd.ui.cruds;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.vaadin.data.provider.QuerySortOrder;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.shared.annotations.*;
@@ -10,6 +9,7 @@ import io.mateu.mdd.shared.data.FareValue;
 import io.mateu.mdd.shared.data.Status;
 import io.mateu.mdd.shared.data.SumData;
 import io.mateu.mdd.shared.interfaces.IResource;
+import io.mateu.mdd.shared.interfaces.SortCriteria;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.ui.cruds.commands.DeleteRowsCommand;
 import io.mateu.mdd.ui.cruds.commands.DeleteRowsCommandHandler;
@@ -22,12 +22,11 @@ import io.mateu.mdd.ui.cruds.queries.rows.RowsQueryHandler;
 import io.mateu.mdd.ui.cruds.queries.sums.SumsQuery;
 import io.mateu.mdd.ui.cruds.queries.sums.SumsQueryHandler;
 import io.mateu.reflection.ReflectionHelper;
+import jakarta.persistence.*;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
@@ -112,7 +111,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     }
 
     @Override
-    public List fetchRows(Object filters, List<QuerySortOrder> sortOrders, int offset, int limit) throws Throwable {
+    public List fetchRows(Object filters, List<SortCriteria> sortOrders, int offset, int limit) throws Throwable {
         return rowsQueryHandler.run(new RowsQuery(
                 action,
                 filters,

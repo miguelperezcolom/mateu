@@ -16,10 +16,10 @@
 
         <properties>
             <!--
-            <property name="javax.persistence.jdbc.driver" value="Database Driver Name" />
-            <property name="javax.persistence.jdbc.url" value="Database Url" />
-            <property name="javax.persistence.jdbc.user" value="Database Username" />
-            <property name="javax.persistence.jdbc.password" value="Database Password" />
+            <property name="jakarta.persistence.jdbc.driver" value="Database Driver Name" />
+            <property name="jakarta.persistence.jdbc.url" value="Database Url" />
+            <property name="jakarta.persistence.jdbc.user" value="Database Username" />
+            <property name="jakarta.persistence.jdbc.password" value="Database Password" />
             -->
         </properties>
     </persistence-unit>

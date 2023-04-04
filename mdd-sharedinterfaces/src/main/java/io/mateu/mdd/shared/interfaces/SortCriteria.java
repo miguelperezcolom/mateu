@@ -1,4 +1,4 @@
-package io.mateu.remote.dtos;
+package io.mateu.mdd.shared.interfaces;
 
 import lombok.*;
 

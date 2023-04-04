@@ -9,10 +9,9 @@ import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
 import io.mateu.util.data.Pair;
-import io.mateu.util.notification.Notifier;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -73,7 +72,7 @@ public abstract class AbstractStylist<S> {
             try {
                 return (getStylistClass().equals(getClass()))?(List<String>) m.invoke(this, model):(List<String>) m.invoke(model);
             } catch (Exception e) {
-                Notifier.alert(e);
+                e.printStackTrace();
             }
         }
         if (field.isAnnotationPresent(Css.class) && !Strings.isNullOrEmpty(field.getAnnotation(Css.class).value())) {
@@ -156,7 +155,7 @@ public abstract class AbstractStylist<S> {
             try {
                 return (getStylistClass().equals(getClass()))?(boolean) m.invoke(this, model):(boolean) m.invoke(model);
             } catch (Exception e) {
-                Notifier.alert(e);
+                e.printStackTrace();
             }
         } else if (f.isAnnotationPresent(EnabledIf.class) && !Strings.isNullOrEmpty(f.getAnnotation(EnabledIf.class).value())) {
             String s = f.getAnnotation(EnabledIf.class).value();
@@ -172,7 +171,7 @@ public abstract class AbstractStylist<S> {
             try {
                 return (getStylistClass().equals(getClass()))?(boolean) m.invoke(this, model):(boolean) m.invoke(model);
             } catch (Exception e) {
-                Notifier.alert(e);
+                e.printStackTrace();
             }
         } else if (f.isAnnotationPresent(VisibleIf.class) && !Strings.isNullOrEmpty(f.getAnnotation(VisibleIf.class).value())) {
             String s = f.getAnnotation(VisibleIf.class).value();
@@ -189,7 +188,7 @@ public abstract class AbstractStylist<S> {
             try {
                 return (getStylistClass().equals(getClass()))?(boolean) m.invoke(this, model):(boolean) m.invoke(model);
             } catch (Exception e) {
-                Notifier.alert(e);
+                e.printStackTrace();
             }
         }
         return enabled;

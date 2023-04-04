@@ -12,7 +12,7 @@ import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
 import io.mateu.util.Helper;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;

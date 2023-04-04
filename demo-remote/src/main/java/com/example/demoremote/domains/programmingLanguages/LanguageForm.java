@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.Id;
+import jakarta.persistence.Id;
 import java.util.UUID;
 
 @Service@Data@Scope("prototype")
