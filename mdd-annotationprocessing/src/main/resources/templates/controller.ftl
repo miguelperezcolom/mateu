@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.annotation.PostConstruct;
 
 
@@ -18,9 +17,7 @@ import jakarta.annotation.PostConstruct;
 public class ${simpleClassName}Controller {
 
     @GetMapping(value = "", produces = MediaType.TEXT_HTML_VALUE)
-    public String getIndex(HttpServletRequest request) {
-        String[] tokens = request.getRequestURI().split(request.getContextPath());
-        String path = tokens.length > 1?tokens[1]:"";
+    public String getIndex() {
         String html = Helper.leerFichero(this.getClass(), "/npm/mateu/index.html");
         html = html.replaceAll("AQUIELTITULODELAPAGINA", "${caption}");
         html = html.replaceAll("http:\\/\\/localhost:8081\\/mateu\\/v1", "/mateu/v1");

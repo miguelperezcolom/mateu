@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 
+@CrossOrigin
 @RestController
 @RequestMapping("mateu/compat/v1")
 @Slf4j

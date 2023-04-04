@@ -1,12 +1,12 @@
 package io.mateu.remote.application;
 
 import io.mateu.util.Helper;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,9 +20,9 @@ import java.util.Map;
 public class MateuController {
 
     @GetMapping(value = "**")
-    public ResponseEntity<String> getAssets(HttpServletRequest request) {
-        String[] tokens = request.getRequestURI()
-                .split(request.getContextPath() + "/assets");
+    public ResponseEntity<String> getAssets(ServerHttpRequest request) {
+        String[] tokens = request.getURI().toString()
+                .split("/assets");
         String path = tokens.length > 1?tokens[1]:"";
         String suffix = path.contains(".")?path.substring(path.lastIndexOf('.')).replaceAll("\\.", ""):"";
         final HttpHeaders httpHeaders= new HttpHeaders();
