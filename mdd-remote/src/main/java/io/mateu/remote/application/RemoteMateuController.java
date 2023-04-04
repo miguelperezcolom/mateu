@@ -7,6 +7,8 @@ import io.mateu.remote.domain.commands.StartJourneyCommand;
 import io.mateu.remote.domain.queries.*;
 import io.mateu.remote.dtos.*;
 import io.mateu.util.Helper;
+import io.mateu.util.asciiart.Painter;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -169,6 +171,13 @@ public class RemoteMateuController {
                 "You successfully uploaded " + file.getOriginalFilename() + "!");
 
         return "redirect:/";
+    }
+
+
+    @PostConstruct
+    public void init() {
+        Painter.paint("Hello");
+        Painter.paint("MATEU");
     }
 
 }

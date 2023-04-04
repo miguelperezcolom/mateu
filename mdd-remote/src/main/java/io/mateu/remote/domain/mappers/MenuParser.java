@@ -101,6 +101,7 @@ public class MenuParser {
 
     private boolean check(Private pa) {
         return true;
+        
         //todo: check
         //Helper.getImpl(MateuSecurityManager.class).check(pa)
     }

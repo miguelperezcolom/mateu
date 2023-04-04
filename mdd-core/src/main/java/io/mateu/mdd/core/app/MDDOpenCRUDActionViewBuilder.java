@@ -6,6 +6,6 @@ import java.lang.reflect.InvocationTargetException;
 
 public interface MDDOpenCRUDActionViewBuilder {
 
-    Crud buildView(MDDOpenCRUDAction action) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException, Exception;
+    Crud buildView(MDDOpenCRUDAction action) throws Exception;
 
 }

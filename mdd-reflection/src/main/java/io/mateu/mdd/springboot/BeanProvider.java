@@ -4,5 +4,4 @@ public interface BeanProvider {
 
     Object getBean(Class c);
 
-
 }
