@@ -8,10 +8,13 @@ import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.*;
 import io.mateu.mdd.shared.interfaces.HasBadges;
 import io.mateu.mdd.shared.interfaces.HasStatus;
+import io.mateu.mdd.shared.interfaces.MateuSecurityManager;
+import io.mateu.mdd.shared.interfaces.UserPrincipal;
+import io.mateu.util.Helper;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -65,7 +68,8 @@ public class BasicFieldsForm implements HasBadges, HasStatus, HasTitle, HasSubti
 
     @Action
     public void assess() {
-        assessment = "" + name
+        assessment = "" + getCurrentUser()
+                + "" + name
                 + ", " + toggle
                 + ", " + age
                 + ", " + balance
@@ -77,6 +81,18 @@ public class BasicFieldsForm implements HasBadges, HasStatus, HasTitle, HasSubti
                 + ", " + conference
                 + ", " + division
         ;
+    }
+
+    private String getCurrentUser() {
+        try {
+            UserPrincipal principal = Helper.getImpl(MateuSecurityManager.class).getPrincipal();
+            if (principal == null) {
+                return "principal es null";
+            }
+            return principal.getName();
+        } catch (Exception e) {
+            return "" + e.getClass().getSimpleName() + ": " + e.getMessage();
+        }
     }
 
     public String toString() {

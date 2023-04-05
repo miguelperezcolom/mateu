@@ -54,6 +54,7 @@
       <module>mdd-remote-dtos</module>
       <module>mdd-springboot-security</module>
       <module>mdd-remote-lit</module>
+      <module>mdd-journeyrepo-jpa</module>
   </modules>
 
   <dependencies>

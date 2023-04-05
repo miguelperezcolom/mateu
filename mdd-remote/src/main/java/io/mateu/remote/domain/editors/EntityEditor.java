@@ -18,6 +18,8 @@ public class EntityEditor {
     public EntityEditor() {
     }
 
+
+
     public void setEntityClass(Class entityClass) {
         this.entityClass = entityClass;
     }

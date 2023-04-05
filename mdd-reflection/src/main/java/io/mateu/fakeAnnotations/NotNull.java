@@ -1,9 +1,9 @@
 package io.mateu.fakeAnnotations;
 
-import javax.validation.Payload;
+import jakarta.validation.Payload;
 import java.lang.annotation.Annotation;
 
-public class NotNull implements javax.validation.constraints.NotNull {
+public class NotNull implements jakarta.validation.constraints.NotNull {
     @Override
     public String message() {
         return null;
@@ -21,6 +21,6 @@ public class NotNull implements javax.validation.constraints.NotNull {
 
     @Override
     public Class<? extends Annotation> annotationType() {
-        return javax.validation.constraints.NotNull.class;
+        return jakarta.validation.constraints.NotNull.class;
     }
 }

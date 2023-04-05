@@ -1,4 +1,4 @@
-package io.mateu.security;
+package io.mateu.mdd.shared.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -9,11 +9,9 @@ import java.lang.annotation.Target;
  * Created by miguel on 18/1/17.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.METHOD, ElementType.FIELD}) //can use in method only.
-public @interface Private {
+@Target({ElementType.TYPE}) //can use in method only.
+public @interface ExternalJs {
 
-    String[] roles() default {};
-
-    String[] users() default {};
+    String value();
 
 }

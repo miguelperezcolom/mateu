@@ -5,6 +5,7 @@ import io.mateu.remote.domain.store.JourneyRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -20,5 +21,15 @@ public class MemoryJourneyRepository implements JourneyRepository {
 
     public void save(JourneyContainer journeyContainer) {
         containers.put(journeyContainer.getJourneyId(), journeyContainer);
+    }
+
+    @Override
+    public List<JourneyContainer> findAll() {
+        return containers.values().stream().toList();
+    }
+
+    @Override
+    public long count() {
+        return containers.size();
     }
 }

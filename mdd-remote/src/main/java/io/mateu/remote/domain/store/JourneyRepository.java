@@ -1,5 +1,6 @@
 package io.mateu.remote.domain.store;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface JourneyRepository {
@@ -8,4 +9,7 @@ public interface JourneyRepository {
 
     void save(JourneyContainer journeyContainer);
 
+    List<JourneyContainer> findAll();
+
+    long count();
 }

@@ -1,12 +1,12 @@
 package com.example.demoremote.ui.demoApp.menus;
 
 import com.example.demoremote.domains.cities.City;
+import com.example.demoremote.domains.journeyStore.JourneyContainerCrud;
 import com.example.demoremote.domains.nfl.entities.Player;
 import com.example.demoremote.domains.nfl.entities.Team;
 import com.example.demoremote.domains.programmingLanguages.ProgrammingLanguages;
 import io.mateu.mdd.shared.annotations.MenuOption;
 import io.mateu.mdd.shared.interfaces.JpaCrud;
-import io.mateu.remote.infra.jpa.JourneyContainerEntity;
 
 import java.util.List;
 
@@ -55,6 +55,6 @@ public class CrudsSubmenu {
 
 
     @MenuOption
-    JpaCrud<JourneyContainerEntity> journeyContainers;
+    JourneyContainerCrud journeyContainers;
 
 }

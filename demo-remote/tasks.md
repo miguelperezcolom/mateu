@@ -2,6 +2,7 @@
 
 ## Short term
 
+- @UseWebComponent + @NpmImport + mapear atributos y eventos 
 - Runnable
 - Callable
 - Result
@@ -21,12 +22,11 @@
 - URL
 - RemoteUI
 - gestión errores
-- rpcView --> Crud *********HECHO*********
 - confimación acciones
 - Validación antes
 - validaciones javax
 - métodos con parámetros
-- @MateuUI("route") + HasIcon, HasTitle, HasCss, ...
+- HasIcon, HasTitle, HasCss, ...
 - Entidades utilizando persistence.xml?
 - Implementar los repositorios a mano? con JPAHelper?
 - records

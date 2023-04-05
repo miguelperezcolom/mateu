@@ -31,7 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import jakarta.persistence.*;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;

@@ -7,9 +7,9 @@ import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.remote.dtos.Field;
 import io.mateu.remote.dtos.ValidationType;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.InvocationTargetException;

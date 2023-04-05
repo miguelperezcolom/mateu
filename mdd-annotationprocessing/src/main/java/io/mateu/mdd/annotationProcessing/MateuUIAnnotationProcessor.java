@@ -42,6 +42,8 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                 try {
                     createController(generatedFullClassName, pkgName, className, simpleClassName, e,
                             generatedClassName, caption, path);
+                    createConfig(className + "Config", pkgName, className, simpleClassName, e,
+                            generatedClassName, caption, path);
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
@@ -85,4 +87,31 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
 
         }
     }
+
+    private void createConfig(String generatedFullClassName, String pkgName, String className,
+                                  String simpleClassName, Element e, String generatedClassName,
+                                  String caption, String path)
+            throws IOException {
+        JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(generatedFullClassName);
+        try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
+            // writing generated file to out …
+
+            Formatter formatter = new Formatter("config.ftl", Map.of(
+                    "pkgName", pkgName
+                    , "className", className
+                    , "simpleClassName", simpleClassName
+                    , "generatedClassName", generatedClassName
+                    , "generatedFullClassName", generatedFullClassName
+                    , "caption", caption
+                    , "path", path
+            ));
+            try {
+                out.println(formatter.apply());
+            } catch (TemplateException ex) {
+                ex.printStackTrace();
+            }
+
+        }
+    }
+
 }

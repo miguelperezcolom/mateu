@@ -6,11 +6,11 @@ import io.mateu.mdd.core.app.menuResolvers.MenuResolver;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.interfaces.Listing;
+import io.mateu.mdd.shared.interfaces.MateuSecurityManager;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.shared.reflection.CoreReflectionHelper;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
-import io.mateu.security.Private;
 import io.mateu.util.Helper;
 
 import java.lang.reflect.InvocationTargetException;
@@ -100,10 +100,12 @@ public class MenuParser {
     }
 
     private boolean check(Private pa) {
-        return true;
-        
-        //todo: check
-        //Helper.getImpl(MateuSecurityManager.class).check(pa)
+        try {
+            return Helper.getImpl(MateuSecurityManager.class).check(pa);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     private void addMenuEntry(List<MenuEntry> l, Method m, boolean authenticationAgnostic, boolean publicAccess) {
