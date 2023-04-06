@@ -3,8 +3,6 @@
 ## Short term
 
 - revisar urls. Meter el id del registro?
-- Result
-- Html
 - @OneToMany
 - @ManyToOne
 - byte[]
@@ -17,8 +15,6 @@
 
 - RemoteUI
 - gestión errores
-- confimación acciones
-- Validación antes
 - validaciones javax
 - HasIcon, HasTitle, HasCss, ...
 

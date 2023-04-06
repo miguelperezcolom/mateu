@@ -6,11 +6,14 @@ import io.mateu.mdd.shared.annotations.File;
 import io.mateu.mdd.shared.annotations.MainAction;
 import io.mateu.mdd.shared.data.*;
 import io.mateu.mdd.shared.interfaces.Listing;
+import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.editors.EntityEditor;
+import io.mateu.remote.domain.editors.FieldEditor;
 import io.mateu.remote.domain.files.StorageServiceAccessor;
 import io.mateu.remote.domain.persistence.Merger;
 import io.mateu.remote.domain.store.JourneyStoreService;
+import io.mateu.remote.dtos.Form;
 import io.mateu.remote.dtos.Step;
 import io.mateu.util.Helper;
 import io.mateu.util.Serializer;
@@ -52,7 +55,9 @@ public class RunStepActionCommand {
 
         Object viewInstance = store.getViewInstance(journeyId, stepId);
 
-        if (viewInstance instanceof EntityEditor) {
+        if (viewInstance instanceof FieldEditor) {
+            // no need to fill the fieldEditor
+        } else if (viewInstance instanceof EntityEditor) {
             // no need to fill the entityEditor
         } else {
             data.entrySet().forEach(entry -> {
@@ -250,10 +255,43 @@ public class RunStepActionCommand {
             String newStepId = "result_" + UUID.randomUUID().toString();
             store.setStep(journeyId, newStepId, whatToShow);
 
+        } else if (viewInstance instanceof FieldEditor && "save".equals(actionId)) {
+            FieldEditor fieldEditor = (FieldEditor) viewInstance;
+
+            Step initialStep = store.getStep(journeyId, fieldEditor.getInitialStep());
+
+            io.mateu.remote.dtos.Component form = initialStep.getView().getComponents().get(0);
+
+            Object object = Helper.fromJson(Helper.toJson(data), fieldEditor.getType());
+            data = Serializer.toMap(object);
+            data.put("__toString", "" + object);
+
+            form.getData().put(fieldEditor.getFieldId(), data);
+
+            store.backToStep(journeyId, initialStep.getId()); // will save the step
+        } else if (viewInstance instanceof FieldEditor && "cancel".equals(actionId)) {
+            FieldEditor fieldEditor = (FieldEditor) viewInstance;
+            store.backToStep(journeyId, fieldEditor.getInitialStep());
         } else if (viewInstance instanceof Result) {
             Step step = store.getStep(journeyId, actionId);
             store.getJourney(journeyId).setCurrentStepId(step.getId());
             store.getJourney(journeyId).setCurrentStepDefinitionId(step.getType());
+        } else if (actionId.startsWith("__editfield__")) {
+
+            String fieldId = actionId.substring("__editfield__".length());
+
+            FieldInterfaced field = ReflectionHelper.getFieldByName(viewInstance.getClass(), fieldId);
+
+            Object targetValue = ReflectionHelper.getValue(field, viewInstance);
+
+            if (targetValue == null) {
+                targetValue = ReflectionHelper.newInstance(field.getType());
+            }
+
+            store.setStep(journeyId, actionId, new FieldEditor(targetValue,
+                    fieldId,
+                    store.getCurrentStep(journeyId).getId()));
+
         } else if (actions.containsKey(actionId)) {
 
             Method m = actions.get(actionId);
@@ -294,7 +332,7 @@ public class RunStepActionCommand {
         return null;
     }
 
-    public static Object getActualValue(Map.Entry<String, Object> entry, Object viewInstance) throws NoSuchFieldException {
+    public static Object getActualValue(Map.Entry<String, Object> entry, Object viewInstance) throws Exception {
         Object targetValue = entry.getValue();
         if (entry.getValue() != null) {
             Field f = viewInstance.getClass().getDeclaredField(entry.getKey());
@@ -416,6 +454,9 @@ public class RunStepActionCommand {
                     } else if (f.getType().isEnum()) {
                         targetValue = Enum.valueOf((Class) f.getType(), (String) entry.getValue());
                     }
+                }
+                if (entry.getValue() instanceof Map) {
+                    targetValue = Serializer.fromMap((Map<String, Object>) entry.getValue(), f.getType());
                 }
             }
         }

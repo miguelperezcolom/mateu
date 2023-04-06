@@ -1869,7 +1869,6 @@ public class ReflectionHelper extends BaseReflectionHelper {
                 Constructor<?> cons = c.getDeclaredConstructors()[0];
                 cons.setAccessible(true);
                 o = cons.newInstance(p);
-
             } else {
                 Constructor con = getConstructor(c);
                 if (con != null) {

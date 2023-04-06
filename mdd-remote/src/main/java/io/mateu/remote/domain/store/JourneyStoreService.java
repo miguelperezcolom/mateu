@@ -9,6 +9,7 @@ import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.commands.RunStepActionCommand;
 import io.mateu.remote.domain.editors.EntityEditor;
+import io.mateu.remote.domain.editors.FieldEditor;
 import io.mateu.remote.domain.mappers.StepMapper;
 import io.mateu.remote.domain.mappers.UIMapper;
 import io.mateu.remote.dtos.Journey;
@@ -64,6 +65,11 @@ public class JourneyStoreService {
             if (viewInstance instanceof EntityEditor) {
                 ((EntityEditor) viewInstance).setEntityClass(Class.forName((String) data.get("__entityClassName__")));
                 ((EntityEditor) viewInstance).setData(data);
+            } else if (viewInstance instanceof FieldEditor) {
+                ((FieldEditor) viewInstance).setType(Class.forName((String) data.get("__type__")));
+                ((FieldEditor) viewInstance).setFieldId((String) data.get("__fieldId__"));
+                ((FieldEditor) viewInstance).setInitialStep((String) data.get("__initialStep__"));
+                ((FieldEditor) viewInstance).setData(data);
             } else {
                 data.entrySet()
                         .stream().filter(entry -> checkNotInjected(viewInstance, entry.getKey()))
@@ -145,7 +151,6 @@ public class JourneyStoreService {
         container.get().getJourney().setCurrentStepId(stepId);
         container.get().getJourney().setCurrentStepDefinitionId(step.getType());
         journeyRepo.save(container.get());
-
     }
 
     public boolean isCrud(String journeyId) throws Exception {
@@ -170,6 +175,15 @@ public class JourneyStoreService {
             throw new Exception("No journey with id " + journeyId + " found");
         }
         return container.get().getInitialStep();
+    }
+
+    public Step getCurrentStep(String journeyId) throws Exception {
+        Optional<JourneyContainer> container = findJourneyById(journeyId);
+        if (!container.isPresent()) {
+            throw new Exception("No journey with id " + journeyId + " found");
+        }
+        String currentStepId = container.get().getJourney().getCurrentStepId();
+        return container.get().getSteps().get(currentStepId);
     }
 
     @Autowired

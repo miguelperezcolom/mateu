@@ -99,13 +99,18 @@ public class FormMetadataBuilder extends AbstractMetadataBuilder {
         for (FieldInterfaced fieldInterfaced : allEditableFields) {
             if (section == null || fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Section.class)) {
                 String caption = "";
+                boolean card = true;
                 if (fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Section.class)) {
-                    caption = fieldInterfaced.getAnnotation(io.mateu.mdd.shared.annotations.Section.class).value();
+                    io.mateu.mdd.shared.annotations.Section annotation = fieldInterfaced.getAnnotation(io.mateu.mdd.shared.annotations.Section.class);
+                    caption = annotation.value();
+                    card = annotation.card();
                 }
                 section = Section.builder()
                         .caption(caption).readOnly("view".equals(stepId) || (uiInstance instanceof ReadOnlyPojo
                         && !(uiInstance instanceof PersistentPojo)))
-                        .fieldGroups(new ArrayList<>()).build();
+                        .fieldGroups(new ArrayList<>())
+                        .type(card?SectionType.Card:SectionType.Transparent)
+                        .build();
                 sections.add(section);
                 fieldGroup = null;
             }

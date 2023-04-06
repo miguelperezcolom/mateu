@@ -10,10 +10,5 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.PARAMETER}) //can use in method only.
-public @interface Section {
-
-    String value();
-
-    boolean card() default true;
-
+public @interface RawContent {
 }

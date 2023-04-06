@@ -6,6 +6,7 @@ import io.mateu.mdd.shared.data.Result;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.editors.EntityEditor;
+import io.mateu.remote.domain.editors.FieldEditor;
 import io.mateu.remote.domain.metadata.CrudMetadataBuilder;
 import io.mateu.remote.domain.metadata.FormMetadataBuilder;
 import io.mateu.remote.domain.metadata.ResultMetadataBuilder;
@@ -18,10 +19,9 @@ import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,6 +37,9 @@ public class ViewMapper {
             EntityEditor entityEditor = (EntityEditor) uiInstance;
             actualUiInstance = em.find(entityEditor.getEntityClass(),
                     ReflectionHelper.getId(Helper.fromJson(Helper.toJson(entityEditor.getData()), entityEditor.getEntityClass())));
+        } else if (uiInstance instanceof FieldEditor) {
+            FieldEditor fieldEditor = (FieldEditor) uiInstance;
+            actualUiInstance = Helper.fromJson(Helper.toJson(fieldEditor.getData()), fieldEditor.getType());
         } else if (("view".equals(stepId) || "edit".equals(stepId)) && journeyContainer.getInitialStep() != null
                 && "io.mateu.mdd.ui.cruds.JpaRpcCrudView".equals(journeyContainer.getInitialStep().getType())) { //todo: check si es un crud jpa
             RpcCrudViewExtended rpcCrudView = (RpcCrudViewExtended) JourneyStoreService.get()
@@ -61,6 +64,9 @@ public class ViewMapper {
         if (metadata instanceof Form) {
             addChildCruds(components, stepId, uiInstance);
         }
+        if (uiInstance instanceof FieldEditor) {
+            addActionsForFieldEditor((Form) metadata, (FieldEditor) uiInstance);
+        }
 
         int i = 0;
         for (Component component : components) {
@@ -72,6 +78,21 @@ public class ViewMapper {
                 .build();
 
         return view;
+    }
+
+    private void addActionsForFieldEditor(Form metadata, FieldEditor fieldEditor) {
+        metadata.getMainActions().add(Action.builder()
+                .id("cancel")
+                .caption("Cancel")
+                .type(ActionType.Secondary)
+                .validationRequired(false)
+                .build());
+        metadata.getMainActions().add(Action.builder()
+                        .id("save")
+                        .caption("Save")
+                        .type(ActionType.Primary)
+                        .validationRequired(true)
+                .build());
     }
 
     private void addChildCruds(List<Component> components, String stepId, Object uiInstance) {
@@ -117,6 +138,14 @@ public class ViewMapper {
             data.put("__entityClassName__", ((EntityEditor) uiInstance).getEntityClass().getName());
             return data;
         }
+        if (uiInstance instanceof FieldEditor) {
+            Map<String, Object> data = new HashMap<>();
+            data.putAll(((FieldEditor) uiInstance).getData());
+            data.put("__type__", ((FieldEditor) uiInstance).getType().getName());
+            data.put("__fieldId__", ((FieldEditor) uiInstance).getFieldId());
+            data.put("__initialStep__", ((FieldEditor) uiInstance).getInitialStep());
+            return data;
+        }
         return getData(actualUiInstance);
     }
 
@@ -126,12 +155,33 @@ public class ViewMapper {
             data.putAll(((EntityEditor) uiInstance).getData());
             data.put("__entityClassName__", ((EntityEditor) uiInstance).getEntityClass().getName());
         }
+        if (uiInstance instanceof FieldEditor) {
+            data.putAll(((FieldEditor) uiInstance).getData());
+            data.put("__type__", ((FieldEditor) uiInstance).getType().getName());
+            data.put("__fieldId__", ((FieldEditor) uiInstance).getFieldId());
+            data.put("__initialStep__", ((FieldEditor) uiInstance).getInitialStep());
+        }
         Class dataContainerClass = uiInstance.getClass();
         Object dataContainer = uiInstance;
         if (uiInstance instanceof Listing) {
             return Map.of();
         }
-        data = Serializer.toMap(uiInstance);
+        data.putAll(Serializer.toMap(uiInstance));
+        ReflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
+                .filter(f -> !ReflectionHelper.isBasico(f.getType()))
+                .filter(f -> !f.getType().isArray())
+                .filter(f -> !f.getType().isEnum())
+                .filter(f -> !Collection.class.isAssignableFrom(f.getType()))
+                .filter(f -> !Map.class.isAssignableFrom(f.getType()))
+                .filter(f -> data.get(f.getId()) instanceof Map)
+                .forEach(f -> {
+                    try {
+                        ((Map) data.get(f.getId()))
+                                .put("__toString", "" + ReflectionHelper.getValue(f, uiInstance));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
         return data;
     }
 

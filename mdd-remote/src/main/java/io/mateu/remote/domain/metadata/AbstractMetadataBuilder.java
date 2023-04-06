@@ -134,6 +134,9 @@ public abstract class AbstractMetadataBuilder {
         if (field.isAnnotationPresent(CustomElement.class)) {
             return "custom:" + field.getAnnotation(CustomElement.class).value();
         }
+        if (field.isAnnotationPresent(RawContent.class)) {
+            return "rawcontent";
+        }
         if (field.isAnnotationPresent(UseRadioButtons.class)) {
             return "radiobuttons";
         }
