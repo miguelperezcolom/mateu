@@ -261,6 +261,9 @@ public class RunStepActionCommand {
 
             Object whatToShow = result;
             if (!void.class.equals(m.getReturnType())) {
+                if (whatToShow instanceof Result) {
+                    addBackDestination(whatToShow);
+                }
                 String newStepId = "result_" + UUID.randomUUID().toString();
                 store.setStep(journeyId, newStepId, whatToShow);
             }
@@ -268,6 +271,13 @@ public class RunStepActionCommand {
             throw new Exception("Unkonwn action " + actionId);
         }
 
+    }
+
+    private void addBackDestination(Result result) {
+        if (result.) {
+
+        }
+        new Destination(DestinationType.ActionId, "Back to " + initialStep.getName(), initialStep.getId())
     }
 
     private Object deserializeRow(Object m, Listing viewInstance) {

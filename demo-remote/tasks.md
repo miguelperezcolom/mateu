@@ -2,39 +2,45 @@
 
 ## Short term
 
-- @UseWebComponent + @NpmImport + mapear atributos y eventos 
-- Runnable
-- Callable
+- revisar urls. Meter el id del registro?
 - Result
 - Html
-- Section y FieldGroup interfaces
-- Autenticación en el explorer
-- Inyección cliente axios para autenticación
-- Cambio prefijo web components
-- Exportar dtos e interfaz Component? documentar solo? openapi?
-- revisar urls. Meter el id del registro?
-- No pasar datos que no enseñemos?
 - @OneToMany
 - @ManyToOne
 - byte[]
-- @Embedded
 - Object
+- records
 - URL
+- métodos con parámetros
+
+- incidencia details anidados con cruds
+
 - RemoteUI
 - gestión errores
 - confimación acciones
 - Validación antes
 - validaciones javax
-- métodos con parámetros
 - HasIcon, HasTitle, HasCss, ...
-- Entidades utilizando persistence.xml?
+
 - Implementar los repositorios a mano? con JPAHelper?
-- records
 - Visor repo journeys y memoria utilizada
-- Hacer reactivo
-- springboot 3
+
 - adaptador pageable y sort springboot
 - si no CanEdit, entonces no enseñar botón Edit
+- @UseWebComponent + @NpmImport + mapear atributos y eventos
+- Section y FieldGroup interfaces
+- Exportar dtos e interfaz Component? documentar solo? openapi?
+
+- cron limpieza store journeys
+
+### Not mandatory
+- Autenticación en el explorer
+- Inyección cliente axios para autenticación
+- Cambio prefijo web components
+- Runnable
+- Callable
+- No pasar datos que no enseñemos?
+- Hacer reactivo
 
 
 ## Middle term

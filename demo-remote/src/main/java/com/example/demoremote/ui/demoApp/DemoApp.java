@@ -1,11 +1,9 @@
 package com.example.demoremote.ui.demoApp;
 
-import com.example.demoremote.ui.demoApp.firstLevelStuff.BasicFieldsForm;
-import com.example.demoremote.ui.demoApp.firstLevelStuff.MyReadOnlyPojo;
-import com.example.demoremote.ui.demoApp.firstLevelStuff.MyReadOnlyPojoWithCrud;
-import com.example.demoremote.ui.demoApp.menus.CrudsSubmenu;
-import com.example.demoremote.ui.demoApp.menus.ExplorerSubmenu;
-import com.example.demoremote.ui.demoApp.menus.SWSubmenu;
+import com.example.demoremote.ui.demoApp.menus.*;
+import com.example.demoremote.ui.demoApp.menus.forms.BasicFieldsForm;
+import com.example.demoremote.ui.demoApp.menus.forms.MyReadOnlyPojo;
+import com.example.demoremote.ui.demoApp.menus.forms.MyReadOnlyPojoWithCrud;
 import io.mateu.mdd.shared.annotations.*;
 import org.springframework.stereotype.Component;
 
@@ -17,15 +15,14 @@ public class DemoApp implements Runnable {
     @MenuOption
     private BasicFieldsForm basicFields;
 
-
-    @MenuOption
-    private MyReadOnlyPojo readOnlyPojo;
-
-    @MenuOption
-    private MyReadOnlyPojoWithCrud readOnlyPojoWithCrud;
+    @Submenu
+    private FormsSubmenu forms;
 
     @Submenu
-    private ExplorerSubmenu explorer;
+    private CollectionsSubmenu collections;
+
+    @Submenu
+    private RefsSubmenu refs;
 
     @Submenu("Some cruds")
     private CrudsSubmenu cruds;

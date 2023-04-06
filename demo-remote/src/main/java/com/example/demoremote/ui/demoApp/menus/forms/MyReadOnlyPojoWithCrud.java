@@ -1,4 +1,4 @@
-package com.example.demoremote.ui.demoApp.firstLevelStuff;
+package com.example.demoremote.ui.demoApp.menus.forms;
 
 import com.example.demoremote.domains.programmingLanguages.ProgrammingLanguages;
 import io.mateu.mdd.shared.annotations.Action;

@@ -1,4 +1,4 @@
-package com.example.demoremote.ui.demoApp.menus.explorer;
+package com.example.demoremote.ui.demoApp.menus.other;
 
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.Badge;
@@ -7,9 +7,6 @@ import io.mateu.mdd.shared.interfaces.HasBadges;
 import lombok.Data;
 
 import java.net.URL;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 
 @Data

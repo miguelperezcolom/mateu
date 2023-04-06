@@ -1,4 +1,4 @@
-package com.example.demoremote.ui.demoApp.menus.explorer;
+package com.example.demoremote.ui.demoApp.menus.refs;
 
 import com.example.demoremote.domains.nfl.providers.PlayersProvider;
 import com.example.demoremote.domains.nfl.providers.TeamsProvider;

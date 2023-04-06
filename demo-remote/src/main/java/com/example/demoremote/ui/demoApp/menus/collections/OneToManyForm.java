@@ -1,4 +1,4 @@
-package com.example.demoremote.ui.demoApp.menus.explorer;
+package com.example.demoremote.ui.demoApp.menus.collections;
 
 import com.example.demoremote.domains.nfl.providers.TeamsProvider;
 import io.mateu.mdd.shared.annotations.*;
