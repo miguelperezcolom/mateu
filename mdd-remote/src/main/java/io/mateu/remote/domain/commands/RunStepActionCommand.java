@@ -20,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.naming.AuthenticationException;
 import jakarta.persistence.Entity;
+
+import java.awt.*;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -28,6 +30,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Builder
@@ -262,7 +265,8 @@ public class RunStepActionCommand {
             Object whatToShow = result;
             if (!void.class.equals(m.getReturnType())) {
                 if (whatToShow instanceof Result) {
-                    addBackDestination(whatToShow);
+                    addBackDestination((Result) whatToShow,
+                            store.getInitialStep(journeyId));
                 }
                 String newStepId = "result_" + UUID.randomUUID().toString();
                 store.setStep(journeyId, newStepId, whatToShow);
@@ -273,11 +277,12 @@ public class RunStepActionCommand {
 
     }
 
-    private void addBackDestination(Result result) {
-        if (result.) {
-
+    private void addBackDestination(Result result, Step initialStep) {
+        if (result.getNowTo() != null) {
+            return;
         }
-        new Destination(DestinationType.ActionId, "Back to " + initialStep.getName(), initialStep.getId())
+        result.setNowTo(new Destination(DestinationType.ActionId,
+                "Back to " + initialStep.getName(), initialStep.getId()));
     }
 
     private Object deserializeRow(Object m, Listing viewInstance) {

@@ -17,7 +17,11 @@ Action {
 
     String icon() default "";
 
+    String confirmationTitle() default "";
+
     String confirmationMessage() default "";
+
+    String confirmationAction() default "";
 
     int order() default 1000;
 
@@ -28,12 +32,6 @@ Action {
     String section() default "";
 
     String group() default "";
-
-    boolean saveBefore() default false;
-
-    boolean saveAfter() default false;
-
-    boolean refreshOnBack() default false;
 
     boolean validateBefore() default true;
 

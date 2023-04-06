@@ -241,8 +241,58 @@ public abstract class AbstractMetadataBuilder {
                 .caption(ReflectionHelper.getCaption(m))
                 .type(ActionType.Primary)
                 .validationRequired(getValidationRequired(m))
+                .confirmationRequired(getConfirmationRequired(m))
+                .confirmationTexts(getConfirmationTexts(m))
                 .build();
         return action;
+    }
+
+    private ConfirmationTexts getConfirmationTexts(Method m) {
+        if (m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class)) {
+            io.mateu.mdd.shared.annotations.Action action = m
+                    .getAnnotation(io.mateu.mdd.shared.annotations.Action.class);
+            return ConfirmationTexts.builder()
+                    .title(getConfirmationTitle(action.confirmationTitle(), m))
+                    .message(action.confirmationMessage())
+                    .action(getConfirmationAction(action.confirmationAction(), m))
+                    .build();
+        }
+        if (m.isAnnotationPresent(io.mateu.mdd.shared.annotations.MainAction.class)) {
+            io.mateu.mdd.shared.annotations.MainAction action = m
+                    .getAnnotation(io.mateu.mdd.shared.annotations.MainAction.class);
+            return ConfirmationTexts.builder()
+                    .title(getConfirmationTitle(action.confirmationTitle(), m))
+                    .message(action.confirmationMessage())
+                    .action(getConfirmationAction(action.confirmationAction(), m))
+                    .build();
+        }
+        return null;
+    }
+
+    private String getConfirmationAction(String action, Method m) {
+        if (Strings.isNullOrEmpty(action)) {
+            return ReflectionHelper.getCaption(m);
+        }
+        return action;
+    }
+
+    private String getConfirmationTitle(String title, Method m) {
+        if (Strings.isNullOrEmpty(title)) {
+            return "Please confirm";
+        }
+        return title;
+    }
+
+    private boolean getConfirmationRequired(Method m) {
+        if (m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class)) {
+            return !Strings.isNullOrEmpty(m.getAnnotation(io.mateu.mdd.shared.annotations.Action.class)
+                    .confirmationMessage());
+        }
+        if (m.isAnnotationPresent(io.mateu.mdd.shared.annotations.MainAction.class)) {
+            return !Strings.isNullOrEmpty(m.getAnnotation(io.mateu.mdd.shared.annotations.MainAction.class)
+                    .confirmationMessage());
+        }
+        return false;
     }
 
     private boolean getValidationRequired(Method m) {
@@ -275,6 +325,12 @@ public abstract class AbstractMetadataBuilder {
                     .id("__list__" + listId + "__delete")
                     .caption("Delete")
                     .type(ActionType.Primary)
+                    .confirmationRequired(true)
+                    .confirmationTexts(ConfirmationTexts.builder()
+                            .title("Please confirm")
+                            .message("Are you sure you want to delete the selected rows")
+                            .action("Yes, delete them")
+                            .build())
                     .build();
             actions.add(action);
         }

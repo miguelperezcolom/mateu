@@ -13,4 +13,8 @@ public class Action {
 
     private boolean validationRequired;
 
+    private boolean confirmationRequired;
+
+    private ConfirmationTexts confirmationTexts;
+
 }

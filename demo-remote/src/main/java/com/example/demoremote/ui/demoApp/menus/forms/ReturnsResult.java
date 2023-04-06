@@ -13,12 +13,14 @@ public class ReturnsResult {
 
     private int age;
 
-    @Action
+    @Action(confirmationTitle = "One moment, please",
+            confirmationMessage = "Are you sure you want to do something?",
+            confirmationAction = "Yes, I want!")
     public Result doSomething() {
         return new Result(ResultType.Success, "It worked!", null, null);
     }
 
-    @MainAction
+    @MainAction(confirmationMessage = "Are you sure you want to do something BIG?")
     public Result doSomethingBig() {
         return new Result(ResultType.Info, "It worked, also!", null, null);
     }
