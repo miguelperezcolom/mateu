@@ -19,6 +19,7 @@ public class Merger {
     @PersistenceContext
     EntityManager em;
 
+    @Transactional
     public void merge(Object entity) {
         em.merge(entity);
     }

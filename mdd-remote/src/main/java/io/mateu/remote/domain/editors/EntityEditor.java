@@ -35,4 +35,15 @@ public class EntityEditor {
     public Map<String, Object> getData() {
         return data;
     }
+
+    @Override
+    public String toString() {
+        if (data.containsKey("__toString")) {
+            return (String) data.get("__toString");
+        }
+        if (data.containsKey("name")) {
+            return (String) data.get("name");
+        }
+        return entityClass.getSimpleName();
+    }
 }

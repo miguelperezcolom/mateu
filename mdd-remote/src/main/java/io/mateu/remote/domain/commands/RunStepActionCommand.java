@@ -151,7 +151,8 @@ public class RunStepActionCommand {
                 }
 
                 if (editor.getClass().isAnnotationPresent(Entity.class)) {
-                    editor = new EntityEditor(editor);
+                    editor = ReflectionHelper.newInstance(EntityEditorFactory.class)
+                            .create(editor);
                 }
 
                 String newStepId = "view";

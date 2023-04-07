@@ -40,8 +40,10 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                 String caption = getCaption(e, simpleClassName);
 
                 try {
-                    createController(generatedFullClassName, pkgName, className, simpleClassName, e,
+                    createIndexController(generatedFullClassName, pkgName, className, simpleClassName, e,
                             generatedClassName, caption, path);
+                    createController(className + "RemoteMateuController", pkgName, className, simpleClassName, e,
+                            generatedClassName, caption, removeTrailingSlash(path));
                     createConfig(className + "Config", pkgName, className, simpleClassName, e,
                             generatedClassName, caption, path);
                 } catch (IOException ex) {
@@ -55,6 +57,13 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
         return true;
     }
 
+    private String removeTrailingSlash(String path) {
+        if (path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
+        }
+        return path;
+    }
+
     private String getCaption(Element e, String simpleClassName) {
         if (e.getAnnotation(Caption.class) != null) {
             return e.getAnnotation(Caption.class).value();
@@ -62,15 +71,15 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
         return Helper.capitalize(simpleClassName);
     }
 
-    private void createController(String generatedFullClassName, String pkgName, String className,
-                               String simpleClassName, Element e, String generatedClassName,
-                                  String caption, String path)
+    private void createIndexController(String generatedFullClassName, String pkgName, String className,
+                                       String simpleClassName, Element e, String generatedClassName,
+                                       String caption, String path)
             throws IOException {
         JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(generatedFullClassName);
         try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
             // writing generated file to out …
 
-            Formatter formatter = new Formatter("controller.ftl", Map.of(
+            Formatter formatter = new Formatter("index.ftl", Map.of(
                     "pkgName", pkgName
                     , "className", className
                     , "simpleClassName", simpleClassName
@@ -97,6 +106,32 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
             // writing generated file to out …
 
             Formatter formatter = new Formatter("config.ftl", Map.of(
+                    "pkgName", pkgName
+                    , "className", className
+                    , "simpleClassName", simpleClassName
+                    , "generatedClassName", generatedClassName
+                    , "generatedFullClassName", generatedFullClassName
+                    , "caption", caption
+                    , "path", path
+            ));
+            try {
+                out.println(formatter.apply());
+            } catch (TemplateException ex) {
+                ex.printStackTrace();
+            }
+
+        }
+    }
+
+    private void createController(String generatedFullClassName, String pkgName, String className,
+                                       String simpleClassName, Element e, String generatedClassName,
+                                       String caption, String path)
+            throws IOException {
+        JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(generatedFullClassName);
+        try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
+            // writing generated file to out …
+
+            Formatter formatter = new Formatter("controller.ftl", Map.of(
                     "pkgName", pkgName
                     , "className", className
                     , "simpleClassName", simpleClassName

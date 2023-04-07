@@ -5,6 +5,8 @@ import io.mateu.mdd.core.interfaces.HasTitle;
 import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.shared.annotations.Caption;
+import io.mateu.mdd.shared.annotations.UseCheckboxes;
+import io.mateu.mdd.shared.annotations.UseChips;
 import io.mateu.mdd.shared.interfaces.HasBadges;
 import io.mateu.mdd.shared.interfaces.HasStatus;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
@@ -13,6 +15,8 @@ import io.mateu.remote.dtos.*;
 import io.mateu.util.Helper;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -95,7 +99,11 @@ public class FormMetadataBuilder extends AbstractMetadataBuilder {
         Section section = null;
         FieldGroup fieldGroup = null;
 
-        List<FieldInterfaced> allEditableFields = ReflectionHelper.getAllEditableFields(uiInstance.getClass());
+        List<FieldInterfaced> allEditableFields = ReflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
+                .filter(f -> !f.isAnnotationPresent(OneToMany.class)
+                        || f.isAnnotationPresent(UseCheckboxes.class)
+                        || f.isAnnotationPresent(UseChips.class))
+                .collect(Collectors.toList());
         for (FieldInterfaced fieldInterfaced : allEditableFields) {
             if (section == null || fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Section.class)) {
                 String caption = "";

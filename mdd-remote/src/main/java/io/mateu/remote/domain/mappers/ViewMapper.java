@@ -1,5 +1,6 @@
 package io.mateu.remote.domain.mappers;
 
+import io.mateu.mdd.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.core.interfaces.RpcCrudViewExtended;
 import io.mateu.mdd.shared.data.Result;
@@ -15,6 +16,8 @@ import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.*;
 import io.mateu.util.Helper;
 import io.mateu.util.Serializer;
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
 import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityManager;
@@ -96,7 +99,7 @@ public class ViewMapper {
     }
 
     private void addChildCruds(List<Component> components, String stepId, Object uiInstance) {
-        if ("view".equals(stepId) || uiInstance instanceof ReadOnlyPojo) {
+        if (uiInstance instanceof ReadOnlyPojo) {
             List<Component> cruds = ReflectionHelper.getAllFields(uiInstance.getClass()).stream()
                     .filter(f -> Listing.class.isAssignableFrom(f.getType()))
                     .map(f -> {
@@ -106,6 +109,38 @@ public class ViewMapper {
                             if (crud == null) {
                                 crud = (Listing) ReflectionHelper.newInstance(f.getType());
                             }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        return new RpcViewWrapper(crud, f.getId());
+                    })
+                    .map(crud -> {
+                        try {
+                            return Component.builder()
+                                    .metadata(getMetadata(stepId, crud))
+                                    .data(getData(null, crud.getRpcView()))
+                                    .rules(List.of())
+                                    .slot("main")
+                                    .attributes(new HashMap<>())
+                                    .build();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        return null;
+                    })
+                    .filter(c -> c != null)
+                    .collect(Collectors.toList());
+            components.addAll(cruds);
+        }
+        if (false && "view".equals(stepId) && uiInstance instanceof EntityEditor) {
+            EntityEditor entityEditor = (EntityEditor) uiInstance;
+            List<Component> cruds = ReflectionHelper.getAllFields(entityEditor.getEntityClass()).stream()
+                    .filter(f -> f.isAnnotationPresent(OneToMany.class))
+                    .map(f -> {
+                        Listing crud = null;
+                        try {
+                            Object parentEntity = Serializer.fromMap(entityEditor.getData(), entityEditor.getEntityClass());
+                            crud = ReflectionHelper.newInstance(JpaRpcCrudFactory.class).create(parentEntity, f);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
