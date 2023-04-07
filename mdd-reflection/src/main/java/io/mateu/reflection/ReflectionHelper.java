@@ -673,11 +673,11 @@ public class ReflectionHelper extends BaseReflectionHelper {
             return idField;
         } else return null;
     }
-    public static FieldInterfaced getNameField(Class entityClass) {
+    public static FieldInterfaced getNameField(Class entityClass, boolean toStringPreferred) {
         FieldInterfaced fName = null;
         Method toStringMethod = getMethod(entityClass, "toString");
         boolean toStringIsOverriden = toStringMethod != null && toStringMethod.getDeclaringClass().equals(entityClass);
-        if (!toStringIsOverriden) {
+        if (!toStringPreferred || !toStringIsOverriden) {
             boolean hayName = false;
             for (FieldInterfaced ff : getAllFields(entityClass))
                 if ("name".equalsIgnoreCase(ff.getName()) ||  "nombre".equalsIgnoreCase(ff.getName())) {

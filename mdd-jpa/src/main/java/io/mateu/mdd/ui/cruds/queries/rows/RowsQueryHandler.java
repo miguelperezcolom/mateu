@@ -41,7 +41,7 @@ public class RowsQueryHandler {
         Map map = new HashMap();
         if (values != null) {
             for (int i = 0; i < values.length; i++) {
-                map.put(query.getAliasedColumnNamesList().get(i), values[i]);
+                map.put("col" + i, values[i]);
             }
         }
         return map;

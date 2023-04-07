@@ -10,7 +10,9 @@ import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class CrudMetadataBuilder extends AbstractMetadataBuilder {
@@ -42,24 +44,30 @@ public class CrudMetadataBuilder extends AbstractMetadataBuilder {
 
     private List<Column> buildColumns(Listing rpcView) {
         Class rowClass = rpcView.getRowClass();
-        List<FieldInterfaced> allRowFields = ReflectionHelper.getAllFields(rowClass);
+        Map<FieldInterfaced, String> columnIdsPerField = new HashMap<>();
+        Map<FieldInterfaced, String> columnCaptionsPerField = new HashMap<>();
+        List<FieldInterfaced> allRowFields = null;
         if (rpcView instanceof RpcCrudViewExtended) {
-            List<String> validColumnIds = ((RpcCrudViewExtended) rpcView).getColumnFields();
-            if (validColumnIds.size() > 0) {
-                allRowFields = allRowFields.stream().filter(f -> validColumnIds.contains(f.getId()))
-                        .collect(Collectors.toList());
-            }
+            allRowFields = ((RpcCrudViewExtended) rpcView).getColumnFields();
+            columnIdsPerField.putAll(((RpcCrudViewExtended) rpcView).getColumnIdsPerField());
+            columnCaptionsPerField.putAll(((RpcCrudViewExtended) rpcView).getColumnCaptionsPerField());
+        } else {
+            allRowFields = ReflectionHelper.getAllFields(rowClass);
         }
         return allRowFields.stream()
                 .filter(fieldInterfaced -> !fieldInterfaced.isAnnotationPresent(Ignored.class))
-                .map(fieldInterfaced -> getColumn(fieldInterfaced))
+                .map(fieldInterfaced -> getColumn(
+                        columnIdsPerField.getOrDefault(fieldInterfaced, fieldInterfaced.getId()),
+                        columnCaptionsPerField.getOrDefault(fieldInterfaced,
+                                ReflectionHelper.getCaption(fieldInterfaced)),
+                        fieldInterfaced))
                 .collect(Collectors.toList());
     }
 
-    private Column getColumn(FieldInterfaced fieldInterfaced) {
+    private Column getColumn(String columnId, String columnCaption, FieldInterfaced fieldInterfaced) {
         return Column.builder()
-                .id(fieldInterfaced.getId())
-                .caption(ReflectionHelper.getCaption(fieldInterfaced))
+                .id(columnId)
+                .caption(columnCaption)
                 .type(getType(fieldInterfaced))
                 .stereotype("column")
                 .attributes(List.of())

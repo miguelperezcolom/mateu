@@ -27,6 +27,9 @@ public class DemoApp implements Runnable {
     @Submenu("Some cruds")
     private CrudsSubmenu cruds;
 
+    @Submenu("NFL")
+    private NFLSubmenu nfl;
+
     @Submenu("Star Wars")
     private SWSubmenu sw;
 

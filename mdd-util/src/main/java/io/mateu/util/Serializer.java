@@ -5,14 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.util.persistence.EntityDeserializer;
 import io.mateu.util.persistence.EntitySerializer;
-import io.mateu.util.reflection.MiniReflectionHelper;
-
 import jakarta.persistence.Entity;
+
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 public class Serializer {
@@ -39,19 +35,12 @@ public class Serializer {
 
     public static <T> T fromJson(String json, Class<T> c) throws Exception {
         if (json == null || "".equals(json)) json = "{}";
-        if (c.isAnnotationPresent(Entity.class)) {
-            return entityFromJson(json, c);
-        }
         return pojoFromJson(json, c);
     }
 
     public static <T> T pojoFromJson(String json, Class<T> c) throws Exception {
         if (json == null || "".equals(json)) json = "{}";
         return mapper.readValue(json, c);
-    }
-
-    private static <T> T entityFromJson(String json, Class<T> c) throws Exception {
-        return Helper.getImpl(EntityDeserializer.class).fromJson(json, c);
     }
 
     public static String toJson(Object o) throws Exception {
@@ -74,9 +63,6 @@ public class Serializer {
             return null;
         }
         String json = toJson(map);
-        if (c.isAnnotationPresent(Entity.class)) {
-            return entityFromJson(json, c);
-        }
         return pojoFromJson(json, c);
     }
 

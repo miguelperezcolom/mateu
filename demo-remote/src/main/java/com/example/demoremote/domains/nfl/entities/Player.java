@@ -1,6 +1,7 @@
 package com.example.demoremote.domains.nfl.entities;
 
 import io.mateu.mdd.shared.annotations.Section;
+import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,7 +22,8 @@ public class Player {
 
     private Position position;
 
-    private String team;
+    @ManyToOne
+    private Team team;
 
     @Section("Metrics")
     private int age;

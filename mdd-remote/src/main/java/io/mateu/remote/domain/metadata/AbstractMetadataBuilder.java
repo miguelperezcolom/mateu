@@ -13,6 +13,7 @@ import io.mateu.remote.dtos.Action;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -53,6 +54,12 @@ public abstract class AbstractMetadataBuilder {
             attributes.add(Pair.builder()
                             .key("itemprovider")
                             .value(field.getAnnotation(ItemsProvider.class).value().getName())
+                    .build());
+        }
+        if (field.isAnnotationPresent(ManyToOne.class)) {
+            attributes.add(Pair.builder()
+                    .key("itemprovider")
+                    .value(field.getType().getName())
                     .build());
         }
         if (field.isAnnotationPresent(ValuesProvider.class)) {
@@ -156,6 +163,9 @@ public abstract class AbstractMetadataBuilder {
         if (field.isAnnotationPresent(ItemsProvider.class)) {
             return "externalref";
         }
+        if (field.isAnnotationPresent(ManyToOne.class)) {
+            return "externalref";
+        }
         if (isFile(field)) {
             return "file";
         }
@@ -211,6 +221,9 @@ public abstract class AbstractMetadataBuilder {
                 value = "enum";
             }
             return value + "[]";
+        }
+        if (field.isAnnotationPresent(ManyToOne.class)) {
+            return ExternalReference.class.getSimpleName();
         }
         return type.getSimpleName();
     }

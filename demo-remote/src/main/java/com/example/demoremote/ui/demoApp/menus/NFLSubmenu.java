@@ -10,28 +10,29 @@ import io.mateu.mdd.shared.interfaces.JpaCrud;
 
 import java.util.List;
 
-public class CrudsSubmenu {
+public class NFLSubmenu {
 
     @MenuOption
-    private ProgrammingLanguages programmingLanguages;
+    private JpaCrud<Team> teams = new JpaCrud<Team>() {
+        @Override
+        public boolean isReadOnly() {
+            return true;
+        }
+    };
 
     @MenuOption
-    private JpaCrud<City> cities = new JpaCrud<City>() {
+    private JpaCrud<Player> players = new JpaCrud<Player>() {
 
         @Override
         public List<String> getSearchFilterFields() {
-            return List.of("name", "country", "population");
+            return List.of("name", "position", "team");
         }
 
         @Override
         public List<String> getColumnFields() {
-            return List.of("name", "country", "population");
+            return List.of("name", "position", "team.name", "age");
         }
 
     };
-
-
-    @MenuOption
-    JourneyContainerCrud journeyContainers;
 
 }

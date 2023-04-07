@@ -15,7 +15,9 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -59,6 +61,15 @@ public class Populator {
     public void doPopulate() throws Exception {
         String json = Helper.leerFichero(Reader.class, "/nfl.json");
         TargetPlayerDto[] players = Helper.fromJson(json, TargetPlayerDto[].class);
+
+        List<String> teams = Arrays.stream(players).map(p -> p.getTeam()).distinct().collect(Collectors.toList());
+        Map<String, Team> teamsByName = new HashMap<>();
+        AtomicInteger id = new AtomicInteger(1);
+        teams.forEach(t -> {
+            Team team = teamRepository.save(new Team("" + id.getAndIncrement(), t));
+            teamsByName.put(t, team);
+        });
+
         for (TargetPlayerDto player : players) {
             Player p = new Player();
             p.setName(player.getName());
@@ -66,18 +77,12 @@ public class Populator {
             p.setHeight(player.getHeight());
             p.setPosition(Position.getEnum(player.getPosition()));
             p.setId(player.getId());
-            p.setTeam(player.getTeam());
+            p.setTeam(teamsByName.get(player.getTeam()));
             p.setWeight(player.getWeight());
             playerRepository.save(p);
         }
 
-        List<String> teams = Arrays.stream(players).map(p -> p.getTeam()).distinct().collect(Collectors.toList());
-
-        AtomicInteger id = new AtomicInteger(1);
-        teams.forEach(t -> teamRepository.save(new Team("" + id.getAndIncrement(), t)));
-
         List<String> positions = Arrays.stream(players).map(p -> p.getPosition()).distinct().collect(Collectors.toList());
-
         positions.forEach(t -> System.out.println(t));
 
         System.out.println(positions.size());

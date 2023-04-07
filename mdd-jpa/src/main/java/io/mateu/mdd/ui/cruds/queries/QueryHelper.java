@@ -49,12 +49,10 @@ public class QueryHelper {
         if (addOrderClause) {
             String oc = "";
             if (sortOrders != null) for (SortCriteria qso : sortOrders) {
-                if (!"".equals(oc)) oc += ", ";
-                oc += "col" + getColumnIndex(query, query.getAliasedColumnNamesByColId().entrySet().stream()
-                        .filter(e -> e.getValue().equals(qso.getColumn()))
-                        .map(e -> e.getKey())
-                        .findFirst()
-                        .get()) + " " + ((SortType.Descending.equals(qso.getOrder()))?"desc":"asc");
+                if (!SortType.None.equals(qso.getOrder())) {
+                    if (!"".equals(oc)) oc += ", ";
+                    oc += qso.getColumn() + " " + ((SortType.Descending.equals(qso.getOrder()))?"desc":"asc");
+                }
             }
             List<FieldInterfaced> orderCols = new ArrayList<>();
             for (FieldInterfaced f : ReflectionHelper.getAllFields(entityClass)) {

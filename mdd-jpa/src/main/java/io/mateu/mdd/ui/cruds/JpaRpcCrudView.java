@@ -22,6 +22,8 @@ import io.mateu.mdd.ui.cruds.queries.rows.RowsQueryHandler;
 import io.mateu.mdd.ui.cruds.queries.sums.SumsQuery;
 import io.mateu.mdd.ui.cruds.queries.sums.SumsQueryHandler;
 import io.mateu.reflection.ReflectionHelper;
+import io.mateu.util.Helper;
+import io.mateu.util.data.Pair;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.springframework.context.annotation.Scope;
@@ -175,7 +177,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
 
     @Override
     public Class getRowClass() {
-        return action.getEntityClass();
+        return HashMap.class;
     }
 
     public boolean isAddEnabled() {
@@ -184,6 +186,21 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
 
     public boolean isEditHandled() {
         return !action.isReadOnly();
+    }
+
+    @Override
+    public Map<FieldInterfaced, String> getColumnIdsPerField() {
+        return fieldsByColId.entrySet()
+                        .stream()
+                        .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+    }
+
+    @Override
+    public Map<FieldInterfaced, String> getColumnCaptionsPerField() {
+        return columnNames.stream().filter(n -> n.contains("."))
+                .map(n -> new Pair(n, fieldsByColumnName.get(n)))
+                .map(p -> new Pair(Helper.capitalize((String) p.getKey()), p.getValue()))
+                .collect(Collectors.toMap(p -> (FieldInterfaced) p.getValue(), p -> (String) p.getKey()));
     }
 
     public boolean isDeleteEnabled() {
@@ -393,8 +410,9 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     }
 
     @Override
-    public List<String> getColumnFields() {
-        return visibleColumns;
+    public List<FieldInterfaced> getColumnFields() {
+        return visibleColumns.stream().map(fn -> fieldsByColumnName.get(fn))
+                .collect(Collectors.toList());
     }
 
     public void delete(Set<Object> selection) throws Throwable {
@@ -410,8 +428,15 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
 
     public Object getDetail(Object id) throws Throwable {
         return ReflectionHelper.newInstance(FindByIdQueryHandler.class).run(
-                FindByIdQuery.builder().id(ReflectionHelper.getId(id)).entityClass(action.getEntityClass()).build()
+                FindByIdQuery.builder().id(getId(id)).entityClass(action.getEntityClass()).build()
         );
+    }
+
+    private Object getId(Object row) {
+        if (row instanceof Map) {
+            return ((Map) row).get("col0");
+        }
+        return ReflectionHelper.getId(row);
     }
 
     public Object getNewRecordForm() throws Throwable {

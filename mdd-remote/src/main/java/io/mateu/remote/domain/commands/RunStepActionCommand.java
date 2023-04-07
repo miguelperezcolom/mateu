@@ -17,6 +17,7 @@ import io.mateu.remote.dtos.Form;
 import io.mateu.remote.dtos.Step;
 import io.mateu.util.Helper;
 import io.mateu.util.Serializer;
+import io.mateu.util.persistence.EntityDeserializer;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
@@ -240,9 +241,8 @@ public class RunStepActionCommand {
 
         } else if (viewInstance instanceof EntityEditor && "save".equals(actionId)) {
             EntityEditor entityEditor = (EntityEditor) viewInstance;
-            Object entity = Serializer.fromMap(data, entityEditor.getEntityClass());
             Merger merger = store.getApplicationContext().getBean(Merger.class);
-            merger.mergeAndCommit(entity);
+            merger.mergeAndCommit(data, entityEditor.getEntityClass());
             data.remove("__entityClassName__");
             entityEditor.setData(data);
             store.setStep(journeyId, stepId, entityEditor);

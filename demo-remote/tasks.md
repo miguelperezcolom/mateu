@@ -2,31 +2,27 @@
 
 ## Short term
 
-- revisar urls. Meter el id del registro?
-- @OneToMany
+### Viernes
+- UOC
+### Sábado
+- @OneToMany / collections
 - @ManyToOne
-- byte[]
-- Object
-- records
-- URL
-- métodos con parámetros
-
 - incidencia details anidados con cruds
-
+### Domingo
+- métodos con parámetros
+- si no CanEdit, entonces no enseñar botón Edit
+- @UseWebComponent + @NpmImport + mapear atributos y **eventos**
+  - https://web.dev/model-viewer/
+  - https://axa-ch-webhub-cloud.github.io/plib-feature/develop/?path=/story/components--input-phone
+  - 
+- Section y FieldGroup interfaces
+### Lunes
 - RemoteUI
 - gestión errores
 - validaciones javax
 - HasIcon, HasTitle, HasCss, ...
-
-- Implementar los repositorios a mano? con JPAHelper?
-- Visor repo journeys y memoria utilizada
-
-- adaptador pageable y sort springboot
-- si no CanEdit, entonces no enseñar botón Edit
-- @UseWebComponent + @NpmImport + mapear atributos y eventos
-- Section y FieldGroup interfaces
-- Exportar dtos e interfaz Component? documentar solo? openapi?
-
+### Martes
+- revisar urls. Meter el id del registro?
 - cron limpieza store journeys
 
 ### Not mandatory
@@ -37,6 +33,12 @@
 - Callable
 - No pasar datos que no enseñemos?
 - Hacer reactivo
+
+- Implementar los repositorios a mano? con JPAHelper?
+- Visor repo journeys y memoria utilizada
+
+- adaptador pageable y sort springboot
+- Exportar dtos e interfaz Component? documentar solo? openapi?
 
 
 ## Middle term
