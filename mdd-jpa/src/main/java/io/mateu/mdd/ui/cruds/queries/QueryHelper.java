@@ -6,10 +6,7 @@ import io.mateu.mdd.shared.interfaces.SortCriteria;
 import io.mateu.mdd.shared.interfaces.SortType;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Version;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -184,6 +181,14 @@ public class QueryHelper {
                     if (!"".equals(ql)) ql += " and ";
                     ql += " x." + fname + " " + ((f.getName().endsWith("From"))?">=":"<=") + " :" + f.getName() + " ";
                     parameterValues.put(f.getName(), v);
+
+                } else if (v instanceof Map && f.isAnnotationPresent(ManyToOne.class)) {
+                    v = ((Map)v).get("value");
+                    FieldInterfaced idField = ReflectionHelper.getIdField(f.getType());
+
+                    if (!"".equals(ql)) ql += " and ";
+                    ql += " x." + f.getName() + "." + idField.getId() + " = :" + f.getName() + "_" + idField.getId() + " ";
+                    parameterValues.put(f.getName() + "_" + idField.getId(), v);
 
                 } else {
 

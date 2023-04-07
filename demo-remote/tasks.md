@@ -6,7 +6,7 @@
 - UOC
 ### Sábado
 - @OneToMany / collections
-- @ManyToOne
+- @ManyToOne (casi)
 - incidencia details anidados con cruds
 ### Domingo
 - métodos con parámetros
