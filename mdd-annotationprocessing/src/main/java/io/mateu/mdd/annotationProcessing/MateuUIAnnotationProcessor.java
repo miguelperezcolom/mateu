@@ -2,6 +2,7 @@ package io.mateu.mdd.annotationProcessing;
 
 import com.google.auto.service.AutoService;
 import freemarker.template.TemplateException;
+import io.mateu.mdd.shared.annotations.ExternalScripts;
 import io.mateu.mdd.shared.annotations.MateuUI;
 import io.mateu.mdd.shared.annotations.Caption;
 
@@ -12,6 +13,8 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -79,6 +82,12 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
         try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
             // writing generated file to out …
 
+            String[] externalScripts = null;
+            if (e.getAnnotation(ExternalScripts.class) != null) {
+                externalScripts = e.getAnnotation(ExternalScripts.class).value();
+            }
+            if (externalScripts == null) externalScripts = new String[0];
+
             Formatter formatter = new Formatter("index.ftl", Map.of(
                     "pkgName", pkgName
                     , "className", className
@@ -87,6 +96,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                     , "generatedFullClassName", generatedFullClassName
                     , "caption", caption
                     , "path", path
+                    , "externalScripts", externalScripts
             ));
             try {
                 out.println(formatter.apply());

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Caption("This is a demo")
 @MateuUI("")
+@ExternalScripts("https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js")
 public class DemoApp implements Runnable {
 
     @MenuOption

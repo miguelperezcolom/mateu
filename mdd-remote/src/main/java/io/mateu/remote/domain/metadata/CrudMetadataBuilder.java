@@ -1,14 +1,13 @@
 package io.mateu.remote.domain.metadata;
 
-import io.mateu.mdd.core.interfaces.HasSubtitle;
-import io.mateu.mdd.core.interfaces.HasTitle;
-import io.mateu.mdd.core.interfaces.RpcCrudViewExtended;
+import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.shared.annotations.Ignored;
 import io.mateu.mdd.shared.annotations.Width;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
+import io.mateu.remote.dtos.Crud;
 
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +20,7 @@ public class CrudMetadataBuilder extends AbstractMetadataBuilder {
         return Crud.builder()
                 .title(getTitle(rpcView))
                 .subtitle(getSubtitle(rpcView))
+                .canEdit(rpcView instanceof Edits)
                 .searchForm(buildSearchForm(rpcView))
                 .columns(buildColumns(rpcView))
                 .actions(getActions(stepId, listId, rpcView))

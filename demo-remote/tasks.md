@@ -10,11 +10,9 @@
 - incidencia details anidados con cruds
 ### Domingo
 - métodos con parámetros
-- si no CanEdit, entonces no enseñar botón Edit
 - @UseWebComponent + @NpmImport + mapear atributos y **eventos**
   - https://web.dev/model-viewer/
   - https://axa-ch-webhub-cloud.github.io/plib-feature/develop/?path=/story/components--input-phone
-  - 
 - Section y FieldGroup interfaces
 ### Lunes
 - RemoteUI

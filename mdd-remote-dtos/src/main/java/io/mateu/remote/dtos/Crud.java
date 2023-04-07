@@ -17,6 +17,8 @@ public class Crud implements ViewMetadata {
 
     private String subtitle;
 
+    private boolean canEdit;
+
     private SearchForm searchForm;
 
     private List<Column> columns;

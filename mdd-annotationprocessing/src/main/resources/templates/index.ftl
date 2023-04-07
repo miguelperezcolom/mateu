@@ -19,6 +19,9 @@ public class ${simpleClassName}Controller {
     @GetMapping(value = "", produces = MediaType.TEXT_HTML_VALUE)
     public String getIndex() {
         String html = Helper.leerFichero(this.getClass(), "/npm/mateu/index.html");
+<#list externalScripts as x>
+        html = html.replaceAll("<title>AQUIELTITULODELAPAGINA</title>", "<script type=\"module\" src=\"${x}\"></script><title>AQUIELTITULODELAPAGINA</title>");
+</#list>
         html = html.replaceAll("AQUIELTITULODELAPAGINA", "${caption}");
         html = html.replaceAll("http:\\/\\/localhost:8081\\/mateu\\/v1", "/mateu/v1");
         html = html.replaceAll("com\\.example\\.demoremote\\.ui\\.demoApp\\.DemoApp", "${className}");

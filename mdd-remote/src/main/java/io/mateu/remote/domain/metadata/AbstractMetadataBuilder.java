@@ -172,6 +172,9 @@ public abstract class AbstractMetadataBuilder {
         if (field.isAnnotationPresent(ValuesProvider.class)) {
             return "closedlist";
         }
+        if (field.getType().isAnnotationPresent(Element.class)) {
+            return "element:" + field.getType().getAnnotation(Element.class).value();
+        }
         return "input";
     }
 
