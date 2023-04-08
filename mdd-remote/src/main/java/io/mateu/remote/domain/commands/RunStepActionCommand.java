@@ -10,6 +10,7 @@ import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.editors.FieldEditor;
+import io.mateu.remote.domain.editors.MethodParametersEditor;
 import io.mateu.remote.domain.files.StorageServiceAccessor;
 import io.mateu.remote.domain.persistence.Merger;
 import io.mateu.remote.domain.store.JourneyStoreService;
@@ -273,6 +274,27 @@ public class RunStepActionCommand {
         } else if (viewInstance instanceof FieldEditor && "cancel".equals(actionId)) {
             FieldEditor fieldEditor = (FieldEditor) viewInstance;
             store.backToStep(journeyId, fieldEditor.getInitialStep());
+        } else if (viewInstance instanceof MethodParametersEditor && "run".equals(actionId)) {
+            MethodParametersEditor methodParametersEditor = (MethodParametersEditor) viewInstance;
+
+            Step initialStep = store.getStep(journeyId, methodParametersEditor.getInitialStep());
+
+            Object object = Serializer.fromMap(methodParametersEditor.getData(),
+                    methodParametersEditor.getType());
+
+            Method m = ReflectionHelper.getMethod(methodParametersEditor.getType(), methodParametersEditor.getMethodId());
+            List<Object> values = new ArrayList<>();
+            for (int i = 0; i < m.getParameterCount(); i++) {
+                values.add(getActualValue(m.getParameterTypes()[i], data.get("param_" + i)));
+            }
+            m.invoke(object, values.toArray());
+
+            store.setStep(journeyId, initialStep.getId(), object);
+
+            store.backToStep(journeyId, initialStep.getId()); // will save the step
+        } else if (viewInstance instanceof MethodParametersEditor && "cancel".equals(actionId)) {
+            MethodParametersEditor methodParametersEditor = (MethodParametersEditor) viewInstance;
+            store.backToStep(journeyId, methodParametersEditor.getInitialStep());
         } else if (viewInstance instanceof Result) {
             Step step = store.getStep(journeyId, actionId);
             store.getJourney(journeyId).setCurrentStepId(step.getId());
@@ -297,19 +319,30 @@ public class RunStepActionCommand {
 
             Method m = actions.get(actionId);
 
-            Object result = m.invoke(viewInstance);
+            if (m.getParameterCount() > 0) {
 
-            store.setStep(journeyId, stepId, viewInstance);
+                store.setStep(journeyId, actionId, new MethodParametersEditor(viewInstance,
+                        m.getName(),
+                        store.getCurrentStep(journeyId).getId()));
 
-            Object whatToShow = result;
-            if (!void.class.equals(m.getReturnType())) {
-                if (whatToShow instanceof Result) {
-                    addBackDestination((Result) whatToShow,
-                            store.getInitialStep(journeyId));
+            } else {
+
+                Object result = m.invoke(viewInstance);
+
+                store.setStep(journeyId, stepId, viewInstance);
+
+                Object whatToShow = result;
+                if (!void.class.equals(m.getReturnType())) {
+                    if (whatToShow instanceof Result) {
+                        addBackDestination((Result) whatToShow,
+                                store.getInitialStep(journeyId));
+                    }
+                    String newStepId = "result_" + UUID.randomUUID().toString();
+                    store.setStep(journeyId, newStepId, whatToShow);
                 }
-                String newStepId = "result_" + UUID.randomUUID().toString();
-                store.setStep(journeyId, newStepId, whatToShow);
+
             }
+
         } else {
             throw new Exception("Unkonwn action " + actionId);
         }
@@ -331,6 +364,40 @@ public class RunStepActionCommand {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static Object getActualValue(Class targetType, Object value) throws Exception {
+        Object targetValue = value;
+        if (value == null) {
+            if (int.class.equals(targetType)) {
+                return 0;
+            }
+            if (long.class.equals(targetType)) {
+                return 0l;
+            }
+            if (double.class.equals(targetType)) {
+                return 0.0;
+            }
+            if (boolean.class.equals(targetType)) {
+                return false;
+            }
+            return null;
+        }
+        if (!targetType.equals(value.getClass())) {
+            if (int.class.equals(targetType)) {
+                targetValue = Integer.parseInt("" + value);
+            }
+            if (long.class.equals(targetType)) {
+                targetValue = Long.parseLong("" + value);
+            }
+            if (double.class.equals(targetType)) {
+                targetValue = Double.parseDouble("" + value);
+            }
+            if (boolean.class.equals(targetType)) {
+                targetValue = Integer.parseInt("" + value);
+            }
+        }
+        return targetValue;
     }
 
     public static Object getActualValue(Map.Entry<String, Object> entry, Object viewInstance) throws Exception {
@@ -454,6 +521,8 @@ public class RunStepActionCommand {
                         targetValue = LocalTime.parse((String) entry.getValue());
                     } else if (f.getType().isEnum()) {
                         targetValue = Enum.valueOf((Class) f.getType(), (String) entry.getValue());
+                    } else if (Class.class.equals(f.getType())) {
+                        targetValue = Class.forName((String) entry.getValue());
                     }
                 }
                 if (entry.getValue() instanceof Map) {

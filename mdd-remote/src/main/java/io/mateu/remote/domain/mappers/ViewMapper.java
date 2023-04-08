@@ -10,8 +10,10 @@ import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.editors.FieldEditor;
+import io.mateu.remote.domain.editors.MethodParametersEditor;
 import io.mateu.remote.domain.metadata.CrudMetadataBuilder;
 import io.mateu.remote.domain.metadata.FormMetadataBuilder;
+import io.mateu.remote.domain.metadata.MethodParametersEditorMetadataBuilder;
 import io.mateu.remote.domain.metadata.ResultMetadataBuilder;
 import io.mateu.remote.domain.store.JourneyContainer;
 import io.mateu.remote.domain.store.JourneyStoreService;
@@ -45,6 +47,9 @@ public class ViewMapper {
         } else if (uiInstance instanceof FieldEditor) {
             FieldEditor fieldEditor = (FieldEditor) uiInstance;
             actualUiInstance = Helper.fromJson(Helper.toJson(fieldEditor.getData()), fieldEditor.getType());
+        } else if (uiInstance instanceof MethodParametersEditor) {
+            MethodParametersEditor methodParametersEditor = (MethodParametersEditor) uiInstance;
+            //actualUiInstance = Helper.fromJson(Helper.toJson(fieldEditor.getData()), fieldEditor.getType());
         } else if (("view".equals(stepId) || "edit".equals(stepId)) && journeyContainer.getInitialStep() != null
                 && "io.mateu.mdd.ui.cruds.JpaRpcCrudView".equals(journeyContainer.getInitialStep().getType())) { //todo: check si es un crud jpa
             RpcCrudViewExtended rpcCrudView = (RpcCrudViewExtended) JourneyStoreService.get()
@@ -244,6 +249,8 @@ public class ViewMapper {
             metadata = getJourneyStarter((io.mateu.mdd.shared.interfaces.JourneyStarter) uiInstance);
         } else if (uiInstance instanceof io.mateu.mdd.shared.interfaces.JourneyRunner) {
             metadata = getJourneyRunner((io.mateu.mdd.shared.interfaces.JourneyRunner) uiInstance);
+        } else if (uiInstance instanceof MethodParametersEditor) {
+            metadata = getMethodParametersEditor(stepId, (MethodParametersEditor) uiInstance);
         } else if (uiInstance instanceof Result) {
             metadata = getResult((Result) uiInstance);
         } else if (uiInstance instanceof Listing) {
@@ -268,6 +275,10 @@ public class ViewMapper {
         return JourneyStarter.builder()
                 .baseUrl(uiInstance.getBaseUrl())
                 .build();
+    }
+
+    private Form getMethodParametersEditor(String stepId, MethodParametersEditor uiInstance) {
+        return new MethodParametersEditorMetadataBuilder().build(stepId, uiInstance);
     }
 
     private io.mateu.remote.dtos.Result getResult(Result uiInstance) {

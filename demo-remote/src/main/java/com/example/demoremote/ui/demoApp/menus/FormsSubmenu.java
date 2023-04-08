@@ -20,15 +20,18 @@ public class FormsSubmenu {
     private ReturnsResult returnsResult;
 
     @MenuOption
-    private UrlAndTextForm urlAndTextForm;
+    private UrlAndTextForm urlAndText;
 
     @MenuOption
-    private HideFieldForm hideFieldForm;
+    private HideFieldForm hideField;
 
     @MenuOption
-    private SameLineForm sameLineForm;
+    private SameLineForm sameLine;
 
     @MenuOption
-    private WebComponentForm webComponentForm;
+    private ActionsWithParametersForm actionsWithParameters;
+
+    @MenuOption
+    private WebComponentForm webComponent;
 
 }
