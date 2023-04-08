@@ -23,6 +23,12 @@ public class FormsSubmenu {
     private UrlAndTextForm urlAndTextForm;
 
     @MenuOption
+    private HideFieldForm hideFieldForm;
+
+    @MenuOption
+    private SameLineForm sameLineForm;
+
+    @MenuOption
     private WebComponentForm webComponentForm;
 
 }

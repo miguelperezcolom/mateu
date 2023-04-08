@@ -6,11 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data@Builder@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
-public class FieldGroup {
-
-    private String id;
-
-    private String caption;
-
-    private List<FieldGroupLine> lines = new ArrayList<>();
+public class FieldGroupLine {
+    private List<Field> fields = new ArrayList<>();
 }

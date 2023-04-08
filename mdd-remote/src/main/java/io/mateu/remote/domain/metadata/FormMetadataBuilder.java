@@ -98,6 +98,7 @@ public class FormMetadataBuilder extends AbstractMetadataBuilder {
         List<Section> sections = new ArrayList<>();
         Section section = null;
         FieldGroup fieldGroup = null;
+        FieldGroupLine fieldGroupLine = null;
 
         List<FieldInterfaced> allEditableFields = ReflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
                 .filter(f -> !f.isAnnotationPresent(OneToMany.class)
@@ -127,10 +128,14 @@ public class FormMetadataBuilder extends AbstractMetadataBuilder {
                 if (fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.FieldGroup.class)) {
                     caption = fieldInterfaced.getAnnotation(io.mateu.mdd.shared.annotations.FieldGroup.class).value();
                 }
-                fieldGroup = FieldGroup.builder().caption(caption).fields(new ArrayList<>()).build();
+                fieldGroup = FieldGroup.builder().caption(caption).lines(new ArrayList<>()).build();
                 section.getFieldGroups().add(fieldGroup);
             }
-            fieldGroup.getFields().add(getField(fieldInterfaced));
+            if (fieldGroupLine == null || !fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.SameLine.class)) {
+                fieldGroupLine = FieldGroupLine.builder().fields(new ArrayList<>()).build();
+                fieldGroup.getLines().add(fieldGroupLine);
+            }
+            fieldGroupLine.getFields().add(getField(fieldInterfaced));
         }
 
         fillSectionIds(sections);

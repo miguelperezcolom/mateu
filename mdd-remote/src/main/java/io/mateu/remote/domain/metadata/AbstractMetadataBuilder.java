@@ -53,6 +53,12 @@ public abstract class AbstractMetadataBuilder {
 
     private List<Pair> buildAttributes(FieldInterfaced field) {
         List<Pair> attributes = new ArrayList<>();
+        if (field.isAnnotationPresent(Width.class)) {
+            attributes.add(Pair.builder()
+                            .key("width")
+                            .value(field.getAnnotation(Width.class).value())
+                    .build());
+        }
         if (field.isAnnotationPresent(ItemsProvider.class)) {
             attributes.add(Pair.builder()
                             .key("itemprovider")

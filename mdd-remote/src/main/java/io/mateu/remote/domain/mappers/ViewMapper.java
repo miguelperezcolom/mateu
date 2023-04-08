@@ -3,8 +3,10 @@ package io.mateu.remote.domain.mappers;
 import io.mateu.mdd.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.core.interfaces.RpcCrudViewExtended;
+import io.mateu.mdd.shared.annotations.VisibleIf;
 import io.mateu.mdd.shared.data.Result;
 import io.mateu.mdd.shared.interfaces.Listing;
+import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.editors.FieldEditor;
@@ -59,7 +61,7 @@ public class ViewMapper {
                 Component.builder()
                         .metadata(metadata)
                         .data(getData(uiInstance, actualUiInstance))
-                        .rules(List.of())
+                        .rules(buildRules(metadata, actualUiInstance))
                         .slot("main")
                         .attributes(new HashMap<>())
                         .build()
@@ -81,6 +83,21 @@ public class ViewMapper {
                 .build();
 
         return view;
+    }
+
+    private List<Rule> buildRules(ViewMetadata metadata, Object actualUiInstance) {
+        List<Rule> rules = new ArrayList<>();
+        if (metadata instanceof Form) {
+            List<FieldInterfaced> allEditableFields = ReflectionHelper.getAllEditableFields(actualUiInstance.getClass());
+            allEditableFields
+                    .stream().filter(f -> f.isAnnotationPresent(VisibleIf.class))
+                    .forEach(f -> rules.add(Rule.builder()
+                            .filter("!(" + f.getAnnotation(VisibleIf.class).value() + ")")
+                                    .data(new String[] {f.getId()})
+                                    .action(RuleAction.Hide)
+                    .build()));
+        }
+        return rules;
     }
 
     private void addActionsForFieldEditor(Form metadata, FieldEditor fieldEditor) {

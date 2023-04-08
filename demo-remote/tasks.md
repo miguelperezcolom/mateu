@@ -5,8 +5,10 @@
 ### Viernes
 - UOC
 ### Sábado
+- VisibleIf
+- SameRow
+- Private + ReadOnly
 - @OneToMany / checkboxes
-- @OneToMany / chips
 - @ManyToOne (falta filtro tipo team.name)
 - incidencia details anidados con cruds
 ### Domingo
@@ -15,8 +17,6 @@
   - https://web.dev/model-viewer/
   - https://axa-ch-webhub-cloud.github.io/plib-feature/develop/?path=/story/components--input-phone
 - Section y FieldGroup interfaces
-- VisibleIf
-- Private + ReadOnly
 ### Lunes
 - RemoteUI
   - https://explorer.mateu.io/mateu/v1/journeys/5I25fcaqKUgsKajiZpjHu
