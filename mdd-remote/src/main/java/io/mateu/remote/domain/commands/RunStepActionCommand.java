@@ -287,11 +287,21 @@ public class RunStepActionCommand {
             for (int i = 0; i < m.getParameterCount(); i++) {
                 values.add(getActualValue(m.getParameterTypes()[i], data.get("param_" + i)));
             }
-            m.invoke(object, values.toArray());
+            Object result = m.invoke(object, values.toArray());
 
             store.setStep(journeyId, initialStep.getId(), object);
 
-            store.backToStep(journeyId, initialStep.getId()); // will save the step
+            Object whatToShow = result;
+            if (!void.class.equals(m.getReturnType())) {
+                if (whatToShow instanceof Result) {
+                    addBackDestination((Result) whatToShow,
+                            store.getInitialStep(journeyId));
+                }
+                String newStepId = "result_" + UUID.randomUUID().toString();
+                store.setStep(journeyId, newStepId, whatToShow);
+            } else {
+                store.backToStep(journeyId, initialStep.getId()); // will save the step
+            }
         } else if (viewInstance instanceof MethodParametersEditor && "cancel".equals(actionId)) {
             MethodParametersEditor methodParametersEditor = (MethodParametersEditor) viewInstance;
             store.backToStep(journeyId, methodParametersEditor.getInitialStep());
