@@ -1,10 +1,7 @@
 package com.example.demoremote.ui.demoApp.menus.forms;
 
 import com.example.demoremote.domains.programmingLanguages.ProgrammingLanguages;
-import io.mateu.mdd.shared.annotations.Action;
-import io.mateu.mdd.shared.annotations.Placeholder;
-import io.mateu.mdd.shared.annotations.ReadOnly;
-import io.mateu.mdd.shared.annotations.Section;
+import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.Badge;
 import io.mateu.mdd.shared.data.BadgeType;
 import io.mateu.mdd.shared.data.Status;
@@ -15,7 +12,7 @@ import lombok.Data;
 
 import java.util.List;
 
-@Data
+@Data@Caption("ead only pojo with crud")
 public class MyReadOnlyPojoWithCrud implements io.mateu.mdd.core.interfaces.ReadOnlyPojo, HasBadges, HasStatus {
 
     @Section("Basic")

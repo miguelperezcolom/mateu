@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
-@Data
+@Data@Caption("Read only pojo")
 public class MyReadOnlyPojo implements io.mateu.mdd.core.interfaces.ReadOnlyPojo, HasBadges, HasStatus {
 
     @Section("Basic")

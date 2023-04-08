@@ -1,12 +1,13 @@
 package com.example.demoremote.ui.demoApp.menus.forms;
 
 import io.mateu.mdd.shared.annotations.Action;
+import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.MainAction;
 import io.mateu.mdd.shared.data.Result;
 import io.mateu.mdd.shared.data.ResultType;
 import lombok.Data;
 
-@Data
+@Data@Caption("Returns result")
 public class ReturnsResult {
 
     private String name;

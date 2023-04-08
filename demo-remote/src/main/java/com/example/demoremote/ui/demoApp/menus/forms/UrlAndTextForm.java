@@ -9,7 +9,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 @Getter@Setter
-@Caption("UrlAndTextForm")
+@Caption("Url and text")
 public class UrlAndTextForm {
 
     @Placeholder("Google")

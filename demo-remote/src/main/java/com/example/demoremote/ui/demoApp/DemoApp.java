@@ -2,16 +2,20 @@ package com.example.demoremote.ui.demoApp;
 
 import com.example.demoremote.ui.demoApp.menus.*;
 import com.example.demoremote.ui.demoApp.menus.forms.BasicFieldsForm;
-import com.example.demoremote.ui.demoApp.menus.forms.MyReadOnlyPojo;
-import com.example.demoremote.ui.demoApp.menus.forms.MyReadOnlyPojoWithCrud;
-import io.mateu.mdd.shared.annotations.*;
+import io.mateu.mdd.core.interfaces.HasLogin;
+import io.mateu.mdd.shared.annotations.Caption;
+import io.mateu.mdd.shared.annotations.ExternalScripts;
+import io.mateu.mdd.shared.annotations.MateuUI;
+import io.mateu.mdd.shared.annotations.MenuOption;
+import io.mateu.mdd.shared.annotations.Private;
+import io.mateu.mdd.shared.annotations.Submenu;
 import org.springframework.stereotype.Component;
 
 @Component
 @Caption("This is a demo")
 @MateuUI("")
 @ExternalScripts("https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js")
-public class DemoApp implements Runnable {
+public class DemoApp implements Runnable, HasLogin {
 
     @MenuOption
     private BasicFieldsForm basicFields;
@@ -44,4 +48,8 @@ public class DemoApp implements Runnable {
         System.out.println("Hola");
     }
 
+    @Override
+    public String getLoginUrl() {
+        return "/login";
+    }
 }

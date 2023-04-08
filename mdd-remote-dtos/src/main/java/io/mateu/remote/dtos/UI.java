@@ -19,4 +19,8 @@ public class UI {
 
     private String homeJourneyTypeId;
 
+    private String loginUrl;
+
+    private String logoutUrl;
+
 }

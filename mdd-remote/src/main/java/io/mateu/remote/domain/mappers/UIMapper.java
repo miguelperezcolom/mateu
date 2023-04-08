@@ -1,6 +1,8 @@
 package io.mateu.remote.domain.mappers;
 
 import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.interfaces.HasLogin;
+import io.mateu.mdd.core.interfaces.HasLogout;
 import io.mateu.mdd.core.interfaces.HasSubtitle;
 import io.mateu.mdd.core.interfaces.HasTitle;
 import io.mateu.mdd.shared.annotations.MenuOption;
@@ -30,12 +32,21 @@ public class UIMapper {
             List<Menu> menuOptions = getMenu(uiInstance);
             ui.setMenu(menuOptions);
         }
+        if (uiInstance instanceof HasLogin) {
+            ui.setLoginUrl(((HasLogin) uiInstance).getLoginUrl());
+        }
+        if (uiInstance instanceof HasLogout) {
+            ui.setLogoutUrl(((HasLogout) uiInstance).getLogoutUrl());
+        }
 
         return ui;
     }
 
     private List<Menu> getMenu(Object uiInstance) {
-        return new MenuParser(uiInstance).parse().stream().map(e -> createMenu(e)).collect(Collectors.toList());
+        List<Menu> menu = new MenuParser(uiInstance).parse().stream()
+                .map(e -> createMenu("", e))
+                .collect(Collectors.toList());
+        return menu;
     }
 
     private boolean isForm(Object uiInstance) {
@@ -61,27 +72,28 @@ public class UIMapper {
         return ReflectionHelper.getCaption(uiInstance);
     }
 
-    private Menu createMenu(MenuEntry menuEntry) {
+    private Menu createMenu(String prefix, MenuEntry menuEntry) {
+        String journeyTypeId = prefix + Helper.camelcasize(menuEntry.getCaption());
         if (menuEntry instanceof AbstractMenu) {
             return Menu.builder()
                     .type(MenuType.Submenu)
                     .icon(menuEntry.getIcon())
                     .caption(menuEntry.getCaption())
-                    .submenus(createSubmenus((AbstractMenu) menuEntry))
+                    .submenus(createSubmenus(journeyTypeId + "_", (AbstractMenu) menuEntry))
                     .build();
         }
         if (menuEntry instanceof AbstractAction) {
-            JourneyStoreService.get().storeMenuAction(menuEntry.getId(), menuEntry);
+            JourneyStoreService.get().storeMenuAction(journeyTypeId, menuEntry);
         }
         return Menu.builder()
                 .type(MenuType.MenuOption)
                 .icon(menuEntry.getIcon())
-                .journeyTypeId(menuEntry.getId())
+                .journeyTypeId(journeyTypeId)
                 .caption(menuEntry.getCaption())
                 .build();
     }
 
-    private List<Menu> createSubmenus(AbstractMenu m) {
-        return m.getEntries().stream().map(e -> createMenu(e)).collect(Collectors.toList());
+    private List<Menu> createSubmenus(String prefix, AbstractMenu m) {
+        return m.getEntries().stream().map(e -> createMenu(prefix, e)).collect(Collectors.toList());
     }
 }
