@@ -4,18 +4,18 @@ public class RemoteUI {
 
     private final String baseUrl;
 
-    private final String path;
+    private final String uiId;
 
-    public RemoteUI(String baseUrl, String path) {
+    public RemoteUI(String baseUrl, String uiId) {
         this.baseUrl = baseUrl;
-        this.path = path;
+        this.uiId = uiId;
     }
 
     public String getBaseUrl() {
         return baseUrl;
     }
 
-    public String getPath() {
-        return path;
+    public String getUiId() {
+        return uiId;
     }
 }

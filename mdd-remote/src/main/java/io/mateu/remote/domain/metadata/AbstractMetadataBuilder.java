@@ -14,9 +14,12 @@ import io.mateu.remote.dtos.Action;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -61,6 +64,20 @@ public abstract class AbstractMetadataBuilder {
                     .key("itemprovider")
                     .value(field.getType().getName())
                     .build());
+        }
+        if (field.isAnnotationPresent(OneToMany.class)) {
+            if (field.isAnnotationPresent(UseChips.class)) {
+                attributes.add(Pair.builder()
+                        .key("itemprovider")
+                        .value(field.getGenericClass().getName())
+                        .build());
+            }
+            if (field.isAnnotationPresent(UseCheckboxes.class)) {
+                attributes.add(Pair.builder()
+                        .key("itemprovider")
+                        .value(field.getGenericClass().getName())
+                        .build());
+            }
         }
         if (field.isAnnotationPresent(ValuesProvider.class)) {
             try {
@@ -166,11 +183,17 @@ public abstract class AbstractMetadataBuilder {
         if (field.isAnnotationPresent(ManyToOne.class)) {
             return "externalref";
         }
+        if (field.isAnnotationPresent(UseChips.class)) {
+            return "externalref";
+        }
         if (isFile(field)) {
             return "file";
         }
         if (field.isAnnotationPresent(ValuesProvider.class)) {
             return "closedlist";
+        }
+        if (field.isAnnotationPresent(UseCheckboxes.class)) {
+            return "externalref-checkboxes";
         }
         if (field.getType().isAnnotationPresent(Element.class)) {
             return "element:" + field.getType().getAnnotation(Element.class).value();
@@ -212,6 +235,14 @@ public abstract class AbstractMetadataBuilder {
                 return "enum[]";
             }
         }
+        if (field.isAnnotationPresent(OneToMany.class)) {
+            if (field.isAnnotationPresent(UseChips.class)) {
+                return ExternalReference.class.getSimpleName() + "[]";
+            }
+            if (field.isAnnotationPresent(UseCheckboxes.class)) {
+                return ExternalReference.class.getSimpleName() + "[]";
+            }
+        }
         if (List.class.isAssignableFrom(type)) {
             String value = field.getGenericClass().getSimpleName().toLowerCase();
             if (Integer.class.equals(field.getGenericClass())) {
@@ -228,6 +259,7 @@ public abstract class AbstractMetadataBuilder {
         if (field.isAnnotationPresent(ManyToOne.class)) {
             return ExternalReference.class.getSimpleName();
         }
+
         return type.getSimpleName();
     }
 

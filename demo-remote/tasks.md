@@ -5,17 +5,22 @@
 ### Viernes
 - UOC
 ### Sábado
-- @OneToMany / collections
-- @ManyToOne (casi)
+- @OneToMany / checkboxes
+- @OneToMany / chips
+- @ManyToOne (falta filtro tipo team.name)
 - incidencia details anidados con cruds
 ### Domingo
 - métodos con parámetros
-- @UseWebComponent + @NpmImport + mapear atributos y **eventos**
+- @Element + @ExternalScript + falta mapear **eventos**
   - https://web.dev/model-viewer/
   - https://axa-ch-webhub-cloud.github.io/plib-feature/develop/?path=/story/components--input-phone
 - Section y FieldGroup interfaces
+- VisibleIf
+- Private + ReadOnly
 ### Lunes
 - RemoteUI
+  - https://explorer.mateu.io/mateu/v1/journeys/5I25fcaqKUgsKajiZpjHu
+  - journeyTypeId: 377b3038-02c4-4623-8bf2-b40e9bd895fc
 - gestión errores
 - validaciones javax
 - HasIcon, HasTitle, HasCss, ...

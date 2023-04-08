@@ -3,6 +3,7 @@ package com.example.demoremote.domains.swapi.entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.mdd.shared.annotations.FieldGroup;
 import io.mateu.mdd.shared.annotations.UseCheckboxes;
+import io.mateu.mdd.shared.annotations.UseChips;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -46,6 +47,7 @@ public class SWCharacter {
 
     @OneToMany
     @JsonIgnore
+    @UseChips
     private List<SWStarship> starships = new ArrayList<>();
 
     @Override
