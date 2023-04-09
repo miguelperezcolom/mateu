@@ -2,21 +2,44 @@
 
 Mateu MDD is a framework for creating awesome **responsive web applications** from **java** at speed of light, and it's main target is to allow you to do it with the **minimum lines of code**.
 
-![MDD](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/mateumdd.gif?raw=true)
+In essence, with Mateu
 
-For achieving this goal, Mateu MDD provides 
+```java
+@MateuUI("")
+public class DemoApp {
 
-- a set of abstract classes and interfaces for defining your app
-- Model Driven Development (aka MDD) utilities
-- and the power of the Vaadin framework
+    @MenuOption
+    private BasicFieldsForm basicFields;
 
+    @Submenu
+    private FormsSubmenu forms;
+
+    @Submenu
+    private CollectionsSubmenu collections;
+
+    @Submenu
+    private RefsSubmenu refs;
+
+    @Submenu("Some cruds")
+    private CrudsSubmenu cruds;
+
+    @Submenu("NFL")
+    private NFLSubmenu nfl;
+
+    @Submenu("Star Wars")
+    private SWSubmenu sw;
+
+}
+
+```
+
+becomes
+
+![MDD](https://github.com/miguelperezcolom/mateu-mdd/blob/master/doc/images/frontpage?raw=true)
 
 So, you define your whole application by using plain java clases. From the application structure and menus to any UI custom component.
 
-
-The true power of this approach comes up when you compose or extend existing appications just by using java inheritance, polimorphism and the maven dependency mechanism, or when you want to customize the styles or add your custom components with Vaadin.
-
-
+Just plain old KISS (keep it simple, stupid).
 
 I hope you like it ;)
 
