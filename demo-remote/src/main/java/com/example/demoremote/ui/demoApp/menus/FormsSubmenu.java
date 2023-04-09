@@ -1,10 +1,8 @@
 package com.example.demoremote.ui.demoApp.menus;
 
-import com.example.demoremote.ui.demoApp.menus.collections.*;
 import com.example.demoremote.ui.demoApp.menus.forms.*;
-import com.example.demoremote.ui.demoApp.menus.refs.ExternalRefsAndFilesForm;
 import io.mateu.mdd.shared.annotations.MenuOption;
-import lombok.Data;
+import io.mateu.mdd.shared.interfaces.RemoteJourney;
 
 
 public class FormsSubmenu {
@@ -33,5 +31,8 @@ public class FormsSubmenu {
 
     @MenuOption
     private WebComponentForm webComponent;
+
+    @MenuOption
+    private RemoteJourney remoteForm = new RemoteJourney("http://localhost:8081/mateu/v1", "");
 
 }

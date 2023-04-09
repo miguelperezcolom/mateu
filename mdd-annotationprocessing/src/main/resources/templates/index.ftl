@@ -3,6 +3,7 @@ package ${pkgName};
 import io.mateu.remote.domain.UIRegistry;
 import io.mateu.util.Helper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,10 +29,13 @@ public class ${simpleClassName}Controller {
         return html;
     }
 
+    @Autowired
+    UIRegistry uiRegistry;
+
     @PostConstruct
     public void init() {
         try {
-            UIRegistry.add(Class.forName("${className}"));
+            uiRegistry.add(Class.forName("${className}"));
         } catch (ClassNotFoundException e) {
             log.error("Unable to find class ${className} for UI registration");
         }

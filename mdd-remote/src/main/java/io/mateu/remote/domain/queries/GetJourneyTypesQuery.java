@@ -30,7 +30,9 @@ public class GetJourneyTypesQuery {
 
         try {
 
-            for (Class uiClass : UIRegistry.getUiClasses()) {
+            UIRegistry uiRegistry = ReflectionHelper.newInstance(UIRegistry.class);
+
+            for (Class uiClass : uiRegistry.getUiClasses()) {
 
                 Object uiInstance = ReflectionHelper.newInstance(uiClass);
 

@@ -1,20 +1,44 @@
 package io.mateu.remote.domain;
 
+import io.mateu.mdd.shared.interfaces.RemoteJourney;
+import io.mateu.mdd.springboot.BeanProvider;
+import io.mateu.reflection.ReflectionHelper;
+import io.mateu.remote.application.MateuConfiguratorBean;
+import io.mateu.remote.domain.mappers.UIMapper;
+import io.mateu.remote.domain.store.JourneyStoreService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Service;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
 public class UIRegistry {
 
-    private static List<Class> _classes = new ArrayList<>();
+    private List<Class> _classes = new ArrayList<>();
 
-    public static void add(Class uiClass) {
+    @Autowired
+    MateuConfiguratorBean mateuConfiguratorBean;
+
+    @Autowired
+    JourneyStoreService journeyStoreService;
+
+    public void add(Class uiClass) {
         if (!_classes.contains(uiClass)) {
             _classes.add(uiClass);
+            try {
+                // we do this to fill the menu store
+                ReflectionHelper.setBeanProvider(mateuConfiguratorBean);
+                new UIMapper().map(ReflectionHelper.newInstance(uiClass));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
 
-    public static List<Class> getUiClasses() {
+    public List<Class> getUiClasses() {
         return _classes;
     }
 }

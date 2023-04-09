@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @Caption("This is a demo")
 @MateuUI("")
 @ExternalScripts("https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js")
-public class DemoApp implements Runnable, HasLogin {
+public class DemoApp implements HasLogin {
 
     @MenuOption
     private BasicFieldsForm basicFields;
@@ -41,12 +41,6 @@ public class DemoApp implements Runnable, HasLogin {
     @MenuOption
     @Private
     private BasicFieldsForm eyesOnly;
-
-
-    @Override
-    public void run() {
-        System.out.println("Hola");
-    }
 
     @Override
     public String getLoginUrl() {

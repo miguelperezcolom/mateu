@@ -83,9 +83,9 @@ public class Populator {
         }
 
         List<String> positions = Arrays.stream(players).map(p -> p.getPosition()).distinct().collect(Collectors.toList());
-        positions.forEach(t -> System.out.println(t));
+        //positions.forEach(t -> System.out.println(t));
 
-        System.out.println(positions.size());
+        //System.out.println(positions.size());
 
         json = Helper.leerFichero(Reader.class, "/cities.json"); // 140k cities
         CityDto[] cities = Helper.fromJson(json, CityDto[].class);

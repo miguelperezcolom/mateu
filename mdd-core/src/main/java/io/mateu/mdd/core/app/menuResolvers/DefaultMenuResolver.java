@@ -2,12 +2,12 @@ package io.mateu.mdd.core.app.menuResolvers;
 
 import com.google.auto.service.AutoService;
 import io.mateu.mdd.core.app.AbstractMenu;
-import io.mateu.mdd.core.app.MDDOpenRemoteFormAction;
+import io.mateu.mdd.core.app.MDDOpenRemoteJourneyAction;
 import io.mateu.mdd.core.app.MDDOpenUrlAction;
 import io.mateu.mdd.core.app.MDDOpenUserJourneyAction;
 import io.mateu.mdd.shared.interfaces.JourneyRunner;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
-import io.mateu.mdd.shared.interfaces.RemoteForm;
+import io.mateu.mdd.shared.interfaces.RemoteJourney;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 
@@ -21,10 +21,10 @@ public class DefaultMenuResolver implements MenuResolver {
 
     @Override
     public boolean addMenuEntry(Object app, List<MenuEntry> l, FieldInterfaced f, String caption, int order, String icon) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
-        if (RemoteForm.class.isAssignableFrom(f.getType())) {
+        if (RemoteJourney.class.isAssignableFrom(f.getType())) {
 
-            MDDOpenRemoteFormAction a;
-            l.add(a = new MDDOpenRemoteFormAction(caption, (RemoteForm) ReflectionHelper.getValue(f, app)));
+            MDDOpenRemoteJourneyAction a;
+            l.add(a = new MDDOpenRemoteJourneyAction(caption, (RemoteJourney) ReflectionHelper.getValue(f, app)));
             a.setOrder(order);
 
         } else if (JourneyRunner.class.isAssignableFrom(f.getType())) {

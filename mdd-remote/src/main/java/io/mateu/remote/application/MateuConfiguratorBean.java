@@ -26,7 +26,7 @@ public class MateuConfiguratorBean implements io.mateu.mdd.springboot.BeanProvid
         try {
             o = сontext.getBean(c);
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
         return o;
     }
