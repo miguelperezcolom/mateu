@@ -39,9 +39,7 @@ becomes
 
 So, you define your whole application by using plain java clases. From the application structure and menus to any UI custom component.
 
-Just plain old KISS (keep it simple, stupid).
-
-I hope you like it ;)
+It can't be easier. I hope you like it ;)
 
 
 ## Read the user manual
