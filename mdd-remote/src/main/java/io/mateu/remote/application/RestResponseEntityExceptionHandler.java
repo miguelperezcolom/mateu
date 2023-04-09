@@ -1,5 +1,6 @@
 package io.mateu.remote.application;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,7 @@ import reactor.core.publisher.Mono;
 
 
 @RestControllerAdvice
+@Slf4j
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(value
@@ -22,6 +24,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
             bodyOfResponse += ex.getClass().getSimpleName() + ": ";
         }
         bodyOfResponse += ex.getMessage();
+        log.error("Something unexpected happened", ex);
         return handleExceptionInternal(ex, bodyOfResponse,
                 new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
     }

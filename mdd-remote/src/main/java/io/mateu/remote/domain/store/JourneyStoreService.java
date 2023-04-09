@@ -1,13 +1,11 @@
 package io.mateu.remote.domain.store;
 
-import io.mateu.mdd.core.app.MDDOpenCRUDAction;
-import io.mateu.mdd.core.app.MDDOpenCRUDActionViewBuilder;
-import io.mateu.mdd.core.app.MDDOpenEditorAction;
-import io.mateu.mdd.core.app.MDDOpenListViewAction;
+import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
-import io.mateu.remote.domain.commands.RunStepActionCommand;
+import io.mateu.remote.domain.commands.runStep.RunStepActionCommand;
+import io.mateu.remote.domain.commands.runStep.RunStepActionCommandHandler;
 import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.editors.FieldEditor;
 import io.mateu.remote.domain.mappers.StepMapper;
@@ -75,7 +73,7 @@ public class JourneyStoreService {
                         .stream().filter(entry -> checkNotInjected(viewInstance, entry.getKey()))
                         .forEach(entry -> {
                             try {
-                                Object actualValue = RunStepActionCommand.getActualValue(entry, viewInstance);
+                                Object actualValue = RunStepActionCommandHandler.getActualValue(entry, viewInstance);
                                 ReflectionHelper.setValue(entry.getKey(), viewInstance, actualValue);
                             } catch (Exception ex) {
                                 System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
@@ -238,7 +236,10 @@ public class JourneyStoreService {
     }
 
     private Object createInstanceFromMenuMapping(Object menuEntry) throws Exception {
-        if (menuEntry instanceof MDDOpenEditorAction) {
+        if (menuEntry instanceof MDDOpenRemoteJourneyAction) {
+            MDDOpenRemoteJourneyAction action = (MDDOpenRemoteJourneyAction) menuEntry;
+            return action.getRemoteJourney();
+        } else if (menuEntry instanceof MDDOpenEditorAction) {
             MDDOpenEditorAction action = (MDDOpenEditorAction) menuEntry;
             return ReflectionHelper.newInstance(action.getViewClass());
         } else if (menuEntry instanceof MDDOpenCRUDAction) {

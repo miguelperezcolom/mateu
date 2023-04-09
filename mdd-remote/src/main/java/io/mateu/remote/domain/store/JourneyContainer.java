@@ -20,6 +20,10 @@ public class JourneyContainer implements Serializable {
 
     private String journeyTypeId;
 
+    private String remoteBaseUrl;
+
+    private String remoteJourneyId;
+
     private Class journeyClass;
 
     private Map<String, Object> journeyData;

@@ -1,31 +1,29 @@
-package io.mateu.remote.domain.queries;
+package io.mateu.remote.domain.queries.getItemsRows;
 
 import io.mateu.mdd.shared.data.ItemsListProvider;
 import io.mateu.mdd.shared.data.Value;
 import io.mateu.reflection.ReflectionHelper;
+import io.mateu.remote.domain.queries.EntitiesFinder;
 import jakarta.persistence.Entity;
-import lombok.*;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
-@Data
-@Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
-public class GetItemsRowsQuery {
+@Service
+@Slf4j
+public class GetItemsRowsQueryHandler {
 
-    private String itemsProviderId;
+    public List<Value> run(GetItemsRowsQuery query) throws Throwable {
+        String itemsProviderId = query.getItemsProviderId();
+        String searchText = query.getSearchText();
+        int page = query.getPage();
+        int pageSize = query.getPageSize();
 
-    private String searchText;
-
-    private int page;
-
-    private int pageSize;
-
-    public List<Value> run() throws Throwable {
         Class type = Class.forName(itemsProviderId);
         if (ItemsListProvider.class.isAssignableFrom(type)) {
-            return ((ItemsListProvider)ReflectionHelper.newInstance(type))
+            return ((ItemsListProvider) ReflectionHelper.newInstance(type))
                     .find(searchText, page, pageSize);
         }
         if (type.isAnnotationPresent(Entity.class)) {

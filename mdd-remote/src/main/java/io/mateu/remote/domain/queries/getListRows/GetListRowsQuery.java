@@ -1,13 +1,17 @@
-package io.mateu.remote.domain.queries;
+package io.mateu.remote.domain.queries.getListRows;
 
 import io.mateu.mdd.shared.interfaces.Listing;
+import io.mateu.mdd.shared.interfaces.SortCriteria;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import lombok.*;
+
+import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
-public class GetListCountQuery {
+@Getter
+public class GetListRowsQuery {
 
     private String journeyId;
 
@@ -17,12 +21,12 @@ public class GetListCountQuery {
 
     private String listId;
 
-
     private Object filters;
 
-    public long run() throws Throwable {
-        Listing rpcView = (Listing) JourneyStoreService.get().getRpcViewInstance(journeyId, stepId, listId);
-        return rpcView.fetchCount(filters);
-    }
+    private int page;
+
+    private int pageSize;
+
+    private List<SortCriteria> ordering;
 
 }

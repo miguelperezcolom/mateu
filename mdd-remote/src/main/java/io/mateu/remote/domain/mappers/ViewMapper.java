@@ -1,13 +1,16 @@
 package io.mateu.remote.domain.mappers;
 
+import com.google.common.base.Strings;
 import io.mateu.mdd.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.core.interfaces.RpcCrudViewExtended;
 import io.mateu.mdd.shared.annotations.VisibleIf;
 import io.mateu.mdd.shared.data.Result;
 import io.mateu.mdd.shared.interfaces.Listing;
+import io.mateu.mdd.shared.interfaces.RemoteJourney;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
+import io.mateu.remote.application.MateuRemoteClient;
 import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.editors.FieldEditor;
 import io.mateu.remote.domain.editors.MethodParametersEditor;
@@ -22,6 +25,7 @@ import io.mateu.util.Helper;
 import io.mateu.util.Serializer;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityManager;
@@ -36,11 +40,17 @@ public class ViewMapper {
     @PersistenceContext
     EntityManager em;
 
+    @Autowired
+    MateuRemoteClient mateuRemoteClient;
+
     public View map(JourneyContainer journeyContainer, String stepId, Object uiInstance) throws Throwable {
         //mddopencrudaction, crud class
 
         Object actualUiInstance = uiInstance;
-        if (uiInstance instanceof EntityEditor) {
+        if (journeyContainer != null && !Strings.isNullOrEmpty(journeyContainer.getRemoteJourneyId())) {
+            return mateuRemoteClient.getView(journeyContainer.getRemoteBaseUrl(),
+                    journeyContainer.getRemoteJourneyId(), stepId);
+        } else if (uiInstance instanceof EntityEditor) {
             EntityEditor entityEditor = (EntityEditor) uiInstance;
             actualUiInstance = em.find(entityEditor.getEntityClass(),
                     ReflectionHelper.getId(Helper.fromJson(Helper.toJson(entityEditor.getData()), entityEditor.getEntityClass())));

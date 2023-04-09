@@ -1,30 +1,25 @@
-package io.mateu.remote.domain.queries;
+package io.mateu.remote.domain.queries.getJourneyTypes;
 
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.application.NotFoundException;
-import io.mateu.remote.domain.mappers.UIMapper;
 import io.mateu.remote.domain.UIRegistry;
+import io.mateu.remote.domain.mappers.UIMapper;
 import io.mateu.remote.dtos.JourneyType;
 import io.mateu.remote.dtos.Menu;
 import io.mateu.remote.dtos.UI;
-import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Builder
+@Service
 @Slf4j
-public class GetJourneyTypesQuery {
+public class GetJourneyTypesQueryHandler {
 
-    private final String uiId;
+    public List<JourneyType> run(GetJourneyTypesQuery query) {
 
-    public GetJourneyTypesQuery(String uiId) {
-        this.uiId = uiId;
-    }
-
-
-    public List<JourneyType> run() {
+        String uiId = query.getUiId();
 
         List<JourneyType> journeyTypes = new ArrayList<>();
 
@@ -62,8 +57,8 @@ public class GetJourneyTypesQuery {
         if (menu.getJourneyTypeId() != null) {
             journeyTypes.add(JourneyType.builder()
                     .id(menu.getJourneyTypeId())
-                            .name(menu.getCaption())
-                            .description("This is the journey type for " + menu.getCaption())
+                    .name(menu.getCaption())
+                    .description("This is the journey type for " + menu.getCaption())
                     .build());
         } else {
             if (menu.getSubmenus() != null) {

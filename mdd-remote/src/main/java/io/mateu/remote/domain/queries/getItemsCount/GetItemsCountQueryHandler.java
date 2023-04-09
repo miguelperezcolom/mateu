@@ -1,27 +1,25 @@
-package io.mateu.remote.domain.queries;
+package io.mateu.remote.domain.queries.getItemsCount;
 
 import io.mateu.mdd.shared.data.ItemsListProvider;
-import io.mateu.mdd.shared.data.Value;
 import io.mateu.reflection.ReflectionHelper;
+import io.mateu.remote.domain.queries.EntitiesFinder;
 import jakarta.persistence.Entity;
-import lombok.*;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
 
-@Data
-@Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
-public class GetItemsCountQuery {
+@Service
+@Slf4j
+public class GetItemsCountQueryHandler {
 
-    private String itemsProviderId;
+    public int run(GetItemsCountQuery query) throws Throwable {
+        String itemsProviderId = query.getItemsProviderId();
+        String searchText = query.getSearchText();
 
-    private String searchText;
-
-    public int run() throws Throwable {
         Class type = Class.forName(itemsProviderId);
         if (ItemsListProvider.class.isAssignableFrom(type)) {
-            return ((ItemsListProvider)ReflectionHelper.newInstance(type))
+            return ((ItemsListProvider) ReflectionHelper.newInstance(type))
                     .count(searchText);
         }
         if (type.isAnnotationPresent(Entity.class)) {
@@ -33,4 +31,6 @@ public class GetItemsCountQuery {
     private int countEntities(Class entityClass, String searchText) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException {
         return ReflectionHelper.newInstance(EntitiesFinder.class).countEntities(entityClass, searchText);
     }
+
+
 }

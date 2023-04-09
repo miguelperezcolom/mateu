@@ -1,4 +1,4 @@
-package io.mateu.remote.domain.commands;
+package io.mateu.remote.domain.commands.runStep;
 
 import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.shared.annotations.Action;
@@ -8,25 +8,22 @@ import io.mateu.mdd.shared.data.*;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
+import io.mateu.remote.domain.commands.EntityEditorFactory;
 import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.editors.FieldEditor;
 import io.mateu.remote.domain.editors.MethodParametersEditor;
 import io.mateu.remote.domain.files.StorageServiceAccessor;
 import io.mateu.remote.domain.persistence.Merger;
 import io.mateu.remote.domain.store.JourneyStoreService;
-import io.mateu.remote.dtos.Form;
 import io.mateu.remote.dtos.Step;
 import io.mateu.util.Helper;
 import io.mateu.util.Serializer;
-import io.mateu.util.persistence.EntityDeserializer;
-import lombok.Builder;
+import jakarta.persistence.Entity;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.naming.AuthenticationException;
-import jakarta.persistence.Entity;
-
-import java.awt.*;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -35,23 +32,19 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
-import java.util.List;
 import java.util.stream.Collectors;
 
-@Builder
+@Service
 @Slf4j
-public class RunStepActionCommand {
-
-    private String journeyId;
-
-    private String stepId;
-
-    private String actionId;
-
-    private Map<String, Object> data;
+public class RunStepActionCommandHandler {
 
     @Transactional
-    public void run() throws Throwable {
+    public void handle(RunStepActionCommand command) throws Throwable {
+
+        String journeyId = command.getJourneyId();
+        String stepId = command.getStepId();
+        String actionId = command.getActionId();
+        Map<String, Object> data = command.getData();
 
         JourneyStoreService store = JourneyStoreService.get();
 
@@ -186,7 +179,7 @@ public class RunStepActionCommand {
         } else if ((viewInstance instanceof ReadOnlyPojo
                 || viewInstance instanceof PersistentPojo
                 || viewInstance instanceof EntityEditor
-        || viewInstance.getClass().isAnnotationPresent(Entity.class))
+                || viewInstance.getClass().isAnnotationPresent(Entity.class))
                 && "cancel".equals(actionId)) {
             store.backToStep(journeyId, store.getInitialStep(journeyId).getId());
         } else if (viewInstance instanceof EntityEditor && "edit".equals(actionId)) {
@@ -215,7 +208,7 @@ public class RunStepActionCommand {
             Step detail = store.getStep(journeyId, "view");
             if (detail != null) {
                 Object pojo = store.getViewInstance(journeyId, "view");
-                    if (pojo instanceof ReadOnlyPojo) {
+                if (pojo instanceof ReadOnlyPojo) {
                     ((ReadOnlyPojo) pojo).load(((ReadOnlyPojo) pojo).getId());
                     store.setStep(journeyId, "view", pojo);
                 }

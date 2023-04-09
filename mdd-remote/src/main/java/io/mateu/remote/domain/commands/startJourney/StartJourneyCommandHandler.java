@@ -1,26 +1,32 @@
-package io.mateu.remote.domain.commands;
+package io.mateu.remote.domain.commands.startJourney;
 
 import io.mateu.mdd.shared.interfaces.Listing;
+import io.mateu.mdd.shared.interfaces.RemoteJourney;
+import io.mateu.remote.application.MateuRemoteClient;
 import io.mateu.remote.application.NotFoundException;
 import io.mateu.remote.domain.mappers.JourneyMapper;
 import io.mateu.remote.domain.store.JourneyContainer;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.Journey;
 import io.mateu.remote.dtos.Step;
-import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-@Builder
+@Service
 @Slf4j
-public class StartJourneyCommand {
+public class StartJourneyCommandHandler {
 
-    private String journeyTypeId;
+    @Autowired
+    MateuRemoteClient mateuRemoteClient;
 
-    private String journeyId;
+    public void handle(StartJourneyCommand command) throws Throwable {
 
-    public void run() throws Throwable {
+        String journeyId = command.getJourneyId();
+        String journeyTypeId = command.getJourneyTypeId();
+
         JourneyStoreService store = JourneyStoreService.get();
 
         Journey journey = null;
@@ -35,6 +41,13 @@ public class StartJourneyCommand {
 
                 if (formInstance == null) {
                     throw new Exception();
+                }
+
+                if (formInstance instanceof RemoteJourney) {
+                    RemoteJourney remoteJourney = (RemoteJourney) formInstance;
+                    mateuRemoteClient.startJourney(remoteJourney.getBaseUrl(),
+                            remoteJourney.getJourneyTypeId(), journeyId);
+                    return;
                 }
 
                 // we are passing the form instance to avoid creating a new form instance,

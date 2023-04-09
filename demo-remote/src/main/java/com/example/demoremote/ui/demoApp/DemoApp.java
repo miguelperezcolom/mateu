@@ -9,6 +9,7 @@ import io.mateu.mdd.shared.annotations.MateuUI;
 import io.mateu.mdd.shared.annotations.MenuOption;
 import io.mateu.mdd.shared.annotations.Private;
 import io.mateu.mdd.shared.annotations.Submenu;
+import io.mateu.mdd.shared.interfaces.RemoteJourney;
 import org.springframework.stereotype.Component;
 
 @Component

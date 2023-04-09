@@ -1,10 +1,27 @@
 package io.mateu.remote.application;
 
 import io.mateu.mdd.shared.data.Value;
-import io.mateu.remote.domain.commands.RunStepActionCommand;
-import io.mateu.remote.domain.commands.StartJourneyCommand;
+import io.mateu.remote.domain.commands.runStep.RunStepActionCommand;
+import io.mateu.remote.domain.commands.runStep.RunStepActionCommandHandler;
+import io.mateu.remote.domain.commands.startJourney.StartJourneyCommand;
+import io.mateu.remote.domain.commands.startJourney.StartJourneyCommandHandler;
 import io.mateu.remote.domain.files.StorageService;
-import io.mateu.remote.domain.queries.*;
+import io.mateu.remote.domain.queries.getItemsCount.GetItemsCountQuery;
+import io.mateu.remote.domain.queries.getItemsCount.GetItemsCountQueryHandler;
+import io.mateu.remote.domain.queries.getItemsRows.GetItemsRowsQuery;
+import io.mateu.remote.domain.queries.getItemsRows.GetItemsRowsQueryHandler;
+import io.mateu.remote.domain.queries.getJourney.GetJourneyQuery;
+import io.mateu.remote.domain.queries.getJourney.GetJourneyQueryHandler;
+import io.mateu.remote.domain.queries.getJourneyTypes.GetJourneyTypesQuery;
+import io.mateu.remote.domain.queries.getJourneyTypes.GetJourneyTypesQueryHandler;
+import io.mateu.remote.domain.queries.getListCount.GetListCountQuery;
+import io.mateu.remote.domain.queries.getListCount.GetListCountQueryHandler;
+import io.mateu.remote.domain.queries.getListRows.GetListRowsQuery;
+import io.mateu.remote.domain.queries.getListRows.GetListRowsQueryHandler;
+import io.mateu.remote.domain.queries.getStep.GetStepQuery;
+import io.mateu.remote.domain.queries.getStep.GetStepQueryHandler;
+import io.mateu.remote.domain.queries.getUI.GetUIQuery;
+import io.mateu.remote.domain.queries.getUI.GetUIQueryHandler;
 import io.mateu.remote.dtos.*;
 import io.mateu.util.asciiart.Painter;
 import jakarta.annotation.PostConstruct;
@@ -12,10 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -27,28 +42,60 @@ import javax.naming.AuthenticationException;
 @Service
 public class RemoteMateuService {
 
+    @Autowired
+    StartJourneyCommandHandler startJourneyCommandHandler;
+
+    @Autowired
+    RunStepActionCommandHandler runStepActionCommandHandler;
+
+    @Autowired
+    GetUIQueryHandler getUIQueryHandler;
+
+    @Autowired
+    GetJourneyQueryHandler getJourneyQueryHandler;
+
+    @Autowired
+    GetStepQueryHandler getStepQueryHandler;
+
+    @Autowired
+    GetJourneyTypesQueryHandler getJourneyTypesQueryHandler;
+
+    @Autowired
+    GetListRowsQueryHandler getListRowsQueryHandler;
+
+    @Autowired
+    GetListCountQueryHandler getListCountQueryHandler;
+
+    @Autowired
+    GetItemsCountQueryHandler getItemsCountQueryHandler;
+
+    @Autowired
+    GetItemsRowsQueryHandler getItemsRowsQueryHandler;
 
     public Mono<UI> getUI(String uiId) throws Exception {
-        return Mono.just(GetUIQuery.builder().uiId(uiId).build().run());
+        return Mono.just(getUIQueryHandler.run(GetUIQuery.builder().uiId(uiId).build()));
     }
 
     public Flux<JourneyType> getJourneyTypes() throws Exception {
-        return Flux.fromStream(GetJourneyTypesQuery.builder().build().run().stream());
+        return Flux.fromStream(getJourneyTypesQueryHandler.run(GetJourneyTypesQuery.builder()
+                .build()).stream());
     }
 
     public void createJourney(String journeyId, JourneyCreationRq rq) throws Throwable {
-        StartJourneyCommand.builder()
+        startJourneyCommandHandler.handle(StartJourneyCommand.builder()
                 .journeyId(journeyId)
                 .journeyTypeId(rq.getJourneyTypeId())
-                .build().run();
+                .build());
     }
 
     public Mono<Journey> getJourney(String journeyId) throws Exception {
-        return Mono.just(GetJourneyQuery.builder().journeyId(journeyId).build().run());
+        return Mono.just(getJourneyQueryHandler.run(GetJourneyQuery.builder()
+                .journeyId(journeyId).build()));
     }
 
     public Mono<Step> getStep(String journeyId, String stepId) throws Exception {
-        Step step = GetStepQuery.builder().journeyId(journeyId).stepId(stepId).build().run();
+        Step step = getStepQueryHandler.run(GetStepQuery.builder()
+                .journeyId(journeyId).stepId(stepId).build());
         //log.info(Helper.toJson(step));
         return Mono.just(step);
     }
@@ -57,12 +104,12 @@ public class RemoteMateuService {
                         String stepId,
                         String actionId,
                         RunActionRq rq) throws Throwable {
-        RunStepActionCommand.builder()
+        runStepActionCommandHandler.handle(RunStepActionCommand.builder()
                 .journeyId(journeyId)
                 .stepId(stepId)
                 .actionId(actionId)
                 .data(rq.getData())
-                .build().run();
+                .build());
     }
 
 
@@ -76,7 +123,7 @@ public class RemoteMateuService {
 // urlencoded form of orders json serialized
                                     String ordering
                                              ) throws Throwable {
-        return Flux.fromStream(GetListRowsQuery.builder()
+        return Flux.fromStream(getListRowsQueryHandler.run(GetListRowsQuery.builder()
                 .journeyId(journeyId)
                 .stepId(stepId)
                 .listId(listId)
@@ -84,7 +131,7 @@ public class RemoteMateuService {
                 .pageSize(page_size)
                 .filters(new FiltersDeserializer(journeyId, stepId, listId, filters).deserialize())
                 .ordering(new OrderingDeserializer(ordering).deserialize())
-                .build().run().stream());
+                .build()).stream());
     }
 
     public Mono<Long> getListCount(String journeyId,
@@ -93,12 +140,12 @@ public class RemoteMateuService {
 // urlencoded form of filters json serialized
                                    String filters
     ) throws Throwable {
-        return Mono.just(GetListCountQuery.builder()
+        return Mono.just(getListCountQueryHandler.run(GetListCountQuery.builder()
                 .journeyId(journeyId)
                 .stepId(stepId)
                 .listId(listId)
                 .filters(new FiltersDeserializer(journeyId, stepId, listId, filters).deserialize())
-                .build().run());
+                .build()));
     }
 
 
@@ -107,21 +154,21 @@ public class RemoteMateuService {
                                    int page_size,
                                    String search_text
     ) throws Throwable {
-        return Flux.fromStream(GetItemsRowsQuery.builder()
+        return Flux.fromStream(getItemsRowsQueryHandler.run(GetItemsRowsQuery.builder()
                 .itemsProviderId(itemProviderId)
                 .page(page)
                 .pageSize(page_size)
                 .searchText(search_text)
-                .build().run().stream());
+                .build()).stream());
     }
 
     public Mono<Integer> getItemCount(String itemProviderId,
                                       String search_text
     ) throws Throwable {
-        return Mono.just(GetItemsCountQuery.builder()
+        return Mono.just(getItemsCountQueryHandler.run(GetItemsCountQuery.builder()
                 .itemsProviderId(itemProviderId)
                 .searchText(search_text)
-                .build().run());
+                .build()));
     }
 
     @Autowired

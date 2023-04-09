@@ -1,24 +1,19 @@
-package io.mateu.remote.domain.queries;
+package io.mateu.remote.domain.queries.getUI;
 
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.application.NotFoundException;
 import io.mateu.remote.domain.mappers.UIMapper;
 import io.mateu.remote.dtos.UI;
-import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
-@Builder
+@Service
 @Slf4j
-public class GetUIQuery {
+public class GetUIQueryHandler {
 
-    private final String uiId;
+    public UI run(GetUIQuery query) {
 
-    public GetUIQuery(String uiId) {
-        this.uiId = uiId;
-    }
-
-
-    public UI run() {
+        String uiId = query.getUiId();
 
         try {
             Class uiClass = Class.forName(uiId);
@@ -39,5 +34,6 @@ public class GetUIQuery {
         }
 
     }
+
 
 }
