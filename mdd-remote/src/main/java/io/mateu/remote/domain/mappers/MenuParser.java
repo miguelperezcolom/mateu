@@ -5,12 +5,13 @@ import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.app.menuResolvers.MenuResolver;
 import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.interfaces.Listing;
-import io.mateu.mdd.shared.interfaces.MateuSecurityManager;
-import io.mateu.mdd.shared.interfaces.MenuEntry;
+import io.mateu.mdd.shared.interfaces.*;
 import io.mateu.mdd.shared.reflection.CoreReflectionHelper;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
+import io.mateu.remote.application.MateuRemoteClient;
+import io.mateu.remote.dtos.Menu;
+import io.mateu.remote.dtos.UI;
 import io.mateu.util.Helper;
 
 import java.lang.reflect.InvocationTargetException;
@@ -20,12 +21,16 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 public class MenuParser {
 
+    private final MateuRemoteClient mateuRemoteClient;
     private final Object uiInstance;
 
-    public MenuParser(Object uiInstance) {
+    public MenuParser(MateuRemoteClient mateuRemoteClient, Object uiInstance) {
+        this.mateuRemoteClient = mateuRemoteClient;
         this.uiInstance = uiInstance;
     }
 
@@ -94,9 +99,67 @@ public class MenuParser {
 
         }
 
+        if (uiInstance instanceof IncludesRemoteUIs) {
+            ((IncludesRemoteUIs) uiInstance).getRemoteUIs().forEach(remoteUI -> addMenuEntries(l, remoteUI));
+        }
+
         l.sort(Comparator.comparingInt(MenuEntry::getOrder));
 
         return l;
+    }
+
+
+    private MenuEntry toMenuEntry(String caption, RemoteSubmenu remoteSubmenu) throws ExecutionException, InterruptedException {
+        UI ui = mateuRemoteClient.getUi(remoteSubmenu.getBaseUrl(), remoteSubmenu.getUiId());
+        Optional<Menu> remoteMenu = ui.getMenu().stream().filter(m -> m.getCaption().equals(remoteSubmenu.getCaption())).findFirst();
+        MenuEntry menuEntry = new AbstractMenu(caption + (remoteMenu.isEmpty()?"(Not found)":"")) {
+            @Override
+            public List<MenuEntry> buildEntries() {
+                if (remoteMenu.isEmpty()) {
+                    return List.of();
+                }
+                List<MenuEntry> options = new ArrayList<>();
+                remoteMenu.get().getSubmenus().forEach(m -> {
+                    options.add(toMenuEntry(remoteSubmenu.getBaseUrl(), m));
+                });
+                return options;
+            }
+        };
+        return menuEntry;
+    }
+
+    private void addMenuEntries(List<MenuEntry> l, RemoteUI remoteUI) {
+        try {
+            UI ui = mateuRemoteClient.getUi(remoteUI.getBaseUrl(), remoteUI.getUiId());
+            ui.getMenu().stream().forEach(remoteMenu -> {
+                MenuEntry menuEntry = toMenuEntry(remoteUI.getBaseUrl(), remoteMenu);
+                l.add(menuEntry);
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private MenuEntry toMenuEntry(String baseUrl, Menu remoteMenu) {
+        MenuEntry menuEntry = null;
+        if (!Strings.isNullOrEmpty(remoteMenu.getJourneyTypeId())) {
+            menuEntry = new MDDOpenRemoteJourneyAction(remoteMenu.getCaption(), new RemoteJourney(baseUrl, remoteMenu.getJourneyTypeId()));
+        } else {
+            menuEntry = new AbstractMenu(remoteMenu.getCaption()) {
+                @Override
+                public List<MenuEntry> buildEntries() {
+                    if (remoteMenu.getSubmenus() == null) {
+                        return List.of();
+                    }
+                    List<MenuEntry> options = new ArrayList<>();
+                    remoteMenu.getSubmenus().forEach(m -> {
+                        options.add(toMenuEntry(baseUrl, m));
+                    });
+                    return options;
+                }
+            };
+        }
+        return menuEntry;
     }
 
     private boolean check(Private pa) {
@@ -128,7 +191,7 @@ public class MenuParser {
                 @Override
                 public List<MenuEntry> buildEntries() {
                     try {
-                        return new MenuParser(CoreReflectionHelper.invokeInjectableParametersOnly(m, uiInstance)).parse();
+                        return new MenuParser(mateuRemoteClient, CoreReflectionHelper.invokeInjectableParametersOnly(m, uiInstance)).parse();
                     } catch (Throwable throwable) {
                         throwable.printStackTrace();
                     }
@@ -186,7 +249,10 @@ public class MenuParser {
 
             try {
 
-                if (URL.class.equals(f.getType())) {
+                if (RemoteSubmenu.class.equals(f.getType())) {
+                    RemoteSubmenu remoteSubmenu = (RemoteSubmenu) ReflectionHelper.getValue(f, uiInstance);
+                    l.add(toMenuEntry(caption, remoteSubmenu));
+                } else if (URL.class.equals(f.getType())) {
                     l.add(new MDDOpenUrlAction(caption, (URL) ReflectionHelper.getValue(f, uiInstance)));
                 } else {
                     Object v = ReflectionHelper.getValue(f, uiInstance);
@@ -196,7 +262,7 @@ public class MenuParser {
                         @Override
                         public List<MenuEntry> buildEntries() {
                             try {
-                                return new MenuParser(finalV).parse();
+                                return new MenuParser(mateuRemoteClient, finalV).parse();
                             } catch (Throwable throwable) {
                                 throwable.printStackTrace();
                             }
@@ -236,8 +302,10 @@ public class MenuParser {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+
         }
     }
+
 
     private void addDefaultMenuEntry(List<MenuEntry> l, FieldInterfaced f, String caption, int order, String icon) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         Object v = ReflectionHelper.getValue(f, uiInstance);

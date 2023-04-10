@@ -10,6 +10,8 @@ import lombok.*;
 @Getter
 public class GetListCountQuery {
 
+    private String journeyTypeId;
+
     private String journeyId;
 
     private String stepId;
@@ -18,6 +20,6 @@ public class GetListCountQuery {
 
     private String listId;
 
-    private Object filters;
+    private String filters;
 
 }

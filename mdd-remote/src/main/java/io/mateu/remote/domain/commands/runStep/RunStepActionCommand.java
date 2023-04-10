@@ -43,6 +43,8 @@ import java.util.stream.Collectors;
 @Slf4j@Getter
 public class RunStepActionCommand {
 
+    private String journeyTypeId;
+
     private String journeyId;
 
     private String stepId;

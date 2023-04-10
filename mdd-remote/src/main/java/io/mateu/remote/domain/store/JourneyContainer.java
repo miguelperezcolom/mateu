@@ -22,7 +22,7 @@ public class JourneyContainer implements Serializable {
 
     private String remoteBaseUrl;
 
-    private String remoteJourneyId;
+    private String remoteJourneyTypeId;
 
     private Class journeyClass;
 

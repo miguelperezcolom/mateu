@@ -26,6 +26,7 @@ import io.mateu.util.Serializer;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityManager;
@@ -43,14 +44,14 @@ public class ViewMapper {
     @Autowired
     MateuRemoteClient mateuRemoteClient;
 
+    @Autowired
+    ApplicationContext applicationContext;
+
     public View map(JourneyContainer journeyContainer, String stepId, Object uiInstance) throws Throwable {
         //mddopencrudaction, crud class
 
         Object actualUiInstance = uiInstance;
-        if (journeyContainer != null && !Strings.isNullOrEmpty(journeyContainer.getRemoteJourneyId())) {
-            return mateuRemoteClient.getView(journeyContainer.getRemoteBaseUrl(),
-                    journeyContainer.getRemoteJourneyId(), stepId);
-        } else if (uiInstance instanceof EntityEditor) {
+        if (uiInstance instanceof EntityEditor) {
             EntityEditor entityEditor = (EntityEditor) uiInstance;
             actualUiInstance = em.find(entityEditor.getEntityClass(),
                     ReflectionHelper.getId(Helper.fromJson(Helper.toJson(entityEditor.getData()), entityEditor.getEntityClass())));
@@ -62,7 +63,7 @@ public class ViewMapper {
             //actualUiInstance = Helper.fromJson(Helper.toJson(fieldEditor.getData()), fieldEditor.getType());
         } else if (("view".equals(stepId) || "edit".equals(stepId)) && journeyContainer.getInitialStep() != null
                 && "io.mateu.mdd.ui.cruds.JpaRpcCrudView".equals(journeyContainer.getInitialStep().getType())) { //todo: check si es un crud jpa
-            RpcCrudViewExtended rpcCrudView = (RpcCrudViewExtended) JourneyStoreService.get()
+            RpcCrudViewExtended rpcCrudView = (RpcCrudViewExtended) applicationContext.getBean(JourneyStoreService.class)
                     .getViewInstance(journeyContainer.getJourneyId(), journeyContainer.getInitialStep().getId());
             actualUiInstance = em.find(rpcCrudView.getEntityClass(), ((EntityEditor)uiInstance).getData().get("id"));
         } else if (uiInstance instanceof Class && Listing.class.isAssignableFrom((Class<?>) uiInstance)) {

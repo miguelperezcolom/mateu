@@ -7,8 +7,6 @@ import java.util.List;
 @Data@Builder@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class JourneyCreationRq {
 
-    private String journeyTypeId;
-
     private List<Pair> contextData;
 
 }

@@ -8,6 +8,7 @@ import io.mateu.remote.dtos.JourneyType;
 import io.mateu.remote.dtos.Menu;
 import io.mateu.remote.dtos.UI;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -16,6 +17,9 @@ import java.util.List;
 @Service
 @Slf4j
 public class GetJourneyTypesQueryHandler {
+
+    @Autowired
+    UIMapper uiMapper;
 
     public List<JourneyType> run(GetJourneyTypesQuery query) {
 
@@ -35,7 +39,7 @@ public class GetJourneyTypesQueryHandler {
                     throw new Exception();
                 }
 
-                UI ui = new UIMapper().map(uiInstance);
+                UI ui = uiMapper.map(uiInstance);
 
                 for (Menu menu : ui.getMenu()) {
                     addJourneyTypeForMenu(journeyTypes, menu);

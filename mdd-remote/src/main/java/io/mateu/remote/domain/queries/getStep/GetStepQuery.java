@@ -10,6 +10,8 @@ import lombok.Getter;
 @Getter
 public class GetStepQuery {
 
+    private String journeyTypeId;
+
     private String journeyId;
 
     private String stepId;

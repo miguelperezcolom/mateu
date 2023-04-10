@@ -10,6 +10,8 @@ import lombok.Getter;
 @Getter
 public class GetJourneyQuery {
 
+    private String journeyTypeId;
+
     private String journeyId;
 
 }

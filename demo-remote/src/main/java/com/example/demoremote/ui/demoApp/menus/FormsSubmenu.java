@@ -33,6 +33,6 @@ public class FormsSubmenu {
     private WebComponentForm webComponent;
 
     @MenuOption
-    private RemoteJourney remoteForm = new RemoteJourney("http://localhost:8081/mateu/v1", "nfl_players");
+    private RemoteJourney remoteForm = new RemoteJourney("https://demo.mateu.io/mateu/v1", "aSimpleForm");
 
 }

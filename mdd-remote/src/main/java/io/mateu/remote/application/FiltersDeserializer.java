@@ -27,8 +27,8 @@ public class FiltersDeserializer {
         this.raw = raw;
     }
 
-    public Object deserialize() throws Exception {
-        Listing rpcView = (Listing) JourneyStoreService.get().getRpcViewInstance(journeyId, stepId, listId);
+    public Object deserialize(JourneyStoreService store) throws Exception {
+        Listing rpcView = (Listing) store.getRpcViewInstance(journeyId, stepId, listId);
         Map<String, Object> map = decodeAndParse(raw);
         for (FieldInterfaced field : ReflectionHelper.getAllEditableFields(rpcView.getSearchFormClass())) {
             if (DatesRange.class.equals(field.getType())) {

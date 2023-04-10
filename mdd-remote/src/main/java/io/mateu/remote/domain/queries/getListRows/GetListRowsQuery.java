@@ -13,6 +13,8 @@ import java.util.List;
 @Getter
 public class GetListRowsQuery {
 
+    private String journeyTypeId;
+
     private String journeyId;
 
     private String stepId;
@@ -21,7 +23,7 @@ public class GetListRowsQuery {
 
     private String listId;
 
-    private Object filters;
+    private String filters;
 
     private int page;
 

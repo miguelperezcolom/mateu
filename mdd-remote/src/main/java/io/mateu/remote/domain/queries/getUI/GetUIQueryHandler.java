@@ -5,11 +5,15 @@ import io.mateu.remote.application.NotFoundException;
 import io.mateu.remote.domain.mappers.UIMapper;
 import io.mateu.remote.dtos.UI;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
 public class GetUIQueryHandler {
+
+    @Autowired
+    UIMapper uiMapper;
 
     public UI run(GetUIQuery query) {
 
@@ -23,7 +27,7 @@ public class GetUIQueryHandler {
                 throw new Exception();
             }
 
-            UI ui = new UIMapper().map(uiInstance);
+            UI ui = uiMapper.map(uiInstance);
 
             return ui;
 

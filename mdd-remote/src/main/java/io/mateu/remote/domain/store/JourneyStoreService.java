@@ -25,19 +25,11 @@ import java.util.Optional;
 @Service
 public class JourneyStoreService {
 
-    private static JourneyStoreService _instance;
-
-    public static JourneyStoreService get() {
-        return _instance;
-    }
-
-    @PostConstruct
-    public void init() {
-        _instance = this;
-    }
-
     @Autowired
     private StepMapper stepMapper;
+
+    @Autowired
+    private UIMapper uiMapper;
 
     @Autowired
     private JourneyRepository journeyRepo;
@@ -202,7 +194,7 @@ public class JourneyStoreService {
                 Object uiInstance = null;
                 try {
                     uiInstance = ReflectionHelper.newInstance(Class.forName(uiClassName));
-                    new UIMapper().map(uiInstance);
+                    uiMapper.map(uiInstance);
                     menuToBeanMapping = menuMappingRepo.findById(actionId);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -213,8 +205,8 @@ public class JourneyStoreService {
                 try {
                     //todo: refactor for improving
                     uiInstance = ReflectionHelper.newInstance(Class.forName(uiClassName));
-                    new UIMapper().map(uiInstance);
-                    JourneyStoreService.get().storeMenuAction(actionId, new MDDOpenEditorAction("", uiInstance));
+                    uiMapper.map(uiInstance);
+                    storeMenuAction(actionId, new MDDOpenEditorAction("", uiInstance));
                     menuToBeanMapping = menuMappingRepo.findById(actionId);
                 } catch (Exception e) {
                     e.printStackTrace();

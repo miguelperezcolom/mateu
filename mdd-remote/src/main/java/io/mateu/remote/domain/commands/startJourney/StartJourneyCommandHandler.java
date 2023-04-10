@@ -12,7 +12,9 @@ import io.mateu.remote.dtos.Step;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -21,13 +23,14 @@ public class StartJourneyCommandHandler {
 
     @Autowired
     MateuRemoteClient mateuRemoteClient;
+    @Autowired
+    JourneyStoreService store;
 
-    public void handle(StartJourneyCommand command) throws Throwable {
+
+    public Mono<Void> handle(StartJourneyCommand command) throws Throwable {
 
         String journeyId = command.getJourneyId();
         String journeyTypeId = command.getJourneyTypeId();
-
-        JourneyStoreService store = JourneyStoreService.get();
 
         Journey journey = null;
         Object formInstance = null;
@@ -43,16 +46,18 @@ public class StartJourneyCommandHandler {
                     throw new Exception();
                 }
 
-                if (formInstance instanceof RemoteJourney) {
-                    RemoteJourney remoteJourney = (RemoteJourney) formInstance;
-                    mateuRemoteClient.startJourney(remoteJourney.getBaseUrl(),
-                            remoteJourney.getJourneyTypeId(), journeyId);
-                    return;
-                }
-
                 // we are passing the form instance to avoid creating a new form instance,
                 // even though we already have the step definition id, and we could recreate it
                 journey = new JourneyMapper().map(formInstance);
+
+                if (formInstance instanceof RemoteJourney) {
+                    RemoteJourney remoteJourney = (RemoteJourney) formInstance;
+
+                    store(journeyId, journeyTypeId, journey, remoteJourney.getBaseUrl(), remoteJourney.getJourneyTypeId());
+                    return mateuRemoteClient.startJourney(remoteJourney.getBaseUrl(),
+                            remoteJourney.getJourneyTypeId(), journeyId);
+                }
+
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -60,7 +65,7 @@ public class StartJourneyCommandHandler {
                 throw new NotFoundException("No class with name " + journeyTypeId + " found");
             }
 
-            Step step = JourneyStoreService.get().getStepMapper().map(journeyContainer, getStepId(formInstance), formInstance);
+            Step step = store.getStepMapper().map(journeyContainer, getStepId(formInstance), formInstance);
             journey.setCurrentStepId(step.getId());
             journey.setCurrentStepDefinitionId(step.getType());
             store(journeyId, journeyTypeId, journey, step);
@@ -69,6 +74,7 @@ public class StartJourneyCommandHandler {
             journeyContainer.reset();
         }
 
+        return Mono.empty();
     }
 
     private String getStepId(Object formInstance) {
@@ -77,13 +83,26 @@ public class StartJourneyCommandHandler {
     }
 
     private void store(String journeyId, String journeyTypeId, Journey journey, Step step) {
-        JourneyStoreService store = JourneyStoreService.get();
         JourneyContainer journeyContainer = JourneyContainer.builder()
                 .journeyId(journeyId)
                 .journeyTypeId(journeyTypeId)
                 .journey(journey)
                 .steps(Map.of(step.getId(), step))
                 .initialStep(step)
+                .build();
+        store.save(journeyContainer);
+    }
+
+    private void store(String journeyId, String journeyTypeId, Journey journey,
+                       String remoteBaseUrl, String remoteJourneyTypeId) {
+        JourneyContainer journeyContainer = JourneyContainer.builder()
+                .journeyId(journeyId)
+                .journeyTypeId(journeyTypeId)
+                .journey(journey)
+                .steps(Map.of())
+                .initialStep(null)
+                .remoteBaseUrl(remoteBaseUrl)
+                .remoteJourneyTypeId(remoteJourneyTypeId)
                 .build();
         store.save(journeyContainer);
     }

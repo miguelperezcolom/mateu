@@ -22,6 +22,7 @@ import io.mateu.remote.domain.queries.getStep.GetStepQuery;
 import io.mateu.remote.domain.queries.getStep.GetStepQueryHandler;
 import io.mateu.remote.domain.queries.getUI.GetUIQuery;
 import io.mateu.remote.domain.queries.getUI.GetUIQueryHandler;
+import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.*;
 import io.mateu.util.asciiart.Painter;
 import jakarta.annotation.PostConstruct;
@@ -40,7 +41,10 @@ import javax.naming.AuthenticationException;
 
 @Slf4j
 @Service
-public class RemoteMateuService {
+public class MateuService {
+
+    @Autowired
+    JourneyStoreService store;
 
     @Autowired
     StartJourneyCommandHandler startJourneyCommandHandler;
@@ -81,30 +85,36 @@ public class RemoteMateuService {
                 .build()).stream());
     }
 
-    public void createJourney(String journeyId, JourneyCreationRq rq) throws Throwable {
-        startJourneyCommandHandler.handle(StartJourneyCommand.builder()
+    public Mono<Void> createJourney(String journeyTypeId, String journeyId, JourneyCreationRq rq) throws Throwable {
+        log.info("creating journey " + journeyTypeId + "/" + journeyId);
+        return startJourneyCommandHandler.handle(StartJourneyCommand.builder()
                 .journeyId(journeyId)
-                .journeyTypeId(rq.getJourneyTypeId())
+                .journeyTypeId(journeyTypeId)
                 .build());
     }
 
-    public Mono<Journey> getJourney(String journeyId) throws Exception {
-        return Mono.just(getJourneyQueryHandler.run(GetJourneyQuery.builder()
-                .journeyId(journeyId).build()));
+    public Mono<Journey> getJourney(String journeyTypeId, String journeyId) throws Exception {
+        log.info("getting journey " + journeyTypeId + "/" + journeyId);
+        return getJourneyQueryHandler.run(GetJourneyQuery.builder()
+                .journeyTypeId(journeyTypeId)
+                .journeyId(journeyId).build());
     }
 
-    public Mono<Step> getStep(String journeyId, String stepId) throws Exception {
-        Step step = getStepQueryHandler.run(GetStepQuery.builder()
+    public Mono<Step> getStep(String journeyTypeId, String journeyId, String stepId) throws Exception {
+        log.info("getting step " + journeyTypeId + "/" + journeyId + "/" + stepId);
+        return getStepQueryHandler.run(GetStepQuery.builder()
+                .journeyTypeId(journeyTypeId)
                 .journeyId(journeyId).stepId(stepId).build());
-        //log.info(Helper.toJson(step));
-        return Mono.just(step);
     }
 
-    public void runStep(String journeyId,
+    public Mono<Void> runStep(String journeyTypeId,
+                        String journeyId,
                         String stepId,
                         String actionId,
                         RunActionRq rq) throws Throwable {
-        runStepActionCommandHandler.handle(RunStepActionCommand.builder()
+        log.info("running action " + journeyTypeId + "/" + journeyId + "/" + stepId + "/" + actionId);
+        return runStepActionCommandHandler.handle(RunStepActionCommand.builder()
+                .journeyTypeId(journeyTypeId)
                 .journeyId(journeyId)
                 .stepId(stepId)
                 .actionId(actionId)
@@ -113,7 +123,8 @@ public class RemoteMateuService {
     }
 
 
-    public Flux<Object> getListRows(String journeyId,
+    public Flux<Object> getListRows(String journeyTypeId,
+                                    String journeyId,
                                     String stepId,
                                     String listId,
                                     int page,
@@ -124,27 +135,30 @@ public class RemoteMateuService {
                                     String ordering
                                              ) throws Throwable {
         return Flux.fromStream(getListRowsQueryHandler.run(GetListRowsQuery.builder()
+                .journeyTypeId(journeyTypeId)
                 .journeyId(journeyId)
                 .stepId(stepId)
                 .listId(listId)
                 .page(page)
                 .pageSize(page_size)
-                .filters(new FiltersDeserializer(journeyId, stepId, listId, filters).deserialize())
+                .filters(filters)
                 .ordering(new OrderingDeserializer(ordering).deserialize())
                 .build()).stream());
     }
 
-    public Mono<Long> getListCount(String journeyId,
+    public Mono<Long> getListCount(String journeyTypeId,
+                                   String journeyId,
                                    String stepId,
                                    String listId,
 // urlencoded form of filters json serialized
                                    String filters
     ) throws Throwable {
         return Mono.just(getListCountQueryHandler.run(GetListCountQuery.builder()
+                .journeyTypeId(journeyTypeId)
                 .journeyId(journeyId)
                 .stepId(stepId)
                 .listId(listId)
-                .filters(new FiltersDeserializer(journeyId, stepId, listId, filters).deserialize())
+                .filters(filters)
                 .build()));
     }
 

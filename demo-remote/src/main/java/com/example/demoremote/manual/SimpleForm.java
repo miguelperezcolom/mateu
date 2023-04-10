@@ -5,8 +5,11 @@ import io.mateu.mdd.shared.annotations.MateuUI;
 import io.mateu.mdd.shared.annotations.TextArea;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
 @MateuUI("/form")
+@Service@Scope("prototype")
 @Getter@Setter
 public class SimpleForm {
 

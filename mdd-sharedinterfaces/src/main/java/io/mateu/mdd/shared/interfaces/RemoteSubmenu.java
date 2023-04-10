@@ -4,18 +4,25 @@ public class RemoteSubmenu {
 
     private final String baseUrl;
 
-    private final String className;
+    private final String uiId;
 
-    public RemoteSubmenu(String baseUrl, String className) {
+    private final String caption;
+
+    public RemoteSubmenu(String baseUrl, String uiId, String caption) {
         this.baseUrl = baseUrl;
-        this.className = className;
+        this.uiId = uiId;
+        this.caption = caption;
     }
 
     public String getBaseUrl() {
         return baseUrl;
     }
 
-    public String getClassName() {
-        return className;
+    public String getUiId() {
+        return uiId;
+    }
+
+    public String getCaption() {
+        return caption;
     }
 }

@@ -1,9 +1,10 @@
-package io.mateu.remote.domain.queries.getListCount;
+package io.mateu.remote.application.compat.queries;
 
 import com.google.common.base.Strings;
 import io.mateu.mdd.shared.interfaces.Listing;
-import io.mateu.remote.application.FiltersDeserializer;
 import io.mateu.remote.application.MateuRemoteClient;
+import io.mateu.remote.application.compat.CompatFiltersDeserializer;
+import io.mateu.remote.domain.queries.getListCount.GetListCountQuery;
 import io.mateu.remote.domain.store.JourneyContainer;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class GetListCountQueryHandler {
+public class GetListCountQueryCompatHandler {
 
     @Autowired
     JourneyStoreService store;
@@ -35,7 +36,7 @@ public class GetListCountQueryHandler {
             );
         }
 
-        Object filtersDeserialized = new FiltersDeserializer(
+        Object filtersDeserialized = new CompatFiltersDeserializer(
                 query.getJourneyId()
                 , query.getStepId(), query.getListId(), query.getFilters()).deserialize(store);
 

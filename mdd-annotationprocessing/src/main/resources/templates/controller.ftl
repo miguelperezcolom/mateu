@@ -1,7 +1,7 @@
 package ${pkgName};
 
 import io.mateu.mdd.shared.data.Value;
-import io.mateu.remote.application.RemoteMateuService;
+import io.mateu.remote.application.MateuService;
 import io.mateu.remote.dtos.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,10 +20,10 @@ import javax.naming.AuthenticationException;
 @RestController
 @RequestMapping("${path}/mateu/v1")
 @Slf4j
-public class ${simpleClassName}RemoteMateuController {
+public class ${simpleClassName}MateuController {
 
     @Autowired
-    private RemoteMateuService service;
+    private MateuService service;
 
 
     @GetMapping(value = "uis/{uiId}")
@@ -36,32 +36,34 @@ public class ${simpleClassName}RemoteMateuController {
         return service.getJourneyTypes();
     }
 
-    @PostMapping("journeys/{journeyId}")
-    public void createJourney(@PathVariable String journeyId, @RequestBody JourneyCreationRq rq) throws Throwable {
-        service.createJourney(journeyId, rq);
+    @PostMapping("journeys/{journeyTypeId}/{journeyId}")
+    public Mono<Void> createJourney(@PathVariable String journeyTypeId, @PathVariable String journeyId, @RequestBody JourneyCreationRq rq) throws Throwable {
+        return service.createJourney(journeyTypeId, journeyId, rq);
     }
 
-    @GetMapping("journeys/{journeyId}")
-    public Mono<Journey> getJourney(@PathVariable String journeyId) throws Exception {
-        return service.getJourney(journeyId);
+    @GetMapping("journeys/{journeyTypeId}/{journeyId}")
+    public Mono<Journey> getJourney(@PathVariable String journeyTypeId, @PathVariable String journeyId) throws Exception {
+        return service.getJourney(journeyTypeId, journeyId);
     }
 
-    @GetMapping("journeys/{journeyId}/steps/{stepId}")
-    public Mono<Step> getStep(@PathVariable String journeyId, @PathVariable String stepId) throws Exception {
-        return service.getStep(journeyId, stepId);
+    @GetMapping("journeys/{journeyTypeId}/{journeyId}/steps/{stepId}")
+    public Mono<Step> getStep(@PathVariable String journeyTypeId, @PathVariable String journeyId, @PathVariable String stepId) throws Exception {
+        return service.getStep(journeyTypeId, journeyId, stepId);
     }
 
-    @PostMapping("journeys/{journeyId}/steps/{stepId}/{actionId}")
-    public void runStep(@PathVariable String journeyId,
+    @PostMapping("journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{actionId}")
+    public Mono<Void> runStep(@PathVariable String journeyTypeId,
+                        @PathVariable String journeyId,
                         @PathVariable String stepId,
                         @PathVariable String actionId,
                         @RequestBody RunActionRq rq) throws Throwable {
-        service.runStep(journeyId, stepId, actionId, rq);
+        return service.runStep(journeyTypeId, journeyId, stepId, actionId, rq);
     }
 
 
-    @GetMapping("journeys/{journeyId}/steps/{stepId}/lists/{listId}/rows")
-    public Flux<Object> getListRows(@PathVariable String journeyId,
+    @GetMapping("journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/lists/{listId}/rows")
+    public Flux<Object> getListRows(@PathVariable String journeyTypeId,
+                                    @PathVariable String journeyId,
                                     @PathVariable String stepId,
                                     @PathVariable String listId,
                                     @RequestParam int page,
@@ -71,17 +73,18 @@ public class ${simpleClassName}RemoteMateuController {
                                     // urlencoded form of orders json serialized
                                     @RequestParam String ordering
                                     ) throws Throwable {
-        return service.getListRows(journeyId, stepId, listId, page, page_size, filters, ordering);
+        return service.getListRows(journeyTypeId, journeyId, stepId, listId, page, page_size, filters, ordering);
     }
 
-    @GetMapping("journeys/{journeyId}/steps/{stepId}/lists/{listId}/count")
-    public Mono<Long> getListCount(@PathVariable String journeyId,
+    @GetMapping("journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/lists/{listId}/count")
+    public Mono<Long> getListCount(@PathVariable String journeyTypeId,
+                                    @PathVariable String journeyId,
                                     @PathVariable String stepId,
                                     @PathVariable String listId,
                                     // urlencoded form of filters json serialized
                                     @RequestParam String filters
                                     ) throws Throwable {
-        return service.getListCount(journeyId, stepId, listId, filters);
+        return service.getListCount(journeyTypeId, journeyId, stepId, listId, filters);
     }
 
 

@@ -1,5 +1,6 @@
 package io.mateu.remote.domain.commands.runStep;
 
+import com.google.common.base.Strings;
 import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.File;
@@ -8,20 +9,24 @@ import io.mateu.mdd.shared.data.*;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
+import io.mateu.remote.application.MateuRemoteClient;
 import io.mateu.remote.domain.commands.EntityEditorFactory;
 import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.editors.FieldEditor;
 import io.mateu.remote.domain.editors.MethodParametersEditor;
 import io.mateu.remote.domain.files.StorageServiceAccessor;
 import io.mateu.remote.domain.persistence.Merger;
+import io.mateu.remote.domain.store.JourneyContainer;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.Step;
 import io.mateu.util.Helper;
 import io.mateu.util.Serializer;
 import jakarta.persistence.Entity;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Mono;
 
 import javax.naming.AuthenticationException;
 import java.io.IOException;
@@ -38,15 +43,31 @@ import java.util.stream.Collectors;
 @Slf4j
 public class RunStepActionCommandHandler {
 
+    @Autowired
+    JourneyStoreService store;
+
+    @Autowired
+    MateuRemoteClient mateuRemoteClient;
+
     @Transactional
-    public void handle(RunStepActionCommand command) throws Throwable {
+    public Mono<Void> handle(RunStepActionCommand command) throws Throwable {
 
         String journeyId = command.getJourneyId();
         String stepId = command.getStepId();
         String actionId = command.getActionId();
         Map<String, Object> data = command.getData();
 
-        JourneyStoreService store = JourneyStoreService.get();
+        JourneyContainer journeyContainer = store.findJourneyById(journeyId).orElse(null);
+
+        if (journeyContainer == null) {
+            throw new Exception("No journey with id " + journeyId);
+        }
+
+        if (!Strings.isNullOrEmpty(journeyContainer.getRemoteJourneyTypeId())) {
+            return mateuRemoteClient.runStep(journeyContainer.getRemoteBaseUrl(),
+                    journeyContainer.getRemoteJourneyTypeId(), journeyContainer.getJourneyId(),
+                    stepId, actionId, data);
+        }
 
         Object viewInstance = store.getViewInstance(journeyId, stepId);
 
@@ -76,7 +97,7 @@ public class RunStepActionCommandHandler {
                 rpcView = (Listing) viewInstance;
             } else {
                 String listId = actionId.split("__")[2];
-                rpcView = JourneyStoreService.get().getRpcViewInstance(journeyId, stepId, listId);
+                rpcView = store.getRpcViewInstance(journeyId, stepId, listId);
             }
             actionId = actionId.substring(actionId.indexOf("__") + 2);
             actionId = actionId.substring(actionId.indexOf("__") + 2);
@@ -350,6 +371,7 @@ public class RunStepActionCommandHandler {
             throw new Exception("Unkonwn action " + actionId);
         }
 
+        return Mono.empty();
     }
 
     private void addBackDestination(Result result, Step initialStep) {

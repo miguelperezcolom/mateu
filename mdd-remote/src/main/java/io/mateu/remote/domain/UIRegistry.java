@@ -24,13 +24,16 @@ public class UIRegistry {
     @Autowired
     JourneyStoreService journeyStoreService;
 
+    @Autowired
+    UIMapper uiMapper;
+
     public void add(Class uiClass) {
         if (!_classes.contains(uiClass)) {
             _classes.add(uiClass);
             try {
                 // we do this to fill the menu store
                 ReflectionHelper.setBeanProvider(mateuConfiguratorBean);
-                new UIMapper().map(ReflectionHelper.newInstance(uiClass));
+                uiMapper.map(ReflectionHelper.newInstance(uiClass));
             } catch (Exception e) {
                 e.printStackTrace();
             }

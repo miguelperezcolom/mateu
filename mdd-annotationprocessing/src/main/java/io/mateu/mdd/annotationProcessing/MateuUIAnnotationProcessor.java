@@ -45,7 +45,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                 try {
                     createIndexController(generatedFullClassName, pkgName, className, simpleClassName, e,
                             generatedClassName, caption, path);
-                    createController(className + "RemoteMateuController", pkgName, className, simpleClassName, e,
+                    createController(className + "MateuController", pkgName, className, simpleClassName, e,
                             generatedClassName, caption, removeTrailingSlash(path));
                     createConfig(className + "Config", pkgName, className, simpleClassName, e,
                             generatedClassName, caption, path);
