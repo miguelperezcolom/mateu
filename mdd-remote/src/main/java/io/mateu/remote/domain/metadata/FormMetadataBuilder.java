@@ -74,14 +74,6 @@ public class FormMetadataBuilder extends AbstractMetadataBuilder {
                 .filter(m -> m.isAnnotationPresent(io.mateu.mdd.shared.annotations.MainAction.class))
                 .map(m -> getAction(m))
                 .collect(Collectors.toList());
-        if (uiInstance instanceof ReadOnlyPojo || uiInstance instanceof PersistentPojo || uiInstance.getClass().isAnnotationPresent(Entity.class)) {
-            Action action = Action.builder()
-                    .id("cancel")
-                    .caption("Cancel")
-                    .type(ActionType.Secondary)
-                    .build();
-            actions.add(action);
-        }
         if (!"view".equals(stepId) && (uiInstance instanceof PersistentPojo || uiInstance.getClass().isAnnotationPresent(Entity.class))) {
             Action action = Action.builder()
                     .id("save")

@@ -12,12 +12,14 @@ public class StepMapper {
     @Autowired
     private ViewMapper viewMapper;
 
-    public Step map(JourneyContainer journeyContainer, String stepId, Object formInstance) throws Throwable {
+    public Step map(JourneyContainer journeyContainer, String stepId, String previousStepId, Object formInstance)
+            throws Throwable {
         return Step.builder()
                 .id(stepId)
                 .type(formInstance.getClass().getName())
                 .name(ReflectionHelper.getCaption(formInstance))
                 .view(viewMapper.map(journeyContainer, stepId, formInstance))
+                .previousStepId(previousStepId)
                 .build();
     }
 }

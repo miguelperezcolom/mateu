@@ -45,14 +45,6 @@ public class MethodParametersEditorMetadataBuilder extends AbstractMetadataBuild
         List<Action> actions = new ArrayList<>();
         if (true) {
             Action action = Action.builder()
-                    .id("cancel")
-                    .caption("Cancel")
-                    .type(ActionType.Secondary)
-                    .build();
-            actions.add(action);
-        }
-        if (true) {
-            Action action = Action.builder()
                     .id("run")
                     .caption("Run")
                     .type(ActionType.Primary)

@@ -13,4 +13,6 @@ public class Step {
 
     private View view;
 
+    private String previousStepId;
+
 }

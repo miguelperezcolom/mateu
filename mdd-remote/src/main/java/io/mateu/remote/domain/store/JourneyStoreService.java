@@ -108,10 +108,20 @@ public class JourneyStoreService {
         if (!container.isPresent()) {
             throw new Exception("No journey with id " + journeyId + " found");
         }
-        container.get().setSteps(extendMap(container.get().getSteps(), stepId, stepMapper.map(container.get(), stepId, editor)));
+        if (!container.get().getSteps().containsKey(stepId)) {
+            container.get().setSteps(extendMap(container.get().getSteps(), stepId,
+                    stepMapper.map(container.get(), stepId, getCurrentStepId(container), editor)));
+        }
         container.get().getJourney().setCurrentStepId(stepId);
         container.get().getJourney().setCurrentStepDefinitionId(editor.getClass().getName());
         journeyRepo.save(container.get());
+    }
+
+    private String getCurrentStepId(Optional<JourneyContainer> container) {
+        if (container.isEmpty()) {
+            return null;
+        }
+        return container.get().getJourney().getCurrentStepId();
     }
 
     private Map<String, Step> extendMap(Map<String, Step> steps, String stepId, Step step) {
@@ -156,7 +166,14 @@ public class JourneyStoreService {
         if (!container.isPresent()) {
             throw new Exception("No journey with id " + journeyId + " found");
         }
-        return container.get().getSteps().get(stepId);
+        Step step = container.get().getSteps().get(stepId);
+        if (step == null) {
+            throw new Exception("No step with id " + journeyId + " found for journey " + journeyId);
+        }
+        container.get().getJourney().setCurrentStepDefinitionId(step.getType());
+        container.get().getJourney().setCurrentStepId(stepId);
+        journeyRepo.save(container.get());
+        return step;
     }
 
     public Step getInitialStep(String journeyId) throws Exception {

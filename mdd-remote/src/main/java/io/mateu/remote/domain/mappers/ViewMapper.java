@@ -89,6 +89,7 @@ public class ViewMapper {
             addActionsForFieldEditor((Form) metadata, (FieldEditor) uiInstance);
         }
 
+
         int i = 0;
         for (Component component : components) {
             component.setId("component_" + i++);
@@ -117,12 +118,6 @@ public class ViewMapper {
     }
 
     private void addActionsForFieldEditor(Form metadata, FieldEditor fieldEditor) {
-        metadata.getMainActions().add(Action.builder()
-                .id("cancel")
-                .caption("Cancel")
-                .type(ActionType.Secondary)
-                .validationRequired(false)
-                .build());
         metadata.getMainActions().add(Action.builder()
                         .id("save")
                         .caption("Save")

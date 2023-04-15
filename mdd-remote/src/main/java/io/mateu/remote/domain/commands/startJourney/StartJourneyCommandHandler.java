@@ -65,7 +65,7 @@ public class StartJourneyCommandHandler {
                 throw new NotFoundException("No class with name " + journeyTypeId + " found");
             }
 
-            Step step = store.getStepMapper().map(journeyContainer, getStepId(formInstance), formInstance);
+            Step step = store.getStepMapper().map(journeyContainer, getStepId(formInstance), null, formInstance);
             journey.setCurrentStepId(step.getId());
             journey.setCurrentStepDefinitionId(step.getType());
             store(journeyId, journeyTypeId, journey, step);
