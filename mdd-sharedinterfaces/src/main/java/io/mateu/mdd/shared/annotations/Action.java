@@ -23,17 +23,6 @@ Action {
 
     String confirmationAction() default "";
 
-    int order() default 1000;
-
-    String attachToField() default "";
-
-    String style() default "";
-
-    String section() default "";
-
-    String group() default "";
-
     boolean validateBefore() default true;
 
-    boolean isGroup() default false;
 }

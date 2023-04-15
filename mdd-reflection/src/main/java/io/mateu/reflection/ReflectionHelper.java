@@ -282,39 +282,6 @@ public class ReflectionHelper extends BaseReflectionHelper {
         return m;
     }
 
-    private static Field getDeclaredField(Class<?> c, String fieldName) {
-        Field m = null;
-        while (m == null) {
-            try {
-                m = c.getDeclaredField(fieldName);
-            } catch (NoSuchFieldException e) {
-            }
-            if (m != null) break;
-            else {
-                if (c.getSuperclass() != null && c.getSuperclass().isAnnotationPresent(Entity.class)) c = c.getSuperclass();
-                else break;
-            }
-        }
-
-        return m;
-    }
-
-    private static Method getMethod(Class<?> c, String methodName, Class<?> parameterClass) {
-        Method m = null;
-        while (m == null) {
-            try {
-                m = c.getDeclaredMethod(methodName, parameterClass);
-            } catch (NoSuchMethodException e) {
-            }
-            if (m != null) break;
-            else {
-                if (c.getSuperclass() != null && c.getSuperclass().isAnnotationPresent(Entity.class)) c = c.getSuperclass();
-                else break;
-            }
-        }
-
-        return m;
-    }
 
     public static String getGetter(Field f) {
         return getGetter(f.getType(), f.getName());
@@ -344,38 +311,6 @@ public class ReflectionHelper extends BaseReflectionHelper {
         return "set" + getFirstUpper(fieldName);
     }
 
-
-    public static String getMappedBy(FieldInterfaced f) {
-        if (f.isAnnotationPresent(OneToOne.class)) return f.getAnnotation(OneToOne.class).mappedBy();
-        if (f.isAnnotationPresent(OneToMany.class)) return f.getAnnotation(OneToMany.class).mappedBy();
-        if (f.isAnnotationPresent(ManyToMany.class)) return f.getAnnotation(ManyToMany.class).mappedBy();
-        return null;
-    }
-
-    public static boolean esJpa(FieldInterfaced f) {
-        return f.getType().isAnnotationPresent(Entity.class) || f.isAnnotationPresent(OneToOne.class) || f.isAnnotationPresent(OneToMany.class) || f.isAnnotationPresent(ManyToOne.class) || f.isAnnotationPresent(ManyToMany.class);
-    }
-
-
-    private static void addToList(List<String> l, String s) {
-        if (s != null) for (String t : s.split(",")) {
-            t = t.trim();
-            if (!"".equals(t)) l.add(t);
-        }
-    }
-
-    private static void addToList(List<String> l, List<String> nl, String s) {
-        if (s != null) for (String t : s.split(",")) {
-            t = t.trim();
-            if (!"".equals(t)) {
-                if (t.startsWith("¬")) {
-                    nl.add(t.replaceAll("¬", ""));
-                } else {
-                    l.add(t);
-                }
-            }
-        }
-    }
 
 
 
@@ -491,33 +426,9 @@ public class ReflectionHelper extends BaseReflectionHelper {
         return l;
     }
 
-    public static List<FieldInterfaced> getAllFields(Constructor m) {
-
-        List<FieldInterfaced> l = new ArrayList<>();
-
-        for (Parameter p : m.getParameters()) if (!isInjectable(m, p)) {
-            l.add(new FieldInterfacedFromParameter(m, p));
-        }
-
-        return l;
-    }
-
     public static boolean isInjectable(Executable m, Parameter p) {
         boolean injectable = true;
         if (EntityManager.class.equals(p.getType())) {
-        } else if (Set.class.isAssignableFrom(p.getType())) {
-            Class<?> gc = null;
-            if (m.isAnnotationPresent(Action.class) && !Strings.isNullOrEmpty(m.getAnnotation(Action.class).attachToField())) {
-                gc = getGenericClass(getFieldByName(m.getDeclaringClass(), m.getAnnotation(Action.class).attachToField()), List.class, "E");
-            } else {
-                gc = m.getDeclaringClass();
-                if (Listing.class.isAssignableFrom(gc)) gc = getGenericClass(gc, Listing.class, "C");
-                else if (Modifier.isStatic(m.getModifiers())) gc = m.getDeclaringClass();
-            }
-            if (!(gc !=  null && gc.equals(new FieldInterfacedFromParameter(m, p).getGenericClass()))) {
-                injectable = false;
-            }
-        } else if (PushWriter.class.equals(p.getType())) {
         } else {
             injectable = false;
         }
@@ -535,86 +446,6 @@ public class ReflectionHelper extends BaseReflectionHelper {
         for (FieldInterfaced f : l) m.put(f.getName(), f);
 
         return m;
-    }
-
-    private static List<FieldInterfaced> getAllFields(Class entityClass, boolean fieldsInFilterOnly, List<String> fieldsFilter, List<String> negatedFormFields) {
-        List<FieldInterfaced> fs = getAllFields(entityClass);
-        Map<String, FieldInterfaced> m = getAllFieldsMap(fs);
-
-        List<FieldInterfaced> l = new ArrayList<>();
-
-        if (fieldsInFilterOnly) {
-            if (fieldsFilter != null) for (String fn : fieldsFilter) {
-                boolean soloSalida = false;
-                if (fn.startsWith("-")) {
-                    soloSalida = true;
-                    fn = fn.substring(1);
-                }
-                if (fn.contains(".")) {
-                    FieldInterfaced f = null;
-                    String finalFn = fn;
-                    boolean finalSoloSalida = soloSalida;
-                    l.add(f = new FieldInterfacedFromField(getField(entityClass, finalFn, m)) {
-                        @Override
-                        public String getId() {
-                            return finalFn;
-                        }
-
-                        @Override
-                        public String getName() {
-                            return Helper.capitalize(getId());
-                        }
-
-                        @Override
-                        public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-                            if (finalSoloSalida && Output.class.equals(annotationClass)) return true;
-                            else return super.isAnnotationPresent(annotationClass);
-                        }
-                    });
-
-                } else {
-                    if (m.containsKey(fn)) {
-                        boolean finalSoloSalida1 = soloSalida;
-                        l.add((soloSalida)?new FieldInterfacedFromField(m.get(fn)) {
-                            @Override
-                            public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-                                if (finalSoloSalida1 && Output.class.equals(annotationClass)) return true;
-                                else return super.isAnnotationPresent(annotationClass);
-                            }
-                        }:m.get(fn));
-                    }
-                }
-            }
-        } else {
-            for (FieldInterfaced f : fs) {
-                if (negatedFormFields == null || !negatedFormFields.contains(f.getId())) {
-                    boolean soloSalida = fieldsFilter != null && fieldsFilter.contains("-" + f.getId());
-                    boolean forzarEditable = fieldsFilter != null && fieldsFilter.contains("+" + f.getId());
-
-                    l.add((soloSalida || forzarEditable)?new FieldInterfacedFromField(f) {
-                        @Override
-                        public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-                            if (Output.class.equals(annotationClass)) return soloSalida || !forzarEditable || super.isAnnotationPresent(annotationClass);
-                            else return super.isAnnotationPresent(annotationClass);
-                        }
-                    }:f);
-                }
-            }
-        }
-
-        return l.stream().filter((f) -> f != null).collect(Collectors.toList());
-    }
-
-    private static FieldInterfaced getField(Class entityClass, String fn, Map<String, FieldInterfaced> m) {
-        FieldInterfaced f = null;
-        if (fn.contains(".")) {
-            String flfn = fn.substring(0, fn.indexOf("."));
-            FieldInterfaced flf = m.get(flfn);
-            if (flf != null) f = getField(flf.getType(), fn.substring(flfn.length() + 1), getAllFieldsMap(flf.getType()));
-        } else {
-            if (m.containsKey(fn)) f = m.get(fn);
-        }
-        return f;
     }
 
     public static Object getId(Object model) {

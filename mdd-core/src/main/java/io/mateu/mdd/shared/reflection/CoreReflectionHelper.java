@@ -1,14 +1,8 @@
 package io.mateu.mdd.shared.reflection;
 
-import com.google.common.base.Strings;
-import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.interfaces.Listing;
-import io.mateu.mdd.shared.interfaces.PushWriter;
 import io.mateu.reflection.ReflectionHelper;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
@@ -38,21 +32,9 @@ public class CoreReflectionHelper {
         for (Parameter p : m.getParameters()) {
             Class<?> pgc = ReflectionHelper.getGenericClass(p.getParameterizedType());
 
-            if (PushWriter.class.equals(p.getType())) {
-                vs.add(new PushWriter() {
-                    @Override
-                    public void push(String message) {
-                        //todo: implementar
-                    }
-
-                    @Override
-                    public void done(String message) {
-                        //todo: implementar
-                    }
-                });
-            } else if (((instance instanceof Listing || Modifier.isStatic(m.getModifiers())) && Set.class.isAssignableFrom(p.getType()) && (m.getDeclaringClass().equals(pgc)
+            if (((instance instanceof Listing || Modifier.isStatic(m.getModifiers())) && Set.class.isAssignableFrom(p.getType()) && (m.getDeclaringClass().equals(pgc)
                     || (instance instanceof Listing && ReflectionHelper.getGenericClass(instance.getClass(), Listing.class, "C").equals(pgc))))
-                    || (pendingSelection != null && Set.class.isAssignableFrom(p.getType()) && !Strings.isNullOrEmpty(m.getAnnotation(Action.class).attachToField()))
+                    || (pendingSelection != null && Set.class.isAssignableFrom(p.getType()))
             ) {
                 vs.add(pendingSelection);
             } else if (params != null && params.containsKey(p.getName())) {
