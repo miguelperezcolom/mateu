@@ -18,6 +18,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
+
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -100,6 +102,7 @@ public class JourneyStoreService {
     }
 
     public void save(JourneyContainer journeyContainer) {
+        journeyContainer.setLastAccess(LocalDateTime.now());
         journeyRepo.save(journeyContainer);
     }
 
@@ -108,12 +111,15 @@ public class JourneyStoreService {
         if (!container.isPresent()) {
             throw new Exception("No journey with id " + journeyId + " found");
         }
+        Step step = stepMapper.map(container.get(), stepId, getCurrentStepId(container), editor);
         if (!container.get().getSteps().containsKey(stepId)) {
-            container.get().setSteps(extendMap(container.get().getSteps(), stepId,
-                    stepMapper.map(container.get(), stepId, getCurrentStepId(container), editor)));
+            container.get().setSteps(extendMap(container.get().getSteps(), stepId, step));
+        } else {
+            container.get().getSteps().get(stepId).setView(step.getView());
         }
         container.get().getJourney().setCurrentStepId(stepId);
         container.get().getJourney().setCurrentStepDefinitionId(editor.getClass().getName());
+        container.get().setLastAccess(LocalDateTime.now());
         journeyRepo.save(container.get());
     }
 
@@ -150,6 +156,7 @@ public class JourneyStoreService {
         }
         container.get().getJourney().setCurrentStepId(stepId);
         container.get().getJourney().setCurrentStepDefinitionId(step.getType());
+        container.get().setLastAccess(LocalDateTime.now());
         journeyRepo.save(container.get());
     }
 
@@ -172,6 +179,7 @@ public class JourneyStoreService {
         }
         container.get().getJourney().setCurrentStepDefinitionId(step.getType());
         container.get().getJourney().setCurrentStepId(stepId);
+        container.get().setLastAccess(LocalDateTime.now());
         journeyRepo.save(container.get());
         return step;
     }

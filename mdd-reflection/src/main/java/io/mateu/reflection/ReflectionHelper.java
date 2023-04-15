@@ -1069,6 +1069,8 @@ public class ReflectionHelper extends BaseReflectionHelper {
 
         allFields = filterAccesible(allFields);
 
+        allFields = filterMenuFields(allFields);
+
         allFields = filterAuthorized(allFields);
 
         allFields = filterInjected(allFields);
@@ -1131,6 +1133,15 @@ public class ReflectionHelper extends BaseReflectionHelper {
 
 
         return allFields;
+    }
+
+    private static List<FieldInterfaced> filterMenuFields(List<FieldInterfaced> allFields) {
+        List<FieldInterfaced> r = new ArrayList<>();
+        for (FieldInterfaced f : allFields) {
+            if (!f.isAnnotationPresent(MenuOption.class)
+            && !f.isAnnotationPresent(Submenu.class)) r.add(f);
+        }
+        return r;
     }
 
     private static List<FieldInterfaced> filterInjected(List<FieldInterfaced> allFields) {

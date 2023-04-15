@@ -2,26 +2,24 @@ package com.example.demoremote.ui.demoApp;
 
 import com.example.demoremote.ui.demoApp.menus.*;
 import com.example.demoremote.ui.demoApp.menus.forms.BasicFieldsForm;
+import io.mateu.mdd.core.interfaces.HasAppTitle;
 import io.mateu.mdd.core.interfaces.HasLogin;
-import io.mateu.mdd.shared.annotations.Caption;
-import io.mateu.mdd.shared.annotations.ExternalScripts;
-import io.mateu.mdd.shared.annotations.MateuUI;
-import io.mateu.mdd.shared.annotations.MenuOption;
-import io.mateu.mdd.shared.annotations.Private;
-import io.mateu.mdd.shared.annotations.Submenu;
+import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.interfaces.IncludesRemoteUIs;
 import io.mateu.mdd.shared.interfaces.RemoteJourney;
 import io.mateu.mdd.shared.interfaces.RemoteSubmenu;
 import io.mateu.mdd.shared.interfaces.RemoteUI;
+import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
-@Caption("This is a demo")
+@Caption("")
 @MateuUI("")
 @ExternalScripts("https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js")
-public class DemoApp implements HasLogin
+@Getter
+public class DemoApp implements HasLogin, HasAppTitle
         //, IncludesRemoteUIs
         {
 
@@ -66,4 +64,18 @@ public class DemoApp implements HasLogin
         return "/login";
     }
 
-}
+    @RawContent
+    String someContent = """
+            
+            <h1>Hello!</h1>
+            
+            <p>This is some content for the home page.</p>
+            
+            """;
+
+
+            @Override
+            public String getAppTitle() {
+                return "Demo app";
+            }
+        }

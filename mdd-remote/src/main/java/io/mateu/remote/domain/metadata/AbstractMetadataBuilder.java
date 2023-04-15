@@ -12,10 +12,7 @@ import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
 import io.mateu.remote.dtos.Action;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -185,9 +182,23 @@ public abstract class AbstractMetadataBuilder {
         if (field.getType().isEnum()) {
             return "combobox";
         }
-        if (field.isAnnotationPresent(ReadOnly.class) || field.isAnnotationPresent(Output.class)
-        || (field.isAnnotationPresent(Id.class))) {
+        if (field.isAnnotationPresent(ReadOnly.class) || field.isAnnotationPresent(Output.class)) {
             return "readonly";
+        }
+        if (field.isAnnotationPresent(GeneratedValue.class)) {
+            return "readonly";
+        }
+        if (field.isAnnotationPresent(Id.class)) {
+            Object instance = null;
+            try {
+                instance = ReflectionHelper.newInstance(field.getDeclaringClass());
+                Object initialValue = ReflectionHelper.getValue(field, instance);
+                if (initialValue != null) {
+                    return "readonly";
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         if (field.isAnnotationPresent(TextArea.class)) {
             return "textarea";

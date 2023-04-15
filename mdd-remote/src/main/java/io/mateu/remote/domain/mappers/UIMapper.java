@@ -1,10 +1,7 @@
 package io.mateu.remote.domain.mappers;
 
 import io.mateu.mdd.core.app.*;
-import io.mateu.mdd.core.interfaces.HasLogin;
-import io.mateu.mdd.core.interfaces.HasLogout;
-import io.mateu.mdd.core.interfaces.HasSubtitle;
-import io.mateu.mdd.core.interfaces.HasTitle;
+import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.shared.annotations.MenuOption;
 import io.mateu.mdd.shared.annotations.Submenu;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
@@ -39,12 +36,9 @@ public class UIMapper {
 
         ui.setTitle(getTitle(uiInstance));
         ui.setSubtitle(getSubtitle(uiInstance));
-        if (isForm(uiInstance)) {
-            ui.setHomeJourneyTypeId(uiInstance.getClass().getName());
-        } else {
-            List<Menu> menuOptions = getMenu(uiInstance);
-            ui.setMenu(menuOptions);
-        }
+        ui.setHomeJourneyTypeId(uiInstance.getClass().getName());
+        List<Menu> menuOptions = getMenu(uiInstance);
+        ui.setMenu(menuOptions);
         if (uiInstance instanceof HasLogin) {
             ui.setLoginUrl(((HasLogin) uiInstance).getLoginUrl());
         }
@@ -79,6 +73,9 @@ public class UIMapper {
     }
 
     private String getTitle(Object uiInstance) {
+        if (uiInstance instanceof HasAppTitle) {
+            return ((HasAppTitle) uiInstance).getAppTitle();
+        }
         if (uiInstance instanceof HasTitle) {
             return ((HasTitle) uiInstance).getTitle();
         }

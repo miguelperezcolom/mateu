@@ -88,6 +88,9 @@ public class ViewMapper {
         if (uiInstance instanceof FieldEditor) {
             addActionsForFieldEditor((Form) metadata, (FieldEditor) uiInstance);
         }
+        if (uiInstance instanceof EntityEditor) {
+            setIdAsReadOnlyIfEditing((Form) metadata, (EntityEditor) uiInstance);
+        }
 
 
         int i = 0;
@@ -100,6 +103,22 @@ public class ViewMapper {
                 .build();
 
         return view;
+    }
+
+    private void setIdAsReadOnlyIfEditing(Form metadata, EntityEditor uiInstance) {
+        FieldInterfaced idField = ReflectionHelper.getIdField(uiInstance.getEntityClass());
+        if (idField != null) {
+            if (uiInstance.getData().containsKey(idField.getId())) {
+                metadata.getSections().forEach(s -> s.getFieldGroups()
+                        .forEach(g -> g.getLines()
+                                .forEach(l -> l.getFields()
+                                        .forEach(f -> {
+                                            if (f.getId().equals(idField.getId())) {
+                                                f.setStereotype("readonly");
+                                            }
+                                        }))));
+            }
+        }
     }
 
     private List<Rule> buildRules(ViewMetadata metadata, Object actualUiInstance) {
