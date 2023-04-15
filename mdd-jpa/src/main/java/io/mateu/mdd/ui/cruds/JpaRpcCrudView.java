@@ -42,8 +42,7 @@ import java.util.stream.Collectors;
 @Data
 @Component
 @Scope("stereotype")
-public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended,
-        Adds, Deletes<Object>, Edits<Object> {
+public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended {
 
     private MDDOpenCRUDAction action;
     private Map<String, String> aliasedColumnNamesByColId = new HashMap<>();

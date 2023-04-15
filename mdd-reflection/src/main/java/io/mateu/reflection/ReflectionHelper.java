@@ -2228,4 +2228,9 @@ public class ReflectionHelper extends BaseReflectionHelper {
         l.removeAll(o);
         return ImmutableSet.copyOf(l);
     }
+
+    public static boolean isOverridden(Object instance, String methodName) {
+        Method m = ReflectionHelper.getMethod(instance.getClass(), methodName);
+        return !m.getDeclaringClass().equals(Object.class) && !m.getDeclaringClass().isInterface();
+    }
 }

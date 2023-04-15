@@ -5,6 +5,7 @@ import io.mateu.mdd.shared.annotations.Caption;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
+import java.util.Set;
 
 public interface Listing<SearchForm, Row> {
 
@@ -35,6 +36,10 @@ public interface Listing<SearchForm, Row> {
 
     default Class<Row> getRowClass() {
         return (Class<Row>) ((ParameterizedType) getClass().getGenericInterfaces()[0]).getActualTypeArguments()[1];
+    }
+
+    default List<Row> getSelection() {
+        return List.of();
     }
 
 }

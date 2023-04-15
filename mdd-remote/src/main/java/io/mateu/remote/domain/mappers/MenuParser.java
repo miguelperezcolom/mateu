@@ -3,7 +3,6 @@ package io.mateu.remote.domain.mappers;
 import com.google.common.base.Strings;
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.app.menuResolvers.MenuResolver;
-import io.mateu.mdd.core.interfaces.WizardPage;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.interfaces.*;
 import io.mateu.mdd.shared.reflection.CoreReflectionHelper;
@@ -313,15 +312,6 @@ public class MenuParser {
             if (f.isAnnotationPresent(Home.class) || f.isAnnotationPresent(PublicHome.class) || f.isAnnotationPresent(PrivateHome.class))
                 l.add(new MDDOpenHtmlAction("Home", "" + v).setIcon("home").setOrder(order));
             else l.add(new MDDOpenHtmlAction(caption, "" + v).setIcon(icon).setOrder(order));
-        } else if (WizardPage.class.isAssignableFrom(f.getType())) {
-            l.add(new MDDOpenWizardAction(caption, () -> {
-                try {
-                    return v != null?(WizardPage) v: (WizardPage) ReflectionHelper.newInstance(f.getType());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }).setIcon(icon).setOrder(order));
         } else if (Listing.class.isAssignableFrom(f.getType())) {
             l.add(new MDDOpenListViewAction(caption, f.getType()).setIcon(icon).setOrder(order));
         } else l.add(new MDDOpenEditorAction(caption, () -> {

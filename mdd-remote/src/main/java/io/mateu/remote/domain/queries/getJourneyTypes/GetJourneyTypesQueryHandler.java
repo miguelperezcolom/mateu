@@ -41,8 +41,10 @@ public class GetJourneyTypesQueryHandler {
 
                 UI ui = uiMapper.map(uiInstance);
 
-                for (Menu menu : ui.getMenu()) {
-                    addJourneyTypeForMenu(journeyTypes, menu);
+                if (ui.getMenu() != null) {
+                    for (Menu menu : ui.getMenu()) {
+                        addJourneyTypeForMenu(journeyTypes, menu);
+                    }
                 }
 
             }

@@ -22,7 +22,7 @@ import lombok.Data;
 public class ModelViewer {
 
     @Attribute
-    private String src = "https://snazzy-axolotl-972053.netlify.app/assets/NeilArmstrong.glb";
+    private String src = "/myassets/NeilArmstrong.glb";
 
     @Attribute
     private String style = "width: 400px; height: 400px;";

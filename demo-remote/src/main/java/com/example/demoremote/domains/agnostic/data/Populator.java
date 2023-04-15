@@ -48,13 +48,12 @@ public class Populator {
     @PostConstruct
     public void populate() {
 
-        new Thread(() -> {
-            try {
-                doPopulate();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
+        try {
+
+            doPopulate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 

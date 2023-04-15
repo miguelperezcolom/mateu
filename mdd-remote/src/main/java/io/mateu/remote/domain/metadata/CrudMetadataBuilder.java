@@ -20,7 +20,7 @@ public class CrudMetadataBuilder extends AbstractMetadataBuilder {
         return Crud.builder()
                 .title(getTitle(rpcView))
                 .subtitle(getSubtitle(rpcView))
-                .canEdit(rpcView instanceof Edits)
+                .canEdit(ReflectionHelper.isOverridden(rpcView, "getDetail"))
                 .searchForm(buildSearchForm(rpcView))
                 .columns(buildColumns(rpcView))
                 .actions(getActions(stepId, listId, rpcView))

@@ -2,6 +2,7 @@ package io.mateu.remote.domain.metadata;
 
 import com.google.common.base.Strings;
 import io.mateu.mdd.core.interfaces.*;
+import io.mateu.mdd.core.interfaces.Crud;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.annotations.ReadOnly;
 import io.mateu.mdd.shared.data.ExternalReference;
@@ -36,12 +37,20 @@ public abstract class AbstractMetadataBuilder {
                 .caption(ReflectionHelper.getCaption(fieldInterfaced))
                 .placeholder(getPlaceholder(fieldInterfaced))
                 .description(getDescription(fieldInterfaced))
+                ._class(getClasNames(fieldInterfaced))
                 .type(mapFieldType(fieldInterfaced))
                 .stereotype(mapStereotype(fieldInterfaced))
                 .attributes(buildAttributes(fieldInterfaced))
                 .build();
         addValidations(field, fieldInterfaced);
         return field;
+    }
+
+    private String getClasNames(FieldInterfaced fieldInterfaced) {
+        if (fieldInterfaced.isAnnotationPresent(StyleClassNames.class)) {
+            return String.join(" ", fieldInterfaced.getAnnotation(StyleClassNames.class).value());
+        }
+        return null;
     }
 
     private String getPlaceholder(FieldInterfaced fieldInterfaced) {
@@ -404,8 +413,8 @@ public abstract class AbstractMetadataBuilder {
     }
 
     private boolean canAdd(Object uiInstance) {
-        if (uiInstance instanceof CanAdd) {
-            return true;
+        if (uiInstance instanceof Crud) {
+            return ReflectionHelper.isOverridden(uiInstance, "getNewRecordForm");
         }
         if (uiInstance instanceof RpcCrudViewExtended) {
             return ((RpcCrudViewExtended) uiInstance).isAddEnabled();
@@ -414,8 +423,8 @@ public abstract class AbstractMetadataBuilder {
     }
 
     private boolean canDelete(Object uiInstance) {
-        if (uiInstance instanceof CanDelete) {
-            return true;
+        if (uiInstance instanceof Crud) {
+            return ReflectionHelper.isOverridden(uiInstance, "delete");
         }
         if (uiInstance instanceof RpcCrudViewExtended) {
             return ((RpcCrudViewExtended) uiInstance).isDeleteEnabled();

@@ -7,6 +7,6 @@ import java.lang.reflect.InvocationTargetException;
 
 public interface JpaRpcCrudFactory {
 
-    Listing create(Object parentEntity, FieldInterfaced field) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException, Exception;
+    Listing create(Object parentEntity, FieldInterfaced field) throws Exception;
 
 }

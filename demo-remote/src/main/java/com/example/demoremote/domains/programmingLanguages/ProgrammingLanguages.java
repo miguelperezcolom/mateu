@@ -19,8 +19,7 @@ import java.util.stream.Collectors;
 @Getter@Setter
 @Service
 public class ProgrammingLanguages implements Crud<ProgrammingLanguages, LanguageRow>,
-        HasTitle, HasSubtitle,
-        CanDelete<LanguageRow>, CanAdd, CanEdit<LanguageRow> {
+        HasTitle, HasSubtitle {
 
     @Autowired
     private LanguagesRepository repo;
@@ -71,7 +70,7 @@ public class ProgrammingLanguages implements Crud<ProgrammingLanguages, Language
     }
 
     @Override
-    public void delete(Set<LanguageRow> selection) throws Throwable {
+    public void delete(List<LanguageRow> selection) throws Throwable {
         repo.findAll().removeAll(selection);
     }
 
