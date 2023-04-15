@@ -15,6 +15,12 @@ public class FormsSubmenu {
     private MyReadOnlyPojoWithCrud readOnlyPojoWithCrud;
 
     @MenuOption
+    private WrappersFieldsForm wrappersFieldsForm;
+
+    @MenuOption
+    private ReturnsBasic returnsBasic;
+
+    @MenuOption
     private ReturnsResult returnsResult;
 
     @MenuOption

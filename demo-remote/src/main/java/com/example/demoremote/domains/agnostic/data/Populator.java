@@ -81,22 +81,19 @@ public class Populator {
             playerRepository.save(p);
         }
 
-        List<String> positions = Arrays.stream(players).map(p -> p.getPosition()).distinct().collect(Collectors.toList());
-        //positions.forEach(t -> System.out.println(t));
-
-        //System.out.println(positions.size());
-
-        json = Helper.leerFichero(Reader.class, "/cities.json"); // 140k cities
-        CityDto[] cities = Helper.fromJson(json, CityDto[].class);
-        for (CityDto city : cities) {
-            City p = new City();
-            p.setName(city.getName());
-            p.setPopulation(city.getPopulation());
-            p.setCountry(city.getCou_name_en());
-            p.setTimezone(city.getTimezone());
-            p.setModificationDate(LocalDate.parse(city.getModification_date()));
-            p.setId(city.getGeoname_id());
-            cityRepository.save(p);
+        if (false) {
+            json = Helper.leerFichero(Reader.class, "/cities.json"); // 140k cities
+            CityDto[] cities = Helper.fromJson(json, CityDto[].class);
+            for (CityDto city : cities) {
+                City p = new City();
+                p.setName(city.getName());
+                p.setPopulation(city.getPopulation());
+                p.setCountry(city.getCou_name_en());
+                p.setTimezone(city.getTimezone());
+                p.setModificationDate(LocalDate.parse(city.getModification_date()));
+                p.setId(city.getGeoname_id());
+                cityRepository.save(p);
+            }
         }
 
         json = Helper.leerFichero(Reader.class, "/swapi_characters.json"); // 140k cities

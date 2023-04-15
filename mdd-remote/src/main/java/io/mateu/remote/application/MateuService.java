@@ -208,11 +208,4 @@ public class MateuService {
         return "redirect:/";
     }
 
-
-    @PostConstruct
-    public void init() {
-        Painter.paint("Hello");
-        Painter.paint("MATEU");
-    }
-
 }

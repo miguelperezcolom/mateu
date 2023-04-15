@@ -14,7 +14,7 @@ import java.util.UUID;
 public class Team {
 
     @Id
-    private String id = UUID.randomUUID().toString();
+    private String id;
 
     private String name;
 

@@ -1,4 +1,4 @@
-package com.example.demoremote.manual;
+package com.example.demoremote.ui.manual;
 
 import io.mateu.mdd.core.interfaces.Crud;
 import io.mateu.mdd.shared.annotations.MateuUI;

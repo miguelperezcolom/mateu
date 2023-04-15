@@ -2231,6 +2231,6 @@ public class ReflectionHelper extends BaseReflectionHelper {
 
     public static boolean isOverridden(Object instance, String methodName) {
         Method m = ReflectionHelper.getMethod(instance.getClass(), methodName);
-        return !m.getDeclaringClass().equals(Object.class) && !m.getDeclaringClass().isInterface();
+        return m != null && !m.getDeclaringClass().equals(Object.class) && !m.getDeclaringClass().isInterface();
     }
 }

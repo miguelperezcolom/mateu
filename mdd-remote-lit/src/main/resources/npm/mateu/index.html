@@ -8,10 +8,20 @@
   <script type="module" src="https://unpkg.com/mateu-ui/dist/assets/mateu.js"></script>
 </head>
 <body>
-<mateu-ui uiId="com.example.demoremote.ui.demoApp.DemoApp" baseUrl="http://localhost:8081/mateu/v1">
-</mateu-ui>
-<script>
-  document.documentElement.setAttribute('theme', 'light')
-</script>
+  <mateu-ui uiId="com.example.demoremote.ui.demoApp.DemoApp" baseUrl="http://localhost:8081/mateu/v1">
+  </mateu-ui>
+  <script>
+    if (window.matchMedia) {
+      if(window.matchMedia('(prefers-color-scheme: dark)').matches){
+        document.documentElement.setAttribute('theme', 'dark')
+      } else {
+        document.documentElement.setAttribute('theme', 'light')
+      }
+
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        document.documentElement.setAttribute('theme', e.matches?'dark':'light')
+      });
+    }
+  </script>
 </body>
 </html>

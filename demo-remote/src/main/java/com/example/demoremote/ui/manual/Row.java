@@ -1,4 +1,4 @@
-package com.example.demoremote.manual;
+package com.example.demoremote.ui.manual;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

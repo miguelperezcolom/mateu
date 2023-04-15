@@ -1,4 +1,4 @@
-package com.example.demoremote.manual;
+package com.example.demoremote.ui.manual;
 
 import io.mateu.mdd.shared.interfaces.SortCriteria;
 import org.springframework.stereotype.Service;
