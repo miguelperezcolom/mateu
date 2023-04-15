@@ -21,7 +21,9 @@ import java.util.List;
 @Caption("This is a demo")
 @MateuUI("")
 @ExternalScripts("https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js")
-public class DemoApp implements HasLogin, IncludesRemoteUIs {
+public class DemoApp implements HasLogin
+        //, IncludesRemoteUIs
+        {
 
     @MenuOption
     private BasicFieldsForm basicFields;
@@ -48,17 +50,20 @@ public class DemoApp implements HasLogin, IncludesRemoteUIs {
     @Private
     private BasicFieldsForm eyesOnly;
 
+    /*
     @Submenu
     private RemoteSubmenu remote = new RemoteSubmenu("https://demo.mateu.io/mateu/v1", "com.example.demo.DemoApp", "Simple menu");
 
+    @Override
+    public List<RemoteUI> getRemoteUIs() {
+        return List.of(new RemoteUI("https://demo.mateu.io/mateu/v1", "com.example.demo.DemoApp"));
+    }
+
+    */
 
     @Override
     public String getLoginUrl() {
         return "/login";
     }
 
-    @Override
-    public List<RemoteUI> getRemoteUIs() {
-        return List.of(new RemoteUI("https://demo.mateu.io/mateu/v1", "com.example.demo.DemoApp"));
-    }
 }

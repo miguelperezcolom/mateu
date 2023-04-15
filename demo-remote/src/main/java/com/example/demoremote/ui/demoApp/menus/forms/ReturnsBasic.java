@@ -1,7 +1,10 @@
 package com.example.demoremote.ui.demoApp.menus.forms;
 
 import io.mateu.mdd.shared.annotations.Action;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter@Setter
 public class ReturnsBasic {
 
     String name;

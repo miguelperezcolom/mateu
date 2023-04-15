@@ -415,15 +415,30 @@ public class RunStepActionCommandHandler {
         if (!targetType.equals(value.getClass())) {
             if (int.class.equals(targetType)) {
                 targetValue = Integer.parseInt("" + value);
-            }
-            if (long.class.equals(targetType)) {
+            } else if (long.class.equals(targetType)) {
                 targetValue = Long.parseLong("" + value);
-            }
-            if (double.class.equals(targetType)) {
+            } else if (double.class.equals(targetType)) {
                 targetValue = Double.parseDouble("" + value);
-            }
-            if (boolean.class.equals(targetType)) {
+            } else if (boolean.class.equals(targetType)) {
+                targetValue = Boolean.parseBoolean("" + value);
+            } else if (Integer.class.equals(targetType)) {
                 targetValue = Integer.parseInt("" + value);
+            } else if (Long.class.equals(targetType)) {
+                targetValue = Long.parseLong("" + value);
+            } else if (Double.class.equals(targetType)) {
+                targetValue = Double.parseDouble("" + value);
+            } else if (Boolean.class.equals(targetType)) {
+                targetValue = Boolean.parseBoolean("" + value);
+            } else if (LocalDate.class.equals(targetType)) {
+                targetValue = LocalDate.parse("" + value);
+            } else if (LocalDateTime.class.equals(targetType)) {
+                targetValue = LocalDateTime.parse("" + value);
+            } else if (LocalTime.class.equals(targetType)) {
+                targetValue = LocalTime.parse("" + value);
+            } else if (targetType.isEnum()) {
+                targetValue = Enum.valueOf(targetType, "" + value);
+            } else if (Class.class.equals(targetType)) {
+                targetValue = Class.forName("" + value);
             }
         }
         return targetValue;
@@ -536,23 +551,7 @@ public class RunStepActionCommandHandler {
                     targetValue = new ExternalReference(value.get("value"), (String) value.get("key"));
                 }
                 if (entry.getValue() instanceof String) {
-                    if (long.class.equals(f.getType())) {
-                        targetValue = Long.valueOf((String) entry.getValue());
-                    } else if (int.class.equals(f.getType())) {
-                        targetValue = Integer.valueOf((String) entry.getValue());
-                    } else if (double.class.equals(f.getType())) {
-                        targetValue = Double.valueOf((String) entry.getValue());
-                    } else if (LocalDate.class.equals(f.getType())) {
-                        targetValue = LocalDate.parse((String) entry.getValue());
-                    } else if (LocalDateTime.class.equals(f.getType())) {
-                        targetValue = LocalDateTime.parse((String) entry.getValue());
-                    } else if (LocalTime.class.equals(f.getType())) {
-                        targetValue = LocalTime.parse((String) entry.getValue());
-                    } else if (f.getType().isEnum()) {
-                        targetValue = Enum.valueOf((Class) f.getType(), (String) entry.getValue());
-                    } else if (Class.class.equals(f.getType())) {
-                        targetValue = Class.forName((String) entry.getValue());
-                    }
+                    targetValue = getActualValue(f.getType(), entry.getValue());
                 }
                 if (entry.getValue() instanceof Map) {
                     targetValue = Serializer.fromMap((Map<String, Object>) entry.getValue(), f.getType());

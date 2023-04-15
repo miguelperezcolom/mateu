@@ -9,6 +9,7 @@ import io.mateu.util.persistence.EntitySerializer;
 import jakarta.persistence.Entity;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Map;
 
 public class Serializer {
@@ -21,6 +22,7 @@ public class Serializer {
         mapper.registerModule(new JavaTimeModule());
         mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         yamlMapper.enable(SerializationFeature.INDENT_OUTPUT);
         // Now you should use JavaTimeModule instead
         yamlMapper.registerModule(new JavaTimeModule());
@@ -55,7 +57,29 @@ public class Serializer {
     }
 
     public static Map<String, Object> toMap(Object o) throws Exception {
+        if (o == null) {
+            return Map.of();
+        }
+        if (isBasic(o)) {
+            return Map.of("value", o);
+        }
         return fromJson(toJson(o));
+    }
+
+    private static boolean isBasic(Object o) {
+        Class type = o.getClass();
+        return int.class.equals(type)
+                || Integer.class.equals(type)
+                || double.class.equals(type)
+                || Double.class.equals(type)
+                || boolean.class.equals(type)
+                || Boolean.class.equals(type)
+                || String.class.equals(type)
+                || float.class.equals(type)
+                || Float.class.equals(type)
+                || BigDecimal.class.equals(type)
+                || type.isEnum()
+                ;
     }
 
     public static <T> T fromMap(Map<String, Object> map, Class<T> c) throws Exception {

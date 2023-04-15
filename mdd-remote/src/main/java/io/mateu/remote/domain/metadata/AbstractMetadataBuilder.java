@@ -239,6 +239,12 @@ public abstract class AbstractMetadataBuilder {
         if (Integer.class.equals(type)) {
             return "int";
         }
+        if (Double.class.equals(type)) {
+            return "double";
+        }
+        if (Boolean.class.equals(type)) {
+            return "boolean";
+        }
         if (Long.class.equals(type) || Double.class.equals(type)) {
             return type.getSimpleName().toLowerCase();
         }

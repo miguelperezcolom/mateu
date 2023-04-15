@@ -264,9 +264,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
 
         if (Strings.isNullOrEmpty(fieldsFilter)) {
 
-            explicitColumns = ReflectionHelper.getAllFields(objectType).stream().filter(
-                    f -> f.isAnnotationPresent(ListColumn.class)
-            ).peek(f -> {
+            explicitColumns = ReflectionHelper.getAllFields(objectType).stream().peek(f -> {
                 if (columNames != null && fieldsByColumnName != null) {
                     String n = f.getName();
                     columNames.add(n);
