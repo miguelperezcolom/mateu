@@ -14,10 +14,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component
-@Caption("")
-@MateuUI("")
-@ExternalScripts("https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js")
 @Getter
 public class DemoApp implements HasLogin, HasAppTitle
         //, IncludesRemoteUIs
@@ -64,14 +60,7 @@ public class DemoApp implements HasLogin, HasAppTitle
         return "/login";
     }
 
-    @RawContent
-    String someContent = """
-            
-            <h1>Hello!</h1>
-            
-            <p>This is some content for the home page.</p>
-            
-            """;
+
 
 
             @Override
