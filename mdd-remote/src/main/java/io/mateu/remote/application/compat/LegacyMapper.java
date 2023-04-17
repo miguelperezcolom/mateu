@@ -81,10 +81,10 @@ public class LegacyMapper {
         if ("enum".equals(field.getType())) {
             builder.type("FILTER_SINGLE_OPTION");
             builder.options(field.getAttributes().stream().filter(a -> "choice".equals(a.getKey()))
-                    .map(a -> (Map) a.getValue())
+                    .map(a -> (Value) a.getValue())
                     .map(v -> FilterConfigOption.builder()
-                            .label("" + v.get("key"))
-                            .value("" + v.get("value"))
+                            .label("" + v.getKey())
+                            .value("" + v.getValue())
                             .build())
                     .collect(Collectors.toList()));
         } else if ("multiple".equals(field.getStereotype())) {

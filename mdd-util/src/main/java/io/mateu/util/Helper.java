@@ -39,8 +39,6 @@ public class Helper extends SlimHelper {
 
     private static ScriptEngineManager scriptEngineManager;
 
-
-
     static {
         SharedHelper.loadProperties();
         scriptEngineManager = new ScriptEngineManager(ClassLoader.getSystemClassLoader());

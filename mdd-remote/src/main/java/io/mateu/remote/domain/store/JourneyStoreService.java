@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
 
+import java.lang.reflect.Modifier;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -94,7 +95,7 @@ public class JourneyStoreService {
 
     private boolean checkNotInjected(Object viewInstance, String fieldName) {
         FieldInterfaced field = ReflectionHelper.getFieldByName(viewInstance.getClass(), fieldName);
-        return field != null && !field.isAnnotationPresent(Autowired.class);
+        return field != null && !field.isAnnotationPresent(Autowired.class) && !Modifier.isFinal(field.getModifiers());
     }
 
     public Optional<JourneyContainer> findJourneyById(String journeyId) {

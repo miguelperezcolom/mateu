@@ -561,7 +561,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
                 break;
             }
         }
-        if (field == null) log.warn("No field " + fieldName + " at " + sourceClass);
+        //if (field == null) log.warn("No field " + fieldName + " at " + sourceClass);
         return field;
     }
 
