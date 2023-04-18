@@ -32,6 +32,7 @@ import javax.naming.AuthenticationException;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -355,18 +356,26 @@ public class RunStepActionCommandHandler {
 
             } else {
 
-                Object result = m.invoke(viewInstance);
+                try {
+                    Object result = m.invoke(viewInstance);
 
-                store.setStep(journeyId, stepId, viewInstance);
+                    store.setStep(journeyId, stepId, viewInstance);
 
-                Object whatToShow = result;
-                if (!void.class.equals(m.getReturnType())) {
-                    if (whatToShow instanceof Result) {
-                        addBackDestination((Result) whatToShow,
-                                store.getInitialStep(journeyId));
+                    Object whatToShow = result;
+                    if (!void.class.equals(m.getReturnType())) {
+                        if (whatToShow instanceof Result) {
+                            addBackDestination((Result) whatToShow,
+                                    store.getInitialStep(journeyId));
+                        }
+                        String newStepId = "result_" + UUID.randomUUID().toString();
+                        store.setStep(journeyId, newStepId, whatToShow);
                     }
-                    String newStepId = "result_" + UUID.randomUUID().toString();
-                    store.setStep(journeyId, newStepId, whatToShow);
+
+                } catch (InvocationTargetException ex) {
+                    Throwable targetException = ex.getTargetException();
+                    System.out.println("" + targetException.getClass().getSimpleName() +
+                            ": " + targetException.getMessage());
+                    throw targetException;
                 }
 
             }
