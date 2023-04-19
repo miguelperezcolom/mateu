@@ -9,6 +9,7 @@ import io.mateu.mdd.shared.interfaces.SortCriteria;
 import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,7 +18,7 @@ import java.util.stream.Collectors;
 
 @Caption("Some programming languages")
 @Getter@Setter
-@Service
+@Service@Scope("prototype")
 public class ProgrammingLanguages implements Crud<ProgrammingLanguages, LanguageRow>,
         HasTitle, HasSubtitle {
 
