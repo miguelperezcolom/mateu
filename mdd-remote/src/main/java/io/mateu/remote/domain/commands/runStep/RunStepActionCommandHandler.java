@@ -456,7 +456,7 @@ public class RunStepActionCommandHandler {
     public static Object getActualValue(Map.Entry<String, Object> entry, Object viewInstance) throws Exception {
         Object targetValue = entry.getValue();
         if (entry.getValue() != null) {
-            Field f = viewInstance.getClass().getDeclaredField(entry.getKey());
+            FieldInterfaced f = ReflectionHelper.getFieldByName(viewInstance.getClass(), entry.getKey());
             if (List.class.isAssignableFrom(f.getType())) {
                 if (ExternalReference.class.equals(ReflectionHelper.getGenericClass(f.getGenericType()))) {
                     List t = new ArrayList();
@@ -571,7 +571,7 @@ public class RunStepActionCommandHandler {
 
     }
 
-    private static Object toFile(Field f, Class<?> genericType, Map<String, Object> value) {
+    private static Object toFile(FieldInterfaced f, Class<?> genericType, Map<String, Object> value) {
         Object targetValue = null;
         if (String.class.equals(genericType)) {
             targetValue =  value.get("targetUrl") + "/" + value.get("name");
@@ -592,7 +592,7 @@ public class RunStepActionCommandHandler {
     }
 
 
-    private static boolean isFile(Field field) {
+    private static boolean isFile(FieldInterfaced field) {
         return java.io.File.class.equals(field.getType())
                 || java.io.File[].class.equals(field.getType())
                 || java.io.File.class.equals(field.getGenericType())

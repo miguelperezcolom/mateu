@@ -11,21 +11,13 @@ import org.springframework.stereotype.Service;
 import jakarta.persistence.Id;
 
 @Service@Data@Scope("prototype")
-public class LanguageDetail implements ReadOnlyPojo {
+public class LanguageDetail extends LanguageDetailDefinition implements ReadOnlyPojo {
 
     @Autowired
     LanguagesRepository repo;
 
     @Autowired
     LanguageForm form;
-
-    @Id
-    @Ignored
-    private String id;
-
-    private String name;
-
-    private LanguageRow.LanguageTarget target;
 
     @Override
     public void load(Object id) throws Throwable {
@@ -34,17 +26,12 @@ public class LanguageDetail implements ReadOnlyPojo {
 
     @Override
     public Object getEditor() throws Throwable {
-        form.load(id);
+        form.load(getId());
         return form;
     }
 
     @Override
-    public Object getId() {
-        return id;
-    }
-
-    @Override
     public String toString() {
-        return name != null?name:"New Language";
+        return getName() != null?getName():"New Language";
     }
 }
