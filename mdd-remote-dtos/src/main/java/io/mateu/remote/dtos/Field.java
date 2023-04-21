@@ -19,8 +19,7 @@ public class Field {
 
     private String placeholder;
 
-    @JsonProperty("class")
-    private String _class;
+    private String classes;
 
     private String description;
 

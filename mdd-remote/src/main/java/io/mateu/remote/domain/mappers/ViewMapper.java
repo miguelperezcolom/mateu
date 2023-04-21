@@ -99,7 +99,9 @@ public class ViewMapper {
         }
 
         View view = View.builder()
-                .components(components)
+                .main(ViewPart.builder()
+                        .components(components)
+                        .build())
                 .build();
 
         return view;

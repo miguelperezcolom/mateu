@@ -94,7 +94,7 @@ public class MateuCompatController {
         Step step = getStepQueryHandler.run(GetStepQuery.builder()
                         .journeyTypeId(journeyTypeId)
                 .journeyId(journeyId).stepId(stepId).build()).block();
-        List<Component> cruds = step.getView().getComponents().stream()
+        List<Component> cruds = step.getView().getMain().getComponents().stream()
                 .filter(c -> c.getMetadata() instanceof Crud)
                 .collect(Collectors.toList());
 

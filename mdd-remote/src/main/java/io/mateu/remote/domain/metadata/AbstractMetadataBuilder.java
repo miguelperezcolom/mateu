@@ -34,7 +34,7 @@ public abstract class AbstractMetadataBuilder {
                 .caption(ReflectionHelper.getCaption(fieldInterfaced))
                 .placeholder(getPlaceholder(fieldInterfaced))
                 .description(getDescription(fieldInterfaced))
-                ._class(getClasNames(fieldInterfaced))
+                .classes(getClasNames(fieldInterfaced))
                 .type(mapFieldType(fieldInterfaced))
                 .stereotype(mapStereotype(fieldInterfaced))
                 .attributes(buildAttributes(fieldInterfaced))

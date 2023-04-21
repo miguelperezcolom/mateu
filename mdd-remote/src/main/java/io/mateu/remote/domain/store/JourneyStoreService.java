@@ -4,7 +4,6 @@ import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
-import io.mateu.remote.domain.commands.runStep.RunStepActionCommand;
 import io.mateu.remote.domain.commands.runStep.RunStepActionCommandHandler;
 import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.editors.FieldEditor;
@@ -16,8 +15,6 @@ import io.mateu.util.Helper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
-
-import jakarta.annotation.PostConstruct;
 
 import java.lang.reflect.Modifier;
 import java.time.LocalDateTime;
@@ -54,7 +51,7 @@ public class JourneyStoreService {
             return jpaRpcCrudView;
         } else {
             Object viewInstance = ReflectionHelper.newInstance(Class.forName(step.getType()));
-            Map<String, Object> data = step.getView().getComponents().get(0).getData();
+            Map<String, Object> data = step.getView().getMain().getComponents().get(0).getData();
             if (viewInstance instanceof EntityEditor) {
                 ((EntityEditor) viewInstance).setEntityClass(Class.forName((String) data.get("__entityClassName__")));
                 ((EntityEditor) viewInstance).setData(data);

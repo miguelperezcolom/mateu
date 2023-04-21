@@ -86,7 +86,7 @@ public class RunStepActionCommandHandler {
                 }
             });
         }
-        store.getStep(journeyId, stepId).getView().getComponents().get(0).setData(data);
+        store.getStep(journeyId, stepId).getView().getMain().getComponents().get(0).setData(data);
 
         Map<String, Method> actions = ReflectionHelper.getAllMethods(viewInstance.getClass()).stream()
                 .filter(m -> m.isAnnotationPresent(Action.class) || m.isAnnotationPresent(MainAction.class))
@@ -281,7 +281,7 @@ public class RunStepActionCommandHandler {
 
             Step initialStep = store.getStep(journeyId, fieldEditor.getInitialStep());
 
-            io.mateu.remote.dtos.Component form = initialStep.getView().getComponents().get(0);
+            io.mateu.remote.dtos.Component form = initialStep.getView().getMain().getComponents().get(0);
 
             Object object = Helper.fromJson(Helper.toJson(data), fieldEditor.getType());
             data = Serializer.toMap(object);
