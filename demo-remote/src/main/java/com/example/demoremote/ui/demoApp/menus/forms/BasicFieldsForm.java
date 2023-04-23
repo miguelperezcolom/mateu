@@ -53,6 +53,9 @@ public class BasicFieldsForm implements HasBadges, HasStatus, HasTitle, HasSubti
     @Section("Checks")
     private boolean check;
 
+    @UseRadioButtons
+    private boolean usingRadioButtons;
+
     @Toggle
     private boolean toggle;
 

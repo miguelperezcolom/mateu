@@ -97,9 +97,9 @@ public class RunStepActionCommandHandler {
 
         //todo: look for the target object
         String componentId = "component-0";
-        if (actionId.contains("###")) {
-            componentId = actionId.substring(0, actionId.indexOf("###"));
-            actionId = actionId.substring(actionId.indexOf("###") + "###".length());
+        if (actionId.contains("___")) {
+            componentId = actionId.substring(0, actionId.indexOf("___"));
+            actionId = actionId.substring(actionId.indexOf("___") + "___".length());
         }
 
         if (!"component-0".equals(componentId)) {

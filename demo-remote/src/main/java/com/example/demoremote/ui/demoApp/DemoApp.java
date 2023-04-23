@@ -2,6 +2,7 @@ package com.example.demoremote.ui.demoApp;
 
 import com.example.demoremote.ui.demoApp.menus.*;
 import com.example.demoremote.ui.demoApp.menus.forms.BasicFieldsForm;
+import com.example.demoremote.ui.demoApp.menus.useCases.insurance.newLife.InsuredInformationForm;
 import io.mateu.mdd.core.interfaces.HasAppTitle;
 import io.mateu.mdd.core.interfaces.HasLogin;
 import io.mateu.mdd.shared.annotations.*;
@@ -33,6 +34,9 @@ public class DemoApp implements HasLogin, HasAppTitle
 
     @Submenu("Some cruds")
     private CrudsSubmenu cruds;
+
+    @Submenu
+    private UseCasesSubmenu useCases;
 
     @Submenu("NFL")
     private NFLSubmenu nfl;

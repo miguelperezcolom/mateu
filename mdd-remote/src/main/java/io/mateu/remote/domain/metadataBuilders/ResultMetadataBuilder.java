@@ -4,7 +4,9 @@ import io.mateu.remote.dtos.Destination;
 import io.mateu.remote.dtos.DestinationType;
 import io.mateu.remote.dtos.Result;
 import io.mateu.remote.dtos.ResultType;
+import org.springframework.stereotype.Service;
 
+@Service
 public class ResultMetadataBuilder {
 
     public Result build(io.mateu.mdd.shared.data.Result result) {

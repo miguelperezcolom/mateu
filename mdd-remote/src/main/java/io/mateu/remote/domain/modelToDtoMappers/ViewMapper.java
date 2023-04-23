@@ -3,6 +3,7 @@ package io.mateu.remote.domain.modelToDtoMappers;
 import io.mateu.mdd.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.core.interfaces.RpcCrudViewExtended;
+import io.mateu.mdd.shared.annotations.SlotName;
 import io.mateu.mdd.shared.annotations.VisibleIf;
 import io.mateu.mdd.shared.data.Result;
 import io.mateu.mdd.shared.interfaces.Listing;
@@ -43,6 +44,18 @@ public class ViewMapper {
     @Autowired
     ApplicationContext applicationContext;
 
+    @Autowired
+    FormMetadataBuilder formMetadataBuilder;
+
+    @Autowired
+    CrudMetadataBuilder crudMetadataBuilder;
+
+    @Autowired
+    ResultMetadataBuilder resultMetadataBuilder;
+
+    @Autowired
+    MethodParametersEditorMetadataBuilder methodParametersEditorMetadataBuilder;
+
     //todo: became too long. Needs refactor
     public View map(JourneyContainer journeyContainer, String stepId, Object uiInstance) throws Throwable {
         //mddopencrudaction, crud class
@@ -67,21 +80,26 @@ public class ViewMapper {
             actualUiInstance = ReflectionHelper.newInstance((Class) uiInstance);
         }
 
+        //todo: build left, main and right in a separate manner
+        List<Component> left = new ArrayList<>();
+        List<Component> main = new ArrayList<>();
+        List<Component> right = new ArrayList<>();
 
         ViewMetadata metadata = getMetadata(stepId, actualUiInstance);
-        List<Component> components = new ArrayList<>();
-        components.add(
+        main.add(
                 Component.builder()
                         .metadata(metadata)
                         .data(getData(uiInstance, actualUiInstance))
                         .rules(buildRules(metadata, actualUiInstance))
-                        .slot("main")
+                        .slot(SlotName.main.toString())
                         .attributes(new HashMap<>())
                         .build()
         );
+
         if (metadata instanceof Form) {
-            addChildCruds(components, stepId, uiInstance);
+            addChildCruds(main, stepId, uiInstance);
         }
+
         if (uiInstance instanceof FieldEditor) {
             addActionsForFieldEditor((Form) metadata, (FieldEditor) uiInstance);
         }
@@ -89,28 +107,38 @@ public class ViewMapper {
             setIdAsReadOnlyIfEditing((Form) metadata, (EntityEditor) uiInstance);
         }
 
-
-        int i = 0;
-        for (Component component : components) {
-            component.setId("component-" + i++);
-            if (component.getMetadata() instanceof Crud) {
-                Crud crud = (Crud) component.getMetadata();
-                crud.getActions().forEach(action -> action.setId(component.getId() + "###" + action.getId()));
-            }
-            if (component.getMetadata() instanceof Form) {
-                Form crud = (Form) component.getMetadata();
-                crud.getActions().forEach(action -> action.setId(component.getId() + "###" + action.getId()));
-                crud.getMainActions().forEach(action -> action.setId(component.getId() + "###" + action.getId()));
-            }
-        }
+        addComponentIds(left, main, right);
 
         View view = View.builder()
+                .left(ViewPart.builder()
+                        .components(left)
+                        .build())
                 .main(ViewPart.builder()
-                        .components(components)
+                        .components(main)
+                        .build())
+                .right(ViewPart.builder()
+                        .components(right)
                         .build())
                 .build();
 
         return view;
+    }
+
+    private void addComponentIds(List<Component> left, List<Component> main, List<Component> right) {
+        int i = 0;
+        for (Component component : List.of(left, main, right).stream()
+                .flatMap(l -> l.stream()).collect(Collectors.toList())) {
+            component.setId("component-" + i++);
+            if (component.getMetadata() instanceof Crud) {
+                Crud crud = (Crud) component.getMetadata();
+                crud.getActions().forEach(action -> action.setId(component.getId() + "___" + action.getId()));
+            }
+            if (component.getMetadata() instanceof Form) {
+                Form crud = (Form) component.getMetadata();
+                crud.getActions().forEach(action -> action.setId(component.getId() + "___" + action.getId()));
+                crud.getMainActions().forEach(action -> action.setId(component.getId() + "___" + action.getId()));
+            }
+        }
     }
 
     private void setIdAsReadOnlyIfEditing(Form metadata, EntityEditor uiInstance) {
@@ -175,39 +203,7 @@ public class ViewMapper {
                                     .metadata(getMetadata(stepId, crud))
                                     .data(getData(null, crud.getRpcView()))
                                     .rules(List.of())
-                                    .slot("main")
-                                    .attributes(new HashMap<>())
-                                    .build();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        return null;
-                    })
-                    .filter(c -> c != null)
-                    .collect(Collectors.toList());
-            components.addAll(cruds);
-        }
-        if (false && "view".equals(stepId) && uiInstance instanceof EntityEditor) {
-            EntityEditor entityEditor = (EntityEditor) uiInstance;
-            List<Component> cruds = ReflectionHelper.getAllFields(entityEditor.getEntityClass()).stream()
-                    .filter(f -> f.isAnnotationPresent(OneToMany.class))
-                    .map(f -> {
-                        Listing crud = null;
-                        try {
-                            Object parentEntity = Serializer.fromMap(entityEditor.getData(), entityEditor.getEntityClass());
-                            crud = ReflectionHelper.newInstance(JpaRpcCrudFactory.class).create(parentEntity, f);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        return new RpcViewWrapper(crud, f.getId());
-                    })
-                    .map(crud -> {
-                        try {
-                            return Component.builder()
-                                    .metadata(getMetadata(stepId, crud))
-                                    .data(getData(null, crud.getRpcView()))
-                                    .rules(List.of())
-                                    .slot("main")
+                                    .slot(SlotName.main.name())
                                     .attributes(new HashMap<>())
                                     .build();
                         } catch (Exception e) {
@@ -311,19 +307,19 @@ public class ViewMapper {
     }
 
     private Form getMethodParametersEditor(String stepId, MethodParametersEditor uiInstance) {
-        return new MethodParametersEditorMetadataBuilder().build(stepId, uiInstance);
+        return methodParametersEditorMetadataBuilder.build(stepId, uiInstance);
     }
 
     private io.mateu.remote.dtos.Result getResult(Result uiInstance) {
-        return new ResultMetadataBuilder().build(uiInstance);
+        return resultMetadataBuilder.build(uiInstance);
     }
 
     private Form getForm(String stepId, Object uiInstance) {
-        return new FormMetadataBuilder().build(stepId, uiInstance);
+        return formMetadataBuilder.build(stepId, uiInstance);
     }
 
     private Crud getCrud(String stepId, String listId, Listing rpcView) {
-        return new CrudMetadataBuilder().build(stepId, listId, rpcView);
+        return crudMetadataBuilder.build(stepId, listId, rpcView);
     }
 
 

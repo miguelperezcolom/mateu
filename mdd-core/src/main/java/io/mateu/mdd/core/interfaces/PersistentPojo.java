@@ -4,7 +4,7 @@ import io.mateu.util.Helper;
 
 import java.io.IOException;
 
-public interface PersistentPojo extends ReadOnlyPojo {
+public interface PersistentPojo<Id> extends ReadOnlyPojo<Id> {
 
     default boolean isNew() {
         return false;

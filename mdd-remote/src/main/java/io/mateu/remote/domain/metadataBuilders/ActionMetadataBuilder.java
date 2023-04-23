@@ -13,6 +13,7 @@ import io.mateu.remote.domain.metadataBuilders.fields.FieldStereotypeMapper;
 import io.mateu.remote.domain.metadataBuilders.fields.FieldTypeMapper;
 import io.mateu.remote.dtos.Action;
 import io.mateu.remote.dtos.*;
+import io.mateu.remote.dtos.ActionType;
 import jakarta.persistence.Entity;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -32,12 +33,26 @@ public class ActionMetadataBuilder {
         Action action = Action.builder()
                 .id(m.getName())
                 .caption(ReflectionHelper.getCaption(m))
-                .type(ActionType.Primary)
+                .type(getActionType(m))
                 .validationRequired(getValidationRequired(m))
                 .confirmationRequired(getConfirmationRequired(m))
                 .confirmationTexts(getConfirmationTexts(m))
                 .build();
         return action;
+    }
+
+    private ActionType getActionType(Method m) {
+        if (m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class)) {
+            io.mateu.mdd.shared.annotations.Action action = m
+                    .getAnnotation(io.mateu.mdd.shared.annotations.Action.class);
+            return ActionType.valueOf(action.type().name());
+        }
+        if (m.isAnnotationPresent(MainAction.class)) {
+            MainAction action = m
+                    .getAnnotation(MainAction.class);
+            return ActionType.valueOf(action.type().name());
+        }
+        return ActionType.Primary;
     }
 
     private ConfirmationTexts getConfirmationTexts(Method m) {

@@ -37,7 +37,6 @@ public class ExternalRefsAndFilesForm {
     private String assessment;
 
 
-
     @Action
     public void assess() {
         assessment = "" + yourFavouritePlayer

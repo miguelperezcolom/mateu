@@ -14,13 +14,10 @@ public abstract class AbstractAction implements MenuEntry {
 
     private String icon;
     private String style = "";
-    private String confirmationMessage;
     private String caption;
     private boolean callOnEnterKeyPressed = false;
-    private boolean modifierPressed;
     private String id = UUID.randomUUID().toString();
     private String group = "";
-    private boolean validationNeeded;
     private int order = 10000;
 
 

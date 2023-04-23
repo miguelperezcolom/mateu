@@ -25,4 +25,8 @@ Action {
 
     boolean validateBefore() default true;
 
+    int order() default 100;
+
+    ActionType type() default ActionType.Primary;
+
 }

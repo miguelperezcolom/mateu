@@ -47,6 +47,9 @@ public class MyReadOnlyPojo implements io.mateu.mdd.core.interfaces.ReadOnlyPojo
     @Section("Checks")
     private boolean check;
 
+    @UseRadioButtons
+    private boolean usingRadioButtons;
+
     @Toggle
     private boolean toggle;
 

@@ -36,6 +36,9 @@ public class FormsSubmenu {
     private ActionsWithParametersForm actionsWithParameters;
 
     @MenuOption
+    private MiscellaneousForm miscellaneous;
+
+    @MenuOption
     private WizardPage1 wizard;
 
     @MenuOption

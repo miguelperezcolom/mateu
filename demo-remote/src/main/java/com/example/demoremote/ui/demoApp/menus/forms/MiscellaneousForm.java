@@ -1,4 +1,4 @@
-package com.example.demoremote.ui.demoApp.menus.other;
+package com.example.demoremote.ui.demoApp.menus.forms;
 
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.Badge;

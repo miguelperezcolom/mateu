@@ -2,7 +2,7 @@ package io.mateu.mdd.core.interfaces;
 
 import io.mateu.util.Helper;
 
-public interface ReadOnlyPojo {
+public interface ReadOnlyPojo<Id> {
 
     default boolean hasEditor() {
         return false;
@@ -16,7 +16,7 @@ public interface ReadOnlyPojo {
         return Helper.capitalize(getClass().getSimpleName());
     }
 
-    void load(Object id) throws Throwable;
+    void load(Id id) throws Throwable;
 
     Object getId();
 
