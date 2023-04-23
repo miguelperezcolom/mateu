@@ -1,11 +1,10 @@
-package io.mateu.remote.domain.mappers;
+package io.mateu.remote.domain.modelToDtoMappers;
 
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.shared.annotations.MenuOption;
 import io.mateu.mdd.shared.annotations.Submenu;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
-import io.mateu.mdd.shared.interfaces.RemoteSubmenu;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.application.MateuRemoteClient;

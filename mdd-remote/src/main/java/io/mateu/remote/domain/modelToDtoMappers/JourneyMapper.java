@@ -1,4 +1,4 @@
-package io.mateu.remote.domain.mappers;
+package io.mateu.remote.domain.modelToDtoMappers;
 
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.remote.dtos.Journey;

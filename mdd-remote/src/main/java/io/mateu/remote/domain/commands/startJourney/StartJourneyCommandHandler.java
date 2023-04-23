@@ -4,7 +4,7 @@ import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.interfaces.RemoteJourney;
 import io.mateu.remote.application.MateuRemoteClient;
 import io.mateu.remote.application.NotFoundException;
-import io.mateu.remote.domain.mappers.JourneyMapper;
+import io.mateu.remote.domain.modelToDtoMappers.JourneyMapper;
 import io.mateu.remote.domain.store.JourneyContainer;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.Journey;
@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
 import java.util.Map;
 
 @Service

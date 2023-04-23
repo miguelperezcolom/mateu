@@ -1,10 +1,8 @@
 package io.mateu.remote.application;
 
 import io.mateu.mdd.shared.interfaces.SortCriteria;
-import io.mateu.remote.domain.mappers.ViewMapper;
 import io.mateu.remote.dtos.*;
 import io.mateu.util.Helper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;

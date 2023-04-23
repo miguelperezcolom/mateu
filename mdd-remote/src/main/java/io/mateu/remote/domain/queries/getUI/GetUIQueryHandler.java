@@ -2,7 +2,7 @@ package io.mateu.remote.domain.queries.getUI;
 
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.application.NotFoundException;
-import io.mateu.remote.domain.mappers.UIMapper;
+import io.mateu.remote.domain.modelToDtoMappers.UIMapper;
 import io.mateu.remote.dtos.UI;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

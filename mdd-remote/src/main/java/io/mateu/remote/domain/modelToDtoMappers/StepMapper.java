@@ -1,4 +1,4 @@
-package io.mateu.remote.domain.mappers;
+package io.mateu.remote.domain.modelToDtoMappers;
 
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.store.JourneyContainer;

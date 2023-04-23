@@ -1,4 +1,4 @@
-package io.mateu.remote.domain.metadata;
+package io.mateu.remote.domain.metadataBuilders;
 
 import io.mateu.remote.dtos.Destination;
 import io.mateu.remote.dtos.DestinationType;

@@ -1,4 +1,4 @@
-package io.mateu.remote.domain.mappers;
+package io.mateu.remote.domain.modelToDtoMappers;
 
 import io.mateu.mdd.shared.interfaces.Listing;
 import lombok.AllArgsConstructor;

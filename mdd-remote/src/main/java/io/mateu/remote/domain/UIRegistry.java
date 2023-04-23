@@ -1,13 +1,10 @@
 package io.mateu.remote.domain;
 
-import io.mateu.mdd.shared.interfaces.RemoteJourney;
-import io.mateu.mdd.springboot.BeanProvider;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.application.MateuConfiguratorBean;
-import io.mateu.remote.domain.mappers.UIMapper;
+import io.mateu.remote.domain.modelToDtoMappers.UIMapper;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package io.mateu.remote.domain.metadata;
+package io.mateu.remote.domain.metadataBuilders;
 
 import com.google.common.base.Strings;
 import io.mateu.mdd.core.interfaces.*;

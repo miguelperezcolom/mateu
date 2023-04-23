@@ -1,29 +1,26 @@
-package io.mateu.remote.domain.mappers;
+package io.mateu.remote.domain.modelToDtoMappers;
 
-import com.google.common.base.Strings;
 import io.mateu.mdd.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.core.interfaces.RpcCrudViewExtended;
 import io.mateu.mdd.shared.annotations.VisibleIf;
 import io.mateu.mdd.shared.data.Result;
 import io.mateu.mdd.shared.interfaces.Listing;
-import io.mateu.mdd.shared.interfaces.RemoteJourney;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.application.MateuRemoteClient;
 import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.editors.FieldEditor;
 import io.mateu.remote.domain.editors.MethodParametersEditor;
-import io.mateu.remote.domain.metadata.CrudMetadataBuilder;
-import io.mateu.remote.domain.metadata.FormMetadataBuilder;
-import io.mateu.remote.domain.metadata.MethodParametersEditorMetadataBuilder;
-import io.mateu.remote.domain.metadata.ResultMetadataBuilder;
+import io.mateu.remote.domain.metadataBuilders.CrudMetadataBuilder;
+import io.mateu.remote.domain.metadataBuilders.FormMetadataBuilder;
+import io.mateu.remote.domain.metadataBuilders.MethodParametersEditorMetadataBuilder;
+import io.mateu.remote.domain.metadataBuilders.ResultMetadataBuilder;
 import io.mateu.remote.domain.store.JourneyContainer;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.*;
 import io.mateu.util.Helper;
 import io.mateu.util.Serializer;
-import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -32,7 +29,6 @@ import org.springframework.stereotype.Service;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 

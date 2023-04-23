@@ -1,4 +1,4 @@
-package io.mateu.remote.domain.metadata;
+package io.mateu.remote.domain.metadataBuilders;
 
 import io.mateu.mdd.core.interfaces.HasSubtitle;
 import io.mateu.mdd.core.interfaces.HasTitle;

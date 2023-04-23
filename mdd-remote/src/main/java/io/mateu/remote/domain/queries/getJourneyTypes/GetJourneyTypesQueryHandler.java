@@ -3,7 +3,7 @@ package io.mateu.remote.domain.queries.getJourneyTypes;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.application.NotFoundException;
 import io.mateu.remote.domain.UIRegistry;
-import io.mateu.remote.domain.mappers.UIMapper;
+import io.mateu.remote.domain.modelToDtoMappers.UIMapper;
 import io.mateu.remote.dtos.JourneyType;
 import io.mateu.remote.dtos.Menu;
 import io.mateu.remote.dtos.UI;

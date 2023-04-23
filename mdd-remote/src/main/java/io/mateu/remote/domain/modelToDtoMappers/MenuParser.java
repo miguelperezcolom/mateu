@@ -1,4 +1,4 @@
-package io.mateu.remote.domain.mappers;
+package io.mateu.remote.domain.modelToDtoMappers;
 
 import com.google.common.base.Strings;
 import io.mateu.mdd.core.app.*;
