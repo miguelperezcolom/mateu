@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 public class CrudMetadataBuilder extends AbstractMetadataBuilder {
 
+    //todo: this builder is based on reflection. Consider adding a dynamic one and cache results
     public Crud build(String stepId, String listId, Listing rpcView) {
         return Crud.builder()
                 .title(getTitle(rpcView))

@@ -17,7 +17,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -34,7 +33,7 @@ public abstract class AbstractMetadataBuilder {
                 .caption(ReflectionHelper.getCaption(fieldInterfaced))
                 .placeholder(getPlaceholder(fieldInterfaced))
                 .description(getDescription(fieldInterfaced))
-                .classes(getClasNames(fieldInterfaced))
+                .cssClasses(getCssClassNames(fieldInterfaced))
                 .type(mapFieldType(fieldInterfaced))
                 .stereotype(mapStereotype(fieldInterfaced))
                 .attributes(buildAttributes(fieldInterfaced))
@@ -43,7 +42,7 @@ public abstract class AbstractMetadataBuilder {
         return field;
     }
 
-    private String getClasNames(FieldInterfaced fieldInterfaced) {
+    private String getCssClassNames(FieldInterfaced fieldInterfaced) {
         if (fieldInterfaced.isAnnotationPresent(StyleClassNames.class)) {
             return String.join(" ", fieldInterfaced.getAnnotation(StyleClassNames.class).value());
         }
@@ -57,6 +56,7 @@ public abstract class AbstractMetadataBuilder {
         return null;
     }
 
+    //todo: became too long. Needs refactor
     private List<Pair> buildAttributes(FieldInterfaced field) {
         List<Pair> attributes = new ArrayList<>();
         if (field.isAnnotationPresent(Width.class)) {

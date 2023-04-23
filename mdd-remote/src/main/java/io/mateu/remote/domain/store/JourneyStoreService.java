@@ -4,6 +4,7 @@ import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
+import io.mateu.remote.domain.commands.runStep.ActualValueExtractor;
 import io.mateu.remote.domain.commands.runStep.RunStepActionCommandHandler;
 import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.editors.FieldEditor;
@@ -33,6 +34,9 @@ public class JourneyStoreService {
 
     @Autowired
     private JourneyRepository journeyRepo;
+
+    @Autowired
+    private ActualValueExtractor actualValueExtractor;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -65,7 +69,7 @@ public class JourneyStoreService {
                         .stream().filter(entry -> checkNotInjected(viewInstance, entry.getKey()))
                         .forEach(entry -> {
                             try {
-                                Object actualValue = RunStepActionCommandHandler.getActualValue(entry, viewInstance);
+                                Object actualValue = actualValueExtractor.getActualValue(entry, viewInstance);
                                 ReflectionHelper.setValue(entry.getKey(), viewInstance, actualValue);
                             } catch (Exception ex) {
                                 System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());

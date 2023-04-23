@@ -1,6 +1,5 @@
 package io.mateu.remote.dtos;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -19,7 +18,7 @@ public class Field {
 
     private String placeholder;
 
-    private String classes;
+    private String cssClasses;
 
     private String description;
 

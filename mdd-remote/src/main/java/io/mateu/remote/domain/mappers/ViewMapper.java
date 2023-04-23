@@ -47,6 +47,7 @@ public class ViewMapper {
     @Autowired
     ApplicationContext applicationContext;
 
+    //todo: became too long. Needs refactor
     public View map(JourneyContainer journeyContainer, String stepId, Object uiInstance) throws Throwable {
         //mddopencrudaction, crud class
 
@@ -95,7 +96,16 @@ public class ViewMapper {
 
         int i = 0;
         for (Component component : components) {
-            component.setId("component_" + i++);
+            component.setId("component-" + i++);
+            if (component.getMetadata() instanceof Crud) {
+                Crud crud = (Crud) component.getMetadata();
+                crud.getActions().forEach(action -> action.setId(component.getId() + "###" + action.getId()));
+            }
+            if (component.getMetadata() instanceof Form) {
+                Form crud = (Form) component.getMetadata();
+                crud.getActions().forEach(action -> action.setId(component.getId() + "###" + action.getId()));
+                crud.getMainActions().forEach(action -> action.setId(component.getId() + "###" + action.getId()));
+            }
         }
 
         View view = View.builder()

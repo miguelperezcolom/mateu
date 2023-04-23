@@ -23,6 +23,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class FormMetadataBuilder extends AbstractMetadataBuilder {
+
+
+    //todo: this builder is based on reflection. Consider adding a dynamic one and cache results
     public Form build(String stepId, Object uiInstance) {
         Form form = Form.builder()
                 .title(getCaption(uiInstance))

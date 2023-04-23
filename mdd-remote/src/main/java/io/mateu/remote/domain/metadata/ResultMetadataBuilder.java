@@ -7,7 +7,6 @@ import io.mateu.remote.dtos.ResultType;
 
 public class ResultMetadataBuilder {
 
-
     public Result build(io.mateu.mdd.shared.data.Result result) {
         return Result.builder()
                 .resultType(ResultType.valueOf(result.getType().toString()))

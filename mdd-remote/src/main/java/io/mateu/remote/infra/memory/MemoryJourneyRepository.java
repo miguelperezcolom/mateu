@@ -38,7 +38,7 @@ public class MemoryJourneyRepository implements JourneyRepository {
     public void init() {
         new Thread(() -> {
             boolean loop = true;
-            while (true) {
+            while (loop) {
                 try {
                     List<String> containersIdToRemove = new ArrayList<>();
                     LocalDateTime expiryTime = LocalDateTime.now().minusHours(1);
