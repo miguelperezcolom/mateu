@@ -6,15 +6,26 @@ import io.mateu.mdd.shared.annotations.Width;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
+import io.mateu.remote.domain.metadataBuilders.fields.FieldTypeMapper;
 import io.mateu.remote.dtos.*;
 import io.mateu.remote.dtos.Crud;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class CrudMetadataBuilder extends AbstractMetadataBuilder {
+public class CrudMetadataBuilder {
+
+    @Autowired
+    ActionMetadataBuilder actionMetadataBuilder;
+
+    @Autowired
+    FieldMetadataBuilder fieldMetadataBuilder;
+
+    @Autowired
+    FieldTypeMapper fieldTypeMapper;
 
     //todo: this builder is based on reflection. Consider adding a dynamic one and cache results
     public Crud build(String stepId, String listId, Listing rpcView) {
@@ -24,7 +35,7 @@ public class CrudMetadataBuilder extends AbstractMetadataBuilder {
                 .canEdit(ReflectionHelper.isOverridden(rpcView, "getDetail"))
                 .searchForm(buildSearchForm(rpcView))
                 .columns(buildColumns(rpcView))
-                .actions(getActions(stepId, listId, rpcView))
+                .actions(actionMetadataBuilder.getActions(stepId, listId, rpcView))
                 .listId(listId)
                 .build();
     }
@@ -69,7 +80,7 @@ public class CrudMetadataBuilder extends AbstractMetadataBuilder {
         return Column.builder()
                 .id(columnId)
                 .caption(columnCaption)
-                .type(getType(fieldInterfaced))
+                .type(fieldTypeMapper.mapFieldType(fieldInterfaced))
                 .stereotype("column")
                 .attributes(List.of())
                 .width(getWidth(fieldInterfaced))
@@ -100,7 +111,7 @@ public class CrudMetadataBuilder extends AbstractMetadataBuilder {
                         .collect(Collectors.toList());
             }
         }
-        return allEditableFields.stream().map(fieldInterfaced -> getField(fieldInterfaced))
+        return allEditableFields.stream().map(fieldInterfaced -> fieldMetadataBuilder.getField(fieldInterfaced))
                 .collect(Collectors.toList());
     }
 

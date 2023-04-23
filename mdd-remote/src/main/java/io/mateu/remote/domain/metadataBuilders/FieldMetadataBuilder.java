@@ -1,0 +1,93 @@
+package io.mateu.remote.domain.metadataBuilders;
+
+import com.google.common.base.Strings;
+import io.mateu.mdd.core.interfaces.*;
+import io.mateu.mdd.core.interfaces.Crud;
+import io.mateu.mdd.shared.annotations.*;
+import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.reflection.ReflectionHelper;
+import io.mateu.remote.domain.metadataBuilders.fields.FieldAttributeBuilder;
+import io.mateu.remote.domain.metadataBuilders.fields.FieldStereotypeMapper;
+import io.mateu.remote.domain.metadataBuilders.fields.FieldTypeMapper;
+import io.mateu.remote.dtos.*;
+import io.mateu.remote.dtos.Action;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+public class FieldMetadataBuilder {
+
+    @Autowired
+    FieldAttributeBuilder fieldAttributeBuilder;
+
+    @Autowired
+    FieldTypeMapper fieldTypeMapper;
+
+    @Autowired
+    FieldStereotypeMapper fieldStereotypeMapper;
+
+
+    protected Field getField(FieldInterfaced fieldInterfaced) {
+        Field field = Field.builder()
+                .id(fieldInterfaced.getId())
+                .caption(ReflectionHelper.getCaption(fieldInterfaced))
+                .placeholder(getPlaceholder(fieldInterfaced))
+                .description(getDescription(fieldInterfaced))
+                .cssClasses(getCssClassNames(fieldInterfaced))
+                .type(fieldTypeMapper.mapFieldType(fieldInterfaced))
+                .stereotype(fieldStereotypeMapper.mapStereotype(fieldInterfaced))
+                .attributes(fieldAttributeBuilder.buildAttributes(fieldInterfaced))
+                .build();
+        addValidations(field, fieldInterfaced);
+        return field;
+    }
+
+    private String getCssClassNames(FieldInterfaced fieldInterfaced) {
+        if (fieldInterfaced.isAnnotationPresent(StyleClassNames.class)) {
+            return String.join(" ", fieldInterfaced.getAnnotation(StyleClassNames.class).value());
+        }
+        return null;
+    }
+
+    private String getPlaceholder(FieldInterfaced fieldInterfaced) {
+        if (fieldInterfaced.isAnnotationPresent(Placeholder.class)) {
+            return fieldInterfaced.getAnnotation(Placeholder.class).value();
+        }
+        return null;
+    }
+
+
+    private void addValidations(Field field, FieldInterfaced fieldInterfaced) {
+        List<Validation> validations = new ArrayList<>();
+        //todo: añadir otros tipos de validación, y mensaje de error
+        if (fieldInterfaced.isAnnotationPresent(NotEmpty.class)
+                || fieldInterfaced.isAnnotationPresent(NotNull.class)
+                || fieldInterfaced.isAnnotationPresent(NotBlank.class)
+        ) {
+            validations.add(Validation.builder()
+                            .type(ValidationType.NotEmpty)
+                            .data(null)
+                    .build());
+        }
+        field.setValidations(validations);
+    }
+
+    private String getDescription(FieldInterfaced fieldInterfaced) {
+        String description = null;
+        if (fieldInterfaced.isAnnotationPresent(Help.class)) {
+            description = fieldInterfaced.getAnnotation(Help.class).value();
+        }
+        return description;
+    }
+
+}

@@ -8,13 +8,18 @@ import io.mateu.remote.domain.editors.MethodParametersEditor;
 import io.mateu.remote.dtos.*;
 import io.mateu.util.Helper;
 import jakarta.persistence.OneToMany;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MethodParametersEditorMetadataBuilder extends AbstractMetadataBuilder {
+public class MethodParametersEditorMetadataBuilder {
+
+    @Autowired
+    FieldMetadataBuilder fieldMetadataBuilder;
+
     public Form build(String stepId, MethodParametersEditor uiInstance) {
         Form form = Form.builder()
                 .title(getCaption(uiInstance))
@@ -66,7 +71,8 @@ public class MethodParametersEditorMetadataBuilder extends AbstractMetadataBuild
                 String caption = "";
                 boolean card = true;
                 if (fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Section.class)) {
-                    io.mateu.mdd.shared.annotations.Section annotation = fieldInterfaced.getAnnotation(io.mateu.mdd.shared.annotations.Section.class);
+                    io.mateu.mdd.shared.annotations.Section annotation =
+                            fieldInterfaced.getAnnotation(io.mateu.mdd.shared.annotations.Section.class);
                     caption = annotation.value();
                     card = annotation.card();
                 }
@@ -78,7 +84,8 @@ public class MethodParametersEditorMetadataBuilder extends AbstractMetadataBuild
                 sections.add(section);
                 fieldGroup = null;
             }
-            if (fieldGroup == null || fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.FieldGroup.class)) {
+            if (fieldGroup == null ||
+                    fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.FieldGroup.class)) {
                 String caption = "";
                 if (fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.FieldGroup.class)) {
                     caption = fieldInterfaced.getAnnotation(io.mateu.mdd.shared.annotations.FieldGroup.class).value();
@@ -86,11 +93,12 @@ public class MethodParametersEditorMetadataBuilder extends AbstractMetadataBuild
                 fieldGroup = FieldGroup.builder().caption(caption).lines(new ArrayList<>()).build();
                 section.getFieldGroups().add(fieldGroup);
             }
-            if (fieldGroupLine == null || !fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.SameLine.class)) {
+            if (fieldGroupLine == null ||
+                    !fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.SameLine.class)) {
                 fieldGroupLine = FieldGroupLine.builder().fields(new ArrayList<>()).build();
                 fieldGroup.getLines().add(fieldGroupLine);
             }
-            fieldGroupLine.getFields().add(getField(fieldInterfaced));
+            fieldGroupLine.getFields().add(fieldMetadataBuilder.getField(fieldInterfaced));
         }
 
         fillSectionIds(sections);

@@ -16,14 +16,20 @@ import io.mateu.util.Helper;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class FormMetadataBuilder extends AbstractMetadataBuilder {
+public class FormMetadataBuilder {
 
+    @Autowired
+    ActionMetadataBuilder actionMetadataBuilder;
+
+    @Autowired
+    FieldMetadataBuilder fieldMetadataBuilder;
 
     //todo: this builder is based on reflection. Consider adding a dynamic one and cache results
     public Form build(String stepId, Object uiInstance) {
@@ -34,7 +40,7 @@ public class FormMetadataBuilder extends AbstractMetadataBuilder {
                 .readOnly("view".equals(stepId) || (uiInstance instanceof ReadOnlyPojo && !(uiInstance instanceof PersistentPojo)))
                 .badges(getBadges(uiInstance))
                 .sections(getSections(stepId, uiInstance))
-                .actions(getActions(stepId, "", uiInstance))
+                .actions(actionMetadataBuilder.getActions(stepId, "", uiInstance))
                 .mainActions(getMainActions(stepId, uiInstance))
                 .build();
         return form;
@@ -75,7 +81,7 @@ public class FormMetadataBuilder extends AbstractMetadataBuilder {
         List<Method> allMethods = ReflectionHelper.getAllMethods(uiInstance.getClass());
         List<Action> actions = allMethods.stream()
                 .filter(m -> m.isAnnotationPresent(io.mateu.mdd.shared.annotations.MainAction.class))
-                .map(m -> getAction(m))
+                .map(m -> actionMetadataBuilder.getAction(m))
                 .collect(Collectors.toList());
         if (!"view".equals(stepId) && (uiInstance instanceof PersistentPojo || uiInstance.getClass().isAnnotationPresent(Entity.class))) {
             Action action = Action.builder()
@@ -130,7 +136,7 @@ public class FormMetadataBuilder extends AbstractMetadataBuilder {
                 fieldGroupLine = FieldGroupLine.builder().fields(new ArrayList<>()).build();
                 fieldGroup.getLines().add(fieldGroupLine);
             }
-            fieldGroupLine.getFields().add(getField(fieldInterfaced));
+            fieldGroupLine.getFields().add(fieldMetadataBuilder.getField(fieldInterfaced));
         }
 
         fillSectionIds(sections);

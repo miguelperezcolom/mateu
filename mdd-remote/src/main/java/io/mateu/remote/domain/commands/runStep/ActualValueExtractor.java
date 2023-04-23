@@ -1,12 +1,13 @@
 package io.mateu.remote.domain.commands.runStep;
 
-import io.mateu.mdd.shared.annotations.File;
 import io.mateu.mdd.shared.data.ExternalReference;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.files.StorageServiceAccessor;
+import io.mateu.remote.domain.files.FileChecker;
 import io.mateu.util.Serializer;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.naming.AuthenticationException;
@@ -22,6 +23,9 @@ import java.util.Map;
 @Service
 @Slf4j
 public class ActualValueExtractor {
+
+    @Autowired
+    FileChecker fileChecker;
 
     public Object getActualValue(Class targetType, Object value) throws Exception {
         Object targetValue = value;
@@ -155,7 +159,7 @@ public class ActualValueExtractor {
                 }
             }
             if (!f.getType().isAssignableFrom(entry.getValue().getClass())) {
-                if (isFile(f)) {
+                if (fileChecker.isFile(f)) {
                     List<Map<String, Object>> files = (List) entry.getValue();
                     if (f.getType().isArray() || List.class.isAssignableFrom(f.getType())) {
                         List values = new ArrayList();
@@ -208,14 +212,6 @@ public class ActualValueExtractor {
                     " is not valid for a file type");
         }
         return targetValue;
-    }
-
-
-    private boolean isFile(FieldInterfaced field) {
-        return java.io.File.class.equals(field.getType())
-                || java.io.File[].class.equals(field.getType())
-                || java.io.File.class.equals(field.getGenericType())
-                || field.isAnnotationPresent(File.class);
     }
 
 }
