@@ -24,7 +24,7 @@ public class EntityEditorSaveActionRunner implements ActionRunner {
 
     @Override
     public boolean applies(Object viewInstance, String actionId) {
-        return viewInstance instanceof EntityEditor && "edit".equals(actionId);
+        return viewInstance instanceof EntityEditor && "save".equals(actionId);
     }
 
     @Override

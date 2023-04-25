@@ -10,7 +10,7 @@ public class PasswordResetsRow {
 
     String id;
 
-    String intermediaryId;
+    String salesAgentId;
 
     String date;
 

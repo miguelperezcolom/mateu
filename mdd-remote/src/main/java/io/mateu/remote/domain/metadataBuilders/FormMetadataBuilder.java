@@ -1,9 +1,6 @@
 package io.mateu.remote.domain.metadataBuilders;
 
-import io.mateu.mdd.core.interfaces.HasSubtitle;
-import io.mateu.mdd.core.interfaces.HasTitle;
-import io.mateu.mdd.core.interfaces.PersistentPojo;
-import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
+import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.UseCheckboxes;
 import io.mateu.mdd.shared.annotations.UseChips;
@@ -34,14 +31,16 @@ public class FormMetadataBuilder {
     FieldMetadataBuilder fieldMetadataBuilder;
 
     //todo: this builder is based on reflection. Consider adding a dynamic one and cache results
-    public Form build(String stepId, Object uiInstance) {
+    public Form build(String stepId, Object uiInstance, List<FieldInterfaced> slotFields) {
         Form form = Form.builder()
                 .title(getCaption(uiInstance))
                 .subtitle(getSubtitle(uiInstance))
                 .status(getStatus(uiInstance))
-                .readOnly("view".equals(stepId) || (uiInstance instanceof ReadOnlyPojo && !(uiInstance instanceof PersistentPojo)))
+                .readOnly("view".equals(stepId)
+                        || (uiInstance instanceof ReadOnlyPojo && !(uiInstance instanceof PersistentPojo))
+                )
                 .badges(getBadges(uiInstance))
-                .sections(getSections(stepId, uiInstance))
+                .sections(getSections(stepId, uiInstance, slotFields))
                 .actions(actionMetadataBuilder.getActions(stepId, "", uiInstance))
                 .mainActions(getMainActions(stepId, uiInstance))
                 .build();
@@ -97,7 +96,7 @@ public class FormMetadataBuilder {
         return actions;
     }
 
-    private List<Section> getSections(String stepId, Object uiInstance) {
+    private List<Section> getSections(String stepId, Object uiInstance, List<FieldInterfaced> slotFields) {
         List<Section> sections = new ArrayList<>();
         Section section = null;
         FieldGroup fieldGroup = null;
@@ -107,6 +106,7 @@ public class FormMetadataBuilder {
                 .filter(f -> !f.isAnnotationPresent(OneToMany.class)
                         || f.isAnnotationPresent(UseCheckboxes.class)
                         || f.isAnnotationPresent(UseChips.class))
+                .filter(f -> slotFields.contains(f))
                 .collect(Collectors.toList());
         for (FieldInterfaced fieldInterfaced : allEditableFields) {
             if (section == null || fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Section.class)) {

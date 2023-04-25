@@ -36,16 +36,13 @@ public class PersistentPojoSaveActionRunner implements ActionRunner {
 
         Step initialStep = store.getInitialStep(journeyId);
 
+        Step currentStep = store.getStep(journeyId, stepId);
+
         List<Destination> youMayBeInterestedIn = new ArrayList<>();
-        Step detail = store.getStep(journeyId, "view");
+        Step detail = store.getStep(journeyId, currentStep.getPreviousStepId());
         if (detail != null) {
-            Object pojo = store.getViewInstance(journeyId, "view");
-            if (pojo instanceof ReadOnlyPojo) {
-                ((ReadOnlyPojo) pojo).load(((ReadOnlyPojo) pojo).getId());
-                store.setStep(journeyId, "view", pojo);
-            }
             youMayBeInterestedIn.add(new Destination(DestinationType.ActionId,
-                    "Return to " + detail.getName() + " detail", "view"));
+                    "Return to " + detail.getName() + " detail", detail.getId()));
         }
 
         Result whatToShow = new Result(ResultType.Success,

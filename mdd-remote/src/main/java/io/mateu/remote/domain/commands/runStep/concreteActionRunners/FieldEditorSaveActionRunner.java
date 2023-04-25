@@ -37,13 +37,11 @@ public class FieldEditorSaveActionRunner implements ActionRunner {
 
         Step initialStep = store.getStep(journeyId, fieldEditor.getInitialStep());
 
-        io.mateu.remote.dtos.Component form = initialStep.getView().getMain().getComponents().get(0);
-
         Object object = Helper.fromJson(Helper.toJson(data), fieldEditor.getType());
         data = Serializer.toMap(object);
         data.put("__toString", "" + object);
 
-        form.getData().put(fieldEditor.getFieldId(), data);
+        initialStep.getData().put(fieldEditor.getFieldId(), data);
 
         store.backToStep(journeyId, initialStep.getId()); // will save the step
     }

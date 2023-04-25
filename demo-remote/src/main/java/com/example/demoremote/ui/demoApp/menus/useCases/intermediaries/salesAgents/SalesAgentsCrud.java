@@ -21,6 +21,9 @@ public class SalesAgentsCrud implements Crud<SalesAgentsSearchForm, SalesAgentsR
     @Autowired@JsonIgnore
     SaleAgentForm form;
 
+    @Autowired@JsonIgnore
+    SalesAgentsRepo repo;
+
     String intermediaryId;
 
     public SalesAgentsCrud() {
@@ -32,10 +35,7 @@ public class SalesAgentsCrud implements Crud<SalesAgentsSearchForm, SalesAgentsR
     }
 
     private List<SalesAgentsRow> getFilteredList() {
-        return List.of(
-                        new SalesAgentsRow("1", "1", "Michael Jordan")
-                        , new SalesAgentsRow("2", "2", "Magic Johnson")
-                ).stream().filter(r -> r.getId().equals(intermediaryId))
+        return repo.findAll().stream().filter(r -> r.getIntermediaryId().equals(intermediaryId))
                 .collect(Collectors.toList());
     }
 

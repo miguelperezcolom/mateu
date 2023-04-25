@@ -1,0 +1,27 @@
+package io.mateu.remote.domain.modelToDtoMappers.viewMapperStuff;
+
+import io.mateu.mdd.shared.annotations.Slot;
+import io.mateu.mdd.shared.annotations.SlotName;
+import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.reflection.ReflectionHelper;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+public class FieldExtractor {
+
+    public List<FieldInterfaced> getFields(Object uiInstance, SlotName slot) {
+        return ReflectionHelper.getAllFields(uiInstance.getClass()).stream()
+                .filter(f -> checkField(f, slot))
+                .collect(Collectors.toList());
+    }
+
+    private boolean checkField(FieldInterfaced field, SlotName slot) {
+        if (SlotName.left.equals(slot) || SlotName.right.equals(slot)) {
+            return field.isAnnotationPresent(Slot.class) && slot.equals(field.getAnnotation(Slot.class).value());
+        }
+        return !field.isAnnotationPresent(Slot.class) || slot.equals(field.getAnnotation(Slot.class).value());
+    }
+}

@@ -16,19 +16,20 @@ public class IntermediariesCrud implements Crud<IntermediariesSearchForm, Interm
     @Autowired@JsonIgnore
     IntermediaryDetail detail;
 
+    @Autowired@JsonIgnore
+    IntermediariesRepo repo;
+
     public IntermediariesCrud() {
     }
 
     @Override
     public List<IntermediariesRow> fetchRows(IntermediariesSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) throws Throwable {
-        return List.of(
-                new IntermediariesRow("1", "North Sails")
-        );
+        return repo.findAll();
     }
 
     @Override
     public int fetchCount(IntermediariesSearchForm filters) throws Throwable {
-        return 1;
+        return repo.findAll().size();
     }
 
     @Override

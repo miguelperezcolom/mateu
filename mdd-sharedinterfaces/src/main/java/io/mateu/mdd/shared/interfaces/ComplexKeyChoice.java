@@ -2,16 +2,17 @@ package io.mateu.mdd.shared.interfaces;
 
 import java.util.List;
 
-public abstract class ComplexKeyChoice {
+public abstract class ComplexKeyChoice<T> {
 
-    private ComplexKeyOption value;
+    private T value;
 
-    public ComplexKeyOption getValue() {
+    public T getValue() {
         return value;
     }
 
-    public void setValue(ComplexKeyOption value) {
+    public ComplexKeyChoice setValue(T value) {
         this.value = value;
+        return this;
     }
 
     public abstract List<ComplexKeyOption> getOptions();

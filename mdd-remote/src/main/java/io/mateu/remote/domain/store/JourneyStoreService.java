@@ -1,6 +1,7 @@
 package io.mateu.remote.domain.store;
 
 import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.interfaces.Crud;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
@@ -12,6 +13,7 @@ import io.mateu.remote.domain.modelToDtoMappers.UIMapper;
 import io.mateu.remote.dtos.Journey;
 import io.mateu.remote.dtos.Step;
 import io.mateu.util.Helper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
@@ -22,7 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-@Service
+@Service@Slf4j
 public class JourneyStoreService {
 
     @Autowired
@@ -54,7 +56,7 @@ public class JourneyStoreService {
             return jpaRpcCrudView;
         } else {
             Object viewInstance = ReflectionHelper.newInstance(Class.forName(step.getType()));
-            Map<String, Object> data = step.getView().getMain().getComponents().get(0).getData();
+            Map<String, Object> data = step.getData();
             if (viewInstance instanceof EntityEditor) {
                 ((EntityEditor) viewInstance).setEntityClass(Class.forName((String) data.get("__entityClassName__")));
                 ((EntityEditor) viewInstance).setData(data);
@@ -65,7 +67,6 @@ public class JourneyStoreService {
                 ((FieldEditor) viewInstance).setData(data);
             } else {
                 data.entrySet()
-                        .stream().filter(entry -> checkNotInjected(viewInstance, entry.getKey()))
                         .forEach(entry -> {
                             try {
                                 Object actualValue = actualValueExtractor.getActualValue(entry, viewInstance);
@@ -80,22 +81,24 @@ public class JourneyStoreService {
     }
 
     public Listing getRpcViewInstance(String journeyId, String stepId, String listId) throws Exception {
-        Object viewInstance = getViewInstance(journeyId, stepId);
-        if (viewInstance instanceof Listing) {
-            return (Listing) viewInstance;
+        try {
+            Object viewInstance = getViewInstance(journeyId, stepId);
+            if (viewInstance instanceof Listing) {
+                return (Listing) viewInstance;
+            }
+            Listing rpcView = (Listing) ReflectionHelper.getValue(listId, viewInstance);
+            if (rpcView == null) {
+                FieldInterfaced listField = ReflectionHelper.getFieldByName(viewInstance.getClass(), listId);
+                if (listField != null) {
+                    rpcView = (Listing) ReflectionHelper.newInstance(listField.getType());
+                    ReflectionHelper.setValue(listId, viewInstance, rpcView);
+                }
+            }
+            return rpcView;
+        } catch (Exception e) {
+            log.warn("on getRpcViewInstance for " + journeyId + " " + stepId + " " + listId, e);
         }
-        Listing rpcView = (Listing) ReflectionHelper.getValue(listId, viewInstance);
-        if (rpcView == null) {
-            rpcView = (Listing) ReflectionHelper.newInstance(
-                    ReflectionHelper.getFieldByName(viewInstance.getClass(), listId).getType());
-            ReflectionHelper.setValue(listId, viewInstance, rpcView);
-        }
-        return rpcView;
-    }
-
-    private boolean checkNotInjected(Object viewInstance, String fieldName) {
-        FieldInterfaced field = ReflectionHelper.getFieldByName(viewInstance.getClass(), fieldName);
-        return field != null && !field.isAnnotationPresent(Autowired.class) && !Modifier.isFinal(field.getModifiers());
+        return null;
     }
 
     public Optional<JourneyContainer> findJourneyById(String journeyId) {
@@ -107,21 +110,60 @@ public class JourneyStoreService {
         journeyRepo.save(journeyContainer);
     }
 
+    public void updateStep(String journeyId, Object editor) throws Throwable {
+        Optional<JourneyContainer> container = journeyRepo.findById(journeyId);
+        if (!container.isPresent()) {
+            throw new Exception("No journey with id " + journeyId + " found");
+        }
+        String stepId = container.get().getJourney().getCurrentStepId();
+        Step oldStep = container.get().getSteps().get(stepId);
+        Step step = stepMapper.map(container.get(), stepId, oldStep.getPreviousStepId(), editor);
+        if (!container.get().getSteps().containsKey(stepId)) {
+            container.get().setSteps(extendMap(container.get().getSteps(), stepId, step));
+        } else {
+            HashMap<String, Step> modifiableMap = new HashMap<>(container.get().getSteps());
+            modifiableMap.put(stepId, step);
+            container.get().setSteps(modifiableMap);
+        }
+        container.get().setLastAccess(LocalDateTime.now());
+        journeyRepo.save(container.get());
+    }
+
     public void setStep(String journeyId, String stepId, Object editor) throws Throwable {
         Optional<JourneyContainer> container = journeyRepo.findById(journeyId);
         if (!container.isPresent()) {
             throw new Exception("No journey with id " + journeyId + " found");
         }
-        Step step = stepMapper.map(container.get(), stepId, getCurrentStepId(container), editor);
-        if (!container.get().getSteps().containsKey(stepId)) {
-            container.get().setSteps(extendMap(container.get().getSteps(), stepId, step));
+        String stepIdPrefix = container.get().getJourney().getCurrentStepId();
+        if (stepIdPrefix == null) {
+            stepIdPrefix = "";
         } else {
-            container.get().getSteps().get(stepId).setView(step.getView());
+            stepIdPrefix = stepIdPrefix + "_";
         }
-        container.get().getJourney().setCurrentStepId(stepId);
+        String newStepId = stepIdPrefix + stepId;
+        Step step = stepMapper.map(container.get(), newStepId, getPreviousStepId(newStepId, container), editor);
+        if (!container.get().getSteps().containsKey(newStepId)) {
+            container.get().setSteps(extendMap(container.get().getSteps(), newStepId, step));
+        } else {
+            HashMap<String, Step> modifiableMap = new HashMap<>(container.get().getSteps());
+            modifiableMap.put(newStepId, step);
+            container.get().setSteps(modifiableMap);
+        }
+        container.get().getJourney().setCurrentStepId(newStepId);
         container.get().getJourney().setCurrentStepDefinitionId(editor.getClass().getName());
         container.get().setLastAccess(LocalDateTime.now());
         journeyRepo.save(container.get());
+    }
+
+    private String getPreviousStepId(String targetStepId, Optional<JourneyContainer> container) {
+        if (container.isEmpty()) {
+            return null;
+        }
+        String currentStepId = container.get().getJourney().getCurrentStepId();
+        if (targetStepId.equals(currentStepId)) {
+            return null;
+        }
+        return currentStepId;
     }
 
     private String getCurrentStepId(Optional<JourneyContainer> container) {

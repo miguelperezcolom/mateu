@@ -67,62 +67,62 @@ public class ContractForm {
     @UseRadioButtons
     boolean insuredPersonIsPolicyHolder = true;
 
-    @NotNull
+    //@NotNull
     String firstName;
 
-    @NotNull
+    //@NotNull
     String lastName;
 
-    @NotNull
+    //@NotNull
     Gender Gender;
 
-    @NotNull
+    //@NotNull
     AddressType addressType;
 
-    @NotNull
+    //@NotNull
     String plz;
 
     @SameLine
-    @NotNull
+    //@NotNull
     String ort;
 
-    @NotNull
+    //@NotNull
     String strasse;
 
-    @NotNull
+    //@NotNull
     @SameLine
     String hausnummer;
 
-    @NotNull
+    //@NotNull
     String email;
 
-    @NotNull
+    //@NotNull
     @Caption("Mobile phone number")
     String mobilePrefix;
 
     @SameLine
     @Caption("_")
-    @NotNull
+    //@NotNull
     String mobileNumber;
 
-    @NotNull
+    //@NotNull
     @Caption("Phone number")
     String phonePrefix;
 
     @SameLine
     @Caption("_")
-    @NotNull
+    //@NotNull
     String phoneNumber;
 
     @Section("Payment information")
-    @NotNull
+    //@NotNull
     PaymentFrequency paymentFrequency;
 
-    @NotNull
+    //@NotNull
     @Caption("IBAN")
     String iban;
 
-    @NotNull
+    //@NotNull
     String accountHolderName;
 
     @Section("Beneficiaries")

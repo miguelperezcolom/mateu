@@ -21,4 +21,9 @@ public class SaleAgentForm extends SaleAgentFormDefinition implements Persistent
     public void save() throws Throwable {
 
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }

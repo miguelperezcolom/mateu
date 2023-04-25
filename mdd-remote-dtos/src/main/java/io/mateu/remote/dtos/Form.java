@@ -10,6 +10,8 @@ public class Form implements ViewMetadata {
 
     private final ViewMetadataType type = ViewMetadataType.Form;
 
+    private String dataPrefix;
+
     private String title;
 
     private boolean readOnly;

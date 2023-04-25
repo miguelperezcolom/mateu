@@ -1,5 +1,6 @@
 package com.example.demoremote.ui.demoApp.menus.useCases.insurance.newLife;
 
+import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.*;
 import lombok.Getter;
@@ -13,6 +14,7 @@ import java.util.List;
 @Getter@Setter@ReadOnly
 public class SummaryForm {
 
+    @Ignored
     private ContractForm contractForm;
 
     public SummaryForm(ContractForm contractForm) throws MalformedURLException {
@@ -85,7 +87,7 @@ public class SummaryForm {
 
 
 
-    @MainAction
+    @MainAction(type = ActionType.Secondary)
     public void saveAsDraft() {
         System.out.println("saved as draft");
     }

@@ -12,12 +12,6 @@ public class Component {
 
     private String id;
 
-    private Map<String, Object> data;
-
-    private List<Rule> rules;
-
-    String slot;
-
     private Map<String, Object> attributes;
 
 }

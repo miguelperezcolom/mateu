@@ -1,6 +1,8 @@
 package com.example.demoremote.ui.demoApp.menus.useCases.intermediaries;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -8,6 +10,12 @@ import org.springframework.stereotype.Service;
 @Scope("prototype")
 public class IntermediaryDetail extends IntermediaryDetailDefinition implements ReadOnlyPojo<String> {
 
+    @Autowired@JsonIgnore
+    IntermediaryEditor editor;
+
+
+    public IntermediaryDetail() {
+    }
 
     @Override
     public void load(String id) throws Throwable {
@@ -16,4 +24,9 @@ public class IntermediaryDetail extends IntermediaryDetailDefinition implements 
         this.getSalesAgents().setIntermediaryId(id);
     }
 
+    @Override
+    public IntermediaryEditor getEditor() throws Throwable {
+        editor.load(getId());
+        return editor;
+    }
 }

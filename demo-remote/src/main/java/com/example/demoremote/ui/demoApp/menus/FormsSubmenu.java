@@ -7,6 +7,17 @@ import io.mateu.mdd.shared.interfaces.RemoteJourney;
 
 public class FormsSubmenu {
 
+    @MenuOption
+    private TextFieldsForm text;
+
+    @MenuOption
+    private ChecksFieldsForm checks;
+
+    @MenuOption
+    private DatesFieldsForm dates;
+
+    @MenuOption
+    private EnumFieldsForm enums;
 
     @MenuOption
     private MyReadOnlyPojo readOnlyPojo;

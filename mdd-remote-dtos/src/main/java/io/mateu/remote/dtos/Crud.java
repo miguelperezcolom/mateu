@@ -11,6 +11,8 @@ public class Crud implements ViewMetadata {
 
     private final ViewMetadataType type = ViewMetadataType.Crud;
 
+    private String dataPrefix;
+
     private String listId;
 
     private String title;

@@ -5,6 +5,7 @@ import io.mateu.remote.application.MateuRemoteClient;
 import io.mateu.remote.domain.store.JourneyContainer;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.Step;
+import io.mateu.util.Helper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,7 +38,26 @@ public class GetStepQueryHandler {
                     journeyContainer.getRemoteJourneyTypeId(), journeyContainer.getJourneyId(), stepId);
         }
 
+
+        dump(journeyContainer);
+
         return Mono.just(store.getStep(journeyId, stepId));
+
+    }
+
+    private void dump(JourneyContainer journeyContainer) {
+
+        log.info("-------------------------------------");
+        log.info("journey id: " + journeyContainer.getJourneyId());
+        journeyContainer.getSteps().values().stream().forEach(s -> {
+            log.info("step: " + s.getId());
+            log.info("previous: " + s.getPreviousStepId());
+            try {
+                log.info("data: " + Helper.toJson(s.getData()));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
 
     }
 

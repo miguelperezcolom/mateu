@@ -28,7 +28,10 @@ public class FiltersDeserializer {
     }
 
     public Object deserialize(JourneyStoreService store) throws Exception {
-        Listing rpcView = (Listing) store.getRpcViewInstance(journeyId, stepId, listId);
+        Listing rpcView = store.getRpcViewInstance(journeyId, stepId, listId);
+        if (rpcView == null) {
+            return null;
+        }
         Map<String, Object> map = decodeAndParse(raw);
         for (FieldInterfaced field : ReflectionHelper.getAllEditableFields(rpcView.getSearchFormClass())) {
             if (DatesRange.class.equals(field.getType())) {

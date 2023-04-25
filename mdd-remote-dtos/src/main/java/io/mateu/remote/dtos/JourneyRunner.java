@@ -7,6 +7,7 @@ public class JourneyRunner implements ViewMetadata {
 
     private final ViewMetadataType type = ViewMetadataType.JourneyRunner;
 
+    private String dataPrefix;
     private String baseUrl;
     private String journeyType;
 

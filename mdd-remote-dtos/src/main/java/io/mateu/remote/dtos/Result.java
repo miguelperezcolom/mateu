@@ -9,6 +9,7 @@ public class Result implements ViewMetadata {
 
     private final ViewMetadataType type = ViewMetadataType.Result;
 
+    private String dataPrefix;
     private ResultType resultType;
     private String message;
     private List<Destination> interestingLinks;

@@ -9,6 +9,7 @@ public class JourneyStarter implements ViewMetadata {
 
     private final ViewMetadataType type = ViewMetadataType.JourneyStarter;
 
+    private String dataPrefix;
     private String baseUrl;
 
 }

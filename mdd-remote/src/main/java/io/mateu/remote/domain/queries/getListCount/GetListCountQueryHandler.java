@@ -43,6 +43,11 @@ public class GetListCountQueryHandler {
                 query.getJourneyId(),
                 query.getStepId(),
                 query.getListId());
+
+        if (rpcView == null) {
+            return 0;
+        }
+
         return rpcView.fetchCount(filtersDeserialized);
     }
 

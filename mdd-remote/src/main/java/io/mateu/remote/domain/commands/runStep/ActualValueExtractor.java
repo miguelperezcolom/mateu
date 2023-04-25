@@ -1,5 +1,6 @@
 package io.mateu.remote.domain.commands.runStep;
 
+import io.mateu.mdd.core.interfaces.Crud;
 import io.mateu.mdd.shared.data.ExternalReference;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import javax.naming.AuthenticationException;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.lang.reflect.Modifier;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -76,10 +78,25 @@ public class ActualValueExtractor {
         return targetValue;
     }
 
+    private boolean checkInjected(Object viewInstance, String fieldName) {
+        FieldInterfaced field = ReflectionHelper.getFieldByName(viewInstance.getClass(), fieldName);
+        return field != null && (field.isAnnotationPresent(Autowired.class) || Modifier.isFinal(field.getModifiers()));
+    }
+
     public Object getActualValue(Map.Entry<String, Object> entry, Object viewInstance) throws Exception {
         Object targetValue = entry.getValue();
+        FieldInterfaced f = ReflectionHelper.getFieldByName(viewInstance.getClass(), entry.getKey());
+        if (checkInjected(viewInstance, f.getId())) {
+            Object injectedValue = ReflectionHelper.getValue(f, viewInstance);
+            if (injectedValue != null && entry.getValue() != null && entry.getValue() instanceof Map) {
+                Map<String, Object> incomingValues = (Map<String, Object>) entry.getValue();
+                for (FieldInterfaced crudField : ReflectionHelper.getAllEditableFields(injectedValue.getClass())) {
+                    ReflectionHelper.setValue(crudField, injectedValue, incomingValues.get(crudField.getId()));
+                }
+            }
+            return injectedValue;
+        }
         if (entry.getValue() != null) {
-            FieldInterfaced f = ReflectionHelper.getFieldByName(viewInstance.getClass(), entry.getKey());
             if (List.class.isAssignableFrom(f.getType())) {
                 if (ExternalReference.class.equals(ReflectionHelper.getGenericClass(f.getGenericType()))) {
                     List t = new ArrayList();

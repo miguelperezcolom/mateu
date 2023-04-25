@@ -93,7 +93,7 @@ public class PriceSelectionForm {
                                     .note("Payment end date 24.02.2023")
                                     .summary("<b>19,10€</b> / Month")
                                     .build())
-                            .value("1")
+                            .value("2")
                             .build()
                     , ComplexKeyOption.builder()
                             .key(ComplexKey.builder()
@@ -105,7 +105,7 @@ public class PriceSelectionForm {
                                     .note("Payment end date 24.02.2023")
                                     .summary("<b>24,12€</b> / Month")
                                     .build())
-                            .value("1")
+                            .value("3")
                             .build()
                     , ComplexKeyOption.builder()
                             .key(ComplexKey.builder()
@@ -117,11 +117,11 @@ public class PriceSelectionForm {
                                     .note("Payment end date 24.02.2023")
                                     .summary("<b>36,00€</b> / Month")
                                     .build())
-                            .value("1")
+                            .value("4")
                             .build()
             );
         }
-    };
+    }.setValue("2");
 
     @Slot(SlotName.right)
     PriceSelectionSummary summary;

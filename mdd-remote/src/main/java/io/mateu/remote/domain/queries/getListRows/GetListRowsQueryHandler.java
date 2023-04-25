@@ -49,6 +49,11 @@ public class GetListRowsQueryHandler {
                 query.getJourneyId(),
                 query.getStepId(),
                 query.getListId());
+
+        if (rpcView == null) {
+            return List.of();
+        }
+
         return rpcView.fetchRows(
                 filtersDeserialized,
                 query.getOrdering(),

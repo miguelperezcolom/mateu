@@ -93,7 +93,7 @@ public class RunStepActionCommandHandler {
             });
         }
 
-        store.getStep(journeyId, stepId).getView().getMain().getComponents().get(0).setData(data);
+        store.getStep(journeyId, stepId).setData(data);
 
         //todo: look for the target object
         String componentId = "component-0";

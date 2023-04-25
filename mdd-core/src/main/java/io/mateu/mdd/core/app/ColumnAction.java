@@ -6,14 +6,14 @@ import lombok.NoArgsConstructor;
 @Data@NoArgsConstructor
 public class ColumnAction {
 
-    private String id;
+    private String methodNameInCrud;
 
     private String caption;
 
     private String icon;
 
-    public ColumnAction(String id, String caption, String icon) {
-        this.id = id;
+    public ColumnAction(String methodNameInCrud, String caption, String icon) {
+        this.methodNameInCrud = methodNameInCrud;
         this.caption = caption;
         this.icon = icon;
     }

@@ -19,6 +19,7 @@ public class SaleAgentDetail extends SaleAgentDetailDefinition implements ReadOn
     public void load(String id) throws Throwable {
         setId(id);
         setName("Michael Jordan");
+        this.getPasswordResets().setSalesAgentId(id);
     }
 
     @Override

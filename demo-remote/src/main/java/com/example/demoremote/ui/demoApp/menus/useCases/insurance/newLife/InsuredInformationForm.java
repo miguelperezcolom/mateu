@@ -83,7 +83,7 @@ public class InsuredInformationForm {
     double capitalFlowPercent;
 
     @Slot(SlotName.right)
-    InsuredInformationSummary summary;
+    InsuredInformationSummary summary= new InsuredInformationSummary();
 
     @MainAction
     public PriceSelectionForm calculate() {

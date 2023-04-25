@@ -51,7 +51,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
             try {
                 Object result = m.invoke(viewInstance);
 
-                store.setStep(journeyId, stepId, viewInstance);
+                store.updateStep(journeyId, viewInstance);
 
                 Object whatToShow = result;
                 if (!void.class.equals(m.getReturnType())) {
