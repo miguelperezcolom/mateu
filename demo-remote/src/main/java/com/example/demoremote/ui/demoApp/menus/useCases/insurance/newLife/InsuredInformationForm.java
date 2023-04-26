@@ -13,12 +13,13 @@ import java.util.List;
 
 @Getter
 @Setter
+@Caption("Bad life sale")
 public class InsuredInformationForm {
 
     @Section(value = "", card = false)
     Stepper stepper = Stepper.builder()
             .value(0)
-            .text("Insured Information (Step 1 of 4)")
+            .text("Bad guy Information (Step 1 of 4)")
             .steps(List.of(
                     StepperStep.builder()
                             .id("calculation")
@@ -51,7 +52,7 @@ public class InsuredInformationForm {
             ))
             .build();
 
-    @Section("Insured Persons")
+    @Section("Known Persons")
     LocalDate birthDate;
 
     @Caption("Is yur customer a smoker?")
@@ -63,7 +64,7 @@ public class InsuredInformationForm {
 
     Double sumInsured;
 
-    @Caption("Would you like to add a co-insured?")
+    @Caption("Would you like to add a co-habitant?")
     @UseRadioButtons
     boolean addCoinsured = false;
 

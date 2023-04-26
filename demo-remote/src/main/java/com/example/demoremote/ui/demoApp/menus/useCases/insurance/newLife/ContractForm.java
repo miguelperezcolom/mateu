@@ -62,8 +62,8 @@ public class ContractForm {
             ))
             .build();
 
-    @Section("Policyholders")
-    @Caption("Is the insured person the policyholder?")
+    @Section("Bookingholders")
+    @Caption("Is the bad person the bookingholder?")
     @UseRadioButtons
     boolean insuredPersonIsPolicyHolder = true;
 
@@ -125,8 +125,8 @@ public class ContractForm {
     //@NotNull
     String accountHolderName;
 
-    @Section("Beneficiaries")
-    @Caption("Do you have a beneficiary?")
+    @Section("Friends")
+    @Caption("Do you have a friend?")
     @UseRadioButtons
     boolean hasBeneficiary;
 

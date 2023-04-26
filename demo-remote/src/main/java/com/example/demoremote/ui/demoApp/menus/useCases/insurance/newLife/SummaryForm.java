@@ -93,7 +93,7 @@ public class SummaryForm {
     }
 
     @MainAction
-    public Result concludeApplication() {
+    public Result applicate() {
         return new Result(ResultType.Success,
                 "The application request was received successfully. It will take 24 hours to create on the list." +
                         " You will receive a notification regarding the conclusion.",
