@@ -41,6 +41,12 @@ public class FormsSubmenu {
     private HideFieldForm hideField;
 
     @MenuOption
+    private DisableFieldForm disableField;
+
+    @MenuOption
+    private CallActionOnChangeFieldForm callActionOnChange;
+
+    @MenuOption
     private SameLineForm sameLine;
 
     @MenuOption
