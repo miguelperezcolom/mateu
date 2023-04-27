@@ -37,4 +37,13 @@ public class IntermediariesCrud implements Crud<IntermediariesSearchForm, Interm
         detail.load(intermediariesRow.getId());
         return detail;
     }
+
+    public void block(IntermediariesRow row) {
+        System.out.println("blocking row " + row);
+    }
+
+    public void activate(IntermediariesRow row) {
+        System.out.println("activating row " + row);
+    }
+
 }
