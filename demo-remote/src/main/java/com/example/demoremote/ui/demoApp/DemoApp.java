@@ -1,6 +1,7 @@
 package com.example.demoremote.ui.demoApp;
 
 import com.example.demoremote.ui.demoApp.menus.*;
+import com.example.demoremote.ui.demoApp.menus.errors.rpcTimeouts.BrokenCrud;
 import com.example.demoremote.ui.demoApp.menus.forms.BasicFieldsForm;
 import com.example.demoremote.ui.demoApp.menus.useCases.insurance.newLife.InsuredInformationForm;
 import io.mateu.mdd.core.interfaces.HasAppTitle;
@@ -34,6 +35,9 @@ public class DemoApp implements HasLogin, HasAppTitle
 
     @Submenu("Some cruds")
     private CrudsSubmenu cruds;
+
+    @Submenu
+    private BrokenSubmenu broken;
 
     @Submenu
     private UseCasesSubmenu useCases;
