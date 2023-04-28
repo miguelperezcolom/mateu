@@ -1,8 +1,6 @@
 package io.mateu.remote.domain.modelToDtoMappers.viewMapperStuff;
 
-import io.mateu.mdd.shared.annotations.Ignored;
-import io.mateu.mdd.shared.annotations.Slot;
-import io.mateu.mdd.shared.annotations.SlotName;
+import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import org.springframework.stereotype.Service;
@@ -16,6 +14,8 @@ public class FieldExtractor {
     public List<FieldInterfaced> getFields(Object uiInstance, SlotName slot) {
         return ReflectionHelper.getAllFields(uiInstance.getClass()).stream()
                 .filter(f -> !f.isAnnotationPresent(Ignored.class))
+                .filter(f -> !f.isAnnotationPresent(MenuOption.class))
+                .filter(f -> !f.isAnnotationPresent(Submenu.class))
                 .filter(f -> checkField(f, slot))
                 .collect(Collectors.toList());
     }

@@ -75,6 +75,9 @@ public class ViewMapper {
             List<FieldInterfaced> slotFields = fieldExtractor.getFields(actualUiInstance, slot);
 
             List<UIInstancePart> uiInstanceParts = uiInstancePartsExtractor.getUiParts(actualUiInstance, slotFields);
+            if (SlotName.main.equals(slot) && uiInstanceParts.size() == 0) {
+                uiInstanceParts.add(new UIInstancePart("", actualUiInstance, List.of()));
+            }
 
             uiInstanceParts.forEach(p -> {
 
