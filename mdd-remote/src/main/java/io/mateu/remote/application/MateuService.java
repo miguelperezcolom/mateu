@@ -134,7 +134,7 @@ public class MateuService {
 // urlencoded form of orders json serialized
                                     String ordering
                                              ) throws Throwable {
-        return Flux.fromStream(getListRowsQueryHandler.run(GetListRowsQuery.builder()
+        return getListRowsQueryHandler.run(GetListRowsQuery.builder()
                 .journeyTypeId(journeyTypeId)
                 .journeyId(journeyId)
                 .stepId(stepId)
@@ -143,7 +143,7 @@ public class MateuService {
                 .pageSize(page_size)
                 .filters(filters)
                 .ordering(new OrderingDeserializer(ordering).deserialize())
-                .build()).stream());
+                .build());
     }
 
     public Mono<Long> getListCount(String journeyTypeId,
@@ -153,13 +153,13 @@ public class MateuService {
 // urlencoded form of filters json serialized
                                    String filters
     ) throws Throwable {
-        return Mono.just(getListCountQueryHandler.run(GetListCountQuery.builder()
+        return getListCountQueryHandler.run(GetListCountQuery.builder()
                 .journeyTypeId(journeyTypeId)
                 .journeyId(journeyId)
                 .stepId(stepId)
                 .listId(listId)
                 .filters(filters)
-                .build()));
+                .build());
     }
 
 

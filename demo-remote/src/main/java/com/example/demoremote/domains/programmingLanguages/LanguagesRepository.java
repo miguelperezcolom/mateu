@@ -4,6 +4,7 @@ import io.mateu.mdd.shared.data.Status;
 import io.mateu.mdd.shared.data.StatusType;
 import io.mateu.util.Helper;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,8 +22,8 @@ public class LanguagesRepository {
     ));
 
 
-    public Collection<LanguageRow> findAll() {
-        return all;
+    public Flux<LanguageRow> findAll() {
+        return Flux.fromStream(all.stream());
     }
 
     public void save(LanguageForm form) throws Exception {
@@ -36,5 +37,9 @@ public class LanguagesRepository {
 
     public LanguageRow findById(String id) {
         return all.stream().filter(r -> r.getId().equals(id)).findFirst().get();
+    }
+
+    public void removeAll(List<LanguageRow> selection) {
+        all.removeAll(selection);
     }
 }

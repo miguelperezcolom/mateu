@@ -6,6 +6,8 @@ import io.mateu.remote.domain.store.JourneyContainer;
 import io.mateu.remote.domain.store.JourneyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -16,12 +18,12 @@ public class JourneyContainerCrud implements Crud<JourneyContainerSearchForm, Jo
     private JourneyRepository repo;
 
     @Override
-    public List<JourneyContainer> fetchRows(JourneyContainerSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) throws Throwable {
+    public Flux<JourneyContainer> fetchRows(JourneyContainerSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) throws Throwable {
         return repo.findAll();
     }
 
     @Override
-    public int fetchCount(JourneyContainerSearchForm filters) throws Throwable {
-        return (int) repo.count();
+    public Mono<Long> fetchCount(JourneyContainerSearchForm filters) throws Throwable {
+        return repo.count();
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
+import reactor.core.publisher.Mono;
 
 @Service
 @Slf4j
@@ -17,8 +18,8 @@ public class CountQueryHandler {
     private EntityManager em;
 
     @Transactional
-    public int run(CountQuery query) {
-        final int[] count = {0};
+    public Mono<Long> run(CountQuery query) {
+        final long[] count = {0};
 
         try {
             Query q = new QueryHelper().buildJpaQuery(
@@ -36,17 +37,17 @@ public class CountQueryHandler {
             Object r = q.getSingleResult();
 
             if (r instanceof Long) {
-                count[0] = ((Long) r).intValue();
+                count[0] = ((Long) r).longValue();
             } else if (r instanceof Object[]) {
                 Object[] v = (Object[]) r;
 
-                count[0] = ((Long) v[0]).intValue();
+                count[0] = ((Long) v[0]).longValue();
             }
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
 
-        return count[0];
+        return Mono.just(count[0]);
     }
 
 }

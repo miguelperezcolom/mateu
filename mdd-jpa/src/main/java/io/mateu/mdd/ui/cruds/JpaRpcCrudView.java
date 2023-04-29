@@ -30,6 +30,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import jakarta.validation.constraints.NotNull;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
@@ -112,7 +115,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     }
 
     @Override
-    public List fetchRows(Object filters, List<SortCriteria> sortOrders, int offset, int limit) throws Throwable {
+    public Flux fetchRows(Object filters, List<SortCriteria> sortOrders, int offset, int limit) throws Throwable {
         return rowsQueryHandler.run(new RowsQuery(
                 action,
                 filters,
@@ -132,7 +135,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     }
 
     @Override
-    public int fetchCount(Object filters) throws Throwable {
+    public Mono<Long> fetchCount(Object filters) throws Throwable {
         sums = sumsQueryHandler.run(new SumsQuery(
                 action,
                 filters,

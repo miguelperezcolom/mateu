@@ -2,16 +2,17 @@ package io.mateu.mdd.shared.interfaces;
 
 import io.mateu.mdd.shared.SlimHelper;
 import io.mateu.mdd.shared.annotations.Caption;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
-import java.util.Set;
 
 public interface Listing<SearchForm, Row> {
 
-    List<Row> fetchRows(SearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) throws Throwable;
+    Flux<Row> fetchRows(SearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) throws Throwable;
 
-   int fetchCount(SearchForm filters) throws Throwable;
+   Mono<Long> fetchCount(SearchForm filters) throws Throwable;
 
     default String getCaption() {
         if (getClass().isAnnotationPresent(Caption.class)) {

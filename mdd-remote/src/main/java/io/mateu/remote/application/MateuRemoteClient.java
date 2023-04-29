@@ -5,6 +5,7 @@ import io.mateu.remote.dtos.*;
 import io.mateu.util.Helper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
@@ -49,7 +50,7 @@ public class MateuRemoteClient {
                 .retrieve().bodyToMono(Void.class);
     }
 
-    public List<Object> getListRows(String remoteBaseUrl, String remoteJourneyTypeId, String journeyId, String stepId,
+    public Flux<Object> getListRows(String remoteBaseUrl, String remoteJourneyTypeId, String journeyId, String stepId,
                                     String listId, Object filters, List<SortCriteria> ordering, int page, int pageSize) throws ExecutionException, InterruptedException {
         String uri = "/journeys/" + remoteJourneyTypeId + "/" + journeyId + "/steps/" + stepId + "/lists/" + listId + "/rows";
         return buildClient(remoteBaseUrl).get().uri(uriBuilder -> uriBuilder
@@ -59,7 +60,7 @@ public class MateuRemoteClient {
                         .queryParam("page", page)
                         .queryParam("page_size", pageSize)
                         .build())
-                .retrieve().bodyToMono(List.class).toFuture().get();
+                .retrieve().bodyToFlux(Object.class);
     }
 
     private String serialize(Object object) {
@@ -72,14 +73,14 @@ public class MateuRemoteClient {
         return Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8));
     }
 
-    public long getListCount(String remoteBaseUrl, String remoteJourneyTypeId, String journeyId, String stepId,
+    public Mono<Long> getListCount(String remoteBaseUrl, String remoteJourneyTypeId, String journeyId, String stepId,
                              String listId, Object filters) throws ExecutionException, InterruptedException {
         String uri = "/journeys/" + remoteJourneyTypeId + "/" + journeyId + "/steps/" + stepId + "/lists/" + listId + "/count";
         return buildClient(remoteBaseUrl).get().uri(uriBuilder -> uriBuilder
                         .path(uri)
                         .queryParam("filters", filters)
                         .build())
-                .retrieve().bodyToMono(Long.class).toFuture().get();
+                .retrieve().bodyToMono(Long.class);
     }
 
     public UI getUi(String remoteBaseUrl, String uiId) throws ExecutionException, InterruptedException {

@@ -84,6 +84,18 @@
       <version>8.0.0.Final</version>
     </dependency>
 
+    <dependency>
+      <groupId>io.projectreactor</groupId>
+      <artifactId>reactor-core</artifactId>
+      <version>3.5.4</version>
+    </dependency>
+    <dependency>
+      <groupId>io.projectreactor</groupId>
+      <artifactId>reactor-core</artifactId>
+      <version>3.5.4</version>
+      <scope>compile</scope>
+    </dependency>
+
   </dependencies>
 
   <distributionManagement>

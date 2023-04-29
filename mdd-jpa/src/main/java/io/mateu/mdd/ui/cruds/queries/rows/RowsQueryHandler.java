@@ -7,6 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import reactor.core.publisher.Flux;
+
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -18,23 +21,17 @@ public class RowsQueryHandler {
     private EntityManager em;
 
     @Transactional
-    public List run(RowsQuery query) {
-        List l = new ArrayList();
-
+    public Flux run(RowsQuery query) {
         try {
-                jakarta.persistence.Query q = new QueryHelper().buildJpaQuery(query, em,
-                        query.getSelectColumnsForList(), query.getFilters(),
-                        query.getSortOrders(), null,
-                        query.getOffset(), query.getLimit(), true);
+            jakarta.persistence.Query q = new QueryHelper().buildJpaQuery(query, em,
+                    query.getSelectColumnsForList(), query.getFilters(),
+                    query.getSortOrders(), null,
+                    query.getOffset(), query.getLimit(), true);
 
-                l.addAll((Collection) q.getResultList().stream().map(raw -> toMap(query, (Object[]) raw))
-                        .collect(Collectors.toList()));
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
+            return Flux.fromStream(q.getResultStream().map(raw -> toMap(query, (Object[]) raw)));
+        } catch (Exception e) {
+            return Flux.error(e);
         }
-
-        return l;
-
     }
 
     private Map toMap(RowsQuery query, Object[] values) {

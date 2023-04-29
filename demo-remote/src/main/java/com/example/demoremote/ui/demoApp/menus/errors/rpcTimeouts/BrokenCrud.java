@@ -6,6 +6,8 @@ import io.mateu.mdd.shared.interfaces.SortCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -23,13 +25,13 @@ public class BrokenCrud implements Crud<BrokenSearchForm, BrokenRow> {
     }
 
     @Override
-    public List<BrokenRow> fetchRows(BrokenSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) throws Throwable {
+    public Flux<BrokenRow> fetchRows(BrokenSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) throws Throwable {
         return repo.findAll();
     }
 
     @Override
-    public int fetchCount(BrokenSearchForm filters) throws Throwable {
-        return repo.findAll().size();
+    public Mono<Long> fetchCount(BrokenSearchForm filters) throws Throwable {
+        return repo.findAll().count();
     }
 
     @Override

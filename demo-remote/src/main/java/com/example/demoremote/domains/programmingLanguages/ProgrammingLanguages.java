@@ -11,9 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Caption("Some programming languages")
@@ -45,24 +46,23 @@ public class ProgrammingLanguages implements Crud<ProgrammingLanguages, Language
     private DatesRange born;
 
     @Override
-    public List<LanguageRow> fetchRows(ProgrammingLanguages filters, List<SortCriteria> sortOrders, int offset, int limit)
+    public Flux<LanguageRow> fetchRows(ProgrammingLanguages filters, List<SortCriteria> sortOrders, int offset, int limit)
             throws Throwable {
         Thread.sleep(500);
         RowComparator comparator = new RowComparator(sortOrders);
-        return repo.findAll().stream()
+        return repo.findAll()
                 .filter(p -> Strings.isNullOrEmpty(filters.getName())
                         || p.getName().toLowerCase().contains(filters.getName().toLowerCase()))
                 .filter(p -> filters.getTarget() == null
                         || filters.getTarget().equals(p.getTarget()))
-                .sorted(comparator)
+                .sort(comparator)
                 .skip(offset)
-                .limit(limit)
-                .collect(Collectors.toList());
+                .take(limit);
     }
 
     @Override
-    public int fetchCount(ProgrammingLanguages filters) throws Throwable {
-        return (int) repo.findAll().stream()
+    public Mono<Long> fetchCount(ProgrammingLanguages filters) throws Throwable {
+        return repo.findAll()
                 .filter(p -> Strings.isNullOrEmpty(filters.getName())
                         || p.getName().toLowerCase().contains(filters.getName().toLowerCase()))
                 .filter(p -> filters.getTarget() == null
@@ -72,7 +72,7 @@ public class ProgrammingLanguages implements Crud<ProgrammingLanguages, Language
 
     @Override
     public void delete(List<LanguageRow> selection) throws Throwable {
-        repo.findAll().removeAll(selection);
+        repo.removeAll(selection);
     }
 
     @Override

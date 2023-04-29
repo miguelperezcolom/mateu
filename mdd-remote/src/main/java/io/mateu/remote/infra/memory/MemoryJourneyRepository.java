@@ -5,6 +5,8 @@ import io.mateu.remote.domain.store.JourneyRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -25,13 +27,13 @@ public class MemoryJourneyRepository implements JourneyRepository {
     }
 
     @Override
-    public List<JourneyContainer> findAll() {
-        return containers.values().stream().toList();
+    public Flux<JourneyContainer> findAll() {
+        return Flux.fromStream(containers.values().stream());
     }
 
     @Override
-    public long count() {
-        return containers.size();
+    public Mono<Long> count() {
+        return Mono.just((long) containers.size());
     }
 
     @PostConstruct

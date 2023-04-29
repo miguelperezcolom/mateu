@@ -6,6 +6,8 @@ import io.mateu.mdd.shared.interfaces.SortCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -23,13 +25,13 @@ public class IntermediariesCrud implements Crud<IntermediariesSearchForm, Interm
     }
 
     @Override
-    public List<IntermediariesRow> fetchRows(IntermediariesSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) throws Throwable {
+    public Flux<IntermediariesRow> fetchRows(IntermediariesSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) throws Throwable {
         return repo.findAll();
     }
 
     @Override
-    public int fetchCount(IntermediariesSearchForm filters) throws Throwable {
-        return repo.findAll().size();
+    public Mono<Long> fetchCount(IntermediariesSearchForm filters) throws Throwable {
+        return repo.findAll().count();
     }
 
     @Override

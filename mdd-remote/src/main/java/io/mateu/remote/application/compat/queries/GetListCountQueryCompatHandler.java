@@ -10,6 +10,7 @@ import io.mateu.remote.domain.store.JourneyStoreService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 @Slf4j
@@ -21,7 +22,7 @@ public class GetListCountQueryCompatHandler {
     @Autowired
     MateuRemoteClient mateuRemoteClient;
 
-    public long run(GetListCountQuery query) throws Throwable {
+    public Mono<Long> run(GetListCountQuery query) throws Throwable {
 
         JourneyContainer journeyContainer = store.findJourneyById(query.getJourneyId()).orElse(null);
 

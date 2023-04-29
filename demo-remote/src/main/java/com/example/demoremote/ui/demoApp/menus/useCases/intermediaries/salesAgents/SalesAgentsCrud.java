@@ -8,6 +8,8 @@ import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,18 +32,18 @@ public class SalesAgentsCrud implements Crud<SalesAgentsSearchForm, SalesAgentsR
     }
 
     @Override
-    public List<SalesAgentsRow> fetchRows(SalesAgentsSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) throws Throwable {
+    public Flux<SalesAgentsRow> fetchRows(SalesAgentsSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) throws Throwable {
         return getFilteredList();
     }
 
-    private List<SalesAgentsRow> getFilteredList() {
-        return repo.findAll().stream().filter(r -> r.getIntermediaryId().equals(intermediaryId))
-                .collect(Collectors.toList());
+    private Flux<SalesAgentsRow> getFilteredList() {
+        return repo.findAll()
+                .filter(r -> r.getIntermediaryId().equals(intermediaryId));
     }
 
     @Override
-    public int fetchCount(SalesAgentsSearchForm filters) throws Throwable {
-        return getFilteredList().size();
+    public Mono<Long> fetchCount(SalesAgentsSearchForm filters) throws Throwable {
+        return getFilteredList().count();
     }
 
     @Override

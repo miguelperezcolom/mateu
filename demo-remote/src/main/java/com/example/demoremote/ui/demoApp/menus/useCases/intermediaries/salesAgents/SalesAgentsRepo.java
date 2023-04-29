@@ -1,6 +1,7 @@
 package com.example.demoremote.ui.demoApp.menus.useCases.intermediaries.salesAgents;
 
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,7 +16,7 @@ public class SalesAgentsRepo {
             , new SalesAgentsRow("3", "1002", "Kareem Abdul Jabbar")
                 ));
 
-    public List<SalesAgentsRow> findAll() {
-        return all;
+    public Flux<SalesAgentsRow> findAll() {
+        return Flux.fromStream(all.stream());
     }
 }

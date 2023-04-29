@@ -141,8 +141,9 @@ public class MateuCompatController {
                 .stepId(stepId)
                 .listId(listId)
                 .filters(filters)
-                .build());
-        List<Object> rows = getListRowsQueryHandler.run(GetListRowsQuery.builder()
+                .build()).toFuture().get();
+        List<Object> rows = new ArrayList<>();
+        getListRowsQueryHandler.run(GetListRowsQuery.builder()
                 .journeyTypeId(journeyTypeId)
                 .journeyId(journeyId)
                 .stepId(stepId)
@@ -151,7 +152,8 @@ public class MateuCompatController {
                 .pageSize(size)
                 .filters(filters)
                 .ordering(new OrderingDeserializer(ordering).deserialize())
-                .build());
+                .build())
+                .map(o -> rows.add(o)).then();
 
         return new ListResponseMapper().map(page, size, count, rows);
     }

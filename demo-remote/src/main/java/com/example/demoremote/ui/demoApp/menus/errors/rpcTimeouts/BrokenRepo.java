@@ -2,6 +2,7 @@ package com.example.demoremote.ui.demoApp.menus.errors.rpcTimeouts;
 
 
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +16,8 @@ public class BrokenRepo {
                 , new BrokenRow("1003", "Gaastra")
         ));
 
-    public List<BrokenRow> findAll() throws InterruptedException {
+    public Flux<BrokenRow> findAll() throws InterruptedException {
         Thread.sleep(50000);
-        return all;
+        return Flux.fromStream(all.stream());
     }
 }

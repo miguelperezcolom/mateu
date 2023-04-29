@@ -7,6 +7,8 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,22 +22,21 @@ public class PasswordResetsCrud implements Crud<SalesAgentsSearchForm, PasswordR
     }
 
     @Override
-    public List<PasswordResetsRow> fetchRows(SalesAgentsSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) throws Throwable {
+    public Flux<PasswordResetsRow> fetchRows(SalesAgentsSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) throws Throwable {
         return getFilteredList();
     }
 
-    private List<PasswordResetsRow> getFilteredList() {
+    private Flux<PasswordResetsRow> getFilteredList() {
         log.info("sales agent id: " + salesAgentId);
-        return List.of(
+        return Flux.just(
                         new PasswordResetsRow("1", "1", "2023-01-12")
                         , new PasswordResetsRow("2", "2", "2023-02-11")
-                ).stream().filter(r -> r.getId().equals(salesAgentId))
-                .collect(Collectors.toList());
+                ).filter(r -> r.getId().equals(salesAgentId));
     }
 
     @Override
-    public int fetchCount(SalesAgentsSearchForm filters) throws Throwable {
-        return getFilteredList().size();
+    public Mono<Long> fetchCount(SalesAgentsSearchForm filters) throws Throwable {
+        return getFilteredList().count();
     }
 
 }
