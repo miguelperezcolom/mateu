@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,42 +21,40 @@ import java.util.stream.Collectors;
 @Service@Primary
 public class JpaJourneyRepository implements JourneyRepository {
 
-    @PersistenceContext
-    EntityManager em;
+    @Autowired
+    JourneyContainerRepository repo;
 
     @Override
     public Optional<JourneyContainer> findById(String journeyId) {
-        JourneyContainerEntity entity = em.find(JourneyContainerEntity.class, journeyId);
+        JourneyContainerEntity entity = repo.findById(journeyId)
+                .map(e -> {
+                    update(e);
+                    return e;
+                }).toFuture().getNow(null);
         if (entity == null) {
             return Optional.empty();
         }
-        update(entity);
         return Optional.of(entity.getJourneyContainer());
     }
 
     @Override
     public void save(JourneyContainer journeyContainer) {
-        em.merge(new JourneyContainerEntity(journeyContainer.getJourneyId(), journeyContainer, LocalDateTime.now()));
+        repo.save(new JourneyContainerEntity(journeyContainer.getJourneyId(), journeyContainer, LocalDateTime.now()));
     }
 
     @Override
-    public List<JourneyContainer> findAll() {
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<JourneyContainerEntity> cr = cb.createQuery(JourneyContainerEntity.class);
-        return em.createQuery(cr).getResultList().stream().map(e -> e.getJourneyContainer())
-                .collect(Collectors.toList());
+    public Flux<JourneyContainer> findAll() {
+        return repo.findAll().map(e -> e.getJourneyContainer());
     }
 
     @Override
-    public long count() {
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<JourneyContainerEntity> cr = cb.createQuery(JourneyContainerEntity.class);
-        return em.createQuery(cr).getResultList().size();
+    public Mono<Long> count() {
+        return repo.count();
     }
 
     @Async
     public void update(JourneyContainerEntity entity) {
         entity.setLastUsed(LocalDateTime.now());
-        em.merge(entity);
+        repo.save(entity);
     }
 }
