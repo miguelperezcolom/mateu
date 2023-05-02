@@ -28,7 +28,7 @@ public class RowsQueryHandler {
                     query.getSortOrders(), null,
                     query.getOffset(), query.getLimit(), true);
 
-            return Flux.fromStream(q.getResultStream().map(raw -> toMap(query, (Object[]) raw)));
+            return Flux.fromStream(q.getResultList().stream().map(raw -> toMap(query, (Object[]) raw)));
         } catch (Exception e) {
             return Flux.error(e);
         }
