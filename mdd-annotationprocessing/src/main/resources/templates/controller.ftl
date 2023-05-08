@@ -4,12 +4,15 @@ import io.mateu.mdd.shared.data.Value;
 import io.mateu.remote.application.MateuService;
 import io.mateu.remote.dtos.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.codec.multipart.FilePart;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -112,14 +115,54 @@ public class ${simpleClassName}MateuController {
     }
 
     @GetMapping(value = "files/{fileId}", produces = MediaType.TEXT_PLAIN_VALUE)
-    public String getFileUrl(@PathVariable String fileId) throws AuthenticationException {
-        return service.getFileUrl(fileId);
+    public Mono<String> getFileUrl(@PathVariable String fileId) throws AuthenticationException {
+        return Mono.just(service.getFileUrl(fileId));
     }
 
     @PostMapping("files/{fileId}")
-    public String handleFileUpload(@PathVariable String fileId, @RequestParam("file") MultipartFile file)
-        throws AuthenticationException {
+    public Mono<Void> handleFileUpload(@PathVariable String fileId, @RequestPart("file") Mono<FilePart> file)
+        throws Exception {
         return service.handleFileUpload(fileId, file);
+    }
+
+    @GetMapping("journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/lists/{listId}/csv")
+    public ResponseEntity<Mono<Resource>> downloadCsv(@PathVariable String journeyTypeId,
+                    @PathVariable String journeyId,
+                    @PathVariable String stepId,
+                    @PathVariable String listId,
+                    // urlencoded form of filters json serialized
+                    @RequestParam String filters,
+                    // urlencoded form of orders json serialized
+                    @RequestParam String ordering) throws Throwable {
+        String fileName = String.format("%s.csv", RandomStringUtils.randomAlphabetic(10));
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION,  "attachment; filename=" + fileName)
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE)
+            .body(service.generateCsv(journeyTypeId, journeyId, stepId, listId, filters, ordering)
+            .flatMap(x -> {
+                Resource resource = new InputStreamResource(x);
+                return Mono.just(resource);
+            }));
+    }
+
+    @GetMapping("journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/lists/{listId}/xls")
+    public ResponseEntity<Mono<Resource>> downloadExcel(@PathVariable String journeyTypeId,
+                    @PathVariable String journeyId,
+                    @PathVariable String stepId,
+                    @PathVariable String listId,
+                    // urlencoded form of filters json serialized
+                    @RequestParam String filters,
+                    // urlencoded form of orders json serialized
+                    @RequestParam String ordering) throws Throwable {
+        String fileName = String.format("%s.xls", RandomStringUtils.randomAlphabetic(10));
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION,  "attachment; filename=" + fileName)
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE)
+            .body(service.generateExcel(journeyTypeId, journeyId, stepId, listId, filters, ordering)
+            .flatMap(x -> {
+                Resource resource = new InputStreamResource(x);
+                return Mono.just(resource);
+            }));
     }
 
 }

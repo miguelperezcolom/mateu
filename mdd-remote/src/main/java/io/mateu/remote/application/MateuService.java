@@ -1,6 +1,8 @@
 package io.mateu.remote.application;
 
+import com.opencsv.CSVWriter;
 import io.mateu.mdd.shared.data.Value;
+import io.mateu.remote.application.csv.ByteArrayInOutStream;
 import io.mateu.remote.domain.commands.runStep.RunStepActionCommand;
 import io.mateu.remote.domain.commands.runStep.RunStepActionCommandHandler;
 import io.mateu.remote.domain.commands.startJourney.StartJourneyCommand;
@@ -24,19 +26,25 @@ import io.mateu.remote.domain.queries.getUI.GetUIQuery;
 import io.mateu.remote.domain.queries.getUI.GetUIQueryHandler;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.*;
-import io.mateu.util.asciiart.Painter;
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import javax.naming.AuthenticationException;
+import java.io.*;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -201,11 +209,95 @@ public class MateuService {
         return storageService.getUrl(fileId);
     }
 
-    public String handleFileUpload(String fileId,
-                                   MultipartFile file)
-            throws AuthenticationException {
-        storageService.store(fileId, file);
-        return "redirect:/";
+    public Mono<Void> handleFileUpload(String fileId,
+                                   Mono<FilePart> file)
+            throws AuthenticationException, ExecutionException, InterruptedException, TimeoutException {
+        return storageService.store(fileId, file);
+    }
+
+    public Mono<ByteArrayInputStream> generateCsv(String journeyTypeId,
+                                                  String journeyId,
+                                                  String stepId,
+                                                  String listId,
+// urlencoded form of filters json serialized
+                                                  String filters,
+// urlencoded form of orders json serialized
+                                                  String ordering) throws Throwable {
+
+        return getListRows(journeyTypeId, journeyId, stepId, listId, 0, 500, filters, ordering)
+                .map(o -> (Map<String, Object>) o)
+                .map(m -> m.values())
+                .map(a -> a.stream().map(o -> "" + o).collect(Collectors.toList()))
+                .map(l -> l.toArray(new String[0]))
+                .collectList()
+                .map(list -> {
+            try {
+                ByteArrayInOutStream stream = new ByteArrayInOutStream();
+                OutputStreamWriter streamWriter = new OutputStreamWriter(stream);
+                CSVWriter writer = new CSVWriter(streamWriter);
+
+                writer.writeAll(list);
+                streamWriter.flush();
+                return stream.getInputStream();
+            }
+            catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+        }).subscribeOn(Schedulers.boundedElastic());
+    }
+
+    public Mono<ByteArrayInputStream> generateExcel(String journeyTypeId,
+                                                  String journeyId,
+                                                  String stepId,
+                                                  String listId,
+// urlencoded form of filters json serialized
+                                                  String filters,
+// urlencoded form of orders json serialized
+                                                  String ordering) throws Throwable {
+
+        return getListRows(journeyTypeId, journeyId, stepId, listId, 0, 500, filters, ordering)
+                .map(o -> (Map<String, Object>) o)
+                .map(m -> m.values())
+                .map(a -> a.stream().map(o -> "" + o).collect(Collectors.toList()))
+                .map(l -> l.toArray(new String[0]))
+                .collectList()
+                .map(list -> {
+                    try {
+
+                        Workbook workbook = new XSSFWorkbook();
+
+                        Sheet sheet = workbook.createSheet("All");
+
+                        ByteArrayInOutStream stream = new ByteArrayInOutStream();
+                        OutputStreamWriter streamWriter = new OutputStreamWriter(stream);
+
+                        CellStyle style = workbook.createCellStyle();
+                        style.setWrapText(true);
+
+                        for (int i = 0; i < list.size(); i++) {
+                            Row row = sheet.createRow(i + 1);
+                            String[] data = list.get(i);
+                            if (data != null) {
+                                for (int col = 0; col < data.length; col++) {
+                                    Cell cell = row.createCell(col);
+                                    cell.setCellValue(data[col] != null?"" + data[col]:"");
+                                    cell.setCellStyle(style);
+                                }
+                            }
+                        }
+
+                        workbook.write(stream);
+                        workbook.close();
+
+                        streamWriter.flush();
+                        return stream.getInputStream();
+                    }
+                    catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                }).subscribeOn(Schedulers.boundedElastic());
     }
 
 }

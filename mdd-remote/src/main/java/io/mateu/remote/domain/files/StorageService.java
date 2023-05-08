@@ -1,7 +1,9 @@
 package io.mateu.remote.domain.files;
 
 import org.springframework.core.io.Resource;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.multipart.MultipartFile;
+import reactor.core.publisher.Mono;
 
 import javax.naming.AuthenticationException;
 import java.nio.file.Path;
@@ -11,7 +13,7 @@ public interface StorageService {
 
     void init();
 
-    void store(String fileId, MultipartFile file) throws AuthenticationException;
+    Mono<Void> store(String fileId, Mono<FilePart> file) throws AuthenticationException;
 
     Stream<Path> loadAll() throws AuthenticationException;
 

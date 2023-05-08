@@ -34,11 +34,21 @@ public class ActionMetadataBuilder {
                 .id(m.getName())
                 .caption(ReflectionHelper.getCaption(m))
                 .type(getActionType(m))
+                .visible(isVisible(m))
                 .validationRequired(getValidationRequired(m))
                 .confirmationRequired(getConfirmationRequired(m))
                 .confirmationTexts(getConfirmationTexts(m))
                 .build();
         return action;
+    }
+
+    private boolean isVisible(Method m) {
+        if (m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class)) {
+            io.mateu.mdd.shared.annotations.Action action = m
+                    .getAnnotation(io.mateu.mdd.shared.annotations.Action.class);
+            return action.visible();
+        }
+        return true;
     }
 
     private ActionType getActionType(Method m) {

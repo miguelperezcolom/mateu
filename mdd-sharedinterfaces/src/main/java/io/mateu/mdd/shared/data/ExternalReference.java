@@ -1,10 +1,11 @@
 package io.mateu.mdd.shared.data;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Data@NoArgsConstructor
+@Data@NoArgsConstructor@EqualsAndHashCode(of = "value")
 public class ExternalReference {
 
     private Object value;
@@ -18,6 +19,6 @@ public class ExternalReference {
 
     @Override
     public String toString() {
-        return "" + value +":'" + key + "'";
+        return key;
     }
 }

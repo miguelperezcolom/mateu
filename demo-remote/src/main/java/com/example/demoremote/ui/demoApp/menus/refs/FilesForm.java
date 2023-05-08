@@ -11,14 +11,7 @@ import java.util.List;
 
 @Data
 @Caption("External refs and files")
-public class ExternalRefsAndFilesForm {
-
-    @Section("External refs")
-    @ItemsProvider(PlayersProvider.class)
-    private ExternalReference yourFavouritePlayer;
-
-    @ItemsProvider(TeamsProvider.class)
-    private ExternalReference teamAtSanFrancisco = new ExternalReference("25", "San Francisco 49ers");
+public class FilesForm {
 
     @Section("Files")
     private File singleFile;
@@ -39,9 +32,7 @@ public class ExternalRefsAndFilesForm {
 
     @Action
     public void assess() {
-        assessment = "" + yourFavouritePlayer
-                + ", " + teamAtSanFrancisco
-                + ", " + singleFile
+        assessment = singleFile
                 + ", " + files
                 + ", " + singleFileAsString
                 + ", " + filesAsStrings

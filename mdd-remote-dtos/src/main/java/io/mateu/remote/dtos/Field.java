@@ -14,6 +14,8 @@ public class Field {
 
     private String stereotype;
 
+    private boolean observed;
+
     private String caption;
 
     private String placeholder;

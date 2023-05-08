@@ -29,4 +29,6 @@ Action {
 
     ActionType type() default ActionType.Primary;
 
+    boolean visible() default true;
+
 }

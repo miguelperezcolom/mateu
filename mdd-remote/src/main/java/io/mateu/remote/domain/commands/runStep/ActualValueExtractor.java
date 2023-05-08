@@ -102,6 +102,10 @@ public class ActualValueExtractor {
                     List t = new ArrayList();
                     List l = (List) entry.getValue();
                     for (Object o : l) {
+                        if (o instanceof String) {
+                            t.add(new ExternalReference(o, ""));
+                            continue;
+                        }
                         Map<String, Object> m = (Map<String, Object>) o;
                         t.add(new ExternalReference(m.get("value"), (String) m.get("key")));
                     }

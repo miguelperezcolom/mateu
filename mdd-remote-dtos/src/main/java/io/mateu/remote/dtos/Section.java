@@ -12,6 +12,8 @@ public class Section {
 
     private String caption;
 
+    private String description;
+
     private boolean readOnly;
 
     private SectionType type;

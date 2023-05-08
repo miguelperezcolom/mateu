@@ -2,13 +2,16 @@ package com.example.demoremote.domains.agnostic.data;
 
 import io.mateu.remote.domain.files.StorageService;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
+import reactor.core.publisher.Mono;
 
 import javax.naming.AuthenticationException;
 import java.io.File;
@@ -22,6 +25,7 @@ import java.util.stream.Stream;
 
 @Service
 @Primary
+@Slf4j
 public class DemoFileStorageService implements StorageService {
 
     @Value("${mateu.cdn.path}")
@@ -43,19 +47,25 @@ public class DemoFileStorageService implements StorageService {
     }
 
     @Override
-    public void store(String fileId, MultipartFile file) throws AuthenticationException {
+    public Mono<Void> store(String fileId, Mono<FilePart> file) throws AuthenticationException {
         if (!fileId.startsWith("mateuremoteistheremoteflavourofmateu")) {
             throw new AuthenticationException("Not allowed to upload files here");
         }
-        try {
-            Files.createDirectories(this.root.resolve(fileId));
-            Files.copy(file.getInputStream(), this.root.resolve(fileId + File.separator + file.getOriginalFilename()));
-        } catch (Exception e) {
-            if (e instanceof FileAlreadyExistsException) {
-                throw new RuntimeException("A file of that name already exists.");
-            }
-            throw new RuntimeException(e.getMessage());
-        }
+        return file
+                .doOnNext(part -> {
+                    log.info("receiving file " + part.filename());
+                    try {
+                        Files.createDirectories(this.root.resolve(fileId));
+                        //Files.copy(part.getInputStream(), this.root.resolve(fileId + File.separator + part.getOriginalFilename()));
+                    } catch (Exception e) {
+                        if (e instanceof FileAlreadyExistsException) {
+                            throw new RuntimeException("A file of that name already exists.");
+                        }
+                        throw new RuntimeException(e.getMessage());
+                    }
+                })
+                .flatMap(part -> part.transferTo(this.root.resolve(fileId + File.separator + part.filename())))
+                .then();
     }
 
     @Override

@@ -46,10 +46,15 @@ public class FieldMetadataBuilder {
                 .cssClasses(getCssClassNames(fieldInterfaced))
                 .type(fieldTypeMapper.mapFieldType(fieldInterfaced))
                 .stereotype(fieldStereotypeMapper.mapStereotype(fieldInterfaced))
+                .observed(isObserved(fieldInterfaced))
                 .attributes(fieldAttributeBuilder.buildAttributes(fieldInterfaced))
                 .build();
         addValidations(field, fieldInterfaced);
         return field;
+    }
+
+    private boolean isObserved(FieldInterfaced fieldInterfaced) {
+        return fieldInterfaced.isAnnotationPresent(CallActionOnChange.class);
     }
 
     private String getCssClassNames(FieldInterfaced fieldInterfaced) {

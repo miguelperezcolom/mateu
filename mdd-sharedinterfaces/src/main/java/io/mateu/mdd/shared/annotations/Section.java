@@ -14,6 +14,8 @@ public @interface Section {
 
     String value();
 
+    String description() default "";
+
     boolean card() default true;
 
 }

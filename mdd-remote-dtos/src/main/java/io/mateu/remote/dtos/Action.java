@@ -11,6 +11,8 @@ public class Action {
 
     private ActionType type;
 
+    private boolean visible;
+
     private boolean validationRequired;
 
     private boolean confirmationRequired;

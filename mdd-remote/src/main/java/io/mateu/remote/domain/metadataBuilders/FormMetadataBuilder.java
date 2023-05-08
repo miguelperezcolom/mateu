@@ -111,15 +111,18 @@ public class FormMetadataBuilder {
         for (FieldInterfaced fieldInterfaced : allEditableFields) {
             if (section == null || fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Section.class)) {
                 String caption = "";
+                String description = "";
                 boolean card = true;
                 if (fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Section.class)) {
                     io.mateu.mdd.shared.annotations.Section annotation = fieldInterfaced.getAnnotation(io.mateu.mdd.shared.annotations.Section.class);
                     caption = annotation.value();
                     card = annotation.card();
+                    description = annotation.description();
                 }
                 section = Section.builder()
                         .caption(caption).readOnly("view".equals(stepId) || (uiInstance instanceof ReadOnlyPojo
                         && !(uiInstance instanceof PersistentPojo)))
+                        .description(description)
                         .fieldGroups(new ArrayList<>())
                         .type(card?SectionType.Card:SectionType.Transparent)
                         .build();
