@@ -123,6 +123,7 @@ public class ViewMetadataBuilder {
                 .caption("Save")
                 .type(ActionType.Primary)
                 .validationRequired(true)
+                .visible(true)
                 .build());
     }
 

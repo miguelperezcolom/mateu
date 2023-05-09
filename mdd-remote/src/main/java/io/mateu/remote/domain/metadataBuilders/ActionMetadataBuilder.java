@@ -135,6 +135,7 @@ public class ActionMetadataBuilder {
                     .id("__list__" + listId + "__new")
                     .caption("New")
                     .type(ActionType.Primary)
+                    .visible(true)
                     .build();
             actions.add(action);
         }
@@ -149,6 +150,7 @@ public class ActionMetadataBuilder {
                             .message("Are you sure you want to delete the selected rows")
                             .action("Yes, delete them")
                             .build())
+                    .visible(true)
                     .build();
             actions.add(action);
         }
@@ -158,6 +160,7 @@ public class ActionMetadataBuilder {
                     .id("edit")
                     .caption("Edit")
                     .type(ActionType.Primary)
+                    .visible(true)
                     .build();
             actions.add(action);
         }

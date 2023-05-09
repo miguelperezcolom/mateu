@@ -90,6 +90,7 @@ public class FormMetadataBuilder {
                     .caption("Save")
                     .type(ActionType.Primary)
                     .validationRequired(true)
+                    .visible(true)
                     .build();
             actions.add(action);
         }

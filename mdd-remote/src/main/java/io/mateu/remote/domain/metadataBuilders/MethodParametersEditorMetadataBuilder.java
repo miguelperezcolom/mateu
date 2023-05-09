@@ -48,6 +48,7 @@ public class MethodParametersEditorMetadataBuilder {
                     .caption("Run")
                     .type(ActionType.Primary)
                     .validationRequired(true)
+                    .visible(true)
                     .build();
             actions.add(action);
         }
