@@ -4,6 +4,7 @@ import io.mateu.mdd.core.interfaces.HasStepper;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.Stepper;
 import io.mateu.mdd.shared.data.StepperStep;
+import io.mateu.mdd.shared.data.TelephoneNumber;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -100,22 +101,9 @@ public class ContractForm implements HasStepper {
     String email;
 
     //@NotNull
-    @Caption("Mobile phone number")
-    String mobilePrefix;
+    TelephoneNumber mobilePhoneNumber;
 
-    @SameLine
-    @Caption("_")
-    //@NotNull
-    String mobileNumber;
-
-    //@NotNull
-    @Caption("Phone number")
-    String phonePrefix;
-
-    @SameLine
-    @Caption("_")
-    //@NotNull
-    String phoneNumber;
+    TelephoneNumber phoneNumber;
 
     @Section("Payment information")
     //@NotNull
