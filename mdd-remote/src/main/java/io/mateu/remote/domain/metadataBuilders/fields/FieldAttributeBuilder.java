@@ -30,18 +30,23 @@ public class FieldAttributeBuilder {
             List<TelephonePrefix> prefixes = List.of(
                     TelephonePrefix.builder()
                             .key("es")
-                            .icon("vaadin:flag-checkered")
+                            .img("https://flagcdn.com/es.svg")
                             .value("+34")
                             .build(),
                     TelephonePrefix.builder()
                             .key("de")
-                            .icon("vaadin:flag-o")
-                            .value("+44")
+                            .img("https://flagcdn.com/de.svg")
+                            .value("+49")
                             .build(),
                     TelephonePrefix.builder()
                             .key("us")
-                            .icon("vaadin:flag")
+                            .img("https://flagcdn.com/us.svg")
                             .value("+1")
+                            .build(),
+                    TelephonePrefix.builder()
+                            .key("uy")
+                            .img("https://flagcdn.com/uy.svg")
+                            .value("+598")
                             .build()
             );
             prefixes.forEach(v -> {

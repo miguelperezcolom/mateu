@@ -4,7 +4,7 @@ import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.TelephoneNumber;
 import lombok.Data;
 
-@Data@Caption("Hide field")
+@Data@Caption("Telephone field with prefix")
 public class TelephoneFieldForm {
 
     @Section("Telephones")

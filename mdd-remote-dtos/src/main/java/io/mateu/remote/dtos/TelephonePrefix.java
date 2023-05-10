@@ -9,7 +9,7 @@ public class TelephonePrefix {
 
     private String key;
 
-    private String icon;
+    private String img;
 
     private Object value;
 
