@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import java.net.MalformedURLException;
+
 @Service
 @Scope("prototype")
 public class IntermediaryDetail extends IntermediaryDetailDefinition implements ReadOnlyPojo<String> {
@@ -14,7 +16,7 @@ public class IntermediaryDetail extends IntermediaryDetailDefinition implements 
     IntermediaryEditor editor;
 
 
-    public IntermediaryDetail() {
+    public IntermediaryDetail() throws MalformedURLException {
     }
 
     @Override

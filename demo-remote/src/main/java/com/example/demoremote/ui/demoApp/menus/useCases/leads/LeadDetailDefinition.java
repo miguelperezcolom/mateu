@@ -3,6 +3,7 @@ package com.example.demoremote.ui.demoApp.menus.useCases.leads;
 import com.example.demoremote.domains.agnostic.providers.ColorsProvider;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.ExternalReference;
+import io.mateu.mdd.shared.data.TelephoneNumber;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,8 +18,12 @@ public abstract class LeadDetailDefinition {
 
     String name;
 
-    @Section(value = "Requirements", description = "Please provide answers for the following questions")
+    TelephoneNumber homeTelephone;
 
+    TelephoneNumber workTelephone;
+
+
+    @Section(value = "Requirements", description = "Please provide answers for the following questions")
     @ValuesProvider(QuestionsProvider.class)
     @Caption("")
     @CallActionOnChange("questionsUpdated")
@@ -29,7 +34,6 @@ public abstract class LeadDetailDefinition {
             description = "Please upload the additional documents for the related intermediary. " +
             "The documents may provide information about intermediary background, licenses, training hours, etc. " +
             "Please keep in mind that up to five files can be uploaded (png, jpg or pdf).")
-
     private List<URL> uploadedDocuments = List.of(new URL("https://www.google.es"));
 
     @File

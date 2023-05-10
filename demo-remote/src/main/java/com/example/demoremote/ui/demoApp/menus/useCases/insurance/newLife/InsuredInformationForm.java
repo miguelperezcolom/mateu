@@ -1,5 +1,6 @@
 package com.example.demoremote.ui.demoApp.menus.useCases.insurance.newLife;
 
+import io.mateu.mdd.core.interfaces.HasStepper;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.ExternalReference;
 import io.mateu.mdd.shared.data.Stepper;
@@ -16,7 +17,7 @@ import java.util.List;
 @Caption("Bad life sale")
 public class InsuredInformationForm {
 
-    @Section(value = "", card = false)
+    @Slot(SlotName.header)
     Stepper stepper = Stepper.builder()
             .value(0)
             .text("Bad guy Information (Step 1 of 4)")

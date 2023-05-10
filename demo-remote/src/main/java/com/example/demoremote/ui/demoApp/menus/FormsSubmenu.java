@@ -17,6 +17,9 @@ public class FormsSubmenu {
     private DatesFieldsForm dates;
 
     @MenuOption
+    private TelephoneFieldForm telephone;
+
+    @MenuOption
     private EnumFieldsForm enums;
 
     @MenuOption

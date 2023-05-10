@@ -1,6 +1,7 @@
 package com.example.demoremote.ui.demoApp.menus.useCases.leads;
 
 import io.mateu.mdd.core.interfaces.PersistentPojo;
+import io.mateu.mdd.shared.data.TelephoneNumber;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.annotation.Scope;
@@ -14,6 +15,10 @@ public class LeadEditor implements PersistentPojo<String> {
     String id;
 
     String name;
+
+    TelephoneNumber homeTelephone;
+
+    TelephoneNumber workTelephone;
 
     public LeadEditor() {
     }

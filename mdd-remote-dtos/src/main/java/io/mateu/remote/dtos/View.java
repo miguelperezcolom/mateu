@@ -9,10 +9,14 @@ public class View {
 
     private String subtitle;
 
+    private ViewPart header;
+
     private ViewPart left;
 
     private ViewPart main;
 
     private ViewPart right;
+
+    private ViewPart footer;
 
 }

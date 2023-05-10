@@ -63,18 +63,22 @@ public class ViewMapper {
         List<Component> left = new ArrayList<>();
         List<Component> main = new ArrayList<>();
         List<Component> right = new ArrayList<>();
+        List<Component> header = new ArrayList<>();
+        List<Component> footer = new ArrayList<>();
 
         Map<SlotName, List<Component>> componentsPerSlot = Map.of(
                 SlotName.left, left,
                 SlotName.main, main,
-                SlotName.right, right
+                SlotName.right, right,
+                SlotName.header, header,
+                SlotName.footer, footer
         );
 
-        for (SlotName slot : List.of(SlotName.main, SlotName.left, SlotName.right)) {
+        for (SlotName slot : List.of(SlotName.main, SlotName.left, SlotName.right, SlotName.header, SlotName.footer)) {
 
             List<FieldInterfaced> slotFields = fieldExtractor.getFields(actualUiInstance, slot);
 
-            List<UIInstancePart> uiInstanceParts = uiInstancePartsExtractor.getUiParts(actualUiInstance, slotFields);
+            List<UIInstancePart> uiInstanceParts = uiInstancePartsExtractor.getUiParts(actualUiInstance, slotFields, slot);
             if (SlotName.main.equals(slot) && uiInstanceParts.size() == 0) {
                 uiInstanceParts.add(new UIInstancePart("", actualUiInstance, List.of()));
             }
@@ -109,6 +113,12 @@ public class ViewMapper {
                         .build())
                 .right(ViewPart.builder()
                         .components(right)
+                        .build())
+                .header(ViewPart.builder()
+                        .components(header)
+                        .build())
+                .footer(ViewPart.builder()
+                        .components(footer)
                         .build())
                 .build();
 

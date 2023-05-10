@@ -1,6 +1,7 @@
 package io.mateu.remote.domain.commands.runStep;
 
 import io.mateu.mdd.core.interfaces.Crud;
+import io.mateu.mdd.shared.annotations.File;
 import io.mateu.mdd.shared.data.ExternalReference;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
@@ -98,6 +99,14 @@ public class ActualValueExtractor {
         }
         if (entry.getValue() != null) {
             if (List.class.isAssignableFrom(f.getType())) {
+                if (fileChecker.isFile(f)) {
+                    List t = new ArrayList();
+                    List<Map<String, Object>> files = (List) entry.getValue();
+                    for (Map<String, Object> o : files) {
+                        t.add(toFile(f, (Class<?>) f.getGenericType(), o));
+                    }
+                    return t;
+                }
                 if (ExternalReference.class.equals(ReflectionHelper.getGenericClass(f.getGenericType()))) {
                     List t = new ArrayList();
                     List l = (List) entry.getValue();
@@ -124,6 +133,7 @@ public class ActualValueExtractor {
                 }
                 return entry.getValue();
             }
+
             if (f.getType().isArray()) {
                 if (List.class.isAssignableFrom(entry.getValue().getClass())) {
                     List l = (List) entry.getValue();

@@ -1,11 +1,13 @@
 package io.mateu.remote.domain.metadataBuilders.fields;
 
 import io.mateu.mdd.shared.annotations.*;
+import io.mateu.mdd.shared.data.TelephoneNumber;
 import io.mateu.mdd.shared.data.ValuesListProvider;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.files.FileChecker;
 import io.mateu.remote.dtos.Pair;
+import io.mateu.remote.dtos.TelephonePrefix;
 import io.mateu.remote.dtos.Value;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -24,6 +26,30 @@ public class FieldAttributeBuilder {
 
     public List<Pair> buildAttributes(FieldInterfaced field) {
         List<Pair> attributes = new ArrayList<>();
+        if (TelephoneNumber.class.equals(field.getType())) {
+            List<TelephonePrefix> prefixes = List.of(
+                    TelephonePrefix.builder()
+                            .key("es")
+                            .icon("vaadin:flag-checkered")
+                            .value("+34")
+                            .build(),
+                    TelephonePrefix.builder()
+                            .key("de")
+                            .icon("vaadin:flag-o")
+                            .value("+44")
+                            .build(),
+                    TelephonePrefix.builder()
+                            .key("us")
+                            .icon("vaadin:flag")
+                            .value("+1")
+                            .build()
+            );
+            prefixes.forEach(v -> {
+                attributes.add(Pair.builder()
+                        .key("prefix")
+                        .value(v).build());
+            });
+        }
         if (field.isAnnotationPresent(Width.class)) {
             attributes.add(Pair.builder()
                     .key("width")

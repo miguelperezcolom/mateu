@@ -21,7 +21,8 @@ public class FieldExtractor {
     }
 
     private boolean checkField(FieldInterfaced field, SlotName slot) {
-        if (SlotName.left.equals(slot) || SlotName.right.equals(slot)) {
+        if (SlotName.left.equals(slot) || SlotName.right.equals(slot)
+                || SlotName.header.equals(slot) || SlotName.footer.equals(slot)) {
             return field.isAnnotationPresent(Slot.class) && slot.equals(field.getAnnotation(Slot.class).value());
         }
         return !field.isAnnotationPresent(Slot.class) || slot.equals(field.getAnnotation(Slot.class).value());

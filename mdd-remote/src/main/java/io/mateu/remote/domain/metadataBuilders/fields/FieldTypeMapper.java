@@ -3,6 +3,7 @@ package io.mateu.remote.domain.metadataBuilders.fields;
 import io.mateu.mdd.shared.annotations.UseCheckboxes;
 import io.mateu.mdd.shared.annotations.UseChips;
 import io.mateu.mdd.shared.data.ExternalReference;
+import io.mateu.mdd.shared.data.TelephoneNumber;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -50,6 +51,9 @@ public class FieldTypeMapper {
         }
         if (java.io.File.class.equals(type)) {
             return "file";
+        }
+        if (TelephoneNumber.class.equals(type)) {
+            return "telephone";
         }
         if (type.isArray()) {
             if (type.getComponentType().isEnum()) {

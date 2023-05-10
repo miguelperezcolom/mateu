@@ -2,6 +2,7 @@ package io.mateu.remote.domain.modelToDtoMappers.viewMapperStuff;
 
 import io.mateu.mdd.core.interfaces.Card;
 import io.mateu.mdd.shared.data.Result;
+import io.mateu.mdd.shared.data.Stepper;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
@@ -24,6 +25,9 @@ public class ViewMetadataBuilder {
 
     @Autowired
     CardMetadataBuilder cardMetadataBuilder;
+
+    @Autowired
+    StepperMetadataBuilder stepperMetadataBuilder;
 
     @Autowired
     CrudMetadataBuilder crudMetadataBuilder;
@@ -49,8 +53,12 @@ public class ViewMetadataBuilder {
             metadata = getCrud(stepId, "main", (Listing) uiInstance);
         } else if (uiInstance instanceof RpcViewWrapper) {
             metadata = getCrud(stepId, ((RpcViewWrapper) uiInstance).getId(), ((RpcViewWrapper) uiInstance).getRpcView());
+        } else if (uiInstance instanceof Stepper) {
+            metadata = getStepper(stepId, uiInstance, slotFields);
         } else if (uiInstance instanceof Card) {
             metadata = getCard(stepId, uiInstance, slotFields);
+        } else if (uiInstance instanceof Stepper) {
+            metadata = getStepper(stepId, uiInstance, slotFields);
         } else {
             metadata = getForm(stepId, uiInstance, slotFields);
         }
@@ -84,6 +92,10 @@ public class ViewMetadataBuilder {
 
     private io.mateu.remote.dtos.Result getResult(Result uiInstance) {
         return resultMetadataBuilder.build(uiInstance);
+    }
+
+    private io.mateu.remote.dtos.Stepper getStepper(String stepId, Object uiInstance, List<FieldInterfaced> slotFields) {
+        return stepperMetadataBuilder.build(stepId, uiInstance, slotFields);
     }
 
     private io.mateu.remote.dtos.Card getCard(String stepId, Object uiInstance, List<FieldInterfaced> slotFields) {
