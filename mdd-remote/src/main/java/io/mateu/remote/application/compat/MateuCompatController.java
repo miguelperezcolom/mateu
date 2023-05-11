@@ -23,10 +23,12 @@ import io.mateu.remote.dtos.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 
@@ -91,20 +93,25 @@ public class MateuCompatController {
 
     @GetMapping("journeys/{journeyTypeId}/{journeyId}/steps/{stepId}")
     public Mono<Step> getStep(@PathVariable String journeyTypeId, @PathVariable String journeyId, @PathVariable String stepId) throws Exception {
-        Step step = getStepQueryHandler.run(GetStepQuery.builder()
+        return getStepQueryHandler.run(GetStepQuery.builder()
                         .journeyTypeId(journeyTypeId)
-                .journeyId(journeyId).stepId(stepId).build()).block();
-        List<Component> cruds = step.getView().getMain().getComponents().stream()
-                .filter(c -> c.getMetadata() instanceof Crud)
-                .collect(Collectors.toList());
+                .journeyId(journeyId).stepId(stepId).build())
+                .map(step -> {
+                    List<Component> cruds = step.getView().getMain().getComponents().stream()
+                            .filter(c -> c.getMetadata() instanceof Crud)
+                            .collect(Collectors.toList());
 
-        cruds = new ArrayList<>(cruds);
+                    cruds = new ArrayList<>(cruds);
 
-        for (Component crud : cruds) {
-            crud.getAttributes().put("dynamicformjson", new LegacyMapper().map(crud));
-        }
-        //log.info(Helper.toJson(step));
-        return Mono.just(step);
+                    for (Component crud : cruds) {
+                        try {
+                            crud.getAttributes().put("dynamicformjson", new LegacyMapper().map(crud));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    return step;
+                });
     }
 
     @PostMapping("journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{actionId}")
@@ -119,11 +126,11 @@ public class MateuCompatController {
                 .stepId(stepId)
                 .actionId(actionId)
                 .data(rq.getData())
-                .build());
+                .build()).toFuture().get(15, TimeUnit.SECONDS);
     }
 
     @GetMapping("journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/lists/{listId}/rows")
-    public ListResponse getListRows(@PathVariable String journeyTypeId,
+    public Mono<ListResponse> getListRows(@PathVariable String journeyTypeId,
                                     @PathVariable String journeyId,
                                     @PathVariable String stepId,
                                     @PathVariable String listId,
@@ -135,15 +142,14 @@ public class MateuCompatController {
                                     @RequestParam String ordering
                                              ) throws Throwable {
 
-        long count = getListCountQueryHandler.run(GetListCountQuery.builder()
+        Mono<Long> count = getListCountQueryHandler.run(GetListCountQuery.builder()
                 .journeyTypeId(journeyTypeId)
                 .journeyId(journeyId)
                 .stepId(stepId)
                 .listId(listId)
                 .filters(filters)
-                .build()).toFuture().get();
-        List<Object> rows = new ArrayList<>();
-        getListRowsQueryHandler.run(GetListRowsQuery.builder()
+                .build());
+        Mono<List<Object>> rows = getListRowsQueryHandler.run(GetListRowsQuery.builder()
                 .journeyTypeId(journeyTypeId)
                 .journeyId(journeyId)
                 .stepId(stepId)
@@ -152,10 +158,10 @@ public class MateuCompatController {
                 .pageSize(size)
                 .filters(filters)
                 .ordering(new OrderingDeserializer(ordering).deserialize())
-                .build())
-                .map(o -> rows.add(o)).then();
+                .build()).collectList();
 
-        return new ListResponseMapper().map(page, size, count, rows);
+        return Mono.zip(count, rows, (countValue, rowsValue) ->
+                new ListResponseMapper().map(page, size, countValue.longValue(), rowsValue));
     }
 
 }
