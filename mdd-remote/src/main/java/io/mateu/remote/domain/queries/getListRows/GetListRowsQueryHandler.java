@@ -59,6 +59,6 @@ public class GetListRowsQueryHandler {
                 filtersDeserialized,
                 query.getOrdering(),
                 query.getPage() * query.getPageSize(),
-                (query.getPage() + 1) * query.getPageSize() - 1);
+                query.getPageSize());
     }
 }
