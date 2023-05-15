@@ -19,7 +19,7 @@ public class ListResponseMapper {
                 .size(page_size)
                 .sort(Sort.builder().build())
                 .total_elements(count)
-                .total_pages(Math.toIntExact(count / page_size))
+                .total_pages(Double.valueOf(count / page_size).intValue())
                 .build();
     }
 }
