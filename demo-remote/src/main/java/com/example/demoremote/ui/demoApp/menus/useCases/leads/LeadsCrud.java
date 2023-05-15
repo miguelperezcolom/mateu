@@ -40,12 +40,4 @@ public class LeadsCrud implements Crud<LeadsSearchForm, LeadsRow> {
         return detail;
     }
 
-    public void block(LeadsRow row) {
-        System.out.println("blocking row " + row);
-    }
-
-    public void activate(LeadsRow row) {
-        System.out.println("activating row " + row);
-    }
-
 }
