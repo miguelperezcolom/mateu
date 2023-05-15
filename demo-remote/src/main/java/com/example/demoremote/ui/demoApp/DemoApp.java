@@ -18,7 +18,7 @@ import java.util.List;
 
 @Getter
 public class DemoApp implements HasLogin, HasAppTitle
-        //, IncludesRemoteUIs
+        , IncludesRemoteUIs
         {
 
     @MenuOption
@@ -52,16 +52,18 @@ public class DemoApp implements HasLogin, HasAppTitle
     @Private
     private BasicFieldsForm eyesOnly;
 
-    /*
+
     @Submenu
-    private RemoteSubmenu remote = new RemoteSubmenu("https://demo.mateu.io/mateu/v1", "com.example.demo.DemoApp", "Simple menu");
+    private RemoteSubmenu remote =
+            new RemoteSubmenu("https://demo.mateu.io/mateu/v1",
+                    "com.example.demo.DemoApp", "Simple menu");
 
     @Override
     public List<RemoteUI> getRemoteUIs() {
-        return List.of(new RemoteUI("https://demo.mateu.io/mateu/v1", "com.example.demo.DemoApp"));
+        return List.of(new RemoteUI("https://demo.mateu.io/mateu/v1",
+                "com.example.demo.DemoApp"));
     }
 
-    */
 
     @Override
     public String getLoginUrl() {
