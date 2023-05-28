@@ -60,9 +60,6 @@ public class InsuredInformationForm {
     @UseRadioButtons
     boolean smoker = false;
 
-    @ItemsProvider(OccupationsProvider.class)
-    ExternalReference occupation;
-
     Double sumInsured;
 
     @Caption("Would you like to add a co-habitant?")

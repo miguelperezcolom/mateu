@@ -440,6 +440,10 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     }
 
     public Object getNewRecordForm() throws Throwable {
+        Set<Class> subclasses = ReflectionHelper.getSubclasses(getEntityClass());
+        if (subclasses.size() > 1) {
+            return new ChooseEntityClassForm(subclasses);
+        }
         return ReflectionHelper.newInstance(getEntityClass());
     }
 }

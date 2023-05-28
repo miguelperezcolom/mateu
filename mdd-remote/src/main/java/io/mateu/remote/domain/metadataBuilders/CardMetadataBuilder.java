@@ -94,7 +94,7 @@ public class CardMetadataBuilder {
                 fieldGroupLine = FieldGroupLine.builder().fields(new ArrayList<>()).build();
                 fieldGroup.getLines().add(fieldGroupLine);
             }
-            fieldGroupLine.getFields().add(fieldMetadataBuilder.getField(fieldInterfaced));
+            fieldGroupLine.getFields().add(fieldMetadataBuilder.getField(uiInstance, fieldInterfaced));
         }
 
         fillGroupIds(fieldGroups);

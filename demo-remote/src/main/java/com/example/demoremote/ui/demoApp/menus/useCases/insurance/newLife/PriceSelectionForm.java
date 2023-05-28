@@ -29,7 +29,7 @@ public class PriceSelectionForm {
 
     }
 
-    @Section(value = "", card = false)
+    @Slot(SlotName.header)
     Stepper stepper = Stepper.builder()
             .value(0.25)
             .text("Price Selection (Step 2 of 4)")
@@ -124,7 +124,7 @@ public class PriceSelectionForm {
     }.setValue("2");
 
     @Slot(SlotName.right)
-    PriceSelectionSummary summary;
+    PriceSelectionSummary summary = new PriceSelectionSummary();
 
     @MainAction("Continue")
     public ContractForm goToNextPage() {

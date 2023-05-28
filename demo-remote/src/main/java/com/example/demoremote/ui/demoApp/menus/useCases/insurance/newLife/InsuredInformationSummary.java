@@ -11,15 +11,15 @@ import lombok.Setter;
 @ReadOnly@Getter@Setter
 public class InsuredInformationSummary implements Card, HasIcon, HasTitle {
 
-    private String birthDate = "---";
+    private String birthDate = "27 Nov 1975";
 
-    private String smoke = "---";
+    private String smoke = "No";
 
-    private String occupation = "---";
+    private String occupation = "Mechanic";
 
-    private String sumInsured = "---";
+    private String sumInsured = "32.000,00 €";
 
-    private String paymentFrequency = "---";
+    private String paymentFrequency = "Monthly";
 
     @Override
     public String getIcon() {

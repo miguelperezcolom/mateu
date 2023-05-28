@@ -28,6 +28,10 @@ public class CancelActionRunner implements ActionRunner {
 
     @Override
     public void run(Object viewInstance, String journeyId, String stepId, String actionId, Map<String, Object> data) throws Exception {
-        store.backToStep(journeyId, store.getInitialStep(journeyId).getId());
+        String targetStepId = store.getInitialStep(journeyId).getId();
+        if (stepId.endsWith("_edit")) {
+            targetStepId = stepId.substring(0, stepId.length() - "_edit".length());
+        }
+        store.backToStep(journeyId, targetStepId);
     }
 }

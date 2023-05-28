@@ -86,6 +86,14 @@ public class FormMetadataBuilder {
                 .collect(Collectors.toList());
         if (!"view".equals(stepId) && (uiInstance instanceof PersistentPojo || uiInstance.getClass().isAnnotationPresent(Entity.class))) {
             Action action = Action.builder()
+                    .id("cancel")
+                    .caption("Cancel")
+                    .type(ActionType.Secondary)
+                    .validationRequired(false)
+                    .visible(true)
+                    .build();
+            actions.add(action);
+            action = Action.builder()
                     .id("save")
                     .caption("Save")
                     .type(ActionType.Primary)
@@ -142,7 +150,7 @@ public class FormMetadataBuilder {
                 fieldGroupLine = FieldGroupLine.builder().fields(new ArrayList<>()).build();
                 fieldGroup.getLines().add(fieldGroupLine);
             }
-            fieldGroupLine.getFields().add(fieldMetadataBuilder.getField(fieldInterfaced));
+            fieldGroupLine.getFields().add(fieldMetadataBuilder.getField(uiInstance, fieldInterfaced));
         }
 
         fillSectionIds(sections);

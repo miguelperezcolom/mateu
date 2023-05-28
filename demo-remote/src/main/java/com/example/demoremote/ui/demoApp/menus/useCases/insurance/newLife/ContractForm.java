@@ -14,7 +14,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class ContractForm implements HasStepper {
+public class ContractForm {
 
     @Ignored
     PriceSelectionForm priceSelectionForm;
@@ -28,9 +28,8 @@ public class ContractForm implements HasStepper {
 
     }
 
-    @Override
-    public Stepper getStepper() {
-        return io.mateu.mdd.shared.data.Stepper.builder()
+    @Slot(SlotName.header)
+    Stepper stepper = io.mateu.mdd.shared.data.Stepper.builder()
                 .value(0.5)
                 .text("Contract (Step 3 of 4)")
                 .steps(List.of(
@@ -64,7 +63,6 @@ public class ContractForm implements HasStepper {
                                 .build()
                 ))
                 .build();
-    }
 
     @Section("Bookingholders")
     @Caption("Is the bad person the bookingholder?")
@@ -122,7 +120,7 @@ public class ContractForm implements HasStepper {
     boolean hasBeneficiary;
 
     @Slot(SlotName.right)
-    PriceSelectionSummary summary;
+    PriceSelectionSummary summary = new PriceSelectionSummary();
 
 
     @MainAction(type = ActionType.Secondary, validateBefore = false)

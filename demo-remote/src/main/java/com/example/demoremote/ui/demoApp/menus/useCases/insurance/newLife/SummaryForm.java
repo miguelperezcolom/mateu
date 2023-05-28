@@ -1,6 +1,5 @@
 package com.example.demoremote.ui.demoApp.menus.useCases.insurance.newLife;
 
-import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.*;
 import lombok.Getter;
@@ -8,7 +7,6 @@ import lombok.Setter;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.time.LocalDate;
 import java.util.List;
 
 @Getter@Setter@ReadOnly
@@ -24,7 +22,7 @@ public class SummaryForm {
     public SummaryForm() throws MalformedURLException {
     }
 
-    @Section(value = "", card = false)
+    @Slot(SlotName.header)
     Stepper stepper = Stepper.builder()
             .value(0.75)
             .text("Summary (Step 4 of 4)")
@@ -63,27 +61,38 @@ public class SummaryForm {
 
 
     @Slot(SlotName.right)
-    PriceSelectionSummary summary;
+    PriceSelectionSummary summary = new PriceSelectionSummary();
 
     @Section("Application information")
     URL applicationNumber = new URL("https://google.es");
-    String carrier;
-    String startDate;
-    String endDate;
+    @CustomFieldStereotype("item")
+    String carrier = "AXA";
+    @CustomFieldStereotype("item")
+    String startDate = "2024-01-01";
+    @CustomFieldStereotype("item")
+    String endDate = "2024-12-01";
 
     @Section("Customer Information")
-    String customerName;
-    String birthDate;
-    String smoker;
-    @Caption("sum-insured")
-    String sumInsured;
+    @CustomFieldStereotype("item")
+    String customerName = "Gabriel Núñez";
+    @CustomFieldStereotype("item")
+    String birthDate = "27-11-1975";
+    @CustomFieldStereotype("item")
+    String smoker = "No";
+    @Caption("Sum Insured")
+    @CustomFieldStereotype("item")
+    String sumInsured = "1.624,05 €";
 
     @Section("Payment Details")
-    String paymentFrequency;
-    String paymentMethod;
+    @CustomFieldStereotype("item")
+    String paymentFrequency = "Monthly";
+    @CustomFieldStereotype("item")
+    String paymentMethod = "Bank transfer";
     @Caption("IBAN")
-    String iban;
-    String accountHolder;
+    @CustomFieldStereotype("item")
+    String iban = "ES 001 12345 12345 12345";
+    @CustomFieldStereotype("item")
+    String accountHolder = "Gabriel Núñez";
 
 
 

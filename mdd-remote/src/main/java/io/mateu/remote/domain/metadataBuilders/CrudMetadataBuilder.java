@@ -113,7 +113,7 @@ public class CrudMetadataBuilder {
                         .collect(Collectors.toList());
             }
         }
-        return allEditableFields.stream().map(fieldInterfaced -> fieldMetadataBuilder.getField(fieldInterfaced))
+        return allEditableFields.stream().map(fieldInterfaced -> fieldMetadataBuilder.getField(rpcView, fieldInterfaced))
                 .collect(Collectors.toList());
     }
 

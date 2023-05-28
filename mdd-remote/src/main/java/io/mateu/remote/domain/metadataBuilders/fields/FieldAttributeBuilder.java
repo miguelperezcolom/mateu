@@ -24,7 +24,7 @@ public class FieldAttributeBuilder {
     @Autowired
     FileChecker fileChecker;
 
-    public List<Pair> buildAttributes(FieldInterfaced field) {
+    public List<Pair> buildAttributes(Object view, FieldInterfaced field) {
         List<Pair> attributes = new ArrayList<>();
         if (TelephoneNumber.class.equals(field.getType())) {
             List<TelephonePrefix> prefixes = List.of(
@@ -96,6 +96,24 @@ public class FieldAttributeBuilder {
                             .value(Value.builder()
                                     .key("" + v)
                                     .value(v)
+                                    .build()
+                            ).build());
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (field.isAnnotationPresent(ValuesProviderMethod.class)) {
+            try {
+                Method m = ReflectionHelper.getMethod(field.getDeclaringClass(),
+                        field.getAnnotation(ValuesProviderMethod.class).value());
+                List<io.mateu.mdd.shared.data.Value> choices = (List<io.mateu.mdd.shared.data.Value>) m.invoke(view);
+                choices.forEach(v -> {
+                    attributes.add(Pair.builder()
+                            .key("choice")
+                            .value(Value.builder()
+                                    .key(v.getKey())
+                                    .value(v.getValue())
                                     .build()
                             ).build());
                 });

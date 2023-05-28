@@ -10,6 +10,8 @@ import jakarta.persistence.ManyToOne;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class FieldStereotypeMapper {
 
@@ -17,6 +19,9 @@ public class FieldStereotypeMapper {
     FileChecker fileChecker;
 
     public String mapStereotype(FieldInterfaced field) {
+        if (field.isAnnotationPresent(CustomFieldStereotype.class)) {
+            return field.getAnnotation(CustomFieldStereotype.class).value();
+        }
         if (field.isAnnotationPresent(CustomElement.class)) {
             return "custom:" + field.getAnnotation(CustomElement.class).value();
         }
@@ -65,8 +70,11 @@ public class FieldStereotypeMapper {
         if (fileChecker.isFile(field)) {
             return "file";
         }
-        if (field.isAnnotationPresent(ValuesProvider.class)) {
-            return "closedlist";
+        if (field.isAnnotationPresent(ValuesProvider.class) || field.isAnnotationPresent(ValuesProviderMethod.class)) {
+            if (List.class.isAssignableFrom(field.getType())) {
+                return "closedlist";
+            }
+            return "combobox";
         }
         if (field.isAnnotationPresent(UseCheckboxes.class)) {
             return "externalref-checkboxes";

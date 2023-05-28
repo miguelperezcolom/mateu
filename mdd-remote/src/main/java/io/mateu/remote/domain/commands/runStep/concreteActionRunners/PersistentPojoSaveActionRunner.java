@@ -33,6 +33,7 @@ public class PersistentPojoSaveActionRunner implements ActionRunner {
     public void run(Object viewInstance, String journeyId, String stepId, String actionId, Map<String, Object> data)
             throws Throwable{
         ((PersistentPojo) viewInstance).save();
+        refreshDetailView(journeyId, stepId);
 
         Step initialStep = store.getInitialStep(journeyId);
 
@@ -51,5 +52,15 @@ public class PersistentPojoSaveActionRunner implements ActionRunner {
                         "Return to " + initialStep.getName(), initialStep.getId()));
         String newStepId = "result_" + UUID.randomUUID().toString();
         store.setStep(journeyId, newStepId, whatToShow);
+    }
+
+    private void refreshDetailView(String journeyId, String stepId) throws Throwable {
+        if ("list_view_edit".equals(stepId)) {
+            Object detailView = store.getViewInstance(journeyId, "list_view");
+            if (detailView instanceof ReadOnlyPojo) {
+                ((ReadOnlyPojo) detailView).load(((ReadOnlyPojo) detailView).getId());
+                store.updateStep(journeyId, "list_view", detailView);
+            }
+        }
     }
 }

@@ -11,8 +11,8 @@ import lombok.Setter;
 @ReadOnly@Getter@Setter
 public class PriceSelectionSummary extends InsuredInformationSummary implements Card, HasIcon, HasTitle {
 
-    private String carrier;
+    private String carrier = "AXA";
 
-    private String total;
+    private String total = "1.624,05 €";
 
 }

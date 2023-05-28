@@ -110,12 +110,12 @@ public class JourneyStoreService {
         journeyRepo.save(journeyContainer);
     }
 
-    public void updateStep(String journeyId, Object editor) throws Throwable {
+
+    public void updateStep(String journeyId, String stepId, Object editor) throws Throwable {
         Optional<JourneyContainer> container = journeyRepo.findById(journeyId);
         if (!container.isPresent()) {
             throw new Exception("No journey with id " + journeyId + " found");
         }
-        String stepId = container.get().getJourney().getCurrentStepId();
         Step oldStep = container.get().getSteps().get(stepId);
         Step step = stepMapper.map(container.get(), stepId, oldStep.getPreviousStepId(), editor);
         if (!container.get().getSteps().containsKey(stepId)) {
@@ -127,6 +127,15 @@ public class JourneyStoreService {
         }
         container.get().setLastAccess(LocalDateTime.now());
         journeyRepo.save(container.get());
+    }
+
+    public void updateStep(String journeyId, Object editor) throws Throwable {
+        Optional<JourneyContainer> container = journeyRepo.findById(journeyId);
+        if (!container.isPresent()) {
+            throw new Exception("No journey with id " + journeyId + " found");
+        }
+        String stepId = container.get().getJourney().getCurrentStepId();
+        updateStep(journeyId, stepId, editor);
     }
 
     public void setStep(String journeyId, String stepId, Object editor) throws Throwable {

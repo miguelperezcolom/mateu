@@ -37,7 +37,7 @@ public class FieldMetadataBuilder {
     FieldStereotypeMapper fieldStereotypeMapper;
 
 
-    protected Field getField(FieldInterfaced fieldInterfaced) {
+    protected Field getField(Object view, FieldInterfaced fieldInterfaced) {
         Field field = Field.builder()
                 .id(fieldInterfaced.getId())
                 .caption(ReflectionHelper.getCaption(fieldInterfaced))
@@ -47,7 +47,7 @@ public class FieldMetadataBuilder {
                 .type(fieldTypeMapper.mapFieldType(fieldInterfaced))
                 .stereotype(fieldStereotypeMapper.mapStereotype(fieldInterfaced))
                 .observed(isObserved(fieldInterfaced))
-                .attributes(fieldAttributeBuilder.buildAttributes(fieldInterfaced))
+                .attributes(fieldAttributeBuilder.buildAttributes(view, fieldInterfaced))
                 .build();
         addValidations(field, fieldInterfaced);
         return field;
