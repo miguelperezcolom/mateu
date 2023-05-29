@@ -1,7 +1,7 @@
 package io.mateu.reflection;
 
+import io.mateu.mdd.shared.SlimHelper;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.util.Helper;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
@@ -154,7 +154,7 @@ public class FieldInterfacedForCheckboxColumn implements FieldInterfaced {
     }
 
     public String getCaption() {
-        return Helper.capitalize(value.toString());
+        return SlimHelper.capitalize(value.toString());
     }
 
 }

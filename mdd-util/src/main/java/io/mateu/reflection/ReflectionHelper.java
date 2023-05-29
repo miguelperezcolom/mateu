@@ -9,34 +9,30 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import io.mateu.i18n.Translator;
+import io.mateu.mdd.shared.SlimHelper;
 import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.interfaces.*;
+import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.springboot.BeanProvider;
 import io.mateu.util.Helper;
 import io.mateu.util.data.Pair;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.converters.BooleanConverter;
 import org.apache.commons.beanutils.converters.DoubleConverter;
 import org.apache.commons.beanutils.converters.IntegerConverter;
 import org.apache.commons.beanutils.converters.LongConverter;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.input.SAXBuilder;
-import org.jdom2.output.XMLOutputter;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import jakarta.persistence.*;
-
-import jakarta.validation.constraints.NotNull;
-import java.io.*;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -1795,9 +1791,9 @@ public class ReflectionHelper extends BaseReflectionHelper {
                 try {
                     Object i = getValue(f, o);
 
-                    pw.println("<tr><td style='text-align:right; font-style:italic;'>" + Helper.capitalize(f.getName()) + ":</td><td>");
+                    pw.println("<tr><td style='text-align:right; font-style:italic;'>" + SlimHelper.capitalize(f.getName()) + ":</td><td>");
                     if (i != null) {
-                        if (BaseReflectionHelper.isBasico(i)) {
+                        if (isBasico(i)) {
                             pw.print("" + i);
                         } else {
                             //todo: añadir casos collection y map
@@ -1815,96 +1811,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     }
 
 
-    public static Element toXml(Object o) {
-        return toXml(o, new ArrayList<>());
-    }
 
-    public static String toString(Element o) {
-        return new XMLOutputter().outputString(o);
-    }
-
-    public static Element toXml(Object o, List visited) {
-        if (o == null) {
-            return null;
-        } else {
-            if (!visited.contains(o)) {
-                visited.add(o);
-            }
-            Element e = new Element(o.getClass().getSimpleName());
-            e.setAttribute("className", o.getClass().getName());
-            for (FieldInterfaced f : getAllFields(o.getClass())) {
-                try {
-                    Object i = getValue(f, o);
-
-                    if (i != null) {
-                        if (BaseReflectionHelper.isBasico(i)) {
-                            e.setAttribute(f.getName(), "" + i);
-                        } else {
-
-                            //todo: añadir casos collection y map
-
-                            e.addContent(toXml(i, visited));
-                        }
-                    }
-
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                }
-            }
-            return e;
-        }
-    }
-
-
-    public static Object fromXml(String s) {
-        if (Strings.isNullOrEmpty(s)) return null;
-        else {
-            try {
-                Document doc = new SAXBuilder().build(new StringReader(s));
-
-                Element root = doc.getRootElement();
-
-                Object o = null;
-
-                //todo: acabar
-
-                if (root.getAttribute("className") != null && !Strings.isNullOrEmpty(root.getAttributeValue("className"))) {
-                    o = newInstance(Class.forName(root.getAttributeValue("className")));
-
-                    for (FieldInterfaced f : getAllFields(o.getClass())) {
-                        try {
-                            String sv = root.getAttributeValue(f.getId());
-
-                            if (sv != null) {
-                                if (BaseReflectionHelper.isBasico(f.getType())) {
-                                    setValue(f, o, newInstance(f.getType(), sv));
-                                } else {
-
-                                    //todo: añadir casos collection y map
-
-
-                                }
-                            }
-
-                        } catch (Exception e1) {
-                            e1.printStackTrace();
-                        }
-                    }
-
-                } else {
-                    o = new HashMap<>();
-                }
-
-
-
-                return o;
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-        }
-    }
 
     public static String toJson(Object o) {
         if (o == null) return null;

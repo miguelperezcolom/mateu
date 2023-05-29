@@ -38,7 +38,7 @@ public class ViewMetadataBuilder {
     @Autowired
     MethodParametersEditorMetadataBuilder methodParametersEditorMetadataBuilder;
 
-    public ViewMetadata getMetadata(String stepId, Object uiInstance, List<FieldInterfaced> slotFields) {
+    public ViewMetadata getMetadata(String stepId, Object uiInstance, Object model, List<FieldInterfaced> slotFields) {
         ViewMetadata metadata;
 
         if (uiInstance instanceof io.mateu.mdd.shared.interfaces.JourneyStarter) {
@@ -60,7 +60,7 @@ public class ViewMetadataBuilder {
         } else if (uiInstance instanceof Stepper) {
             metadata = getStepper(stepId, uiInstance, slotFields);
         } else {
-            metadata = getForm(stepId, uiInstance, slotFields);
+            metadata = getForm(stepId, model, slotFields);
         }
 
         if (uiInstance instanceof FieldEditor) {

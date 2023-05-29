@@ -5,12 +5,27 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.google.common.base.Strings;
+import io.mateu.mdd.shared.annotations.Attribute;
+import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.persistence.EntitySerializer;
 import jakarta.persistence.Entity;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.XMLOutputter;
 
 import java.io.IOException;
+import java.io.StringReader;
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import static io.mateu.reflection.ReflectionHelper.*;
 
 public class Serializer {
 
@@ -63,7 +78,30 @@ public class Serializer {
         if (isBasic(o)) {
             return Map.of("value", o);
         }
-        return fromJson(toJson(o));
+        Map<String, Object> data = fromJson(toJson(o));
+        applyAttributeNames(data, o);
+        return data;
+    }
+
+    private static void applyAttributeNames(Map<String, Object> data, Object o) throws Exception {
+        if (o == null) {
+            return;
+        }
+        for (Map.Entry<String, Object> e : data.entrySet()) {
+            if (e.getValue() != null && e.getValue() instanceof Map) {
+                applyAttributeNames((Map<String, Object>) e.getValue(), getValue(e.getKey(), o));
+            }
+        }
+        for (FieldInterfaced f : getAllFields(o.getClass())) {
+            if (data.containsKey(f.getName())
+                    && f.isAnnotationPresent(Attribute.class)
+                    && !Strings.isNullOrEmpty(f.getAnnotation(Attribute.class).value())
+            ) {
+                Object v = data.get(f.getName());
+                data.remove(f.getName());
+                data.put(f.getAnnotation(Attribute.class).value(), v);
+            }
+        }
     }
 
     private static boolean isBasic(Object o) {
@@ -108,4 +146,94 @@ public class Serializer {
         return yamlMapper.writeValueAsString(o);
     }
 
+    public static Element toXml(Object o) {
+        return toXml(o, new ArrayList<>());
+    }
+
+    public static String toString(Element o) {
+        return new XMLOutputter().outputString(o);
+    }
+
+    public static Element toXml(Object o, List visited) {
+        if (o == null) {
+            return null;
+        } else {
+            if (!visited.contains(o)) {
+                visited.add(o);
+            }
+            Element e = new Element(o.getClass().getSimpleName());
+            e.setAttribute("className", o.getClass().getName());
+            for (FieldInterfaced f : getAllFields(o.getClass())) {
+                try {
+                    Object i = getValue(f, o);
+
+                    if (i != null) {
+                        if (ReflectionHelper.isBasico(i)) {
+                            e.setAttribute(f.getName(), "" + i);
+                        } else {
+
+                            //todo: añadir casos collection y map
+
+                            e.addContent(toXml(i, visited));
+                        }
+                    }
+
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+            }
+            return e;
+        }
+    }
+
+
+    public static Object fromXml(String s) {
+        if (Strings.isNullOrEmpty(s)) return null;
+        else {
+            try {
+                Document doc = new SAXBuilder().build(new StringReader(s));
+
+                Element root = doc.getRootElement();
+
+                Object o = null;
+
+                //todo: acabar
+
+                if (root.getAttribute("className") != null && !Strings.isNullOrEmpty(root.getAttributeValue("className"))) {
+                    o = newInstance(Class.forName(root.getAttributeValue("className")));
+
+                    for (FieldInterfaced f : getAllFields(o.getClass())) {
+                        try {
+                            String sv = root.getAttributeValue(f.getId());
+
+                            if (sv != null) {
+                                if (ReflectionHelper.isBasico(f.getType())) {
+                                    setValue(f, o, newInstance(f.getType(), sv));
+                                } else {
+
+                                    //todo: añadir casos collection y map
+
+
+                                }
+                            }
+
+                        } catch (Exception e1) {
+                            e1.printStackTrace();
+                        }
+                    }
+
+                } else {
+                    o = new HashMap<>();
+                }
+
+
+
+                return o;
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+    }
 }

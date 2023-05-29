@@ -1,10 +1,7 @@
 package io.mateu.mdd.ui.cruds;
 
 import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.data.ExternalReference;
-import io.mateu.mdd.shared.data.ItemsListProvider;
 import io.mateu.mdd.shared.data.Value;
-import io.mateu.mdd.shared.data.ValuesListProvider;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
 import jakarta.validation.constraints.NotNull;
@@ -12,12 +9,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Getter@Setter@NoArgsConstructor

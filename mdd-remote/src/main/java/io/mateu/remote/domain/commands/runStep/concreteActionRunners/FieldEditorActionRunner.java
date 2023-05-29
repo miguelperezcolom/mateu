@@ -24,6 +24,10 @@ public class FieldEditorActionRunner implements ActionRunner {
     @Override
     public void run(Object viewInstance, String journeyId, String stepId, String actionId, Map<String, Object> data)
             throws Throwable{
+        if (viewInstance instanceof FieldEditor) {
+            store.setStep(journeyId, actionId, viewInstance);
+            return;
+        }
         String fieldId = actionId.substring("__editfield__".length());
 
         FieldInterfaced field = ReflectionHelper.getFieldByName(viewInstance.getClass(), fieldId);

@@ -85,7 +85,7 @@ public class ViewMapper {
 
             uiInstanceParts.forEach(p -> {
 
-                ViewMetadata metadata = viewMetadataBuilder.getMetadata(stepId, p.getUiInstance(), p.getFields());
+                ViewMetadata metadata = viewMetadataBuilder.getMetadata(stepId, uiInstance, p.getUiInstance(), p.getFields());
                 metadata.setDataPrefix(p.getDataPrefix());
                 rules.addAll(rulesBuilder.buildRules(metadata, p.getUiInstance()));
                 componentsPerSlot.get(slot).add(

@@ -1,8 +1,5 @@
 package io.mateu.remote.domain.metadataBuilders;
 
-import com.google.common.base.Strings;
-import io.mateu.mdd.core.interfaces.*;
-import io.mateu.mdd.core.interfaces.Crud;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
@@ -10,19 +7,15 @@ import io.mateu.remote.domain.metadataBuilders.fields.FieldAttributeBuilder;
 import io.mateu.remote.domain.metadataBuilders.fields.FieldStereotypeMapper;
 import io.mateu.remote.domain.metadataBuilders.fields.FieldTypeMapper;
 import io.mateu.remote.dtos.*;
-import io.mateu.remote.dtos.Action;
 
-import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class FieldMetadataBuilder {

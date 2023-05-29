@@ -7,7 +7,6 @@ import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.commands.runStep.ActionRunner;
 import io.mateu.remote.domain.editors.MethodParametersEditor;
 import io.mateu.remote.domain.store.JourneyStoreService;
-import io.mateu.remote.dtos.Step;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

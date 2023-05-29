@@ -27,4 +27,12 @@ public class ModelViewer {
     @Attribute
     private String style = "width: 400px; height: 400px;";
 
+    @Attribute("auto-rotate")
+    private String autoRotate = "auto-rotate";
+
+    @Attribute("camera-controls")
+    private String cameraControls = "camera-controls";
+
+
+
 }

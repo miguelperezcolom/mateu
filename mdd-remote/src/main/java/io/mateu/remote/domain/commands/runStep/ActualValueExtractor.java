@@ -1,7 +1,5 @@
 package io.mateu.remote.domain.commands.runStep;
 
-import io.mateu.mdd.core.interfaces.Crud;
-import io.mateu.mdd.shared.annotations.File;
 import io.mateu.mdd.shared.data.ExternalReference;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
@@ -87,6 +85,9 @@ public class ActualValueExtractor {
     public Object getActualValue(Map.Entry<String, Object> entry, Object viewInstance) throws Exception {
         Object targetValue = entry.getValue();
         FieldInterfaced f = ReflectionHelper.getFieldByName(viewInstance.getClass(), entry.getKey());
+        if (f == null) {
+            return targetValue;
+        }
         if (checkInjected(viewInstance, f.getId())) {
             Object injectedValue = ReflectionHelper.getValue(f, viewInstance);
             if (injectedValue != null && entry.getValue() != null && entry.getValue() instanceof Map) {
@@ -222,7 +223,6 @@ public class ActualValueExtractor {
             }
         }
         return targetValue;
-
     }
 
     private Object toFile(FieldInterfaced f, Class<?> genericType, Map<String, Object> value) {

@@ -19,7 +19,7 @@ public class FieldEditorCancelActionRunner implements ActionRunner {
 
     @Override
     public boolean applies(Object viewInstance, String actionId) {
-        return viewInstance instanceof FieldEditor && "save".equals(actionId);
+        return viewInstance instanceof FieldEditor && "cancel".equals(actionId);
     }
 
     @Override

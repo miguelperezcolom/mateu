@@ -6,23 +6,14 @@ import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.core.interfaces.RpcCrudViewExtended;
 import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
-import io.mateu.remote.domain.metadataBuilders.fields.FieldAttributeBuilder;
-import io.mateu.remote.domain.metadataBuilders.fields.FieldStereotypeMapper;
-import io.mateu.remote.domain.metadataBuilders.fields.FieldTypeMapper;
 import io.mateu.remote.dtos.Action;
 import io.mateu.remote.dtos.*;
 import io.mateu.remote.dtos.ActionType;
 import jakarta.persistence.Entity;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 

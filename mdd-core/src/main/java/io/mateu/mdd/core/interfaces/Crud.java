@@ -4,7 +4,6 @@ import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.reflection.ReflectionHelper;
 
 import java.util.List;
-import java.util.Set;
 
 public interface Crud<SearchForm, Row> extends Listing<SearchForm, Row> {
 
