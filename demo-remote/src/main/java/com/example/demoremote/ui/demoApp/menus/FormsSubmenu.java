@@ -65,6 +65,6 @@ public class FormsSubmenu {
     private WebComponentForm webComponent;
 
     @MenuOption
-    private RemoteJourney remoteForm = new RemoteJourney("https://demo.mateu.io/mateu/v1", "aSimpleForm");
+    private RemoteJourney remoteForm = new RemoteJourney("https://explorer.mateu.io/mateu/v1", "forms_returnsBasic");
 
 }

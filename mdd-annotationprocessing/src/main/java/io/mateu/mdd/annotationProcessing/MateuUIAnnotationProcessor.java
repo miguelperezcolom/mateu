@@ -3,6 +3,7 @@ package io.mateu.mdd.annotationProcessing;
 import com.google.auto.service.AutoService;
 import freemarker.template.TemplateException;
 import io.mateu.mdd.shared.annotations.ExternalScripts;
+import io.mateu.mdd.shared.annotations.KeycloakSecured;
 import io.mateu.mdd.shared.annotations.MateuUI;
 import io.mateu.mdd.shared.annotations.Caption;
 
@@ -13,10 +14,7 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @SupportedAnnotationTypes({"io.mateu.mdd.shared.annotations.MateuUI"})
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
@@ -88,7 +86,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
             }
             if (externalScripts == null) externalScripts = new String[0];
 
-            Formatter formatter = new Formatter("index.ftl", Map.of(
+            Map<String, Object> model = new HashMap<>(Map.of(
                     "pkgName", pkgName
                     , "className", className
                     , "simpleClassName", simpleClassName
@@ -98,6 +96,20 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                     , "path", path
                     , "externalScripts", externalScripts
             ));
+
+            KeycloakSecured keycloakAnnotation = e.getAnnotation(KeycloakSecured.class);
+            if (keycloakAnnotation != null) {
+                String keycloakUrl = keycloakAnnotation.url();
+                String keycloakRealm = keycloakAnnotation.realm();
+                String keycloakClientId = keycloakAnnotation.clientId();
+
+                model.put("keycloak", Map.of("url", keycloakUrl
+                        , "realm", keycloakRealm
+                        , "clientId", keycloakClientId));
+            }
+
+
+            Formatter formatter = new Formatter("index.ftl", model);
             try {
                 out.println(formatter.apply());
             } catch (TemplateException ex) {
