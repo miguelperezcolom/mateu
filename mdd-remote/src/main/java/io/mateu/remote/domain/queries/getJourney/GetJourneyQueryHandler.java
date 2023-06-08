@@ -32,7 +32,9 @@ public class GetJourneyQueryHandler {
 
         if (!Strings.isNullOrEmpty(journeyContainer.getRemoteJourneyTypeId())) {
             return mateuRemoteClient.getJourney(journeyContainer.getRemoteBaseUrl(),
-                    journeyContainer.getRemoteJourneyTypeId(), journeyContainer.getJourneyId());
+                    journeyContainer.getRemoteJourneyTypeId(), journeyContainer.getJourneyId()
+                    , query.getServerHttpRequest()
+            );
         }
 
         return Mono.just(store.getJourney(journeyId));

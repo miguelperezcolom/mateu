@@ -32,18 +32,20 @@ public class GetListCountQueryHandler {
         if (!Strings.isNullOrEmpty(journeyContainer.getRemoteJourneyTypeId())) {
             return mateuRemoteClient.getListCount(journeyContainer.getRemoteBaseUrl(),
                     journeyContainer.getRemoteJourneyTypeId(), journeyContainer.getJourneyId(), query.getStepId(),
-                    query.getListId(), query.getFilters()
+                    query.getListId(), query.getFilters(), query.getServerHttpRequest()
             );
         }
 
         Object filtersDeserialized = new FiltersDeserializer(
                 query.getJourneyId()
-                , query.getStepId(), query.getListId(), query.getFilters()).deserialize(store);
+                , query.getStepId(), query.getListId(), query.getFilters()
+                , query.getServerHttpRequest()).deserialize(store);
 
         Listing rpcView = store.getRpcViewInstance(
                 query.getJourneyId(),
                 query.getStepId(),
-                query.getListId());
+                query.getListId(),
+                query.getServerHttpRequest());
 
         if (rpcView == null) {
             return Mono.just(0l);

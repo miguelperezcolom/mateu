@@ -34,6 +34,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -84,42 +85,53 @@ public class MateuService {
     @Autowired
     GetItemsRowsQueryHandler getItemsRowsQueryHandler;
 
-    public Mono<UI> getUI(String uiId) throws Exception {
-        return Mono.just(getUIQueryHandler.run(GetUIQuery.builder().uiId(uiId).build()));
+    public Mono<UI> getUI(String uiId,
+                          ServerHttpRequest serverHttpRequest) throws Exception {
+        return Mono.just(getUIQueryHandler.run(GetUIQuery.builder().uiId(uiId).build(),
+                serverHttpRequest));
     }
 
-    public Flux<JourneyType> getJourneyTypes() throws Exception {
+    public Flux<JourneyType> getJourneyTypes(ServerHttpRequest serverHttpRequest) throws Exception {
         return Flux.fromStream(getJourneyTypesQueryHandler.run(GetJourneyTypesQuery.builder()
-                .build()).stream());
+                .build(), serverHttpRequest).stream());
     }
 
-    public Mono<Void> createJourney(String journeyTypeId, String journeyId, JourneyCreationRq rq) throws Throwable {
+    public Mono<Void> createJourney(String journeyTypeId, String journeyId, JourneyCreationRq rq,
+                                    ServerHttpRequest serverHttpRequest) throws Throwable {
         log.info("creating journey " + journeyTypeId + "/" + journeyId);
         return startJourneyCommandHandler.handle(StartJourneyCommand.builder()
                 .journeyId(journeyId)
                 .journeyTypeId(journeyTypeId)
+                .serverHttpRequest(serverHttpRequest)
                 .build());
     }
 
-    public Mono<Journey> getJourney(String journeyTypeId, String journeyId) throws Exception {
+    public Mono<Journey> getJourney(String journeyTypeId, String journeyId,
+                                    ServerHttpRequest serverHttpRequest) throws Exception {
         log.info("getting journey " + journeyTypeId + "/" + journeyId);
         return getJourneyQueryHandler.run(GetJourneyQuery.builder()
                 .journeyTypeId(journeyTypeId)
-                .journeyId(journeyId).build());
+                .journeyId(journeyId)
+                .serverHttpRequest(serverHttpRequest)
+                .build());
     }
 
-    public Mono<Step> getStep(String journeyTypeId, String journeyId, String stepId) throws Exception {
+    public Mono<Step> getStep(String journeyTypeId, String journeyId, String stepId,
+                              ServerHttpRequest serverHttpRequest) throws Exception {
         log.info("getting step " + journeyTypeId + "/" + journeyId + "/" + stepId);
         return getStepQueryHandler.run(GetStepQuery.builder()
                 .journeyTypeId(journeyTypeId)
-                .journeyId(journeyId).stepId(stepId).build());
+                .journeyId(journeyId).stepId(stepId)
+                .serverHttpRequest(serverHttpRequest)
+                .build());
     }
 
     public Mono<Void> runStep(String journeyTypeId,
                         String journeyId,
                         String stepId,
                         String actionId,
-                        RunActionRq rq) throws Throwable {
+                        RunActionRq rq,
+                        ServerHttpRequest serverHttpRequest) throws Throwable {
         log.info("running action " + journeyTypeId + "/" + journeyId + "/" + stepId + "/" + actionId);
         return runStepActionCommandHandler.handle(RunStepActionCommand.builder()
                 .journeyTypeId(journeyTypeId)
@@ -127,6 +139,7 @@ public class MateuService {
                 .stepId(stepId)
                 .actionId(actionId)
                 .data(rq.getData())
+                .serverHttpRequest(serverHttpRequest)
                 .build());
     }
 
@@ -140,7 +153,8 @@ public class MateuService {
 // urlencoded form of filters json serialized
                                     String filters,
 // urlencoded form of orders json serialized
-                                    String ordering
+                                    String ordering,
+                                    ServerHttpRequest serverHttpRequest
                                              ) throws Throwable {
         return getListRowsQueryHandler.run(GetListRowsQuery.builder()
                 .journeyTypeId(journeyTypeId)
@@ -151,6 +165,7 @@ public class MateuService {
                 .pageSize(page_size)
                 .filters(filters)
                 .ordering(new OrderingDeserializer(ordering).deserialize())
+                .serverHttpRequest(serverHttpRequest)
                 .build());
     }
 
@@ -159,7 +174,8 @@ public class MateuService {
                                    String stepId,
                                    String listId,
 // urlencoded form of filters json serialized
-                                   String filters
+                                   String filters,
+                                   ServerHttpRequest serverHttpRequest
     ) throws Throwable {
         return getListCountQueryHandler.run(GetListCountQuery.builder()
                 .journeyTypeId(journeyTypeId)
@@ -167,6 +183,7 @@ public class MateuService {
                 .stepId(stepId)
                 .listId(listId)
                 .filters(filters)
+                .serverHttpRequest(serverHttpRequest)
                 .build());
     }
 
@@ -222,9 +239,11 @@ public class MateuService {
 // urlencoded form of filters json serialized
                                                   String filters,
 // urlencoded form of orders json serialized
-                                                  String ordering) throws Throwable {
+                                                  String ordering,
+                                                  ServerHttpRequest serverHttpRequest) throws Throwable {
 
-        return getListRows(journeyTypeId, journeyId, stepId, listId, 0, 500, filters, ordering)
+        return getListRows(journeyTypeId, journeyId, stepId, listId, 0, 500, filters, ordering
+        , serverHttpRequest)
                 .map(o -> (Map<String, Object>) o)
                 .map(m -> m.values())
                 .map(a -> a.stream().map(o -> "" + o).collect(Collectors.toList()))
@@ -254,9 +273,11 @@ public class MateuService {
 // urlencoded form of filters json serialized
                                                   String filters,
 // urlencoded form of orders json serialized
-                                                  String ordering) throws Throwable {
+                                                  String ordering,
+                                                    ServerHttpRequest serverHttpRequest) throws Throwable {
 
-        return getListRows(journeyTypeId, journeyId, stepId, listId, 0, 500, filters, ordering)
+        return getListRows(journeyTypeId, journeyId, stepId, listId, 0, 500, filters, ordering
+        , serverHttpRequest)
                 .map(o -> (Map<String, Object>) o)
                 .map(m -> m.values())
                 .map(a -> a.stream().map(o -> "" + o).collect(Collectors.toList()))

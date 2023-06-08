@@ -5,6 +5,7 @@ import io.mateu.remote.domain.commands.runStep.concreteActionRunners.ListActionR
 import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.util.Helper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Method;
@@ -23,8 +24,8 @@ public class CrudRowActionRunner implements ListActionRunner {
     }
 
     @Override
-    public void run(Crud crud, String journeyId, String stepId, String actionId, Map<String, Object> data)
-            throws Throwable {
+    public void run(Crud crud, String journeyId, String stepId, String actionId
+            , Map<String, Object> data, ServerHttpRequest serverHttpRequest) throws Throwable {
 
         Object row = data.get("_clickedRow");
 

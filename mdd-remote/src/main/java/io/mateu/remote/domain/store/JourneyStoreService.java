@@ -15,6 +15,7 @@ import io.mateu.util.Helper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -40,7 +41,7 @@ public class JourneyStoreService {
     @Autowired
     private ApplicationContext applicationContext;
 
-    public Object getViewInstance(String journeyId, String stepId) throws Exception {
+    public Object getViewInstance(String journeyId, String stepId, ServerHttpRequest serverHttpRequest) throws Exception {
         Optional<JourneyContainer> container = journeyRepo.findById(journeyId);
         if (!container.isPresent()) {
             throw new Exception("No journey with id " + journeyId + " found");
@@ -50,7 +51,7 @@ public class JourneyStoreService {
             throw new Exception("No step with id " + stepId + " for journey with id " + journeyId + " found");
         }
         if ("io.mateu.mdd.ui.cruds.JpaRpcCrudView".equals(step.getType())) {
-            Object jpaRpcCrudView = createInstanceFromJourneyTypeId(container.get().getJourneyTypeId());
+            Object jpaRpcCrudView = createInstanceFromJourneyTypeId(container.get().getJourneyTypeId(), serverHttpRequest);
             return jpaRpcCrudView;
         } else {
             Object viewInstance = ReflectionHelper.newInstance(Class.forName(step.getType()));
@@ -78,9 +79,10 @@ public class JourneyStoreService {
         }
     }
 
-    public Listing getRpcViewInstance(String journeyId, String stepId, String listId) throws Exception {
+    public Listing getRpcViewInstance(String journeyId, String stepId, String listId
+            , ServerHttpRequest serverHttpRequest) throws Exception {
         try {
-            Object viewInstance = getViewInstance(journeyId, stepId);
+            Object viewInstance = getViewInstance(journeyId, stepId, serverHttpRequest);
             if (viewInstance instanceof Listing) {
                 return (Listing) viewInstance;
             }
@@ -109,13 +111,14 @@ public class JourneyStoreService {
     }
 
 
-    public void updateStep(String journeyId, String stepId, Object editor) throws Throwable {
+    public void updateStep(String journeyId, String stepId, Object editor, ServerHttpRequest serverHttpRequest)
+            throws Throwable {
         Optional<JourneyContainer> container = journeyRepo.findById(journeyId);
         if (!container.isPresent()) {
             throw new Exception("No journey with id " + journeyId + " found");
         }
         Step oldStep = container.get().getSteps().get(stepId);
-        Step step = stepMapper.map(container.get(), stepId, oldStep.getPreviousStepId(), editor);
+        Step step = stepMapper.map(container.get(), stepId, oldStep.getPreviousStepId(), editor, serverHttpRequest);
         if (!container.get().getSteps().containsKey(stepId)) {
             container.get().setSteps(extendMap(container.get().getSteps(), stepId, step));
         } else {
@@ -127,16 +130,17 @@ public class JourneyStoreService {
         journeyRepo.save(container.get());
     }
 
-    public void updateStep(String journeyId, Object editor) throws Throwable {
+    public void updateStep(String journeyId, Object editor, ServerHttpRequest serverHttpRequest) throws Throwable {
         Optional<JourneyContainer> container = journeyRepo.findById(journeyId);
         if (!container.isPresent()) {
             throw new Exception("No journey with id " + journeyId + " found");
         }
         String stepId = container.get().getJourney().getCurrentStepId();
-        updateStep(journeyId, stepId, editor);
+        updateStep(journeyId, stepId, editor, serverHttpRequest);
     }
 
-    public void setStep(String journeyId, String stepId, Object editor) throws Throwable {
+    public void setStep(String journeyId, String stepId, Object editor, ServerHttpRequest serverHttpRequest)
+            throws Throwable {
         Optional<JourneyContainer> container = journeyRepo.findById(journeyId);
         if (!container.isPresent()) {
             throw new Exception("No journey with id " + journeyId + " found");
@@ -148,7 +152,8 @@ public class JourneyStoreService {
             stepIdPrefix = stepIdPrefix + "_";
         }
         String newStepId = stepIdPrefix + stepId;
-        Step step = stepMapper.map(container.get(), newStepId, getPreviousStepId(newStepId, container), editor);
+        Step step = stepMapper
+                .map(container.get(), newStepId, getPreviousStepId(newStepId, container), editor, serverHttpRequest);
         if (!container.get().getSteps().containsKey(newStepId)) {
             container.get().setSteps(extendMap(container.get().getSteps(), newStepId, step));
         } else {
@@ -261,7 +266,7 @@ public class JourneyStoreService {
                 .build());
     }
 
-    public MenuToBeanMapping getMenuMapping(String actionId) {
+    public MenuToBeanMapping getMenuMapping(String actionId, ServerHttpRequest serverHttpRequest) {
         Optional<MenuToBeanMapping> menuToBeanMapping = menuMappingRepo.findById(actionId);
         if (menuToBeanMapping.isEmpty()) {
             if (actionId.contains("_")) { // it's a ui
@@ -269,7 +274,7 @@ public class JourneyStoreService {
                 Object uiInstance = null;
                 try {
                     uiInstance = ReflectionHelper.newInstance(Class.forName(uiClassName));
-                    uiMapper.map(uiInstance);
+                    uiMapper.map(uiInstance, serverHttpRequest);
                     menuToBeanMapping = menuMappingRepo.findById(actionId);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -280,7 +285,7 @@ public class JourneyStoreService {
                 try {
                     //todo: refactor for improving
                     uiInstance = ReflectionHelper.newInstance(Class.forName(uiClassName));
-                    uiMapper.map(uiInstance);
+                    uiMapper.map(uiInstance, serverHttpRequest);
                     storeMenuAction(actionId, new MDDOpenEditorAction("", uiInstance));
                     menuToBeanMapping = menuMappingRepo.findById(actionId);
                 } catch (Exception e) {
@@ -291,8 +296,8 @@ public class JourneyStoreService {
         return menuToBeanMapping.orElse(null);
     }
 
-    public Object createInstanceFromJourneyTypeId(String journeyTypeId) {
-        MenuToBeanMapping menuMapping = getMenuMapping(journeyTypeId);
+    public Object createInstanceFromJourneyTypeId(String journeyTypeId, ServerHttpRequest serverHttpRequest) {
+        MenuToBeanMapping menuMapping = getMenuMapping(journeyTypeId, serverHttpRequest);
         Object formInstance = null;
         try {
             formInstance = createInstanceFromMenuMapping(menuMapping.getBean());

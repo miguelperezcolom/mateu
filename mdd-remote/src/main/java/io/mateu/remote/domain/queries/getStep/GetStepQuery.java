@@ -4,6 +4,7 @@ import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.Step;
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 
 
 @Builder
@@ -15,5 +16,7 @@ public class GetStepQuery {
     private String journeyId;
 
     private String stepId;
+
+    private ServerHttpRequest serverHttpRequest;
 
 }

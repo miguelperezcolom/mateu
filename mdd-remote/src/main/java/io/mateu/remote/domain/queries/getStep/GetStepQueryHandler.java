@@ -8,6 +8,7 @@ import io.mateu.remote.dtos.Step;
 import io.mateu.util.Helper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -26,6 +27,7 @@ public class GetStepQueryHandler {
 
         String journeyId = query.getJourneyId();
         String stepId = query.getStepId();
+        ServerHttpRequest serverHttpRequest = query.getServerHttpRequest();
 
         JourneyContainer journeyContainer = store.findJourneyById(journeyId).orElse(null);
 
@@ -35,7 +37,8 @@ public class GetStepQueryHandler {
 
         if (!Strings.isNullOrEmpty(journeyContainer.getRemoteJourneyTypeId())) {
             return mateuRemoteClient.getStep(journeyContainer.getRemoteBaseUrl(),
-                    journeyContainer.getRemoteJourneyTypeId(), journeyContainer.getJourneyId(), stepId);
+                    journeyContainer.getRemoteJourneyTypeId(), journeyContainer.getJourneyId(), stepId,
+                    serverHttpRequest);
         }
 
 

@@ -9,6 +9,7 @@ import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.Step;
 import io.mateu.util.Serializer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Method;
@@ -32,7 +33,8 @@ public class MethodParametersEditorRunActionRunner extends AbstractActionRunner 
     }
 
     @Override
-    public void run(Object viewInstance, String journeyId, String stepId, String actionId, Map<String, Object> data)
+    public void run(Object viewInstance, String journeyId, String stepId, String actionId
+            , Map<String, Object> data, ServerHttpRequest serverHttpRequest)
             throws Throwable{
         MethodParametersEditor methodParametersEditor = (MethodParametersEditor) viewInstance;
 
@@ -48,7 +50,7 @@ public class MethodParametersEditorRunActionRunner extends AbstractActionRunner 
         }
         Object result = m.invoke(object, values.toArray());
 
-        store.setStep(journeyId, initialStep.getId(), object);
+        store.setStep(journeyId, initialStep.getId(), object, serverHttpRequest);
 
         Object whatToShow = result;
         if (!void.class.equals(m.getReturnType())) {
@@ -57,7 +59,7 @@ public class MethodParametersEditorRunActionRunner extends AbstractActionRunner 
                         store.getInitialStep(journeyId));
             }
             String newStepId = "result_" + UUID.randomUUID().toString();
-            store.setStep(journeyId, newStepId, whatToShow);
+            store.setStep(journeyId, newStepId, whatToShow, serverHttpRequest);
         } else {
             store.backToStep(journeyId, initialStep.getId()); // will save the step
         }

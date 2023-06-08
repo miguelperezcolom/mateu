@@ -5,6 +5,7 @@ import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import jakarta.persistence.Entity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -21,7 +22,8 @@ public class EntityEditActionRunner implements ActionRunner {
     }
 
     @Override
-    public void run(Object viewInstance, String journeyId, String stepId, String actionId, Map<String, Object> data) throws Throwable {
-        store.setStep(journeyId, "edit", viewInstance);
+    public void run(Object viewInstance, String journeyId, String stepId, String actionId
+            , Map<String, Object> data, ServerHttpRequest serverHttpRequest) throws Throwable {
+        store.setStep(journeyId, "edit", viewInstance, serverHttpRequest);
     }
 }

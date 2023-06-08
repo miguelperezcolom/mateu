@@ -13,6 +13,7 @@ import io.mateu.remote.dtos.Step;
 import io.mateu.util.Helper;
 import io.mateu.util.Serializer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,7 +32,8 @@ public class FieldEditorSaveActionRunner implements ActionRunner {
     }
 
     @Override
-    public void run(Object viewInstance, String journeyId, String stepId, String actionId, Map<String, Object> data)
+    public void run(Object viewInstance, String journeyId, String stepId, String actionId
+            , Map<String, Object> data, ServerHttpRequest serverHttpRequest)
             throws Throwable{
         FieldEditor fieldEditor = (FieldEditor) viewInstance;
 

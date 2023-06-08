@@ -15,6 +15,7 @@ import io.mateu.remote.dtos.UI;
 import io.mateu.util.Helper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -29,14 +30,14 @@ public class UIMapper {
     @Autowired
     MateuRemoteClient mateuRemoteClient;
 
-    public UI map(Object uiInstance) throws Exception {
+    public UI map(Object uiInstance, ServerHttpRequest serverHttpRequest) throws Exception {
         UI ui = UI.builder()
                 .build();
 
         ui.setTitle(getTitle(uiInstance));
         ui.setSubtitle(getSubtitle(uiInstance));
         ui.setHomeJourneyTypeId(uiInstance.getClass().getName());
-        List<Menu> menuOptions = getMenu(uiInstance);
+        List<Menu> menuOptions = getMenu(uiInstance, serverHttpRequest);
         ui.setMenu(menuOptions);
         if (uiInstance instanceof HasLogin) {
             ui.setLoginUrl(((HasLogin) uiInstance).getLoginUrl());
@@ -48,8 +49,8 @@ public class UIMapper {
         return ui;
     }
 
-    private List<Menu> getMenu(Object uiInstance) {
-        List<Menu> menu = new MenuParser(mateuRemoteClient, uiInstance).parse().stream()
+    private List<Menu> getMenu(Object uiInstance, ServerHttpRequest serverHttpRequest) {
+        List<Menu> menu = new MenuParser(mateuRemoteClient, uiInstance, serverHttpRequest).parse().stream()
                 .map(e -> createMenu("", e))
                 .collect(Collectors.toList());
         return menu;

@@ -40,17 +40,20 @@ public class GetListRowsQueryCompatHandler {
                     query.getFilters(),
                     query.getOrdering(),
                     query.getPage(),
-                    query.getPageSize());
+                    query.getPageSize(),
+                    query.getServerHttpRequest());
         }
 
         Object filtersDeserialized = new CompatFiltersDeserializer(
                 query.getJourneyId()
-                , query.getStepId(), query.getListId(), query.getFilters()).deserialize(store);
+                , query.getStepId(), query.getListId(), query.getFilters(), query.getServerHttpRequest())
+                .deserialize(store);
 
         Listing rpcView = (Listing) store.getRpcViewInstance(
                 query.getJourneyId(),
                 query.getStepId(),
-                query.getListId());
+                query.getListId(),
+                query.getServerHttpRequest());
         return rpcView.fetchRows(
                 filtersDeserialized,
                 query.getOrdering(),

@@ -7,6 +7,7 @@ import io.mateu.util.persistence.EntityDeserializer;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 
 import java.util.*;
 
@@ -23,6 +24,8 @@ public class RunStepActionCommand {
     private String actionId;
 
     private Map<String, Object> data;
+
+    private ServerHttpRequest serverHttpRequest;
 
 
 }

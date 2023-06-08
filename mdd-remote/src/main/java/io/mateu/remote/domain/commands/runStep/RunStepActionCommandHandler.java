@@ -3,6 +3,7 @@ package io.mateu.remote.domain.commands.runStep;
 import com.google.common.base.Strings;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.application.MateuRemoteClient;
+import io.mateu.remote.application.authPropagation.ReactiveRequestContextHolder;
 import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.editors.FieldEditor;
 import io.mateu.remote.domain.store.JourneyContainer;
@@ -11,6 +12,7 @@ import io.mateu.util.Helper;
 import io.mateu.util.Serializer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
@@ -40,6 +42,7 @@ public class RunStepActionCommandHandler {
         String stepId = command.getStepId();
         String actionId = command.getActionId();
         Map<String, Object> data = command.getData();
+        ServerHttpRequest serverHttpRequest = command.getServerHttpRequest();
 
         JourneyContainer journeyContainer = store.findJourneyById(journeyId).orElse(null);
 
@@ -50,10 +53,10 @@ public class RunStepActionCommandHandler {
         if (!Strings.isNullOrEmpty(journeyContainer.getRemoteJourneyTypeId())) {
             return mateuRemoteClient.runStep(journeyContainer.getRemoteBaseUrl(),
                     journeyContainer.getRemoteJourneyTypeId(), journeyContainer.getJourneyId(),
-                    stepId, actionId, data);
+                    stepId, actionId, data, serverHttpRequest);
         }
 
-        Object viewInstance = store.getViewInstance(journeyId, stepId);
+        Object viewInstance = store.getViewInstance(journeyId, stepId, serverHttpRequest);
 
         if (viewInstance instanceof FieldEditor) {
             // no need to fill the fieldEditor
@@ -87,7 +90,7 @@ public class RunStepActionCommandHandler {
         for (ActionRunner actionRunner : actionRunners) {
             if (actionRunner.applies(viewInstance, actionId)) {
                 actionRunnerFound = true;
-                actionRunner.run(viewInstance, journeyId, stepId, actionId, data);
+                actionRunner.run(viewInstance, journeyId, stepId, actionId, data, serverHttpRequest);
                 break;
             }
         }

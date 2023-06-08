@@ -6,6 +6,7 @@ import io.mateu.remote.domain.modelToDtoMappers.UIMapper;
 import io.mateu.remote.dtos.UI;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,7 +16,7 @@ public class GetUIQueryHandler {
     @Autowired
     UIMapper uiMapper;
 
-    public UI run(GetUIQuery query) {
+    public UI run(GetUIQuery query, ServerHttpRequest serverHttpRequest) {
 
         String uiId = query.getUiId();
 
@@ -27,7 +28,7 @@ public class GetUIQueryHandler {
                 throw new Exception();
             }
 
-            UI ui = uiMapper.map(uiInstance);
+            UI ui = uiMapper.map(uiInstance, serverHttpRequest);
 
             return ui;
 

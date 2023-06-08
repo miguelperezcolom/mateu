@@ -1,6 +1,7 @@
 package io.mateu.remote.application.compat;
 
 import io.mateu.remote.application.FiltersDeserializer;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 
 import java.io.IOException;
 import java.util.List;
@@ -8,8 +9,9 @@ import java.util.Map;
 
 public class CompatFiltersDeserializer extends FiltersDeserializer {
 
-    public CompatFiltersDeserializer(String journeyId, String stepId, String listId, String raw) {
-        super(journeyId, stepId, listId, raw);
+    public CompatFiltersDeserializer(String journeyId, String stepId, String listId, String raw
+            , ServerHttpRequest serverHttpRequest) {
+        super(journeyId, stepId, listId, raw, serverHttpRequest);
     }
 
     @Override

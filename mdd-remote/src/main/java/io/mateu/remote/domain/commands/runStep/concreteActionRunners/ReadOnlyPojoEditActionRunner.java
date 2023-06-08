@@ -5,6 +5,7 @@ import io.mateu.remote.domain.commands.runStep.ActionRunner;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import jakarta.persistence.Entity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -21,7 +22,8 @@ public class ReadOnlyPojoEditActionRunner implements ActionRunner {
     }
 
     @Override
-    public void run(Object viewInstance, String journeyId, String stepId, String actionId, Map<String, Object> data)
+    public void run(Object viewInstance, String journeyId, String stepId, String actionId
+            , Map<String, Object> data, ServerHttpRequest serverHttpRequest)
             throws Throwable{
         Object editor = ((ReadOnlyPojo) viewInstance).getEditor();
 
@@ -30,6 +32,6 @@ public class ReadOnlyPojoEditActionRunner implements ActionRunner {
                     viewInstance.getClass().getSimpleName());
         }
 
-        store.setStep(journeyId, "edit", editor);
+        store.setStep(journeyId, "edit", editor, serverHttpRequest);
     }
 }

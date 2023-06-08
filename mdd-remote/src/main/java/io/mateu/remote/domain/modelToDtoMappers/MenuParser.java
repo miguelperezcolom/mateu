@@ -12,6 +12,7 @@ import io.mateu.remote.application.MateuRemoteClient;
 import io.mateu.remote.dtos.Menu;
 import io.mateu.remote.dtos.UI;
 import io.mateu.util.Helper;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -27,10 +28,12 @@ public class MenuParser {
 
     private final MateuRemoteClient mateuRemoteClient;
     private final Object uiInstance;
+    private final ServerHttpRequest serverHttpRequest;
 
-    public MenuParser(MateuRemoteClient mateuRemoteClient, Object uiInstance) {
+    public MenuParser(MateuRemoteClient mateuRemoteClient, Object uiInstance, ServerHttpRequest serverHttpRequest) {
         this.mateuRemoteClient = mateuRemoteClient;
         this.uiInstance = uiInstance;
+        this.serverHttpRequest = serverHttpRequest;
     }
 
 
@@ -108,9 +111,11 @@ public class MenuParser {
     }
 
 
-    private MenuEntry toMenuEntry(String caption, RemoteSubmenu remoteSubmenu) throws ExecutionException, InterruptedException {
-        UI ui = mateuRemoteClient.getUi(remoteSubmenu.getBaseUrl(), remoteSubmenu.getUiId());
-        Optional<Menu> remoteMenu = ui.getMenu().stream().filter(m -> m.getCaption().equals(remoteSubmenu.getCaption())).findFirst();
+    private MenuEntry toMenuEntry(String caption, RemoteSubmenu remoteSubmenu)
+            throws ExecutionException, InterruptedException {
+        UI ui = mateuRemoteClient.getUi(remoteSubmenu.getBaseUrl(), remoteSubmenu.getUiId(), serverHttpRequest);
+        Optional<Menu> remoteMenu = ui.getMenu().stream()
+                .filter(m -> m.getCaption().equals(remoteSubmenu.getCaption())).findFirst();
         MenuEntry menuEntry = new AbstractMenu(caption + (remoteMenu.isEmpty()?"(Not found)":"")) {
             @Override
             public List<MenuEntry> buildEntries() {
@@ -129,7 +134,7 @@ public class MenuParser {
 
     private void addMenuEntries(List<MenuEntry> l, RemoteUI remoteUI) {
         try {
-            UI ui = mateuRemoteClient.getUi(remoteUI.getBaseUrl(), remoteUI.getUiId());
+            UI ui = mateuRemoteClient.getUi(remoteUI.getBaseUrl(), remoteUI.getUiId(), serverHttpRequest);
             ui.getMenu().stream().forEach(remoteMenu -> {
                 MenuEntry menuEntry = toMenuEntry(remoteUI.getBaseUrl(), remoteMenu);
                 l.add(menuEntry);
@@ -142,7 +147,8 @@ public class MenuParser {
     private MenuEntry toMenuEntry(String baseUrl, Menu remoteMenu) {
         MenuEntry menuEntry = null;
         if (!Strings.isNullOrEmpty(remoteMenu.getJourneyTypeId())) {
-            menuEntry = new MDDOpenRemoteJourneyAction(remoteMenu.getCaption(), new RemoteJourney(baseUrl, remoteMenu.getJourneyTypeId()));
+            menuEntry = new MDDOpenRemoteJourneyAction(remoteMenu.getCaption(),
+                    new RemoteJourney(baseUrl, remoteMenu.getJourneyTypeId()));
         } else {
             menuEntry = new AbstractMenu(remoteMenu.getCaption()) {
                 @Override
@@ -171,7 +177,8 @@ public class MenuParser {
     }
 
     private void addMenuEntry(List<MenuEntry> l, Method m, boolean authenticationAgnostic, boolean publicAccess) {
-        String caption = (m.isAnnotationPresent(Submenu.class))?m.getAnnotation(Submenu.class).value():m.getAnnotation(MenuOption.class).value();
+        String caption = (m.isAnnotationPresent(Submenu.class))?m.getAnnotation(Submenu.class).value()
+                :m.getAnnotation(MenuOption.class).value();
         if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(m.getName());
 
         String icon = null;
@@ -190,7 +197,10 @@ public class MenuParser {
                 @Override
                 public List<MenuEntry> buildEntries() {
                     try {
-                        return new MenuParser(mateuRemoteClient, CoreReflectionHelper.invokeInjectableParametersOnly(m, uiInstance)).parse();
+                        return new MenuParser(mateuRemoteClient,
+                                CoreReflectionHelper.invokeInjectableParametersOnly(m, uiInstance)
+                                , serverHttpRequest
+                        ).parse();
                     } catch (Throwable throwable) {
                         throwable.printStackTrace();
                     }
@@ -198,9 +208,13 @@ public class MenuParser {
                 }
             }.setOrder(order));
 
-        } else if (m.isAnnotationPresent(MenuOption.class) || m.isAnnotationPresent(Home.class) || m.isAnnotationPresent(PublicHome.class) || m.isAnnotationPresent(PrivateHome.class)) {
+        } else if (m.isAnnotationPresent(MenuOption.class)
+                || m.isAnnotationPresent(Home.class)
+                || m.isAnnotationPresent(PublicHome.class)
+                || m.isAnnotationPresent(PrivateHome.class)) {
 
-            if (List.class.isAssignableFrom(m.getReturnType()) && MenuEntry.class.equals(ReflectionHelper.getGenericClass(m))) {
+            if (List.class.isAssignableFrom(m.getReturnType())
+                    && MenuEntry.class.equals(ReflectionHelper.getGenericClass(m))) {
 
                 l.add(new AbstractMenu(icon, caption) {
                     @Override
@@ -261,7 +275,7 @@ public class MenuParser {
                         @Override
                         public List<MenuEntry> buildEntries() {
                             try {
-                                return new MenuParser(mateuRemoteClient, finalV).parse();
+                                return new MenuParser(mateuRemoteClient, finalV, serverHttpRequest).parse();
                             } catch (Throwable throwable) {
                                 throwable.printStackTrace();
                             }

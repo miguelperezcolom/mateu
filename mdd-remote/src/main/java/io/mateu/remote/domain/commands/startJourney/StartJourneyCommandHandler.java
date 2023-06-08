@@ -11,6 +11,7 @@ import io.mateu.remote.dtos.Journey;
 import io.mateu.remote.dtos.Step;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -30,6 +31,7 @@ public class StartJourneyCommandHandler {
 
         String journeyId = command.getJourneyId();
         String journeyTypeId = command.getJourneyTypeId();
+        ServerHttpRequest serverHttpRequest = command.getServerHttpRequest();
 
         Journey journey = null;
         Object formInstance = null;
@@ -39,7 +41,7 @@ public class StartJourneyCommandHandler {
 
             try {
 
-                formInstance = store.createInstanceFromJourneyTypeId(journeyTypeId);
+                formInstance = store.createInstanceFromJourneyTypeId(journeyTypeId, serverHttpRequest);
 
                 if (formInstance == null) {
                     throw new Exception();
@@ -54,7 +56,7 @@ public class StartJourneyCommandHandler {
 
                     store(journeyId, journeyTypeId, journey, remoteJourney.getBaseUrl(), remoteJourney.getJourneyTypeId());
                     return mateuRemoteClient.startJourney(remoteJourney.getBaseUrl(),
-                            remoteJourney.getJourneyTypeId(), journeyId);
+                            remoteJourney.getJourneyTypeId(), journeyId, serverHttpRequest);
                 }
 
 
@@ -64,7 +66,8 @@ public class StartJourneyCommandHandler {
                 throw new NotFoundException("No class with name " + journeyTypeId + " found");
             }
 
-            Step step = store.getStepMapper().map(journeyContainer, getStepId(formInstance), null, formInstance);
+            Step step = store.getStepMapper()
+                    .map(journeyContainer, getStepId(formInstance), null, formInstance, serverHttpRequest);
             journey.setCurrentStepId(step.getId());
             journey.setCurrentStepDefinitionId(step.getType());
             store(journeyId, journeyTypeId, journey, step);

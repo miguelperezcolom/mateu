@@ -6,6 +6,7 @@ import io.mateu.remote.domain.commands.runStep.ActionRunner;
 import io.mateu.remote.domain.editors.FieldEditor;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -22,10 +23,11 @@ public class FieldEditorActionRunner implements ActionRunner {
     }
 
     @Override
-    public void run(Object viewInstance, String journeyId, String stepId, String actionId, Map<String, Object> data)
+    public void run(Object viewInstance, String journeyId, String stepId, String actionId
+            , Map<String, Object> data, ServerHttpRequest serverHttpRequest)
             throws Throwable{
         if (viewInstance instanceof FieldEditor) {
-            store.setStep(journeyId, actionId, viewInstance);
+            store.setStep(journeyId, actionId, viewInstance, serverHttpRequest);
             return;
         }
         String fieldId = actionId.substring("__editfield__".length());
@@ -40,6 +42,6 @@ public class FieldEditorActionRunner implements ActionRunner {
 
         store.setStep(journeyId, actionId, new FieldEditor(targetValue,
                 fieldId,
-                store.getCurrentStep(journeyId).getId()));
+                store.getCurrentStep(journeyId).getId()), serverHttpRequest);
     }
 }

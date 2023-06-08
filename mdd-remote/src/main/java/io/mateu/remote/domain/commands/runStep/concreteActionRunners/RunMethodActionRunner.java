@@ -8,6 +8,7 @@ import io.mateu.remote.domain.commands.runStep.ActionRunner;
 import io.mateu.remote.domain.editors.MethodParametersEditor;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.InvocationTargetException;
@@ -34,7 +35,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     }
 
     @Override
-    public void run(Object viewInstance, String journeyId, String stepId, String actionId, Map<String, Object> data)
+    public void run(Object viewInstance, String journeyId, String stepId, String actionId
+            , Map<String, Object> data, ServerHttpRequest serverHttpRequest)
             throws Throwable{
 
         Method m = getActions(viewInstance).get(actionId);
@@ -43,14 +45,14 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
             store.setStep(journeyId, actionId, new MethodParametersEditor(viewInstance,
                     m.getName(),
-                    store.getCurrentStep(journeyId).getId()));
+                    store.getCurrentStep(journeyId).getId()), serverHttpRequest);
 
         } else {
 
             try {
                 Object result = m.invoke(viewInstance);
 
-                store.updateStep(journeyId, viewInstance);
+                store.updateStep(journeyId, viewInstance, serverHttpRequest);
 
                 Object whatToShow = result;
                 if (!void.class.equals(m.getReturnType())) {
@@ -59,7 +61,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                                 store.getInitialStep(journeyId));
                     }
                     String newStepId = "result_" + UUID.randomUUID().toString();
-                    store.setStep(journeyId, newStepId, whatToShow);
+                    store.setStep(journeyId, newStepId, whatToShow, serverHttpRequest);
                 }
 
             } catch (InvocationTargetException ex) {

@@ -4,6 +4,7 @@ import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.interfaces.SortCriteria;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import lombok.*;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 
 import java.util.List;
 
@@ -30,5 +31,7 @@ public class GetListRowsQuery {
     private int pageSize;
 
     private List<SortCriteria> ordering;
+
+    private ServerHttpRequest serverHttpRequest;
 
 }

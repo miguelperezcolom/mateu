@@ -22,6 +22,7 @@ import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -66,17 +67,18 @@ public class MateuCompatController {
     GetListCountQueryCompatHandler getListCountQueryHandler;
 
     @GetMapping(value = "uis/{uiId}")
-    public UI getUI(@PathVariable String uiId) throws Exception {
-        return getUIQueryHandler.run(GetUIQuery.builder().uiId(uiId).build());
+    public UI getUI(@PathVariable String uiId, ServerHttpRequest serverHttpRequest) throws Exception {
+        return getUIQueryHandler.run(GetUIQuery.builder().uiId(uiId).build(), serverHttpRequest);
     }
 
     @GetMapping("journey-types")
-    public List<JourneyType> getJourneyTypes() throws Exception {
-        return getJourneyTypesQueryHandler.run(GetJourneyTypesQuery.builder().build());
+    public List<JourneyType> getJourneyTypes(ServerHttpRequest serverHttpRequest) throws Exception {
+        return getJourneyTypesQueryHandler.run(GetJourneyTypesQuery.builder().build(), serverHttpRequest);
     }
 
     @PostMapping("journeys/{journeyTypeId}/{journeyId}")
-    public void createJourney(@PathVariable String journeyTypeId, @PathVariable String journeyId, @RequestBody JourneyCreationRq rq)
+    public void createJourney(@PathVariable String journeyTypeId, @PathVariable String journeyId,
+                              @RequestBody JourneyCreationRq rq)
             throws Throwable {
         startJourneyCommandHandler.handle(StartJourneyCommand.builder()
                 .journeyId(journeyId)
@@ -85,14 +87,16 @@ public class MateuCompatController {
     }
 
     @GetMapping("journeys/{journeyTypeId}/{journeyId}")
-    public Mono<Journey> getJourney(@PathVariable String journeyTypeId, @PathVariable String journeyId) throws Exception {
+    public Mono<Journey> getJourney(@PathVariable String journeyTypeId, @PathVariable String journeyId)
+            throws Exception {
         return getJourneyQueryHandler.run(GetJourneyQuery.builder()
                         .journeyTypeId(journeyTypeId)
                 .journeyId(journeyId).build());
     }
 
     @GetMapping("journeys/{journeyTypeId}/{journeyId}/steps/{stepId}")
-    public Mono<Step> getStep(@PathVariable String journeyTypeId, @PathVariable String journeyId, @PathVariable String stepId) throws Exception {
+    public Mono<Step> getStep(@PathVariable String journeyTypeId, @PathVariable String journeyId,
+                              @PathVariable String stepId) throws Exception {
         return getStepQueryHandler.run(GetStepQuery.builder()
                         .journeyTypeId(journeyTypeId)
                 .journeyId(journeyId).stepId(stepId).build())

@@ -4,6 +4,7 @@ import io.mateu.mdd.core.interfaces.Crud;
 import io.mateu.remote.domain.commands.runStep.concreteActionRunners.ListActionRunner;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -21,7 +22,8 @@ public class CrudNewActionRunner implements ListActionRunner {
     }
 
     @Override
-    public void run(Crud crud, String journeyId, String stepId, String actionId, Map<String, Object> data)
+    public void run(Crud crud, String journeyId, String stepId, String actionId
+            , Map<String, Object> data, ServerHttpRequest serverHttpRequest)
             throws Throwable {
 
         try {
@@ -33,7 +35,7 @@ public class CrudNewActionRunner implements ListActionRunner {
             }
 
             String newStepId = "new_" + UUID.randomUUID().toString();
-            store.setStep(journeyId, newStepId, editor);
+            store.setStep(journeyId, newStepId, editor, serverHttpRequest);
 
         } catch (Throwable e) {
             throw new Exception("Crud onNew thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());

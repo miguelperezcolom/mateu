@@ -9,6 +9,7 @@ import io.mateu.remote.dtos.Menu;
 import io.mateu.remote.dtos.UI;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -19,17 +20,18 @@ import java.util.List;
 public class GetJourneyTypesQueryHandler {
 
     @Autowired
+    UIRegistry uiRegistry;
+
+    @Autowired
     UIMapper uiMapper;
 
-    public List<JourneyType> run(GetJourneyTypesQuery query) {
+    public List<JourneyType> run(GetJourneyTypesQuery query, ServerHttpRequest serverHttpRequest) {
 
         String uiId = query.getUiId();
 
         List<JourneyType> journeyTypes = new ArrayList<>();
 
         try {
-
-            UIRegistry uiRegistry = ReflectionHelper.newInstance(UIRegistry.class);
 
             for (Class uiClass : uiRegistry.getUiClasses()) {
 
@@ -39,7 +41,7 @@ public class GetJourneyTypesQueryHandler {
                     throw new Exception();
                 }
 
-                UI ui = uiMapper.map(uiInstance);
+                UI ui = uiMapper.map(uiInstance, serverHttpRequest);
 
                 if (ui.getMenu() != null) {
                     for (Menu menu : ui.getMenu()) {

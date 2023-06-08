@@ -9,6 +9,7 @@ import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.util.Helper;
 import jakarta.persistence.Entity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -25,7 +26,8 @@ public class CrudEditActionRunner implements ListActionRunner {
     }
 
     @Override
-    public void run(Crud crud, String journeyId, String stepId, String actionId, Map<String, Object> data)
+    public void run(Crud crud, String journeyId, String stepId, String actionId
+            , Map<String, Object> data, ServerHttpRequest serverHttpRequest)
             throws Throwable {
 
         Object row = data.get("_selectedRow");
@@ -55,7 +57,7 @@ public class CrudEditActionRunner implements ListActionRunner {
         if (editor instanceof PersistentPojo) {
             newStepId = "edit";
         }
-        store.setStep(journeyId, newStepId, editor);
+        store.setStep(journeyId, newStepId, editor, serverHttpRequest);
 
     }
 }

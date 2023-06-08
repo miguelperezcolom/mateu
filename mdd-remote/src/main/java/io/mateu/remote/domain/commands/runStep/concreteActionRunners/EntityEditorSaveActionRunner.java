@@ -10,6 +10,7 @@ import io.mateu.remote.domain.persistence.Merger;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.Step;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,13 +29,14 @@ public class EntityEditorSaveActionRunner implements ActionRunner {
     }
 
     @Override
-    public void run(Object viewInstance, String journeyId, String stepId, String actionId, Map<String, Object> data) throws Throwable {
+    public void run(Object viewInstance, String journeyId, String stepId, String actionId
+            , Map<String, Object> data, ServerHttpRequest serverHttpRequest) throws Throwable {
         EntityEditor entityEditor = (EntityEditor) viewInstance;
         Merger merger = store.getApplicationContext().getBean(Merger.class);
         merger.mergeAndCommit(data, entityEditor.getEntityClass());
         data.remove("__entityClassName__");
         entityEditor.setData(data);
-        store.setStep(journeyId, stepId, entityEditor);
+        store.setStep(journeyId, stepId, entityEditor, serverHttpRequest);
 
         Step initialStep = store.getInitialStep(journeyId);
 
@@ -42,6 +44,6 @@ public class EntityEditorSaveActionRunner implements ActionRunner {
                 "" + viewInstance.toString() + " has been saved", List.of(),
                 new Destination(DestinationType.ActionId, "Back to " + initialStep.getName(), initialStep.getId()));
         String newStepId = "result_" + UUID.randomUUID().toString();
-        store.setStep(journeyId, newStepId, whatToShow);
+        store.setStep(journeyId, newStepId, whatToShow, serverHttpRequest);
     }
 }

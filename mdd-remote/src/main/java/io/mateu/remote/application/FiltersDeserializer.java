@@ -7,6 +7,7 @@ import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.util.Helper;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 
 import java.io.IOException;
 import java.util.Base64;
@@ -19,16 +20,19 @@ public class FiltersDeserializer {
     private final String stepId;
     private final String listId;
     private final String raw;
+    private final ServerHttpRequest serverHttpRequest;
 
-    public FiltersDeserializer(String journeyId, String stepId, String listId, String raw) {
+    public FiltersDeserializer(String journeyId, String stepId, String listId, String raw
+            , ServerHttpRequest serverHttpRequest) {
         this.journeyId = journeyId;
         this.stepId = stepId;
         this.listId = listId;
         this.raw = raw;
+        this.serverHttpRequest = serverHttpRequest;
     }
 
     public Object deserialize(JourneyStoreService store) throws Exception {
-        Listing rpcView = store.getRpcViewInstance(journeyId, stepId, listId);
+        Listing rpcView = store.getRpcViewInstance(journeyId, stepId, listId, serverHttpRequest);
         if (rpcView == null) {
             return null;
         }

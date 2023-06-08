@@ -10,6 +10,7 @@ import io.mateu.remote.domain.commands.runStep.concreteActionRunners.ListActionR
 import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.util.Helper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -27,7 +28,8 @@ public class CrudDeleteActionRunner implements ListActionRunner {
     }
 
     @Override
-    public void run(Crud crud, String journeyId, String stepId, String actionId, Map<String, Object> data)
+    public void run(Crud crud, String journeyId, String stepId, String actionId,
+                    Map<String, Object> data, ServerHttpRequest serverHttpRequest)
             throws Throwable {
         List selectedRows = (List) data.get("_selectedRows");
 
@@ -46,7 +48,7 @@ public class CrudDeleteActionRunner implements ListActionRunner {
                     new Destination(DestinationType.ActionId, "Back to " +
                             store.getInitialStep(journeyId).getName(), store.getInitialStep(journeyId).getId()));
             String newStepId = "result_" + UUID.randomUUID().toString();
-            store.setStep(journeyId, newStepId, whatToShow);
+            store.setStep(journeyId, newStepId, whatToShow, serverHttpRequest);
 
         } catch (Throwable e) {
             throw new Exception("Crud delete thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());

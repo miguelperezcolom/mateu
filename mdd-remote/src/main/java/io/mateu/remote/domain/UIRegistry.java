@@ -1,6 +1,5 @@
 package io.mateu.remote.domain;
 
-import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.application.MateuConfiguratorBean;
 import io.mateu.remote.domain.modelToDtoMappers.UIMapper;
 import io.mateu.remote.domain.store.JourneyStoreService;
@@ -27,13 +26,6 @@ public class UIRegistry {
     public void add(Class uiClass) {
         if (!_classes.contains(uiClass)) {
             _classes.add(uiClass);
-            try {
-                // we do this to fill the menu store
-                ReflectionHelper.setBeanProvider(mateuConfiguratorBean);
-                uiMapper.map(ReflectionHelper.newInstance(uiClass));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         }
     }
 

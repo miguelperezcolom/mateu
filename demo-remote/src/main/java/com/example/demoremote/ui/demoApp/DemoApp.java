@@ -40,6 +40,9 @@ public class DemoApp implements HasLogin, HasAppTitle
     private BrokenSubmenu broken;
 
     @Submenu
+    private UtilSubmenu util;
+
+    @Submenu
     private UseCasesSubmenu useCases;
 
     @Submenu("NFL")

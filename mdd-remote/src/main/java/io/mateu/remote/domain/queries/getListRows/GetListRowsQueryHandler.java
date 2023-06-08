@@ -39,17 +39,20 @@ public class GetListRowsQueryHandler {
                     query.getFilters(),
                     query.getOrdering(),
                     query.getPage() * query.getPageSize(),
-                    (query.getPage() + 1) * query.getPageSize() - 1);
+                    (query.getPage() + 1) * query.getPageSize() - 1,
+                    query.getServerHttpRequest());
         }
 
         Object filtersDeserialized = new FiltersDeserializer(
                 query.getJourneyId()
-                , query.getStepId(), query.getListId(), query.getFilters()).deserialize(store);
+                , query.getStepId(), query.getListId(), query.getFilters(), query.getServerHttpRequest())
+                .deserialize(store);
 
         Listing rpcView = (Listing) store.getRpcViewInstance(
                 query.getJourneyId(),
                 query.getStepId(),
-                query.getListId());
+                query.getListId(),
+                query.getServerHttpRequest());
 
         if (rpcView == null) {
             return Flux.empty();

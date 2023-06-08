@@ -5,6 +5,7 @@ import io.mateu.remote.domain.store.JourneyContainer;
 import io.mateu.remote.dtos.Rule;
 import io.mateu.remote.dtos.Step;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -18,7 +19,8 @@ public class StepMapper {
     @Autowired
     private ViewMapper viewMapper;
 
-    public Step map(JourneyContainer journeyContainer, String stepId, String previousStepId, Object formInstance)
+    public Step map(JourneyContainer journeyContainer, String stepId, String previousStepId
+            , Object formInstance, ServerHttpRequest serverHttpRequest)
             throws Throwable {
 
         Map<String, Object> data = new HashMap<>();
@@ -28,7 +30,7 @@ public class StepMapper {
                 .id(stepId)
                 .type(formInstance.getClass().getName())
                 .name(ReflectionHelper.getCaption(formInstance))
-                .view(viewMapper.map(journeyContainer, stepId, formInstance, data, rules))
+                .view(viewMapper.map(journeyContainer, stepId, formInstance, data, rules, serverHttpRequest))
                 .data(data)
                 .rules(rules)
                 .previousStepId(previousStepId)

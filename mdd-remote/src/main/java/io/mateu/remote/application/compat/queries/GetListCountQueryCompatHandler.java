@@ -33,18 +33,20 @@ public class GetListCountQueryCompatHandler {
         if (!Strings.isNullOrEmpty(journeyContainer.getRemoteJourneyTypeId())) {
             return mateuRemoteClient.getListCount(journeyContainer.getRemoteBaseUrl(),
                     journeyContainer.getRemoteJourneyTypeId(), journeyContainer.getJourneyId(), query.getStepId(),
-                    query.getListId(), query.getFilters()
+                    query.getListId(), query.getFilters(), query.getServerHttpRequest()
             );
         }
 
         Object filtersDeserialized = new CompatFiltersDeserializer(
                 query.getJourneyId()
-                , query.getStepId(), query.getListId(), query.getFilters()).deserialize(store);
+                , query.getStepId(), query.getListId(), query.getFilters(), query.getServerHttpRequest())
+                .deserialize(store);
 
         Listing rpcView = store.getRpcViewInstance(
                 query.getJourneyId(),
                 query.getStepId(),
-                query.getListId());
+                query.getListId(),
+                query.getServerHttpRequest());
         return rpcView.fetchCount(filtersDeserialized);
     }
 

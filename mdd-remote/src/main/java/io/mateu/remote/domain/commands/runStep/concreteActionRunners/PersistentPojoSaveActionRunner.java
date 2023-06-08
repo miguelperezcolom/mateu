@@ -10,6 +10,7 @@ import io.mateu.remote.domain.commands.runStep.ActionRunner;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.Step;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -30,10 +31,11 @@ public class PersistentPojoSaveActionRunner implements ActionRunner {
     }
 
     @Override
-    public void run(Object viewInstance, String journeyId, String stepId, String actionId, Map<String, Object> data)
+    public void run(Object viewInstance, String journeyId, String stepId, String actionId,
+                    Map<String, Object> data, ServerHttpRequest serverHttpRequest)
             throws Throwable{
         ((PersistentPojo) viewInstance).save();
-        refreshDetailView(journeyId, stepId);
+        refreshDetailView(journeyId, stepId, serverHttpRequest);
 
         Step initialStep = store.getInitialStep(journeyId);
 
@@ -51,15 +53,16 @@ public class PersistentPojoSaveActionRunner implements ActionRunner {
                 new Destination(DestinationType.ActionId,
                         "Return to " + initialStep.getName(), initialStep.getId()));
         String newStepId = "result_" + UUID.randomUUID().toString();
-        store.setStep(journeyId, newStepId, whatToShow);
+        store.setStep(journeyId, newStepId, whatToShow, serverHttpRequest);
     }
 
-    private void refreshDetailView(String journeyId, String stepId) throws Throwable {
+    private void refreshDetailView(String journeyId, String stepId, ServerHttpRequest serverHttpRequest)
+            throws Throwable {
         if ("list_view_edit".equals(stepId)) {
-            Object detailView = store.getViewInstance(journeyId, "list_view");
+            Object detailView = store.getViewInstance(journeyId, "list_view", serverHttpRequest);
             if (detailView instanceof ReadOnlyPojo) {
                 ((ReadOnlyPojo) detailView).load(((ReadOnlyPojo) detailView).getId());
-                store.updateStep(journeyId, "list_view", detailView);
+                store.updateStep(journeyId, "list_view", detailView, serverHttpRequest);
             }
         }
     }

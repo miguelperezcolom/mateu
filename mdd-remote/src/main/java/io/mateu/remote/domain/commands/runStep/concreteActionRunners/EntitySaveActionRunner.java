@@ -11,6 +11,7 @@ import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.Step;
 import jakarta.persistence.Entity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,7 +30,8 @@ public class EntitySaveActionRunner implements ActionRunner {
     }
 
     @Override
-    public void run(Object viewInstance, String journeyId, String stepId, String actionId, Map<String, Object> data)
+    public void run(Object viewInstance, String journeyId, String stepId, String actionId
+            , Map<String, Object> data, ServerHttpRequest serverHttpRequest)
             throws Throwable {
         ReflectionHelper.newInstance(Merger.class).merge(viewInstance);
 
@@ -40,6 +42,6 @@ public class EntitySaveActionRunner implements ActionRunner {
                 new Destination(DestinationType.ActionId, "Back to " + initialStep.getName(),
                         initialStep.getId()));
         String newStepId = "result_" + UUID.randomUUID().toString();
-        store.setStep(journeyId, newStepId, whatToShow);
+        store.setStep(journeyId, newStepId, whatToShow, serverHttpRequest);
     }
 }
