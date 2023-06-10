@@ -8,7 +8,7 @@
 - campo booleano (parece que no coge el valor)
 - por qué hacen cosas raras los fields en el use case de flows 
 
-## features
+## missing features
 - anterior y siguiente en crud
 - utilizar crud para listas y mapas
 - desplegables anidados en filtros crud jpa
@@ -24,3 +24,4 @@
 - clean unused classes / code
 - add/recover tests
 - refactor where advisable
+- make more extensible
