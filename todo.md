@@ -18,3 +18,4 @@
 ## improvements
 - ir a vista solo lectura si hay campos con relaciones @xtomany
 - inferir crud para entidad jpa cuando @xtomany
+- pensar edición con objeto pinned
