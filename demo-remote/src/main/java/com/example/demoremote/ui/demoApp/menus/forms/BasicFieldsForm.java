@@ -6,6 +6,7 @@ import io.mateu.mdd.core.interfaces.HasSubtitle;
 import io.mateu.mdd.core.interfaces.HasTitle;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.*;
+import io.mateu.mdd.shared.data.Status;
 import io.mateu.mdd.shared.interfaces.HasBadges;
 import io.mateu.mdd.shared.interfaces.HasStatus;
 import io.mateu.mdd.shared.interfaces.MateuSecurityManager;

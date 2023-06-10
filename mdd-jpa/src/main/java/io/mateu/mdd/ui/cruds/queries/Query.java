@@ -28,5 +28,6 @@ public abstract class Query {
     private List<String> columnNames;
     private List<String> aliasedColumnNamesList;
     private List<FieldInterfaced> filterFields;
+    private List<FieldInterfaced> columnFields;
 
 }

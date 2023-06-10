@@ -8,7 +8,7 @@ import java.util.Map;
 
 public interface RpcCrudViewExtended {
 
-    List<FieldInterfaced> getColumnFields();
+    List<FieldInterfaced> getColumnFieldNames();
 
     List<FieldInterfaced> getFilterFields();
 

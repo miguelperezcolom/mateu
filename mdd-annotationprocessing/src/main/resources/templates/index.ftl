@@ -21,7 +21,7 @@ public class ${simpleClassName}Controller {
     public String getIndex() {
         String html = Helper.leerFichero(this.getClass(), "/npm/mateu/index.html");
 <#list externalScripts as x>
-        html = html.replaceAll("<title>AQUIELTITULODELAPAGINA</title>", "<script type=\"module\" src=\"${x}\"></script><title>AQUIELTITULODELAPAGINA</title>");
+        html = html.replaceAll("<title>AQUIELTITULODELAPAGINA</title>", "<script type='module' src='${x}'></script><title>AQUIELTITULODELAPAGINA</title>");
 </#list>
         html = html.replaceAll("AQUIELTITULODELAPAGINA", "${caption}");
         html = html.replaceAll("http:\\/\\/localhost:8081\\/mateu\\/v1", "/mateu/v1");
@@ -79,7 +79,7 @@ public class ${simpleClassName}Controller {
         html = html.replaceAll("<!-- AQUIKEYCLOAK -->", keycloakStuff);
         html = html.replaceAll("<body>", "<body onload='initKeycloak()'>");
 <#else >
-    html = html.replaceAll("<!-- AQUIMATEU -->", "<script type="module" src="https://unpkg.com/mateu-ui/dist/assets/mateu.js"></script>");
+    html = html.replaceAll("<!-- AQUIMATEU -->", "<script type='module' src='https://unpkg.com/mateu-ui/dist/assets/mateu.js'></script>");
     html = html.replaceAll("<!-- AQUIUI -->", "<mateu-ui uiId='${className}' baseUrl='/mateu/v1'></mateu-ui>");
 </#if>
         return html;

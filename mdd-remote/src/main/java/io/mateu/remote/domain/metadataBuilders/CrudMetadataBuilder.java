@@ -62,7 +62,7 @@ public class CrudMetadataBuilder {
         Map<FieldInterfaced, String> columnCaptionsPerField = new HashMap<>();
         List<FieldInterfaced> allRowFields = null;
         if (rpcView instanceof RpcCrudViewExtended) {
-            allRowFields = ((RpcCrudViewExtended) rpcView).getColumnFields();
+            allRowFields = ((RpcCrudViewExtended) rpcView).getColumnFieldNames();
             columnIdsPerField.putAll(((RpcCrudViewExtended) rpcView).getColumnIdsPerField());
             columnCaptionsPerField.putAll(((RpcCrudViewExtended) rpcView).getColumnCaptionsPerField());
         } else {
@@ -82,11 +82,18 @@ public class CrudMetadataBuilder {
         return Column.builder()
                 .id(columnId)
                 .caption(columnCaption)
-                .type(fieldTypeMapper.mapFieldType(fieldInterfaced))
+                .type(mapColumnType(fieldInterfaced))
                 .stereotype("column")
                 .attributes(List.of())
                 .width(getWidth(fieldInterfaced))
                 .build();
+    }
+
+    private String mapColumnType(FieldInterfaced field) {
+        if (field.isAnnotationPresent(io.mateu.mdd.shared.annotations.Status.class)) {
+            return io.mateu.remote.dtos.Status.class.getSimpleName();
+        }
+        return fieldTypeMapper.mapFieldType(field);
     }
 
     private String getWidth(FieldInterfaced fieldInterfaced) {

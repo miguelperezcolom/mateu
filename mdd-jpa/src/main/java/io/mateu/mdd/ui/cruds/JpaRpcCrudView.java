@@ -53,7 +53,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     private Map<String, FieldInterfaced> fieldsByColumnName = new HashMap<>();
     private List<String> filterNames = new ArrayList<>();
     private Map<String, FieldInterfaced> fieldsByFilterName = new HashMap<>();
-    private List<String> columnFields;
+    private List<String> columnFieldNames;
     private List<String> visibleColumns;
     private List<FieldInterfaced> filterFields;
     private List<String> aliasedColumnNamesList = new ArrayList<>();
@@ -63,6 +63,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     private Map<String, String> alias = new HashMap<>();
     private Map<String, String> aliasedColumnNames = new HashMap<>();
     private List<FieldInterfaced> sumFields;
+    private List<FieldInterfaced> columnFields;
     private List<SumData> sums;
 
     String selectColumnsForCount;
@@ -78,10 +79,11 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
 
     public JpaRpcCrudView(MDDOpenCRUDAction action) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException {
         this.action = action;
-        columnFields = getSelectFields(action.getEntityClass(), action.getColumns(), columnNames, fieldsByColumnName);
+        columnFields = getColumnFields(action.getEntityClass(), false, action.getColumns(), columnNames, fieldsByColumnName);
+        columnFieldNames = getSelectFields(action.getEntityClass(), action.getColumns(), columnNames, fieldsByColumnName);
         visibleColumns = Strings.isNullOrEmpty(action.getColumns())?null: Arrays.stream(action.getColumns().split(",")).toList();
         if (visibleColumns == null || visibleColumns.size() == 0) {
-            visibleColumns = columnFields.stream().skip(1).collect(Collectors.toList());
+            visibleColumns = columnFieldNames.stream().skip(1).collect(Collectors.toList());
         }
         filterFields = getFilterFields();
         createAliases(action.getEntityClass(), columnNames, fieldsByColumnName, alias, aliasedColumnNames, aliasedColumnNamesList);
@@ -94,7 +96,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
         }
         selectColumnsForCount = ql;
 
-        selectColumnsForList = buildFieldsPart(columnFields);
+        selectColumnsForList = buildFieldsPart(columnFieldNames);
 
         columnIds = new ArrayList<>();
         int pos = 0;
@@ -131,7 +133,8 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
                 aliasedColumnNames,
                 aliasedColumnNamesList,
                 columnNames,
-                filterFields));
+                filterFields,
+                columnFields));
     }
 
     @Override
@@ -152,7 +155,8 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
                 aliasedColumnNamesList,
                 columnNames,
                 filterFields,
-                sumFields));
+                sumFields,
+                columnFields));
         return countQueryHandler.run(new CountQuery(
                 action,
                 filters,
@@ -168,7 +172,8 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
                 aliasedColumnNames,
                 aliasedColumnNamesList,
                 columnNames,
-                filterFields
+                filterFields,
+                columnFields
         ));
     }
 
@@ -251,7 +256,6 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     }
     public List<String> getSelectFields(Class targetType, String useColumns, List<String> columnNames,
                                                Map<String, FieldInterfaced> fieldsByColumnName) {
-        List<FieldInterfaced> cols = getColumnFields(targetType, false, useColumns, columnNames, fieldsByColumnName);
         FieldInterfaced idField = null;
         for (FieldInterfaced f : ReflectionHelper.getAllFields(targetType)) {
             if (f.isAnnotationPresent(Id.class)) idField = f;
@@ -409,8 +413,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
         return s;
     }
 
-    @Override
-    public List<FieldInterfaced> getColumnFields() {
+    public List<FieldInterfaced> getColumnFieldNames() {
         return visibleColumns.stream().map(fn -> fieldsByColumnName.get(fn))
                 .collect(Collectors.toList());
     }

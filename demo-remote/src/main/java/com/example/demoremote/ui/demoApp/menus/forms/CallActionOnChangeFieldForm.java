@@ -1,6 +1,7 @@
 package com.example.demoremote.ui.demoApp.menus.forms;
 
 import io.mateu.mdd.shared.annotations.*;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -9,6 +10,7 @@ import lombok.Data;
 public class CallActionOnChangeFieldForm {
 
     @Section("Basic")
+    @NotBlank
     private String name = "Mateu";
 
     @Placeholder("This should appear as the placeholder")

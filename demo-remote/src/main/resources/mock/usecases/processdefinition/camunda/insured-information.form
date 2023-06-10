@@ -1,0 +1,391 @@
+{
+  "components": [
+    {
+      "label": "Stepper",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_0x45lhp",
+        "columns": null
+      },
+      "id": "Field_095uzgo",
+      "key": "stepper",
+      "properties": {
+        "type": "Stepper",
+        "viewPart": "header"
+      }
+    },
+    {
+      "text": "Insured Persons",
+      "type": "text",
+      "layout": {
+        "row": "Row_1hmba0a",
+        "columns": null
+      },
+      "id": "Field_0y8dg9u",
+      "properties": {
+        "id": "0",
+        "type": "Card",
+        "readOnly": "false"
+      }
+    },
+    {
+      "label": "Birthdate",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_0wj6a2k",
+        "columns": null
+      },
+      "id": "Field_1kc9o0m",
+      "key": "birthdate",
+      "validate": {
+        "required": true
+      },
+      "properties": {
+        "type": "date",
+        "stereotype": "input"
+      }
+    },
+    {
+      "values": [],
+      "label": "Is your customer a smoker?",
+      "type": "radio",
+      "layout": {
+        "row": "Row_08znzt6",
+        "columns": null
+      },
+      "id": "Field_0ayyex2",
+      "key": "isSmoker",
+      "validate": {
+        "required": true
+      },
+      "defaultValue": "<none>",
+      "properties": {
+        "type": "boolean",
+        "stereotype": "radiobuttons"
+      }
+    },
+    {
+      "label": "Occupation",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_19z6767",
+        "columns": null
+      },
+      "id": "Field_0frqo2o",
+      "key": "occupation",
+      "validate": {
+        "required": true
+      },
+      "properties": {
+        "type": "value",
+        "stereotype": "input"
+      }
+    },
+    {
+      "label": "Sum insured",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_0wykwt3",
+        "columns": null
+      },
+      "id": "Field_0iua203",
+      "key": "sumInsured",
+      "validate": {
+        "required": true
+      },
+      "defaultValue": "0",
+      "appearance": {},
+      "properties": {
+        "type": "double",
+        "stereotype": "input"
+      }
+    },
+    {
+      "values": [],
+      "label": "Would you like to add a co-insured",
+      "type": "radio",
+      "layout": {
+        "row": "Row_0e0jg3d",
+        "columns": null
+      },
+      "id": "Field_141hiec",
+      "key": "addCoInsured",
+      "validate": {
+        "required": true
+      },
+      "defaultValue": "<none>",
+      "properties": {
+        "type": "boolean",
+        "stereotype": "radiobuttons"
+      }
+    },
+    {
+      "text": "Contact",
+      "type": "text",
+      "layout": {
+        "row": "Row_1pyhe6n",
+        "columns": null
+      },
+      "id": "Field_0alhwd6",
+      "properties": {
+        "id": "1",
+        "type": "Card",
+        "readOnly": "false"
+      }
+    },
+    {
+      "label": "Start Date",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_1wrdxr2",
+        "columns": null
+      },
+      "id": "Field_0swx75h",
+      "key": "startDate",
+      "validate": {
+        "required": false
+      },
+      "properties": {
+        "type": "date",
+        "stereotype": "input"
+      }
+    },
+    {
+      "label": "Duration",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_1x256nd",
+        "columns": null
+      },
+      "id": "Field_1lvd6lh",
+      "key": "duration",
+      "properties": {
+        "type": "int",
+        "stereotype": "input",
+        "placeholder": "Select months"
+      },
+      "validate": {
+        "required": true
+      }
+    },
+    {
+      "label": "End Date",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_0750nmk",
+        "columns": null
+      },
+      "id": "Field_1n55bsc",
+      "key": "endDate",
+      "properties": {
+        "type": "date",
+        "stereotype": "input"
+      }
+    },
+    {
+      "values": [
+        {
+          "label": "Monthly",
+          "value": "monthly"
+        },
+        {
+          "label": "Yearly",
+          "value": "yearly"
+        }
+      ],
+      "label": "Payment Frequency",
+      "type": "select",
+      "layout": {
+        "row": "Row_1rggw5k",
+        "columns": null
+      },
+      "id": "Field_0swrpx8",
+      "key": "paymentFrequency",
+      "validate": {
+        "required": true
+      },
+      "properties": {
+        "type": "enum",
+        "stereotype": "combobox"
+      }
+    },
+    {
+      "values": [
+        {
+          "label": "Level Term",
+          "value": "level-term"
+        },
+        {
+          "label": "Annuity Decrease",
+          "value": "annuity-decrease"
+        },
+        {
+          "label": "Straight Line Decrease",
+          "value": "straight-line-decrease"
+        },
+        {
+          "label": "Annuity Increase",
+          "value": "annuity-increase"
+        },
+        {
+          "label": "Straight Line Increase",
+          "value": "straight-line-increase"
+        }
+      ],
+      "label": "Capital Flow Type",
+      "type": "select",
+      "layout": {
+        "row": "Row_1ftrtyi",
+        "columns": null
+      },
+      "id": "Field_1gxqurf",
+      "key": "capitalFlowType",
+      "validate": {
+        "required": true
+      },
+      "properties": {
+        "type": "enum",
+        "stereotype": "combobox"
+      }
+    },
+    {
+      "label": "Capital Flow %",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_0bv55yo",
+        "columns": null
+      },
+      "id": "Field_0jlk4tq",
+      "key": "capitalFlowPercent",
+      "properties": {
+        "type": "double",
+        "stereotype": "input"
+      }
+    },
+    {
+      "text": "Term-life calculation",
+      "type": "text",
+      "layout": {
+        "row": "Row_1fkf7fh",
+        "columns": null
+      },
+      "id": "Field_1wp4vfs",
+      "properties": {
+        "id": "0",
+        "viewPart": "right",
+        "type": "Card",
+        "dataPrefix": "summary"
+      }
+    },
+    {
+      "label": "Birthdate",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_1wu6la9",
+        "columns": null
+      },
+      "id": "Field_1x4aykz",
+      "key": "birthdateSummary",
+      "properties": {
+        "type": "string",
+        "stereotype": "input",
+        "viewPart": "right"
+      },
+      "disabled": true
+    },
+    {
+      "label": "Smoke",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_0o63tj9",
+        "columns": null
+      },
+      "id": "Field_1yjnc3q",
+      "key": "smokeSummary",
+      "properties": {
+        "type": "string",
+        "stereotype": "input",
+        "viewPart": "right"
+      },
+      "disabled": true
+    },
+    {
+      "label": "Occupation",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_0lt6j9n",
+        "columns": null
+      },
+      "id": "Field_1srpok2",
+      "key": "occupationSummary",
+      "properties": {
+        "type": "string",
+        "stereotype": "input",
+        "viewPart": "right"
+      },
+      "disabled": true
+    },
+    {
+      "label": "Sum-insured",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_05sdows",
+        "columns": null
+      },
+      "id": "Field_1mjkswu",
+      "key": "sumInsuredSummary",
+      "properties": {
+        "type": "double",
+        "stereotype": "input",
+        "viewPart": "right"
+      },
+      "disabled": true
+    },
+    {
+      "label": "Payment frequency",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_0bnuipv",
+        "columns": null
+      },
+      "id": "Field_1epuns9",
+      "key": "paymentFrequencySummary",
+      "properties": {
+        "type": "string",
+        "stereotype": "input",
+        "viewPart": "right"
+      },
+      "disabled": true
+    },
+    {
+      "values": [
+        {
+          "label": "Calculate",
+          "value": "calculate"
+        }
+      ],
+      "label": "Main actions",
+      "type": "select",
+      "layout": {
+        "row": "Row_1p0o0mg",
+        "columns": null
+      },
+      "id": "Field_10arbxm",
+      "key": "mainActions",
+      "properties": {
+        "type": "Primary",
+        "validationRequired": "true",
+        "confirmationRequired": "false"
+      }
+    }
+  ],
+  "type": "default",
+  "id": "insured-information",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.10.0"
+  },
+  "executionPlatform": "Camunda Platform",
+  "executionPlatformVersion": "7.18.0",
+  "schemaVersion": 8
+}

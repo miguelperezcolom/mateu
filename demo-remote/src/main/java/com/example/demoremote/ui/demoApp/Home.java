@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @MateuUI("")
 @ExternalScripts("https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js")
 @Getter
-@KeycloakSecured(url = "http://keycloak.mateu.io", realm = "prueba", clientId = "cliente")
+//@KeycloakSecured(url = "http://keycloak.mateu.io", realm = "prueba", clientId = "cliente")
 public class Home extends DemoApp {
 
     @RawContent
