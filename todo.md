@@ -19,3 +19,8 @@
 - ir a vista solo lectura si hay campos con relaciones @xtomany
 - inferir crud para entidad jpa cuando @xtomany
 - pensar edición con objeto pinned
+
+## tasks
+- clean unused classes / code
+- add/recover tests
+- refactor where advisable
