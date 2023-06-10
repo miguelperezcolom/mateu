@@ -25,3 +25,5 @@
 - add/recover tests
 - refactor where advisable
 - make more extensible
+- recover docs
+- doc api
