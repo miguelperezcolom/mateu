@@ -1,5 +1,7 @@
 package io.mateu.remote.domain.commands.startJourney;
 
+import com.google.common.base.Strings;
+import io.mateu.mdd.core.interfaces.Crud;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.interfaces.RemoteJourney;
 import io.mateu.remote.application.MateuRemoteClient;
@@ -78,6 +80,7 @@ public class StartJourneyCommandHandler {
 
         return Mono.empty();
     }
+
 
     private String getStepId(Object formInstance) {
         if (formInstance instanceof Listing) return "list";

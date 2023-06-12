@@ -14,8 +14,8 @@ public class EntityEditorFactory {
     EntityManager em;
 
     @Transactional
-    public EntityEditor create(Object entity) throws Exception {
+    public EntityEditor create(Object entity, int __index, int __count) throws Exception {
         entity = em.find(entity.getClass(), ReflectionHelper.getId(entity));
-        return new EntityEditor(entity);
+        return new EntityEditor(entity, __index, __count);
     }
 }

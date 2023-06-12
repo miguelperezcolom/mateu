@@ -10,9 +10,15 @@ public class EntityEditor {
     private Class entityClass;
     private Map<String, Object> data;
 
-    public EntityEditor(Object entity) throws Exception {
+    public EntityEditor(Object entity, int __index, int __count) throws Exception {
         this.entityClass = entity.getClass();
         this.data = Serializer.toMap(entity);
+        if (__index >= 0) {
+            this.data.put("__index", __index);
+        }
+        if (__count >= 0) {
+            this.data.put("__count", __count);
+        }
     }
 
     public EntityEditor() {

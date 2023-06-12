@@ -44,7 +44,13 @@ public class GetStepQueryHandler {
 
         dump(journeyContainer);
 
-        return Mono.just(store.getStep(journeyId, stepId));
+        Step step = store.getStep(journeyId, stepId);
+        if ("list".equals(stepId)) {
+            step.getData().remove("__index");
+            step.getData().remove("__count");
+        }
+
+        return Mono.just(step);
 
     }
 

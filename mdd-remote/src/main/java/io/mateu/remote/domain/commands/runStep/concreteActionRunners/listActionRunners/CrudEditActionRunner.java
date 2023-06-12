@@ -32,8 +32,15 @@ public class CrudEditActionRunner implements ListActionRunner {
 
         Object row = data.get("_selectedRow");
 
-        if (row == null) {
+        int __index = (Integer) data.getOrDefault("__index", -1);
+        int __count = (Integer) data.getOrDefault("__count", -1);
+
+        if (row == null && (__index == -1 && __count == -1)) {
             throw new Exception("No row selected");
+        }
+
+        if (row == null) {
+            row = crud.fetchRows(null, null, (Integer) __index, 1).next().toFuture().get();
         }
 
         Object editor = null;
@@ -50,7 +57,7 @@ public class CrudEditActionRunner implements ListActionRunner {
 
         if (editor.getClass().isAnnotationPresent(Entity.class)) {
             editor = ReflectionHelper.newInstance(EntityEditorFactory.class)
-                    .create(editor);
+                    .create(editor, __index, __count);
         }
 
         String newStepId = "view";
