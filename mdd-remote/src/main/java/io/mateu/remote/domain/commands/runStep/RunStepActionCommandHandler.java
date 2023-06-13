@@ -6,6 +6,7 @@ import io.mateu.remote.application.MateuRemoteClient;
 import io.mateu.remote.application.authPropagation.ReactiveRequestContextHolder;
 import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.editors.FieldEditor;
+import io.mateu.remote.domain.editors.ObjectEditor;
 import io.mateu.remote.domain.store.JourneyContainer;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.util.Helper;
@@ -60,6 +61,8 @@ public class RunStepActionCommandHandler {
 
         if (viewInstance instanceof FieldEditor) {
             // no need to fill the fieldEditor
+        } else if (viewInstance instanceof ObjectEditor) {
+            // no need to fill the entityEditor
         } else if (viewInstance instanceof EntityEditor) {
             // no need to fill the entityEditor
         } else {

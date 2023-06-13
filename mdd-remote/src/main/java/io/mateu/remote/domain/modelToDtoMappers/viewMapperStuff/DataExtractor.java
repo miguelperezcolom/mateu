@@ -4,6 +4,7 @@ import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.editors.FieldEditor;
+import io.mateu.remote.domain.editors.ObjectEditor;
 import io.mateu.util.Serializer;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,12 @@ public class DataExtractor {
             Map<String, Object> data = new HashMap<>();
             data.putAll(((EntityEditor) uiInstance).getData());
             data.put("__entityClassName__", ((EntityEditor) uiInstance).getEntityClass().getName());
+            return data;
+        }
+        if (uiInstance instanceof ObjectEditor) {
+            Map<String, Object> data = new HashMap<>();
+            data.putAll(((ObjectEditor) uiInstance).getData());
+            data.put("__entityClassName__", ((ObjectEditor) uiInstance).getType().getName());
             return data;
         }
         if (uiInstance instanceof FieldEditor) {
@@ -37,6 +44,10 @@ public class DataExtractor {
         if (uiInstance instanceof EntityEditor) {
             data.putAll(((EntityEditor) uiInstance).getData());
             data.put("__entityClassName__", ((EntityEditor) uiInstance).getEntityClass().getName());
+        }
+        if (uiInstance instanceof ObjectEditor) {
+            data.putAll(((ObjectEditor) uiInstance).getData());
+            data.put("__entityClassName__", ((ObjectEditor) uiInstance).getType().getName());
         }
         if (uiInstance instanceof FieldEditor) {
             data.putAll(((FieldEditor) uiInstance).getData());

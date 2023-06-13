@@ -4,6 +4,7 @@ import io.mateu.mdd.core.interfaces.Crud;
 import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.commands.EntityEditorFactory;
+import io.mateu.remote.domain.commands.ObjectEditorFactory;
 import io.mateu.remote.domain.commands.runStep.concreteActionRunners.ListActionRunner;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.util.Helper;
@@ -26,7 +27,7 @@ public class CrudEditActionRunner implements ListActionRunner {
     }
 
     @Override
-    public void run(Crud crud, String journeyId, String stepId, String actionId
+    public void run(Crud crud, String journeyId, String stepId, String listId, String actionId
             , Map<String, Object> data, ServerHttpRequest serverHttpRequest)
             throws Throwable {
 
@@ -40,7 +41,11 @@ public class CrudEditActionRunner implements ListActionRunner {
         }
 
         if (row == null) {
-            row = crud.fetchRows(null, null, (Integer) __index, 1).next().toFuture().get();
+            row = crud.fetchRows(
+                    store.getLastUsedFilters(journeyId, stepId, listId),
+                    store.getLastUsedOrders(journeyId, stepId, listId),
+                    (Integer) __index, 1
+            ).next().toFuture().get();
         }
 
         Object editor = null;
@@ -55,15 +60,19 @@ public class CrudEditActionRunner implements ListActionRunner {
             throw new Exception("Crud onEdit returned null");
         }
 
-        if (editor.getClass().isAnnotationPresent(Entity.class)) {
-            editor = ReflectionHelper.newInstance(EntityEditorFactory.class)
-                    .create(editor, __index, __count);
-        }
-
         String newStepId = "view";
         if (editor instanceof PersistentPojo) {
             newStepId = "edit";
         }
+
+        if (editor.getClass().isAnnotationPresent(Entity.class)) {
+            editor = ReflectionHelper.newInstance(EntityEditorFactory.class)
+                    .create(editor, __index, __count);
+        } else {
+            editor = ReflectionHelper.newInstance(ObjectEditorFactory.class)
+                    .create(editor, __index, __count);
+        }
+
         store.setStep(journeyId, newStepId, editor, serverHttpRequest);
 
     }

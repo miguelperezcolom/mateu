@@ -9,7 +9,7 @@ public interface ListActionRunner {
 
     boolean applies(Crud crud, String actionId);
 
-    void run(Crud crud, String journeyId, String stepId, String actionId,
+    void run(Crud crud, String journeyId, String stepId, String listId, String actionId,
              Map<String, Object> data, ServerHttpRequest serverHttpRequest) throws Throwable;
 
 }

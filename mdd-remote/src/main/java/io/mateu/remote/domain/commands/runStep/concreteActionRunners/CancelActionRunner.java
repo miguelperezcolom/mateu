@@ -4,6 +4,7 @@ import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.remote.domain.commands.runStep.ActionRunner;
 import io.mateu.remote.domain.editors.EntityEditor;
+import io.mateu.remote.domain.editors.ObjectEditor;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import jakarta.persistence.Entity;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ public class CancelActionRunner implements ActionRunner {
         return (viewInstance instanceof ReadOnlyPojo
                 || viewInstance instanceof PersistentPojo
                 || viewInstance instanceof EntityEditor
+                || viewInstance instanceof ObjectEditor
                 || viewInstance.getClass().isAnnotationPresent(Entity.class))
                 && "cancel".equals(actionId);
     }

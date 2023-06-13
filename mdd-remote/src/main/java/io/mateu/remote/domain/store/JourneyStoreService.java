@@ -2,11 +2,13 @@ package io.mateu.remote.domain.store;
 
 import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.shared.interfaces.Listing;
+import io.mateu.mdd.shared.interfaces.SortCriteria;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.commands.runStep.ActualValueExtractor;
 import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.editors.FieldEditor;
+import io.mateu.remote.domain.editors.ObjectEditor;
 import io.mateu.remote.domain.modelToDtoMappers.StepMapper;
 import io.mateu.remote.domain.modelToDtoMappers.UIMapper;
 import io.mateu.remote.dtos.Journey;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -59,6 +62,9 @@ public class JourneyStoreService {
             if (viewInstance instanceof EntityEditor) {
                 ((EntityEditor) viewInstance).setEntityClass(Class.forName((String) data.get("__entityClassName__")));
                 ((EntityEditor) viewInstance).setData(data);
+            } else if (viewInstance instanceof ObjectEditor) {
+                ((ObjectEditor) viewInstance).setType(Class.forName((String) data.get("__entityClassName__")));
+                ((ObjectEditor) viewInstance).setData(data);
             } else if (viewInstance instanceof FieldEditor) {
                 ((FieldEditor) viewInstance).setType(Class.forName((String) data.get("__type__")));
                 ((FieldEditor) viewInstance).setFieldId((String) data.get("__fieldId__"));
@@ -333,4 +339,27 @@ public class JourneyStoreService {
     public ApplicationContext getApplicationContext() {
         return applicationContext;
     }
+
+    public Object getLastUsedFilters(String journeyId, String stepId, String listId) {
+        JourneyContainer journeyContainer = journeyRepo.findById(journeyId).get();
+        return journeyContainer.getLastUsedFilters().get(stepId + "#" + listId);
+    }
+
+    public List<SortCriteria> getLastUsedOrders(String journeyId, String stepId, String listId) {
+        JourneyContainer journeyContainer = journeyRepo.findById(journeyId).get();
+        return journeyContainer.getLastUsedSorting().get(stepId + "#" + listId);
+    }
+
+    public void saveFilters(String journeyId, String stepId, String listId, Object filters) {
+        JourneyContainer journeyContainer = journeyRepo.findById(journeyId).get();
+        journeyContainer.getLastUsedFilters().put(stepId + "#" + listId, filters);
+        journeyRepo.save(journeyContainer);
+    }
+
+    public void saveOrders(String journeyId, String stepId, String listId, List<SortCriteria> sorting) {
+        JourneyContainer journeyContainer = journeyRepo.findById(journeyId).get();
+        journeyContainer.getLastUsedSorting().put(stepId + "#" + listId, sorting);
+        journeyRepo.save(journeyContainer);
+    }
+
 }

@@ -9,6 +9,7 @@ import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.editors.FieldEditor;
 import io.mateu.remote.domain.editors.MethodParametersEditor;
+import io.mateu.remote.domain.editors.ObjectEditor;
 import io.mateu.remote.domain.metadataBuilders.*;
 import io.mateu.remote.domain.modelToDtoMappers.RpcViewWrapper;
 import io.mateu.remote.dtos.*;
@@ -57,8 +58,6 @@ public class ViewMetadataBuilder {
             metadata = getStepper(stepId, uiInstance, slotFields);
         } else if (uiInstance instanceof Card) {
             metadata = getCard(stepId, uiInstance, slotFields);
-        } else if (uiInstance instanceof Stepper) {
-            metadata = getStepper(stepId, uiInstance, slotFields);
         } else {
             metadata = getForm(stepId, model, slotFields);
         }

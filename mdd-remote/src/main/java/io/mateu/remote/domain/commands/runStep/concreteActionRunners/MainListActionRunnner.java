@@ -30,11 +30,13 @@ public class MainListActionRunnner implements ActionRunner {
                     Map<String, Object> data, ServerHttpRequest serverHttpRequest)
             throws Throwable{
 
+        String listId = "main";
+
         Listing rpcView;
         if (viewInstance instanceof Listing) {
             rpcView = (Listing) viewInstance;
         } else {
-            String listId = actionId.split("__")[2];
+            listId = actionId.split("__")[2];
             rpcView = store.getRpcViewInstance(journeyId, stepId, listId, serverHttpRequest);
         }
         actionId = actionId.substring(actionId.indexOf("__") + 2);
@@ -46,7 +48,7 @@ public class MainListActionRunnner implements ActionRunner {
 
             for (ListActionRunner listActionRunner : listActionRunners) {
                 if (listActionRunner.applies(crud, actionId)) {
-                    listActionRunner.run(crud, journeyId, stepId, actionId, data, serverHttpRequest);
+                    listActionRunner.run(crud, journeyId, stepId, listId, actionId, data, serverHttpRequest);
                     break;
                 }
             }

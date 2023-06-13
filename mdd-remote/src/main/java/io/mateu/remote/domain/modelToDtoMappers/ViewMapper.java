@@ -10,6 +10,7 @@ import io.mateu.remote.application.MateuRemoteClient;
 import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.editors.FieldEditor;
 import io.mateu.remote.domain.editors.MethodParametersEditor;
+import io.mateu.remote.domain.editors.ObjectEditor;
 import io.mateu.remote.domain.modelToDtoMappers.viewMapperStuff.*;
 import io.mateu.remote.domain.store.JourneyContainer;
 import io.mateu.remote.domain.store.JourneyStoreService;
@@ -170,6 +171,9 @@ public class ViewMapper {
             EntityEditor entityEditor = (EntityEditor) uiInstance;
             actualUiInstance = em.find(entityEditor.getEntityClass(),
                     ReflectionHelper.getId(Helper.fromJson(Helper.toJson(entityEditor.getData()), entityEditor.getEntityClass())));
+        } else if (uiInstance instanceof ObjectEditor) {
+            ObjectEditor objectEditor = (ObjectEditor) uiInstance;
+            actualUiInstance = Helper.fromJson(Helper.toJson(objectEditor.getData()), objectEditor.getType());
         } else if (uiInstance instanceof FieldEditor) {
             FieldEditor fieldEditor = (FieldEditor) uiInstance;
             actualUiInstance = Helper.fromJson(Helper.toJson(fieldEditor.getData()), fieldEditor.getType());

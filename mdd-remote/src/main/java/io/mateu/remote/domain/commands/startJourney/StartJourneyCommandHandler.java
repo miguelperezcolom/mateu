@@ -17,6 +17,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -94,6 +95,8 @@ public class StartJourneyCommandHandler {
                 .journey(journey)
                 .steps(Map.of(step.getId(), step))
                 .initialStep(step)
+                .lastUsedFilters(new HashMap<>())
+                .lastUsedSorting(new HashMap<>())
                 .build();
         store.save(journeyContainer);
     }
@@ -106,6 +109,8 @@ public class StartJourneyCommandHandler {
                 .journey(journey)
                 .steps(Map.of())
                 .initialStep(null)
+                .lastUsedFilters(new HashMap<>())
+                .lastUsedSorting(new HashMap<>())
                 .remoteBaseUrl(remoteBaseUrl)
                 .remoteJourneyTypeId(remoteJourneyTypeId)
                 .build();
