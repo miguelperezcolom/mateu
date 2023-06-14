@@ -40,9 +40,9 @@ public class ChecksFieldsForm {
 
     @Action
     public void assess() {
-        assessment = ""
+        assessment = "" + check
+                + ", " + usingRadioButtons
                 + ", " + toggle
-                + ", " + check
         ;
     }
 }
