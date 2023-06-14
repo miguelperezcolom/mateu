@@ -13,7 +13,7 @@ import java.util.List;
 
 @Data
 @Caption("Arrays and collections")
-public class ArraysAndCollectionsForm {
+public class ArraysAndSimpleCollectionsForm {
 
 
     @Section("Arrays")
