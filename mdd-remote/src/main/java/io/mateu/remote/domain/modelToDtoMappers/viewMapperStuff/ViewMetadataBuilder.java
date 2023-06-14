@@ -52,10 +52,10 @@ public class ViewMetadataBuilder {
             metadata = getResult((Result) uiInstance);
         } else if (uiInstance instanceof Listing) {
             metadata = getCrud(stepId, "main", (Listing) uiInstance);
-        } else if (uiInstance instanceof RpcViewWrapper) {
-            metadata = getCrud(stepId, ((RpcViewWrapper) uiInstance).getId(), ((RpcViewWrapper) uiInstance).getRpcView());
-        } else if (uiInstance instanceof Stepper) {
-            metadata = getStepper(stepId, uiInstance, slotFields);
+        } else if (model instanceof RpcViewWrapper) {
+            metadata = getCrud(stepId, ((RpcViewWrapper) model).getId(), ((RpcViewWrapper) model).getRpcView());
+        } else if (model instanceof Stepper) {
+            metadata = getStepper(stepId, model, slotFields);
         } else if (uiInstance instanceof Card) {
             metadata = getCard(stepId, uiInstance, slotFields);
         } else {

@@ -80,7 +80,7 @@ public class ${simpleClassName}Controller {
         html = html.replaceAll("<body>", "<body onload='initKeycloak()'>");
 <#else >
     html = html.replaceAll("<!-- AQUIMATEU -->", "<script type='module' src='https://unpkg.com/mateu-ui/dist/assets/mateu.js'></script>");
-    html = html.replaceAll("<!-- AQUIUI -->", "<mateu-ui uiId='${className}' baseUrl='/mateu/v1'></mateu-ui>");
+    html = html.replaceAll("<!-- AQUIUI -->", "<mateu-ui uiId='${className}' baseUrl='${path}/mateu/v1'></mateu-ui>");
 </#if>
         return html;
     }
