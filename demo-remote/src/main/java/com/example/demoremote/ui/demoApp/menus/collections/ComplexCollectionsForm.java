@@ -1,27 +1,31 @@
 package com.example.demoremote.ui.demoApp.menus.collections;
 
-import com.example.demoremote.domains.agnostic.pojos.Movie;
-import com.example.demoremote.domains.agnostic.pojos.Profile;
-import com.example.demoremote.domains.agnostic.records.Address;
+import com.example.demoremote.domains.agnostic.pojos.Address;
+import com.example.demoremote.domains.agnostic.records.AddressRecord;
 import com.example.demoremote.domains.nfl.providers.TeamsProvider;
 import io.mateu.mdd.shared.annotations.Caption;
-import io.mateu.mdd.shared.annotations.Embed;
 import io.mateu.mdd.shared.annotations.ItemsProvider;
 import io.mateu.mdd.shared.annotations.Section;
 import io.mateu.mdd.shared.data.ExternalReference;
 import lombok.Data;
 
 import java.util.List;
-import java.util.Map;
 
 @Data
 @Caption("Complex collections")
 public class ComplexCollectionsForm {
 
-    @Section("Complex maps")
+    @Section("Complex collections")
     private List<Address> addresses;
+
+    private List<Address> preFilled = List.of(
+            new Address("Arxiduc Lluís Salvador, 38", "Palma de Mallorca", "07004", "Spain")
+            , new Address("Juan Crespí, 12A", "Palma de Mallorca", "07014", "Spain")
+            , new Address("Gran vía, 1", "Madrid", "01001", "Spain")
+    );
 
     @ItemsProvider(TeamsProvider.class)
     private List<ExternalReference> externalRefs;
+
 
 }

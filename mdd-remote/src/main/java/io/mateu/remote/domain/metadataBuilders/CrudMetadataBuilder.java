@@ -82,26 +82,14 @@ public class CrudMetadataBuilder {
         return Column.builder()
                 .id(columnId)
                 .caption(columnCaption)
-                .type(mapColumnType(fieldInterfaced))
+                .type(fieldTypeMapper.mapColumnType(fieldInterfaced))
                 .stereotype("column")
                 .attributes(List.of())
-                .width(getWidth(fieldInterfaced))
+                .width(fieldTypeMapper.getWidth(fieldInterfaced))
                 .build();
     }
 
-    private String mapColumnType(FieldInterfaced field) {
-        if (field.isAnnotationPresent(io.mateu.mdd.shared.annotations.Status.class)) {
-            return io.mateu.remote.dtos.Status.class.getSimpleName();
-        }
-        return fieldTypeMapper.mapFieldType(field);
-    }
 
-    private String getWidth(FieldInterfaced fieldInterfaced) {
-        if (fieldInterfaced.isAnnotationPresent(Width.class)) {
-            return fieldInterfaced.getAnnotation(Width.class).value();
-        }
-        return "150px";
-    }
 
     private SearchForm buildSearchForm(Listing rpcView) {
         return SearchForm.builder()

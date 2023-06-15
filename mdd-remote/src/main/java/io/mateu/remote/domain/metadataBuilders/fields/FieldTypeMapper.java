@@ -2,6 +2,7 @@ package io.mateu.remote.domain.metadataBuilders.fields;
 
 import io.mateu.mdd.shared.annotations.UseCheckboxes;
 import io.mateu.mdd.shared.annotations.UseChips;
+import io.mateu.mdd.shared.annotations.Width;
 import io.mateu.mdd.shared.data.ExternalReference;
 import io.mateu.mdd.shared.data.TelephoneNumber;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -68,7 +70,7 @@ public class FieldTypeMapper {
                 return ExternalReference.class.getSimpleName() + "[]";
             }
         }
-        if (List.class.isAssignableFrom(type)) {
+        if (Collection.class.isAssignableFrom(type)) {
             String value = field.getGenericClass().getSimpleName().toLowerCase();
             if (Integer.class.equals(field.getGenericClass())) {
                 value = "int";
@@ -86,6 +88,20 @@ public class FieldTypeMapper {
         }
 
         return type.getSimpleName();
+    }
+
+    public String mapColumnType(FieldInterfaced field) {
+        if (field.isAnnotationPresent(io.mateu.mdd.shared.annotations.Status.class)) {
+            return io.mateu.remote.dtos.Status.class.getSimpleName();
+        }
+        return mapFieldType(field);
+    }
+
+    public String getWidth(FieldInterfaced fieldInterfaced) {
+        if (fieldInterfaced.isAnnotationPresent(Width.class)) {
+            return fieldInterfaced.getAnnotation(Width.class).value();
+        }
+        return "150px";
     }
 
 }

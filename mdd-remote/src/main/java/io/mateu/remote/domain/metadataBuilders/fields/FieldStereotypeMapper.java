@@ -1,6 +1,7 @@
 package io.mateu.remote.domain.metadataBuilders.fields;
 
 import io.mateu.mdd.shared.annotations.*;
+import io.mateu.mdd.shared.data.ExternalReference;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.files.FileChecker;
@@ -10,6 +11,7 @@ import jakarta.persistence.ManyToOne;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -81,6 +83,13 @@ public class FieldStereotypeMapper {
         }
         if (field.getType().isAnnotationPresent(Element.class)) {
             return "element:" + field.getType().getAnnotation(Element.class).value();
+        }
+        if (Collection.class.isAssignableFrom(field.getType())
+                && !ReflectionHelper.isBasico(field.getType())
+                && !ExternalReference.class.equals(field.getGenericClass())
+                && !field.getGenericClass().isEnum()
+        ) {
+            return "crud";
         }
         return "input";
     }

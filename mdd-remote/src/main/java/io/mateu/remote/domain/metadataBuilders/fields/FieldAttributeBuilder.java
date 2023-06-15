@@ -1,11 +1,14 @@
 package io.mateu.remote.domain.metadataBuilders.fields;
 
 import io.mateu.mdd.shared.annotations.*;
+import io.mateu.mdd.shared.data.ExternalReference;
 import io.mateu.mdd.shared.data.TelephoneNumber;
 import io.mateu.mdd.shared.data.ValuesListProvider;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.files.FileChecker;
+import io.mateu.remote.domain.metadataBuilders.CrudMetadataBuilder;
+import io.mateu.remote.dtos.Column;
 import io.mateu.remote.dtos.Pair;
 import io.mateu.remote.dtos.TelephonePrefix;
 import io.mateu.remote.dtos.Value;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -23,6 +27,9 @@ public class FieldAttributeBuilder {
 
     @Autowired
     FileChecker fileChecker;
+
+    @Autowired
+    FieldTypeMapper fieldTypeMapper;
 
     public List<Pair> buildAttributes(Object view, FieldInterfaced field) {
         List<Pair> attributes = new ArrayList<>();
@@ -170,7 +177,28 @@ public class FieldAttributeBuilder {
                 }
             }
         }
+        if (Collection.class.isAssignableFrom(field.getType())
+                && !ReflectionHelper.isBasico(field.getType())
+                && !ExternalReference.class.equals(field.getGenericClass())
+                && !field.getGenericClass().isEnum()
+        ) {
+            for (FieldInterfaced columnField : ReflectionHelper.getAllEditableFields(field.getGenericClass())) {
+                attributes.add(Pair.builder()
+                        .key("column")
+                        .value(Column.builder()
+                                .id(columnField.getId())
+                                .caption(ReflectionHelper.getCaption(columnField))
+                                .type(fieldTypeMapper.mapColumnType(columnField))
+                                .stereotype("column")
+                                .attributes(List.of())
+                                .width(fieldTypeMapper.getWidth(columnField))
+                                .build()).build());
+            }
+        }
         return attributes;
     }
+
+
+
 
 }
