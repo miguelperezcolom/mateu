@@ -13,4 +13,9 @@ public class Address {
     String postalCode;
     String country;
 
+    @Override
+    public String toString() {
+        return "" + street + "|" + city + "|" + postalCode + "|" + country;
+    }
+
 }

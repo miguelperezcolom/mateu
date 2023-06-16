@@ -5,6 +5,7 @@ import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.files.StorageServiceAccessor;
 import io.mateu.remote.domain.files.FileChecker;
+import io.mateu.util.Helper;
 import io.mateu.util.Serializer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -131,6 +132,21 @@ public class ActualValueExtractor {
                         t.add(v);
                     }
                     return t;
+                }
+                if (!ReflectionHelper.isBasico(f.getGenericClass())) {
+                    List value = new ArrayList();
+                    List<Map<String, Object>> in = (List<Map<String, Object>>) entry.getValue();
+                    in.stream().map(m -> {
+                                try {
+                                    return Helper.fromJson(Helper.toJson(m), f.getGenericClass());
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                                return null;
+                            })
+                            .filter(v -> v != null)
+                            .forEach(v -> value.add(v));
+                    return value;
                 }
                 return entry.getValue();
             }

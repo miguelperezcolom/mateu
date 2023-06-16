@@ -1,8 +1,9 @@
 package io.mateu.mdd.core.util;
 
-import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Serializer;
 import io.mateu.util.xml.XMLSerializable;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -10,8 +11,6 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
-import jakarta.persistence.AttributeConverter;
-import jakarta.persistence.Converter;
 import java.io.IOException;
 import java.io.StringReader;
 

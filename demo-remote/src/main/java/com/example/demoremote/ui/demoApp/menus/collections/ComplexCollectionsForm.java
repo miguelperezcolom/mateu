@@ -3,9 +3,7 @@ package com.example.demoremote.ui.demoApp.menus.collections;
 import com.example.demoremote.domains.agnostic.pojos.Address;
 import com.example.demoremote.domains.agnostic.records.AddressRecord;
 import com.example.demoremote.domains.nfl.providers.TeamsProvider;
-import io.mateu.mdd.shared.annotations.Caption;
-import io.mateu.mdd.shared.annotations.ItemsProvider;
-import io.mateu.mdd.shared.annotations.Section;
+import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.ExternalReference;
 import lombok.Data;
 
@@ -27,5 +25,17 @@ public class ComplexCollectionsForm {
     @ItemsProvider(TeamsProvider.class)
     private List<ExternalReference> externalRefs;
 
+
+    @Section("Assessment")
+    @ReadOnly
+    private String assessment;
+
+    @Action
+    public void assess() {
+        assessment = "" + addresses
+        + ", " + preFilled
+        + ", " + externalRefs
+        ;
+    }
 
 }
