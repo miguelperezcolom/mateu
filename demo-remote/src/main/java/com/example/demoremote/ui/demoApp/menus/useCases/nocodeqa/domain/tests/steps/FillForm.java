@@ -14,6 +14,6 @@ import java.util.List;
 public class FillForm extends TestStep {
 
     @OneToMany(cascade = CascadeType.ALL)
-    List<Input> inputs = new ArrayList<>();
+    List<TestInput> inputs = new ArrayList<>();
     
 }

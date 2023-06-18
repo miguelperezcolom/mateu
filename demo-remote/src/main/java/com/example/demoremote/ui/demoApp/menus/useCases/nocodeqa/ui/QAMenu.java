@@ -7,8 +7,7 @@ import io.mateu.mdd.shared.annotations.MateuUI;
 import io.mateu.mdd.shared.annotations.MenuOption;
 import io.mateu.mdd.shared.interfaces.JpaCrud;
 
-@MateuUI("")
-public class Home {
+public class QAMenu {
 
     @MenuOption
     JpaCrud<Test> tests;

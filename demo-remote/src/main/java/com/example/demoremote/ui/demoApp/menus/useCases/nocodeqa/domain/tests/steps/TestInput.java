@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Entity
 @Getter@Setter
-public class Input {
+public class TestInput {
 
     @Id
     String id = UUID.randomUUID().toString();

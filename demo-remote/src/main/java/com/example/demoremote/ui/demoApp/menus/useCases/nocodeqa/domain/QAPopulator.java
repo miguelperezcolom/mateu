@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class Populator implements CommandLineRunner {
+public class QAPopulator implements CommandLineRunner {
 
     @Autowired
     TestRepository testRepository;
@@ -60,13 +60,13 @@ public class Populator implements CommandLineRunner {
         return step;
     }
 
-    private List<Input> createInputs() {
-        List<Input> inputs = new ArrayList<>();
-        Input input = new Input();
+    private List<TestInput> createInputs() {
+        List<TestInput> inputs = new ArrayList<>();
+        TestInput input = new TestInput();
         input.setLabel("Name");
         input.setValue("Mateu");
         inputs.add(input);
-        input = new Input();
+        input = new TestInput();
         input.setLabel("Age");
         input.setValue("15");
         inputs.add(input);
