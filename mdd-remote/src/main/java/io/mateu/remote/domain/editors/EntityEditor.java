@@ -1,5 +1,6 @@
 package io.mateu.remote.domain.editors;
 
+import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
 import io.mateu.util.Serializer;
 
@@ -13,6 +14,7 @@ public class EntityEditor {
     public EntityEditor(Object entity, int __index, int __count) throws Exception {
         this.entityClass = entity.getClass();
         this.data = Serializer.toMap(entity);
+        this.data.put("__id", ReflectionHelper.getId(entity));
         if (__index >= 0) {
             this.data.put("__index", __index);
         }

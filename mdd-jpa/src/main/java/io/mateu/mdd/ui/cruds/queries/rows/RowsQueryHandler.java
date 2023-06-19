@@ -22,7 +22,7 @@ public class RowsQueryHandler {
     private final String successStatuses = "active,on,true,success";
     private final String infoStatuses = "info";
     private final String warningStatuses = "warning";
-    private final String dangerStatuses = "inactive,off,false,danger";
+    private final String dangerStatuses = "inactive,off,false,danger,fail";
 
     @PersistenceContext
     private EntityManager em;
@@ -66,16 +66,20 @@ public class RowsQueryHandler {
     }
 
     private StatusType getStatusType(Status statusAnnotation, String value) {
-        if (statusAnnotation.valuesForSuccess().contains(value) || successStatuses.contains(value)) {
+        if (value == null) {
+            return StatusType.NONE;
+        }
+        String normalizedValue = value.toLowerCase();
+        if (statusAnnotation.valuesForSuccess().contains(normalizedValue) || successStatuses.contains(normalizedValue)) {
             return StatusType.SUCCESS;
         }
-        if (statusAnnotation.valuesForDanger().contains(value) || dangerStatuses.contains(value)) {
+        if (statusAnnotation.valuesForDanger().contains(normalizedValue) || dangerStatuses.contains(normalizedValue)) {
             return StatusType.DANGER;
         }
-        if (statusAnnotation.valuesForWarning().contains(value) || warningStatuses.contains(value)) {
+        if (statusAnnotation.valuesForWarning().contains(normalizedValue) || warningStatuses.contains(normalizedValue)) {
             return StatusType.WARNING;
         }
-        if (statusAnnotation.valuesForInfo().contains(value) || infoStatuses.contains(value)) {
+        if (statusAnnotation.valuesForInfo().contains(normalizedValue) || infoStatuses.contains(normalizedValue)) {
             return StatusType.INFO;
         }
         return StatusType.NONE;

@@ -11,6 +11,7 @@ import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
 import io.mateu.util.Helper;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -71,7 +73,9 @@ public class FormMetadataBuilder {
         if (!(uiInstance instanceof HasBadges)) {
             return List.of();
         }
-        return ((HasBadges) uiInstance).getBadges().stream().map(b -> new Badge(mapBadgeType(b.getType()), b.getMessage())).collect(Collectors.toList());
+        return ((HasBadges) uiInstance).getBadges().stream()
+                .map(b -> new Badge(mapBadgeType(b.getType()), b.getMessage()))
+                .collect(Collectors.toList());
     }
 
     private BadgeType mapBadgeType(io.mateu.mdd.shared.data.BadgeType type) {
@@ -84,7 +88,8 @@ public class FormMetadataBuilder {
                 .filter(m -> m.isAnnotationPresent(io.mateu.mdd.shared.annotations.MainAction.class))
                 .map(m -> actionMetadataBuilder.getAction(m))
                 .collect(Collectors.toList());
-        if (!"view".equals(stepId) && (uiInstance instanceof PersistentPojo || uiInstance.getClass().isAnnotationPresent(Entity.class))) {
+        if (!"view".equals(stepId)
+                && (uiInstance instanceof PersistentPojo || uiInstance.getClass().isAnnotationPresent(Entity.class))) {
             Action action = Action.builder()
                     .id("cancel")
                     .caption("Cancel")
@@ -112,7 +117,9 @@ public class FormMetadataBuilder {
         FieldGroupLine fieldGroupLine = null;
 
         List<FieldInterfaced> allEditableFields = ReflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
-                .filter(f -> !f.isAnnotationPresent(OneToMany.class)
+                .filter(f -> (!f.isAnnotationPresent(OneToMany.class)
+                        || Arrays.stream(f.getAnnotation(OneToMany.class).cascade())
+                        .filter(c -> CascadeType.ALL.equals(c)).count() > 0)
                         || f.isAnnotationPresent(UseCheckboxes.class)
                         || f.isAnnotationPresent(UseChips.class))
                 .filter(f -> slotFields.contains(f))
@@ -123,7 +130,8 @@ public class FormMetadataBuilder {
                 String description = "";
                 boolean card = true;
                 if (fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Section.class)) {
-                    io.mateu.mdd.shared.annotations.Section annotation = fieldInterfaced.getAnnotation(io.mateu.mdd.shared.annotations.Section.class);
+                    io.mateu.mdd.shared.annotations.Section annotation = fieldInterfaced
+                            .getAnnotation(io.mateu.mdd.shared.annotations.Section.class);
                     caption = annotation.value();
                     card = annotation.card();
                     description = annotation.description();
@@ -138,7 +146,8 @@ public class FormMetadataBuilder {
                 sections.add(section);
                 fieldGroup = null;
             }
-            if (fieldGroup == null || fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.FieldGroup.class)) {
+            if (fieldGroup == null
+                    || fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.FieldGroup.class)) {
                 String caption = "";
                 if (fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.FieldGroup.class)) {
                     caption = fieldInterfaced.getAnnotation(io.mateu.mdd.shared.annotations.FieldGroup.class).value();
@@ -146,7 +155,8 @@ public class FormMetadataBuilder {
                 fieldGroup = FieldGroup.builder().caption(caption).lines(new ArrayList<>()).build();
                 section.getFieldGroups().add(fieldGroup);
             }
-            if (fieldGroupLine == null || !fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.SameLine.class)) {
+            if (fieldGroupLine == null
+                    || !fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.SameLine.class)) {
                 fieldGroupLine = FieldGroupLine.builder().fields(new ArrayList<>()).build();
                 fieldGroup.getLines().add(fieldGroupLine);
             }
@@ -181,13 +191,17 @@ public class FormMetadataBuilder {
             return modelType.getAnnotation(Caption.class).value();
         }
         String viewTitle = "";
-        if (uiInstance != null && uiInstance instanceof ReadOnlyPojo) viewTitle = ((ReadOnlyPojo) uiInstance).getEntityName();
+        if (uiInstance != null && uiInstance instanceof ReadOnlyPojo) {
+            viewTitle = ((ReadOnlyPojo) uiInstance).getEntityName();
+        }
         if (uiInstance != null && uiInstance instanceof PersistentPojo) {
             viewTitle = ((PersistentPojo) uiInstance).getEntityName();
             if (((PersistentPojo) uiInstance).isNew()) return "New " + viewTitle;
         }
         String prefix = "";
-        if (!"".equals(viewTitle)) prefix = viewTitle + " ";
+        if (!"".equals(viewTitle)) {
+            prefix = viewTitle + " ";
+        }
 
         try {
             if (Object.class.equals(modelType.getMethod("toString").getDeclaringClass())) {

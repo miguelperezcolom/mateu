@@ -2,6 +2,7 @@ package com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain.tests;
 
 import com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain.Status;
 import com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain.Status;
+import io.mateu.mdd.shared.annotations.ReadOnly;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.Getter;
@@ -20,6 +21,10 @@ public abstract class Test {
 
     @io.mateu.mdd.shared.annotations.Status
     Status status;
+
+    @ReadOnly
+    @io.mateu.mdd.shared.annotations.Status
+    Result lastResult;
 
     String comments;
 

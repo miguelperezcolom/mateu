@@ -50,8 +50,7 @@ public class CrudEditActionRunner implements ListActionRunner {
 
         Object editor = null;
         try {
-            editor = crud.getDetail(Helper.fromJson(Helper.toJson(row),
-                    crud.getRowClass()));
+            editor = crud.getDetail(crud.getRow((Map<String, Object>) row));
         } catch (Throwable e) {
             throw new Exception("Crud onEdit thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
         }

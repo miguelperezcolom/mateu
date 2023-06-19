@@ -8,6 +8,7 @@ import io.mateu.util.Helper;
 import io.mateu.util.persistence.EntityDeserializer;
 import io.mateu.util.persistence.EntitySerializer;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import java.util.*;
@@ -49,8 +50,21 @@ public class MateuEntitySerializer implements EntitySerializer {
         if (list == null) {
             return;
         }
-        List<ExternalReference> refs = new ArrayList<>();
-        list.forEach(value -> refs.add(new ExternalReference(ReflectionHelper.getId(value), value.toString())));
-        data.put(field.getId(), refs);
+        if (Arrays.stream(field.getAnnotation(OneToMany.class).cascade())
+                .filter(c -> c.equals(CascadeType.ALL)).count() > 0) {
+            List<Map> items = new ArrayList<>();
+            list.forEach(value -> {
+                try {
+                    items.add(toMap(value));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+            data.put(field.getId(), items);
+        } else {
+            List<ExternalReference> refs = new ArrayList<>();
+            list.forEach(value -> refs.add(new ExternalReference(ReflectionHelper.getId(value), value.toString())));
+            data.put(field.getId(), refs);
+        }
     }
 }

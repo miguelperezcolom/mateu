@@ -20,7 +20,7 @@ public class FieldStereotypeMapper {
     @Autowired
     FileChecker fileChecker;
 
-    public String mapStereotype(FieldInterfaced field) {
+    public String mapStereotype(Object view, FieldInterfaced field) {
         if (field.isAnnotationPresent(CustomFieldStereotype.class)) {
             return field.getAnnotation(CustomFieldStereotype.class).value();
         }
@@ -46,10 +46,8 @@ public class FieldStereotypeMapper {
             return "readonly";
         }
         if (field.isAnnotationPresent(Id.class)) {
-            Object instance = null;
             try {
-                instance = ReflectionHelper.newInstance(field.getDeclaringClass());
-                Object initialValue = ReflectionHelper.getValue(field, instance);
+                Object initialValue = ReflectionHelper.getValue(field, view);
                 if (initialValue != null) {
                     return "readonly";
                 }

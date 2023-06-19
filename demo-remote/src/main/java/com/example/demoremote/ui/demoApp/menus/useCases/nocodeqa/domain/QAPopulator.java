@@ -1,9 +1,6 @@
 package com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain;
 
-import com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain.tests.CrudTest;
-import com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain.tests.FreeTest;
-import com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain.tests.Test;
-import com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain.tests.TestRepository;
+import com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain.tests.*;
 import com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain.tests.steps.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -28,6 +25,7 @@ public class QAPopulator implements CommandLineRunner {
         FreeTest test = new FreeTest();
         test.setName("Free test");
         test.setStatus(Status.Active);
+        test.setLastResult(Result.Success);
         test.setComments("created from populator");
         test.setSteps(createSteps());
         return test;
@@ -44,18 +42,30 @@ public class QAPopulator implements CommandLineRunner {
 
     private TestStep createExpectationStep() {
         ExpectedResult step = new ExpectedResult();
+        step.setName("Check saved");
+        step.setStatus(Status.Active);
+        step.setComments("");
+        step.setOrder(4);
         step.setText("saved");
         return step;
     }
 
     private TestStep createRunActionStep() {
         RunAction step = new RunAction();
+        step.setName("Save");
+        step.setStatus(Status.Active);
+        step.setComments("");
+        step.setOrder(3);
         step.setLabel("Save");
         return step;
     }
 
     private TestStep createFillFormStep() {
         FillForm step = new FillForm();
+        step.setName("Fill form");
+        step.setStatus(Status.Active);
+        step.setComments("");
+        step.setOrder(2);
         step.setInputs(createInputs());
         return step;
     }
@@ -75,6 +85,10 @@ public class QAPopulator implements CommandLineRunner {
 
     private TestStep createOpenUrlStep() {
         OpenUrl step = new OpenUrl();
+        step.setName("Go to /");
+        step.setStatus(Status.Active);
+        step.setComments("");
+        step.setOrder(1);
         step.setUrl("/");
         return step;
     }
@@ -83,6 +97,7 @@ public class QAPopulator implements CommandLineRunner {
         CrudTest test = new CrudTest();
         test.setName("Crud test");
         test.setStatus(Status.Active);
+        test.setLastResult(Result.Fail);
         test.setComments("created from populator");
         return test;
     }

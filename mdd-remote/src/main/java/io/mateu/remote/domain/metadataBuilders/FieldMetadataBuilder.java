@@ -38,7 +38,7 @@ public class FieldMetadataBuilder {
                 .description(getDescription(fieldInterfaced))
                 .cssClasses(getCssClassNames(fieldInterfaced))
                 .type(fieldTypeMapper.mapFieldType(fieldInterfaced))
-                .stereotype(fieldStereotypeMapper.mapStereotype(fieldInterfaced))
+                .stereotype(fieldStereotypeMapper.mapStereotype(view, fieldInterfaced))
                 .observed(isObserved(fieldInterfaced))
                 .attributes(fieldAttributeBuilder.buildAttributes(view, fieldInterfaced))
                 .build();

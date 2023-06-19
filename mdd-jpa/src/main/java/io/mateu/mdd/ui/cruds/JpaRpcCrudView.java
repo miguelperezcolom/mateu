@@ -72,6 +72,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     CountQueryHandler countQueryHandler;
     RowsQueryHandler rowsQueryHandler;
     SumsQueryHandler sumsQueryHandler;
+    FindByIdQueryHandler findByIdQueryHandler;
 
     public JpaRpcCrudView() {
 
@@ -114,6 +115,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
         countQueryHandler = ReflectionHelper.newInstance(CountQueryHandler.class);
         rowsQueryHandler = ReflectionHelper.newInstance(RowsQueryHandler.class);
         sumsQueryHandler = ReflectionHelper.newInstance(SumsQueryHandler.class);
+        findByIdQueryHandler = ReflectionHelper.newInstance(FindByIdQueryHandler.class);
     }
 
     @Override
@@ -185,6 +187,15 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     @Override
     public Class getRowClass() {
         return HashMap.class;
+    }
+
+    @Override
+    public Object getRow(Map<String, Object> row) throws Throwable {
+        Object id = row.get("col0");
+        return findByIdQueryHandler.run(FindByIdQuery.builder()
+                        .entityClass(getEntityClass())
+                        .id(id)
+                .build());
     }
 
     public boolean isAddEnabled() {
