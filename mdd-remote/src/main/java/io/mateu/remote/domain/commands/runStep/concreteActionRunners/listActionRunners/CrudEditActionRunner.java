@@ -50,7 +50,10 @@ public class CrudEditActionRunner implements ListActionRunner {
 
         Object editor = null;
         try {
-            editor = crud.getDetail(crud.getRow((Map<String, Object>) row));
+            if (row instanceof Map) {
+                row = crud.getRow((Map<String, Object>) row);
+            }
+            editor = crud.getDetail(row);
         } catch (Throwable e) {
             throw new Exception("Crud onEdit thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
         }
