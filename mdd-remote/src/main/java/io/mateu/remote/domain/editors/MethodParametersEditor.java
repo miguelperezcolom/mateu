@@ -11,6 +11,13 @@ public class MethodParametersEditor {
     private Class type;
     private Map<String, Object> data;
 
+    public MethodParametersEditor(Class type, String methodId, String initialStep, Map<String, Object> data) throws Exception {
+        this.type = type;
+        this.data = data;
+        this.initialStep = initialStep;
+        this.methodId = methodId;
+    }
+
     public MethodParametersEditor(Object entity, String methodId, String initialStep) throws Exception {
         this.type = entity.getClass();
         this.data = Serializer.toMap(entity);

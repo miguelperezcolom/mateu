@@ -18,4 +18,9 @@ public class Environment {
 
     String baseUrl;
 
+    @Override
+    public String toString() {
+        return name;
+    }
+
 }

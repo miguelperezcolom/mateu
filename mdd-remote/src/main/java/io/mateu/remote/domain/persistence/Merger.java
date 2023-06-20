@@ -31,8 +31,15 @@ public class Merger {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void mergeAndCommit(Map<String, Object> data, Class entityClass) throws Exception {
-        Object entity = Helper.getImpl(EntityDeserializer.class).fromJson(em, Helper.toJson(data), entityClass);
-        em.merge(entity);
+        em.merge(getEntity(data, entityClass));
+    }
+
+    public Object getEntity(Map<String, Object> data, Class entityClass) throws Exception {
+        return Helper.getImpl(EntityDeserializer.class).fromJson(em, Helper.toJson(data), entityClass);
+    }
+
+    public Object loadEntity(Map<String, Object> data, Class entityClass) throws Exception {
+        return em.find(entityClass, data.get("__id"));
     }
 
 

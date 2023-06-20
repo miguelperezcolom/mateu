@@ -14,7 +14,6 @@ public interface RpcCrudViewExtended {
 
     Class getEntityClass();
 
-
     boolean isAddEnabled();
 
     boolean isDeleteEnabled();
@@ -24,4 +23,6 @@ public interface RpcCrudViewExtended {
     Map<FieldInterfaced, String> getColumnIdsPerField();
 
     Map<FieldInterfaced, String> getColumnCaptionsPerField();
+
+
 }

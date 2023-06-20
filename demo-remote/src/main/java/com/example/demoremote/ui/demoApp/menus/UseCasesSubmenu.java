@@ -22,6 +22,6 @@ public class UseCasesSubmenu {
     @Submenu
     ProcessDefinitionMenu processDefinition;
 
-    @Submenu("QA")
+    @Submenu("No code QA")
     QAMenu qa;
 }

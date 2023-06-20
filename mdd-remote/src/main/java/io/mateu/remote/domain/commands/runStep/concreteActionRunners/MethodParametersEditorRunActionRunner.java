@@ -13,6 +13,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -40,17 +41,20 @@ public class MethodParametersEditorRunActionRunner extends AbstractActionRunner 
 
         Step initialStep = store.getStep(journeyId, methodParametersEditor.getInitialStep());
 
-        Object object = Serializer.fromMap(methodParametersEditor.getData(),
+        Method m = ReflectionHelper.getMethod(methodParametersEditor.getType(), methodParametersEditor.getMethodId());
+
+        Object object = Modifier.isStatic(m.getModifiers())?null:Serializer.fromMap(methodParametersEditor.getData(),
                 methodParametersEditor.getType());
 
-        Method m = ReflectionHelper.getMethod(methodParametersEditor.getType(), methodParametersEditor.getMethodId());
         List<Object> values = new ArrayList<>();
         for (int i = 0; i < m.getParameterCount(); i++) {
             values.add(actualValueExtractor.getActualValue(m.getParameterTypes()[i], data.get("param_" + i)));
         }
         Object result = m.invoke(object, values.toArray());
 
-        store.setStep(journeyId, initialStep.getId(), object, serverHttpRequest);
+        if (object != null) {
+            store.setStep(journeyId, initialStep.getId(), object, serverHttpRequest);
+        }
 
         Object whatToShow = result;
         if (!void.class.equals(m.getReturnType())) {

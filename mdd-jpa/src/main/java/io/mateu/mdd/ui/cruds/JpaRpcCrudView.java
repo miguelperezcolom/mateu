@@ -2,6 +2,7 @@ package io.mateu.mdd.ui.cruds;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.shared.annotations.*;
@@ -34,6 +35,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -45,7 +47,7 @@ import java.util.stream.Collectors;
 @Data
 @Component
 @Scope("stereotype")
-public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended {
+public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended, HasActions {
 
     private MDDOpenCRUDAction action;
     private Map<String, String> aliasedColumnNamesByColId = new HashMap<>();
@@ -459,5 +461,13 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
             return new ChooseEntityClassForm(subclasses);
         }
         return ReflectionHelper.newInstance(getEntityClass());
+    }
+
+    @Override
+    public List<Method> getActionMethods() {
+        return ReflectionHelper.getAllMethods(getEntityClass()).stream()
+                .filter(m -> m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class))
+                .filter(m -> Modifier.isStatic(m.getModifiers()))
+                .collect(Collectors.toList());
     }
 }

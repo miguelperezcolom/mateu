@@ -1,11 +1,17 @@
 package com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain;
 
+import com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain.environments.Environment;
+import com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain.environments.EnvironmentRepository;
+import com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain.executions.TestExecution;
+import com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain.executions.TestExecutionRepository;
+import com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain.executions.TestResult;
 import com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain.tests.*;
 import com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain.tests.steps.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,33 +21,79 @@ public class QAPopulator implements CommandLineRunner {
     @Autowired
     TestRepository testRepository;
 
+    @Autowired
+    TestStepRepository testStepRepository;
+
+    @Autowired
+    EnvironmentRepository environmentRepository;
+
+    @Autowired
+    TestExecutionRepository testExecutionRepository;
+
+
     @Override
     public void run(String... args) throws Exception {
         testRepository.save(createCrudTest());
-        testRepository.save(createFreeTest());
+        FreeTest freeTest;
+        testRepository.save(freeTest = createFreeTest());
+        createSteps(freeTest);
+        createEnvironments();
+        createExecutions();
     }
 
-    private Test createFreeTest() {
+    private void createExecutions() {
+        environmentRepository.findAll().forEach(env -> {
+            testRepository.findAll().forEach(t -> {
+                testExecutionRepository.save(createExecution(t, env));
+            });
+        });
+    }
+
+    private TestExecution createExecution(Test t, Environment env) {
+        TestExecution execution = new TestExecution();
+        execution.setTest(t);
+        execution.setEnvironment(env);
+        execution.setWhen(LocalDateTime.now());
+        execution.setResult(TestResult.Success);
+        return execution;
+    }
+
+    private void createEnvironments() {
+        environmentRepository.save(createEnvironment("Dev", "https://dev.wefox.com"));
+        environmentRepository.save(createEnvironment("Stg", "https://stg.wefox.com"));
+        environmentRepository.save(createEnvironment("Prod", "https://www.wefox.com"));
+    }
+
+    private Environment createEnvironment(String name, String url) {
+        Environment env = new Environment();
+        env.setName(name);
+        env.setBaseUrl(url);
+        return env;
+    }
+
+    private FreeTest createFreeTest() {
         FreeTest test = new FreeTest();
-        test.setName("Free test");
+        test.setName("Sample free test");
         test.setStatus(Status.Active);
         test.setLastResult(Result.Success);
         test.setComments("created from populator");
-        test.setSteps(createSteps());
+        //test.setSteps(createSteps());
         return test;
     }
 
-    private List<TestStep> createSteps() {
+    private List<TestStep> createSteps(FreeTest test) {
         List<TestStep> steps = new ArrayList<>();
-        steps.add(createOpenUrlStep());
-        steps.add(createFillFormStep());
-        steps.add(createRunActionStep());
-        steps.add(createExpectationStep());
+        steps.add(createOpenUrlStep(test));
+        steps.add(createFillFormStep(test));
+        steps.add(createRunActionStep(test));
+        steps.add(createExpectationStep(test));
+        testStepRepository.saveAll(steps);
         return steps;
     }
 
-    private TestStep createExpectationStep() {
+    private TestStep createExpectationStep(FreeTest test) {
         ExpectedResult step = new ExpectedResult();
+        step.setTest(test);
         step.setName("Check saved");
         step.setStatus(Status.Active);
         step.setComments("");
@@ -50,8 +102,9 @@ public class QAPopulator implements CommandLineRunner {
         return step;
     }
 
-    private TestStep createRunActionStep() {
+    private TestStep createRunActionStep(FreeTest test) {
         RunAction step = new RunAction();
+        step.setTest(test);
         step.setName("Save");
         step.setStatus(Status.Active);
         step.setComments("");
@@ -60,8 +113,9 @@ public class QAPopulator implements CommandLineRunner {
         return step;
     }
 
-    private TestStep createFillFormStep() {
+    private TestStep createFillFormStep(FreeTest test) {
         FillForm step = new FillForm();
+        step.setTest(test);
         step.setName("Fill form");
         step.setStatus(Status.Active);
         step.setComments("");
@@ -83,8 +137,9 @@ public class QAPopulator implements CommandLineRunner {
         return inputs;
     }
 
-    private TestStep createOpenUrlStep() {
+    private TestStep createOpenUrlStep(FreeTest test) {
         OpenUrl step = new OpenUrl();
+        step.setTest(test);
         step.setName("Go to /");
         step.setStatus(Status.Active);
         step.setComments("");
@@ -95,10 +150,14 @@ public class QAPopulator implements CommandLineRunner {
 
     private Test createCrudTest() {
         CrudTest test = new CrudTest();
-        test.setName("Crud test");
+        test.setName("Sample crud test");
         test.setStatus(Status.Active);
         test.setLastResult(Result.Fail);
         test.setComments("created from populator");
+        test.setMenuOption("Teams");
+        test.setFilters("Name");
+        test.setColumns("Id,Name");
+        test.setFields("Id,Name");
         return test;
     }
 }

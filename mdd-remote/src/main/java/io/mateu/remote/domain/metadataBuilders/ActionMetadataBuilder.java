@@ -1,10 +1,9 @@
 package io.mateu.remote.domain.metadataBuilders;
 
 import com.google.common.base.Strings;
+import io.mateu.mdd.core.app.AbstractAction;
+import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.core.interfaces.Crud;
-import io.mateu.mdd.core.interfaces.PersistentPojo;
-import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
-import io.mateu.mdd.core.interfaces.RpcCrudViewExtended;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.Action;
@@ -14,6 +13,7 @@ import jakarta.persistence.Entity;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -118,8 +118,15 @@ public class ActionMetadataBuilder {
         List<Method> allMethods = ReflectionHelper.getAllMethods(uiInstance.getClass());
         List<Action> actions = allMethods.stream()
                 .filter(m -> m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class))
+                .filter(m -> ("".equals(listId) && !Modifier.isStatic(m.getModifiers()))
+                        || (!"".equals(listId) && Modifier.isStatic(m.getModifiers())))
                 .map(m -> getAction(m))
                 .collect(Collectors.toList());
+        if (uiInstance instanceof HasActions) {
+            actions.addAll(((HasActions) uiInstance).getActionMethods().stream()
+                    .map(m -> getAction(m))
+                    .collect(Collectors.toList()));
+        }
         if (!Strings.isNullOrEmpty(listId)) actions.forEach(a -> a.setId("__list__" + listId + "__" + a.getId()));
         if (canAdd(uiInstance)) {
             Action action = Action.builder()
@@ -157,6 +164,7 @@ public class ActionMetadataBuilder {
         }
         return actions;
     }
+
 
     private boolean canAdd(Object uiInstance) {
         if (uiInstance instanceof Crud) {
