@@ -22,6 +22,8 @@ public class Column {
 
     private String width;
 
+    private boolean readOnly;
+
     private List<Pair> attributes = new ArrayList<>();
 
 }
