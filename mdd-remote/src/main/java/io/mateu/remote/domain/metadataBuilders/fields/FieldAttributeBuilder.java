@@ -189,6 +189,7 @@ public class FieldAttributeBuilder {
                                 .id(columnField.getId())
                                 .caption(ReflectionHelper.getCaption(columnField))
                                 .type(fieldTypeMapper.mapColumnType(columnField))
+                                .readOnly(isReadOnly(columnField))
                                 .stereotype("column")
                                 .attributes(List.of())
                                 .width(fieldTypeMapper.getWidth(columnField))
@@ -198,7 +199,9 @@ public class FieldAttributeBuilder {
         return attributes;
     }
 
-
+    private boolean isReadOnly(FieldInterfaced field) {
+        return field.isAnnotationPresent(ReadOnly.class) || field.isAnnotationPresent(Output.class);
+    }
 
 
 }
