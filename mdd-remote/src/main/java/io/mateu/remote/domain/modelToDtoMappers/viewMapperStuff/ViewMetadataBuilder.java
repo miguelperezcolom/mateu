@@ -56,8 +56,8 @@ public class ViewMetadataBuilder {
             metadata = getCrud(stepId, ((RpcViewWrapper) model).getId(), ((RpcViewWrapper) model).getRpcView());
         } else if (model instanceof Stepper) {
             metadata = getStepper(stepId, model, slotFields);
-        } else if (uiInstance instanceof Card) {
-            metadata = getCard(stepId, uiInstance, slotFields);
+        } else if (model instanceof Card) {
+            metadata = getCard(stepId, model, slotFields);
         } else {
             metadata = getForm(stepId, model, slotFields);
         }

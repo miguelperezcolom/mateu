@@ -16,7 +16,12 @@ public class Card implements ViewMetadata {
 
     private String subtitle;
 
-    private List<FieldGroup> fieldGroups = new ArrayList<>();
+    private String info;
 
+    private String icon;
+
+    private String total;
+
+    private List<FieldGroup> fieldGroups = new ArrayList<>();
 
 }

@@ -1,9 +1,6 @@
 package io.mateu.remote.domain.metadataBuilders;
 
-import io.mateu.mdd.core.interfaces.HasSubtitle;
-import io.mateu.mdd.core.interfaces.HasTitle;
-import io.mateu.mdd.core.interfaces.PersistentPojo;
-import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
+import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.UseCheckboxes;
 import io.mateu.mdd.shared.annotations.UseChips;
@@ -12,6 +9,7 @@ import io.mateu.mdd.shared.interfaces.HasStatus;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
+import io.mateu.remote.dtos.Card;
 import io.mateu.util.Helper;
 import jakarta.persistence.OneToMany;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +31,32 @@ public class CardMetadataBuilder {
                 .title(getCaption(uiInstance))
                 .subtitle(getSubtitle(uiInstance))
                 .fieldGroups(getFieldGroups(stepId, uiInstance, slotFields))
+                .icon(getIcon(uiInstance))
+                .info(getInfo(uiInstance))
+                .total(getTotal(uiInstance))
                 .build();
         return card;
+    }
+
+    private String getIcon(Object uiInstance) {
+        if (uiInstance instanceof HasIcon) {
+            return ((HasIcon) uiInstance).getIcon();
+        }
+        return null;
+    }
+
+    private String getInfo(Object uiInstance) {
+        if (uiInstance instanceof HasInfo) {
+            return ((HasInfo) uiInstance).getInfo();
+        }
+        return null;
+    }
+
+    private String getTotal(Object uiInstance) {
+        if (uiInstance instanceof HasTotal) {
+            return ((HasTotal) uiInstance).getTotal();
+        }
+        return null;
     }
 
     private String getSubtitle(Object uiInstance) {
@@ -78,6 +100,7 @@ public class CardMetadataBuilder {
                         || f.isAnnotationPresent(UseCheckboxes.class)
                         || f.isAnnotationPresent(UseChips.class))
                 .filter(f -> slotFields.contains(f))
+                .filter(f -> !(uiInstance instanceof HasTotal) || !f.getName().equals("total"))
                 .collect(Collectors.toList());
         for (FieldInterfaced fieldInterfaced : allEditableFields) {
             if (fieldGroup == null || fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.FieldGroup.class)) {
