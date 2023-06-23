@@ -1,5 +1,6 @@
 package com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain.tests.steps;
 
+import io.mateu.mdd.shared.annotations.ReadOnly;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -12,7 +13,7 @@ import java.util.UUID;
 @Getter@Setter
 public class TestInput {
 
-    @Id
+    @Id@ReadOnly
     String id = UUID.randomUUID().toString();
 
     String label;

@@ -70,6 +70,7 @@ public class ContractForm {
     boolean insuredPersonIsPolicyHolder = true;
 
     //@NotNull
+    @i18n("LOK_GSGSGS_HSHSH")
     String firstName;
 
     //@NotNull

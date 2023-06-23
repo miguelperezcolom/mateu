@@ -7,6 +7,7 @@ import io.mateu.remote.domain.files.StorageServiceAccessor;
 import io.mateu.remote.domain.files.FileChecker;
 import io.mateu.util.Helper;
 import io.mateu.util.Serializer;
+import jakarta.persistence.Entity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -234,7 +235,13 @@ public class ActualValueExtractor {
                     targetValue = getActualValue(f.getType(), entry.getValue());
                 }
                 if (entry.getValue() instanceof Map) {
-                    targetValue = Serializer.fromMap((Map<String, Object>) entry.getValue(), f.getType());
+                    if (f.getType().isAnnotationPresent(Entity.class)) {
+                        targetValue = ReflectionHelper.newInstance(f.getType());
+                        Object id = ((Map<String, Object>) entry.getValue()).get("value");
+                        ReflectionHelper.setValue(ReflectionHelper.getIdField(f.getType()), targetValue, id);
+                    } else {
+                        targetValue = Serializer.fromMap((Map<String, Object>) entry.getValue(), f.getType());
+                    }
                 }
             }
         }

@@ -30,6 +30,9 @@ public class FieldStereotypeMapper {
         if (field.isAnnotationPresent(RawContent.class)) {
             return "rawcontent";
         }
+        if (field.isAnnotationPresent(ReadOnly.class) || field.isAnnotationPresent(Output.class)) {
+            return "readonly";
+        }
         if (field.isAnnotationPresent(UseRadioButtons.class)) {
             return "radiobuttons";
         }
@@ -38,9 +41,6 @@ public class FieldStereotypeMapper {
         }
         if (field.getType().isEnum()) {
             return "combobox";
-        }
-        if (field.isAnnotationPresent(ReadOnly.class) || field.isAnnotationPresent(Output.class)) {
-            return "readonly";
         }
         if (field.isAnnotationPresent(GeneratedValue.class)) {
             return "readonly";

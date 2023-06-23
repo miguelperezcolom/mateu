@@ -3,6 +3,7 @@ package com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain.executi
 import com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain.environments.Environment;
 import com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain.tests.Test;
 import io.mateu.mdd.shared.annotations.Action;
+import io.mateu.mdd.shared.annotations.ReadOnly;
 import io.mateu.mdd.shared.annotations.Status;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,19 +19,19 @@ import java.util.UUID;
 @Getter@Setter
 public class TestExecution {
 
-    @Id
+    @Id@ReadOnly
     String id = UUID.randomUUID().toString();
 
-    @ManyToOne
+    @ManyToOne@ReadOnly
     Test test;
 
-    @ManyToOne
+    @ManyToOne@ReadOnly
     Environment environment;
 
-    @Column(name = "_when")
+    @Column(name = "_when")@ReadOnly
     LocalDateTime when;
 
-    @Status
+    @Status@ReadOnly
     TestResult result;
 
     @Action
