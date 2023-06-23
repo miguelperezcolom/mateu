@@ -47,7 +47,7 @@ jobs:
         working-directory: e2e
         #build: npm install
         start: mvn spring-boot:run -f ../demo-remote/pom.xml
-        wait-on: 'http://localhost:8080'
+        wait-on: 'http://localhost:8081'
 
 #    - name: Publish to GitHub Packages Apache Maven
 #      run: mvn deploy
