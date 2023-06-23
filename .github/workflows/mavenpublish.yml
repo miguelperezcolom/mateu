@@ -11,10 +11,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up JDK 1.8
+    - name: Set up JDK 17
       uses: actions/setup-java@v3
       with:
-        java-version: 11
+        java-version: 17
         distribution: corretto
         server-id: mateu-central # Value of the distributionManagement/repository/id field of the pom.xml
         server-username: MAVEN_USERNAME
@@ -46,7 +46,7 @@ jobs:
       with:
         working-directory: e2e
         #build: npm install
-        start: mvn spring-boot:run -f ../demo/pom.xml
+        start: mvn spring-boot:run -f ../demo-remote/pom.xml
         wait-on: 'http://localhost:8080'
 
 #    - name: Publish to GitHub Packages Apache Maven
