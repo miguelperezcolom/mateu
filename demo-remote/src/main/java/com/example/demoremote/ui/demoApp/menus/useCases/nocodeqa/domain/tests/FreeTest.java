@@ -13,7 +13,7 @@ import java.util.List;
 @Entity@Getter@Setter
 public class FreeTest extends Test {
 
-    //@OneToMany(cascade = CascadeType.ALL)
-    //List<TestStep> steps = new ArrayList<>();
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "test")
+    List<TestStep> steps = new ArrayList<>();
 
 }

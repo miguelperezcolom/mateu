@@ -10,8 +10,8 @@ import io.mateu.mdd.shared.interfaces.JpaCrud;
 
 public class QAMenu {
 
-    @Submenu
-    TestDefinitionSubmenu definition;
+    @MenuOption
+    JpaCrud<Test> tests;
 
     @MenuOption
     JpaCrud<TestExecution> executions;
