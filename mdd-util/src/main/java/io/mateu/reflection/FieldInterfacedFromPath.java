@@ -1,7 +1,5 @@
 package io.mateu.reflection;
 
-import io.mateu.mdd.shared.annotations.ValueClass;
-import io.mateu.mdd.shared.annotations.ValueQL;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 
 import java.lang.annotation.Annotation;
@@ -106,16 +104,6 @@ public class FieldInterfacedFromPath implements FieldInterfaced {
             for (Annotation a : extraAnnotations) if (a.getClass().equals(annotationClass)) return (T) a;
         }
         return (ff != null)?ff.getAnnotation(annotationClass):f.getAnnotation(annotationClass);
-    }
-
-    @Override
-    public Class<?> getOptionsClass() {
-        return (ff != null)?ff.getOptionsClass():((f.isAnnotationPresent(ValueClass.class))?f.getAnnotation(ValueClass.class).value():null);
-    }
-
-    @Override
-    public String getOptionsQL() {
-        return (ff != null)?ff.getOptionsQL():((f.isAnnotationPresent(ValueQL.class))?f.getAnnotation(ValueQL.class).value():null);
     }
 
     @Override

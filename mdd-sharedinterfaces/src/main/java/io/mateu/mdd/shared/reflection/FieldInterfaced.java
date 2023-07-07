@@ -28,10 +28,6 @@ public interface FieldInterfaced {
 
     <T extends Annotation> T getAnnotation(Class<T> annotationClass);
 
-    Class<?> getOptionsClass();
-
-    String getOptionsQL();
-
     Object getValue(Object o) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException;
 
     String toString();

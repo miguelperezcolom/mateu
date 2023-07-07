@@ -105,16 +105,6 @@ public class FieldInterfacedForCheckboxColumn implements FieldInterfaced {
     }
 
     @Override
-    public Class<?> getOptionsClass() {
-        return null;
-    }
-
-    @Override
-    public String getOptionsQL() {
-        return null;
-    }
-
-    @Override
     public Object getValue(Object o) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         return ((Collection)ReflectionHelper.getValue(collectionField, o)).contains(value);
     }

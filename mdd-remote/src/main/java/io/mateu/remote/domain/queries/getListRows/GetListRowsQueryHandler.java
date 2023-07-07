@@ -9,6 +9,7 @@ import io.mateu.remote.domain.store.JourneyStoreService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
@@ -23,6 +24,7 @@ public class GetListRowsQueryHandler {
     @Autowired
     MateuRemoteClient mateuRemoteClient;
 
+    @Transactional
     public Flux<Object> run(GetListRowsQuery query) throws Throwable {
 
         JourneyContainer journeyContainer = store.findJourneyById(query.getJourneyId()).orElse(null);

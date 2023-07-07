@@ -158,16 +158,6 @@ public class FieldInterfacedFromRemoteField implements FieldInterfaced {
     }
 
     @Override
-    public Class<?> getOptionsClass() {
-        return null;
-    }
-
-    @Override
-    public String getOptionsQL() {
-        return null;
-    }
-
-    @Override
     public Object getValue(Object o) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         return ReflectionHelper.getValue(this, o);
     }

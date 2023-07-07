@@ -1,7 +1,5 @@
 package io.mateu.reflection;
 
-import io.mateu.mdd.shared.annotations.ValueClass;
-import io.mateu.mdd.shared.annotations.ValueQL;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 
 import jakarta.persistence.Entity;
@@ -118,16 +116,6 @@ public class FieldInterfacedFromParameter implements FieldInterfaced {
             for (Annotation a : extraAnnotations) if (a.getClass().equals(annotationClass)) return (T) a;
         }
         return (ff != null)?ff.getAnnotation(annotationClass): p.getAnnotation(annotationClass);
-    }
-
-    @Override
-    public Class<?> getOptionsClass() {
-        return (ff != null)?ff.getOptionsClass():((p.isAnnotationPresent(ValueClass.class))? p.getAnnotation(ValueClass.class).value():null);
-    }
-
-    @Override
-    public String getOptionsQL() {
-        return (ff != null)?ff.getOptionsQL():((p.isAnnotationPresent(ValueQL.class))? p.getAnnotation(ValueQL.class).value():null);
     }
 
     @Override

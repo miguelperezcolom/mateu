@@ -65,9 +65,9 @@ public class QueryHelper {
             if (!"".equals(oc)) jpql += " order by " + oc;
         }
 
+        log.info(jpql);
         jakarta.persistence.Query q = em.createQuery(jpql).setFirstResult(offset).setMaxResults(limit);
         for (String k : parameterValues.keySet()) q.setParameter(k, parameterValues.get(k));
-        log.info(jpql);
         return q;
     }
 

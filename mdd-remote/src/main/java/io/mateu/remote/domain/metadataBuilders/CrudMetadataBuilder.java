@@ -2,7 +2,6 @@ package io.mateu.remote.domain.metadataBuilders;
 
 import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.shared.annotations.Ignored;
-import io.mateu.mdd.shared.annotations.Width;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
@@ -35,7 +34,7 @@ public class CrudMetadataBuilder {
                 .title(getTitle(rpcView))
                 .subtitle(getSubtitle(rpcView))
                 .canEdit(ReflectionHelper.isOverridden(rpcView, "getDetail"))
-                .searchForm(buildSearchForm(rpcView))
+                .searchForm(buildSearchForm(rpcView, listId))
                 .columns(buildColumns(rpcView))
                 .actions(actionMetadataBuilder.getActions(stepId, listId, rpcView))
                 .listId(listId)
@@ -91,13 +90,13 @@ public class CrudMetadataBuilder {
 
 
 
-    private SearchForm buildSearchForm(Listing rpcView) {
+    private SearchForm buildSearchForm(Listing rpcView, String listId) {
         return SearchForm.builder()
-                .fields(buildSearchFields(rpcView))
+                .fields(buildSearchFields(rpcView, listId))
                 .build();
     }
 
-    private List<Field> buildSearchFields(Listing rpcView) {
+    private List<Field> buildSearchFields(Listing rpcView, String listId) {
         Class searchFormClass = rpcView.getSearchFormClass();
         List<FieldInterfaced> allEditableFields = ReflectionHelper.getAllEditableFields(searchFormClass);
         if (rpcView instanceof RpcCrudViewExtended) {
@@ -108,7 +107,12 @@ public class CrudMetadataBuilder {
                         .collect(Collectors.toList());
             }
         }
-        return allEditableFields.stream().map(fieldInterfaced -> fieldMetadataBuilder.getField(rpcView, fieldInterfaced))
+        return allEditableFields.stream()
+                .map(fieldInterfaced -> fieldMetadataBuilder.getField(rpcView, fieldInterfaced))
+                .map(f -> {
+                    f.setId(listId + "-" + f.getId());
+                    return f;
+                })
                 .collect(Collectors.toList());
     }
 

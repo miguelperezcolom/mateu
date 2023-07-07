@@ -1,6 +1,7 @@
 package io.mateu.remote.domain.store;
 
 import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.interfaces.SortCriteria;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
@@ -11,6 +12,7 @@ import io.mateu.remote.domain.editors.FieldEditor;
 import io.mateu.remote.domain.editors.ObjectEditor;
 import io.mateu.remote.domain.modelToDtoMappers.StepMapper;
 import io.mateu.remote.domain.modelToDtoMappers.UIMapper;
+import io.mateu.remote.domain.persistence.Merger;
 import io.mateu.remote.dtos.Journey;
 import io.mateu.remote.dtos.Step;
 import io.mateu.util.Helper;
@@ -19,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -43,6 +46,12 @@ public class JourneyStoreService {
 
     @Autowired
     private ApplicationContext applicationContext;
+
+    @Autowired
+    private Merger merger;
+
+    @Autowired
+    private JpaRpcCrudFactory jpaRpcCrudFactory;
 
     public Object getViewInstance(String journeyId, String stepId, ServerHttpRequest serverHttpRequest) throws Exception {
         Optional<JourneyContainer> container = journeyRepo.findById(journeyId);
@@ -85,6 +94,7 @@ public class JourneyStoreService {
         }
     }
 
+    @Transactional
     public Listing getRpcViewInstance(String journeyId, String stepId, String listId
             , ServerHttpRequest serverHttpRequest) throws Exception {
         try {
@@ -92,13 +102,22 @@ public class JourneyStoreService {
             if (viewInstance instanceof Listing) {
                 return (Listing) viewInstance;
             }
-            Listing rpcView = (Listing) ReflectionHelper.getValue(listId, viewInstance);
-            if (rpcView == null) {
-                FieldInterfaced listField = ReflectionHelper.getFieldByName(viewInstance.getClass(), listId);
+            Object actualInstance = viewInstance;
+            Listing rpcView = null;
+            if (actualInstance instanceof EntityEditor) {
+                EntityEditor entityEditor = (EntityEditor) actualInstance;
+                actualInstance = merger.loadEntity(entityEditor.getData(), entityEditor.getEntityClass());
+                FieldInterfaced listField = ReflectionHelper.getFieldByName(actualInstance.getClass(), listId);
                 if (listField != null) {
-                    rpcView = (Listing) ReflectionHelper.newInstance(listField.getType());
-                    ReflectionHelper.setValue(listId, viewInstance, rpcView);
+                    return jpaRpcCrudFactory.create(actualInstance, listField);
                 }
+            } else {
+                 return (Listing) ReflectionHelper.getValue(listId, actualInstance);
+            }
+            FieldInterfaced listField = ReflectionHelper.getFieldByName(actualInstance.getClass(), listId);
+            if (listField != null) {
+                rpcView = (Listing) ReflectionHelper.newInstance(listField.getType());
+                ReflectionHelper.setValue(listId, actualInstance, rpcView);
             }
             return rpcView;
         } catch (Exception e) {

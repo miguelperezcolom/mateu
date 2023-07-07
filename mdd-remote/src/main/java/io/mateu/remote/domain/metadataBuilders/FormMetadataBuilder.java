@@ -6,17 +6,22 @@ import io.mateu.mdd.shared.annotations.UseCheckboxes;
 import io.mateu.mdd.shared.annotations.UseChips;
 import io.mateu.mdd.shared.interfaces.HasBadges;
 import io.mateu.mdd.shared.interfaces.HasStatus;
+import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
+import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.dtos.*;
 import io.mateu.util.Helper;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,6 +29,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class FormMetadataBuilder {
 
     @Autowired
@@ -32,21 +38,52 @@ public class FormMetadataBuilder {
     @Autowired
     FieldMetadataBuilder fieldMetadataBuilder;
 
+    @Autowired
+    JpaRpcCrudFactory jpaRpcCrudFactory;
+
     //todo: this builder is based on reflection. Consider adding a dynamic one and cache results
     public Form build(String stepId, Object uiInstance, List<FieldInterfaced> slotFields) {
         Form form = Form.builder()
                 .title(getCaption(uiInstance))
                 .subtitle(getSubtitle(uiInstance))
                 .status(getStatus(uiInstance))
-                .readOnly("view".equals(stepId)
-                        || (uiInstance instanceof ReadOnlyPojo && !(uiInstance instanceof PersistentPojo))
-                )
+                .readOnly(isReadOnly(stepId, uiInstance))
                 .badges(getBadges(uiInstance))
                 .sections(getSections(stepId, uiInstance, slotFields))
                 .actions(actionMetadataBuilder.getActions(stepId, "", uiInstance))
                 .mainActions(getMainActions(stepId, uiInstance))
                 .build();
         return form;
+    }
+
+    private boolean isReadOnly(String stepId, Object uiInstance) {
+        return "view".equals(stepId)
+                || (uiInstance instanceof ReadOnlyPojo && !(uiInstance instanceof PersistentPojo))
+                || (uiInstance instanceof EntityEditor && hasCrud((EntityEditor) uiInstance)
+                || (uiInstance.getClass().isAnnotationPresent(Entity.class) && hasCrud(uiInstance.getClass())));
+    }
+
+    private boolean hasCrud(EntityEditor entityEditor) {
+        return hasCrud(entityEditor.getEntityClass());
+    }
+
+    private boolean hasCrud(Class entityClass) {
+        return ReflectionHelper.getAllEditableFields(entityClass).stream()
+                .filter(f -> isOwner(f))
+                .count() > 0;
+    }
+
+    public boolean isOwner(FieldInterfaced f) {
+        return (f.isAnnotationPresent(OneToMany.class) &&
+                Arrays.stream(f.getAnnotation(OneToMany.class).cascade())
+                        .filter(c -> CascadeType.ALL.equals(c) || CascadeType.PERSIST.equals(c))
+                        .count() > 0)
+                || (f.isAnnotationPresent(ManyToMany.class) &&
+                Arrays.stream(f.getAnnotation(ManyToMany.class).cascade())
+                        .filter(c -> CascadeType.ALL.equals(c) || CascadeType.PERSIST.equals(c))
+                        .count() > 0)
+                && !f.isAnnotationPresent(UseCheckboxes.class)
+                && !f.isAnnotationPresent(UseChips.class);
     }
 
     private String getSubtitle(Object uiInstance) {
@@ -117,11 +154,7 @@ public class FormMetadataBuilder {
         FieldGroupLine fieldGroupLine = null;
 
         List<FieldInterfaced> allEditableFields = ReflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
-                .filter(f -> (!f.isAnnotationPresent(OneToMany.class)
-                        || Arrays.stream(f.getAnnotation(OneToMany.class).cascade())
-                        .filter(c -> CascadeType.ALL.equals(c)).count() > 0)
-                        || f.isAnnotationPresent(UseCheckboxes.class)
-                        || f.isAnnotationPresent(UseChips.class))
+                .filter(f -> !isOwner(f))
                 .filter(f -> slotFields.contains(f))
                 .collect(Collectors.toList());
         for (FieldInterfaced fieldInterfaced : allEditableFields) {

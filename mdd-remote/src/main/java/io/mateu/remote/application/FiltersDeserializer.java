@@ -11,6 +11,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 
 import java.io.IOException;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -36,7 +37,11 @@ public class FiltersDeserializer {
         if (rpcView == null) {
             return null;
         }
-        Map<String, Object> map = decodeAndParse(raw);
+        Map<String, Object> rawMap = decodeAndParse(raw);
+        Map<String, Object> map = new HashMap<>();
+        rawMap.entrySet().stream()
+                .filter(e -> e.getKey().startsWith(listId + "-"))
+                .forEach(e -> map.put(e.getKey().substring((listId + "-").length()), e.getValue()));
         for (FieldInterfaced field : ReflectionHelper.getAllEditableFields(rpcView.getSearchFormClass())) {
             if (DatesRange.class.equals(field.getType())) {
                 String rawDatesRangeValue = "";

@@ -65,7 +65,8 @@ public class ViewMetadataBuilder {
         if (uiInstance instanceof FieldEditor) {
             addActionsForFieldEditor((Form) metadata, (FieldEditor) uiInstance);
         }
-        if (uiInstance instanceof EntityEditor) {
+
+        if (uiInstance instanceof EntityEditor && metadata instanceof Form) {
             setIdAsReadOnlyIfEditing((Form) metadata, (EntityEditor) uiInstance);
         }
 

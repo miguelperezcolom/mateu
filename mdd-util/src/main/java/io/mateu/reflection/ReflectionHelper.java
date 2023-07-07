@@ -1264,16 +1264,6 @@ public class ReflectionHelper extends BaseReflectionHelper {
                 return p.getAnnotation(annotationClass);
             }
 
-            @Override
-            public Class<?> getOptionsClass() {
-                return (p.isAnnotationPresent(ValueClass.class))?p.getAnnotation(ValueClass.class).value():null;
-            }
-
-            @Override
-            public String getOptionsQL() {
-                return (p.isAnnotationPresent(ValueQL.class))?p.getAnnotation(ValueQL.class).value():null;
-            }
-
 
             @Override
             public Object getValue(Object o) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {

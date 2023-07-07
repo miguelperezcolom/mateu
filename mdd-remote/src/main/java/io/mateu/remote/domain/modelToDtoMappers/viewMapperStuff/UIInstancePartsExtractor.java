@@ -3,12 +3,15 @@ package io.mateu.remote.domain.modelToDtoMappers.viewMapperStuff;
 import io.mateu.mdd.core.interfaces.Card;
 import io.mateu.mdd.core.interfaces.Crud;
 import io.mateu.mdd.core.interfaces.HasStepper;
+import io.mateu.mdd.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.mdd.shared.annotations.SlotName;
 import io.mateu.mdd.shared.data.Stepper;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
+import io.mateu.remote.domain.metadataBuilders.FormMetadataBuilder;
 import io.mateu.remote.domain.modelToDtoMappers.RpcViewWrapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -16,6 +19,12 @@ import java.util.List;
 
 @Service
 public class UIInstancePartsExtractor {
+
+    @Autowired
+    FormMetadataBuilder formMetadataBuilder;
+
+    @Autowired
+    JpaRpcCrudFactory jpaRpcCrudFactory;
 
     public List<UIInstancePart> getUiParts(Object uiInstance, List<FieldInterfaced> fields, SlotName slot) throws Exception {
         List<UIInstancePart> parts = new ArrayList<>();
@@ -25,7 +34,8 @@ public class UIInstancePartsExtractor {
         fields.forEach(f -> {
             if (Crud.class.isAssignableFrom(f.getType())
                     || Card.class.isAssignableFrom(f.getType())
-                    || (Stepper.class.isAssignableFrom(f.getType()) && fields.size() == 1)) {
+                    || (Stepper.class.isAssignableFrom(f.getType()) && fields.size() == 1)
+                    || formMetadataBuilder.isOwner(f)) {
                 partCandidates.add(f);
             } else {
                 leftFields.add(f);
@@ -48,6 +58,9 @@ public class UIInstancePartsExtractor {
 
     private UIInstancePart buildPart(FieldInterfaced f, Object uiInstance) throws Exception {
         Object partInstance = ReflectionHelper.getValue(f, uiInstance);
+        if (formMetadataBuilder.isOwner(f)) {
+            partInstance = jpaRpcCrudFactory.create(uiInstance, f);
+        }
         if (partInstance == null) {
             partInstance = ReflectionHelper.newInstance(f.getType());
         }
