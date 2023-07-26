@@ -2,15 +2,15 @@ package io.mateu.mdd.shared.interfaces;
 
 import java.util.List;
 
-public class SelectedRows {
+public class SelectedRowsContext {
 
     private static ThreadLocal<List> rows = new ThreadLocal<>();
 
-    public SelectedRows(List rows) {
+    public SelectedRowsContext(List rows) {
         this.rows.set(rows);
     }
 
-    public SelectedRows() {
+    public SelectedRowsContext() {
     }
 
     public List getRows() {

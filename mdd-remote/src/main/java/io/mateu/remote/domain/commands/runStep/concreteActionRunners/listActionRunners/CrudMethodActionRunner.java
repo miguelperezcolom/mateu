@@ -2,7 +2,7 @@ package io.mateu.remote.domain.commands.runStep.concreteActionRunners.listAction
 
 import io.mateu.mdd.core.interfaces.Crud;
 import io.mateu.mdd.core.interfaces.HasActions;
-import io.mateu.mdd.shared.interfaces.SelectedRows;
+import io.mateu.mdd.shared.interfaces.SelectedRowsContext;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.commands.runStep.concreteActionRunners.ListActionRunner;
 import io.mateu.remote.domain.commands.runStep.concreteActionRunners.RunMethodActionRunner;
@@ -53,7 +53,7 @@ public class CrudMethodActionRunner extends RunMethodActionRunner implements Lis
                 })
                 .collect(Collectors.toList()));
 
-        new SelectedRows(targetSet);
+        new SelectedRowsContext(targetSet);
 
         try {
 

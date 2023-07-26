@@ -6,7 +6,6 @@ import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.Placeholder;
 import io.mateu.mdd.shared.data.DatesRange;
-import io.mateu.mdd.shared.interfaces.SelectedRows;
 import io.mateu.mdd.shared.interfaces.SortCriteria;
 import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +16,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Caption("Some programming languages")
 @Getter@Setter
