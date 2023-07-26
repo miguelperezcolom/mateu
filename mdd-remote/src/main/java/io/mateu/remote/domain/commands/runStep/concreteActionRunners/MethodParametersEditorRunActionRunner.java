@@ -48,12 +48,16 @@ public class MethodParametersEditorRunActionRunner extends AbstractActionRunner 
 
         List<Object> values = new ArrayList<>();
         for (int i = 0; i < m.getParameterCount(); i++) {
+            if (ServerHttpRequest.class.equals(m.getParameterTypes()[i])) {
+                values.add(serverHttpRequest);
+                continue;
+            }
             values.add(actualValueExtractor.getActualValue(m.getParameterTypes()[i], data.get("param_" + i)));
         }
         Object result = m.invoke(object, values.toArray());
 
         if (object != null) {
-            store.setStep(journeyId, initialStep.getId(), object, serverHttpRequest);
+            store.updateStep(journeyId, initialStep.getId(), object, serverHttpRequest);
         }
 
         Object whatToShow = result;

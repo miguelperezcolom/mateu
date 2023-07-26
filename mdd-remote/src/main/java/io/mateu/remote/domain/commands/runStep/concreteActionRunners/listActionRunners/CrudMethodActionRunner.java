@@ -2,6 +2,7 @@ package io.mateu.remote.domain.commands.runStep.concreteActionRunners.listAction
 
 import io.mateu.mdd.core.interfaces.Crud;
 import io.mateu.mdd.core.interfaces.HasActions;
+import io.mateu.mdd.shared.interfaces.SelectedRows;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.commands.runStep.concreteActionRunners.ListActionRunner;
 import io.mateu.remote.domain.commands.runStep.concreteActionRunners.RunMethodActionRunner;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,6 +40,20 @@ public class CrudMethodActionRunner extends RunMethodActionRunner implements Lis
     public void run(Crud crud, String journeyId, String stepId, String listId, String actionId
             , Map<String, Object> data, ServerHttpRequest serverHttpRequest)
             throws Throwable {
+
+        List selectedRows = (List) data.get("_selectedRows");
+        List<Object> targetSet = new ArrayList<>((Collection) selectedRows.stream()
+                .map(m -> {
+                    try {
+                        return crud.getRow((Map<String, Object>) m);
+                    } catch (Throwable e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                })
+                .collect(Collectors.toList()));
+
+        new SelectedRows(targetSet);
 
         try {
 

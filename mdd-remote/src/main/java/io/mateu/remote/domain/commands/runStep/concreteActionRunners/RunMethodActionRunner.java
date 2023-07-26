@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -68,7 +69,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     protected void runMethod(Object actualViewInstance, Method m,  String journeyId, String stepId, String actionId
             , Map<String, Object> data, ServerHttpRequest serverHttpRequest) throws Throwable {
         //todo: inject paramneters (ServerHttpRequest, selection for jpacrud)
-        if (m.getParameterCount() > 0) {
+        if (needsParameters(m)) {
 
             if (Modifier.isStatic(m.getModifiers())) {
 
@@ -87,7 +88,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
         } else {
 
             try {
-                Object result = m.invoke(actualViewInstance);
+
+                Object result = m.invoke(actualViewInstance, injectParameters(m, serverHttpRequest));
 
                 if (actualViewInstance != null) {
                     store.updateStep(journeyId, actualViewInstance, serverHttpRequest);
@@ -111,5 +113,30 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
             }
 
         }
+    }
+
+    private Object[] injectParameters(Method m, ServerHttpRequest serverHttpRequest) {
+        Object[] values = new Object[m.getParameterCount()];
+        for (int i = 0; i < m.getParameters().length; i++) {
+            Parameter parameter = m.getParameters()[i];
+            Object value = null;
+            if (ServerHttpRequest.class.equals(parameter.getType())) {
+                value = serverHttpRequest;
+            }
+            values[i] = value;
+        }
+        return values;
+    }
+
+    private boolean needsParameters(Method m) {
+        if (m.getParameterCount() == 0) return false;
+        boolean anyNotInjected = false;
+        for (Parameter parameter : m.getParameters()) {
+            if (parameter.getType().equals(ServerHttpRequest.class)) {
+                continue;
+            }
+            anyNotInjected = true;
+        }
+        return anyNotInjected;
     }
 }

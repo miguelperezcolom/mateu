@@ -118,8 +118,8 @@ public class ActionMetadataBuilder {
         List<Method> allMethods = ReflectionHelper.getAllMethods(uiInstance.getClass());
         List<Action> actions = allMethods.stream()
                 .filter(m -> m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class))
-                .filter(m -> ("".equals(listId) && !Modifier.isStatic(m.getModifiers()))
-                        || (!"".equals(listId) && Modifier.isStatic(m.getModifiers())))
+                .filter(m -> (!"JpaRpcCrudView".equals(uiInstance.getClass().getSimpleName()))
+                        || (Modifier.isStatic(m.getModifiers())))
                 .map(m -> getAction(m))
                 .collect(Collectors.toList());
         if (uiInstance instanceof HasActions) {

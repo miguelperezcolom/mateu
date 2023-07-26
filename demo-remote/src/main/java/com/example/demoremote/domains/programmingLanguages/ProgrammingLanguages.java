@@ -2,9 +2,11 @@ package com.example.demoremote.domains.programmingLanguages;
 
 import com.google.common.base.Strings;
 import io.mateu.mdd.core.interfaces.*;
+import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.Placeholder;
 import io.mateu.mdd.shared.data.DatesRange;
+import io.mateu.mdd.shared.interfaces.SelectedRows;
 import io.mateu.mdd.shared.interfaces.SortCriteria;
 import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,6 +97,12 @@ public class ProgrammingLanguages implements Crud<ProgrammingLanguages, Language
         detail.load(row.getId());
         return detail;
     }
+
+    @Action
+    public void doSomething() {
+        System.out.println("Hola!!!!" + getSelection().size() + "...." + getSelection());
+    }
+
 
     public void unblockRow(LanguageRow row) {
         System.out.println("unblocking " + row);

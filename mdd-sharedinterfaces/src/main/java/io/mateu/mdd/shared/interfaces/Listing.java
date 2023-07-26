@@ -40,7 +40,7 @@ public interface Listing<SearchForm, Row> {
     }
 
     default List<Row> getSelection() {
-        return List.of();
+        return new SelectedRows().getRows();
     }
 
 }

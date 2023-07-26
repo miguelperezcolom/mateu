@@ -38,8 +38,15 @@ public class CrudDeleteActionRunner implements ListActionRunner {
         }
 
         try {
-            List<Object> targetSet = new ArrayList<>((Collection) selectedRows.stream().map(o -> (Map)o)
-                    .map(m -> deserializeRow(m, crud))
+            List<Object> targetSet = new ArrayList<>((Collection) selectedRows.stream()
+                    .map(m -> {
+                        try {
+                            return crud.getRow((Map<String, Object>) m);
+                        } catch (Throwable e) {
+                            e.printStackTrace();
+                        }
+                        return null;
+                    })
                     .collect(Collectors.toList()));
             crud.delete(targetSet);
 
@@ -53,15 +60,6 @@ public class CrudDeleteActionRunner implements ListActionRunner {
         } catch (Throwable e) {
             throw new Exception("Crud delete thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
         }
-    }
-
-    private Object deserializeRow(Object m, Listing viewInstance) {
-        try {
-            return Helper.fromJson(Helper.toJson(m), viewInstance.getRowClass());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
 }

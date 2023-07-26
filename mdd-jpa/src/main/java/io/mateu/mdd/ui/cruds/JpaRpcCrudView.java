@@ -227,7 +227,12 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
         return action.isCanDelete();
     }
 
-
+    @Override
+    public void delete(List<Object> selection) throws Throwable {
+        ReflectionHelper.newInstance(DeleteRowsCommandHandler.class).run(
+                DeleteRowsCommand.builder().rows(selection).entityClass(action.getEntityClass()).build()
+        );
+    }
 
     private void createAliases(Class sourceType, List<String> paths, Map<String, FieldInterfaced> fieldsByPath,
                                Map<String, String> alias, Map<String, String> aliasedColumnNames,
@@ -431,11 +436,6 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
                 .collect(Collectors.toList());
     }
 
-    public void delete(Set<Object> selection) throws Throwable {
-        ReflectionHelper.newInstance(DeleteRowsCommandHandler.class).run(
-                DeleteRowsCommand.builder().rows(selection).entityClass(action.getEntityClass()).build()
-        );
-    }
 
     @Override
     public String getCaption() {

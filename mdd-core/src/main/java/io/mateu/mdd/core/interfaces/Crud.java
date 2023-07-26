@@ -30,4 +30,5 @@ public interface Crud<SearchForm, Row> extends Listing<SearchForm, Row> {
     default void delete(List<Row> selection) throws Throwable {
 
     }
+
 }
