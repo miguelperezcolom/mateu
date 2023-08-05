@@ -62,6 +62,9 @@ public class ReflectionHelper extends BaseReflectionHelper {
 
 
     public static Object getValue(Field f, Object o) {
+        if (f == null) {
+            return null;
+        }
         Method getter = null;
         try {
             getter = o.getClass().getMethod(getGetter(f));
@@ -85,6 +88,9 @@ public class ReflectionHelper extends BaseReflectionHelper {
     }
 
     public static void setValue(FieldInterfaced f, Object o, Object v) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        if (f == null) {
+            return;
+        }
         if (f instanceof FieldInterfacedForCheckboxColumn) {
             f.setValue(o, v);
         } else if (f instanceof  FieldInterfacedFromField) {

@@ -50,8 +50,14 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
         if (viewInstance instanceof ObjectEditor) {
             try {
                 ObjectEditor objectEditor = ((ObjectEditor) viewInstance);
-                Object object = Helper.fromJson(Helper.toJson(objectEditor.getData()),
-                        objectEditor.getType());
+                Object object = ReflectionHelper.newInstance(objectEditor.getType());
+                objectEditor.getData().forEach((k,v) -> {
+                    try {
+                        ReflectionHelper.setValue(k, object, v);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
                 return object;
             } catch (Exception e) {
                 e.printStackTrace();
