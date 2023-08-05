@@ -7,8 +7,10 @@ import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.commands.runStep.ActionRunner;
 import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.editors.MethodParametersEditor;
+import io.mateu.remote.domain.editors.ObjectEditor;
 import io.mateu.remote.domain.persistence.Merger;
 import io.mateu.remote.domain.store.JourneyStoreService;
+import io.mateu.util.Helper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
@@ -45,11 +47,22 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
             }
             return null;
         }
+        if (viewInstance instanceof ObjectEditor) {
+            try {
+                ObjectEditor objectEditor = ((ObjectEditor) viewInstance);
+                Object object = Helper.fromJson(Helper.toJson(objectEditor.getData()),
+                        objectEditor.getType());
+                return object;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
         return viewInstance;
     }
 
     private Map<Object, Method> getActions(Object viewInstance) {
-        return ReflectionHelper.getAllMethods(viewInstance.getClass()).stream()
+        return ReflectionHelper.getAllMethods(getActualInstance(viewInstance).getClass()).stream()
                 .filter(m -> m.isAnnotationPresent(Action.class) || m.isAnnotationPresent(MainAction.class))
                 .collect(Collectors.toMap(m -> m.getName(), m -> m));
     }

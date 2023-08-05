@@ -6,11 +6,13 @@ import io.mateu.mdd.shared.data.ExternalReference;
 import io.mateu.mdd.shared.data.TelephoneNumber;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
+@Slf4j
 @Getter@Setter
 public abstract class LeadDetailDefinition {
 
@@ -51,6 +53,16 @@ public abstract class LeadDetailDefinition {
     @Action(visible = false)
     public void filesUploaded() {
 
+    }
+
+    @Action
+    public void approve() {
+        log.info("approved");
+    }
+
+    @Action
+    public void reject() {
+        log.info("rejected");
     }
 
 }
