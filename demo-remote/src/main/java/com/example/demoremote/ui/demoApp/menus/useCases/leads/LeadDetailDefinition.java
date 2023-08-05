@@ -47,12 +47,12 @@ public abstract class LeadDetailDefinition {
 
     @Action(visible = false)
     public void questionsUpdated() {
-
+        log.info("questions updated");
     }
 
     @Action(visible = false)
     public void filesUploaded() {
-
+        log.info("files uploaded");
     }
 
     @Action
