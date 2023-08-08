@@ -9,6 +9,8 @@ public class Validation {
 
     private ValidationType type;
 
+    private String message;
+
     private Object data;
 
 }

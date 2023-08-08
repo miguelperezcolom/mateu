@@ -19,6 +19,9 @@ import java.util.List;
 public class QAPopulator implements CommandLineRunner {
 
     @Autowired
+    TestProjectRepository testProjectRepository;
+
+    @Autowired
     TestRepository testRepository;
 
     @Autowired
@@ -33,9 +36,16 @@ public class QAPopulator implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        testRepository.save(createCrudTest());
+        TestProject project = new TestProject();
+        project.setName("My project");
+        project.setGithubRepository("");
+        project.setGithubApiKey("");
+        project.setStatus(Status.Active);
+        project.setComments("Created by populator");
+        testProjectRepository.save(project);
+        testRepository.save(createCrudTest(project));
         FreeTest freeTest;
-        testRepository.save(freeTest = createFreeTest());
+        testRepository.save(freeTest = createFreeTest(project));
         createSteps(freeTest);
         createEnvironments();
         createExecutions();
@@ -71,13 +81,13 @@ public class QAPopulator implements CommandLineRunner {
         return env;
     }
 
-    private FreeTest createFreeTest() {
+    private FreeTest createFreeTest(TestProject project) {
         FreeTest test = new FreeTest();
+        test.setProject(project);
         test.setName("Sample free test");
         test.setStatus(Status.Active);
         test.setLastResult(Result.Success);
         test.setComments("created from populator");
-        //test.setSteps(createSteps());
         return test;
     }
 
@@ -148,8 +158,9 @@ public class QAPopulator implements CommandLineRunner {
         return step;
     }
 
-    private Test createCrudTest() {
+    private Test createCrudTest(TestProject project) {
         CrudTest test = new CrudTest();
+        test.setProject(project);
         test.setName("Sample crud test");
         test.setStatus(Status.Active);
         test.setLastResult(Result.Fail);

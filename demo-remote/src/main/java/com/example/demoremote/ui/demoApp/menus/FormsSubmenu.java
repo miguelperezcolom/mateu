@@ -17,6 +17,9 @@ public class FormsSubmenu {
     private DatesFieldsForm dates;
 
     @MenuOption
+    private PatternValidatedFieldForm pattern;
+
+    @MenuOption
     private TelephoneFieldForm telephone;
 
     @MenuOption

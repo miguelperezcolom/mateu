@@ -8,9 +8,7 @@ import io.mateu.remote.domain.metadataBuilders.fields.FieldStereotypeMapper;
 import io.mateu.remote.domain.metadataBuilders.fields.FieldTypeMapper;
 import io.mateu.remote.dtos.*;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -68,16 +66,57 @@ public class FieldMetadataBuilder {
     private void addValidations(Field field, FieldInterfaced fieldInterfaced) {
         List<Validation> validations = new ArrayList<>();
         //todo: añadir otros tipos de validación, y mensaje de error
-        if (fieldInterfaced.isAnnotationPresent(NotEmpty.class)
-                || fieldInterfaced.isAnnotationPresent(NotNull.class)
-                || fieldInterfaced.isAnnotationPresent(NotBlank.class)
+        addRequiredValidation(fieldInterfaced, validations);
+        addPatternValidation(fieldInterfaced, validations);
+        addMinValidation(fieldInterfaced, validations);
+        addMaxValidation(fieldInterfaced, validations);
+
+        field.setValidations(validations);
+    }
+
+    private void addMinValidation(FieldInterfaced field, List<Validation> validations) {
+        if (field.isAnnotationPresent(Min.class)
         ) {
             validations.add(Validation.builder()
-                            .type(ValidationType.NotEmpty)
-                            .data(null)
+                    .type(ValidationType.Min)
+                    .data(field.getAnnotation(Min.class).value())
+                    .message(field.getAnnotation(Min.class).message())
                     .build());
         }
-        field.setValidations(validations);
+    }
+
+    private void addMaxValidation(FieldInterfaced field, List<Validation> validations) {
+        if (field.isAnnotationPresent(Max.class)
+        ) {
+            validations.add(Validation.builder()
+                    .type(ValidationType.Max)
+                    .data(field.getAnnotation(Max.class).value())
+                    .message(field.getAnnotation(Max.class).message())
+                    .build());
+        }
+    }
+    private void addRequiredValidation(FieldInterfaced field, List<Validation> validations) {
+        if (field.isAnnotationPresent(NotEmpty.class)
+                || field.isAnnotationPresent(NotNull.class)
+                || field.isAnnotationPresent(NotBlank.class)
+        ) {
+            validations.add(Validation.builder()
+                    .type(ValidationType.NotEmpty)
+                    .data(null)
+                    .message("Required field")
+                    .build());
+        }
+    }
+
+    private void addPatternValidation(FieldInterfaced field, List<Validation> validations) {
+        if (field.isAnnotationPresent(Pattern.class)
+        ) {
+            validations.add(Validation.builder()
+                    .type(ValidationType.Pattern)
+                    .data(field.getAnnotation(Pattern.class).regexp())
+                    .message(field.getAnnotation(Pattern.class).message())
+                    .build());
+        }
     }
 
     private String getDescription(FieldInterfaced fieldInterfaced) {

@@ -8,6 +8,8 @@ import io.mateu.mdd.shared.annotations.ReadOnly;
 import io.mateu.mdd.shared.data.ResultType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,6 +22,9 @@ public abstract class Test {
 
     @Id
     String id = UUID.randomUUID().toString();
+
+    @ManyToOne@NotNull
+    TestProject project;
 
     String name;
 

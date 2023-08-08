@@ -2,12 +2,14 @@ package com.example.demoremote.ui.demoApp.menus.forms;
 
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.TelephoneNumber;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data@Caption("Telephone field with prefix")
 public class TelephoneFieldForm {
 
     @Section("Telephones")
+    @NotNull
     private TelephoneNumber home;
 
     private TelephoneNumber work = TelephoneNumber.builder()
