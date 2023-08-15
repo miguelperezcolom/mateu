@@ -11,7 +11,10 @@ public class FormsSubmenu {
     private TextFieldsForm text;
 
     @MenuOption
-    private ChecksFieldsForm checks;
+    private NumberFieldsForm numbers;
+
+    @MenuOption
+    private BooleanFieldsForm checks;
 
     @MenuOption
     private DatesFieldsForm dates;
