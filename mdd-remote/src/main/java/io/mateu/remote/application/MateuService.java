@@ -85,6 +85,9 @@ public class MateuService {
     @Autowired
     GetItemsRowsQueryHandler getItemsRowsQueryHandler;
 
+    @Autowired
+    UploadService uploadService;
+
     public Mono<UI> getUI(String uiId,
                           ServerHttpRequest serverHttpRequest) throws Exception {
         return Mono.just(getUIQueryHandler.run(GetUIQuery.builder().uiId(uiId).build(),
@@ -210,26 +213,20 @@ public class MateuService {
                 .build()));
     }
 
-    @Autowired
-    StorageService storageService;
-
     public ResponseEntity<Resource> serveFile(String fileId,
                                               String filename)
             throws AuthenticationException {
-
-        Resource file = storageService.loadAsResource(fileId, filename);
-        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
-                "attachment; filename=\"" + file.getFilename() + "\"").body(file);
+        return uploadService.serveFile(fileId, filename);
     }
 
     public String getFileUrl(String fileId) throws AuthenticationException {
-        return storageService.getUrl(fileId);
+        return uploadService.getFileUrl(fileId);
     }
 
     public Mono<Void> handleFileUpload(String fileId,
                                    Mono<FilePart> file)
             throws AuthenticationException, ExecutionException, InterruptedException, TimeoutException {
-        return storageService.store(fileId, file);
+        return uploadService.handleFileUpload(fileId, file);
     }
 
     public Mono<ByteArrayInputStream> generateCsv(String journeyTypeId,
