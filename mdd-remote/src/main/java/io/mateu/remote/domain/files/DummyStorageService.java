@@ -1,6 +1,7 @@
 package io.mateu.remote.domain.files;
 
 import io.mateu.remote.domain.files.StorageService;
+import jakarta.annotation.PostConstruct;
 import org.springframework.core.io.Resource;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
@@ -14,18 +15,8 @@ import java.util.stream.Stream;
 public class DummyStorageService implements StorageService {
 
     @Override
-    public void init() {
-
-    }
-
-    @Override
     public Mono<Void> store(String fileId, Mono<FilePart> file) {
         return Mono.empty();
-    }
-
-    @Override
-    public Stream<Path> loadAll() {
-        return null;
     }
 
     @Override
@@ -38,8 +29,4 @@ public class DummyStorageService implements StorageService {
         return null;
     }
 
-    @Override
-    public void deleteAll() {
-
-    }
 }

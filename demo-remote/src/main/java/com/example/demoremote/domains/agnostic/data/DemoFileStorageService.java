@@ -35,7 +35,6 @@ public class DemoFileStorageService implements StorageService {
 
     private Path root;
 
-    @Override
     @PostConstruct
     public void init() {
         try {
@@ -69,17 +68,6 @@ public class DemoFileStorageService implements StorageService {
     }
 
     @Override
-    public Stream<Path> loadAll() throws AuthenticationException {
-        try {
-            return Files.walk(this.root, 2).filter(path -> !path.equals(this.root))
-                    .filter(path -> !path.toFile().isDirectory())
-                    .map(this.root::relativize);
-        } catch (IOException e) {
-            throw new RuntimeException("Could not load the files!");
-        }
-    }
-
-    @Override
     public String getUrl(String fileId) throws AuthenticationException {
         try {
             Path basePath = this.root.resolve(fileId);
@@ -107,8 +95,4 @@ public class DemoFileStorageService implements StorageService {
         }
     }
 
-    @Override
-    public void deleteAll()  throws AuthenticationException {
-        FileSystemUtils.deleteRecursively(root.toFile());
-    }
 }
