@@ -50,11 +50,12 @@ public class DemoFileStorageService implements StorageService {
         if (!fileId.startsWith("mateuremoteistheremoteflavourofmateu")) {
             throw new AuthenticationException("Not allowed to upload files here");
         }
+        var cleanFileId = fileId.substring("mateuremoteistheremoteflavourofmateu".length());
         return file
                 .doOnNext(part -> {
                     log.info("receiving file " + part.filename());
                     try {
-                        Files.createDirectories(this.root.resolve(fileId));
+                        Files.createDirectories(this.root.resolve(cleanFileId));
                         //Files.copy(part.getInputStream(), this.root.resolve(fileId + File.separator + part.getOriginalFilename()));
                     } catch (Exception e) {
                         if (e instanceof FileAlreadyExistsException) {
@@ -63,17 +64,19 @@ public class DemoFileStorageService implements StorageService {
                         throw new RuntimeException(e.getMessage());
                     }
                 })
-                .flatMap(part -> part.transferTo(this.root.resolve(fileId + File.separator + part.filename())))
-                .then();
+                .flatMap(part -> part.transferTo(this.root.resolve(cleanFileId + File.separator + part.filename())))
+                ;
     }
 
     @Override
-    public String getUrl(String fileId) throws AuthenticationException {
+    public String getUrl(String fileId, String fileName) throws AuthenticationException {
         try {
             Path basePath = this.root.resolve(fileId);
             return cdnBaseUrl + "cdn/" + Files.list(basePath)
                     .map(this.root::relativize)
-                    .findFirst().get().toString().replaceAll("\\\\", "/");
+                    .filter(p -> p.endsWith(fileName))
+                    .findFirst().get()
+                    .toString().replaceAll("\\\\", "/");
         } catch (IOException e) {
             throw new RuntimeException("Could not load the files!");
         }

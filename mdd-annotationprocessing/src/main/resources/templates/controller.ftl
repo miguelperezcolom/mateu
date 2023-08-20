@@ -127,9 +127,9 @@ public class ${simpleClassName}MateuController {
         return service.serveFile(fileId, filename);
     }
 
-    @GetMapping(value = "files/{fileId}", produces = MediaType.TEXT_PLAIN_VALUE)
-    public Mono<String> getFileUrl(@PathVariable String fileId) throws AuthenticationException {
-        return Mono.just(service.getFileUrl(fileId));
+    @GetMapping(value = "files/{fileId}/{fileName}", produces = MediaType.TEXT_PLAIN_VALUE)
+    public Mono<String> getFileUrl(@PathVariable String fileId, @PathVariable String fileName) throws AuthenticationException {
+        return Mono.just(service.getFileUrl(fileId, fileName));
     }
 
     @PostMapping("files/{fileId}")

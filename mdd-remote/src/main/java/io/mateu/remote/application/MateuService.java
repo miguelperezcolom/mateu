@@ -219,8 +219,8 @@ public class MateuService {
         return uploadService.serveFile(fileId, filename);
     }
 
-    public String getFileUrl(String fileId) throws AuthenticationException {
-        return uploadService.getFileUrl(fileId);
+    public String getFileUrl(String fileId, String fileName) throws AuthenticationException {
+        return uploadService.getFileUrl(fileId, fileName);
     }
 
     public Mono<Void> handleFileUpload(String fileId,

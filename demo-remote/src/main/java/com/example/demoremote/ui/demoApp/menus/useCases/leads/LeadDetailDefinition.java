@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -36,11 +37,11 @@ public abstract class LeadDetailDefinition {
             description = "Please upload the additional documents for the related intermediary. " +
             "The documents may provide information about intermediary background, licenses, training hours, etc. " +
             "Please keep in mind that up to five files can be uploaded (png, jpg or pdf).")
-    private List<URL> uploadedDocuments = List.of(new URL("https://www.google.es"));
+    private List<URL> uploadedDocuments = new ArrayList(List.of(new URL("https://www.google.es")));
 
     @File
     @CallActionOnChange("filesUploaded")
-    private List<String> uploadFiles;
+    private List<String> uploadFiles = new ArrayList<>();
 
     protected LeadDetailDefinition() throws MalformedURLException {
     }
@@ -53,6 +54,14 @@ public abstract class LeadDetailDefinition {
     @Action(visible = false)
     public void filesUploaded() {
         log.info("files uploaded");
+        uploadFiles.forEach(s -> {
+            try {
+                log.info("adding " + s + " to the uploaded files list");
+                uploadedDocuments.add(new URL(s));
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     @Action

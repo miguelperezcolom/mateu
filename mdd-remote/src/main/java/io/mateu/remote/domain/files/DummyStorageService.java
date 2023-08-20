@@ -20,12 +20,12 @@ public class DummyStorageService implements StorageService {
     }
 
     @Override
-    public String getUrl(String fileId) {
+    public String getUrl(String fileId, String fileName) {
         return null;
     }
 
     @Override
-    public Resource loadAsResource(String fileId, String filename) {
+    public Resource loadAsResource(String fileId, String fileName) {
         return null;
     }
 

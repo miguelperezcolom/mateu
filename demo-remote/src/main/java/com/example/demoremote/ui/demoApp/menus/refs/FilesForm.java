@@ -13,7 +13,7 @@ import java.util.List;
 @Caption("External refs and files")
 public class FilesForm {
 
-    @Section("Files")
+    @Section("Files (not supported yet)")
     private File singleFile;
 
     private File[] files;

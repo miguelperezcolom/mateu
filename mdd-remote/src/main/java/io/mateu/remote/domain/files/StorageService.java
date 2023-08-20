@@ -13,7 +13,7 @@ public interface StorageService {
 
     Mono<Void> store(String fileId, Mono<FilePart> file) throws AuthenticationException;
 
-    String getUrl(String fileId) throws AuthenticationException;
+    String getUrl(String fileId, String fileName) throws AuthenticationException;
 
     Resource loadAsResource(String fileId, String filename) throws AuthenticationException;
 

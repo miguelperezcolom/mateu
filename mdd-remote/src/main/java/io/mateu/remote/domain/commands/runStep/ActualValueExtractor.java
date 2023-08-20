@@ -3,6 +3,7 @@ package io.mateu.remote.domain.commands.runStep;
 import io.mateu.mdd.shared.data.ExternalReference;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
+import io.mateu.remote.domain.files.StorageService;
 import io.mateu.remote.domain.files.StorageServiceAccessor;
 import io.mateu.remote.domain.files.FileChecker;
 import io.mateu.util.Helper;
@@ -29,6 +30,9 @@ public class ActualValueExtractor {
 
     @Autowired
     FileChecker fileChecker;
+
+    @Autowired
+    StorageService storageService;
 
     public Object getActualValue(Class targetType, Object value) throws Exception {
         Object targetValue = value;
@@ -100,13 +104,16 @@ public class ActualValueExtractor {
             }
             return injectedValue;
         }
+        if (targetValue == null) {
+            return targetValue;
+        }
         if (entry.getValue() != null) {
             if (List.class.isAssignableFrom(f.getType())) {
                 if (fileChecker.isFile(f)) {
                     List t = new ArrayList();
                     List<Map<String, Object>> files = (List) entry.getValue();
                     for (Map<String, Object> o : files) {
-                        t.add(toFile(f, (Class<?>) f.getGenericType(), o));
+                        t.add(toFile(f, ReflectionHelper.getGenericClass(f.getGenericType()), o));
                     }
                     return t;
                 }
@@ -209,32 +216,19 @@ public class ActualValueExtractor {
             }
             if (!f.getType().isAssignableFrom(entry.getValue().getClass())) {
                 if (fileChecker.isFile(f)) {
-                    List<Map<String, Object>> files = (List) entry.getValue();
-                    if (f.getType().isArray() || List.class.isAssignableFrom(f.getType())) {
-                        List values = new ArrayList();
-                        for (Map<String, Object> file : files) {
-                            values.add(toFile(f, (Class<?>) f.getGenericType(), file));
-                        }
-                        if (f.getType().isArray()) {
-                            targetValue = values.toArray();
-                        } else {
-                            targetValue = values;
-                        }
+                    Map<String, Object> value = extractFirstMap(entry.getValue());
+                    if (value == null) {
+                        targetValue = null;
                     } else {
-                        Map<String, Object> value = files.get(0);
                         Class<?> genericType = f.getType();
                         targetValue = toFile(f, genericType, value);
                     }
-
-                }
-                if (ExternalReference.class.isAssignableFrom(f.getType())) {
+                } else if (ExternalReference.class.isAssignableFrom(f.getType())) {
                     Map<String, Object> value = (Map<String, Object>) entry.getValue();
                     targetValue = new ExternalReference(value.get("value"), (String) value.get("key"));
-                }
-                if (entry.getValue() instanceof String) {
+                } else if (entry.getValue() instanceof String) {
                     targetValue = getActualValue(f.getType(), entry.getValue());
-                }
-                if (entry.getValue() instanceof Map) {
+                } else if (entry.getValue() instanceof Map) {
                     if (f.getType().isAnnotationPresent(Entity.class)) {
                         targetValue = ReflectionHelper.newInstance(f.getType());
                         Object id = ((Map<String, Object>) entry.getValue()).get("value");
@@ -248,10 +242,25 @@ public class ActualValueExtractor {
         return targetValue;
     }
 
+    private Map<String, Object> extractFirstMap(Object value) {
+        if (Map.class.isAssignableFrom(value.getClass())) {
+            return (Map<String, Object>) value;
+        } else if (List.class.isAssignableFrom(value.getClass())) {
+            var list = ((List<Map<String, Object>>)value);
+            return list.size() > 0? list.get(0):null;
+        }
+        return null;
+    }
+
     private Object toFile(FieldInterfaced f, Class<?> genericType, Map<String, Object> value) {
         Object targetValue = null;
         if (String.class.equals(genericType)) {
-            targetValue =  value.get("targetUrl") + "/" + value.get("name");
+            try {
+                targetValue = storageService.getUrl((String) value.get("id"), (String) value.get("name"));
+            } catch (AuthenticationException e) {
+                e.printStackTrace();
+            }
+            //targetValue =  value.get("targetUrl") + "/" + value.get("name");
         } else if (java.io.File.class.equals(genericType)){
             try {
                 targetValue = StorageServiceAccessor.get()

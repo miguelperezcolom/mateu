@@ -28,8 +28,8 @@ public class UploadService {
                 "attachment; filename=\"" + file.getFilename() + "\"").body(file);
     }
 
-    public String getFileUrl(String fileId) throws AuthenticationException {
-        return storageService.getUrl(fileId);
+    public String getFileUrl(String fileId, String fileName) throws AuthenticationException {
+        return storageService.getUrl(fileId, fileName);
     }
 
     public Mono<Void> handleFileUpload(String fileId,
