@@ -40,8 +40,8 @@ public abstract class LeadDetailDefinition {
     private List<URL> uploadedDocuments = new ArrayList(List.of(new URL("https://www.google.es")));
 
     @File
-    @CallActionOnChange("filesUploaded")
-    private List<String> uploadFiles = new ArrayList<>();
+    //@CallActionOnChange("filesUploaded")
+    private List<String> uploadFile = new ArrayList<>();
 
     protected LeadDetailDefinition() throws MalformedURLException {
     }
@@ -54,7 +54,7 @@ public abstract class LeadDetailDefinition {
     @Action(visible = false)
     public void filesUploaded() {
         log.info("files uploaded");
-        uploadFiles.forEach(s -> {
+        uploadFile.forEach(s -> {
             try {
                 log.info("adding " + s + " to the uploaded files list");
                 uploadedDocuments.add(new URL(s));

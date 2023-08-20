@@ -141,6 +141,21 @@ public class ActualValueExtractor {
                     }
                     return t;
                 }
+                if (f.getGenericClass().isEnum()) {
+                    List value = new ArrayList();
+                    List<String> in = (List<String>) entry.getValue();
+                    in.stream().map(m -> {
+                                try {
+                                    return Enum.valueOf((Class<? extends Enum>)f.getGenericClass(), m);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                                return null;
+                            })
+                            .filter(v -> v != null)
+                            .forEach(v -> value.add(v));
+                    return value;
+                }
                 if (!ReflectionHelper.isBasico(f.getGenericClass())) {
                     List value = new ArrayList();
                     List<Map<String, Object>> in = (List<Map<String, Object>>) entry.getValue();

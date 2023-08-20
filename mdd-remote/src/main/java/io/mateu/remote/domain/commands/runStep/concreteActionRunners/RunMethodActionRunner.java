@@ -34,10 +34,10 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
     @Override
     public boolean applies(Object viewInstance, String actionId) {
-        return getActions(getActualInstance(viewInstance)).containsKey(actionId);
+        return getActions(getActualInstance(viewInstance, Map.of())).containsKey(actionId);
     }
 
-    private Object getActualInstance(Object viewInstance) {
+    private Object getActualInstance(Object viewInstance, Map<String, Object> data) {
         if (viewInstance instanceof EntityEditor) {
             try {
                 EntityEditor entityEditor = ((EntityEditor) viewInstance);
@@ -53,6 +53,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                 Object object = ReflectionHelper.newInstance(objectEditor.getType());
                 Object filled = Helper.fromJson(Helper.toJson(objectEditor.getData()), objectEditor.getType());
                 ReflectionHelper.copy(filled, object);
+
                 return object;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -63,7 +64,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     }
 
     private Map<Object, Method> getActions(Object viewInstance) {
-        return ReflectionHelper.getAllMethods(getActualInstance(viewInstance).getClass()).stream()
+        return ReflectionHelper.getAllMethods(getActualInstance(viewInstance, Map.of()).getClass()).stream()
                 .filter(m -> m.isAnnotationPresent(Action.class) || m.isAnnotationPresent(MainAction.class))
                 .collect(Collectors.toMap(m -> m.getName(), m -> m));
     }
@@ -73,7 +74,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
             , Map<String, Object> data, ServerHttpRequest serverHttpRequest)
             throws Throwable {
 
-        Object actualViewInstance = getActualInstance(viewInstance);
+        Object actualViewInstance = getActualInstance(viewInstance, data);
 
         Method m = getActions(actualViewInstance).get(actionId);
 
