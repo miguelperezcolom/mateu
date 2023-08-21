@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-@Data@Caption("Disable field")
+@Data@Caption("Call action on change")
 public class CallActionOnChangeFieldForm {
 
     @Section("Basic")

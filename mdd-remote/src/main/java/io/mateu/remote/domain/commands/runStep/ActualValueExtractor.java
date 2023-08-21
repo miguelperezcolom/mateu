@@ -17,6 +17,7 @@ import javax.naming.AuthenticationException;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Modifier;
+import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -147,6 +148,21 @@ public class ActualValueExtractor {
                     in.stream().map(m -> {
                                 try {
                                     return Enum.valueOf((Class<? extends Enum>)f.getGenericClass(), m);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                                return null;
+                            })
+                            .filter(v -> v != null)
+                            .forEach(v -> value.add(v));
+                    return value;
+                }
+                if (URL.class.equals(f.getGenericClass())) {
+                    List value = new ArrayList();
+                    List<String> in = (List<String>) entry.getValue();
+                    in.stream().map(m -> {
+                                try {
+                                    return new URL(m);
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }

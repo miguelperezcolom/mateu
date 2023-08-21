@@ -19,7 +19,7 @@ public class CollectionsSubmenu {
     private ExternalRefsCollectionsForm externalRefsCollections;
 
     @MenuOption
-    private WithValuesProvidersCollectionsForm arraysAndSimpleCollections;
+    private WithValuesProvidersCollectionsForm withValuesProvidersCollections;
 
     @MenuOption
     private CustomComponentForm customComponents;

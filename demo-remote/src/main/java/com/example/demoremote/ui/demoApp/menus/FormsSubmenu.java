@@ -56,6 +56,12 @@ public class FormsSubmenu {
     private CallActionOnChangeFieldForm callActionOnChange;
 
     @MenuOption
+    private CallActionOnChecksForm callActionOnCheck;
+
+    @MenuOption
+    private CallActionOnFileUploadForm callActionOnFileUpload;
+
+    @MenuOption
     private SameLineForm sameLine;
 
     @MenuOption

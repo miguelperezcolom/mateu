@@ -30,7 +30,7 @@ public abstract class LeadDetailDefinition {
     @ValuesProvider(QuestionsProvider.class)
     @Caption("")
     @CallActionOnChange("questionsUpdated")
-    private List<ExternalReference> questions = List.of(new ExternalReference("1", "AVAD score"));
+    private List<String> questions = List.of("1");
 
 
     @Section(value = "Document upload",
