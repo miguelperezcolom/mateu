@@ -19,6 +19,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -41,7 +42,10 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
         if (viewInstance instanceof EntityEditor) {
             try {
                 EntityEditor entityEditor = ((EntityEditor) viewInstance);
-                return merger.loadEntity(entityEditor.getData(), entityEditor.getEntityClass());
+                Map<String, Object> mergedData = new HashMap<>();
+                mergedData.putAll(entityEditor.getData());
+                mergedData.putAll(data);
+                return merger.loadEntity(mergedData, entityEditor.getEntityClass());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -51,7 +55,10 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
             try {
                 ObjectEditor objectEditor = ((ObjectEditor) viewInstance);
                 Object object = ReflectionHelper.newInstance(objectEditor.getType());
-                Object filled = Helper.fromJson(Helper.toJson(objectEditor.getData()), objectEditor.getType());
+                Map<String, Object> mergedData = new HashMap<>();
+                mergedData.putAll(objectEditor.getData());
+                mergedData.putAll(data);
+                Object filled = Helper.fromJson(Helper.toJson(mergedData), objectEditor.getType());
                 ReflectionHelper.copy(filled, object);
 
                 return object;

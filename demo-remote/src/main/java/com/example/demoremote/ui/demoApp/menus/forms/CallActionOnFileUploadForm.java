@@ -20,7 +20,7 @@ public class CallActionOnFileUploadForm {
     private List<URL> uploadedDocuments = new ArrayList(List.of(new URL("https://www.google.es")));
 
     @File
-    //@CallActionOnChange("assess")
+    @CallActionOnChange("assess")
     private List<String> uploadFile = new ArrayList<>();
 
     @Section("Assessment")

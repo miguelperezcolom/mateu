@@ -40,7 +40,7 @@ public abstract class LeadDetailDefinition {
     private List<URL> uploadedDocuments = new ArrayList(List.of(new URL("https://www.google.es")));
 
     @File
-    //@CallActionOnChange("filesUploaded")
+    @CallActionOnChange("filesUploaded")
     private List<String> uploadFile = new ArrayList<>();
 
     protected LeadDetailDefinition() throws MalformedURLException {
