@@ -111,6 +111,15 @@ public class JourneyStoreService {
                 if (listField != null) {
                     return jpaRpcCrudFactory.create(actualInstance, listField);
                 }
+            } else if (actualInstance instanceof ObjectEditor) {
+                ObjectEditor objectEditor = (ObjectEditor) actualInstance;
+                Object pojo = ReflectionHelper.newInstance(objectEditor.getType());
+                Object filled = Helper.fromJson(Helper.toJson(objectEditor.getData()), objectEditor.getType());
+                ReflectionHelper.copy(filled, pojo);
+                FieldInterfaced listField = ReflectionHelper.getFieldByName(pojo.getClass(), listId);
+                if (listField != null) {
+                    return (Listing) ReflectionHelper.getValue(listField, pojo);
+                }
             } else {
                  return (Listing) ReflectionHelper.getValue(listId, actualInstance);
             }
