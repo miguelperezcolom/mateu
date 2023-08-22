@@ -5,6 +5,7 @@ import io.mateu.mdd.shared.annotations.MainAction;
 import io.mateu.mdd.shared.data.Result;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.commands.runStep.ActionRunner;
+import io.mateu.remote.domain.commands.runStep.ActualValueExtractor;
 import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.editors.MethodParametersEditor;
 import io.mateu.remote.domain.editors.ObjectEditor;
@@ -19,7 +20,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -33,6 +33,9 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     @Autowired
     Merger merger;
 
+    @Autowired
+    ActualValueExtractor actualValueExtractor;
+
     @Override
     public boolean applies(Object viewInstance, String actionId) {
         return getActions(getActualInstance(viewInstance, Map.of())).containsKey(actionId);
@@ -42,10 +45,16 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
         if (viewInstance instanceof EntityEditor) {
             try {
                 EntityEditor entityEditor = ((EntityEditor) viewInstance);
-                Map<String, Object> mergedData = new HashMap<>();
-                mergedData.putAll(entityEditor.getData());
-                mergedData.putAll(data);
-                return merger.loadEntity(mergedData, entityEditor.getEntityClass());
+                var actualInstance = merger.loadEntity(entityEditor.getData(), entityEditor.getEntityClass());
+                data.entrySet().forEach(entry -> {
+                    try {
+                        Object actualValue = actualValueExtractor.getActualValue(entry, actualInstance);
+                        ReflectionHelper.setValue(entry.getKey(), actualInstance, actualValue);
+                    } catch (Exception ex) {
+                        System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
+                    }
+                });
+                return actualInstance;
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -55,13 +64,18 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
             try {
                 ObjectEditor objectEditor = ((ObjectEditor) viewInstance);
                 Object object = ReflectionHelper.newInstance(objectEditor.getType());
-                Map<String, Object> mergedData = new HashMap<>();
-                mergedData.putAll(objectEditor.getData());
-                mergedData.putAll(data);
-                Object filled = Helper.fromJson(Helper.toJson(mergedData), objectEditor.getType());
+                Object filled = Helper.fromJson(Helper.toJson(objectEditor.getData()), objectEditor.getType());
                 ReflectionHelper.copy(filled, object);
-
-                return object;
+                var actualInstance = object;
+                data.entrySet().forEach(entry -> {
+                    try {
+                        Object actualValue = actualValueExtractor.getActualValue(entry, actualInstance);
+                        ReflectionHelper.setValue(entry.getKey(), actualInstance, actualValue);
+                    } catch (Exception ex) {
+                        System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
+                    }
+                });
+                return actualInstance;
             } catch (Exception e) {
                 e.printStackTrace();
             }
