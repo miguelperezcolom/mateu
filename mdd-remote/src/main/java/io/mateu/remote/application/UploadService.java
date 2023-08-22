@@ -22,7 +22,6 @@ public class UploadService {
     public ResponseEntity<Resource> serveFile(String fileId,
                                               String filename)
             throws AuthenticationException {
-
         Resource file = storageService.loadAsResource(fileId, filename);
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
                 "attachment; filename=\"" + file.getFilename() + "\"").body(file);
