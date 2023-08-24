@@ -1149,7 +1149,16 @@ public class ReflectionHelper extends BaseReflectionHelper {
     private static List<FieldInterfaced> filterInjected(List<FieldInterfaced> allFields) {
         List<FieldInterfaced> r = new ArrayList<>();
         for (FieldInterfaced f : allFields) {
-            if (!f.isAnnotationPresent(Autowired.class)) r.add(f);
+            if (!f.isAnnotationPresent(Autowired.class) && !Modifier.isFinal(f.getModifiers())) r.add(f);
+        }
+        return r;
+    }
+
+    private static List<FieldInterfaced> getAllInjectedFields(Class<?> type) {
+        List<FieldInterfaced> r = new ArrayList<>();
+        var allFields = getAllFields(type);
+        for (FieldInterfaced f : allFields) {
+            if (f.isAnnotationPresent(Autowired.class) || Modifier.isFinal(f.getModifiers())) r.add(f);
         }
         return r;
     }
@@ -1649,21 +1658,28 @@ public class ReflectionHelper extends BaseReflectionHelper {
         }
     }
 
-    public static void copy(Object o1, Object o2) {
-        if (o1 != null && o2 != null) {
-            if (o1.getClass().equals(o2.getClass())) {
-                for (FieldInterfaced f : getAllTransferrableFields(o2.getClass())) {
+    public static void copy(Object from, Object to) {
+        if (from != null && to != null) {
+            if (from.getClass().equals(to.getClass())) {
+                for (FieldInterfaced f : getAllTransferrableFields(to.getClass())) {
                     try {
-                        setValue(f, o2, getValue(f, o1));
+                        setValue(f, to, getValue(f, from));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                for (FieldInterfaced f : getAllInjectedFields(to.getClass())) {
+                    try {
+                        copy(getValue(f, from), getValue(f, to));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
             } else {
-                for (FieldInterfaced f2 : getAllTransferrableFields(o2.getClass())) {
+                for (FieldInterfaced f2 : getAllTransferrableFields(to.getClass())) {
                     try {
-                        FieldInterfaced f1 = getFieldByName(o1.getClass(), f2.getName());
-                        if (f1 != null && f1.getType().equals(f2.getType())) setValue(f2, o2, getValue(f1, o1));
+                        FieldInterfaced f1 = getFieldByName(from.getClass(), f2.getName());
+                        if (f1 != null && f1.getType().equals(f2.getType())) setValue(f2, to, getValue(f1, from));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
