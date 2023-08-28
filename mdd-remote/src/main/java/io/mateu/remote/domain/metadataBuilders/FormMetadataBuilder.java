@@ -6,7 +6,6 @@ import io.mateu.mdd.shared.annotations.UseCheckboxes;
 import io.mateu.mdd.shared.annotations.UseChips;
 import io.mateu.mdd.shared.interfaces.HasBadges;
 import io.mateu.mdd.shared.interfaces.HasStatus;
-import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.editors.EntityEditor;
@@ -21,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -229,7 +227,7 @@ public class FormMetadataBuilder {
         }
         if (uiInstance != null && uiInstance instanceof PersistentPojo) {
             viewTitle = ((PersistentPojo) uiInstance).getEntityName();
-            if (((PersistentPojo) uiInstance).isNew()) return "New " + viewTitle;
+            if (((PersistentPojo) uiInstance).isNewRecord()) return "New " + viewTitle;
         }
         String prefix = "";
         if (!"".equals(viewTitle)) {

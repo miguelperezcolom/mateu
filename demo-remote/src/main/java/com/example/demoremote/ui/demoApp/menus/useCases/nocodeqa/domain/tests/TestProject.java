@@ -32,6 +32,8 @@ public class TestProject {
 
     String githubApiKey;
 
-
-
+    @Override
+    public String toString() {
+        return name;
+    }
 }

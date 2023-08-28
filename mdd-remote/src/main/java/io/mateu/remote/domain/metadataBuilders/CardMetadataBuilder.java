@@ -145,7 +145,7 @@ public class CardMetadataBuilder {
         if (uiInstance != null && uiInstance instanceof ReadOnlyPojo) viewTitle = ((ReadOnlyPojo) uiInstance).getEntityName();
         if (uiInstance != null && uiInstance instanceof PersistentPojo) {
             viewTitle = ((PersistentPojo) uiInstance).getEntityName();
-            if (((PersistentPojo) uiInstance).isNew()) return "New " + viewTitle;
+            if (((PersistentPojo) uiInstance).isNewRecord()) return "New " + viewTitle;
         }
         String prefix = "";
         if (!"".equals(viewTitle)) prefix = viewTitle + " ";
