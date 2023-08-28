@@ -29,6 +29,9 @@ public class FormsSubmenu {
     private EnumFieldsForm enums;
 
     @MenuOption
+    private NestedDropdownsForm nestedDropdowns;
+
+    @MenuOption
     private MyReadOnlyPojo readOnlyPojo;
 
     @MenuOption
