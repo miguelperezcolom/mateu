@@ -26,6 +26,7 @@ import io.mateu.remote.domain.queries.getUI.GetUIQuery;
 import io.mateu.remote.domain.queries.getUI.GetUIQueryHandler;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.*;
+import io.mateu.util.Serializer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -241,7 +242,7 @@ public class MateuService {
 
         return getListRows(journeyTypeId, journeyId, stepId, listId, 0, 500, filters, ordering
         , serverHttpRequest)
-                .map(o -> (Map<String, Object>) o)
+                .map(o -> toMap(o))
                 .map(m -> m.values())
                 .map(a -> a.stream().map(o -> "" + o).collect(Collectors.toList()))
                 .map(l -> l.toArray(new String[0]))
@@ -263,6 +264,19 @@ public class MateuService {
         }).subscribeOn(Schedulers.boundedElastic());
     }
 
+    private Map<String, Object> toMap(Object o) {
+        if (o instanceof Map) {
+            return (Map<String, Object>) o;
+        } else {
+            try {
+                return Serializer.toMap(o);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return Map.of();
+            }
+        }
+    }
+
     public Mono<ByteArrayInputStream> generateExcel(String journeyTypeId,
                                                   String journeyId,
                                                   String stepId,
@@ -275,7 +289,7 @@ public class MateuService {
 
         return getListRows(journeyTypeId, journeyId, stepId, listId, 0, 500, filters, ordering
         , serverHttpRequest)
-                .map(o -> (Map<String, Object>) o)
+                .map(o -> toMap(o))
                 .map(m -> m.values())
                 .map(a -> a.stream().map(o -> "" + o).collect(Collectors.toList()))
                 .map(l -> l.toArray(new String[0]))
