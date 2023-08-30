@@ -19,8 +19,12 @@ public class NestedDropdownsForm {
     @VisibleIf("country == 'Spain'")
     private CitiesInSpain spanishCity;
 
+    @SameLine
     @VisibleIf("country == 'France'")
     private CitiesInFrance frenchCity;
+
+    @SameLine
+    private String someValue;
 
     @Section("Using @ValuesProviderMethod")
     @CallActionOnChange("none")
