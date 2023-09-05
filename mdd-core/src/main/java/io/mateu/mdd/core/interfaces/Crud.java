@@ -31,4 +31,12 @@ public interface Crud<SearchForm, Row> extends Listing<SearchForm, Row> {
 
     }
 
+    default String getCaptionForNew() {
+        return "New";
+    }
+
+    default String getCaptionForDelete() {
+        return "Delete";
+    }
+
 }

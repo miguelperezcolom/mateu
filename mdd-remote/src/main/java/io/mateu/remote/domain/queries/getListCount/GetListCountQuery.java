@@ -5,6 +5,8 @@ import io.mateu.remote.domain.store.JourneyStoreService;
 import lombok.*;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
+import java.util.Map;
+
 @Data
 @Builder
 @NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
@@ -21,7 +23,7 @@ public class GetListCountQuery {
 
     private String listId;
 
-    private String filters;
+    private Map<String, Object> filters;
 
     private ServerHttpRequest serverHttpRequest;
 

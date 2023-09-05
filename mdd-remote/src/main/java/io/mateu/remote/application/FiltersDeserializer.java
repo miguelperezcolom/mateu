@@ -20,10 +20,10 @@ public class FiltersDeserializer {
     private final String journeyId;
     private final String stepId;
     private final String listId;
-    private final String raw;
+    private final Map<String, Object> raw;
     private final ServerHttpRequest serverHttpRequest;
 
-    public FiltersDeserializer(String journeyId, String stepId, String listId, String raw
+    public FiltersDeserializer(String journeyId, String stepId, String listId, Map<String, Object> raw
             , ServerHttpRequest serverHttpRequest) {
         this.journeyId = journeyId;
         this.stepId = stepId;
@@ -37,7 +37,7 @@ public class FiltersDeserializer {
         if (rpcView == null) {
             return null;
         }
-        Map<String, Object> rawMap = decodeAndParse(raw);
+        Map<String, Object> rawMap = raw; //decodeAndParse(raw);
         Map<String, Object> map = new HashMap<>();
         rawMap.entrySet().stream()
                 .filter(e -> e.getKey().startsWith(listId + "-"))

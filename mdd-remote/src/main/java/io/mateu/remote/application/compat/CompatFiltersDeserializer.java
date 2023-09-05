@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class CompatFiltersDeserializer extends FiltersDeserializer {
 
-    public CompatFiltersDeserializer(String journeyId, String stepId, String listId, String raw
+    public CompatFiltersDeserializer(String journeyId, String stepId, String listId, Map<String, Object> raw
             , ServerHttpRequest serverHttpRequest) {
         super(journeyId, stepId, listId, raw, serverHttpRequest);
     }

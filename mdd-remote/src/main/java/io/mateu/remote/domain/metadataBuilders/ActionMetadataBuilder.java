@@ -5,6 +5,7 @@ import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.core.interfaces.Crud;
 import io.mateu.mdd.shared.annotations.*;
+import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.Action;
 import io.mateu.remote.dtos.*;
@@ -131,7 +132,7 @@ public class ActionMetadataBuilder {
         if (canAdd(uiInstance)) {
             Action action = Action.builder()
                     .id("__list__" + listId + "__new")
-                    .caption("New")
+                    .caption(getCaptionForNew(uiInstance))
                     .type(ActionType.Primary)
                     .visible(true)
                     .build();
@@ -140,7 +141,7 @@ public class ActionMetadataBuilder {
         if (canDelete(uiInstance)) {
             Action action = Action.builder()
                     .id("__list__" + listId + "__delete")
-                    .caption("Delete")
+                    .caption(getCaptionForDelete(uiInstance))
                     .type(ActionType.Primary)
                     .confirmationRequired(true)
                     .confirmationTexts(ConfirmationTexts.builder()
@@ -156,7 +157,7 @@ public class ActionMetadataBuilder {
         || (uiInstance instanceof ReadOnlyPojo && !(uiInstance instanceof PersistentPojo))) {
             Action action = Action.builder()
                     .id("edit")
-                    .caption("Edit")
+                    .caption(getCaptionForEdit(uiInstance))
                     .type(ActionType.Primary)
                     .visible(true)
                     .build();
@@ -165,6 +166,26 @@ public class ActionMetadataBuilder {
         return actions;
     }
 
+    private String getCaptionForNew(Object uiInstance) {
+        if (uiInstance != null && uiInstance instanceof Crud) {
+            return ((Crud) uiInstance).getCaptionForNew();
+        }
+        return "New";
+    }
+
+    private String getCaptionForDelete(Object uiInstance) {
+        if (uiInstance != null && uiInstance instanceof Crud) {
+            return ((Crud) uiInstance).getCaptionForDelete();
+        }
+        return "Delete";
+    }
+
+    private String getCaptionForEdit(Object uiInstance) {
+        if (uiInstance != null && uiInstance instanceof Listing) {
+            return ((Listing) uiInstance).getCaptionForEdit();
+        }
+        return "Edit";
+    }
 
     private boolean canAdd(Object uiInstance) {
         if (uiInstance instanceof Crud) {

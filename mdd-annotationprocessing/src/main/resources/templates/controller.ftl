@@ -18,6 +18,7 @@ import reactor.core.publisher.Mono;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
 import javax.naming.AuthenticationException;
+import java.util.Map;
 
 
 @CrossOrigin
@@ -73,7 +74,7 @@ public class ${simpleClassName}MateuController {
     }
 
 
-    @GetMapping("journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/lists/{listId}/rows")
+    @PostMapping("journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/lists/{listId}/rows")
     public Flux<Object> getListRows(@PathVariable String journeyTypeId,
                                     @PathVariable String journeyId,
                                     @PathVariable String stepId,
@@ -81,7 +82,7 @@ public class ${simpleClassName}MateuController {
                                     @RequestParam int page,
                                     @RequestParam int page_size,
                                     // urlencoded form of filters json serialized
-                                    @RequestParam String filters,
+                                    @RequestBody Map<String, Object> filters,
                                     // urlencoded form of orders json serialized
                                     @RequestParam String ordering,
                                     ServerHttpRequest serverHttpRequest
@@ -90,13 +91,13 @@ public class ${simpleClassName}MateuController {
                             filters, ordering, serverHttpRequest);
     }
 
-    @GetMapping("journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/lists/{listId}/count")
+    @PostMapping("journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/lists/{listId}/count")
     public Mono<Long> getListCount(@PathVariable String journeyTypeId,
                                     @PathVariable String journeyId,
                                     @PathVariable String stepId,
                                     @PathVariable String listId,
                                     // urlencoded form of filters json serialized
-                                    @RequestParam String filters,
+                                    @RequestBody Map<String, Object> filters,
                                     ServerHttpRequest serverHttpRequest
                                     ) throws Throwable {
         return service.getListCount(journeyTypeId, journeyId, stepId, listId, filters
@@ -138,13 +139,13 @@ public class ${simpleClassName}MateuController {
         return service.handleFileUpload(fileId, file);
     }
 
-    @GetMapping("journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/lists/{listId}/csv")
+    @PostMapping("journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/lists/{listId}/csv")
     public ResponseEntity<Mono<Resource>> downloadCsv(@PathVariable String journeyTypeId,
                     @PathVariable String journeyId,
                     @PathVariable String stepId,
                     @PathVariable String listId,
                     // urlencoded form of filters json serialized
-                    @RequestParam String filters,
+                    @RequestBody Map<String, Object> filters,
                     // urlencoded form of orders json serialized
                     @RequestParam String ordering,
                     ServerHttpRequest serverHttpRequest) throws Throwable {
@@ -159,13 +160,13 @@ public class ${simpleClassName}MateuController {
             }));
     }
 
-    @GetMapping("journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/lists/{listId}/xls")
+    @PostMapping("journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/lists/{listId}/xls")
     public ResponseEntity<Mono<Resource>> downloadExcel(@PathVariable String journeyTypeId,
                     @PathVariable String journeyId,
                     @PathVariable String stepId,
                     @PathVariable String listId,
                     // urlencoded form of filters json serialized
-                    @RequestParam String filters,
+                    @RequestBody Map<String, Object> filters,
                     // urlencoded form of orders json serialized
                     @RequestParam String ordering,
                     ServerHttpRequest serverHttpRequest) throws Throwable {

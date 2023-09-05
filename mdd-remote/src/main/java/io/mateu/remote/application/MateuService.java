@@ -155,7 +155,7 @@ public class MateuService {
                                     int page,
                                     int page_size,
 // urlencoded form of filters json serialized
-                                    String filters,
+                                    Map<String, Object> filters,
 // urlencoded form of orders json serialized
                                     String ordering,
                                     ServerHttpRequest serverHttpRequest
@@ -178,7 +178,7 @@ public class MateuService {
                                    String stepId,
                                    String listId,
 // urlencoded form of filters json serialized
-                                   String filters,
+                                   Map<String, Object> filters,
                                    ServerHttpRequest serverHttpRequest
     ) throws Throwable {
         return getListCountQueryHandler.run(GetListCountQuery.builder()
@@ -235,7 +235,7 @@ public class MateuService {
                                                   String stepId,
                                                   String listId,
 // urlencoded form of filters json serialized
-                                                  String filters,
+                                                  Map<String, Object> filters,
 // urlencoded form of orders json serialized
                                                   String ordering,
                                                   ServerHttpRequest serverHttpRequest) throws Throwable {
@@ -282,7 +282,7 @@ public class MateuService {
                                                   String stepId,
                                                   String listId,
 // urlencoded form of filters json serialized
-                                                  String filters,
+                                                    Map<String, Object> filters,
 // urlencoded form of orders json serialized
                                                   String ordering,
                                                     ServerHttpRequest serverHttpRequest) throws Throwable {

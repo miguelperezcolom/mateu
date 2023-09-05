@@ -96,11 +96,16 @@ public class ProgrammingLanguages implements Crud<ProgrammingLanguages, Language
         return detail;
     }
 
-    @Action
+    @Action("Do something great, please")
     public void doSomething() {
         System.out.println("Hola!!!!" + getSelection().size() + "...." + getSelection());
     }
 
+    @Action()
+    @Caption("Do something again, please")
+    public void doSomethingAgain() {
+        System.out.println("Hola!!!!" + getSelection().size() + "...." + getSelection());
+    }
 
     public void unblockRow(LanguageRow row) {
         System.out.println("unblocking " + row);
@@ -112,5 +117,20 @@ public class ProgrammingLanguages implements Crud<ProgrammingLanguages, Language
 
     public void deleteRow(LanguageRow row) {
         System.out.println("deleting " + row);
+    }
+
+    @Override
+    public String getCaptionForNew() {
+        return "Add new language";
+    }
+
+    @Override
+    public String getCaptionForDelete() {
+        return "Remove selected";
+    }
+
+    @Override
+    public String getCaptionForEdit() {
+        return "View details";
     }
 }

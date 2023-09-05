@@ -43,4 +43,7 @@ public interface Listing<SearchForm, Row> {
         return new SelectedRowsContext().getRows();
     }
 
+    default String getCaptionForEdit() {
+        return "Edit";
+    }
 }

@@ -7,6 +7,7 @@ import lombok.*;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -24,7 +25,7 @@ public class GetListRowsQuery {
 
     private String listId;
 
-    private String filters;
+    private Map<String, Object> filters;
 
     private int page;
 

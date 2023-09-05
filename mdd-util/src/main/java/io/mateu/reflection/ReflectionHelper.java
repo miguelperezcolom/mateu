@@ -1349,7 +1349,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
         } else {
             String caption = "";
             if (f.isAnnotationPresent(Submenu.class)) caption = f.getAnnotation(Submenu.class).value();
-            if (f.isAnnotationPresent(Action.class)) f.getAnnotation(Action.class).value();
+            if (f.isAnnotationPresent(Action.class)) caption = f.getAnnotation(Action.class).value();
             if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(f.getName());
             return Translator.translate(caption);
         }
