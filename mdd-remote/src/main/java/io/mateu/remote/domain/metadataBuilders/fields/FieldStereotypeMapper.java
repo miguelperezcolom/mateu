@@ -55,6 +55,9 @@ public class FieldStereotypeMapper {
                 e.printStackTrace();
             }
         }
+        if (field.isAnnotationPresent(RichText.class)) {
+            return "rich-text";
+        }
         if (field.isAnnotationPresent(TextArea.class)) {
             return "textarea";
         }

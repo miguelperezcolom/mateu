@@ -11,6 +11,9 @@ public class FormsSubmenu {
     private TextFieldsForm text;
 
     @MenuOption
+    private RichTextFieldForm richText;
+
+    @MenuOption
     private NumberFieldsForm numbers;
 
     @MenuOption
