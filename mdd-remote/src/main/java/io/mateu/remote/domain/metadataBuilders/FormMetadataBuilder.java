@@ -127,7 +127,7 @@ public class FormMetadataBuilder {
                 && (uiInstance instanceof PersistentPojo || uiInstance.getClass().isAnnotationPresent(Entity.class))) {
             Action action = Action.builder()
                     .id("cancel")
-                    .caption("Cancel")
+                    .caption(getCaptionForCancel(uiInstance))
                     .type(ActionType.Secondary)
                     .validationRequired(false)
                     .visible(true)
@@ -135,7 +135,7 @@ public class FormMetadataBuilder {
             actions.add(action);
             action = Action.builder()
                     .id("save")
-                    .caption("Save")
+                    .caption(getCaptionForSave(uiInstance))
                     .type(ActionType.Primary)
                     .validationRequired(true)
                     .visible(true)
@@ -143,6 +143,20 @@ public class FormMetadataBuilder {
             actions.add(action);
         }
         return actions;
+    }
+
+    private String getCaptionForCancel(Object uiInstance) {
+        if (uiInstance instanceof PersistentPojo) {
+            return ((PersistentPojo)uiInstance).getCaptionForCancel();
+        }
+        return "Cancel";
+    }
+
+    private String getCaptionForSave(Object uiInstance) {
+        if (uiInstance instanceof PersistentPojo) {
+            return ((PersistentPojo)uiInstance).getCaptionForSave();
+        }
+        return "Save";
     }
 
     private List<Section> getSections(String stepId, Object uiInstance, List<FieldInterfaced> slotFields) {
