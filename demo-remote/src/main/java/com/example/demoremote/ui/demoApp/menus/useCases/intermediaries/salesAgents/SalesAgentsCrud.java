@@ -2,6 +2,7 @@ package com.example.demoremote.ui.demoApp.menus.useCases.intermediaries.salesAge
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.mdd.core.interfaces.Crud;
+import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.interfaces.SortCriteria;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,6 +13,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service@Scope("prototype")@Setter@Getter
@@ -27,6 +29,11 @@ public class SalesAgentsCrud implements Crud<SalesAgentsSearchForm, SalesAgentsR
     SalesAgentsRepo repo;
 
     String intermediaryId;
+
+    @Action
+    public void doSomething() {
+        repo.all.add(new SalesAgentsRow(UUID.randomUUID().toString(), intermediaryId, "New Name"));
+    }
 
     public SalesAgentsCrud() {
     }

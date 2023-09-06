@@ -3,6 +3,7 @@ package io.mateu.remote.domain.commands.runStep.concreteActionRunners;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.MainAction;
 import io.mateu.mdd.shared.data.Result;
+import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.commands.runStep.ActionRunner;
 import io.mateu.remote.domain.commands.runStep.ActualValueExtractor;
@@ -127,7 +128,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
                 Object result = m.invoke(actualViewInstance, injectParameters(m, serverHttpRequest));
 
-                if (actualViewInstance != null) {
+                if (actualViewInstance != null && !(actualViewInstance instanceof Listing)) {
                     store.updateStep(journeyId, actualViewInstance, serverHttpRequest);
                 }
 
