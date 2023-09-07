@@ -13,9 +13,17 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class FieldStereotypeMapper {
+
+    private final Map<RichTextComponent, String> richTextMapping = Map.of(
+            RichTextComponent.Unlayer, "rich-text-unlayer",
+            RichTextComponent.Tinymce, "rich-text-tinymce",
+            RichTextComponent.Vaadin, "rich-text-vaadin",
+            RichTextComponent.Ckeditor, "rich-text-ckeditor"
+    );
 
     @Autowired
     FileChecker fileChecker;
@@ -56,7 +64,11 @@ public class FieldStereotypeMapper {
             }
         }
         if (field.isAnnotationPresent(RichText.class)) {
-            return "rich-text";
+            var component = field.getAnnotation(RichText.class).component();
+            if (RichTextComponent.Vaadin.equals(component)) {
+                System.out.println("IMPORTANT!!! Please notice that the Vaadin rich text component is commercial licensed. Please do not use it unless you have an agreement with Vaadin.");
+            }
+            return richTextMapping.get(component);
         }
         if (field.isAnnotationPresent(TextArea.class)) {
             return "textarea";

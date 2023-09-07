@@ -14,6 +14,9 @@ public class FormsSubmenu {
     private RichTextFieldForm richText;
 
     @MenuOption
+    private VaadinRichTextFieldForm richTextUsingVaadin;
+
+    @MenuOption
     private NumberFieldsForm numbers;
 
     @MenuOption
