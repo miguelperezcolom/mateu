@@ -27,7 +27,12 @@ public class IntermediaryDetail extends IntermediaryDetailDefinition implements 
     }
 
     @Override
-    public IntermediaryEditor getEditor() throws Throwable {
+    public Object retrieveId() {
+        return getId();
+    }
+
+    @Override
+    public IntermediaryEditor retrieveEditor() throws Throwable {
         editor.load(getId());
         return editor;
     }

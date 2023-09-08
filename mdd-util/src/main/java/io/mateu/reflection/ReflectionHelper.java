@@ -1688,6 +1688,28 @@ public class ReflectionHelper extends BaseReflectionHelper {
         }
     }
 
+    public static void copyButInjected(Object from, Object to) {
+        if (from != null && to != null) {
+            if (from.getClass().equals(to.getClass())) {
+                for (FieldInterfaced f : getAllTransferrableFields(to.getClass())) {
+                    try {
+                        setValue(f, to, getValue(f, from));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            } else {
+                for (FieldInterfaced f2 : getAllTransferrableFields(to.getClass())) {
+                    try {
+                        FieldInterfaced f1 = getFieldByName(from.getClass(), f2.getName());
+                        if (f1 != null && f1.getType().equals(f2.getType())) setValue(f2, to, getValue(f1, from));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
     public static Object newInstance(Constructor c, Object params) throws Throwable {
         List<Object> vs = new ArrayList<>();
         for (Parameter p : c.getParameters()) {

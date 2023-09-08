@@ -23,7 +23,12 @@ public class SaleAgentDetail extends SaleAgentDetailDefinition implements ReadOn
     }
 
     @Override
-    public Object getEditor() throws Throwable {
+    public Object retrieveId() {
+        return getId();
+    }
+
+    @Override
+    public Object retrieveEditor() throws Throwable {
         form.load(getId());
         return form;
     }

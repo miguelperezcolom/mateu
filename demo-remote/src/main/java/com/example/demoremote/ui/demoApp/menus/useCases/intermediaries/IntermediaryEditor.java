@@ -26,6 +26,11 @@ public class IntermediaryEditor implements PersistentPojo<String> {
     }
 
     @Override
+    public Object retrieveId() {
+        return getId();
+    }
+
+    @Override
     public void save() throws Throwable {
 
     }

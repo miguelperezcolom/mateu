@@ -61,7 +61,7 @@ public class PersistentPojoSaveActionRunner implements ActionRunner {
         if ("list_view_edit".equals(stepId)) {
             Object detailView = store.getViewInstance(journeyId, "list_view", serverHttpRequest);
             if (detailView instanceof ReadOnlyPojo) {
-                ((ReadOnlyPojo) detailView).load(((ReadOnlyPojo) detailView).getId());
+                ((ReadOnlyPojo) detailView).load(((ReadOnlyPojo) detailView).retrieveId());
                 store.updateStep(journeyId, "list_view", detailView, serverHttpRequest);
             }
         }

@@ -8,16 +8,16 @@ public interface ReadOnlyPojo<Id> {
         return false;
     }
 
-    default Object getEditor() throws Throwable {
+    default Object retrieveEditor() throws Throwable {
         return null;
     }
 
-    default String getEntityName() {
+    default String retrieveEntityName() {
         return Helper.capitalize(getClass().getSimpleName());
     }
 
     void load(Id id) throws Throwable;
 
-    Object getId();
+    Object retrieveId();
 
 }

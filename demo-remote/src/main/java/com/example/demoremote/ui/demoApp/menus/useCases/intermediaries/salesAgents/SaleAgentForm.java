@@ -16,6 +16,11 @@ public class SaleAgentForm extends SaleAgentFormDefinition implements Persistent
         setName("Michael Jordan");
     }
 
+    @Override
+    public Object retrieveId() {
+        return getId();
+    }
+
 
     @Override
     public void save() throws Throwable {

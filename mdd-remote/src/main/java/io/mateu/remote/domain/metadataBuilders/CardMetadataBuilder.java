@@ -142,9 +142,9 @@ public class CardMetadataBuilder {
             return modelType.getAnnotation(Caption.class).value();
         }
         String viewTitle = "";
-        if (uiInstance != null && uiInstance instanceof ReadOnlyPojo) viewTitle = ((ReadOnlyPojo) uiInstance).getEntityName();
+        if (uiInstance != null && uiInstance instanceof ReadOnlyPojo) viewTitle = ((ReadOnlyPojo) uiInstance).retrieveEntityName();
         if (uiInstance != null && uiInstance instanceof PersistentPojo) {
-            viewTitle = ((PersistentPojo) uiInstance).getEntityName();
+            viewTitle = ((PersistentPojo) uiInstance).retrieveEntityName();
             if (((PersistentPojo) uiInstance).isNewRecord()) return "New " + viewTitle;
         }
         String prefix = "";

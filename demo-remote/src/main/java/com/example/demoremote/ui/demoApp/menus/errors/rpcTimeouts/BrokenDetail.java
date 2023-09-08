@@ -25,7 +25,12 @@ public class BrokenDetail extends BrokenDetailDefinition implements ReadOnlyPojo
     }
 
     @Override
-    public BrokenEditor getEditor() throws Throwable {
+    public Object retrieveId() {
+        return getId();
+    }
+
+    @Override
+    public BrokenEditor retrieveEditor() throws Throwable {
         editor.load(getId());
         return editor;
     }

@@ -94,7 +94,7 @@ public class MyReadOnlyPojo implements io.mateu.mdd.core.interfaces.ReadOnlyPojo
     }
 
     @Override
-    public Object getId() {
+    public Object retrieveId() {
         return "010100101";
     }
 

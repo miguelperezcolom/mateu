@@ -34,7 +34,7 @@ public class LanguageForm implements PersistentPojo {
     }
 
     @Override
-    public Object getId() {
+    public Object retrieveId() {
         return id;
     }
 

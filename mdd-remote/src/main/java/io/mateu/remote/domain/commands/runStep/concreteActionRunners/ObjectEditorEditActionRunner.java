@@ -37,7 +37,7 @@ public class ObjectEditorEditActionRunner implements ActionRunner {
 
         Object editor = object;
         if (object instanceof ReadOnlyPojo) {
-            editor = ((ReadOnlyPojo)object).getEditor();
+            editor = ((ReadOnlyPojo)object).retrieveEditor();
         }
         return editor;
     }

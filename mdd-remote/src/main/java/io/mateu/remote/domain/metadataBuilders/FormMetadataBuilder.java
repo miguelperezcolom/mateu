@@ -237,10 +237,10 @@ public class FormMetadataBuilder {
         }
         String viewTitle = "";
         if (uiInstance != null && uiInstance instanceof ReadOnlyPojo) {
-            viewTitle = ((ReadOnlyPojo) uiInstance).getEntityName();
+            viewTitle = ((ReadOnlyPojo) uiInstance).retrieveEntityName();
         }
         if (uiInstance != null && uiInstance instanceof PersistentPojo) {
-            viewTitle = ((PersistentPojo) uiInstance).getEntityName();
+            viewTitle = ((PersistentPojo) uiInstance).retrieveEntityName();
             if (((PersistentPojo) uiInstance).isNewRecord()) return "New " + viewTitle;
         }
         String prefix = "";

@@ -28,7 +28,12 @@ public class LeadsDetail extends LeadDetailDefinition implements ReadOnlyPojo<St
     }
 
     @Override
-    public LeadEditor getEditor() throws Throwable {
+    public Object retrieveId() {
+        return getId();
+    }
+
+    @Override
+    public LeadEditor retrieveEditor() throws Throwable {
         editor.load(getId());
         return editor;
     }
