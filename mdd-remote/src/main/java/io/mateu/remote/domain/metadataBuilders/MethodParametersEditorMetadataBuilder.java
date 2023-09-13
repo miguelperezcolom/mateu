@@ -2,11 +2,13 @@ package io.mateu.remote.domain.metadataBuilders;
 
 import io.mateu.mdd.shared.annotations.UseCheckboxes;
 import io.mateu.mdd.shared.annotations.UseChips;
+import io.mateu.mdd.shared.annotations.UseCrud;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.editors.MethodParametersEditor;
 import io.mateu.remote.dtos.*;
 import io.mateu.util.Helper;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -64,9 +66,7 @@ public class MethodParametersEditorMetadataBuilder {
         Method m = ReflectionHelper.getMethod(methodParametersEditor.getType(), methodParametersEditor.getMethodId());
 
         List<FieldInterfaced> allEditableFields = ReflectionHelper.getAllFields(m).stream()
-                .filter(f -> !f.isAnnotationPresent(OneToMany.class)
-                        || f.isAnnotationPresent(UseCheckboxes.class)
-                        || f.isAnnotationPresent(UseChips.class))
+                .filter(f -> f.isAnnotationPresent(UseCrud.class))
                 .collect(Collectors.toList());
         int paramPos = 0;
         for (FieldInterfaced fieldInterfaced : allEditableFields) {

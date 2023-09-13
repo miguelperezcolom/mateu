@@ -2,10 +2,12 @@ package io.mateu.remote.domain.metadataBuilders.fields;
 
 import io.mateu.mdd.shared.annotations.UseCheckboxes;
 import io.mateu.mdd.shared.annotations.UseChips;
+import io.mateu.mdd.shared.annotations.UseCrud;
 import io.mateu.mdd.shared.annotations.Width;
 import io.mateu.mdd.shared.data.ExternalReference;
 import io.mateu.mdd.shared.data.TelephoneNumber;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import org.springframework.stereotype.Service;
@@ -62,11 +64,8 @@ public class FieldTypeMapper {
                 return "enum[]";
             }
         }
-        if (field.isAnnotationPresent(OneToMany.class)) {
-            if (field.isAnnotationPresent(UseChips.class)) {
-                return ExternalReference.class.getSimpleName() + "[]";
-            }
-            if (field.isAnnotationPresent(UseCheckboxes.class)) {
+        if (field.isAnnotationPresent(OneToMany.class) || field.isAnnotationPresent(ManyToMany.class)) {
+            if (!field.isAnnotationPresent(UseCrud.class)) {
                 return ExternalReference.class.getSimpleName() + "[]";
             }
         }

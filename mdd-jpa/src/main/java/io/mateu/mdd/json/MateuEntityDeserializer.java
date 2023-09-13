@@ -8,6 +8,7 @@ import io.mateu.util.Serializer;
 import io.mateu.util.persistence.EntityDeserializer;
 import io.mateu.util.persistence.EntitySerializer;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 
@@ -32,7 +33,9 @@ public class MateuEntityDeserializer implements EntityDeserializer {
                         e.printStackTrace();
                     }
                 });
-        ReflectionHelper.getAllEditableFields(c).stream().filter(f -> f.isAnnotationPresent(OneToMany.class))
+        ReflectionHelper.getAllEditableFields(c).stream()
+                .filter(f -> f.isAnnotationPresent(OneToMany.class)
+                || f.isAnnotationPresent(ManyToMany.class))
                 .forEach(f -> {
                     try {
                         ReflectionHelper.setValue(f, instance, buildList(f, em, map));

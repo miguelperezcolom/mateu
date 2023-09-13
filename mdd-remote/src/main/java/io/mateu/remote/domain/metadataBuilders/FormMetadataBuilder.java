@@ -4,6 +4,7 @@ import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.UseCheckboxes;
 import io.mateu.mdd.shared.annotations.UseChips;
+import io.mateu.mdd.shared.annotations.UseCrud;
 import io.mateu.mdd.shared.interfaces.HasBadges;
 import io.mateu.mdd.shared.interfaces.HasStatus;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
@@ -67,7 +68,7 @@ public class FormMetadataBuilder {
 
     private boolean hasCrud(Class entityClass) {
         return ReflectionHelper.getAllEditableFields(entityClass).stream()
-                .filter(f -> isOwner(f))
+                .filter(f -> f.isAnnotationPresent(UseCrud.class))
                 .count() > 0;
     }
 
@@ -80,8 +81,7 @@ public class FormMetadataBuilder {
                 Arrays.stream(f.getAnnotation(ManyToMany.class).cascade())
                         .filter(c -> CascadeType.ALL.equals(c) || CascadeType.PERSIST.equals(c))
                         .count() > 0)
-                && !f.isAnnotationPresent(UseCheckboxes.class)
-                && !f.isAnnotationPresent(UseChips.class);
+                && f.isAnnotationPresent(UseCrud.class);
     }
 
     private String getSubtitle(Object uiInstance) {

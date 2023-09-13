@@ -4,6 +4,7 @@ import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.UseCheckboxes;
 import io.mateu.mdd.shared.annotations.UseChips;
+import io.mateu.mdd.shared.annotations.UseCrud;
 import io.mateu.mdd.shared.interfaces.HasBadges;
 import io.mateu.mdd.shared.interfaces.HasStatus;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
@@ -11,6 +12,7 @@ import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
 import io.mateu.remote.dtos.Card;
 import io.mateu.util.Helper;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -96,9 +98,8 @@ public class CardMetadataBuilder {
         FieldGroupLine fieldGroupLine = null;
 
         List<FieldInterfaced> allEditableFields = ReflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
-                .filter(f -> !f.isAnnotationPresent(OneToMany.class)
-                        || f.isAnnotationPresent(UseCheckboxes.class)
-                        || f.isAnnotationPresent(UseChips.class))
+                .filter(f -> (!f.isAnnotationPresent(OneToMany.class) && !f.isAnnotationPresent(ManyToMany.class))
+                        || !f.isAnnotationPresent(UseCrud.class))
                 .filter(f -> slotFields.contains(f))
                 .filter(f -> !(uiInstance instanceof HasTotal) || !f.getName().equals("total"))
                 .collect(Collectors.toList());

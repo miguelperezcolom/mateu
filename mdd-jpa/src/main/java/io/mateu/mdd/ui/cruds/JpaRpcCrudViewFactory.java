@@ -7,6 +7,8 @@ import io.mateu.mdd.core.views.ExtraFilters;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,11 @@ public class JpaRpcCrudViewFactory implements JpaRpcCrudFactory {
             action.setExtraFilters(new ExtraFilters(
                     "x." + field.getAnnotation(OneToMany.class).mappedBy() + " = :p",
                     "p", parentEntity));
+        } else if (field.isAnnotationPresent(ManyToMany.class)
+                    && !Strings.isNullOrEmpty(field.getAnnotation(ManyToMany.class).mappedBy())) {
+                action.setExtraFilters(new ExtraFilters(
+                        "x." + field.getAnnotation(ManyToMany.class).mappedBy() + " = :p",
+                        "p", parentEntity));
         } else {
             action.setExtraFilters(new ExtraFilters(
                     "x in :p",

@@ -5,9 +5,7 @@ import io.mateu.mdd.shared.data.ExternalReference;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.files.FileChecker;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -79,7 +77,7 @@ public class FieldStereotypeMapper {
         if (field.isAnnotationPresent(ManyToOne.class)) {
             return "externalref";
         }
-        if (field.isAnnotationPresent(UseChips.class)) {
+        if ((field.isAnnotationPresent(OneToMany.class) || field.isAnnotationPresent(ManyToMany.class)) && !field.isAnnotationPresent(UseCrud.class)) {
             return "externalref";
         }
         if (fileChecker.isFile(field)) {

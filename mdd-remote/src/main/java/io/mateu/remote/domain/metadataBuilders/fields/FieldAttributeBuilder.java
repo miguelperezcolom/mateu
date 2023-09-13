@@ -12,6 +12,7 @@ import io.mateu.remote.dtos.Column;
 import io.mateu.remote.dtos.Pair;
 import io.mateu.remote.dtos.TelephonePrefix;
 import io.mateu.remote.dtos.Value;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,14 +81,8 @@ public class FieldAttributeBuilder {
                     .value(field.getType().getName())
                     .build());
         }
-        if (field.isAnnotationPresent(OneToMany.class)) {
-            if (field.isAnnotationPresent(UseChips.class)) {
-                attributes.add(Pair.builder()
-                        .key("itemprovider")
-                        .value(field.getGenericClass().getName())
-                        .build());
-            }
-            if (field.isAnnotationPresent(UseCheckboxes.class)) {
+        if (field.isAnnotationPresent(OneToMany.class) || field.isAnnotationPresent(ManyToMany.class)) {
+            if (!field.isAnnotationPresent(UseCrud.class)) {
                 attributes.add(Pair.builder()
                         .key("itemprovider")
                         .value(field.getGenericClass().getName())

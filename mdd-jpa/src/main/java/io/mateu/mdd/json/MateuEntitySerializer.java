@@ -4,14 +4,14 @@ import com.google.auto.service.AutoService;
 import io.mateu.mdd.shared.data.ExternalReference;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
-import io.mateu.util.Helper;
-import io.mateu.util.persistence.EntityDeserializer;
 import io.mateu.util.persistence.EntitySerializer;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import java.util.*;
+import java.util.stream.Stream;
 
 @AutoService(EntitySerializer.class)
 public class MateuEntitySerializer implements EntitySerializer {
@@ -26,8 +26,8 @@ public class MateuEntitySerializer implements EntitySerializer {
     }
 
     private void addToData(Map<String, Object> data, FieldInterfaced field, Object entity) throws Exception {
-        if (field.isAnnotationPresent(OneToMany.class)) {
-            addOneToMany(data, field, entity);
+        if (field.isAnnotationPresent(OneToMany.class) || field.isAnnotationPresent(ManyToMany.class)) {
+            addXToMany(data, field, entity);
             return;
         }
         if (field.isAnnotationPresent(ManyToOne.class)) {
@@ -45,12 +45,12 @@ public class MateuEntitySerializer implements EntitySerializer {
         data.put(field.getId(), new ExternalReference(ReflectionHelper.getId(value), value.toString()));
     }
 
-    private void addOneToMany(Map<String, Object> data, FieldInterfaced field, Object entity) throws Exception {
+    private void addXToMany(Map<String, Object> data, FieldInterfaced field, Object entity) throws Exception {
         Collection list = (Collection) ReflectionHelper.getValue(field, entity);
         if (list == null) {
             return;
         }
-        if (Arrays.stream(field.getAnnotation(OneToMany.class).cascade())
+        if (getCascade(field)
                 .filter(c -> c.equals(CascadeType.ALL)).count() > 0) {
             List<Map> items = new ArrayList<>();
             list.forEach(value -> {
@@ -67,4 +67,16 @@ public class MateuEntitySerializer implements EntitySerializer {
             data.put(field.getId(), refs);
         }
     }
+
+    private Stream<CascadeType> getCascade(FieldInterfaced field) {
+        if (field.isAnnotationPresent(OneToMany.class)) {
+            return Arrays.stream(field.getAnnotation(OneToMany.class).cascade());
+        }
+        if (field.isAnnotationPresent(ManyToMany.class)) {
+            return Arrays.stream(field.getAnnotation(ManyToMany.class).cascade());
+        }
+        return null;
+    }
+
+
 }
