@@ -5,6 +5,7 @@ import com.example.demoremote.ui.demoApp.menus.useCases.intermediaries.Intermedi
 import com.example.demoremote.ui.demoApp.menus.useCases.leads.LeadsCrud;
 import com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.ui.QAMenu;
 import com.example.demoremote.ui.demoApp.menus.useCases.processDefinition.ui.ProcessDefinitionMenu;
+import com.example.demoremote.ui.demoApp.menus.useCases.school.SchoolMenu;
 import io.mateu.mdd.shared.annotations.MenuOption;
 import io.mateu.mdd.shared.annotations.Submenu;
 
@@ -24,4 +25,8 @@ public class UseCasesSubmenu {
 
     @Submenu("No code QA")
     QAMenu qa;
+
+    @Submenu
+    SchoolMenu school;
+
 }
