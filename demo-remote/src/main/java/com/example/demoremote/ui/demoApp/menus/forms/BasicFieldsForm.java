@@ -34,6 +34,12 @@ public class BasicFieldsForm implements HasBadges, HasStatus, HasTitle, HasSubti
   private String assessment;
 
   @Action
+  public void slowAction() throws InterruptedException {
+    Thread.sleep(5000);
+    assessment = "run";
+  }
+
+  @Action
   public void assess() {
     assessment = "" + getCurrentUser() + "" + name + ", " + age + ", " + balance;
   }

@@ -4,7 +4,7 @@
 
   <groupId>io.mateu</groupId>
   <artifactId>mdd-parent</artifactId>
-  <version>2.2.53</version>
+  <version>2.2.56</version>
   <packaging>pom</packaging>
 
   <name>Mateu MDD</name>
@@ -54,7 +54,6 @@
       <module>mdd-springboot-security</module>
       <module>mdd-remote-lit</module>
       <module>mdd-journeyrepo-jpa</module>
-    <module>demo-remote</module>
   </modules>
 
   <dependencyManagement>

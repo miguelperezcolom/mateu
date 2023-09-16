@@ -5,5 +5,9 @@ public enum RuleAction {
   Hide,
   Enable,
   Disable,
-  RunAction
+  RunAction,
+  ShowAction,
+  HideAction,
+  EnableAction,
+  DisableAction
 }

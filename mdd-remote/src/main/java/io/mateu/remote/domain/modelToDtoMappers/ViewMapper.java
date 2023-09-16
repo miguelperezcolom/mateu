@@ -98,7 +98,7 @@ public class ViewMapper {
           });
     }
 
-    addComponentIds(left, main, right);
+    addComponentIds(left, main, right, rules);
     removeTitleForFirstComponent(main);
 
     View view =
@@ -191,7 +191,8 @@ public class ViewMapper {
     return actualUiInstance;
   }
 
-  private void addComponentIds(List<Component> left, List<Component> main, List<Component> right) {
+  private void addComponentIds(
+      List<Component> left, List<Component> main, List<Component> right, List<Rule> rules) {
     int i = 0;
     for (Component component :
         List.of(left, main, right).stream().flatMap(l -> l.stream()).collect(Collectors.toList())) {
@@ -204,9 +205,39 @@ public class ViewMapper {
       if (component.getMetadata() instanceof Form) {
         Form crud = (Form) component.getMetadata();
         crud.getActions()
-            .forEach(action -> action.setId(component.getId() + "___" + action.getId()));
+            .forEach(
+                action -> {
+                  rules.stream()
+                      .filter(
+                          r ->
+                              RuleAction.HideAction.equals(r.getAction())
+                                  || RuleAction.ShowAction.equals(r.getAction())
+                                  || RuleAction.EnableAction.equals(r.getAction())
+                                  || RuleAction.DisableAction.equals(r.getAction()))
+                      .filter(r -> action.getId().equals(((String[]) r.getData())[0]))
+                      .forEach(
+                          r -> {
+                            r.setData(new String[] {component.getId() + "___" + action.getId()});
+                          });
+                  action.setId(component.getId() + "___" + action.getId());
+                });
         crud.getMainActions()
-            .forEach(action -> action.setId(component.getId() + "___" + action.getId()));
+            .forEach(
+                action -> {
+                  rules.stream()
+                      .filter(
+                          r ->
+                              RuleAction.HideAction.equals(r.getAction())
+                                  || RuleAction.ShowAction.equals(r.getAction())
+                                  || RuleAction.EnableAction.equals(r.getAction())
+                                  || RuleAction.DisableAction.equals(r.getAction()))
+                      .filter(r -> action.getId().equals(((String[]) r.getData())[0]))
+                      .forEach(
+                          r -> {
+                            r.setData(new String[] {component.getId() + "___" + action.getId()});
+                          });
+                  action.setId(component.getId() + "___" + action.getId());
+                });
       }
     }
   }

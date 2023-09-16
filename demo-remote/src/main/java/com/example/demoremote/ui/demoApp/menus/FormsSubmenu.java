@@ -40,7 +40,11 @@ public class FormsSubmenu {
 
   @MenuOption private HideFieldForm hideField;
 
+  @MenuOption private HideActionForm hideAction;
+
   @MenuOption private DisableFieldForm disableField;
+
+  @MenuOption private DisableActionForm disableAction;
 
   @MenuOption private CallActionOnChangeFieldForm callActionOnChange;
 
