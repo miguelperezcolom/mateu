@@ -21,6 +21,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -203,25 +205,8 @@ public class ViewMapper {
             .forEach(action -> action.setId(component.getId() + "___" + action.getId()));
       }
       if (component.getMetadata() instanceof Form) {
-        Form crud = (Form) component.getMetadata();
-        crud.getActions()
-            .forEach(
-                action -> {
-                  rules.stream()
-                      .filter(
-                          r ->
-                              RuleAction.HideAction.equals(r.getAction())
-                                  || RuleAction.ShowAction.equals(r.getAction())
-                                  || RuleAction.EnableAction.equals(r.getAction())
-                                  || RuleAction.DisableAction.equals(r.getAction()))
-                      .filter(r -> action.getId().equals(((String[]) r.getData())[0]))
-                      .forEach(
-                          r -> {
-                            r.setData(new String[] {component.getId() + "___" + action.getId()});
-                          });
-                  action.setId(component.getId() + "___" + action.getId());
-                });
-        crud.getMainActions()
+        Form form = (Form) component.getMetadata();
+        Stream.concat(form.getActions().stream(), form.getMainActions().stream())
             .forEach(
                 action -> {
                   rules.stream()
