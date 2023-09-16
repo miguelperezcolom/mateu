@@ -6,7 +6,6 @@ import lombok.Data;
 @Data
 public class PlayerTeamDto {
 
-    @JsonProperty("$ref")
-    private String ref;
-
+  @JsonProperty("$ref")
+  private String ref;
 }

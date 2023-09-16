@@ -1,31 +1,29 @@
 package io.mateu.mdd.shared.interfaces;
 
-
 public interface IResource {
-    FileType getType();
+  FileType getType();
 
-    String getName();
+  String getName();
 
-    byte[] getBytes();
+  byte[] getBytes();
 
-    String getPath();
+  String getPath();
 
-    void setType(FileType type);
+  void setType(FileType type);
 
+  void setName(String name);
 
-    void setName(String name);
+  void setBytes(byte[] bytes);
 
-    void setBytes(byte[] bytes);
+  void setPath(String path);
 
-    void setPath(String path);
+  IFileLocator toFileLocator() throws Exception;
 
-    IFileLocator toFileLocator() throws Exception;
+  void set(String name, String absolutePath) throws Exception;
 
-    void set(String name, String absolutePath) throws Exception;
+  void setUrl(String o);
 
-    void setUrl(String o);
+  void set(String value) throws Exception;
 
-    void set(String value) throws Exception;
-
-    String getUrl();
+  String getUrl();
 }

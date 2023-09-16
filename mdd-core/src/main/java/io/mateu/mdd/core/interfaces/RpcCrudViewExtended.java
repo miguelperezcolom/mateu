@@ -1,28 +1,24 @@
 package io.mateu.mdd.core.interfaces;
 
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
-
 import java.util.List;
 import java.util.Map;
 
 public interface RpcCrudViewExtended {
 
-    List<FieldInterfaced> getColumnFieldNames();
+  List<FieldInterfaced> getColumnFieldNames();
 
-    List<FieldInterfaced> getFilterFields();
+  List<FieldInterfaced> getFilterFields();
 
-    Class getEntityClass();
+  Class getEntityClass();
 
-    boolean isAddEnabled();
+  boolean isAddEnabled();
 
-    boolean isDeleteEnabled();
+  boolean isDeleteEnabled();
 
-    boolean isEditHandled();
+  boolean isEditHandled();
 
-    Map<FieldInterfaced, String> getColumnIdsPerField();
+  Map<FieldInterfaced, String> getColumnIdsPerField();
 
-    Map<FieldInterfaced, String> getColumnCaptionsPerField();
-
-
+  Map<FieldInterfaced, String> getColumnCaptionsPerField();
 }

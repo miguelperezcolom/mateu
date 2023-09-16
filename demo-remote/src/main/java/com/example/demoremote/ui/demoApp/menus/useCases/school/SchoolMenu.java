@@ -9,16 +9,11 @@ import io.mateu.mdd.shared.interfaces.JpaCrud;
 
 public class SchoolMenu {
 
-    @MenuOption
-    JpaCrud<School> schools;
+  @MenuOption JpaCrud<School> schools;
 
-    @MenuOption
-    JpaCrud<Classroom> classrooms;
+  @MenuOption JpaCrud<Classroom> classrooms;
 
-    @MenuOption
-    JpaCrud<Student> students;
+  @MenuOption JpaCrud<Student> students;
 
-    @MenuOption
-    JpaCrud<Teacher> teachers;
-
+  @MenuOption JpaCrud<Teacher> teachers;
 }

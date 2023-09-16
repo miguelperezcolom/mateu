@@ -6,23 +6,24 @@ import jakarta.persistence.Id;
 import lombok.*;
 
 @Entity
-@Getter@Setter
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class Product {
 
-    @Id
-    @Column(name = "_key")
-    String key;
-    String name;
-    String description;
-    String status;
-    String processId;
+  @Id
+  @Column(name = "_key")
+  String key;
 
-    @Override
-    public String toString() {
-        return name;
-    }
+  String name;
+  String description;
+  String status;
+  String processId;
 
+  @Override
+  public String toString() {
+    return name;
+  }
 }

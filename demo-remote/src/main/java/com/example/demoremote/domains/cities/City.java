@@ -1,14 +1,13 @@
 package com.example.demoremote.domains.cities;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import java.time.LocalDate;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -17,17 +16,15 @@ import java.util.UUID;
 @NoArgsConstructor
 public class City {
 
-    @Id
-    private String id = UUID.randomUUID().toString();
-    private String name;
-    private String country;
-    private int population;
-    private String timezone;
-    private LocalDate modificationDate;
+  @Id private String id = UUID.randomUUID().toString();
+  private String name;
+  private String country;
+  private int population;
+  private String timezone;
+  private LocalDate modificationDate;
 
-    @Override
-    public String toString() {
-        return name != null?"" + name:"No name";
-    }
-
+  @Override
+  public String toString() {
+    return name != null ? "" + name : "No name";
+  }
 }

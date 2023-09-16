@@ -5,8 +5,7 @@ import lombok.Data;
 @Data
 public class SpeciesDto {
 
-    private int count;
+  private int count;
 
-    private SpecieDto[] results;
-
+  private SpecieDto[] results;
 }

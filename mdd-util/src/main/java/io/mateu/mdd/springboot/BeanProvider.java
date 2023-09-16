@@ -2,6 +2,5 @@ package io.mateu.mdd.springboot;
 
 public interface BeanProvider {
 
-    Object getBean(Class c);
-
+  Object getBean(Class c);
 }

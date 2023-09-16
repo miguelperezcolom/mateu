@@ -5,12 +5,11 @@ import lombok.Data;
 @Data
 public class AllPlayersDto {
 
-    private int count;
+  private int count;
 
-    private int pageIndex;
+  private int pageIndex;
 
-    private int pageCount;
+  private int pageCount;
 
-    private AllPlayersItemDto[] items;
-
+  private AllPlayersItemDto[] items;
 }

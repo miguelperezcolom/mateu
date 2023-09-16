@@ -5,13 +5,13 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@Getter@Setter
+@Getter
+@Setter
 public abstract class SaleAgentDetailDefinition {
 
-    String id;
+  String id;
 
-    String name;
+  String name;
 
-    @Autowired
-    PasswordResetsCrud passwordResets;
+  @Autowired PasswordResetsCrud passwordResets;
 }

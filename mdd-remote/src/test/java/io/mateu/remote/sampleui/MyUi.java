@@ -4,22 +4,22 @@ import io.mateu.mdd.shared.annotations.Action;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter@Setter
+@Getter
+@Setter
 public class MyUi {
 
-    private String name = "Mateu";
+  private String name = "Mateu";
 
-    private int age;
+  private int age;
 
-    private String assessment;
+  private String assessment;
 
-    @Action
-    public void assess() {
-        assessment = "" + name + ", " + age;
-    }
+  @Action
+  public void assess() {
+    assessment = "" + name + ", " + age;
+  }
 
-    public String toString() {
-        return "This is a sample form";
-    }
-
+  public String toString() {
+    return "This is a sample form";
+  }
 }

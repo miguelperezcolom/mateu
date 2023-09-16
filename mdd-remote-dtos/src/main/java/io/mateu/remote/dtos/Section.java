@@ -1,25 +1,26 @@
 package io.mateu.remote.dtos;
 
-import lombok.*;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.*;
 
-@Data@Builder@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
+@Data
+@Builder
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class Section {
 
-    private String id;
+  private String id;
 
-    private String caption;
+  private String caption;
 
-    private String description;
+  private String description;
 
-    private boolean readOnly;
+  private boolean readOnly;
 
-    private SectionType type;
+  private SectionType type;
 
-    private List<Action> actions = new ArrayList<>();
+  private List<Action> actions = new ArrayList<>();
 
-    private List<FieldGroup> fieldGroups = new ArrayList<>();
-
+  private List<FieldGroup> fieldGroups = new ArrayList<>();
 }

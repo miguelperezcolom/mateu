@@ -5,13 +5,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter@Setter@AllArgsConstructor@NoArgsConstructor
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class PasswordResetsRow {
 
-    String id;
+  String id;
 
-    String salesAgentId;
+  String salesAgentId;
 
-    String date;
-
+  String date;
 }

@@ -7,13 +7,9 @@ import io.mateu.mdd.shared.annotations.MenuOption;
 
 public class RefsSubmenu {
 
-    @MenuOption
-    private ExternalRefs externalRefs;
+  @MenuOption private ExternalRefs externalRefs;
 
-    @MenuOption
-    private FilesForm files;
+  @MenuOption private FilesForm files;
 
-    @MenuOption
-    private OneToManyForm oneToManyRelationships;
-
+  @MenuOption private OneToManyForm oneToManyRelationships;
 }

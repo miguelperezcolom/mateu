@@ -13,17 +13,14 @@ import lombok.*;
 @Builder
 public class Step {
 
-    @Id
-    String id;
+  @Id String id;
 
-    String title;
+  String title;
 
-    @ManyToOne
-    Flow flow;
+  @ManyToOne Flow flow;
 
-    @Override
-    public String toString() {
-        return title;
-    }
-
+  @Override
+  public String toString() {
+    return title;
+  }
 }

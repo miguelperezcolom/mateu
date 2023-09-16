@@ -5,19 +5,19 @@ import lombok.Data;
 @Data
 public class PlayerDto {
 
-    private String id;
+  private String id;
 
-    private String displayName;
+  private String displayName;
 
-    private int height;
+  private int height;
 
-    private int weight;
+  private int weight;
 
-    private int age;
+  private int age;
 
-    private String jersey;
+  private String jersey;
 
-    private Position position;
+  private Position position;
 
-    private PlayerTeamDto team;
+  private PlayerTeamDto team;
 }

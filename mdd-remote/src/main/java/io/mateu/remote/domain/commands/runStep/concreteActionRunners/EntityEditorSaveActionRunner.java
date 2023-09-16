@@ -9,41 +9,49 @@ import io.mateu.remote.domain.editors.EntityEditor;
 import io.mateu.remote.domain.persistence.Merger;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.Step;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
 @Service
 public class EntityEditorSaveActionRunner implements ActionRunner {
 
-    @Autowired
-    JourneyStoreService store;
+  @Autowired JourneyStoreService store;
 
-    @Override
-    public boolean applies(Object viewInstance, String actionId) {
-        return viewInstance instanceof EntityEditor && "save".equals(actionId);
-    }
+  @Override
+  public boolean applies(Object viewInstance, String actionId) {
+    return viewInstance instanceof EntityEditor && "save".equals(actionId);
+  }
 
-    @Override
-    public void run(Object viewInstance, String journeyId, String stepId, String actionId
-            , Map<String, Object> data, ServerHttpRequest serverHttpRequest) throws Throwable {
-        EntityEditor entityEditor = (EntityEditor) viewInstance;
-        Merger merger = store.getApplicationContext().getBean(Merger.class);
-        merger.mergeAndCommit(data, entityEditor.getEntityClass());
-        data.remove("__entityClassName__");
-        entityEditor.setData(data);
-        store.setStep(journeyId, stepId, entityEditor, serverHttpRequest);
+  @Override
+  public void run(
+      Object viewInstance,
+      String journeyId,
+      String stepId,
+      String actionId,
+      Map<String, Object> data,
+      ServerHttpRequest serverHttpRequest)
+      throws Throwable {
+    EntityEditor entityEditor = (EntityEditor) viewInstance;
+    Merger merger = store.getApplicationContext().getBean(Merger.class);
+    merger.mergeAndCommit(data, entityEditor.getEntityClass());
+    data.remove("__entityClassName__");
+    entityEditor.setData(data);
+    store.setStep(journeyId, stepId, entityEditor, serverHttpRequest);
 
-        Step initialStep = store.getInitialStep(journeyId);
+    Step initialStep = store.getInitialStep(journeyId);
 
-        Result whatToShow = new Result(ResultType.Success,
-                "" + viewInstance.toString() + " has been saved", List.of(),
-                new Destination(DestinationType.ActionId, "Back to " + initialStep.getName(), initialStep.getId()));
-        String newStepId = "result_" + UUID.randomUUID().toString();
-        store.setStep(journeyId, newStepId, whatToShow, serverHttpRequest);
-    }
+    Result whatToShow =
+        new Result(
+            ResultType.Success,
+            "" + viewInstance.toString() + " has been saved",
+            List.of(),
+            new Destination(
+                DestinationType.ActionId, "Back to " + initialStep.getName(), initialStep.getId()));
+    String newStepId = "result_" + UUID.randomUUID().toString();
+    store.setStep(journeyId, newStepId, whatToShow, serverHttpRequest);
+  }
 }

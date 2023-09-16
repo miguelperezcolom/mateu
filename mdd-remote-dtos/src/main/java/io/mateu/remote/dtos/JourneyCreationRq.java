@@ -1,12 +1,13 @@
 package io.mateu.remote.dtos;
 
+import java.util.List;
 import lombok.*;
 
-import java.util.List;
-
-@Data@Builder@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
+@Data
+@Builder
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class JourneyCreationRq {
 
-    private List<Pair> contextData;
-
+  private List<Pair> contextData;
 }

@@ -4,9 +4,9 @@ import lombok.*;
 
 @Data
 @Builder
-@AllArgsConstructor(access = AccessLevel.PACKAGE)@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class ExpandableConfig {
 
-    String dummyThing;
-
+  String dummyThing;
 }

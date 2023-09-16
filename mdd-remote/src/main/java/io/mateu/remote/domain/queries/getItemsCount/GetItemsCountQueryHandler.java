@@ -4,33 +4,32 @@ import io.mateu.mdd.shared.data.ItemsListProvider;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.domain.queries.EntitiesFinder;
 import jakarta.persistence.Entity;
+import java.lang.reflect.InvocationTargetException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.lang.reflect.InvocationTargetException;
 
 @Service
 @Slf4j
 public class GetItemsCountQueryHandler {
 
-    public int run(GetItemsCountQuery query) throws Throwable {
-        String itemsProviderId = query.getItemsProviderId();
-        String searchText = query.getSearchText();
+  public int run(GetItemsCountQuery query) throws Throwable {
+    String itemsProviderId = query.getItemsProviderId();
+    String searchText = query.getSearchText();
 
-        Class type = Class.forName(itemsProviderId);
-        if (ItemsListProvider.class.isAssignableFrom(type)) {
-            return ((ItemsListProvider) ReflectionHelper.newInstance(type))
-                    .count(searchText);
-        }
-        if (type.isAnnotationPresent(Entity.class)) {
-            return countEntities(type, searchText);
-        }
-        throw new Exception("No item provider with id " + itemsProviderId);
+    Class type = Class.forName(itemsProviderId);
+    if (ItemsListProvider.class.isAssignableFrom(type)) {
+      return ((ItemsListProvider) ReflectionHelper.newInstance(type)).count(searchText);
     }
-
-    private int countEntities(Class entityClass, String searchText) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException {
-        return ReflectionHelper.newInstance(EntitiesFinder.class).countEntities(entityClass, searchText);
+    if (type.isAnnotationPresent(Entity.class)) {
+      return countEntities(type, searchText);
     }
+    throw new Exception("No item provider with id " + itemsProviderId);
+  }
 
-
+  private int countEntities(Class entityClass, String searchText)
+      throws InvocationTargetException, NoSuchMethodException, IllegalAccessException,
+          InstantiationException {
+    return ReflectionHelper.newInstance(EntitiesFinder.class)
+        .countEntities(entityClass, searchText);
+  }
 }

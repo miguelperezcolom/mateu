@@ -1,14 +1,12 @@
 package io.mateu.remote.dtos;
 
-import lombok.Data;
-
 import java.util.Map;
+import lombok.Data;
 
 @Data
 public class ActionData {
 
-    Map<String, Object> data;
+  Map<String, Object> data;
 
-    Map<String, Object> args;
-
+  Map<String, Object> args;
 }

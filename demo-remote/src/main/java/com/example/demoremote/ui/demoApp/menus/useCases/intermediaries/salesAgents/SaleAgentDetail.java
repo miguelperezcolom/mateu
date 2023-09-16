@@ -11,25 +11,23 @@ import org.springframework.stereotype.Service;
 @Scope("prototype")
 public class SaleAgentDetail extends SaleAgentDetailDefinition implements ReadOnlyPojo<String> {
 
-    @Ignored@JsonIgnore@Autowired
-    SaleAgentForm form;
+  @Ignored @JsonIgnore @Autowired SaleAgentForm form;
 
+  @Override
+  public void load(String id) throws Throwable {
+    setId(id);
+    setName("Michael Jordan");
+    this.getPasswordResets().setSalesAgentId(id);
+  }
 
-    @Override
-    public void load(String id) throws Throwable {
-        setId(id);
-        setName("Michael Jordan");
-        this.getPasswordResets().setSalesAgentId(id);
-    }
+  @Override
+  public Object retrieveId() {
+    return getId();
+  }
 
-    @Override
-    public Object retrieveId() {
-        return getId();
-    }
-
-    @Override
-    public Object retrieveEditor() throws Throwable {
-        form.load(getId());
-        return form;
-    }
+  @Override
+  public Object retrieveEditor() throws Throwable {
+    form.load(getId());
+    return form;
+  }
 }

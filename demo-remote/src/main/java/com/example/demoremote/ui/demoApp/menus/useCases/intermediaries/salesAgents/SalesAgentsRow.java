@@ -5,12 +5,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter@Setter@AllArgsConstructor@NoArgsConstructor
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class SalesAgentsRow {
 
-    String id;
+  String id;
 
-    String intermediaryId;
+  String intermediaryId;
 
-    String name;
+  String name;
 }

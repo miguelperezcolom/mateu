@@ -1,7 +1,8 @@
 package io.mateu.remote.dtos;
 
 public enum JourneyStatus {
-
-    Running, Waiting, Pending, Finished
-
+  Running,
+  Waiting,
+  Pending,
+  Finished
 }

@@ -17,45 +17,43 @@ import lombok.Setter;
 @EqualsAndHashCode(of = "id")
 public class LanguageRow {
 
-    @Ignored
-    private String id;
+  @Ignored private String id;
 
-    private String name;
+  private String name;
 
-    @Width("80px")
-    private LanguageTarget target;
+  @Width("80px")
+  private LanguageTarget target;
 
-    @Width("90px")
-    private Status status = new Status(StatusType.INFO, "New record");
+  @Width("90px")
+  private Status status = new Status(StatusType.INFO, "New record");
 
-    public enum LanguageTarget {
-        Backend, Frontend
+  public enum LanguageTarget {
+    Backend,
+    Frontend
+  }
+
+  public LanguageRow(String id, String name, LanguageTarget target, Status status) {
+    this.id = id;
+    this.name = name;
+    this.target = target;
+    this.status = status;
+  }
+
+  private ColumnActionGroup actions;
+
+  public ColumnActionGroup getActions() {
+    if (status != null && StatusType.INFO.equals(status.getType())) {
+      return new ColumnActionGroup(
+          new ColumnAction[] {
+            new ColumnAction("unblockRow", "Unblock", null),
+            new ColumnAction("deleteRow", "Delete", null)
+          });
     }
+    return new ColumnActionGroup(new ColumnAction[] {new ColumnAction("blockRow", "Block", null)});
+  }
 
-    public LanguageRow(String id, String name, LanguageTarget target, Status status) {
-        this.id = id;
-        this.name = name;
-        this.target = target;
-        this.status = status;
-    }
-
-    private ColumnActionGroup actions;
-
-    public ColumnActionGroup getActions() {
-        if (status != null && StatusType.INFO.equals(status.getType())) {
-            return new ColumnActionGroup(new ColumnAction[]{
-                    new ColumnAction("unblockRow", "Unblock", null),
-                    new ColumnAction("deleteRow", "Delete", null)
-            });
-        }
-        return new ColumnActionGroup(new ColumnAction[]{
-                new ColumnAction("blockRow", "Block", null)
-        });
-    }
-
-    @Override
-    public String toString() {
-        return name;
-    }
-
+  @Override
+  public String toString() {
+    return name;
+  }
 }

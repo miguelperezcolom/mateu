@@ -5,24 +5,22 @@ import io.mateu.mdd.shared.annotations.MainAction;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter@Setter
+@Getter
+@Setter
 public class WizardPage2 {
 
-    @Ignored
-    private WizardPage1 wizardPage1;
+  @Ignored private WizardPage1 wizardPage1;
 
-    String job;
+  String job;
 
-    public WizardPage2(WizardPage1 wizardPage1) {
-        this.wizardPage1 = wizardPage1;
-    }
+  public WizardPage2(WizardPage1 wizardPage1) {
+    this.wizardPage1 = wizardPage1;
+  }
 
-    public WizardPage2() {
+  public WizardPage2() {}
 
-    }
-
-    @MainAction
-    public WizardPage3 goToNextPage() {
-        return new WizardPage3(this);
-    }
+  @MainAction
+  public WizardPage3 goToNextPage() {
+    return new WizardPage3(this);
+  }
 }

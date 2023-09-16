@@ -14,31 +14,28 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class GetJourneyQueryHandler {
 
-    @Autowired
-    JourneyStoreService store;
+  @Autowired JourneyStoreService store;
 
-    @Autowired
-    MateuRemoteClient mateuRemoteClient;
+  @Autowired MateuRemoteClient mateuRemoteClient;
 
-    public Mono<Journey> run(GetJourneyQuery query) throws Exception {
+  public Mono<Journey> run(GetJourneyQuery query) throws Exception {
 
-        String journeyId = query.getJourneyId();
+    String journeyId = query.getJourneyId();
 
-        JourneyContainer journeyContainer = store.findJourneyById(journeyId).orElse(null);
+    JourneyContainer journeyContainer = store.findJourneyById(journeyId).orElse(null);
 
-        if (journeyContainer == null) {
-            throw new Exception("No journey with id " + journeyId);
-        }
-
-        if (!Strings.isNullOrEmpty(journeyContainer.getRemoteJourneyTypeId())) {
-            return mateuRemoteClient.getJourney(journeyContainer.getRemoteBaseUrl(),
-                    journeyContainer.getRemoteJourneyTypeId(), journeyContainer.getJourneyId()
-                    , query.getServerHttpRequest()
-            );
-        }
-
-        return Mono.just(store.getJourney(journeyId));
-
+    if (journeyContainer == null) {
+      throw new Exception("No journey with id " + journeyId);
     }
 
+    if (!Strings.isNullOrEmpty(journeyContainer.getRemoteJourneyTypeId())) {
+      return mateuRemoteClient.getJourney(
+          journeyContainer.getRemoteBaseUrl(),
+          journeyContainer.getRemoteJourneyTypeId(),
+          journeyContainer.getJourneyId(),
+          query.getServerHttpRequest());
+    }
+
+    return Mono.just(store.getJourney(journeyId));
+  }
 }

@@ -5,8 +5,7 @@ import lombok.Data;
 @Data
 public class StarshipsDto {
 
-    private int count;
+  private int count;
 
-    private StarshipDto[] results;
-
+  private StarshipDto[] results;
 }

@@ -9,10 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 public class GetUIQuery {
 
-    private final String uiId;
+  private final String uiId;
 
-    public GetUIQuery(String uiId) {
-        this.uiId = uiId;
-    }
-
+  public GetUIQuery(String uiId) {
+    this.uiId = uiId;
+  }
 }

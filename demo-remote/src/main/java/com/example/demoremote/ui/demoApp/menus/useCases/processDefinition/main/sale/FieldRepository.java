@@ -2,5 +2,4 @@ package com.example.demoremote.ui.demoApp.menus.useCases.processDefinition.main.
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface FieldRepository extends JpaRepository<Field, String> {
-}
+public interface FieldRepository extends JpaRepository<Field, String> {}

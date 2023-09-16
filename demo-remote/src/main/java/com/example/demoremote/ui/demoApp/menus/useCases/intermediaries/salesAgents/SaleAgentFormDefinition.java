@@ -3,11 +3,11 @@ package com.example.demoremote.ui.demoApp.menus.useCases.intermediaries.salesAge
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter@Setter
+@Getter
+@Setter
 public abstract class SaleAgentFormDefinition {
 
-    String id;
+  String id;
 
-    String name;
-
+  String name;
 }

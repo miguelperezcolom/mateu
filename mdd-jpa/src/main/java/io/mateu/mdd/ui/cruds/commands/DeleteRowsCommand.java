@@ -1,16 +1,14 @@
 package io.mateu.mdd.ui.cruds.commands;
 
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.util.List;
-import java.util.Set;
-
-@Builder@Getter
+@Builder
+@Getter
 public class DeleteRowsCommand {
 
-    private List<Object> rows;
+  private List<Object> rows;
 
-    private Class entityClass;
-
+  private Class entityClass;
 }

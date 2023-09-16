@@ -11,22 +11,16 @@ import io.mateu.mdd.shared.annotations.Submenu;
 
 public class UseCasesSubmenu {
 
-    @MenuOption
-    private InsuredInformationForm sellBadLife;
+  @MenuOption private InsuredInformationForm sellBadLife;
 
-    @MenuOption
-    private LeadsCrud leads;
+  @MenuOption private LeadsCrud leads;
 
-    @MenuOption
-    private IntermediariesCrud intermediaries;
+  @MenuOption private IntermediariesCrud intermediaries;
 
-    @Submenu
-    ProcessDefinitionMenu processDefinition;
+  @Submenu ProcessDefinitionMenu processDefinition;
 
-    @Submenu("No code QA")
-    QAMenu qa;
+  @Submenu("No code QA")
+  QAMenu qa;
 
-    @Submenu
-    SchoolMenu school;
-
+  @Submenu SchoolMenu school;
 }

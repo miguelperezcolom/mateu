@@ -4,9 +4,9 @@ import java.util.List;
 
 public interface UserPrincipal {
 
-    String getLogin();
+  String getLogin();
 
-    List<String> getRoles();
+  List<String> getRoles();
 
-    String getName();
+  String getName();
 }

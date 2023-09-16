@@ -6,15 +6,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data@AllArgsConstructor@NoArgsConstructor
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Profile {
 
-    @NotBlank
-    private String name;
+  @NotBlank private String name;
 
-    private int age;
+  private int age;
 
-    @NotNull
-    private Movie favouriteMovie;
-
+  @NotNull private Movie favouriteMovie;
 }

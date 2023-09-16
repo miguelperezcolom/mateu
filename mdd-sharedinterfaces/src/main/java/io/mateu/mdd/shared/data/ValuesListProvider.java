@@ -4,6 +4,5 @@ import java.util.List;
 
 public interface ValuesListProvider {
 
-    List<Object> getAll();
-
+  List<Object> getAll();
 }

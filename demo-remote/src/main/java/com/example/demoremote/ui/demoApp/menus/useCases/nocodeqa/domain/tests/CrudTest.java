@@ -6,22 +6,16 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
-@Entity@Getter@Setter
+@Entity
+@Getter
+@Setter
 public class CrudTest extends Test {
 
-    @NotBlank
-    String menuOption;
+  @NotBlank String menuOption;
 
-    @TextArea
-    @NotBlank
-    String filters;
+  @TextArea @NotBlank String filters;
 
-    @TextArea
-    @NotBlank
-    String columns;
+  @TextArea @NotBlank String columns;
 
-    @TextArea
-    @NotBlank
-    String fields;
-
+  @TextArea @NotBlank String fields;
 }

@@ -1,21 +1,15 @@
 package io.mateu.mdd.shared.annotations;
 
-
-
 import io.mateu.mdd.shared.data.ItemsListProvider;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * Created by miguel on 18/1/17.
- */
+/** Created by miguel on 18/1/17. */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER}) //can use in method only.
+@Target({ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER}) // can use in method only.
 public @interface ItemsProvider {
 
-    Class<? extends ItemsListProvider> value();
-
+  Class<? extends ItemsListProvider> value();
 }

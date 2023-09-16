@@ -4,11 +4,11 @@ import lombok.*;
 
 @Data
 @Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@AllArgsConstructor
 public class SortCriteria {
 
-    private String column;
+  private String column;
 
-    private SortType order;
-
+  private SortType order;
 }

@@ -10,28 +10,25 @@ import org.springframework.stereotype.Service;
 @Scope("prototype")
 public class BrokenDetail extends BrokenDetailDefinition implements ReadOnlyPojo<String> {
 
-    @Autowired@JsonIgnore
-    BrokenEditor editor;
+  @Autowired @JsonIgnore BrokenEditor editor;
 
+  public BrokenDetail() {}
 
-    public BrokenDetail() {
-    }
+  @Override
+  public void load(String id) throws Throwable {
+    setId(id);
+    setName("North Sails");
+    this.getSalesAgents().setIntermediaryId(id);
+  }
 
-    @Override
-    public void load(String id) throws Throwable {
-        setId(id);
-        setName("North Sails");
-        this.getSalesAgents().setIntermediaryId(id);
-    }
+  @Override
+  public Object retrieveId() {
+    return getId();
+  }
 
-    @Override
-    public Object retrieveId() {
-        return getId();
-    }
-
-    @Override
-    public BrokenEditor retrieveEditor() throws Throwable {
-        editor.load(getId());
-        return editor;
-    }
+  @Override
+  public BrokenEditor retrieveEditor() throws Throwable {
+    editor.load(getId());
+    return editor;
+  }
 }

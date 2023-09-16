@@ -1,18 +1,17 @@
 package io.mateu.remote.domain.modelToDtoMappers.viewMapperStuff;
 
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.util.List;
-
-@Data@AllArgsConstructor
+@Data
+@AllArgsConstructor
 public class UIInstancePart {
 
-    private String dataPrefix;
+  private String dataPrefix;
 
-    private Object uiInstance;
+  private Object uiInstance;
 
-    private List<FieldInterfaced> fields;
-
+  private List<FieldInterfaced> fields;
 }

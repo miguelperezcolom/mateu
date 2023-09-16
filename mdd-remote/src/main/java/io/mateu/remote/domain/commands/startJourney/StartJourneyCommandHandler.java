@@ -1,7 +1,5 @@
 package io.mateu.remote.domain.commands.startJourney;
 
-import com.google.common.base.Strings;
-import io.mateu.mdd.core.interfaces.Crud;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.interfaces.RemoteJourney;
 import io.mateu.remote.application.MateuRemoteClient;
@@ -11,110 +9,120 @@ import io.mateu.remote.domain.store.JourneyContainer;
 import io.mateu.remote.domain.store.JourneyStoreService;
 import io.mateu.remote.dtos.Journey;
 import io.mateu.remote.dtos.Step;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @Service
 @Slf4j
 public class StartJourneyCommandHandler {
 
-    @Autowired
-    MateuRemoteClient mateuRemoteClient;
-    @Autowired
-    JourneyStoreService store;
+  @Autowired MateuRemoteClient mateuRemoteClient;
+  @Autowired JourneyStoreService store;
 
+  public Mono<Void> handle(StartJourneyCommand command) throws Throwable {
 
-    public Mono<Void> handle(StartJourneyCommand command) throws Throwable {
+    String journeyId = command.getJourneyId();
+    String journeyTypeId = command.getJourneyTypeId();
+    ServerHttpRequest serverHttpRequest = command.getServerHttpRequest();
 
-        String journeyId = command.getJourneyId();
-        String journeyTypeId = command.getJourneyTypeId();
-        ServerHttpRequest serverHttpRequest = command.getServerHttpRequest();
+    Journey journey = null;
+    Object formInstance = null;
 
-        Journey journey = null;
-        Object formInstance = null;
+    JourneyContainer journeyContainer = store.findJourneyById(journeyId).orElse(null);
+    if (journeyContainer == null) {
 
-        JourneyContainer journeyContainer = store.findJourneyById(journeyId).orElse(null);
-        if (journeyContainer == null) {
+      try {
 
-            try {
+        formInstance = store.createInstanceFromJourneyTypeId(journeyTypeId, serverHttpRequest);
 
-                formInstance = store.createInstanceFromJourneyTypeId(journeyTypeId, serverHttpRequest);
-
-                if (formInstance == null) {
-                    throw new Exception();
-                }
-
-                // we are passing the form instance to avoid creating a new form instance,
-                // even though we already have the step definition id, and we could recreate it
-                journey = new JourneyMapper().map(formInstance);
-
-                if (formInstance instanceof RemoteJourney) {
-                    RemoteJourney remoteJourney = (RemoteJourney) formInstance;
-
-                    store(journeyId, journeyTypeId, journey, remoteJourney.getBaseUrl(), remoteJourney.getJourneyTypeId());
-                    return mateuRemoteClient.startJourney(remoteJourney.getBaseUrl(),
-                            remoteJourney.getJourneyTypeId(), journeyId, serverHttpRequest);
-                }
-
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                log.error("error on getUi", e);
-                throw new NotFoundException("No class with name " + journeyTypeId + " found");
-            }
-
-            Step step = store.getStepMapper()
-                    .map(journeyContainer, getStepId(formInstance), null, formInstance, serverHttpRequest);
-            journey.setCurrentStepId(step.getId());
-            journey.setCurrentStepDefinitionId(step.getType());
-            store(journeyId, journeyTypeId, journey, step);
-
-        } else {
-            journeyContainer.reset();
+        if (formInstance == null) {
+          throw new Exception();
         }
 
-        return Mono.empty();
+        // we are passing the form instance to avoid creating a new form instance,
+        // even though we already have the step definition id, and we could recreate it
+        journey = new JourneyMapper().map(formInstance);
+
+        if (formInstance instanceof RemoteJourney) {
+          RemoteJourney remoteJourney = (RemoteJourney) formInstance;
+
+          store(
+              journeyId,
+              journeyTypeId,
+              journey,
+              remoteJourney.getBaseUrl(),
+              remoteJourney.getJourneyTypeId());
+          return mateuRemoteClient.startJourney(
+              remoteJourney.getBaseUrl(),
+              remoteJourney.getJourneyTypeId(),
+              journeyId,
+              serverHttpRequest);
+        }
+
+      } catch (Exception e) {
+        e.printStackTrace();
+        log.error("error on getUi", e);
+        throw new NotFoundException("No class with name " + journeyTypeId + " found");
+      }
+
+      Step step =
+          store
+              .getStepMapper()
+              .map(
+                  journeyContainer, getStepId(formInstance), null, formInstance, serverHttpRequest);
+      journey.setCurrentStepId(step.getId());
+      journey.setCurrentStepDefinitionId(step.getType());
+      store(journeyId, journeyTypeId, journey, step);
+
+    } else {
+      journeyContainer.reset();
     }
 
+    return Mono.empty();
+  }
 
-    private String getStepId(Object formInstance) {
-        if (formInstance instanceof Listing) return "list";
-        return "form";
-    }
+  private String getStepId(Object formInstance) {
+    if (formInstance instanceof Listing) return "list";
+    return "form";
+  }
 
-    private void store(String journeyId, String journeyTypeId, Journey journey, Step step) {
-        JourneyContainer journeyContainer = JourneyContainer.builder()
-                .journeyId(journeyId)
-                .journeyTypeId(journeyTypeId)
-                .journey(journey)
-                .steps(Map.of(step.getId(), step))
-                .initialStep(step)
-                .lastUsedFilters(new HashMap<>())
-                .lastUsedSorting(new HashMap<>())
-                .build();
-        store.save(journeyContainer);
-    }
+  private void store(String journeyId, String journeyTypeId, Journey journey, Step step) {
+    JourneyContainer journeyContainer =
+        JourneyContainer.builder()
+            .journeyId(journeyId)
+            .journeyTypeId(journeyTypeId)
+            .journey(journey)
+            .steps(Map.of(step.getId(), step))
+            .initialStep(step)
+            .lastUsedFilters(new HashMap<>())
+            .lastUsedSorting(new HashMap<>())
+            .build();
+    store.save(journeyContainer);
+  }
 
-    private void store(String journeyId, String journeyTypeId, Journey journey,
-                       String remoteBaseUrl, String remoteJourneyTypeId) {
-        JourneyContainer journeyContainer = JourneyContainer.builder()
-                .journeyId(journeyId)
-                .journeyTypeId(journeyTypeId)
-                .journey(journey)
-                .steps(Map.of())
-                .initialStep(null)
-                .lastUsedFilters(new HashMap<>())
-                .lastUsedSorting(new HashMap<>())
-                .remoteBaseUrl(remoteBaseUrl)
-                .remoteJourneyTypeId(remoteJourneyTypeId)
-                .build();
-        store.save(journeyContainer);
-    }
-
+  private void store(
+      String journeyId,
+      String journeyTypeId,
+      Journey journey,
+      String remoteBaseUrl,
+      String remoteJourneyTypeId) {
+    JourneyContainer journeyContainer =
+        JourneyContainer.builder()
+            .journeyId(journeyId)
+            .journeyTypeId(journeyTypeId)
+            .journey(journey)
+            .steps(Map.of())
+            .initialStep(null)
+            .lastUsedFilters(new HashMap<>())
+            .lastUsedSorting(new HashMap<>())
+            .remoteBaseUrl(remoteBaseUrl)
+            .remoteJourneyTypeId(remoteJourneyTypeId)
+            .build();
+    store.save(journeyContainer);
+  }
 }

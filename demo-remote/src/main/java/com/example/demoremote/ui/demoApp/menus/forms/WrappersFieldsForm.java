@@ -5,27 +5,22 @@ import io.mateu.mdd.shared.annotations.ReadOnly;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter@Setter
+@Getter
+@Setter
 public class WrappersFieldsForm {
 
-    String name;
+  String name;
 
-    Integer age;
+  Integer age;
 
-    Double rating;
+  Double rating;
 
-    Boolean citizen;
+  Boolean citizen;
 
-    @ReadOnly
-    String assessment;
+  @ReadOnly String assessment;
 
-
-    @Action
-    public void assess() {
-        assessment = "" + name
-        + ", " + age
-        + ", " + rating
-        + ", " + citizen;
-    }
-
+  @Action
+  public void assess() {
+    assessment = "" + name + ", " + age + ", " + rating + ", " + citizen;
+  }
 }

@@ -5,7 +5,5 @@ import io.mateu.mdd.shared.annotations.MenuOption;
 
 public class BrokenSubmenu {
 
-    @MenuOption
-    private BrokenCrud brokenCrud;
-
+  @MenuOption private BrokenCrud brokenCrud;
 }

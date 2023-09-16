@@ -1,7 +1,5 @@
 package com.example.demoremote.infra;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 /*
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -12,32 +10,32 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 
  */
 
-//@EnableWebFluxSecurity
+// @EnableWebFluxSecurity
 public class MyWebSecurityConfig {
-    /*
+  /*
 
-    @Bean
-    public MapReactiveUserDetailsService userDetailsService() {
-        UserDetails user = User.withDefaultPasswordEncoder()
-                .username("user")
-                .password("user")
-                .roles("USER")
-                .build();
-        return new MapReactiveUserDetailsService(user);
-    }
+      @Bean
+      public MapReactiveUserDetailsService userDetailsService() {
+          UserDetails user = User.withDefaultPasswordEncoder()
+                  .username("user")
+                  .password("user")
+                  .roles("USER")
+                  .build();
+          return new MapReactiveUserDetailsService(user);
+      }
 
 
-    @Bean
-    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-        http.csrf().disable()
-                .authorizeExchange(exchanges -> exchanges
-                        //.anyExchange().authenticated()
-                        .anyExchange().permitAll()
-                )
-                //.httpBasic(withDefaults())
-                //.formLogin(withDefaults())
-        ;
-        return http.build();
-    }
-*/
+      @Bean
+      public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+          http.csrf().disable()
+                  .authorizeExchange(exchanges -> exchanges
+                          //.anyExchange().authenticated()
+                          .anyExchange().permitAll()
+                  )
+                  //.httpBasic(withDefaults())
+                  //.formLogin(withDefaults())
+          ;
+          return http.build();
+      }
+  */
 }

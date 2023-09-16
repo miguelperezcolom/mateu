@@ -4,6 +4,5 @@ import java.util.List;
 
 public interface IncludesRemoteUIs {
 
-    List<RemoteUI> getRemoteUIs();
-
+  List<RemoteUI> getRemoteUIs();
 }

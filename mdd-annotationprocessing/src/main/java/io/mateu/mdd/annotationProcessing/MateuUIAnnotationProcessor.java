@@ -2,173 +2,231 @@ package io.mateu.mdd.annotationProcessing;
 
 import com.google.auto.service.AutoService;
 import freemarker.template.TemplateException;
+import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.ExternalScripts;
 import io.mateu.mdd.shared.annotations.KeycloakSecured;
 import io.mateu.mdd.shared.annotations.MateuUI;
-import io.mateu.mdd.shared.annotations.Caption;
-
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.*;
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.JavaFileObject;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.*;
 
 @SupportedAnnotationTypes({"io.mateu.mdd.shared.annotations.MateuUI"})
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor.class)
 public class MateuUIAnnotationProcessor extends AbstractProcessor {
 
-    @Override
-    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        for (TypeElement annotation : annotations) {
-            Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(annotation);
+  @Override
+  public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+    for (TypeElement annotation : annotations) {
+      Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(annotation);
 
-            for (Element e : annotatedElements) {
-                String className = ((TypeElement) e).getQualifiedName().toString();
-                String simpleClassName = e.getSimpleName().toString();
-                String path = e.getAnnotation(MateuUI.class).value();
+      for (Element e : annotatedElements) {
+        String className = ((TypeElement) e).getQualifiedName().toString();
+        String simpleClassName = e.getSimpleName().toString();
+        String path = e.getAnnotation(MateuUI.class).value();
 
-                System.out.println("MateuUIAnnotationProcessor running on " + simpleClassName);
+        System.out.println("MateuUIAnnotationProcessor running on " + simpleClassName);
 
-                String generatedFullClassName = className + "Controller";
-                String pkgName = generatedFullClassName.substring(0,
-                        generatedFullClassName.lastIndexOf("."));
-                String generatedClassName = generatedFullClassName.substring(
-                        generatedFullClassName.lastIndexOf(".") + 1);
-                String caption = getCaption(e, simpleClassName);
+        String generatedFullClassName = className + "Controller";
+        String pkgName =
+            generatedFullClassName.substring(0, generatedFullClassName.lastIndexOf("."));
+        String generatedClassName =
+            generatedFullClassName.substring(generatedFullClassName.lastIndexOf(".") + 1);
+        String caption = getCaption(e, simpleClassName);
 
-                try {
-                    createIndexController(generatedFullClassName, pkgName, className, simpleClassName, e,
-                            generatedClassName, caption, path);
-                    createController(className + "MateuController", pkgName, className, simpleClassName, e,
-                            generatedClassName, caption, removeTrailingSlash(path));
-                    createConfig(className + "Config", pkgName, className, simpleClassName, e,
-                            generatedClassName, caption, path);
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-
-
-            }
+        try {
+          createIndexController(
+              generatedFullClassName,
+              pkgName,
+              className,
+              simpleClassName,
+              e,
+              generatedClassName,
+              caption,
+              path);
+          createController(
+              className + "MateuController",
+              pkgName,
+              className,
+              simpleClassName,
+              e,
+              generatedClassName,
+              caption,
+              removeTrailingSlash(path));
+          createConfig(
+              className + "Config",
+              pkgName,
+              className,
+              simpleClassName,
+              e,
+              generatedClassName,
+              caption,
+              path);
+        } catch (IOException ex) {
+          ex.printStackTrace();
         }
-
-        return true;
+      }
     }
 
-    private String removeTrailingSlash(String path) {
-        if (path.endsWith("/")) {
-            path = path.substring(0, path.length() - 1);
-        }
-        return path;
+    return true;
+  }
+
+  private String removeTrailingSlash(String path) {
+    if (path.endsWith("/")) {
+      path = path.substring(0, path.length() - 1);
     }
+    return path;
+  }
 
-    private String getCaption(Element e, String simpleClassName) {
-        if (e.getAnnotation(Caption.class) != null) {
-            return e.getAnnotation(Caption.class).value();
-        }
-        return Helper.capitalize(simpleClassName);
+  private String getCaption(Element e, String simpleClassName) {
+    if (e.getAnnotation(Caption.class) != null) {
+      return e.getAnnotation(Caption.class).value();
     }
+    return Helper.capitalize(simpleClassName);
+  }
 
-    private void createIndexController(String generatedFullClassName, String pkgName, String className,
-                                       String simpleClassName, Element e, String generatedClassName,
-                                       String caption, String path)
-            throws IOException {
-        JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(generatedFullClassName);
-        try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
-            // writing generated file to out …
+  private void createIndexController(
+      String generatedFullClassName,
+      String pkgName,
+      String className,
+      String simpleClassName,
+      Element e,
+      String generatedClassName,
+      String caption,
+      String path)
+      throws IOException {
+    JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(generatedFullClassName);
+    try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
+      // writing generated file to out …
 
-            String[] externalScripts = null;
-            if (e.getAnnotation(ExternalScripts.class) != null) {
-                externalScripts = e.getAnnotation(ExternalScripts.class).value();
-            }
-            if (externalScripts == null) externalScripts = new String[0];
+      String[] externalScripts = null;
+      if (e.getAnnotation(ExternalScripts.class) != null) {
+        externalScripts = e.getAnnotation(ExternalScripts.class).value();
+      }
+      if (externalScripts == null) externalScripts = new String[0];
 
-            Map<String, Object> model = new HashMap<>(Map.of(
-                    "pkgName", pkgName
-                    , "className", className
-                    , "simpleClassName", simpleClassName
-                    , "generatedClassName", generatedClassName
-                    , "generatedFullClassName", generatedFullClassName
-                    , "caption", caption
-                    , "path", path
-                    , "externalScripts", externalScripts
-            ));
+      Map<String, Object> model =
+          new HashMap<>(
+              Map.of(
+                  "pkgName",
+                  pkgName,
+                  "className",
+                  className,
+                  "simpleClassName",
+                  simpleClassName,
+                  "generatedClassName",
+                  generatedClassName,
+                  "generatedFullClassName",
+                  generatedFullClassName,
+                  "caption",
+                  caption,
+                  "path",
+                  path,
+                  "externalScripts",
+                  externalScripts));
 
-            KeycloakSecured keycloakAnnotation = e.getAnnotation(KeycloakSecured.class);
-            if (keycloakAnnotation != null) {
-                String keycloakUrl = keycloakAnnotation.url();
-                String keycloakRealm = keycloakAnnotation.realm();
-                String keycloakClientId = keycloakAnnotation.clientId();
+      KeycloakSecured keycloakAnnotation = e.getAnnotation(KeycloakSecured.class);
+      if (keycloakAnnotation != null) {
+        String keycloakUrl = keycloakAnnotation.url();
+        String keycloakRealm = keycloakAnnotation.realm();
+        String keycloakClientId = keycloakAnnotation.clientId();
 
-                model.put("keycloak", Map.of("url", keycloakUrl
-                        , "realm", keycloakRealm
-                        , "clientId", keycloakClientId));
-            }
+        model.put(
+            "keycloak",
+            Map.of("url", keycloakUrl, "realm", keycloakRealm, "clientId", keycloakClientId));
+      }
 
-
-            Formatter formatter = new Formatter("index.ftl", model);
-            try {
-                out.println(formatter.apply());
-            } catch (TemplateException ex) {
-                ex.printStackTrace();
-            }
-
-        }
+      Formatter formatter = new Formatter("index.ftl", model);
+      try {
+        out.println(formatter.apply());
+      } catch (TemplateException ex) {
+        ex.printStackTrace();
+      }
     }
+  }
 
-    private void createConfig(String generatedFullClassName, String pkgName, String className,
-                                  String simpleClassName, Element e, String generatedClassName,
-                                  String caption, String path)
-            throws IOException {
-        JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(generatedFullClassName);
-        try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
-            // writing generated file to out …
+  private void createConfig(
+      String generatedFullClassName,
+      String pkgName,
+      String className,
+      String simpleClassName,
+      Element e,
+      String generatedClassName,
+      String caption,
+      String path)
+      throws IOException {
+    JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(generatedFullClassName);
+    try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
+      // writing generated file to out …
 
-            Formatter formatter = new Formatter("config.ftl", Map.of(
-                    "pkgName", pkgName
-                    , "className", className
-                    , "simpleClassName", simpleClassName
-                    , "generatedClassName", generatedClassName
-                    , "generatedFullClassName", generatedFullClassName
-                    , "caption", caption
-                    , "path", path
-            ));
-            try {
-                out.println(formatter.apply());
-            } catch (TemplateException ex) {
-                ex.printStackTrace();
-            }
-
-        }
+      Formatter formatter =
+          new Formatter(
+              "config.ftl",
+              Map.of(
+                  "pkgName",
+                  pkgName,
+                  "className",
+                  className,
+                  "simpleClassName",
+                  simpleClassName,
+                  "generatedClassName",
+                  generatedClassName,
+                  "generatedFullClassName",
+                  generatedFullClassName,
+                  "caption",
+                  caption,
+                  "path",
+                  path));
+      try {
+        out.println(formatter.apply());
+      } catch (TemplateException ex) {
+        ex.printStackTrace();
+      }
     }
+  }
 
-    private void createController(String generatedFullClassName, String pkgName, String className,
-                                       String simpleClassName, Element e, String generatedClassName,
-                                       String caption, String path)
-            throws IOException {
-        JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(generatedFullClassName);
-        try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
-            // writing generated file to out …
+  private void createController(
+      String generatedFullClassName,
+      String pkgName,
+      String className,
+      String simpleClassName,
+      Element e,
+      String generatedClassName,
+      String caption,
+      String path)
+      throws IOException {
+    JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(generatedFullClassName);
+    try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
+      // writing generated file to out …
 
-            Formatter formatter = new Formatter("controller.ftl", Map.of(
-                    "pkgName", pkgName
-                    , "className", className
-                    , "simpleClassName", simpleClassName
-                    , "generatedClassName", generatedClassName
-                    , "generatedFullClassName", generatedFullClassName
-                    , "caption", caption
-                    , "path", path
-            ));
-            try {
-                out.println(formatter.apply());
-            } catch (TemplateException ex) {
-                ex.printStackTrace();
-            }
-
-        }
+      Formatter formatter =
+          new Formatter(
+              "controller.ftl",
+              Map.of(
+                  "pkgName",
+                  pkgName,
+                  "className",
+                  className,
+                  "simpleClassName",
+                  simpleClassName,
+                  "generatedClassName",
+                  generatedClassName,
+                  "generatedFullClassName",
+                  generatedFullClassName,
+                  "caption",
+                  caption,
+                  "path",
+                  path));
+      try {
+        out.println(formatter.apply());
+      } catch (TemplateException ex) {
+        ex.printStackTrace();
+      }
     }
-
+  }
 }

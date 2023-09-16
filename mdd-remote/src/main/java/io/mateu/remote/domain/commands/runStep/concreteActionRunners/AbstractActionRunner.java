@@ -3,18 +3,16 @@ package io.mateu.remote.domain.commands.runStep.concreteActionRunners;
 import io.mateu.mdd.shared.data.Destination;
 import io.mateu.mdd.shared.data.DestinationType;
 import io.mateu.mdd.shared.data.Result;
-import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.remote.dtos.Step;
-import io.mateu.util.Helper;
 
 public class AbstractActionRunner {
 
-    protected void addBackDestination(Result result, Step initialStep) {
-        if (result.getNowTo() != null) {
-            return;
-        }
-        result.setNowTo(new Destination(DestinationType.ActionId,
-                "Back to " + initialStep.getName(), initialStep.getId()));
+  protected void addBackDestination(Result result, Step initialStep) {
+    if (result.getNowTo() != null) {
+      return;
     }
-
+    result.setNowTo(
+        new Destination(
+            DestinationType.ActionId, "Back to " + initialStep.getName(), initialStep.getId()));
+  }
 }

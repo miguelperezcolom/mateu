@@ -1,4 +1,3 @@
 package io.mateu;
 
-public class ReferenceForPackageScanning {
-}
+public class ReferenceForPackageScanning {}

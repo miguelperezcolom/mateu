@@ -16,38 +16,44 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class GetListCountQueryCompatHandler {
 
-    @Autowired
-    JourneyStoreService store;
+  @Autowired JourneyStoreService store;
 
-    @Autowired
-    MateuRemoteClient mateuRemoteClient;
+  @Autowired MateuRemoteClient mateuRemoteClient;
 
-    public Mono<Long> run(GetListCountQuery query) throws Throwable {
+  public Mono<Long> run(GetListCountQuery query) throws Throwable {
 
-        JourneyContainer journeyContainer = store.findJourneyById(query.getJourneyId()).orElse(null);
+    JourneyContainer journeyContainer = store.findJourneyById(query.getJourneyId()).orElse(null);
 
-        if (journeyContainer == null) {
-            throw new Exception("No journey with id " + query.getJourneyId());
-        }
+    if (journeyContainer == null) {
+      throw new Exception("No journey with id " + query.getJourneyId());
+    }
 
-        if (!Strings.isNullOrEmpty(journeyContainer.getRemoteJourneyTypeId())) {
-            return mateuRemoteClient.getListCount(journeyContainer.getRemoteBaseUrl(),
-                    journeyContainer.getRemoteJourneyTypeId(), journeyContainer.getJourneyId(), query.getStepId(),
-                    query.getListId(), query.getFilters(), query.getServerHttpRequest()
-            );
-        }
+    if (!Strings.isNullOrEmpty(journeyContainer.getRemoteJourneyTypeId())) {
+      return mateuRemoteClient.getListCount(
+          journeyContainer.getRemoteBaseUrl(),
+          journeyContainer.getRemoteJourneyTypeId(),
+          journeyContainer.getJourneyId(),
+          query.getStepId(),
+          query.getListId(),
+          query.getFilters(),
+          query.getServerHttpRequest());
+    }
 
-        Object filtersDeserialized = new CompatFiltersDeserializer(
-                query.getJourneyId()
-                , query.getStepId(), query.getListId(), query.getFilters(), query.getServerHttpRequest())
-                .deserialize(store);
-
-        Listing rpcView = store.getRpcViewInstance(
+    Object filtersDeserialized =
+        new CompatFiltersDeserializer(
                 query.getJourneyId(),
                 query.getStepId(),
                 query.getListId(),
-                query.getServerHttpRequest());
-        return rpcView.fetchCount(filtersDeserialized);
-    }
+                query.getFilters(),
+                query.getServerHttpRequest())
+            .deserialize(store);
 
+    Listing rpcView =
+        store.getRpcViewInstance(
+            query.getJourneyId(),
+            query.getStepId(),
+            query.getListId(),
+            query.getServerHttpRequest());
+    return rpcView.fetchCount(filtersDeserialized);
+  }
 }

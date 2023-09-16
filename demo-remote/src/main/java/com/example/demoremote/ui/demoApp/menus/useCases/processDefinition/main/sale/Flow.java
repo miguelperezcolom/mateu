@@ -3,9 +3,8 @@ package com.example.demoremote.ui.demoApp.menus.useCases.processDefinition.main.
 import io.mateu.mdd.shared.annotations.Status;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import lombok.*;
-
 import java.time.LocalDateTime;
+import lombok.*;
 
 @Entity
 @Getter
@@ -15,22 +14,18 @@ import java.time.LocalDateTime;
 @Builder
 public class Flow {
 
-    @Id
-    String id;
+  @Id String id;
 
-    String name;
+  String name;
 
-    @Status
-    boolean active;
+  @Status boolean active;
 
-    @Status
-    boolean deployable;
+  @Status boolean deployable;
 
-    LocalDateTime deployed;
+  LocalDateTime deployed;
 
-    @Override
-    public String toString() {
-        return name;
-    }
-
+  @Override
+  public String toString() {
+    return name;
+  }
 }

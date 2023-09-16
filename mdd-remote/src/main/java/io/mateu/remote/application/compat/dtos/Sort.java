@@ -4,11 +4,11 @@ import lombok.*;
 
 @Data
 @Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class Sort {
 
-    boolean empty;
-    boolean sorted;
-    boolean unsorted;
-
+  boolean empty;
+  boolean sorted;
+  boolean unsorted;
 }

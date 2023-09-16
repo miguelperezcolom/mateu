@@ -18,6 +18,13 @@ import io.mateu.util.Helper;
 import io.mateu.util.data.Pair;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.*;
+import java.lang.reflect.Parameter;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.converters.BooleanConverter;
@@ -28,1970 +35,2047 @@ import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Parameter;
-import java.lang.reflect.*;
-import java.util.*;
-import java.util.stream.Collectors;
-
 @Slf4j
 public class ReflectionHelper extends BaseReflectionHelper {
 
+  static Map<Class, List<FieldInterfaced>> allFieldsCache = new HashMap<>();
+  static Map<Class, List<Method>> allMethodsCache = new HashMap<>();
+  static Map<String, Method> methodCache = new HashMap<>();
+  static List<Class> notFromString = new ArrayList<>();
+  private static BeanProvider beanProvider;
+  private static ObjectMapper mapper = new ObjectMapper();
 
-    static Map<Class, List<FieldInterfaced>> allFieldsCache = new HashMap<>();
-    static Map<Class, List<Method>> allMethodsCache = new HashMap<>();
-    static Map<String, Method> methodCache = new HashMap<>();
-    static List<Class> notFromString = new ArrayList<>();
-    private static BeanProvider beanProvider;
-    private static ObjectMapper mapper = new ObjectMapper();
+  static {
+    BeanUtilsBean beanUtilsBean = BeanUtilsBean.getInstance();
+    beanUtilsBean.getConvertUtils().register(new IntegerConverter(null), Integer.class);
+    beanUtilsBean.getConvertUtils().register(new LongConverter(null), Long.class);
+    beanUtilsBean.getConvertUtils().register(new DoubleConverter(null), Double.class);
+    beanUtilsBean.getConvertUtils().register(new BooleanConverter(null), Boolean.class);
+  }
 
+  public static void setBeanProvider(BeanProvider aBeanProvider) {
+    beanProvider = aBeanProvider;
+  }
 
-    static {
-        BeanUtilsBean beanUtilsBean = BeanUtilsBean.getInstance();
-        beanUtilsBean.getConvertUtils().register(new IntegerConverter(null), Integer.class);
-        beanUtilsBean.getConvertUtils().register(new LongConverter(null), Long.class);
-        beanUtilsBean.getConvertUtils().register(new DoubleConverter(null), Double.class);
-        beanUtilsBean.getConvertUtils().register(new BooleanConverter(null), Boolean.class);
+  public static Object getValue(Field f, Object o) {
+    if (f == null) {
+      return null;
     }
+    Method getter = null;
+    try {
+      getter = o.getClass().getMethod(getGetter(f));
+    } catch (Exception e) {
 
-    public static void setBeanProvider(BeanProvider aBeanProvider) {
-        beanProvider = aBeanProvider;
     }
+    Object v = null;
+    try {
+      if (getter != null) v = getter.invoke(o);
+      else {
+        if (!Modifier.isPublic(f.getModifiers())) f.setAccessible(true);
+        v = f.get(o);
+      }
+    } catch (IllegalAccessException e) {
+      e.printStackTrace();
+    } catch (InvocationTargetException e) {
+      e.printStackTrace();
+    }
+    return v;
+  }
 
-
-    public static Object getValue(Field f, Object o) {
-        if (f == null) {
-            return null;
+  public static void setValue(FieldInterfaced f, Object o, Object v)
+      throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+    if (f == null) {
+      return;
+    }
+    if (f instanceof FieldInterfacedForCheckboxColumn) {
+      f.setValue(o, v);
+    } else if (f instanceof FieldInterfacedFromField) {
+      Method setter = null;
+      try {
+        setter = o.getClass().getMethod(getSetter(f), f.getType());
+      } catch (Exception e) {
+      }
+      try {
+        if (setter != null) {
+          setter.invoke(o, v);
+          //                        BeanUtils.setProperty(o, fn, v);
+        } else {
+          if (!Modifier.isPublic(f.getField().getModifiers())) f.getField().setAccessible(true);
+          f.getField().set(o, v);
         }
+      } catch (IllegalAccessException e) {
+        e.printStackTrace();
+      } catch (InvocationTargetException e) {
+        e.printStackTrace();
+      }
+    } else setValue(f.getId(), o, v);
+  }
+
+  public static void setValue(String fn, Object o, Object v)
+      throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+    if (Map.class.isAssignableFrom(o.getClass())) {
+      ((Map) o).put(fn, v);
+    } else {
+      if (fn.contains(".")) {
+        o = getInstance(o, fn.substring(0, fn.indexOf(".")));
+        setValue(fn.substring(fn.indexOf(".") + 1), o, v);
+      } else {
+        if (v instanceof Collection) {
+          if (v instanceof List) v = new ArrayList((Collection) v);
+          else if (v instanceof Set) v = new HashSet((Collection) v);
+        }
+
+        FieldInterfaced f = getFieldByName(o.getClass(), fn);
+
+        setValue(f, o, v);
+      }
+    }
+  }
+
+  public static Object getValue(FieldInterfaced f, Object o, Object valueIfNull) {
+    Object v = null;
+    try {
+      v = getValue(f, o);
+    } catch (NoSuchMethodException e) {
+      e.printStackTrace();
+    } catch (IllegalAccessException e) {
+      e.printStackTrace();
+    } catch (InvocationTargetException e) {
+      e.printStackTrace();
+    }
+    return v != null ? v : valueIfNull;
+  }
+
+  public static Object getValue(FieldInterfaced f, Object o)
+      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+
+    if (o == null) return null;
+
+    if (Map.class.isAssignableFrom(o.getClass())) {
+      return ((Map) o).get(f.getName());
+    } else if (f instanceof FieldInterfacedForCheckboxColumn) {
+      return f.getValue(o);
+    } else {
+      return getValue(f.getId(), o);
+    }
+  }
+
+  public static Object getValue(String id, Object o)
+      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    Object v = null;
+
+    if (id.contains(".")) {
+      String firstId = id.substring(0, id.indexOf("."));
+      String path = id.substring(id.indexOf(".") + 1);
+
+      Method getter = null;
+      try {
+        FieldInterfaced f = getFieldByName(o.getClass(), firstId);
+
+        if (f != null) {
+
+          try {
+            getter = o.getClass().getMethod(getGetter(f.getType(), firstId));
+          } catch (Exception e) {
+
+          }
+
+          if (getter != null) v = getter.invoke(o);
+          else {
+            try {
+              if (f instanceof FieldInterfacedFromField) {
+                Field field = f.getField();
+                if (!Modifier.isPublic(field.getModifiers())) {
+                  field.setAccessible(true);
+                }
+                v = field.get(o);
+              }
+            } catch (Exception e) {
+              e.printStackTrace();
+            }
+          }
+
+          if (v != null) {
+            v = getValue(path, v);
+          }
+        }
+
+      } catch (Exception e) {
+      }
+
+    } else {
+      FieldInterfaced f = getFieldByName(o.getClass(), id);
+
+      if (f != null) {
+
         Method getter = null;
         try {
-            getter = o.getClass().getMethod(getGetter(f));
+          getter = o.getClass().getMethod(getGetter(f.getType(), id));
         } catch (Exception e) {
 
         }
-        Object v = null;
         try {
-            if (getter != null)
-                v = getter.invoke(o);
-            else {
-                if (!Modifier.isPublic(f.getModifiers())) f.setAccessible(true);
-                v = f.get(o);
-            }
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        }
-        return v;
-    }
-
-    public static void setValue(FieldInterfaced f, Object o, Object v) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
-        if (f == null) {
-            return;
-        }
-        if (f instanceof FieldInterfacedForCheckboxColumn) {
-            f.setValue(o, v);
-        } else if (f instanceof  FieldInterfacedFromField) {
-            Method setter = null;
+          if (getter != null) v = getter.invoke(o);
+          else {
             try {
-                setter = o.getClass().getMethod(getSetter(f), f.getType());
+              if (f instanceof FieldInterfacedFromField) {
+                Field field = f.getField();
+                if (!Modifier.isPublic(field.getModifiers())) {
+                  field.setAccessible(true);
+                }
+                v = field.get(o);
+              }
             } catch (Exception e) {
+              e.printStackTrace();
             }
-            try {
-                if (setter != null) {
-                    setter.invoke(o, v);
-//                        BeanUtils.setProperty(o, fn, v);
-                } else {
-                    if (!Modifier.isPublic(f.getField().getModifiers())) f.getField().setAccessible(true);
-                    f.getField().set(o, v);
-                }
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            }
-        } else setValue(f.getId(), o, v);
-    }
-
-    public static void setValue(String fn, Object o, Object v) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
-        if (Map.class.isAssignableFrom(o.getClass())) {
-            ((Map)o).put(fn, v);
-        } else {
-            if (fn.contains(".")) {
-                o = getInstance(o, fn.substring(0, fn.indexOf(".")));
-                setValue(fn.substring(fn.indexOf(".") + 1), o, v);
-            } else {
-                if (v instanceof Collection) {
-                    if (v instanceof List) v = new ArrayList((Collection) v);
-                    else if (v instanceof  Set) v = new HashSet((Collection) v);
-                }
-
-                FieldInterfaced f = getFieldByName(o.getClass(), fn);
-
-                setValue(f, o, v);
-
-            }
-        }
-    }
-
-    public static Object getValue(FieldInterfaced f, Object o, Object valueIfNull) {
-        Object v = null;
-        try {
-            v = getValue(f, o);
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
+          }
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+          e.printStackTrace();
         } catch (InvocationTargetException e) {
-            e.printStackTrace();
+          e.printStackTrace();
         }
-        return v != null?v:valueIfNull;
+      }
     }
 
-    public static Object getValue(FieldInterfaced f, Object o) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    return v;
+  }
 
-        if (o == null) return null;
+  private static Object getInstance(Object o, String fn)
+      throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    Object x = null;
+    if (o != null) {
+      if (fn.contains(".")) {
+        o = getInstance(o, fn.substring(0, fn.indexOf(".")));
+        x = getInstance(o, fn.substring(fn.indexOf(".") + 1));
+      } else {
+        x = o.getClass().getMethod(getGetter(fn)).invoke(o);
+      }
+    }
+    return x;
+  }
 
-        if (Map.class.isAssignableFrom(o.getClass())) {
-            return ((Map) o).get(f.getName());
-        } else if (f instanceof FieldInterfacedForCheckboxColumn) {
-            return f.getValue(o);
+  public static Method getMethod(Class<?> c, String methodName) {
+    if (c == null) {
+      log.debug("getMethod(" + null + ", " + methodName + ") devolverá null!");
+      return null;
+    }
+    Method l = methodCache.get(c.getName() + "-" + methodName);
+    if (l == null) {
+      methodCache.put(c.getName() + "-" + methodName, l = buildMethod(c, methodName));
+    }
+    return l;
+  }
+
+  public static Method buildMethod(Class<?> c, String methodName) {
+    Method m = null;
+    if (c != null)
+      for (Method q : getAllMethods(c)) {
+        if (methodName.equals(q.getName())) {
+          m = q;
+          break;
+        }
+      }
+    return m;
+  }
+
+  public static String getGetter(Field f) {
+    return getGetter(f.getType(), f.getName());
+  }
+
+  public static String getGetter(FieldInterfaced f) {
+    return getGetter(f.getType(), f.getName());
+  }
+
+  public static String getGetter(Class c, String fieldName) {
+    return (boolean.class.equals(c) ? "is" : "get") + getFirstUpper(fieldName);
+  }
+
+  public static String getGetter(String fn) {
+    return "get" + getFirstUpper(fn);
+  }
+
+  public static String getSetter(Field f) {
+    return getSetter(f.getType(), f.getName());
+  }
+
+  public static String getSetter(FieldInterfaced f) {
+    return getSetter(f.getType(), f.getName());
+  }
+
+  public static String getSetter(Class c, String fieldName) {
+    return "set" + getFirstUpper(fieldName);
+  }
+
+  public static List<Method> getAllMethods(Class c) {
+    List<Method> l = _getAllMethods(c);
+
+    List<Method> r = new ArrayList<>();
+
+    for (Method m : l) {
+      if (check(m)) r.add(m);
+    }
+
+    return r;
+  }
+
+  public static List<Method> _getAllMethods(Class c) {
+    List<Method> l = allMethodsCache.get(c);
+
+    if (l == null) {
+      allMethodsCache.put(c, l = buildAllMethods(c));
+    }
+
+    return l;
+  }
+
+  public static List<Method> buildAllMethods(Class c) {
+    List<Method> l = new ArrayList<>();
+
+    if (c.getSuperclass() != null
+        && (!c.isAnnotationPresent(Entity.class)
+            || c.getSuperclass().isAnnotationPresent(Entity.class)
+            || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class)))
+      l.addAll(getAllMethods(c.getSuperclass()));
+
+    for (Method f : c.getDeclaredMethods()) {
+      l.removeIf(m -> getSignature(m).equals(getSignature(f)));
+      l.add(f);
+    }
+
+    return l;
+  }
+
+  private static String getSignature(Method m) {
+    return m.getGenericReturnType().getTypeName()
+        + " "
+        + m.getName()
+        + "("
+        + getSignature(m.getParameters())
+        + ")";
+  }
+
+  private static String getSignature(Parameter[] parameters) {
+    String s = "";
+    if (parameters != null)
+      for (Parameter p : parameters) {
+        if (!"".equals(s)) s += ", ";
+        s += p.getType().getName();
+      }
+    return s;
+  }
+
+  private static Method getMethod(Class c, String methodName, Class<?>... parameterTypes)
+      throws NoSuchMethodException {
+    Method m = c.getClass().getDeclaredMethod(methodName, parameterTypes);
+
+    if (m == null
+        && c.getSuperclass() != null
+        && (!c.isAnnotationPresent(Entity.class)
+            || c.getSuperclass().isAnnotationPresent(Entity.class)
+            || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class)))
+      m = getMethod(c.getSuperclass(), methodName, parameterTypes);
+
+    return m;
+  }
+
+  public static List<FieldInterfaced> getAllFields(Class c) {
+    List<FieldInterfaced> l = allFieldsCache.get(c);
+
+    if (l == null) {
+      l = buildAllFields(c);
+      allFieldsCache.put(c, l);
+    }
+
+    return new ArrayList<>(l);
+  }
+
+  private static List<FieldInterfaced> buildAllFields(Class c) {
+    List<String> vistos = new ArrayList<>();
+    Map<String, Field> originales = new HashMap<>();
+    for (Field f : c.getDeclaredFields())
+      if (!Logger.class.isAssignableFrom(f.getType())) {
+        if (!f.getName().contains("$")
+            && !"_proxied".equalsIgnoreCase(f.getName())
+            && !"_possibleValues".equalsIgnoreCase(f.getName())
+            && !"_binder".equalsIgnoreCase(f.getName())
+            && !"_field".equalsIgnoreCase(f.getName())) originales.put(f.getName(), f);
+      }
+
+    List<FieldInterfaced> l = new ArrayList<>();
+
+    if (c.getSuperclass() != null
+        && (!c.isAnnotationPresent(Entity.class)
+            || c.getSuperclass().isAnnotationPresent(Entity.class)
+            || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class))) {
+      for (FieldInterfaced f : getAllFields(c.getSuperclass())) {
+        if (!originales.containsKey(f.getId())) l.add(f);
+        else l.add(new FieldInterfacedFromField(originales.get(f.getName())));
+        vistos.add(f.getName());
+      }
+    }
+
+    for (Field f : c.getDeclaredFields())
+      if (!Modifier.isStatic(f.getModifiers()))
+        if (!f.isAnnotationPresent(Version.class))
+          if (!Logger.class.isAssignableFrom(f.getType()))
+            if (!vistos.contains(f.getName()))
+              if (!f.getName().contains("$")
+                  && !"_proxied".equalsIgnoreCase(f.getName())
+                  && !"_possibleValues".equalsIgnoreCase(f.getName())
+                  && !"_binder".equalsIgnoreCase(f.getName())
+                  && !"_field".equalsIgnoreCase(f.getName())) {
+                l.add(new FieldInterfacedFromField(f));
+              }
+
+    return l;
+  }
+
+  public static boolean hasGetter(FieldInterfaced f) {
+    return getMethod(f.getDeclaringClass(), getGetter(f)) != null;
+  }
+
+  public static boolean hasSetter(FieldInterfaced f) {
+    return getMethod(f.getDeclaringClass(), getSetter(f)) != null;
+  }
+
+  public static List<FieldInterfaced> getAllFields(Method m) {
+
+    List<FieldInterfaced> l = new ArrayList<>();
+
+    for (Parameter p : m.getParameters())
+      if (!isInjectable(m, p)) {
+        l.add(new FieldInterfacedFromParameter(m, p));
+      }
+
+    return l;
+  }
+
+  public static boolean isInjectable(Executable m, Parameter p) {
+    boolean injectable = true;
+    if (EntityManager.class.equals(p.getType())) {
+    } else {
+      injectable = false;
+    }
+    return injectable;
+  }
+
+  private static Map<String, FieldInterfaced> getAllFieldsMap(Class c) {
+    return getAllFieldsMap(getAllFields(c));
+  }
+
+  private static Map<String, FieldInterfaced> getAllFieldsMap(List<FieldInterfaced> l) {
+
+    Map<String, FieldInterfaced> m = new HashMap<>();
+
+    for (FieldInterfaced f : l) m.put(f.getName(), f);
+
+    return m;
+  }
+
+  public static Object getId(Object model) {
+    if (model instanceof Object[]) return ((Object[]) model)[0];
+    else if (model instanceof io.mateu.util.servlet.common.Pair)
+      return ((io.mateu.util.servlet.common.Pair<Object, Object>) model).getA();
+    else if (model instanceof Pair) return ((Pair) model).getKey();
+    else if (model.getClass().isAnnotationPresent(Entity.class)) {
+      Object id = null;
+      try {
+        FieldInterfaced idField = getIdField(model.getClass());
+        id = getValue(idField, model);
+      } catch (NoSuchMethodException e) {
+        e.printStackTrace();
+      } catch (IllegalAccessException e) {
+        e.printStackTrace();
+      } catch (InvocationTargetException e) {
+        e.printStackTrace();
+      }
+      return id;
+    } else if (model.getClass().isEnum()) {
+      return ((Enum) model).ordinal();
+    } else return model;
+  }
+
+  public static FieldInterfaced getIdField(Class type) {
+    if (type.isAnnotationPresent(Entity.class)) {
+      FieldInterfaced idField = null;
+
+      for (FieldInterfaced f : getAllFields(type)) {
+        if (f.isAnnotationPresent(Id.class)) {
+          idField = f;
+          break;
+        }
+      }
+
+      return idField;
+    } else return null;
+  }
+
+  public static Field getVersionField(Class c) {
+    if (c.isAnnotationPresent(Entity.class)) {
+      Field idField = null;
+
+      if (c.getSuperclass() != null
+          && (!c.isAnnotationPresent(Entity.class)
+              || c.getSuperclass().isAnnotationPresent(Entity.class)
+              || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class))) {
+        idField = getVersionField(c.getSuperclass());
+      }
+
+      if (idField == null) {
+        for (Field f : c.getDeclaredFields())
+          if (f.isAnnotationPresent(Version.class)) {
+            idField = f;
+          }
+      }
+
+      return idField;
+    } else return null;
+  }
+
+  public static FieldInterfaced getNameField(Class entityClass, boolean toStringPreferred) {
+    FieldInterfaced fName = null;
+    Method toStringMethod = getMethod(entityClass, "toString");
+    boolean toStringIsOverriden =
+        toStringMethod != null && toStringMethod.getDeclaringClass().equals(entityClass);
+    if (!toStringPreferred || !toStringIsOverriden) {
+      boolean hayName = false;
+      for (FieldInterfaced ff : getAllFields(entityClass))
+        if ("name".equalsIgnoreCase(ff.getName()) || "nombre".equalsIgnoreCase(ff.getName())) {
+          fName = ff;
+          hayName = true;
+        }
+      if (!hayName) {
+        for (FieldInterfaced ff : getAllFields(entityClass))
+          if ("value".equalsIgnoreCase(ff.getName())
+              || "title".equalsIgnoreCase(ff.getName())
+              || "titulo".equalsIgnoreCase(ff.getName())
+              || "description".equalsIgnoreCase(ff.getName())
+              || "descripcion".equalsIgnoreCase(ff.getName())) {
+            fName = ff;
+            hayName = true;
+          }
+      }
+      if (!hayName) {
+        for (FieldInterfaced ff : getAllFields(entityClass))
+          if ("description".equalsIgnoreCase(ff.getName())
+              || "descripcion".equalsIgnoreCase(ff.getName())) {
+            fName = ff;
+            hayName = true;
+          }
+      }
+      if (!hayName) {
+        for (FieldInterfaced ff : getAllFields(entityClass))
+          if (ff.isAnnotationPresent(Id.class)) {
+            fName = ff;
+          }
+      }
+    }
+    return fName;
+  }
+
+  public static FieldInterfaced getFieldByName(Class sourceClass, String fieldName) {
+    FieldInterfaced field = null;
+    String fn = fieldName.split("\\.")[0];
+    for (FieldInterfaced f : getAllFields(sourceClass)) {
+      if (fn.equals(f.getName())) {
+        if (fn.equals(fieldName)) {
+          field = f;
         } else {
-            return getValue(f.getId(), o);
+          field = getFieldByName(f.getType(), fieldName.substring(fn.length() + 1));
         }
+        break;
+      }
+    }
+    // if (field == null) log.warn("No field " + fieldName + " at " + sourceClass);
+    return field;
+  }
 
+  public static FieldInterfaced getMapper(FieldInterfaced field) {
+
+    // field es el campo original
+
+    // mapper será la contraparte en el destino
+    FieldInterfaced mapper = null;
+
+    // buscamos el nombre del campo mapper en el campo original
+    String mfn = null;
+    if (field.isAnnotationPresent(OneToOne.class))
+      mfn = field.getAnnotation(OneToOne.class).mappedBy();
+    else if (field.isAnnotationPresent(OneToMany.class))
+      mfn = field.getAnnotation(OneToMany.class).mappedBy();
+    else if (field.isAnnotationPresent(ManyToMany.class))
+      mfn = field.getAnnotation(ManyToMany.class).mappedBy();
+    else if (field.isAnnotationPresent(ManyToOne.class)) {
+
+      // si es un campo many to one, entonces no tenemos atributo mappedBy en el origen y debemos
+      // buscar un campo en la contraparte con el atributo mappedBy
+
+      for (FieldInterfaced f : getAllFields(field.getType())) {
+        String z = null;
+        if (f.isAnnotationPresent(OneToOne.class)) z = f.getAnnotation(OneToOne.class).mappedBy();
+        else if (f.isAnnotationPresent(OneToMany.class))
+          z = f.getAnnotation(OneToMany.class).mappedBy();
+        else if (f.isAnnotationPresent(ManyToMany.class))
+          z = f.getAnnotation(ManyToMany.class).mappedBy();
+        // debe coincidir el nombre y el tipo
+        if (field.getName().equals(z)
+            && (field.getDeclaringClass().equals(f.getType())
+                || field.getDeclaringClass().equals(getGenericClass(f.getGenericType())))) {
+          mfn = f.getName();
+          break;
+        }
+      }
     }
 
-    public static Object getValue(String id, Object o) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        Object v = null;
-
-        if (id.contains(".")) {
-            String firstId = id.substring(0, id.indexOf("."));
-            String path = id.substring(id.indexOf(".") + 1);
-
-            Method getter = null;
-            try {
-                FieldInterfaced f = getFieldByName(o.getClass(), firstId);
-
-                if (f != null) {
-
-                    try {
-                        getter = o.getClass().getMethod(getGetter(f.getType(), firstId));
-                    } catch (Exception e) {
-
-                    }
-
-                    if (getter != null)
-                        v = getter.invoke(o);
-                    else {
-                        try {
-                            if (f instanceof FieldInterfacedFromField) {
-                                Field field = f.getField();
-                                if (!Modifier.isPublic(field.getModifiers())) {
-                                    field.setAccessible(true);
-                                }
-                                v = field.get(o);
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    if (v != null) {
-                        v = getValue(path, v);
-                    }
-
-                }
-
-            } catch (Exception e) {
-            }
-
-        } else {
-            FieldInterfaced f = getFieldByName(o.getClass(), id);
-
-            if (f != null) {
-
-                Method getter = null;
-                try {
-                    getter = o.getClass().getMethod(getGetter(f.getType(), id));
-                } catch (Exception e) {
-
-                }
-                try {
-                    if (getter != null)
-                        v = getter.invoke(o);
-                    else {
-                        try {
-                            if (f instanceof FieldInterfacedFromField) {
-                                Field field = f.getField();
-                                if (!Modifier.isPublic(field.getModifiers())) {
-                                    field.setAccessible(true);
-                                }
-                                v = field.get(o);
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
-                }
-
-            }
-
-        }
-
-        return v;
+    Class targetClass = null;
+    if (Collection.class.isAssignableFrom(field.getType())
+        || Set.class.isAssignableFrom(field.getType())) {
+      targetClass = field.getGenericClass();
+    } else if (Map.class.isAssignableFrom(field.getType())) {
+      targetClass = getGenericClass(field, Map.class, "V");
+    } else {
+      targetClass = field.getType();
     }
 
-    private static Object getInstance(Object o, String fn) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        Object x = null;
-        if (o != null) {
-            if (fn.contains(".")) {
-                o = getInstance(o, fn.substring(0, fn.indexOf(".")));
-                x = getInstance(o, fn.substring(fn.indexOf(".") + 1));
+    if (!Strings.isNullOrEmpty(mfn)) {
+      mapper = getFieldByName(targetClass, mfn);
+
+    } else {
+
+      if (targetClass.isAnnotationPresent(Entity.class))
+        for (FieldInterfaced f : getAllFields(targetClass)) {
+          mfn = null;
+          if (f.isAnnotationPresent(OneToOne.class))
+            mfn = f.getAnnotation(OneToOne.class).mappedBy();
+          else if (f.isAnnotationPresent(OneToMany.class))
+            mfn = f.getAnnotation(OneToMany.class).mappedBy();
+          else if (f.isAnnotationPresent(ManyToMany.class))
+            mfn = f.getAnnotation(ManyToMany.class).mappedBy();
+
+          if (field.getName().equals(mfn)) {
+
+            Class reverseClass = null;
+            if (Collection.class.isAssignableFrom(f.getType())
+                || Set.class.isAssignableFrom(f.getType())) {
+              reverseClass = f.getGenericClass();
+            } else if (Map.class.isAssignableFrom(field.getType())) {
+              reverseClass = getGenericClass(f, Map.class, "V");
             } else {
-                x = o.getClass().getMethod(getGetter(fn)).invoke(o);
-            }
-        }
-        return x;
-    }
-
-    public static Method getMethod(Class<?> c, String methodName) {
-        if (c == null) {
-            log.debug("getMethod(" + null + ", " + methodName + ") devolverá null!");
-            return null;
-        }
-        Method l = methodCache.get(c.getName() + "-" + methodName);
-        if (l == null) {
-            methodCache.put(c.getName() + "-" + methodName, l = buildMethod(c, methodName));
-        }
-        return l;
-    }
-
-    public static Method buildMethod(Class<?> c, String methodName) {
-        Method m = null;
-        if (c != null) for (Method q : getAllMethods(c)) {
-            if (methodName.equals(q.getName())) {
-                m = q;
-                break;
-            }
-        }
-        return m;
-    }
-
-
-    public static String getGetter(Field f) {
-        return getGetter(f.getType(), f.getName());
-    }
-
-    public static String getGetter(FieldInterfaced f) {
-        return getGetter(f.getType(), f.getName());
-    }
-
-    public static String getGetter(Class c, String fieldName) {
-        return (boolean.class.equals(c)?"is":"get") + getFirstUpper(fieldName);
-    }
-
-    public static String getGetter(String fn) {
-        return "get" + getFirstUpper(fn);
-    }
-
-    public static String getSetter(Field f) {
-        return getSetter(f.getType(), f.getName());
-    }
-    public static String getSetter(FieldInterfaced f) {
-        return getSetter(f.getType(), f.getName());
-    }
-
-
-    public static String getSetter(Class c, String fieldName) {
-        return "set" + getFirstUpper(fieldName);
-    }
-
-
-
-
-    public static List<Method> getAllMethods(Class c) {
-        List<Method> l = _getAllMethods(c);
-
-        List<Method> r = new ArrayList<>();
-
-        for (Method m : l) {
-            if (check(m)) r.add(m);
-        }
-
-        return r;
-    }
-
-    public static List<Method> _getAllMethods(Class c) {
-        List<Method> l = allMethodsCache.get(c);
-
-        if (l == null) {
-            allMethodsCache.put(c, l = buildAllMethods(c));
-        }
-
-        return l;
-    }
-
-    public static List<Method> buildAllMethods(Class c) {
-        List<Method> l = new ArrayList<>();
-
-        if (c.getSuperclass() != null && (!c.isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class)))
-            l.addAll(getAllMethods(c.getSuperclass()));
-
-        for (Method f : c.getDeclaredMethods()) {
-            l.removeIf(m -> getSignature(m).equals(getSignature(f)));
-            l.add(f);
-        }
-
-        return l;
-    }
-
-    private static String getSignature(Method m) {
-        return m.getGenericReturnType().getTypeName() + " " + m.getName() + "(" + getSignature(m.getParameters()) + ")";
-    }
-
-    private static String getSignature(Parameter[] parameters) {
-        String s = "";
-        if (parameters != null) for (Parameter p : parameters) {
-            if (!"".equals(s)) s += ", ";
-            s += p.getType().getName();
-        }
-        return s;
-    }
-
-    private static Method getMethod(Class c, String methodName, Class<?>... parameterTypes) throws NoSuchMethodException {
-        Method m = c.getClass().getDeclaredMethod(methodName, parameterTypes);
-
-        if (m == null && c.getSuperclass() != null && (!c.isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class)))
-            m = getMethod(c.getSuperclass(), methodName, parameterTypes);
-
-        return m;
-    }
-
-    public static List<FieldInterfaced> getAllFields(Class c) {
-        List<FieldInterfaced> l = allFieldsCache.get(c);
-
-        if (l == null) {
-            l = buildAllFields(c);
-            allFieldsCache.put(c, l);
-        }
-
-        return new ArrayList<>(l);
-    }
-
-    private static List<FieldInterfaced> buildAllFields(Class c) {
-        List<String> vistos = new ArrayList<>();
-        Map<String, Field> originales = new HashMap<>();
-        for (Field f : c.getDeclaredFields()) if (!Logger.class.isAssignableFrom(f.getType())) {
-            if (!f.getName().contains("$") && !"_proxied".equalsIgnoreCase(f.getName()) && !"_possibleValues".equalsIgnoreCase(f.getName()) && !"_binder".equalsIgnoreCase(f.getName()) && !"_field".equalsIgnoreCase(f.getName())) originales.put(f.getName(), f);
-        }
-
-        List<FieldInterfaced> l = new ArrayList<>();
-
-        if (c.getSuperclass() != null && (!c.isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class))) {
-            for (FieldInterfaced f : getAllFields(c.getSuperclass())) {
-                if (!originales.containsKey(f.getId())) l.add(f);
-                else l.add(new FieldInterfacedFromField(originales.get(f.getName())));
-                vistos.add(f.getName());
-            }
-        }
-
-        for (Field f : c.getDeclaredFields())  if (!Modifier.isStatic(f.getModifiers())) if (!f.isAnnotationPresent(Version.class)) if (!Logger.class.isAssignableFrom(f.getType())) if (!vistos.contains(f.getName())) if (!f.getName().contains("$") && !"_proxied".equalsIgnoreCase(f.getName()) && !"_possibleValues".equalsIgnoreCase(f.getName()) && !"_binder".equalsIgnoreCase(f.getName()) && !"_field".equalsIgnoreCase(f.getName())) {
-            l.add(new FieldInterfacedFromField(f));
-        }
-
-        return l;
-    }
-
-    public static boolean hasGetter(FieldInterfaced f) {
-        return getMethod(f.getDeclaringClass(), getGetter(f)) != null;
-    }
-
-    public static boolean hasSetter(FieldInterfaced f) {
-        return getMethod(f.getDeclaringClass(), getSetter(f)) != null;
-    }
-
-    public static List<FieldInterfaced> getAllFields(Method m) {
-
-        List<FieldInterfaced> l = new ArrayList<>();
-
-        for (Parameter p : m.getParameters()) if (!isInjectable(m, p)) {
-            l.add(new FieldInterfacedFromParameter(m, p));
-        }
-
-        return l;
-    }
-
-    public static boolean isInjectable(Executable m, Parameter p) {
-        boolean injectable = true;
-        if (EntityManager.class.equals(p.getType())) {
-        } else {
-            injectable = false;
-        }
-        return injectable;
-    }
-
-    private static Map<String, FieldInterfaced> getAllFieldsMap(Class c) {
-        return getAllFieldsMap(getAllFields(c));
-    }
-
-    private static Map<String, FieldInterfaced> getAllFieldsMap(List<FieldInterfaced> l) {
-
-        Map<String, FieldInterfaced> m = new HashMap<>();
-
-        for (FieldInterfaced f : l) m.put(f.getName(), f);
-
-        return m;
-    }
-
-    public static Object getId(Object model) {
-        if (model instanceof Object[]) return ((Object[]) model)[0];
-        else if (model instanceof io.mateu.util.servlet.common.Pair) return ((io.mateu.util.servlet.common.Pair<Object, Object>)model).getA();
-        else if (model instanceof Pair) return ((Pair)model).getKey();
-        else if (model.getClass().isAnnotationPresent(Entity.class)) {
-            Object id = null;
-            try {
-                FieldInterfaced idField = getIdField(model.getClass());
-                id = getValue(idField, model);
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            }
-            return id;
-        } else if (model.getClass().isEnum()) {
-            return ((Enum)model).ordinal();
-        } else return model;
-    }
-
-
-
-    public static FieldInterfaced getIdField(Class type) {
-        if (type.isAnnotationPresent(Entity.class)) {
-            FieldInterfaced idField = null;
-
-            for (FieldInterfaced f : getAllFields(type)) {
-                if (f.isAnnotationPresent(Id.class)) {
-                    idField = f;
-                    break;
-                }
+              reverseClass = f.getType();
             }
 
-            return idField;
-        } else return null;
-    }
-
-    public static Field getVersionField(Class c) {
-        if (c.isAnnotationPresent(Entity.class)) {
-            Field idField = null;
-
-            if (c.getSuperclass() != null && (!c.isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(Entity.class) || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class))) {
-                idField = getVersionField(c.getSuperclass());
+            if (reverseClass != null && field.getDeclaringClass().isAssignableFrom(reverseClass)) {
+              mapper = f;
+              break;
             }
-
-            if (idField == null) {
-                for (Field f : c.getDeclaredFields())  if (f.isAnnotationPresent(Version.class)) {
-                    idField = f;
-                }
-            }
-
-            return idField;
-        } else return null;
-    }
-    public static FieldInterfaced getNameField(Class entityClass, boolean toStringPreferred) {
-        FieldInterfaced fName = null;
-        Method toStringMethod = getMethod(entityClass, "toString");
-        boolean toStringIsOverriden = toStringMethod != null && toStringMethod.getDeclaringClass().equals(entityClass);
-        if (!toStringPreferred || !toStringIsOverriden) {
-            boolean hayName = false;
-            for (FieldInterfaced ff : getAllFields(entityClass))
-                if ("name".equalsIgnoreCase(ff.getName()) ||  "nombre".equalsIgnoreCase(ff.getName())) {
-                    fName = ff;
-                    hayName = true;
-                }
-            if (!hayName) {
-                for (FieldInterfaced ff : getAllFields(entityClass))
-                    if ("value".equalsIgnoreCase(ff.getName())
-                            || "title".equalsIgnoreCase(ff.getName())
-                            || "titulo".equalsIgnoreCase(ff.getName())
-                            || "description".equalsIgnoreCase(ff.getName())
-                            || "descripcion".equalsIgnoreCase(ff.getName())
-                    ) {
-                        fName = ff;
-                        hayName = true;
-                    }
-            }
-            if (!hayName) {
-                for (FieldInterfaced ff : getAllFields(entityClass))
-                    if ("description".equalsIgnoreCase(ff.getName())
-                            || "descripcion".equalsIgnoreCase(ff.getName())
-                    ) {
-                        fName = ff;
-                        hayName = true;
-                    }
-            }
-            if (!hayName) {
-                for (FieldInterfaced ff : getAllFields(entityClass))
-                    if (ff.isAnnotationPresent(Id.class)) {
-                        fName = ff;
-                    }
-            }
+          }
         }
-        return fName;
     }
 
+    return mapper;
+  }
 
+  public static Class getGenericClass(
+      FieldInterfaced field, Class asClassOrInterface, String genericArgumentName) {
+    Type t = field.getGenericType();
+    if (field.isAnnotationPresent(GenericClass.class))
+      return field.getAnnotation(GenericClass.class).clazz();
+    else
+      return getGenericClass(
+          (t instanceof ParameterizedType) ? (ParameterizedType) t : null,
+          field.getType(),
+          asClassOrInterface,
+          genericArgumentName);
+  }
 
-    public static FieldInterfaced getFieldByName(Class sourceClass, String fieldName) {
-        FieldInterfaced field = null;
-        String fn = fieldName.split("\\.")[0];
-        for (FieldInterfaced f : getAllFields(sourceClass)) {
-            if (fn.equals(f.getName())) {
-                if (fn.equals(fieldName)) {
-                    field = f;
+  public static Class getGenericClass(
+      ParameterizedType parameterizedType, Class asClassOrInterface, String genericArgumentName) {
+    return getGenericClass(
+        parameterizedType,
+        (Class) parameterizedType.getRawType(),
+        asClassOrInterface,
+        genericArgumentName);
+  }
+
+  public static Class getGenericClass(
+      Class sourceClass, Class asClassOrInterface, String genericArgumentName) {
+    return getGenericClass(null, sourceClass, asClassOrInterface, genericArgumentName);
+  }
+
+  public static Class getGenericClass(
+      ParameterizedType parameterizedType,
+      Class sourceClass,
+      Class asClassOrInterface,
+      String genericArgumentName) {
+    Class c = null;
+
+    if (asClassOrInterface.isInterface()) {
+
+      // buscamos la clase (entre ella misma y las superclases) que implementa la interfaz o un
+      // derivado
+      // vamos bajando por las interfaces hasta encontrar una clase
+      // si no tenemos la clase, vamos bajando por las subclases hasta encontrarla
+
+      Class baseInterface = null;
+
+      if (sourceClass.isInterface()) {
+        baseInterface = sourceClass;
+
+        List<Type> jerarquiaInterfaces = buscarInterfaz(sourceClass, asClassOrInterface);
+        if (asClassOrInterface.equals(sourceClass))
+          jerarquiaInterfaces = Lists.newArrayList(asClassOrInterface);
+
+        boolean laImplementa = jerarquiaInterfaces != null;
+
+        if (laImplementa) {
+
+          jerarquiaInterfaces.add((parameterizedType != null) ? parameterizedType : sourceClass);
+
+          // localizamos el parámetro y bajamos por las interfaces
+          c = buscarHaciaAbajo(asClassOrInterface, genericArgumentName, jerarquiaInterfaces);
+        }
+
+      } else {
+
+        // buscamos hasta la clase que implemente la interfaz o una subclase de la misma
+
+        boolean laImplementa = false;
+
+        List<Type> jerarquia = new ArrayList<>();
+        List<Type> jerarquiaInterfaces = null;
+
+        Type tipoEnCurso = (parameterizedType != null) ? parameterizedType : sourceClass;
+        while (tipoEnCurso != null && !laImplementa) {
+
+          jerarquiaInterfaces = buscarInterfaz(tipoEnCurso, asClassOrInterface);
+
+          laImplementa = jerarquiaInterfaces != null;
+
+          if (!laImplementa) { // si no la implementa subimos por las superclases
+
+            Type genericSuperclass = getSuper(tipoEnCurso);
+
+            if (genericSuperclass != null && genericSuperclass instanceof ParameterizedType) {
+              ParameterizedType pt = (ParameterizedType) genericSuperclass;
+              if (pt.getRawType() instanceof Class) {
+
+                genericSuperclass = pt.getRawType();
+
+                if (Object.class.equals(genericSuperclass)) {
+                  // hemos llegado a Object. sourceClass no extiende asClassOrInterface.
+                  // Devolveremos null
+                  tipoEnCurso = null;
                 } else {
-                    field = getFieldByName(f.getType(), fieldName.substring(fn.length() + 1));
+                  jerarquia.add(tipoEnCurso);
+                  tipoEnCurso = pt;
                 }
-                break;
-            }
-        }
-        //if (field == null) log.warn("No field " + fieldName + " at " + sourceClass);
-        return field;
-    }
-
-    public static FieldInterfaced getMapper(FieldInterfaced field) {
-
-        // field es el campo original
-
-
-        // mapper será la contraparte en el destino
-        FieldInterfaced mapper = null;
-
-        // buscamos el nombre del campo mapper en el campo original
-        String mfn = null;
-        if (field.isAnnotationPresent(OneToOne.class)) mfn = field.getAnnotation(OneToOne.class).mappedBy();
-        else if (field.isAnnotationPresent(OneToMany.class)) mfn = field.getAnnotation(OneToMany.class).mappedBy();
-        else if (field.isAnnotationPresent(ManyToMany.class)) mfn = field.getAnnotation(ManyToMany.class).mappedBy();
-        else if (field.isAnnotationPresent(ManyToOne.class)) {
-
-            // si es un campo many to one, entonces no tenemos atributo mappedBy en el origen y debemos buscar un campo en la contraparte con el atributo mappedBy
-
-            for (FieldInterfaced f : getAllFields(field.getType())) {
-                String z = null;
-                if (f.isAnnotationPresent(OneToOne.class)) z = f.getAnnotation(OneToOne.class).mappedBy();
-                else if (f.isAnnotationPresent(OneToMany.class)) z = f.getAnnotation(OneToMany.class).mappedBy();
-                else if (f.isAnnotationPresent(ManyToMany.class)) z = f.getAnnotation(ManyToMany.class).mappedBy();
-                // debe coincidir el nombre y el tipo
-                if (field.getName().equals(z) && (field.getDeclaringClass().equals(f.getType()) || field.getDeclaringClass().equals(getGenericClass(f.getGenericType())))) {
-                    mfn = f.getName();
-                    break;
-                }
-            }
-        }
-
-        Class targetClass = null;
-        if (Collection.class.isAssignableFrom(field.getType()) || Set.class.isAssignableFrom(field.getType())) {
-            targetClass = field.getGenericClass();
-        } else if (Map.class.isAssignableFrom(field.getType())) {
-            targetClass = getGenericClass(field, Map.class, "V");
-        } else {
-            targetClass = field.getType();
-        }
-
-        if (!Strings.isNullOrEmpty(mfn)) {
-            mapper = getFieldByName(targetClass, mfn);
-
-        } else {
-
-            if (targetClass.isAnnotationPresent(Entity.class)) for (FieldInterfaced f : getAllFields(targetClass)) {
-                mfn = null;
-                if (f.isAnnotationPresent(OneToOne.class)) mfn = f.getAnnotation(OneToOne.class).mappedBy();
-                else if (f.isAnnotationPresent(OneToMany.class)) mfn = f.getAnnotation(OneToMany.class).mappedBy();
-                else if (f.isAnnotationPresent(ManyToMany.class)) mfn = f.getAnnotation(ManyToMany.class).mappedBy();
-
-                if (field.getName().equals(mfn)) {
-
-                    Class reverseClass = null;
-                    if (Collection.class.isAssignableFrom(f.getType()) || Set.class.isAssignableFrom(f.getType())) {
-                        reverseClass = f.getGenericClass();
-                    } else if (Map.class.isAssignableFrom(field.getType())) {
-                        reverseClass = getGenericClass(f, Map.class, "V");
-                    } else {
-                        reverseClass = f.getType();
-                    }
-
-                    if (reverseClass != null && field.getDeclaringClass().isAssignableFrom(reverseClass)) {
-                        mapper = f;
-                        break;
-                    }
-                }
-            }
-
-        }
-
-        return mapper;
-    }
-
-    public static Class getGenericClass(FieldInterfaced field, Class asClassOrInterface, String genericArgumentName) {
-        Type t = field.getGenericType();
-        if (field.isAnnotationPresent(GenericClass.class)) return field.getAnnotation(GenericClass.class).clazz();
-        else return getGenericClass((t instanceof ParameterizedType)?(ParameterizedType) t:null, field.getType(), asClassOrInterface, genericArgumentName);
-    }
-
-    public static Class getGenericClass(ParameterizedType parameterizedType, Class asClassOrInterface, String genericArgumentName) {
-        return getGenericClass(parameterizedType, (Class) parameterizedType.getRawType(), asClassOrInterface, genericArgumentName);
-    }
-
-    public static Class getGenericClass(Class sourceClass, Class asClassOrInterface, String genericArgumentName) {
-        return getGenericClass(null, sourceClass, asClassOrInterface, genericArgumentName);
-    }
-
-
-
-    public static Class getGenericClass(ParameterizedType parameterizedType, Class sourceClass, Class asClassOrInterface, String genericArgumentName) {
-        Class c = null;
-
-        if (asClassOrInterface.isInterface()) {
-
-            // buscamos la clase (entre ella misma y las superclases) que implementa la interfaz o un derivado
-            // vamos bajando por las interfaces hasta encontrar una clase
-            // si no tenemos la clase, vamos bajando por las subclases hasta encontrarla
-
-            Class baseInterface = null;
-
-            if (sourceClass.isInterface()) {
-                baseInterface = sourceClass;
-
-                List<Type> jerarquiaInterfaces = buscarInterfaz(sourceClass, asClassOrInterface);
-                if (asClassOrInterface.equals(sourceClass)) jerarquiaInterfaces = Lists.newArrayList(asClassOrInterface);
-
-                boolean laImplementa = jerarquiaInterfaces != null;
-
-                if (laImplementa) {
-
-                    jerarquiaInterfaces.add((parameterizedType != null)?parameterizedType:sourceClass);
-
-                    // localizamos el parámetro y bajamos por las interfaces
-                    c = buscarHaciaAbajo(asClassOrInterface, genericArgumentName, jerarquiaInterfaces);
-
-                }
-
-
-            } else {
-
-                // buscamos hasta la clase que implemente la interfaz o una subclase de la misma
-
-                boolean laImplementa = false;
-
-                List<Type> jerarquia = new ArrayList<>();
-                List<Type> jerarquiaInterfaces = null;
-
-                Type tipoEnCurso = (parameterizedType != null)?parameterizedType:sourceClass;
-                while (tipoEnCurso != null && !laImplementa) {
-
-                    jerarquiaInterfaces = buscarInterfaz(tipoEnCurso, asClassOrInterface);
-
-                    laImplementa = jerarquiaInterfaces != null;
-
-                    if (!laImplementa) { // si no la implementa subimos por las superclases
-
-                        Type genericSuperclass = getSuper(tipoEnCurso);
-
-                        if (genericSuperclass != null && genericSuperclass instanceof ParameterizedType) {
-                            ParameterizedType pt = (ParameterizedType)genericSuperclass;
-                            if (pt.getRawType() instanceof Class) {
-
-                                genericSuperclass = pt.getRawType();
-
-                                if (Object.class.equals(genericSuperclass)) {
-                                    // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos null
-                                    tipoEnCurso = null;
-                                } else {
-                                    jerarquia.add(tipoEnCurso);
-                                    tipoEnCurso = pt;
-                                }
-
-                            }
-                        } else if (genericSuperclass != null && genericSuperclass instanceof Class) {
-
-                            if (Object.class.equals(genericSuperclass)) {
-                                // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos null
-                                tipoEnCurso = null;
-                            } else {
-                                jerarquia.add(tipoEnCurso);
-                                tipoEnCurso = (Class) genericSuperclass;
-                            }
-
-                        } else {
-                            // todo: puede no ser una clase?
-                            tipoEnCurso = null;
-                        }
-
-                    }
-                }
-
-
-                if (laImplementa) {
-
-                    // añadimos la clase en cuestión
-                    jerarquia.add(tipoEnCurso);
-
-                    // localizamos el parámetro y bajamos por las interfaces
-                    jerarquia.addAll(jerarquiaInterfaces);
-                    c = buscarHaciaAbajo(asClassOrInterface, genericArgumentName, jerarquia);
-
-                }
-
-            }
-
-
-        } else {
-
-            // una interfaz no puede extender una clase
-            if (sourceClass.isInterface()) return null;
-
-            // buscamos la clase (entre ella misma y las superclases)
-            // localizamos la posición del argumento
-            // vamos bajando hasta que encontramos una clase
-
-            List<Type> jerarquia = new ArrayList<>();
-
-            Type tipoEnCurso = (parameterizedType != null)?parameterizedType:sourceClass;
-            while (tipoEnCurso != null && !(asClassOrInterface.equals(tipoEnCurso) || (tipoEnCurso instanceof ParameterizedType && asClassOrInterface.equals(((ParameterizedType)tipoEnCurso).getRawType())))) {
-                Type genericSuperclass = getSuper(tipoEnCurso);
-
-                if (genericSuperclass != null && genericSuperclass instanceof ParameterizedType) {
-                    ParameterizedType pt = (ParameterizedType)genericSuperclass;
-                    if (pt.getRawType() instanceof Class) {
-
-                        genericSuperclass = pt.getRawType();
-
-                        if (Object.class.equals(genericSuperclass)) {
-                            // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos null
-                            tipoEnCurso = null;
-                        } else {
-                            jerarquia.add(tipoEnCurso);
-                            tipoEnCurso = pt;
-                        }
-
-                    }
-                } else if (genericSuperclass != null && genericSuperclass instanceof Class) {
-
-                    if (Object.class.equals(genericSuperclass)) {
-                        // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos null
-                        tipoEnCurso = null;
-                    } else {
-                        jerarquia.add(tipoEnCurso);
-                        tipoEnCurso = (Class) genericSuperclass;
-                    }
-
-                } else {
-                    // todo: puede no ser una clase?
-                    tipoEnCurso = null;
-                }
-            }
-
-            if (tipoEnCurso != null) {
-
-                // añadimos la clase en cuestión
+              }
+            } else if (genericSuperclass != null && genericSuperclass instanceof Class) {
+
+              if (Object.class.equals(genericSuperclass)) {
+                // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos
+                // null
+                tipoEnCurso = null;
+              } else {
                 jerarquia.add(tipoEnCurso);
-
-                c = buscarHaciaAbajo(asClassOrInterface, genericArgumentName, jerarquia);
+                tipoEnCurso = (Class) genericSuperclass;
+              }
 
             } else {
-
-                // no hemos encontrado la clase entre las superclases. devolveremos null
-
+              // todo: puede no ser una clase?
+              tipoEnCurso = null;
             }
-
+          }
         }
 
-        return c;
-    }
+        if (laImplementa) {
 
-    private static Class buscarHaciaAbajo(Type asClassOrInterface, String genericArgumentName, List<Type> jerarquia) {
+          // añadimos la clase en cuestión
+          jerarquia.add(tipoEnCurso);
 
-        Class c = null;
+          // localizamos el parámetro y bajamos por las interfaces
+          jerarquia.addAll(jerarquiaInterfaces);
+          c = buscarHaciaAbajo(asClassOrInterface, genericArgumentName, jerarquia);
+        }
+      }
 
-        // localizamos la posición del argumento
-        int argPos = getArgPos(asClassOrInterface, genericArgumentName);
+    } else {
 
-        // vamos bajando hasta que encontremos una clase en la posición indicada (y vamos actualizando la posición en cada escalón)
-        int escalon = jerarquia.size() - 1;
-        while (escalon >= 0 && c == null) {
+      // una interfaz no puede extender una clase
+      if (sourceClass.isInterface()) return null;
 
-            Type tipoEnCurso = jerarquia.get(escalon);
+      // buscamos la clase (entre ella misma y las superclases)
+      // localizamos la posición del argumento
+      // vamos bajando hasta que encontramos una clase
 
-            if (tipoEnCurso instanceof Class) {
+      List<Type> jerarquia = new ArrayList<>();
 
-                if (((Class)tipoEnCurso).getTypeParameters().length > argPos) {
-                    TypeVariable t = ((Class)tipoEnCurso).getTypeParameters()[argPos];
+      Type tipoEnCurso = (parameterizedType != null) ? parameterizedType : sourceClass;
+      while (tipoEnCurso != null
+          && !(asClassOrInterface.equals(tipoEnCurso)
+              || (tipoEnCurso instanceof ParameterizedType
+                  && asClassOrInterface.equals(((ParameterizedType) tipoEnCurso).getRawType())))) {
+        Type genericSuperclass = getSuper(tipoEnCurso);
 
-                    genericArgumentName = t.getName();
-                    asClassOrInterface = (Class) tipoEnCurso;
+        if (genericSuperclass != null && genericSuperclass instanceof ParameterizedType) {
+          ParameterizedType pt = (ParameterizedType) genericSuperclass;
+          if (pt.getRawType() instanceof Class) {
 
-                    argPos = getArgPos(asClassOrInterface, genericArgumentName);
-                } else {
-                    c = Object.class;
-                }
+            genericSuperclass = pt.getRawType();
 
-            } else if (tipoEnCurso instanceof ParameterizedType) {
-                ParameterizedType pt = (ParameterizedType) tipoEnCurso;
-                Type t = pt.getActualTypeArguments()[argPos];
-
-                if (t instanceof Class) { // lo hemos encontrado
-                    c = (Class) t;
-                } else if (t instanceof TypeVariable) {
-                    genericArgumentName = ((TypeVariable)t).getName();
-                    asClassOrInterface = tipoEnCurso;
-
-                    argPos = getArgPos(asClassOrInterface, genericArgumentName);
-                }
+            if (Object.class.equals(genericSuperclass)) {
+              // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos
+              // null
+              tipoEnCurso = null;
+            } else {
+              jerarquia.add(tipoEnCurso);
+              tipoEnCurso = pt;
             }
+          }
+        } else if (genericSuperclass != null && genericSuperclass instanceof Class) {
 
-            escalon--;
+          if (Object.class.equals(genericSuperclass)) {
+            // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos null
+            tipoEnCurso = null;
+          } else {
+            jerarquia.add(tipoEnCurso);
+            tipoEnCurso = (Class) genericSuperclass;
+          }
+
+        } else {
+          // todo: puede no ser una clase?
+          tipoEnCurso = null;
         }
+      }
 
-        return c;
+      if (tipoEnCurso != null) {
+
+        // añadimos la clase en cuestión
+        jerarquia.add(tipoEnCurso);
+
+        c = buscarHaciaAbajo(asClassOrInterface, genericArgumentName, jerarquia);
+
+      } else {
+
+        // no hemos encontrado la clase entre las superclases. devolveremos null
+
+      }
     }
 
-    private static List<Type> buscarInterfaz(Type tipo, Class interfaz) {
-        List<Type> jerarquia = null;
+    return c;
+  }
 
-        Class clase = null;
-        if (tipo instanceof Class) clase = (Class) tipo;
-        else if (tipo instanceof ParameterizedType) {
-            ParameterizedType pt = (ParameterizedType)tipo;
-            if (pt.getRawType() instanceof Class) clase = (Class) pt.getRawType();
+  private static Class buscarHaciaAbajo(
+      Type asClassOrInterface, String genericArgumentName, List<Type> jerarquia) {
+
+    Class c = null;
+
+    // localizamos la posición del argumento
+    int argPos = getArgPos(asClassOrInterface, genericArgumentName);
+
+    // vamos bajando hasta que encontremos una clase en la posición indicada (y vamos actualizando
+    // la posición en cada escalón)
+    int escalon = jerarquia.size() - 1;
+    while (escalon >= 0 && c == null) {
+
+      Type tipoEnCurso = jerarquia.get(escalon);
+
+      if (tipoEnCurso instanceof Class) {
+
+        if (((Class) tipoEnCurso).getTypeParameters().length > argPos) {
+          TypeVariable t = ((Class) tipoEnCurso).getTypeParameters()[argPos];
+
+          genericArgumentName = t.getName();
+          asClassOrInterface = (Class) tipoEnCurso;
+
+          argPos = getArgPos(asClassOrInterface, genericArgumentName);
+        } else {
+          c = Object.class;
         }
 
-        if (clase != null) for (Type t : clase.getGenericInterfaces()) {
-            jerarquia = buscarSuperInterfaz(t, interfaz);
-            if (jerarquia != null) break;
-        }
+      } else if (tipoEnCurso instanceof ParameterizedType) {
+        ParameterizedType pt = (ParameterizedType) tipoEnCurso;
+        Type t = pt.getActualTypeArguments()[argPos];
 
-        return jerarquia;
+        if (t instanceof Class) { // lo hemos encontrado
+          c = (Class) t;
+        } else if (t instanceof TypeVariable) {
+          genericArgumentName = ((TypeVariable) t).getName();
+          asClassOrInterface = tipoEnCurso;
+
+          argPos = getArgPos(asClassOrInterface, genericArgumentName);
+        }
+      }
+
+      escalon--;
     }
 
-    private static List<Type> buscarSuperInterfaz(Type tipo, Class interfaz) {
-        List<Type> jerarquia = null;
+    return c;
+  }
 
-        Class clase = null;
-        if (tipo instanceof Class) clase = (Class) tipo;
-        else if (tipo instanceof ParameterizedType) {
-            ParameterizedType pt = (ParameterizedType)tipo;
-            if (pt.getRawType() instanceof Class) clase = (Class) pt.getRawType();
-        }
+  private static List<Type> buscarInterfaz(Type tipo, Class interfaz) {
+    List<Type> jerarquia = null;
 
-        if (clase != null) {
+    Class clase = null;
+    if (tipo instanceof Class) clase = (Class) tipo;
+    else if (tipo instanceof ParameterizedType) {
+      ParameterizedType pt = (ParameterizedType) tipo;
+      if (pt.getRawType() instanceof Class) clase = (Class) pt.getRawType();
+    }
 
-            //buscar en superclases y rellenar jerarquía
-            Type tipoEnCurso = clase;
+    if (clase != null)
+      for (Type t : clase.getGenericInterfaces()) {
+        jerarquia = buscarSuperInterfaz(t, interfaz);
+        if (jerarquia != null) break;
+      }
 
-            List<Type> tempJerarquia = new ArrayList<>();
-            tempJerarquia.add(tipo);
+    return jerarquia;
+  }
 
-            while (tipoEnCurso != null && !(interfaz.equals(tipoEnCurso) || (tipoEnCurso instanceof ParameterizedType && interfaz.equals(((ParameterizedType)tipoEnCurso).getRawType())))) {
-                Type genericSuperclass = getSuper(tipoEnCurso);
-                if (genericSuperclass != null && genericSuperclass instanceof ParameterizedType) {
-                    ParameterizedType pt = (ParameterizedType)genericSuperclass;
-                    if (pt.getRawType() instanceof Class) {
+  private static List<Type> buscarSuperInterfaz(Type tipo, Class interfaz) {
+    List<Type> jerarquia = null;
 
-                        genericSuperclass = pt.getRawType();
+    Class clase = null;
+    if (tipo instanceof Class) clase = (Class) tipo;
+    else if (tipo instanceof ParameterizedType) {
+      ParameterizedType pt = (ParameterizedType) tipo;
+      if (pt.getRawType() instanceof Class) clase = (Class) pt.getRawType();
+    }
 
-                        if (Object.class.equals(genericSuperclass)) {
-                            // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos null
-                            tipoEnCurso = null;
-                        } else {
-                            tempJerarquia.add(tipoEnCurso);
-                            tipoEnCurso = pt;
-                        }
+    if (clase != null) {
 
-                    }
-                } else if (genericSuperclass != null && genericSuperclass instanceof Class) {
+      // buscar en superclases y rellenar jerarquía
+      Type tipoEnCurso = clase;
 
-                    if (Object.class.equals(genericSuperclass)) {
-                        // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos null
-                        tipoEnCurso = null;
-                    } else {
-                        tempJerarquia.add(tipoEnCurso);
-                        tipoEnCurso = (Class) genericSuperclass;
-                    }
+      List<Type> tempJerarquia = new ArrayList<>();
+      tempJerarquia.add(tipo);
 
-                } else {
-                    // todo: puede no ser una clase?
-                    tipoEnCurso = null;
-                }
+      while (tipoEnCurso != null
+          && !(interfaz.equals(tipoEnCurso)
+              || (tipoEnCurso instanceof ParameterizedType
+                  && interfaz.equals(((ParameterizedType) tipoEnCurso).getRawType())))) {
+        Type genericSuperclass = getSuper(tipoEnCurso);
+        if (genericSuperclass != null && genericSuperclass instanceof ParameterizedType) {
+          ParameterizedType pt = (ParameterizedType) genericSuperclass;
+          if (pt.getRawType() instanceof Class) {
+
+            genericSuperclass = pt.getRawType();
+
+            if (Object.class.equals(genericSuperclass)) {
+              // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos
+              // null
+              tipoEnCurso = null;
+            } else {
+              tempJerarquia.add(tipoEnCurso);
+              tipoEnCurso = pt;
             }
+          }
+        } else if (genericSuperclass != null && genericSuperclass instanceof Class) {
 
-            if (tipoEnCurso != null) {
-                jerarquia = tempJerarquia;
-            }
+          if (Object.class.equals(genericSuperclass)) {
+            // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos null
+            tipoEnCurso = null;
+          } else {
+            tempJerarquia.add(tipoEnCurso);
+            tipoEnCurso = (Class) genericSuperclass;
+          }
 
+        } else {
+          // todo: puede no ser una clase?
+          tipoEnCurso = null;
         }
+      }
 
-        return jerarquia;
+      if (tipoEnCurso != null) {
+        jerarquia = tempJerarquia;
+      }
     }
 
-    private static Type getSuper(Type tipoEnCurso) {
-        Type genericSuperclass = null;
-        if (tipoEnCurso instanceof Class) {
-            if (((Class) tipoEnCurso).isInterface()) {
-                Class[] is = ((Class) tipoEnCurso).getInterfaces();
-                if (is != null && is.length > 0) genericSuperclass = is[0];
-            }
-            else genericSuperclass = ((Class)tipoEnCurso).getGenericSuperclass();
-        }
-        else if (tipoEnCurso instanceof ParameterizedType) {
-            ParameterizedType pt = (ParameterizedType)tipoEnCurso;
-            if (pt.getRawType() instanceof Class) genericSuperclass = ((Class)pt.getRawType()).getGenericSuperclass();
-        }
-        return genericSuperclass;
+    return jerarquia;
+  }
+
+  private static Type getSuper(Type tipoEnCurso) {
+    Type genericSuperclass = null;
+    if (tipoEnCurso instanceof Class) {
+      if (((Class) tipoEnCurso).isInterface()) {
+        Class[] is = ((Class) tipoEnCurso).getInterfaces();
+        if (is != null && is.length > 0) genericSuperclass = is[0];
+      } else genericSuperclass = ((Class) tipoEnCurso).getGenericSuperclass();
+    } else if (tipoEnCurso instanceof ParameterizedType) {
+      ParameterizedType pt = (ParameterizedType) tipoEnCurso;
+      if (pt.getRawType() instanceof Class)
+        genericSuperclass = ((Class) pt.getRawType()).getGenericSuperclass();
+    }
+    return genericSuperclass;
+  }
+
+  private static int getArgPos(Type asClassOrInterface, String genericArgumentName) {
+    int argPos = 0;
+
+    Type[] types = null;
+    if (asClassOrInterface instanceof Class) {
+      types = ((Class) asClassOrInterface).getTypeParameters();
+    } else if (asClassOrInterface instanceof ParameterizedType) {
+      types = ((ParameterizedType) asClassOrInterface).getActualTypeArguments();
     }
 
-    private static int getArgPos(Type asClassOrInterface, String genericArgumentName) {
-        int argPos = 0;
-
-        Type[] types = null;
-        if (asClassOrInterface instanceof Class) {
-            types = ((Class)asClassOrInterface).getTypeParameters();
-        } else if (asClassOrInterface instanceof ParameterizedType) {
-            types = ((ParameterizedType)asClassOrInterface).getActualTypeArguments();
+    int argPosAux = 0;
+    if (types != null)
+      for (int pos = 0; pos < types.length; pos++) {
+        if (types[pos] instanceof TypeVariable) {
+          TypeVariable t = (TypeVariable) types[pos];
+          if (t.getName().equals(genericArgumentName)) {
+            argPos = argPosAux;
+            break;
+          }
+          argPosAux++;
         }
+      }
+    return argPos;
+  }
 
-        int argPosAux = 0;
-        if (types != null) for (int pos = 0; pos < types.length; pos++) {
-            if (types[pos] instanceof TypeVariable) {
-                TypeVariable t = (TypeVariable) types[pos];
-                if (t.getName().equals(genericArgumentName)) {
-                    argPos = argPosAux;
-                    break;
-                }
-                argPosAux++;
-            }
+  public static <T> T fillQueryResult(List<FieldInterfaced> fields, Object[] o, T t)
+      throws IllegalAccessException, InstantiationException, NoSuchMethodException,
+          InvocationTargetException {
+    int pos = 0;
+    for (FieldInterfaced f : fields) {
+      if (pos < o.length) {
+        if (o[pos] != null) {
+          if (f instanceof FieldInterfacedFromField) f.getField().set(t, o[pos]);
+          else set(t, f, o[pos]);
         }
-        return argPos;
+      } else break;
+      pos++;
     }
+    return t;
+  }
 
-    public static <T> T fillQueryResult(List<FieldInterfaced> fields, Object[] o, T t) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
-        int pos = 0;
-        for (FieldInterfaced f : fields) {
-            if (pos < o.length) {
-                if (o[pos] != null) {
-                    if (f instanceof FieldInterfacedFromField) f.getField().set(t, o[pos]);
-                    else set(t, f, o[pos]);
-                }
-            } else break;
-            pos++;
+  private static void set(Object o, FieldInterfaced f, Object v)
+      throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    Method m = null;
+    try {
+      m = o.getClass().getMethod(getSetter(f), v.getClass());
+    } catch (Exception e) {
+    }
+    if (m == null) m = getMethod(o.getClass(), getSetter(f));
+    if (m != null) {
+      try {
+        m.invoke(o, v);
+      } catch (Exception e) {
+        log.error("Exception when setting value " + v + " for field " + f.getName());
+        throw e;
+      }
+    }
+  }
+
+  public static List<FieldInterfaced> getKpiFields(Class modelType) {
+    List<FieldInterfaced> allFields = getAllFields(modelType);
+
+    allFields =
+        allFields.stream()
+            .filter((f) -> f.isAnnotationPresent(KPI.class))
+            .collect(Collectors.toList());
+
+    return allFields;
+  }
+
+  public static List<FieldInterfaced> getAllTransferrableFields(Class modelType) {
+    List<FieldInterfaced> allFields = getAllFields(modelType);
+
+    allFields = filterAccesible(allFields);
+
+    allFields = filterInjected(allFields);
+
+    return allFields;
+  }
+
+  public static List<FieldInterfaced> getAllEditableFields(Class modelType) {
+    return getAllEditableFilteredFields(modelType, null, null);
+  }
+
+  public static List<FieldInterfaced> getAllEditableFilteredFields(
+      Class modelType, String fieldsFilter, List<FieldInterfaced> editableFields) {
+    List<FieldInterfaced> l =
+        editableFields != null ? editableFields : getAllEditableFields(modelType, null, true);
+    if (!Strings.isNullOrEmpty(fieldsFilter)) {
+      List<FieldInterfaced> borrar = new ArrayList<>();
+      List<String> ts = Arrays.asList(fieldsFilter.replaceAll(" ", "").split(","));
+      for (FieldInterfaced f : l) if (!ts.contains(f.getName())) borrar.add(f);
+      l.removeAll(borrar);
+    }
+    return l;
+  }
+
+  public static List<FieldInterfaced> getAllEditableFields(
+      Class modelType, Class superType, boolean includeReverseMappers) {
+    return getAllEditableFields(modelType, superType, includeReverseMappers, null);
+  }
+
+  public static List<FieldInterfaced> getAllEditableFields(
+      Class modelType, Class superType, boolean includeReverseMappers, FieldInterfaced field) {
+    List<FieldInterfaced> allFields = getAllFields(modelType);
+
+    if (field != null && field.isAnnotationPresent(FieldsFilter.class)) {
+
+      List<String> fns = Arrays.asList(field.getAnnotation(FieldsFilter.class).value().split(","));
+
+      List<FieldInterfaced> borrar = new ArrayList<>();
+      for (FieldInterfaced f : allFields) {
+        if (!fns.contains(f.getName())) {
+          borrar.add(f);
         }
-        return t;
+      }
+      allFields.removeAll(borrar);
     }
 
-    private static void set(Object o, FieldInterfaced f, Object v) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        Method m = null;
-        try {
-            m = o.getClass().getMethod(getSetter(f), v.getClass());
-        } catch (Exception e) {
-        }
-        if (m == null) m = getMethod(o.getClass(), getSetter(f));
-        if (m != null) {
-            try {
-                m.invoke(o, v);
-            } catch (Exception e) {
-                log.error("Exception when setting value " + v + " for field " + f.getName());
-                throw e;
-            }
-        }
-    }
+    allFields = filterAccesible(allFields);
 
+    allFields = filterMenuFields(allFields);
 
-    public static List<FieldInterfaced> getKpiFields(Class modelType) {
-        List<FieldInterfaced> allFields = getAllFields(modelType);
+    allFields = filterAuthorized(allFields);
 
-        allFields = allFields.stream().filter((f) ->
-                f.isAnnotationPresent(KPI.class)
-        ).collect(Collectors.toList());
+    allFields = filterInjected(allFields);
 
-        return allFields;
-    }
+    // todo: ver como resolvemos esto
+    boolean isEditingNewRecord = false;
 
-    public static List<FieldInterfaced> getAllTransferrableFields(Class modelType) {
-        List<FieldInterfaced> allFields = getAllFields(modelType);
-
-        allFields = filterAccesible(allFields);
-
-        allFields = filterInjected(allFields);
-
-        return allFields;
-    }
-
-    public static List<FieldInterfaced> getAllEditableFields(Class modelType) {
-        return getAllEditableFilteredFields(modelType, null, null);
-    }
-
-    public static List<FieldInterfaced> getAllEditableFilteredFields(Class modelType, String fieldsFilter, List<FieldInterfaced> editableFields) {
-        List<FieldInterfaced> l = editableFields != null?editableFields:getAllEditableFields(modelType, null, true);
-        if (!Strings.isNullOrEmpty(fieldsFilter)) {
-            List<FieldInterfaced> borrar = new ArrayList<>();
-            List<String> ts = Arrays.asList(fieldsFilter.replaceAll(" ", "").split(","));
-            for (FieldInterfaced f : l) if (!ts.contains(f.getName())) borrar.add(f);
-            l.removeAll(borrar);
-        }
-        return l;
-    }
-
-    public static List<FieldInterfaced> getAllEditableFields(Class modelType, Class superType, boolean includeReverseMappers) {
-        return getAllEditableFields(modelType, superType, includeReverseMappers, null);
-    }
-
-    public static List<FieldInterfaced> getAllEditableFields(Class modelType, Class superType, boolean includeReverseMappers, FieldInterfaced field) {
-        List<FieldInterfaced> allFields = getAllFields(modelType);
-
-
-        if (field != null && field.isAnnotationPresent(FieldsFilter.class)) {
-
-            List<String> fns = Arrays.asList(field.getAnnotation(FieldsFilter.class).value().split(","));
-
-            List<FieldInterfaced> borrar = new ArrayList<>();
-            for (FieldInterfaced f : allFields) {
-                if (!fns.contains(f.getName())) {
-                    borrar.add(f);
-                }
-            }
-            allFields.removeAll(borrar);
-        }
-
-        allFields = filterAccesible(allFields);
-
-        allFields = filterMenuFields(allFields);
-
-        allFields = filterAuthorized(allFields);
-
-        allFields = filterInjected(allFields);
-
-
-        //todo: ver como resolvemos esto
-        boolean isEditingNewRecord = false;
-
-
-        allFields = allFields.stream().filter((f) ->
-                !(f.isAnnotationPresent(Version.class)
+    allFields =
+        allFields.stream()
+            .filter(
+                (f) ->
+                    !(f.isAnnotationPresent(Version.class)
                         || f.isAnnotationPresent(Ignored.class)
                         || f.isAnnotationPresent(KPI.class)
                         || f.isAnnotationPresent(NotInEditor.class)
-                        || (f.isAnnotationPresent(Id.class) && f.isAnnotationPresent(GeneratedValue.class))
+                        || (f.isAnnotationPresent(Id.class)
+                            && f.isAnnotationPresent(GeneratedValue.class))
                         || (f.isAnnotationPresent(NotWhenCreating.class) && isEditingNewRecord)
-                        || (f.isAnnotationPresent(NotWhenEditing.class) && !isEditingNewRecord))
-        ).collect(Collectors.toList());
+                        || (f.isAnnotationPresent(NotWhenEditing.class) && !isEditingNewRecord)))
+            .collect(Collectors.toList());
 
+    if (superType != null && !includeReverseMappers) {
 
-        if (superType != null && !includeReverseMappers) {
+      List<FieldInterfaced> manytoones =
+          allFields.stream()
+              .filter(f -> f.isAnnotationPresent(ManyToOne.class))
+              .collect(Collectors.toList());
 
-            List<FieldInterfaced> manytoones = allFields.stream().filter(f -> f.isAnnotationPresent(ManyToOne.class)).collect(Collectors.toList());
+      for (FieldInterfaced manytoonefield : manytoones)
+        if (superType.equals(manytoonefield.getType())) {
 
-            for (FieldInterfaced manytoonefield : manytoones) if (superType.equals(manytoonefield.getType())) {
+          for (FieldInterfaced parentField : getAllFields(manytoonefield.getType())) {
+            // quitamos el campo mappedBy de las columnas, ya que se supone que siempre seremos
+            // nosotros
+            OneToMany aa;
+            if ((aa = parentField.getAnnotation(OneToMany.class)) != null) {
 
-                for (FieldInterfaced parentField : getAllFields(manytoonefield.getType())) {
-                    // quitamos el campo mappedBy de las columnas, ya que se supone que siempre seremos nosotros
-                    OneToMany aa;
-                    if ((aa = parentField.getAnnotation(OneToMany.class)) != null) {
+              String mb = parentField.getAnnotation(OneToMany.class).mappedBy();
 
-                        String mb = parentField.getAnnotation(OneToMany.class).mappedBy();
-
-                        if (!Strings.isNullOrEmpty(mb)) {
-                            FieldInterfaced mbf = null;
-                            for (FieldInterfaced f : allFields) {
-                                if (f.getName().equals(mb)) {
-                                    mbf = f;
-                                    break;
-                                }
-                            }
-                            if (mbf != null) {
-                                allFields.remove(mbf);
-                                break;
-                            }
-                        }
-
-                    }
+              if (!Strings.isNullOrEmpty(mb)) {
+                FieldInterfaced mbf = null;
+                for (FieldInterfaced f : allFields) {
+                  if (f.getName().equals(mb)) {
+                    mbf = f;
+                    break;
+                  }
                 }
-
+                if (mbf != null) {
+                  allFields.remove(mbf);
+                  break;
+                }
+              }
             }
-
-        }
-
-
-        for (FieldInterfaced f : new ArrayList<>(allFields)) if (f.isAnnotationPresent(Position.class)) {
-            allFields.remove(f);
-            allFields.add(f.getAnnotation(Position.class).value(), f);
-        }
-
-
-        return allFields;
-    }
-
-    private static List<FieldInterfaced> filterMenuFields(List<FieldInterfaced> allFields) {
-        List<FieldInterfaced> r = new ArrayList<>();
-        for (FieldInterfaced f : allFields) {
-            if (!f.isAnnotationPresent(MenuOption.class)
-            && !f.isAnnotationPresent(Submenu.class)) r.add(f);
-        }
-        return r;
-    }
-
-    private static List<FieldInterfaced> filterInjected(List<FieldInterfaced> allFields) {
-        List<FieldInterfaced> r = new ArrayList<>();
-        for (FieldInterfaced f : allFields) {
-            if (!f.isAnnotationPresent(Autowired.class) && !Modifier.isFinal(f.getModifiers())) r.add(f);
-        }
-        return r;
-    }
-
-    private static List<FieldInterfaced> getAllInjectedFields(Class<?> type) {
-        List<FieldInterfaced> r = new ArrayList<>();
-        var allFields = getAllFields(type);
-        for (FieldInterfaced f : allFields) {
-            if (f.isAnnotationPresent(Autowired.class) || Modifier.isFinal(f.getModifiers())) r.add(f);
-        }
-        return r;
-    }
-
-    private static List<FieldInterfaced> filterAccesible(List<FieldInterfaced> allFields) {
-        List<FieldInterfaced> r = new ArrayList<>();
-        for (FieldInterfaced f : allFields) {
-            if (hasGetter(f)) r.add(f);
-        }
-        return r;
-    }
-
-    private static List<FieldInterfaced> filterAuthorized(List<FieldInterfaced> allFields) {
-        List<FieldInterfaced> r = new ArrayList<>();
-        for (FieldInterfaced f : allFields) {
-            if (check(f)) r.add(f);
-        }
-        return r;
-    }
-
-    private static boolean check(FieldInterfaced f) {
-        boolean r = false;
-        boolean annotated = false;
-        if (f.isAnnotationPresent(ReadOnly.class)) {
-            annotated = true;
-            ReadOnly a = f.getAnnotation(ReadOnly.class);
-            r |= check(a);
-        }
-        if (f.isAnnotationPresent(ReadWrite.class)) {
-            annotated = true;
-            ReadWrite a = f.getAnnotation(ReadWrite.class);
-            r |= check(a);
-        }
-        if (f.isAnnotationPresent(Forbidden.class)) {
-            annotated = true;
-            Forbidden a = f.getAnnotation(Forbidden.class);
-            r &= !check(a);
-        }
-        return !annotated || r;
-    }
-
-    private static boolean check(Annotation a) {
-        return true;
-    }
-
-    private static boolean check(Method m) {
-        boolean r = false;
-        boolean annotated = false;
-        if (m.isAnnotationPresent(ReadOnly.class)) {
-            annotated = true;
-            ReadOnly a = m.getAnnotation(ReadOnly.class);
-            r |= check(a);
-        }
-        if (m.isAnnotationPresent(ReadWrite.class)) {
-            annotated = true;
-            ReadWrite a = m.getAnnotation(ReadWrite.class);
-            r |= check(a);
-        }
-        if (m.isAnnotationPresent(Forbidden.class)) {
-            annotated = true;
-            Forbidden a = m.getAnnotation(Forbidden.class);
-            r &= !check(a);
-        }
-        return !annotated || r;
-    }
-
-
-
-
-    private static FieldInterfaced getInterfaced(Parameter p) {
-        return new FieldInterfaced() {
-            @Override
-            public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-                return p.isAnnotationPresent(annotationClass);
-            }
-
-            @Override
-            public Class<?> getType() {
-                return p.getType();
-            }
-
-            @Override
-            public AnnotatedType getAnnotatedType() {
-                return p.getAnnotatedType();
-            }
-
-            @Override
-            public Class<?> getGenericClass() {
-                if (p.getParameterizedType() instanceof ParameterizedType) {
-                    ParameterizedType genericType = (ParameterizedType) p.getParameterizedType();
-                    Class<?> genericClass = (Class<?>) genericType.getActualTypeArguments()[0];
-                    return genericClass;
-                } else return null;
-            }
-
-            @Override
-            public Class<?> getDeclaringClass() {
-                return null;
-            }
-
-            @Override
-            public Type getGenericType() {
-                return p.getParameterizedType();
-            }
-
-            @Override
-            public String getName() {
-                return p.getName();
-            }
-
-            @Override
-            public String getId() {
-                return p.getName();
-            }
-
-            @Override
-            public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
-                return p.getAnnotation(annotationClass);
-            }
-
-
-            @Override
-            public Object getValue(Object o) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-                return null;
-            }
-
-            @Override
-            public Field getField() {
-                return null;
-            }
-
-            @Override
-            public <T extends Annotation> T[] getDeclaredAnnotationsByType(Class<T> annotationClass) {
-                return getDeclaredAnnotationsByType(annotationClass);
-            }
-
-            @Override
-            public void setValue(Object o, Object v) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-
-            }
-
-            @Override
-            public int getModifiers() {
-                return p.getModifiers();
-            }
-
-            @Override
-            public Annotation[] getDeclaredAnnotations() {
-                return p.getDeclaredAnnotations();
-            }
-        };
-    }
-
-    public static String getCaption(Object o) {
-        if (o.getClass().isAnnotationPresent(Caption.class)) {
-            return Translator.translate(o.getClass().getAnnotation(Caption.class).value());
-        }
-        if (o instanceof Listing) {
-            return ((Listing) o).getCaption();
-        }
-        String caption = "";
-        try {
-            if (!o.getClass().getMethod("toString").getDeclaringClass().equals(Object.class)) {
-                caption = o.toString();
-            }
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        }
-        if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(o.getClass().getSimpleName());
-        return Translator.translate(caption);
-    }
-
-    public static String getCaption(FieldInterfaced f) {
-        if (f.isAnnotationPresent(Caption.class)) {
-            return Translator.translate(f.getAnnotation(Caption.class).value());
-        } else {
-            String caption = "";
-            if (f.isAnnotationPresent(Submenu.class)) caption = f.getAnnotation(Submenu.class).value();
-            if (f.isAnnotationPresent(Action.class)) f.getAnnotation(Action.class).value();
-            if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(f.getName());
-            return Translator.translate(caption);
+          }
         }
     }
 
-    public static String getCaption(Method f) {
-        if (f.isAnnotationPresent(Caption.class)) {
-            return Translator.translate(f.getAnnotation(Caption.class).value());
-        } else {
-            String caption = "";
-            if (f.isAnnotationPresent(Submenu.class)) caption = f.getAnnotation(Submenu.class).value();
-            if (f.isAnnotationPresent(Action.class)) caption = f.getAnnotation(Action.class).value();
-            if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(f.getName());
-            return Translator.translate(caption);
-        }
+    for (FieldInterfaced f : new ArrayList<>(allFields))
+      if (f.isAnnotationPresent(Position.class)) {
+        allFields.remove(f);
+        allFields.add(f.getAnnotation(Position.class).value(), f);
+      }
+
+    return allFields;
+  }
+
+  private static List<FieldInterfaced> filterMenuFields(List<FieldInterfaced> allFields) {
+    List<FieldInterfaced> r = new ArrayList<>();
+    for (FieldInterfaced f : allFields) {
+      if (!f.isAnnotationPresent(MenuOption.class) && !f.isAnnotationPresent(Submenu.class))
+        r.add(f);
+    }
+    return r;
+  }
+
+  private static List<FieldInterfaced> filterInjected(List<FieldInterfaced> allFields) {
+    List<FieldInterfaced> r = new ArrayList<>();
+    for (FieldInterfaced f : allFields) {
+      if (!f.isAnnotationPresent(Autowired.class) && !Modifier.isFinal(f.getModifiers())) r.add(f);
+    }
+    return r;
+  }
+
+  private static List<FieldInterfaced> getAllInjectedFields(Class<?> type) {
+    List<FieldInterfaced> r = new ArrayList<>();
+    var allFields = getAllFields(type);
+    for (FieldInterfaced f : allFields) {
+      if (f.isAnnotationPresent(Autowired.class) || Modifier.isFinal(f.getModifiers())) r.add(f);
+    }
+    return r;
+  }
+
+  private static List<FieldInterfaced> filterAccesible(List<FieldInterfaced> allFields) {
+    List<FieldInterfaced> r = new ArrayList<>();
+    for (FieldInterfaced f : allFields) {
+      if (hasGetter(f)) r.add(f);
+    }
+    return r;
+  }
+
+  private static List<FieldInterfaced> filterAuthorized(List<FieldInterfaced> allFields) {
+    List<FieldInterfaced> r = new ArrayList<>();
+    for (FieldInterfaced f : allFields) {
+      if (check(f)) r.add(f);
+    }
+    return r;
+  }
+
+  private static boolean check(FieldInterfaced f) {
+    boolean r = false;
+    boolean annotated = false;
+    if (f.isAnnotationPresent(ReadOnly.class)) {
+      annotated = true;
+      ReadOnly a = f.getAnnotation(ReadOnly.class);
+      r |= check(a);
+    }
+    if (f.isAnnotationPresent(ReadWrite.class)) {
+      annotated = true;
+      ReadWrite a = f.getAnnotation(ReadWrite.class);
+      r |= check(a);
+    }
+    if (f.isAnnotationPresent(Forbidden.class)) {
+      annotated = true;
+      Forbidden a = f.getAnnotation(Forbidden.class);
+      r &= !check(a);
+    }
+    return !annotated || r;
+  }
+
+  private static boolean check(Annotation a) {
+    return true;
+  }
+
+  private static boolean check(Method m) {
+    boolean r = false;
+    boolean annotated = false;
+    if (m.isAnnotationPresent(ReadOnly.class)) {
+      annotated = true;
+      ReadOnly a = m.getAnnotation(ReadOnly.class);
+      r |= check(a);
+    }
+    if (m.isAnnotationPresent(ReadWrite.class)) {
+      annotated = true;
+      ReadWrite a = m.getAnnotation(ReadWrite.class);
+      r |= check(a);
+    }
+    if (m.isAnnotationPresent(Forbidden.class)) {
+      annotated = true;
+      Forbidden a = m.getAnnotation(Forbidden.class);
+      r &= !check(a);
+    }
+    return !annotated || r;
+  }
+
+  private static FieldInterfaced getInterfaced(Parameter p) {
+    return new FieldInterfaced() {
+      @Override
+      public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
+        return p.isAnnotationPresent(annotationClass);
+      }
+
+      @Override
+      public Class<?> getType() {
+        return p.getType();
+      }
+
+      @Override
+      public AnnotatedType getAnnotatedType() {
+        return p.getAnnotatedType();
+      }
+
+      @Override
+      public Class<?> getGenericClass() {
+        if (p.getParameterizedType() instanceof ParameterizedType) {
+          ParameterizedType genericType = (ParameterizedType) p.getParameterizedType();
+          Class<?> genericClass = (Class<?>) genericType.getActualTypeArguments()[0];
+          return genericClass;
+        } else return null;
+      }
+
+      @Override
+      public Class<?> getDeclaringClass() {
+        return null;
+      }
+
+      @Override
+      public Type getGenericType() {
+        return p.getParameterizedType();
+      }
+
+      @Override
+      public String getName() {
+        return p.getName();
+      }
+
+      @Override
+      public String getId() {
+        return p.getName();
+      }
+
+      @Override
+      public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
+        return p.getAnnotation(annotationClass);
+      }
+
+      @Override
+      public Object getValue(Object o)
+          throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        return null;
+      }
+
+      @Override
+      public Field getField() {
+        return null;
+      }
+
+      @Override
+      public <T extends Annotation> T[] getDeclaredAnnotationsByType(Class<T> annotationClass) {
+        return getDeclaredAnnotationsByType(annotationClass);
+      }
+
+      @Override
+      public void setValue(Object o, Object v)
+          throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {}
+
+      @Override
+      public int getModifiers() {
+        return p.getModifiers();
+      }
+
+      @Override
+      public Annotation[] getDeclaredAnnotations() {
+        return p.getDeclaredAnnotations();
+      }
+    };
+  }
+
+  public static String getCaption(Object o) {
+    if (o.getClass().isAnnotationPresent(Caption.class)) {
+      return Translator.translate(o.getClass().getAnnotation(Caption.class).value());
+    }
+    if (o instanceof Listing) {
+      return ((Listing) o).getCaption();
+    }
+    String caption = "";
+    try {
+      if (!o.getClass().getMethod("toString").getDeclaringClass().equals(Object.class)) {
+        caption = o.toString();
+      }
+    } catch (NoSuchMethodException e) {
+      e.printStackTrace();
+    }
+    if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(o.getClass().getSimpleName());
+    return Translator.translate(caption);
+  }
+
+  public static String getCaption(FieldInterfaced f) {
+    if (f.isAnnotationPresent(Caption.class)) {
+      return Translator.translate(f.getAnnotation(Caption.class).value());
+    } else {
+      String caption = "";
+      if (f.isAnnotationPresent(Submenu.class)) caption = f.getAnnotation(Submenu.class).value();
+      if (f.isAnnotationPresent(Action.class)) f.getAnnotation(Action.class).value();
+      if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(f.getName());
+      return Translator.translate(caption);
+    }
+  }
+
+  public static String getCaption(Method f) {
+    if (f.isAnnotationPresent(Caption.class)) {
+      return Translator.translate(f.getAnnotation(Caption.class).value());
+    } else {
+      String caption = "";
+      if (f.isAnnotationPresent(Submenu.class)) caption = f.getAnnotation(Submenu.class).value();
+      if (f.isAnnotationPresent(Action.class)) caption = f.getAnnotation(Action.class).value();
+      if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(f.getName());
+      return Translator.translate(caption);
+    }
+  }
+
+  public static Collection addToCollection(FieldInterfaced field, Object bean)
+      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException,
+          InstantiationException {
+
+    Method m = getMethod(bean.getClass(), "create" + getFirstUpper(field.getName()) + "Instance");
+
+    Object i = null;
+
+    if (m != null) {
+      i = m.invoke(bean);
+    } else {
+      i = createChild(bean, field);
     }
 
+    return addToCollection(field, bean, i);
+  }
 
-    public static Collection addToCollection(FieldInterfaced field, Object bean) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+  public static Collection addToCollection(FieldInterfaced field, Object bean, Object i)
+      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException,
+          InstantiationException {
+    Object v = getValue(field, bean);
+    if (v != null) v = extend((Collection) v, i);
+    else if (ImmutableList.class.isAssignableFrom(field.getType())) v = ImmutableList.of(i);
+    else if (ImmutableSet.class.isAssignableFrom(field.getType())) v = ImmutableSet.of(i);
+    else if (Set.class.isAssignableFrom(field.getType())) v = Set.of(i);
+    else v = List.of(i);
 
-        Method m = getMethod(bean.getClass(), "create" + getFirstUpper(field.getName()) + "Instance");
+    setValue(field, bean, v);
 
-        Object i = null;
+    return (Collection) v;
+  }
 
-        if (m != null) {
-            i = m.invoke(bean);
-        } else {
-            i = createChild(bean, field);
-        }
+  private static Object createChild(Object parent, FieldInterfaced collectionField)
+      throws IllegalAccessException, InstantiationException, NoSuchMethodException,
+          InvocationTargetException {
+    Class c = collectionField.getGenericClass();
+    return newInstance(c, parent);
+  }
 
-        return addToCollection(field, bean, i);
-    }
+  public static void addToMap(FieldInterfaced field, Object bean, Object k, Object v)
+      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    Map m = (Map) getValue(field, bean);
 
-    public static Collection addToCollection(FieldInterfaced field, Object bean, Object i) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        Object v = getValue(field, bean);
-        if (v != null) v = extend((Collection) v, i);
-        else if (ImmutableList.class.isAssignableFrom(field.getType())) v = ImmutableList.of(i);
-        else if (ImmutableSet.class.isAssignableFrom(field.getType())) v = ImmutableSet.of(i);
-        else if (Set.class.isAssignableFrom(field.getType())) v = Set.of(i);
-        else v = List.of(i);
+    if (m == null) {
+      if (ImmutableMap.class.isAssignableFrom(field.getType())) v = ImmutableMap.of(k, v);
+      else m = Map.of(k, v);
+      setValue(field, bean, m);
+    } else setValue(field, bean, extend(m, k, v));
+  }
 
-        setValue(field, bean, v);
+  public static void removeFromMap(FieldInterfaced field, Object bean, Set l)
+      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
-        return (Collection) v;
-    }
+    final Object v = getValue(field, bean);
 
-    private static Object createChild(Object parent, FieldInterfaced collectionField) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
-        Class c = collectionField.getGenericClass();
-        return newInstance(c, parent);
-    }
+    if (v != null) l.forEach(e -> ((Map) v).remove(((MapEntry) e).getKey()));
+  }
 
-    public static void addToMap(FieldInterfaced field, Object bean, Object k, Object v) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        Map m = (Map) getValue(field, bean);
-
-        if (m == null) {
-            if (ImmutableMap.class.isAssignableFrom(field.getType())) v = ImmutableMap.of(k, v);
-            else m = Map.of(k, v);
-            setValue(field, bean, m);
-        } else setValue(field, bean, extend(m, k, v));
-
-    }
-
-    public static void removeFromMap(FieldInterfaced field, Object bean, Set l) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-
-        final Object v = getValue(field, bean);
-
-        if (v != null) l.forEach(e -> ((Map)v).remove(((MapEntry)e).getKey()));
-
-    }
-
-    public static Class<?> getGenericClass(Class type) {
-        Class<?> gc = null;
-        if (type.getGenericInterfaces() != null) for (Type gi : type.getGenericInterfaces()) {
-            if (gi instanceof ParameterizedType) {
-                ParameterizedType pt = (ParameterizedType) gi;
-                gc = (Class<?>) pt.getActualTypeArguments()[0];
-            } else {
-                gc = (Class<?>) gi;
-            }
-            break;
-        }
-        return gc;
-    }
-
-
-    public static Class<?> getGenericClass(Type type) {
-        Class<?> gc = null;
-        if (type instanceof ParameterizedType) {
-            ParameterizedType pt = (ParameterizedType) type;
-            gc = (Class<?>) pt.getActualTypeArguments()[0];
-        } else {
-            gc = (Class<?>) type;
-        }
-        return gc;
-    }
-
-    public static Set<Class> getSubclasses(Class c) {
-        String pkg = c.getPackage().getName();
-        String[] ts = pkg.split("\\.");
-        if (ts.length > 3) {
-            pkg = ts[0] + "." + ts[1] + "." + ts[2];
-        }
-        Reflections reflections = new Reflections(pkg);
-
-        Set<Class> subs = reflections.getSubTypesOf(c);
-
-        Set<Class> subsFiltered = new TreeSet<>((a,b) -> a.getSimpleName().compareTo(b.getSimpleName()));
-        subsFiltered.addAll(subs.stream().filter(s -> !Modifier.isAbstract(s.getModifiers())).collect(Collectors.toSet()));
-
-        return subsFiltered;
-    }
-
-    public static Class<?> getGenericClass(Method m) {
-        Type gi = m.getGenericReturnType();
-        Class<?> gc = null;
+  public static Class<?> getGenericClass(Class type) {
+    Class<?> gc = null;
+    if (type.getGenericInterfaces() != null)
+      for (Type gi : type.getGenericInterfaces()) {
         if (gi instanceof ParameterizedType) {
-            ParameterizedType pt = (ParameterizedType) gi;
-            gc = (Class<?>) pt.getActualTypeArguments()[0];
+          ParameterizedType pt = (ParameterizedType) gi;
+          gc = (Class<?>) pt.getActualTypeArguments()[0];
         } else {
-            gc = (Class<?>) gi;
+          gc = (Class<?>) gi;
         }
-        return gc;
+        break;
+      }
+    return gc;
+  }
+
+  public static Class<?> getGenericClass(Type type) {
+    Class<?> gc = null;
+    if (type instanceof ParameterizedType) {
+      ParameterizedType pt = (ParameterizedType) type;
+      gc = (Class<?>) pt.getActualTypeArguments()[0];
+    } else {
+      gc = (Class<?>) type;
     }
+    return gc;
+  }
 
-    public static boolean isOwner(FieldInterfaced field) {
-        OneToOne oo = field.getAnnotation(OneToOne.class);
-        OneToMany aa = field.getAnnotation(OneToMany.class);
-        ManyToMany mm = field.getAnnotation(ManyToMany.class);
-
-        boolean owner = false;
-
-        if (oo != null) owner = checkCascade(oo.cascade());
-        else if (aa != null) owner = checkCascade(aa.cascade());
-        else if (mm != null) owner = checkCascade(mm.cascade());
-
-        return owner;
+  public static Set<Class> getSubclasses(Class c) {
+    String pkg = c.getPackage().getName();
+    String[] ts = pkg.split("\\.");
+    if (ts.length > 3) {
+      pkg = ts[0] + "." + ts[1] + "." + ts[2];
     }
+    Reflections reflections = new Reflections(pkg);
 
+    Set<Class> subs = reflections.getSubTypesOf(c);
 
-    private static boolean checkCascade(CascadeType[] cascade) {
-        boolean owned = false;
-        for (CascadeType ct : cascade) {
-            if (CascadeType.ALL.equals(ct) || CascadeType.PERSIST.equals(ct)) {
-                owned = true;
-                break;
-            }
+    Set<Class> subsFiltered =
+        new TreeSet<>((a, b) -> a.getSimpleName().compareTo(b.getSimpleName()));
+    subsFiltered.addAll(
+        subs.stream()
+            .filter(s -> !Modifier.isAbstract(s.getModifiers()))
+            .collect(Collectors.toSet()));
+
+    return subsFiltered;
+  }
+
+  public static Class<?> getGenericClass(Method m) {
+    Type gi = m.getGenericReturnType();
+    Class<?> gc = null;
+    if (gi instanceof ParameterizedType) {
+      ParameterizedType pt = (ParameterizedType) gi;
+      gc = (Class<?>) pt.getActualTypeArguments()[0];
+    } else {
+      gc = (Class<?>) gi;
+    }
+    return gc;
+  }
+
+  public static boolean isOwner(FieldInterfaced field) {
+    OneToOne oo = field.getAnnotation(OneToOne.class);
+    OneToMany aa = field.getAnnotation(OneToMany.class);
+    ManyToMany mm = field.getAnnotation(ManyToMany.class);
+
+    boolean owner = false;
+
+    if (oo != null) owner = checkCascade(oo.cascade());
+    else if (aa != null) owner = checkCascade(aa.cascade());
+    else if (mm != null) owner = checkCascade(mm.cascade());
+
+    return owner;
+  }
+
+  private static boolean checkCascade(CascadeType[] cascade) {
+    boolean owned = false;
+    for (CascadeType ct : cascade) {
+      if (CascadeType.ALL.equals(ct) || CascadeType.PERSIST.equals(ct)) {
+        owned = true;
+        break;
+      }
+    }
+    return owned;
+  }
+
+  public static boolean puedeBorrar(FieldInterfaced field) {
+    if (field.isAnnotationPresent(ModifyValuesOnly.class)) return false;
+    boolean puede = true;
+    CascadeType[] cascades = null;
+    if (field.isAnnotationPresent(OneToMany.class))
+      cascades = field.getAnnotation(OneToMany.class).cascade();
+    else if (field.isAnnotationPresent(ManyToMany.class))
+      cascades = field.getAnnotation(ManyToMany.class).cascade();
+    if (cascades != null) {
+      puede = false;
+      for (CascadeType ct : cascades) {
+        if (CascadeType.ALL.equals(ct) || CascadeType.REMOVE.equals(ct)) {
+          puede = true;
+          break;
         }
-        return owned;
+      }
     }
+    return puede;
+  }
 
-    public static boolean puedeBorrar(FieldInterfaced field) {
-        if (field.isAnnotationPresent(ModifyValuesOnly.class)) return false;
-        boolean puede = true;
-        CascadeType[] cascades = null;
-        if (field.isAnnotationPresent(OneToMany.class)) cascades = field.getAnnotation(OneToMany.class).cascade();
-        else if (field.isAnnotationPresent(ManyToMany.class)) cascades = field.getAnnotation(ManyToMany.class).cascade();
-        if (cascades != null) {
-            puede = false;
-            for (CascadeType ct : cascades) {
-                if (CascadeType.ALL.equals(ct) || CascadeType.REMOVE.equals(ct)) {
-                    puede = true;
-                    break;
-                }
-            }
+  public static boolean puedeAnadir(FieldInterfaced field) {
+    if (field.isAnnotationPresent(ModifyValuesOnly.class)) return false;
+    boolean puede = true;
+    CascadeType[] cascades = null;
+    if (field.isAnnotationPresent(OneToMany.class))
+      cascades = field.getAnnotation(OneToMany.class).cascade();
+    else if (field.isAnnotationPresent(ManyToMany.class))
+      cascades = field.getAnnotation(ManyToMany.class).cascade();
+    if (cascades != null) {
+      puede = false;
+      for (CascadeType ct : cascades) {
+        if (CascadeType.ALL.equals(ct) || CascadeType.PERSIST.equals(ct)) {
+          puede = true;
+          break;
         }
-        return puede;
+      }
     }
+    return puede;
+  }
 
-    public static boolean puedeAnadir(FieldInterfaced field) {
-        if (field.isAnnotationPresent(ModifyValuesOnly.class)) return false;
-        boolean puede = true;
-        CascadeType[] cascades = null;
-        if (field.isAnnotationPresent(OneToMany.class)) cascades = field.getAnnotation(OneToMany.class).cascade();
-        else if (field.isAnnotationPresent(ManyToMany.class)) cascades = field.getAnnotation(ManyToMany.class).cascade();
-        if (cascades != null) {
-            puede = false;
-            for (CascadeType ct : cascades) {
-                if (CascadeType.ALL.equals(ct) || CascadeType.PERSIST.equals(ct)) {
-                    puede = true;
-                    break;
-                }
-            }
-        }
-        return puede;
-    }
+  public static void main(String[] args) throws Exception {
 
-    public static void main(String[] args) throws Exception {
+    /*
+    ClassPool cpool = ClassPool.getDefault();
+    cpool.appendClassPath(new ClassClassPath(Persona.class));
+    MDD.setClassPool(cpool);
 
-        /*
-        ClassPool cpool = ClassPool.getDefault();
-        cpool.appendClassPath(new ClassClassPath(Persona.class));
-        MDD.setClassPool(cpool);
+    Class c = createClass("test.TestXX", getAllFields(Persona.class), false);
+    try {
 
-        Class c = createClass("test.TestXX", getAllFields(Persona.class), false);
-        try {
+        Field f = c.getDeclaredField("nombre");
 
-            Field f = c.getDeclaredField("nombre");
-
-            for (Annotation a : f.getDeclaredAnnotations()) {
-                log.debug(a.toString());
-            }
-
-            log.debug("" + f.isAnnotationPresent(FullWidth.class));
-            log.debug("" + f.isAnnotationPresent(NotEmpty.class));
-
-            Object i = c.newInstance();
-            log.debug(Helper.toJson(i));
-        } catch (Exception e) {
-            e.printStackTrace();
+        for (Annotation a : f.getDeclaredAnnotations()) {
+            log.debug(a.toString());
         }
 
+        log.debug("" + f.isAnnotationPresent(FullWidth.class));
+        log.debug("" + f.isAnnotationPresent(NotEmpty.class));
 
-        c = createClass("test.TestXX", getAllFields(Persona.class), false);
-        try {
-            Object i = c.newInstance();
-            log.debug(Helper.toJson(i));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-         */
-
+        Object i = c.newInstance();
+        log.debug(Helper.toJson(i));
+    } catch (Exception e) {
+        e.printStackTrace();
     }
 
-    public static String getFirstUpper(String fieldName) {
-        return fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
-    }
 
-    public static Object clone(Object original) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
-        if (original == null) return null;
+    c = createClass("test.TestXX", getAllFields(Persona.class), false);
+    try {
+        Object i = c.newInstance();
+        log.debug(Helper.toJson(i));
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+     */
+
+  }
+
+  public static String getFirstUpper(String fieldName) {
+    return fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+  }
+
+  public static Object clone(Object original)
+      throws IllegalAccessException, InstantiationException, NoSuchMethodException,
+          InvocationTargetException {
+    if (original == null) return null;
+    else {
+
+      Method m = getMethod(original.getClass(), "cloneAsConverted");
+      if (m != null) return m.invoke(original);
+      else {
+
+        Object copy = null;
+
+        Constructor con = getConstructor(original.getClass());
+        if (con != null && con.getParameterCount() == 0) copy = con.newInstance();
         else {
+          con =
+              Arrays.stream(original.getClass().getDeclaredConstructors())
+                  .filter(x -> x.getParameterCount() == 0)
+                  .findFirst()
+                  .orElse(null);
+          if (!Modifier.isPublic(con.getModifiers())) con.setAccessible(true);
+          copy = con.newInstance();
+        }
 
-            Method m = getMethod(original.getClass(), "cloneAsConverted");
-            if (m != null) return m.invoke(original);
-            else {
+        for (FieldInterfaced f : getAllFields(original.getClass()))
+          if (!f.isAnnotationPresent(Id.class)) {
+            setValue(f, copy, getValue(f, original));
+          }
 
-                Object copy = null;
+        return copy;
+      }
+    }
+  }
 
+  public static void delete(EntityManager em, Object o)
+      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    if (o != null) {
+      // no quitamos las relaciones, por precaución. Así saltará a nivel de base de datos si
+      // queremos borrar un objeto que esté referenciado
+      for (FieldInterfaced f : getAllFields(o.getClass())) {
 
-                Constructor con = getConstructor(original.getClass());
-                if (con != null && con.getParameterCount() == 0) copy = con.newInstance();
-                else {
-                    con = Arrays.stream(original.getClass().getDeclaredConstructors()).filter(x -> x.getParameterCount() == 0).findFirst().orElse(null);
-                    if (!Modifier.isPublic(con.getModifiers())) con.setAccessible(true);
-                    copy = con.newInstance();
+        Object t = getValue(f, o);
+
+        if (t != null) {
+
+          boolean owner = false;
+
+          if (f.isAnnotationPresent(ManyToOne.class)) {
+            CascadeType[] c = f.getAnnotation(ManyToOne.class).cascade();
+            if (c != null)
+              for (CascadeType cx : c)
+                if (CascadeType.ALL.equals(cx) || CascadeType.REMOVE.equals(cx)) {
+                  owner = true;
+                  break;
                 }
+          }
 
-                for (FieldInterfaced f : getAllFields(original.getClass())) if (!f.isAnnotationPresent(Id.class)) {
-                    setValue(f, copy, getValue(f, original));
+          if (f.isAnnotationPresent(OneToMany.class)) {
+            CascadeType[] c = f.getAnnotation(OneToMany.class).cascade();
+            if (c != null)
+              for (CascadeType cx : c)
+                if (CascadeType.ALL.equals(cx) || CascadeType.REMOVE.equals(cx)) {
+                  owner = true;
+                  break;
                 }
+          }
 
-                return copy;
-            }
-
-        }
-    }
-
-    public static void delete(EntityManager em, Object o) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        if (o != null) {
-            // no quitamos las relaciones, por precaución. Así saltará a nivel de base de datos si queremos borrar un objeto que esté referenciado
-            for (FieldInterfaced f : getAllFields(o.getClass())) {
-
-                Object t = getValue(f, o);
-
-                if (t != null) {
-
-                    boolean owner = false;
-
-                    if (f.isAnnotationPresent(ManyToOne.class)) {
-                        CascadeType[] c = f.getAnnotation(ManyToOne.class).cascade();
-                        if (c != null) for (CascadeType cx : c) if (CascadeType.ALL.equals(cx) || CascadeType.REMOVE.equals(cx)) {
-                            owner = true;
-                            break;
-                        }
-                    }
-
-                    if (f.isAnnotationPresent(OneToMany.class)) {
-                        CascadeType[] c = f.getAnnotation(OneToMany.class).cascade();
-                        if (c != null) for (CascadeType cx : c) if (CascadeType.ALL.equals(cx) || CascadeType.REMOVE.equals(cx)) {
-                            owner = true;
-                            break;
-                        }
-                    }
-
-
-                    if (f.isAnnotationPresent(ManyToMany.class)) {
-                        CascadeType[] c = f.getAnnotation(ManyToMany.class).cascade();
-                        if (c != null) for (CascadeType cx : c) if (CascadeType.ALL.equals(cx) || CascadeType.REMOVE.equals(cx)) {
-                            owner = true;
-                            break;
-                        }
-                    }
-
-
-                    if (!owner && (f.isAnnotationPresent(OneToMany.class) || f.isAnnotationPresent(ManyToMany.class))) {
-
-                        FieldInterfaced mbf = getMapper(f);
-
-                        if (Collection.class.isAssignableFrom(t.getClass())) {
-                            Collection col = (Collection) t;
-                            if (col.size() >  0) {
-                                t = col.iterator().next();
-                            } else t = null;
-                        }
-
-
-                        if (mbf != null && t != null) {
-
-                            throw new Error("" + o + " is referenced from " + t);
-
-                        }
-
-                    }
-
+          if (f.isAnnotationPresent(ManyToMany.class)) {
+            CascadeType[] c = f.getAnnotation(ManyToMany.class).cascade();
+            if (c != null)
+              for (CascadeType cx : c)
+                if (CascadeType.ALL.equals(cx) || CascadeType.REMOVE.equals(cx)) {
+                  owner = true;
+                  break;
                 }
+          }
 
+          if (!owner
+              && (f.isAnnotationPresent(OneToMany.class)
+                  || f.isAnnotationPresent(ManyToMany.class))) {
+
+            FieldInterfaced mbf = getMapper(f);
+
+            if (Collection.class.isAssignableFrom(t.getClass())) {
+              Collection col = (Collection) t;
+              if (col.size() > 0) {
+                t = col.iterator().next();
+              } else t = null;
             }
-            em.remove(o);
+
+            if (mbf != null && t != null) {
+
+              throw new Error("" + o + " is referenced from " + t);
+            }
+          }
         }
+      }
+      em.remove(o);
     }
+  }
 
-    public static void copy(Object from, Object to) {
-        if (from != null && to != null) {
-            if (from.getClass().equals(to.getClass())) {
-                for (FieldInterfaced f : getAllTransferrableFields(to.getClass())) {
-                    try {
-                        setValue(f, to, getValue(f, from));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-                for (FieldInterfaced f : getAllInjectedFields(to.getClass())) {
-                    try {
-                        copy(getValue(f, from), getValue(f, to));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            } else {
-                for (FieldInterfaced f2 : getAllTransferrableFields(to.getClass())) {
-                    try {
-                        FieldInterfaced f1 = getFieldByName(from.getClass(), f2.getName());
-                        if (f1 != null && f1.getType().equals(f2.getType())) setValue(f2, to, getValue(f1, from));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-    }
-
-    public static Object newInstance(Constructor c, Object params) throws Throwable {
-        List<Object> vs = new ArrayList<>();
-        for (Parameter p : c.getParameters()) {
-            if (params != null && getFieldByName(params.getClass(), p.getName()) != null) {
-                vs.add(getValue(getFieldByName(params.getClass(), p.getName()), params));
-            } else {
-                Object v = null;
-                if (int.class.equals(p.getType())) v = 0;
-                if (long.class.equals(p.getType())) v = 0l;
-                if (float.class.equals(p.getType())) v = 0f;
-                if (double.class.equals(p.getType())) v = 0d;
-                if (boolean.class.equals(p.getType())) v = false;
-                vs.add(v);
-            }
-        }
-        Object[] args = vs.toArray();
-        return c.newInstance(args);
-    }
-
-    public static <T> T  newInstance(Class<T> c) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        Object o = null;
-        if (!notFromString.contains(c)) {
-            // intentar recuperar del contexto
-            o = beanProvider.getBean(c);
-        }
-        if (o == null) { // no viene de spring
-            if (c.getDeclaringClass() != null) { // caso inner class
-                Object p = newInstance(c.getDeclaringClass());
-                Constructor<?> cons = c.getDeclaredConstructors()[0];
-                cons.setAccessible(true);
-                o = cons.newInstance(p);
-            } else {
-                Constructor con = getConstructor(c);
-                if (con != null) {
-                    o = con.newInstance();
-                } else if (c.getMethod("builder") != null) {
-                    Object builder = c.getMethod("builder").invoke(null);
-                    o = builder.getClass().getMethod("build").invoke(builder);
-                }
-            }
-            notFromString.add(c);
-        }
-        return (T) o;
-    }
-
-    public static Object newInstance(Class c, Object parent) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        Object i = null;
-        if (parent != null) {
-            Constructor con = getConstructor(c, parent.getClass());
-            if (con != null) i = con.newInstance(parent);
-            else {
-                con = Arrays.stream(c.getDeclaredConstructors()).filter(x -> x.getParameterCount() == 0).findFirst().orElse(null);
-                if (!Modifier.isPublic(con.getModifiers())) con.setAccessible(true);
-                i = con.newInstance();
-                for (FieldInterfaced f : getAllFields(c)) if (f.getType().equals(parent.getClass()) && f.isAnnotationPresent(NotNull.class)) {
-                    setValue(f, i, parent);
-                    break;
-                }
-            }
-        } else {
-            Constructor con = getConstructor(c);
-            if (con != null) {
-                i = con.newInstance();
-            } else if (c.getMethod("builder") != null) {
-                Object builder = c.getMethod("builder").invoke(null);
-                i = builder.getClass().getMethod("build").invoke(builder);
-            }
-        }
-        return i;
-    }
-
-    public static Constructor getConstructor(Class type) {
-        Constructor con = null;
-        int minParams = Integer.MAX_VALUE;
-        for (Constructor x : type.getConstructors()) if (Modifier.isPublic(x.getModifiers())) {
-            if (x.getParameterCount() < minParams) {
-                con = x;
-                minParams = con.getParameterCount();
-            }
-        }
-        return con;
-    }
-
-    public static Constructor getConstructor(Class c, Class parameterClass) {
-        Constructor con = null;
-        while (con == null && !Object.class.equals(parameterClass)) {
-            try {
-                con = c.getConstructor(parameterClass);
-            } catch (NoSuchMethodException e) {
-            }
-            if (con == null) {
-                parameterClass = parameterClass.getSuperclass();
-            }
-        }
-        return con;
-    }
-
-    public static String toHtml(Object o) {
-        StringWriter sw;
-        PrintWriter pw = new PrintWriter(sw = new StringWriter());
-        toHtml(pw, o, new ArrayList<>());
-        return sw.toString();
-    }
-
-    public static void toHtml(PrintWriter pw, Object o, List visited) {
-        if (o == null) {
-        } else {
-            if (!visited.contains(o)) {
-                visited.add(o);
-            }
-            pw.println("<table>");
-            for (FieldInterfaced f : getAllFields(o.getClass())) {
-                try {
-                    Object i = getValue(f, o);
-
-                    pw.println("<tr><td style='text-align:right; font-style:italic;'>" + SlimHelper.capitalize(f.getName()) + ":</td><td>");
-                    if (i != null) {
-                        if (isBasico(i)) {
-                            pw.print("" + i);
-                        } else {
-                            //todo: añadir casos collection y map
-                            toHtml(pw, i, visited);
-                        }
-                    }
-                    pw.println("</td></tr>");
-
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                }
-            }
-            pw.println("</table>");
-        }
-    }
-
-
-
-
-    public static String toJson(Object o) {
-        if (o == null) return null;
-        ObjectWriter ow = mapper.writer().withDefaultPrettyPrinter();
-        try {
-            String json = ow.writeValueAsString(o);
-            return json;
-        } catch (JsonProcessingException e) {
+  public static void copy(Object from, Object to) {
+    if (from != null && to != null) {
+      if (from.getClass().equals(to.getClass())) {
+        for (FieldInterfaced f : getAllTransferrableFields(to.getClass())) {
+          try {
+            setValue(f, to, getValue(f, from));
+          } catch (Exception e) {
             e.printStackTrace();
-            return null;
+          }
         }
-    }
-
-    public static Object fromJson(String json) {
-        try {
-            return mapper.reader().readValue(json);
-        } catch (JsonProcessingException e) {
+        for (FieldInterfaced f : getAllInjectedFields(to.getClass())) {
+          try {
+            copy(getValue(f, from), getValue(f, to));
+          } catch (Exception e) {
             e.printStackTrace();
-            return null;
+          }
         }
-    }
-
-
-    public static <T> Collection<T> extend(Collection<T> list, T o) {
-        if (list == null) return null;
-        if (list instanceof ImmutableList) {
-            return extend((ImmutableList<T>) list, o);
-        } else if (list instanceof ImmutableSet) {
-            return extend((ImmutableSet<T>) list, o);
-        } else if (Set.class.isAssignableFrom(list.getClass())) {
-            return extend((Set) list, o);
-        } else {
-            return extend((List) list, o);
+      } else {
+        for (FieldInterfaced f2 : getAllTransferrableFields(to.getClass())) {
+          try {
+            FieldInterfaced f1 = getFieldByName(from.getClass(), f2.getName());
+            if (f1 != null && f1.getType().equals(f2.getType()))
+              setValue(f2, to, getValue(f1, from));
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
         }
+      }
     }
+  }
 
-    public static <T> List<T> extend(List<T> list, T o) {
-        List<T> l = new ArrayList<T>(list);
-        l.add(o);
-        return l;
+  public static Object newInstance(Constructor c, Object params) throws Throwable {
+    List<Object> vs = new ArrayList<>();
+    for (Parameter p : c.getParameters()) {
+      if (params != null && getFieldByName(params.getClass(), p.getName()) != null) {
+        vs.add(getValue(getFieldByName(params.getClass(), p.getName()), params));
+      } else {
+        Object v = null;
+        if (int.class.equals(p.getType())) v = 0;
+        if (long.class.equals(p.getType())) v = 0l;
+        if (float.class.equals(p.getType())) v = 0f;
+        if (double.class.equals(p.getType())) v = 0d;
+        if (boolean.class.equals(p.getType())) v = false;
+        vs.add(v);
+      }
     }
+    Object[] args = vs.toArray();
+    return c.newInstance(args);
+  }
 
-    public static <T> ImmutableList<T> extend(ImmutableList<T> list, T o) {
-        List<T> l = new ArrayList<>(list);
-        l.add(o);
-        return ImmutableList.copyOf(l);
+  public static <T> T newInstance(Class<T> c)
+      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException,
+          InstantiationException {
+    Object o = null;
+    if (!notFromString.contains(c)) {
+      // intentar recuperar del contexto
+      o = beanProvider.getBean(c);
     }
-
-    public static <T> Set<T> extend(Set<T> list, T o) {
-        Set<T> l = new HashSet<>(list);
-        l.add(o);
-        return l;
-    }
-
-    public static <T> ImmutableSet<T> extend(ImmutableSet<T> list, T o) {
-        Set<T> l = new HashSet<>(list);
-        l.add(o);
-        return ImmutableSet.copyOf(l);
-    }
-
-    public static <K,V> Map<K,V> extend(Map<K,V> list, K k, V v) {
-        Map<K,V> l = new HashMap<>(list);
-        l.put(k, v);
-        return l;
-    }
-
-    public static <K,V> ImmutableMap<K,V> extend(ImmutableMap<K,V> list, K k, V v) {
-        Map<K,V> l = new HashMap<>(list);
-        l.put(k, v);
-        return ImmutableMap.copyOf(l);
-    }
-
-
-
-    public static <T> Collection<T> remove(Collection<T> list, T o) {
-        if (list == null) return null;
-        if (list instanceof ImmutableList) {
-            return remove((ImmutableList<T>) list, o);
-        } else if (list instanceof ImmutableSet) {
-            return remove((ImmutableSet<T>) list, o);
-        } else if (Set.class.isAssignableFrom(list.getClass())) {
-            return remove((Set) list, o);
-        } else {
-            return remove((List) list, o);
+    if (o == null) { // no viene de spring
+      if (c.getDeclaringClass() != null) { // caso inner class
+        Object p = newInstance(c.getDeclaringClass());
+        Constructor<?> cons = c.getDeclaredConstructors()[0];
+        cons.setAccessible(true);
+        o = cons.newInstance(p);
+      } else {
+        Constructor con = getConstructor(c);
+        if (con != null) {
+          o = con.newInstance();
+        } else if (c.getMethod("builder") != null) {
+          Object builder = c.getMethod("builder").invoke(null);
+          o = builder.getClass().getMethod("build").invoke(builder);
         }
+      }
+      notFromString.add(c);
     }
+    return (T) o;
+  }
 
-    public static <T> List<T> remove(List<T> list, T o) {
-        if (list == null) return null;
-        List<T> l = new ArrayList<T>(list);
-        l.remove(o);
-        return l;
+  public static Object newInstance(Class c, Object parent)
+      throws IllegalAccessException, InstantiationException, InvocationTargetException,
+          NoSuchMethodException {
+    Object i = null;
+    if (parent != null) {
+      Constructor con = getConstructor(c, parent.getClass());
+      if (con != null) i = con.newInstance(parent);
+      else {
+        con =
+            Arrays.stream(c.getDeclaredConstructors())
+                .filter(x -> x.getParameterCount() == 0)
+                .findFirst()
+                .orElse(null);
+        if (!Modifier.isPublic(con.getModifiers())) con.setAccessible(true);
+        i = con.newInstance();
+        for (FieldInterfaced f : getAllFields(c))
+          if (f.getType().equals(parent.getClass()) && f.isAnnotationPresent(NotNull.class)) {
+            setValue(f, i, parent);
+            break;
+          }
+      }
+    } else {
+      Constructor con = getConstructor(c);
+      if (con != null) {
+        i = con.newInstance();
+      } else if (c.getMethod("builder") != null) {
+        Object builder = c.getMethod("builder").invoke(null);
+        i = builder.getClass().getMethod("build").invoke(builder);
+      }
     }
+    return i;
+  }
 
-    public static <T> Set<T> remove(Set<T> list, T o) {
-        if (list == null) return null;
-        Set<T> l = new HashSet<>(list);
-        l.remove(o);
-        return l;
-    }
-
-    public static <T> ImmutableList<T> remove(ImmutableList<T> list, T o) {
-        if (list == null) return null;
-        List<T> l = new ArrayList<>(list);
-        l.remove(o);
-        return ImmutableList.copyOf(l);
-    }
-
-    public static <T> ImmutableSet<T> remove(ImmutableSet<T> list, T o) {
-        if (list == null) return null;
-        Set<T> l = new HashSet<>(list);
-        l.remove(o);
-        return ImmutableSet.copyOf(l);
-    }
-
-    public static <K,V> ImmutableMap<K,V> remove(ImmutableMap<K,V> list, K o) {
-        if (list == null) return null;
-        Map<K,V> l = new HashMap<>(list);
-        l.remove(o);
-        return ImmutableMap.copyOf(l);
-    }
-
-
-
-
-    public static <T> Collection<T> removeAll(Collection<T> list, Collection o) {
-        if (list == null) return null;
-        if (list instanceof ImmutableList) {
-            return removeAll((ImmutableList<T>) list, o);
-        } else if (list instanceof ImmutableSet) {
-            return removeAll((ImmutableSet<T>) list, o);
-        } else if (Set.class.isAssignableFrom(list.getClass())) {
-            return removeAll((Set) list, o);
-        } else {
-            return removeAll((List) list, o);
+  public static Constructor getConstructor(Class type) {
+    Constructor con = null;
+    int minParams = Integer.MAX_VALUE;
+    for (Constructor x : type.getConstructors())
+      if (Modifier.isPublic(x.getModifiers())) {
+        if (x.getParameterCount() < minParams) {
+          con = x;
+          minParams = con.getParameterCount();
         }
-    }
+      }
+    return con;
+  }
 
-    public static <T> List<T> removeAll(List<T> list, Collection o) {
-        if (list == null) return null;
-        List<T> l = new ArrayList<T>(list);
-        l.removeAll(o);
-        return l;
+  public static Constructor getConstructor(Class c, Class parameterClass) {
+    Constructor con = null;
+    while (con == null && !Object.class.equals(parameterClass)) {
+      try {
+        con = c.getConstructor(parameterClass);
+      } catch (NoSuchMethodException e) {
+      }
+      if (con == null) {
+        parameterClass = parameterClass.getSuperclass();
+      }
     }
+    return con;
+  }
 
-    public static <T> Set<T> removeAll(Set<T> list, Collection o) {
-        if (list == null) return null;
-        Set<T> l = new HashSet<>(list);
-        l.removeAll(o);
-        return l;
-    }
+  public static String toHtml(Object o) {
+    StringWriter sw;
+    PrintWriter pw = new PrintWriter(sw = new StringWriter());
+    toHtml(pw, o, new ArrayList<>());
+    return sw.toString();
+  }
 
-    public static <T> ImmutableList<T> removeAll(ImmutableList<T> list, Collection o) {
-        if (list == null) return null;
-        List<T> l = new ArrayList<>(list);
-        l.removeAll(o);
-        return ImmutableList.copyOf(l);
-    }
+  public static void toHtml(PrintWriter pw, Object o, List visited) {
+    if (o == null) {
+    } else {
+      if (!visited.contains(o)) {
+        visited.add(o);
+      }
+      pw.println("<table>");
+      for (FieldInterfaced f : getAllFields(o.getClass())) {
+        try {
+          Object i = getValue(f, o);
 
-    public static <T> ImmutableSet<T> removeAll(ImmutableSet<T> list, Collection o) {
-        if (list == null) return null;
-        Set<T> l = new HashSet<>(list);
-        l.removeAll(o);
-        return ImmutableSet.copyOf(l);
-    }
+          pw.println(
+              "<tr><td style='text-align:right; font-style:italic;'>"
+                  + SlimHelper.capitalize(f.getName())
+                  + ":</td><td>");
+          if (i != null) {
+            if (isBasico(i)) {
+              pw.print("" + i);
+            } else {
+              // todo: añadir casos collection y map
+              toHtml(pw, i, visited);
+            }
+          }
+          pw.println("</td></tr>");
 
-    public static boolean isOverridden(Object instance, String methodName) {
-        Method m = ReflectionHelper.getMethod(instance.getClass(), methodName);
-        return m != null && !m.getDeclaringClass().equals(Object.class) && !m.getDeclaringClass().isInterface();
+        } catch (Exception e1) {
+          e1.printStackTrace();
+        }
+      }
+      pw.println("</table>");
     }
+  }
+
+  public static String toJson(Object o) {
+    if (o == null) return null;
+    ObjectWriter ow = mapper.writer().withDefaultPrettyPrinter();
+    try {
+      String json = ow.writeValueAsString(o);
+      return json;
+    } catch (JsonProcessingException e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+  public static Object fromJson(String json) {
+    try {
+      return mapper.reader().readValue(json);
+    } catch (JsonProcessingException e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+  public static <T> Collection<T> extend(Collection<T> list, T o) {
+    if (list == null) return null;
+    if (list instanceof ImmutableList) {
+      return extend((ImmutableList<T>) list, o);
+    } else if (list instanceof ImmutableSet) {
+      return extend((ImmutableSet<T>) list, o);
+    } else if (Set.class.isAssignableFrom(list.getClass())) {
+      return extend((Set) list, o);
+    } else {
+      return extend((List) list, o);
+    }
+  }
+
+  public static <T> List<T> extend(List<T> list, T o) {
+    List<T> l = new ArrayList<T>(list);
+    l.add(o);
+    return l;
+  }
+
+  public static <T> ImmutableList<T> extend(ImmutableList<T> list, T o) {
+    List<T> l = new ArrayList<>(list);
+    l.add(o);
+    return ImmutableList.copyOf(l);
+  }
+
+  public static <T> Set<T> extend(Set<T> list, T o) {
+    Set<T> l = new HashSet<>(list);
+    l.add(o);
+    return l;
+  }
+
+  public static <T> ImmutableSet<T> extend(ImmutableSet<T> list, T o) {
+    Set<T> l = new HashSet<>(list);
+    l.add(o);
+    return ImmutableSet.copyOf(l);
+  }
+
+  public static <K, V> Map<K, V> extend(Map<K, V> list, K k, V v) {
+    Map<K, V> l = new HashMap<>(list);
+    l.put(k, v);
+    return l;
+  }
+
+  public static <K, V> ImmutableMap<K, V> extend(ImmutableMap<K, V> list, K k, V v) {
+    Map<K, V> l = new HashMap<>(list);
+    l.put(k, v);
+    return ImmutableMap.copyOf(l);
+  }
+
+  public static <T> Collection<T> remove(Collection<T> list, T o) {
+    if (list == null) return null;
+    if (list instanceof ImmutableList) {
+      return remove((ImmutableList<T>) list, o);
+    } else if (list instanceof ImmutableSet) {
+      return remove((ImmutableSet<T>) list, o);
+    } else if (Set.class.isAssignableFrom(list.getClass())) {
+      return remove((Set) list, o);
+    } else {
+      return remove((List) list, o);
+    }
+  }
+
+  public static <T> List<T> remove(List<T> list, T o) {
+    if (list == null) return null;
+    List<T> l = new ArrayList<T>(list);
+    l.remove(o);
+    return l;
+  }
+
+  public static <T> Set<T> remove(Set<T> list, T o) {
+    if (list == null) return null;
+    Set<T> l = new HashSet<>(list);
+    l.remove(o);
+    return l;
+  }
+
+  public static <T> ImmutableList<T> remove(ImmutableList<T> list, T o) {
+    if (list == null) return null;
+    List<T> l = new ArrayList<>(list);
+    l.remove(o);
+    return ImmutableList.copyOf(l);
+  }
+
+  public static <T> ImmutableSet<T> remove(ImmutableSet<T> list, T o) {
+    if (list == null) return null;
+    Set<T> l = new HashSet<>(list);
+    l.remove(o);
+    return ImmutableSet.copyOf(l);
+  }
+
+  public static <K, V> ImmutableMap<K, V> remove(ImmutableMap<K, V> list, K o) {
+    if (list == null) return null;
+    Map<K, V> l = new HashMap<>(list);
+    l.remove(o);
+    return ImmutableMap.copyOf(l);
+  }
+
+  public static <T> Collection<T> removeAll(Collection<T> list, Collection o) {
+    if (list == null) return null;
+    if (list instanceof ImmutableList) {
+      return removeAll((ImmutableList<T>) list, o);
+    } else if (list instanceof ImmutableSet) {
+      return removeAll((ImmutableSet<T>) list, o);
+    } else if (Set.class.isAssignableFrom(list.getClass())) {
+      return removeAll((Set) list, o);
+    } else {
+      return removeAll((List) list, o);
+    }
+  }
+
+  public static <T> List<T> removeAll(List<T> list, Collection o) {
+    if (list == null) return null;
+    List<T> l = new ArrayList<T>(list);
+    l.removeAll(o);
+    return l;
+  }
+
+  public static <T> Set<T> removeAll(Set<T> list, Collection o) {
+    if (list == null) return null;
+    Set<T> l = new HashSet<>(list);
+    l.removeAll(o);
+    return l;
+  }
+
+  public static <T> ImmutableList<T> removeAll(ImmutableList<T> list, Collection o) {
+    if (list == null) return null;
+    List<T> l = new ArrayList<>(list);
+    l.removeAll(o);
+    return ImmutableList.copyOf(l);
+  }
+
+  public static <T> ImmutableSet<T> removeAll(ImmutableSet<T> list, Collection o) {
+    if (list == null) return null;
+    Set<T> l = new HashSet<>(list);
+    l.removeAll(o);
+    return ImmutableSet.copyOf(l);
+  }
+
+  public static boolean isOverridden(Object instance, String methodName) {
+    Method m = ReflectionHelper.getMethod(instance.getClass(), methodName);
+    return m != null
+        && !m.getDeclaringClass().equals(Object.class)
+        && !m.getDeclaringClass().isInterface();
+  }
 }

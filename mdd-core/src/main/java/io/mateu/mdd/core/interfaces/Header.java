@@ -5,9 +5,7 @@ import lombok.Data;
 @Data
 public class Header {
 
-    private final HeaderType type;
+  private final HeaderType type;
 
-    private final String message;
-
-
+  private final String message;
 }

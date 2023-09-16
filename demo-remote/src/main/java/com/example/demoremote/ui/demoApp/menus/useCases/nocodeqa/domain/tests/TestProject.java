@@ -1,39 +1,36 @@
 package com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain.tests;
 
 import com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain.Status;
-import io.mateu.mdd.shared.annotations.ReadOnly;
 import io.mateu.mdd.shared.annotations.Section;
 import io.mateu.mdd.shared.annotations.TextArea;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.UUID;
-
 @Entity
-@Getter@Setter
+@Getter
+@Setter
 public class TestProject {
 
-    @Section("General")
-    @Id
-    String id = UUID.randomUUID().toString();
+  @Section("General")
+  @Id
+  String id = UUID.randomUUID().toString();
 
-    String name;
+  String name;
 
-    @io.mateu.mdd.shared.annotations.Status
-    Status status;
+  @io.mateu.mdd.shared.annotations.Status Status status;
 
-    @TextArea
-    String comments;
+  @TextArea String comments;
 
-    @Section("Github")
-    String githubRepository;
+  @Section("Github")
+  String githubRepository;
 
-    String githubApiKey;
+  String githubApiKey;
 
-    @Override
-    public String toString() {
-        return name;
-    }
+  @Override
+  public String toString() {
+    return name;
+  }
 }

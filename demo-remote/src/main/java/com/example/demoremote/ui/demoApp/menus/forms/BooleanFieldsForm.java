@@ -7,36 +7,38 @@ import lombok.Data;
 @Caption("Booleans")
 public class BooleanFieldsForm {
 
-    @Section("Primitives")
-    private boolean check;
+  @Section("Primitives")
+  private boolean check;
 
-    @UseRadioButtons
-    private boolean usingRadioButtons;
+  @UseRadioButtons private boolean usingRadioButtons;
 
-    @Toggle
-    private boolean toggle;
+  @Toggle private boolean toggle;
 
-    @Section("Non primitives")
-    private Boolean alsoCheck;
+  @Section("Non primitives")
+  private Boolean alsoCheck;
 
-    @UseRadioButtons
-    private Boolean alsoUsingRadioButtons;
+  @UseRadioButtons private Boolean alsoUsingRadioButtons;
 
-    @Toggle
-    private Boolean alsoToggle;
+  @Toggle private Boolean alsoToggle;
 
-    @Section("Assessment")
-    @ReadOnly
-    private String assessment;
+  @Section("Assessment")
+  @ReadOnly
+  private String assessment;
 
-    @Action
-    public void assess() {
-        assessment = "" + check
-                + ", " + usingRadioButtons
-                + ", " + toggle
-        + ", " + alsoCheck
-                + ", " + alsoUsingRadioButtons
-                + ", " + alsoToggle
-        ;
-    }
+  @Action
+  public void assess() {
+    assessment =
+        ""
+            + check
+            + ", "
+            + usingRadioButtons
+            + ", "
+            + toggle
+            + ", "
+            + alsoCheck
+            + ", "
+            + alsoUsingRadioButtons
+            + ", "
+            + alsoToggle;
+  }
 }

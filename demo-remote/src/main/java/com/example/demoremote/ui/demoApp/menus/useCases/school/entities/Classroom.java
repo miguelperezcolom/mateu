@@ -4,31 +4,30 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
-
-@Entity@Getter@Setter@NoArgsConstructor@AllArgsConstructor
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Classroom {
 
-    @Id
-    String id;
+  @Id String id;
 
-    String name;
+  String name;
 
-    @ManyToOne
-    Teacher teacher;
+  @ManyToOne Teacher teacher;
 
-    @ManyToMany
-    List<Student> students = new ArrayList<>();
+  @ManyToMany List<Student> students = new ArrayList<>();
 
-
-    @Override
-    public String toString() {
-        return name;
-    }
+  @Override
+  public String toString() {
+    return name;
+  }
 }

@@ -1,19 +1,16 @@
 package io.mateu.remote.domain.store;
 
-
-import lombok.*;
-
 import jakarta.persistence.Id;
 import java.io.Serializable;
+import lombok.*;
 
 @Data
 @Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class MenuToBeanMapping implements Serializable {
 
-    @Id
-    private String actionId;
+  @Id private String actionId;
 
-    private Object bean;
-
+  private Object bean;
 }

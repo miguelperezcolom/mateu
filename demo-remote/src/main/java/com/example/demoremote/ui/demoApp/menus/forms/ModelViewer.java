@@ -21,18 +21,13 @@ import lombok.Data;
 @Data
 public class ModelViewer {
 
-    @Attribute
-    private String src = "/myassets/NeilArmstrong.glb";
+  @Attribute private String src = "/myassets/NeilArmstrong.glb";
 
-    @Attribute
-    private String style = "width: 400px; height: 400px;";
+  @Attribute private String style = "width: 400px; height: 400px;";
 
-    @Attribute("auto-rotate")
-    private String autoRotate = "auto-rotate";
+  @Attribute("auto-rotate")
+  private String autoRotate = "auto-rotate";
 
-    @Attribute("camera-controls")
-    private String cameraControls = "camera-controls";
-
-
-
+  @Attribute("camera-controls")
+  private String cameraControls = "camera-controls";
 }

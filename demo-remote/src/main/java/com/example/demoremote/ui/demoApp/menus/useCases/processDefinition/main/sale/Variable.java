@@ -11,20 +11,18 @@ import lombok.*;
 @Builder
 public class Variable {
 
-    @Id
-    String id;
+  @Id String id;
 
-    @ManyToOne
-    Flow process;
+  @ManyToOne Flow process;
 
-    @Column(name = "_key")
-    String key;
+  @Column(name = "_key")
+  String key;
 
-    @Column(name = "_value")
-    String value;
+  @Column(name = "_value")
+  String value;
 
-    @Override
-    public String toString() {
-        return key;
-    }
+  @Override
+  public String toString() {
+    return key;
+  }
 }

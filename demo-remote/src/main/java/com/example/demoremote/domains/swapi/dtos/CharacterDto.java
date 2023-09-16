@@ -5,20 +5,19 @@ import lombok.Data;
 @Data
 public class CharacterDto {
 
-    String url;
+  String url;
 
-    private String name;
+  private String name;
 
-    private String height;
+  private String height;
 
-    private String mass;
+  private String mass;
 
-    private String hair_color;
+  private String hair_color;
 
-    private String gender;
+  private String gender;
 
-    private String homeworld;
+  private String homeworld;
 
-    private String[] films;
-
+  private String[] films;
 }

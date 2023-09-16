@@ -4,13 +4,13 @@ import lombok.*;
 
 @Data
 @Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class Validation {
 
-    private ValidationType type;
+  private ValidationType type;
 
-    private String message;
+  private String message;
 
-    private Object data;
-
+  private Object data;
 }

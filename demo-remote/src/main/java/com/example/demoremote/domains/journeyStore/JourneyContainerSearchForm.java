@@ -5,6 +5,5 @@ import lombok.Data;
 @Data
 public class JourneyContainerSearchForm {
 
-    private String id;
-
+  private String id;
 }

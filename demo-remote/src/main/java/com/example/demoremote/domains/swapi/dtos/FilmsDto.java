@@ -5,8 +5,7 @@ import lombok.Data;
 @Data
 public class FilmsDto {
 
-    private int count;
+  private int count;
 
-    private FilmDto[] results;
-
+  private FilmDto[] results;
 }

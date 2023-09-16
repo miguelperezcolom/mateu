@@ -1,10 +1,9 @@
 package com.example.demoremote.ui.demoApp.menus.useCases.processDefinition.main.insprod;
 
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.*;
 
 @Entity
 @Getter
@@ -14,19 +13,17 @@ import java.util.List;
 @Builder
 public class Input {
 
-    @Id
-    @Column(name = "_key")
-    String key;
-    @ManyToOne
-    Journey journey;
-    String type;
-    String label;
-    @ElementCollection
-    List<String> validations = new ArrayList<>();
+  @Id
+  @Column(name = "_key")
+  String key;
 
-    @Override
-    public String toString() {
-        return label;
-    }
+  @ManyToOne Journey journey;
+  String type;
+  String label;
+  @ElementCollection List<String> validations = new ArrayList<>();
 
+  @Override
+  public String toString() {
+    return label;
+  }
 }

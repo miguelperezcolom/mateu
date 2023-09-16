@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class Position {
 
-    private String displayName;
+  private String displayName;
 
-    private String abbreviation;
+  private String abbreviation;
 }

@@ -1,7 +1,9 @@
 package io.mateu.remote.dtos;
 
 public enum RuleAction {
-
-    Show, Hide, Enable, Disable, RunAction
-
+  Show,
+  Hide,
+  Enable,
+  Disable,
+  RunAction
 }

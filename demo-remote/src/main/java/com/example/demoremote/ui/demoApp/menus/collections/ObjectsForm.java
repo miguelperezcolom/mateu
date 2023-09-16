@@ -11,12 +11,10 @@ import lombok.Data;
 @Caption("Objects")
 public class ObjectsForm {
 
-    @Section("Objects")
-    private Profile profile = new Profile("Mateu", 14, Movie.JohnWick);
+  @Section("Objects")
+  private Profile profile = new Profile("Mateu", 14, Movie.JohnWick);
 
-    private Profile emptyProfile;
+  private Profile emptyProfile;
 
-    @Embed
-    private Profile embeddedProfile;
-
+  @Embed private Profile embeddedProfile;
 }

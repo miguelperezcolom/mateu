@@ -1,7 +1,11 @@
 package io.mateu.remote.dtos;
 
 public enum ViewMetadataType {
-
-    Form, Crud, Result, JourneyStarter, JourneyRunner, Card, Stepper
-
+  Form,
+  Crud,
+  Result,
+  JourneyStarter,
+  JourneyRunner,
+  Card,
+  Stepper
 }

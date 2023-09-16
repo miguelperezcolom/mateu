@@ -16,58 +16,56 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class GetStepQueryHandler {
 
-    @Autowired
-    JourneyStoreService store;
+  @Autowired JourneyStoreService store;
 
-    @Autowired
-    MateuRemoteClient mateuRemoteClient;
+  @Autowired MateuRemoteClient mateuRemoteClient;
 
+  public Mono<Step> run(GetStepQuery query) throws Exception {
 
-    public Mono<Step> run(GetStepQuery query)  throws Exception {
+    String journeyId = query.getJourneyId();
+    String stepId = query.getStepId();
+    ServerHttpRequest serverHttpRequest = query.getServerHttpRequest();
 
-        String journeyId = query.getJourneyId();
-        String stepId = query.getStepId();
-        ServerHttpRequest serverHttpRequest = query.getServerHttpRequest();
+    JourneyContainer journeyContainer = store.findJourneyById(journeyId).orElse(null);
 
-        JourneyContainer journeyContainer = store.findJourneyById(journeyId).orElse(null);
-
-        if (journeyContainer == null) {
-            throw new Exception("No journey with id " + journeyId);
-        }
-
-        if (!Strings.isNullOrEmpty(journeyContainer.getRemoteJourneyTypeId())) {
-            return mateuRemoteClient.getStep(journeyContainer.getRemoteBaseUrl(),
-                    journeyContainer.getRemoteJourneyTypeId(), journeyContainer.getJourneyId(), stepId,
-                    serverHttpRequest);
-        }
-
-
-        dump(journeyContainer);
-
-        Step step = store.getStep(journeyId, stepId);
-        if ("list".equals(stepId)) {
-            step.getData().remove("__index");
-            step.getData().remove("__count");
-        }
-
-        return Mono.just(step);
-
+    if (journeyContainer == null) {
+      throw new Exception("No journey with id " + journeyId);
     }
 
-    private void dump(JourneyContainer journeyContainer) {
+    if (!Strings.isNullOrEmpty(journeyContainer.getRemoteJourneyTypeId())) {
+      return mateuRemoteClient.getStep(
+          journeyContainer.getRemoteBaseUrl(),
+          journeyContainer.getRemoteJourneyTypeId(),
+          journeyContainer.getJourneyId(),
+          stepId,
+          serverHttpRequest);
+    }
 
-        log.info("-------------------------------------");
-        log.info("journey id: " + journeyContainer.getJourneyId());
-        journeyContainer.getSteps().values().stream().forEach(s -> {
-            log.info("step: " + s.getId());
-            log.info("previous: " + s.getPreviousStepId());
-            try {
+    dump(journeyContainer);
+
+    Step step = store.getStep(journeyId, stepId);
+    if ("list".equals(stepId)) {
+      step.getData().remove("__index");
+      step.getData().remove("__count");
+    }
+
+    return Mono.just(step);
+  }
+
+  private void dump(JourneyContainer journeyContainer) {
+
+    log.info("-------------------------------------");
+    log.info("journey id: " + journeyContainer.getJourneyId());
+    journeyContainer.getSteps().values().stream()
+        .forEach(
+            s -> {
+              log.info("step: " + s.getId());
+              log.info("previous: " + s.getPreviousStepId());
+              try {
                 log.info("data: " + Helper.toJson(s.getData()));
-            } catch (Exception e) {
+              } catch (Exception e) {
                 e.printStackTrace();
-            }
-        });
-
-    }
-
+              }
+            });
+  }
 }

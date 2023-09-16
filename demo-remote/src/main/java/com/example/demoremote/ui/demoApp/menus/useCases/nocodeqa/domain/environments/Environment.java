@@ -2,25 +2,23 @@ package com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain.environ
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.UUID;
-
 @Entity
-@Getter@Setter
+@Getter
+@Setter
 public class Environment {
 
-    @Id
-    String id = UUID.randomUUID().toString();
+  @Id String id = UUID.randomUUID().toString();
 
-    String name;
+  String name;
 
-    String baseUrl;
+  String baseUrl;
 
-    @Override
-    public String toString() {
-        return name;
-    }
-
+  @Override
+  public String toString() {
+    return name;
+  }
 }

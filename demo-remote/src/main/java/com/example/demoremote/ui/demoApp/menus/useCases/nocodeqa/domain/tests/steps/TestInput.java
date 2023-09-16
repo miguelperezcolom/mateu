@@ -4,30 +4,27 @@ import io.mateu.mdd.shared.annotations.ReadOnly;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.UUID;
-
 @Entity
-@Getter@Setter
+@Getter
+@Setter
 public class TestInput {
 
-    @Id@ReadOnly
-    String id = UUID.randomUUID().toString();
+  @Id @ReadOnly String id = UUID.randomUUID().toString();
 
-    String label;
+  String label;
 
-    @Column(name = "_value")
-    String value;
+  @Column(name = "_value")
+  String value;
 
-    boolean required;
+  boolean required;
 
-    String pattern;
+  String pattern;
 
-    int min;
+  int min;
 
-    int max;
-
-
+  int max;
 }

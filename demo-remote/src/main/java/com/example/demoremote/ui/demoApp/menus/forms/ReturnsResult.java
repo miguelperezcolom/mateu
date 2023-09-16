@@ -7,23 +7,24 @@ import io.mateu.mdd.shared.data.Result;
 import io.mateu.mdd.shared.data.ResultType;
 import lombok.Data;
 
-@Data@Caption("Returns result")
+@Data
+@Caption("Returns result")
 public class ReturnsResult {
 
-    private String name;
+  private String name;
 
-    private int age;
+  private int age;
 
-    @Action(confirmationTitle = "One moment, please",
-            confirmationMessage = "Are you sure you want to do something?",
-            confirmationAction = "Yes, I want!")
-    public Result doSomething() {
-        return new Result(ResultType.Success, "It worked!", null, null);
-    }
+  @Action(
+      confirmationTitle = "One moment, please",
+      confirmationMessage = "Are you sure you want to do something?",
+      confirmationAction = "Yes, I want!")
+  public Result doSomething() {
+    return new Result(ResultType.Success, "It worked!", null, null);
+  }
 
-    @MainAction(confirmationMessage = "Are you sure you want to do something BIG?")
-    public Result doSomethingBig() {
-        return new Result(ResultType.Info, "It worked, also!", null, null);
-    }
-
+  @MainAction(confirmationMessage = "Are you sure you want to do something BIG?")
+  public Result doSomethingBig() {
+    return new Result(ResultType.Info, "It worked, also!", null, null);
+  }
 }

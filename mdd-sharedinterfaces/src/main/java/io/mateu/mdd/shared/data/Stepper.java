@@ -1,18 +1,17 @@
 package io.mateu.mdd.shared.data;
 
-import lombok.*;
-
 import java.util.List;
+import lombok.*;
 
 @Data
 @Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class Stepper {
 
-    double value;
+  double value;
 
-    String text;
+  String text;
 
-    List<StepperStep> steps;
-
+  List<StepperStep> steps;
 }

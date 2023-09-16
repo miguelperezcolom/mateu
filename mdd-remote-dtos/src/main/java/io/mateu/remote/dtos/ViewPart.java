@@ -1,14 +1,15 @@
 package io.mateu.remote.dtos;
 
+import java.util.List;
 import lombok.*;
 
-import java.util.List;
-
-@Data@Builder@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
+@Data
+@Builder
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class ViewPart {
 
-    private String classes;
+  private String classes;
 
-    private List<Component> components;
-
+  private List<Component> components;
 }

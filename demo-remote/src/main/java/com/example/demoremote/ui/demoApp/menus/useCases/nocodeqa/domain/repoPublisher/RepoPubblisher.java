@@ -4,6 +4,5 @@ import com.example.demoremote.ui.demoApp.menus.useCases.nocodeqa.domain.tests.Te
 
 public interface RepoPubblisher {
 
-    void publish(TestProject project);
-
+  void publish(TestProject project);
 }

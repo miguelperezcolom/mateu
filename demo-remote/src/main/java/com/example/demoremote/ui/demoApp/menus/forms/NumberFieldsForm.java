@@ -9,44 +9,51 @@ import lombok.Data;
 @Data
 public class NumberFieldsForm {
 
-    @Section("Basic")
-    @NotEmpty
-    private int anInt;
+  @Section("Basic")
+  @NotEmpty
+  private int anInt;
 
-    @Placeholder("This should appear as the placeholder")
-    private double aPrimitiveDouble;
+  @Placeholder("This should appear as the placeholder")
+  private double aPrimitiveDouble;
 
-    private float aPrimitiveFloat;
+  private float aPrimitiveFloat;
 
-    private Integer anInteger;
+  private Integer anInteger;
 
-    private Double aDouble;
+  private Double aDouble;
 
-    private Float aFloat;
+  private Float aFloat;
 
-    @Min(10)@Max(20)
-    @Placeholder("10<x<20")
-    private int anotherIntWithValidations;
+  @Min(10)
+  @Max(20)
+  @Placeholder("10<x<20")
+  private int anotherIntWithValidations;
 
-    @Section("Assessment")
-    @ReadOnly
-    private String assessment;
+  @Section("Assessment")
+  @ReadOnly
+  private String assessment;
 
-    @Action
-    public void assess() {
-        assessment = ""
-                + "" + anInt
-                + ", " + aPrimitiveDouble
-                + ", " + aPrimitiveFloat
-                + ", " + anInteger
-                + ", " + aDouble
-                + ", " + aFloat
-                + ", " + anotherIntWithValidations
-        ;
-    }
+  @Action
+  public void assess() {
+    assessment =
+        ""
+            + ""
+            + anInt
+            + ", "
+            + aPrimitiveDouble
+            + ", "
+            + aPrimitiveFloat
+            + ", "
+            + anInteger
+            + ", "
+            + aDouble
+            + ", "
+            + aFloat
+            + ", "
+            + anotherIntWithValidations;
+  }
 
-    public String toString() {
-        return "Numbers";
-    }
-
+  public String toString() {
+    return "Numbers";
+  }
 }

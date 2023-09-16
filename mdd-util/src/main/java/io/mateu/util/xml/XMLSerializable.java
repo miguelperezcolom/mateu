@@ -1,13 +1,11 @@
 package io.mateu.util.xml;
 
-import org.jdom2.Element;
-
 import java.io.Serializable;
+import org.jdom2.Element;
 
 public interface XMLSerializable extends Serializable {
 
-    Element toXml();
+  Element toXml();
 
-    void fromXml(Element xml);
-
+  void fromXml(Element xml);
 }

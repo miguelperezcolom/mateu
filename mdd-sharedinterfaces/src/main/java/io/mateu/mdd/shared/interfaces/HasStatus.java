@@ -4,6 +4,5 @@ import io.mateu.mdd.shared.data.Status;
 
 public interface HasStatus {
 
-    Status getStatus();
-
+  Status getStatus();
 }

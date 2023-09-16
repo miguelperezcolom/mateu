@@ -1,29 +1,28 @@
 package io.mateu.remote.dtos;
 
-import lombok.*;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.*;
 
 @Data
 @Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class Column {
 
-    private String id;
+  private String id;
 
-    private String type;
+  private String type;
 
-    private String stereotype;
+  private String stereotype;
 
-    private String caption;
+  private String caption;
 
-    private String description;
+  private String description;
 
-    private String width;
+  private String width;
 
-    private boolean readOnly;
+  private boolean readOnly;
 
-    private List<Pair> attributes = new ArrayList<>();
-
+  private List<Pair> attributes = new ArrayList<>();
 }

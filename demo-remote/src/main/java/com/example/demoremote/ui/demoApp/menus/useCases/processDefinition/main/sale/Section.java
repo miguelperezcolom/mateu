@@ -5,8 +5,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import lombok.*;
 
-import java.util.UUID;
-
 @Entity
 @Getter
 @Setter
@@ -15,17 +13,14 @@ import java.util.UUID;
 @Builder
 public class Section {
 
-    @Id
-    String id;
+  @Id String id;
 
-    String title;
+  String title;
 
-    @ManyToOne
-    Step step;
+  @ManyToOne Step step;
 
-
-    @Override
-    public String toString() {
-        return title;
-    }
+  @Override
+  public String toString() {
+    return title;
+  }
 }

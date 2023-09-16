@@ -1,10 +1,8 @@
 package com.example.demoremote.ui.demoApp.menus.useCases.processDefinition.main.sale;
 
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.util.List;
-import java.util.UUID;
+import lombok.*;
 
 @Entity
 @Getter
@@ -14,40 +12,37 @@ import java.util.UUID;
 @Builder
 public class Field {
 
-    @Id
-    String id;
+  @Id String id;
 
-    @Column(name = "_key")
-    String key;
+  @Column(name = "_key")
+  String key;
 
-    String label;
+  String label;
 
-    FieldType type;
+  FieldType type;
 
-    @ManyToOne
-    FieldGroup fieldGroup;
+  @ManyToOne FieldGroup fieldGroup;
 
-    boolean hidden;
+  boolean hidden;
 
-    String defaultValue;
+  String defaultValue;
 
-    boolean required;
+  boolean required;
 
-    String pattern;
+  String pattern;
 
-    double min;
+  double min;
 
-    double max;
+  double max;
 
-    double steps;
+  double steps;
 
-    @ElementCollection
-    List<String> possibleValues;
+  @ElementCollection List<String> possibleValues;
 
-    String requiredIf;
+  String requiredIf;
 
-    @Override
-    public String toString() {
-        return label;
-    }
+  @Override
+  public String toString() {
+    return label;
+  }
 }

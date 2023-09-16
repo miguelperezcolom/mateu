@@ -5,16 +5,13 @@ import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter@Setter
+@Getter
+@Setter
 public class LanguageDetailDefinition {
 
-    @Id
-    @Ignored
-    private String id;
+  @Id @Ignored private String id;
 
-    private String name;
+  private String name;
 
-    private LanguageRow.LanguageTarget target;
-
-
+  private LanguageRow.LanguageTarget target;
 }

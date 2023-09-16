@@ -13,32 +13,28 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class GetUIQueryHandler {
 
-    @Autowired
-    UIMapper uiMapper;
+  @Autowired UIMapper uiMapper;
 
-    public UI run(GetUIQuery query, ServerHttpRequest serverHttpRequest) {
+  public UI run(GetUIQuery query, ServerHttpRequest serverHttpRequest) {
 
-        String uiId = query.getUiId();
+    String uiId = query.getUiId();
 
-        try {
-            Class uiClass = Class.forName(uiId);
-            Object uiInstance = ReflectionHelper.newInstance(uiClass);
+    try {
+      Class uiClass = Class.forName(uiId);
+      Object uiInstance = ReflectionHelper.newInstance(uiClass);
 
-            if (uiInstance == null) {
-                throw new Exception();
-            }
+      if (uiInstance == null) {
+        throw new Exception();
+      }
 
-            UI ui = uiMapper.map(uiInstance, serverHttpRequest);
+      UI ui = uiMapper.map(uiInstance, serverHttpRequest);
 
-            return ui;
+      return ui;
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.error("error on getUi", e);
-            throw new NotFoundException("No class with name " + uiId + " found");
-        }
-
+    } catch (Exception e) {
+      e.printStackTrace();
+      log.error("error on getUi", e);
+      throw new NotFoundException("No class with name " + uiId + " found");
     }
-
-
+  }
 }

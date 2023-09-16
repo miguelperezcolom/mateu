@@ -1,16 +1,18 @@
 package io.mateu.remote.dtos;
 
-import lombok.*;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.*;
 
-@Data@Builder@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
+@Data
+@Builder
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class FieldGroup {
 
-    private String id;
+  private String id;
 
-    private String caption;
+  private String caption;
 
-    private List<FieldGroupLine> lines = new ArrayList<>();
+  private List<FieldGroupLine> lines = new ArrayList<>();
 }

@@ -8,13 +8,12 @@ import lombok.Setter;
 @Setter
 public class WizardPage1 {
 
-    String name;
+  String name;
 
-    int age;
+  int age;
 
-    @MainAction
-    public WizardPage2 goToNextPage() {
-        return new WizardPage2(this);
-    }
-
+  @MainAction
+  public WizardPage2 goToNextPage() {
+    return new WizardPage2(this);
+  }
 }

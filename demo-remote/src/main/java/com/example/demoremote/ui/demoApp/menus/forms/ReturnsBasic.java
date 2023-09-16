@@ -4,26 +4,26 @@ import io.mateu.mdd.shared.annotations.Action;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter@Setter
+@Getter
+@Setter
 public class ReturnsBasic {
 
-    String name;
+  String name;
 
-    int age;
+  int age;
 
-    @Action
-    public String sayHello() {
-        return "Hello " + name + ", aged " + age;
-    }
+  @Action
+  public String sayHello() {
+    return "Hello " + name + ", aged " + age;
+  }
 
-    @Action
-    public int showRating() {
-        return 5;
-    }
+  @Action
+  public int showRating() {
+    return 5;
+  }
 
-    @Action
-    public double showRandom() {
-        return Math.random();
-    }
-
+  @Action
+  public double showRandom() {
+    return Math.random();
+  }
 }

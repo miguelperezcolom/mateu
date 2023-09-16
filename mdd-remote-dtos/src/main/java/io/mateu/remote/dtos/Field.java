@@ -1,31 +1,32 @@
 package io.mateu.remote.dtos;
 
-import lombok.*;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.*;
 
-@Data@Builder@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
+@Data
+@Builder
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class Field {
 
-    private String id;
+  private String id;
 
-    private String type;
+  private String type;
 
-    private String stereotype;
+  private String stereotype;
 
-    private boolean observed;
+  private boolean observed;
 
-    private String caption;
+  private String caption;
 
-    private String placeholder;
+  private String placeholder;
 
-    private String cssClasses;
+  private String cssClasses;
 
-    private String description;
+  private String description;
 
-    private List<Validation> validations = new ArrayList<>();
+  private List<Validation> validations = new ArrayList<>();
 
-    private List<Pair> attributes = new ArrayList<>();
-
+  private List<Pair> attributes = new ArrayList<>();
 }

@@ -2,38 +2,31 @@ package com.example.demoremote.ui.demoApp.menus.forms;
 
 import io.mateu.mdd.shared.annotations.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-@Data@Caption("Call action on change")
+@Data
+@Caption("Call action on change")
 public class CallActionOnChangeFieldForm {
 
-    @Section("Basic")
-    @NotBlank
-    private String name = "Mateu";
+  @Section("Basic")
+  @NotBlank
+  private String name = "Mateu";
 
-    @Placeholder("This should appear as the placeholder")
-    private String withPlaceholder;
+  @Placeholder("This should appear as the placeholder")
+  private String withPlaceholder;
 
-    @CallActionOnChange("assess")
-    private int age = 15;
+  @CallActionOnChange("assess")
+  private int age = 15;
 
-    @CallActionOnChange("assess")
-    private double balance = 20.31;
+  @CallActionOnChange("assess")
+  private double balance = 20.31;
 
-    @Section("Assessment")
-    @ReadOnly
-    private String assessment;
+  @Section("Assessment")
+  @ReadOnly
+  private String assessment;
 
-    @Action
-    public void assess() {
-        assessment =
-                "" + name
-                + ", " + age
-                + ", " + balance
-        ;
-    }
-
-
+  @Action
+  public void assess() {
+    assessment = "" + name + ", " + age + ", " + balance;
+  }
 }

@@ -5,11 +5,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter@Setter@AllArgsConstructor@NoArgsConstructor
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class ComplexKeyValue {
 
-    private ComplexKey key;
+  private ComplexKey key;
 
-    private Object value;
-
+  private Object value;
 }

@@ -1,46 +1,43 @@
 package io.mateu.util.interfaces;
 
-
 import io.mateu.util.data.Data;
 
-/**
- * Created by miguel on 7/3/17.
- */
+/** Created by miguel on 7/3/17. */
 public interface Translated {
 
-    void set(Data value);
+  void set(Data value);
 
-    Data get();
+  Data get();
 
-    String getEs();
+  String getEs();
 
-    String getEn();
+  String getEn();
 
-    String getDe();
+  String getDe();
 
-    String getFr();
+  String getFr();
 
-    String getIt();
+  String getIt();
 
-    String getAr();
+  String getAr();
 
-    String getCz();
+  String getCz();
 
-    String getRu();
+  String getRu();
 
-    void setEn(String value);
+  void setEn(String value);
 
-    void setDe(String value);
+  void setDe(String value);
 
-    void setFr(String value);
+  void setFr(String value);
 
-    void setIt(String value);
+  void setIt(String value);
 
-    void setAr(String value);
+  void setAr(String value);
 
-    void setCz(String value);
+  void setCz(String value);
 
-    void setRu(String value);
+  void setRu(String value);
 
-    void setEs(String value);
+  void setEs(String value);
 }

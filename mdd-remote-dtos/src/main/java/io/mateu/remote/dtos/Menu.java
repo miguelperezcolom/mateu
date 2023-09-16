@@ -1,20 +1,21 @@
 package io.mateu.remote.dtos;
 
+import java.util.List;
 import lombok.*;
 
-import java.util.List;
-
-@Data@Builder@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
+@Data
+@Builder
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class Menu {
 
-    private MenuType type;
+  private MenuType type;
 
-    private String icon;
+  private String icon;
 
-    private String caption;
+  private String caption;
 
-    private String journeyTypeId;
+  private String journeyTypeId;
 
-    private List<Menu> submenus;
-
+  private List<Menu> submenus;
 }

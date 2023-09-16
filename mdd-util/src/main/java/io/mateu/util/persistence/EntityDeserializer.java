@@ -4,6 +4,5 @@ import jakarta.persistence.EntityManager;
 
 public interface EntityDeserializer {
 
-    <T> T fromJson(EntityManager em, String json, Class<T> c) throws Exception;
-
+  <T> T fromJson(EntityManager em, String json, Class<T> c) throws Exception;
 }

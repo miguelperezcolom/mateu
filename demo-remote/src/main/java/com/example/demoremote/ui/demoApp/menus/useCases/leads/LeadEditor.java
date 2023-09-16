@@ -9,33 +9,31 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Scope("prototype")
-@Getter@Setter
+@Getter
+@Setter
 public class LeadEditor implements PersistentPojo<String> {
 
-    String id;
+  String id;
 
-    String name;
+  String name;
 
-    TelephoneNumber homeTelephone;
+  TelephoneNumber homeTelephone;
 
-    TelephoneNumber workTelephone;
+  TelephoneNumber workTelephone;
 
-    public LeadEditor() {
-    }
+  public LeadEditor() {}
 
-    @Override
-    public void load(String id) throws Throwable {
-        setId(id);
-        setName("North Sails");
-    }
+  @Override
+  public void load(String id) throws Throwable {
+    setId(id);
+    setName("North Sails");
+  }
 
-    @Override
-    public Object retrieveId() {
-        return getId();
-    }
+  @Override
+  public Object retrieveId() {
+    return getId();
+  }
 
-    @Override
-    public void save() throws Throwable {
-
-    }
+  @Override
+  public void save() throws Throwable {}
 }

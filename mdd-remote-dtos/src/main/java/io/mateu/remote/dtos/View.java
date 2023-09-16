@@ -2,21 +2,23 @@ package io.mateu.remote.dtos;
 
 import lombok.*;
 
-@Data@Builder@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
+@Data
+@Builder
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class View {
 
-    private String title;
+  private String title;
 
-    private String subtitle;
+  private String subtitle;
 
-    private ViewPart header;
+  private ViewPart header;
 
-    private ViewPart left;
+  private ViewPart left;
 
-    private ViewPart main;
+  private ViewPart main;
 
-    private ViewPart right;
+  private ViewPart right;
 
-    private ViewPart footer;
-
+  private ViewPart footer;
 }

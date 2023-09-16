@@ -1,16 +1,15 @@
 package io.mateu.remote.domain.queries.getItemsCount;
 
-import io.mateu.reflection.ReflectionHelper;
 import lombok.*;
 
 @Data
 @Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 @Getter
 public class GetItemsCountQuery {
 
-    private String itemsProviderId;
+  private String itemsProviderId;
 
-    private String searchText;
-
+  private String searchText;
 }

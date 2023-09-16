@@ -5,15 +5,14 @@ import lombok.Getter;
 @Getter
 public class Badge {
 
-    private BadgeType type;
+  private BadgeType type;
 
-    private String message;
+  private String message;
 
-    public Badge(BadgeType type, String message) {
-        this.type = type;
-        this.message = message;
-    }
+  public Badge(BadgeType type, String message) {
+    this.type = type;
+    this.message = message;
+  }
 
-    public Badge() {
-    }
+  public Badge() {}
 }

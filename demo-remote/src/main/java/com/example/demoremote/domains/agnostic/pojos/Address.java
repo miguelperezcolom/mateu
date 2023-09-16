@@ -5,17 +5,19 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter@Setter@AllArgsConstructor@NoArgsConstructor
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Address {
 
-    String street;
-    String city;
-    String postalCode;
-    String country;
+  String street;
+  String city;
+  String postalCode;
+  String country;
 
-    @Override
-    public String toString() {
-        return "" + street + "|" + city + "|" + postalCode + "|" + country;
-    }
-
+  @Override
+  public String toString() {
+    return "" + street + "|" + city + "|" + postalCode + "|" + country;
+  }
 }

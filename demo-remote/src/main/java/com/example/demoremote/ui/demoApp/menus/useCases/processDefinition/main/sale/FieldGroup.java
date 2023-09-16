@@ -5,8 +5,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import lombok.*;
 
-import java.util.UUID;
-
 @Entity
 @Getter
 @Setter
@@ -15,16 +13,14 @@ import java.util.UUID;
 @Builder
 public class FieldGroup {
 
-    @Id
-    String id;
+  @Id String id;
 
-    String title;
+  String title;
 
-    @ManyToOne
-    Section section;
+  @ManyToOne Section section;
 
-    @Override
-    public String toString() {
-        return title;
-    }
+  @Override
+  public String toString() {
+    return title;
+  }
 }

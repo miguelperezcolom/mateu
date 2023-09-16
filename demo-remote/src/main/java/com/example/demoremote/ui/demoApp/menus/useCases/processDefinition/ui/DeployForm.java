@@ -8,9 +8,8 @@ import io.mateu.mdd.shared.data.ResultType;
 @Caption("Deploy to Camunda")
 public class DeployForm {
 
-    @MainAction
-    public Result deployAll() {
-        return new Result(ResultType.Success, "All products polled", null, null);
-    }
-
+  @MainAction
+  public Result deployAll() {
+    return new Result(ResultType.Success, "All products polled", null, null);
+  }
 }

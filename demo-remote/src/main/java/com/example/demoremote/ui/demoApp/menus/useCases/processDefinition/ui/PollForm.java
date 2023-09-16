@@ -12,13 +12,11 @@ import org.springframework.stereotype.Component;
 @Caption("Poll products")
 public class PollForm {
 
-    @Autowired
-    Poller poller;
+  @Autowired Poller poller;
 
-    @MainAction
-    public Result pollFromInsuranceProduct() {
-        poller.pollAll();
-        return new Result(ResultType.Success, "All products polled", null, null);
-    }
-
+  @MainAction
+  public Result pollFromInsuranceProduct() {
+    poller.pollAll();
+    return new Result(ResultType.Success, "All products polled", null, null);
+  }
 }

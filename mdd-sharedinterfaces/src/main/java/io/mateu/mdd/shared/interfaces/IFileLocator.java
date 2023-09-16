@@ -2,25 +2,23 @@ package io.mateu.mdd.shared.interfaces;
 
 public interface IFileLocator {
 
-    String getUrl();
+  String getUrl();
 
-    long getId();
+  long getId();
 
-    void setId(long id);
+  void setId(long id);
 
-    void setUrl(String url);
+  void setUrl(String url);
 
-    String getFileName();
+  String getFileName();
 
-    void setFileName(String fileName);
+  void setFileName(String fileName);
 
-    boolean isModified();
+  boolean isModified();
 
-    void setModified(boolean modified);
+  void setModified(boolean modified);
 
-    String getTmpPath();
+  String getTmpPath();
 
-    void setTmpPath(String tmpPath);
-
-
+  void setTmpPath(String tmpPath);
 }

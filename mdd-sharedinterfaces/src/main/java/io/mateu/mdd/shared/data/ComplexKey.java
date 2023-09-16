@@ -4,15 +4,15 @@ import lombok.*;
 
 @Data
 @Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class ComplexKey {
 
-    private String title;
+  private String title;
 
-    private String text;
+  private String text;
 
-    private String note;
+  private String note;
 
-    private String summary;
-
+  private String summary;
 }

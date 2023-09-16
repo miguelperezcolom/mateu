@@ -5,6 +5,5 @@ import java.util.List;
 
 public interface HasActions {
 
-    List<Method> getActionMethods();
-
+  List<Method> getActionMethods();
 }

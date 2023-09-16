@@ -16,18 +16,16 @@ import lombok.*;
 @Builder
 public class Journey {
 
-    @Id
-    @Column(name = "_key")
-    @NotBlank@NotNull
-    String key;
+  @Id
+  @Column(name = "_key")
+  @NotBlank
+  @NotNull
+  String key;
 
-    @ManyToOne@NotNull
-    Product product;
+  @ManyToOne @NotNull Product product;
 
-
-    @Override
-    public String toString() {
-        return key;
-    }
-
+  @Override
+  public String toString() {
+    return key;
+  }
 }

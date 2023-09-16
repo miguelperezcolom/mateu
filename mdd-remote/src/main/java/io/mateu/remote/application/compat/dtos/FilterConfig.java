@@ -1,16 +1,16 @@
 package io.mateu.remote.application.compat.dtos;
 
-import lombok.*;
-
 import java.util.List;
+import lombok.*;
 
 @Data
 @Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class FilterConfig {
 
-    String key;
-    String name;
-    List<FilterConfigOption> options;
-    String type;
+  String key;
+  String name;
+  List<FilterConfigOption> options;
+  String type;
 }

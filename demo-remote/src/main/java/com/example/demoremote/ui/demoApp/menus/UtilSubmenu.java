@@ -5,7 +5,5 @@ import io.mateu.mdd.shared.annotations.MenuOption;
 
 public class UtilSubmenu {
 
-    @MenuOption
-    private ServletHttpRequestForm httpRequest;
-
+  @MenuOption private ServletHttpRequestForm httpRequest;
 }

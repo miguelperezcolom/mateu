@@ -3,50 +3,47 @@ package io.mateu.remote.domain.store;
 import io.mateu.mdd.shared.interfaces.SortCriteria;
 import io.mateu.remote.dtos.Journey;
 import io.mateu.remote.dtos.Step;
-import io.mateu.util.Helper;
-import lombok.*;
-
 import jakarta.persistence.Id;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.*;
 
 @Data
 @Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)@AllArgsConstructor(access = AccessLevel.PACKAGE)
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class JourneyContainer implements Serializable {
 
-    @Id
-    private String journeyId;
+  @Id private String journeyId;
 
-    private String journeyTypeId;
+  private String journeyTypeId;
 
-    private String remoteBaseUrl;
+  private String remoteBaseUrl;
 
-    private String remoteJourneyTypeId;
+  private String remoteJourneyTypeId;
 
-    private Class journeyClass;
+  private Class journeyClass;
 
-    private Map<String, Object> journeyData;
+  private Map<String, Object> journeyData;
 
-    private Journey journey;
+  private Journey journey;
 
-    private Map<String, Step> steps;
+  private Map<String, Step> steps;
 
-    private Step initialStep;
+  private Step initialStep;
 
-    private LocalDateTime created = LocalDateTime.now();
+  private LocalDateTime created = LocalDateTime.now();
 
-    private LocalDateTime lastAccess = LocalDateTime.now();
+  private LocalDateTime lastAccess = LocalDateTime.now();
 
-    private Map<String, Object> lastUsedFilters;
+  private Map<String, Object> lastUsedFilters;
 
-    private Map<String, List<SortCriteria>> lastUsedSorting;
+  private Map<String, List<SortCriteria>> lastUsedSorting;
 
-    public void reset() {
-        journey.setCurrentStepId(initialStep.getId());
-        journey.setCurrentStepDefinitionId(initialStep.getType());
-    }
+  public void reset() {
+    journey.setCurrentStepId(initialStep.getId());
+    journey.setCurrentStepDefinitionId(initialStep.getType());
+  }
 }

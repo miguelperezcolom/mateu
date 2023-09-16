@@ -9,10 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 public class GetJourneyTypesQuery {
 
-    private final String uiId;
+  private final String uiId;
 
-    public GetJourneyTypesQuery(String uiId) {
-        this.uiId = uiId;
-    }
-
+  public GetJourneyTypesQuery(String uiId) {
+    this.uiId = uiId;
+  }
 }

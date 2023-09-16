@@ -2,48 +2,50 @@ package io.mateu.mdd.shared.interfaces;
 
 import io.mateu.mdd.shared.SlimHelper;
 import io.mateu.mdd.shared.annotations.Caption;
+import java.lang.reflect.ParameterizedType;
+import java.util.List;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.lang.reflect.ParameterizedType;
-import java.util.List;
-
 public interface Listing<SearchForm, Row> {
 
-    Flux<Row> fetchRows(SearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) throws Throwable;
+  Flux<Row> fetchRows(SearchForm filters, List<SortCriteria> sortOrders, int offset, int limit)
+      throws Throwable;
 
-   Mono<Long> fetchCount(SearchForm filters) throws Throwable;
+  Mono<Long> fetchCount(SearchForm filters) throws Throwable;
 
-    default String getCaption() {
-        if (getClass().isAnnotationPresent(Caption.class)) {
-            return getClass().getAnnotation(Caption.class).value();
-        }
-        try {
-            if (!getClass().getMethod("toString").getDeclaringClass().equals(Object.class)) {
-                return toString();
-            }
-        } catch (NoSuchMethodException e) {
-        }
-        return SlimHelper.capitalize(getClass().getSimpleName());
+  default String getCaption() {
+    if (getClass().isAnnotationPresent(Caption.class)) {
+      return getClass().getAnnotation(Caption.class).value();
     }
-
-    default boolean showCheckboxForSelection() {
-        return false;
+    try {
+      if (!getClass().getMethod("toString").getDeclaringClass().equals(Object.class)) {
+        return toString();
+      }
+    } catch (NoSuchMethodException e) {
     }
+    return SlimHelper.capitalize(getClass().getSimpleName());
+  }
 
-    default Class<SearchForm> getSearchFormClass() {
-        return (Class<SearchForm>) ((ParameterizedType) getClass().getGenericInterfaces()[0]).getActualTypeArguments()[0];
-    }
+  default boolean showCheckboxForSelection() {
+    return false;
+  }
 
-    default Class<Row> getRowClass() {
-        return (Class<Row>) ((ParameterizedType) getClass().getGenericInterfaces()[0]).getActualTypeArguments()[1];
-    }
+  default Class<SearchForm> getSearchFormClass() {
+    return (Class<SearchForm>)
+        ((ParameterizedType) getClass().getGenericInterfaces()[0]).getActualTypeArguments()[0];
+  }
 
-    default List<Row> getSelection() {
-        return new SelectedRowsContext().getRows();
-    }
+  default Class<Row> getRowClass() {
+    return (Class<Row>)
+        ((ParameterizedType) getClass().getGenericInterfaces()[0]).getActualTypeArguments()[1];
+  }
 
-    default String getCaptionForEdit() {
-        return "Edit";
-    }
+  default List<Row> getSelection() {
+    return new SelectedRowsContext().getRows();
+  }
+
+  default String getCaptionForEdit() {
+    return "Edit";
+  }
 }

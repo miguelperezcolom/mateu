@@ -5,9 +5,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Getter@Setter
+@Getter
+@Setter
 public class RunAction extends TestStep {
 
-    String label;
-
+  String label;
 }
