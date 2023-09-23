@@ -46,4 +46,9 @@ public class JourneyContainer implements Serializable {
     journey.setCurrentStepId(initialStep.getId());
     journey.setCurrentStepDefinitionId(initialStep.getType());
   }
+
+  @Override
+  public String toString() {
+    return journeyId;
+  }
 }
