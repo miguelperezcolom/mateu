@@ -1,0 +1,106 @@
+{
+  "name": "Preguntas básicas",
+  "view": {
+    "components": [
+      {
+        "metadata": {
+          "type": "Form",
+          "type": "Form",
+          "title": "Preguntas básicas",
+          "subtitle": "Activity_1nphpgy",
+          "sections": [
+            {
+              "caption": "",
+              "type": "Card",
+              "actions": [],
+              "fieldGroups": [
+                {
+                  "caption": "",
+                  "fields": [
+                    {
+                      "id": "nombre",
+                      "type": "string",
+                      "caption": "Nombre",
+                      "description": null,
+                      "validations": [
+                        {
+                          "type": "NotEmpty",
+                          "data": null
+                        }
+                      ],
+                      "attributes": []
+                    },
+                    {
+                      "id": "nacionalidad",
+                      "type": "enum",
+                      "caption": "Nacionalidad",
+                      "description": null,
+                      "validations": [
+                        {
+                          "type": "NotEmpty",
+                          "data": null
+                        }
+                      ],
+                      "attributes": [
+                        {
+                          "key": "choice",
+                          "value": {
+                            "key": "Español",
+                            "value": "es"
+                          }
+                        },
+                        {
+                          "key": "choice",
+                          "value": {
+                            "key": "Italiano",
+                            "value": "it"
+                          }
+                        },
+                        {
+                          "key": "choice",
+                          "value": {
+                            "key": "Alemán",
+                            "value": "ge"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "edad",
+                      "type": "long",
+                      "caption": "Edad",
+                      "description": null,
+                      "validations": [],
+                      "attributes": []
+                    },
+                    {
+                      "id": "juegaTenis",
+                      "type": "boolean",
+                      "caption": "Le gusta jugar a tenis",
+                      "description": null,
+                      "validations": [],
+                      "attributes": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "actions": [],
+          "mainActions": [
+            {
+              "id": "complete",
+              "caption": "Complete",
+              "type": "Primary"
+            }
+          ]
+        },
+        "data": {
+          "nombre": "Mateu",
+          "edad": "14"
+        },
+        "rules": []
+      }
+    ]
+  }
+}

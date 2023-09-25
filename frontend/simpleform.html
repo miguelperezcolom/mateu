@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AQUIELTITULODELAPAGINA</title>
+    <script type="module" src="https://unpkg.com/test-custom-components/dist/assets/custom-elements.js"></script>
+    <script type="module" src="/src/lumo.js"></script>
+    <script type="module" src="/src/mateu/ui/mateu-ui.ts"></script>
+    <script>//window.__MATEU_REMOTE_BASE_URL__ = 'http://localhost:8081/mateu/v1';</script>
+    <script>//window.__MATEU_REMOTE_BASE_URL__ = 'https://explorer.mateu.io/mateu/v1';</script>
+  </head>
+  <body>
+  <mateu-ui uiId="com.example.demoremote.ui.forms.SimpleForm" baseUrl="http://localhost:8081/mateu/v1">
+  </mateu-ui>
+  <script>
+    document.documentElement.setAttribute('theme', 'light')
+  </script>
+  </body>
+</html>
