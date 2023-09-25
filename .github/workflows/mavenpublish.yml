@@ -31,7 +31,7 @@ jobs:
     - name: Cd to project
       run: cd backend && pwd && ls -lh
     - name: Build with Maven
-      run: mvn -B install --file pom.xml
+      run: mvn -B install --file ./pom.xml
 
 # already done
 #    - name: Checkout
