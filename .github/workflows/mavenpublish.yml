@@ -46,7 +46,7 @@ jobs:
 
 
     - name: Start demo
-      run: mvn spring-boot:run -f demo/pom.xml &&
+      run: mvn spring-boot:start -f demo/pom.xml
 
     #- uses: actions/checkout@v3
     - uses: actions/setup-node@v3
@@ -60,6 +60,10 @@ jobs:
       run: cd e2e && npx playwright test
       env:
         PLAYWRIGHT_TEST_BASE_URL: http://localhost:8081
+
+    - name: Stop demo
+      run: mvn spring-boot:stop -f demo/pom.xml
+
 
 #    - name: Publish to GitHub Packages Apache Maven
 #      run: mvn deploy
