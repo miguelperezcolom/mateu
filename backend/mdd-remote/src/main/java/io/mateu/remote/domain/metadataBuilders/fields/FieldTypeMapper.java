@@ -43,6 +43,9 @@ public class FieldTypeMapper {
     if (Double.class.equals(type)) {
       return "double";
     }
+    if (Float.class.equals(type)) {
+      return "float";
+    }
     if (Boolean.class.equals(type)) {
       return "boolean";
     }

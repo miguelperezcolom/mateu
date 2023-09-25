@@ -41,6 +41,9 @@ public class ActualValueExtractor {
       if (long.class.equals(targetType)) {
         return 0l;
       }
+      if (float.class.equals(targetType)) {
+        return 0f;
+      }
       if (double.class.equals(targetType)) {
         return 0.0;
       }
@@ -56,6 +59,8 @@ public class ActualValueExtractor {
         targetValue = Long.parseLong("" + value);
       } else if (double.class.equals(targetType)) {
         targetValue = Double.parseDouble("" + value);
+      } else if (float.class.equals(targetType)) {
+        targetValue = Float.parseFloat("" + value);
       } else if (boolean.class.equals(targetType)) {
         targetValue = Boolean.parseBoolean("" + value);
       } else if (Integer.class.equals(targetType)) {
@@ -64,6 +69,8 @@ public class ActualValueExtractor {
         targetValue = Long.parseLong("" + value);
       } else if (Double.class.equals(targetType)) {
         targetValue = Double.parseDouble("" + value);
+      } else if (Float.class.equals(targetType)) {
+        targetValue = Float.parseFloat("" + value);
       } else if (Boolean.class.equals(targetType)) {
         targetValue = Boolean.parseBoolean("" + value);
       } else if (LocalDate.class.equals(targetType)) {

@@ -1,5 +1,6 @@
 package com.example.demoremote.ui.demoApp.menus.forms;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.mateu.mdd.shared.annotations.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -11,17 +12,21 @@ public class NumberFieldsForm {
 
   @Section("Basic")
   @NotEmpty
-  private int anInt;
+  private int anInt = 3;
 
   @Placeholder("This should appear as the placeholder")
-  private double aPrimitiveDouble;
+  @JsonProperty("aPrimitiveDouble")
+  private double aPrimitiveDouble = 1.2;
 
-  private float aPrimitiveFloat;
+  @JsonProperty("aPrimitiveFloat")
+  private float aPrimitiveFloat = 2.3f;
 
   private Integer anInteger;
 
+  @JsonProperty("aDouble")
   private Double aDouble;
 
+  @JsonProperty("aFloat")
   private Float aFloat;
 
   @Min(10)
