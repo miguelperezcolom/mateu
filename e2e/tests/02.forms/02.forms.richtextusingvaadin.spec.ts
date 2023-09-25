@@ -9,11 +9,11 @@ test('rich text using vaadin works', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Text' })).toBeVisible()
 
   await expect(page.getByLabel('Text')).toBeVisible()
-  await expect(page.getByLabel('Text')).toHaveValue('Hello <b>Mateu</b>.')
+  await expect(page.getByLabel('Text').getByRole('textbox')).toHaveText('Hello Mateu.')
 
-  await page.getByLabel('Text').clear()
-  await page.getByLabel('Text').fill('Hola')
+  await page.getByLabel('Text').getByRole('textbox').clear()
+  await page.getByLabel('Text').getByRole('textbox').fill('Hola')
 
   await page.getByTestId('action-component-0___assess').click()
-  await expect(page.getByLabel('Assessment')).toHaveText('Hola')
+  await expect(page.getByLabel('Assessment')).toHaveText('<p>Hola</p>')
 });
