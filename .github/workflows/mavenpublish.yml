@@ -24,26 +24,14 @@ jobs:
       env:
         GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
         PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
     - name: Cat settings.xml
       run: cat ~/.m2/settings.xml
     - name: Copy settings.xml
       run: cp -f settings.xml ~/.m2
-    - name: Cd to project
-      run: cd backend && pwd && ls -lh
+
     - name: Build with Maven
       run: pwd && mvn -B install --file backend/pom.xml
-
-# already done
-#    - name: Checkout
-#      uses: actions/checkout@v1
-
-    # Install NPM dependencies, cache them correctly
-    # and run all Cypress tests
-    - name: Pwd
-      run: pwd
-    - name: Ls
-      run: ls -lh
-
 
     - name: Start demo
       run: mvn clean install -f demo/pom.xml && mvn spring-boot:start -f demo/pom.xml
@@ -65,8 +53,8 @@ jobs:
       run: mvn spring-boot:stop -f demo/pom.xml
 
 
-#    - name: Publish to GitHub Packages Apache Maven
-#      run: mvn deploy
-#      env:
-#        MAVEN_USERNAME: ${{ secrets.REPO_USERNAME }}
-#        MAVEN_CENTRAL_TOKEN: ${{ secrets.REPO_PASSWORD }}
+    - name: Publish to GitHub Packages Apache Maven
+      run: mvn deploy -f backend/pom.xml
+      env:
+        MAVEN_USERNAME: ${{ secrets.REPO_USERNAME }}
+        MAVEN_CENTRAL_TOKEN: ${{ secrets.REPO_PASSWORD }}
