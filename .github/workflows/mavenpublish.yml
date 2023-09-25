@@ -43,13 +43,23 @@ jobs:
       run: pwd
     - name: Ls
       run: ls -lh
-    - name: Cypress run
-      uses: cypress-io/github-action@v5
+
+      #start: mvn spring-boot:run -f ../demo-remote/pom.xml
+      #wait-on: 'http://localhost:8081'
+
+
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
       with:
-        working-directory: e2e
-        #build: npm install
-        start: mvn spring-boot:run -f ../demo-remote/pom.xml
-        wait-on: 'http://localhost:8081'
+        node-version: 18
+    - name: Install dependencies
+      run: npm ci
+    - name: Install Playwright
+      run: npx playwright install --with-deps
+    - name: Run Playwright tests
+      run: npx playwright test
+      env:
+        PLAYWRIGHT_TEST_BASE_URL: http://localhost:8081
 
 #    - name: Publish to GitHub Packages Apache Maven
 #      run: mvn deploy
