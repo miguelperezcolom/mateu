@@ -23,7 +23,7 @@ public class VaadinRichTextFieldForm {
 
   @Action
   public void assess() {
-    assessment = "" + "" + text;
+    assessment = "" + text;
   }
 
   public String toString() {
