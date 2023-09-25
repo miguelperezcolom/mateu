@@ -41,7 +41,7 @@ public class BasicFieldsForm implements HasBadges, HasStatus, HasTitle, HasSubti
 
   @Action
   public void assess() {
-    assessment = "" + getCurrentUser() + "" + name + ", " + age + ", " + balance;
+    assessment = "" + getCurrentUser() + "" + name + ", " + age + ", " + balance + ", " + withPlaceholder;
   }
 
   private String getCurrentUser() {

@@ -28,6 +28,8 @@ jobs:
       run: cat ~/.m2/settings.xml
     - name: Copy settings.xml
       run: cp -f settings.xml ~/.m2
+    - name: Cd to project
+      run: cd backend && pwd && ls -lh
     - name: Build with Maven
       run: mvn -B install --file pom.xml
 
