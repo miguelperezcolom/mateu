@@ -1,4 +1,11 @@
 <settings>
+    <servers>
+        <server>
+            <id>ossrh</id>
+            <username>${env.OSSRH_PASSWORD}</username>
+            <password>${env.OSSRH_USERNAME}</password>
+        </server>
+    </servers>
     <mirrors>
         <mirror>
             <id>vaadin-addons-http-unblocker</id>
