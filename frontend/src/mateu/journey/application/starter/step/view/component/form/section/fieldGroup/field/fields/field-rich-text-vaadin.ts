@@ -41,12 +41,19 @@ export class RichTextVaadin extends LitElement implements Component {
         console.log(event)
     }
     setValue(value: unknown): void {
+        console.log('setting value for rich text', value)
         this.value = value as string;
         this.json = JSON.stringify([
             {"insert": this.value}
         ])
-        const editor = this.renderRoot?.querySelector( 'vaadin-rich-text-editor' ) as RichTextEditor
-        if (editor) editor.dangerouslySetHtmlValue(this.value);
+        const thevalue = this.value
+        setTimeout(() => {
+            const editor = this.renderRoot?.querySelector( 'vaadin-rich-text-editor' ) as RichTextEditor
+            // @ts-ignore
+            if (editor && editor._editor) {
+                editor.dangerouslySetHtmlValue(thevalue);
+            }
+        })
     }
 
     setBaseUrl(value: string): void {

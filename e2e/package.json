@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "install-pw": "playwright install",
+    "test": "playwright test",
+    "testui": "playwright test --ui"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
