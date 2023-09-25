@@ -1,7 +1,7 @@
 import {StartJourneyCommand} from "./StartJourneyCommand";
-import {nanoid} from "@reduxjs/toolkit";
 import {mateuApiClient} from "../../../../shared/apiClients/MateuApiClient";
 import {state} from "../../state";
+import {nanoid} from "nanoid";
 
 export class StartJourneyCommandHandler {
 
