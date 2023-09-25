@@ -46,7 +46,7 @@ jobs:
 
 
     - name: Start demo
-      run: mvn spring-boot:run -f demo/pom.xml
+      run: mvn spring-boot:run -f demo/pom.xml &&
 
     #- uses: actions/checkout@v3
     - uses: actions/setup-node@v3
