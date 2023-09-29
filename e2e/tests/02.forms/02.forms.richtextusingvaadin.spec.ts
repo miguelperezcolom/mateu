@@ -11,9 +11,20 @@ test('rich text using vaadin works', async ({ page }) => {
   await expect(page.getByLabel('Text')).toBeVisible()
   await expect(page.getByLabel('Text').getByRole('textbox')).toHaveText('Hello Mateu.')
 
-  await page.getByLabel('Text').getByRole('textbox').clear()
-  await page.getByLabel('Text').getByRole('textbox').fill('Hola')
+  await page.getByLabel('Text').getByRole('textbox').click({clickCount: 3})
+  await page.getByLabel('Text').getByRole('textbox').press('Delete')
+  await expect(page.getByLabel('Text').getByRole('textbox')).toHaveText('')
+  await page.getByLabel('Text').getByRole('textbox').click()
+  await page.getByLabel('Text').getByRole('textbox').pressSequentially('H')
+  await page.getByLabel('Text').getByRole('textbox').click()
+  await page.getByLabel('Text').getByRole('textbox').pressSequentially('o')
+  await page.getByLabel('Text').getByRole('textbox').click()
+  await page.getByLabel('Text').getByRole('textbox').pressSequentially('l')
+  await page.getByLabel('Text').getByRole('textbox').click()
+  await page.getByLabel('Text').getByRole('textbox').pressSequentially('a')
+  await expect(page.getByLabel('Text').getByRole('textbox')).toHaveText('Hola')
 
   await page.getByTestId('action-component-0___assess').click()
   await expect(page.getByLabel('Assessment')).toHaveText('<p>Hola</p>')
+
 });

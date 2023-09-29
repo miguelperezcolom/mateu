@@ -33,6 +33,7 @@ export const mapInputTypeToFieldType =  (type: string, stereotype: string):strin
         case 'long': return 'field-number';
         case 'int': return 'field-number';
         case 'double': return 'field-double';
+        case 'float': return 'field-double';
         case 'enum': return 'field-radio-buttons';
         case 'boolean': return 'field-boolean';
         case 'date': return 'field-date';
