@@ -45,4 +45,3 @@ It can't be easier. I hope you like it ;)
 ## Read the user manual
 
 Please go to [https://github.com/miguelperezcolom/mateu-mdd/wiki]
-
