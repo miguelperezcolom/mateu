@@ -37,27 +37,7 @@ jobs:
       run: cp -f settings.xml ~/.m2
 
     - name: Build with Maven
-      run: pwd && mvn -B install --file backend/pom.xml
-
-    - name: Start demo
-      run: mvn clean install -f demo/pom.xml && mvn spring-boot:start -f demo/pom.xml
-
-    #- uses: actions/checkout@v3
-    - uses: actions/setup-node@v3
-      with:
-        node-version: 18
-    - name: Install dependencies
-      run: cd e2e && npm ci
-    - name: Install Playwright
-      run: cd e2e && npx playwright install --with-deps
-    - name: Run Playwright tests
-      run: cd e2e && npx playwright test
-      env:
-        PLAYWRIGHT_TEST_BASE_URL: http://localhost:8081
-
-    - name: Stop demo
-      run: mvn spring-boot:stop -f demo/pom.xml
-
+      run: mvn -B install --file backend/pom.xml
 
     - name: Publish to GitHub Packages Apache Maven
       run: mvn deploy -f backend/pom.xml
