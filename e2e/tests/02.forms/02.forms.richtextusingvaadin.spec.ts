@@ -11,7 +11,7 @@ test('rich text using vaadin works', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Text' })).toBeVisible()
 
   await expect(page.getByLabel('Text')).toBeVisible()
-//  await expect(page.getByLabel('Text').getByRole('textbox')).toHaveText('Hello Mateu.')
+  await expect(page.getByText('Hello Mateu.')).toBeVisible()
 
   await page.getByLabel('Text').getByRole('textbox').click({clickCount: 3})
   await page.getByLabel('Text').getByRole('textbox').press('Delete')
