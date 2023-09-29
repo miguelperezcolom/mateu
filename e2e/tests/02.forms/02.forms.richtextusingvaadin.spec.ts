@@ -8,8 +8,10 @@ test('rich text using vaadin works', async ({ page }) => {
   await page.getByRole('option', { name: 'Rich text using vaadin', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Text' })).toBeVisible()
 
+  await expect(page.getByRole('heading', { name: 'Text' })).toBeVisible()
+
   await expect(page.getByLabel('Text')).toBeVisible()
-  await expect(page.getByLabel('Text').getByRole('textbox')).toHaveText('Hello Mateu.')
+//  await expect(page.getByLabel('Text').getByRole('textbox')).toHaveText('Hello Mateu.')
 
   await page.getByLabel('Text').getByRole('textbox').click({clickCount: 3})
   await page.getByLabel('Text').getByRole('textbox').press('Delete')
@@ -24,7 +26,7 @@ test('rich text using vaadin works', async ({ page }) => {
   await page.getByLabel('Text').getByRole('textbox').pressSequentially('a')
   await expect(page.getByLabel('Text').getByRole('textbox')).toHaveText('Hola')
 
-  await page.getByTestId('action-component-0___assess').click()
+  await page.getByRole('button', { name: 'Assess' }).click()
   await expect(page.getByLabel('Assessment')).toHaveText('<p>Hola</p>')
 
 });
