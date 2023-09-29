@@ -24,7 +24,7 @@ test('rich text using vaadin works', async ({ page }) => {
   await page.getByLabel('Text').getByRole('textbox').pressSequentially('a')
   await expect(page.getByLabel('Text').getByRole('textbox')).toHaveText('Hola')
 
-  await page.getByTestId('action-component-0___assess').click()
+  await page.getByRole('button', { name: 'Assess' }).click()
   await expect(page.getByLabel('Assessment')).toHaveText('<p>Hola</p>')
 
 });
