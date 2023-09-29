@@ -8,6 +8,8 @@ test('rich text using vaadin works', async ({ page }) => {
   await page.getByRole('option', { name: 'Rich text using vaadin', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Text' })).toBeVisible()
 
+  await expect(page.getByRole('heading', { name: 'Text' })).toBeVisible()
+
   await expect(page.getByLabel('Text')).toBeVisible()
   await expect(page.getByLabel('Text').getByRole('textbox')).toHaveText('Hello Mateu.')
 
