@@ -1,10 +1,12 @@
 package com.example.demoremote.ui.demoApp.menus.useCases.insurance.newLife;
 
 import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.data.*;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+
+import io.mateu.mdd.shared.data.*;
 import lombok.Getter;
 import lombok.Setter;
 

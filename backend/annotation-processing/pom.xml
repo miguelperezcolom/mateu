@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <artifactId>backend</artifactId>
+    <groupId>io.mateu</groupId>
+    <version>2.2.61</version>
+  </parent>
   <modelVersion>4.0.0</modelVersion>
+  <artifactId>annotation-processing</artifactId>
 
-  <groupId>io.mateu</groupId>
-  <artifactId>backend</artifactId>
-  <version>2.2.61</version>
-  <packaging>pom</packaging>
-
-  <name>Mateu</name>
-  <description>parent project</description>
-
-  <url>http://maven.apache.org</url>
+  <name>annotation-processing</name>
+  <description>shared interfaces for mateu mdd</description>
+  <url>https://mateu.io</url>
 
   <licenses>
     <license>
@@ -20,9 +22,9 @@
   </licenses>
 
   <scm>
-    <connection>scm:git:git@github.com:miguelperezcolom/mateu-security.git</connection>
-    <developerConnection>scm:git:git@github.com:miguelperezcolom/mateu-security.git</developerConnection>
-    <url>https://github.com/miguelperezcolom/mateu-security</url>
+    <connection>scm:git:git@github.com:miguelperezcolom/mateu-mdd.git</connection>
+    <developerConnection>scm:git:git@github.com:miguelperezcolom/mateu-mdd.git</developerConnection>
+    <url>https://github.com/miguelperezcolom/mateu-mdd</url>
   </scm>
 
   <developers>
@@ -38,62 +40,25 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
   </properties>
 
-  <modules>
-    <module>annotation-processing</module>
-    <module>core</module>
-    <module>jpa</module>
-      <module>dtos</module>
-      <module>springboot-security</module>
-      <module>embedded-front</module>
-      <module>journeyrepo-jpa</module>
-  </modules>
-
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.0.5</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-
   <dependencies>
+
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.13.2</version>
-      <scope>test</scope>
+      <groupId>com.google.auto.service</groupId>
+      <artifactId>auto-service</artifactId>
+      <version>1.0.1</version>
+      <scope>provided</scope>
     </dependency>
 
+    <dependency>
+      <groupId>org.freemarker</groupId>
+      <artifactId>freemarker</artifactId>
+      <version>2.3.31</version>
+    </dependency>
 
-
-    <!-- 11 -->
-    <!--
-    <dependency>
-      <groupId>com.sun.xml.bind</groupId>
-      <artifactId>jaxb-impl</artifactId>
-      <version>2.4.0-b180830.0438</version>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.xml.ws</groupId>
-      <artifactId>jaxws-rt</artifactId>
-      <version>2.3.1</version>
-      <type>pom</type>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.xml.ws</groupId>
-      <artifactId>rt</artifactId>
-      <version>2.3.1</version>
-    </dependency>
-    -->
   </dependencies>
 
   <distributionManagement>
@@ -203,7 +168,7 @@
         <artifactId>maven-javadoc-plugin</artifactId>
         <configuration>
           <sourcepath>src/main/java</sourcepath>
-          <source>17</source>
+          <source>8</source>
         </configuration>
         <executions>
           <execution>
@@ -249,21 +214,6 @@
         </configuration>
       </plugin>
 
-
-      <plugin>
-        <groupId>com.spotify.fmt</groupId>
-        <artifactId>fmt-maven-plugin</artifactId>
-        <version>2.20</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>format</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
     </plugins>
   </build>
-
 </project>
