@@ -1,7 +1,9 @@
 package com.example.demoremote.domains.programmingLanguages;
 
 import com.google.common.base.Strings;
-import io.mateu.mdd.core.interfaces.*;
+import io.mateu.mdd.core.interfaces.Crud;
+import io.mateu.mdd.core.interfaces.HasSubtitle;
+import io.mateu.mdd.core.interfaces.HasTitle;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.Placeholder;
