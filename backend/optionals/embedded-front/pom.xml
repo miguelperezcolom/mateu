@@ -6,12 +6,13 @@
         <artifactId>backend</artifactId>
         <groupId>io.mateu</groupId>
         <version>2.2.62</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>dtos</artifactId>
+    <artifactId>embedded-front</artifactId>
 
-    <name>dtos</name>
+    <name>embedded-front</name>
     <!-- FIXME change it to the project's website -->
     <url>http://www.example.com</url>
 
@@ -23,15 +24,15 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.24</version>
-            <scope>compile</scope>
+            <groupId>io.mateu</groupId>
+            <artifactId>core</artifactId>
+            <version>${version}</version>
         </dependency>
+
         <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>2.13.4</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
@@ -45,4 +46,5 @@
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
+
 </project>

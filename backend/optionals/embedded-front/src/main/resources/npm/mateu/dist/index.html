@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AQUIELTITULODELAPAGINA</title>
+    <script src="https://editor.unlayer.com/embed.js"></script>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js"></script>
+    <script type="module" src="https://unpkg.com/test-custom-components/dist/assets/custom-elements.js"></script>
+    
+    
+    <script>//window.__MATEU_REMOTE_BASE_URL__ = 'http://localhost:8081/mateu/v1';</script>
+    <script>//window.__MATEU_REMOTE_BASE_URL__ = 'https://explorer.mateu.io/mateu/v1';</script>
+    <script type="module" crossorigin src="/assets/mateu.js"></script>
+  </head>
+  <body>
+  <mateu-ui uiId="com.example.demoremote.ui.demoApp.DemoApp" baseUrl="http://localhost:8081/mateu/v1">
+  </mateu-ui>
+  <!--
+  <mateu-ui uiId="com.example.demo.DemoApp" baseUrl="http://localhost:8082/mateu/v1">
+  </mateu-ui>
+  -->
+  <script>
+    if (window.matchMedia) {
+      if(window.matchMedia('(prefers-color-scheme: dark)').matches){
+        document.documentElement.setAttribute('theme', 'dark')
+      } else {
+        document.documentElement.setAttribute('theme', 'light')
+      }
+
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        document.documentElement.setAttribute('theme', e.matches?'dark':'light')
+      });
+    }
+  </script>
+  <script>
+    console.log('adding event listeners to unlayer')
+    unlayer.addEventListener('editor:ready', function () {
+      console.log('editor:ready');
+    });
+
+    unlayer.addEventListener('design:updated', function(updates) {
+      // Design is updated by the user
+      console.log('design updated', updates)
+
+      unlayer.exportHtml(function (data) {
+        var json = data.design; // design json
+        var html = data.html; // design html
+
+        console.log(html)
+      })
+    });
+  </script>
+  </body>
+</html>
