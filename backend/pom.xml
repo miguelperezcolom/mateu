@@ -46,11 +46,11 @@
   <modules>
     <module>annotation-processing</module>
     <module>core</module>
-    <module>jpa</module>
       <module>dtos</module>
-      <module>springboot-security</module>
-      <module>embedded-front</module>
-      <module>journeyrepo-jpa</module>
+    <module>optionals/jpa</module>
+      <module>optionals/springboot-security</module>
+      <module>optionals/embedded-front</module>
+      <module>optionals/journeyrepo-jpa</module>
   </modules>
 
   <dependencyManagement>
