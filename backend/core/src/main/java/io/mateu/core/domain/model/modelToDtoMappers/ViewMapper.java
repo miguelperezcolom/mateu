@@ -5,6 +5,7 @@ import io.mateu.core.domain.model.editors.EntityEditor;
 import io.mateu.core.domain.model.editors.FieldEditor;
 import io.mateu.core.domain.model.editors.MethodParametersEditor;
 import io.mateu.core.domain.model.editors.ObjectEditor;
+import io.mateu.core.domain.model.metadataBuilders.ViewMetadataBuilder;
 import io.mateu.core.domain.model.modelToDtoMappers.viewMapperStuff.*;
 import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
@@ -39,7 +40,8 @@ public class ViewMapper {
 
   @Autowired FieldExtractor fieldExtractor;
 
-  @Autowired ViewMetadataBuilder viewMetadataBuilder;
+  @Autowired
+  ViewMetadataBuilder viewMetadataBuilder;
 
   @Autowired DataExtractor dataExtractor;
 

@@ -1,10 +1,8 @@
-package io.mateu.core.domain.model.modelToDtoMappers.viewMapperStuff;
+package io.mateu.core.domain.model.metadataBuilders;
 
 import io.mateu.core.domain.model.editors.EntityEditor;
 import io.mateu.core.domain.model.editors.FieldEditor;
 import io.mateu.core.domain.model.editors.MethodParametersEditor;
-import io.mateu.core.domain.model.metadataBuilders.*;
-import io.mateu.core.domain.model.modelToDtoMappers.RpcViewWrapper;
 import io.mateu.mdd.core.interfaces.Card;
 import io.mateu.mdd.shared.data.Result;
 import io.mateu.mdd.shared.data.Stepper;

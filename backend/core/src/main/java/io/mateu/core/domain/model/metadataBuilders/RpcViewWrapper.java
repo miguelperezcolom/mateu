@@ -1,4 +1,4 @@
-package io.mateu.core.domain.model.modelToDtoMappers;
+package io.mateu.core.domain.model.metadataBuilders;
 
 import io.mateu.mdd.shared.interfaces.Listing;
 import lombok.AllArgsConstructor;

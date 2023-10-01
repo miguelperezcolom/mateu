@@ -1,7 +1,7 @@
 package io.mateu.core.domain.model.modelToDtoMappers.viewMapperStuff;
 
 import io.mateu.core.domain.model.metadataBuilders.FormMetadataBuilder;
-import io.mateu.core.domain.model.modelToDtoMappers.RpcViewWrapper;
+import io.mateu.core.domain.model.metadataBuilders.RpcViewWrapper;
 import io.mateu.mdd.core.interfaces.Card;
 import io.mateu.mdd.core.interfaces.Crud;
 import io.mateu.mdd.core.interfaces.HasStepper;
