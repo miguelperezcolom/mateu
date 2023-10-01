@@ -1,6 +1,6 @@
 package ${pkgName};
 
-import io.mateu.remote.domain.UIRegistry;
+import io.mateu.core.domain.UIRegistry;
 import io.mateu.util.Helper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

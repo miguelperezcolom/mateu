@@ -1,8 +1,8 @@
 package com.example.demoremote.ui.demoApp.menus.util;
 
+import io.mateu.core.application.authPropagation.ReactiveRequestContextHolder;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.ReadOnly;
-import io.mateu.remote.application.authPropagation.ReactiveRequestContextHolder;
 import java.util.concurrent.ExecutionException;
 import lombok.Getter;
 import lombok.Setter;
