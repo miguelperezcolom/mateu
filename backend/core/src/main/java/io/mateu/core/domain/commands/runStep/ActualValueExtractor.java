@@ -1,8 +1,8 @@
 package io.mateu.core.domain.commands.runStep;
 
-import io.mateu.core.domain.files.FileChecker;
-import io.mateu.core.domain.files.StorageService;
-import io.mateu.core.domain.files.StorageServiceAccessor;
+import io.mateu.core.domain.model.files.FileChecker;
+import io.mateu.core.domain.model.files.StorageService;
+import io.mateu.core.domain.model.files.StorageServiceAccessor;
 import io.mateu.mdd.shared.data.ExternalReference;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;

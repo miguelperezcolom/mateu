@@ -1,7 +1,7 @@
 package io.mateu.core.domain.queries.getUI;
 
 import io.mateu.core.application.NotFoundException;
-import io.mateu.core.domain.modelToDtoMappers.UIMapper;
+import io.mateu.core.domain.model.modelToDtoMappers.UIMapper;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.UI;
 import lombok.extern.slf4j.Slf4j;

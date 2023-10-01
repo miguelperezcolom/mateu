@@ -1,7 +1,7 @@
 package io.mateu.core.domain.commands.runStep.concreteActionRunners;
 
 import io.mateu.core.domain.commands.runStep.ActionRunner;
-import io.mateu.core.domain.store.JourneyStoreService;
+import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.shared.data.Destination;

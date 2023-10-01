@@ -1,10 +1,10 @@
 package io.mateu.core.domain.queries.getListRows;
 
 import com.google.common.base.Strings;
-import io.mateu.core.application.FiltersDeserializer;
-import io.mateu.core.application.MateuRemoteClient;
-import io.mateu.core.domain.store.JourneyContainer;
-import io.mateu.core.domain.store.JourneyStoreService;
+import io.mateu.core.domain.apiClients.MateuRemoteClient;
+import io.mateu.core.domain.model.store.JourneyContainer;
+import io.mateu.core.domain.model.store.JourneyStoreService;
+import io.mateu.core.domain.queries.FiltersDeserializer;
 import io.mateu.mdd.shared.interfaces.Listing;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

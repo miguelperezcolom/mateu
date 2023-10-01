@@ -1,8 +1,8 @@
 package io.mateu.core.domain.commands.runStep.concreteActionRunners;
 
 import io.mateu.core.domain.commands.runStep.ActionRunner;
-import io.mateu.core.domain.persistence.Merger;
-import io.mateu.core.domain.store.JourneyStoreService;
+import io.mateu.core.domain.model.persistence.Merger;
+import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.mdd.shared.data.Destination;
 import io.mateu.mdd.shared.data.DestinationType;
 import io.mateu.mdd.shared.data.Result;

@@ -2,7 +2,7 @@ package com.example.demoremote.domains.journeyStore;
 
 import io.mateu.mdd.core.interfaces.Crud;
 import io.mateu.mdd.shared.interfaces.SortCriteria;
-import io.mateu.core.domain.store.JourneyRepository;
+import io.mateu.core.domain.model.store.JourneyRepository;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

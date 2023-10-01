@@ -1,8 +1,8 @@
 package io.mateu.core.domain;
 
-import io.mateu.core.application.MateuConfiguratorBean;
-import io.mateu.core.domain.modelToDtoMappers.UIMapper;
-import io.mateu.core.domain.store.JourneyStoreService;
+import io.mateu.core.domain.model.modelToDtoMappers.UIMapper;
+import io.mateu.core.domain.model.store.JourneyStoreService;
+import io.mateu.core.infra.MateuConfiguratorBean;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;

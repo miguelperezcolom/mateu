@@ -1,7 +1,7 @@
 package io.mateu.core.domain.commands.runStep.concreteActionRunners.listActionRunners;
 
 import io.mateu.core.domain.commands.runStep.concreteActionRunners.ListActionRunner;
-import io.mateu.core.domain.store.JourneyStoreService;
+import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.mdd.core.interfaces.Crud;
 import io.mateu.util.Helper;
 import java.lang.reflect.Method;

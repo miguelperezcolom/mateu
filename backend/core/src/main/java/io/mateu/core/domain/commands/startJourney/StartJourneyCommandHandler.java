@@ -1,10 +1,10 @@
 package io.mateu.core.domain.commands.startJourney;
 
-import io.mateu.core.application.MateuRemoteClient;
 import io.mateu.core.application.NotFoundException;
-import io.mateu.core.domain.modelToDtoMappers.JourneyMapper;
-import io.mateu.core.domain.store.JourneyContainer;
-import io.mateu.core.domain.store.JourneyStoreService;
+import io.mateu.core.domain.apiClients.MateuRemoteClient;
+import io.mateu.core.domain.model.modelToDtoMappers.JourneyMapper;
+import io.mateu.core.domain.model.store.JourneyContainer;
+import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.interfaces.RemoteJourney;
 import io.mateu.remote.dtos.Journey;

@@ -1,8 +1,8 @@
 package io.mateu.core.domain.commands.runStep.concreteActionRunners;
 
 import io.mateu.core.domain.commands.runStep.ActionRunner;
-import io.mateu.core.domain.editors.FieldEditor;
-import io.mateu.core.domain.store.JourneyStoreService;
+import io.mateu.core.domain.model.editors.FieldEditor;
+import io.mateu.core.domain.model.store.JourneyStoreService;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;

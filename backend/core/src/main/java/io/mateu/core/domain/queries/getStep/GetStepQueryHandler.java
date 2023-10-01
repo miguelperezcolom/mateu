@@ -1,9 +1,9 @@
 package io.mateu.core.domain.queries.getStep;
 
 import com.google.common.base.Strings;
-import io.mateu.core.application.MateuRemoteClient;
-import io.mateu.core.domain.store.JourneyContainer;
-import io.mateu.core.domain.store.JourneyStoreService;
+import io.mateu.core.domain.apiClients.MateuRemoteClient;
+import io.mateu.core.domain.model.store.JourneyContainer;
+import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.remote.dtos.Step;
 import io.mateu.util.Helper;
 import lombok.extern.slf4j.Slf4j;

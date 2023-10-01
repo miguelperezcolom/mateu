@@ -2,7 +2,7 @@ package io.mateu.core.domain.commands.runStep.concreteActionRunners.listActionRu
 
 import io.mateu.core.domain.commands.runStep.concreteActionRunners.ListActionRunner;
 import io.mateu.core.domain.commands.runStep.concreteActionRunners.RunMethodActionRunner;
-import io.mateu.core.domain.store.JourneyStoreService;
+import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.mdd.core.interfaces.Crud;
 import io.mateu.mdd.core.interfaces.HasActions;
 import io.mateu.mdd.shared.interfaces.SelectedRowsContext;

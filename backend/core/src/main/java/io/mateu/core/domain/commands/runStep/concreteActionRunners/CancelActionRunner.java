@@ -1,9 +1,9 @@
 package io.mateu.core.domain.commands.runStep.concreteActionRunners;
 
 import io.mateu.core.domain.commands.runStep.ActionRunner;
-import io.mateu.core.domain.editors.EntityEditor;
-import io.mateu.core.domain.editors.ObjectEditor;
-import io.mateu.core.domain.store.JourneyStoreService;
+import io.mateu.core.domain.model.editors.EntityEditor;
+import io.mateu.core.domain.model.editors.ObjectEditor;
+import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import jakarta.persistence.Entity;

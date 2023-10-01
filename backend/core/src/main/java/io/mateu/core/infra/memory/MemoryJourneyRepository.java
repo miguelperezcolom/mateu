@@ -1,7 +1,7 @@
 package io.mateu.core.infra.memory;
 
-import io.mateu.core.domain.store.JourneyContainer;
-import io.mateu.core.domain.store.JourneyRepository;
+import io.mateu.core.domain.model.store.JourneyContainer;
+import io.mateu.core.domain.model.store.JourneyRepository;
 import jakarta.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.*;
