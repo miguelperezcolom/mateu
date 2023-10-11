@@ -109,12 +109,10 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
     Method m = getActions(actualViewInstance).get(actionId);
 
-    runMethod(actualViewInstance, m, journeyId, stepId, actionId, data, serverHttpRequest);
-
-    return Mono.empty();
+    return runMethod(actualViewInstance, m, journeyId, stepId, actionId, data, serverHttpRequest);
   }
 
-  protected void runMethod(
+  protected Mono<Void> runMethod(
       Object actualViewInstance,
       Method m,
       String journeyId,
@@ -151,17 +149,51 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
         Object result = m.invoke(actualViewInstance, injectParameters(m, serverHttpRequest));
 
-        if (actualViewInstance != null && !(actualViewInstance instanceof Listing)) {
-          store.updateStep(journeyId, actualViewInstance, serverHttpRequest);
-        }
+        if (result != null && Mono.class.isAssignableFrom(result.getClass())) {
 
-        Object whatToShow = result;
-        if (!void.class.equals(m.getReturnType())) {
-          if (whatToShow instanceof Result) {
-            addBackDestination((Result) whatToShow, store.getInitialStep(journeyId));
+          var mono = (Mono) result;
+
+          return mono.map(r -> {
+            try {
+              Object whatToShow = r;
+              if (!void.class.equals(m.getReturnType())) {
+                if (whatToShow instanceof Result) {
+                  addBackDestination((Result) whatToShow, store.getInitialStep(journeyId));
+                }
+                String newStepId = "result_" + UUID.randomUUID().toString();
+                store.setStep(journeyId, newStepId, whatToShow, serverHttpRequest);
+              }
+            } catch (Throwable e) {
+              return Mono.error(new RuntimeException(e));
+            }
+            return Mono.empty();
+          }).then(Mono.fromRunnable(new Runnable() {
+            @Override
+            public void run() {
+                if (actualViewInstance != null && !(actualViewInstance instanceof Listing)) {
+                  try {
+                    store.updateStep(journeyId, actualViewInstance, serverHttpRequest);
+                  } catch (Throwable e) {
+                    throw new RuntimeException(e);
+                  }
+                }
+            }
+          }));
+        } else {
+
+          if (actualViewInstance != null && !(actualViewInstance instanceof Listing)) {
+            store.updateStep(journeyId, actualViewInstance, serverHttpRequest);
           }
-          String newStepId = "result_" + UUID.randomUUID().toString();
-          store.setStep(journeyId, newStepId, whatToShow, serverHttpRequest);
+
+          Object whatToShow = result;
+          if (!void.class.equals(m.getReturnType())) {
+            if (whatToShow instanceof Result) {
+              addBackDestination((Result) whatToShow, store.getInitialStep(journeyId));
+            }
+            String newStepId = "result_" + UUID.randomUUID().toString();
+            store.setStep(journeyId, newStepId, whatToShow, serverHttpRequest);
+          }
+
         }
 
       } catch (InvocationTargetException ex) {
@@ -171,6 +203,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
         throw targetException;
       }
     }
+
+    return Mono.empty();
   }
 
   private Object[] injectParameters(Method m, ServerHttpRequest serverHttpRequest) {
