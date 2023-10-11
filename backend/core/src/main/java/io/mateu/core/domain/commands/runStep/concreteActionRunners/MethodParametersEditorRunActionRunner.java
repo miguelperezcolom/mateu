@@ -17,6 +17,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 public class MethodParametersEditorRunActionRunner extends AbstractActionRunner
@@ -32,7 +33,7 @@ public class MethodParametersEditorRunActionRunner extends AbstractActionRunner
   }
 
   @Override
-  public void run(
+  public Mono<Void> run(
       Object viewInstance,
       String journeyId,
       String stepId,
@@ -79,5 +80,7 @@ public class MethodParametersEditorRunActionRunner extends AbstractActionRunner
     } else {
       store.backToStep(journeyId, initialStep.getId()); // will save the step
     }
+
+    return Mono.empty();
   }
 }

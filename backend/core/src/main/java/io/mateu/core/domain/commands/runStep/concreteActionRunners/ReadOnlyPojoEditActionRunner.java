@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 public class ReadOnlyPojoEditActionRunner implements ActionRunner {
@@ -19,7 +20,7 @@ public class ReadOnlyPojoEditActionRunner implements ActionRunner {
   }
 
   @Override
-  public void run(
+  public Mono<Void> run(
       Object viewInstance,
       String journeyId,
       String stepId,
@@ -36,5 +37,7 @@ public class ReadOnlyPojoEditActionRunner implements ActionRunner {
     }
 
     store.setStep(journeyId, "edit", editor, serverHttpRequest);
+
+    return Mono.empty();
   }
 }

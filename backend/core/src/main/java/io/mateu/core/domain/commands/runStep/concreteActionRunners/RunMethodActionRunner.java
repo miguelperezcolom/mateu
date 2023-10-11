@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 public class RunMethodActionRunner extends AbstractActionRunner implements ActionRunner {
@@ -95,7 +96,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   }
 
   @Override
-  public void run(
+  public Mono<Void> run(
       Object viewInstance,
       String journeyId,
       String stepId,
@@ -109,6 +110,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     Method m = getActions(actualViewInstance).get(actionId);
 
     runMethod(actualViewInstance, m, journeyId, stepId, actionId, data, serverHttpRequest);
+
+    return Mono.empty();
   }
 
   protected void runMethod(

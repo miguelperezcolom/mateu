@@ -16,6 +16,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 public class PersistentPojoSaveActionRunner implements ActionRunner {
@@ -28,7 +29,7 @@ public class PersistentPojoSaveActionRunner implements ActionRunner {
   }
 
   @Override
-  public void run(
+  public Mono<Void> run(
       Object viewInstance,
       String journeyId,
       String stepId,
@@ -64,6 +65,8 @@ public class PersistentPojoSaveActionRunner implements ActionRunner {
                 initialStep.getId()));
     String newStepId = "result_" + UUID.randomUUID().toString();
     store.setStep(journeyId, newStepId, whatToShow, serverHttpRequest);
+
+    return Mono.empty();
   }
 
   private void refreshDetailView(

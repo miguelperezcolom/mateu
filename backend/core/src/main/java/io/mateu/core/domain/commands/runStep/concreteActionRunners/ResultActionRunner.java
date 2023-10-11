@@ -8,6 +8,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 public class ResultActionRunner implements ActionRunner {
@@ -20,7 +21,7 @@ public class ResultActionRunner implements ActionRunner {
   }
 
   @Override
-  public void run(
+  public Mono<Void> run(
       Object viewInstance,
       String journeyId,
       String stepId,
@@ -31,5 +32,6 @@ public class ResultActionRunner implements ActionRunner {
     Step step = store.getStep(journeyId, actionId);
     store.getJourney(journeyId).setCurrentStepId(step.getId());
     store.getJourney(journeyId).setCurrentStepDefinitionId(step.getType());
+    return Mono.empty();
   }
 }

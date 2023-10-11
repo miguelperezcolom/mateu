@@ -9,6 +9,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 public class CrudRowActionRunner implements ListActionRunner {
@@ -21,7 +22,7 @@ public class CrudRowActionRunner implements ListActionRunner {
   }
 
   @Override
-  public void run(
+  public Mono<Void> run(
       Crud crud,
       String journeyId,
       String stepId,
@@ -47,5 +48,7 @@ public class CrudRowActionRunner implements ListActionRunner {
       throw new Exception(
           "Crud " + methodName + " thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
     }
+
+    return Mono.empty();
   }
 }

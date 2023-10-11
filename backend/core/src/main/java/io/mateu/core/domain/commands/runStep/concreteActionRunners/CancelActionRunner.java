@@ -11,6 +11,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 public class CancelActionRunner implements ActionRunner {
@@ -28,7 +29,7 @@ public class CancelActionRunner implements ActionRunner {
   }
 
   @Override
-  public void run(
+  public Mono<Void> run(
       Object viewInstance,
       String journeyId,
       String stepId,
@@ -41,5 +42,6 @@ public class CancelActionRunner implements ActionRunner {
       targetStepId = stepId.substring(0, stepId.length() - "_edit".length());
     }
     store.backToStep(journeyId, targetStepId);
+    return Mono.empty();
   }
 }

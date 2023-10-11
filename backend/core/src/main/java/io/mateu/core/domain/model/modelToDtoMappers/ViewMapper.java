@@ -40,8 +40,7 @@ public class ViewMapper {
 
   @Autowired FieldExtractor fieldExtractor;
 
-  @Autowired
-  ViewMetadataBuilder viewMetadataBuilder;
+  @Autowired ViewMetadataBuilder viewMetadataBuilder;
 
   @Autowired DataExtractor dataExtractor;
 

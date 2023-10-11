@@ -12,6 +12,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 public class CrudEditActionRunner implements ListActionRunner {
@@ -24,7 +25,7 @@ public class CrudEditActionRunner implements ListActionRunner {
   }
 
   @Override
-  public void run(
+  public Mono<Void> run(
       Crud crud,
       String journeyId,
       String stepId,
@@ -84,5 +85,7 @@ public class CrudEditActionRunner implements ListActionRunner {
     }
 
     store.setStep(journeyId, newStepId, editor, serverHttpRequest);
+
+    return Mono.empty();
   }
 }

@@ -10,6 +10,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 public class ObjectEditorEditActionRunner implements ActionRunner {
@@ -22,7 +23,7 @@ public class ObjectEditorEditActionRunner implements ActionRunner {
   }
 
   @Override
-  public void run(
+  public Mono<Void> run(
       Object viewInstance,
       String journeyId,
       String stepId,
@@ -33,6 +34,7 @@ public class ObjectEditorEditActionRunner implements ActionRunner {
     // store.setStep(journeyId, "edit_object", getObject((ObjectEditor) viewInstance),
     // serverHttpRequest);
     store.setStep(journeyId, "edit", getEditor((ObjectEditor) viewInstance), serverHttpRequest);
+    return Mono.empty();
   }
 
   private Object getEditor(ObjectEditor objectEditor) throws Throwable {

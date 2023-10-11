@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 public class CrudNewActionRunner implements ListActionRunner {
@@ -20,7 +21,7 @@ public class CrudNewActionRunner implements ListActionRunner {
   }
 
   @Override
-  public void run(
+  public Mono<Void> run(
       Crud crud,
       String journeyId,
       String stepId,
@@ -45,5 +46,7 @@ public class CrudNewActionRunner implements ListActionRunner {
       throw new Exception(
           "Crud onNew thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
     }
+
+    return Mono.empty();
   }
 }

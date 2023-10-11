@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 public class MethodParametersEditorCancelActionRunner implements ActionRunner {
@@ -19,7 +20,7 @@ public class MethodParametersEditorCancelActionRunner implements ActionRunner {
   }
 
   @Override
-  public void run(
+  public Mono<Void> run(
       Object viewInstance,
       String journeyId,
       String stepId,
@@ -29,5 +30,6 @@ public class MethodParametersEditorCancelActionRunner implements ActionRunner {
       throws Throwable {
     MethodParametersEditor methodParametersEditor = (MethodParametersEditor) viewInstance;
     store.backToStep(journeyId, methodParametersEditor.getInitialStep());
+    return Mono.empty();
   }
 }

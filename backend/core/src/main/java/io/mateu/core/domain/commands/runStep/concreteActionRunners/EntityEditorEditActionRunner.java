@@ -8,6 +8,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 public class EntityEditorEditActionRunner implements ActionRunner {
@@ -20,7 +21,7 @@ public class EntityEditorEditActionRunner implements ActionRunner {
   }
 
   @Override
-  public void run(
+  public Mono<Void> run(
       Object viewInstance,
       String journeyId,
       String stepId,
@@ -29,6 +30,7 @@ public class EntityEditorEditActionRunner implements ActionRunner {
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     store.setStep(journeyId, "edit", getEditor((EntityEditor) viewInstance), serverHttpRequest);
+    return Mono.empty();
   }
 
   private Object getEditor(EntityEditor entityEditor) throws Exception {

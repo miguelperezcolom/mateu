@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 public class CrudDeleteActionRunner implements ListActionRunner {
@@ -24,7 +25,7 @@ public class CrudDeleteActionRunner implements ListActionRunner {
   }
 
   @Override
-  public void run(
+  public Mono<Void> run(
       Crud crud,
       String journeyId,
       String stepId,
@@ -72,5 +73,7 @@ public class CrudDeleteActionRunner implements ListActionRunner {
       throw new Exception(
           "Crud delete thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
     }
+
+    return Mono.empty();
   }
 }

@@ -86,19 +86,12 @@ public class RunStepActionCommandHandler {
 
     if (!"component-0".equals(componentId)) {}
 
-    boolean actionRunnerFound = false;
     for (ActionRunner actionRunner : actionRunners) {
       if (actionRunner.applies(viewInstance, actionId)) {
-        actionRunnerFound = true;
-        actionRunner.run(viewInstance, journeyId, stepId, actionId, data, serverHttpRequest);
-        break;
+        return actionRunner.run(viewInstance, journeyId, stepId, actionId, data, serverHttpRequest);
       }
     }
 
-    if (!actionRunnerFound) {
-      throw new Exception("Unkonwn action " + actionId);
-    }
-
-    return Mono.empty();
+    throw new Exception("Unkonwn action " + actionId);
   }
 }
