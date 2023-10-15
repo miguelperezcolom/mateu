@@ -15,8 +15,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "copy": "tsc && vite build && cp -rf dist ../backend/mdd-remote-lit/src/main/resources/npm/mateu",
-    "copyw": "xcopy /e/h/y/q \"./dist\" \"../backend/mdd-remote-lit/src/main/resources/npm/mateu/dist\""
+    "copy": "tsc && vite build && cp -rf dist ../backend/optionals/embedded-front/src/main/resources/npm/mateu",
+    "copyw": "xcopy /e/h/y/q \"./dist\" \"../backend/optionals/embedded-front/src/main/resources/npm/mateu/dist\""
   },
   "dependencies": {
     "@alenaksu/json-viewer": "^2.0.1",
