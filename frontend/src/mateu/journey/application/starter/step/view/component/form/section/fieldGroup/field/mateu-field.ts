@@ -35,6 +35,7 @@ import './fields/field-complexkeychoice'
 import './fields/field-crud'
 import './fields/field-multi-select-combobox'
 import './fields/field-rich-text-vaadin'
+import './fields/field-json'
 import FieldWrapper from "../../../FieldWrapper";
 
 /**

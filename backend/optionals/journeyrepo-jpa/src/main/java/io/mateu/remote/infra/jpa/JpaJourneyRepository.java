@@ -1,7 +1,7 @@
 package io.mateu.remote.infra.jpa;
 
-import io.mateu.remote.domain.store.JourneyContainer;
-import io.mateu.remote.domain.store.JourneyRepository;
+import io.mateu.core.domain.model.store.JourneyContainer;
+import io.mateu.core.domain.model.store.JourneyRepository;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;

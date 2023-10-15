@@ -23,4 +23,10 @@ public class Step {
   private List<Rule> rules;
 
   private String previousStepId;
+
+  public void mergeData(Map<String, Object> values) {
+    if (values != null) {
+      data.putAll(values);
+    }
+  }
 }

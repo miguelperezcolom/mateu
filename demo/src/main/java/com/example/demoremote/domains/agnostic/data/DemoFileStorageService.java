@@ -1,6 +1,6 @@
 package com.example.demoremote.domains.agnostic.data;
 
-import io.mateu.remote.domain.files.StorageService;
+import io.mateu.core.domain.model.files.StorageService;
 import jakarta.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;

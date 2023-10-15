@@ -18,6 +18,7 @@ export const mapInputTypeToFieldType =  (type: string, stereotype: string):strin
         case 'rich-text': return 'field-rich-text-vaadin';
         case 'rich-text-vaadin': return 'field-rich-text-vaadin';
         case 'textarea': return 'field-textarea';
+        case 'json': return 'field-json';
         case 'radiobuttons': return 'field-radio-buttons';
         case 'toggle': return 'field-toggle';
         case 'combobox': return 'field-combobox';

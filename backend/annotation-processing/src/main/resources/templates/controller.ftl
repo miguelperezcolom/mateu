@@ -1,7 +1,7 @@
 package ${pkgName};
 
 import io.mateu.mdd.shared.data.Value;
-import io.mateu.remote.application.MateuService;
+import io.mateu.core.domain.MateuService;
 import io.mateu.remote.dtos.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;

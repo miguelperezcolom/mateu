@@ -1,5 +1,6 @@
 package com.example.demoremote.domains.programmingLanguages;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Strings;
 import io.mateu.mdd.core.interfaces.Crud;
 import io.mateu.mdd.core.interfaces.HasSubtitle;
@@ -26,12 +27,14 @@ import reactor.core.publisher.Mono;
 public class ProgrammingLanguages
     implements Crud<ProgrammingLanguages, LanguageRow>, HasTitle, HasSubtitle {
 
+  @JsonIgnore
   @Autowired private LanguagesRepository repo;
 
   @Autowired private LanguageForm form;
 
   @Autowired private LanguageDetail detail;
 
+  @JsonIgnore
   @Autowired ApplicationContext context;
 
   @Placeholder("here the language name")

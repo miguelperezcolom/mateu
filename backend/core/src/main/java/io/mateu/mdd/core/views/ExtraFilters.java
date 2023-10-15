@@ -9,8 +9,11 @@ import lombok.Setter;
 @Setter
 public class ExtraFilters {
 
-  private final String ql;
-  private final Map<String, Object> parameters;
+  private String ql;
+  private Map<String, Object> parameters;
+
+  public ExtraFilters() {
+  }
 
   public ExtraFilters(String ql, Object... params) {
     this.ql = ql;

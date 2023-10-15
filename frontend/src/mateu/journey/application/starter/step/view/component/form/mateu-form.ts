@@ -281,16 +281,12 @@ export class MateuForm extends LitElement implements FormElement {
   async runAction(event: Event) {
     const boton = (event.target as HTMLElement)
     const actionId = boton.getAttribute('actionId');
-    boton.setAttribute("disabled", "disabled")
     if (!actionId) {
       console.log('Attribute actionId is missing for ' + event.target)
       return
     }
     setTimeout(async () => {
       await this.doRunAction(actionId);
-      if (false && boton.isConnected) {
-        boton.removeAttribute("disabled")
-      }
     })
   }
 

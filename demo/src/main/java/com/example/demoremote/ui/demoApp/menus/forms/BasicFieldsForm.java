@@ -35,13 +35,13 @@ public class BasicFieldsForm implements HasBadges, HasStatus, HasTitle, HasSubti
   @ReadOnly
   private String assessment;
 
-  @Action
+  @Action(order = 1)
   public void slowAction() throws InterruptedException {
     Thread.sleep(5000);
     assessment = "run";
   }
 
-  @Action
+  @Action(order = 2)
   public void assess() {
     assessment = "" + getCurrentUser() + "" + name + ", " + age + ", " + balance + ", " + withPlaceholder;
   }
