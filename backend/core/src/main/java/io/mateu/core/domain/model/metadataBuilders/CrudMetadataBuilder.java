@@ -1,6 +1,7 @@
 package io.mateu.core.domain.model.metadataBuilders;
 
 import io.mateu.core.domain.model.metadataBuilders.fields.FieldTypeMapper;
+import io.mateu.mdd.core.interfaces.DynamicCrud;
 import io.mateu.mdd.core.interfaces.HasSubtitle;
 import io.mateu.mdd.core.interfaces.HasTitle;
 import io.mateu.mdd.core.interfaces.RpcCrudViewExtended;
@@ -14,6 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,8 +29,16 @@ public class CrudMetadataBuilder {
 
   @Autowired FieldTypeMapper fieldTypeMapper;
 
+  @SneakyThrows
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
-  public Crud build(String stepId, String listId, Listing rpcView) {
+  public Crud build(String stepId, String listId, Object crudInstance) {
+
+    if (crudInstance instanceof DynamicCrud) {
+      return ((DynamicCrud) crudInstance).build().toFuture().get();
+    }
+
+    var rpcView = (Listing) crudInstance;
+
     return Crud.builder()
         .title(getTitle(rpcView))
         .subtitle(getSubtitle(rpcView))

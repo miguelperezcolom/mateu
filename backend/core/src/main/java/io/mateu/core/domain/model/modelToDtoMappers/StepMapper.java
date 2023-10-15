@@ -1,6 +1,8 @@
 package io.mateu.core.domain.model.modelToDtoMappers;
 
 import io.mateu.core.domain.model.store.JourneyContainer;
+import io.mateu.mdd.core.interfaces.DynamicStep;
+import io.mateu.mdd.core.interfaces.DynamicUI;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.Rule;
 import io.mateu.remote.dtos.Step;
@@ -27,6 +29,10 @@ public class StepMapper {
 
     Map<String, Object> data = new HashMap<>();
     List<Rule> rules = new ArrayList<>();
+
+    if (formInstance instanceof DynamicStep) {
+      return ((DynamicStep) formInstance).build().toFuture().get();
+    }
 
     return Step.builder()
         .id(stepId)

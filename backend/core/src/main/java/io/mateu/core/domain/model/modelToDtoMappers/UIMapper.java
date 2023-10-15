@@ -29,6 +29,11 @@ public class UIMapper {
   @Autowired MateuRemoteClient mateuRemoteClient;
 
   public UI map(Object uiInstance, ServerHttpRequest serverHttpRequest) throws Exception {
+
+    if (uiInstance instanceof DynamicUI) {
+      return ((DynamicUI) uiInstance).build().toFuture().get();
+    }
+
     UI ui = UI.builder().build();
 
     ui.setTitle(getTitle(uiInstance));
