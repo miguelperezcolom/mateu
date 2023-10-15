@@ -12,6 +12,7 @@ import io.mateu.remote.dtos.ActionType;
 import jakarta.persistence.Entity;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -120,7 +121,8 @@ public class ActionMetadataBuilder {
                 m ->
                     (!"JpaRpcCrudView".equals(uiInstance.getClass().getSimpleName()))
                         || (Modifier.isStatic(m.getModifiers())))
-            .map(m -> getAction(m))
+                .sorted(Comparator.comparingInt(m -> m.getAnnotation(io.mateu.mdd.shared.annotations.Action.class).order()))
+                .map(m -> getAction(m))
             .collect(Collectors.toList());
     if (uiInstance instanceof HasActions) {
       actions.addAll(

@@ -1,12 +1,14 @@
 package io.mateu.core.domain.model.editors;
 
 import io.mateu.util.Serializer;
+
+import java.util.HashMap;
 import java.util.Map;
 
 public class ObjectEditor {
 
   private Class type;
-  private Map<String, Object> data;
+  private Map<String, Object> data = new HashMap<>();
 
   public ObjectEditor(Object entity, int __index, int __count) throws Exception {
     this.type = entity.getClass();
@@ -26,7 +28,7 @@ public class ObjectEditor {
   }
 
   public void setData(Map<String, Object> data) {
-    this.data = data;
+    this.data.putAll(data);
   }
 
   public Class getType() {

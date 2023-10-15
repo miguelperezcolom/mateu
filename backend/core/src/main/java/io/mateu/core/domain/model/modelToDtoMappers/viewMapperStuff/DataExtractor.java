@@ -58,7 +58,7 @@ public class DataExtractor {
     }
     Class dataContainerClass = uiInstance.getClass();
     Object dataContainer = uiInstance;
-    if (uiInstance instanceof Listing) {
+    if (false && uiInstance instanceof Listing) {
       return Map.of();
     }
     data.putAll(Serializer.toMap(uiInstance));

@@ -3,6 +3,7 @@ package io.mateu.core.domain.model.metadataBuilders;
 import io.mateu.core.domain.model.editors.EntityEditor;
 import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.shared.annotations.Caption;
+import io.mateu.mdd.shared.annotations.MainAction;
 import io.mateu.mdd.shared.annotations.UseCrud;
 import io.mateu.mdd.shared.interfaces.HasBadges;
 import io.mateu.mdd.shared.interfaces.HasStatus;
@@ -17,6 +18,7 @@ import jakarta.persistence.OneToMany;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -121,7 +123,8 @@ public class FormMetadataBuilder {
     List<Method> allMethods = ReflectionHelper.getAllMethods(uiInstance.getClass());
     List<Action> actions =
         allMethods.stream()
-            .filter(m -> m.isAnnotationPresent(io.mateu.mdd.shared.annotations.MainAction.class))
+            .filter(m -> m.isAnnotationPresent(MainAction.class))
+                .sorted(Comparator.comparingInt(m -> m.getAnnotation(MainAction.class).order()))
             .map(m -> actionMetadataBuilder.getAction(m))
             .collect(Collectors.toList());
     if (!"view".equals(stepId)

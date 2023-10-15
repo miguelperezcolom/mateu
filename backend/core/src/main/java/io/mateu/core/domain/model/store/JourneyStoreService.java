@@ -57,7 +57,7 @@ public class JourneyStoreService {
       throw new Exception(
           "No step with id " + stepId + " for journey with id " + journeyId + " found");
     }
-    if ("io.mateu.mdd.ui.cruds.JpaRpcCrudView".equals(step.getType())) {
+    if (false && "io.mateu.mdd.ui.cruds.JpaRpcCrudView".equals(step.getType())) {
       Object jpaRpcCrudView =
           createInstanceFromJourneyTypeId(container.get().getJourneyTypeId(), serverHttpRequest);
       return jpaRpcCrudView;
@@ -159,6 +159,11 @@ public class JourneyStoreService {
     Step step =
         stepMapper.map(
             container.get(), stepId, oldStep.getPreviousStepId(), editor, serverHttpRequest);
+    if (oldStep != null) {
+      var data = oldStep.getData();
+      data.putAll(step.getData());
+      step.setData(data);
+    }
     if (!container.get().getSteps().containsKey(stepId)) {
       container.get().setSteps(extendMap(container.get().getSteps(), stepId, step));
     } else {
@@ -178,6 +183,23 @@ public class JourneyStoreService {
     }
     String stepId = container.get().getJourney().getCurrentStepId();
     updateStep(journeyId, stepId, editor, serverHttpRequest);
+  }
+
+  public void updateStep(String journeyId, String stepId, Step step)
+          throws Throwable {
+    Optional<JourneyContainer> container = journeyRepo.findById(journeyId);
+    if (!container.isPresent()) {
+      throw new Exception("No journey with id " + journeyId + " found");
+    }
+    if (!container.get().getSteps().containsKey(stepId)) {
+      container.get().setSteps(extendMap(container.get().getSteps(), stepId, step));
+    } else {
+      HashMap<String, Step> modifiableMap = new HashMap<>(container.get().getSteps());
+      modifiableMap.put(stepId, step);
+      container.get().setSteps(modifiableMap);
+    }
+    container.get().setLastAccess(LocalDateTime.now());
+    journeyRepo.save(container.get());
   }
 
   public void setStep(

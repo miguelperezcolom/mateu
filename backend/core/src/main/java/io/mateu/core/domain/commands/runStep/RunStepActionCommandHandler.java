@@ -75,7 +75,9 @@ public class RunStepActionCommandHandler {
               });
     }
 
-    store.getStep(journeyId, stepId).setData(data);
+    var step = store.getStep(journeyId, stepId);
+    step.mergeData(data);
+    store.updateStep(journeyId, stepId, step);
 
     // todo: look for the target object
     String componentId = "component-0";

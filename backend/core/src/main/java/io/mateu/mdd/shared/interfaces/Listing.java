@@ -1,5 +1,6 @@
 package io.mateu.mdd.shared.interfaces;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.mdd.shared.SlimHelper;
 import io.mateu.mdd.shared.annotations.Caption;
 import java.lang.reflect.ParameterizedType;
@@ -41,10 +42,12 @@ public interface Listing<SearchForm, Row> {
         ((ParameterizedType) getClass().getGenericInterfaces()[0]).getActualTypeArguments()[1];
   }
 
+  @JsonIgnore
   default List<Row> getSelection() {
     return new SelectedRowsContext().getRows();
   }
 
+  @JsonIgnore
   default String getCaptionForEdit() {
     return "Edit";
   }

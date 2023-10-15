@@ -36,6 +36,6 @@ public class JourneyContainerCrud implements Crud<JourneyContainerSearchForm, Jo
 
   @Override
   public Object getDetail(JourneyContainerRow row) throws Throwable {
-    return repo.findById(row.getJourneyId()).get();
+    return new JourneyContainerEditor(repo.findById(row.getJourneyId()).get());
   }
 }

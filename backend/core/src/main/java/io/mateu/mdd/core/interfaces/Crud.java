@@ -1,5 +1,6 @@
 package io.mateu.mdd.core.interfaces;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
@@ -13,6 +14,7 @@ public interface Crud<SearchForm, Row> extends Listing<SearchForm, Row> {
     return !ReflectionHelper.getMethod(getClass(), "delete").getDeclaringClass().isInterface();
   }
 
+  @JsonIgnore
   default Object getNewRecordForm() throws Throwable {
     return null;
   }
@@ -27,10 +29,12 @@ public interface Crud<SearchForm, Row> extends Listing<SearchForm, Row> {
 
   default void delete(List<Row> selection) throws Throwable {}
 
+  @JsonIgnore
   default String getCaptionForNew() {
     return "New";
   }
 
+  @JsonIgnore
   default String getCaptionForDelete() {
     return "Delete";
   }

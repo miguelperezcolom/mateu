@@ -70,6 +70,9 @@ public class FieldStereotypeMapper {
     if (field.isAnnotationPresent(TextArea.class)) {
       return "textarea";
     }
+    if (field.isAnnotationPresent(Json.class)) {
+      return "json";
+    }
     if (field.isAnnotationPresent(ItemsProvider.class)) {
       return "externalref";
     }

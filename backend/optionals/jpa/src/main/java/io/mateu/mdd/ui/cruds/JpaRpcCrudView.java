@@ -1,5 +1,8 @@
 package io.mateu.mdd.ui.cruds;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
@@ -37,6 +40,7 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Data;
+import lombok.ToString;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
@@ -45,41 +49,71 @@ import reactor.core.publisher.Mono;
 @Data
 @Component
 @Scope("stereotype")
+//@JsonSerialize(using = JpaRpcCrudViewSerializer.class)
+//@JsonDeserialize(using = JpaRpcCrudViewDeserializer.class)
 public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended, HasActions {
 
   private MDDOpenCRUDAction action;
+  @JsonIgnore
   private Map<String, String> aliasedColumnNamesByColId = new HashMap<>();
+  @JsonIgnore
   private List<String> columnNames = new ArrayList<>();
+  @JsonIgnore
   private Map<String, FieldInterfaced> fieldsByColumnName = new HashMap<>();
+  @JsonIgnore
   private List<String> filterNames = new ArrayList<>();
+  @JsonIgnore
   private Map<String, FieldInterfaced> fieldsByFilterName = new HashMap<>();
-  private List<String> columnFieldNames;
-  private List<String> visibleColumns;
-  private List<FieldInterfaced> filterFields;
+  @JsonIgnore
+  private List<String> columnFieldNames = new ArrayList<>();
+  @JsonIgnore
+  private List<String> visibleColumns = new ArrayList<>();
+  @JsonIgnore
+  private List<FieldInterfaced> filterFields = new ArrayList<>();
+  @JsonIgnore
   private List<String> aliasedColumnNamesList = new ArrayList<>();
-  private List<String> columnIds;
-  private Map<String, FieldInterfaced> fieldsByAliasedColumnName;
+  @JsonIgnore
+  private List<String> columnIds = new ArrayList<>();
+  @JsonIgnore
+  private Map<String, FieldInterfaced> fieldsByAliasedColumnName = new HashMap<>();
+  @JsonIgnore
   private Map<String, FieldInterfaced> fieldsByColId = new HashMap<>();
+  @JsonIgnore
   private Map<String, String> alias = new HashMap<>();
+  @JsonIgnore
   private Map<String, String> aliasedColumnNames = new HashMap<>();
-  private List<FieldInterfaced> sumFields;
-  private List<FieldInterfaced> columnFields;
-  private List<SumData> sums;
+  @JsonIgnore
+  private List<FieldInterfaced> sumFields = new ArrayList<>();
+  @JsonIgnore
+  private List<FieldInterfaced> columnFields = new ArrayList<>();
+  @JsonIgnore
+  private List<SumData> sums = new ArrayList<>();
 
+  @JsonIgnore
   String selectColumnsForCount;
+  @JsonIgnore
   String selectColumnsForList;
 
+  @JsonIgnore
   CountQueryHandler countQueryHandler;
+  @JsonIgnore
   RowsQueryHandler rowsQueryHandler;
+  @JsonIgnore
   SumsQueryHandler sumsQueryHandler;
+  @JsonIgnore
   FindByIdQueryHandler findByIdQueryHandler;
 
   public JpaRpcCrudView() {}
 
   public JpaRpcCrudView(MDDOpenCRUDAction action)
+          throws InvocationTargetException, NoSuchMethodException, IllegalAccessException,
+          InstantiationException {
+    init(action);
+  }
+  public void init(MDDOpenCRUDAction action)
       throws InvocationTargetException, NoSuchMethodException, IllegalAccessException,
           InstantiationException {
-    this.action = action;
+      this.action = action;
     columnFields =
         getColumnFields(
             action.getEntityClass(), false, action.getColumns(), columnNames, fieldsByColumnName);
@@ -134,6 +168,11 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     rowsQueryHandler = ReflectionHelper.newInstance(RowsQueryHandler.class);
     sumsQueryHandler = ReflectionHelper.newInstance(SumsQueryHandler.class);
     findByIdQueryHandler = ReflectionHelper.newInstance(FindByIdQueryHandler.class);
+  }
+
+  public void setAction(MDDOpenCRUDAction action) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException {
+    this.action = action;
+    init(action);
   }
 
   @Override
@@ -201,16 +240,19 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
             columnFields));
   }
 
+  @JsonIgnore
   @Override
   public Class getSearchFormClass() {
     return action.getEntityClass();
   }
 
+  @JsonIgnore
   @Override
   public Class getRowClass() {
     return HashMap.class;
   }
 
+  @JsonIgnore
   @Override
   public Object getRow(Map<String, Object> row) throws Throwable {
     Object id = row.get("col0");
@@ -218,20 +260,24 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
         FindByIdQuery.builder().entityClass(getEntityClass()).id(id).build());
   }
 
+  @JsonIgnore
   public boolean isAddEnabled() {
     return action.isCanAdd();
   }
 
+  @JsonIgnore
   public boolean isEditHandled() {
     return !action.isReadOnly();
   }
 
+  @JsonIgnore
   @Override
   public Map<FieldInterfaced, String> getColumnIdsPerField() {
     return fieldsByColId.entrySet().stream()
         .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
   }
 
+  @JsonIgnore
   @Override
   public Map<FieldInterfaced, String> getColumnCaptionsPerField() {
     return columnNames.stream()
@@ -241,6 +287,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
         .collect(Collectors.toMap(p -> (FieldInterfaced) p.getValue(), p -> (String) p.getKey()));
   }
 
+  @JsonIgnore
   public boolean isDeleteEnabled() {
     return action.isCanDelete();
   }
@@ -297,6 +344,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     }
   }
 
+  @JsonIgnore
   public List<String> getSelectFields(
       Class targetType,
       String useColumns,
@@ -311,6 +359,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     return columnNames;
   }
 
+  @JsonIgnore
   public List<FieldInterfaced> getColumnFields(
       Class objectType,
       boolean forGrid,
@@ -419,16 +468,19 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     }
   }
 
+  @JsonIgnore
   @Override
   public List<FieldInterfaced> getFilterFields() {
     return getFilterFields(action.getEntityClass());
   }
 
+  @JsonIgnore
   @Override
   public Class getEntityClass() {
     return action.getEntityClass();
   }
 
+  @JsonIgnore
   public List<FieldInterfaced> getFilterFields(Class filtersType) {
     if (Strings.isNullOrEmpty(action.getFilters())) {
 
@@ -507,12 +559,14 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     return s;
   }
 
+  @JsonIgnore
   public List<FieldInterfaced> getColumnFieldNames() {
     return visibleColumns.stream()
         .map(fn -> fieldsByColumnName.get(fn))
         .collect(Collectors.toList());
   }
 
+  @JsonIgnore
   @Override
   public String getCaption() {
     return action.getCaption();
@@ -530,6 +584,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     return ReflectionHelper.getId(row);
   }
 
+  @JsonIgnore
   public Object getNewRecordForm() throws Throwable {
     Set<Class> subclasses = ReflectionHelper.getSubclasses(getEntityClass());
     if (subclasses.size() > 1) {
@@ -538,11 +593,17 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     return ReflectionHelper.newInstance(getEntityClass());
   }
 
+  @JsonIgnore
   @Override
   public List<Method> getActionMethods() {
     return ReflectionHelper.getAllMethods(getEntityClass()).stream()
         .filter(m -> m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class))
         .filter(m -> Modifier.isStatic(m.getModifiers()))
         .collect(Collectors.toList());
+  }
+
+  @Override
+  public String toString() {
+    return action != null?action.getCaption():getClass().getSimpleName();
   }
 }

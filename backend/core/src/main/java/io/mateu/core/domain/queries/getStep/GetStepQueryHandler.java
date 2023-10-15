@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import io.mateu.core.domain.apiClients.MateuRemoteClient;
 import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
+import io.mateu.remote.dtos.Crud;
 import io.mateu.remote.dtos.Step;
 import io.mateu.util.Helper;
 import lombok.extern.slf4j.Slf4j;
@@ -44,12 +45,25 @@ public class GetStepQueryHandler {
     dump(journeyContainer);
 
     Step step = store.getStep(journeyId, stepId);
-    if ("list".equals(stepId)) {
+    if (isCrud(step)) {
       step.getData().remove("__index");
       step.getData().remove("__count");
     }
 
     return Mono.just(step);
+  }
+
+  private boolean isCrud(Step step) {
+    if (step == null
+    || step.getView() == null
+    || step.getView().getMain() == null
+    || step.getView().getMain().getComponents() == null
+    || step.getView().getMain().getComponents().isEmpty()
+    || step.getView().getMain().getComponents().get(0) == null
+    || step.getView().getMain().getComponents().get(0).getMetadata() == null) {
+      return false;
+    }
+    return step.getView().getMain().getComponents().get(0).getMetadata() instanceof Crud;
   }
 
   private void dump(JourneyContainer journeyContainer) {

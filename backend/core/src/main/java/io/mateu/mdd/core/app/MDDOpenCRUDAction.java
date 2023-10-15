@@ -7,7 +7,7 @@ import lombok.Getter;
 @Getter
 public class MDDOpenCRUDAction extends AbstractAction {
 
-  private final Class entityClass;
+  private Class entityClass;
   private String queryFilters;
   private ExtraFilters extraFilters;
   private Map<String, Object> defaultValues;
@@ -18,6 +18,10 @@ public class MDDOpenCRUDAction extends AbstractAction {
   private boolean canAdd = true;
   private boolean canDelete = true;
   private boolean readOnly;
+
+  public MDDOpenCRUDAction() {
+    super();
+  }
 
   public MDDOpenCRUDAction(String name, Class entityClass) {
     super(name);
