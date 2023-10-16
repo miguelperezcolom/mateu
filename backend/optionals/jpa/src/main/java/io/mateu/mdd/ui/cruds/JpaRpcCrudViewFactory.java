@@ -9,9 +9,11 @@ import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 @Service
+@Primary
 public class JpaRpcCrudViewFactory implements JpaRpcCrudFactory {
 
   @Override
