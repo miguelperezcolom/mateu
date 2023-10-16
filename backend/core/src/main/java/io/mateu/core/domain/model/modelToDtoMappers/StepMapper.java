@@ -2,7 +2,6 @@ package io.mateu.core.domain.model.modelToDtoMappers;
 
 import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.mdd.core.interfaces.DynamicStep;
-import io.mateu.mdd.core.interfaces.DynamicUI;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.Rule;
 import io.mateu.remote.dtos.Step;

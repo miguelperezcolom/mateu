@@ -12,8 +12,7 @@ public class ExtraFilters {
   private String ql;
   private Map<String, Object> parameters;
 
-  public ExtraFilters() {
-  }
+  public ExtraFilters() {}
 
   public ExtraFilters(String ql, Object... params) {
     this.ql = ql;

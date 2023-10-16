@@ -1,8 +1,6 @@
 package io.mateu.mdd.ui.cruds;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
@@ -40,7 +38,6 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Data;
-import lombok.ToString;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
@@ -49,71 +46,49 @@ import reactor.core.publisher.Mono;
 @Data
 @Component
 @Scope("stereotype")
-//@JsonSerialize(using = JpaRpcCrudViewSerializer.class)
-//@JsonDeserialize(using = JpaRpcCrudViewDeserializer.class)
+// @JsonSerialize(using = JpaRpcCrudViewSerializer.class)
+// @JsonDeserialize(using = JpaRpcCrudViewDeserializer.class)
 public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended, HasActions {
 
   private MDDOpenCRUDAction action;
-  @JsonIgnore
-  private Map<String, String> aliasedColumnNamesByColId = new HashMap<>();
-  @JsonIgnore
-  private List<String> columnNames = new ArrayList<>();
-  @JsonIgnore
-  private Map<String, FieldInterfaced> fieldsByColumnName = new HashMap<>();
-  @JsonIgnore
-  private List<String> filterNames = new ArrayList<>();
-  @JsonIgnore
-  private Map<String, FieldInterfaced> fieldsByFilterName = new HashMap<>();
-  @JsonIgnore
-  private List<String> columnFieldNames = new ArrayList<>();
-  @JsonIgnore
-  private List<String> visibleColumns = new ArrayList<>();
-  @JsonIgnore
-  private List<FieldInterfaced> filterFields = new ArrayList<>();
-  @JsonIgnore
-  private List<String> aliasedColumnNamesList = new ArrayList<>();
-  @JsonIgnore
-  private List<String> columnIds = new ArrayList<>();
-  @JsonIgnore
-  private Map<String, FieldInterfaced> fieldsByAliasedColumnName = new HashMap<>();
-  @JsonIgnore
-  private Map<String, FieldInterfaced> fieldsByColId = new HashMap<>();
-  @JsonIgnore
-  private Map<String, String> alias = new HashMap<>();
-  @JsonIgnore
-  private Map<String, String> aliasedColumnNames = new HashMap<>();
-  @JsonIgnore
-  private List<FieldInterfaced> sumFields = new ArrayList<>();
-  @JsonIgnore
-  private List<FieldInterfaced> columnFields = new ArrayList<>();
-  @JsonIgnore
-  private List<SumData> sums = new ArrayList<>();
+  @JsonIgnore private Map<String, String> aliasedColumnNamesByColId = new HashMap<>();
+  @JsonIgnore private List<String> columnNames = new ArrayList<>();
+  @JsonIgnore private Map<String, FieldInterfaced> fieldsByColumnName = new HashMap<>();
+  @JsonIgnore private List<String> filterNames = new ArrayList<>();
+  @JsonIgnore private Map<String, FieldInterfaced> fieldsByFilterName = new HashMap<>();
+  @JsonIgnore private List<String> columnFieldNames = new ArrayList<>();
+  @JsonIgnore private List<String> visibleColumns = new ArrayList<>();
+  @JsonIgnore private List<FieldInterfaced> filterFields = new ArrayList<>();
+  @JsonIgnore private List<String> aliasedColumnNamesList = new ArrayList<>();
+  @JsonIgnore private List<String> columnIds = new ArrayList<>();
+  @JsonIgnore private Map<String, FieldInterfaced> fieldsByAliasedColumnName = new HashMap<>();
+  @JsonIgnore private Map<String, FieldInterfaced> fieldsByColId = new HashMap<>();
+  @JsonIgnore private Map<String, String> alias = new HashMap<>();
+  @JsonIgnore private Map<String, String> aliasedColumnNames = new HashMap<>();
+  @JsonIgnore private List<FieldInterfaced> sumFields = new ArrayList<>();
+  @JsonIgnore private List<FieldInterfaced> columnFields = new ArrayList<>();
+  @JsonIgnore private List<SumData> sums = new ArrayList<>();
 
-  @JsonIgnore
-  String selectColumnsForCount;
-  @JsonIgnore
-  String selectColumnsForList;
+  @JsonIgnore String selectColumnsForCount;
+  @JsonIgnore String selectColumnsForList;
 
-  @JsonIgnore
-  CountQueryHandler countQueryHandler;
-  @JsonIgnore
-  RowsQueryHandler rowsQueryHandler;
-  @JsonIgnore
-  SumsQueryHandler sumsQueryHandler;
-  @JsonIgnore
-  FindByIdQueryHandler findByIdQueryHandler;
+  @JsonIgnore CountQueryHandler countQueryHandler;
+  @JsonIgnore RowsQueryHandler rowsQueryHandler;
+  @JsonIgnore SumsQueryHandler sumsQueryHandler;
+  @JsonIgnore FindByIdQueryHandler findByIdQueryHandler;
 
   public JpaRpcCrudView() {}
 
   public JpaRpcCrudView(MDDOpenCRUDAction action)
-          throws InvocationTargetException, NoSuchMethodException, IllegalAccessException,
+      throws InvocationTargetException, NoSuchMethodException, IllegalAccessException,
           InstantiationException {
     init(action);
   }
+
   public void init(MDDOpenCRUDAction action)
       throws InvocationTargetException, NoSuchMethodException, IllegalAccessException,
           InstantiationException {
-      this.action = action;
+    this.action = action;
     columnFields =
         getColumnFields(
             action.getEntityClass(), false, action.getColumns(), columnNames, fieldsByColumnName);
@@ -170,7 +145,9 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     findByIdQueryHandler = ReflectionHelper.newInstance(FindByIdQueryHandler.class);
   }
 
-  public void setAction(MDDOpenCRUDAction action) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException {
+  public void setAction(MDDOpenCRUDAction action)
+      throws InvocationTargetException, NoSuchMethodException, IllegalAccessException,
+          InstantiationException {
     this.action = action;
     init(action);
   }
@@ -604,6 +581,6 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
 
   @Override
   public String toString() {
-    return action != null?action.getCaption():getClass().getSimpleName();
+    return action != null ? action.getCaption() : getClass().getSimpleName();
   }
 }

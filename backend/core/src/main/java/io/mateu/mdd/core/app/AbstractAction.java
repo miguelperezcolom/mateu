@@ -17,9 +17,7 @@ public abstract class AbstractAction implements MenuEntry {
   private String group = "";
   private int order = 10000;
 
-  public AbstractAction() {
-
-  }
+  public AbstractAction() {}
 
   public AbstractAction(String caption) {
     this.caption = caption;

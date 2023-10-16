@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +36,7 @@ public class FormMetadataBuilder {
 
   @Autowired JpaRpcCrudFactory jpaRpcCrudFactory;
 
- @SneakyThrows
+  @SneakyThrows
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
   public Form build(String stepId, Object uiInstance, List<FieldInterfaced> slotFields) {
     if (uiInstance instanceof DynamicForm) {
@@ -131,7 +130,7 @@ public class FormMetadataBuilder {
     List<Action> actions =
         allMethods.stream()
             .filter(m -> m.isAnnotationPresent(MainAction.class))
-                .sorted(Comparator.comparingInt(m -> m.getAnnotation(MainAction.class).order()))
+            .sorted(Comparator.comparingInt(m -> m.getAnnotation(MainAction.class).order()))
             .map(m -> actionMetadataBuilder.getAction(m))
             .collect(Collectors.toList());
     if (!"view".equals(stepId)
