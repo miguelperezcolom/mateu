@@ -55,12 +55,12 @@ public class GetStepQueryHandler {
 
   private boolean isCrud(Step step) {
     if (step == null
-    || step.getView() == null
-    || step.getView().getMain() == null
-    || step.getView().getMain().getComponents() == null
-    || step.getView().getMain().getComponents().isEmpty()
-    || step.getView().getMain().getComponents().get(0) == null
-    || step.getView().getMain().getComponents().get(0).getMetadata() == null) {
+        || step.getView() == null
+        || step.getView().getMain() == null
+        || step.getView().getMain().getComponents() == null
+        || step.getView().getMain().getComponents().isEmpty()
+        || step.getView().getMain().getComponents().get(0) == null
+        || step.getView().getMain().getComponents().get(0).getMetadata() == null) {
       return false;
     }
     return step.getView().getMain().getComponents().get(0).getMetadata() instanceof Crud;

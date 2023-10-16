@@ -185,8 +185,7 @@ public class JourneyStoreService {
     updateStep(journeyId, stepId, editor, serverHttpRequest);
   }
 
-  public void updateStep(String journeyId, String stepId, Step step)
-          throws Throwable {
+  public void updateStep(String journeyId, String stepId, Step step) throws Throwable {
     Optional<JourneyContainer> container = journeyRepo.findById(journeyId);
     if (!container.isPresent()) {
       throw new Exception("No journey with id " + journeyId + " found");

@@ -4,6 +4,5 @@ import io.mateu.remote.dtos.Crud;
 import reactor.core.publisher.Mono;
 
 public interface DynamicCrud {
-    Mono<Crud> build();
-
+  Mono<Crud> build();
 }

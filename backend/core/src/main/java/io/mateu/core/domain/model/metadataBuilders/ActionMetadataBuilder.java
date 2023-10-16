@@ -121,8 +121,10 @@ public class ActionMetadataBuilder {
                 m ->
                     (!"JpaRpcCrudView".equals(uiInstance.getClass().getSimpleName()))
                         || (Modifier.isStatic(m.getModifiers())))
-                .sorted(Comparator.comparingInt(m -> m.getAnnotation(io.mateu.mdd.shared.annotations.Action.class).order()))
-                .map(m -> getAction(m))
+            .sorted(
+                Comparator.comparingInt(
+                    m -> m.getAnnotation(io.mateu.mdd.shared.annotations.Action.class).order()))
+            .map(m -> getAction(m))
             .collect(Collectors.toList());
     if (uiInstance instanceof HasActions) {
       actions.addAll(

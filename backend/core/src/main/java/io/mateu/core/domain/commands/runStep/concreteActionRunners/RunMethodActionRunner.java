@@ -153,32 +153,37 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
           var mono = (Mono) result;
 
-          return mono.map(r -> {
-            try {
-              Object whatToShow = r;
-              if (!void.class.equals(m.getReturnType())) {
-                if (whatToShow instanceof Result) {
-                  addBackDestination((Result) whatToShow, store.getInitialStep(journeyId));
-                }
-                String newStepId = "result_" + UUID.randomUUID().toString();
-                store.setStep(journeyId, newStepId, whatToShow, serverHttpRequest);
-              }
-            } catch (Throwable e) {
-              return Mono.error(new RuntimeException(e));
-            }
-            return Mono.empty();
-          }).then(Mono.fromRunnable(new Runnable() {
-            @Override
-            public void run() {
-                if (actualViewInstance != null && !(actualViewInstance instanceof Listing)) {
-                  try {
-                    store.updateStep(journeyId, actualViewInstance, serverHttpRequest);
-                  } catch (Throwable e) {
-                    throw new RuntimeException(e);
-                  }
-                }
-            }
-          }));
+          return mono.map(
+                  r -> {
+                    try {
+                      Object whatToShow = r;
+                      if (!void.class.equals(m.getReturnType())) {
+                        if (whatToShow instanceof Result) {
+                          addBackDestination((Result) whatToShow, store.getInitialStep(journeyId));
+                        }
+                        String newStepId = "result_" + UUID.randomUUID().toString();
+                        store.setStep(journeyId, newStepId, whatToShow, serverHttpRequest);
+                      }
+                    } catch (Throwable e) {
+                      return Mono.error(new RuntimeException(e));
+                    }
+                    return Mono.empty();
+                  })
+              .then(
+                  Mono.fromRunnable(
+                      new Runnable() {
+                        @Override
+                        public void run() {
+                          if (actualViewInstance != null
+                              && !(actualViewInstance instanceof Listing)) {
+                            try {
+                              store.updateStep(journeyId, actualViewInstance, serverHttpRequest);
+                            } catch (Throwable e) {
+                              throw new RuntimeException(e);
+                            }
+                          }
+                        }
+                      }));
         } else {
 
           if (actualViewInstance != null && !(actualViewInstance instanceof Listing)) {
@@ -193,7 +198,6 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
             String newStepId = "result_" + UUID.randomUUID().toString();
             store.setStep(journeyId, newStepId, whatToShow, serverHttpRequest);
           }
-
         }
 
       } catch (InvocationTargetException ex) {

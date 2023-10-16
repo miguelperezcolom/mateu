@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class FakeJpaRpcCrudFactory implements JpaRpcCrudFactory {
-    @Override
-    public Listing create(Object parentEntity, FieldInterfaced field) throws Exception {
-        throw new NotImplementedException();
-    }
+  @Override
+  public Listing create(Object parentEntity, FieldInterfaced field) throws Exception {
+    throw new NotImplementedException();
+  }
 }
