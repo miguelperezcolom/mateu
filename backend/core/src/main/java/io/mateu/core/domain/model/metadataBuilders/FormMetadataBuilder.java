@@ -10,6 +10,7 @@ import io.mateu.mdd.shared.interfaces.HasStatus;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
+import io.mateu.remote.dtos.Section;
 import io.mateu.util.Helper;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;

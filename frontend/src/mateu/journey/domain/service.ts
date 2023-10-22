@@ -16,16 +16,23 @@ export class Service {
     }
 
     async runAction(actionId: string, data: unknown) {
-        await callActionCommandHandler.handle({actionId, data})
-        await this.reloadJourney()
-        upstream.next({...state})
+        await callActionCommandHandler.handle({actionId, data}).catch((error) => {
+            console.log('error', error)
+            throw error
+        }).then(async () => {
+            await this.reloadJourney()
+            upstream.next({...state})
+        })
     }
 
     private async reloadJourney() {
         state.journey = await getJourneyQueryHandler.handle({})
         state.stepId = state.journey.currentStepId
-        state.step = await getStepQueryHandler.handle({stepId: state.stepId})
-        state.previousStepId = state.step.previousStepId
+        if (state.journey.status != 'Finished') {
+            state.step = await getStepQueryHandler.handle({stepId: state.stepId})
+            state.previousStepId = state.step.previousStepId
+        }
+        console.log('journey reloaded', state)
     }
 
     async goBack() {

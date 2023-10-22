@@ -35,6 +35,11 @@ public class BasicFieldsForm implements HasBadges, HasStatus, HasTitle, HasSubti
   @ReadOnly
   private String assessment;
 
+  @Action(order = 0)
+  public void throwsException() throws Exception {
+    throw new Exception("This is the description of teh exception ;)");
+  }
+
   @Action(order = 1)
   public void slowAction() throws InterruptedException {
     Thread.sleep(5000);

@@ -1803,9 +1803,24 @@ public class ReflectionHelper extends BaseReflectionHelper {
         Constructor con = getConstructor(c);
         if (con != null) {
           o = con.newInstance();
-        } else if (c.getMethod("builder") != null) {
-          Object builder = c.getMethod("builder").invoke(null);
-          o = builder.getClass().getMethod("build").invoke(builder);
+        } else {
+          Method builderMethod = null;
+          try {
+            builderMethod = c.getMethod("builder");
+          } catch (Exception ignored) {
+
+          }
+          if (builderMethod != null) {
+            Object builder = c.getMethod("builder").invoke(null);
+            o = builder.getClass().getMethod("build").invoke(builder);
+          } else {
+            if (c.getDeclaredConstructors().length == 1) {
+              Constructor constructor = c.getDeclaredConstructors()[0];
+              o =
+                  constructor.newInstance(
+                      ReflectionHelper.newInstance(constructor.getParameterTypes()[0]));
+            }
+          }
         }
       }
       notFromString.add(c);

@@ -1,4 +1,3 @@
 package io.mateu.mdd.core.interfaces;
 
-public interface Section {
-}
+public interface Section {}

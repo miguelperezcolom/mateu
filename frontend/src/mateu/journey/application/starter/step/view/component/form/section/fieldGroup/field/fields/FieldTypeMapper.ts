@@ -24,6 +24,7 @@ export const mapInputTypeToFieldType =  (type: string, stereotype: string):strin
         case 'combobox': return 'field-combobox';
         case 'file': return 'field-file';
         case 'closedlist': return 'field-closedlist';
+        case 'externalrefclosedlist': return 'field-externalrefclosedlist';
         case 'externalref-closedlist': return 'field-externalref-checkboxes';
         case 'rawcontent': return 'field-rawcontent';
         case 'crud': return 'field-crud';
