@@ -4,18 +4,23 @@ import io.mateu.core.domain.model.editors.EntityEditor;
 import io.mateu.core.domain.model.editors.FieldEditor;
 import io.mateu.core.domain.model.editors.MethodParametersEditor;
 import io.mateu.mdd.core.interfaces.Card;
+import io.mateu.mdd.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.mdd.shared.data.Result;
 import io.mateu.mdd.shared.data.Stepper;
+import io.mateu.mdd.shared.interfaces.JpaCrud;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
 import java.util.List;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ViewMetadataBuilder {
+
+  @Autowired JpaRpcCrudFactory jpaRpcCrudFactory;
 
   @Autowired FormMetadataBuilder formMetadataBuilder;
 
@@ -50,6 +55,8 @@ public class ViewMetadataBuilder {
       metadata = getStepper(stepId, model, slotFields);
     } else if (model instanceof Card) {
       metadata = getCard(stepId, model, slotFields);
+    } else if (model instanceof JpaCrud) {
+      metadata = getCrud(stepId, "main", (JpaCrud) model);
     } else {
       metadata = getForm(stepId, model, slotFields);
     }
@@ -63,6 +70,12 @@ public class ViewMetadataBuilder {
     }
 
     return metadata;
+  }
+
+  @SneakyThrows
+  private ViewMetadata getCrud(String stepId, String listId, JpaCrud crud) {
+    Listing listing = jpaRpcCrudFactory.create(crud);
+    return crudMetadataBuilder.build(stepId, listId, listing);
   }
 
   private JourneyRunner getJourneyRunner(io.mateu.mdd.shared.interfaces.JourneyRunner uiInstance) {

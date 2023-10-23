@@ -35,4 +35,8 @@ public interface JpaCrud<E> {
   default boolean canDelete() {
     return true;
   }
+
+  default Class getEntityClass() {
+    return null;
+  }
 }

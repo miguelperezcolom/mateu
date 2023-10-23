@@ -76,6 +76,17 @@ public class FieldStereotypeMapper {
     if (field.isAnnotationPresent(ItemsProvider.class)) {
       return "externalref";
     }
+    if (field.isAnnotationPresent(ValuesProvider.class)
+        || field.isAnnotationPresent(ValuesProviderMethod.class)) {
+      if (List.class.isAssignableFrom(field.getType())) {
+        return "closedlist";
+      }
+      if ((field.isAnnotationPresent(OneToOne.class) || field.isAnnotationPresent(ManyToOne.class))
+          && !field.isAnnotationPresent(UseCrud.class)) {
+        return "externalrefclosedlist";
+      }
+      return "combobox";
+    }
     if (field.isAnnotationPresent(ManyToOne.class)) {
       return "externalref";
     }
@@ -85,13 +96,6 @@ public class FieldStereotypeMapper {
     }
     if (fileChecker.isFile(field)) {
       return "file";
-    }
-    if (field.isAnnotationPresent(ValuesProvider.class)
-        || field.isAnnotationPresent(ValuesProviderMethod.class)) {
-      if (List.class.isAssignableFrom(field.getType())) {
-        return "closedlist";
-      }
-      return "combobox";
     }
     if (field.isAnnotationPresent(UseCheckboxes.class)) {
       return "externalref-checkboxes";

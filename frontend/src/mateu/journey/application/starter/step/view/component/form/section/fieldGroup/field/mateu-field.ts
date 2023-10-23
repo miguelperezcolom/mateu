@@ -36,6 +36,7 @@ import './fields/field-crud'
 import './fields/field-multi-select-combobox'
 import './fields/field-rich-text-vaadin'
 import './fields/field-json'
+import './fields/field-externalrefclosedlist'
 import FieldWrapper from "../../../FieldWrapper";
 
 /**

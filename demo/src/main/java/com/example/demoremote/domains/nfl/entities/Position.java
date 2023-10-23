@@ -1,5 +1,7 @@
 package com.example.demoremote.domains.nfl.entities;
 
+import io.mateu.mdd.shared.data.StatusType;
+
 public enum Position {
   RunningBack("Running Back"),
   Safety("Safety"),

@@ -62,7 +62,7 @@ export class MateuForm extends LitElement implements FormElement {
 
   getValue(key: string): object | undefined {
     // @ts-ignore
-    console.log('getValue', key, this.data[key], this.data)
+    //console.log('getValue', key, this.data[key], this.data)
     // @ts-ignore
     return this.data[key];
   }

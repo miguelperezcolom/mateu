@@ -34,16 +34,32 @@ public class Team {
 
   @Action
   public Object players2() {
-    return new JpaCrud<Player>() {
-      @Override
-      public String getExtraWhereFilter() {
-        return "x.team.id = '" + id + "'";
-      }
-    };
+    var players = new PlayersJpaCrud();
+    players.setId(id);
+    return players;
   }
 
   @Override
   public String toString() {
     return name != null ? "" + name : "No name";
   }
+
+  @Getter@Setter
+  public class PlayersJpaCrud implements JpaCrud {
+
+    String id;
+
+    @Override
+    public String getExtraWhereFilter() {
+      return "x.team.id = '" + id + "'";
+    }
+
+    @Override
+    public Class getEntityClass() {
+      return Player.class;
+    }
+
+  }
+
 }
+

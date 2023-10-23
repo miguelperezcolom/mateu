@@ -62,7 +62,7 @@ export default class MateuApiClient {
                     }
                 }))
             }
-            return reason
+            throw reason
         })
     }
 
@@ -183,7 +183,10 @@ export default class MateuApiClient {
                 + '/' + actionId, {
                     data: data
                 }
-            ))
+            ).catch((error) => {
+                console.log('error en post', error)
+            throw  error
+        }))
     }
 
     async fetchRows(journeyType: string, journeyId: string, stepId: string, listId: string,

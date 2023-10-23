@@ -131,8 +131,15 @@ export class JourneyStarter extends LitElement {
                 <p>No journey type defined</p>
                 
                 `:''}
+            
+            ${this.journey?.status == 'Finished'?html`
                 
-            ${this.step?html`
+                <h1>Application created</h1>
+                <h2><a href="">Go to application list</a></h2>
+                
+            `:html`
+                
+                ${this.step?html`
                 
                         <journey-step
                                 id="step"
@@ -150,7 +157,8 @@ export class JourneyStarter extends LitElement {
                     `:html`
                 <p>No step</p>
             `}
-            
+            `}
+                
             <vaadin-notification
                     .opened=${this.notificationOpened}
                     position="bottom-end"

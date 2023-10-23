@@ -6,13 +6,16 @@ export class CallActionCommandHandler {
 
     public async handle(command: CallActionCommand): Promise<void> {
 
-        await mateuApiClient.runStepAction(
+        return await mateuApiClient.runStepAction(
             state.journeyTypeId!,
             state.journeyId!,
             state.stepId!,
             command.actionId,
             command.data
-        )
+        ).catch((error) => {
+            console.log('error en handler', error)
+            throw error
+        })
 
     }
 

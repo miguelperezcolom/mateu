@@ -42,7 +42,7 @@ public class GetStepQueryHandler {
           serverHttpRequest);
     }
 
-    dump(journeyContainer);
+    // dump(journeyContainer);
 
     Step step = store.getStep(journeyId, stepId);
     if (isCrud(step)) {

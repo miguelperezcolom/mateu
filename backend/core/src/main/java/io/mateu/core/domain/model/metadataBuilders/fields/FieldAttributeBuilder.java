@@ -133,7 +133,7 @@ public class FieldAttributeBuilder {
       if (List.class.isAssignableFrom(enumType)) enumType = field.getGenericClass();
       Method m = null;
       try {
-        m = enumType.getMethod("value", null);
+        m = enumType.getMethod("valueOf", null);
         for (Object enumConstant : enumType.getEnumConstants()) {
           Object value = m.invoke(enumConstant, null);
           attributes.add(
