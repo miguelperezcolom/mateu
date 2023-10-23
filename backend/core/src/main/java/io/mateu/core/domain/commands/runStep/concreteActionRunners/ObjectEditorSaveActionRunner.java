@@ -1,6 +1,7 @@
 package io.mateu.core.domain.commands.runStep.concreteActionRunners;
 
 import io.mateu.core.domain.commands.runStep.ActionRunner;
+import io.mateu.core.domain.commands.runStep.ActualValueExtractor;
 import io.mateu.core.domain.model.editors.ObjectEditor;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.mdd.core.interfaces.PersistentPojo;
@@ -8,6 +9,7 @@ import io.mateu.mdd.shared.data.Destination;
 import io.mateu.mdd.shared.data.DestinationType;
 import io.mateu.mdd.shared.data.Result;
 import io.mateu.mdd.shared.data.ResultType;
+import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.Step;
 import io.mateu.util.Helper;
 import java.util.List;
@@ -22,6 +24,7 @@ import reactor.core.publisher.Mono;
 public class ObjectEditorSaveActionRunner implements ActionRunner {
 
   @Autowired JourneyStoreService store;
+  @Autowired ActualValueExtractor actualValueExtractor;
 
   @Override
   public boolean applies(Object viewInstance, String actionId) {
@@ -37,16 +40,16 @@ public class ObjectEditorSaveActionRunner implements ActionRunner {
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
-    ObjectEditor entityEditor = (ObjectEditor) viewInstance;
+    ObjectEditor objectEditor = (ObjectEditor) viewInstance;
 
-    Object pojo = Helper.fromJson(Helper.toJson(data), entityEditor.getType());
+    Object pojo = getActualInstance(objectEditor, data);
     if (pojo instanceof PersistentPojo) {
       ((PersistentPojo<?>) pojo).save();
     }
 
     data.remove("__entityClassName__");
-    entityEditor.setData(data);
-    store.setStep(journeyId, stepId, entityEditor, serverHttpRequest);
+    objectEditor.setData(data);
+    store.setStep(journeyId, stepId, objectEditor, serverHttpRequest);
 
     Step initialStep = store.getInitialStep(journeyId);
 
@@ -61,5 +64,29 @@ public class ObjectEditorSaveActionRunner implements ActionRunner {
     store.setStep(journeyId, newStepId, whatToShow, serverHttpRequest);
 
     return Mono.empty();
+  }
+
+  private Object getActualInstance(ObjectEditor objectEditor, Map<String, Object> data) {
+    try {
+      Object object = ReflectionHelper.newInstance(objectEditor.getType());
+      Object filled =
+          Helper.fromJson(Helper.toJson(objectEditor.getData()), objectEditor.getType());
+      ReflectionHelper.copy(filled, object);
+      var actualInstance = object;
+      data.entrySet()
+          .forEach(
+              entry -> {
+                try {
+                  Object actualValue = actualValueExtractor.getActualValue(entry, actualInstance);
+                  ReflectionHelper.setValue(entry.getKey(), actualInstance, actualValue);
+                } catch (Exception ex) {
+                  System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
+                }
+              });
+      return actualInstance;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 }
