@@ -196,21 +196,21 @@ public class ActionMetadataBuilder {
   }
 
   private boolean canAdd(Object uiInstance) {
-    if (uiInstance instanceof Crud) {
-      return ReflectionHelper.isOverridden(uiInstance, "getNewRecordForm");
-    }
     if (uiInstance instanceof RpcCrudViewExtended) {
       return ((RpcCrudViewExtended) uiInstance).isAddEnabled();
+    }
+    if (uiInstance instanceof Crud) {
+      return ReflectionHelper.isOverridden(uiInstance, "getNewRecordForm");
     }
     return false;
   }
 
   private boolean canDelete(Object uiInstance) {
-    if (uiInstance instanceof Crud) {
-      return ReflectionHelper.isOverridden(uiInstance, "delete");
-    }
     if (uiInstance instanceof RpcCrudViewExtended) {
       return ((RpcCrudViewExtended) uiInstance).isDeleteEnabled();
+    }
+    if (uiInstance instanceof Crud) {
+      return ReflectionHelper.isOverridden(uiInstance, "delete");
     }
     return false;
   }

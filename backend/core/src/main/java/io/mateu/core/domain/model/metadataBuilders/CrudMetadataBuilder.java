@@ -111,9 +111,16 @@ public class CrudMetadataBuilder {
           ((RpcCrudViewExtended) rpcView)
               .getFilterFields().stream().map(f -> f.getId()).collect(Collectors.toList());
       if (validFieldIds.size() > 0) {
+        List<FieldInterfaced> finalAllEditableFields = allEditableFields;
         allEditableFields =
-            allEditableFields.stream()
-                .filter(f -> validFieldIds.contains(f.getId()))
+            validFieldIds.stream()
+                .map(
+                    id ->
+                        finalAllEditableFields.stream()
+                            .filter(f -> id.equals(f.getId()))
+                            .findFirst())
+                .filter(f -> f.isPresent())
+                .map(f -> f.get())
                 .collect(Collectors.toList());
       }
     }
