@@ -2,6 +2,7 @@ package io.mateu.core.domain.queries.getUI;
 
 import io.mateu.core.application.NotFoundException;
 import io.mateu.core.domain.model.modelToDtoMappers.UIMapper;
+import io.mateu.mdd.core.interfaces.DynamicUI;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.UI;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,10 @@ public class GetUIQueryHandler {
 
       if (uiInstance == null) {
         throw new Exception();
+      }
+
+      if (uiInstance instanceof DynamicUI) {
+        return ((DynamicUI) uiInstance).build().toFuture().get();
       }
 
       UI ui = uiMapper.map(uiInstance, serverHttpRequest);
