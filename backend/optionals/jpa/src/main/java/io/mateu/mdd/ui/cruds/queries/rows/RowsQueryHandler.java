@@ -51,7 +51,7 @@ public class RowsQueryHandler {
   private Map toMap(RowsQuery query, Object[] values, List<FieldInterfaced> columnFields) {
     Map map = new HashMap();
     if (values != null) {
-      for (int i = 0; i < values.length; i++) {
+      for (int i = 0; i < values.length && i < columnFields.size() + 1; i++) {
         map.put("col" + i, toValue(values[i], i == 0 ? null : columnFields.get(i - 1)));
       }
     }
