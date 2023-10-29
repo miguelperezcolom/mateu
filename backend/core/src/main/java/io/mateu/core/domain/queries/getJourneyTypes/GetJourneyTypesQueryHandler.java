@@ -9,6 +9,8 @@ import io.mateu.remote.dtos.Menu;
 import io.mateu.remote.dtos.UI;
 import java.util.ArrayList;
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -16,11 +18,12 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class GetJourneyTypesQueryHandler {
 
-  @Autowired UIRegistry uiRegistry;
-
-  @Autowired UIMapper uiMapper;
+  final UIRegistry uiRegistry;
+  final UIMapper uiMapper;
+  final ReflectionHelper reflectionHelper;
 
   public List<JourneyType> run(GetJourneyTypesQuery query, ServerHttpRequest serverHttpRequest) {
 
@@ -32,7 +35,7 @@ public class GetJourneyTypesQueryHandler {
 
       for (Class uiClass : uiRegistry.getUiClasses()) {
 
-        Object uiInstance = ReflectionHelper.newInstance(uiClass);
+        Object uiInstance = reflectionHelper.newInstance(uiClass);
 
         if (uiInstance == null) {
           throw new Exception();

@@ -13,6 +13,7 @@ import reactor.core.publisher.Mono;
 public class JourneyContainerCrud implements Crud<JourneyContainerSearchForm, JourneyContainerRow> {
 
   @Autowired private JourneyRepository repo;
+  @Autowired private JourneyContainerEditor editor;
 
   @Override
   public Flux<JourneyContainerRow> fetchRows(
@@ -36,6 +37,7 @@ public class JourneyContainerCrud implements Crud<JourneyContainerSearchForm, Jo
 
   @Override
   public Object getDetail(JourneyContainerRow row) throws Throwable {
-    return new JourneyContainerEditor(repo.findById(row.getJourneyId()).get());
+    editor.load(repo.findById(row.getJourneyId()).get());
+    return editor;
   }
 }

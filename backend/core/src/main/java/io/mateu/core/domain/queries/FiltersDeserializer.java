@@ -12,7 +12,10 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import io.mateu.util.Serializer;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+
 
 public class FiltersDeserializer {
 
@@ -21,18 +24,26 @@ public class FiltersDeserializer {
   private final String listId;
   private final Map<String, Object> raw;
   private final ServerHttpRequest serverHttpRequest;
+  
+  private final ReflectionHelper reflectionHelper;
+
+  private final Serializer serializer;
 
   public FiltersDeserializer(
       String journeyId,
       String stepId,
       String listId,
       Map<String, Object> raw,
-      ServerHttpRequest serverHttpRequest) {
+      ServerHttpRequest serverHttpRequest,
+      ReflectionHelper reflectionHelper,
+      Serializer serializer) {
     this.journeyId = journeyId;
     this.stepId = stepId;
     this.listId = listId;
     this.raw = raw;
     this.serverHttpRequest = serverHttpRequest;
+    this.reflectionHelper = reflectionHelper;
+    this.serializer = serializer;
   }
 
   public Object deserialize(JourneyStoreService store) throws Exception {
@@ -46,7 +57,7 @@ public class FiltersDeserializer {
         .filter(e -> e.getKey().startsWith(listId + "-"))
         .forEach(e -> map.put(e.getKey().substring((listId + "-").length()), e.getValue()));
     for (FieldInterfaced field :
-        ReflectionHelper.getAllEditableFields(rpcView.getSearchFormClass())) {
+        reflectionHelper.getAllEditableFields(rpcView.getSearchFormClass())) {
       if (DatesRange.class.equals(field.getType())) {
         String rawDatesRangeValue = "";
         if (map.containsKey(field.getId() + "_from") && map.get(field.getId() + "_from") != null) {
@@ -84,10 +95,10 @@ public class FiltersDeserializer {
     if ("JpaRpcCrudView".equals(rpcView.getClass().getSimpleName())) {
       return map;
     }
-    return Helper.fromJson(Helper.toJson(map), rpcView.getSearchFormClass());
+    return serializer.fromJson(serializer.toJson(map), rpcView.getSearchFormClass());
   }
 
   protected Map<String, Object> decodeAndParse(String raw) throws IOException {
-    return Helper.fromJson(new String(Base64.getDecoder().decode(raw)));
+    return serializer.fromJson(new String(Base64.getDecoder().decode(raw)));
   }
 }

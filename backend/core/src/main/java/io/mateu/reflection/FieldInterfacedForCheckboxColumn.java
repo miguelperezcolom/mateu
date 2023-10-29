@@ -18,12 +18,15 @@ public class FieldInterfacedForCheckboxColumn implements FieldInterfaced {
   private final FieldInterfaced collectionField;
   private final Object value;
 
+  private final ReflectionHelper reflectionHelper;
+
   public FieldInterfacedForCheckboxColumn(
-      String name, FieldInterfaced collectionField, Object value) {
+      String name, FieldInterfaced collectionField, Object value, ReflectionHelper reflectionHelper) {
     this.type = boolean.class;
     this.name = name;
     this.collectionField = collectionField;
     this.value = value;
+    this.reflectionHelper = reflectionHelper;
   }
 
   @Override
@@ -75,7 +78,7 @@ public class FieldInterfacedForCheckboxColumn implements FieldInterfaced {
 
   @Override
   public Class<?> getGenericClass() {
-    return ReflectionHelper.getGenericClass(type);
+    return reflectionHelper.getGenericClass(type);
   }
 
   @Override
@@ -85,7 +88,7 @@ public class FieldInterfacedForCheckboxColumn implements FieldInterfaced {
 
   @Override
   public Type getGenericType() {
-    return ReflectionHelper.getGenericClass(type);
+    return reflectionHelper.getGenericClass(type);
   }
 
   @Override
@@ -108,13 +111,13 @@ public class FieldInterfacedForCheckboxColumn implements FieldInterfaced {
   @Override
   public Object getValue(Object o)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-    return ((Collection) ReflectionHelper.getValue(collectionField, o)).contains(value);
+    return ((Collection) reflectionHelper.getValue(collectionField, o)).contains(value);
   }
 
   @Override
   public void setValue(Object o, Object v)
       throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-    Collection col = (Collection) ReflectionHelper.getValue(collectionField, o);
+    Collection col = (Collection) reflectionHelper.getValue(collectionField, o);
     if (((Boolean) v)) {
       if (!col.contains(value)) col.add(value);
     }

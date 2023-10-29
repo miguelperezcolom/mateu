@@ -13,12 +13,13 @@ import org.springframework.stereotype.Service;
 public class LanguageDetail extends LanguageDetailDefinition implements ReadOnlyPojo {
 
   @Autowired LanguagesRepository repo;
+  @Autowired ReflectionHelper reflectionHelper;
 
   @Autowired LanguageForm form;
 
   @Override
   public void load(Object id) throws Throwable {
-    ReflectionHelper.copy(repo.findById((String) id), this);
+    reflectionHelper.copy(repo.findById((String) id), this);
   }
 
   @Override

@@ -15,16 +15,21 @@ import java.lang.reflect.Modifier;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class ActionMetadataBuilder {
+
+  final ReflectionHelper reflectionHelper;
 
   protected Action getAction(Method m) {
     Action action =
         Action.builder()
             .id(m.getName())
-            .caption(ReflectionHelper.getCaption(m))
+            .caption(reflectionHelper.getCaption(m))
             .type(getActionType(m))
             .visible(isVisible(m))
             .validationRequired(getValidationRequired(m))
@@ -79,7 +84,7 @@ public class ActionMetadataBuilder {
 
   private String getConfirmationAction(String action, Method m) {
     if (Strings.isNullOrEmpty(action)) {
-      return ReflectionHelper.getCaption(m);
+      return reflectionHelper.getCaption(m);
     }
     return action;
   }
@@ -113,7 +118,7 @@ public class ActionMetadataBuilder {
   }
 
   protected List<Action> getActions(String stepId, String listId, Object uiInstance) {
-    List<Method> allMethods = ReflectionHelper.getAllMethods(uiInstance.getClass());
+    List<Method> allMethods = reflectionHelper.getAllMethods(uiInstance.getClass());
     List<Action> actions =
         allMethods.stream()
             .filter(m -> m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class))
@@ -200,7 +205,7 @@ public class ActionMetadataBuilder {
       return ((RpcCrudViewExtended) uiInstance).isAddEnabled();
     }
     if (uiInstance instanceof Crud) {
-      return ReflectionHelper.isOverridden(uiInstance, "getNewRecordForm");
+      return reflectionHelper.isOverridden(uiInstance, "getNewRecordForm");
     }
     return false;
   }
@@ -210,7 +215,7 @@ public class ActionMetadataBuilder {
       return ((RpcCrudViewExtended) uiInstance).isDeleteEnabled();
     }
     if (uiInstance instanceof Crud) {
-      return ReflectionHelper.isOverridden(uiInstance, "delete");
+      return reflectionHelper.isOverridden(uiInstance, "delete");
     }
     return false;
   }

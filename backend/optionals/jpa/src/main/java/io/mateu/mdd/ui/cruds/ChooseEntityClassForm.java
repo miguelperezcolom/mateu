@@ -12,14 +12,19 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @Caption("What do you want to create?")
+@Service
 public class ChooseEntityClassForm {
 
   @Ignored private Map<String, String> subclasses;
+  @Ignored
+  @Autowired ReflectionHelper reflectionHelper;
 
   public ChooseEntityClassForm(Set<Class> subclasses) {
     this.subclasses =
@@ -39,6 +44,6 @@ public class ChooseEntityClassForm {
 
   @MainAction
   public Object create() throws Exception {
-    return ReflectionHelper.newInstance(Class.forName(type));
+    return reflectionHelper.newInstance(Class.forName(type));
   }
 }

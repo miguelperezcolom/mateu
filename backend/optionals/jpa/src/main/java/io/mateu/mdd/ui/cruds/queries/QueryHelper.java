@@ -13,11 +13,15 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 @Slf4j
-@AllArgsConstructor
+@Service@RequiredArgsConstructor
 public class QueryHelper {
+
+  final ReflectionHelper reflectionHelper;
 
   public jakarta.persistence.Query buildJpaQuery(
       Query query,
@@ -63,7 +67,7 @@ public class QueryHelper {
           }
         }
       List<FieldInterfaced> orderCols = new ArrayList<>();
-      for (FieldInterfaced f : ReflectionHelper.getAllFields(entityClass)) {
+      for (FieldInterfaced f : reflectionHelper.getAllFields(entityClass)) {
         if (f.isAnnotationPresent(Order.class)) orderCols.add(f);
       }
       Collections.sort(
@@ -137,18 +141,18 @@ public class QueryHelper {
 
     for (FieldInterfaced f : allFields) {
 
-      Object v = ReflectionHelper.getValue(f, filters);
+      Object v = reflectionHelper.getValue(f, filters);
 
       if (v != null) {
 
-        FieldInterfaced ef = ReflectionHelper.getFieldByName(entityClass, f.getName());
+        FieldInterfaced ef = reflectionHelper.getFieldByName(entityClass, f.getName());
 
         if (ef != null && ef.getType().isAnnotationPresent(UseIdToSelect.class)) {
 
           boolean anadir = !String.class.equals(v.getClass()) || !Strings.isNullOrEmpty((String) v);
 
           if (anadir) {
-            FieldInterfaced idf = ReflectionHelper.getIdField(entityClass);
+            FieldInterfaced idf = reflectionHelper.getIdField(entityClass);
 
             if (!"".equals(ql)) ql += " and ";
             ql += " x." + f.getName() + "." + idf.getName() + " = :" + f.getName() + " ";
@@ -228,7 +232,7 @@ public class QueryHelper {
 
         } else if (v instanceof Map && f.isAnnotationPresent(ManyToOne.class)) {
           v = ((Map) v).get("value");
-          FieldInterfaced idField = ReflectionHelper.getIdField(f.getType());
+          FieldInterfaced idField = reflectionHelper.getIdField(f.getType());
 
           if (!"".equals(ql)) ql += " and ";
           ql +=

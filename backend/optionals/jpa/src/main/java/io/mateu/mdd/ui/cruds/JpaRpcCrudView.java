@@ -25,6 +25,7 @@ import io.mateu.mdd.ui.cruds.queries.sums.SumsQuery;
 import io.mateu.mdd.ui.cruds.queries.sums.SumsQueryHandler;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
+import io.mateu.util.Serializer;
 import io.mateu.util.data.Pair;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -38,6 +39,7 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
@@ -72,10 +74,11 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   @JsonIgnore String selectColumnsForCount;
   @JsonIgnore String selectColumnsForList;
 
-  @JsonIgnore CountQueryHandler countQueryHandler;
-  @JsonIgnore RowsQueryHandler rowsQueryHandler;
-  @JsonIgnore SumsQueryHandler sumsQueryHandler;
-  @JsonIgnore FindByIdQueryHandler findByIdQueryHandler;
+  @JsonIgnore@Autowired CountQueryHandler countQueryHandler;
+  @JsonIgnore@Autowired RowsQueryHandler rowsQueryHandler;
+  @JsonIgnore@Autowired SumsQueryHandler sumsQueryHandler;
+  @JsonIgnore@Autowired FindByIdQueryHandler findByIdQueryHandler;
+  @JsonIgnore@Autowired ReflectionHelper reflectionHelper;
 
   public JpaRpcCrudView() {}
 
@@ -139,10 +142,6 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
               fieldsByAliasedColumnName.put(aliasedColumnNames.get(n), fieldsByColumnName.get(n));
             });
 
-    countQueryHandler = ReflectionHelper.newInstance(CountQueryHandler.class);
-    rowsQueryHandler = ReflectionHelper.newInstance(RowsQueryHandler.class);
-    sumsQueryHandler = ReflectionHelper.newInstance(SumsQueryHandler.class);
-    findByIdQueryHandler = ReflectionHelper.newInstance(FindByIdQueryHandler.class);
   }
 
   public void setAction(MDDOpenCRUDAction action)
@@ -231,7 +230,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
 
   @JsonIgnore
   @Override
-  public Object getRow(Map<String, Object> row) throws Throwable {
+  public Object getRow(Map<String, Object> row, Serializer serializer) throws Throwable {
     Object id = row.get("col0");
     return findByIdQueryHandler.run(
         FindByIdQuery.builder().entityClass(getEntityClass()).id(id).build());
@@ -271,7 +270,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
 
   @Override
   public void delete(List<Object> selection) throws Throwable {
-    ReflectionHelper.newInstance(DeleteRowsCommandHandler.class)
+    reflectionHelper.newInstance(DeleteRowsCommandHandler.class)
         .run(
             DeleteRowsCommand.builder()
                 .rows(selection)
@@ -301,7 +300,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
         } else p = null;
         if (!"".equals(pathAcumulado)) pathAcumulado += ".";
         pathAcumulado += s;
-        fx = ReflectionHelper.getFieldByName(type, s);
+        fx = reflectionHelper.getFieldByName(type, s);
         if (fx != null) {
           type = fx.getType();
           if (type.isAnnotationPresent(Entity.class) && !fx.isAnnotationPresent(NotNull.class)) {
@@ -328,7 +327,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
       List<String> columnNames,
       Map<String, FieldInterfaced> fieldsByColumnName) {
     FieldInterfaced idField = null;
-    for (FieldInterfaced f : ReflectionHelper.getAllFields(targetType)) {
+    for (FieldInterfaced f : reflectionHelper.getAllFields(targetType)) {
       if (f.isAnnotationPresent(Id.class)) idField = f;
     }
     if (idField != null) columnNames.add(0, idField.getName());
@@ -349,7 +348,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     if (Strings.isNullOrEmpty(fieldsFilter)) {
 
       explicitColumns =
-          ReflectionHelper.getAllFields(objectType).stream()
+          reflectionHelper.getAllFields(objectType).stream()
               .filter(
                   f ->
                       !f.isAnnotationPresent(OneToMany.class)
@@ -384,7 +383,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
           fns.stream()
               .map(
                   n -> {
-                    FieldInterfaced f = ReflectionHelper.getFieldByName(objectType, n);
+                    FieldInterfaced f = reflectionHelper.getFieldByName(objectType, n);
                     if (columNames != null && fieldsByColumnName != null) {
                       columNames.add(n);
                       fieldsByColumnName.put(n, f);
@@ -400,7 +399,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     } else {
 
       List<FieldInterfaced> cols =
-          ReflectionHelper.getAllFields(objectType).stream()
+          reflectionHelper.getAllFields(objectType).stream()
               .filter(
                   (f) ->
                       !"_proxied".equalsIgnoreCase(f.getName())
@@ -462,7 +461,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     if (Strings.isNullOrEmpty(action.getFilters())) {
 
       List<FieldInterfaced> filterFields =
-          ReflectionHelper.getAllFields(filtersType).stream()
+          reflectionHelper.getAllFields(filtersType).stream()
               .filter(
                   (f) ->
                       !f.isAnnotationPresent(Password.class)
@@ -473,7 +472,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
               .collect(Collectors.toList());
       if (filterFields.size() == 0) {
         filterFields =
-            ReflectionHelper.getAllFields(filtersType).stream()
+            reflectionHelper.getAllFields(filtersType).stream()
                 .filter(
                     (f) ->
                         !f.isAnnotationPresent(Password.class)
@@ -510,7 +509,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
           fns.stream()
               .map(
                   n -> {
-                    FieldInterfaced f = ReflectionHelper.getFieldByName(filtersType, n);
+                    FieldInterfaced f = reflectionHelper.getFieldByName(filtersType, n);
                     if (f != null) {
                       filterNames.add(n);
                       fieldsByFilterName.put(n, f);
@@ -550,7 +549,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   }
 
   public Object getDetail(Object id) throws Throwable {
-    return ReflectionHelper.newInstance(FindByIdQueryHandler.class)
+    return reflectionHelper.newInstance(FindByIdQueryHandler.class)
         .run(FindByIdQuery.builder().id(getId(id)).entityClass(action.getEntityClass()).build());
   }
 
@@ -558,22 +557,22 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     if (row instanceof Map) {
       return ((Map) row).get("col0");
     }
-    return ReflectionHelper.getId(row);
+    return reflectionHelper.getId(row);
   }
 
   @JsonIgnore
   public Object getNewRecordForm() throws Throwable {
-    Set<Class> subclasses = ReflectionHelper.getSubclasses(getEntityClass());
+    Set<Class> subclasses = reflectionHelper.getSubclasses(getEntityClass());
     if (subclasses.size() > 1) {
       return new ChooseEntityClassForm(subclasses);
     }
-    return ReflectionHelper.newInstance(getEntityClass());
+    return reflectionHelper.newInstance(getEntityClass());
   }
 
   @JsonIgnore
   @Override
   public List<Method> getActionMethods() {
-    return ReflectionHelper.getAllMethods(getEntityClass()).stream()
+    return reflectionHelper.getAllMethods(getEntityClass()).stream()
         .filter(m -> m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class))
         .filter(m -> Modifier.isStatic(m.getModifiers()))
         .collect(Collectors.toList());

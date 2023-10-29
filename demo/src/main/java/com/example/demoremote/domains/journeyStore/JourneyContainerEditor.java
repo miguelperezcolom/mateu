@@ -8,32 +8,37 @@ import io.mateu.mdd.shared.interfaces.SortCriteria;
 import io.mateu.remote.dtos.Journey;
 import io.mateu.remote.dtos.Step;
 import io.mateu.util.Helper;
+import io.mateu.util.Serializer;
 import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-@Getter@Setter@ReadOnly@NoArgsConstructor
+@Service
+@Getter@Setter@ReadOnly@RequiredArgsConstructor
 public class JourneyContainerEditor {
 
+    final Serializer serializer;
 
-    public JourneyContainerEditor(JourneyContainer container) throws Exception {
+    public void load(JourneyContainer container) throws Exception {
         journeyId = container.getJourneyId();
         journeyTypeId = container.getJourneyTypeId();
         remoteBaseUrl = container.getRemoteBaseUrl();
         journeyClass = container.getJourneyClass() != null?container.getJourneyClass().toString():null;
-        journeyData = Helper.toJson(container.getJourneyData());
-        journey = Helper.toJson(container.getJourney());
-        steps = Helper.toJson(container.getSteps());
-        initialStep = Helper.toJson(container.getInitialStep());
+        journeyData = serializer.toJson(container.getJourneyData());
+        journey = serializer.toJson(container.getJourney());
+        steps = serializer.toJson(container.getSteps());
+        initialStep = serializer.toJson(container.getInitialStep());
         created = container.getCreated();
         lastAccess = container.getLastAccess();
-        lastUsedFilters = Helper.toJson(container.getLastUsedFilters());
-        lastUsedSorting = Helper.toJson(container.getLastUsedSorting());
+        lastUsedFilters = serializer.toJson(container.getLastUsedFilters());
+        lastUsedSorting = serializer.toJson(container.getLastUsedSorting());
     }
 
     @Id

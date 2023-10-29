@@ -1,10 +1,12 @@
 package io.mateu.mdd.ui.cruds.queries.count;
 
 import io.mateu.mdd.ui.cruds.queries.QueryHelper;
+import io.mateu.reflection.ReflectionHelper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
@@ -14,6 +16,8 @@ import reactor.core.publisher.Mono;
 public class CountQueryHandler {
 
   @PersistenceContext private EntityManager em;
+  @Autowired
+  ReflectionHelper reflectionHelper;
 
   @Transactional
   public Mono<Long> run(CountQuery query) {
@@ -21,7 +25,7 @@ public class CountQueryHandler {
 
     try {
       Query q =
-          new QueryHelper()
+          new QueryHelper(reflectionHelper)
               .buildJpaQuery(
                   query,
                   em,

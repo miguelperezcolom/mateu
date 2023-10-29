@@ -25,6 +25,8 @@ import java.lang.reflect.*;
 import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.converters.BooleanConverter;
@@ -34,18 +36,26 @@ import org.apache.commons.beanutils.converters.LongConverter;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Slf4j
+@Service
 public class ReflectionHelper extends BaseReflectionHelper {
 
-  static Map<Class, List<FieldInterfaced>> allFieldsCache = new HashMap<>();
-  static Map<Class, List<Method>> allMethodsCache = new HashMap<>();
-  static Map<String, Method> methodCache = new HashMap<>();
-  static List<Class> notFromString = new ArrayList<>();
-  private static BeanProvider beanProvider;
-  private static ObjectMapper mapper = new ObjectMapper();
+  final Translator translator;
+  final BeanProvider beanProvider;
+  final FieldInterfacedFactory fieldInterfacedFactory;
 
-  static {
+  Map<Class, List<FieldInterfaced>> allFieldsCache = new HashMap<>();
+  Map<Class, List<Method>> allMethodsCache = new HashMap<>();
+  Map<String, Method> methodCache = new HashMap<>();
+  List<Class> notFromString = new ArrayList<>();
+  private ObjectMapper mapper = new ObjectMapper();
+
+  public ReflectionHelper(Translator translator, BeanProvider beanProvider, FieldInterfacedFactory fieldInterfacedFactory) {
+    this.translator = translator;
+    this.beanProvider = beanProvider;
+    this.fieldInterfacedFactory = fieldInterfacedFactory;
     BeanUtilsBean beanUtilsBean = BeanUtilsBean.getInstance();
     beanUtilsBean.getConvertUtils().register(new IntegerConverter(null), Integer.class);
     beanUtilsBean.getConvertUtils().register(new LongConverter(null), Long.class);
@@ -53,18 +63,15 @@ public class ReflectionHelper extends BaseReflectionHelper {
     beanUtilsBean.getConvertUtils().register(new BooleanConverter(null), Boolean.class);
   }
 
-  public static void setBeanProvider(BeanProvider aBeanProvider) {
-    beanProvider = aBeanProvider;
-  }
 
-  public static Object getValue(Field f, Object o) {
+  public Object getValue(Field f, Object o) {
     if (f == null) {
       return null;
     }
     Method getter = null;
     try {
       getter = o.getClass().getMethod(getGetter(f));
-    } catch (Exception e) {
+    } catch (Exception ignored) {
 
     }
     Object v = null;
@@ -74,15 +81,14 @@ public class ReflectionHelper extends BaseReflectionHelper {
         if (!Modifier.isPublic(f.getModifiers())) f.setAccessible(true);
         v = f.get(o);
       }
-    } catch (IllegalAccessException e) {
-      e.printStackTrace();
-    } catch (InvocationTargetException e) {
-      e.printStackTrace();
+    } catch (IllegalAccessException | InvocationTargetException e) {
+      log.error("when getting value for field " + f.getName()
+              , e);
     }
-    return v;
+      return v;
   }
 
-  public static void setValue(FieldInterfaced f, Object o, Object v)
+  public void setValue(FieldInterfaced f, Object o, Object v)
       throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
     if (f == null) {
       return;
@@ -93,7 +99,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
       Method setter = null;
       try {
         setter = o.getClass().getMethod(getSetter(f), f.getType());
-      } catch (Exception e) {
+      } catch (Exception ignored) {
       }
       try {
         if (setter != null) {
@@ -103,15 +109,14 @@ public class ReflectionHelper extends BaseReflectionHelper {
           if (!Modifier.isPublic(f.getField().getModifiers())) f.getField().setAccessible(true);
           f.getField().set(o, v);
         }
-      } catch (IllegalAccessException e) {
-        e.printStackTrace();
-      } catch (InvocationTargetException e) {
-        e.printStackTrace();
+      } catch (IllegalAccessException | InvocationTargetException e) {
+        log.error("when setting value for field " + f.getName()
+                , e);
       }
     } else setValue(f.getId(), o, v);
   }
 
-  public static void setValue(String fn, Object o, Object v)
+  public void setValue(String fn, Object o, Object v)
       throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
     if (Map.class.isAssignableFrom(o.getClass())) {
       ((Map) o).put(fn, v);
@@ -132,7 +137,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     }
   }
 
-  public static Object getValue(FieldInterfaced f, Object o, Object valueIfNull) {
+  public Object getValue(FieldInterfaced f, Object o, Object valueIfNull) {
     Object v = null;
     try {
       v = getValue(f, o);
@@ -146,7 +151,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return v != null ? v : valueIfNull;
   }
 
-  public static Object getValue(FieldInterfaced f, Object o)
+  public Object getValue(FieldInterfaced f, Object o)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
     if (o == null) return null;
@@ -160,7 +165,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     }
   }
 
-  public static Object getValue(String id, Object o)
+  public Object getValue(String id, Object o)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
     Object v = null;
 
@@ -240,7 +245,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return v;
   }
 
-  private static Object getInstance(Object o, String fn)
+  private Object getInstance(Object o, String fn)
       throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     Object x = null;
     if (o != null) {
@@ -254,7 +259,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return x;
   }
 
-  public static Method getMethod(Class<?> c, String methodName) {
+  public Method getMethod(Class<?> c, String methodName) {
     if (c == null) {
       log.debug("getMethod(" + null + ", " + methodName + ") devolverá null!");
       return null;
@@ -266,7 +271,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return l;
   }
 
-  public static Method buildMethod(Class<?> c, String methodName) {
+  public Method buildMethod(Class<?> c, String methodName) {
     Method m = null;
     if (c != null)
       for (Method q : getAllMethods(c)) {
@@ -278,35 +283,35 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return m;
   }
 
-  public static String getGetter(Field f) {
+  public String getGetter(Field f) {
     return getGetter(f.getType(), f.getName());
   }
 
-  public static String getGetter(FieldInterfaced f) {
+  public String getGetter(FieldInterfaced f) {
     return getGetter(f.getType(), f.getName());
   }
 
-  public static String getGetter(Class c, String fieldName) {
+  public String getGetter(Class c, String fieldName) {
     return (boolean.class.equals(c) ? "is" : "get") + getFirstUpper(fieldName);
   }
 
-  public static String getGetter(String fn) {
+  public String getGetter(String fn) {
     return "get" + getFirstUpper(fn);
   }
 
-  public static String getSetter(Field f) {
+  public String getSetter(Field f) {
     return getSetter(f.getType(), f.getName());
   }
 
-  public static String getSetter(FieldInterfaced f) {
+  public String getSetter(FieldInterfaced f) {
     return getSetter(f.getType(), f.getName());
   }
 
-  public static String getSetter(Class c, String fieldName) {
+  public String getSetter(Class c, String fieldName) {
     return "set" + getFirstUpper(fieldName);
   }
 
-  public static List<Method> getAllMethods(Class c) {
+  public List<Method> getAllMethods(Class c) {
     List<Method> l = _getAllMethods(c);
 
     List<Method> r = new ArrayList<>();
@@ -318,7 +323,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return r;
   }
 
-  public static List<Method> _getAllMethods(Class c) {
+  public List<Method> _getAllMethods(Class c) {
     List<Method> l = allMethodsCache.get(c);
 
     if (l == null) {
@@ -328,7 +333,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return l;
   }
 
-  public static List<Method> buildAllMethods(Class c) {
+  public List<Method> buildAllMethods(Class c) {
     List<Method> l = new ArrayList<>();
 
     if (c.getSuperclass() != null
@@ -345,7 +350,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return l;
   }
 
-  private static String getSignature(Method m) {
+  private String getSignature(Method m) {
     return m.getGenericReturnType().getTypeName()
         + " "
         + m.getName()
@@ -354,7 +359,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
         + ")";
   }
 
-  private static String getSignature(Parameter[] parameters) {
+  private String getSignature(Parameter[] parameters) {
     String s = "";
     if (parameters != null)
       for (Parameter p : parameters) {
@@ -364,7 +369,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return s;
   }
 
-  private static Method getMethod(Class c, String methodName, Class<?>... parameterTypes)
+  private Method getMethod(Class c, String methodName, Class<?>... parameterTypes)
       throws NoSuchMethodException {
     Method m = c.getClass().getDeclaredMethod(methodName, parameterTypes);
 
@@ -378,7 +383,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return m;
   }
 
-  public static List<FieldInterfaced> getAllFields(Class c) {
+  public List<FieldInterfaced> getAllFields(Class c) {
     List<FieldInterfaced> l = allFieldsCache.get(c);
 
     if (l == null) {
@@ -389,7 +394,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return new ArrayList<>(l);
   }
 
-  private static List<FieldInterfaced> buildAllFields(Class c) {
+  private List<FieldInterfaced> buildAllFields(Class c) {
     List<String> vistos = new ArrayList<>();
     Map<String, Field> originales = new HashMap<>();
     for (Field f : c.getDeclaredFields())
@@ -409,7 +414,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
             || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class))) {
       for (FieldInterfaced f : getAllFields(c.getSuperclass())) {
         if (!originales.containsKey(f.getId())) l.add(f);
-        else l.add(new FieldInterfacedFromField(originales.get(f.getName())));
+        else l.add(fieldInterfacedFactory.getFieldInterfacedFromField(originales.get(f.getName()), this));
         vistos.add(f.getName());
       }
     }
@@ -424,33 +429,33 @@ public class ReflectionHelper extends BaseReflectionHelper {
                   && !"_possibleValues".equalsIgnoreCase(f.getName())
                   && !"_binder".equalsIgnoreCase(f.getName())
                   && !"_field".equalsIgnoreCase(f.getName())) {
-                l.add(new FieldInterfacedFromField(f));
+                l.add(fieldInterfacedFactory.getFieldInterfacedFromField(f, this));
               }
 
     return l;
   }
 
-  public static boolean hasGetter(FieldInterfaced f) {
+  public boolean hasGetter(FieldInterfaced f) {
     return getMethod(f.getDeclaringClass(), getGetter(f)) != null;
   }
 
-  public static boolean hasSetter(FieldInterfaced f) {
+  public boolean hasSetter(FieldInterfaced f) {
     return getMethod(f.getDeclaringClass(), getSetter(f)) != null;
   }
 
-  public static List<FieldInterfaced> getAllFields(Method m) {
+  public List<FieldInterfaced> getAllFields(Method m) {
 
     List<FieldInterfaced> l = new ArrayList<>();
 
     for (Parameter p : m.getParameters())
       if (!isInjectable(m, p)) {
-        l.add(new FieldInterfacedFromParameter(m, p));
+        l.add(fieldInterfacedFactory.getFieldInterfacedFromParameter(m, p, this));
       }
 
     return l;
   }
 
-  public static boolean isInjectable(Executable m, Parameter p) {
+  public boolean isInjectable(Executable m, Parameter p) {
     boolean injectable = true;
     if (EntityManager.class.equals(p.getType())) {
     } else {
@@ -459,11 +464,11 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return injectable;
   }
 
-  private static Map<String, FieldInterfaced> getAllFieldsMap(Class c) {
+  private Map<String, FieldInterfaced> getAllFieldsMap(Class c) {
     return getAllFieldsMap(getAllFields(c));
   }
 
-  private static Map<String, FieldInterfaced> getAllFieldsMap(List<FieldInterfaced> l) {
+  private Map<String, FieldInterfaced> getAllFieldsMap(List<FieldInterfaced> l) {
 
     Map<String, FieldInterfaced> m = new HashMap<>();
 
@@ -472,12 +477,10 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return m;
   }
 
-  public static Object getId(Object model) {
+  public Object getId(Object model) {
     if (model instanceof Object[]) return ((Object[]) model)[0];
-    else if (model instanceof io.mateu.util.servlet.common.Pair)
-      return ((io.mateu.util.servlet.common.Pair<Object, Object>) model).getA();
-    else if (model instanceof Pair) return ((Pair) model).getKey();
-    else if (model.getClass().isAnnotationPresent(Entity.class)) {
+    if (model instanceof Pair) return ((Pair) model).getKey();
+    if (model.getClass().isAnnotationPresent(Entity.class)) {
       Object id = null;
       try {
         FieldInterfaced idField = getIdField(model.getClass());
@@ -495,7 +498,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     } else return model;
   }
 
-  public static FieldInterfaced getIdField(Class type) {
+  public FieldInterfaced getIdField(Class type) {
     if (type.isAnnotationPresent(Entity.class)) {
       FieldInterfaced idField = null;
 
@@ -510,7 +513,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     } else return null;
   }
 
-  public static Field getVersionField(Class c) {
+  public Field getVersionField(Class c) {
     if (c.isAnnotationPresent(Entity.class)) {
       Field idField = null;
 
@@ -532,7 +535,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     } else return null;
   }
 
-  public static FieldInterfaced getNameField(Class entityClass, boolean toStringPreferred) {
+  public FieldInterfaced getNameField(Class entityClass, boolean toStringPreferred) {
     FieldInterfaced fName = null;
     Method toStringMethod = getMethod(entityClass, "toString");
     boolean toStringIsOverriden =
@@ -573,7 +576,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return fName;
   }
 
-  public static FieldInterfaced getFieldByName(Class sourceClass, String fieldName) {
+  public FieldInterfaced getFieldByName(Class sourceClass, String fieldName) {
     FieldInterfaced field = null;
     String fn = fieldName.split("\\.")[0];
     for (FieldInterfaced f : getAllFields(sourceClass)) {
@@ -590,7 +593,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return field;
   }
 
-  public static FieldInterfaced getMapper(FieldInterfaced field) {
+  public FieldInterfaced getMapper(FieldInterfaced field) {
 
     // field es el campo original
 
@@ -675,7 +678,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return mapper;
   }
 
-  public static Class getGenericClass(
+  public Class getGenericClass(
       FieldInterfaced field, Class asClassOrInterface, String genericArgumentName) {
     Type t = field.getGenericType();
     if (field.isAnnotationPresent(GenericClass.class))
@@ -688,7 +691,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
           genericArgumentName);
   }
 
-  public static Class getGenericClass(
+  public Class getGenericClass(
       ParameterizedType parameterizedType, Class asClassOrInterface, String genericArgumentName) {
     return getGenericClass(
         parameterizedType,
@@ -697,12 +700,12 @@ public class ReflectionHelper extends BaseReflectionHelper {
         genericArgumentName);
   }
 
-  public static Class getGenericClass(
+  public Class getGenericClass(
       Class sourceClass, Class asClassOrInterface, String genericArgumentName) {
     return getGenericClass(null, sourceClass, asClassOrInterface, genericArgumentName);
   }
 
-  public static Class getGenericClass(
+  public Class getGenericClass(
       ParameterizedType parameterizedType,
       Class sourceClass,
       Class asClassOrInterface,
@@ -865,7 +868,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return c;
   }
 
-  private static Class buscarHaciaAbajo(
+  private Class buscarHaciaAbajo(
       Type asClassOrInterface, String genericArgumentName, List<Type> jerarquia) {
 
     Class c = null;
@@ -913,7 +916,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return c;
   }
 
-  private static List<Type> buscarInterfaz(Type tipo, Class interfaz) {
+  private List<Type> buscarInterfaz(Type tipo, Class interfaz) {
     List<Type> jerarquia = null;
 
     Class clase = null;
@@ -932,7 +935,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return jerarquia;
   }
 
-  private static List<Type> buscarSuperInterfaz(Type tipo, Class interfaz) {
+  private List<Type> buscarSuperInterfaz(Type tipo, Class interfaz) {
     List<Type> jerarquia = null;
 
     Class clase = null;
@@ -994,7 +997,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return jerarquia;
   }
 
-  private static Type getSuper(Type tipoEnCurso) {
+  private Type getSuper(Type tipoEnCurso) {
     Type genericSuperclass = null;
     if (tipoEnCurso instanceof Class) {
       if (((Class) tipoEnCurso).isInterface()) {
@@ -1009,7 +1012,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return genericSuperclass;
   }
 
-  private static int getArgPos(Type asClassOrInterface, String genericArgumentName) {
+  private int getArgPos(Type asClassOrInterface, String genericArgumentName) {
     int argPos = 0;
 
     Type[] types = null;
@@ -1034,7 +1037,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return argPos;
   }
 
-  public static <T> T fillQueryResult(List<FieldInterfaced> fields, Object[] o, T t)
+  public <T> T fillQueryResult(List<FieldInterfaced> fields, Object[] o, T t)
       throws IllegalAccessException, InstantiationException, NoSuchMethodException,
           InvocationTargetException {
     int pos = 0;
@@ -1050,7 +1053,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return t;
   }
 
-  private static void set(Object o, FieldInterfaced f, Object v)
+  private void set(Object o, FieldInterfaced f, Object v)
       throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     Method m = null;
     try {
@@ -1068,7 +1071,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     }
   }
 
-  public static List<FieldInterfaced> getKpiFields(Class modelType) {
+  public List<FieldInterfaced> getKpiFields(Class modelType) {
     List<FieldInterfaced> allFields = getAllFields(modelType);
 
     allFields =
@@ -1079,7 +1082,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return allFields;
   }
 
-  public static List<FieldInterfaced> getAllTransferrableFields(Class modelType) {
+  public List<FieldInterfaced> getAllTransferrableFields(Class modelType) {
     List<FieldInterfaced> allFields = getAllFields(modelType);
 
     allFields = filterAccesible(allFields);
@@ -1089,11 +1092,11 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return allFields;
   }
 
-  public static List<FieldInterfaced> getAllEditableFields(Class modelType) {
+  public List<FieldInterfaced> getAllEditableFields(Class modelType) {
     return getAllEditableFilteredFields(modelType, null, null);
   }
 
-  public static List<FieldInterfaced> getAllEditableFilteredFields(
+  public List<FieldInterfaced> getAllEditableFilteredFields(
       Class modelType, String fieldsFilter, List<FieldInterfaced> editableFields) {
     List<FieldInterfaced> l =
         editableFields != null ? editableFields : getAllEditableFields(modelType, null, true);
@@ -1106,12 +1109,12 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return l;
   }
 
-  public static List<FieldInterfaced> getAllEditableFields(
+  public List<FieldInterfaced> getAllEditableFields(
       Class modelType, Class superType, boolean includeReverseMappers) {
     return getAllEditableFields(modelType, superType, includeReverseMappers, null);
   }
 
-  public static List<FieldInterfaced> getAllEditableFields(
+  public List<FieldInterfaced> getAllEditableFields(
       Class modelType, Class superType, boolean includeReverseMappers, FieldInterfaced field) {
     List<FieldInterfaced> allFields = getAllFields(modelType);
 
@@ -1198,7 +1201,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return allFields;
   }
 
-  private static List<FieldInterfaced> filterMenuFields(List<FieldInterfaced> allFields) {
+  private List<FieldInterfaced> filterMenuFields(List<FieldInterfaced> allFields) {
     List<FieldInterfaced> r = new ArrayList<>();
     for (FieldInterfaced f : allFields) {
       if (!f.isAnnotationPresent(MenuOption.class) && !f.isAnnotationPresent(Submenu.class))
@@ -1207,7 +1210,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return r;
   }
 
-  private static List<FieldInterfaced> filterInjected(List<FieldInterfaced> allFields) {
+  private List<FieldInterfaced> filterInjected(List<FieldInterfaced> allFields) {
     List<FieldInterfaced> r = new ArrayList<>();
     for (FieldInterfaced f : allFields) {
       if (!f.isAnnotationPresent(Autowired.class) && !Modifier.isFinal(f.getModifiers())) r.add(f);
@@ -1215,7 +1218,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return r;
   }
 
-  private static List<FieldInterfaced> getAllInjectedFields(Class<?> type) {
+  private List<FieldInterfaced> getAllInjectedFields(Class<?> type) {
     List<FieldInterfaced> r = new ArrayList<>();
     var allFields = getAllFields(type);
     for (FieldInterfaced f : allFields) {
@@ -1224,7 +1227,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return r;
   }
 
-  private static List<FieldInterfaced> filterAccesible(List<FieldInterfaced> allFields) {
+  private List<FieldInterfaced> filterAccesible(List<FieldInterfaced> allFields) {
     List<FieldInterfaced> r = new ArrayList<>();
     for (FieldInterfaced f : allFields) {
       if (hasGetter(f)) r.add(f);
@@ -1232,7 +1235,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return r;
   }
 
-  private static List<FieldInterfaced> filterAuthorized(List<FieldInterfaced> allFields) {
+  private List<FieldInterfaced> filterAuthorized(List<FieldInterfaced> allFields) {
     List<FieldInterfaced> r = new ArrayList<>();
     for (FieldInterfaced f : allFields) {
       if (check(f)) r.add(f);
@@ -1240,7 +1243,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return r;
   }
 
-  private static boolean check(FieldInterfaced f) {
+  private boolean check(FieldInterfaced f) {
     boolean r = false;
     boolean annotated = false;
     if (f.isAnnotationPresent(ReadOnly.class)) {
@@ -1261,11 +1264,11 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return !annotated || r;
   }
 
-  private static boolean check(Annotation a) {
+  private boolean check(Annotation a) {
     return true;
   }
 
-  private static boolean check(Method m) {
+  private boolean check(Method m) {
     boolean r = false;
     boolean annotated = false;
     if (m.isAnnotationPresent(ReadOnly.class)) {
@@ -1286,7 +1289,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return !annotated || r;
   }
 
-  private static FieldInterfaced getInterfaced(Parameter p) {
+  private FieldInterfaced getInterfaced(Parameter p) {
     return new FieldInterfaced() {
       @Override
       public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
@@ -1369,9 +1372,9 @@ public class ReflectionHelper extends BaseReflectionHelper {
     };
   }
 
-  public static String getCaption(Object o) {
+  public String getCaption(Object o) {
     if (o.getClass().isAnnotationPresent(Caption.class)) {
-      return Translator.translate(o.getClass().getAnnotation(Caption.class).value());
+      return translator.translate(o.getClass().getAnnotation(Caption.class).value());
     }
     if (o instanceof Listing) {
       return ((Listing) o).getCaption();
@@ -1385,34 +1388,34 @@ public class ReflectionHelper extends BaseReflectionHelper {
       e.printStackTrace();
     }
     if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(o.getClass().getSimpleName());
-    return Translator.translate(caption);
+    return translator.translate(caption);
   }
 
-  public static String getCaption(FieldInterfaced f) {
+  public String getCaption(FieldInterfaced f) {
     if (f.isAnnotationPresent(Caption.class)) {
-      return Translator.translate(f.getAnnotation(Caption.class).value());
+      return translator.translate(f.getAnnotation(Caption.class).value());
     } else {
       String caption = "";
       if (f.isAnnotationPresent(Submenu.class)) caption = f.getAnnotation(Submenu.class).value();
       if (f.isAnnotationPresent(Action.class)) f.getAnnotation(Action.class).value();
       if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(f.getName());
-      return Translator.translate(caption);
+      return translator.translate(caption);
     }
   }
 
-  public static String getCaption(Method f) {
+  public String getCaption(Method f) {
     if (f.isAnnotationPresent(Caption.class)) {
-      return Translator.translate(f.getAnnotation(Caption.class).value());
+      return translator.translate(f.getAnnotation(Caption.class).value());
     } else {
       String caption = "";
       if (f.isAnnotationPresent(Submenu.class)) caption = f.getAnnotation(Submenu.class).value();
       if (f.isAnnotationPresent(Action.class)) caption = f.getAnnotation(Action.class).value();
       if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(f.getName());
-      return Translator.translate(caption);
+      return translator.translate(caption);
     }
   }
 
-  public static Collection addToCollection(FieldInterfaced field, Object bean)
+  public Collection addToCollection(FieldInterfaced field, Object bean)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException,
           InstantiationException {
 
@@ -1429,7 +1432,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return addToCollection(field, bean, i);
   }
 
-  public static Collection addToCollection(FieldInterfaced field, Object bean, Object i)
+  public Collection addToCollection(FieldInterfaced field, Object bean, Object i)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException,
           InstantiationException {
     Object v = getValue(field, bean);
@@ -1444,14 +1447,14 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return (Collection) v;
   }
 
-  private static Object createChild(Object parent, FieldInterfaced collectionField)
+  private Object createChild(Object parent, FieldInterfaced collectionField)
       throws IllegalAccessException, InstantiationException, NoSuchMethodException,
           InvocationTargetException {
     Class c = collectionField.getGenericClass();
     return newInstance(c, parent);
   }
 
-  public static void addToMap(FieldInterfaced field, Object bean, Object k, Object v)
+  public void addToMap(FieldInterfaced field, Object bean, Object k, Object v)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
     Map m = (Map) getValue(field, bean);
 
@@ -1462,7 +1465,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     } else setValue(field, bean, extend(m, k, v));
   }
 
-  public static void removeFromMap(FieldInterfaced field, Object bean, Set l)
+  public void removeFromMap(FieldInterfaced field, Object bean, Set l)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
     final Object v = getValue(field, bean);
@@ -1470,7 +1473,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     if (v != null) l.forEach(e -> ((Map) v).remove(((MapEntry) e).getKey()));
   }
 
-  public static Class<?> getGenericClass(Class type) {
+  public Class<?> getGenericClass(Class type) {
     Class<?> gc = null;
     if (type.getGenericInterfaces() != null)
       for (Type gi : type.getGenericInterfaces()) {
@@ -1485,7 +1488,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return gc;
   }
 
-  public static Class<?> getGenericClass(Type type) {
+  public Class<?> getGenericClass(Type type) {
     Class<?> gc = null;
     if (type instanceof ParameterizedType) {
       ParameterizedType pt = (ParameterizedType) type;
@@ -1496,7 +1499,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return gc;
   }
 
-  public static Set<Class> getSubclasses(Class c) {
+  public Set<Class> getSubclasses(Class c) {
     String pkg = c.getPackage().getName();
     String[] ts = pkg.split("\\.");
     if (ts.length > 3) {
@@ -1516,7 +1519,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return subsFiltered;
   }
 
-  public static Class<?> getGenericClass(Method m) {
+  public Class<?> getGenericClass(Method m) {
     Type gi = m.getGenericReturnType();
     Class<?> gc = null;
     if (gi instanceof ParameterizedType) {
@@ -1528,7 +1531,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return gc;
   }
 
-  public static boolean isOwner(FieldInterfaced field) {
+  public boolean isOwner(FieldInterfaced field) {
     OneToOne oo = field.getAnnotation(OneToOne.class);
     OneToMany aa = field.getAnnotation(OneToMany.class);
     ManyToMany mm = field.getAnnotation(ManyToMany.class);
@@ -1542,7 +1545,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return owner;
   }
 
-  private static boolean checkCascade(CascadeType[] cascade) {
+  private boolean checkCascade(CascadeType[] cascade) {
     boolean owned = false;
     for (CascadeType ct : cascade) {
       if (CascadeType.ALL.equals(ct) || CascadeType.PERSIST.equals(ct)) {
@@ -1553,7 +1556,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return owned;
   }
 
-  public static boolean puedeBorrar(FieldInterfaced field) {
+  public boolean puedeBorrar(FieldInterfaced field) {
     if (field.isAnnotationPresent(ModifyValuesOnly.class)) return false;
     boolean puede = true;
     CascadeType[] cascades = null;
@@ -1573,7 +1576,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return puede;
   }
 
-  public static boolean puedeAnadir(FieldInterfaced field) {
+  public boolean puedeAnadir(FieldInterfaced field) {
     if (field.isAnnotationPresent(ModifyValuesOnly.class)) return false;
     boolean puede = true;
     CascadeType[] cascades = null;
@@ -1593,7 +1596,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return puede;
   }
 
-  public static void main(String[] args) throws Exception {
+  public void main(String[] args) throws Exception {
 
     /*
     ClassPool cpool = ClassPool.getDefault();
@@ -1630,11 +1633,11 @@ public class ReflectionHelper extends BaseReflectionHelper {
 
   }
 
-  public static String getFirstUpper(String fieldName) {
+  public String getFirstUpper(String fieldName) {
     return fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
   }
 
-  public static Object clone(Object original)
+  public Object clone(Object original)
       throws IllegalAccessException, InstantiationException, NoSuchMethodException,
           InvocationTargetException {
     if (original == null) return null;
@@ -1668,7 +1671,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     }
   }
 
-  public static void delete(EntityManager em, Object o)
+  public void delete(EntityManager em, Object o)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
     if (o != null) {
       // no quitamos las relaciones, por precaución. Así saltará a nivel de base de datos si
@@ -1735,7 +1738,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     }
   }
 
-  public static void copy(Object from, Object to) {
+  public void copy(Object from, Object to) {
     if (from != null && to != null) {
       if (from.getClass().equals(to.getClass())) {
         for (FieldInterfaced f : getAllTransferrableFields(to.getClass())) {
@@ -1766,7 +1769,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     }
   }
 
-  public static Object newInstance(Constructor c, Object params) throws Throwable {
+  public Object newInstance(Constructor c, Object params) throws Throwable {
     List<Object> vs = new ArrayList<>();
     for (Parameter p : c.getParameters()) {
       if (params != null && getFieldByName(params.getClass(), p.getName()) != null) {
@@ -1785,7 +1788,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return c.newInstance(args);
   }
 
-  public static <T> T newInstance(Class<T> c)
+  public <T> T newInstance(Class<T> c)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException,
           InstantiationException {
     Object o = null;
@@ -1818,7 +1821,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
               Constructor constructor = c.getDeclaredConstructors()[0];
               o =
                   constructor.newInstance(
-                      ReflectionHelper.newInstance(constructor.getParameterTypes()[0]));
+                      newInstance(constructor.getParameterTypes()[0]));
             }
           }
         }
@@ -1828,7 +1831,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return (T) o;
   }
 
-  public static Object newInstance(Class c, Object parent)
+  public Object newInstance(Class c, Object parent)
       throws IllegalAccessException, InstantiationException, InvocationTargetException,
           NoSuchMethodException {
     Object i = null;
@@ -1861,7 +1864,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return i;
   }
 
-  public static Constructor getConstructor(Class type) {
+  public Constructor getConstructor(Class type) {
     Constructor con = null;
     int minParams = Integer.MAX_VALUE;
     for (Constructor x : type.getConstructors())
@@ -1874,7 +1877,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return con;
   }
 
-  public static Constructor getConstructor(Class c, Class parameterClass) {
+  public Constructor getConstructor(Class c, Class parameterClass) {
     Constructor con = null;
     while (con == null && !Object.class.equals(parameterClass)) {
       try {
@@ -1888,14 +1891,14 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return con;
   }
 
-  public static String toHtml(Object o) {
+  public String toHtml(Object o) {
     StringWriter sw;
     PrintWriter pw = new PrintWriter(sw = new StringWriter());
     toHtml(pw, o, new ArrayList<>());
     return sw.toString();
   }
 
-  public static void toHtml(PrintWriter pw, Object o, List visited) {
+  public void toHtml(PrintWriter pw, Object o, List visited) {
     if (o == null) {
     } else {
       if (!visited.contains(o)) {
@@ -1928,7 +1931,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     }
   }
 
-  public static String toJson(Object o) {
+  public String toJson(Object o) {
     if (o == null) return null;
     ObjectWriter ow = mapper.writer().withDefaultPrettyPrinter();
     try {
@@ -1940,7 +1943,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     }
   }
 
-  public static Object fromJson(String json) {
+  public Object fromJson(String json) {
     try {
       return mapper.reader().readValue(json);
     } catch (JsonProcessingException e) {
@@ -1949,7 +1952,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
     }
   }
 
-  public static <T> Collection<T> extend(Collection<T> list, T o) {
+  public <T> Collection<T> extend(Collection<T> list, T o) {
     if (list == null) return null;
     if (list instanceof ImmutableList) {
       return extend((ImmutableList<T>) list, o);
@@ -1962,43 +1965,43 @@ public class ReflectionHelper extends BaseReflectionHelper {
     }
   }
 
-  public static <T> List<T> extend(List<T> list, T o) {
+  public <T> List<T> extend(List<T> list, T o) {
     List<T> l = new ArrayList<T>(list);
     l.add(o);
     return l;
   }
 
-  public static <T> ImmutableList<T> extend(ImmutableList<T> list, T o) {
+  public <T> ImmutableList<T> extend(ImmutableList<T> list, T o) {
     List<T> l = new ArrayList<>(list);
     l.add(o);
     return ImmutableList.copyOf(l);
   }
 
-  public static <T> Set<T> extend(Set<T> list, T o) {
+  public <T> Set<T> extend(Set<T> list, T o) {
     Set<T> l = new HashSet<>(list);
     l.add(o);
     return l;
   }
 
-  public static <T> ImmutableSet<T> extend(ImmutableSet<T> list, T o) {
+  public <T> ImmutableSet<T> extend(ImmutableSet<T> list, T o) {
     Set<T> l = new HashSet<>(list);
     l.add(o);
     return ImmutableSet.copyOf(l);
   }
 
-  public static <K, V> Map<K, V> extend(Map<K, V> list, K k, V v) {
+  public <K, V> Map<K, V> extend(Map<K, V> list, K k, V v) {
     Map<K, V> l = new HashMap<>(list);
     l.put(k, v);
     return l;
   }
 
-  public static <K, V> ImmutableMap<K, V> extend(ImmutableMap<K, V> list, K k, V v) {
+  public <K, V> ImmutableMap<K, V> extend(ImmutableMap<K, V> list, K k, V v) {
     Map<K, V> l = new HashMap<>(list);
     l.put(k, v);
     return ImmutableMap.copyOf(l);
   }
 
-  public static <T> Collection<T> remove(Collection<T> list, T o) {
+  public <T> Collection<T> remove(Collection<T> list, T o) {
     if (list == null) return null;
     if (list instanceof ImmutableList) {
       return remove((ImmutableList<T>) list, o);
@@ -2011,42 +2014,42 @@ public class ReflectionHelper extends BaseReflectionHelper {
     }
   }
 
-  public static <T> List<T> remove(List<T> list, T o) {
+  public <T> List<T> remove(List<T> list, T o) {
     if (list == null) return null;
     List<T> l = new ArrayList<T>(list);
     l.remove(o);
     return l;
   }
 
-  public static <T> Set<T> remove(Set<T> list, T o) {
+  public <T> Set<T> remove(Set<T> list, T o) {
     if (list == null) return null;
     Set<T> l = new HashSet<>(list);
     l.remove(o);
     return l;
   }
 
-  public static <T> ImmutableList<T> remove(ImmutableList<T> list, T o) {
+  public <T> ImmutableList<T> remove(ImmutableList<T> list, T o) {
     if (list == null) return null;
     List<T> l = new ArrayList<>(list);
     l.remove(o);
     return ImmutableList.copyOf(l);
   }
 
-  public static <T> ImmutableSet<T> remove(ImmutableSet<T> list, T o) {
+  public <T> ImmutableSet<T> remove(ImmutableSet<T> list, T o) {
     if (list == null) return null;
     Set<T> l = new HashSet<>(list);
     l.remove(o);
     return ImmutableSet.copyOf(l);
   }
 
-  public static <K, V> ImmutableMap<K, V> remove(ImmutableMap<K, V> list, K o) {
+  public <K, V> ImmutableMap<K, V> remove(ImmutableMap<K, V> list, K o) {
     if (list == null) return null;
     Map<K, V> l = new HashMap<>(list);
     l.remove(o);
     return ImmutableMap.copyOf(l);
   }
 
-  public static <T> Collection<T> removeAll(Collection<T> list, Collection o) {
+  public <T> Collection<T> removeAll(Collection<T> list, Collection o) {
     if (list == null) return null;
     if (list instanceof ImmutableList) {
       return removeAll((ImmutableList<T>) list, o);
@@ -2059,38 +2062,99 @@ public class ReflectionHelper extends BaseReflectionHelper {
     }
   }
 
-  public static <T> List<T> removeAll(List<T> list, Collection o) {
+  public <T> List<T> removeAll(List<T> list, Collection o) {
     if (list == null) return null;
     List<T> l = new ArrayList<T>(list);
     l.removeAll(o);
     return l;
   }
 
-  public static <T> Set<T> removeAll(Set<T> list, Collection o) {
+  public <T> Set<T> removeAll(Set<T> list, Collection o) {
     if (list == null) return null;
     Set<T> l = new HashSet<>(list);
     l.removeAll(o);
     return l;
   }
 
-  public static <T> ImmutableList<T> removeAll(ImmutableList<T> list, Collection o) {
+  public <T> ImmutableList<T> removeAll(ImmutableList<T> list, Collection o) {
     if (list == null) return null;
     List<T> l = new ArrayList<>(list);
     l.removeAll(o);
     return ImmutableList.copyOf(l);
   }
 
-  public static <T> ImmutableSet<T> removeAll(ImmutableSet<T> list, Collection o) {
+  public <T> ImmutableSet<T> removeAll(ImmutableSet<T> list, Collection o) {
     if (list == null) return null;
     Set<T> l = new HashSet<>(list);
     l.removeAll(o);
     return ImmutableSet.copyOf(l);
   }
 
-  public static boolean isOverridden(Object instance, String methodName) {
-    Method m = ReflectionHelper.getMethod(instance.getClass(), methodName);
+  public boolean isOverridden(Object instance, String methodName) {
+    Method m = getMethod(instance.getClass(), methodName);
     return m != null
         && !m.getDeclaringClass().equals(Object.class)
         && !m.getDeclaringClass().isInterface();
+  }
+
+
+  public Object invokeInjectableParametersOnly(Method method, Object instance)
+          throws Throwable {
+    return execute(method, new Object(), instance, null);
+  }
+
+  public Object execute(Method m, Object parameters, Object instance, Set pendingSelection)
+          throws Throwable {
+    Object o = parameters;
+    Map<String, Object> params = null;
+    if (o != null && Map.class.isAssignableFrom(o.getClass())) {
+      params = (Map<String, Object>) o;
+    } else if (o != null) {
+      params = new HashMap<>();
+      for (FieldInterfaced f : getAllEditableFields(o.getClass())) {
+        params.put(f.getName(), getValue(f, o));
+      }
+    }
+
+    List<Object> vs = new ArrayList<>();
+    int pos = 0;
+    for (Parameter p : m.getParameters()) {
+      Class<?> pgc = getGenericClass(p.getParameterizedType());
+
+      if (((instance instanceof Listing || Modifier.isStatic(m.getModifiers()))
+              && Set.class.isAssignableFrom(p.getType())
+              && (m.getDeclaringClass().equals(pgc)
+              || (instance instanceof Listing
+              && getGenericClass(instance.getClass(), Listing.class, "C")
+              .equals(pgc))))
+              || (pendingSelection != null && Set.class.isAssignableFrom(p.getType()))) {
+        vs.add(pendingSelection);
+      } else if (params != null && params.containsKey(p.getName())) {
+        vs.add(params.get(p.getName()));
+      } else if (o != null && getFieldByName(o.getClass(), p.getName()) != null) {
+        vs.add(
+                getValue(
+                        getFieldByName(o.getClass(), p.getName()), o));
+      } else {
+        Object v = null;
+        if (int.class.equals(p.getType())) v = 0;
+        if (long.class.equals(p.getType())) v = 0l;
+        if (float.class.equals(p.getType())) v = 0f;
+        if (double.class.equals(p.getType())) v = 0d;
+        if (boolean.class.equals(p.getType())) v = false;
+        vs.add(v);
+      }
+      pos++;
+    }
+
+    {
+      Object[] args = vs.toArray();
+      if (!Modifier.isStatic(m.getModifiers()) && instance == null)
+        instance = newInstance(m.getDeclaringClass());
+      if (instance != null && !Modifier.isPublic(instance.getClass().getModifiers()))
+        m.setAccessible(true);
+      else if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
+      return m.invoke(instance, args);
+    }
   }
 }

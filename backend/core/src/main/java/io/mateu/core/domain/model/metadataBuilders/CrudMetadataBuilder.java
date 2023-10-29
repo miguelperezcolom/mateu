@@ -15,18 +15,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class CrudMetadataBuilder {
 
-  @Autowired ActionMetadataBuilder actionMetadataBuilder;
-
-  @Autowired FieldMetadataBuilder fieldMetadataBuilder;
-
-  @Autowired FieldTypeMapper fieldTypeMapper;
+  final ActionMetadataBuilder actionMetadataBuilder;
+  final FieldMetadataBuilder fieldMetadataBuilder;
+  final FieldTypeMapper fieldTypeMapper;
+  final ReflectionHelper reflectionHelper;
 
   @SneakyThrows
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
@@ -41,7 +43,7 @@ public class CrudMetadataBuilder {
     return Crud.builder()
         .title(getTitle(rpcView))
         .subtitle(getSubtitle(rpcView))
-        .canEdit(ReflectionHelper.isOverridden(rpcView, "getDetail"))
+        .canEdit(reflectionHelper.isOverridden(rpcView, "getDetail"))
         .searchForm(buildSearchForm(rpcView, listId))
         .columns(buildColumns(rpcView))
         .actions(actionMetadataBuilder.getActions(stepId, listId, rpcView))
@@ -73,7 +75,7 @@ public class CrudMetadataBuilder {
       columnIdsPerField.putAll(((RpcCrudViewExtended) rpcView).getColumnIdsPerField());
       columnCaptionsPerField.putAll(((RpcCrudViewExtended) rpcView).getColumnCaptionsPerField());
     } else {
-      allRowFields = ReflectionHelper.getAllFields(rowClass);
+      allRowFields = reflectionHelper.getAllFields(rowClass);
     }
     return allRowFields.stream()
         .filter(fieldInterfaced -> !fieldInterfaced.isAnnotationPresent(Ignored.class))
@@ -82,7 +84,7 @@ public class CrudMetadataBuilder {
                 getColumn(
                     columnIdsPerField.getOrDefault(fieldInterfaced, fieldInterfaced.getId()),
                     columnCaptionsPerField.getOrDefault(
-                        fieldInterfaced, ReflectionHelper.getCaption(fieldInterfaced)),
+                        fieldInterfaced, reflectionHelper.getCaption(fieldInterfaced)),
                     fieldInterfaced))
         .collect(Collectors.toList());
   }
@@ -105,7 +107,7 @@ public class CrudMetadataBuilder {
   private List<Field> buildSearchFields(Listing rpcView, String listId) {
     Class searchFormClass = rpcView.getSearchFormClass();
     List<FieldInterfaced> allEditableFields =
-        ReflectionHelper.getAllEditableFields(searchFormClass);
+        reflectionHelper.getAllEditableFields(searchFormClass);
     if (rpcView instanceof RpcCrudViewExtended) {
       List<String> validFieldIds =
           ((RpcCrudViewExtended) rpcView)

@@ -10,23 +10,25 @@ import io.mateu.remote.dtos.*;
 import jakarta.validation.constraints.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class FieldMetadataBuilder {
 
-  @Autowired FieldAttributeBuilder fieldAttributeBuilder;
-
-  @Autowired FieldTypeMapper fieldTypeMapper;
-
-  @Autowired FieldStereotypeMapper fieldStereotypeMapper;
+  final FieldAttributeBuilder fieldAttributeBuilder;
+  final FieldTypeMapper fieldTypeMapper;
+  final FieldStereotypeMapper fieldStereotypeMapper;
+  final ReflectionHelper reflectionHelper;
 
   protected Field getField(Object view, FieldInterfaced fieldInterfaced) {
     Field field =
         Field.builder()
             .id(fieldInterfaced.getId())
-            .caption(ReflectionHelper.getCaption(fieldInterfaced))
+            .caption(reflectionHelper.getCaption(fieldInterfaced))
             .placeholder(getPlaceholder(fieldInterfaced))
             .description(getDescription(fieldInterfaced))
             .cssClasses(getCssClassNames(fieldInterfaced))

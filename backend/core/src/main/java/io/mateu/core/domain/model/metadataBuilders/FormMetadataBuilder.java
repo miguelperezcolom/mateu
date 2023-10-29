@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,13 +31,13 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class FormMetadataBuilder {
 
-  @Autowired ActionMetadataBuilder actionMetadataBuilder;
-
-  @Autowired FieldMetadataBuilder fieldMetadataBuilder;
-
-  @Autowired JpaRpcCrudFactory jpaRpcCrudFactory;
+  final ActionMetadataBuilder actionMetadataBuilder;
+  final FieldMetadataBuilder fieldMetadataBuilder;
+  final JpaRpcCrudFactory jpaRpcCrudFactory;
+  final ReflectionHelper reflectionHelper;
 
   @SneakyThrows
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
@@ -71,7 +73,7 @@ public class FormMetadataBuilder {
   }
 
   private boolean hasCrud(Class entityClass) {
-    return ReflectionHelper.getAllEditableFields(entityClass).stream()
+    return reflectionHelper.getAllEditableFields(entityClass).stream()
             .filter(f -> f.isAnnotationPresent(UseCrud.class))
             .count()
         > 0;
@@ -127,7 +129,7 @@ public class FormMetadataBuilder {
   }
 
   private List<Action> getMainActions(String stepId, Object uiInstance) {
-    List<Method> allMethods = ReflectionHelper.getAllMethods(uiInstance.getClass());
+    List<Method> allMethods = reflectionHelper.getAllMethods(uiInstance.getClass());
     List<Action> actions =
         allMethods.stream()
             .filter(m -> m.isAnnotationPresent(MainAction.class))
@@ -181,7 +183,7 @@ public class FormMetadataBuilder {
     FieldGroupLine fieldGroupLine = null;
 
     List<FieldInterfaced> allEditableFields =
-        ReflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
+        reflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
             .filter(f -> !isOwner(f))
             .filter(f -> slotFields.contains(f))
             .collect(Collectors.toList());

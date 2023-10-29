@@ -5,12 +5,17 @@ import io.mateu.mdd.shared.data.ItemsListProvider;
 import io.mateu.reflection.ReflectionHelper;
 import jakarta.persistence.Entity;
 import java.lang.reflect.InvocationTargetException;
+
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class GetItemsCountQueryHandler {
+
+  final ReflectionHelper reflectionHelper;
 
   public int run(GetItemsCountQuery query) throws Throwable {
     String itemsProviderId = query.getItemsProviderId();
@@ -18,7 +23,7 @@ public class GetItemsCountQueryHandler {
 
     Class type = Class.forName(itemsProviderId);
     if (ItemsListProvider.class.isAssignableFrom(type)) {
-      return ((ItemsListProvider) ReflectionHelper.newInstance(type)).count(searchText);
+      return ((ItemsListProvider) reflectionHelper.newInstance(type)).count(searchText);
     }
     if (type.isAnnotationPresent(Entity.class)) {
       return countEntities(type, searchText);
@@ -29,7 +34,7 @@ public class GetItemsCountQueryHandler {
   private int countEntities(Class entityClass, String searchText)
       throws InvocationTargetException, NoSuchMethodException, IllegalAccessException,
           InstantiationException {
-    return ReflectionHelper.newInstance(EntitiesFinder.class)
+    return reflectionHelper.newInstance(EntitiesFinder.class)
         .countEntities(entityClass, searchText);
   }
 }

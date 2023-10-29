@@ -9,10 +9,13 @@ import jakarta.persistence.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class FieldStereotypeMapper {
 
   private final Map<RichTextComponent, String> richTextMapping =
@@ -22,7 +25,8 @@ public class FieldStereotypeMapper {
           RichTextComponent.Vaadin, "rich-text-vaadin",
           RichTextComponent.Ckeditor, "rich-text-ckeditor");
 
-  @Autowired FileChecker fileChecker;
+  final FileChecker fileChecker;
+  final ReflectionHelper reflectionHelper;
 
   public String mapStereotype(Object view, FieldInterfaced field) {
     if (field.isAnnotationPresent(CustomFieldStereotype.class)) {
@@ -51,7 +55,7 @@ public class FieldStereotypeMapper {
     }
     if (field.isAnnotationPresent(Id.class)) {
       try {
-        Object initialValue = ReflectionHelper.getValue(field, view);
+        Object initialValue = reflectionHelper.getValue(field, view);
         if (initialValue != null) {
           return "readonly";
         }

@@ -5,13 +5,18 @@ import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class FieldExtractor {
 
+  final ReflectionHelper reflectionHelper;
+
   public List<FieldInterfaced> getFields(Object uiInstance, SlotName slot) {
-    return ReflectionHelper.getAllFields(uiInstance.getClass()).stream()
+    return reflectionHelper.getAllFields(uiInstance.getClass()).stream()
         .filter(f -> !f.isAnnotationPresent(Ignored.class))
         .filter(f -> !f.isAnnotationPresent(MenuOption.class))
         .filter(f -> !f.isAnnotationPresent(Submenu.class))

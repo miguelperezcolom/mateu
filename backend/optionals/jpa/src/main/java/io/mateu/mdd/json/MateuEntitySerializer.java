@@ -9,16 +9,22 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
 import java.util.*;
 import java.util.stream.Stream;
 
-@AutoService(EntitySerializer.class)
+@Service
+@RequiredArgsConstructor
 public class MateuEntitySerializer implements EntitySerializer {
+
+  final ReflectionHelper reflectionHelper;
 
   @Override
   public Map<String, Object> toMap(Object entity) throws Exception {
     Map<String, Object> data = new HashMap<>();
-    for (FieldInterfaced field : ReflectionHelper.getAllTransferrableFields(entity.getClass())) {
+    for (FieldInterfaced field : reflectionHelper.getAllTransferrableFields(entity.getClass())) {
       addToData(data, field, entity);
     }
     return data;
@@ -34,21 +40,21 @@ public class MateuEntitySerializer implements EntitySerializer {
       addManyToOne(data, field, entity);
       return;
     }
-    data.put(field.getId(), ReflectionHelper.getValue(field, entity));
+    data.put(field.getId(), reflectionHelper.getValue(field, entity));
   }
 
   private void addManyToOne(Map<String, Object> data, FieldInterfaced field, Object entity)
       throws Exception {
-    Object value = ReflectionHelper.getValue(field, entity);
+    Object value = reflectionHelper.getValue(field, entity);
     if (value == null) {
       return;
     }
-    data.put(field.getId(), new ExternalReference(ReflectionHelper.getId(value), value.toString()));
+    data.put(field.getId(), new ExternalReference(reflectionHelper.getId(value), value.toString()));
   }
 
   private void addXToMany(Map<String, Object> data, FieldInterfaced field, Object entity)
       throws Exception {
-    Collection list = (Collection) ReflectionHelper.getValue(field, entity);
+    Collection list = (Collection) reflectionHelper.getValue(field, entity);
     if (list == null) {
       return;
     }
@@ -67,7 +73,7 @@ public class MateuEntitySerializer implements EntitySerializer {
       List<ExternalReference> refs = new ArrayList<>();
       list.forEach(
           value ->
-              refs.add(new ExternalReference(ReflectionHelper.getId(value), value.toString())));
+              refs.add(new ExternalReference(reflectionHelper.getId(value), value.toString())));
       data.put(field.getId(), refs);
     }
   }

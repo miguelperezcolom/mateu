@@ -10,23 +10,31 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@AutoService(EntityDeserializer.class)
+@Service
+@RequiredArgsConstructor
 public class MateuEntityDeserializer implements EntityDeserializer {
+    
+    final Serializer serializer;
+    final ReflectionHelper reflectionHelper;
+    
   @Override
   public <T> T fromJson(EntityManager em, String json, Class<T> c) throws Exception {
-    Map<String, Object> map = Helper.fromJson(json);
-    T instance = Serializer.pojoFromJson(json, c);
-    ReflectionHelper.getAllEditableFields(c).stream()
+    Map<String, Object> map = serializer.fromJson(json);
+    T instance = serializer.pojoFromJson(json, c);
+    reflectionHelper.getAllEditableFields(c).stream()
         .filter(f -> f.isAnnotationPresent(ManyToOne.class))
         .forEach(
             f -> {
               try {
-                ReflectionHelper.setValue(
+                reflectionHelper.setValue(
                     f,
                     instance,
                     em.find(f.getType(), ((Map<String, Object>) map.get(f.getId())).get("value")));
@@ -34,13 +42,13 @@ public class MateuEntityDeserializer implements EntityDeserializer {
                 e.printStackTrace();
               }
             });
-    ReflectionHelper.getAllEditableFields(c).stream()
+    reflectionHelper.getAllEditableFields(c).stream()
         .filter(
             f -> f.isAnnotationPresent(OneToMany.class) || f.isAnnotationPresent(ManyToMany.class))
         .forEach(
             f -> {
               try {
-                ReflectionHelper.setValue(f, instance, buildList(f, em, map));
+                reflectionHelper.setValue(f, instance, buildList(f, em, map));
               } catch (Exception e) {
                 e.printStackTrace();
               }

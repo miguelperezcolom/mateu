@@ -34,6 +34,8 @@ public class ViewMetadataBuilder {
 
   @Autowired MethodParametersEditorMetadataBuilder methodParametersEditorMetadataBuilder;
 
+  @Autowired ReflectionHelper reflectionHelper;
+
   public ViewMetadata getMetadata(
       String stepId, Object uiInstance, Object model, List<FieldInterfaced> slotFields) {
     ViewMetadata metadata;
@@ -117,7 +119,7 @@ public class ViewMetadataBuilder {
   }
 
   private void setIdAsReadOnlyIfEditing(Form metadata, EntityEditor uiInstance) {
-    FieldInterfaced idField = ReflectionHelper.getIdField(uiInstance.getEntityClass());
+    FieldInterfaced idField = reflectionHelper.getIdField(uiInstance.getEntityClass());
     if (idField != null) {
       if (uiInstance.getData().containsKey(idField.getId())) {
         metadata

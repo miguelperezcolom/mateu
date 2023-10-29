@@ -6,12 +6,13 @@ import io.mateu.mdd.core.app.*;
 import io.mateu.mdd.core.app.menuResolvers.MenuResolver;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.interfaces.*;
-import io.mateu.mdd.shared.reflection.CoreReflectionHelper;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.Menu;
 import io.mateu.remote.dtos.UI;
 import io.mateu.util.Helper;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -21,19 +22,20 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 
 public class MenuParser {
 
   private final MateuRemoteClient mateuRemoteClient;
   private final Object uiInstance;
   private final ServerHttpRequest serverHttpRequest;
+  private final ReflectionHelper reflectionHelper;
 
   public MenuParser(
-      MateuRemoteClient mateuRemoteClient, Object uiInstance, ServerHttpRequest serverHttpRequest) {
+      MateuRemoteClient mateuRemoteClient, Object uiInstance, ServerHttpRequest serverHttpRequest, ReflectionHelper reflectionHelper) {
     this.mateuRemoteClient = mateuRemoteClient;
     this.uiInstance = uiInstance;
     this.serverHttpRequest = serverHttpRequest;
+    this.reflectionHelper = reflectionHelper;
   }
 
   public List<MenuEntry> parse() {
@@ -43,7 +45,7 @@ public class MenuParser {
   private List<MenuEntry> buildMenu(boolean authenticationAgnostic, boolean publicAccess) {
     List<MenuEntry> l = new ArrayList<>();
 
-    for (FieldInterfaced f : ReflectionHelper.getAllFields(uiInstance.getClass())) {
+    for (FieldInterfaced f : reflectionHelper.getAllFields(uiInstance.getClass())) {
 
       if (!Modifier.isPublic(f.getModifiers())) {
         f.getField().setAccessible(true);
@@ -215,8 +217,9 @@ public class MenuParser {
               try {
                 return new MenuParser(
                         mateuRemoteClient,
-                        CoreReflectionHelper.invokeInjectableParametersOnly(m, uiInstance),
-                        serverHttpRequest)
+                        reflectionHelper.invokeInjectableParametersOnly(m, uiInstance),
+                        serverHttpRequest,
+                        reflectionHelper)
                     .parse();
               } catch (Throwable throwable) {
                 throwable.printStackTrace();
@@ -231,7 +234,7 @@ public class MenuParser {
         || m.isAnnotationPresent(PrivateHome.class)) {
 
       if (List.class.isAssignableFrom(m.getReturnType())
-          && MenuEntry.class.equals(ReflectionHelper.getGenericClass(m))) {
+          && MenuEntry.class.equals(reflectionHelper.getGenericClass(m))) {
 
         l.add(
             new AbstractMenu(icon, caption) {
@@ -242,7 +245,7 @@ public class MenuParser {
 
                   l =
                       (List<MenuEntry>)
-                          CoreReflectionHelper.invokeInjectableParametersOnly(m, uiInstance);
+                          reflectionHelper.invokeInjectableParametersOnly(m, uiInstance);
 
                 } catch (Throwable e) {
                   e.printStackTrace();
@@ -253,14 +256,14 @@ public class MenuParser {
 
       } else {
 
-        l.add(new MDDCallMethodAction(caption, null, m, uiInstance).setIcon(icon).setOrder(order));
+        l.add(new MDDCallMethodAction(caption, m, uiInstance).setIcon(icon).setOrder(order));
       }
     }
   }
 
   private void addMenuEntry(
       List<MenuEntry> l, FieldInterfaced f, boolean authenticationAgnostic, boolean publicAccess) {
-    String caption = ReflectionHelper.getCaption(f);
+    String caption = reflectionHelper.getCaption(f);
 
     String icon = null;
     if (f.isAnnotationPresent(Submenu.class)) icon = f.getAnnotation(Submenu.class).icon();
@@ -280,20 +283,20 @@ public class MenuParser {
       try {
 
         if (RemoteSubmenu.class.equals(f.getType())) {
-          RemoteSubmenu remoteSubmenu = (RemoteSubmenu) ReflectionHelper.getValue(f, uiInstance);
+          RemoteSubmenu remoteSubmenu = (RemoteSubmenu) reflectionHelper.getValue(f, uiInstance);
           l.add(toMenuEntry(caption, remoteSubmenu));
         } else if (URL.class.equals(f.getType())) {
-          l.add(new MDDOpenUrlAction(caption, (URL) ReflectionHelper.getValue(f, uiInstance)));
+          l.add(new MDDOpenUrlAction(caption, (URL) reflectionHelper.getValue(f, uiInstance)));
         } else {
-          Object v = ReflectionHelper.getValue(f, uiInstance);
-          if (v == null) v = ReflectionHelper.newInstance(f.getType());
+          Object v = reflectionHelper.getValue(f, uiInstance);
+          if (v == null) v = reflectionHelper.newInstance(f.getType());
           Object finalV = v;
           l.add(
               new AbstractMenu(icon, caption) {
                 @Override
                 public List<MenuEntry> buildEntries() {
                   try {
-                    return new MenuParser(mateuRemoteClient, finalV, serverHttpRequest).parse();
+                    return new MenuParser(mateuRemoteClient, finalV, serverHttpRequest, reflectionHelper).parse();
                   } catch (Throwable throwable) {
                     throwable.printStackTrace();
                   }
@@ -341,8 +344,8 @@ public class MenuParser {
   private void addDefaultMenuEntry(
       List<MenuEntry> l, FieldInterfaced f, String caption, int order, String icon)
       throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
-    Object v = ReflectionHelper.getValue(f, uiInstance);
-    if (ReflectionHelper.isBasico(f.getType()) || String.class.equals(f.getType())) {
+    Object v = reflectionHelper.getValue(f, uiInstance);
+    if (reflectionHelper.isBasico(f.getType()) || String.class.equals(f.getType())) {
       if (f.isAnnotationPresent(Home.class)
           || f.isAnnotationPresent(PublicHome.class)
           || f.isAnnotationPresent(PrivateHome.class))
@@ -356,7 +359,7 @@ public class MenuParser {
                   caption,
                   () -> {
                     try {
-                      return v != null ? v : ReflectionHelper.newInstance(f.getType());
+                      return v != null ? v : reflectionHelper.newInstance(f.getType());
                     } catch (Exception e) {
                       e.printStackTrace();
                     }

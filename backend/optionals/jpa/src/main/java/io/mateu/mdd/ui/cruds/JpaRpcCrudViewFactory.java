@@ -10,12 +10,16 @@ import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 @Service
 @Primary
+@RequiredArgsConstructor
 public class JpaRpcCrudViewFactory implements JpaRpcCrudFactory {
+
+  final ReflectionHelper reflectionHelper;
 
   @Override
   public Listing create(Object parentEntity, FieldInterfaced field) throws Exception {
@@ -34,7 +38,7 @@ public class JpaRpcCrudViewFactory implements JpaRpcCrudFactory {
               parentEntity));
     } else {
       action.setExtraFilters(
-          new ExtraFilters("x in :p", "p", ReflectionHelper.getValue(field, parentEntity)));
+          new ExtraFilters("x in :p", "p", reflectionHelper.getValue(field, parentEntity)));
     }
     return new JpaRpcCrudView(action);
   }

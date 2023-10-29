@@ -14,10 +14,13 @@ public class FieldInterfacedFromParameter implements FieldInterfaced {
   private final Parameter p;
   private final Executable m;
   private final FieldInterfacedFromParameter ff;
+
+  private final ReflectionHelper reflectionHelper;
+
   private List<Annotation> extraAnnotations = new ArrayList<>();
 
-  public FieldInterfacedFromParameter(FieldInterfacedFromParameter f, Annotation a) {
-    this(f);
+  public FieldInterfacedFromParameter(FieldInterfacedFromParameter f, Annotation a, ReflectionHelper reflectionHelper) {
+    this(f, reflectionHelper);
     extraAnnotations.add(a);
   }
 
@@ -29,8 +32,8 @@ public class FieldInterfacedFromParameter implements FieldInterfaced {
     return m;
   }
 
-  public FieldInterfacedFromParameter(FieldInterfacedFromParameter f) {
-    this(f.getMethod(), f.getParameter());
+  public FieldInterfacedFromParameter(FieldInterfacedFromParameter f, ReflectionHelper reflectionHelper) {
+    this(f.getMethod(), f.getParameter(), reflectionHelper);
   }
 
   @Override
@@ -45,10 +48,11 @@ public class FieldInterfacedFromParameter implements FieldInterfaced {
         : p.getDeclaredAnnotationsByType(annotationClass);
   }
 
-  public FieldInterfacedFromParameter(Executable m, Parameter f) {
+  public FieldInterfacedFromParameter(Executable m, Parameter f, ReflectionHelper reflectionHelper) {
     this.ff = null;
     this.p = f;
     this.m = m;
+    this.reflectionHelper = reflectionHelper;
   }
 
   @Override
@@ -124,13 +128,13 @@ public class FieldInterfacedFromParameter implements FieldInterfaced {
   @Override
   public Object getValue(Object o)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-    return ReflectionHelper.getValue(this, o);
+    return reflectionHelper.getValue(this, o);
   }
 
   @Override
   public void setValue(Object o, Object v)
       throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-    ReflectionHelper.setValue(this, o, v);
+    reflectionHelper.setValue(this, o, v);
   }
 
   @Override

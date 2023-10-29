@@ -18,15 +18,18 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class FieldAttributeBuilder {
 
-  @Autowired FileChecker fileChecker;
-
-  @Autowired FieldTypeMapper fieldTypeMapper;
+  final FileChecker fileChecker;
+  final FieldTypeMapper fieldTypeMapper;
+  final ReflectionHelper reflectionHelper;
 
   public List<Pair> buildAttributes(Object view, FieldInterfaced field) {
     List<Pair> attributes = new ArrayList<>();
@@ -82,7 +85,7 @@ public class FieldAttributeBuilder {
       try {
         ValuesListProvider provider =
             (ValuesListProvider)
-                ReflectionHelper.newInstance(field.getAnnotation(ValuesProvider.class).value());
+                reflectionHelper.newInstance(field.getAnnotation(ValuesProvider.class).value());
         provider
             .getAll()
             .forEach(
@@ -100,7 +103,7 @@ public class FieldAttributeBuilder {
     if (field.isAnnotationPresent(ValuesProviderMethod.class)) {
       try {
         Method m =
-            ReflectionHelper.getMethod(
+            reflectionHelper.getMethod(
                 field.getDeclaringClass(), field.getAnnotation(ValuesProviderMethod.class).value());
         List<io.mateu.mdd.shared.data.Value> choices =
             (List<io.mateu.mdd.shared.data.Value>) m.invoke(view);
@@ -133,9 +136,9 @@ public class FieldAttributeBuilder {
       if (List.class.isAssignableFrom(enumType)) enumType = field.getGenericClass();
       Method m = null;
       try {
-        m = enumType.getMethod("valueOf", null);
+        m = enumType.getMethod("valueOf", (Class<?>[]) null);
         for (Object enumConstant : enumType.getEnumConstants()) {
-          Object value = m.invoke(enumConstant, null);
+          Object value = m.invoke(enumConstant, (Object[]) null);
           attributes.add(
               Pair.builder()
                   .key("choice")
@@ -153,18 +156,18 @@ public class FieldAttributeBuilder {
       }
     }
     if (Collection.class.isAssignableFrom(field.getType())
-        && !ReflectionHelper.isBasico(field.getType())
+        && !reflectionHelper.isBasico(field.getType())
         && !ExternalReference.class.equals(field.getGenericClass())
         && !field.getGenericClass().isEnum()) {
       for (FieldInterfaced columnField :
-          ReflectionHelper.getAllEditableFields(field.getGenericClass())) {
+          reflectionHelper.getAllEditableFields(field.getGenericClass())) {
         attributes.add(
             Pair.builder()
                 .key("column")
                 .value(
                     Column.builder()
                         .id(columnField.getId())
-                        .caption(ReflectionHelper.getCaption(columnField))
+                        .caption(reflectionHelper.getCaption(columnField))
                         .type(fieldTypeMapper.mapColumnType(columnField))
                         .readOnly(isReadOnly(columnField))
                         .stereotype("column")
