@@ -47,6 +47,7 @@ public class JourneyStoreService {
   private final JpaRpcCrudFactory jpaRpcCrudFactory;
   private final ReflectionHelper reflectionHelper;
   private final Serializer serializer;
+  private final MDDOpenCRUDActionViewBuilder mddOpenCRUDActionViewBuilder;
 
   public Object getViewInstance(
       String journeyId, String stepId, ServerHttpRequest serverHttpRequest) throws Exception {
@@ -385,8 +386,7 @@ public class JourneyStoreService {
       return reflectionHelper.newInstance(action.getViewClass());
     } else if (menuEntry instanceof MDDOpenCRUDAction) {
       MDDOpenCRUDAction action = (MDDOpenCRUDAction) menuEntry;
-      MDDOpenCRUDActionViewBuilder viewBuilder = Helper.getImpl(MDDOpenCRUDActionViewBuilder.class);
-      return viewBuilder.buildView(action);
+      return mddOpenCRUDActionViewBuilder.buildView(action);
     } else if (menuEntry instanceof MDDOpenListViewAction) {
       MDDOpenListViewAction action = (MDDOpenListViewAction) menuEntry;
       return reflectionHelper.newInstance(action.getListViewClass());

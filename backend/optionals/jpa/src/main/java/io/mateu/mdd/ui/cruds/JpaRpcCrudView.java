@@ -27,6 +27,7 @@ import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
 import io.mateu.util.Serializer;
 import io.mateu.util.data.Pair;
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
@@ -40,6 +41,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
@@ -47,7 +49,8 @@ import reactor.core.publisher.Mono;
 
 @Data
 @Component
-@Scope("stereotype")
+@Scope("prototype")
+@Primary
 // @JsonSerialize(using = JpaRpcCrudViewSerializer.class)
 // @JsonDeserialize(using = JpaRpcCrudViewDeserializer.class)
 public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended, HasActions {
@@ -85,13 +88,12 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   public JpaRpcCrudView(MDDOpenCRUDAction action)
       throws InvocationTargetException, NoSuchMethodException, IllegalAccessException,
           InstantiationException {
-    init(action);
+    this.action = action;
   }
 
-  public void init(MDDOpenCRUDAction action)
+  public void init()
       throws InvocationTargetException, NoSuchMethodException, IllegalAccessException,
           InstantiationException {
-    this.action = action;
     columnFields =
         getColumnFields(
             action.getEntityClass(), false, action.getColumns(), columnNames, fieldsByColumnName);
@@ -148,7 +150,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
       throws InvocationTargetException, NoSuchMethodException, IllegalAccessException,
           InstantiationException {
     this.action = action;
-    init(action);
+    init();
   }
 
   @Override

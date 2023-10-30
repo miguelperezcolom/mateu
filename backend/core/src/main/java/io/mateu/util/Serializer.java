@@ -30,6 +30,9 @@ public class Serializer {
 
   @Autowired
   private ReflectionHelper reflectionHelper;
+  @Autowired
+  private EntitySerializer entitySerializer;
+
   private ObjectMapper mapper = new ObjectMapper();
   private ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
 
@@ -68,7 +71,7 @@ public class Serializer {
   }
 
   private String entityToJson(Object o) throws Exception {
-    return toJson(Helper.getImpl(EntitySerializer.class).toMap(o));
+    return toJson(entitySerializer.toMap(o));
   }
 
   public Map<String, Object> toMap(Object o) throws Exception {
@@ -127,7 +130,7 @@ public class Serializer {
   }
 
   private Map<String, Object> entityToMap(Object o) throws Exception {
-    return Helper.getImpl(EntitySerializer.class).toMap(o);
+    return entitySerializer.toMap(o);
   }
 
   public Map<String, Object> fromYaml(String yaml) throws IOException {

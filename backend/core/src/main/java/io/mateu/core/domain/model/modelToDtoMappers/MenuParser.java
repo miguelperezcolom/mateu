@@ -11,7 +11,9 @@ import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.Menu;
 import io.mateu.remote.dtos.UI;
 import io.mateu.util.Helper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.stereotype.Service;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -23,26 +25,19 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
+@Service
+@RequiredArgsConstructor
 public class MenuParser {
 
   private final MateuRemoteClient mateuRemoteClient;
-  private final Object uiInstance;
-  private final ServerHttpRequest serverHttpRequest;
   private final ReflectionHelper reflectionHelper;
+  private final MenuResolver menuResolver;
 
-  public MenuParser(
-      MateuRemoteClient mateuRemoteClient, Object uiInstance, ServerHttpRequest serverHttpRequest, ReflectionHelper reflectionHelper) {
-    this.mateuRemoteClient = mateuRemoteClient;
-    this.uiInstance = uiInstance;
-    this.serverHttpRequest = serverHttpRequest;
-    this.reflectionHelper = reflectionHelper;
+  public List<MenuEntry> parse(Object uiInstance, ServerHttpRequest serverHttpRequest) {
+    return buildMenu(uiInstance, serverHttpRequest, true, true);
   }
 
-  public List<MenuEntry> parse() {
-    return buildMenu(true, true);
-  }
-
-  private List<MenuEntry> buildMenu(boolean authenticationAgnostic, boolean publicAccess) {
+  private List<MenuEntry> buildMenu(Object uiInstance, ServerHttpRequest serverHttpRequest, boolean authenticationAgnostic, boolean publicAccess) {
     List<MenuEntry> l = new ArrayList<>();
 
     for (FieldInterfaced f : reflectionHelper.getAllFields(uiInstance.getClass())) {
@@ -67,7 +62,7 @@ public class MenuParser {
 
         if (f.isAnnotationPresent(MenuOption.class) || f.isAnnotationPresent(Submenu.class)) {
 
-          addMenuEntry(l, f, authenticationAgnostic, publicAccess);
+          addMenuEntry(uiInstance, l, f, authenticationAgnostic, publicAccess, serverHttpRequest);
         }
       }
     }
@@ -95,14 +90,14 @@ public class MenuParser {
       }
 
       if (add) {
-        addMenuEntry(l, m, authenticationAgnostic, publicAccess);
+        addMenuEntry(uiInstance, l, m, authenticationAgnostic, publicAccess, serverHttpRequest);
       }
     }
 
     if (uiInstance instanceof IncludesRemoteUIs) {
       ((IncludesRemoteUIs) uiInstance)
           .getRemoteUIs()
-          .forEach(remoteUI -> addMenuEntries(l, remoteUI));
+          .forEach(remoteUI -> addMenuEntries(l, remoteUI, serverHttpRequest));
     }
 
     l.sort(Comparator.comparingInt(MenuEntry::getOrder));
@@ -110,7 +105,7 @@ public class MenuParser {
     return l;
   }
 
-  private MenuEntry toMenuEntry(String caption, RemoteSubmenu remoteSubmenu)
+  private MenuEntry toMenuEntry(String caption, RemoteSubmenu remoteSubmenu, ServerHttpRequest serverHttpRequest)
       throws ExecutionException, InterruptedException {
     UI ui =
         mateuRemoteClient.getUi(
@@ -140,7 +135,7 @@ public class MenuParser {
     return menuEntry;
   }
 
-  private void addMenuEntries(List<MenuEntry> l, RemoteUI remoteUI) {
+  private void addMenuEntries(List<MenuEntry> l, RemoteUI remoteUI, ServerHttpRequest serverHttpRequest) {
     try {
       UI ui = mateuRemoteClient.getUi(remoteUI.getBaseUrl(), remoteUI.getUiId(), serverHttpRequest);
       ui.getMenu().stream()
@@ -192,7 +187,7 @@ public class MenuParser {
   }
 
   private void addMenuEntry(
-      List<MenuEntry> l, Method m, boolean authenticationAgnostic, boolean publicAccess) {
+      Object uiInstance, List<MenuEntry> l, Method m, boolean authenticationAgnostic, boolean publicAccess, ServerHttpRequest serverHttpRequest) {
     String caption =
         (m.isAnnotationPresent(Submenu.class))
             ? m.getAnnotation(Submenu.class).value()
@@ -215,12 +210,7 @@ public class MenuParser {
             @Override
             public List<MenuEntry> buildEntries() {
               try {
-                return new MenuParser(
-                        mateuRemoteClient,
-                        reflectionHelper.invokeInjectableParametersOnly(m, uiInstance),
-                        serverHttpRequest,
-                        reflectionHelper)
-                    .parse();
+                return parse(uiInstance, serverHttpRequest);
               } catch (Throwable throwable) {
                 throwable.printStackTrace();
               }
@@ -262,7 +252,7 @@ public class MenuParser {
   }
 
   private void addMenuEntry(
-      List<MenuEntry> l, FieldInterfaced f, boolean authenticationAgnostic, boolean publicAccess) {
+      Object uiInstance, List<MenuEntry> l, FieldInterfaced f, boolean authenticationAgnostic, boolean publicAccess, ServerHttpRequest serverHttpRequest) {
     String caption = reflectionHelper.getCaption(f);
 
     String icon = null;
@@ -284,7 +274,7 @@ public class MenuParser {
 
         if (RemoteSubmenu.class.equals(f.getType())) {
           RemoteSubmenu remoteSubmenu = (RemoteSubmenu) reflectionHelper.getValue(f, uiInstance);
-          l.add(toMenuEntry(caption, remoteSubmenu));
+          l.add(toMenuEntry(caption, remoteSubmenu, serverHttpRequest));
         } else if (URL.class.equals(f.getType())) {
           l.add(new MDDOpenUrlAction(caption, (URL) reflectionHelper.getValue(f, uiInstance)));
         } else {
@@ -296,7 +286,7 @@ public class MenuParser {
                 @Override
                 public List<MenuEntry> buildEntries() {
                   try {
-                    return new MenuParser(mateuRemoteClient, finalV, serverHttpRequest, reflectionHelper).parse();
+                    return parse(finalV, serverHttpRequest);
                   } catch (Throwable throwable) {
                     throwable.printStackTrace();
                   }
@@ -320,19 +310,12 @@ public class MenuParser {
           f.getField().setAccessible(true);
         }
 
-        List<MenuResolver> menuResolvers = Helper.getImpls(MenuResolver.class);
-
         boolean menuResolved = false;
 
-        for (MenuResolver menuResolver : menuResolvers) {
-          menuResolved = menuResolver.addMenuEntry(uiInstance, l, f, caption, order, icon);
-          if (menuResolved) {
-            break;
-          }
-        }
+        menuResolved = menuResolver.addMenuEntry(uiInstance, l, f, caption, order, icon);
 
         if (!menuResolved) {
-          addDefaultMenuEntry(l, f, caption, order, icon);
+          addDefaultMenuEntry(uiInstance, l, f, caption, order, icon);
         }
 
       } catch (Exception e) {
@@ -342,7 +325,7 @@ public class MenuParser {
   }
 
   private void addDefaultMenuEntry(
-      List<MenuEntry> l, FieldInterfaced f, String caption, int order, String icon)
+      Object uiInstance, List<MenuEntry> l, FieldInterfaced f, String caption, int order, String icon)
       throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
     Object v = reflectionHelper.getValue(f, uiInstance);
     if (reflectionHelper.isBasico(f.getType()) || String.class.equals(f.getType())) {

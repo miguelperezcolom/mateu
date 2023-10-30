@@ -30,6 +30,7 @@ public class UIMapper {
   final ApplicationContext applicationContext;
   final MateuRemoteClient mateuRemoteClient;
   final ReflectionHelper reflectionHelper;
+  final MenuParser menuParser;
 
   public UI map(Object uiInstance, ServerHttpRequest serverHttpRequest) throws Exception {
 
@@ -55,9 +56,7 @@ public class UIMapper {
   }
 
   private List<Menu> getMenu(Object uiInstance, ServerHttpRequest serverHttpRequest) {
-    List<Menu> menu =
-        new MenuParser(mateuRemoteClient, uiInstance, serverHttpRequest, reflectionHelper)
-            .parse().stream().map(e -> createMenu("", e)).collect(Collectors.toList());
+    List<Menu> menu = menuParser.parse(uiInstance, serverHttpRequest).stream().map(e -> createMenu("", e)).collect(Collectors.toList());
     return menu;
   }
 
