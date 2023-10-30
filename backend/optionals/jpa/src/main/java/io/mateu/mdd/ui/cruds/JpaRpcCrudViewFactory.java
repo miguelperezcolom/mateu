@@ -40,7 +40,9 @@ public class JpaRpcCrudViewFactory implements JpaRpcCrudFactory {
       action.setExtraFilters(
           new ExtraFilters("x in :p", "p", reflectionHelper.getValue(field, parentEntity)));
     }
-    return new JpaRpcCrudView(action);
+    var jpaRpcCrudView = reflectionHelper.newInstance(JpaRpcCrudView.class);
+    jpaRpcCrudView.setAction(action);
+    return jpaRpcCrudView;
   }
 
   @Override
@@ -59,6 +61,8 @@ public class JpaRpcCrudViewFactory implements JpaRpcCrudFactory {
     if (v != null) a.setReadOnly(v.isReadOnly());
     if (v != null && !Strings.isNullOrEmpty(v.getExtraWhereFilter()))
       a.setQueryFilters(v.getExtraWhereFilter());
-    return new JpaRpcCrudView(a);
+    var jpaRpcCrudView = reflectionHelper.newInstance(JpaRpcCrudView.class);
+    jpaRpcCrudView.setAction(a);
+    return jpaRpcCrudView;
   }
 }

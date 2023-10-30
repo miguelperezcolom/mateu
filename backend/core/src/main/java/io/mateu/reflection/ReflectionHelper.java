@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import io.mateu.core.infra.MateuConfiguratorBean;
 import io.mateu.i18n.Translator;
 import io.mateu.mdd.shared.SlimHelper;
 import io.mateu.mdd.shared.annotations.*;
@@ -43,7 +44,7 @@ import org.springframework.stereotype.Service;
 public class ReflectionHelper extends BaseReflectionHelper {
 
   final Translator translator;
-  final BeanProvider beanProvider;
+  final MateuConfiguratorBean beanProvider;
   final FieldInterfacedFactory fieldInterfacedFactory;
 
   Map<Class, List<FieldInterfaced>> allFieldsCache = new HashMap<>();
@@ -52,7 +53,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
   List<Class> notFromString = new ArrayList<>();
   private ObjectMapper mapper = new ObjectMapper();
 
-  public ReflectionHelper(Translator translator, BeanProvider beanProvider, FieldInterfacedFactory fieldInterfacedFactory) {
+  public ReflectionHelper(Translator translator, MateuConfiguratorBean beanProvider, FieldInterfacedFactory fieldInterfacedFactory) {
     this.translator = translator;
     this.beanProvider = beanProvider;
     this.fieldInterfacedFactory = fieldInterfacedFactory;

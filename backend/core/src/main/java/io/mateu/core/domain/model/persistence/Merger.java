@@ -21,6 +21,10 @@ public class Merger {
   @Autowired
   Serializer serializer;
 
+  @Autowired
+  EntityDeserializer entityDeserializer;
+
+
   @Transactional
   public void merge(Object entity) {
     em.merge(entity);
@@ -37,7 +41,7 @@ public class Merger {
   }
 
   public Object getEntity(Map<String, Object> data, Class entityClass) throws Exception {
-    return Helper.getImpl(EntityDeserializer.class).fromJson(em, serializer.toJson(data), entityClass);
+    return entityDeserializer.fromJson(em, serializer.toJson(data), entityClass);
   }
 
   public Object loadEntity(Map<String, Object> data, Class entityClass) throws Exception {

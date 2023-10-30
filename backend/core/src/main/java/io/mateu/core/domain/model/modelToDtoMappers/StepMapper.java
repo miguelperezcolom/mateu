@@ -2,6 +2,8 @@ package io.mateu.core.domain.model.modelToDtoMappers;
 
 import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.mdd.core.interfaces.DynamicStep;
+import io.mateu.mdd.core.interfaces.JpaRpcCrudFactory;
+import io.mateu.mdd.shared.interfaces.JpaCrud;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.Rule;
 import io.mateu.remote.dtos.Step;
@@ -21,6 +23,7 @@ public class StepMapper {
 
   final private ViewMapper viewMapper;
   final private ReflectionHelper reflectionHelper;
+  final private JpaRpcCrudFactory jpaRpcCrudFactory;
 
   public Step map(
       JourneyContainer journeyContainer,
@@ -29,6 +32,10 @@ public class StepMapper {
       Object formInstance,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
+
+    if (formInstance instanceof JpaCrud) {
+      formInstance = jpaRpcCrudFactory.create((JpaCrud) formInstance);
+    }
 
     Map<String, Object> data = new HashMap<>();
     List<Rule> rules = new ArrayList<>();
