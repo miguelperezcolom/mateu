@@ -20,6 +20,7 @@ public class FieldEditorSaveActionRunner implements ActionRunner {
 
   final JourneyStoreService store;
   final Serializer serializer;
+  final ValidationService validationService;
 
   @Override
   public boolean applies(Object viewInstance, String actionId) {
@@ -40,6 +41,9 @@ public class FieldEditorSaveActionRunner implements ActionRunner {
     Step initialStep = store.getStep(journeyId, fieldEditor.getInitialStep());
 
     Object object = serializer.fromJson(serializer.toJson(data), fieldEditor.getType());
+
+    validationService.validate(object);
+
     data = serializer.toMap(object);
     data.put("__toString", "" + object);
 

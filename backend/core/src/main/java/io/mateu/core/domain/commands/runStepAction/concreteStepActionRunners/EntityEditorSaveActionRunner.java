@@ -12,15 +12,19 @@ import io.mateu.remote.dtos.Step;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 @Service
+@RequiredArgsConstructor
 public class EntityEditorSaveActionRunner implements ActionRunner {
 
-  @Autowired JourneyStoreService store;
+  final JourneyStoreService store;
+  final ValidationService validationService;
 
   @Override
   public boolean applies(Object viewInstance, String actionId) {
@@ -38,6 +42,8 @@ public class EntityEditorSaveActionRunner implements ActionRunner {
       throws Throwable {
     EntityEditor entityEditor = (EntityEditor) viewInstance;
     Merger merger = store.getApplicationContext().getBean(Merger.class);
+    var entity = merger.getEntity(data, entityEditor.getEntityClass());
+    validationService.validate(entity);
     merger.mergeAndCommit(data, entityEditor.getEntityClass());
     data.remove("__entityClassName__");
     entityEditor.setData(data);

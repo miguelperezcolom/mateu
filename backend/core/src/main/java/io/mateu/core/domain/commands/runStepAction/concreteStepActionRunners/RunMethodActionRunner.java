@@ -22,6 +22,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import io.mateu.util.Serializer;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -37,6 +40,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   final ActualValueExtractor actualValueExtractor;
   final ReflectionHelper reflectionHelper;
   final Serializer serializer;
+  final ValidationService validationService;
 
   @Override
   public boolean applies(Object viewInstance, String actionId) {
@@ -125,7 +129,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
           Map<String, Object> data,
           ServerHttpRequest serverHttpRequest)
       throws Throwable {
-    // todo: inject paramneters (ServerHttpRequest, selection for jpacrud)
+    // todo: inject parameters (ServerHttpRequest, selection for jpacrud)
     if (needsParameters(m)) {
 
       if (Modifier.isStatic(m.getModifiers())) {
@@ -148,6 +152,10 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       }
 
     } else {
+
+      if (needsValidation(m)) {
+        validationService.validate(actualViewInstance);
+      }
 
       try {
 
@@ -213,6 +221,16 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     }
 
     return Mono.empty();
+  }
+
+  private boolean needsValidation(Method m) {
+    if (m.isAnnotationPresent(Action.class)) {
+      return m.getAnnotation(Action.class).validateBefore();
+    }
+    if (m.isAnnotationPresent(MainAction.class)) {
+      return m.getAnnotation(MainAction.class).validateBefore();
+    }
+    return false;
   }
 
   private Object[] injectParameters(Method m, ServerHttpRequest serverHttpRequest) {

@@ -15,8 +15,12 @@ import io.mateu.util.Helper;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import io.mateu.util.Serializer;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -31,6 +35,7 @@ public class ObjectEditorSaveActionRunner implements ActionRunner {
   final ActualValueExtractor actualValueExtractor;
   final ReflectionHelper reflectionHelper;
   final Serializer serializer;
+  final ValidationService validationService;
 
   @Override
   public boolean applies(Object viewInstance, String actionId) {
@@ -49,6 +54,10 @@ public class ObjectEditorSaveActionRunner implements ActionRunner {
     ObjectEditor objectEditor = (ObjectEditor) viewInstance;
 
     Object pojo = getActualInstance(objectEditor, data);
+
+    validationService.validate(pojo);
+
+
     if (pojo instanceof PersistentPojo) {
       ((PersistentPojo<?>) pojo).save();
     }

@@ -26,6 +26,7 @@ public class EntitySaveActionRunner implements ActionRunner {
 
   final JourneyStoreService store;
   final ReflectionHelper reflectionHelper;
+  final ValidationService validationService;
 
   @Override
   public boolean applies(Object viewInstance, String actionId) {
@@ -41,6 +42,9 @@ public class EntitySaveActionRunner implements ActionRunner {
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
+
+    validationService.validate(viewInstance);
+
     reflectionHelper.newInstance(Merger.class).merge(viewInstance);
 
     Step initialStep = store.getInitialStep(journeyId);

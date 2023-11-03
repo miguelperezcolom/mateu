@@ -13,15 +13,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 @Service
+@RequiredArgsConstructor
 public class PersistentPojoSaveActionRunner implements ActionRunner {
 
-  @Autowired JourneyStoreService store;
+  final JourneyStoreService store;
+  final ValidationService validationService;
 
   @Override
   public boolean applies(Object viewInstance, String actionId) {
@@ -37,6 +41,7 @@ public class PersistentPojoSaveActionRunner implements ActionRunner {
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
+    validationService.validate(viewInstance);
     ((PersistentPojo) viewInstance).save();
     refreshDetailView(journeyId, stepId, serverHttpRequest);
 
