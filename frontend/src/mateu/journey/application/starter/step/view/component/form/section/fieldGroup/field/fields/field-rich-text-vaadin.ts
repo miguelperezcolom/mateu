@@ -1,14 +1,23 @@
-import {customElement, property} from "lit/decorators.js";
-import {html, css, LitElement, PropertyValues} from "lit";
+import {customElement, property, query} from "lit/decorators.js";
+import {css, html, LitElement, PropertyValues} from "lit";
 import Component from "./interfaces/Component";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
 import '@vaadin/rich-text-editor'
 import Field from "../../../../../../../../../../../shared/apiClients/dtos/Field";
 import {RichTextEditor, RichTextEditorHtmlValueChangedEvent} from "@vaadin/rich-text-editor";
+import {CustomField} from "@vaadin/custom-field";
 
 
 @customElement('field-rich-text-vaadin')
 export class RichTextVaadin extends LitElement implements Component {
+
+    @query('vaadin-custom-field')
+    customField : CustomField | undefined
+
+    isInvalid(): boolean | undefined {
+        this.customField?.validate()
+        return this.customField?.invalid
+    }
 
     @property()
     required: boolean = false;

@@ -21,6 +21,7 @@ public class NumberFieldsForm {
   @JsonProperty("aPrimitiveFloat")
   private float aPrimitiveFloat = 2.3f;
 
+  @Min(0)
   private Integer anInteger;
 
   @JsonProperty("aDouble")

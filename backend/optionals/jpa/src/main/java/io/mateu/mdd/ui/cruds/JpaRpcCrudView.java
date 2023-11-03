@@ -94,6 +94,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   public void init()
       throws InvocationTargetException, NoSuchMethodException, IllegalAccessException,
           InstantiationException {
+    reset();
     columnFields =
         getColumnFields(
             action.getEntityClass(), false, action.getColumns(), columnNames, fieldsByColumnName);
@@ -144,6 +145,26 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
               fieldsByAliasedColumnName.put(aliasedColumnNames.get(n), fieldsByColumnName.get(n));
             });
 
+  }
+
+  private void reset() {
+    aliasedColumnNamesByColId = new HashMap<>();
+    columnNames = new ArrayList<>();
+    fieldsByColumnName = new HashMap<>();
+    filterNames = new ArrayList<>();
+    fieldsByFilterName = new HashMap<>();
+    columnFieldNames = new ArrayList<>();
+    visibleColumns = new ArrayList<>();
+    filterFields = new ArrayList<>();
+    aliasedColumnNamesList = new ArrayList<>();
+    columnIds = new ArrayList<>();
+    fieldsByAliasedColumnName = new HashMap<>();
+    fieldsByColId = new HashMap<>();
+    alias = new HashMap<>();
+    aliasedColumnNames = new HashMap<>();
+    sumFields = new ArrayList<>();
+    columnFields = new ArrayList<>();
+    sums = new ArrayList<>();
   }
 
   public void setAction(MDDOpenCRUDAction action)
@@ -251,8 +272,11 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   @JsonIgnore
   @Override
   public Map<FieldInterfaced, String> getColumnIdsPerField() {
-    return fieldsByColId.entrySet().stream()
-        .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+    Map<FieldInterfaced, String> map = new HashMap<>();
+    fieldsByColId.entrySet().stream()
+            .filter(f -> !map.containsKey(f.getValue()))
+        .forEach(e -> map.put(e.getValue(), e.getKey()));
+    return map;
   }
 
   @JsonIgnore

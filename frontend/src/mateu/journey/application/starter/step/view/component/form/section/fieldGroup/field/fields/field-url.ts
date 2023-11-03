@@ -9,6 +9,10 @@ import Field from "../../../../../../../../../../../shared/apiClients/dtos/Field
 @customElement('field-url')
 export class FieldUrl extends LitElement implements Component {
 
+    isInvalid(): boolean | undefined {
+        return undefined
+    }
+
     @property()
     required: boolean = false;
 

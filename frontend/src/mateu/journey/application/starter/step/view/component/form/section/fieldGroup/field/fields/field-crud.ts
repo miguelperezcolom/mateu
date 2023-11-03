@@ -19,6 +19,10 @@ import Column from "../../../../../../../../../../../shared/apiClients/dtos/Colu
 @customElement('field-crud')
 export class FieldCrud extends LitElement implements Component {
 
+    isInvalid(): boolean | undefined {
+        return undefined
+    }
+
     @property()
     required: boolean = false;
 

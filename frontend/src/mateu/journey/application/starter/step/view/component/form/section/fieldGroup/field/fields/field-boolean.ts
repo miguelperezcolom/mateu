@@ -1,14 +1,23 @@
-import {customElement, property} from "lit/decorators.js";
+import {customElement, property, query} from "lit/decorators.js";
 import {html, LitElement} from "lit";
 import Component from "./interfaces/Component";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
 import '@vaadin/vaadin-checkbox'
 import '@vaadin/checkbox-group'
 import Field from "../../../../../../../../../../../shared/apiClients/dtos/Field";
+import {CheckboxGroup} from "@vaadin/checkbox-group";
 
 
 @customElement('field-boolean')
 export class FieldBoolean extends LitElement implements Component {
+
+    @query('vaadin-checkbox-group')
+    checkboxGroup : CheckboxGroup | undefined
+
+    isInvalid(): boolean | undefined {
+        this.checkboxGroup?.validate()
+        return this.checkboxGroup?.invalid
+    }
 
     @property()
     required: boolean = false;

@@ -1,13 +1,13 @@
 package io.mateu.remote.infra.jpa;
 
 import io.mateu.core.domain.model.store.JourneyContainer;
-import io.mateu.util.servlet.common.JsonConverter;
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter

@@ -36,6 +36,13 @@ jobs:
     - name: Copy settings.xml
       run: cp -f settings.xml ~/.m2
 
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 18
+
+    - name: Build front
+      run: cd frontend && npm i && npm run build && npm run copy
+
     - name: Build with Maven
       run: mvn -B install --file backend/pom.xml
 

@@ -1,12 +1,21 @@
-import {customElement, property} from "lit/decorators.js";
+import {customElement, property, query} from "lit/decorators.js";
 import {css, html, LitElement} from "lit";
 import Component from "./interfaces/Component";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
 import '@vaadin/number-field'
 import Field from "../../../../../../../../../../../shared/apiClients/dtos/Field";
+import {NumberField} from "@vaadin/number-field";
 
 @customElement('field-double')
 export class FieldDouble extends LitElement implements Component {
+
+    @query('vaadin-number-field')
+    numberField : NumberField | undefined
+
+    isInvalid(): boolean | undefined {
+        this.numberField?.validate()
+        return this.numberField?.invalid
+    }
 
     @property()
     required: boolean = false;

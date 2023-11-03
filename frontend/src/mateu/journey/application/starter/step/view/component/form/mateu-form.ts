@@ -293,16 +293,16 @@ export class MateuForm extends LitElement implements FormElement {
   async doRunAction(actionId: string) {
     const action = this.findAction(actionId!)
     if (action?.validationRequired) {
-      const requiredFields = this.metadata.sections
+      const fields = this.metadata.sections
           .flatMap(s => s.fieldGroups
-          .flatMap(g => g.lines)
-          .flatMap(g => g.fields))
-          .filter(f => f.validations.filter(v => 'NotEmpty' == v.type).length > 0);
-      // @ts-ignore
-      const missingFields = requiredFields.filter(f => this.isEmpty(f));
-      if (missingFields.length > 0) {
-        const fnames = missingFields.map(f => f.caption);
-        this.notificationMessage = 'All mandatory fields must be filled (' + fnames + ')';
+              .flatMap(g => g.lines)
+              .flatMap(g => g.fields));
+      const fieldsWithErrors = fields.map(f => this.getFieldWrapper(f))
+          .filter(w => w?.component?.isInvalid())
+          .map(w => w?.field)
+      if (fieldsWithErrors.length) {
+        const fnames = fieldsWithErrors.map(f => f?.caption);
+        this.notificationMessage = 'Several fields have errors (' + fnames + '). Please fix.';
         this.notificationOpened = true;
         setTimeout(() => this.notificationOpened = false, 3000)
         return
@@ -328,11 +328,6 @@ export class MateuForm extends LitElement implements FormElement {
       bubbles: true,
       composed: true
     }))
-  }
-
-  private isEmpty(f: Field):boolean {
-    //@ts-ignore
-    return !this.data[f.id] || (f.type == 'telephone' && (!this.data[f.id].prefix || !this.data[f.id].number))
   }
 
   private findAction(actionId: string) {

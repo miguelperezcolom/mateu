@@ -1,19 +1,28 @@
-import {customElement, property} from "lit/decorators.js";
-import {html, css, LitElement} from "lit";
+import {customElement, property, query} from "lit/decorators.js";
+import {css, html, LitElement} from "lit";
 import Component from "./interfaces/Component";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
 import '@vaadin/vaadin-text-field'
 import '@vaadin/item';
 import '@vaadin/list-box';
 import '@vaadin/select';
-import { selectRenderer } from '@vaadin/select/lit.js';
+import {selectRenderer} from '@vaadin/select/lit.js';
 import Field from "../../../../../../../../../../../shared/apiClients/dtos/Field";
 import TelephonePrefix from "../../../../../../../../../../../shared/apiClients/dtos/TelephonePrefix";
 import TelephoneNumber from "../../../../../../../../../../../shared/apiClients/dtos/TelephoneNumber";
+import {CustomField} from "@vaadin/custom-field";
 
 
 @customElement('field-telephone')
 export class FieldTelephone extends LitElement implements Component {
+
+    @query('vaadin-custom-field')
+    customField : CustomField | undefined
+
+    isInvalid(): boolean | undefined {
+        this.customField?.validate()
+        return this.customField?.invalid
+    }
 
     @property()
     required: boolean = false;

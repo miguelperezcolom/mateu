@@ -40,6 +40,12 @@ interface Choice {
 @customElement('field-complexkeychoice')
 export class FieldComplexKeyChoice extends LitElement implements Component {
 
+    isInvalid(): boolean | undefined {
+        return undefined
+    }
+
+
+
     @property()
     required: boolean = false;
 

@@ -10,6 +10,10 @@ import Field from "../../../../../../../../../../../shared/apiClients/dtos/Field
 @customElement('field-toggle')
 export class FieldToggle extends LitElement implements Component {
 
+    isInvalid(): boolean | undefined {
+        return undefined
+    }
+
     @property()
     required: boolean = false;
 

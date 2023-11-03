@@ -9,6 +9,10 @@ import Field from "../../../../../../../../../../../shared/apiClients/dtos/Field
 @customElement('field-rawcontent')
 export class FieldRawContent extends LitElement implements Component {
 
+    isInvalid(): boolean | undefined {
+        return undefined
+    }
+
     @property()
     required: boolean = false;
 

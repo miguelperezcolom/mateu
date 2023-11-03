@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -69,7 +70,8 @@ public class MethodParametersEditorMetadataBuilder {
 
     List<FieldInterfaced> allEditableFields =
         reflectionHelper.getAllFields(m).stream()
-            .filter(f -> f.isAnnotationPresent(UseCrud.class))
+            .filter(f -> !f.isAnnotationPresent(UseCrud.class))
+                .filter(f -> !ServerHttpRequest.class.isAssignableFrom(f.getType()))
             .collect(Collectors.toList());
     int paramPos = 0;
     for (FieldInterfaced fieldInterfaced : allEditableFields) {

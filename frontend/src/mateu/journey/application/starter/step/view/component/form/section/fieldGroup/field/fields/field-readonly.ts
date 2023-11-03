@@ -10,6 +10,10 @@ import Value from "../../../../../../../../../../../shared/apiClients/dtos/Value
 @customElement('field-readonly')
 export class FieldReadonly extends LitElement implements Component {
 
+    isInvalid(): boolean | undefined {
+        return undefined
+    }
+
     @property()
     required: boolean = false;
 

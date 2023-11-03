@@ -1,13 +1,22 @@
-import {customElement, property} from "lit/decorators.js";
+import {customElement, property, query} from "lit/decorators.js";
 import {css, html, LitElement} from "lit";
 import Component from "./interfaces/Component";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
 import '@vaadin/date-picker'
 import Field from "../../../../../../../../../../../shared/apiClients/dtos/Field";
+import {DatePicker} from "@vaadin/date-picker";
 
 
 @customElement('field-date')
 export class FieldDate extends LitElement implements Component {
+
+    @query('vaadin-date-picker')
+    datePicker : DatePicker | undefined
+
+    isInvalid(): boolean | undefined {
+        this.datePicker?.validate()
+        return this.datePicker?.invalid
+    }
 
     @property()
     required: boolean = false;
