@@ -38,7 +38,7 @@ public class FieldEditorSaveActionRunner implements ActionRunner {
       throws Throwable {
     FieldEditor fieldEditor = (FieldEditor) viewInstance;
 
-    Step initialStep = store.getStep(journeyId, fieldEditor.getInitialStep());
+    Step initialStep = store.readStep(journeyId, fieldEditor.getInitialStep());
 
     Object object = serializer.fromJson(serializer.toJson(data), fieldEditor.getType());
 

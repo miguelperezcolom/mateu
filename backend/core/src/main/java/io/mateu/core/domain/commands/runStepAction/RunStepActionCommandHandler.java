@@ -78,7 +78,7 @@ public class RunStepActionCommandHandler {
               });
     }
 
-    var step = store.getStep(journeyId, stepId);
+    var step = store.readStep(journeyId, stepId);
     step.mergeData(data);
     store.updateStep(journeyId, stepId, step);
 
@@ -98,7 +98,7 @@ public class RunStepActionCommandHandler {
                 .then(Mono.deferContextual(contextView -> {
                   String activeTabId = (String) command.getData().get("__activeTabId");
                   try {
-                    var stepAfterRun = store.getStep(journeyId, stepId);
+                    var stepAfterRun = store.readStep(journeyId, stepId);
                     stepAfterRun.getView().getMain().getComponents().stream().map(c -> c.getMetadata())
                             .filter(m -> m instanceof Form)
                             .map(m -> (Form) m)

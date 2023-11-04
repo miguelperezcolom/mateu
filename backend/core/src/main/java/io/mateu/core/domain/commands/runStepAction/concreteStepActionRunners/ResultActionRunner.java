@@ -29,7 +29,7 @@ public class ResultActionRunner implements ActionRunner {
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
-    Step step = store.getStep(journeyId, actionId);
+    Step step = store.readStep(journeyId, actionId);
     store.getJourney(journeyId).setCurrentStepId(step.getId());
     store.getJourney(journeyId).setCurrentStepDefinitionId(step.getType());
     return Mono.empty();

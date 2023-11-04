@@ -47,7 +47,7 @@ public class MethodParametersEditorRunActionRunner extends AbstractActionRunner
       throws Throwable {
     MethodParametersEditor methodParametersEditor = (MethodParametersEditor) viewInstance;
 
-    Step initialStep = store.getStep(journeyId, methodParametersEditor.getInitialStep());
+    Step initialStep = store.readStep(journeyId, methodParametersEditor.getInitialStep());
 
     Method m =
         reflectionHelper.getMethod(

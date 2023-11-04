@@ -6,7 +6,6 @@ import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.remote.dtos.Crud;
 import io.mateu.remote.dtos.Step;
-import io.mateu.util.Helper;
 import io.mateu.util.Serializer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +47,7 @@ public class GetStepQueryHandler {
 
     // dump(journeyContainer);
 
-    Step step = store.getStep(journeyId, stepId);
+    Step step = store.getStepAndSetAsCurrent(journeyId, stepId);
     if (isCrud(step)) {
       step.getData().remove("__index");
       step.getData().remove("__count");

@@ -15,18 +15,16 @@ import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.Journey;
 import io.mateu.remote.dtos.Step;
-import io.mateu.util.Helper;
+
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 import io.mateu.util.Serializer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.apache.bcel.generic.RET;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -217,6 +215,12 @@ public class JourneyStoreService {
     } else {
       stepIdPrefix = stepIdPrefix + "_";
     }
+    if (stepIdPrefix.endsWith("view_")) {
+      stepIdPrefix = stepIdPrefix.substring(0, "view_".length());
+    }
+    if (stepIdPrefix.endsWith("edit_")) {
+      stepIdPrefix = stepIdPrefix.substring(0, "edit_".length());
+    }
     String newStepId = stepIdPrefix + stepId;
     Step step =
         stepMapper.map(
@@ -244,7 +248,7 @@ public class JourneyStoreService {
     }
     String currentStepId = container.get().getJourney().getCurrentStepId();
     if (targetStepId.equals(currentStepId)) {
-      return null;
+      return container.get().getSteps().get(currentStepId).getPreviousStepId();
     }
     return currentStepId;
   }
@@ -295,7 +299,7 @@ public class JourneyStoreService {
     return "list".equals(container.get().getInitialStep());
   }
 
-  public Step getStep(String journeyId, String stepId) throws Exception {
+  public Step getStepAndSetAsCurrent(String journeyId, String stepId) throws Exception {
     Optional<JourneyContainer> container = findJourneyById(journeyId);
     if (!container.isPresent()) {
       throw new Exception("No journey with id " + journeyId + " found");
@@ -308,6 +312,18 @@ public class JourneyStoreService {
     container.get().getJourney().setCurrentStepId(stepId);
     container.get().setLastAccess(LocalDateTime.now());
     journeyRepo.save(container.get());
+    return step;
+  }
+
+  public Step readStep(String journeyId, String stepId) throws Exception {
+    Optional<JourneyContainer> container = findJourneyById(journeyId);
+    if (!container.isPresent()) {
+      throw new Exception("No journey with id " + journeyId + " found");
+    }
+    Step step = container.get().getSteps().get(stepId);
+    if (step == null) {
+      throw new Exception("No step with id " + journeyId + " found for journey " + journeyId);
+    }
     return step;
   }
 

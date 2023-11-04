@@ -47,10 +47,10 @@ public class PersistentPojoSaveActionRunner implements ActionRunner {
 
     Step initialStep = store.getInitialStep(journeyId);
 
-    Step currentStep = store.getStep(journeyId, stepId);
+    Step currentStep = store.readStep(journeyId, stepId);
 
     List<Destination> youMayBeInterestedIn = new ArrayList<>();
-    Step detail = store.getStep(journeyId, currentStep.getPreviousStepId());
+    Step detail = store.readStep(journeyId, currentStep.getPreviousStepId());
     if (detail != null) {
       youMayBeInterestedIn.add(
           new Destination(
