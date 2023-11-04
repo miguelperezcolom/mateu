@@ -1,5 +1,6 @@
 package com.example.demoremote.domains.programmingLanguages;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.reflection.ReflectionHelper;
 import lombok.Data;
@@ -13,8 +14,7 @@ import org.springframework.stereotype.Service;
 public class LanguageDetail extends LanguageDetailDefinition implements ReadOnlyPojo {
 
   @Autowired LanguagesRepository repo;
-  @Autowired ReflectionHelper reflectionHelper;
-
+  @Autowired @JsonIgnore ReflectionHelper reflectionHelper;
   @Autowired LanguageForm form;
 
   @Override

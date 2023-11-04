@@ -1,5 +1,6 @@
 package com.example.demoremote.domains.programmingLanguages;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.reflection.ReflectionHelper;
 import jakarta.persistence.Id;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Service;
 @Scope("prototype")
 public class LanguageForm implements PersistentPojo {
 
-  @Autowired ReflectionHelper reflectionHelper;
+  @Autowired @JsonIgnore ReflectionHelper reflectionHelper;
   @Autowired LanguagesRepository repo;
 
   @Id private String id = UUID.randomUUID().toString();

@@ -158,7 +158,7 @@ export class MateuView extends LitElement {
                   <div class="text">${m.text}</div>
               </div>
           `)}
-        
+          
           <vaadin-vertical-layout style="width: 100%" theme="spacing-xl">
         ${this.view?.main?.components.map(c => html`<mateu-component 
             .component=${c} 
