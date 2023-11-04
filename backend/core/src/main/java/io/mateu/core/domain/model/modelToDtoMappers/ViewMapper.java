@@ -9,6 +9,7 @@ import io.mateu.core.domain.model.metadataBuilders.ViewMetadataBuilder;
 import io.mateu.core.domain.model.modelToDtoMappers.viewMapperStuff.*;
 import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
+import io.mateu.mdd.core.interfaces.HasMessages;
 import io.mateu.mdd.core.interfaces.HasSubtitle;
 import io.mateu.mdd.core.interfaces.HasTitle;
 import io.mateu.mdd.core.interfaces.RpcCrudViewExtended;
@@ -69,6 +70,7 @@ public class ViewMapper {
 
     data.putAll(dataExtractor.getData(uiInstance, actualUiInstance));
 
+
     // todo: build left, main and right in a separate manner
     List<Component> left = new ArrayList<>();
     List<Component> main = new ArrayList<>();
@@ -115,6 +117,7 @@ public class ViewMapper {
         View.builder()
             .title(getTitle(actualUiInstance))
             .subtitle(getSubtitle(actualUiInstance))
+                .messages(getMessages(actualUiInstance))
             .left(ViewPart.builder().components(left).build())
             .main(ViewPart.builder().components(main).build())
             .right(ViewPart.builder().components(right).build())
@@ -123,6 +126,19 @@ public class ViewMapper {
             .build();
 
     return view;
+  }
+
+  private List<Message> getMessages(Object uiInstance) {
+    if (uiInstance instanceof HasMessages) {
+      return ((HasMessages)uiInstance).getMessages().stream().map(m -> new Message(
+              m.getId(),
+              m.getType(),
+              m.getTitle(),
+              m.getText()
+      )).collect(Collectors.toList());
+    } else {
+      return List.of();
+    }
   }
 
   private void removeTitleForFirstComponent(List<Component> slot) {

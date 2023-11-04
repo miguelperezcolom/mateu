@@ -1,3 +1,4 @@
+import Message from "./Message";
 import ViewPart from "./ViewPart";
 
 export default interface View {
@@ -5,6 +6,8 @@ export default interface View {
     title: string
 
     subtitle: string
+
+    messages: Message[]
 
     header: ViewPart
 

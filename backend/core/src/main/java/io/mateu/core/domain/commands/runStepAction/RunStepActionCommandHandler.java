@@ -10,6 +10,8 @@ import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.reflection.ReflectionHelper;
 import java.util.*;
 
+import io.mateu.remote.dtos.Form;
+import io.mateu.remote.dtos.Step;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,10 +93,28 @@ public class RunStepActionCommandHandler {
 
     for (ActionRunner actionRunner : actionRunners) {
       if (actionRunner.applies(viewInstance, actionId)) {
-        return actionRunner.run(viewInstance, journeyId, stepId, actionId, data, serverHttpRequest);
+        return actionRunner
+                .run(viewInstance, journeyId, stepId, actionId, data, serverHttpRequest)
+                .then(Mono.deferContextual(contextView -> {
+                  String activeTabId = (String) command.getData().get("__activeTabId");
+                  try {
+                    var stepAfterRun = store.getStep(journeyId, stepId);
+                    stepAfterRun.getView().getMain().getComponents().stream().map(c -> c.getMetadata())
+                            .filter(m -> m instanceof Form)
+                            .map(m -> (Form) m)
+                            .flatMap(f -> f.getTabs().stream())
+                            .forEach(t -> t.setActive(!Strings.isNullOrEmpty(activeTabId) && activeTabId.equals(t.getId())));
+                    store.updateStep(journeyId, stepId, stepAfterRun);
+                  } catch (Throwable e) {
+                    throw new RuntimeException(e);
+                  }
+
+                  return Mono.empty();
+                }));
+
       }
     }
 
-    throw new Exception("Unkonwn action " + actionId);
+    throw new Exception("Unknown action " + actionId);
   }
 }

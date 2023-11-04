@@ -53,11 +53,28 @@ public class FormMetadataBuilder {
             .status(getStatus(uiInstance))
             .readOnly(isReadOnly(stepId, uiInstance))
             .badges(getBadges(uiInstance))
+                .tabs(getTabs(uiInstance))
             .sections(getSections(stepId, uiInstance, slotFields))
             .actions(actionMetadataBuilder.getActions(stepId, "", uiInstance))
             .mainActions(getMainActions(stepId, uiInstance))
             .build();
     return form;
+  }
+
+  private List<Tab> getTabs(Object uiInstance) {
+    if (uiInstance == null) {
+      return null;
+    }
+    List<Tab> tabs = new ArrayList<>();
+    var editableFields = reflectionHelper.getAllEditableFields(uiInstance.getClass());
+    tabs.addAll(editableFields.stream()
+            .filter(f -> f.isAnnotationPresent(io.mateu.mdd.shared.annotations.Tab.class))
+            .map(f -> new Tab("tab_" + f.getId(), false, f.getAnnotation(io.mateu.mdd.shared.annotations.Tab.class).value()))
+            .collect(Collectors.toList()));
+    if (tabs.size() > 0) {
+      tabs.get(0).setActive(true);
+    }
+    return tabs;
   }
 
   private boolean isReadOnly(String stepId, Object uiInstance) {
@@ -181,6 +198,7 @@ public class FormMetadataBuilder {
     Section section = null;
     FieldGroup fieldGroup = null;
     FieldGroupLine fieldGroupLine = null;
+    String tabId = "";
 
     List<FieldInterfaced> allEditableFields =
         reflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
@@ -188,6 +206,10 @@ public class FormMetadataBuilder {
             .filter(f -> slotFields.contains(f))
             .collect(Collectors.toList());
     for (FieldInterfaced fieldInterfaced : allEditableFields) {
+      if (fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Tab.class)) {
+        tabId = "tab_" + fieldInterfaced.getId();
+        section = null;
+      }
       if (section == null
           || fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Section.class)) {
         String caption = "";
@@ -202,6 +224,7 @@ public class FormMetadataBuilder {
         }
         section =
             Section.builder()
+                    .tabId(tabId)
                 .caption(caption)
                 .readOnly(
                     "view".equals(stepId)

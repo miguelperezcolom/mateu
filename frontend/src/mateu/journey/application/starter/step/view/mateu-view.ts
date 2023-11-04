@@ -151,6 +151,13 @@ export class MateuView extends LitElement {
         ${this.view?.subtitle?html`
           <p>${this.view?.subtitle}</p>
         `:''}
+
+          ${this.view.messages.map(m => html`
+              <div class="message ${m.type}">
+                  <div class="title">${m.title}</div>
+                  <div class="text">${m.text}</div>
+              </div>
+          `)}
         
           <vaadin-vertical-layout style="width: 100%" theme="spacing-xl">
         ${this.view?.main?.components.map(c => html`<mateu-component 
@@ -222,6 +229,37 @@ export class MateuView extends LitElement {
       transition: 0.2s linear;
     }
     
+    .message {
+      border-radius: 6px;
+      border: 1px solid;
+      padding: 20px;
+      margin-bottom: 10px;
+    }
+
+    .message.Success {
+      border-color: green;
+      background-color: lightgreen;
+    }
+
+    .message.Info {
+      border-color: blue;
+      background-color: lightblue;
+    }
+
+    .message.Warning {
+      border-color: orange;
+      background-color: yellow;
+    }
+
+    .message.Error {
+      border-color: red;
+      background-color: indianred;
+    }
+    
+    .message .title {
+      font-weight: 600;
+    }
+
     @media (max-width: 1200px) {
       aside {
           display: none;

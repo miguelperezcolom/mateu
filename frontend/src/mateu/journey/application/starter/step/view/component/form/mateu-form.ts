@@ -6,6 +6,7 @@ import '@vaadin/horizontal-layout'
 import '@vaadin/vaadin-notification'
 import '@vaadin/button'
 import '@vaadin/dialog'
+import '@vaadin/tabs'
 import {dialogRenderer, notificationRenderer} from 'lit-vaadin-helpers';
 import Rule from "../../../../../../../shared/apiClients/dtos/Rule";
 import FieldsMap from "./FieldsMap";
@@ -19,6 +20,7 @@ import {dialogFooterRenderer} from "@vaadin/dialog/lit";
 import ActionsMap from "./ActionsMap";
 import {Button} from "@vaadin/button";
 import {service} from "../../../../../../domain/service";
+import {TabsSelectedChangedEvent} from "@vaadin/tabs";
 
 export interface FormElement {
 
@@ -215,6 +217,9 @@ export class MateuForm extends LitElement implements FormElement {
   @property()
   confirmationOpened = false;
 
+  @state()
+  activeTab = ''
+
   @property()
   closeConfirmation = () => {
     this.confirmationOpened = false
@@ -244,6 +249,7 @@ export class MateuForm extends LitElement implements FormElement {
   }
 
   setUp() {
+    this.activeTab = this.metadata.tabs.length > 0?this.metadata.tabs.filter(t => t.active).map(t => t.id)[0]:''
     this.metadata.sections
         .flatMap(s => s.fieldGroups)
         .flatMap(g => g.lines)
@@ -323,7 +329,7 @@ export class MateuForm extends LitElement implements FormElement {
     this.dispatchEvent(new CustomEvent('runaction', {
       detail: {
         actionId: actionId,
-        data: this.data
+        data: {...this.data, __activeTabId: this.activeTab}
       },
       bubbles: true,
       composed: true
@@ -334,6 +340,16 @@ export class MateuForm extends LitElement implements FormElement {
     let action = this.metadata.actions.find(a => a.id == actionId);
     if (!action) action = this.metadata.mainActions.find(a => a.id == actionId);
     return action
+  }
+
+  tabChanged = (e: TabsSelectedChangedEvent) => {
+    this.activeTab = this.metadata.tabs[e.detail.value].id
+  }
+
+  getSelectedTabIndex = () => {
+    const i = this.metadata.tabs.findIndex(t => t.active)
+    console.log('selected tab index', i)
+    return i
   }
 
   render() {
@@ -358,10 +374,26 @@ export class MateuForm extends LitElement implements FormElement {
               ${this.metadata.badges.map(b => html`<span theme="badge ${this.getThemeForBadgetType(b.type)}">${b.message}</span>`)}
             </div>        
         `:''}
+
+        ${this.metadata.tabs.length > 0?html`
+
+          <vaadin-tabs 
+              @selected-changed="${this.tabChanged}"
+              selected="${this.getSelectedTabIndex()}"
+          >
+        ${this.metadata.tabs.map(t => html`
+          <vaadin-tab id="${t.id}">${t.caption}</vaadin-tab>
+        `)}
+          </vaadin-tabs>
+          
+        `:''}
         
-        ${this.metadata.sections.map(s => html`<mateu-section .section="${s}" .form="${this.metadata}"
+        ${this.metadata.sections
+            .map(s => html`<mateu-section .section="${s}" .form="${this.metadata}"
                                                               baseUrl="${this.baseUrl}"
-                                                              .formElement=${this}></mateu-section>`)}
+                                                              .formElement=${this}
+                                          style="display: ${!this.activeTab || this.activeTab == s.tabId?'unset':'none'};"
+            ></mateu-section>`)}
 
         <vaadin-horizontal-layout style="justify-content: end;" theme="spacing">
           <slot></slot>
@@ -434,6 +466,11 @@ export class MateuForm extends LitElement implements FormElement {
     .badges {
       margin-bottom: 10px;
     }
+    
+    vaadin-tabs {
+      margin-bottom: 10px;
+    }
+    
   `
 }
 
