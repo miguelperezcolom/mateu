@@ -1,14 +1,23 @@
-import {customElement, property} from "lit/decorators.js";
-import {html, css, LitElement} from "lit";
+import {customElement, property, query} from "lit/decorators.js";
+import {css, html, LitElement} from "lit";
 import Component from "./interfaces/Component";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
 import '@vaadin/combo-box'
 import Field from "../../../../../../../../../../../shared/apiClients/dtos/Field";
 import Value from "../../../../../../../../../../../shared/apiClients/dtos/Value";
+import {ComboBox} from "@vaadin/combo-box";
 
 
 @customElement('field-combobox')
 export class FieldCombobox extends LitElement implements Component {
+
+    @query('vaadin-combo-box')
+    comboBox : ComboBox | undefined
+
+    isInvalid(): boolean | undefined {
+        this.comboBox?.validate()
+        return this.comboBox?.invalid
+    }
 
     @property()
     required: boolean = false;

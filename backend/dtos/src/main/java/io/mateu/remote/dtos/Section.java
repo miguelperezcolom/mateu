@@ -12,6 +12,8 @@ public class Section {
 
   private String id;
 
+  private String tabId;
+
   private String caption;
 
   private String description;

@@ -12,7 +12,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Teacher {
+public abstract class Teacher {
 
   @Id String id;
 

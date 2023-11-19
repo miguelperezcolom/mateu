@@ -8,6 +8,10 @@ public class FormsSubmenu {
 
   @MenuOption private TextFieldsForm text;
 
+  @MenuOption private TabsForm tabs;
+
+  @MenuOption private MessagesForm messages;
+
   @MenuOption private RichTextFieldForm richText;
 
   @MenuOption private VaadinRichTextFieldForm richTextUsingVaadin;

@@ -1,6 +1,5 @@
 package io.mateu.mdd.core.app.menuResolvers;
 
-import com.google.auto.service.AutoService;
 import io.mateu.mdd.core.app.AbstractMenu;
 import io.mateu.mdd.core.app.MDDOpenRemoteJourneyAction;
 import io.mateu.mdd.core.app.MDDOpenUrlAction;
@@ -10,13 +9,19 @@ import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.shared.interfaces.RemoteJourney;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-@AutoService(MenuResolver.class)
+@Service
+@RequiredArgsConstructor
 public class DefaultMenuResolver implements MenuResolver {
+
+  final ReflectionHelper reflectionHelper;
 
   @Override
   public boolean addMenuEntry(
@@ -28,7 +33,7 @@ public class DefaultMenuResolver implements MenuResolver {
       l.add(
           a =
               new MDDOpenRemoteJourneyAction(
-                  caption, (RemoteJourney) ReflectionHelper.getValue(f, app)));
+                  caption, (RemoteJourney) reflectionHelper.getValue(f, app)));
       a.setOrder(order);
 
     } else if (JourneyRunner.class.isAssignableFrom(f.getType())) {
@@ -37,11 +42,11 @@ public class DefaultMenuResolver implements MenuResolver {
       l.add(
           a =
               new MDDOpenUserJourneyAction(
-                  caption, (JourneyRunner) ReflectionHelper.getValue(f, app)));
+                  caption, (JourneyRunner) reflectionHelper.getValue(f, app)));
       a.setOrder(order);
 
     } else if (List.class.isAssignableFrom(f.getType())
-        && MenuEntry.class.equals(ReflectionHelper.getGenericClass(f.getType()))) {
+        && MenuEntry.class.equals(reflectionHelper.getGenericClass(f.getType()))) {
       l.add(
           new AbstractMenu(icon, caption) {
             @Override
@@ -49,7 +54,7 @@ public class DefaultMenuResolver implements MenuResolver {
               List<MenuEntry> l = new ArrayList<>();
               try {
 
-                l = (List<MenuEntry>) ReflectionHelper.getValue(f, app);
+                l = (List<MenuEntry>) reflectionHelper.getValue(f, app);
 
               } catch (Throwable e) {
                 e.printStackTrace();
@@ -58,7 +63,7 @@ public class DefaultMenuResolver implements MenuResolver {
             }
           }.setOrder(order));
     } else if (URL.class.equals(f.getType())) {
-      l.add(new MDDOpenUrlAction(caption, (URL) ReflectionHelper.getValue(f, app)));
+      l.add(new MDDOpenUrlAction(caption, (URL) reflectionHelper.getValue(f, app)));
     } else {
       return false;
     }

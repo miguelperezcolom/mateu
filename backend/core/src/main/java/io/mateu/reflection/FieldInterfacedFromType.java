@@ -13,10 +13,12 @@ public class FieldInterfacedFromType implements FieldInterfaced {
 
   @ManyToOne private final Class type;
   private final String name;
+  private final ReflectionHelper reflectionHelper;
 
-  public FieldInterfacedFromType(Class type, String name) {
+  public FieldInterfacedFromType(Class type, String name, ReflectionHelper reflectionHelper) {
     this.type = type;
     this.name = name;
+    this.reflectionHelper = reflectionHelper;
   }
 
   @Override
@@ -68,7 +70,7 @@ public class FieldInterfacedFromType implements FieldInterfaced {
 
   @Override
   public Class<?> getGenericClass() {
-    return ReflectionHelper.getGenericClass(type);
+    return reflectionHelper.getGenericClass(type);
   }
 
   @Override
@@ -78,7 +80,7 @@ public class FieldInterfacedFromType implements FieldInterfaced {
 
   @Override
   public Type getGenericType() {
-    return ReflectionHelper.getGenericClass(type);
+    return reflectionHelper.getGenericClass(type);
   }
 
   @Override
@@ -101,13 +103,13 @@ public class FieldInterfacedFromType implements FieldInterfaced {
   @Override
   public Object getValue(Object o)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-    return ReflectionHelper.getValue(this, o);
+    return reflectionHelper.getValue(this, o);
   }
 
   @Override
   public void setValue(Object o, Object v)
       throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-    ReflectionHelper.setValue(this, o, v);
+    reflectionHelper.setValue(this, o, v);
   }
 
   @Override

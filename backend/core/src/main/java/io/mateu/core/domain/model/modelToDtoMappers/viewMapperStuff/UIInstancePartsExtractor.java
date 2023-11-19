@@ -13,15 +13,18 @@ import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import java.util.ArrayList;
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class UIInstancePartsExtractor {
 
-  @Autowired FormMetadataBuilder formMetadataBuilder;
-
-  @Autowired JpaRpcCrudFactory jpaRpcCrudFactory;
+  final FormMetadataBuilder formMetadataBuilder;
+  final JpaRpcCrudFactory jpaRpcCrudFactory;
+  final ReflectionHelper reflectionHelper;
 
   public List<UIInstancePart> getUiParts(
       Object uiInstance, List<FieldInterfaced> fields, SlotName slot) throws Exception {
@@ -56,18 +59,18 @@ public class UIInstancePartsExtractor {
   }
 
   private UIInstancePart buildPart(FieldInterfaced f, Object uiInstance) throws Exception {
-    Object partInstance = ReflectionHelper.getValue(f, uiInstance);
+    Object partInstance = reflectionHelper.getValue(f, uiInstance);
     if (formMetadataBuilder.isOwner(f)) {
       partInstance = jpaRpcCrudFactory.create(uiInstance, f);
     }
     if (partInstance == null) {
-      partInstance = ReflectionHelper.newInstance(f.getType());
+      partInstance = reflectionHelper.newInstance(f.getType());
     }
     if (partInstance instanceof Crud) {
       partInstance = new RpcViewWrapper((Listing) partInstance, f.getId());
     }
     return new UIInstancePart(
-        f.getId(), partInstance, ReflectionHelper.getAllFields(partInstance.getClass()));
+        f.getId(), partInstance, reflectionHelper.getAllFields(partInstance.getClass()));
   }
 
   private UIInstancePart buildPart(Stepper stepper, Object uiInstance) throws Exception {

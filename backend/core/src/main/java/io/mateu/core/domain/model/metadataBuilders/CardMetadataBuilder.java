@@ -15,13 +15,17 @@ import jakarta.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class CardMetadataBuilder {
 
-  @Autowired FieldMetadataBuilder fieldMetadataBuilder;
+  final FieldMetadataBuilder fieldMetadataBuilder;
+  final ReflectionHelper reflectionHelper;
 
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
   public Card build(String stepId, Object uiInstance, List<FieldInterfaced> slotFields) {
@@ -100,7 +104,7 @@ public class CardMetadataBuilder {
     FieldGroupLine fieldGroupLine = null;
 
     List<FieldInterfaced> allEditableFields =
-        ReflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
+        reflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
             .filter(
                 f ->
                     (!f.isAnnotationPresent(OneToMany.class)

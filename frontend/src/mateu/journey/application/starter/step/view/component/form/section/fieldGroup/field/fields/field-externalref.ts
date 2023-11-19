@@ -1,4 +1,4 @@
-import {customElement, property, state} from "lit/decorators.js";
+import {customElement, property, state, query} from "lit/decorators.js";
 import {css, html, LitElement, PropertyValues} from "lit";
 import Component from "./interfaces/Component";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
@@ -8,9 +8,16 @@ import Value from "../../../../../../../../../../../shared/apiClients/dtos/Value
 import {ComboBox, ComboBoxDataProvider, ComboBoxDataProviderParams} from "@vaadin/combo-box";
 import Attribute from "../../../../../../../../../../../shared/apiClients/dtos/Attribute";
 
-
 @customElement('field-externalref')
 export class FieldExternalRef extends LitElement implements Component {
+
+    @query('vaadin-combo-box')
+    comboBox : ComboBox | undefined
+
+    isInvalid(): boolean | undefined {
+        this.comboBox?.validate()
+        return this.comboBox?.invalid
+    }
 
     @property()
     required: boolean = false;

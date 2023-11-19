@@ -1,5 +1,5 @@
-import {customElement, property} from "lit/decorators.js";
-import {html, LitElement, css, PropertyValues} from "lit";
+import {customElement, property, query} from "lit/decorators.js";
+import {css, html, LitElement, PropertyValues} from "lit";
 import Component from "./interfaces/Component";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
 import '@vaadin/multi-select-combo-box';
@@ -7,9 +7,16 @@ import Field from "../../../../../../../../../../../shared/apiClients/dtos/Field
 import Value from "../../../../../../../../../../../shared/apiClients/dtos/Value";
 import {MultiSelectComboBox, MultiSelectComboBoxSelectedItemsChangedEvent} from "@vaadin/multi-select-combo-box";
 
-
 @customElement('field-multi-select-combobox')
 export class FieldMultiSelectCombobox extends LitElement implements Component {
+
+    @query('vaadin-multi-select-combo-box')
+    multiSelectComboBox : MultiSelectComboBox | undefined
+
+    isInvalid(): boolean | undefined {
+        this.multiSelectComboBox?.validate()
+        return this.multiSelectComboBox?.invalid
+    }
 
     @property()
     required: boolean = false;

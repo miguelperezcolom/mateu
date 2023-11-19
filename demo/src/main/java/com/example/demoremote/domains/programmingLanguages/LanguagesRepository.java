@@ -1,15 +1,23 @@
 package com.example.demoremote.domains.programmingLanguages;
 
+import io.mateu.mdd.shared.annotations.Ignored;
 import io.mateu.mdd.shared.data.Status;
 import io.mateu.mdd.shared.data.StatusType;
 import io.mateu.util.Helper;
 import java.util.ArrayList;
 import java.util.List;
+
+import io.mateu.util.Serializer;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
 @Service
 public class LanguagesRepository {
+
+  @Autowired@Ignored
+  Serializer serializer;
 
   private final List<LanguageRow> all =
       new ArrayList<>(
@@ -45,7 +53,7 @@ public class LanguagesRepository {
   }
 
   public void save(LanguageForm form) throws Exception {
-    LanguageRow language = Helper.fromJson(Helper.toJson(form), LanguageRow.class);
+    LanguageRow language = serializer.fromJson(serializer.toJson(form), LanguageRow.class);
     if (all.contains(language)) {
       all.set(all.indexOf(language), language);
     } else {

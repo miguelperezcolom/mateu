@@ -3,12 +3,13 @@ package com.example.demoremote.domains.agnostic.data;
 import com.example.demoremote.domains.cities.City;
 import com.example.demoremote.domains.cities.CityDto;
 import com.example.demoremote.domains.cities.CityRepository;
-import com.example.demoremote.domains.nfl.dtos.Reader;
 import com.example.demoremote.domains.nfl.dtos.TargetPlayerDto;
 import com.example.demoremote.domains.nfl.entities.*;
 import com.example.demoremote.domains.swapi.dtos.*;
 import com.example.demoremote.domains.swapi.entities.*;
+import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
+import io.mateu.util.Serializer;
 import jakarta.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -37,6 +38,12 @@ public class Populator {
 
   @Autowired private SWStarshipRepository swStarshipRepository;
 
+  @Autowired
+  ReflectionHelper reflectionHelper;
+
+  @Autowired
+  Serializer serializer;
+
   @PostConstruct
   public void populate() {
 
@@ -49,8 +56,8 @@ public class Populator {
   }
 
   public void doPopulate() throws Exception {
-    String json = Helper.leerFichero(Reader.class, "/nfl.json");
-    TargetPlayerDto[] players = Helper.fromJson(json, TargetPlayerDto[].class);
+    String json = Helper.leerFichero(Populator.class, "/nfl.json");
+    TargetPlayerDto[] players = serializer.fromJson(json, TargetPlayerDto[].class);
 
     List<String> teams =
         Arrays.stream(players).map(p -> p.getTeam()).distinct().collect(Collectors.toList());
@@ -75,8 +82,8 @@ public class Populator {
     }
 
     if (false) {
-      json = Helper.leerFichero(Reader.class, "/cities.json"); // 140k cities
-      CityDto[] cities = Helper.fromJson(json, CityDto[].class);
+      json = Helper.leerFichero(Populator.class, "/cities.json"); // 140k cities
+      CityDto[] cities = serializer.fromJson(json, CityDto[].class);
       for (CityDto city : cities) {
         City p = new City();
         p.setName(city.getName());
@@ -89,8 +96,8 @@ public class Populator {
       }
     }
 
-    json = Helper.leerFichero(Reader.class, "/swapi_characters.json"); // 140k cities
-    CharacterDto[] characters = Helper.fromJson(json, CharacterDto[].class);
+    json = Helper.leerFichero(Populator.class, "/swapi_characters.json"); // 140k cities
+    CharacterDto[] characters = serializer.fromJson(json, CharacterDto[].class);
     for (CharacterDto characterDto : characters) {
       SWCharacter p = new SWCharacter();
       p.setName(characterDto.getName());
@@ -105,8 +112,8 @@ public class Populator {
       swCharacterRepository.save(p);
     }
 
-    json = Helper.leerFichero(Reader.class, "/swapi_films.json"); // 140k cities
-    FilmsDto films = Helper.fromJson(json, FilmsDto.class);
+    json = Helper.leerFichero(Populator.class, "/swapi_films.json"); // 140k cities
+    FilmsDto films = serializer.fromJson(json, FilmsDto.class);
     for (FilmDto filmDto : films.getResults()) {
       SWFilm p = new SWFilm();
       p.setId(filmDto.getUrl());
@@ -120,8 +127,8 @@ public class Populator {
       swFilmRepository.save(p);
     }
 
-    json = Helper.leerFichero(Reader.class, "/swapi_species.json"); // 140k cities
-    SpeciesDto species = Helper.fromJson(json, SpeciesDto.class);
+    json = Helper.leerFichero(Populator.class, "/swapi_species.json"); // 140k cities
+    SpeciesDto species = serializer.fromJson(json, SpeciesDto.class);
     for (SpecieDto specieDto : species.getResults()) {
       SWSpecie p = new SWSpecie();
       p.setId(specieDto.getUrl());
@@ -133,8 +140,8 @@ public class Populator {
       swSpecieRepository.save(p);
     }
 
-    json = Helper.leerFichero(Reader.class, "/swapi_starships.json"); // 140k cities
-    StarshipsDto starships = Helper.fromJson(json, StarshipsDto.class);
+    json = Helper.leerFichero(Populator.class, "/swapi_starships.json"); // 140k cities
+    StarshipsDto starships = serializer.fromJson(json, StarshipsDto.class);
     for (StarshipDto starshipDto : starships.getResults()) {
       SWStarship p = new SWStarship();
       p.setId(starshipDto.getUrl());

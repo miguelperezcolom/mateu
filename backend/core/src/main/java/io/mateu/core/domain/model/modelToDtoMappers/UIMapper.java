@@ -16,17 +16,21 @@ import io.mateu.remote.dtos.UI;
 import io.mateu.util.Helper;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class UIMapper {
 
-  @Autowired ApplicationContext applicationContext;
-
-  @Autowired MateuRemoteClient mateuRemoteClient;
+  final ApplicationContext applicationContext;
+  final MateuRemoteClient mateuRemoteClient;
+  final ReflectionHelper reflectionHelper;
+  final MenuParser menuParser;
 
   public UI map(Object uiInstance, ServerHttpRequest serverHttpRequest) throws Exception {
 
@@ -52,14 +56,12 @@ public class UIMapper {
   }
 
   private List<Menu> getMenu(Object uiInstance, ServerHttpRequest serverHttpRequest) {
-    List<Menu> menu =
-        new MenuParser(mateuRemoteClient, uiInstance, serverHttpRequest)
-            .parse().stream().map(e -> createMenu("", e)).collect(Collectors.toList());
+    List<Menu> menu = menuParser.parse(uiInstance, serverHttpRequest).stream().map(e -> createMenu("", e)).collect(Collectors.toList());
     return menu;
   }
 
   private boolean isForm(Object uiInstance) {
-    for (FieldInterfaced field : ReflectionHelper.getAllFields(uiInstance.getClass())) {
+    for (FieldInterfaced field : reflectionHelper.getAllFields(uiInstance.getClass())) {
       if (field.isAnnotationPresent(MenuOption.class) || field.isAnnotationPresent(Submenu.class)) {
         return false;
       }
@@ -81,7 +83,7 @@ public class UIMapper {
     if (uiInstance instanceof HasTitle) {
       return ((HasTitle) uiInstance).getTitle();
     }
-    return ReflectionHelper.getCaption(uiInstance);
+    return reflectionHelper.getCaption(uiInstance);
   }
 
   private Menu createMenu(String prefix, MenuEntry menuEntry) {

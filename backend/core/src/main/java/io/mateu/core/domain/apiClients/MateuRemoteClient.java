@@ -8,6 +8,9 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+
+import io.mateu.util.Serializer;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -15,7 +18,10 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
+@RequiredArgsConstructor
 public class MateuRemoteClient {
+
+  final Serializer serializer;
 
   private WebClient buildClient(String remoteBaseUrl) {
     return WebClient.builder().baseUrl(remoteBaseUrl).build();
@@ -125,7 +131,7 @@ public class MateuRemoteClient {
   private String serialize(Object object) {
     String json = "{}";
     try {
-      json = Helper.toJson(object);
+      json = serializer.toJson(object);
     } catch (Exception e) {
       e.printStackTrace();
     }

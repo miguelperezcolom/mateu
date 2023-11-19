@@ -4,6 +4,8 @@ import com.google.common.base.Strings;
 import io.mateu.mdd.shared.interfaces.SortCriteria;
 import io.mateu.mdd.shared.interfaces.SortType;
 import io.mateu.util.Helper;
+import io.mateu.util.Serializer;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -15,14 +17,14 @@ public class OrderingDeserializer {
     this.raw = raw;
   }
 
-  public List<SortCriteria> deserialize() {
+  public List<SortCriteria> deserialize(Serializer serializer) {
     if (Strings.isNullOrEmpty(raw)) {
       return List.of();
     }
     try {
       List<Map<String, Object>> data =
           (List<Map<String, Object>>)
-              Helper.fromJson(new String(Base64.getDecoder().decode(raw)), ArrayList.class);
+              serializer.fromJson(new String(Base64.getDecoder().decode(raw)), ArrayList.class);
       return data.stream()
           .map(
               m ->

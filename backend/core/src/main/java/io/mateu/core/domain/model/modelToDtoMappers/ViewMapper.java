@@ -9,6 +9,7 @@ import io.mateu.core.domain.model.metadataBuilders.ViewMetadataBuilder;
 import io.mateu.core.domain.model.modelToDtoMappers.viewMapperStuff.*;
 import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
+import io.mateu.mdd.core.interfaces.HasMessages;
 import io.mateu.mdd.core.interfaces.HasSubtitle;
 import io.mateu.mdd.core.interfaces.HasTitle;
 import io.mateu.mdd.core.interfaces.RpcCrudViewExtended;
@@ -20,6 +21,7 @@ import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
 import io.mateu.remote.dtos.Crud;
 import io.mateu.util.Helper;
+import io.mateu.util.Serializer;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.*;
@@ -48,6 +50,11 @@ public class ViewMapper {
 
   @Autowired UIInstancePartsExtractor uiInstancePartsExtractor;
 
+  @Autowired ReflectionHelper reflectionHelper;
+
+  @Autowired
+  Serializer serializer;
+
   public View map(
       JourneyContainer journeyContainer,
       String stepId,
@@ -62,6 +69,7 @@ public class ViewMapper {
         getActualUiInstance(journeyContainer, stepId, uiInstance, serverHttpRequest);
 
     data.putAll(dataExtractor.getData(uiInstance, actualUiInstance));
+
 
     // todo: build left, main and right in a separate manner
     List<Component> left = new ArrayList<>();
@@ -109,6 +117,7 @@ public class ViewMapper {
         View.builder()
             .title(getTitle(actualUiInstance))
             .subtitle(getSubtitle(actualUiInstance))
+                .messages(getMessages(actualUiInstance))
             .left(ViewPart.builder().components(left).build())
             .main(ViewPart.builder().components(main).build())
             .right(ViewPart.builder().components(right).build())
@@ -117,6 +126,19 @@ public class ViewMapper {
             .build();
 
     return view;
+  }
+
+  private List<Message> getMessages(Object uiInstance) {
+    if (uiInstance instanceof HasMessages) {
+      return ((HasMessages)uiInstance).getMessages().stream().map(m -> new Message(
+              m.getId(),
+              m.getType(),
+              m.getTitle(),
+              m.getText()
+      )).collect(Collectors.toList());
+    } else {
+      return List.of();
+    }
   }
 
   private void removeTitleForFirstComponent(List<Component> slot) {
@@ -149,7 +171,7 @@ public class ViewMapper {
     if (uiInstance instanceof HasTitle) {
       return ((HasTitle) uiInstance).getTitle();
     }
-    return ReflectionHelper.getCaption(uiInstance);
+    return reflectionHelper.getCaption(uiInstance);
   }
 
   private Object getActualUiInstance(
@@ -165,11 +187,11 @@ public class ViewMapper {
     } else if (uiInstance instanceof ObjectEditor) {
       ObjectEditor objectEditor = (ObjectEditor) uiInstance;
       actualUiInstance =
-          Helper.fromJson(Helper.toJson(objectEditor.getData()), objectEditor.getType());
+          serializer.fromJson(serializer.toJson(objectEditor.getData()), objectEditor.getType());
     } else if (uiInstance instanceof FieldEditor) {
       FieldEditor fieldEditor = (FieldEditor) uiInstance;
       actualUiInstance =
-          Helper.fromJson(Helper.toJson(fieldEditor.getData()), fieldEditor.getType());
+              serializer.fromJson(serializer.toJson(fieldEditor.getData()), fieldEditor.getType());
     } else if (uiInstance instanceof MethodParametersEditor) {
       MethodParametersEditor methodParametersEditor = (MethodParametersEditor) uiInstance;
       // actualUiInstance = Helper.fromJson(Helper.toJson(fieldEditor.getData()),
@@ -190,7 +212,7 @@ public class ViewMapper {
           em.find(rpcCrudView.getEntityClass(), ((EntityEditor) uiInstance).getData().get("id"));
     } else if (uiInstance instanceof Class
         && Listing.class.isAssignableFrom((Class<?>) uiInstance)) {
-      actualUiInstance = ReflectionHelper.newInstance((Class) uiInstance);
+      actualUiInstance = reflectionHelper.newInstance((Class) uiInstance);
     }
     return actualUiInstance;
   }

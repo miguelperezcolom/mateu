@@ -7,6 +7,8 @@ export default interface Section {
 
     caption: string
 
+    tabId: string
+
     description: string
 
     readOnly: boolean

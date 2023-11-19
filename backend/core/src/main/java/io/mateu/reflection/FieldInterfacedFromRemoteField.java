@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 public class FieldInterfacedFromRemoteField implements FieldInterfaced {
 
   private final Field f;
+  private final ReflectionHelper reflectionHelper;
 
   private Choice choice;
 
@@ -38,8 +39,9 @@ public class FieldInterfacedFromRemoteField implements FieldInterfaced {
     return null;
   }
 
-  public FieldInterfacedFromRemoteField(Field f) {
+  public FieldInterfacedFromRemoteField(Field f, ReflectionHelper reflectionHelper) {
     this.f = f;
+    this.reflectionHelper = reflectionHelper;
     if (Choice.class.isAssignableFrom(getType())) {
       choice =
           new Choice() {
@@ -170,13 +172,13 @@ public class FieldInterfacedFromRemoteField implements FieldInterfaced {
   @Override
   public Object getValue(Object o)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-    return ReflectionHelper.getValue(this, o);
+    return reflectionHelper.getValue(this, o);
   }
 
   @Override
   public void setValue(Object o, Object v)
       throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-    ReflectionHelper.setValue(this, o, v);
+    reflectionHelper.setValue(this, o, v);
   }
 
   @Override

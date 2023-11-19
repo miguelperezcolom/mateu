@@ -11,10 +11,12 @@ public class FieldInterfacedFromField implements FieldInterfaced {
 
   private final Field f;
   private final FieldInterfaced ff;
+
+  private final ReflectionHelper reflectionHelper;
   private List<Annotation> extraAnnotations = new ArrayList<>();
 
-  public FieldInterfacedFromField(FieldInterfaced f, Annotation a) {
-    this(f);
+  public FieldInterfacedFromField(FieldInterfaced f, Annotation a, ReflectionHelper reflectionHelper) {
+    this(f, reflectionHelper);
     extraAnnotations.add(a);
   }
 
@@ -30,14 +32,16 @@ public class FieldInterfacedFromField implements FieldInterfaced {
         : f.getDeclaredAnnotationsByType(annotationClass);
   }
 
-  public FieldInterfacedFromField(FieldInterfaced f) {
+  public FieldInterfacedFromField(FieldInterfaced f, ReflectionHelper reflectionHelper) {
     this.ff = f;
     this.f = f.getField();
+    this.reflectionHelper = reflectionHelper;
   }
 
-  public FieldInterfacedFromField(Field f) {
+  public FieldInterfacedFromField(Field f, ReflectionHelper reflectionHelper) {
     this.ff = null;
     this.f = f;
+    this.reflectionHelper = reflectionHelper;
   }
 
   @Override
@@ -113,13 +117,13 @@ public class FieldInterfacedFromField implements FieldInterfaced {
   @Override
   public Object getValue(Object o)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-    return ReflectionHelper.getValue(this, o);
+    return reflectionHelper.getValue(this, o);
   }
 
   @Override
   public void setValue(Object o, Object v)
       throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-    ReflectionHelper.setValue(this, o, v);
+    reflectionHelper.setValue(this, o, v);
   }
 
   @Override

@@ -6,7 +6,7 @@ import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.remote.dtos.Crud;
 import io.mateu.remote.dtos.Step;
-import io.mateu.util.Helper;
+import io.mateu.util.Serializer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -20,6 +20,9 @@ public class GetStepQueryHandler {
   @Autowired JourneyStoreService store;
 
   @Autowired MateuRemoteClient mateuRemoteClient;
+
+  @Autowired
+  Serializer serializer;
 
   public Mono<Step> run(GetStepQuery query) throws Exception {
 
@@ -44,7 +47,7 @@ public class GetStepQueryHandler {
 
     // dump(journeyContainer);
 
-    Step step = store.getStep(journeyId, stepId);
+    Step step = store.getStepAndSetAsCurrent(journeyId, stepId);
     if (isCrud(step)) {
       step.getData().remove("__index");
       step.getData().remove("__count");
@@ -76,7 +79,7 @@ public class GetStepQueryHandler {
               log.info("step: " + s.getId());
               log.info("previous: " + s.getPreviousStepId());
               try {
-                log.info("data: " + Helper.toJson(s.getData()));
+                log.info("data: " + serializer.toJson(s.getData()));
               } catch (Exception e) {
                 e.printStackTrace();
               }

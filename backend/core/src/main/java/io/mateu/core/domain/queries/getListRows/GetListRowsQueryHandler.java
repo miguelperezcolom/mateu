@@ -6,6 +6,8 @@ import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.core.domain.queries.FiltersDeserializer;
 import io.mateu.mdd.shared.interfaces.Listing;
+import io.mateu.reflection.ReflectionHelper;
+import io.mateu.util.Serializer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,12 @@ public class GetListRowsQueryHandler {
   @Autowired JourneyStoreService store;
 
   @Autowired MateuRemoteClient mateuRemoteClient;
+
+  @Autowired
+  ReflectionHelper reflectionHelper;
+
+  @Autowired
+  Serializer serializer;
 
   @Transactional
   public Flux<Object> run(GetListRowsQuery query) throws Throwable {
@@ -49,7 +57,9 @@ public class GetListRowsQueryHandler {
                 query.getStepId(),
                 query.getListId(),
                 query.getFilters(),
-                query.getServerHttpRequest())
+                query.getServerHttpRequest(),
+                reflectionHelper,
+                serializer)
             .deserialize(store);
 
     Listing rpcView =

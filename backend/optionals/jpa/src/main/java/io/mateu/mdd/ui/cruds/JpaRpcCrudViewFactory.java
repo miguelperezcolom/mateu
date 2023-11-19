@@ -10,12 +10,16 @@ import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 @Service
 @Primary
+@RequiredArgsConstructor
 public class JpaRpcCrudViewFactory implements JpaRpcCrudFactory {
+
+  final ReflectionHelper reflectionHelper;
 
   @Override
   public Listing create(Object parentEntity, FieldInterfaced field) throws Exception {
@@ -34,9 +38,11 @@ public class JpaRpcCrudViewFactory implements JpaRpcCrudFactory {
               parentEntity));
     } else {
       action.setExtraFilters(
-          new ExtraFilters("x in :p", "p", ReflectionHelper.getValue(field, parentEntity)));
+          new ExtraFilters("x in :p", "p", reflectionHelper.getValue(field, parentEntity)));
     }
-    return new JpaRpcCrudView(action);
+    var jpaRpcCrudView = reflectionHelper.newInstance(JpaRpcCrudView.class);
+    jpaRpcCrudView.setAction(action);
+    return jpaRpcCrudView;
   }
 
   @Override
@@ -55,6 +61,8 @@ public class JpaRpcCrudViewFactory implements JpaRpcCrudFactory {
     if (v != null) a.setReadOnly(v.isReadOnly());
     if (v != null && !Strings.isNullOrEmpty(v.getExtraWhereFilter()))
       a.setQueryFilters(v.getExtraWhereFilter());
-    return new JpaRpcCrudView(a);
+    var jpaRpcCrudView = reflectionHelper.newInstance(JpaRpcCrudView.class);
+    jpaRpcCrudView.setAction(a);
+    return jpaRpcCrudView;
   }
 }

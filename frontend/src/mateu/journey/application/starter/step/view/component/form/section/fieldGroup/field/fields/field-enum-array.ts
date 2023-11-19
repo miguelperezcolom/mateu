@@ -1,16 +1,24 @@
-import {customElement, property} from "lit/decorators.js";
+import {customElement, property, query} from "lit/decorators.js";
 import {html, LitElement} from "lit";
 import Component from "./interfaces/Component";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
 import '@vaadin/checkbox-group'
 import '@vaadin/vaadin-checkbox'
-    import type { CheckboxGroupValueChangedEvent } from '@vaadin/checkbox-group';
+import type {CheckboxGroup, CheckboxGroupValueChangedEvent} from '@vaadin/checkbox-group';
 import Field from "../../../../../../../../../../../shared/apiClients/dtos/Field";
 import Value from "../../../../../../../../../../../shared/apiClients/dtos/Value";
 
 
 @customElement('field-enum-array')
 export class FieldEnumArray extends LitElement implements Component {
+
+    @query('vaadin-checkbox-group')
+    checkboxGroup : CheckboxGroup | undefined
+
+    isInvalid(): boolean | undefined {
+        this.checkboxGroup?.validate()
+        return this.checkboxGroup?.invalid
+    }
 
     @property()
     required: boolean = false;

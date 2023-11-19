@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,13 +31,13 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class FormMetadataBuilder {
 
-  @Autowired ActionMetadataBuilder actionMetadataBuilder;
-
-  @Autowired FieldMetadataBuilder fieldMetadataBuilder;
-
-  @Autowired JpaRpcCrudFactory jpaRpcCrudFactory;
+  final ActionMetadataBuilder actionMetadataBuilder;
+  final FieldMetadataBuilder fieldMetadataBuilder;
+  final JpaRpcCrudFactory jpaRpcCrudFactory;
+  final ReflectionHelper reflectionHelper;
 
   @SneakyThrows
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
@@ -51,11 +53,28 @@ public class FormMetadataBuilder {
             .status(getStatus(uiInstance))
             .readOnly(isReadOnly(stepId, uiInstance))
             .badges(getBadges(uiInstance))
+                .tabs(getTabs(uiInstance))
             .sections(getSections(stepId, uiInstance, slotFields))
             .actions(actionMetadataBuilder.getActions(stepId, "", uiInstance))
             .mainActions(getMainActions(stepId, uiInstance))
             .build();
     return form;
+  }
+
+  private List<Tab> getTabs(Object uiInstance) {
+    if (uiInstance == null) {
+      return null;
+    }
+    List<Tab> tabs = new ArrayList<>();
+    var editableFields = reflectionHelper.getAllEditableFields(uiInstance.getClass());
+    tabs.addAll(editableFields.stream()
+            .filter(f -> f.isAnnotationPresent(io.mateu.mdd.shared.annotations.Tab.class))
+            .map(f -> new Tab("tab_" + f.getId(), false, f.getAnnotation(io.mateu.mdd.shared.annotations.Tab.class).value()))
+            .collect(Collectors.toList()));
+    if (tabs.size() > 0) {
+      tabs.get(0).setActive(true);
+    }
+    return tabs;
   }
 
   private boolean isReadOnly(String stepId, Object uiInstance) {
@@ -71,7 +90,7 @@ public class FormMetadataBuilder {
   }
 
   private boolean hasCrud(Class entityClass) {
-    return ReflectionHelper.getAllEditableFields(entityClass).stream()
+    return reflectionHelper.getAllEditableFields(entityClass).stream()
             .filter(f -> f.isAnnotationPresent(UseCrud.class))
             .count()
         > 0;
@@ -127,7 +146,7 @@ public class FormMetadataBuilder {
   }
 
   private List<Action> getMainActions(String stepId, Object uiInstance) {
-    List<Method> allMethods = ReflectionHelper.getAllMethods(uiInstance.getClass());
+    List<Method> allMethods = reflectionHelper.getAllMethods(uiInstance.getClass());
     List<Action> actions =
         allMethods.stream()
             .filter(m -> m.isAnnotationPresent(MainAction.class))
@@ -179,13 +198,18 @@ public class FormMetadataBuilder {
     Section section = null;
     FieldGroup fieldGroup = null;
     FieldGroupLine fieldGroupLine = null;
+    String tabId = "";
 
     List<FieldInterfaced> allEditableFields =
-        ReflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
+        reflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
             .filter(f -> !isOwner(f))
             .filter(f -> slotFields.contains(f))
             .collect(Collectors.toList());
     for (FieldInterfaced fieldInterfaced : allEditableFields) {
+      if (fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Tab.class)) {
+        tabId = "tab_" + fieldInterfaced.getId();
+        section = null;
+      }
       if (section == null
           || fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Section.class)) {
         String caption = "";
@@ -200,6 +224,7 @@ public class FormMetadataBuilder {
         }
         section =
             Section.builder()
+                    .tabId(tabId)
                 .caption(caption)
                 .readOnly(
                     "view".equals(stepId)

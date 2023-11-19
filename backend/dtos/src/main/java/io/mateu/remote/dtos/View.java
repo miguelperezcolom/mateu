@@ -2,6 +2,8 @@ package io.mateu.remote.dtos;
 
 import lombok.*;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
@@ -11,6 +13,8 @@ public class View {
   private String title;
 
   private String subtitle;
+
+  private List<Message> messages;
 
   private ViewPart header;
 

@@ -5,6 +5,7 @@ import io.mateu.mdd.shared.annotations.Sum;
 import io.mateu.mdd.shared.data.SumData;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.mdd.ui.cruds.queries.QueryHelper;
+import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -13,6 +14,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class SumsQueryHandler {
 
   @PersistenceContext private EntityManager em;
+  @Autowired
+  ReflectionHelper reflectionHelper;
 
   @Transactional
   public List<SumData> run(SumsQuery query) {
@@ -28,7 +32,7 @@ public class SumsQueryHandler {
 
     try {
       jakarta.persistence.Query q =
-          new QueryHelper()
+          new QueryHelper(reflectionHelper)
               .buildJpaQuery(
                   query,
                   em,

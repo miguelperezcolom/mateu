@@ -1,14 +1,23 @@
-import {customElement, property} from "lit/decorators.js";
+import {customElement, property, query} from "lit/decorators.js";
 import {css, html, LitElement} from "lit";
 import Component from "./interfaces/Component";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
 import '@vaadin/vaadin-radio-button'
 import '@vaadin/radio-group'
 import Field from "../../../../../../../../../../../shared/apiClients/dtos/Field";
+import {RadioGroup} from "@vaadin/radio-group";
 
 
 @customElement('field-boolean-radio-buttons')
 export class FieldBooleanRadioButtons extends LitElement implements Component {
+
+    @query('vaadin-radio-group')
+    radioGroup : RadioGroup | undefined
+
+    isInvalid(): boolean | undefined {
+        this.radioGroup?.validate()
+        return this.radioGroup?.invalid
+    }
 
     @property()
     required: boolean = false;

@@ -11,6 +11,10 @@ import '@web-comp/json-viewer';
 @customElement('field-json')
 export class FieldJson extends LitElement implements Component {
 
+    isInvalid(): boolean | undefined {
+        return undefined
+    }
+
     @property()
     required: boolean = false;
 

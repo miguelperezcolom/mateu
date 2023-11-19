@@ -10,13 +10,18 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class MethodParametersEditorMetadataBuilder {
 
-  @Autowired FieldMetadataBuilder fieldMetadataBuilder;
+  final FieldMetadataBuilder fieldMetadataBuilder;
+  final ReflectionHelper reflectionHelper;
 
   public Form build(String stepId, MethodParametersEditor uiInstance) {
     Form form =
@@ -60,12 +65,13 @@ public class MethodParametersEditorMetadataBuilder {
     FieldGroupLine fieldGroupLine = null;
 
     Method m =
-        ReflectionHelper.getMethod(
+        reflectionHelper.getMethod(
             methodParametersEditor.getType(), methodParametersEditor.getMethodId());
 
     List<FieldInterfaced> allEditableFields =
-        ReflectionHelper.getAllFields(m).stream()
-            .filter(f -> f.isAnnotationPresent(UseCrud.class))
+        reflectionHelper.getAllFields(m).stream()
+            .filter(f -> !f.isAnnotationPresent(UseCrud.class))
+                .filter(f -> !ServerHttpRequest.class.isAssignableFrom(f.getType()))
             .collect(Collectors.toList());
     int paramPos = 0;
     for (FieldInterfaced fieldInterfaced : allEditableFields) {

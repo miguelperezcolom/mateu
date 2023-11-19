@@ -1,5 +1,5 @@
-import {customElement, property, state} from "lit/decorators.js";
-import {html, css, LitElement} from "lit";
+import {customElement, property, state, query} from "lit/decorators.js";
+import {css, html, LitElement} from "lit";
 import Component from "./interfaces/Component";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
 import '@vaadin/vaadin-upload'
@@ -8,10 +8,20 @@ import File from "../../../../../../../../../../../shared/apiClients/dtos/File";
 import {nanoid} from "nanoid";
 import {UploadElement} from "@vaadin/vaadin-upload/src/vaadin-upload";
 import {UploadFile} from "@vaadin/vaadin-upload";
+import {CustomField} from "@vaadin/custom-field";
 
 
 @customElement('field-file')
 export class FieldFile extends LitElement implements Component {
+
+    @query('vaadin-custom-field')
+    customField : CustomField | undefined
+
+    isInvalid(): boolean | undefined {
+        this.customField?.validate()
+        return this.customField?.invalid
+    }
+
 
     @property()
     required: boolean = false;

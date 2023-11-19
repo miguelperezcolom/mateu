@@ -9,10 +9,15 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class RulesBuilder {
+
+  final ReflectionHelper reflectionHelper;
 
   public List<Rule> buildRules(ViewMetadata metadata, Object actualUiInstance) {
     List<Rule> rules = new ArrayList<>();
@@ -25,7 +30,7 @@ public class RulesBuilder {
 
   private void addRulesForActions(Object actualUiInstance, List<Rule> rules) {
     List<Method> allActions =
-        ReflectionHelper.getAllMethods(actualUiInstance.getClass()).stream()
+        reflectionHelper.getAllMethods(actualUiInstance.getClass()).stream()
             .filter(
                 m -> m.isAnnotationPresent(Action.class) || m.isAnnotationPresent(MainAction.class))
             .collect(Collectors.toList());
@@ -55,7 +60,7 @@ public class RulesBuilder {
 
   private void addRulesForFields(Object actualUiInstance, List<Rule> rules) {
     List<FieldInterfaced> allEditableFields =
-        ReflectionHelper.getAllEditableFields(actualUiInstance.getClass());
+        reflectionHelper.getAllEditableFields(actualUiInstance.getClass());
     allEditableFields.stream()
         .filter(f -> f.isAnnotationPresent(VisibleIf.class))
         .forEach(

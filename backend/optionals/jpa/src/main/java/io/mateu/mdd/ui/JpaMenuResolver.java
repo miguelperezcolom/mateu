@@ -1,6 +1,5 @@
 package io.mateu.mdd.ui;
 
-import com.google.auto.service.AutoService;
 import com.google.common.base.Strings;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.app.menuResolvers.MenuResolver;
@@ -12,22 +11,30 @@ import io.mateu.mdd.shared.interfaces.JpaCrud;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Service;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
-@AutoService(MenuResolver.class)
+@Service
+@Primary
+@RequiredArgsConstructor
 public class JpaMenuResolver implements MenuResolver {
 
+  final ReflectionHelper reflectionHelper;
+  
   @Override
   public boolean addMenuEntry(
       Object app, List<MenuEntry> l, FieldInterfaced f, String caption, int order, String icon)
       throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
     if (JpaCrud.class.isAssignableFrom(f.getType())) {
-      Class entityType = ReflectionHelper.getGenericClass(f, JpaCrud.class, "E");
+      Class entityType = reflectionHelper.getGenericClass(f, JpaCrud.class, "E");
       if (entityType != null) {
         MDDOpenCRUDAction a = new MDDOpenCRUDAction(caption, entityType);
         a.setIcon(icon).setOrder(order);
-        JpaCrud v = (JpaCrud) ReflectionHelper.getValue(f, app);
+        JpaCrud v = (JpaCrud) reflectionHelper.getValue(f, app);
         if (v != null && v.getColumnFields() != null)
           a.setColumns(String.join(",", v.getColumnFields()));
         if (v != null && v.getVisibleFields() != null)
@@ -44,7 +51,7 @@ public class JpaMenuResolver implements MenuResolver {
         l.add(a);
       }
     } else if (Class.class.isAssignableFrom(f.getType())) {
-      Class type = (Class) ReflectionHelper.getValue(f, app);
+      Class type = (Class) reflectionHelper.getValue(f, app);
       if (type != null) {
         MDDOpenCRUDAction a = new MDDOpenCRUDAction(caption, type);
         a.setIcon(icon).setOrder(order);

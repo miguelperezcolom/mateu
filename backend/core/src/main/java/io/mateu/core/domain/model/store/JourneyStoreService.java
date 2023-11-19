@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.store;
 
-import io.mateu.core.domain.commands.runStep.ActualValueExtractor;
+import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
 import io.mateu.core.domain.model.editors.EntityEditor;
 import io.mateu.core.domain.model.editors.FieldEditor;
 import io.mateu.core.domain.model.editors.ObjectEditor;
@@ -15,12 +15,15 @@ import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.Journey;
 import io.mateu.remote.dtos.Step;
-import io.mateu.util.Helper;
+
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import io.mateu.util.Serializer;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -30,21 +33,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class JourneyStoreService {
 
-  @Autowired private StepMapper stepMapper;
-
-  @Autowired private UIMapper uiMapper;
-
-  @Autowired private JourneyRepository journeyRepo;
-
-  @Autowired private ActualValueExtractor actualValueExtractor;
-
-  @Autowired private ApplicationContext applicationContext;
-
-  @Autowired private Merger merger;
-
-  @Autowired private JpaRpcCrudFactory jpaRpcCrudFactory;
+  private final StepMapper stepMapper;
+  private final UIMapper uiMapper;
+  private final JourneyRepository journeyRepo;
+  private final ActualValueExtractor actualValueExtractor;
+  private final ApplicationContext applicationContext;
+  private final Merger merger;
+  private final JpaRpcCrudFactory jpaRpcCrudFactory;
+  private final ReflectionHelper reflectionHelper;
+  private final Serializer serializer;
+  private final MDDOpenCRUDActionViewBuilder mddOpenCRUDActionViewBuilder;
 
   public Object getViewInstance(
       String journeyId, String stepId, ServerHttpRequest serverHttpRequest) throws Exception {
@@ -62,7 +63,7 @@ public class JourneyStoreService {
           createInstanceFromJourneyTypeId(container.get().getJourneyTypeId(), serverHttpRequest);
       return jpaRpcCrudView;
     } else {
-      Object viewInstance = ReflectionHelper.newInstance(Class.forName(step.getType()));
+      Object viewInstance = reflectionHelper.newInstance(Class.forName(step.getType()));
       Map<String, Object> data = step.getData();
       if (viewInstance instanceof EntityEditor) {
         ((EntityEditor) viewInstance)
@@ -83,7 +84,7 @@ public class JourneyStoreService {
                 entry -> {
                   try {
                     Object actualValue = actualValueExtractor.getActualValue(entry, viewInstance);
-                    ReflectionHelper.setValue(entry.getKey(), viewInstance, actualValue);
+                    reflectionHelper.setValue(entry.getKey(), viewInstance, actualValue);
                   } catch (Exception ex) {
                     System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
                   }
@@ -108,29 +109,29 @@ public class JourneyStoreService {
         EntityEditor entityEditor = (EntityEditor) actualInstance;
         actualInstance = merger.loadEntity(entityEditor.getData(), entityEditor.getEntityClass());
         FieldInterfaced listField =
-            ReflectionHelper.getFieldByName(actualInstance.getClass(), listId);
+            reflectionHelper.getFieldByName(actualInstance.getClass(), listId);
         if (listField != null) {
           return jpaRpcCrudFactory.create(actualInstance, listField);
         }
       } else if (actualInstance instanceof ObjectEditor) {
         ObjectEditor objectEditor = (ObjectEditor) actualInstance;
-        Object instanceFromSpringContext = ReflectionHelper.newInstance(objectEditor.getType());
+        Object instanceFromSpringContext = reflectionHelper.newInstance(objectEditor.getType());
         Object instanceWithDeserializedValues =
-            Helper.fromJson(Helper.toJson(objectEditor.getData()), objectEditor.getType());
-        ReflectionHelper.copy(instanceWithDeserializedValues, instanceFromSpringContext);
+            serializer.fromJson(serializer.toJson(objectEditor.getData()), objectEditor.getType());
+        reflectionHelper.copy(instanceWithDeserializedValues, instanceFromSpringContext);
         FieldInterfaced listField =
-            ReflectionHelper.getFieldByName(instanceFromSpringContext.getClass(), listId);
+            reflectionHelper.getFieldByName(instanceFromSpringContext.getClass(), listId);
         if (listField != null) {
-          return (Listing) ReflectionHelper.getValue(listField, instanceFromSpringContext);
+          return (Listing) reflectionHelper.getValue(listField, instanceFromSpringContext);
         }
       } else {
-        return (Listing) ReflectionHelper.getValue(listId, actualInstance);
+        return (Listing) reflectionHelper.getValue(listId, actualInstance);
       }
       FieldInterfaced listField =
-          ReflectionHelper.getFieldByName(actualInstance.getClass(), listId);
+          reflectionHelper.getFieldByName(actualInstance.getClass(), listId);
       if (listField != null) {
-        rpcView = (Listing) ReflectionHelper.newInstance(listField.getType());
-        ReflectionHelper.setValue(listId, actualInstance, rpcView);
+        rpcView = (Listing) reflectionHelper.newInstance(listField.getType());
+        reflectionHelper.setValue(listId, actualInstance, rpcView);
       }
       return rpcView;
     } catch (Exception e) {
@@ -214,6 +215,12 @@ public class JourneyStoreService {
     } else {
       stepIdPrefix = stepIdPrefix + "_";
     }
+    if (stepIdPrefix.endsWith("view_")) {
+      stepIdPrefix = stepIdPrefix.substring(0, "view_".length());
+    }
+    if (stepIdPrefix.endsWith("edit_")) {
+      stepIdPrefix = stepIdPrefix.substring(0, "edit_".length());
+    }
     String newStepId = stepIdPrefix + stepId;
     Step step =
         stepMapper.map(
@@ -241,7 +248,7 @@ public class JourneyStoreService {
     }
     String currentStepId = container.get().getJourney().getCurrentStepId();
     if (targetStepId.equals(currentStepId)) {
-      return null;
+      return container.get().getSteps().get(currentStepId).getPreviousStepId();
     }
     return currentStepId;
   }
@@ -292,7 +299,7 @@ public class JourneyStoreService {
     return "list".equals(container.get().getInitialStep());
   }
 
-  public Step getStep(String journeyId, String stepId) throws Exception {
+  public Step getStepAndSetAsCurrent(String journeyId, String stepId) throws Exception {
     Optional<JourneyContainer> container = findJourneyById(journeyId);
     if (!container.isPresent()) {
       throw new Exception("No journey with id " + journeyId + " found");
@@ -305,6 +312,18 @@ public class JourneyStoreService {
     container.get().getJourney().setCurrentStepId(stepId);
     container.get().setLastAccess(LocalDateTime.now());
     journeyRepo.save(container.get());
+    return step;
+  }
+
+  public Step readStep(String journeyId, String stepId) throws Exception {
+    Optional<JourneyContainer> container = findJourneyById(journeyId);
+    if (!container.isPresent()) {
+      throw new Exception("No journey with id " + journeyId + " found");
+    }
+    Step step = container.get().getSteps().get(stepId);
+    if (step == null) {
+      throw new Exception("No step with id " + journeyId + " found for journey " + journeyId);
+    }
     return step;
   }
 
@@ -338,7 +357,7 @@ public class JourneyStoreService {
         String uiClassName = actionId.split("_")[1];
         Object uiInstance = null;
         try {
-          uiInstance = ReflectionHelper.newInstance(Class.forName(uiClassName));
+          uiInstance = reflectionHelper.newInstance(Class.forName(uiClassName));
           uiMapper.map(uiInstance, serverHttpRequest);
           menuToBeanMapping = menuMappingRepo.findById(actionId);
         } catch (Exception e) {
@@ -349,9 +368,10 @@ public class JourneyStoreService {
         Object uiInstance = null;
         try {
           // todo: refactor for improving
-          uiInstance = ReflectionHelper.newInstance(Class.forName(uiClassName));
+          uiInstance = reflectionHelper.newInstance(Class.forName(uiClassName));
           uiMapper.map(uiInstance, serverHttpRequest);
-          storeMenuAction(actionId, new MDDOpenEditorAction("", uiInstance));
+          Object finalUiInstance = uiInstance;
+          storeMenuAction(actionId, new MDDOpenEditorAction("", () -> finalUiInstance));
           menuToBeanMapping = menuMappingRepo.findById(actionId);
         } catch (Exception e) {
           e.printStackTrace();
@@ -379,14 +399,13 @@ public class JourneyStoreService {
       return action.getRemoteJourney();
     } else if (menuEntry instanceof MDDOpenEditorAction) {
       MDDOpenEditorAction action = (MDDOpenEditorAction) menuEntry;
-      return ReflectionHelper.newInstance(action.getViewClass());
+      return reflectionHelper.newInstance(action.getViewClass());
     } else if (menuEntry instanceof MDDOpenCRUDAction) {
       MDDOpenCRUDAction action = (MDDOpenCRUDAction) menuEntry;
-      MDDOpenCRUDActionViewBuilder viewBuilder = Helper.getImpl(MDDOpenCRUDActionViewBuilder.class);
-      return viewBuilder.buildView(action);
+      return mddOpenCRUDActionViewBuilder.buildView(action);
     } else if (menuEntry instanceof MDDOpenListViewAction) {
       MDDOpenListViewAction action = (MDDOpenListViewAction) menuEntry;
-      return ReflectionHelper.newInstance(action.getListViewClass());
+      return reflectionHelper.newInstance(action.getListViewClass());
     }
     return null;
   }

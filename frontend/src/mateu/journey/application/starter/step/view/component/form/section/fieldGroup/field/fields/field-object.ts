@@ -11,6 +11,10 @@ import Field from "../../../../../../../../../../../shared/apiClients/dtos/Field
 @customElement('field-object')
 export class FieldObject extends LitElement implements Component {
 
+    isInvalid(): boolean | undefined {
+        return undefined
+    }
+
     @property()
     required: boolean = false;
 

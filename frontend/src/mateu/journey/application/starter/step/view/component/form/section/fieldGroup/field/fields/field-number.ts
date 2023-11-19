@@ -1,12 +1,22 @@
-import {customElement, property} from "lit/decorators.js";
-import {css, html, LitElement} from "lit";
+import {customElement, property, state, query} from "lit/decorators.js";
+import {ifDefined} from 'lit/directives/if-defined.js';
+import {css, html, LitElement, PropertyValues} from "lit";
 import Component from "./interfaces/Component";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
 import '@vaadin/integer-field'
 import Field from "../../../../../../../../../../../shared/apiClients/dtos/Field";
+import {IntegerField} from "@vaadin/integer-field";
 
 @customElement('field-number')
 export class FieldNumber extends LitElement implements Component {
+
+    @query('vaadin-integer-field')
+    integerField : IntegerField | undefined
+
+    isInvalid(): boolean | undefined {
+        this.integerField?.validate()
+        return this.integerField?.invalid
+    }
 
     @property()
     required: boolean = false;
@@ -75,6 +85,26 @@ export class FieldNumber extends LitElement implements Component {
     @property()
     value = '';
 
+    @state()
+    min: string | undefined;
+
+    @state()
+    max: string | undefined;
+
+    protected updated(_changedProperties: PropertyValues) {
+        super.updated(_changedProperties);
+        if (_changedProperties.has("field")) {
+            this.field?.validations.forEach(f => {
+                if ('Min' == f.type) {
+                    this.min = f.data
+                }
+                if ('Max' == f.type) {
+                    this.max = f.data
+                }
+            })
+        }
+    }
+
 
     render() {
         return html`
@@ -88,8 +118,8 @@ export class FieldNumber extends LitElement implements Component {
                     ?disabled=${!this.enabled}
                     ?required=${this.required}
                     step-buttons-visible
-                    min="0"
-                    max="100"
+                    min="${ifDefined(this.min)}"
+                    max="${ifDefined(this.max)}"
                     placeholder="${this.placeholder}"
             ></vaadin-integer-field>
         `

@@ -70,30 +70,6 @@ public class Helper extends SlimHelper {
     return validFrom.compareTo(checkIn) <= 0 && validTo.compareTo(checkOut) >= 0;
   }
 
-  public static Map<String, Object> fromJson(String json) throws IOException {
-    return Serializer.fromJson(json);
-  }
-
-  public static <T> T fromJson(String json, Class<T> c) throws Exception {
-    return Serializer.fromJson(json, c);
-  }
-
-  public static String toJson(Object o) throws Exception {
-    return Serializer.toJson(o);
-  }
-
-  public static Map<String, Object> fromYaml(String yaml) throws IOException {
-    return Serializer.fromYaml(yaml);
-  }
-
-  public static <T> T fromYaml(String yaml, Class<T> c) throws IOException {
-    return Serializer.fromYaml(yaml, c);
-  }
-
-  public static String toYaml(Object o) throws IOException {
-    return Serializer.toYaml(o);
-  }
-
   public static String md5(String s) {
     return Hashing.sha256().newHasher().putString(s, Charsets.UTF_8).hash().toString();
   }
@@ -429,26 +405,6 @@ public class Helper extends SlimHelper {
 
   public static <T> List<T> getImpls(Class<T> c) throws Exception {
     return SharedHelper.getImpls(c);
-  }
-
-  public static void main(String[] args) {
-    try {
-      log.debug(
-          Helper.toJson(
-              Helper.fromYaml(
-                  Files.toString(
-                      new File("/home/miguel/work/initialdata.yml"), Charset.defaultCharset()))));
-
-      Map<String, Object> o =
-          Helper.fromYaml(
-              Files.toString(
-                  new File("/home/miguel/work/initialdata.yml"), Charset.defaultCharset()));
-
-      log.debug("" + Helper.get(o, "smtp/host"));
-
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
   }
 
   public static String toString(Element element) {

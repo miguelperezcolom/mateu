@@ -10,6 +10,10 @@ import Stepper from "../../../../../../../../../../../shared/apiClients/dtos/Ste
 @customElement('field-stepper')
 export class FieldStepper extends LitElement implements Component {
 
+    isInvalid(): boolean | undefined {
+        return undefined
+    }
+
     @property()
     required: boolean = false;
 

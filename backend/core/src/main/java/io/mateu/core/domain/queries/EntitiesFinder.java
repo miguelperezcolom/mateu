@@ -9,16 +9,19 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class EntitiesFinder {
 
   @PersistenceContext EntityManager em;
+  @Autowired ReflectionHelper reflectionHelper;
 
   public List<Value> findEntities(Class entityClass, String searchText, int page, int pageSize) {
-    FieldInterfaced idField = ReflectionHelper.getIdField(entityClass);
-    FieldInterfaced nameField = ReflectionHelper.getNameField(entityClass, false);
+    FieldInterfaced idField = reflectionHelper.getIdField(entityClass);
+    FieldInterfaced nameField = reflectionHelper.getNameField(entityClass, false);
     String jpql =
         "select x."
             + idField.getId()
@@ -42,7 +45,7 @@ public class EntitiesFinder {
   }
 
   public int countEntities(Class entityClass, String searchText) {
-    FieldInterfaced nameField = ReflectionHelper.getNameField(entityClass, false);
+    FieldInterfaced nameField = reflectionHelper.getNameField(entityClass, false);
     String jpql = "select count(x) from " + entityClass.getName() + " x ";
     if (!Strings.isNullOrEmpty(searchText)) {
       jpql += " where lower(x." + nameField.getId() + ") like :s ";

@@ -2,8 +2,8 @@ package io.mateu.core.domain;
 
 import com.opencsv.CSVWriter;
 import io.mateu.core.application.OrderingDeserializer;
-import io.mateu.core.domain.commands.runStep.RunStepActionCommand;
-import io.mateu.core.domain.commands.runStep.RunStepActionCommandHandler;
+import io.mateu.core.domain.commands.runStepAction.RunStepActionCommand;
+import io.mateu.core.domain.commands.runStepAction.RunStepActionCommandHandler;
 import io.mateu.core.domain.commands.startJourney.StartJourneyCommand;
 import io.mateu.core.domain.commands.startJourney.StartJourneyCommandHandler;
 import io.mateu.core.domain.model.store.JourneyStoreService;
@@ -73,6 +73,8 @@ public class MateuService {
   @Autowired GetItemsRowsQueryHandler getItemsRowsQueryHandler;
 
   @Autowired UploadService uploadService;
+
+  @Autowired Serializer serializer;
 
   public Mono<UI> getUI(String uiId, ServerHttpRequest serverHttpRequest) throws Exception {
     return Mono.just(
@@ -168,7 +170,7 @@ public class MateuService {
             .page(page)
             .pageSize(page_size)
             .filters(filters)
-            .ordering(new OrderingDeserializer(ordering).deserialize())
+            .ordering(new OrderingDeserializer(ordering).deserialize(serializer))
             .serverHttpRequest(serverHttpRequest)
             .build());
   }
@@ -271,7 +273,7 @@ public class MateuService {
       return (Map<String, Object>) o;
     } else {
       try {
-        return Serializer.toMap(o);
+        return serializer.toMap(o);
       } catch (Exception e) {
         e.printStackTrace();
         return Map.of();

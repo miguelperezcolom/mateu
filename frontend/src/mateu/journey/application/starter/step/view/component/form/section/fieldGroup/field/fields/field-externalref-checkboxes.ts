@@ -1,4 +1,4 @@
-import {customElement, property, state} from "lit/decorators.js";
+import {customElement, property, state, query} from "lit/decorators.js";
 import {html, LitElement, css, PropertyValues} from "lit";
 import Component from "./interfaces/Component";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
@@ -14,6 +14,14 @@ import {MultiSelectComboBox, MultiSelectComboBoxSelectedItemsChangedEvent} from 
 
 @customElement('field-externalref-checkboxes')
 export class FieldExternalrefCheckboxes extends LitElement implements Component {
+
+    @query('vaadin-multi-select-combo-box')
+    multiSelectComboBox : MultiSelectComboBox | undefined
+
+    isInvalid(): boolean | undefined {
+        this.multiSelectComboBox?.validate()
+        return this.multiSelectComboBox?.invalid
+    }
 
     @property()
     required: boolean = false;

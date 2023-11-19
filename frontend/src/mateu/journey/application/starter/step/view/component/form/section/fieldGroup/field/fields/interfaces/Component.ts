@@ -21,4 +21,6 @@ export default interface Component {
 
     setRequired(required: boolean): void;
 
+    isInvalid(): boolean | undefined;
+
 }

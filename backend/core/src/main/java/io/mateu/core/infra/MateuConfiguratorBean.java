@@ -1,28 +1,39 @@
 package io.mateu.core.infra;
 
-import io.mateu.reflection.ReflectionHelper;
 import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 @Service
-public class MateuConfiguratorBean implements io.mateu.mdd.springboot.BeanProvider {
+@RequiredArgsConstructor
+@Slf4j
+public class MateuConfiguratorBean {
 
-  @Autowired private ApplicationContext сontext;
+  private final ApplicationContext сontext;
+
+  private static MateuConfiguratorBean _instance;
 
   @PostConstruct
-  public void postConstruct() {
-    ReflectionHelper.setBeanProvider(this);
+  public void init() {
+    _instance = this;
   }
 
-  public Object getBean(Class c) {
-    Object o = null;
+  public static MateuConfiguratorBean get() {
+    return _instance;
+  }
+
+
+  public <T> T getBean(Class<T> c) {
+    T bean = null;
     try {
-      o = сontext.getBean(c);
+      bean = сontext.getBean(c);
+    } catch (NoSuchBeanDefinitionException ignored) {
     } catch (Exception e) {
-      // e.printStackTrace();
+      log.error("when trying to get a bean for class " + c.getName(), e);
     }
-    return o;
+    return bean;
   }
 }

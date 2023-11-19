@@ -9,6 +9,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
@@ -23,12 +24,13 @@ public class RowsQueryHandler {
   private final String dangerStatuses = "inactive,off,false,danger,fail";
 
   @PersistenceContext private EntityManager em;
+  @Autowired ReflectionHelper reflectionHelper;
 
   @Transactional
   public Flux run(RowsQuery query) {
     try {
       jakarta.persistence.Query q =
-          new QueryHelper()
+          new QueryHelper(reflectionHelper)
               .buildJpaQuery(
                   query,
                   em,
@@ -51,7 +53,7 @@ public class RowsQueryHandler {
   private Map toMap(RowsQuery query, Object[] values, List<FieldInterfaced> columnFields) {
     Map map = new HashMap();
     if (values != null) {
-      for (int i = 0; i < values.length; i++) {
+      for (int i = 0; i < values.length && i < columnFields.size() + 1; i++) {
         map.put("col" + i, toValue(values[i], i == 0 ? null : columnFields.get(i - 1)));
       }
     }

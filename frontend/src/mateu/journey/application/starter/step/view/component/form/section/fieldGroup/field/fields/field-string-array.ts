@@ -1,13 +1,22 @@
-import {customElement, property} from "lit/decorators.js";
-import {html, css, LitElement} from "lit";
+import {customElement, property, query} from "lit/decorators.js";
+import {css, html, LitElement} from "lit";
 import Component from "./interfaces/Component";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
 import '@vaadin/vaadin-text-field'
 import Field from "../../../../../../../../../../../shared/apiClients/dtos/Field";
+import {TextField} from "@vaadin/vaadin-text-field";
 
 
 @customElement('field-string-array')
 export class FieldStringArray extends LitElement implements Component {
+
+    @query('vaadin-text-field')
+    textField : TextField | undefined
+
+    isInvalid(): boolean | undefined {
+        this.textField?.validate()
+        return this.textField?.invalid
+    }
 
     @property()
     required: boolean = false;

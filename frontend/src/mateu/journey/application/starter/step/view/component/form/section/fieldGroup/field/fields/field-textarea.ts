@@ -1,13 +1,22 @@
-import {customElement, property} from "lit/decorators.js";
+import {customElement, property, query} from "lit/decorators.js";
 import {css, html, LitElement} from "lit";
 import Component from "./interfaces/Component";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
 import '@vaadin/text-area'
 import Field from "../../../../../../../../../../../shared/apiClients/dtos/Field";
+import {TextArea} from "@vaadin/text-area";
 
 
 @customElement('field-textarea')
 export class FieldTextarea extends LitElement implements Component {
+
+    @query('vaadin-text-area')
+    textArea : TextArea | undefined
+
+    isInvalid(): boolean | undefined {
+        this.textArea?.validate()
+        return this.textArea?.invalid
+    }
 
     @property()
     required: boolean = false;

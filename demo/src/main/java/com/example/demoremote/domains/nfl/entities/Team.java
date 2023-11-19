@@ -1,10 +1,12 @@
 package com.example.demoremote.domains.nfl.entities;
 
+import io.mateu.core.infra.MateuConfiguratorBean;
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.views.ExtraFilters;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.interfaces.JpaCrud;
 import io.mateu.mdd.ui.cruds.JpaRpcCrudView;
+import io.mateu.util.Helper;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
@@ -29,7 +31,9 @@ public class Team {
   public Object players() throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException {
     var action = new MDDOpenCRUDAction("Players of " + name, Player.class);
     action.setExtraFilters(new ExtraFilters("x.team.id = :teamId", "teamId", id));
-    return new JpaRpcCrudView(action);
+    var jpaRpcCrudView = MateuConfiguratorBean.get().getBean(JpaRpcCrudView.class);
+    jpaRpcCrudView.setAction(action);
+    return jpaRpcCrudView;
   }
 
   @Action

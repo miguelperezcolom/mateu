@@ -24,6 +24,8 @@ public class Form implements ViewMetadata {
 
   private List<Badge> badges;
 
+  private List<Tab> tabs;
+
   private List<Section> sections;
 
   private List<Action> actions;

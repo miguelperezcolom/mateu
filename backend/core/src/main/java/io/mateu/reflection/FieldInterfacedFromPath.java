@@ -14,8 +14,10 @@ public class FieldInterfacedFromPath implements FieldInterfaced {
   private final String path;
   private List<Annotation> extraAnnotations = new ArrayList<>();
 
-  public FieldInterfacedFromPath(Class type, String path, Annotation a) {
-    this(type, path);
+  private final ReflectionHelper reflectionHelper;
+
+  public FieldInterfacedFromPath(Class type, String path, Annotation a, ReflectionHelper reflectionHelper) {
+    this(type, path, reflectionHelper);
     extraAnnotations.add(a);
   }
 
@@ -31,11 +33,12 @@ public class FieldInterfacedFromPath implements FieldInterfaced {
         : f.getDeclaredAnnotationsByType(annotationClass);
   }
 
-  public FieldInterfacedFromPath(Class sourceType, String path) {
+  public FieldInterfacedFromPath(Class sourceType, String path, ReflectionHelper reflectionHelper) {
     this.sourceType = sourceType;
     this.path = path;
-    this.ff = ReflectionHelper.getFieldByName(sourceType, path);
+    this.ff = reflectionHelper.getFieldByName(sourceType, path);
     this.f = ff.getField();
+    this.reflectionHelper = reflectionHelper;
   }
 
   @Override
@@ -112,13 +115,13 @@ public class FieldInterfacedFromPath implements FieldInterfaced {
   @Override
   public Object getValue(Object o)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-    return ReflectionHelper.getValue(this, o);
+    return reflectionHelper.getValue(this, o);
   }
 
   @Override
   public void setValue(Object o, Object v)
       throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-    ReflectionHelper.setValue(this, o, v);
+    reflectionHelper.setValue(this, o, v);
   }
 
   @Override

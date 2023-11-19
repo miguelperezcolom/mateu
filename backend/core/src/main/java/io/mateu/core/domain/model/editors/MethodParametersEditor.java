@@ -18,10 +18,10 @@ public class MethodParametersEditor {
     this.methodId = methodId;
   }
 
-  public MethodParametersEditor(Object entity, String methodId, String initialStep)
+  public MethodParametersEditor(Object entity, String methodId, String initialStep, Serializer serializer)
       throws Exception {
     this.type = entity.getClass();
-    this.data = Serializer.toMap(entity);
+    this.data = serializer.toMap(entity);
     this.initialStep = initialStep;
     this.methodId = methodId;
   }

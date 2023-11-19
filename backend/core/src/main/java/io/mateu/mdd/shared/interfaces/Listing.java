@@ -5,6 +5,8 @@ import io.mateu.mdd.shared.SlimHelper;
 import io.mateu.mdd.shared.annotations.Caption;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
+
+import io.mateu.reflection.ReflectionHelper;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -28,7 +30,7 @@ public interface Listing<SearchForm, Row> {
     return SlimHelper.capitalize(getClass().getSimpleName());
   }
 
-  default boolean showCheckboxForSelection() {
+  default boolean showCheckboxForSelection(ReflectionHelper reflectionHelper) {
     return false;
   }
 
