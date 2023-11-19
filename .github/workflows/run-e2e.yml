@@ -3,6 +3,7 @@ name: "Tests pass"
 on: [pull_request]
 jobs:
   run_tests:
+    name: "Pass e2e tests"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
