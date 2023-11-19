@@ -1,7 +1,6 @@
-name: "Tests pass"
+name: Tests pass
 
-on:
-  pull_request:
+on: pull_request
 
 jobs:
   run_tests:
