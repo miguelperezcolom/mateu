@@ -11,15 +11,13 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-public abstract class Teacher {
+public class GoodTeacher extends Teacher {
 
-  @Id String id;
+  private int stars;
 
-  String name;
 
-  @Override
-  public String toString() {
-    return name;
+  public GoodTeacher(String id, String name, int stars) {
+    super(id, name);
+    this.stars = stars;
   }
 }

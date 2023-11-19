@@ -1,7 +1,6 @@
 package com.example.demoremote.ui.demoApp.menus.useCases.school.entities;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,15 +10,12 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-public abstract class Teacher {
+public class BadTeacher extends Teacher {
 
-  @Id String id;
+  private int dislikes;
 
-  String name;
-
-  @Override
-  public String toString() {
-    return name;
+  public BadTeacher(String id, String name, int dislikes) {
+    super(id, name);
+    this.dislikes = dislikes;
   }
 }

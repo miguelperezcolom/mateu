@@ -6,13 +6,11 @@ import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
 import io.mateu.util.Serializer;
 import io.mateu.util.persistence.EntityDeserializer;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -28,9 +26,22 @@ public class MateuEntityDeserializer implements EntityDeserializer {
   @Override
   public <T> T fromJson(EntityManager em, String json, Class<T> c) throws Exception {
     Map<String, Object> map = serializer.fromJson(json);
-    T instance = serializer.pojoFromJson(json, c);
+    T instance = reflectionHelper.newInstance(c);
+    //T instance = serializer.pojoFromJson(json, c);
+    reflectionHelper.getAllEditableFields(c).stream().filter(f ->
+                    !f.isAnnotationPresent(OneToOne.class)
+            && !f.isAnnotationPresent(ManyToOne.class)
+                            && !f.isAnnotationPresent(OneToMany.class)
+                            && !f.isAnnotationPresent(ManyToMany.class)
+            ).forEach(f -> {
+        try {
+            reflectionHelper.setValue(f, instance, serializer.fromJson(serializer.toJson(map.get(f.getId())), f.getType()));
+        } catch (Exception ignored) {
+        }
+    });
+
     reflectionHelper.getAllEditableFields(c).stream()
-        .filter(f -> f.isAnnotationPresent(ManyToOne.class))
+        .filter(f -> f.isAnnotationPresent(OneToOne.class) || f.isAnnotationPresent(ManyToOne.class))
         .forEach(
             f -> {
               try {
