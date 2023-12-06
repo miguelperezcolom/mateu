@@ -14,7 +14,6 @@ import io.mateu.mdd.shared.SlimHelper;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.mdd.springboot.BeanProvider;
 import io.mateu.util.Helper;
 import io.mateu.util.data.Pair;
 import jakarta.persistence.*;
@@ -26,8 +25,6 @@ import java.lang.reflect.*;
 import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.converters.BooleanConverter;
@@ -53,7 +50,10 @@ public class ReflectionHelper extends BaseReflectionHelper {
   List<Class> notFromString = new ArrayList<>();
   private ObjectMapper mapper = new ObjectMapper();
 
-  public ReflectionHelper(Translator translator, MateuConfiguratorBean beanProvider, FieldInterfacedFactory fieldInterfacedFactory) {
+  public ReflectionHelper(
+      Translator translator,
+      MateuConfiguratorBean beanProvider,
+      FieldInterfacedFactory fieldInterfacedFactory) {
     this.translator = translator;
     this.beanProvider = beanProvider;
     this.fieldInterfacedFactory = fieldInterfacedFactory;
@@ -63,7 +63,6 @@ public class ReflectionHelper extends BaseReflectionHelper {
     beanUtilsBean.getConvertUtils().register(new DoubleConverter(null), Double.class);
     beanUtilsBean.getConvertUtils().register(new BooleanConverter(null), Boolean.class);
   }
-
 
   public Object getValue(Field f, Object o) {
     if (f == null) {
@@ -83,10 +82,9 @@ public class ReflectionHelper extends BaseReflectionHelper {
         v = f.get(o);
       }
     } catch (IllegalAccessException | InvocationTargetException e) {
-      log.error("when getting value for field " + f.getName()
-              , e);
+      log.error("when getting value for field " + f.getName(), e);
     }
-      return v;
+    return v;
   }
 
   public void setValue(FieldInterfaced f, Object o, Object v)
@@ -111,8 +109,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
           f.getField().set(o, v);
         }
       } catch (IllegalAccessException | InvocationTargetException e) {
-        log.error("when setting value for field " + f.getName()
-                , e);
+        log.error("when setting value for field " + f.getName(), e);
       }
     } else setValue(f.getId(), o, v);
   }
@@ -415,7 +412,10 @@ public class ReflectionHelper extends BaseReflectionHelper {
             || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class))) {
       for (FieldInterfaced f : getAllFields(c.getSuperclass())) {
         if (!originales.containsKey(f.getId())) l.add(f);
-        else l.add(fieldInterfacedFactory.getFieldInterfacedFromField(originales.get(f.getName()), this));
+        else
+          l.add(
+              fieldInterfacedFactory.getFieldInterfacedFromField(
+                  originales.get(f.getName()), this));
         vistos.add(f.getName());
       }
     }
@@ -1820,9 +1820,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
           } else {
             if (c.getDeclaredConstructors().length == 1) {
               Constructor constructor = c.getDeclaredConstructors()[0];
-              o =
-                  constructor.newInstance(
-                      newInstance(constructor.getParameterTypes()[0]));
+              o = constructor.newInstance(newInstance(constructor.getParameterTypes()[0]));
             }
           }
         }
@@ -2098,14 +2096,12 @@ public class ReflectionHelper extends BaseReflectionHelper {
         && !m.getDeclaringClass().isInterface();
   }
 
-
-  public Object invokeInjectableParametersOnly(Method method, Object instance)
-          throws Throwable {
+  public Object invokeInjectableParametersOnly(Method method, Object instance) throws Throwable {
     return execute(method, new Object(), instance, null);
   }
 
   public Object execute(Method m, Object parameters, Object instance, Set pendingSelection)
-          throws Throwable {
+      throws Throwable {
     Object o = parameters;
     Map<String, Object> params = null;
     if (o != null && Map.class.isAssignableFrom(o.getClass())) {
@@ -2125,17 +2121,14 @@ public class ReflectionHelper extends BaseReflectionHelper {
       if (((instance instanceof Listing || Modifier.isStatic(m.getModifiers()))
               && Set.class.isAssignableFrom(p.getType())
               && (m.getDeclaringClass().equals(pgc)
-              || (instance instanceof Listing
-              && getGenericClass(instance.getClass(), Listing.class, "C")
-              .equals(pgc))))
-              || (pendingSelection != null && Set.class.isAssignableFrom(p.getType()))) {
+                  || (instance instanceof Listing
+                      && getGenericClass(instance.getClass(), Listing.class, "C").equals(pgc))))
+          || (pendingSelection != null && Set.class.isAssignableFrom(p.getType()))) {
         vs.add(pendingSelection);
       } else if (params != null && params.containsKey(p.getName())) {
         vs.add(params.get(p.getName()));
       } else if (o != null && getFieldByName(o.getClass(), p.getName()) != null) {
-        vs.add(
-                getValue(
-                        getFieldByName(o.getClass(), p.getName()), o));
+        vs.add(getValue(getFieldByName(o.getClass(), p.getName()), o));
       } else {
         Object v = null;
         if (int.class.equals(p.getType())) v = 0;

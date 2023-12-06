@@ -21,7 +21,10 @@ public class FieldInterfacedForCheckboxColumn implements FieldInterfaced {
   private final ReflectionHelper reflectionHelper;
 
   public FieldInterfacedForCheckboxColumn(
-      String name, FieldInterfaced collectionField, Object value, ReflectionHelper reflectionHelper) {
+      String name,
+      FieldInterfaced collectionField,
+      Object value,
+      ReflectionHelper reflectionHelper) {
     this.type = boolean.class;
     this.name = name;
     this.collectionField = collectionField;

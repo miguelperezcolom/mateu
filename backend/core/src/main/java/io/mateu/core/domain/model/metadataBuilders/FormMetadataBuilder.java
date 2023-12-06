@@ -22,11 +22,9 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -53,7 +51,7 @@ public class FormMetadataBuilder {
             .status(getStatus(uiInstance))
             .readOnly(isReadOnly(stepId, uiInstance))
             .badges(getBadges(uiInstance))
-                .tabs(getTabs(uiInstance))
+            .tabs(getTabs(uiInstance))
             .sections(getSections(stepId, uiInstance, slotFields))
             .actions(actionMetadataBuilder.getActions(stepId, "", uiInstance))
             .mainActions(getMainActions(stepId, uiInstance))
@@ -67,9 +65,15 @@ public class FormMetadataBuilder {
     }
     List<Tab> tabs = new ArrayList<>();
     var editableFields = reflectionHelper.getAllEditableFields(uiInstance.getClass());
-    tabs.addAll(editableFields.stream()
+    tabs.addAll(
+        editableFields.stream()
             .filter(f -> f.isAnnotationPresent(io.mateu.mdd.shared.annotations.Tab.class))
-            .map(f -> new Tab("tab_" + f.getId(), false, f.getAnnotation(io.mateu.mdd.shared.annotations.Tab.class).value()))
+            .map(
+                f ->
+                    new Tab(
+                        "tab_" + f.getId(),
+                        false,
+                        f.getAnnotation(io.mateu.mdd.shared.annotations.Tab.class).value()))
             .collect(Collectors.toList()));
     if (tabs.size() > 0) {
       tabs.get(0).setActive(true);
@@ -224,7 +228,7 @@ public class FormMetadataBuilder {
         }
         section =
             Section.builder()
-                    .tabId(tabId)
+                .tabId(tabId)
                 .caption(caption)
                 .readOnly(
                     "view".equals(stepId)

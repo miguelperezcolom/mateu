@@ -7,7 +7,6 @@ import io.mateu.reflection.ReflectionHelper;
 import jakarta.persistence.Entity;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -39,7 +38,8 @@ public class GetItemsRowsQueryHandler {
   private List<Value> findEntities(Class entityClass, String searchText, int page, int pageSize)
       throws InvocationTargetException, NoSuchMethodException, IllegalAccessException,
           InstantiationException {
-    return reflectionHelper.newInstance(EntitiesFinder.class)
+    return reflectionHelper
+        .newInstance(EntitiesFinder.class)
         .findEntities(entityClass, searchText, page, pageSize);
   }
 }

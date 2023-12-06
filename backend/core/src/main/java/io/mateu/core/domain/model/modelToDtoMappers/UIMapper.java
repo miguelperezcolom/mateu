@@ -16,9 +16,7 @@ import io.mateu.remote.dtos.UI;
 import io.mateu.util.Helper;
 import java.util.*;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
@@ -56,7 +54,10 @@ public class UIMapper {
   }
 
   private List<Menu> getMenu(Object uiInstance, ServerHttpRequest serverHttpRequest) {
-    List<Menu> menu = menuParser.parse(uiInstance, serverHttpRequest).stream().map(e -> createMenu("", e)).collect(Collectors.toList());
+    List<Menu> menu =
+        menuParser.parse(uiInstance, serverHttpRequest).stream()
+            .map(e -> createMenu("", e))
+            .collect(Collectors.toList());
     return menu;
   }
 

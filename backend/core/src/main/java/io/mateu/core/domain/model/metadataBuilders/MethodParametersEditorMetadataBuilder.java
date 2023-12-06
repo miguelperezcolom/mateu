@@ -10,9 +10,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +29,7 @@ public class MethodParametersEditorMetadataBuilder {
             .status(null)
             .readOnly(false)
             .badges(List.of())
+            .tabs(List.of())
             .sections(getSections(stepId, uiInstance))
             .actions(List.of())
             .mainActions(getMainActions(stepId, uiInstance))
@@ -71,7 +70,7 @@ public class MethodParametersEditorMetadataBuilder {
     List<FieldInterfaced> allEditableFields =
         reflectionHelper.getAllFields(m).stream()
             .filter(f -> !f.isAnnotationPresent(UseCrud.class))
-                .filter(f -> !ServerHttpRequest.class.isAssignableFrom(f.getType()))
+            .filter(f -> !ServerHttpRequest.class.isAssignableFrom(f.getType()))
             .collect(Collectors.toList());
     int paramPos = 0;
     for (FieldInterfaced fieldInterfaced : allEditableFields) {

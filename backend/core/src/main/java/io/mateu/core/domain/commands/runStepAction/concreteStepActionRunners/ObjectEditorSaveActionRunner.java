@@ -11,18 +11,11 @@ import io.mateu.mdd.shared.data.Result;
 import io.mateu.mdd.shared.data.ResultType;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.Step;
-import io.mateu.util.Helper;
+import io.mateu.util.Serializer;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
-
-import io.mateu.util.Serializer;
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
-import jakarta.validation.ValidatorFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -56,7 +49,6 @@ public class ObjectEditorSaveActionRunner implements ActionRunner {
     Object pojo = getActualInstance(objectEditor, data);
 
     validationService.validate(pojo);
-
 
     if (pojo instanceof PersistentPojo) {
       ((PersistentPojo<?>) pojo).save();

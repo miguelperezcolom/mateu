@@ -22,11 +22,9 @@ public class GetListRowsQueryHandler {
 
   @Autowired MateuRemoteClient mateuRemoteClient;
 
-  @Autowired
-  ReflectionHelper reflectionHelper;
+  @Autowired ReflectionHelper reflectionHelper;
 
-  @Autowired
-  Serializer serializer;
+  @Autowired Serializer serializer;
 
   @Transactional
   public Flux<Object> run(GetListRowsQuery query) throws Throwable {

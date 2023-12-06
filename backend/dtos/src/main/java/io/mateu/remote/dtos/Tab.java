@@ -2,15 +2,15 @@ package io.mateu.remote.dtos;
 
 import lombok.*;
 
-@Getter@Setter
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Tab {
 
-    String id;
+  String id;
 
-    boolean active;
+  boolean active;
 
-    String caption;
-
+  String caption;
 }

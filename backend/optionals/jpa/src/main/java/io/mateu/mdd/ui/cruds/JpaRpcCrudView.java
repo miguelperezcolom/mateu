@@ -27,7 +27,6 @@ import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
 import io.mateu.util.Serializer;
 import io.mateu.util.data.Pair;
-import jakarta.annotation.PostConstruct;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
@@ -77,11 +76,11 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   @JsonIgnore String selectColumnsForCount;
   @JsonIgnore String selectColumnsForList;
 
-  @JsonIgnore@Autowired CountQueryHandler countQueryHandler;
-  @JsonIgnore@Autowired RowsQueryHandler rowsQueryHandler;
-  @JsonIgnore@Autowired SumsQueryHandler sumsQueryHandler;
-  @JsonIgnore@Autowired FindByIdQueryHandler findByIdQueryHandler;
-  @JsonIgnore@Autowired ReflectionHelper reflectionHelper;
+  @JsonIgnore @Autowired CountQueryHandler countQueryHandler;
+  @JsonIgnore @Autowired RowsQueryHandler rowsQueryHandler;
+  @JsonIgnore @Autowired SumsQueryHandler sumsQueryHandler;
+  @JsonIgnore @Autowired FindByIdQueryHandler findByIdQueryHandler;
+  @JsonIgnore @Autowired ReflectionHelper reflectionHelper;
 
   public JpaRpcCrudView() {}
 
@@ -144,7 +143,6 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
             n -> {
               fieldsByAliasedColumnName.put(aliasedColumnNames.get(n), fieldsByColumnName.get(n));
             });
-
   }
 
   private void reset() {
@@ -274,7 +272,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   public Map<FieldInterfaced, String> getColumnIdsPerField() {
     Map<FieldInterfaced, String> map = new HashMap<>();
     fieldsByColId.entrySet().stream()
-            .filter(f -> !map.containsKey(f.getValue()))
+        .filter(f -> !map.containsKey(f.getValue()))
         .forEach(e -> map.put(e.getValue(), e.getKey()));
     return map;
   }
@@ -296,7 +294,8 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
 
   @Override
   public void delete(List<Object> selection) throws Throwable {
-    reflectionHelper.newInstance(DeleteRowsCommandHandler.class)
+    reflectionHelper
+        .newInstance(DeleteRowsCommandHandler.class)
         .run(
             DeleteRowsCommand.builder()
                 .rows(selection)
@@ -575,7 +574,8 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   }
 
   public Object getDetail(Object id) throws Throwable {
-    return reflectionHelper.newInstance(FindByIdQueryHandler.class)
+    return reflectionHelper
+        .newInstance(FindByIdQueryHandler.class)
         .run(FindByIdQuery.builder().id(getId(id)).entityClass(action.getEntityClass()).build());
   }
 

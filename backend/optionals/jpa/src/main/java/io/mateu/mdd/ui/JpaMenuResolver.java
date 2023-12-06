@@ -11,12 +11,11 @@ import io.mateu.mdd.shared.interfaces.JpaCrud;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.List;
 
 @Service
 @Primary
@@ -24,7 +23,7 @@ import java.util.List;
 public class JpaMenuResolver implements MenuResolver {
 
   final ReflectionHelper reflectionHelper;
-  
+
   @Override
   public boolean addMenuEntry(
       Object app, List<MenuEntry> l, FieldInterfaced f, String caption, int order, String icon)

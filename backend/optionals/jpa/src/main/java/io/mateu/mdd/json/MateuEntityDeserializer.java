@@ -1,47 +1,50 @@
 package io.mateu.mdd.json;
 
-import com.google.auto.service.AutoService;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
-import io.mateu.util.Helper;
 import io.mateu.util.Serializer;
 import io.mateu.util.persistence.EntityDeserializer;
 import jakarta.persistence.*;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class MateuEntityDeserializer implements EntityDeserializer {
-    
-    final Serializer serializer;
-    final ReflectionHelper reflectionHelper;
-    
+
+  final Serializer serializer;
+  final ReflectionHelper reflectionHelper;
+
   @Override
   public <T> T fromJson(EntityManager em, String json, Class<T> c) throws Exception {
     Map<String, Object> map = serializer.fromJson(json);
     T instance = reflectionHelper.newInstance(c);
-    //T instance = serializer.pojoFromJson(json, c);
-    reflectionHelper.getAllEditableFields(c).stream().filter(f ->
-                    !f.isAnnotationPresent(OneToOne.class)
-            && !f.isAnnotationPresent(ManyToOne.class)
-                            && !f.isAnnotationPresent(OneToMany.class)
-                            && !f.isAnnotationPresent(ManyToMany.class)
-            ).forEach(f -> {
-        try {
-            reflectionHelper.setValue(f, instance, serializer.fromJson(serializer.toJson(map.get(f.getId())), f.getType()));
-        } catch (Exception ignored) {
-        }
-    });
+    // T instance = serializer.pojoFromJson(json, c);
+    reflectionHelper.getAllEditableFields(c).stream()
+        .filter(
+            f ->
+                !f.isAnnotationPresent(OneToOne.class)
+                    && !f.isAnnotationPresent(ManyToOne.class)
+                    && !f.isAnnotationPresent(OneToMany.class)
+                    && !f.isAnnotationPresent(ManyToMany.class))
+        .forEach(
+            f -> {
+              try {
+                reflectionHelper.setValue(
+                    f,
+                    instance,
+                    serializer.fromJson(serializer.toJson(map.get(f.getId())), f.getType()));
+              } catch (Exception ignored) {
+              }
+            });
 
     reflectionHelper.getAllEditableFields(c).stream()
-        .filter(f -> f.isAnnotationPresent(OneToOne.class) || f.isAnnotationPresent(ManyToOne.class))
+        .filter(
+            f -> f.isAnnotationPresent(OneToOne.class) || f.isAnnotationPresent(ManyToOne.class))
         .forEach(
             f -> {
               try {

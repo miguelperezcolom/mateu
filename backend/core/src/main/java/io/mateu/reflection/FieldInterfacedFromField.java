@@ -15,7 +15,8 @@ public class FieldInterfacedFromField implements FieldInterfaced {
   private final ReflectionHelper reflectionHelper;
   private List<Annotation> extraAnnotations = new ArrayList<>();
 
-  public FieldInterfacedFromField(FieldInterfaced f, Annotation a, ReflectionHelper reflectionHelper) {
+  public FieldInterfacedFromField(
+      FieldInterfaced f, Annotation a, ReflectionHelper reflectionHelper) {
     this(f, reflectionHelper);
     extraAnnotations.add(a);
   }

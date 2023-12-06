@@ -6,16 +6,13 @@ import io.mateu.mdd.shared.data.DatesRange;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
-import io.mateu.util.Helper;
+import io.mateu.util.Serializer;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import io.mateu.util.Serializer;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-
 
 public class FiltersDeserializer {
 
@@ -24,7 +21,7 @@ public class FiltersDeserializer {
   private final String listId;
   private final Map<String, Object> raw;
   private final ServerHttpRequest serverHttpRequest;
-  
+
   private final ReflectionHelper reflectionHelper;
 
   private final Serializer serializer;

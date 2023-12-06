@@ -8,13 +8,10 @@ import io.mateu.core.domain.model.editors.ObjectEditor;
 import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.reflection.ReflectionHelper;
-import java.util.*;
-
 import io.mateu.remote.dtos.Form;
-import io.mateu.remote.dtos.Step;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -94,24 +91,30 @@ public class RunStepActionCommandHandler {
     for (ActionRunner actionRunner : actionRunners) {
       if (actionRunner.applies(viewInstance, actionId)) {
         return actionRunner
-                .run(viewInstance, journeyId, stepId, actionId, data, serverHttpRequest)
-                .then(Mono.deferContextual(contextView -> {
-                  String activeTabId = (String) command.getData().get("__activeTabId");
-                  try {
-                    var stepAfterRun = store.readStep(journeyId, stepId);
-                    stepAfterRun.getView().getMain().getComponents().stream().map(c -> c.getMetadata())
+            .run(viewInstance, journeyId, stepId, actionId, data, serverHttpRequest)
+            .then(
+                Mono.deferContextual(
+                    contextView -> {
+                      String activeTabId = (String) command.getData().get("__activeTabId");
+                      try {
+                        var stepAfterRun = store.readStep(journeyId, stepId);
+                        stepAfterRun.getView().getMain().getComponents().stream()
+                            .map(c -> c.getMetadata())
                             .filter(m -> m instanceof Form)
                             .map(m -> (Form) m)
                             .flatMap(f -> f.getTabs().stream())
-                            .forEach(t -> t.setActive(!Strings.isNullOrEmpty(activeTabId) && activeTabId.equals(t.getId())));
-                    store.updateStep(journeyId, stepId, stepAfterRun);
-                  } catch (Throwable e) {
-                    throw new RuntimeException(e);
-                  }
+                            .forEach(
+                                t ->
+                                    t.setActive(
+                                        !Strings.isNullOrEmpty(activeTabId)
+                                            && activeTabId.equals(t.getId())));
+                        store.updateStep(journeyId, stepId, stepAfterRun);
+                      } catch (Throwable e) {
+                        throw new RuntimeException(e);
+                      }
 
-                  return Mono.empty();
-                }));
-
+                      return Mono.empty();
+                    }));
       }
     }
 

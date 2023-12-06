@@ -9,7 +9,8 @@ public class ObjectEditor {
   private Class type;
   private Map<String, Object> data = new HashMap<>();
 
-  public ObjectEditor(Object entity, int __index, int __count, Serializer serializer) throws Exception {
+  public ObjectEditor(Object entity, int __index, int __count, Serializer serializer)
+      throws Exception {
     this.type = entity.getClass();
     this.data = serializer.toMap(entity);
     if (__index >= 0) {

@@ -1,8 +1,7 @@
 package io.mateu.remote.dtos;
 
-import lombok.*;
-
 import java.util.List;
+import lombok.*;
 
 @Data
 @Builder

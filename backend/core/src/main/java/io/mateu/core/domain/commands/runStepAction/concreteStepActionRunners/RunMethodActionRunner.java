@@ -12,7 +12,7 @@ import io.mateu.mdd.shared.annotations.MainAction;
 import io.mateu.mdd.shared.data.Result;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.reflection.ReflectionHelper;
-import io.mateu.util.Helper;
+import io.mateu.util.Serializer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -20,13 +20,7 @@ import java.lang.reflect.Parameter;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import io.mateu.util.Serializer;
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
-import jakarta.validation.ValidatorFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -97,7 +91,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   }
 
   private Map<Object, Method> getActions(Object viewInstance) {
-    return reflectionHelper.getAllMethods(getActualInstance(viewInstance, Map.of()).getClass())
+    return reflectionHelper
+        .getAllMethods(getActualInstance(viewInstance, Map.of()).getClass())
         .stream()
         .filter(m -> m.isAnnotationPresent(Action.class) || m.isAnnotationPresent(MainAction.class))
         .collect(Collectors.toMap(m -> m.getName(), m -> m));
@@ -121,13 +116,13 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   }
 
   public Mono<Void> runMethod(
-          Object actualViewInstance,
-          Method m,
-          String journeyId,
-          String stepId,
-          String actionId,
-          Map<String, Object> data,
-          ServerHttpRequest serverHttpRequest)
+      Object actualViewInstance,
+      Method m,
+      String journeyId,
+      String stepId,
+      String actionId,
+      Map<String, Object> data,
+      ServerHttpRequest serverHttpRequest)
       throws Throwable {
     // todo: inject parameters (ServerHttpRequest, selection for jpacrud)
     if (needsParameters(m)) {
@@ -147,7 +142,10 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
             journeyId,
             actionId,
             new MethodParametersEditor(
-                actualViewInstance, m.getName(), store.getCurrentStep(journeyId).getId(), serializer),
+                actualViewInstance,
+                m.getName(),
+                store.getCurrentStep(journeyId).getId(),
+                serializer),
             serverHttpRequest);
       }
 

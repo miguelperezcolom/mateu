@@ -21,8 +21,7 @@ public class GetStepQueryHandler {
 
   @Autowired MateuRemoteClient mateuRemoteClient;
 
-  @Autowired
-  Serializer serializer;
+  @Autowired Serializer serializer;
 
   public Mono<Step> run(GetStepQuery query) throws Exception {
 

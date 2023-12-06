@@ -12,8 +12,6 @@ public class DemoApp implements HasLogin, HasAppTitle
 // , IncludesRemoteUIs
 {
 
-  @MenuOption private BasicFieldsForm basicFields;
-
   @Submenu private FormsSubmenu forms;
 
   @Submenu private CollectionsSubmenu collections;

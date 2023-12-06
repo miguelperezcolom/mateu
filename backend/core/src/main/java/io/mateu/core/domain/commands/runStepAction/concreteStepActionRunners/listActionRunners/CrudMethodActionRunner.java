@@ -1,14 +1,12 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.listActionRunners;
 
-import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ListActionRunner;
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.RunMethodActionRunner;
-import io.mateu.core.domain.model.persistence.Merger;
-import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.mdd.core.interfaces.Crud;
 import io.mateu.mdd.core.interfaces.HasActions;
 import io.mateu.mdd.shared.interfaces.SelectedRowsContext;
 import io.mateu.reflection.ReflectionHelper;
+import io.mateu.util.Serializer;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -16,10 +14,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import io.mateu.util.Serializer;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;

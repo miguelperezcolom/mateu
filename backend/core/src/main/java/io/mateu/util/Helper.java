@@ -15,7 +15,6 @@ import io.mateu.mdd.shared.SlimHelper;
 import io.mateu.util.xml.XMLSerializable;
 import java.io.*;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;

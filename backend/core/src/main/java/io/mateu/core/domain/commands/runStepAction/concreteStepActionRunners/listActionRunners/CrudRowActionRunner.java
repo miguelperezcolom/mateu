@@ -3,11 +3,9 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.li
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ListActionRunner;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.mdd.core.interfaces.Crud;
-import io.mateu.util.Helper;
+import io.mateu.util.Serializer;
 import java.lang.reflect.Method;
 import java.util.Map;
-
-import io.mateu.util.Serializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
@@ -17,8 +15,7 @@ import reactor.core.publisher.Mono;
 public class CrudRowActionRunner implements ListActionRunner {
 
   @Autowired JourneyStoreService store;
-  @Autowired
-  Serializer serializer;
+  @Autowired Serializer serializer;
 
   @Override
   public boolean applies(Crud crud, String actionId) {

@@ -16,8 +16,7 @@ import reactor.core.publisher.Mono;
 public class CountQueryHandler {
 
   @PersistenceContext private EntityManager em;
-  @Autowired
-  ReflectionHelper reflectionHelper;
+  @Autowired ReflectionHelper reflectionHelper;
 
   @Transactional
   public Mono<Long> run(CountQuery query) {

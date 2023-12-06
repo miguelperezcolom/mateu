@@ -11,9 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
@@ -21,9 +19,9 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class StepMapper {
 
-  final private ViewMapper viewMapper;
-  final private ReflectionHelper reflectionHelper;
-  final private JpaRpcCrudFactory jpaRpcCrudFactory;
+  private final ViewMapper viewMapper;
+  private final ReflectionHelper reflectionHelper;
+  private final JpaRpcCrudFactory jpaRpcCrudFactory;
 
   public Step map(
       JourneyContainer journeyContainer,

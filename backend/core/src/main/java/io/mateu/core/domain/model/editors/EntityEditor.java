@@ -10,7 +10,13 @@ public class EntityEditor {
   private Class entityClass;
   private Map<String, Object> data = new HashMap<>();
 
-  public EntityEditor(Object entity, int __index, int __count, ReflectionHelper reflectionHelper, Serializer serializer) throws Exception {
+  public EntityEditor(
+      Object entity,
+      int __index,
+      int __count,
+      ReflectionHelper reflectionHelper,
+      Serializer serializer)
+      throws Exception {
     this.entityClass = entity.getClass();
     this.data = serializer.toMap(entity);
     this.data.put("__id", reflectionHelper.getId(entity));

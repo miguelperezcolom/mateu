@@ -25,4 +25,10 @@ public @interface MainAction {
   int order() default 100;
 
   ActionType type() default ActionType.Primary;
+
+  ActionTarget target() default ActionTarget.SameLane;
+
+  String modalWidth() default "";
+
+  String modalHeight() default "";
 }

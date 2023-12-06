@@ -23,8 +23,7 @@ import org.springframework.stereotype.Service;
 public class ChooseEntityClassForm {
 
   @Ignored private Map<String, String> subclasses;
-  @Ignored
-  @Autowired ReflectionHelper reflectionHelper;
+  @Ignored @Autowired ReflectionHelper reflectionHelper;
 
   public ChooseEntityClassForm(Set<Class> subclasses) {
     this.subclasses =

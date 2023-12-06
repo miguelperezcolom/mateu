@@ -1,10 +1,9 @@
 package io.mateu.i18n;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import java.util.Locale;
 import java.util.ResourceBundle;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
@@ -33,7 +32,6 @@ public class ResourceBundleTranslator implements Translator {
       log.warn("Translations not available: " + e.getMessage());
     }
   }
-
 
   @Override
   public String translate(String text) {

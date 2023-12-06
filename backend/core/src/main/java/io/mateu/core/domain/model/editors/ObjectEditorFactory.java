@@ -12,8 +12,7 @@ public class ObjectEditorFactory {
 
   @PersistenceContext EntityManager em;
 
-  @Autowired
-  Serializer serializer;
+  @Autowired Serializer serializer;
 
   @Transactional
   public ObjectEditor create(Object pojo, int __index, int __count) throws Exception {

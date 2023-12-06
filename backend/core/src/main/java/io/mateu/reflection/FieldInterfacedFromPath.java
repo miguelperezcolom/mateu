@@ -16,7 +16,8 @@ public class FieldInterfacedFromPath implements FieldInterfaced {
 
   private final ReflectionHelper reflectionHelper;
 
-  public FieldInterfacedFromPath(Class type, String path, Annotation a, ReflectionHelper reflectionHelper) {
+  public FieldInterfacedFromPath(
+      Class type, String path, Annotation a, ReflectionHelper reflectionHelper) {
     this(type, path, reflectionHelper);
     extraAnnotations.add(a);
   }

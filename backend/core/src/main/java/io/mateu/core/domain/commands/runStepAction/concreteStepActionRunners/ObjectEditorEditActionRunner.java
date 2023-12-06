@@ -5,12 +5,9 @@ import io.mateu.core.domain.model.editors.ObjectEditor;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.reflection.ReflectionHelper;
-import io.mateu.util.Helper;
-import java.util.Map;
-
 import io.mateu.util.Serializer;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -45,7 +42,8 @@ public class ObjectEditorEditActionRunner implements ActionRunner {
 
   private Object getEditor(ObjectEditor objectEditor) throws Throwable {
     Object object = reflectionHelper.newInstance(objectEditor.getType());
-    Object filled = serializer.fromJson(serializer.toJson(objectEditor.getData()), objectEditor.getType());
+    Object filled =
+        serializer.fromJson(serializer.toJson(objectEditor.getData()), objectEditor.getType());
     reflectionHelper.copy(filled, object);
 
     Object editor = object;

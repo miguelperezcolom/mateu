@@ -12,13 +12,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Slf4j
-@Service@RequiredArgsConstructor
+@Service
+@RequiredArgsConstructor
 public class QueryHelper {
 
   final ReflectionHelper reflectionHelper;

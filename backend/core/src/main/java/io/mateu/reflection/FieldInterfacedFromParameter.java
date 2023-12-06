@@ -19,7 +19,8 @@ public class FieldInterfacedFromParameter implements FieldInterfaced {
 
   private List<Annotation> extraAnnotations = new ArrayList<>();
 
-  public FieldInterfacedFromParameter(FieldInterfacedFromParameter f, Annotation a, ReflectionHelper reflectionHelper) {
+  public FieldInterfacedFromParameter(
+      FieldInterfacedFromParameter f, Annotation a, ReflectionHelper reflectionHelper) {
     this(f, reflectionHelper);
     extraAnnotations.add(a);
   }
@@ -32,7 +33,8 @@ public class FieldInterfacedFromParameter implements FieldInterfaced {
     return m;
   }
 
-  public FieldInterfacedFromParameter(FieldInterfacedFromParameter f, ReflectionHelper reflectionHelper) {
+  public FieldInterfacedFromParameter(
+      FieldInterfacedFromParameter f, ReflectionHelper reflectionHelper) {
     this(f.getMethod(), f.getParameter(), reflectionHelper);
   }
 
@@ -48,7 +50,8 @@ public class FieldInterfacedFromParameter implements FieldInterfaced {
         : p.getDeclaredAnnotationsByType(annotationClass);
   }
 
-  public FieldInterfacedFromParameter(Executable m, Parameter f, ReflectionHelper reflectionHelper) {
+  public FieldInterfacedFromParameter(
+      Executable m, Parameter f, ReflectionHelper reflectionHelper) {
     this.ff = null;
     this.p = f;
     this.m = m;

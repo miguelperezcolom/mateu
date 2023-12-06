@@ -5,7 +5,6 @@ import io.mateu.mdd.shared.data.ItemsListProvider;
 import io.mateu.reflection.ReflectionHelper;
 import jakarta.persistence.Entity;
 import java.lang.reflect.InvocationTargetException;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,7 +33,8 @@ public class GetItemsCountQueryHandler {
   private int countEntities(Class entityClass, String searchText)
       throws InvocationTargetException, NoSuchMethodException, IllegalAccessException,
           InstantiationException {
-    return reflectionHelper.newInstance(EntitiesFinder.class)
+    return reflectionHelper
+        .newInstance(EntitiesFinder.class)
         .countEntities(entityClass, searchText);
   }
 }

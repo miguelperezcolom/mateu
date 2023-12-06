@@ -3,10 +3,9 @@ package io.mateu.mdd.shared.interfaces;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.mdd.shared.SlimHelper;
 import io.mateu.mdd.shared.annotations.Caption;
+import io.mateu.reflection.ReflectionHelper;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
-
-import io.mateu.reflection.ReflectionHelper;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

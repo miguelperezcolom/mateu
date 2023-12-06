@@ -8,6 +8,7 @@ import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
 import io.mateu.remote.dtos.Action;
+import io.mateu.remote.dtos.ActionTarget;
 import io.mateu.remote.dtos.ActionType;
 import jakarta.persistence.Entity;
 import java.lang.reflect.Method;
@@ -15,7 +16,6 @@ import java.lang.reflect.Modifier;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,12 +31,54 @@ public class ActionMetadataBuilder {
             .id(m.getName())
             .caption(reflectionHelper.getCaption(m))
             .type(getActionType(m))
+            .target(getTarget(m))
+            .modalWith(getModalWidth(m))
+            .modalHeight(getModalHeight(m))
             .visible(isVisible(m))
             .validationRequired(getValidationRequired(m))
             .confirmationRequired(getConfirmationRequired(m))
             .confirmationTexts(getConfirmationTexts(m))
             .build();
     return action;
+  }
+
+  private String getModalHeight(Method m) {
+    if (m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class)) {
+      io.mateu.mdd.shared.annotations.Action action =
+          m.getAnnotation(io.mateu.mdd.shared.annotations.Action.class);
+      return action.modalHeight();
+    }
+    if (m.isAnnotationPresent(MainAction.class)) {
+      MainAction action = m.getAnnotation(MainAction.class);
+      return action.modalHeight();
+    }
+    return "";
+  }
+
+  private String getModalWidth(Method m) {
+    if (m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class)) {
+      io.mateu.mdd.shared.annotations.Action action =
+          m.getAnnotation(io.mateu.mdd.shared.annotations.Action.class);
+      return action.modalWidth();
+    }
+    if (m.isAnnotationPresent(MainAction.class)) {
+      MainAction action = m.getAnnotation(MainAction.class);
+      return action.modalWidth();
+    }
+    return "";
+  }
+
+  private ActionTarget getTarget(Method m) {
+    if (m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class)) {
+      io.mateu.mdd.shared.annotations.Action action =
+          m.getAnnotation(io.mateu.mdd.shared.annotations.Action.class);
+      return ActionTarget.valueOf(action.target().name());
+    }
+    if (m.isAnnotationPresent(MainAction.class)) {
+      MainAction action = m.getAnnotation(MainAction.class);
+      return ActionTarget.valueOf(action.target().name());
+    }
+    return ActionTarget.SameLane;
   }
 
   private boolean isVisible(Method m) {

@@ -28,10 +28,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class Serializer {
 
-  @Autowired
-  private ReflectionHelper reflectionHelper;
-  @Autowired
-  private EntitySerializer entitySerializer;
+  @Autowired private ReflectionHelper reflectionHelper;
+  @Autowired private EntitySerializer entitySerializer;
 
   private ObjectMapper mapper = new ObjectMapper();
   private ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
@@ -92,7 +90,8 @@ public class Serializer {
     }
     for (Map.Entry<String, Object> e : data.entrySet()) {
       if (e.getValue() != null && e.getValue() instanceof Map) {
-        applyAttributeNames((Map<String, Object>) e.getValue(), reflectionHelper.getValue(e.getKey(), o));
+        applyAttributeNames(
+            (Map<String, Object>) e.getValue(), reflectionHelper.getValue(e.getKey(), o));
       }
     }
     for (FieldInterfaced f : reflectionHelper.getAllFields(o.getClass())) {

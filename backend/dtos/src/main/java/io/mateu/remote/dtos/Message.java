@@ -5,15 +5,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter@Setter@NoArgsConstructor@AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Message {
 
-    String id;
+  String id;
 
-    ResultType type;
+  ResultType type;
 
-    String title;
+  String title;
 
-    String text;
-
+  String text;
 }

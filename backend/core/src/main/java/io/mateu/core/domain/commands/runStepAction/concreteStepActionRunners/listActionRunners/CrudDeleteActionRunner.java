@@ -7,10 +7,9 @@ import io.mateu.mdd.shared.data.Destination;
 import io.mateu.mdd.shared.data.DestinationType;
 import io.mateu.mdd.shared.data.Result;
 import io.mateu.mdd.shared.data.ResultType;
+import io.mateu.util.Serializer;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import io.mateu.util.Serializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;

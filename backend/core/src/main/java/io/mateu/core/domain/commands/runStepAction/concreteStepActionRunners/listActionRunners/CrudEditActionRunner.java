@@ -10,9 +10,7 @@ import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Serializer;
 import jakarta.persistence.Entity;
 import java.util.Map;
-
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;

@@ -21,11 +21,9 @@ public class GetListCountQueryHandler {
 
   @Autowired MateuRemoteClient mateuRemoteClient;
 
-  @Autowired
-  ReflectionHelper reflectionHelper;
+  @Autowired ReflectionHelper reflectionHelper;
 
-  @Autowired
-  Serializer serializer;
+  @Autowired Serializer serializer;
 
   public Mono<Long> run(GetListCountQuery query) throws Throwable {
 

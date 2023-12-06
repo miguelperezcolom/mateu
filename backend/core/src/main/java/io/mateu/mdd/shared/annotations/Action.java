@@ -27,4 +27,10 @@ public @interface Action {
   ActionType type() default ActionType.Primary;
 
   boolean visible() default true;
+
+  ActionTarget target() default ActionTarget.SameLane;
+
+  String modalWidth() default "";
+
+  String modalHeight() default "";
 }

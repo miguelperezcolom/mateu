@@ -11,10 +11,6 @@ import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.Menu;
 import io.mateu.remote.dtos.UI;
 import io.mateu.util.Helper;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.stereotype.Service;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -24,6 +20,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +36,11 @@ public class MenuParser {
     return buildMenu(uiInstance, serverHttpRequest, true, true);
   }
 
-  private List<MenuEntry> buildMenu(Object uiInstance, ServerHttpRequest serverHttpRequest, boolean authenticationAgnostic, boolean publicAccess) {
+  private List<MenuEntry> buildMenu(
+      Object uiInstance,
+      ServerHttpRequest serverHttpRequest,
+      boolean authenticationAgnostic,
+      boolean publicAccess) {
     List<MenuEntry> l = new ArrayList<>();
 
     for (FieldInterfaced f : reflectionHelper.getAllFields(uiInstance.getClass())) {
@@ -105,7 +108,8 @@ public class MenuParser {
     return l;
   }
 
-  private MenuEntry toMenuEntry(String caption, RemoteSubmenu remoteSubmenu, ServerHttpRequest serverHttpRequest)
+  private MenuEntry toMenuEntry(
+      String caption, RemoteSubmenu remoteSubmenu, ServerHttpRequest serverHttpRequest)
       throws ExecutionException, InterruptedException {
     UI ui =
         mateuRemoteClient.getUi(
@@ -135,7 +139,8 @@ public class MenuParser {
     return menuEntry;
   }
 
-  private void addMenuEntries(List<MenuEntry> l, RemoteUI remoteUI, ServerHttpRequest serverHttpRequest) {
+  private void addMenuEntries(
+      List<MenuEntry> l, RemoteUI remoteUI, ServerHttpRequest serverHttpRequest) {
     try {
       UI ui = mateuRemoteClient.getUi(remoteUI.getBaseUrl(), remoteUI.getUiId(), serverHttpRequest);
       ui.getMenu().stream()
@@ -187,7 +192,12 @@ public class MenuParser {
   }
 
   private void addMenuEntry(
-      Object uiInstance, List<MenuEntry> l, Method m, boolean authenticationAgnostic, boolean publicAccess, ServerHttpRequest serverHttpRequest) {
+      Object uiInstance,
+      List<MenuEntry> l,
+      Method m,
+      boolean authenticationAgnostic,
+      boolean publicAccess,
+      ServerHttpRequest serverHttpRequest) {
     String caption =
         (m.isAnnotationPresent(Submenu.class))
             ? m.getAnnotation(Submenu.class).value()
@@ -252,7 +262,12 @@ public class MenuParser {
   }
 
   private void addMenuEntry(
-      Object uiInstance, List<MenuEntry> l, FieldInterfaced f, boolean authenticationAgnostic, boolean publicAccess, ServerHttpRequest serverHttpRequest) {
+      Object uiInstance,
+      List<MenuEntry> l,
+      FieldInterfaced f,
+      boolean authenticationAgnostic,
+      boolean publicAccess,
+      ServerHttpRequest serverHttpRequest) {
     String caption = reflectionHelper.getCaption(f);
 
     String icon = null;
@@ -325,7 +340,12 @@ public class MenuParser {
   }
 
   private void addDefaultMenuEntry(
-      Object uiInstance, List<MenuEntry> l, FieldInterfaced f, String caption, int order, String icon)
+      Object uiInstance,
+      List<MenuEntry> l,
+      FieldInterfaced f,
+      String caption,
+      int order,
+      String icon)
       throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
     Object v = reflectionHelper.getValue(f, uiInstance);
     if (reflectionHelper.isBasico(f.getType()) || String.class.equals(f.getType())) {

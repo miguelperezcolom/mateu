@@ -25,7 +25,6 @@ public class MateuConfiguratorBean {
     return _instance;
   }
 
-
   public <T> T getBean(Class<T> c) {
     T bean = null;
     try {

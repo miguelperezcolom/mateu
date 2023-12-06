@@ -11,14 +11,13 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class DataExtractor {
-  
+
   final ReflectionHelper reflectionHelper;
   final Serializer serializer;
 

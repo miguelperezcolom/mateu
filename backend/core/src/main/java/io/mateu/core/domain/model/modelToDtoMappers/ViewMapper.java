@@ -20,7 +20,6 @@ import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
 import io.mateu.remote.dtos.Crud;
-import io.mateu.util.Helper;
 import io.mateu.util.Serializer;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -52,8 +51,7 @@ public class ViewMapper {
 
   @Autowired ReflectionHelper reflectionHelper;
 
-  @Autowired
-  Serializer serializer;
+  @Autowired Serializer serializer;
 
   public View map(
       JourneyContainer journeyContainer,
@@ -69,7 +67,6 @@ public class ViewMapper {
         getActualUiInstance(journeyContainer, stepId, uiInstance, serverHttpRequest);
 
     data.putAll(dataExtractor.getData(uiInstance, actualUiInstance));
-
 
     // todo: build left, main and right in a separate manner
     List<Component> left = new ArrayList<>();
@@ -117,7 +114,7 @@ public class ViewMapper {
         View.builder()
             .title(getTitle(actualUiInstance))
             .subtitle(getSubtitle(actualUiInstance))
-                .messages(getMessages(actualUiInstance))
+            .messages(getMessages(actualUiInstance))
             .left(ViewPart.builder().components(left).build())
             .main(ViewPart.builder().components(main).build())
             .right(ViewPart.builder().components(right).build())
@@ -130,12 +127,10 @@ public class ViewMapper {
 
   private List<Message> getMessages(Object uiInstance) {
     if (uiInstance instanceof HasMessages) {
-      return ((HasMessages)uiInstance).getMessages().stream().map(m -> new Message(
-              m.getId(),
-              m.getType(),
-              m.getTitle(),
-              m.getText()
-      )).collect(Collectors.toList());
+      return ((HasMessages) uiInstance)
+          .getMessages().stream()
+              .map(m -> new Message(m.getId(), m.getType(), m.getTitle(), m.getText()))
+              .collect(Collectors.toList());
     } else {
       return List.of();
     }
@@ -191,7 +186,7 @@ public class ViewMapper {
     } else if (uiInstance instanceof FieldEditor) {
       FieldEditor fieldEditor = (FieldEditor) uiInstance;
       actualUiInstance =
-              serializer.fromJson(serializer.toJson(fieldEditor.getData()), fieldEditor.getType());
+          serializer.fromJson(serializer.toJson(fieldEditor.getData()), fieldEditor.getType());
     } else if (uiInstance instanceof MethodParametersEditor) {
       MethodParametersEditor methodParametersEditor = (MethodParametersEditor) uiInstance;
       // actualUiInstance = Helper.fromJson(Helper.toJson(fieldEditor.getData()),

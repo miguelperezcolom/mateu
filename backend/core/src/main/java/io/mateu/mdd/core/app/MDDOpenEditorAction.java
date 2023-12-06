@@ -1,6 +1,5 @@
 package io.mateu.mdd.core.app;
 
-import io.mateu.reflection.ReflectionHelper;
 import java.util.function.Supplier;
 
 public class MDDOpenEditorAction extends AbstractAction {
@@ -17,5 +16,4 @@ public class MDDOpenEditorAction extends AbstractAction {
   public Class getViewClass() {
     return supplier != null ? supplier.get().getClass() : viewClass;
   }
-
 }

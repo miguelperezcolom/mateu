@@ -21,4 +21,10 @@ public class Action {
   private boolean confirmationRequired;
 
   private ConfirmationTexts confirmationTexts;
+
+  private ActionTarget target;
+
+  private String modalWith;
+
+  private String modalHeight;
 }

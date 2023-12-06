@@ -23,8 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class SumsQueryHandler {
 
   @PersistenceContext private EntityManager em;
-  @Autowired
-  ReflectionHelper reflectionHelper;
+  @Autowired ReflectionHelper reflectionHelper;
 
   @Transactional
   public List<SumData> run(SumsQuery query) {

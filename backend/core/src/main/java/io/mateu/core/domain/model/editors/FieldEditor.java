@@ -10,7 +10,8 @@ public class FieldEditor {
   private Class type;
   private Map<String, Object> data;
 
-  public FieldEditor(Object entity, String fieldId, String initialStep, Serializer serializer) throws Exception {
+  public FieldEditor(Object entity, String fieldId, String initialStep, Serializer serializer)
+      throws Exception {
     this.type = entity.getClass();
     this.data = serializer.toMap(entity);
     this.initialStep = initialStep;

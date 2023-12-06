@@ -5,11 +5,9 @@ import io.mateu.core.domain.model.editors.FieldEditor;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
-import java.util.Map;
-
 import io.mateu.util.Serializer;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -21,7 +19,6 @@ public class FieldEditorActionRunner implements ActionRunner {
   final JourneyStoreService store;
   final ReflectionHelper reflectionHelper;
   final Serializer serializer;
-  
 
   @Override
   public boolean applies(Object viewInstance, String actionId) {

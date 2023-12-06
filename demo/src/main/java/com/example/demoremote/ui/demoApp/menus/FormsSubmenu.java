@@ -6,6 +6,7 @@ import io.mateu.mdd.shared.interfaces.RemoteJourney;
 
 public class FormsSubmenu {
 
+  @MenuOption BasicFieldsForm basicFields;
   @MenuOption private TextFieldsForm text;
 
   @MenuOption private TabsForm tabs;

@@ -1,5 +1,6 @@
 import {ActionType} from "./ActionType";
 import ConfirmationTexts from "./ConfirmationTexts";
+import {ActionTarget} from "./ActionTarget";
 
 export default interface Action {
 
@@ -16,5 +17,11 @@ export default interface Action {
     confirmationRequired: boolean
 
     confirmationTexts: ConfirmationTexts
+
+    target: ActionTarget
+
+    modalWidth: string
+
+    modalHeight: string
 
 }

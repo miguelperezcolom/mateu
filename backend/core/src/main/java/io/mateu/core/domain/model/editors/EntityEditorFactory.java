@@ -13,8 +13,7 @@ public class EntityEditorFactory {
 
   @PersistenceContext EntityManager em;
   @Autowired ReflectionHelper reflectionHelper;
-  @Autowired
-  Serializer serializer;
+  @Autowired Serializer serializer;
 
   @Transactional
   public EntityEditor create(Object entity, int __index, int __count) throws Exception {
