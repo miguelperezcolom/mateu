@@ -1,5 +1,6 @@
 #!/bin/bash
 
+update-crypto-policies --set DEFAULT:SHA1
 echo $HETZNER_SSH_PUBLIC_KEY > id_ed25519
 echo "\n" >> id_ed25519
 chmod 0600 id_ed25519
