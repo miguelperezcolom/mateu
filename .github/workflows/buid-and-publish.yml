@@ -37,6 +37,7 @@ jobs:
           PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       - name: Run script
         env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           MAVEN_USERNAME: ${{ secrets.REPO_USERNAME }}
           MAVEN_CENTRAL_TOKEN: ${{ secrets.REPO_PASSWORD }}
           #        GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
