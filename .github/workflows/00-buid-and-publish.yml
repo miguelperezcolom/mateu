@@ -1,0 +1,19 @@
+# This workflow will build a package using Maven and then publish it to GitHub packages when a release is created
+# For more information see: https://github.com/actions/setup-java#apache-maven-with-a-settings-path
+
+name: Build and publish
+
+on:
+  workflow_dispatch:
+
+#  push:
+#    tags:
+#      - '[0-9]+\.[0-9]+\.[0-9]+'
+
+jobs:
+  catch-release-version:
+    uses: miguelperezcolom/mateu/.github/workflows/10-catch-release-version.yml@master
+  check-release-version:
+    uses: miguelperezcolom/mateu/.github/workflows/10-check-release-version.yml@master
+  build-frontend:
+    uses: miguelperezcolom/mateu/.github/workflows/20-build-frontend.yml@master
