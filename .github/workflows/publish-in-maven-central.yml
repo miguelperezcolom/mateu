@@ -56,7 +56,7 @@ jobs:
       run: echo '${{ toJson(github.event) }}'
 
     - name: fix version
-      run: grep -rl '<version>0.0.1-MATEU</version>' --exclude-dir=.git backend | grep pom.xml | xargs sed -i 's/0\.0\.1\-MATEU/${{ github.event.label.name }}1.1.1/g'
+      run: grep -rl '<version>0.0.1-MATEU</version>' --exclude-dir=.git backend | grep pom.xml | xargs sed -i 's/0\.0\.1\-MATEU/${{ env.RELEASE_VERSION }}/g'
 
     - name: Build with Maven
       run: mvn -B install --file backend/pom.xml
