@@ -18,7 +18,7 @@ public class DemoApp implements HasLogin, HasAppTitle
 
   @Submenu private RefsSubmenu refs;
 
-  @Submenu("Some cruds")
+  @Submenu("Cruds")
   private CrudsSubmenu cruds;
 
   @Submenu private BrokenSubmenu broken;
@@ -26,12 +26,6 @@ public class DemoApp implements HasLogin, HasAppTitle
   @Submenu private UtilSubmenu util;
 
   @Submenu private UseCasesSubmenu useCases;
-
-  @Submenu("NFL")
-  private NFLSubmenu nfl;
-
-  @Submenu("Star Wars")
-  private SWSubmenu sw;
 
   @MenuOption @Private private BasicFieldsForm eyesOnly;
 

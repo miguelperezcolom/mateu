@@ -1,29 +1,32 @@
-
 ## bugs
-- collections deben comportarse como los arrays
-- no pide los parámetros en las actions
-- quitar el rich text que no utiliza el componente de vaadin
 - algunas veces arrastra componentes de otros formularios (cuando sucede un error)
 - mateu.js:13689 Uncaught (in promise) TypeError: this.component.setLabel is not a function
   at MateuField.setupComponent (mateu.js:13689:1218)
   at MateuField.updated (mateu.js:13689:1122)
-- validaciones en lado cliente y en lado servidor
+- validaciones en lado cliente (min, max) y en lado servidor
 - exportar
+- do not support file type --> only string
 ## missing features
+- abrir en modal
+- secciones remotas
+- parámetros opciones menú?
 - links en formularios
 - tablas en formularios
-- abrir en modal
-- mapas
 - colecciones complejas (terminar)
+- mapas
 - grabar y permanecer
 - link al detalle al grabar
 - formularios parciales / secciones con actions
 - buscar por texto + filtros
 - mensajes
+- captcha
+- captcha for files
 ## improvements
+- journey al cliente? pasar --> meter en store --> devolver
 - ir a vista solo lectura si hay campos con relaciones @xtomany
 - inferir crud para entidad jpa cuando @xtomany
 - pensar edición con objeto pinned
+- error messages / static code validation
 ## tasks
 - clean unused classes / code
 - add/recover tests

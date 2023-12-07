@@ -13,7 +13,7 @@ public class FormsSubmenu {
 
   @MenuOption private MessagesForm messages;
 
-  @MenuOption private RichTextFieldForm richText;
+  //@MenuOption private RichTextFieldForm richText;
 
   @MenuOption private VaadinRichTextFieldForm richTextUsingVaadin;
 

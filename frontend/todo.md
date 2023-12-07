@@ -1,3 +1,0 @@
-- captcha
-- captcha for files
-- do not support file type --> only string
