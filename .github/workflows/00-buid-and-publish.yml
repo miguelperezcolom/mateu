@@ -11,9 +11,29 @@ on:
 #      - '[0-9]+\.[0-9]+\.[0-9]+'
 
 jobs:
-  catch-release-version:
-    uses: ./.github/workflows/10-catch-release-version.yml
-  check-release-version:
-    uses: ./.github/workflows/10-check-release-version.yml
-  build-frontend:
-    uses: ./.github/workflows/20-build-frontend.yml
+  all:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set env
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - name: Set up node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: corretto
+          server-id: mateu-central # Value of the distributionManagement/repository/id field of the pom.xml
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_CENTRAL_TOKEN
+      - name: Import GPG Key
+        uses: crazy-max/ghaction-import-gpg@v1
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      - name: Run script
+        run: chmod +x ./.github/scripts/*.sh && ./.github/scripts/00-all.sh
