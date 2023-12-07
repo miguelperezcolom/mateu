@@ -1,6 +1,6 @@
 #!/bin/bash
 
-mvn deploy -f backend/pom.xml
+mvn -ntp deploy -f backend/pom.xml
 
 
 
