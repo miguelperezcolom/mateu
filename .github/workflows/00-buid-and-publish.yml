@@ -12,8 +12,8 @@ on:
 
 jobs:
   catch-release-version:
-    uses: ./10-catch-release-version.yml@master
+    uses: ./.github/workflows/10-catch-release-version.yml@master
   check-release-version:
-    uses: ./10-check-release-version.yml@master
+    uses: ./.github/workflows/10-check-release-version.yml@master
   build-frontend:
-    uses: ./20-build-frontend.yml@master
+    uses: ./.github/workflows/20-build-frontend.yml@master
