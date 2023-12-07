@@ -43,6 +43,9 @@ jobs:
     - name: Build front
       run: cd frontend && npm i && npm run build && npm run copy
 
+    - name: fix version
+      run: grep -rl '<version>0.0.1-MATEU</version>' --exclude-dir=.git backend | grep pom.xml | xargs sed -i "" -e 's/\<version\>0\.0\.1\-MATEU\<\/version\>/${{ github.event.label.name }}/g'
+
     - name: Build with Maven
       run: mvn -B install --file backend/pom.xml
 
