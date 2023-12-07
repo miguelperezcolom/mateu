@@ -9,10 +9,6 @@ on:
       - master
 
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: miguelperezcolom/mateu/.github/workflows/test-action.yml@master
+  call-action-workflow:
+    uses: miguelperezcolom/mateu/.github/workflows/test-action.yml@master
 
