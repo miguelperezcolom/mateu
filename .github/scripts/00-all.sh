@@ -2,6 +2,6 @@
 
 echo $RELEASE_VERSION
 
-./10-build-frontend.sh
+./.github/scripts/10-build-frontend.sh
 
 
