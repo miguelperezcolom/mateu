@@ -46,4 +46,12 @@ jobs:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
         run: chmod +x ./.github/scripts/*.sh && ./.github/scripts/00-all.sh
+      - name: deploy demo jar to Hetzner
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: explorer.mateu.io
+          username: root
+          key: ${{ secrets.HETZNER_SSH_PUBLIC_KEY }}
+          source: "demo/target/demo-0.0.1-SNAPSHOT.jar"
+          target: /root/mateu
 
