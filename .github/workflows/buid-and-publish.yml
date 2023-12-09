@@ -56,6 +56,6 @@ jobs:
           host: explorer.mateu.io
           username: root
           key: ${{ secrets.HETZNER_SSH_PUBLIC_KEY }}
-          source: "demo/target/demo-0.0.1-SNAPSHOT.jar"
+          source: "demo-0.0.1-SNAPSHOT.jar"
           target: /root/mateu
 
