@@ -46,10 +46,6 @@ jobs:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
         run: chmod +x ./.github/scripts/*.sh && ./.github/scripts/00-all.sh
-      - name: pwd
-        run: pwd
-      - name: ls
-        run: ls -lh
       - name: deploy demo jar to Hetzner
         uses: appleboy/scp-action@v0.1.4
         with:

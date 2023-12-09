@@ -18,7 +18,6 @@ public class DemoApp implements HasLogin, HasAppTitle
 
   @Submenu private RefsSubmenu refs;
 
-  @Submenu("Cruds")
   private CrudsSubmenu cruds;
 
   @Submenu private BrokenSubmenu broken;
