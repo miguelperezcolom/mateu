@@ -8,6 +8,7 @@ import io.mateu.mdd.core.interfaces.RpcCrudViewExtended;
 import io.mateu.mdd.shared.annotations.Ignored;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.reflection.FieldInterfacedFromType;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
 import io.mateu.remote.dtos.Crud;
@@ -124,13 +125,24 @@ public class CrudMetadataBuilder {
                 .collect(Collectors.toList());
       }
     }
-    return allEditableFields.stream()
-        .map(fieldInterfaced -> fieldMetadataBuilder.getField(rpcView, fieldInterfaced))
-        .map(
-            f -> {
-              f.setId(listId + "-" + f.getId());
-              return f;
-            })
-        .collect(Collectors.toList());
+
+    List<Field> filterFields = allEditableFields.stream()
+            .map(fieldInterfaced -> fieldMetadataBuilder.getField(rpcView, fieldInterfaced))
+            .map(
+                    f -> {
+                      f.setId(listId + "-" + f.getId());
+                      return f;
+                    })
+            .collect(Collectors.toList());
+
+    filterFields.add(0, Field.builder()
+                    .id(listId + "-" + "_search-text")
+                    .placeholder("Search")
+                    .caption("Search")
+                    .type("string")
+                    .stereotype("input")
+            .build());
+
+    return filterFields;
   }
 }

@@ -216,7 +216,8 @@ export class MateuView extends LitElement {
   
     main {
       flex: 1 1 0;
-      padding: 2rem;
+      padding-left: 2rem;
+      padding-right: 2rem;
       width: clamp(45ch, 90%, 75ch);
     }
     

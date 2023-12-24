@@ -1,5 +1,5 @@
 import UI from "./dtos/UI";
-import axios, {AxiosResponse} from "axios";
+import axios, {AxiosResponse, InternalAxiosRequestConfig} from "axios";
 import JourneyType from "./dtos/JourneyType";
 import Journey from "./dtos/Journey";
 import Step from "./dtos/Step";
@@ -18,15 +18,29 @@ export default class MateuApiClient {
 
     constructor() {
         this.axiosInstance.interceptors.request.use(config => {
-            const token = localStorage.getItem('__mateu_auth_token');
-            if (token) {
-                //console.log('adding token' + token)
-                config.headers.Authorization =  'Bearer ' + token;
-            } else {
-                //console.log('no token added')
-            }
+            this.addAuthToken(config)
+            this.addSessionId(config)
             return config;
         })
+    }
+
+    private addSessionId(config: InternalAxiosRequestConfig) {
+        let sessionId = sessionStorage.getItem('__mateu_sesion_id');
+        if (!sessionId) {
+            sessionId = nanoid()
+            sessionStorage.setItem('__mateu_sesion_id', sessionId)
+        }
+        config.headers['X-Session-Id'] =  sessionId;
+    }
+
+    private addAuthToken(config: InternalAxiosRequestConfig) {
+        const token = localStorage.getItem('__mateu_auth_token');
+        if (token) {
+            //console.log('adding token' + token)
+            config.headers.Authorization =  'Bearer ' + token;
+        } else {
+            //console.log('no token added')
+        }
     }
 
     async wrap<T>(call: Promise<T>): Promise<T> {

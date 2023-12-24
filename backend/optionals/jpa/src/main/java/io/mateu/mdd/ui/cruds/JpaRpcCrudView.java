@@ -23,6 +23,7 @@ import io.mateu.mdd.ui.cruds.queries.rows.RowsQuery;
 import io.mateu.mdd.ui.cruds.queries.rows.RowsQueryHandler;
 import io.mateu.mdd.ui.cruds.queries.sums.SumsQuery;
 import io.mateu.mdd.ui.cruds.queries.sums.SumsQueryHandler;
+import io.mateu.reflection.FieldInterfacedFromType;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.util.Helper;
 import io.mateu.util.Serializer;
@@ -517,6 +518,9 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
                                 || f.getType().isAnnotationPresent(Entity.class)))
                 .collect(Collectors.toList());
       }
+
+      var searchTextField = new FieldInterfacedFromType(String.class, "_search-text", reflectionHelper);
+      filterFields.add(0, searchTextField);
 
       filterFields.forEach(
           f -> {

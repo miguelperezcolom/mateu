@@ -100,12 +100,12 @@ export class MateuSection extends LitElement {
     return html`
       <div class="mateu-section ${this.section.type}">
 
-        ${this.section.caption?html`<h2>${this.section.caption}</h2>`:''}
+        ${this.section.caption?html`<h3>${this.section.caption}</h3>`:''}
           ${this.section.description?html`<p>${this.section.description}</p>`:''}
         
         ${this.form.readOnly || this.section.readOnly?html`
           ${this.section.fieldGroups.map(g => html`
-              ${g.caption?html`<h3>${g.caption}</h3>`:''}
+              ${g.caption?html`<h4>${g.caption}</h4>`:''}
               <div class="table">
               ${g.lines.flatMap(l => l.fields).map(f => this.getFieldHtml(f))}
               </div>

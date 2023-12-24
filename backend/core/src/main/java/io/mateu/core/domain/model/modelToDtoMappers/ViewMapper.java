@@ -108,12 +108,12 @@ public class ViewMapper {
     }
 
     addComponentIds(left, main, right, rules);
-    removeTitleForFirstComponent(main);
+    //removeTitleForFirstComponent(main);
 
     View view =
         View.builder()
-            .title(getTitle(actualUiInstance))
-            .subtitle(getSubtitle(actualUiInstance))
+            //.title(getTitle(actualUiInstance))
+            //.subtitle(getSubtitle(actualUiInstance))
             .messages(getMessages(actualUiInstance))
             .left(ViewPart.builder().components(left).build())
             .main(ViewPart.builder().components(main).build())

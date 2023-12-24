@@ -147,7 +147,36 @@ public class QueryHelper {
 
         FieldInterfaced ef = reflectionHelper.getFieldByName(entityClass, f.getName());
 
-        if (ef != null && ef.getType().isAnnotationPresent(UseIdToSelect.class)) {
+        if (ef == null && "_search-text".equals(f.getId())) {
+
+          if (!Strings.isNullOrEmpty((String) v)) {
+
+            var stringFields = reflectionHelper.getAllEditableFields(entityClass).stream()
+                    .filter(field -> String.class.equals(field.getType()))
+                    .collect(Collectors.toList());
+
+            if (stringFields.size() > 0) {
+              if (!"".equals(ql)) ql += " and ";
+              String or = "";
+              for (FieldInterfaced stringField : stringFields) {
+                if (!"".equals(or)) {
+                  or += " or ";
+                }
+                or +=
+                        " lower(x."
+                                + stringField.getName()
+                                + (f.isAnnotationPresent(LiteralSearchFilter.class) ? ".es" : "")
+                                + ") like :"
+                                + "_searchtext"
+                                + " ";
+              }
+              ql += "(" + or + ")";
+              parameterValues.put("_searchtext", "%" + ((String) v).toLowerCase() + "%");
+            }
+
+          }
+
+        } else if (ef != null && ef.getType().isAnnotationPresent(UseIdToSelect.class)) {
 
           boolean anadir = !String.class.equals(v.getClass()) || !Strings.isNullOrEmpty((String) v);
 

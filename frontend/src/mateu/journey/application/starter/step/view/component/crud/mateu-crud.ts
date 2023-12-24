@@ -68,6 +68,8 @@ export class MateuCrud extends LitElement {
   @property()
   data: any;
 
+  data0: any;
+
   @state()
   private clickedRow:unknown;
 
@@ -152,6 +154,8 @@ export class MateuCrud extends LitElement {
       // @ts-ignore
       filters: this.data,
     });
+
+    this.updateFiltersText()
   }
 
   getSortOrders(): string {
@@ -184,6 +188,7 @@ export class MateuCrud extends LitElement {
   connectedCallback() {
     console.log('connected')
     super.connectedCallback();
+    this.data0 = this.data
     this.addEventListener('keydown', this.handleKey);
     this.upstreamSubscription = crudUpstream.subscribe((state: CrudState) => this.stampState(state))
   }
@@ -211,12 +216,30 @@ export class MateuCrud extends LitElement {
   }
 
   private clickedOnSearch() {
+    this.filtersOpened = false
     if (this.page) {
       this.page = 0
     } else {
       setTimeout(() => this.doSearch())
     }
   }
+
+  clickedOnFilters() {
+    this.filtersOpened = true
+  }
+
+  clickedOnClearFilters() {
+    this.data = this.data0
+  }
+
+  @state()
+  filtersOpened = false;
+
+  @property()
+  closeFilters = () => {
+    this.filtersOpened = false
+  };
+
 
   filterChanged(e:Event) {
     const input = e.currentTarget as HTMLInputElement;
@@ -234,6 +257,20 @@ export class MateuCrud extends LitElement {
     obj[input.id] = newValue || null;
     this.data = { ...this.data, ...obj}
   }
+
+  updateFiltersText() {
+    let text = '';
+    for (const k in this.data) {
+      if (k != 'action') {
+        if (text) text += ', ';
+        text += this.data[k];
+      }
+    }
+    this.filtersText = 'Applied filters: ' + (text?text:'None')
+  }
+
+  @state()
+  filtersText = ''
 
   async edit(e:Event) {
     const button = e.currentTarget as Button;
@@ -388,10 +425,12 @@ export class MateuCrud extends LitElement {
     // @ts-ignore
     return html`
 
-      <vaadin-horizontal-layout class="header">
+      <vaadin-horizontal-layout class="header" style="align-items: baseline;">
         <div>
-          <h3>${this.metadata.title}</h3>
-          <p>${this.metadata.subtitle}</p>
+          <h2>${this.metadata.title}</h2>
+          ${this.metadata.subtitle?html`
+            <p>${this.metadata.subtitle}</p>
+          `:''}
         </div>
         <vaadin-horizontal-layout style="justify-content: end; flex-grow: 1; align-items: center;" theme="spacing">
           ${this.metadata.actions.map(a => html`
@@ -401,22 +440,26 @@ export class MateuCrud extends LitElement {
           `)}
         </vaadin-horizontal-layout>
       </vaadin-horizontal-layout>
-      <vaadin-horizontal-layout style="align-items: baseline;" theme="spacing">
-        ${this.metadata?.searchForm.fields.slice(0,1).map(f => html`
+      ${this.metadata?.searchForm.fields?html`
+        <vaadin-horizontal-layout style="align-items: baseline;" theme="spacing">
+          ${this.metadata?.searchForm.fields.slice(0,1).map(f => html`
           <vaadin-text-field id="${f.id}" 
                              data-testid="filter-${f.id}" 
-                             label="${f.caption}" 
+                             placeholder="${f.caption}" 
                              @change=${this.filterChanged}
-                             placeholder="${f.placeholder}"
+                             xplaceholder="${f.placeholder}"
                              value="${this.data[f.id]}"
                              style="flex-grow: 1;"></vaadin-text-field>
         `)}
-        <vaadin-button theme="primary" @click="${this.clickedOnSearch}" data-testid="search">Search</vaadin-button>
-      </vaadin-horizontal-layout>
+          <vaadin-button theme="primary" @click="${this.clickedOnSearch}" data-testid="search">Search</vaadin-button>
+          ${this.metadata?.searchForm.fields?html`
+            <vaadin-button theme="secondary" @click="${this.clickedOnFilters}" data-testid="filters">Filters</vaadin-button>
+            <vaadin-button theme="secondary" @click="${this.clickedOnClearFilters}" data-testid="clearfilters">Clear filters</vaadin-button>
+          `:''}
+        </vaadin-horizontal-layout>
+        <p>${this.filtersText}</p>
+      `:''}
 
-      <vaadin-horizontal-layout style="align-items: baseline;" theme="spacing">
-        ${this.metadata?.searchForm.fields.slice(1).map(f => mapField(f, this.filterChanged, this.baseUrl, this.data))}
-      </vaadin-horizontal-layout>
       <vaadin-grid id="grid" .items="${this.items}" all-rows-visible>
         <vaadin-grid-selection-column></vaadin-grid-selection-column>
 
@@ -461,6 +504,26 @@ export class MateuCrud extends LitElement {
           ></vaadin-menu-bar>
         </div>
       </vaadin-horizontal-layout>
+
+      <vaadin-dialog
+          header-title="Filters"
+          .opened="${this.filtersOpened}"
+          ${dialogRenderer(() => html`
+
+            <vaadin-vertical-layout theme="spacing">
+              ${this.metadata?.searchForm.fields.slice(1).map(f => mapField(f, this.filterChanged, this.baseUrl, this.data))}
+            </vaadin-vertical-layout>
+          `, [])}
+          ${dialogFooterRenderer(
+              () => html`
+                <vaadin-button theme="primary" @click="${this.clickedOnSearch}" style="margin-right: auto;" data-testid="dialog-confirm">
+                  Search
+                </vaadin-button>
+                <vaadin-button theme="tertiary" @click="${this.closeFilters}" data-testid="dialog-cancel">Cancel</vaadin-button>
+              `,
+              []
+          )}
+      ></vaadin-dialog>
 
 
       <vaadin-dialog
