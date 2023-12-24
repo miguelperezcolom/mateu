@@ -230,6 +230,7 @@ export class MateuCrud extends LitElement {
 
   clickedOnClearFilters() {
     this.data = this.data0
+    setTimeout(() => this.doSearch())
   }
 
   @state()
