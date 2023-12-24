@@ -427,13 +427,13 @@ export class MateuCrud extends LitElement {
     return html`
 
       <vaadin-horizontal-layout class="header" style="align-items: baseline;">
-        <div>
+        <div style=" flex-grow: 1;">
           <h2>${this.metadata.title}</h2>
           ${this.metadata.subtitle?html`
             <p>${this.metadata.subtitle}</p>
           `:''}
         </div>
-        <vaadin-horizontal-layout style="justify-content: end; flex-grow: 1; align-items: center;" theme="spacing">
+        <vaadin-horizontal-layout style="justify-content: end; align-items: center;" theme="spacing">
           ${this.metadata.actions.map(a => html`
             <vaadin-button theme="secondary" @click=${this.runAction}
                            data-testid="action-${a.id}"

@@ -19,9 +19,14 @@ public class CollectionsSubmenu {
 
   @MenuOption private ObjectsForm objects;
 
-  @MenuOption private SimpleMapsForm simpleMaps;
 
   @MenuOption private ComplexCollectionsForm complexCollections;
 
+  /*
+
+  @MenuOption private SimpleMapsForm simpleMaps;
+
   @MenuOption private ComplexMapsForm complexMaps;
+
+   */
 }
