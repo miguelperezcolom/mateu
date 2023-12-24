@@ -25,29 +25,32 @@ import java.util.UUID;
 @Data
 public class MessagesForm implements HasBadges, HasStatus, HasTitle, HasSubtitle, HasMessages {
 
+  @Ignored
+  List<Message> messages = List.of(new Message(
+          UUID.randomUUID().toString(),
+  ResultType.Success,
+          "This is the title 1",
+          "This is the text of the message 1;)"
+          ), new Message(
+          UUID.randomUUID().toString(),
+  ResultType.Info,
+          null,
+          "This is the text of the message 2;)"
+          ), new Message(
+          UUID.randomUUID().toString(),
+  ResultType.Warning,
+          null,
+          "This is the text of the message 3;)"
+          ), new Message(
+          UUID.randomUUID().toString(),
+  ResultType.Error,
+          null,
+          "This is the text of the message 4;)"
+          ));
+
   @Override
   public List<Message> getMessages() {
-    return List.of(new Message(
-            UUID.randomUUID().toString(),
-            ResultType.Success,
-            "This is the title",
-            "This is the text of the message ;)"
-    ), new Message(
-            UUID.randomUUID().toString(),
-            ResultType.Info,
-            null,
-            "This is the text of the message ;)"
-    ), new Message(
-            UUID.randomUUID().toString(),
-            ResultType.Warning,
-            null,
-            "This is the text of the message ;)"
-    ), new Message(
-            UUID.randomUUID().toString(),
-            ResultType.Error,
-            null,
-            "This is the text of the message ;)"
-    ));
+    return messages;
   }
 
   @Tab("Tab 1")
@@ -68,17 +71,27 @@ public class MessagesForm implements HasBadges, HasStatus, HasTitle, HasSubtitle
   private String assessment;
 
   @Action(order = 0)
+  public void showMessage() throws Exception {
+    messages = List.of(new Message(
+            UUID.randomUUID().toString(),
+            ResultType.Success,
+            "Sample message",
+            "Your name is " + name
+    ));
+  }
+
+  @Action(order = 1)
   public void throwsException() throws Exception {
     throw new Exception("This is the description of teh exception ;)");
   }
 
-  @Action(order = 1)
+  @Action(order = 2)
   public void slowAction() throws InterruptedException {
     Thread.sleep(5000);
     assessment = "run";
   }
 
-  @Action(order = 2)
+  @Action(order = 3)
   public void assess() {
     assessment = "" + getCurrentUser() + "" + name + ", " + age + ", " + balance + ", " + withPlaceholder;
   }
