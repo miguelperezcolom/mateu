@@ -5,6 +5,7 @@ import './component/crud/mateu-crud';
 import View from "../../../../../shared/apiClients/dtos/View";
 import Step from "../../../../../shared/apiClients/dtos/Step";
 import {ViewType} from "../../../../../shared/apiClients/dtos/ViewType";
+import {notificationRenderer} from 'lit-vaadin-helpers';
 
 /**
  * An example element.
@@ -100,6 +101,16 @@ export class MateuView extends LitElement {
       }
     }
 
+    private getThemeForMessageType(type: string): string {
+        switch (type) {
+            case 'Success': return 'success';
+            case 'Warning': return 'contrast';
+            case 'Error': return 'error';
+            case 'Info': return 'primary';
+        }
+        return '';
+    }
+
     render() {
     // @ts-ignore
         return html`
@@ -153,10 +164,14 @@ export class MateuView extends LitElement {
         `:''}
 
           ${this.view.messages.map(m => html`
-              <div class="message ${m.type}">
-                  <div class="title">${m.title}</div>
-                  <div class="text">${m.text}</div>
-              </div>
+                <vaadin-notification
+                    opened="true"
+                    position="bottom-end"
+                    duration="10000"
+                    theme="${this.getThemeForMessageType(m.type)}"
+                    ${notificationRenderer(() => html`<div class="title">${m.title}</div>
+                  <div class="text">${m.text}</div>`)}
+                >${m.text}</vaadin-notification>
           `)}
           
           <vaadin-vertical-layout style="width: 100%" theme="spacing-xl">
