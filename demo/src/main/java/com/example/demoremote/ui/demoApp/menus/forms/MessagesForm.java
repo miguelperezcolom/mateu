@@ -49,7 +49,12 @@ public class MessagesForm implements HasBadges, HasStatus, HasTitle, HasSubtitle
   @ReadOnly
   private String assessment;
 
-  @Action(order = 0)
+  @Action(order = 0, target = ActionTarget.Message)
+  public String messageTarget() throws Exception {
+    return "Hello Mateu";
+  }
+
+  @Action(order = 1)
   public Message showMessage() throws Exception {
     return new Message(
                       UUID.randomUUID().toString(),
@@ -59,7 +64,7 @@ public class MessagesForm implements HasBadges, HasStatus, HasTitle, HasSubtitle
               );
   }
 
-  @Action(order = 1)
+  @Action(order = 2)
   public ResponseWrapper showMessageAfter() throws Exception {
     return new ResponseWrapper("Some result", List.of(new Message(
             UUID.randomUUID().toString(),
@@ -69,12 +74,12 @@ public class MessagesForm implements HasBadges, HasStatus, HasTitle, HasSubtitle
     )));
   }
 
-  @Action(order = 2)
+  @Action(order = 3)
   public void throwsException() throws Exception {
     throw new Exception("This is the description of teh exception ;)");
   }
 
-  @Action(order = 3)
+  @Action(order = 4)
   public void assess() {
     assessment = "" + getCurrentUser() + "" + name + ", " + age + ", " + balance + ", " + withPlaceholder;
   }

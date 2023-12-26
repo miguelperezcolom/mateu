@@ -519,7 +519,8 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
                 .collect(Collectors.toList());
       }
 
-      var searchTextField = new FieldInterfacedFromType(String.class, "_search-text", reflectionHelper);
+      var searchTextField =
+          new FieldInterfacedFromType(String.class, "_search-text", reflectionHelper);
       filterFields.add(0, searchTextField);
 
       filterFields.forEach(

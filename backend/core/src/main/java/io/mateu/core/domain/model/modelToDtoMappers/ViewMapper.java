@@ -11,7 +11,6 @@ import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.mdd.core.interfaces.HasSubtitle;
 import io.mateu.mdd.core.interfaces.HasTitle;
-import io.mateu.mdd.core.interfaces.ResponseWrapper;
 import io.mateu.mdd.core.interfaces.RpcCrudViewExtended;
 import io.mateu.mdd.shared.annotations.SlotName;
 import io.mateu.mdd.shared.data.Result;
@@ -22,17 +21,16 @@ import io.mateu.remote.dtos.*;
 import io.mateu.util.Serializer;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.stereotype.Service;
 
 @Service
 public class ViewMapper {
@@ -111,12 +109,12 @@ public class ViewMapper {
     }
 
     addComponentIds(left, main, right, rules);
-    //removeTitleForFirstComponent(main);
+    // removeTitleForFirstComponent(main);
 
     View view =
         View.builder()
-            //.title(getTitle(actualUiInstance))
-            //.subtitle(getSubtitle(actualUiInstance))
+            // .title(getTitle(actualUiInstance))
+            // .subtitle(getSubtitle(actualUiInstance))
             .messages(List.of())
             .left(ViewPart.builder().components(left).build())
             .main(ViewPart.builder().components(main).build())

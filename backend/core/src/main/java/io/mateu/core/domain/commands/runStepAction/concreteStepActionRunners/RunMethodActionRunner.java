@@ -10,10 +10,12 @@ import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.mdd.core.interfaces.Message;
 import io.mateu.mdd.core.interfaces.ResponseWrapper;
 import io.mateu.mdd.shared.annotations.Action;
+import io.mateu.mdd.shared.annotations.ActionTarget;
 import io.mateu.mdd.shared.annotations.MainAction;
 import io.mateu.mdd.shared.data.Result;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.reflection.ReflectionHelper;
+import io.mateu.remote.dtos.ResultType;
 import io.mateu.util.Serializer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -173,27 +175,26 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
           var mono = (Mono) result;
 
           return mono.map(
-                  r -> {
-                    try {
-                      // add a new step with the result
-                      processResponse(journeyId, m, r, serverHttpRequest);
-                      // update the ui instance after running the method, as something has possibly changed
-                      updateStep(journeyId, actualViewInstance, serverHttpRequest, r);
-                      addMessages(journeyId, r);
-                    } catch (Throwable e) {
-                      return Mono.error(new RuntimeException(e));
-                    }
-                    return r;
-                  })
-              ;
+              r -> {
+                try {
+                  // add a new step with the result
+                  processResponse(journeyId, m, r, serverHttpRequest);
+                  // update the ui instance after running the method, as something has possibly
+                  // changed
+                  updateStep(journeyId, actualViewInstance, serverHttpRequest, r);
+                  addMessages(journeyId, r, m);
+                } catch (Throwable e) {
+                  return Mono.error(new RuntimeException(e));
+                }
+                return r;
+              });
         } else {
 
           // add a new step with the result
           processResponse(journeyId, m, result, serverHttpRequest);
           // update the ui instance after running the method, as something has possibly changed
           updateStep(journeyId, actualViewInstance, serverHttpRequest, result);
-          addMessages(journeyId, result);
-
+          addMessages(journeyId, result, m);
         }
 
       } catch (InvocationTargetException ex) {
@@ -215,8 +216,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     store.save(journeyContainer);
   }
 
-  private void addMessages(String journeyId, Object response) {
-    List<Message> messages = extractMessages(response);
+  private void addMessages(String journeyId, Object response, Method method) {
+    List<Message> messages = extractMessages(response, method);
     try {
       var journeyContainer = store.findJourneyById(journeyId).get();
       var currentStepId = journeyContainer.getJourney().getCurrentStepId();
@@ -228,32 +229,47 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     }
   }
 
-  private List<io.mateu.remote.dtos.Message> mapMessages(List<io.mateu.mdd.core.interfaces.Message> messages) {
+  private List<io.mateu.remote.dtos.Message> mapMessages(
+      List<io.mateu.mdd.core.interfaces.Message> messages) {
     if (messages != null) {
       return messages.stream()
-              .map(m -> new io.mateu.remote.dtos.Message(m.getId(), m.getType(), m.getTitle(), m.getText()))
-              .collect(Collectors.toList());
+          .map(
+              m ->
+                  new io.mateu.remote.dtos.Message(
+                      m.getId(), m.getType(), m.getTitle(), m.getText()))
+          .collect(Collectors.toList());
     } else {
       return List.of();
     }
   }
 
-  private List<Message> extractMessages(Object response) {
+  private List<Message> extractMessages(Object response, Method method) {
     if (response instanceof Message) {
       return List.of((Message) response);
     }
-    if (response instanceof List && Message.class.equals(reflectionHelper.getGenericClass(response.getClass()))) {
+    if (response instanceof List
+        && Message.class.equals(reflectionHelper.getGenericClass(response.getClass()))) {
       return (List<Message>) response;
     }
     if (response instanceof ResponseWrapper) {
       return ((ResponseWrapper) response).getMessages();
     }
+    if (method.isAnnotationPresent(Action.class)
+        && ActionTarget.Message.equals(method.getAnnotation(Action.class).target())) {
+      return List.of(
+          new Message(UUID.randomUUID().toString(), ResultType.Success, "", "" + response));
+    }
+    if (method.isAnnotationPresent(MainAction.class)
+        && ActionTarget.Message.equals(method.getAnnotation(MainAction.class).target())) {
+      return List.of(
+          new Message(UUID.randomUUID().toString(), ResultType.Success, "", "" + response));
+    }
     return List.of();
   }
 
-  private void updateStep(String journeyId, Object actualViewInstance, ServerHttpRequest serverHttpRequest, Object r) {
-    if (actualViewInstance != null
-            && !(actualViewInstance instanceof Listing)) {
+  private void updateStep(
+      String journeyId, Object actualViewInstance, ServerHttpRequest serverHttpRequest, Object r) {
+    if (actualViewInstance != null && !(actualViewInstance instanceof Listing)) {
       try {
         store.updateStep(journeyId, actualViewInstance, serverHttpRequest);
       } catch (Throwable e) {
@@ -262,8 +278,9 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     }
   }
 
-  private void processResponse(String journeyId, Method m, Object r, ServerHttpRequest serverHttpRequest) throws Throwable {
-    Object whatToShow = getActualResponse(r);
+  private void processResponse(
+      String journeyId, Method m, Object r, ServerHttpRequest serverHttpRequest) throws Throwable {
+    Object whatToShow = getActualResponse(r, m);
     if (needsToBeShown(m, r)) {
       if (whatToShow instanceof Result) {
         addBackDestination((Result) whatToShow, store.getInitialStep(journeyId));
@@ -274,13 +291,17 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   }
 
   private boolean needsToBeShown(Method m, Object r) {
-      return !void.class.equals(m.getReturnType())
-              && !Message.class.equals(m.getReturnType())
-              && (!List.class.isAssignableFrom(m.getReturnType())
-              || !Message.class.equals(reflectionHelper.getGenericClass(m.getGenericReturnType())));
+    return !void.class.equals(m.getReturnType())
+        && !Message.class.equals(m.getReturnType())
+        && (!(m.isAnnotationPresent(Action.class)
+                && ActionTarget.Message.equals(m.getAnnotation(Action.class).target()))
+            && !(m.isAnnotationPresent(MainAction.class)
+                && ActionTarget.Message.equals(m.getAnnotation(MainAction.class).target())))
+        && (!List.class.isAssignableFrom(m.getReturnType())
+            || !Message.class.equals(reflectionHelper.getGenericClass(m.getGenericReturnType())));
   }
 
-  private Object getActualResponse(Object r) {
+  private Object getActualResponse(Object r, Method m) {
     if (r == null) {
       return r;
     }
@@ -291,6 +312,12 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       return null;
     }
     if (r instanceof List && Message.class.equals(reflectionHelper.getGenericClass(r.getClass()))) {
+      return null;
+    }
+    if ((m.isAnnotationPresent(Action.class)
+            && ActionTarget.Message.equals(m.getAnnotation(Action.class).target()))
+        || (m.isAnnotationPresent(MainAction.class)
+            && ActionTarget.Message.equals(m.getAnnotation(MainAction.class).target()))) {
       return null;
     }
     return r;

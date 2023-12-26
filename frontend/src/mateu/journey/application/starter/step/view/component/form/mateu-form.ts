@@ -21,6 +21,8 @@ import ActionsMap from "./ActionsMap";
 import {Button} from "@vaadin/button";
 import {service} from "../../../../../../domain/service";
 import {TabsSelectedChangedEvent} from "@vaadin/tabs";
+import Action from "../../../../../../../shared/apiClients/dtos/Action";
+import {MenuBarItemSelectedEvent} from "@vaadin/menu-bar";
 
 export interface FormElement {
 
@@ -352,6 +354,31 @@ export class MateuForm extends LitElement implements FormElement {
     return i
   }
 
+  buildItemsForActions(actions: Action[]) {
+    const items = actions.map(a => ({text: a.caption, action: a}))
+    console.log(items)
+    return [
+        {component: this.createRootActionsComponent(),
+        children: items
+      }]
+  }
+
+  actionItemSelected(event: MenuBarItemSelectedEvent) {
+    console.log(event.detail.value.action.id)
+    setTimeout(async () => {
+      await this.doRunAction(event.detail.value.action.id);
+    })
+  }
+
+  private createRootActionsComponent():HTMLElement {
+    const item = document.createElement('vaadin-menu-bar-item');
+    const icon = document.createElement('vaadin-icon');
+    item.setAttribute('aria-label', 'Other save options');
+    icon.setAttribute('icon', `vaadin:ellipsis-dots-v`);
+    item.appendChild(icon);
+    return item;
+  }
+
   render() {
     return html`
       <div>
@@ -364,9 +391,16 @@ export class MateuForm extends LitElement implements FormElement {
           `:''}
           </div>
           <vaadin-horizontal-layout style="justify-content: end; align-items: center;">
-            ${this.metadata.actions.filter(a => a.visible).map(a => html`
+            ${this.metadata.actions.filter(a => a.visible).length > 2?html`
+              <vaadin-menu-bar theme="icon tertiary small" open-on-hover
+                               @item-selected="${this.actionItemSelected}"
+                               .items="${this.buildItemsForActions(this.metadata.actions
+                  .filter(a => a.visible))}"></vaadin-menu-bar>
+            `:html`
+              ${this.metadata.actions.filter(a => a.visible).map(a => html`
             <vaadin-button theme="secondary" @click=${this.runAction} actionId=${a.id} data-testid="action-${a.id}">${a.caption}</vaadin-button>
           `)}
+            `}
           </vaadin-horizontal-layout>
         </vaadin-horizontal-layout>
           

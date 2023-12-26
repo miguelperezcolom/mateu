@@ -151,7 +151,8 @@ public class QueryHelper {
 
           if (!Strings.isNullOrEmpty((String) v)) {
 
-            var stringFields = reflectionHelper.getAllEditableFields(entityClass).stream()
+            var stringFields =
+                reflectionHelper.getAllEditableFields(entityClass).stream()
                     .filter(field -> String.class.equals(field.getType()))
                     .collect(Collectors.toList());
 
@@ -163,17 +164,16 @@ public class QueryHelper {
                   or += " or ";
                 }
                 or +=
-                        " lower(x."
-                                + stringField.getName()
-                                + (f.isAnnotationPresent(LiteralSearchFilter.class) ? ".es" : "")
-                                + ") like :"
-                                + "_searchtext"
-                                + " ";
+                    " lower(x."
+                        + stringField.getName()
+                        + (f.isAnnotationPresent(LiteralSearchFilter.class) ? ".es" : "")
+                        + ") like :"
+                        + "_searchtext"
+                        + " ";
               }
               ql += "(" + or + ")";
               parameterValues.put("_searchtext", "%" + ((String) v).toLowerCase() + "%");
             }
-
           }
 
         } else if (ef != null && ef.getType().isAnnotationPresent(UseIdToSelect.class)) {
