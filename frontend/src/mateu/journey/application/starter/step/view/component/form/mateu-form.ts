@@ -356,7 +356,6 @@ export class MateuForm extends LitElement implements FormElement {
 
   buildItemsForActions(actions: Action[]) {
     const items = actions.map(a => ({text: a.caption, action: a}))
-    console.log(items)
     return [
         {component: this.createRootActionsComponent(),
         children: items
@@ -364,8 +363,8 @@ export class MateuForm extends LitElement implements FormElement {
   }
 
   actionItemSelected(event: MenuBarItemSelectedEvent) {
-    console.log(event.detail.value.action.id)
     setTimeout(async () => {
+      // @ts-ignore
       await this.doRunAction(event.detail.value.action.id);
     })
   }

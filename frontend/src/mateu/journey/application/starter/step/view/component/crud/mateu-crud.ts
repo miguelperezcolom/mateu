@@ -28,6 +28,7 @@ import {crudUpstream} from "./crudUpstream";
 import {CrudState} from "./crudstate";
 import {Subscription} from "rxjs";
 import {crudService} from "./service";
+import Action from "../../../../../../../shared/apiClients/dtos/Action";
 
 /**
  * An example element.
@@ -294,6 +295,10 @@ export class MateuCrud extends LitElement {
       console.log('Attribute actionId is missing for ' + button)
       return
     }
+    this.doRunAction(actionId)
+  }
+
+  async doRunAction(actionId: string) {
 
     const action = this.findAction(actionId!)
     if (!action) {
@@ -421,6 +426,30 @@ export class MateuCrud extends LitElement {
     this.doSearch().then()
   }
 
+  buildItemsForActions(actions: Action[]) {
+    const items = actions.map(a => ({text: a.caption, action: a}))
+    return [
+      {component: this.createRootActionsComponent(),
+        children: items
+      }]
+  }
+
+  actionItemSelected(event: MenuBarItemSelectedEvent) {
+    setTimeout(async () => {
+      // @ts-ignore
+      await this.doRunAction(event.detail.value.action.id);
+    })
+  }
+
+  private createRootActionsComponent():HTMLElement {
+    const item = document.createElement('vaadin-menu-bar-item');
+    const icon = document.createElement('vaadin-icon');
+    item.setAttribute('aria-label', 'Other save options');
+    icon.setAttribute('icon', `vaadin:ellipsis-dots-v`);
+    item.appendChild(icon);
+    return item;
+  }
+
   render() {
     // @ts-ignore
     // @ts-ignore
@@ -434,13 +463,17 @@ export class MateuCrud extends LitElement {
           `:''}
         </div>
         <vaadin-horizontal-layout style="justify-content: end; align-items: center;" theme="spacing">
-          ${this.metadata.actions.map(a => html`
-            <vaadin-button theme="secondary" @click=${this.runAction}
-                           data-testid="action-${a.id}"
-                           actionId=${a.id}>${a.caption}</vaadin-button>
+          ${this.metadata.actions.filter(a => a.visible).length > 2?html`
+              <vaadin-menu-bar theme="icon tertiary small" open-on-hover
+                               @item-selected="${this.actionItemSelected}"
+                               .items="${this.buildItemsForActions(this.metadata.actions
+              .filter(a => a.visible))}"></vaadin-menu-bar>
+            `:html`
+              ${this.metadata.actions.filter(a => a.visible).map(a => html`
+            <vaadin-button theme="secondary" @click=${this.runAction} actionId=${a.id} data-testid="action-${a.id}">${a.caption}</vaadin-button>
           `)}
-        </vaadin-horizontal-layout>
-      </vaadin-horizontal-layout>
+            `}
+        </vaadin-horizontal-layout>      </vaadin-horizontal-layout>
       ${this.metadata?.searchForm.fields?html`
         <vaadin-horizontal-layout style="align-items: baseline;" theme="spacing">
           ${this.metadata?.searchForm.fields.slice(0,1).map(f => html`
