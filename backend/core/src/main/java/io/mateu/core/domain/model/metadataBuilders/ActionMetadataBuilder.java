@@ -32,7 +32,7 @@ public class ActionMetadataBuilder {
             .caption(reflectionHelper.getCaption(m))
             .type(getActionType(m))
             .target(getTarget(m))
-            .modalWith(getModalWidth(m))
+            .modalWidth(getModalWidth(m))
             .modalHeight(getModalHeight(m))
             .visible(isVisible(m))
             .validationRequired(getValidationRequired(m))

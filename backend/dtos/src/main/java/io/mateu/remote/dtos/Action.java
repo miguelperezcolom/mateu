@@ -24,7 +24,7 @@ public class Action {
 
   private ActionTarget target;
 
-  private String modalWith;
+  private String modalWidth;
 
   private String modalHeight;
 }

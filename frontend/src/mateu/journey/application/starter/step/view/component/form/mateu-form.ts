@@ -331,6 +331,7 @@ export class MateuForm extends LitElement implements FormElement {
     this.dispatchEvent(new CustomEvent('runaction', {
       detail: {
         actionId: actionId,
+        action: this.findAction(actionId!),
         data: {...this.data, __activeTabId: this.activeTab}
       },
       bubbles: true,

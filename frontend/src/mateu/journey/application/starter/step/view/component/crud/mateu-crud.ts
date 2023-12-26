@@ -328,6 +328,7 @@ export class MateuCrud extends LitElement {
     this.dispatchEvent(new CustomEvent('runaction', {
       detail: {
         actionId: actionId,
+        action: this.findAction(actionId!),
         data: data
       },
       bubbles: true,

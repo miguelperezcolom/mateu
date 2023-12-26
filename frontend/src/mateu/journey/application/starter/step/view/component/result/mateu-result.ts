@@ -61,6 +61,7 @@ export class MateuResult extends LitElement {
     this.dispatchEvent(new CustomEvent('runaction', {
       detail: {
         actionId: actionId,
+        action: {},
         data: this.data
       },
       bubbles: true,

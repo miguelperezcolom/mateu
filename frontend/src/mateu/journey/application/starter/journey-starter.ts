@@ -13,6 +13,10 @@ import {State} from "../../domain/state";
 import {service} from "../../domain/service";
 import {ApiController} from "./controllers/ApiController";
 import {PreviousAndNextController} from "./controllers/PreviousAndNextController";
+import Action from "../../../shared/apiClients/dtos/Action";
+import {ActionTarget} from "../../../shared/apiClients/dtos/ActionTarget";
+import {DialogOpenedChangedEvent} from "@vaadin/dialog";
+import {dialogHeaderRenderer, dialogRenderer} from "@vaadin/dialog/lit";
 
 @customElement('journey-starter')
 export class JourneyStarter extends LitElement {
@@ -59,7 +63,13 @@ export class JourneyStarter extends LitElement {
     renderNotification = () => html`${this.notificationMessage}`;
 
     runAction(event: CustomEvent) {
-        service.runAction(event.detail.actionId, event.detail.data).then()
+        const action: Action = event.detail.action
+        if (ActionTarget.NewModal == action.target) {
+            // crear modal y meter un journey-starter dentro
+            this.modalOpened = true
+        } else {
+            service.runAction(event.detail.actionId, event.detail.data).then()
+        }
     }
 
     goBack() {
@@ -109,12 +119,42 @@ export class JourneyStarter extends LitElement {
         }
     }
 
-
-
-
-
     async cancelAll() {
         await mateuApiClient.abortAll();
+    }
+
+    @state()
+    modalOpened = false
+
+    closeModal() {
+        this.modalOpened = false
+    }
+
+    renderModal() {
+        return html`
+   
+            <h1>Hola!!!</h1>
+
+            ${this.step?html`
+                
+                        <journey-step
+                                id="step"
+                                journeyTypeId="${this.journeyTypeId}"
+                                journeyId="${this.journeyId}" 
+                                       stepId="${this.stepId}" 
+                                       .step=${this.step} 
+                                       baseUrl="${this.baseUrl}"
+                                version="${this.version}"
+                                @runaction="${this.runAction}"
+                                @back-requested="${this.goBack}"
+                        >
+                        </journey-step>
+
+                    `:html`
+                <p>No step</p>
+            `}
+
+        `
     }
 
     render() {
@@ -166,6 +206,24 @@ export class JourneyStarter extends LitElement {
                     theme="error"
                     ${notificationRenderer(this.renderNotification)}
             >${this.notificationMessage}</vaadin-notification>
+
+
+            <vaadin-dialog
+                    header-title="User details"
+                    .opened="${this.modalOpened}"
+                    @opened-changed="${(event: DialogOpenedChangedEvent) => {
+                        this.modalOpened = event.detail.value;
+                    }}"
+                    ${dialogHeaderRenderer(
+                            () => html`
+      <vaadin-button theme="tertiary" @click="${this.closeModal}">
+        <vaadin-icon icon="lumo:cross"></vaadin-icon>
+      </vaadin-button>
+    `,
+                            []
+                    )}
+                    ${dialogRenderer(this.renderModal, [])}
+            ></vaadin-dialog>
             
         <slot></slot>`
     }
