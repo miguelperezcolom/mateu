@@ -21,7 +21,6 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.UUID;
@@ -30,7 +29,7 @@ import java.util.UUID;
 @Component
 @Scope("prototype")
 @RequiredArgsConstructor
-public class MessagesForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
+public class ModalsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
 
   @Tab("Tab 1")
   @Section("Basic")
@@ -49,18 +48,13 @@ public class MessagesForm implements HasBadges, HasStatus, HasTitle, HasSubtitle
   @ReadOnly
   private String assessment;
 
-  @Action(order = 0)
-  public Message showMessage() throws Exception {
-    return new Message(
-                      UUID.randomUUID().toString(),
-                      ResultType.Success,
-                      "Sample message",
-                      "Your name is " + name
-              );
+  @Action(order = 0, target = ActionTarget.NewModal)
+  public WizardPage1 openModal() throws Exception {
+    return new WizardPage1();
   }
 
-  @Action(order = 1)
-  public ResponseWrapper showMessageAfter() throws Exception {
+  @Action(order = 1, target = ActionTarget.NewTab)
+  public ResponseWrapper openTab() throws Exception {
     return new ResponseWrapper("Some result", List.of(new Message(
             UUID.randomUUID().toString(),
             ResultType.Info,
@@ -69,9 +63,9 @@ public class MessagesForm implements HasBadges, HasStatus, HasTitle, HasSubtitle
     )));
   }
 
-  @Action(order = 2)
-  public void throwsException() throws Exception {
-    throw new Exception("This is the description of teh exception ;)");
+  @Action(order = 2, target = ActionTarget.NewWindow)
+  public WizardPage1 openWindow() throws Exception {
+    return new WizardPage1();
   }
 
   @Action(order = 3)

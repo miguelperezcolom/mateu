@@ -14,6 +14,7 @@ import io.mateu.mdd.shared.interfaces.SortCriteria;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.Journey;
+import io.mateu.remote.dtos.Message;
 import io.mateu.remote.dtos.Step;
 import io.mateu.util.Serializer;
 import java.time.LocalDateTime;
@@ -21,6 +22,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -146,6 +149,8 @@ public class JourneyStoreService {
     journeyContainer.setLastAccess(LocalDateTime.now());
     journeyRepo.save(journeyContainer);
   }
+
+
 
   public void updateStep(
       String journeyId, String stepId, Object editor, ServerHttpRequest serverHttpRequest)

@@ -13,6 +13,10 @@ public class FormsSubmenu {
 
   @MenuOption private MessagesForm messages;
 
+  @MenuOption private ModalsForm modals;
+
+  @MenuOption private BannersForm banners;
+
   //@MenuOption private RichTextFieldForm richText;
 
   @MenuOption private VaadinRichTextFieldForm richTextUsingVaadin;

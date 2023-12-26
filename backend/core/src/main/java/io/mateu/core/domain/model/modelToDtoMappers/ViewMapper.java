@@ -9,9 +9,9 @@ import io.mateu.core.domain.model.metadataBuilders.ViewMetadataBuilder;
 import io.mateu.core.domain.model.modelToDtoMappers.viewMapperStuff.*;
 import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.mdd.core.interfaces.HasMessages;
 import io.mateu.mdd.core.interfaces.HasSubtitle;
 import io.mateu.mdd.core.interfaces.HasTitle;
+import io.mateu.mdd.core.interfaces.ResponseWrapper;
 import io.mateu.mdd.core.interfaces.RpcCrudViewExtended;
 import io.mateu.mdd.shared.annotations.SlotName;
 import io.mateu.mdd.shared.data.Result;
@@ -19,17 +19,20 @@ import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
-import io.mateu.remote.dtos.Crud;
 import io.mateu.util.Serializer;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class ViewMapper {
@@ -114,7 +117,7 @@ public class ViewMapper {
         View.builder()
             //.title(getTitle(actualUiInstance))
             //.subtitle(getSubtitle(actualUiInstance))
-            .messages(getMessages(actualUiInstance))
+            .messages(List.of())
             .left(ViewPart.builder().components(left).build())
             .main(ViewPart.builder().components(main).build())
             .right(ViewPart.builder().components(right).build())
@@ -123,17 +126,6 @@ public class ViewMapper {
             .build();
 
     return view;
-  }
-
-  private List<Message> getMessages(Object uiInstance) {
-    if (uiInstance instanceof HasMessages) {
-      return ((HasMessages) uiInstance)
-          .getMessages().stream()
-              .map(m -> new Message(m.getId(), m.getType(), m.getTitle(), m.getText()))
-              .collect(Collectors.toList());
-    } else {
-      return List.of();
-    }
   }
 
   private void removeTitleForFirstComponent(List<Component> slot) {
