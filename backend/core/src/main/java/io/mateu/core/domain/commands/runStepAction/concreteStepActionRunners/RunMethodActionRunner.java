@@ -177,11 +177,11 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
           return mono.map(
               r -> {
                 try {
-                  // add a new step with the result
-                  processResponse(journeyId, m, r, serverHttpRequest);
                   // update the ui instance after running the method, as something has possibly
                   // changed
                   updateStep(journeyId, actualViewInstance, serverHttpRequest, r);
+                  // add a new step with the result
+                  processResponse(journeyId, m, r, serverHttpRequest);
                   addMessages(journeyId, r, m);
                 } catch (Throwable e) {
                   return Mono.error(new RuntimeException(e));
@@ -190,10 +190,10 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
               });
         } else {
 
-          // add a new step with the result
-          processResponse(journeyId, m, result, serverHttpRequest);
           // update the ui instance after running the method, as something has possibly changed
           updateStep(journeyId, actualViewInstance, serverHttpRequest, result);
+          // add a new step with the result
+          processResponse(journeyId, m, result, serverHttpRequest);
           addMessages(journeyId, result, m);
         }
 
