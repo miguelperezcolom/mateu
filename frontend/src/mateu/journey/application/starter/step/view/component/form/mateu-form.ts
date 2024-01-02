@@ -19,10 +19,10 @@ import ConfirmationTexts from "../../../../../../../shared/apiClients/dtos/Confi
 import {dialogFooterRenderer} from "@vaadin/dialog/lit";
 import ActionsMap from "./ActionsMap";
 import {Button} from "@vaadin/button";
-import {service} from "../../../../../../domain/service";
 import {TabsSelectedChangedEvent} from "@vaadin/tabs";
 import Action from "../../../../../../../shared/apiClients/dtos/Action";
 import {MenuBarItemSelectedEvent} from "@vaadin/menu-bar";
+import { Service } from '../../../../../../domain/service';
 
 export interface FormElement {
 
@@ -49,6 +49,9 @@ export class MateuForm extends LitElement implements FormElement {
 
   @state()
   valueChangedKey: string | undefined
+
+  @property()
+  service: Service | undefined
 
   valueChanged(key: string, value: object): void {
     const obj = {};
@@ -272,7 +275,7 @@ export class MateuForm extends LitElement implements FormElement {
   editFieldListener = async (event: Event) => {
     const customEvent = event as CustomEvent
     const fieldId = customEvent.detail.fieldId;
-    await service.runAction('__editfield__' + fieldId, this.data)
+    await this.service!.runAction('__editfield__' + fieldId, this.data)
   }
 
   connectedCallback() {

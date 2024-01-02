@@ -18,5 +18,3 @@ export class State {
     notificationOpened: boolean = false;
     notificationMessage: string = '';
 }
-
-export const state = new State()

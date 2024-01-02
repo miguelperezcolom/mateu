@@ -13,6 +13,7 @@ import JourneyStarter from "../../../../../../shared/apiClients/dtos/JourneyStar
 import JourneyRunner from "../../../../../../shared/apiClients/dtos/JourneyRunner";
 import Crud from "../../../../../../shared/apiClients/dtos/Crud";
 import Step from "../../../../../../shared/apiClients/dtos/Step";
+import {Service} from "../../../../../domain/service";
 
 
 @customElement('mateu-component')
@@ -32,6 +33,9 @@ export class MateuComponent extends LitElement {
 
     @property()
     stepId!: string
+
+    @property()
+    service: Service | undefined
 
     @property()
     step!: Step
@@ -78,6 +82,7 @@ export class MateuComponent extends LitElement {
                             journeyId="${this.journeyId}" 
                             stepId="${this.stepId}"
                             .rules=${this.step.rules}
+                            .service=${this.service}
                             baseUrl="${this.baseUrl}"
                             previousStepId="${this.previousStepId}"
                     ><slot></slot></mateu-form>`

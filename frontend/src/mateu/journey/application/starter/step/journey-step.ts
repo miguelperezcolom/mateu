@@ -2,6 +2,7 @@ import {customElement, property} from "lit/decorators.js";
 import {css, html, LitElement} from "lit";
 import Step from "../../../../shared/apiClients/dtos/Step";
 import './view/mateu-view';
+import {Service} from "../../../domain/service";
 
 @customElement('journey-step')
 export class JourneyStep extends LitElement {
@@ -19,6 +20,9 @@ export class JourneyStep extends LitElement {
     stepId = '';
 
     @property()
+    service: Service | undefined
+
+    @property()
     step: Step | undefined = undefined;
 
     connectedCallback() {
@@ -33,6 +37,7 @@ export class JourneyStep extends LitElement {
                 journeyId="${this.journeyId}" 
                 stepId="${this.stepId}"
                 .step=${this.step}
+                .service=${this.service}
                 baseUrl="${this.baseUrl}"
                 previousStepId="${this.step?.previousStepId}"
         ><slot></slot></mateu-view>`

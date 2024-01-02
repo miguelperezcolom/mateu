@@ -24,10 +24,9 @@ import { dialogRenderer } from 'lit-vaadin-helpers';
 import { dialogFooterRenderer } from '@vaadin/dialog/lit';
 import {MenuBarItemSelectedEvent} from "@vaadin/menu-bar";
 import {mapField} from "./crudFieldMapping";
-import {crudUpstream} from "./crudUpstream";
 import {CrudState} from "./crudstate";
-import {Subscription} from "rxjs";
-import {crudService} from "./service";
+import {Subject, Subscription} from "rxjs";
+import {CrudService} from "./crudservice";
 import Action from "../../../../../../../shared/apiClients/dtos/Action";
 
 /**
@@ -117,7 +116,9 @@ export class MateuCrud extends LitElement {
   items:any[] = []
 
   state: CrudState = {
+    journeyTypeId: '',
     journeyId: '',
+    stepId: '',
     listId: '',
     items: [],
     count: 0,
@@ -127,7 +128,9 @@ export class MateuCrud extends LitElement {
   }
 
   // upstream channel
+  crudUpstream = new Subject<CrudState>()
   private upstreamSubscription: Subscription | undefined;
+  crudService = new CrudService()
 
   protected update(changedProperties: PropertyValues) {
     super.update(changedProperties)
@@ -181,9 +184,11 @@ export class MateuCrud extends LitElement {
     filters: object
     sortOrders: string
   }) {
+      this.state.journeyTypeId = this.journeyTypeId
       this.state.journeyId = this.journeyId
+      this.state.stepId = this.stepId
       this.state.listId = this.listId
-      await crudService.fetch(this.state, params)
+      await this.crudService.fetch(this.state, this.crudUpstream, params)
   }
 
   connectedCallback() {
@@ -191,7 +196,7 @@ export class MateuCrud extends LitElement {
     super.connectedCallback();
     this.data0 = this.data
     this.addEventListener('keydown', this.handleKey);
-    this.upstreamSubscription = crudUpstream.subscribe((state: CrudState) => this.stampState(state))
+    this.upstreamSubscription = this.crudUpstream.subscribe((state: CrudState) => this.stampState(state))
   }
 
   private stampState(state: CrudState) {

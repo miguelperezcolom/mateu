@@ -6,6 +6,7 @@ import View from "../../../../../shared/apiClients/dtos/View";
 import Step from "../../../../../shared/apiClients/dtos/Step";
 import {ViewType} from "../../../../../shared/apiClients/dtos/ViewType";
 import {Notification} from "@vaadin/vaadin-notification";
+import {Service} from "../../../../domain/service";
 
 /**
  * An example element.
@@ -37,7 +38,10 @@ export class MateuView extends LitElement {
   @property()
   step!: Step;
 
-  @property()
+    @property()
+    service: Service | undefined
+
+    @property()
   previousStepId!: string
 
   @property()
@@ -142,6 +146,7 @@ export class MateuView extends LitElement {
             journeyTypeId="${this.journeyTypeId}"
             journeyId="${this.journeyId}"
             stepId="${this.stepId}"
+            .service=${this.service}
             .step=${this.step}
             baseUrl="${this.baseUrl}"
             previousStepId="${this.previousStepId}"

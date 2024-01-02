@@ -7,16 +7,15 @@ import {notificationRenderer} from 'lit-vaadin-helpers';
 import Journey from "../../../shared/apiClients/dtos/Journey";
 import Step from "../../../shared/apiClients/dtos/Step";
 import {mateuApiClient} from "../../../shared/apiClients/MateuApiClient";
-import {Subscription} from "rxjs";
-import {upstream} from "../../domain/upstream";
+import {Subject, Subscription} from "rxjs";
 import {State} from "../../domain/state";
-import {service} from "../../domain/service";
 import {ApiController} from "./controllers/ApiController";
 import {PreviousAndNextController} from "./controllers/PreviousAndNextController";
 import Action from "../../../shared/apiClients/dtos/Action";
 import {ActionTarget} from "../../../shared/apiClients/dtos/ActionTarget";
 import {DialogOpenedChangedEvent} from "@vaadin/dialog";
 import {dialogHeaderRenderer, dialogRenderer} from "@vaadin/dialog/lit";
+import {Service} from "../../domain/service";
 
 @customElement('journey-starter')
 export class JourneyStarter extends LitElement {
@@ -57,30 +56,38 @@ export class JourneyStarter extends LitElement {
     // upstream channel
     private upstreamSubscription: Subscription | undefined;
 
-    apiController = new ApiController(this);
-    previousAndNextController = new PreviousAndNextController(this);
+    upstream = new Subject<State>()
+    apiController = new ApiController(this)
+    previousAndNextController: PreviousAndNextController
+    service: Service
+
+    constructor() {
+        super();
+        this.service = new Service(this.upstream)
+        this.previousAndNextController = new PreviousAndNextController(this, this.service);
+    }
 
     renderNotification = () => html`${this.notificationMessage}`;
 
     runAction(event: CustomEvent) {
         const action: Action = event.detail.action
-        if (ActionTarget.NewModal == action.target) {
+        if (action && ActionTarget.NewModal == action.target) {
             // crear modal y meter un journey-starter dentro
             this.modalOpened = true
         } else {
-            service.runAction(event.detail.actionId, event.detail.data).then()
+            this.service.runAction(event.detail.actionId, event.detail.data).then()
         }
     }
 
     goBack() {
-        service.goBack().then()
+        this.service.goBack().then()
     }
 
 
     async connectedCallback() {
         super.connectedCallback();
 
-        this.upstreamSubscription = upstream.subscribe((state: State) =>
+        this.upstreamSubscription = this.upstream.subscribe((state: State) =>
             this.stampState(state)
         )
 
@@ -113,7 +120,7 @@ export class JourneyStarter extends LitElement {
                     console.log('starting journey due to props change', this.baseUrl, this.journeyTypeId, changedProperties)
                     mateuApiClient.baseUrl = this.baseUrl
                     mateuApiClient.element = this
-                    service.startJourney(this.baseUrl, this.journeyTypeId).then()
+                    this.service.startJourney(this.baseUrl, this.journeyTypeId).then()
                     }
                 })
         }
@@ -189,6 +196,7 @@ export class JourneyStarter extends LitElement {
                                        .step=${this.step} 
                                        baseUrl="${this.baseUrl}"
                                 version="${this.version}"
+                                .service=${this.service}
                                 @runaction="${this.runAction}"
                                 @back-requested="${this.goBack}"
                         >

@@ -1,12 +1,12 @@
 import {GetJourneyQuery} from "./GetJourneyQuery";
 import Journey from "../../../../shared/apiClients/dtos/Journey";
 import {mateuApiClient} from "../../../../shared/apiClients/MateuApiClient";
-import {state} from "../../state";
 
 export class GetJourneyQueryHandler {
 
     public async handle(_query: GetJourneyQuery): Promise<Journey> {
-        return await mateuApiClient.fetchJourney(state.journeyTypeId!, state.journeyId!)
+        return await mateuApiClient
+            .fetchJourney(_query.journeyTypeId, _query.journeyId)
     }
 
 }

@@ -1,11 +1,11 @@
 import {StartJourneyCommand} from "./StartJourneyCommand";
 import {mateuApiClient} from "../../../../shared/apiClients/MateuApiClient";
-import {state} from "../../state";
 import {nanoid} from "nanoid";
+import {State} from "../../state";
 
 export class StartJourneyCommandHandler {
 
-    public async handle(command: StartJourneyCommand): Promise<void> {
+    public async handle(command: StartJourneyCommand, state: State): Promise<void> {
         const journeyId = nanoid()
         await mateuApiClient.createJourney(command.journeyTypeId, journeyId)
         state.baseUrl = command.baseUrl

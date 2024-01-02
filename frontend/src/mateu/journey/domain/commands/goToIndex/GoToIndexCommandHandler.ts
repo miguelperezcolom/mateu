@@ -1,10 +1,10 @@
 import {mateuApiClient} from "../../../../shared/apiClients/MateuApiClient";
 import {GoToIndexCommand} from "./GoToIndexCommand";
-import {state} from "../../state";
+import {State} from "../../state";
 
 export class GoToIndexCommandHandler {
 
-    public async handle(command: GoToIndexCommand): Promise<void> {
+    public async handle(command: GoToIndexCommand, state: State): Promise<void> {
         await mateuApiClient
             .runStepAction(
                 state.journeyTypeId!,

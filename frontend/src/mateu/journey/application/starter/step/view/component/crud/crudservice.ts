@@ -1,12 +1,13 @@
 import {fetchRowsQueryHandler} from "./queries/fetchRows/FetchRowsQueryHandler";
 import {fetchCountQueryHandler} from "./queries/fetchCount/FetchCountQueryHandler";
-import {crudUpstream} from "./crudUpstream";
 import {CrudState} from "./crudstate";
-import {state} from "../../../../../../domain/state";
+import {Subject} from "rxjs";
 
 export class CrudService {
 
-    async fetch(crudState: CrudState, params: {
+    async fetch(crudState: CrudState,
+                crudUpstream: Subject<CrudState>,
+                params: {
         listId: string
         page: number
         pageSize: number
@@ -25,9 +26,9 @@ export class CrudService {
 
         // Pagination
         const count = await fetchCountQueryHandler.handle({
-            journeyTypeId: state.journeyTypeId!,
-            journeyId: state.journeyId!,
-            stepId: state.stepId!,
+            journeyTypeId: crudState.journeyTypeId,
+            journeyId: crudState.journeyId,
+            stepId: crudState.stepId,
             listId: params.listId,
             filters: params.filters
         })
@@ -43,9 +44,9 @@ export class CrudService {
         }
         crudUpstream.next({...crudState})
         const items = await fetchRowsQueryHandler.handle({
-            journeyTypeId: state.journeyTypeId!,
-            journeyId: state.journeyId!,
-            stepId: state.stepId!,
+            journeyTypeId: crudState.journeyTypeId,
+            journeyId: crudState.journeyId,
+            stepId: crudState.stepId,
             listId: params.listId,
             filters: params.filters,
             page: params.page,
@@ -70,5 +71,3 @@ export class CrudService {
 
 
 }
-
-export const crudService = new CrudService()

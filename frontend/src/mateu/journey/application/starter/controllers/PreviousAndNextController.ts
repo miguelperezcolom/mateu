@@ -1,13 +1,15 @@
 import {ReactiveController} from "lit";
 import {JourneyStarter} from "../journey-starter";
-import {service} from "../../../domain/service";
+import {Service} from "../../../domain/service";
 
 export class PreviousAndNextController implements ReactiveController {
 
-    host: JourneyStarter;
+    host: JourneyStarter
+    service: Service
 
-    constructor(host: JourneyStarter) {
-        (this.host = host).addController(this);
+    constructor(host: JourneyStarter, service: Service) {
+        (this.host = host).addController(this)
+        this.service = service
     }
 
     hostConnected() {
@@ -27,7 +29,7 @@ export class PreviousAndNextController implements ReactiveController {
             __index: ce.detail.__index,
             __count: ce.detail.__count,
         }
-        service.goToIndex(data)
+        this.service.goToIndex(data)
     }
 
     onPreviousRequested = async (event: Event) => {
@@ -37,7 +39,7 @@ export class PreviousAndNextController implements ReactiveController {
             __index: ce.detail.__index,
             __count: ce.detail.__count,
         }
-        service.goToIndex(data)
+        this.service.goToIndex(data)
     }
 
 
