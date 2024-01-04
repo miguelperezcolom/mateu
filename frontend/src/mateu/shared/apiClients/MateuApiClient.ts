@@ -4,6 +4,7 @@ import JourneyType from "./dtos/JourneyType";
 import Journey from "./dtos/Journey";
 import Step from "./dtos/Step";
 import {nanoid} from "nanoid";
+import StepWrapper from "./dtos/StepWrapper";
 
 let abortControllers: AbortController[] = [];
 let fetchRowsAbortController0 = new AbortController()
@@ -199,6 +200,27 @@ export default class MateuApiClient {
                 }
             ).catch((error) => {
                 console.log('error en post', error)
+            throw  error
+        }))
+    }
+
+    async createJourneyAndReturn(journeyType: string, journeyId: string): Promise<StepWrapper> {
+        return await this.wrap<StepWrapper>(this.getUsingPost(this.baseUrl.replace('v1', 'v2') + '/journeys/'
+            + journeyType + '/' + journeyId,
+            {
+                contextData: []
+            }
+        ).then((response) => response.data))
+    }
+    async runStepActionAndReturn(journeyType: string, journeyId: string, stepId: string, actionId: string,
+                        data: unknown): Promise<StepWrapper> {
+        return await this.wrap<StepWrapper>(this.getUsingPost(this.baseUrl.replace('v1', 'v2') + '/journeys/' +
+            journeyType + '/' + journeyId + '/steps/' + stepId
+            + '/' + actionId, {
+                data: data
+            }
+        ).then((response) => response.data).catch((error) => {
+            console.log('error en post', error)
             throw  error
         }))
     }

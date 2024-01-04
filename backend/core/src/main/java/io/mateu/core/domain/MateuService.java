@@ -6,6 +6,7 @@ import io.mateu.core.domain.commands.runStepAction.RunStepActionCommand;
 import io.mateu.core.domain.commands.runStepAction.RunStepActionCommandHandler;
 import io.mateu.core.domain.commands.startJourney.StartJourneyCommand;
 import io.mateu.core.domain.commands.startJourney.StartJourneyCommandHandler;
+import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.core.domain.queries.getItemsCount.GetItemsCountQuery;
 import io.mateu.core.domain.queries.getItemsCount.GetItemsCountQueryHandler;
@@ -137,6 +138,11 @@ public class MateuService {
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     log.info("running action " + journeyTypeId + "/" + journeyId + "/" + stepId + "/" + actionId);
+    if (rq.getJourney() != null) {
+      JourneyContainer journey =
+          serializer.fromJson(serializer.toJson(rq.getJourney()), JourneyContainer.class);
+      store.save(journey);
+    }
     return runStepActionCommandHandler.handle(
         RunStepActionCommand.builder()
             .journeyTypeId(journeyTypeId)
@@ -146,6 +152,62 @@ public class MateuService {
             .data(rq.getData())
             .serverHttpRequest(serverHttpRequest)
             .build());
+  }
+
+  public Mono<StepWrapper> createJourneyAndReturn(
+      String journeyTypeId,
+      String journeyId,
+      JourneyCreationRq rq,
+      ServerHttpRequest serverHttpRequest)
+      throws Throwable {
+    return createJourney(journeyTypeId, journeyId, rq, serverHttpRequest)
+        .thenReturn(
+            StepWrapper.builder()
+                .journey(getJourneyFromStore(journeyId))
+                .step(getStep(journeyId))
+                .store(getJourneyContainer(journeyId))
+                .build());
+  }
+
+  public Mono<StepWrapper> runStepAndReturn(
+      String journeyTypeId,
+      String journeyId,
+      String stepId,
+      String actionId,
+      RunActionRq rq,
+      ServerHttpRequest serverHttpRequest)
+      throws Throwable {
+    return runStep(journeyTypeId, journeyId, stepId, actionId, rq, serverHttpRequest)
+        .thenReturn(
+            StepWrapper.builder()
+                .journey(getJourneyFromStore(journeyId))
+                .step(getStep(journeyId))
+                .store(getJourneyContainer(journeyId))
+                .build());
+  }
+
+  private Map<String, Object> getJourneyContainer(String journeyId) {
+    try {
+      return serializer.toMap(store.findJourneyById(journeyId).get());
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private Step getStep(String journeyId) {
+    try {
+      return store.getCurrentStep(journeyId);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private Journey getJourneyFromStore(String journeyId) {
+    try {
+      return store.getJourney(journeyId);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public Flux<Object> getListRows(

@@ -7,6 +7,9 @@ import {goBackCommandHandler} from "./commands/goBack/GoBackCommandHandler";
 import {goToIndexCommandHandler} from "./commands/goToIndex/GoToIndexCommandHandler";
 import {Subject} from "rxjs";
 import {goToStepCommandHandler} from "./commands/goToStep/GoToStepCommandHandler";
+import {wrapperCallActionCommandHandler} from "./commands/callAction/WrapperCallActionCommandHandler";
+import StepWrapper from "../../shared/apiClients/dtos/StepWrapper";
+import {wrapperStartJourneyCommandHandler} from "./commands/startJourney/WrapperStartJourneyCommandHandler";
 
 export class Service {
 
@@ -17,13 +20,13 @@ export class Service {
         this.upstream = upstream;
     }
 
-    async startJourney(baseUrl: string, journeyTypeId: string) {
+    async startJourneyOld(baseUrl: string, journeyTypeId: string) {
         console.log('start journey', baseUrl, journeyTypeId)
         await startJourneyCommandHandler.handle({baseUrl, journeyTypeId}, this.state)
         this.upstream.next({...this.state})
     }
 
-    async runAction(actionId: string, data: unknown) {
+    async runActionOld(actionId: string, data: unknown) {
         await callActionCommandHandler
             .handle({actionId, data}, this.state)
             .catch((error) => {
@@ -33,6 +36,31 @@ export class Service {
             await this.reloadJourney()
             this.upstream.next({...this.state})
         })
+    }
+
+    async startJourney(baseUrl: string, journeyTypeId: string) {
+        console.log('start journey', baseUrl, journeyTypeId)
+        await wrapperStartJourneyCommandHandler.handle({baseUrl, journeyTypeId}, this.state)
+        this.upstream.next({...this.state})
+    }
+
+    async runAction(actionId: string, data: unknown) {
+        await wrapperCallActionCommandHandler
+            .handle({actionId, data}, this.state)
+            .catch((error) => {
+                console.log('error', error)
+                throw error
+            })
+            .then(async (value: StepWrapper) => {
+                this.state.journey = value.journey
+                this.state.stepId = this.state.journey.currentStepId
+                if (this.state.journey.status != 'Finished') {
+                    this.state.step = value.step
+                    this.state.previousStepId = this.state.step.previousStepId
+                }
+                console.log('journey reloaded from response', this.state)
+                this.upstream.next({...this.state})
+            })
     }
 
     async silentRunAction(actionId: string, data: unknown) {

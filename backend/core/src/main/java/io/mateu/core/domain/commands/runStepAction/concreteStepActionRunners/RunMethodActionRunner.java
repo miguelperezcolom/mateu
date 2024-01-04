@@ -123,7 +123,6 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       return Mono.empty().then();
     }
 
-
     Object actualViewInstance = getActualInstance(viewInstance, data);
 
     Method m = getActions(actualViewInstance).get(actionId);

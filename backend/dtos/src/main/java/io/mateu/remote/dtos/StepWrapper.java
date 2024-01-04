@@ -7,9 +7,11 @@ import lombok.*;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
-public class RunActionRq {
+public class StepWrapper {
 
-  private Map<String, Object> data;
+  Journey journey;
 
-  private Map<String, Object> journey;
+  Step step;
+
+  Map<String, Object> store;
 }

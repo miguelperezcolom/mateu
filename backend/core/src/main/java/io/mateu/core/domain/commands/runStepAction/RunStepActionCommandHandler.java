@@ -9,7 +9,6 @@ import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.Form;
-
 import java.time.LocalDateTime;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +51,6 @@ public class RunStepActionCommandHandler {
 
       return Mono.empty().then();
     }
-
 
     if (!Strings.isNullOrEmpty(journeyContainer.getRemoteJourneyTypeId())) {
       return mateuRemoteClient.runStep(

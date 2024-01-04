@@ -33,23 +33,5 @@
       });
     }
   </script>
-  <script>
-    console.log('adding event listeners to unlayer')
-    unlayer.addEventListener('editor:ready', function () {
-      console.log('editor:ready');
-    });
-
-    unlayer.addEventListener('design:updated', function(updates) {
-      // Design is updated by the user
-      console.log('design updated', updates)
-
-      unlayer.exportHtml(function (data) {
-        var json = data.design; // design json
-        var html = data.html; // design html
-
-        console.log(html)
-      })
-    });
-  </script>
   </body>
 </html>
