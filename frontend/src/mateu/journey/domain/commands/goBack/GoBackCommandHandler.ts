@@ -1,14 +1,17 @@
 import {GoBackCommand} from "./GoBackCommand";
 import {mateuApiClient} from "../../../../shared/apiClients/MateuApiClient";
 import {State} from "../../state";
-import {GoToStepCommandHandler} from "../goToStep/GoToStepCommandHandler";
 
 export class GoBackCommandHandler {
 
     public async handle(_command: GoBackCommand, state: State): Promise<void> {
-        state.step = await mateuApiClient
-            .fetchStep(state.journeyTypeId!, state.journeyId!, state.previousStepId!)
-        state.previousStepId = state.step.previousStepId
+        await mateuApiClient
+            .runStepActionAndReturn(
+                state.journeyTypeId!,
+                state.journeyId!,
+                state.previousStepId!,
+                'xxxbacktostep',
+                {})
     }
 
 }

@@ -435,7 +435,9 @@ export class MateuForm extends LitElement implements FormElement {
             ></mateu-section>`)}
 
         <vaadin-horizontal-layout style="justify-content: end;" theme="spacing">
+          <vaadin-horizontal-layout  style="flex-grow: 1; justify-content: start;">
           <slot></slot>
+          </vaadin-horizontal-layout>
           ${this.metadata.mainActions.map(a => html`
             <vaadin-button theme="${ActionType.Primary == a.type?'primary':'secondary'}"
                            data-testid="action-${a.id}"

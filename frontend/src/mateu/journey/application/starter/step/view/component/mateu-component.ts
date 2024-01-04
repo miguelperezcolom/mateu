@@ -81,6 +81,7 @@ export class MateuComponent extends LitElement {
                             journeyTypeId="${this.journeyTypeId}"
                             journeyId="${this.journeyId}" 
                             stepId="${this.stepId}"
+                            .step=${this.step}
                             .rules=${this.step.rules}
                             .service=${this.service}
                             baseUrl="${this.baseUrl}"

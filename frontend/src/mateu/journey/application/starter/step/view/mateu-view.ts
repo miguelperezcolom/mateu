@@ -159,20 +159,6 @@ export class MateuView extends LitElement {
       </aside>
       <main>
 
-          ${this.step?.previousStepId || this.step?.data?.__index || this.step?.data?.__count?html`
-                <vaadin-horizontal-layout>
-                      ${this.step?.previousStepId && this.step?.previousStepId != this.initialStepId?html`
-                          <vaadin-button theme="tertiary" @click=${this.goBack}><vaadin-icon icon="vaadin:arrow-left"></vaadin-icon></vaadin-button>
-                      `:''}
-                      ${this.step?.data?.__index != undefined && this.step?.data?.__count && this.step?.data?.__count > 0?html`
-
-                          <vaadin-button theme="tertiary" @click=${this.goPrevious} ?disabled=${this.step?.data?.__index == 0}><vaadin-icon icon="vaadin:arrow-up"></vaadin-icon></vaadin-button>
-                          <vaadin-button theme="tertiary" @click=${this.goNext} ?disabled=${this.step?.data?.__index >= this.step?.data?.__count - 1}><vaadin-icon icon="vaadin:arrow-down"></vaadin-icon></vaadin-button>
-
-                      `:''}                    
-                </vaadin-horizontal-layout>
-`:''}
-        
         ${this.view?.title?html`
           <h1>${this.view?.title}</h1>
         `:''}
@@ -190,9 +176,24 @@ export class MateuView extends LitElement {
             baseUrl="${this.baseUrl}"
             previousStepId="${this.previousStepId}"
         >
-          <slot></slot></mateu-component>
+            ${this.step?.previousStepId || this.step?.data?.__index || this.step?.data?.__count?html`
+                <vaadin-horizontal-layout>
+                      ${this.step?.previousStepId && this.step?.previousStepId != this.initialStepId?html`
+                          <vaadin-button theme="tertiary" @click=${this.goBack}><vaadin-icon icon="vaadin:arrow-left"></vaadin-icon></vaadin-button>
+                      `:''}
+                      ${this.step?.data?.__index != undefined && this.step?.data?.__count && this.step?.data?.__count > 0?html`
+
+                          <vaadin-button theme="tertiary" @click=${this.goPrevious} ?disabled=${this.step?.data?.__index == 0}><vaadin-icon icon="vaadin:arrow-up"></vaadin-icon></vaadin-button>
+                          <vaadin-button theme="tertiary" @click=${this.goNext} ?disabled=${this.step?.data?.__index >= this.step?.data?.__count - 1}><vaadin-icon icon="vaadin:arrow-down"></vaadin-icon></vaadin-button>
+
+                      `:''}                    
+                </vaadin-horizontal-layout>
+`:''}
+
+            <slot></slot></mateu-component>
         `)}
           </vaadin-vertical-layout>
+          
       </main><aside class="right">
         ${this.view?.right?.components.map(c => html`<mateu-component 
             .component=${c} 
