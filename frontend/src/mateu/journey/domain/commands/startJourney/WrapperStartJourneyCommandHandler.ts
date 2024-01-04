@@ -8,6 +8,7 @@ export class WrapperStartJourneyCommandHandler {
     public async handle(command: StartJourneyCommand, state: State): Promise<void> {
         const journeyId = nanoid()
         const stepWrapper = await mateuApiClient.createJourneyAndReturn(command.journeyTypeId, journeyId)
+        sessionStorage.setItem(journeyId, JSON.stringify(stepWrapper.store))
         state.baseUrl = command.baseUrl
         state.journey = stepWrapper.journey
         state.journeyTypeId = command.journeyTypeId

@@ -217,7 +217,8 @@ export default class MateuApiClient {
         return await this.wrap<StepWrapper>(this.getUsingPost(this.baseUrl.replace('v1', 'v2') + '/journeys/' +
             journeyType + '/' + journeyId + '/steps/' + stepId
             + '/' + actionId, {
-                data: data
+                data: data,
+                journey: JSON.parse(sessionStorage.getItem(journeyId)!)
             }
         ).then((response) => response.data).catch((error) => {
             console.log('error en post', error)
