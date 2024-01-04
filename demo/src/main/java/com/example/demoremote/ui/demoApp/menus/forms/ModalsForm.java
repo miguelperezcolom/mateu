@@ -48,9 +48,14 @@ public class ModalsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
   @ReadOnly
   private String assessment;
 
-  @Action(order = 0, target = ActionTarget.NewModal)
+  @Action(order = -1, target = ActionTarget.NewModal)
   public WizardPage1 openModal() throws Exception {
     return new WizardPage1();
+  }
+
+  @Action(order = 0, target = ActionTarget.NewModal)
+  public TextFieldsForm openModal2() throws Exception {
+    return new TextFieldsForm();
   }
 
   @Action(order = 1, target = ActionTarget.NewTab)

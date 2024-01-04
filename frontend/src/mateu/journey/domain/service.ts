@@ -6,6 +6,7 @@ import {getStepQueryHandler} from "./queries/getStep/GetStepQueryHandler";
 import {goBackCommandHandler} from "./commands/goBack/GoBackCommandHandler";
 import {goToIndexCommandHandler} from "./commands/goToIndex/GoToIndexCommandHandler";
 import {Subject} from "rxjs";
+import {goToStepCommandHandler} from "./commands/goToStep/GoToStepCommandHandler";
 
 export class Service {
 
@@ -34,6 +35,16 @@ export class Service {
         })
     }
 
+    async silentRunAction(actionId: string, data: unknown) {
+        await callActionCommandHandler
+            .handle({actionId, data}, this.state)
+            .catch((error) => {
+                console.log('error', error)
+                throw error
+            }).then(async () => {
+            })
+    }
+
     private async reloadJourney() {
         this.state.journey = await getJourneyQueryHandler.handle({
             journeyTypeId: this.state.journeyTypeId!,
@@ -59,6 +70,12 @@ export class Service {
 
     async goToIndex(data: { __listId: string; __index: number; __count: number }) {
         await goToIndexCommandHandler.handle(data, this.state)
+        await this.reloadJourney()
+        this.upstream.next({...this.state})
+    }
+
+    async goToStep(stepId: string) {
+        await goToStepCommandHandler.handle({__stepId: stepId}, this.state)
         await this.reloadJourney()
         this.upstream.next({...this.state})
     }

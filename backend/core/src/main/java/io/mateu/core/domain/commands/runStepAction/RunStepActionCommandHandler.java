@@ -9,6 +9,8 @@ import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.Form;
+
+import java.time.LocalDateTime;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +32,6 @@ public class RunStepActionCommandHandler {
 
   @Transactional
   public Mono<Void> handle(RunStepActionCommand command) throws Throwable {
-
     String journeyId = command.getJourneyId();
     String stepId = command.getStepId();
     String actionId = command.getActionId();
@@ -42,6 +43,16 @@ public class RunStepActionCommandHandler {
     if (journeyContainer == null) {
       throw new Exception("No journey with id " + journeyId);
     }
+
+    if ("xxxbacktostep".equals(actionId)) {
+      journeyContainer.getJourney().setCurrentStepId(stepId);
+      journeyContainer.getJourney().setCurrentStepDefinitionId("xxx");
+      journeyContainer.setLastAccess(LocalDateTime.now());
+      store.save(journeyContainer);
+
+      return Mono.empty().then();
+    }
+
 
     if (!Strings.isNullOrEmpty(journeyContainer.getRemoteJourneyTypeId())) {
       return mateuRemoteClient.runStep(

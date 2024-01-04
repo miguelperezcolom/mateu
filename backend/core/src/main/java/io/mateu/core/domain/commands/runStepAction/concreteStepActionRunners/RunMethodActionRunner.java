@@ -44,6 +44,9 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
   @Override
   public boolean applies(Object viewInstance, String actionId) {
+    if ("xxxbacktostep".equals(actionId)) {
+      return true;
+    }
     return getActions(getActualInstance(viewInstance, Map.of())).containsKey(actionId);
   }
 
@@ -113,6 +116,13 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
+
+    if ("xxxbacktostep".equals(actionId)) {
+      store.backToStep(journeyId, stepId);
+
+      return Mono.empty().then();
+    }
+
 
     Object actualViewInstance = getActualInstance(viewInstance, data);
 

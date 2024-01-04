@@ -20,6 +20,9 @@ export class JourneyStep extends LitElement {
     stepId = '';
 
     @property()
+    initialStepId: string | undefined
+
+    @property()
     service: Service | undefined
 
     @property()
@@ -40,6 +43,7 @@ export class JourneyStep extends LitElement {
                 .service=${this.service}
                 baseUrl="${this.baseUrl}"
                 previousStepId="${this.step?.previousStepId}"
+                initialStepId="${this.initialStepId}"
         ><slot></slot></mateu-view>`
     }
 

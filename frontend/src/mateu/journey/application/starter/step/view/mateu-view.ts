@@ -35,6 +35,9 @@ export class MateuView extends LitElement {
   @property()
   stepId!: string
 
+    @property()
+    initialStepId: string | undefined
+
   @property()
   step!: Step;
 
@@ -158,7 +161,7 @@ export class MateuView extends LitElement {
 
           ${this.step?.previousStepId || this.step?.data?.__index || this.step?.data?.__count?html`
                 <vaadin-horizontal-layout>
-                      ${this.step?.previousStepId?html`
+                      ${this.step?.previousStepId && this.step?.previousStepId != this.initialStepId?html`
                           <vaadin-button theme="tertiary" @click=${this.goBack}><vaadin-icon icon="vaadin:arrow-left"></vaadin-icon></vaadin-button>
                       `:''}
                       ${this.step?.data?.__index != undefined && this.step?.data?.__count && this.step?.data?.__count > 0?html`

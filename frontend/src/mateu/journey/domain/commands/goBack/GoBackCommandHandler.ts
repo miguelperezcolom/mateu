@@ -1,6 +1,7 @@
 import {GoBackCommand} from "./GoBackCommand";
 import {mateuApiClient} from "../../../../shared/apiClients/MateuApiClient";
 import {State} from "../../state";
+import {GoToStepCommandHandler} from "../goToStep/GoToStepCommandHandler";
 
 export class GoBackCommandHandler {
 

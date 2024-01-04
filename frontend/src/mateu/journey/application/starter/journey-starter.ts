@@ -16,6 +16,7 @@ import {ActionTarget} from "../../../shared/apiClients/dtos/ActionTarget";
 import {DialogOpenedChangedEvent} from "@vaadin/dialog";
 import {dialogHeaderRenderer, dialogRenderer} from "@vaadin/dialog/lit";
 import {Service} from "../../domain/service";
+import {nanoid} from "nanoid";
 
 @customElement('journey-starter')
 export class JourneyStarter extends LitElement {
@@ -25,19 +26,36 @@ export class JourneyStarter extends LitElement {
     baseUrl = ''
     @property()
     journeyTypeId: string | undefined = undefined;
-
+    @property()
+    journeyId: string | undefined = undefined;
+    @property()
+    stepId: string | undefined = undefined;
+    @property()
+    instant: string | undefined = undefined;
+    @property()
+    actionId: string | undefined = undefined;
+    @property()
+    actionData: unknown | undefined = undefined;
+    @property()
+    parentStepId: string | undefined = undefined;
+    @property()
+    initialStepId: string | undefined = undefined;
 
     //reactive state
+    @state()
+    modalStepId: string | undefined = undefined;
+    @state()
+    modalActionId: string | undefined = undefined;
+    @state()
+    modalActionData: unknown | undefined = undefined;
+    @state()
+    modalInstant: string | undefined = undefined;
     @state()
     loading: boolean = false;
     @state()
     error: boolean | undefined = undefined;
     @state()
-    journeyId: string | undefined = undefined;
-    @state()
     journey: Journey | undefined = undefined;
-    @state()
-    stepId: string | undefined = undefined;
     @state()
     previousStepId: string | undefined = undefined;
     @state()
@@ -74,6 +92,10 @@ export class JourneyStarter extends LitElement {
         if (action && ActionTarget.NewModal == action.target) {
             // crear modal y meter un journey-starter dentro
             this.modalOpened = true
+            this.modalStepId = this.stepId
+            this.modalActionId = event.detail.actionId
+            this.modalActionData = event.detail.data
+            this.modalInstant = nanoid()
         } else {
             this.service.runAction(event.detail.actionId, event.detail.data).then()
         }
@@ -114,13 +136,26 @@ export class JourneyStarter extends LitElement {
     }
 
     async updated(changedProperties: Map<string, unknown>) {
-        if (changedProperties.has("baseUrl") || changedProperties.has("journeyTypeId")) {
-                setTimeout(() => {
+        if (changedProperties.has("baseUrl")
+            || changedProperties.has("journeyTypeId")
+            || changedProperties.has("instant")
+        ) {
+                setTimeout(async () => {
                     if (this.baseUrl && this.journeyTypeId) {
-                    console.log('starting journey due to props change', this.baseUrl, this.journeyTypeId, changedProperties)
-                    mateuApiClient.baseUrl = this.baseUrl
-                    mateuApiClient.element = this
-                    this.service.startJourney(this.baseUrl, this.journeyTypeId).then()
+                        mateuApiClient.baseUrl = this.baseUrl
+                        mateuApiClient.element = this
+                        if (this.actionId) {
+                            console.log('running action as prop is set', this.baseUrl, this.journeyTypeId, this.journeyId, this.stepId, this.actionId, this.actionData, changedProperties)
+                            this.service.state.journeyTypeId = this.journeyTypeId
+                            this.service.state.journeyId = this.journeyId
+                            this.service.state.baseUrl = this.baseUrl
+                            this.service.state.stepId = this.initialStepId
+                            console.log('this.service.state', this.service.state, this, this.initialStepId)
+                            await this.service.runAction(this.actionId, this.actionData)
+                        } else {
+                            console.log('starting journey due to props change', this.baseUrl, this.journeyTypeId, changedProperties)
+                            await this.service.startJourney(this.baseUrl, this.journeyTypeId)
+                        }
                     }
                 })
         }
@@ -133,34 +168,26 @@ export class JourneyStarter extends LitElement {
     @state()
     modalOpened = false
 
-    closeModal() {
+    async closeModal() {
         this.modalOpened = false
+        await this.service.goToStep(this.stepId!)
     }
 
     renderModal() {
         return html`
+            
+            <journey-starter
+                    journeyTypeId="${this.journeyTypeId}"
+                    journeyId="${this.journeyId}"
+                    stepId="${this.modalStepId}"
+                    baseUrl="${this.baseUrl}"
+                    instant="${this.modalInstant}"
+                    actionId="${this.modalActionId}"
+                    .actionData=${this.modalActionData}
+                    parentStepId="${this.stepId}"
+                    initialStepId="${this.stepId}"
+            >
    
-            <h1>Hola!!!</h1>
-
-            ${this.step?html`
-                
-                        <journey-step
-                                id="step"
-                                journeyTypeId="${this.journeyTypeId}"
-                                journeyId="${this.journeyId}" 
-                                       stepId="${this.stepId}" 
-                                       .step=${this.step} 
-                                       baseUrl="${this.baseUrl}"
-                                version="${this.version}"
-                                @runaction="${this.runAction}"
-                                @back-requested="${this.goBack}"
-                        >
-                        </journey-step>
-
-                    `:html`
-                <p>No step</p>
-            `}
-
         `
     }
 
@@ -195,6 +222,7 @@ export class JourneyStarter extends LitElement {
                                        stepId="${this.stepId}" 
                                        .step=${this.step} 
                                        baseUrl="${this.baseUrl}"
+                                initialStepId="${this.initialStepId}"
                                 version="${this.version}"
                                 .service=${this.service}
                                 @runaction="${this.runAction}"
@@ -219,8 +247,10 @@ export class JourneyStarter extends LitElement {
             <vaadin-dialog
                     header-title="User details"
                     .opened="${this.modalOpened}"
-                    @opened-changed="${(event: DialogOpenedChangedEvent) => {
-                        this.modalOpened = event.detail.value;
+                    @opened-changed="${async (event: DialogOpenedChangedEvent) => {
+                        if (!event.detail.value && this.modalOpened && this.stepId) {
+                            this.closeModal()
+                        }
                     }}"
                     ${dialogHeaderRenderer(
                             () => html`
