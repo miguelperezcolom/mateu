@@ -1,14 +1,14 @@
 import {ReactiveController} from 'lit';
-import {JourneyRunner} from "../journey-runner";
+import {JourneyStarter} from "../journey-starter";
 
 export class ApiController implements ReactiveController {
 
-    host: JourneyRunner;
+    host: JourneyStarter;
 
     // non reactive state
     activeCalls = 0;
 
-    constructor(host: JourneyRunner) {
+    constructor(host: JourneyStarter) {
         (this.host = host).addController(this);
         this.activeCalls = 0;
     }
