@@ -179,6 +179,43 @@ export class JourneyStarter extends LitElement {
         await this.service.goToStep(this.stepId!)
     }
 
+
+    async _goBack() {
+        this.dispatchEvent(new CustomEvent('back-requested', {
+            bubbles: true,
+            composed: true}))
+    }
+
+    async goNext() {
+        this.dispatchEvent(new CustomEvent('next-requested', {
+            bubbles: true,
+            composed: true,
+            detail: {
+                journeyTypeId: this.journeyTypeId,
+                journeyId: this.journeyId,
+                stepId: this.stepId,
+                __listId: '__list__main__edit',
+                __index: this.step?.data.__index! + 1,
+                __count: this.step?.data.__count,
+                previousStepId: this.previousStepId
+            }}))
+    }
+
+    async goPrevious() {
+        this.dispatchEvent(new CustomEvent('previous-requested', {
+            bubbles: true,
+            composed: true,
+            detail: {
+                journeyTypeId: this.journeyTypeId,
+                journeyId: this.journeyId,
+                stepId: this.stepId,
+                __listId: '__list__main__edit',
+                __index: this.step?.data.__index! - 1,
+                __count: this.step?.data.__count,
+                previousStepId: this.previousStepId
+            }}))
+    }
+
     renderModal() {
         return html`
             
@@ -234,6 +271,19 @@ export class JourneyStarter extends LitElement {
                                 @runaction="${this.runAction}"
                                 @back-requested="${this.goBack}"
                         >
+                            ${this.step?.previousStepId || this.step?.data?.__index || this.step?.data?.__count?html`
+                <vaadin-horizontal-layout theme="spacing">
+                      ${this.step?.previousStepId && this.step?.previousStepId != this.initialStepId?html`
+                          <vaadin-button theme="tertiary" @click=${this.goBack}>Back</vaadin-button>
+                      `:''}
+                      ${this.step?.data?.__index != undefined && this.step?.data?.__count && this.step?.data?.__count > 0?html`
+
+                          <vaadin-button theme="tertiary" @click=${this.goPrevious} ?disabled=${this.step?.data?.__index == 0}>Previous</vaadin-button>
+                          <vaadin-button theme="tertiary" @click=${this.goNext} ?disabled=${this.step?.data?.__index >= this.step?.data?.__count - 1}>Next</vaadin-button>
+
+                      `:''}                    
+                </vaadin-horizontal-layout>
+`:''}
                         </journey-step>
 
                     `:html`
