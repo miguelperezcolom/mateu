@@ -62,7 +62,10 @@ export class ApiController implements ReactiveController {
         }
         this.host.loading = this.activeCalls > 0
         const ce = event as CustomEvent
-        this.host.notificationMessage = `${ce.detail.reason.code} ${ce.detail.reason.message}`;
+        this.host.notificationMessage = `${ce.detail.reason}`;
+        if (ce.detail.reason.code || ce.detail.reason.message) {
+            this.host.notificationMessage = `${ce.detail.reason.code} ${ce.detail.reason.message}`;
+        }
         if (ce.detail.reason.response?.data) {
             this.host.notificationMessage = `${ce.detail.reason.response.data}`
         }
