@@ -267,10 +267,13 @@ export class MateuCrud extends LitElement {
 
   updateFiltersText() {
     let text = '';
-    for (const k in this.data) {
-      if (k != 'action') {
-        if (text) text += ', ';
-        text += this.data[k];
+    for (const k in this.metadata?.searchForm.fields) {
+      const f = this.metadata?.searchForm.fields[k]
+      if (this.data[f.id]) {
+        if (k != 'action') {
+          if (text) text += ', ';
+          text += this.data[f.id];
+        }
       }
     }
     this.filtersText = 'Applied filters: ' + (text?text:'None')
