@@ -73,12 +73,16 @@ export default class MateuApiClient {
                     bubbles: true,
                     composed: true,
                     detail: {
-                        reason: reason
+                        reason: this.serialize(reason)
                     }
                 }))
             }
             throw reason
         })
+    }
+
+    private serialize(reason: any) {
+        return JSON.stringify(reason)
     }
 
     async getMax2(uri: string): Promise<AxiosResponse> {
