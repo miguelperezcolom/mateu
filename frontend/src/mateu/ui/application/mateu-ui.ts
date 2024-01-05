@@ -15,6 +15,7 @@ import {upstream} from "../domain/upstream";
 import {Subscription} from "rxjs";
 import {service} from "../domain/service";
 import {mateuApiClient} from "../../shared/apiClients/MateuApiClient";
+import {nanoid} from "nanoid";
 
 interface MyMenuBarItem extends MenuBarItem {
 
@@ -39,6 +40,8 @@ export class MateuUi extends LitElement {
     ui: UI | undefined = undefined;
     @property()
     journeyTypeId: string | undefined;
+    @state()
+    instant: string | undefined;
     @property()
     loading: boolean = false;
     @property()
@@ -113,6 +116,7 @@ export class MateuUi extends LitElement {
 
 
     itemSelected(event: MenuBarItemSelectedEvent) {
+        this.instant = nanoid()
         let item = event.detail.value as MyMenuBarItem
         service.createJourney(item.journeyTypeId!, item.text!)
     }
@@ -175,13 +179,13 @@ export class MateuUi extends LitElement {
                 
                     ${this.ui.homeJourneyTypeId && !this.journeyTypeId?html`
 
-                    <journey-starter journeytypeid="${this.ui.homeJourneyTypeId}" baseUrl="${this.baseUrl}"></journey-starter>
+                    <journey-starter journeytypeid="${this.ui.homeJourneyTypeId}" baseUrl="${this.baseUrl}" instant="${this.instant}"></journey-starter>
                     
                 `:''}
 
                     ${this.journeyTypeId?html`
 
-                    <journey-starter journeytypeid=${this.journeyTypeId} baseUrl="${this.baseUrl}"></journey-starter>
+                    <journey-starter journeytypeid=${this.journeyTypeId} baseUrl="${this.baseUrl}"  instant="${this.instant}"></journey-starter>
                     
                 `:''}
 
