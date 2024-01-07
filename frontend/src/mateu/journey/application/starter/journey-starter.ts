@@ -108,7 +108,7 @@ export class JourneyStarter extends LitElement {
     }
 
     goBack() {
-        this.service.goBack().then()
+        this.service.goBack(this.journeyId!).then()
     }
 
 

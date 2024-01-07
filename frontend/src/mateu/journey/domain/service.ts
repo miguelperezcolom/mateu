@@ -91,8 +91,10 @@ export class Service {
         console.log('journey reloaded', this.state)
     }
 
-    async goBack() {
-        await goBackCommandHandler.handle({}, this.state)
+    async goBack(journeyId: string) {
+        await goBackCommandHandler.handle({
+            __journey: JSON.parse(sessionStorage.getItem(journeyId)!)
+        }, this.state)
         await this.reloadJourney()
         this.upstream.next({...this.state})
     }

@@ -28,6 +28,7 @@ export class PreviousAndNextController implements ReactiveController {
             __listId: ce.detail.__listId,
             __index: ce.detail.__index,
             __count: ce.detail.__count,
+            __journey: JSON.parse(sessionStorage.getItem(ce.detail.journeyId)!)
         }
         this.service.goToIndex(data)
     }
@@ -38,6 +39,7 @@ export class PreviousAndNextController implements ReactiveController {
             __listId: ce.detail.__listId,
             __index: ce.detail.__index,
             __count: ce.detail.__count,
+            __journey: JSON.parse(sessionStorage.getItem(ce.detail.journeyId)!)
         }
         this.service.goToIndex(data)
     }
