@@ -273,7 +273,7 @@ export default class MateuApiClient {
             "&ordering=" + sortOrders, data)
             .then((response) => {
                 const type = response.headers['content-type']
-                const blob = new Blob([response.data], { type: type, encoding: 'UTF-8' })
+                const blob = new Blob([response.data], { type: type })
                 const link = document.createElement('a')
                 link.href = window.URL.createObjectURL(blob)
                 link.download = 'file.csv'
@@ -295,7 +295,7 @@ export default class MateuApiClient {
             "&ordering=" + sortOrders, data)
             .then((response) => {
                 const type = response.headers['content-type']
-                const blob = new Blob([response.data], { type: type, encoding: 'UTF-8' })
+                const blob = new Blob([response.data], { type: type })
                 const link = document.createElement('a')
                 link.href = window.URL.createObjectURL(blob)
                 link.download = 'file.xlsx'
