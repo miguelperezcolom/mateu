@@ -93,9 +93,18 @@ export class Service {
 
     async goBack(journeyId: string) {
         await goBackCommandHandler.handle({
-            __journey: JSON.parse(sessionStorage.getItem(journeyId)!)
-        }, this.state)
-        await this.reloadJourney()
+            journey: JSON.parse(sessionStorage.getItem(journeyId)!)
+        }, this.state).then(async (value: StepWrapper) => {
+            sessionStorage.setItem(this.state.journeyId!, JSON.stringify(value.store))
+            this.state.journey = value.journey
+            this.state.stepId = this.state.journey.currentStepId
+            if (this.state.journey.status != 'Finished') {
+                this.state.step = value.step
+                this.state.previousStepId = this.state.step.previousStepId
+            }
+            console.log('journey reloaded from response', this.state)
+            this.upstream.next({...this.state})
+        })
         this.upstream.next({...this.state})
     }
 
@@ -106,7 +115,9 @@ export class Service {
     }
 
     async goToStep(stepId: string) {
-        await goToStepCommandHandler.handle({__stepId: stepId}, this.state)
+        await goToStepCommandHandler.handle({
+            __stepId: stepId
+        }, this.state)
         await this.reloadJourney()
         this.upstream.next({...this.state})
     }

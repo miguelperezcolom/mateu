@@ -203,7 +203,8 @@ export default class MateuApiClient {
         return await this.wrap<void>(this.post(this.baseUrl + '/journeys/' +
             journeyType + '/' + journeyId + '/steps/' + stepId
                 + '/' + actionId, {
-                    data: data
+                    data: data,
+                    journey: JSON.parse(sessionStorage.getItem(journeyId)!)
                 }
             ).catch((error) => {
                 console.log('error en post', error)
