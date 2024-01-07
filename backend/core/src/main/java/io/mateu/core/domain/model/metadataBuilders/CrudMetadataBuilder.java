@@ -135,7 +135,7 @@ public class CrudMetadataBuilder {
                 })
             .collect(Collectors.toList());
 
-    filterFields.add(
+    if ("JpaRpcCrudView".equals(rpcView.getClass().getSimpleName())) filterFields.add(
         0,
         Field.builder()
             .id(listId + "-" + "_search-text")
