@@ -274,6 +274,10 @@ public class JourneyStoreService {
     return container.get().getJourney();
   }
 
+  public void removeJourney(String journeyId) throws Exception {
+    journeyRepo.remove(journeyId);
+  }
+
   public void backToStep(String journeyId, String stepId) throws Exception {
     Optional<JourneyContainer> container = findJourneyById(journeyId);
     if (!container.isPresent()) {

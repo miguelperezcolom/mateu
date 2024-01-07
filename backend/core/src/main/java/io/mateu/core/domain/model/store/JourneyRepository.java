@@ -12,5 +12,7 @@ public interface JourneyRepository {
 
   Flux<JourneyContainer> findAll();
 
+  void remove(String journeyId);
+
   Mono<Long> count();
 }

@@ -30,6 +30,11 @@ public class MemoryJourneyRepository implements JourneyRepository {
   }
 
   @Override
+  public void remove(String journeyId) {
+    containers.remove(journeyId);
+  }
+
+  @Override
   public Mono<Long> count() {
     return Mono.just((long) containers.size());
   }

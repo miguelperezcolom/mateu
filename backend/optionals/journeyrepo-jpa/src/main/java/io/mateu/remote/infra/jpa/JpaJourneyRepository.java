@@ -47,6 +47,11 @@ public class JpaJourneyRepository implements JourneyRepository {
   }
 
   @Override
+  public void remove(String journeyId) {
+    repo.deleteById(journeyId);
+  }
+
+  @Override
   public Mono<Long> count() {
     return repo.count();
   }

@@ -164,9 +164,16 @@ public class MateuService {
         .thenReturn(
             StepWrapper.builder()
                 .journey(getJourneyFromStore(journeyId))
-                .step(getStep(journeyId))
                 .store(getJourneyContainer(journeyId))
-                .build());
+                .step(getStep(journeyId))
+                .build()).map(v -> {
+              try {
+                store.removeJourney(journeyId);
+              } catch (Exception e) {
+                throw new RuntimeException(e);
+              }
+              return v;
+            });
   }
 
   public Mono<StepWrapper> runStepAndReturn(
@@ -181,9 +188,16 @@ public class MateuService {
         .thenReturn(
             StepWrapper.builder()
                 .journey(getJourneyFromStore(journeyId))
-                .step(getStep(journeyId))
                 .store(getJourneyContainer(journeyId))
-                .build());
+                    .step(getStep(journeyId))
+                .build()).map(v -> {
+              try {
+                store.removeJourney(journeyId);
+              } catch (Exception e) {
+                throw new RuntimeException(e);
+              }
+              return v;
+            });
   }
 
   private Map<String, Object> getJourneyContainer(String journeyId) {
@@ -204,7 +218,8 @@ public class MateuService {
 
   private Journey getJourneyFromStore(String journeyId) {
     try {
-      return store.getJourney(journeyId);
+      var journey = store.getJourney(journeyId);
+      return journey;
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -241,7 +256,14 @@ public class MateuService {
             .filters(filters)
             .ordering(new OrderingDeserializer(ordering).deserialize(serializer))
             .serverHttpRequest(serverHttpRequest)
-            .build());
+            .build()).map(v -> {
+      try {
+        store.removeJourney(journeyId);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+      return v;
+    });
   }
 
   public Mono<Long> getListCount(
@@ -268,7 +290,14 @@ public class MateuService {
             .listId(listId)
             .filters(filters)
             .serverHttpRequest(serverHttpRequest)
-            .build());
+            .build()).map(v -> {
+      try {
+        store.removeJourney(journeyId);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+      return v;
+    });
   }
 
   public Flux<Value> getItems(String itemProviderId, int page, int page_size, String search_text)
