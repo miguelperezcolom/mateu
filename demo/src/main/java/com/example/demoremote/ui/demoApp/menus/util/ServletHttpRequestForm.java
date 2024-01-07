@@ -23,13 +23,7 @@ public class ServletHttpRequestForm {
   @ReadOnly String rq;
 
   @Action
-  public Mono<Void> readRequest() throws ExecutionException, InterruptedException {
-    return ReactiveRequestContextHolder.getRequest().doOnNext(serverHttpRequest -> {
-      try {
-        this.rq = serializer.toJson(serverHttpRequest);
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    }).then();
+  public void readRequest(ServerHttpRequest serverHttpRequest) throws Exception {
+    this.rq = serializer.toJson(serverHttpRequest);
   }
 }

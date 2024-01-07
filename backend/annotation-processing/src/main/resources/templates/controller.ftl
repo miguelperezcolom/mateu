@@ -98,13 +98,19 @@ public class ${simpleClassName}MateuController {
                                     @RequestParam int page,
                                     @RequestParam int page_size,
                                     // urlencoded form of filters json serialized
-                                    @RequestBody Map<String, Object> filters,
+                                    @RequestBody Map<String, Object> body,
                                     // urlencoded form of orders json serialized
                                     @RequestParam String ordering,
                                     ServerHttpRequest serverHttpRequest
                                     ) throws Throwable {
+        Map<String, Object> filters = null;
+        Map<String, Object> journey = null;
+        if (body != null) {
+            filters = (Map<String, Object>) body.get("__filters");
+            journey = (Map<String, Object>) body.get("__journey");
+        }
         return service.getListRows(journeyTypeId, journeyId, stepId, listId, page, page_size,
-                            filters, ordering, serverHttpRequest);
+                            filters, ordering, journey, serverHttpRequest);
     }
 
     @PostMapping("v1/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/lists/{listId}/count")
@@ -113,10 +119,16 @@ public class ${simpleClassName}MateuController {
                                     @PathVariable String stepId,
                                     @PathVariable String listId,
                                     // urlencoded form of filters json serialized
-                                    @RequestBody Map<String, Object> filters,
+                                    @RequestBody Map<String, Object> body,
                                     ServerHttpRequest serverHttpRequest
                                     ) throws Throwable {
-        return service.getListCount(journeyTypeId, journeyId, stepId, listId, filters
+        Map<String, Object> filters = null;
+        Map<String, Object> journey = null;
+        if (body != null) {
+            filters = (Map<String, Object>) body.get("__filters");
+            journey = (Map<String, Object>) body.get("__journey");
+        }
+        return service.getListCount(journeyTypeId, journeyId, stepId, listId, filters, journey
                                 , serverHttpRequest);
     }
 
@@ -161,15 +173,21 @@ public class ${simpleClassName}MateuController {
                     @PathVariable String stepId,
                     @PathVariable String listId,
                     // urlencoded form of filters json serialized
-                    @RequestBody Map<String, Object> filters,
+                    @RequestBody Map<String, Object> body,
                     // urlencoded form of orders json serialized
                     @RequestParam String ordering,
                     ServerHttpRequest serverHttpRequest) throws Throwable {
+        Map<String, Object> filters = null;
+        Map<String, Object> journey = null;
+        if (body != null) {
+            filters = (Map<String, Object>) body.get("__filters");
+            journey = (Map<String, Object>) body.get("__journey");
+        }
         String fileName = String.format("%s.csv", RandomStringUtils.randomAlphabetic(10));
         return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_DISPOSITION,  "attachment; filename=" + fileName)
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE)
-            .body(service.generateCsv(journeyTypeId, journeyId, stepId, listId, filters, ordering, serverHttpRequest)
+            .body(service.generateCsv(journeyTypeId, journeyId, stepId, listId, filters, ordering, journey, serverHttpRequest)
             .flatMap(x -> {
                 Resource resource = new InputStreamResource(x);
                 return Mono.just(resource);
@@ -182,15 +200,21 @@ public class ${simpleClassName}MateuController {
                     @PathVariable String stepId,
                     @PathVariable String listId,
                     // urlencoded form of filters json serialized
-                    @RequestBody Map<String, Object> filters,
+                    @RequestBody Map<String, Object> body,
                     // urlencoded form of orders json serialized
                     @RequestParam String ordering,
                     ServerHttpRequest serverHttpRequest) throws Throwable {
+        Map<String, Object> filters = null;
+        Map<String, Object> journey = null;
+        if (body != null) {
+            filters = (Map<String, Object>) body.get("__filters");
+            journey = (Map<String, Object>) body.get("__journey");
+        }
         String fileName = String.format("%s.xls", RandomStringUtils.randomAlphabetic(10));
         return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_DISPOSITION,  "attachment; filename=" + fileName)
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE)
-            .body(service.generateExcel(journeyTypeId, journeyId, stepId, listId, filters, ordering, serverHttpRequest)
+            .body(service.generateExcel(journeyTypeId, journeyId, stepId, listId, filters, ordering, journey, serverHttpRequest)
             .flatMap(x -> {
                 Resource resource = new InputStreamResource(x);
                 return Mono.just(resource);

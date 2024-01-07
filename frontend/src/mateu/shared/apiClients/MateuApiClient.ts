@@ -234,40 +234,74 @@ export default class MateuApiClient {
                     page: number, pageSize: number,
                     sortOrders: string, filters: object
                     ): Promise<any[]> {
+        const data = {
+            __filters: filters,
+            __journey: JSON.parse(sessionStorage.getItem(journeyId)!)
+        }
         return await this.wrap<any[]>(this.postMax2(this.baseUrl + "/journeys/" + journeyType
             + '/' + journeyId +
             "/steps/" + stepId +
             "/lists/" + listId + "/rows?page=" + page + "&page_size=" + pageSize +
-            "&ordering=" + sortOrders, filters)
+            "&ordering=" + sortOrders, data)
             .then((response) => response.data))
     }
 
     async fetchCount(journeyType: string, journeyId: string, stepId: string, listId: string,
                      filters: object
     ): Promise<number> {
+        const data = {
+            __filters: filters,
+            __journey: JSON.parse(sessionStorage.getItem(journeyId)!)
+        }
         return await this.wrap<number>(this.getUsingPost(this.baseUrl + "/journeys/" + journeyType
             + '/' + journeyId
             + "/steps/" + stepId +
-            "/lists/" + listId + "/count", filters)
+            "/lists/" + listId + "/count", data)
             .then((response) => response.data))
     }
 
     async getCsv(journeyType: string, journeyId: string, stepId: string, listId: string,
                  sortOrders: string, filters: string): Promise<void> {
-        window.open(this.baseUrl + "/journeys/" + journeyType
+        const data = {
+            __filters: filters,
+            __journey: JSON.parse(sessionStorage.getItem(journeyId)!)
+        }
+        await this.wrap<void>(this.getUsingPost(this.baseUrl + "/journeys/" + journeyType
             + '/' + journeyId +
             "/steps/" + stepId +
             "/lists/" + listId + "/csv?" +
-            "&ordering=" + sortOrders + "&filters=" + filters)
+            "&ordering=" + sortOrders, data)
+            .then((response) => {
+                const type = response.headers['content-type']
+                const blob = new Blob([response.data], { type: type, encoding: 'UTF-8' })
+                const link = document.createElement('a')
+                link.href = window.URL.createObjectURL(blob)
+                link.download = 'file.csv'
+                link.click()
+                return response.data
+            }))
     }
 
     async getXls(journeyType: string, journeyId: string, stepId: string, listId: string,
                  sortOrders: string, filters: any): Promise<void> {
-        window.open(this.baseUrl + "/journeys/" + journeyType
+        const data = {
+            __filters: filters,
+            __journey: JSON.parse(sessionStorage.getItem(journeyId)!)
+        }
+        await this.wrap<number>(this.getUsingPost(this.baseUrl + "/journeys/" + journeyType
             + '/' + journeyId +
             "/steps/" + stepId +
             "/lists/" + listId + "/xls?" +
-            "&ordering=" + sortOrders + "&filters=" + filters)
+            "&ordering=" + sortOrders, data)
+            .then((response) => {
+                const type = response.headers['content-type']
+                const blob = new Blob([response.data], { type: type, encoding: 'UTF-8' })
+                const link = document.createElement('a')
+                link.href = window.URL.createObjectURL(blob)
+                link.download = 'file.xlsx'
+                link.click()
+                return response.data
+            }))
     }
 
     async getCsvMemory(journeyType: string, journeyId: string, stepId: string, listId: string,

@@ -221,8 +221,15 @@ public class MateuService {
       Map<String, Object> filters,
       // urlencoded form of orders json serialized
       String ordering,
+      Map<String, Object> journey,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
+    if (journey != null) {
+      JourneyContainer journeyContainer =
+          serializer.fromJson(serializer.toJson(journey), JourneyContainer.class);
+      store.save(journeyContainer);
+    }
+
     return getListRowsQueryHandler.run(
         GetListRowsQuery.builder()
             .journeyTypeId(journeyTypeId)
@@ -244,8 +251,15 @@ public class MateuService {
       String listId,
       // urlencoded form of filters json serialized
       Map<String, Object> filters,
+      Map<String, Object> journey,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
+    if (journey != null) {
+      JourneyContainer journeyContainer =
+          serializer.fromJson(serializer.toJson(journey), JourneyContainer.class);
+      store.save(journeyContainer);
+    }
+
     return getListCountQueryHandler.run(
         GetListCountQuery.builder()
             .journeyTypeId(journeyTypeId)
@@ -303,11 +317,21 @@ public class MateuService {
       Map<String, Object> filters,
       // urlencoded form of orders json serialized
       String ordering,
+      Map<String, Object> journey,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
     return getListRows(
-            journeyTypeId, journeyId, stepId, listId, 0, 500, filters, ordering, serverHttpRequest)
+            journeyTypeId,
+            journeyId,
+            stepId,
+            listId,
+            0,
+            500,
+            filters,
+            ordering,
+            journey,
+            serverHttpRequest)
         .map(o -> toMap(o))
         .map(m -> m.values())
         .map(a -> a.stream().map(o -> "" + o).collect(Collectors.toList()))
@@ -352,11 +376,21 @@ public class MateuService {
       Map<String, Object> filters,
       // urlencoded form of orders json serialized
       String ordering,
+      Map<String, Object> journey,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
     return getListRows(
-            journeyTypeId, journeyId, stepId, listId, 0, 500, filters, ordering, serverHttpRequest)
+            journeyTypeId,
+            journeyId,
+            stepId,
+            listId,
+            0,
+            500,
+            filters,
+            ordering,
+            journey,
+            serverHttpRequest)
         .map(o -> toMap(o))
         .map(m -> m.values())
         .map(a -> a.stream().map(o -> "" + o).collect(Collectors.toList()))
