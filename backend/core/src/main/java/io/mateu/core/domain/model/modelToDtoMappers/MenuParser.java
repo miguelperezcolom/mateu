@@ -57,7 +57,7 @@ public class MenuParser {
       if (!publicAccess && f.isAnnotationPresent(Private.class)) {
         Private pa = f.getAnnotation(Private.class);
         if (pa != null) {
-          add = authenticationAgnostic || check(pa);
+          add = authenticationAgnostic || check(pa, serverHttpRequest);
         } else add = true;
       }
 
@@ -87,7 +87,7 @@ public class MenuParser {
         if (!publicAccess && m.isAnnotationPresent(Private.class)) {
           Private pa = m.getAnnotation(Private.class);
           if (pa != null) {
-            add = check(pa);
+            add = check(pa, serverHttpRequest);
           } else add = true;
         }
       }
@@ -182,9 +182,9 @@ public class MenuParser {
     return menuEntry;
   }
 
-  private boolean check(Private pa) {
+  private boolean check(Private pa, ServerHttpRequest serverHttpRequest) {
     try {
-      return Helper.getImpl(MateuSecurityManager.class).check(pa);
+      return Helper.getImpl(MateuSecurityManager.class).check(pa, serverHttpRequest);
     } catch (Exception e) {
       e.printStackTrace();
     }

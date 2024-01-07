@@ -6,13 +6,14 @@ import io.mateu.mdd.shared.interfaces.UserPrincipal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 public class SpringbootSecurityMateuSecurityManager implements MateuSecurityManager {
 
   @Override
-  public UserPrincipal getPrincipal() {
+  public UserPrincipal getPrincipal(ServerHttpRequest serverHttpRequest) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     return new UserPrincipal() {
       @Override
@@ -35,7 +36,7 @@ public class SpringbootSecurityMateuSecurityManager implements MateuSecurityMana
   }
 
   @Override
-  public boolean check(Private annotation) {
+  public boolean check(Private annotation, ServerHttpRequest serverHttpRequest) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (!authentication.isAuthenticated()) {
       return false;

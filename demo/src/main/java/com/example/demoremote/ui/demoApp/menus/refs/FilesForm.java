@@ -9,10 +9,12 @@ import lombok.Data;
 @Caption("External refs and files")
 public class FilesForm {
 
+  /*
   @Section("Files (not supported yet)")
   private File singleFile;
 
   private File[] files;
+   */
 
   @Section("Files using strings")
   @io.mateu.mdd.shared.annotations.File
@@ -26,6 +28,8 @@ public class FilesForm {
 
   @Action
   public void assess() {
-    assessment = singleFile + ", " + files + ", " + singleFileAsString + ", " + filesAsStrings;
+    assessment =
+            //"" + singleFile + ", " + files + ", " +
+                    "" + singleFileAsString + ", " + filesAsStrings;
   }
 }

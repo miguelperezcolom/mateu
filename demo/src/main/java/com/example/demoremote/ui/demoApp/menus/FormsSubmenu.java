@@ -1,6 +1,7 @@
 package com.example.demoremote.ui.demoApp.menus;
 
 import com.example.demoremote.ui.demoApp.menus.forms.*;
+import io.mateu.mdd.core.interfaces.HasInitMethod;
 import io.mateu.mdd.shared.annotations.MenuOption;
 import io.mateu.mdd.shared.interfaces.RemoteJourney;
 
@@ -11,11 +12,10 @@ public class FormsSubmenu {
 
   @MenuOption private TabsForm tabs;
 
+  @MenuOption private HasInitMethodForm hasInitMethod;
   @MenuOption private MessagesForm messages;
 
   @MenuOption private ModalsForm modals;
-
-  @MenuOption private BannersForm banners;
 
   //@MenuOption private RichTextFieldForm richText;
 

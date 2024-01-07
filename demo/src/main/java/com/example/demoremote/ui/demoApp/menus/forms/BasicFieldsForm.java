@@ -16,6 +16,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.Data;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 
 @Data
 public class BasicFieldsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
@@ -47,13 +48,13 @@ public class BasicFieldsForm implements HasBadges, HasStatus, HasTitle, HasSubti
   }
 
   @Action(order = 2)
-  public void assess() {
-    assessment = "" + getCurrentUser() + "" + name + ", " + age + ", " + balance + ", " + withPlaceholder;
+  public void assess(ServerHttpRequest serverHttpRequest) {
+    assessment = "" + getCurrentUser(serverHttpRequest) + "" + name + ", " + age + ", " + balance + ", " + withPlaceholder;
   }
 
-  private String getCurrentUser() {
+  private String getCurrentUser(ServerHttpRequest serverHttpRequest) {
     try {
-      UserPrincipal principal = Helper.getImpl(MateuSecurityManager.class).getPrincipal();
+      UserPrincipal principal = Helper.getImpl(MateuSecurityManager.class).getPrincipal(serverHttpRequest);
       if (principal == null) {
         return "principal es null";
       }

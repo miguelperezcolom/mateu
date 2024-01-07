@@ -82,6 +82,9 @@ export default class MateuApiClient {
     }
 
     private serialize(reason: any) {
+        if (reason.message) {
+            return reason
+        }
         return JSON.stringify(reason)
     }
 

@@ -51,20 +51,9 @@ public class TabsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
 
   @Action(order = 2)
   public void assess() {
-    assessment = "" + getCurrentUser() + "" + name + ", " + age + ", " + balance + ", " + withPlaceholder;
+    assessment = "" + name + ", " + age + ", " + balance + ", " + withPlaceholder;
   }
 
-  private String getCurrentUser() {
-    try {
-      UserPrincipal principal = Helper.getImpl(MateuSecurityManager.class).getPrincipal();
-      if (principal == null) {
-        return "principal es null";
-      }
-      return principal.getName();
-    } catch (Exception e) {
-      return "" + e.getClass().getSimpleName() + ": " + e.getMessage();
-    }
-  }
 
   public String toString() {
     return "This is a sample form (toString)";

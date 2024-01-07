@@ -8,6 +8,7 @@ import io.mateu.core.domain.model.modelToDtoMappers.StepMapper;
 import io.mateu.core.domain.model.modelToDtoMappers.UIMapper;
 import io.mateu.core.domain.model.persistence.Merger;
 import io.mateu.mdd.core.app.*;
+import io.mateu.mdd.core.interfaces.HasInitMethod;
 import io.mateu.mdd.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.mdd.shared.interfaces.SortCriteria;
@@ -356,6 +357,9 @@ public class JourneyStoreService {
         Object uiInstance = null;
         try {
           uiInstance = reflectionHelper.newInstance(Class.forName(uiClassName));
+          if (uiInstance instanceof HasInitMethod) {
+            ((HasInitMethod) uiInstance).init(serverHttpRequest);
+          }
           uiMapper.map(uiInstance, serverHttpRequest);
           menuToBeanMapping = menuMappingRepo.findById(actionId);
         } catch (Exception e) {
@@ -367,6 +371,9 @@ public class JourneyStoreService {
         try {
           // todo: refactor for improving
           uiInstance = reflectionHelper.newInstance(Class.forName(uiClassName));
+          if (uiInstance instanceof HasInitMethod) {
+            ((HasInitMethod) uiInstance).init(serverHttpRequest);
+          }
           uiMapper.map(uiInstance, serverHttpRequest);
           Object finalUiInstance = uiInstance;
           storeMenuAction(actionId, new MDDOpenEditorAction("", () -> finalUiInstance));
@@ -385,6 +392,11 @@ public class JourneyStoreService {
     Object formInstance = null;
     try {
       formInstance = createInstanceFromMenuMapping(menuMapping.getBean());
+
+      if (formInstance instanceof HasInitMethod) {
+        ((HasInitMethod) formInstance).init(serverHttpRequest);
+      }
+
     } catch (Exception e) {
       e.printStackTrace();
     }
