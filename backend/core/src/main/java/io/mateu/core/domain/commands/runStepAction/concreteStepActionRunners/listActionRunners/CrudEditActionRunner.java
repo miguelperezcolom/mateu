@@ -1,6 +1,5 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.listActionRunners;
 
-import io.mateu.core.application.OrderingDeserializer;
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ListActionRunner;
 import io.mateu.core.domain.model.editors.EntityEditorFactory;
 import io.mateu.core.domain.model.editors.ObjectEditorFactory;
@@ -64,14 +63,11 @@ public class CrudEditActionRunner implements ListActionRunner {
               .deserialize(store);
 
       var ordering = store.getLastUsedOrders(journeyId, stepId, listId);
-      //new OrderingDeserializer(store.getLastUsedOrders(journeyId, stepId, listId)).deserialize(serializer);
+      // new OrderingDeserializer(store.getLastUsedOrders(journeyId, stepId,
+      // listId)).deserialize(serializer);
 
       row =
-          crud.fetchRows(
-                  filtersDeserialized,
-                  ordering,
-                  (Integer) __index,
-                  1)
+          crud.fetchRows(filtersDeserialized, ordering, (Integer) __index, 1)
               .next()
               .toFuture()
               .get();

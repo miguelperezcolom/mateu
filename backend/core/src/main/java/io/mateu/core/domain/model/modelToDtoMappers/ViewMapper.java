@@ -171,8 +171,10 @@ public class ViewMapper {
       actualUiInstance = em.find(entityEditor.getEntityClass(), entityEditor.getData().get("__id"));
     } else if (uiInstance instanceof ObjectEditor) {
       ObjectEditor objectEditor = (ObjectEditor) uiInstance;
-      actualUiInstance =
+      actualUiInstance = reflectionHelper.newInstance(objectEditor.getType());
+      Object filled =
           serializer.fromJson(serializer.toJson(objectEditor.getData()), objectEditor.getType());
+      reflectionHelper.copy(filled, actualUiInstance);
     } else if (uiInstance instanceof FieldEditor) {
       FieldEditor fieldEditor = (FieldEditor) uiInstance;
       actualUiInstance =
