@@ -135,15 +135,16 @@ public class CrudMetadataBuilder {
                 })
             .collect(Collectors.toList());
 
-    if ("JpaRpcCrudView".equals(rpcView.getClass().getSimpleName())) filterFields.add(
-        0,
-        Field.builder()
-            .id(listId + "-" + "_search-text")
-            .placeholder("Search")
-            .caption("Search")
-            .type("string")
-            .stereotype("input")
-            .build());
+    if ("JpaRpcCrudView".equals(rpcView.getClass().getSimpleName()))
+      filterFields.add(
+          0,
+          Field.builder()
+              .id(listId + "-" + "_search-text")
+              .placeholder("Search")
+              .caption("Search")
+              .type("string")
+              .stereotype("input")
+              .build());
 
     return filterFields;
   }

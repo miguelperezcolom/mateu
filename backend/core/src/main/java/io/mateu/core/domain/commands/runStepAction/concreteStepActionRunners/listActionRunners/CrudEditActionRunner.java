@@ -1,9 +1,11 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.listActionRunners;
 
+import io.mateu.core.application.OrderingDeserializer;
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ListActionRunner;
 import io.mateu.core.domain.model.editors.EntityEditorFactory;
 import io.mateu.core.domain.model.editors.ObjectEditorFactory;
 import io.mateu.core.domain.model.store.JourneyStoreService;
+import io.mateu.core.domain.queries.FiltersDeserializer;
 import io.mateu.mdd.core.interfaces.Crud;
 import io.mateu.mdd.core.interfaces.PersistentPojo;
 import io.mateu.reflection.ReflectionHelper;
@@ -49,10 +51,25 @@ public class CrudEditActionRunner implements ListActionRunner {
     }
 
     if (row == null) {
+
+      Object filtersDeserialized =
+          new FiltersDeserializer(
+                  journeyId,
+                  stepId,
+                  listId,
+                  (Map<String, Object>) store.getLastUsedFilters(journeyId, stepId, listId),
+                  serverHttpRequest,
+                  reflectionHelper,
+                  serializer)
+              .deserialize(store);
+
+      var ordering = store.getLastUsedOrders(journeyId, stepId, listId);
+      //new OrderingDeserializer(store.getLastUsedOrders(journeyId, stepId, listId)).deserialize(serializer);
+
       row =
           crud.fetchRows(
-                  store.getLastUsedFilters(journeyId, stepId, listId),
-                  store.getLastUsedOrders(journeyId, stepId, listId),
+                  filtersDeserialized,
+                  ordering,
                   (Integer) __index,
                   1)
               .next()

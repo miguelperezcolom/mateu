@@ -188,6 +188,11 @@ export class MateuCrud extends LitElement {
       this.state.journeyId = this.journeyId
       this.state.stepId = this.stepId
       this.state.listId = this.listId
+      const journey = JSON.parse(sessionStorage.getItem(this.journeyId)!)
+      journey.lastUsedFilters[this.stepId + "#" + this.listId] = params.filters
+    console.log('sortorders', params.sortOrders);
+      journey.lastUsedSorting[this.stepId + "#" + this.listId] = JSON.parse(Base64.decode(params.sortOrders))
+      sessionStorage.setItem(this.journeyId, JSON.stringify(journey))
       await this.crudService.fetch(this.state, this.crudUpstream, params)
   }
 
@@ -546,6 +551,11 @@ export class MateuCrud extends LitElement {
               @item-selected="${this.exportItemSelected}"
           ></vaadin-menu-bar>
         </div>
+      </vaadin-horizontal-layout>
+      <vaadin-horizontal-layout style="justify-content: end;" theme="spacing">
+        <vaadin-horizontal-layout  style="flex-grow: 1; justify-content: start;">
+          <slot></slot>
+        </vaadin-horizontal-layout>
       </vaadin-horizontal-layout>
 
       <vaadin-dialog

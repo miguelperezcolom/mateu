@@ -166,7 +166,9 @@ public class MateuService {
                 .journey(getJourneyFromStore(journeyId))
                 .store(getJourneyContainer(journeyId))
                 .step(getStep(journeyId))
-                .build()).map(v -> {
+                .build())
+        .map(
+            v -> {
               try {
                 store.removeJourney(journeyId);
               } catch (Exception e) {
@@ -189,8 +191,10 @@ public class MateuService {
             StepWrapper.builder()
                 .journey(getJourneyFromStore(journeyId))
                 .store(getJourneyContainer(journeyId))
-                    .step(getStep(journeyId))
-                .build()).map(v -> {
+                .step(getStep(journeyId))
+                .build())
+        .map(
+            v -> {
               try {
                 store.removeJourney(journeyId);
               } catch (Exception e) {
@@ -245,25 +249,28 @@ public class MateuService {
       store.save(journeyContainer);
     }
 
-    return getListRowsQueryHandler.run(
-        GetListRowsQuery.builder()
-            .journeyTypeId(journeyTypeId)
-            .journeyId(journeyId)
-            .stepId(stepId)
-            .listId(listId)
-            .page(page)
-            .pageSize(page_size)
-            .filters(filters)
-            .ordering(new OrderingDeserializer(ordering).deserialize(serializer))
-            .serverHttpRequest(serverHttpRequest)
-            .build()).map(v -> {
-      try {
-        store.removeJourney(journeyId);
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-      return v;
-    });
+    return getListRowsQueryHandler
+        .run(
+            GetListRowsQuery.builder()
+                .journeyTypeId(journeyTypeId)
+                .journeyId(journeyId)
+                .stepId(stepId)
+                .listId(listId)
+                .page(page)
+                .pageSize(page_size)
+                .filters(filters)
+                .ordering(new OrderingDeserializer(ordering).deserialize(serializer))
+                .serverHttpRequest(serverHttpRequest)
+                .build())
+        .map(
+            v -> {
+              try {
+                store.removeJourney(journeyId);
+              } catch (Exception e) {
+                throw new RuntimeException(e);
+              }
+              return v;
+            });
   }
 
   public Mono<Long> getListCount(
@@ -282,22 +289,25 @@ public class MateuService {
       store.save(journeyContainer);
     }
 
-    return getListCountQueryHandler.run(
-        GetListCountQuery.builder()
-            .journeyTypeId(journeyTypeId)
-            .journeyId(journeyId)
-            .stepId(stepId)
-            .listId(listId)
-            .filters(filters)
-            .serverHttpRequest(serverHttpRequest)
-            .build()).map(v -> {
-      try {
-        store.removeJourney(journeyId);
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-      return v;
-    });
+    return getListCountQueryHandler
+        .run(
+            GetListCountQuery.builder()
+                .journeyTypeId(journeyTypeId)
+                .journeyId(journeyId)
+                .stepId(stepId)
+                .listId(listId)
+                .filters(filters)
+                .serverHttpRequest(serverHttpRequest)
+                .build())
+        .map(
+            v -> {
+              try {
+                store.removeJourney(journeyId);
+              } catch (Exception e) {
+                throw new RuntimeException(e);
+              }
+              return v;
+            });
   }
 
   public Flux<Value> getItems(String itemProviderId, int page, int page_size, String search_text)
