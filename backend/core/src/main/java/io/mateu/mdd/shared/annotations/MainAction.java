@@ -22,13 +22,18 @@ public @interface MainAction {
 
   boolean validateBefore() default true;
 
+  boolean rowsSelectedRequired() default false;
+
   int order() default 100;
 
   ActionType type() default ActionType.Primary;
 
   ActionTarget target() default ActionTarget.SameLane;
 
-  String modalWidth() default "";
+  String modalStyle() default "";
 
-  String modalHeight() default "";
+  String customEvent() default "";
+
+  String href() default "";
+
 }

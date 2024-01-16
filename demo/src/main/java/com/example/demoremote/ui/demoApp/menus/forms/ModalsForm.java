@@ -53,12 +53,27 @@ public class ModalsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
     return new WizardPage1();
   }
 
-  @Action(order = 0, target = ActionTarget.NewModal)
+  @Action(order = 0, target = ActionTarget.NewModal, modalStyle = "width: 800px; height: 300px;")
   public TextFieldsForm openModal2() throws Exception {
     return new TextFieldsForm();
   }
 
-  @Action(order = 1, target = ActionTarget.NewTab)
+  @Action(order = 20, target = ActionTarget.Left)
+  public WizardPage1 openOnLeft() throws Exception {
+    return new WizardPage1();
+  }
+
+  @Action(order = 30, target = ActionTarget.Right)
+  public WizardPage1 openOnRight() throws Exception {
+    return new WizardPage1();
+  }
+
+  @Action(order = 30, target = ActionTarget.Right, modalStyle = "width: 50vh;")
+  public WizardPage1 openOnRightWide() throws Exception {
+    return new WizardPage1();
+  }
+
+  @Action(order = 40, target = ActionTarget.NewTab)
   public ResponseWrapper openTab() throws Exception {
     return new ResponseWrapper("Some result", List.of(new Message(
             UUID.randomUUID().toString(),
@@ -68,7 +83,7 @@ public class ModalsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
     )));
   }
 
-  @Action(order = 2, target = ActionTarget.NewWindow)
+  @Action(order = 250, target = ActionTarget.NewWindow)
   public WizardPage1 openWindow() throws Exception {
     return new WizardPage1();
   }

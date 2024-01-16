@@ -5,5 +5,7 @@ public enum ActionTarget {
   Message,
   NewModal,
   NewTab,
-  NewWindow
+  NewWindow,
+  Right,
+  Left
 }

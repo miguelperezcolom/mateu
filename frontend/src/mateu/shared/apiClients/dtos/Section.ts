@@ -15,6 +15,10 @@ export default interface Section {
 
     type: string
 
+    leftSideImageUrl: string
+
+    topImageUrl: string
+
     actions: Action[]
 
     fieldGroups: FieldGroup[]

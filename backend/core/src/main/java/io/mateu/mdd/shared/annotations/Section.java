@@ -15,4 +15,8 @@ public @interface Section {
   String description() default "";
 
   boolean card() default true;
+
+  String leftSideImageUrl() default "";
+
+  String topImageUrl() default "";
 }

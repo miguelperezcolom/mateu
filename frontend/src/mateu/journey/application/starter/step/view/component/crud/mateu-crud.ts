@@ -94,6 +94,18 @@ export class MateuCrud extends LitElement {
   @property()
   confirmationAction = () => {};
 
+  openedChangedForConfirmation(e:CustomEvent) {
+    if (!e.detail.value) {
+      this.confirmationOpened = false
+    }
+  }
+
+  openedChangedForFilters(e:CustomEvent) {
+    if (!e.detail.value) {
+      this.filtersOpened = false
+    }
+  }
+
   @property()
   runConfirmedAction = () => {
     this.confirmationAction()
@@ -304,6 +316,16 @@ export class MateuCrud extends LitElement {
   async runAction(e:Event) {
     const button = e.currentTarget as Button;
     const actionId = button.getAttribute('actionid');
+    const rowsSelectedRequired = button.getAttribute('rowsSelectedRequired');
+    if (rowsSelectedRequired && this.grid.selectedItems.length == 0) {
+      this.confirmationTexts = {
+        message: 'You need to first select some rows',
+        action: '',
+        title: 'Ey'
+      }
+      this.confirmationOpened = true;
+      return
+    }
     if (!actionId) {
       console.log('Attribute actionId is missing for ' + button)
       return
@@ -318,10 +340,9 @@ export class MateuCrud extends LitElement {
       console.log('No action with id ' + actionId)
       return
     }
-    const grid = this.shadowRoot?.getElementById('grid') as Grid
     const obj = {
       // @ts-ignore
-      _selectedRows: grid.selectedItems,
+      _selectedRows: this.grid.selectedItems,
       _clickedRow: this.clickedRow
     };
     // @ts-ignore
@@ -484,7 +505,7 @@ export class MateuCrud extends LitElement {
               .filter(a => a.visible))}"></vaadin-menu-bar>
             `:html`
               ${this.metadata.actions.filter(a => a.visible).map(a => html`
-            <vaadin-button theme="secondary" @click=${this.runAction} actionId=${a.id} data-testid="action-${a.id}">${a.caption}</vaadin-button>
+            <vaadin-button theme="secondary" @click=${this.runAction} ?rowsSelectedRequired=${a.rowsSelectedRequired}  actionId=${a.id} data-testid="action-${a.id}">${a.caption}</vaadin-button>
           `)}
             `}
         </vaadin-horizontal-layout>      </vaadin-horizontal-layout>
@@ -561,6 +582,7 @@ export class MateuCrud extends LitElement {
       <vaadin-dialog
           header-title="Filters"
           .opened="${this.filtersOpened}"
+          @opened-changed="${this.openedChangedForFilters}"
           ${dialogRenderer(() => html`
 
             <vaadin-vertical-layout theme="spacing">
@@ -582,13 +604,17 @@ export class MateuCrud extends LitElement {
       <vaadin-dialog
           header-title="${this.confirmationTexts?.title}"
           .opened="${this.confirmationOpened}"
+          @opened-changed="${this.openedChangedForConfirmation}"
           ${dialogRenderer(() => html`${this.confirmationTexts?.message}`, [])}
           ${dialogFooterRenderer(
               () => html`
-      <vaadin-button theme="primary error" @click="${this.runConfirmedAction}" style="margin-right: auto;" data-testid="dialog-confirm">
-        ${this.confirmationTexts?.action}
-      </vaadin-button>
-      <vaadin-button theme="tertiary" @click="${this.closeConfirmation}" data-testid="dialog-cancel">Cancel</vaadin-button>
+                ${this.confirmationTexts?.action?html`
+                  <vaadin-button theme="primary error" @click="${this.runConfirmedAction}" style="margin-right: auto;" data-testid="dialog-confirm">
+                    ${this.confirmationTexts?.action}
+                  </vaadin-button>
+                `:''}
+      
+      <vaadin-button theme="${this.confirmationTexts?.action?'tertiary':'primary'}" @click="${this.closeConfirmation}" data-testid="dialog-cancel">${this.confirmationTexts?.action?'Cancel':'Ok. Got it'}</vaadin-button>
     `,
               []
           )}

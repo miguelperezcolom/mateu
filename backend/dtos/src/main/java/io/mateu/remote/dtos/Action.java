@@ -20,11 +20,16 @@ public class Action {
 
   private boolean confirmationRequired;
 
+  private boolean rowsSelectedRequired;
+
   private ConfirmationTexts confirmationTexts;
 
   private ActionTarget target;
 
-  private String modalWidth;
+  private String modalStyle;
 
-  private String modalHeight;
+  private String customEvent;
+
+  private String href;
+
 }

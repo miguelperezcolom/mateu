@@ -218,6 +218,8 @@ public class FormMetadataBuilder {
           || fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Section.class)) {
         String caption = "";
         String description = "";
+        String leftSideImageUrl = "";
+        String topImageUrl = "";
         boolean card = true;
         if (fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Section.class)) {
           io.mateu.mdd.shared.annotations.Section annotation =
@@ -225,6 +227,8 @@ public class FormMetadataBuilder {
           caption = annotation.value();
           card = annotation.card();
           description = annotation.description();
+          leftSideImageUrl = annotation.leftSideImageUrl();
+          topImageUrl = annotation.topImageUrl();
         }
         section =
             Section.builder()
@@ -235,6 +239,8 @@ public class FormMetadataBuilder {
                         || (uiInstance instanceof ReadOnlyPojo
                             && !(uiInstance instanceof PersistentPojo)))
                 .description(description)
+                    .leftSideImageUrl(leftSideImageUrl)
+                    .topImageUrl(topImageUrl)
                 .fieldGroups(new ArrayList<>())
                 .type(card ? SectionType.Card : SectionType.Transparent)
                 .build();

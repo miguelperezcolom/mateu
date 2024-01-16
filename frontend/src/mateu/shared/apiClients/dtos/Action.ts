@@ -16,12 +16,12 @@ export default interface Action {
 
     confirmationRequired: boolean
 
+    rowsSelectedRequired: boolean
+
     confirmationTexts: ConfirmationTexts
 
     target: ActionTarget
 
-    modalWidth: string
-
-    modalHeight: string
+    modalStyle: string
 
 }

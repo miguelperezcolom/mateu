@@ -22,6 +22,10 @@ public class Section {
 
   private SectionType type;
 
+  private String leftSideImageUrl;
+
+  private String topImageUrl;
+
   private List<Action> actions = new ArrayList<>();
 
   private List<FieldGroup> fieldGroups = new ArrayList<>();

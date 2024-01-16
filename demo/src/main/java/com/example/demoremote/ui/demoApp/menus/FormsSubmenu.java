@@ -10,6 +10,8 @@ public class FormsSubmenu {
   @MenuOption BasicFieldsForm basicFields;
   @MenuOption private TextFieldsForm text;
 
+  @MenuOption private BackgroundOnTop backgroundOnTop;
+
   @MenuOption private TabsForm tabs;
 
   @MenuOption private HasInitMethodForm hasInitMethod;

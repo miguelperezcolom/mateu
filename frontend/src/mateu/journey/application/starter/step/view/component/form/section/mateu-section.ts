@@ -95,12 +95,9 @@ export class MateuSection extends LitElement {
               `
     }
 
-
-    render() {
-    return html`
-      <div class="mateu-section ${this.section.type}">
-
-        ${this.section.caption?html`<h3>${this.section.caption}</h3>`:''}
+    renderContent() {
+        return html`
+           ${this.section.caption?html`<h3>${this.section.caption}</h3>`:''}
           ${this.section.description?html`<p>${this.section.description}</p>`:''}
         
         ${this.form.readOnly || this.section.readOnly?html`
@@ -117,6 +114,42 @@ export class MateuSection extends LitElement {
                   baseUrl="${this.baseUrl}"
           ></mateu-fieldgroup>`)}
         `}
+    `
+    }
+
+
+    renderSkeleton() {
+        if (this.section.leftSideImageUrl) {
+            return html`
+                <vaadin-horizontal-layout>
+                    <div style="flex: 1; border-top-left-radius: 8px;border-bottom-left-radius: 8px; margin-top-20px; background-image: url(${this.section.leftSideImageUrl})"></div>
+                    <div style="flex: 1; padding: 2rem;">${this.renderContent()}</div>
+                </vaadin-horizontal-layout>
+`
+        } else if (this.section.topImageUrl) {
+            return html`
+                <vaadin-vertical-layout>
+                    <div style="height: 80px; width: 100%; border-top-left-radius: 8px;border-top-right-radius: 8px; margin-top-20px; background-image: url(${this.section.topImageUrl})"></div>
+                    <div style="flex: 1; padding: 2rem;">${this.renderContent()}</div>
+                </vaadin-vertical-layout>
+`
+        } else {
+            return this.renderContent()
+        }
+    }
+
+    bgClass() {
+      if (this.section.leftSideImageUrl || this.section.topImageUrl) {
+          return 'withbgonleft'
+      }
+      return ''
+    }
+
+    render() {
+    return html`
+      <div class="mateu-section ${this.section.type} ${this.bgClass()}">
+          
+          ${this.renderSkeleton()}
         
         <slot></slot>
       </div>
@@ -131,6 +164,13 @@ export class MateuSection extends LitElement {
       padding: 2rem;  
       margin-bottom: 16px;       
       padding-top: 14px;   
+    }
+    
+    .withbgonleft {
+      padding-left: 0px;
+      padding-right: 0px;
+      padding-bottom: 0px;
+      padding-top: 0px;
     }
     
     h2 {

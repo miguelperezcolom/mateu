@@ -80,8 +80,9 @@ public class QueryHelper {
                 + (f.getAnnotation(Order.class).desc() ? "desc" : "asc");
       }
 
-      if ("".equals(oc) && query.getColumnNames().size() > 1)
-        oc += query.getAliasedColumnNames().get(query.getColumnNames().get(1)) + " desc";
+      if ("".equals(oc) && query.getColumnNames().size() > 1) {
+        oc += query.getColumnNames().get(1) + " desc";
+      }
       if (!"".equals(oc)) jpql += " order by " + oc;
     }
 

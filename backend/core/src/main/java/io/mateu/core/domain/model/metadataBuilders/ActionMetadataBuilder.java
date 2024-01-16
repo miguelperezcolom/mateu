@@ -32,41 +32,31 @@ public class ActionMetadataBuilder {
             .caption(reflectionHelper.getCaption(m))
             .type(getActionType(m))
             .target(getTarget(m))
-            .modalWidth(getModalWidth(m))
-            .modalHeight(getModalHeight(m))
+            .modalStyle(getModalStyle(m))
             .visible(isVisible(m))
             .validationRequired(getValidationRequired(m))
             .confirmationRequired(getConfirmationRequired(m))
+                .rowsSelectedRequired(getRowsSelectedRequired(m))
+                .customEvent(getCustomEvent(m))
+                .href(getHref(m))
             .confirmationTexts(getConfirmationTexts(m))
             .build();
     return action;
   }
 
-  private String getModalHeight(Method m) {
+  private String getModalStyle(Method m) {
     if (m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class)) {
       io.mateu.mdd.shared.annotations.Action action =
           m.getAnnotation(io.mateu.mdd.shared.annotations.Action.class);
-      return action.modalHeight();
+      return action.modalStyle();
     }
     if (m.isAnnotationPresent(MainAction.class)) {
       MainAction action = m.getAnnotation(MainAction.class);
-      return action.modalHeight();
+      return action.modalStyle();
     }
     return "";
   }
 
-  private String getModalWidth(Method m) {
-    if (m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class)) {
-      io.mateu.mdd.shared.annotations.Action action =
-          m.getAnnotation(io.mateu.mdd.shared.annotations.Action.class);
-      return action.modalWidth();
-    }
-    if (m.isAnnotationPresent(MainAction.class)) {
-      MainAction action = m.getAnnotation(MainAction.class);
-      return action.modalWidth();
-    }
-    return "";
-  }
 
   private ActionTarget getTarget(Method m) {
     if (m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class)) {
@@ -149,6 +139,16 @@ public class ActionMetadataBuilder {
     return false;
   }
 
+  private boolean getRowsSelectedRequired(Method m) {
+    if (m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class)) {
+      return m.getAnnotation(io.mateu.mdd.shared.annotations.Action.class).rowsSelectedRequired();
+    }
+    if (m.isAnnotationPresent(MainAction.class)) {
+      return m.getAnnotation(MainAction.class).rowsSelectedRequired();
+    }
+    return true;
+  }
+
   private boolean getValidationRequired(Method m) {
     if (m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class)) {
       return m.getAnnotation(io.mateu.mdd.shared.annotations.Action.class).validateBefore();
@@ -157,6 +157,26 @@ public class ActionMetadataBuilder {
       return m.getAnnotation(MainAction.class).validateBefore();
     }
     return true;
+  }
+
+  private String getCustomEvent(Method m) {
+    if (m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class)) {
+      return m.getAnnotation(io.mateu.mdd.shared.annotations.Action.class).customEvent();
+    }
+    if (m.isAnnotationPresent(MainAction.class)) {
+      return m.getAnnotation(MainAction.class).customEvent();
+    }
+    return "";
+  }
+
+  private String getHref(Method m) {
+    if (m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class)) {
+      return m.getAnnotation(io.mateu.mdd.shared.annotations.Action.class).href();
+    }
+    if (m.isAnnotationPresent(MainAction.class)) {
+      return m.getAnnotation(MainAction.class).href();
+    }
+    return "";
   }
 
   protected List<Action> getActions(String stepId, String listId, Object uiInstance) {

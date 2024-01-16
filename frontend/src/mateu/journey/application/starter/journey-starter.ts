@@ -51,6 +51,8 @@ export class JourneyStarter extends LitElement {
     @state()
     modalInstant: string | undefined = undefined;
     @state()
+    modalStyle: string | undefined = undefined;
+    @state()
     loading: boolean = false;
     @state()
     error: boolean | undefined = undefined;
@@ -102,6 +104,7 @@ export class JourneyStarter extends LitElement {
             this.modalActionId = event.detail.actionId
             this.modalActionData = event.detail.data
             this.modalInstant = nanoid()
+            this.modalStyle = action.modalStyle
         } else {
             this.service.runAction(event.detail.actionId, event.detail.data).then()
         }
@@ -218,7 +221,7 @@ export class JourneyStarter extends LitElement {
 
     renderModal() {
         return html`
-            
+            <div style="${this.modalStyle}">
             <journey-starter
                     journeyTypeId="${this.journeyTypeId}"
                     journeyId="${this.journeyId}"
@@ -230,6 +233,7 @@ export class JourneyStarter extends LitElement {
                     parentStepId="${this.stepId}"
                     initialStepId="${this.stepId}"
             >
+            </div>
    
         `
     }
@@ -274,7 +278,9 @@ export class JourneyStarter extends LitElement {
                             ${this.step?.previousStepId || this.step?.data?.__index || this.step?.data?.__count?html`
                 <vaadin-horizontal-layout theme="spacing">
                       ${this.step?.previousStepId && this.step?.previousStepId != this.initialStepId?html`
-                          <vaadin-button theme="tertiary" @click=${this.goBack}>Back</vaadin-button>
+                          ${this.step?.data?.__index?html``:html`
+                              <vaadin-button theme="tertiary" @click=${this.goBack}>Back</vaadin-button>
+                          `}
                       `:''}
                       ${this.step?.data?.__index != undefined && this.step?.data?.__count && this.step?.data?.__count > 0?html`
 
@@ -303,6 +309,8 @@ export class JourneyStarter extends LitElement {
             <vaadin-dialog
                     header-title="User details"
                     .opened="${this.modalOpened}"
+                    resizable
+                    draggable
                     @opened-changed="${async (event: DialogOpenedChangedEvent) => {
                         if (!event.detail.value && this.modalOpened && this.stepId) {
                             this.closeModal()

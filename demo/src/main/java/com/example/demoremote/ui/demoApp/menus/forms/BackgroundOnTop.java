@@ -1,18 +1,16 @@
-package com.example.demoremote.ui.demoApp;
+package com.example.demoremote.ui.demoApp.menus.forms;
 
+import com.example.demoremote.ui.demoApp.DemoApp;
 import io.mateu.mdd.shared.annotations.*;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 @Component
-@Caption("")
-@MateuUI("")
-@ExternalScripts("https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js")
 @Getter
 // @KeycloakSecured(url = "http://keycloak.mateu.io", realm = "prueba", clientId = "cliente")
-public class Home extends DemoApp {
+public class BackgroundOnTop {
 
-  @Section(value = "", leftSideImageUrl = "/myassets/background.svg")
+  @Section(value = "", topImageUrl = "/myassets/background.svg")
   @RawContent
   String someContent =
       """
