@@ -360,14 +360,7 @@ public class JourneyStoreService {
         String uiClassName = actionId.split("_")[1];
         Object uiInstance = null;
         try {
-          try {
-            uiInstance = reflectionHelper.newInstance(Class.forName(uiClassName));
-          } catch (Exception e) {
-
-          }
-          if (uiInstance == null) {
-            dd
-          }
+          uiInstance = reflectionHelper.newInstance(Class.forName(uiClassName));
           if (uiInstance instanceof HasInitMethod) {
             ((HasInitMethod) uiInstance).init(serverHttpRequest);
           }
