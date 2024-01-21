@@ -114,11 +114,8 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
       String indexHtmlPath = "/index/index.html";
       String frontendPath = path + "/dist/assets/mateu.js";
       if (e.getAnnotation(MateuUI.class) != null) {
-        if (!Strings.isNullOrEmpty(e.getAnnotation(MateuUI.class).frontendComponenPath())) {
-          frontendPath = e.getAnnotation(MateuUI.class).frontendComponenPath();
-          if (!frontendPath.startsWith("http:") && !frontendPath.startsWith("https:")) {
-            frontendPath = path + frontendPath;
-          }
+        if (!Strings.isNullOrEmpty(e.getAnnotation(MateuUI.class).indexHtmlPath())) {
+          indexHtmlPath = e.getAnnotation(MateuUI.class).indexHtmlPath();
         }
         if (!Strings.isNullOrEmpty(e.getAnnotation(MateuUI.class).frontendComponenPath())) {
           frontendPath = e.getAnnotation(MateuUI.class).frontendComponenPath();
@@ -127,6 +124,8 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
           }
         }
       }
+      System.out.println("Using " + indexHtmlPath + " for index.html");
+      System.out.println("Using " + frontendPath + " for frontend component");
 
       Map<String, Object> model =
           new HashMap<>(
