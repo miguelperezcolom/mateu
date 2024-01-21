@@ -11,4 +11,9 @@ import java.lang.annotation.Target;
 public @interface MateuUI {
 
   String value();
+
+  String indexHtmlPath() default "/index/index.html";
+
+  String frontendComponenPath() default "/dist/assets/mateu.js";
+
 }

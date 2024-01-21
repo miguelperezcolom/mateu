@@ -25,7 +25,7 @@ public class ${simpleClassName}Controller {
 
     @GetMapping(value = "", produces = MediaType.TEXT_HTML_VALUE)
     public String getIndex() {
-        String html = Helper.leerFichero(this.getClass(), "/index/index.html");
+        String html = Helper.leerFichero(this.getClass(), "${indexHtmlPath}");
 <#list externalScripts as x>
         html = html.replaceAll("<title>AQUIELTITULODELAPAGINA</title>", "<script type='module' src='${x}'></script><title>AQUIELTITULODELAPAGINA</title>");
 </#list>
@@ -87,7 +87,7 @@ public class ${simpleClassName}Controller {
         html = html.replaceAll("<body>", "<body onload='initKeycloak()'>");
 <#else >
     //html = html.replaceAll("<!-- AQUIMATEU -->", "<script type='module' src='https://unpkg.com/mateu-ui/dist/assets/mateu.js'></script>");
-    html = html.replaceAll("<!-- AQUIMATEU -->", "<script type='module' src='${path}/dist/assets/mateu.js'></script>");
+    html = html.replaceAll("<!-- AQUIMATEU -->", "<script type='module' src='${frontendPath}'></script>");
     html = html.replaceAll("<!-- AQUIUI -->", "<mateu-ui uiId='${className}' baseUrl='${path}/mateu/v1'></mateu-ui>");
 </#if>
         return html;

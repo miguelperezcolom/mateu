@@ -1,6 +1,7 @@
 package io.mateu.mdd.annotationProcessing;
 
 import com.google.auto.service.AutoService;
+import com.google.common.base.Strings;
 import freemarker.template.TemplateException;
 import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.ExternalScripts;
@@ -110,6 +111,23 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
       }
       if (externalScripts == null) externalScripts = new String[0];
 
+      String indexHtmlPath = "/index/index.html";
+      String frontendPath = path + "/dist/assets/mateu.js";
+      if (e.getAnnotation(MateuUI.class) != null) {
+        if (!Strings.isNullOrEmpty(e.getAnnotation(MateuUI.class).frontendComponenPath())) {
+          frontendPath = e.getAnnotation(MateuUI.class).frontendComponenPath();
+          if (!frontendPath.startsWith("http:") && !frontendPath.startsWith("https:")) {
+            frontendPath = path + frontendPath;
+          }
+        }
+        if (!Strings.isNullOrEmpty(e.getAnnotation(MateuUI.class).frontendComponenPath())) {
+          frontendPath = e.getAnnotation(MateuUI.class).frontendComponenPath();
+          if (!frontendPath.startsWith("http:") && !frontendPath.startsWith("https:")) {
+            frontendPath = path + frontendPath;
+          }
+        }
+      }
+
       Map<String, Object> model =
           new HashMap<>(
               Map.of(
@@ -128,7 +146,12 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                   "path",
                   path,
                   "externalScripts",
-                  externalScripts));
+                  externalScripts,
+                      "frontendPath",
+                      frontendPath,
+                      "indexHtmlPath",
+                      indexHtmlPath
+                      ));
 
       KeycloakSecured keycloakAnnotation = e.getAnnotation(KeycloakSecured.class);
       if (keycloakAnnotation != null) {
@@ -138,7 +161,10 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
 
         model.put(
             "keycloak",
-            Map.of("url", keycloakUrl, "realm", keycloakRealm, "clientId", keycloakClientId));
+            Map.of(
+                    "url", keycloakUrl,
+                    "realm", keycloakRealm,
+                    "clientId", keycloakClientId));
       }
 
       Formatter formatter = new Formatter("index.ftl", model);
