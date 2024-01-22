@@ -1,5 +1,7 @@
 package ${pkgName};
 
+import io.mateu.core.domain.model.modelToDtoMappers.UIMapper;
+import io.mateu.reflection.ReflectionHelper;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import io.mateu.core.domain.UIRegistry;
@@ -22,6 +24,11 @@ import java.util.Map;
 @RequestMapping("${path}")
 @Slf4j
 public class ${simpleClassName}Controller {
+
+    @Autowired
+    private UIMapper uiMapper;
+    @Autowired
+    private ReflectionHelper reflectionHelper;
 
     @GetMapping(value = "", produces = MediaType.TEXT_HTML_VALUE)
     public String getIndex() {
@@ -96,11 +103,16 @@ public class ${simpleClassName}Controller {
     @Autowired
     UIRegistry uiRegistry;
 
+
+
     @PostConstruct
     public void init() {
         try {
-            uiRegistry.add(Class.forName("${className}"));
-        } catch (ClassNotFoundException e) {
+            var uiClass = Class.forName("${className}");
+            uiRegistry.add(uiClass);
+            uiMapper.map(reflectionHelper.newInstance(uiClass), null);
+        } catch (Exception e) {
+            e.printStackTrace();
             log.error("Unable to find class ${className} for UI registration");
         }
     }

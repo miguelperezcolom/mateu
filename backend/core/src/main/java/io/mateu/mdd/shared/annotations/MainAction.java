@@ -35,5 +35,4 @@ public @interface MainAction {
   String customEvent() default "";
 
   String href() default "";
-
 }

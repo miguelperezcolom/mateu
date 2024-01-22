@@ -146,11 +146,10 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                   path,
                   "externalScripts",
                   externalScripts,
-                      "frontendPath",
-                      frontendPath,
-                      "indexHtmlPath",
-                      indexHtmlPath
-                      ));
+                  "frontendPath",
+                  frontendPath,
+                  "indexHtmlPath",
+                  indexHtmlPath));
 
       KeycloakSecured keycloakAnnotation = e.getAnnotation(KeycloakSecured.class);
       if (keycloakAnnotation != null) {
@@ -161,9 +160,9 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
         model.put(
             "keycloak",
             Map.of(
-                    "url", keycloakUrl,
-                    "realm", keycloakRealm,
-                    "clientId", keycloakClientId));
+                "url", keycloakUrl,
+                "realm", keycloakRealm,
+                "clientId", keycloakClientId));
       }
 
       Formatter formatter = new Formatter("index.ftl", model);

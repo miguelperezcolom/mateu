@@ -239,8 +239,8 @@ public class FormMetadataBuilder {
                         || (uiInstance instanceof ReadOnlyPojo
                             && !(uiInstance instanceof PersistentPojo)))
                 .description(description)
-                    .leftSideImageUrl(leftSideImageUrl)
-                    .topImageUrl(topImageUrl)
+                .leftSideImageUrl(leftSideImageUrl)
+                .topImageUrl(topImageUrl)
                 .fieldGroups(new ArrayList<>())
                 .type(card ? SectionType.Card : SectionType.Transparent)
                 .build();

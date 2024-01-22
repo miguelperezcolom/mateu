@@ -31,5 +31,4 @@ public class Action {
   private String customEvent;
 
   private String href;
-
 }

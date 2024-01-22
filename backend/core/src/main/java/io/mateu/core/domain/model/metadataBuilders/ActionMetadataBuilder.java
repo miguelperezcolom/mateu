@@ -36,9 +36,9 @@ public class ActionMetadataBuilder {
             .visible(isVisible(m))
             .validationRequired(getValidationRequired(m))
             .confirmationRequired(getConfirmationRequired(m))
-                .rowsSelectedRequired(getRowsSelectedRequired(m))
-                .customEvent(getCustomEvent(m))
-                .href(getHref(m))
+            .rowsSelectedRequired(getRowsSelectedRequired(m))
+            .customEvent(getCustomEvent(m))
+            .href(getHref(m))
             .confirmationTexts(getConfirmationTexts(m))
             .build();
     return action;
@@ -56,7 +56,6 @@ public class ActionMetadataBuilder {
     }
     return "";
   }
-
 
   private ActionTarget getTarget(Method m) {
     if (m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class)) {

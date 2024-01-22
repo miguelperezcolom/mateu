@@ -26,8 +26,7 @@ public class StartJourneyCommandHandler {
 
   public Mono<Void> handle(StartJourneyCommand command) throws Throwable {
 
-  // listar todas las matu uis
-
+    // listar todas las matu uis
 
     String journeyId = command.getJourneyId();
     String journeyTypeId = command.getJourneyTypeId();
