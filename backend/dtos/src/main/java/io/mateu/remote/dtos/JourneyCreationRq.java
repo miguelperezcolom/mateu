@@ -1,6 +1,8 @@
 package io.mateu.remote.dtos;
 
 import java.util.List;
+import java.util.Map;
+
 import lombok.*;
 
 @Data
@@ -9,5 +11,5 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class JourneyCreationRq {
 
-  private List<Pair> contextData;
+  private Map<String, Object> contextData;
 }
