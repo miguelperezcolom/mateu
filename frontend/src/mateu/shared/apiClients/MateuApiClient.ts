@@ -177,7 +177,7 @@ export default class MateuApiClient {
         return await this.wrap<void>(this.post(this.baseUrl + '/journeys/'
             + journeyType + '/' + journeyId,
             {
-                    contextData: []
+                    "context-data": {}
                 }
             ))
     }
@@ -216,7 +216,7 @@ export default class MateuApiClient {
         return await this.wrap<StepWrapper>(this.getUsingPost(this.baseUrl.replace('v1', 'v2') + '/journeys/'
             + journeyType + '/' + journeyId,
             {
-                contextData: []
+                "context-data": {}
             }
         ).then((response) => response.data))
     }

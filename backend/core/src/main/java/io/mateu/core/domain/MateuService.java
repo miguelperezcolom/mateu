@@ -170,7 +170,11 @@ public class MateuService {
         .map(
             v -> {
               try {
-                store.removeJourney(journeyId);
+                try {
+                  Thread.sleep(500);
+                  store.removeJourney(journeyId);
+                } catch (Exception ignored) {
+                }
               } catch (Exception e) {
                 throw new RuntimeException(e);
               }
@@ -196,7 +200,13 @@ public class MateuService {
         .map(
             v -> {
               try {
-                store.removeJourney(journeyId);
+                new Thread(() -> {
+                  try {
+                    Thread.sleep(500);
+                    store.removeJourney(journeyId);
+                  } catch (Exception ignored) {
+                  }
+                }).start();
               } catch (Exception e) {
                 throw new RuntimeException(e);
               }
@@ -265,7 +275,11 @@ public class MateuService {
         .map(
             v -> {
               try {
-                store.removeJourney(journeyId);
+                try {
+                  Thread.sleep(500);
+                  store.removeJourney(journeyId);
+                } catch (Exception ignored) {
+                }
               } catch (Exception e) {
                 throw new RuntimeException(e);
               }
@@ -302,7 +316,11 @@ public class MateuService {
         .map(
             v -> {
               try {
-                store.removeJourney(journeyId);
+                try {
+                  Thread.sleep(500);
+                  store.removeJourney(journeyId);
+                } catch (Exception ignored) {
+                }
               } catch (Exception e) {
                 throw new RuntimeException(e);
               }
