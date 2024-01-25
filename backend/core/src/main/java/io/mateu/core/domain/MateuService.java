@@ -271,20 +271,7 @@ public class MateuService {
                 .filters(filters)
                 .ordering(new OrderingDeserializer(ordering).deserialize(serializer))
                 .serverHttpRequest(serverHttpRequest)
-                .build())
-        .map(
-            v -> {
-              try {
-                try {
-                  Thread.sleep(500);
-                  store.removeJourney(journeyId);
-                } catch (Exception ignored) {
-                }
-              } catch (Exception e) {
-                throw new RuntimeException(e);
-              }
-              return v;
-            });
+                .build());
   }
 
   public Mono<Long> getListCount(
@@ -312,20 +299,7 @@ public class MateuService {
                 .listId(listId)
                 .filters(filters)
                 .serverHttpRequest(serverHttpRequest)
-                .build())
-        .map(
-            v -> {
-              try {
-                try {
-                  Thread.sleep(500);
-                  store.removeJourney(journeyId);
-                } catch (Exception ignored) {
-                }
-              } catch (Exception e) {
-                throw new RuntimeException(e);
-              }
-              return v;
-            });
+                .build());
   }
 
   public Flux<Value> getItems(String itemProviderId, int page, int page_size, String search_text)
