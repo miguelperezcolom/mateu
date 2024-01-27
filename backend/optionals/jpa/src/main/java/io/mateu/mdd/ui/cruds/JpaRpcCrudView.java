@@ -118,6 +118,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
         aliasedColumnNamesList);
     sumFields =
         fieldsByColumnName.values().stream()
+                .filter(Objects::nonNull)
             .filter(f -> f.isAnnotationPresent(Sum.class))
             .collect(Collectors.toList());
 
