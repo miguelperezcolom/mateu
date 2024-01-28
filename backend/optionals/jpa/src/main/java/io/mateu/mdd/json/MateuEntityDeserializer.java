@@ -30,6 +30,7 @@ public class MateuEntityDeserializer implements EntityDeserializer {
                 !f.isAnnotationPresent(OneToOne.class)
                     && !f.isAnnotationPresent(ManyToOne.class)
                     && !f.isAnnotationPresent(OneToMany.class)
+                        && !f.isAnnotationPresent(ElementCollection.class)
                     && !f.isAnnotationPresent(ManyToMany.class))
         .forEach(
             f -> {
@@ -67,10 +68,39 @@ public class MateuEntityDeserializer implements EntityDeserializer {
                 e.printStackTrace();
               }
             });
+      reflectionHelper.getAllEditableFields(c).stream()
+              .filter(
+                      f -> f.isAnnotationPresent(ElementCollection.class))
+              .forEach(
+                      f -> {
+                          try {
+                              reflectionHelper.setValue(f, instance, buildElementList(f, map));
+                          } catch (Exception e) {
+                              e.printStackTrace();
+                          }
+                      });
     return instance;
   }
 
-  private Object buildList(FieldInterfaced f, EntityManager em, Map<String, Object> map) {
+    private Object buildElementList(FieldInterfaced f, Map<String, Object> map) {
+        List<Object> data = (List<Object>) map.get(f.getId());
+        List value = new ArrayList();
+        if (data != null) {
+            value.addAll(
+                    data.stream()
+                            .map(m -> {
+                                if (f.getGenericClass().isEnum()) {
+                                    return Enum.valueOf((Class<? extends Enum>)f.getGenericClass(), "" + m);
+                                } else {
+                                    return m;
+                                }
+                            })
+                            .collect(Collectors.toList()));
+        }
+        return value;
+    }
+
+    private Object buildList(FieldInterfaced f, EntityManager em, Map<String, Object> map) {
     List<Map<String, Object>> data = (List<Map<String, Object>>) map.get(f.getId());
     List value = new ArrayList();
     if (data != null) {

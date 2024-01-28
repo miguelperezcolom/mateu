@@ -1,5 +1,6 @@
 package com.example.demoremote.ui.demoApp.menus;
 
+import com.example.demoremote.ui.demoApp.menus.useCases.cms.CmsMenu;
 import com.example.demoremote.ui.demoApp.menus.useCases.insurance.newLife.InsuredInformationForm;
 import com.example.demoremote.ui.demoApp.menus.useCases.intermediaries.IntermediariesCrud;
 import com.example.demoremote.ui.demoApp.menus.useCases.leads.LeadsCrud;
@@ -21,6 +22,9 @@ public class UseCasesSubmenu {
 
   @Submenu("No code QA")
   QAMenu qa;
+
+  @Submenu("CMS")
+  CmsMenu cms;
 
   @Submenu SchoolMenu school;
 }
