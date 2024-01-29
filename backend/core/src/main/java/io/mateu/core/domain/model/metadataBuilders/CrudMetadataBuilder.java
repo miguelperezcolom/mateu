@@ -76,7 +76,7 @@ public class CrudMetadataBuilder {
       allRowFields = reflectionHelper.getAllFields(rowClass);
     }
     return allRowFields.stream()
-            .filter(f -> f != null)
+        .filter(f -> f != null)
         .filter(fieldInterfaced -> !fieldInterfaced.isAnnotationPresent(Ignored.class))
         .map(
             fieldInterfaced ->

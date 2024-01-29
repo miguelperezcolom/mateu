@@ -65,7 +65,8 @@ public class PersistentPojoSaveActionRunner implements ActionRunner {
             new Destination(
                 DestinationType.ActionId,
                 "Return to " + initialStep.getName(),
-                initialStep.getId()));
+                initialStep.getId()),
+            null);
     String newStepId = "result_" + UUID.randomUUID().toString();
     store.setStep(journeyId, newStepId, whatToShow, serverHttpRequest);
 

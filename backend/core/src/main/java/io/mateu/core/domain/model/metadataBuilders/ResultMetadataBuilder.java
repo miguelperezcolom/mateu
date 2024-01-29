@@ -33,7 +33,7 @@ public class ResultMetadataBuilder {
                     .value(result.getNowTo().getValue())
                     .build()
                 : null)
-            .leftSideImageUrl(result.getLeftSideImageUrl())
+        .leftSideImageUrl(result.getLeftSideImageUrl())
         .build();
   }
 }

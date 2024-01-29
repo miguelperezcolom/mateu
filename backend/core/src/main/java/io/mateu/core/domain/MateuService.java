@@ -84,9 +84,10 @@ public class MateuService {
 
   public Flux<JourneyType> getJourneyTypes(ServerHttpRequest serverHttpRequest) throws Exception {
     return Flux.fromStream(
-        getJourneyTypesQueryHandler
-            .run(GetJourneyTypesQuery.builder().build(), serverHttpRequest)
-            .stream()).subscribeOn(Schedulers.boundedElastic());
+            getJourneyTypesQueryHandler
+                .run(GetJourneyTypesQuery.builder().build(), serverHttpRequest)
+                .stream())
+        .subscribeOn(Schedulers.boundedElastic());
   }
 
   public Mono<Void> createJourney(
@@ -96,37 +97,43 @@ public class MateuService {
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     log.info("creating journey " + journeyTypeId + "/" + journeyId);
-    return startJourneyCommandHandler.handle(
-        StartJourneyCommand.builder()
-            .journeyId(journeyId)
-            .journeyTypeId(journeyTypeId)
-            .serverHttpRequest(serverHttpRequest)
-            .build()).subscribeOn(Schedulers.boundedElastic());
+    return startJourneyCommandHandler
+        .handle(
+            StartJourneyCommand.builder()
+                .journeyId(journeyId)
+                .journeyTypeId(journeyTypeId)
+                .serverHttpRequest(serverHttpRequest)
+                .build())
+        .subscribeOn(Schedulers.boundedElastic());
   }
 
   public Mono<Journey> getJourney(
       String journeyTypeId, String journeyId, ServerHttpRequest serverHttpRequest)
       throws Exception {
     log.info("getting journey " + journeyTypeId + "/" + journeyId);
-    return getJourneyQueryHandler.run(
-        GetJourneyQuery.builder()
-            .journeyTypeId(journeyTypeId)
-            .journeyId(journeyId)
-            .serverHttpRequest(serverHttpRequest)
-            .build()).subscribeOn(Schedulers.boundedElastic());
+    return getJourneyQueryHandler
+        .run(
+            GetJourneyQuery.builder()
+                .journeyTypeId(journeyTypeId)
+                .journeyId(journeyId)
+                .serverHttpRequest(serverHttpRequest)
+                .build())
+        .subscribeOn(Schedulers.boundedElastic());
   }
 
   public Mono<Step> getStep(
       String journeyTypeId, String journeyId, String stepId, ServerHttpRequest serverHttpRequest)
       throws Exception {
     log.info("getting step " + journeyTypeId + "/" + journeyId + "/" + stepId);
-    return getStepQueryHandler.run(
-        GetStepQuery.builder()
-            .journeyTypeId(journeyTypeId)
-            .journeyId(journeyId)
-            .stepId(stepId)
-            .serverHttpRequest(serverHttpRequest)
-            .build()).subscribeOn(Schedulers.boundedElastic());
+    return getStepQueryHandler
+        .run(
+            GetStepQuery.builder()
+                .journeyTypeId(journeyTypeId)
+                .journeyId(journeyId)
+                .stepId(stepId)
+                .serverHttpRequest(serverHttpRequest)
+                .build())
+        .subscribeOn(Schedulers.boundedElastic());
   }
 
   public Mono<Void> runStep(
@@ -143,15 +150,17 @@ public class MateuService {
           serializer.fromJson(serializer.toJson(rq.getJourney()), JourneyContainer.class);
       store.save(journey);
     }
-    return runStepActionCommandHandler.handle(
-        RunStepActionCommand.builder()
-            .journeyTypeId(journeyTypeId)
-            .journeyId(journeyId)
-            .stepId(stepId)
-            .actionId(actionId)
-            .data(rq.getData())
-            .serverHttpRequest(serverHttpRequest)
-            .build()).subscribeOn(Schedulers.boundedElastic());
+    return runStepActionCommandHandler
+        .handle(
+            RunStepActionCommand.builder()
+                .journeyTypeId(journeyTypeId)
+                .journeyId(journeyId)
+                .stepId(stepId)
+                .actionId(actionId)
+                .data(rq.getData())
+                .serverHttpRequest(serverHttpRequest)
+                .build())
+        .subscribeOn(Schedulers.boundedElastic());
   }
 
   public Mono<StepWrapper> createJourneyAndReturn(
@@ -245,7 +254,8 @@ public class MateuService {
                 .filters(filters)
                 .ordering(new OrderingDeserializer(ordering).deserialize(serializer))
                 .serverHttpRequest(serverHttpRequest)
-                .build()).subscribeOn(Schedulers.boundedElastic());
+                .build())
+        .subscribeOn(Schedulers.boundedElastic());
   }
 
   public Mono<Long> getListCount(
@@ -273,45 +283,47 @@ public class MateuService {
                 .listId(listId)
                 .filters(filters)
                 .serverHttpRequest(serverHttpRequest)
-                .build()).subscribeOn(Schedulers.boundedElastic());
+                .build())
+        .subscribeOn(Schedulers.boundedElastic());
   }
 
   public Flux<Value> getItems(String itemProviderId, int page, int page_size, String search_text)
       throws Throwable {
     return Flux.fromStream(
-        getItemsRowsQueryHandler
-            .run(
-                GetItemsRowsQuery.builder()
-                    .itemsProviderId(itemProviderId)
-                    .page(page)
-                    .pageSize(page_size)
-                    .searchText(search_text)
-                    .build())
-            .stream()).subscribeOn(Schedulers.boundedElastic());
+            getItemsRowsQueryHandler
+                .run(
+                    GetItemsRowsQuery.builder()
+                        .itemsProviderId(itemProviderId)
+                        .page(page)
+                        .pageSize(page_size)
+                        .searchText(search_text)
+                        .build())
+                .stream())
+        .subscribeOn(Schedulers.boundedElastic());
   }
 
   public Mono<Integer> getItemCount(String itemProviderId, String search_text) throws Throwable {
     return Mono.just(
-        getItemsCountQueryHandler.run(
-            GetItemsCountQuery.builder()
-                .itemsProviderId(itemProviderId)
-                .searchText(search_text)
-                .build())).subscribeOn(Schedulers.boundedElastic());
+            getItemsCountQueryHandler.run(
+                GetItemsCountQuery.builder()
+                    .itemsProviderId(itemProviderId)
+                    .searchText(search_text)
+                    .build()))
+        .subscribeOn(Schedulers.boundedElastic());
   }
 
-
-  //TODO: .subscribeOn(Schedulers.boundedElastic())
+  // TODO: .subscribeOn(Schedulers.boundedElastic())
   public ResponseEntity<Resource> serveFile(String fileId, String filename)
       throws AuthenticationException {
     return uploadService.serveFile(fileId, filename);
   }
 
-  //TODO: .subscribeOn(Schedulers.boundedElastic())
+  // TODO: .subscribeOn(Schedulers.boundedElastic())
   public String getFileUrl(String fileId, String fileName) throws AuthenticationException {
     return uploadService.getFileUrl(fileId, fileName);
   }
 
-  //TODO: .subscribeOn(Schedulers.boundedElastic())
+  // TODO: .subscribeOn(Schedulers.boundedElastic())
   public Mono<Void> handleFileUpload(String fileId, Mono<FilePart> file)
       throws AuthenticationException, ExecutionException, InterruptedException, TimeoutException {
     return uploadService.handleFileUpload(fileId, file);

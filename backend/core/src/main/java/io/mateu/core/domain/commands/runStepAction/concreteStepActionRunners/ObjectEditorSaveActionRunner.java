@@ -66,7 +66,8 @@ public class ObjectEditorSaveActionRunner implements ActionRunner {
             "" + viewInstance.toString() + " has been saved",
             List.of(),
             new Destination(
-                DestinationType.ActionId, "Back to " + initialStep.getName(), initialStep.getId()));
+                DestinationType.ActionId, "Back to " + initialStep.getName(), initialStep.getId()),
+            null);
     String newStepId = "result_" + UUID.randomUUID().toString();
     store.setStep(journeyId, newStepId, whatToShow, serverHttpRequest);
 

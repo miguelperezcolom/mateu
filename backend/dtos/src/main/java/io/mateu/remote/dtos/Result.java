@@ -17,5 +17,4 @@ public class Result implements ViewMetadata {
   private List<Destination> interestingLinks;
   private Destination nowTo;
   private String leftSideImageUrl;
-
 }
