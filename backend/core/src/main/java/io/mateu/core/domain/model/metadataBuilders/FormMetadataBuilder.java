@@ -1,13 +1,16 @@
 package io.mateu.core.domain.model.metadataBuilders;
 
+import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.EditPartialFormActionRunner;
 import io.mateu.core.domain.model.editors.EntityEditor;
 import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.MainAction;
+import io.mateu.mdd.shared.annotations.SameLine;
 import io.mateu.mdd.shared.annotations.UseCrud;
 import io.mateu.mdd.shared.interfaces.HasBadges;
 import io.mateu.mdd.shared.interfaces.HasBanners;
 import io.mateu.mdd.shared.interfaces.HasStatus;
+import io.mateu.mdd.shared.interfaces.PartialForm;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
@@ -17,6 +20,7 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -255,8 +259,17 @@ public class FormMetadataBuilder {
     return "Save";
   }
 
+  private String getCaptionForEdit(Object uiInstance) {
+    if (uiInstance instanceof PersistentPojo) {
+      return ((PersistentPojo) uiInstance).getCaptionForSave();
+    }
+    return "Edit";
+  }
+
   private List<Section> getSections(
-      String stepId, Object uiInstance, List<FieldInterfaced> slotFields) {
+      String stepId, Object uiInstance, List<FieldInterfaced> slotFields)
+      throws InvocationTargetException, NoSuchMethodException, IllegalAccessException,
+          InstantiationException {
     List<Section> sections = new ArrayList<>();
     Section section = null;
     FieldGroup fieldGroup = null;
@@ -267,45 +280,131 @@ public class FormMetadataBuilder {
         reflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
             .filter(f -> !isOwner(f))
             .filter(f -> slotFields.contains(f))
-            .collect(Collectors.toList());
+            .toList();
+    var contador = 0;
     for (FieldInterfaced fieldInterfaced : allEditableFields) {
       if (fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Tab.class)) {
         tabId = "tab_" + fieldInterfaced.getId();
         section = null;
       }
-      if (section == null
-          || fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Section.class)) {
-        String caption = "";
-        String description = "";
-        String leftSideImageUrl = "";
-        String topImageUrl = "";
-        boolean card = true;
-        if (fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Section.class)) {
-          io.mateu.mdd.shared.annotations.Section annotation =
-              fieldInterfaced.getAnnotation(io.mateu.mdd.shared.annotations.Section.class);
-          caption = annotation.value();
-          card = annotation.card();
-          description = annotation.description();
-          leftSideImageUrl = annotation.leftSideImageUrl();
-          topImageUrl = annotation.topImageUrl();
-        }
-        section =
+      if (PartialForm.class.isAssignableFrom(fieldInterfaced.getType())) {
+        var partialFormSection =
             Section.builder()
+                .caption(reflectionHelper.getCaption(fieldInterfaced))
+                .id(fieldInterfaced.getId())
                 .tabId(tabId)
-                .caption(caption)
-                .readOnly(
-                    "view".equals(stepId)
-                        || (uiInstance instanceof ReadOnlyPojo
-                            && !(uiInstance instanceof PersistentPojo)))
-                .description(description)
-                .leftSideImageUrl(leftSideImageUrl)
-                .topImageUrl(topImageUrl)
-                .fieldGroups(new ArrayList<>())
-                .type(card ? SectionType.Card : SectionType.Transparent)
+                .readOnly(true)
+                .description("This is a section of the partial form read only yes")
+                .fieldGroups(
+                    createFieldGroups(fieldInterfaced.getType(), uiInstance, fieldInterfaced))
+                .type(SectionType.PartialForm)
+                .actions(
+                    List.of(
+                        Action.builder()
+                            .id(
+                                EditPartialFormActionRunner.EDIT_PARTIAL_FORM_IDENTIFIER
+                                    + fieldInterfaced.getId())
+                            .caption(getCaptionForEdit(uiInstance))
+                            .type(ActionType.Secondary)
+                            .validationRequired(false)
+                            .visible(true)
+                            .build()))
                 .build();
-        sections.add(section);
-        fieldGroup = null;
+        sections.add(partialFormSection);
+      } else {
+
+        if (section == null
+            || fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Section.class)) {
+          String caption = "";
+          String description = "";
+          String leftSideImageUrl = "";
+          String topImageUrl = "";
+          boolean card = true;
+          if (fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Section.class)) {
+            io.mateu.mdd.shared.annotations.Section annotation =
+                fieldInterfaced.getAnnotation(io.mateu.mdd.shared.annotations.Section.class);
+            caption = annotation.value();
+            card = annotation.card();
+            description = annotation.description();
+            leftSideImageUrl = annotation.leftSideImageUrl();
+            topImageUrl = annotation.topImageUrl();
+          }
+          section =
+              Section.builder()
+                  .tabId(tabId)
+                  .caption(caption)
+                  .readOnly(
+                      "view".equals(stepId)
+                          || (uiInstance instanceof ReadOnlyPojo
+                              && !(uiInstance instanceof PersistentPojo)))
+                  .description(description)
+                  .leftSideImageUrl(leftSideImageUrl)
+                  .topImageUrl(topImageUrl)
+                  .fieldGroups(new ArrayList<>())
+                  .type(card ? SectionType.Card : SectionType.Transparent)
+                  .build();
+          sections.add(section);
+          fieldGroup = null;
+        }
+        if (fieldGroup == null
+            || fieldInterfaced.isAnnotationPresent(
+                io.mateu.mdd.shared.annotations.FieldGroup.class)) {
+          String caption = "";
+          if (fieldInterfaced.isAnnotationPresent(
+              io.mateu.mdd.shared.annotations.FieldGroup.class)) {
+            caption =
+                fieldInterfaced
+                    .getAnnotation(io.mateu.mdd.shared.annotations.FieldGroup.class)
+                    .value();
+          }
+          fieldGroup = FieldGroup.builder().caption(caption).lines(new ArrayList<>()).build();
+          section.getFieldGroups().add(fieldGroup);
+        }
+        if (fieldGroupLine == null
+            || !fieldInterfaced.isAnnotationPresent(
+                io.mateu.mdd.shared.annotations.SameLine.class)) {
+          fieldGroupLine = FieldGroupLine.builder().fields(new ArrayList<>()).build();
+          fieldGroup.getLines().add(fieldGroupLine);
+        }
+        fieldGroupLine.getFields().add(fieldMetadataBuilder.getField(uiInstance, fieldInterfaced));
       }
+    }
+
+    fillSectionIds(sections);
+    fillActionIdsForPartialForm(sections);
+
+    return sections;
+  }
+
+  private void fillActionIdsForPartialForm(List<Section> sections) {
+    for (Section section : sections) {
+      for (Action action : section.getActions()) {
+        if (action.getId().contains(EditPartialFormActionRunner.EDIT_PARTIAL_FORM_IDENTIFIER)) {
+          action.setId(EditPartialFormActionRunner.EDIT_PARTIAL_FORM_IDENTIFIER + section.getId());
+        }
+      }
+    }
+  }
+
+  private List<FieldGroup> createFieldGroups(
+      Class<?> partialFormType, Object formInstance, FieldInterfaced partialFormField)
+      throws InvocationTargetException, NoSuchMethodException, IllegalAccessException,
+          InstantiationException {
+    FieldGroup fieldGroup = null;
+    FieldGroupLine fieldGroupLine = null;
+    Object partialFormInstance = reflectionHelper.getValue(partialFormField, formInstance);
+    if (partialFormInstance == null) {
+      partialFormInstance = reflectionHelper.newInstance(partialFormType);
+    }
+
+    List<FieldGroup> fieldGroups = new ArrayList<>();
+
+    List<FieldInterfaced> allEditableFields =
+        reflectionHelper.getAllEditableFields(partialFormType).stream()
+            .filter(f -> !isOwner(f))
+            .toList();
+    for (FieldInterfaced fieldInterfaced : allEditableFields) {
+
       if (fieldGroup == null
           || fieldInterfaced.isAnnotationPresent(
               io.mateu.mdd.shared.annotations.FieldGroup.class)) {
@@ -317,19 +416,24 @@ public class FormMetadataBuilder {
                   .value();
         }
         fieldGroup = FieldGroup.builder().caption(caption).lines(new ArrayList<>()).build();
-        section.getFieldGroups().add(fieldGroup);
+        fieldGroups.add(fieldGroup);
       }
-      if (fieldGroupLine == null
-          || !fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.SameLine.class)) {
+      if (fieldGroupLine == null || !fieldInterfaced.isAnnotationPresent(SameLine.class)) {
         fieldGroupLine = FieldGroupLine.builder().fields(new ArrayList<>()).build();
         fieldGroup.getLines().add(fieldGroupLine);
       }
-      fieldGroupLine.getFields().add(fieldMetadataBuilder.getField(uiInstance, fieldInterfaced));
+      fieldGroupLine
+          .getFields()
+          .add(fieldMetadataBuilder.getField(partialFormInstance, fieldInterfaced));
     }
-
-    fillSectionIds(sections);
-
-    return sections;
+    for (FieldGroup group : fieldGroups) {
+      for (FieldGroupLine line : group.getLines()) {
+        for (Field field : line.getFields()) {
+          field.setId("__nestedData__" + partialFormField.getId() + "__" + field.getId());
+        }
+      }
+    }
+    return fieldGroups;
   }
 
   private void fillSectionIds(List<Section> sections) {

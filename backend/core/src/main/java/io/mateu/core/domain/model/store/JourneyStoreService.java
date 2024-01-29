@@ -302,6 +302,22 @@ public class JourneyStoreService {
     return "list".equals(container.get().getInitialStep());
   }
 
+  public Step getStep(String journeyId, String stepId) throws Exception {
+    Optional<JourneyContainer> container = findJourneyById(journeyId);
+    if (!container.isPresent()) {
+      throw new Exception("No journey with id " + journeyId + " found");
+    }
+    Step step = container.get().getSteps().get(stepId);
+    if (step == null) {
+      throw new Exception("No step with id " + journeyId + " found for journey " + journeyId);
+    }
+    container.get().getJourney().setCurrentStepDefinitionId(step.getType());
+    container.get().getJourney().setCurrentStepId(stepId);
+    container.get().setLastAccess(LocalDateTime.now());
+    journeyRepo.save(container.get());
+    return step;
+  }
+
   public Step getStepAndSetAsCurrent(String journeyId, String stepId) throws Exception {
     Optional<JourneyContainer> container = findJourneyById(journeyId);
     if (!container.isPresent()) {

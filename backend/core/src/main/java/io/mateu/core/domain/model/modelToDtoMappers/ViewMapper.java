@@ -15,6 +15,7 @@ import io.mateu.mdd.core.interfaces.RpcCrudViewExtended;
 import io.mateu.mdd.shared.annotations.SlotName;
 import io.mateu.mdd.shared.data.Result;
 import io.mateu.mdd.shared.interfaces.Listing;
+import io.mateu.mdd.shared.interfaces.PartialForm;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
@@ -68,6 +69,8 @@ public class ViewMapper {
         getActualUiInstance(journeyContainer, stepId, uiInstance, serverHttpRequest);
 
     data.putAll(dataExtractor.getData(uiInstance, actualUiInstance));
+
+    unnestPartialFormData(data, actualUiInstance);
 
     // todo: build left, main and right in a separate manner
     List<Component> left = new ArrayList<>();
@@ -124,6 +127,26 @@ public class ViewMapper {
             .build();
 
     return view;
+  }
+
+  public void unnestPartialFormData(Map<String, Object> data, Object form) {
+
+    if (form == null) {
+      return;
+    }
+
+    for (FieldInterfaced field : reflectionHelper.getAllEditableFields(form.getClass())) {
+      if (PartialForm.class.isAssignableFrom(field.getType())) {
+        var nestedData = data.get(field.getId());
+        if (nestedData != null && nestedData instanceof Map) {
+          Map<String, Object> nestedMap = (Map<String, Object>) nestedData;
+          for (String key : nestedMap.keySet()) {
+            data.put("__nestedData__" + field.getId() + "__" + key, nestedMap.get(key));
+          }
+        }
+        data.remove(field.getId());
+      }
+    }
   }
 
   private void removeTitleForFirstComponent(List<Component> slot) {

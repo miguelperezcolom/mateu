@@ -2,5 +2,7 @@ package io.mateu.remote.dtos;
 
 public enum SectionType {
   Card,
-  Transparent
+  Transparent,
+  Accordion,
+  PartialForm
 }

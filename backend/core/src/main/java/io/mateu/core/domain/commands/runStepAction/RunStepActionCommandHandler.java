@@ -5,6 +5,7 @@ import io.mateu.core.domain.apiClients.MateuRemoteClient;
 import io.mateu.core.domain.model.editors.EntityEditor;
 import io.mateu.core.domain.model.editors.FieldEditor;
 import io.mateu.core.domain.model.editors.ObjectEditor;
+import io.mateu.core.domain.model.modelToDtoMappers.ViewMapper;
 import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.reflection.ReflectionHelper;
@@ -28,6 +29,7 @@ public class RunStepActionCommandHandler {
   final List<ActionRunner> actionRunners;
   final ActualValueExtractor actualValueExtractor;
   final ReflectionHelper reflectionHelper;
+  final ViewMapper viewMapper;
 
   @Transactional
   public Mono<Void> handle(RunStepActionCommand command) throws Throwable {
@@ -35,7 +37,12 @@ public class RunStepActionCommandHandler {
     String stepId = command.getStepId();
     String actionId = command.getActionId();
     Map<String, Object> data = command.getData();
+    if (data == null) {
+      data = new HashMap<>();
+    }
     ServerHttpRequest serverHttpRequest = command.getServerHttpRequest();
+
+    data = nestPartialFormData(data);
 
     JourneyContainer journeyContainer = store.findJourneyById(journeyId).orElse(null);
 
@@ -86,6 +93,7 @@ public class RunStepActionCommandHandler {
 
     var step = store.readStep(journeyId, stepId);
     step.mergeData(data);
+    viewMapper.unnestPartialFormData(step.getData(), viewInstance);
     store.updateStep(journeyId, stepId, step);
 
     // todo: look for the target object
@@ -128,5 +136,40 @@ public class RunStepActionCommandHandler {
     }
 
     throw new Exception("Unknown action " + actionId);
+  }
+
+  private Map<String, Object> nestPartialFormData(Map<String, Object> data) {
+    var nestedData = new HashMap<String, Object>();
+
+    // first we copy all the data which is not nested
+    data.keySet().stream()
+        .filter(k -> !k.startsWith("__nestedData__"))
+        .forEach(
+            k -> {
+              nestedData.put(k, data.get(k));
+            });
+
+    // then we copy all the unnested data nesting it back
+    data.keySet().stream()
+        .filter(k -> k.startsWith("__nestedData__"))
+        .forEach(
+            k -> {
+              // __nes 0 tedData__company 1 Information__compan 2 yName
+              var tokens = k.split("__");
+              if (tokens.length >= 4) {
+                var sectionId = tokens[2];
+                var fieldId = tokens[3];
+                if (!Strings.isNullOrEmpty(sectionId) && !Strings.isNullOrEmpty(fieldId)) {
+                  Map<String, Object> nestedMap = (Map<String, Object>) nestedData.get(sectionId);
+                  if (nestedMap == null) {
+                    nestedMap = new HashMap<>();
+                    nestedData.put(sectionId, nestedMap);
+                  }
+                  nestedMap.put(fieldId, data.get(k));
+                }
+              }
+            });
+
+    return nestedData;
   }
 }
