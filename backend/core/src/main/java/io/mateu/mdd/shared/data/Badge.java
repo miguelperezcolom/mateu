@@ -18,4 +18,9 @@ public class Badge {
   private BadgeStyle badgeStyle;
 
   private BadgeIconPosition iconPosition;
+
+  public Badge(BadgeTheme theme, String label) {
+    this.theme = theme;
+    this.label = label;
+  }
 }

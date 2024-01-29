@@ -204,11 +204,17 @@ public class FormMetadataBuilder {
   }
 
   private BadgeStyle mapBadgeStyle(io.mateu.mdd.shared.data.BadgeStyle badgeStyle) {
+    if (badgeStyle == null) {
+      return BadgeStyle.ROUND;
+    }
     return BadgeStyle.valueOf(badgeStyle.toString());
   }
 
   private BadgeIconPosition mapBadgePosition(
       io.mateu.mdd.shared.data.BadgeIconPosition iconPosition) {
+    if (iconPosition == null) {
+      return BadgeIconPosition.RIGHT;
+    }
     return BadgeIconPosition.valueOf(iconPosition.toString());
   }
 
@@ -342,6 +348,7 @@ public class FormMetadataBuilder {
                   .topImageUrl(topImageUrl)
                   .fieldGroups(new ArrayList<>())
                   .type(card ? SectionType.Card : SectionType.Transparent)
+                      .actions(List.of())
                   .build();
           sections.add(section);
           fieldGroup = null;

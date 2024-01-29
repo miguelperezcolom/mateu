@@ -4,7 +4,7 @@ import com.example.demoremote.domains.nfl.dtos.Conference;
 import com.example.demoremote.domains.nfl.dtos.Division;
 import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.Badge;
-import io.mateu.mdd.shared.data.BadgeType;
+import io.mateu.mdd.shared.data.BadgeTheme;
 import io.mateu.mdd.shared.data.Status;
 import io.mateu.mdd.shared.data.StatusType;
 import io.mateu.mdd.shared.interfaces.HasBadges;
@@ -95,7 +95,7 @@ public class MyReadOnlyPojo
 
   @Override
   public List<Badge> getBadges() {
-    return List.of(new Badge(BadgeType.WARNING, "It works!"));
+    return List.of(new Badge(BadgeTheme.WARNING, "It works!"));
   }
 
   @Override

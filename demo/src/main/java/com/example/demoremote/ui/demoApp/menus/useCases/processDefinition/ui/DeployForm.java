@@ -10,6 +10,6 @@ public class DeployForm {
 
   @MainAction
   public Result deployAll() {
-    return new Result(ResultType.Success, "All products polled", null, null);
+    return new Result(ResultType.Success, "All products polled", null, null, null);
   }
 }
