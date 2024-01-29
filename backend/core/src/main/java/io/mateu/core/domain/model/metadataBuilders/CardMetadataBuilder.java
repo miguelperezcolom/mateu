@@ -3,7 +3,6 @@ package io.mateu.core.domain.model.metadataBuilders;
 import io.mateu.mdd.core.interfaces.*;
 import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.UseCrud;
-import io.mateu.mdd.shared.interfaces.HasBadges;
 import io.mateu.mdd.shared.interfaces.HasStatus;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
@@ -79,20 +78,6 @@ public class CardMetadataBuilder {
 
   private StatusType mapStatusType(io.mateu.mdd.shared.data.StatusType type) {
     return StatusType.valueOf(type.toString());
-  }
-
-  private List<Badge> getBadges(Object uiInstance) {
-    if (!(uiInstance instanceof HasBadges)) {
-      return List.of();
-    }
-    return ((HasBadges) uiInstance)
-        .getBadges().stream()
-            .map(b -> new Badge(mapBadgeType(b.getType()), b.getMessage()))
-            .collect(Collectors.toList());
-  }
-
-  private BadgeType mapBadgeType(io.mateu.mdd.shared.data.BadgeType type) {
-    return BadgeType.valueOf(type.toString());
   }
 
   private List<FieldGroup> getFieldGroups(

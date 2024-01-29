@@ -26,6 +26,8 @@ public class Field {
 
   private String description;
 
+  private List<Badge> badges;
+
   private List<Validation> validations = new ArrayList<>();
 
   private List<Pair> attributes = new ArrayList<>();

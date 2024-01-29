@@ -6,6 +6,7 @@ import io.mateu.mdd.shared.annotations.Caption;
 import io.mateu.mdd.shared.annotations.MainAction;
 import io.mateu.mdd.shared.annotations.UseCrud;
 import io.mateu.mdd.shared.interfaces.HasBadges;
+import io.mateu.mdd.shared.interfaces.HasBanners;
 import io.mateu.mdd.shared.interfaces.HasStatus;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
@@ -51,6 +52,7 @@ public class FormMetadataBuilder {
             .status(getStatus(uiInstance))
             .readOnly(isReadOnly(stepId, uiInstance))
             .badges(getBadges(uiInstance))
+            .banners(getBanners(uiInstance))
             .tabs(getTabs(uiInstance))
             .sections(getSections(stepId, uiInstance, slotFields))
             .actions(actionMetadataBuilder.getActions(stepId, "", uiInstance))
@@ -79,6 +81,27 @@ public class FormMetadataBuilder {
       tabs.get(0).setActive(true);
     }
     return tabs;
+  }
+
+  private List<Banner> getBanners(Object uiInstance) {
+    if (!(uiInstance instanceof HasBanners)) {
+      return List.of();
+    }
+    return ((HasBanners) uiInstance)
+        .getBanners().stream()
+            .map(
+                banner ->
+                    new Banner(
+                        mapBannerTheme(banner.getTheme()).name().toLowerCase(),
+                        banner.getHasIcon(),
+                        banner.getHasCloseButton(),
+                        banner.getTitle(),
+                        banner.getDescription()))
+            .collect(Collectors.toList());
+  }
+
+  private BannerTheme mapBannerTheme(io.mateu.mdd.shared.data.BannerTheme theme) {
+    return BannerTheme.valueOf(theme.toString());
   }
 
   private boolean isReadOnly(String stepId, Object uiInstance) {
@@ -141,12 +164,48 @@ public class FormMetadataBuilder {
     }
     return ((HasBadges) uiInstance)
         .getBadges().stream()
-            .map(b -> new Badge(mapBadgeType(b.getType()), b.getMessage()))
+            .map(
+                b -> {
+                  BadgeTheme theme = mapBadgeTheme(b.getTheme());
+                  String label = b.getLabel();
+                  String icon = b.getIcon();
+                  BadgeStyle badgeStyle = mapBadgeStyle(b.getBadgeStyle());
+                  BadgeIconPosition iconPosition = mapBadgePosition(b.getIconPosition());
+
+                  if (theme != null
+                      && label != null
+                      && icon != null
+                      && badgeStyle != null
+                      && iconPosition != null) {
+                    return new Badge(theme, label, icon, badgeStyle, iconPosition);
+                  } else if (theme != null
+                      && icon != null
+                      && badgeStyle != null
+                      && iconPosition != null) {
+                    return new Badge(theme, null, icon, badgeStyle, iconPosition);
+                  } else if (theme != null
+                      && label != null
+                      && badgeStyle != null
+                      && iconPosition != null) {
+                    return new Badge(theme, label, null, badgeStyle, iconPosition);
+                  } else {
+                    return null;
+                  }
+                })
             .collect(Collectors.toList());
   }
 
-  private BadgeType mapBadgeType(io.mateu.mdd.shared.data.BadgeType type) {
-    return BadgeType.valueOf(type.toString());
+  private BadgeTheme mapBadgeTheme(io.mateu.mdd.shared.data.BadgeTheme theme) {
+    return BadgeTheme.valueOf(theme.toString());
+  }
+
+  private BadgeStyle mapBadgeStyle(io.mateu.mdd.shared.data.BadgeStyle badgeStyle) {
+    return BadgeStyle.valueOf(badgeStyle.toString());
+  }
+
+  private BadgeIconPosition mapBadgePosition(
+      io.mateu.mdd.shared.data.BadgeIconPosition iconPosition) {
+    return BadgeIconPosition.valueOf(iconPosition.toString());
   }
 
   private List<Action> getMainActions(String stepId, Object uiInstance) {

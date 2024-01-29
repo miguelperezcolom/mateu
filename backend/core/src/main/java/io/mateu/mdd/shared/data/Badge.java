@@ -9,7 +9,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Badge {
 
-  private BadgeType type;
+  private BadgeTheme theme;
 
-  private String message;
+  private String label;
+
+  private String icon;
+
+  private BadgeStyle badgeStyle;
+
+  private BadgeIconPosition iconPosition;
 }

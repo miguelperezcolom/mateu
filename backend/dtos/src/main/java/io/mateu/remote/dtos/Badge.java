@@ -1,18 +1,21 @@
 package io.mateu.remote.dtos;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Badge {
 
-  private BadgeType type;
+  private BadgeTheme theme;
 
-  private String message;
+  private String label;
 
-  public Badge(BadgeType type, String message) {
-    this.type = type;
-    this.message = message;
-  }
+  private String icon;
 
-  public Badge() {}
+  private BadgeStyle badgeStyle;
+
+  private BadgeIconPosition iconPosition;
 }

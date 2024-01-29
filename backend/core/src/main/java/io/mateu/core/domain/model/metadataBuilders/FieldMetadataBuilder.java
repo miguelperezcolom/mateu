@@ -4,12 +4,14 @@ import io.mateu.core.domain.model.metadataBuilders.fields.FieldAttributeBuilder;
 import io.mateu.core.domain.model.metadataBuilders.fields.FieldStereotypeMapper;
 import io.mateu.core.domain.model.metadataBuilders.fields.FieldTypeMapper;
 import io.mateu.mdd.shared.annotations.*;
+import io.mateu.mdd.shared.interfaces.HasBadgesOnFields;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import io.mateu.remote.dtos.*;
 import jakarta.validation.constraints.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -34,9 +36,40 @@ public class FieldMetadataBuilder {
             .stereotype(fieldStereotypeMapper.mapStereotype(view, fieldInterfaced))
             .observed(isObserved(fieldInterfaced))
             .attributes(fieldAttributeBuilder.buildAttributes(view, fieldInterfaced))
+            .badges(getBadges(view, fieldInterfaced))
             .build();
     addValidations(field, fieldInterfaced);
     return field;
+  }
+
+  private List<Badge> getBadges(Object view, FieldInterfaced fieldInterfaced) {
+    if (!(view instanceof HasBadgesOnFields)) {
+      return List.of();
+    }
+    return ((HasBadgesOnFields) view)
+        .getBadgesOnField(fieldInterfaced.getId()).stream()
+            .map(
+                b ->
+                    new Badge(
+                        mapBadgeTheme(b.getTheme()),
+                        b.getLabel(),
+                        b.getIcon(),
+                        mapBadgeStyle(b.getBadgeStyle()),
+                        mapBadgePosition(b.getIconPosition())))
+            .collect(Collectors.toList());
+  }
+
+  private BadgeTheme mapBadgeTheme(io.mateu.mdd.shared.data.BadgeTheme theme) {
+    return BadgeTheme.valueOf(theme.toString());
+  }
+
+  private BadgeStyle mapBadgeStyle(io.mateu.mdd.shared.data.BadgeStyle badgeStyle) {
+    return BadgeStyle.valueOf(badgeStyle.toString());
+  }
+
+  private BadgeIconPosition mapBadgePosition(
+      io.mateu.mdd.shared.data.BadgeIconPosition iconPosition) {
+    return BadgeIconPosition.valueOf(iconPosition.toString());
   }
 
   private boolean isObserved(FieldInterfaced fieldInterfaced) {
