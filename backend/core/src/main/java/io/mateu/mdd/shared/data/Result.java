@@ -14,4 +14,5 @@ public class Result {
   private String message;
   private List<Destination> interestingLinks;
   private Destination nowTo;
+  private String leftSideImageUrl;
 }
