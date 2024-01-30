@@ -12,5 +12,4 @@ import java.lang.annotation.Target;
 }) // can use in method only.
 public @interface LabelFieldForLists {
 
-  String value();
 }
