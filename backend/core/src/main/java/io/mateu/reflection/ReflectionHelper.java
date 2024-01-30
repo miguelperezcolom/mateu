@@ -544,10 +544,17 @@ public class ReflectionHelper extends BaseReflectionHelper {
     if (!toStringPreferred || !toStringIsOverriden) {
       boolean hayName = false;
       for (FieldInterfaced ff : getAllFields(entityClass))
-        if ("name".equalsIgnoreCase(ff.getName()) || "nombre".equalsIgnoreCase(ff.getName())) {
+        if (ff.isAnnotationPresent(LabelFieldForLists.class)) {
           fName = ff;
           hayName = true;
         }
+      if (!hayName) {
+        for (FieldInterfaced ff : getAllFields(entityClass))
+          if ("name".equalsIgnoreCase(ff.getName()) || "nombre".equalsIgnoreCase(ff.getName())) {
+            fName = ff;
+            hayName = true;
+          }
+      }
       if (!hayName) {
         for (FieldInterfaced ff : getAllFields(entityClass))
           if ("value".equalsIgnoreCase(ff.getName())
