@@ -12,6 +12,7 @@ import io.mateu.util.Serializer;
 import jakarta.persistence.Entity;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -56,7 +57,7 @@ public class CrudEditActionRunner implements ListActionRunner {
                   journeyId,
                   stepId,
                   listId,
-                  (Map<String, Object>) store.getLastUsedFilters(journeyId, stepId, listId),
+                  getAsMap(store.getLastUsedFilters(journeyId, stepId, listId)),
                   serverHttpRequest,
                   reflectionHelper,
                   serializer)
@@ -104,5 +105,16 @@ public class CrudEditActionRunner implements ListActionRunner {
     store.setStep(journeyId, newStepId, editor, serverHttpRequest);
 
     return Mono.empty();
+  }
+
+  @SneakyThrows
+  private Map<String, Object> getAsMap(Object object) {
+    if (object == null) {
+      return null;
+    }
+    if (object instanceof Map) {
+      return (Map<String, Object>) object;
+    }
+    return serializer.toMap(object);
   }
 }
