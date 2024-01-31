@@ -14,6 +14,8 @@ public class Form implements ViewMetadata {
 
   private String dataPrefix;
 
+  private String icon;
+
   private String title;
 
   private boolean readOnly;

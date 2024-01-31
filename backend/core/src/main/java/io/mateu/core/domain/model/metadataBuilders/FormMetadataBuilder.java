@@ -58,11 +58,22 @@ public class FormMetadataBuilder {
             .badges(getBadges(uiInstance))
             .banners(getBanners(uiInstance))
             .tabs(getTabs(uiInstance))
+                .icon(getIcon(uiInstance))
             .sections(getSections(stepId, uiInstance, slotFields))
             .actions(actionMetadataBuilder.getActions(stepId, "", uiInstance))
             .mainActions(getMainActions(stepId, uiInstance))
             .build();
     return form;
+  }
+
+  private String getIcon(Object uiInstance) {
+    if (uiInstance == null) {
+      return null;
+    }
+    if (uiInstance instanceof HasIcon){
+      ((HasIcon) uiInstance).getIcon();
+    }
+    return null;
   }
 
   private List<Tab> getTabs(Object uiInstance) {
