@@ -34,9 +34,9 @@ public class JourneyContainer implements Serializable {
 
   private Step initialStep;
 
-  private LocalDateTime created = LocalDateTime.now();
+  private LocalDateTime created;
 
-  private LocalDateTime lastAccess = LocalDateTime.now();
+  private LocalDateTime lastAccess;
 
   private Map<String, Object> lastUsedFilters;
 

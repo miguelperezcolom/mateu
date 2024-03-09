@@ -24,5 +24,5 @@ public class Column {
 
   private boolean readOnly;
 
-  private List<Pair> attributes = new ArrayList<>();
+  private List<Pair> attributes;
 }

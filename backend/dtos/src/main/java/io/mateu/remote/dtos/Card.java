@@ -24,5 +24,5 @@ public class Card implements ViewMetadata {
 
   private String total;
 
-  private List<FieldGroup> fieldGroups = new ArrayList<>();
+  private List<FieldGroup> fieldGroups;
 }

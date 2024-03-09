@@ -8,3 +8,7 @@ mdd-vaadin/src/main/webapp/VAADIN/themes/mateu/styles.css
 .mvn
 mvnw
 mvnw.*
+
+build
+out
+.gradle

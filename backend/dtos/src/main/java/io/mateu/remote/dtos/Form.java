@@ -36,5 +36,5 @@ public class Form implements ViewMetadata {
 
   private List<Action> mainActions;
 
-  private List<Validation> validations = new ArrayList<>();
+  private List<Validation> validations;
 }

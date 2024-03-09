@@ -26,7 +26,7 @@ public class Section {
 
   private String topImageUrl;
 
-  private List<Action> actions = new ArrayList<>();
+  private List<Action> actions;
 
-  private List<FieldGroup> fieldGroups = new ArrayList<>();
+  private List<FieldGroup> fieldGroups;
 }

@@ -6,13 +6,16 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.util.Map;
 
 @Converter
+@Slf4j
 public class JsonConverter implements AttributeConverter<Object, String> {
 
-  private ObjectMapper mapper = new ObjectMapper();
+  private final ObjectMapper mapper = new ObjectMapper();
 
   public JsonConverter() {
     mapper.enable(SerializationFeature.INDENT_OUTPUT);
@@ -29,14 +32,14 @@ public class JsonConverter implements AttributeConverter<Object, String> {
       try {
         String json = toJson(jsonSerializable);
         json =
-            json.substring(0, 1)
+            json.charAt(0)
                 + " \"className\":\""
                 + jsonSerializable.getClass().getName()
                 + "\","
                 + json.substring(1);
         return json;
       } catch (Exception e) {
-        e.printStackTrace();
+        log.warn("error during serialization", e);
         return null;
       }
     }
@@ -60,17 +63,17 @@ public class JsonConverter implements AttributeConverter<Object, String> {
   }
 
   private Map<String, Object> fromJson(String json) throws IOException {
-    if (json == null || "".equals(json)) json = "{}";
+    if (json == null || json.isEmpty()) json = "{}";
     return mapper.readValue(json, Map.class);
   }
 
   private <T> T fromJson(String json, Class<T> c) throws Exception {
-    if (json == null || "".equals(json)) json = "{}";
+    if (json == null || json.isEmpty()) json = "{}";
     return pojoFromJson(json, c);
   }
 
   private <T> T pojoFromJson(String json, Class<T> c) throws Exception {
-    if (json == null || "".equals(json)) json = "{}";
+    if (json == null || json.isEmpty()) json = "{}";
     return mapper.readValue(json, c);
   }
 }

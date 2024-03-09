@@ -14,5 +14,5 @@ public class FieldGroup {
 
   private String caption;
 
-  private List<FieldGroupLine> lines = new ArrayList<>();
+  private List<FieldGroupLine> lines;
 }

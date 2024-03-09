@@ -28,7 +28,7 @@ public class Field {
 
   private List<Badge> badges;
 
-  private List<Validation> validations = new ArrayList<>();
+  private List<Validation> validations;
 
-  private List<Pair> attributes = new ArrayList<>();
+  private List<Pair> attributes;
 }
