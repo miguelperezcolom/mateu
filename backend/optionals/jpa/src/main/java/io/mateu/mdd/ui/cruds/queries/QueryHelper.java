@@ -24,16 +24,16 @@ public class QueryHelper {
   final ReflectionHelper reflectionHelper;
 
   public jakarta.persistence.Query buildJpaQuery(
-      Query query,
-      EntityManager em,
-      String selectedColumns,
-      Object filters,
-      List<SortCriteria> sortOrders,
-      String groupClause,
-      int offset,
-      int limit,
-      boolean addOrderClause)
-      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+          Query query,
+          EntityManager em,
+          String selectedColumns,
+          Object filters,
+          List<SortCriteria> sortOrders,
+          String groupClause,
+          int offset,
+          int limit,
+          boolean addOrderClause)
+          throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
     Class entityClass = query.getAction().getEntityClass();
 
@@ -59,11 +59,13 @@ public class QueryHelper {
       if (sortOrders != null)
         for (SortCriteria qso : sortOrders) {
           if (!SortType.None.equals(qso.getOrder())) {
-            if (!"".equals(oc)) oc += ", ";
-            oc +=
-                qso.getColumn()
-                    + " "
-                    + ((SortType.Descending.equals(qso.getOrder())) ? "desc" : "asc");
+            if (!Strings.isNullOrEmpty(qso.getColumn())) {
+              if (!"".equals(oc)) oc += ", ";
+              oc +=
+                      qso.getColumn()
+                              + " "
+                              + ((SortType.Descending.equals(qso.getOrder())) ? "desc" : "asc");
+            }
           }
         }
       List<FieldInterfaced> orderCols = new ArrayList<>();
@@ -71,21 +73,28 @@ public class QueryHelper {
         if (f.isAnnotationPresent(Order.class)) orderCols.add(f);
       }
       Collections.sort(
-          orderCols, Comparator.comparingInt(f -> f.getAnnotation(Order.class).priority()));
+              orderCols, Comparator.comparingInt(f -> f.getAnnotation(Order.class).priority()));
       for (FieldInterfaced f : orderCols) {
-        if (!"".equals(oc)) oc += ", ";
-        oc +=
-            query.getAliasedColumnNames().get(f.getName())
-                + " "
-                + (f.getAnnotation(Order.class).desc() ? "desc" : "asc");
+        if (query.getAliasedColumnNames().get(f.getName()) != null) {
+          if (!"".equals(oc)) oc += ", ";
+          oc +=
+                  query.getAliasedColumnNames().get(f.getName())
+                          + " "
+                          + (f.getAnnotation(Order.class).desc() ? "desc" : "asc");
+        }
       }
 
       if ("".equals(oc) && query.getColumnNames().size() > 1) {
-        oc += query.getColumnNames().get(1) + " desc";
+        var colName = query.getColumnNames().get(1);
+        if (Strings.isNullOrEmpty(colName)) {
+          colName = "1";
+        }
+        oc += colName + " desc";
       }
       if (!"".equals(oc)) jpql += " order by " + oc;
     }
 
+    log.info("si. aquí es");
     log.info(jpql);
     jakarta.persistence.Query q = em.createQuery(jpql).setFirstResult(offset).setMaxResults(limit);
     for (String k : parameterValues.keySet()) q.setParameter(k, parameterValues.get(k));
