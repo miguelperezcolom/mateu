@@ -1,4 +1,4 @@
-package io.mateu.travel.backoffice.shared.infra.patches;
+package io.mateu.mdd.springboot;
 
 import io.mateu.mdd.core.app.MDDOpenCRUDAction;
 import io.mateu.mdd.core.app.MDDOpenCRUDActionViewBuilder;
@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.stereotype.Service;
 
 @Service
-@ConditionalOnMissingBean(MDDOpenCRUDActionViewBuilder.class)
+@ConditionalOnMissingBean(type = "MDDOpenCRUDActionViewBuilder")
 public class FakeMDDOpenCRUDActionViewBuilder implements MDDOpenCRUDActionViewBuilder {
     @Override
     public Crud buildView(MDDOpenCRUDAction action) throws Exception {
