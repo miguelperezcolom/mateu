@@ -62,9 +62,9 @@ public class QueryHelper {
             if (!Strings.isNullOrEmpty(qso.getColumn())) {
               if (!"".equals(oc)) oc += ", ";
               oc +=
-                      qso.getColumn()
-                              + " "
-                              + ((SortType.Descending.equals(qso.getOrder())) ? "desc" : "asc");
+                  qso.getColumn()
+                      + " "
+                      + ((SortType.Descending.equals(qso.getOrder())) ? "desc" : "asc");
             }
           }
         }
@@ -78,9 +78,9 @@ public class QueryHelper {
         if (query.getAliasedColumnNames().get(f.getName()) != null) {
           if (!"".equals(oc)) oc += ", ";
           oc +=
-                  query.getAliasedColumnNames().get(f.getName())
-                          + " "
-                          + (f.getAnnotation(Order.class).desc() ? "desc" : "asc");
+              query.getAliasedColumnNames().get(f.getName())
+                  + " "
+                  + (f.getAnnotation(Order.class).desc() ? "desc" : "asc");
         }
       }
 

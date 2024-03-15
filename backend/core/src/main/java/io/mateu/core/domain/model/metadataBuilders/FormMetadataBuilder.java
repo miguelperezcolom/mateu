@@ -58,7 +58,7 @@ public class FormMetadataBuilder {
             .badges(getBadges(uiInstance))
             .banners(getBanners(uiInstance))
             .tabs(getTabs(uiInstance))
-                .icon(getIcon(uiInstance))
+            .icon(getIcon(uiInstance))
             .sections(getSections(stepId, uiInstance, slotFields))
             .actions(actionMetadataBuilder.getActions(stepId, "", uiInstance))
             .mainActions(getMainActions(stepId, uiInstance))
@@ -70,7 +70,7 @@ public class FormMetadataBuilder {
     if (uiInstance == null) {
       return null;
     }
-    if (uiInstance instanceof HasIcon){
+    if (uiInstance instanceof HasIcon) {
       ((HasIcon) uiInstance).getIcon();
     }
     return null;
@@ -359,7 +359,7 @@ public class FormMetadataBuilder {
                   .topImageUrl(topImageUrl)
                   .fieldGroups(new ArrayList<>())
                   .type(card ? SectionType.Card : SectionType.Transparent)
-                      .actions(List.of())
+                  .actions(List.of())
                   .build();
           sections.add(section);
           fieldGroup = null;

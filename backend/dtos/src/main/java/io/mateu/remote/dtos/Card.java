@@ -1,6 +1,5 @@
 package io.mateu.remote.dtos;
 
-import java.util.ArrayList;
 import java.util.List;
 import lombok.*;
 
