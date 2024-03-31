@@ -1,113 +1,77 @@
 package io.mateu.remote;
 
+import io.mateu.core.application.NotFoundException;
+import io.mateu.core.domain.MateuService;
+import io.mateu.remote.dtos.JourneyCreationRq;
+import io.mateu.remote.dtos.StepWrapper;
+import io.mateu.util.Serializer;
+import lombok.SneakyThrows;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.test.StepVerifier;
 
-@WebFluxTest
+@SpringBootTest
+//@AutoConfigureWebTestClient
 public class FormTest {
 
-  @Autowired private WebTestClient webTestClient;
+  //@Autowired private WebTestClient webTestClient;
+  @Autowired private MateuService mateuService;
+
 
   @Test
-  public void returns404() throws Exception {
-    webTestClient.get().uri("/mateu/v1/uis/xxx").exchange().expectStatus().is4xxClientError();
-  }
+  public void createJourneyForNonExistingClassThrowsNotFound() throws Throwable {
+    //given
+    ServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.POST, "").build();
+    JourneyCreationRq creationRq = JourneyCreationRq.builder().build();
 
-  /*
+    //when
+    Assertions.assertThrows(NotFoundException.class, () -> {
+      var mono = mateuService
+              .createJourneyAndReturn("non_existing_class_name", "zz", creationRq,  request);
+      var r = mono.block();
+      System.out.println(r);
+    });
 
-  @Test
-  public void returnsUI() throws Exception {
-      webTestClient.get().uri("/mateu/v1/uis/io.mateu.remote.sampleui.MyUi")
-              .exchange()
-              .expectStatus().is2xxSuccessful()
-              .expectBody();
-      String content = result.getResponse().getContentAsString();
-      System.out.println(content);
-  }
-
-  @Test
-  public void createsJourney() throws Exception {
-      String journeyId = "journey1";
-
-      createJourney(journeyId);
-
-      Assertions.assertNotNull(JourneyStoreService.get().getJourney(journeyId));
-  }
-
-  private void createJourney(String journeyId) throws Exception {
-      JourneyCreationRq rq = JourneyCreationRq.builder()
-              .journeyTypeId("io.mateu.remote.sampleui.MyUi")
-              .contextData(List.of())
-              .build();
-      MvcResult result = mockMvc.perform(post("/mateu/v1/journeys/" + journeyId)
-                      .contentType(MediaType.APPLICATION_JSON)
-                      .content(Helper.toJson(rq)))
-              .andDo(MockMvcResultHandlers.print())
-              .andExpect(status().is2xxSuccessful())
-              .andReturn();
-      String content = result.getResponse().getContentAsString();
-      System.out.println(content);
+    //then
   }
 
   @Test
-  public void returnsJourney() throws Exception {
-      String journeyId = "journey2";
-      createJourney(journeyId);
+  public void createJourneyForExistingClassReturnsTheExpectedStep() throws Throwable {
+    //given
+    ServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.POST, "").build();
+    JourneyCreationRq creationRq = JourneyCreationRq.builder().build();
+    String expectedJson = """
+            {
+            
+            "journey" : {
+                "type" : "io.mateu.remote.sampleui.MyUi",
+                "status" : "Pending"
+              }
+            
+            }
+            """;
 
-      MvcResult result = mockMvc.perform(get("/mateu/v1/journeys/" + journeyId))
-              .andDo(MockMvcResultHandlers.print())
-              .andExpect(status().is2xxSuccessful())
-              .andReturn();
-      String content = result.getResponse().getContentAsString();
-      System.out.println(content);
+    //when
+      var mono = mateuService
+              .createJourneyAndReturn("io.mateu.remote.sampleui.MyUi", "yy", creationRq,  request);
+      var stepWrapper = mono.block();
+
+    //then
+    JSONAssert.assertEquals(expectedJson, toJson(stepWrapper), false);
   }
 
-  @Test
-  public void returnsStep() throws Exception {
-      String journeyId = "journey3";
-      createJourney(journeyId);
-      Journey journey = JourneyStoreService.get().getJourney(journeyId);
-
-      MvcResult result = mockMvc.perform(get("/mateu/v1/journeys/" + journeyId + "/steps/" + journey.getCurrentStepId()))
-              .andDo(MockMvcResultHandlers.print())
-              .andExpect(status().is2xxSuccessful())
-              .andReturn();
-      String content = result.getResponse().getContentAsString();
-      System.out.println(content);
+  @SneakyThrows
+  private String toJson(Object object) {
+    return new Serializer().toJson(object);
   }
 
-  @Test
-  public void runsAction() throws Exception {
-      String journeyId = "journey4";
-      createJourney(journeyId);
-      Journey journey = JourneyStoreService.get().getJourney(journeyId);
-
-      RunActionRq rq = RunActionRq.builder()
-              .data(Map.of("name", "Mateu", "age", 14))
-              .build();
-
-      String actionId = "assess";
-
-      MvcResult result = mockMvc.perform(post("/mateu/v1/journeys/" + journeyId + "/steps/" +
-                      journey.getCurrentStepId() + "/" + actionId)
-                      .contentType(MediaType.APPLICATION_JSON)
-                      .content(Helper.toJson(rq)))
-              .andDo(MockMvcResultHandlers.print())
-              .andExpect(status().is2xxSuccessful())
-              .andReturn();
-      String content = result.getResponse().getContentAsString();
-      System.out.println(content);
-
-      Step step = JourneyStoreService.get().getStep(journeyId, journey.getCurrentStepId());
-      Assertions.assertTrue(Helper.toJson(step)
-              .contains("Mateu, 14"));
-      Object viewInstance = JourneyStoreService.get().getViewInstance(journeyId, journey.getCurrentStepId());
-      Assertions.assertTrue(Helper.toJson(viewInstance)
-              .contains("Mateu, 14"));
-
-  }
-
-   */
-}
+ }

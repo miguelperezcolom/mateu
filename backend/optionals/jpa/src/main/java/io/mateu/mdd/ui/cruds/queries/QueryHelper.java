@@ -24,16 +24,16 @@ public class QueryHelper {
   final ReflectionHelper reflectionHelper;
 
   public jakarta.persistence.Query buildJpaQuery(
-          Query query,
-          EntityManager em,
-          String selectedColumns,
-          Object filters,
-          List<SortCriteria> sortOrders,
-          String groupClause,
-          int offset,
-          int limit,
-          boolean addOrderClause)
-          throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+      Query query,
+      EntityManager em,
+      String selectedColumns,
+      Object filters,
+      List<SortCriteria> sortOrders,
+      String groupClause,
+      int offset,
+      int limit,
+      boolean addOrderClause)
+      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
     Class entityClass = query.getAction().getEntityClass();
 
@@ -62,9 +62,9 @@ public class QueryHelper {
             if (!Strings.isNullOrEmpty(qso.getColumn())) {
               if (!"".equals(oc)) oc += ", ";
               oc +=
-                      qso.getColumn()
-                              + " "
-                              + ((SortType.Descending.equals(qso.getOrder())) ? "desc" : "asc");
+                  qso.getColumn()
+                      + " "
+                      + ((SortType.Descending.equals(qso.getOrder())) ? "desc" : "asc");
             }
           }
         }
@@ -73,14 +73,14 @@ public class QueryHelper {
         if (f.isAnnotationPresent(Order.class)) orderCols.add(f);
       }
       Collections.sort(
-              orderCols, Comparator.comparingInt(f -> f.getAnnotation(Order.class).priority()));
+          orderCols, Comparator.comparingInt(f -> f.getAnnotation(Order.class).priority()));
       for (FieldInterfaced f : orderCols) {
         if (query.getAliasedColumnNames().get(f.getName()) != null) {
           if (!"".equals(oc)) oc += ", ";
           oc +=
-                  query.getAliasedColumnNames().get(f.getName())
-                          + " "
-                          + (f.getAnnotation(Order.class).desc() ? "desc" : "asc");
+              query.getAliasedColumnNames().get(f.getName())
+                  + " "
+                  + (f.getAnnotation(Order.class).desc() ? "desc" : "asc");
         }
       }
 

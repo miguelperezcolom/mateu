@@ -44,8 +44,7 @@ public class GetUIQueryHandler {
       return ui;
 
     } catch (Exception e) {
-      e.printStackTrace();
-      log.error("error on getUi", e);
+//      log.error("error on getUi", e);
       throw new NotFoundException("No class with name " + uiId + " found");
     }
   }
