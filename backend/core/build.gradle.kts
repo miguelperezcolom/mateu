@@ -4,6 +4,7 @@
 
 plugins {
     id("io.mateu.java-conventions")
+    `library-publishing-conventions`
 }
 
 dependencies {
