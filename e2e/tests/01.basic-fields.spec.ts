@@ -3,7 +3,8 @@ import { test, expect } from '@playwright/test';
 test('basic fields work', async ({ page }) => {
   await page.goto('/')
 
-  await page.getByRole('menuitem', { name: 'Basic fields' }).click()
+  await page.getByRole('menuitem', { name: 'Forms' }).click()
+  await page.getByRole('option', { name: 'Basic fields' }).click()
 
   await expect(page.getByRole('heading', { name: 'This is the title' })).toBeVisible()
   await expect(page.getByText('This is the subtitle')).toBeVisible()

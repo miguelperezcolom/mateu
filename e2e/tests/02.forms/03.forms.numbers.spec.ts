@@ -15,6 +15,9 @@ test('number fields work', async ({ page }) => {
   await page.getByTestId('anInt').getByLabel('An int').clear()
   await page.getByTestId('anInt').getByLabel('An int').fill('123')
 
+  await page.getByTestId('anotherIntWithValidations').getByLabel('Another int with validations').fill('10')
+
+
   await page.getByTestId('action-component-0___assess').click()
   await expect(page.getByLabel('Assessment')).toContainText('123')
 
