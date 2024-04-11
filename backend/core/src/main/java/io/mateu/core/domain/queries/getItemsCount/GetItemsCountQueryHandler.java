@@ -31,7 +31,9 @@ public class GetItemsCountQueryHandler {
   }
 
   private int countEntities(Class entityClass, String searchText)
-      throws InvocationTargetException, NoSuchMethodException, IllegalAccessException,
+      throws InvocationTargetException,
+          NoSuchMethodException,
+          IllegalAccessException,
           InstantiationException {
     return reflectionHelper
         .newInstance(EntitiesFinder.class)

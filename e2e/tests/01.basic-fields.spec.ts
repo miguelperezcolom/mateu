@@ -3,7 +3,8 @@ import { test, expect } from '@playwright/test';
 test('basic fields work', async ({ page }) => {
   await page.goto('/')
 
-  await page.getByRole('menuitem', { name: 'Basic fields' }).click()
+  await page.getByRole('menuitem', { name: 'Forms' }).click()
+  await page.getByRole('option', { name: 'Basic fields' }).click()
 
   await expect(page.getByRole('heading', { name: 'This is the title' })).toBeVisible()
   await expect(page.getByText('This is the subtitle')).toBeVisible()
@@ -25,7 +26,8 @@ test('basic fields work', async ({ page }) => {
   await expect(page.getByTestId('assessment')).toBeVisible()
   await expect(page.getByTestId('assessment').locator('vaadin-input-container')).toHaveText('')
 
-  await page.getByTestId('action-component-0___assess').click()
+  await page.getByLabel('Other save options').locator('svg').hover()
+  await page.getByRole('option', { name: 'Assess' }).locator('div').click()
 
 
   await expect(page.getByLabel('Assessment')).toHaveText(/Mateu, 15, 20.31/)
@@ -34,25 +36,29 @@ test('basic fields work', async ({ page }) => {
   await page.getByLabel('Name').clear()
   await page.getByLabel('Name').fill('Antonia')
 
-  await page.getByTestId('action-component-0___assess').click()
+  await page.getByLabel('Other save options').locator('svg').hover()
+  await page.getByRole('option', { name: 'Assess' }).locator('div').click()
   await expect(page.getByLabel('Assessment')).toHaveText(/Antonia, 15, 20.31/)
 
   await page.getByLabel('With placeholder').clear()
   await page.getByLabel('With placeholder').fill('Hola')
 
-  await page.getByTestId('action-component-0___assess').click()
+  await page.getByLabel('Other save options').locator('svg').hover()
+  await page.getByRole('option', { name: 'Assess' }).locator('div').click()
   await expect(page.getByLabel('Assessment')).toHaveText(/Antonia, 15, 20.31, Hola/)
 
   await page.getByLabel('Age').clear()
   await page.getByLabel('Age').fill('47')
 
-  await page.getByTestId('action-component-0___assess').click()
+  await page.getByLabel('Other save options').locator('svg').hover()
+  await page.getByRole('option', { name: 'Assess' }).locator('div').click()
   await expect(page.getByLabel('Assessment')).toHaveText(/Antonia, 47, 20.31, Hola/)
 
   await page.getByLabel('Balance').clear()
   await page.getByLabel('Balance').fill('10.15')
 
-  await page.getByTestId('action-component-0___assess').click()
+  await page.getByLabel('Other save options').locator('svg').hover()
+  await page.getByRole('option', { name: 'Assess' }).locator('div').click()
   await expect(page.getByLabel('Assessment')).toHaveText(/Antonia, 47, 10.15, Hola/)
 
 });

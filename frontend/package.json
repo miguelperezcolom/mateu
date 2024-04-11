@@ -14,6 +14,9 @@
   ],
   "scripts": {
     "dev": "vite",
+    "coverage": "vitest run --coverage",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
     "build": "tsc && vite build",
     "copy": "tsc && vite build && cp -rf dist ../backend/optionals/embedded-front/src/main/resources/npm/mateu",
     "copyw": "xcopy /e/h/y/q \"./dist\" \"../backend/optionals/embedded-front/src/main/resources/npm/mateu/dist\""
@@ -67,6 +70,11 @@
   },
   "devDependencies": {
     "typescript": "^4.9.3",
-    "vite": "^4.1.0"
+    "@vitest/browser": "latest",
+    "@vitest/ui": "latest",
+    "jsdom": "latest",
+    "vite": "latest",
+    "vitest": "latest",
+    "webdriverio": "^8.32.2"
   }
 }

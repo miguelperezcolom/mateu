@@ -4,14 +4,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.mateu.mdd.shared.annotations.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
 @Data
 public class NumberFieldsForm {
 
   @Section("Basic")
-  @NotEmpty
   private int anInt = 3;
 
   @Placeholder("This should appear as the placeholder")
