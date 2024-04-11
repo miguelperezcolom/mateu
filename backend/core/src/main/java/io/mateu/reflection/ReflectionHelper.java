@@ -1046,7 +1046,9 @@ public class ReflectionHelper extends BaseReflectionHelper {
   }
 
   public <T> T fillQueryResult(List<FieldInterfaced> fields, Object[] o, T t)
-      throws IllegalAccessException, InstantiationException, NoSuchMethodException,
+      throws IllegalAccessException,
+          InstantiationException,
+          NoSuchMethodException,
           InvocationTargetException {
     int pos = 0;
     for (FieldInterfaced f : fields) {
@@ -1424,7 +1426,9 @@ public class ReflectionHelper extends BaseReflectionHelper {
   }
 
   public Collection addToCollection(FieldInterfaced field, Object bean)
-      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException,
+      throws NoSuchMethodException,
+          IllegalAccessException,
+          InvocationTargetException,
           InstantiationException {
 
     Method m = getMethod(bean.getClass(), "create" + getFirstUpper(field.getName()) + "Instance");
@@ -1441,7 +1445,9 @@ public class ReflectionHelper extends BaseReflectionHelper {
   }
 
   public Collection addToCollection(FieldInterfaced field, Object bean, Object i)
-      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException,
+      throws NoSuchMethodException,
+          IllegalAccessException,
+          InvocationTargetException,
           InstantiationException {
     Object v = getValue(field, bean);
     if (v != null) v = extend((Collection) v, i);
@@ -1456,7 +1462,9 @@ public class ReflectionHelper extends BaseReflectionHelper {
   }
 
   private Object createChild(Object parent, FieldInterfaced collectionField)
-      throws IllegalAccessException, InstantiationException, NoSuchMethodException,
+      throws IllegalAccessException,
+          InstantiationException,
+          NoSuchMethodException,
           InvocationTargetException {
     Class c = collectionField.getGenericClass();
     return newInstance(c, parent);
@@ -1646,7 +1654,9 @@ public class ReflectionHelper extends BaseReflectionHelper {
   }
 
   public Object clone(Object original)
-      throws IllegalAccessException, InstantiationException, NoSuchMethodException,
+      throws IllegalAccessException,
+          InstantiationException,
+          NoSuchMethodException,
           InvocationTargetException {
     if (original == null) return null;
     else {
@@ -1797,7 +1807,9 @@ public class ReflectionHelper extends BaseReflectionHelper {
   }
 
   public <T> T newInstance(Class<T> c)
-      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException,
+      throws NoSuchMethodException,
+          IllegalAccessException,
+          InvocationTargetException,
           InstantiationException {
     Object o = null;
     if (!notFromString.contains(c)) {
@@ -1838,7 +1850,9 @@ public class ReflectionHelper extends BaseReflectionHelper {
   }
 
   public Object newInstance(Class c, Object parent)
-      throws IllegalAccessException, InstantiationException, InvocationTargetException,
+      throws IllegalAccessException,
+          InstantiationException,
+          InvocationTargetException,
           NoSuchMethodException {
     Object i = null;
     if (parent != null) {

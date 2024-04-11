@@ -76,7 +76,9 @@ public class EditPartialFormActionRunner implements ActionRunner {
   }
 
   private PartialForm getOrInitializeIfNotPresent(Object viewInstance, String sectionId)
-      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException,
+      throws NoSuchMethodException,
+          IllegalAccessException,
+          InvocationTargetException,
           InstantiationException {
     var partialFormField = reflectionHelper.getFieldByName(viewInstance.getClass(), sectionId);
     var partialForm = (PartialForm) reflectionHelper.getValue(partialFormField, viewInstance);

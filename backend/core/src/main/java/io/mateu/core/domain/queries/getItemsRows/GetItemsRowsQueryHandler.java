@@ -36,7 +36,9 @@ public class GetItemsRowsQueryHandler {
   }
 
   private List<Value> findEntities(Class entityClass, String searchText, int page, int pageSize)
-      throws InvocationTargetException, NoSuchMethodException, IllegalAccessException,
+      throws InvocationTargetException,
+          NoSuchMethodException,
+          IllegalAccessException,
           InstantiationException {
     return reflectionHelper
         .newInstance(EntitiesFinder.class)
