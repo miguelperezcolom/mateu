@@ -282,7 +282,7 @@ export class JourneyStarter extends LitElement {
                               <vaadin-button theme="tertiary" @click=${this.goBack}>Back</vaadin-button>
                           `}
                       `:''}
-                      ${this.step?.data?.__index != undefined && this.step?.data?.__count && this.step?.data?.__count > 0?html`
+                      ${this.step?.id != 'list' && this.step?.data?.__index != undefined && this.step?.data?.__count && this.step?.data?.__count > 0?html`
 
                           <vaadin-button theme="tertiary" @click=${this.goPrevious} ?disabled=${this.step?.data?.__index == 0}>Previous</vaadin-button>
                           <vaadin-button theme="tertiary" @click=${this.goNext} ?disabled=${this.step?.data?.__index >= this.step?.data?.__count - 1}>Next</vaadin-button>
