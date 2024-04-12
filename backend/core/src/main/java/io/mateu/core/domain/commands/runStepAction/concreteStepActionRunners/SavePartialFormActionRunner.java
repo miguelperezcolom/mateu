@@ -63,7 +63,9 @@ public class SavePartialFormActionRunner implements ActionRunner {
   }
 
   private PartialForm getOrInitializeIfNotPresent(Object form, String sectionId)
-      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException,
+      throws NoSuchMethodException,
+          IllegalAccessException,
+          InvocationTargetException,
           InstantiationException {
     var partialFormField = reflectionHelper.getFieldByName(form.getClass(), sectionId);
     var partialForm = (PartialForm) reflectionHelper.getValue(partialFormField, form);

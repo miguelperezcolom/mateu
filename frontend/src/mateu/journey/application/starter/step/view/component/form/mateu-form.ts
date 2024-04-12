@@ -409,8 +409,12 @@ export class MateuForm extends LitElement implements FormElement {
           
         ${this.metadata.status || this.metadata.badges?html`
             <div class="badges">
-              ${this.metadata.status?html`<span theme="badge ${this.getThemeForBadgetType(this.metadata.status.type)}">${this.metadata.status.message}</span>`:''}
-              ${this.metadata.badges.map(b => html`<span theme="badge ${this.getThemeForBadgetType(b.type)}">${b.message}</span>`)}
+              ${this.metadata.status?html`<span 
+                  theme="badge ${this.getThemeForBadgetType(this.metadata.status.type)}"
+              >${this.metadata.status.message}</span>`:''}
+              ${this.metadata.badges.map(b => html`<span 
+                  theme="badge ${this.getThemeForBadgetType(b.type)}"
+              >${b.message}</span>`)}
             </div>        
         `:''}
 

@@ -11,7 +11,7 @@ public class Badge {
 
   private BadgeTheme theme;
 
-  private String label;
+  private String message;
 
   private String icon;
 

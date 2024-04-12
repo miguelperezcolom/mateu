@@ -86,13 +86,17 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   public JpaRpcCrudView() {}
 
   public JpaRpcCrudView(MDDOpenCRUDAction action)
-      throws InvocationTargetException, NoSuchMethodException, IllegalAccessException,
+      throws InvocationTargetException,
+          NoSuchMethodException,
+          IllegalAccessException,
           InstantiationException {
     this.action = action;
   }
 
   public void init()
-      throws InvocationTargetException, NoSuchMethodException, IllegalAccessException,
+      throws InvocationTargetException,
+          NoSuchMethodException,
+          IllegalAccessException,
           InstantiationException {
     reset();
     columnFields =
@@ -168,7 +172,9 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   }
 
   public void setAction(MDDOpenCRUDAction action)
-      throws InvocationTargetException, NoSuchMethodException, IllegalAccessException,
+      throws InvocationTargetException,
+          NoSuchMethodException,
+          IllegalAccessException,
           InstantiationException {
     this.action = action;
     init();

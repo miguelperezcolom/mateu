@@ -285,7 +285,9 @@ public class FormMetadataBuilder {
 
   private List<Section> getSections(
       String stepId, Object uiInstance, List<FieldInterfaced> slotFields)
-      throws InvocationTargetException, NoSuchMethodException, IllegalAccessException,
+      throws InvocationTargetException,
+          NoSuchMethodException,
+          IllegalAccessException,
           InstantiationException {
     List<Section> sections = new ArrayList<>();
     Section section = null;
@@ -406,7 +408,9 @@ public class FormMetadataBuilder {
 
   private List<FieldGroup> createFieldGroups(
       Class<?> partialFormType, Object formInstance, FieldInterfaced partialFormField)
-      throws InvocationTargetException, NoSuchMethodException, IllegalAccessException,
+      throws InvocationTargetException,
+          NoSuchMethodException,
+          IllegalAccessException,
           InstantiationException {
     FieldGroup fieldGroup = null;
     FieldGroupLine fieldGroupLine = null;
