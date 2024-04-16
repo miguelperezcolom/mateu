@@ -52,18 +52,24 @@ public class StartJourneyCommandHandler {
 
         if (formInstance instanceof RemoteJourney) {
           RemoteJourney remoteJourney = (RemoteJourney) formInstance;
-
-          store(
-              journeyId,
-              journeyTypeId,
-              journey,
-              remoteJourney.getBaseUrl(),
-              remoteJourney.getJourneyTypeId());
+          Journey finalJourney = journey;
           return mateuRemoteClient.startJourney(
               remoteJourney.getBaseUrl(),
               remoteJourney.getJourneyTypeId(),
               journeyId,
-              serverHttpRequest);
+              serverHttpRequest).map(sw -> {
+            var step = sw.getStep();
+            finalJourney.setCurrentStepId(step.getId());
+            finalJourney.setCurrentStepDefinitionId(step.getType());
+            store(journeyId, journeyTypeId, finalJourney, step);
+            store(
+                    journeyId,
+                    journeyTypeId,
+                    finalJourney,
+                    remoteJourney.getBaseUrl(),
+                    remoteJourney.getJourneyTypeId());
+            return Mono.just(sw);
+          }).flatMap(Mono::then);
         }
 
       } catch (Exception e) {

@@ -75,5 +75,5 @@ public class FormsSubmenu {
 
   @MenuOption
   private RemoteJourney remoteForm =
-      new RemoteJourney("https://explorer.mateu.io/mateu/v1", "forms_returnsBasic");
+      new RemoteJourney("https://explorer.mateu.io/mateu/v2", "forms_pattern");
 }

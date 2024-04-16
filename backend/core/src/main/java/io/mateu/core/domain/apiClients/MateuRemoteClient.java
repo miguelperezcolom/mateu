@@ -25,7 +25,7 @@ public class MateuRemoteClient {
     return WebClient.builder().baseUrl(remoteBaseUrl).build();
   }
 
-  public Mono<Void> startJourney(
+  public Mono<StepWrapper> startJourney(
       String remoteBaseUrl,
       String remoteJourneyTypeId,
       String journeyId,
@@ -37,7 +37,7 @@ public class MateuRemoteClient {
         .headers(headers -> serverHttpRequest.getHeaders())
         .body(Mono.just(JourneyCreationRq.builder().build()), JourneyCreationRq.class)
         .retrieve()
-        .bodyToMono(Void.class);
+        .bodyToMono(StepWrapper.class);
   }
 
   public Mono<Journey> getJourney(

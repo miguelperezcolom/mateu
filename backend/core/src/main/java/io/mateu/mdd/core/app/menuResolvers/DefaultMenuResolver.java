@@ -22,6 +22,10 @@ public class DefaultMenuResolver implements MenuResolver {
 
   final ReflectionHelper reflectionHelper;
 
+  public ReflectionHelper getReflectionHelper() {
+    return reflectionHelper;
+  }
+
   @Override
   public boolean addMenuEntry(
       Object app, List<MenuEntry> l, FieldInterfaced f, String caption, int order, String icon)
