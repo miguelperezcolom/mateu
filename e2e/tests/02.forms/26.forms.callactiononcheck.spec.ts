@@ -13,6 +13,5 @@ test('action is called on check', async ({ page }) => {
   await page.getByTestId('questions-2').getByLabel('The intermediary has...').click()
   await expect(page.getByLabel('Assessment')).toHaveText('[1, 2]')
 
-
 });
 
