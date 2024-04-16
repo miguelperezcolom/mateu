@@ -104,7 +104,7 @@ public class MateuService {
                 .journeyTypeId(journeyTypeId)
                 .serverHttpRequest(serverHttpRequest)
                 .build())
-        .subscribeOn(Schedulers.boundedElastic());
+        .subscribeOn(Schedulers.boundedElastic()).log();
   }
 
   public Mono<Journey> getJourney(
@@ -170,12 +170,16 @@ public class MateuService {
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     return createJourney(journeyTypeId, journeyId, rq, serverHttpRequest)
-        .thenReturn(
-            StepWrapper.builder()
+        .then(Mono.fromCallable(() -> StepWrapper.builder()
                 .journey(getJourneyFromStore(journeyId))
-                .store(getJourneyContainer(journeyId))
+                .store(getJourneyContainer(journeyId)) // en este momento se está construyendo la pipeline.
                 .step(getStep(journeyId))
-                .build())
+                .build()))
+            .doOnSubscribe(x -> log.info("alguien se ha suscrito " + x))
+            .doOnSuccess(x -> log.info("success " + x))
+            .doOnError(x -> log.info("error " + x))
+            .doOnTerminate(() -> log.info("terminated"))
+            .doOnNext(x -> log.info("aquí pasa " + x))
         .subscribeOn(Schedulers.boundedElastic());
   }
 

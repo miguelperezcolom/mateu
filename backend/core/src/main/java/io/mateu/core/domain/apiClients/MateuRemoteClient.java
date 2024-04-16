@@ -37,7 +37,7 @@ public class MateuRemoteClient {
         .headers(headers -> serverHttpRequest.getHeaders())
         .body(Mono.just(JourneyCreationRq.builder().build()), JourneyCreationRq.class)
         .retrieve()
-        .bodyToMono(StepWrapper.class);
+        .bodyToMono(StepWrapper.class).log();
   }
 
   public Mono<Journey> getJourney(
@@ -69,7 +69,7 @@ public class MateuRemoteClient {
         .bodyToMono(Step.class);
   }
 
-  public Mono<Void> runStep(
+  public Mono<Step> runStep(
       String remoteBaseUrl,
       String remoteJourneyTypeId,
       String journeyId,
@@ -85,7 +85,7 @@ public class MateuRemoteClient {
         .headers(headers -> serverHttpRequest.getHeaders())
         .body(Mono.just(RunActionRq.builder().data(data).build()), RunActionRq.class)
         .retrieve()
-        .bodyToMono(Void.class);
+        .bodyToMono(Step.class);
   }
 
   public Flux<Object> getListRows(

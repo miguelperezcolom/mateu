@@ -60,14 +60,22 @@ public class RunStepActionCommandHandler {
     }
 
     if (!Strings.isNullOrEmpty(journeyContainer.getRemoteJourneyTypeId())) {
-      return mateuRemoteClient.runStep(
+      mateuRemoteClient.runStep(
           journeyContainer.getRemoteBaseUrl(),
           journeyContainer.getRemoteJourneyTypeId(),
           journeyContainer.getJourneyId(),
           stepId,
           actionId,
           data,
-          serverHttpRequest);
+          serverHttpRequest).flatMap(step -> {
+        try {
+          store.updateStep(journeyId, stepId, step);
+        } catch (Throwable e) {
+          throw new RuntimeException(e);
+        }
+
+        return Mono.empty().then();
+      });
     }
 
     Object viewInstance = store.getViewInstance(journeyId, stepId, serverHttpRequest);
