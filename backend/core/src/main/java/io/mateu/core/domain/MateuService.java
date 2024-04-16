@@ -104,7 +104,7 @@ public class MateuService {
                 .journeyTypeId(journeyTypeId)
                 .serverHttpRequest(serverHttpRequest)
                 .build())
-        .subscribeOn(Schedulers.boundedElastic()).log();
+        .subscribeOn(Schedulers.boundedElastic());
   }
 
   public Mono<Journey> getJourney(

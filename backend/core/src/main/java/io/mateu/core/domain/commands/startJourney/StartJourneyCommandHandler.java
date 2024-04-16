@@ -72,7 +72,7 @@ public class StartJourneyCommandHandler {
                         remoteJourney.getBaseUrl(),
                         remoteJourney.getJourneyTypeId());
                 return Mono.just(sw);
-          }).log().then();
+          }).then();
         }
 
       } catch (Exception e) {

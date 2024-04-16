@@ -37,7 +37,7 @@ public class MateuRemoteClient {
         .headers(headers -> serverHttpRequest.getHeaders())
         .body(Mono.just(JourneyCreationRq.builder().build()), JourneyCreationRq.class)
         .retrieve()
-        .bodyToMono(StepWrapper.class).log();
+        .bodyToMono(StepWrapper.class);
   }
 
   public Mono<Journey> getJourney(
