@@ -236,6 +236,7 @@ public class ActualValueExtractor {
               Object v = l.get(i);
               double tv = 0;
               if (v instanceof Double) tv = ((Double) v).doubleValue();
+              if (v instanceof Integer) tv = ((Integer) v).doubleValue();
               t[i] = tv;
             }
             return t;

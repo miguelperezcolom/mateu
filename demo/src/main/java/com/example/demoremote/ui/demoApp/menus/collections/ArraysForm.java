@@ -31,13 +31,6 @@ public class ArraysForm {
             + ","
             + Arrays.toString(doubles)
             + ","
-            + Arrays.toString(strings)
-            + Arrays.toString(booleans)
-            + ","
-            + Arrays.toString(ints)
-            + ","
-            + Arrays.toString(doubles)
-            + ","
             + Arrays.toString(strings);
   }
 }

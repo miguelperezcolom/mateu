@@ -8,6 +8,7 @@ test('dates work', async ({ page }) => {
   await page.getByRole('option', { name: 'Dates', exact: true }).click()
   await expect(page.locator('h2', { hasText: 'Dates' })).toBeVisible()
 
+  //todo: does not match time in browser, when run before 2:00 a.m.
   var today = new Date().toISOString().slice(0, -14) //yyyy-MM-dd
 
   await page.getByTestId('date').locator('vaadin-input-container div').nth(1).click()
