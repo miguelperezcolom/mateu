@@ -152,6 +152,20 @@ public class ActualValueExtractor {
           }
           return t;
         }
+        if (Double.class.equals(reflectionHelper.getGenericClass(f.getGenericType()))) {
+          List t = new ArrayList();
+          List l = (List) entry.getValue();
+          for (Object v : l) {
+            if (v instanceof String) {
+              v = Double.parseDouble((String) v);
+            }
+            if (v instanceof Integer) {
+              v = ((Integer) v).doubleValue();
+            }
+            t.add(v);
+          }
+          return t;
+        }
         if (f.getGenericClass().isEnum()) {
           List value = new ArrayList();
           List<String> in = (List<String>) entry.getValue();
