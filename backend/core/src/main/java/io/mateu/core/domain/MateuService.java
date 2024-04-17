@@ -175,11 +175,6 @@ public class MateuService {
                 .store(getJourneyContainer(journeyId)) // en este momento se está construyendo la pipeline.
                 .step(getStep(journeyId))
                 .build()))
-            .doOnSubscribe(x -> log.info("alguien se ha suscrito " + x))
-            .doOnSuccess(x -> log.info("success " + x))
-            .doOnError(x -> log.info("error " + x))
-            .doOnTerminate(() -> log.info("terminated"))
-            .doOnNext(x -> log.info("aquí pasa " + x))
         .subscribeOn(Schedulers.boundedElastic());
   }
 

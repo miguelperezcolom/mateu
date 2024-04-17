@@ -50,7 +50,7 @@ public class ProgrammingLanguages
   public Flux<LanguageRow> fetchRows(
       ProgrammingLanguages filters, List<SortCriteria> sortOrders, int offset, int limit)
       throws Throwable {
-    Thread.sleep(500);
+    //Thread.sleep(500);
     RowComparator comparator = new RowComparator(sortOrders);
     return repo.findAll()
         .filter(
