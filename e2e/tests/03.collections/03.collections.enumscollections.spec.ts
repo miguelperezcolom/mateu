@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('collections od enums work', async ({ page }) => {
+test('collections of enums work', async ({ page }) => {
   await page.goto('/')
 
   // Expect a title "to contain" a substring.
