@@ -66,7 +66,7 @@ jobs:
       run: cat ~/.m2/settings.xml
 
     - name: Publish to Maven Central
-      run: mvn deploy -f backend/pom.xml
+      run: mvn deploy --settings settings.xml -f backend/pom.xml
       env:
         MAVEN_USERNAME: ${{ secrets.REPO_USERNAME }}
         MAVEN_CENTRAL_TOKEN: ${{ secrets.REPO_PASSWORD }}
