@@ -29,7 +29,7 @@ jobs:
       with:
         java-version: 17
         distribution: corretto
-        server-id: mateu-central # Value of the distributionManagement/repository/id field of the pom.xml
+        server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
         server-username: MAVEN_USERNAME
         server-password: MAVEN_CENTRAL_TOKEN
     - name: Import GPG Key
@@ -66,11 +66,12 @@ jobs:
       run: echo ${{ secrets.OSSRH_USERNAME }}
 
     - name: Publish to Maven Central
-      run: mvn deploy --settings settings.xml -f backend/pom.xml
+      run: mvn deploy -f backend/pom.xml
       env:
-        MAVEN_USERNAME: ${{ secrets.REPO_USERNAME }}
         MAVEN_CENTRAL_TOKEN: ${{ secrets.REPO_PASSWORD }}
 #        GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 #        PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+        MAVEN_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
         OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
         OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
