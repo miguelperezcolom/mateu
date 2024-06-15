@@ -63,7 +63,7 @@ jobs:
       run: mvn -B install --file backend/pom.xml
 
     - name: Cat settings.xml
-      run: cat ~/.m2/settings.xml
+      run: echo ${{ secrets.OSSRH_USERNAME }}
 
     - name: Publish to Maven Central
       run: mvn deploy --settings settings.xml -f backend/pom.xml
