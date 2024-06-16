@@ -30,8 +30,8 @@ jobs:
         java-version: 17
         distribution: corretto
         server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
-        server-username: MAVEN_USERNAME
-        server-password: MAVEN_CENTRAL_TOKEN
+        server-username: OSSRH_USERNAME
+        server-password: OSSRH_PASSWORD
     - name: Import GPG Key
       uses: crazy-max/ghaction-import-gpg@v1
       env:
@@ -50,20 +50,11 @@ jobs:
     - name: Build front
       run: cd frontend && npm i && npm run build && npm run copy
 
-    - name: list pom files
-      run: grep -rl '<version>0.0.1-MATEU</version>' --exclude-dir=.git backend | grep pom.xml
-
-    - name: Show context
-      run: echo '${{ toJson(github.event) }}'
-
     - name: fix version
       run: grep -rl '<version>0.0.1-MATEU</version>' --exclude-dir=.git backend | grep pom.xml | xargs sed -i 's/0\.0\.1\-MATEU/${{ env.RELEASE_VERSION }}/g'
 
     - name: Build with Maven
       run: mvn -B install --file backend/pom.xml
-
-    - name: Cat settings.xml
-      run: echo ${{ secrets.OSSRH_USERNAME }}
 
     - name: Publish to Maven Central
       run: mvn deploy -f backend/pom.xml
@@ -71,7 +62,7 @@ jobs:
         MAVEN_CENTRAL_TOKEN: ${{ secrets.REPO_PASSWORD }}
 #        GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 #        PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-        MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-        MAVEN_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+#        MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+#        MAVEN_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
         OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
         OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
