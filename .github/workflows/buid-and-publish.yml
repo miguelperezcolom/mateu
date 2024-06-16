@@ -15,46 +15,35 @@ jobs:
       - uses: actions/checkout@v2
       - name: Set env
         run: VERSION=${{ github.event.release.tag_name }}; echo "RELEASE_VERSION=${VERSION:1}" >> $GITHUB_ENV
-      - name: Set up node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - name: Set up JDK
+      - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: 17
           distribution: corretto
-          server-id: mateu-central # Value of the distributionManagement/repository/id field of the pom.xml
-          server-username: MAVEN_USERNAME
-          server-password: MAVEN_CENTRAL_TOKEN
+          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+          server-username: OSSRH_USERNAME
+          server-password: OSSRH_PASSWORD
       - name: Import GPG Key
         uses: crazy-max/ghaction-import-gpg@v1
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-      - name: Run script
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Build front
+        run: cd frontend && npm i && npm run build && npm run copy
+
+      - name: fix version
+        run: grep -rl '<version>0.0.1-MATEU</version>' --exclude-dir=.git backend | grep pom.xml | xargs sed -i 's/0\.0\.1\-MATEU/${{ env.RELEASE_VERSION }}/g'
+
+      - name: Build with Maven
+        run: mvn -B install --file backend/pom.xml
+
+      - name: Publish to Maven Central
+        run: mvn deploy -f backend/pom.xml
         env:
-          HETZNER_SSH_PUBLIC_KEY: ${{ secrets.HETZNER_SSH_PUBLIC_KEY }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          MAVEN_USERNAME: ${{ secrets.REPO_USERNAME }}
-          MAVEN_CENTRAL_TOKEN: ${{ secrets.REPO_PASSWORD }}
-          #        GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-          #        PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
-        run: chmod +x ./.github/scripts/*.sh && ./.github/scripts/00-all.sh
-      - name: Scp demo jar to Hetzner
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          host: explorer.mateu.io
-          username: root
-          key: ${{ secrets.HETZNER_SSH_PUBLIC_KEY }}
-          source: "demo-0.0.1-SNAPSHOT.jar"
-          target: /root/mateu
-      - name: Restart demo in Hetzner
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: explorer.mateu.io
-          username: root
-          key: ${{ secrets.HETZNER_SSH_PUBLIC_KEY }}
-          script: systemctl restart mateu
