@@ -26,6 +26,7 @@
 - captcha
 - captcha for files
 ## improvements
+- 1 sola petición 
 - journey al cliente? pasar --> meter en store --> devolver
 - ir a vista solo lectura si hay campos con relaciones @xtomany
 - inferir crud para entidad jpa cuando @xtomany
