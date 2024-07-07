@@ -1,20 +1,45 @@
 package com.example.demoremote.ui.demoApp.menus.forms;
 
 import com.example.demoremote.domains.programmingLanguages.ProgrammingLanguages;
+import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
 import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.data.Badge;
-import io.mateu.mdd.shared.data.BadgeTheme;
+import io.mateu.mdd.shared.data.*;
 import io.mateu.mdd.shared.data.Status;
-import io.mateu.mdd.shared.data.StatusType;
 import io.mateu.mdd.shared.interfaces.HasBadges;
 import io.mateu.mdd.shared.interfaces.HasStatus;
 import java.util.List;
+
+import io.mateu.remote.dtos.ResultType;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 @Data
 @Caption("ead only pojo with crud")
 public class MyReadOnlyPojoWithCrud
     implements io.mateu.mdd.core.interfaces.ReadOnlyPojo, HasBadges, HasStatus {
+
+  @Getter@Setter
+  public class MyEditor {
+
+    String id;
+    String name;
+
+    public MyEditor(String id, String name) {
+      this.id = id;
+      this.name = name;
+    }
+
+    public MyEditor() {
+    }
+
+    @Action(value = "Save")
+    public GoBack save() {
+      System.out.println("saved");
+      return new GoBack(ResultType.Success, "Saved");
+    }
+
+  }
 
   @Section("Basic")
   private String name = "Mateu";
@@ -57,5 +82,15 @@ public class MyReadOnlyPojoWithCrud
   @Override
   public Status getStatus() {
     return new Status(StatusType.SUCCESS, "This is the status!");
+  }
+
+  @Override
+  public boolean hasEditor() {
+    return true;
+  }
+
+  @Override
+  public Object retrieveEditor() throws Throwable {
+    return new MyEditor(retrieveId().toString(), name);
   }
 }
