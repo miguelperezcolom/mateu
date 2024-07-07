@@ -34,6 +34,11 @@ public class LanguageDetail extends LanguageDetailDefinition implements ReadOnly
   }
 
   @Override
+  public boolean hasEditor() {
+    return true;
+  }
+
+  @Override
   public String toString() {
     return getName() != null ? getName() : "New Language";
   }

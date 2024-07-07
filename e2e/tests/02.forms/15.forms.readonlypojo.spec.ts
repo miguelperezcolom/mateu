@@ -9,7 +9,7 @@ test('read only pojo work', async ({ page }) => {
   await expect(page.locator('h2', { hasText: 'Read only pojo' })).toBeVisible()
 
   await expect(page.getByTestId('action-component-0___assess')).toBeVisible()
-  await expect(page.getByTestId('action-component-0___edit')).toBeVisible()
+  await expect(page.getByTestId('action-component-0___edit')).toHaveCount(0)
 
   await expect(page.getByText('Mateu')).toBeVisible()
   await expect(page.getByText('20.31')).toBeVisible()
