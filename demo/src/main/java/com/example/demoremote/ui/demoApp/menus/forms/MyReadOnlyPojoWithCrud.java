@@ -15,7 +15,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Data
-@Caption("ead only pojo with crud")
+@Caption("Read only pojo with crud")
 public class MyReadOnlyPojoWithCrud
     implements io.mateu.mdd.core.interfaces.ReadOnlyPojo, HasBadges, HasStatus {
 
