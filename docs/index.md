@@ -1,3 +1,0 @@
-
-
-[Javadoc](javadoc/mdd-vaadin/)

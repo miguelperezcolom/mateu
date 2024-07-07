@@ -227,7 +227,7 @@ public class ActionMetadataBuilder {
       actions.add(action);
     }
     if (("view".equals(stepId) && uiInstance.getClass().isAnnotationPresent(Entity.class))
-        || (uiInstance instanceof ReadOnlyPojo && !(uiInstance instanceof PersistentPojo))) {
+        || ((uiInstance instanceof ReadOnlyPojo && ((ReadOnlyPojo<?>) uiInstance).hasEditor()) && !(uiInstance instanceof PersistentPojo))) {
       Action action =
           Action.builder()
               .id("edit")

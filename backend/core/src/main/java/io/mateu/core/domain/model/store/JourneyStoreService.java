@@ -294,6 +294,15 @@ public class JourneyStoreService {
     journeyRepo.save(container.get());
   }
 
+  public void back(String journeyId) throws Exception {
+    Optional<JourneyContainer> container = findJourneyById(journeyId);
+    if (!container.isPresent()) {
+      throw new Exception("No journey with id " + journeyId + " found");
+    }
+    var previousStepId = getPreviousStepId(getCurrentStepId(container), container);
+    backToStep(journeyId, previousStepId);
+  }
+
   public boolean isCrud(String journeyId) throws Exception {
     Optional<JourneyContainer> container = findJourneyById(journeyId);
     if (!container.isPresent()) {

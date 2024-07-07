@@ -50,7 +50,6 @@
     <module>optionals/jpa</module>
       <module>optionals/springboot-security</module>
       <module>optionals/embedded-front</module>
-      <module>optionals/journeyrepo-jpa</module>
   </modules>
 
   <dependencyManagement>
@@ -240,7 +239,7 @@
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>nexus-staging-maven-plugin</artifactId>
-        <version>1.6.13</version>
+        <version>1.7.0</version>
         <extensions>true</extensions>
         <configuration>
           <serverId>ossrh</serverId>

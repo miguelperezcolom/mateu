@@ -7,6 +7,10 @@
 - exportar
 - do not support file type --> only string
 ## missing features
+- buscador con columnas, filtros, etc. Tipo listado
+- pasar request en cada método. Ej. en readonlypojo
+- anotar cada pantalla para generar código en lugar de utilizar reflection. @Form, @List, @View(path="")
+- anotar una pantalla para saber que puede leer el id de la url
 - abrir en modal
 - secciones remotas
 - parámetros opciones menú?
@@ -22,6 +26,7 @@
 - captcha
 - captcha for files
 ## improvements
+- 1 sola petición 
 - journey al cliente? pasar --> meter en store --> devolver
 - ir a vista solo lectura si hay campos con relaciones @xtomany
 - inferir crud para entidad jpa cuando @xtomany

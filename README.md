@@ -35,7 +35,7 @@ public class DemoApp {
 
 becomes
 
-![Mateu](https://raw.githubusercontent.com/miguelperezcolom/mateu-mdd/master/doc/images/frontpage.png)
+![Mateu](https://raw.githubusercontent.com/wiki/miguelperezcolom/mateu/images/frontpage.png)
 
 So, you define your whole application by using plain java clases. From the application structure and menus to any UI custom component.
 

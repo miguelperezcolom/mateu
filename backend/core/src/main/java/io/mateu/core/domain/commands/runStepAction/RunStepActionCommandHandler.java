@@ -55,6 +55,7 @@ public class RunStepActionCommandHandler {
       journeyContainer.getJourney().setCurrentStepDefinitionId("xxx");
       journeyContainer.setLastAccess(LocalDateTime.now());
       store.save(journeyContainer);
+      resetMessages(journeyId);
 
       return Mono.empty().then();
     }
@@ -144,6 +145,14 @@ public class RunStepActionCommandHandler {
     }
 
     throw new Exception("Unknown action " + actionId);
+  }
+
+  private void resetMessages(String journeyId) {
+    var journeyContainer = store.findJourneyById(journeyId).get();
+    var currentStepId = journeyContainer.getJourney().getCurrentStepId();
+    var step = journeyContainer.getSteps().get(currentStepId);
+    step.getView().setMessages(List.of());
+    store.save(journeyContainer);
   }
 
   private Map<String, Object> nestPartialFormData(Map<String, Object> data) {

@@ -1,5 +1,6 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
+import com.google.common.base.Strings;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
 import io.mateu.core.domain.model.editors.EntityEditor;
@@ -12,6 +13,7 @@ import io.mateu.mdd.core.interfaces.ResponseWrapper;
 import io.mateu.mdd.shared.annotations.Action;
 import io.mateu.mdd.shared.annotations.ActionTarget;
 import io.mateu.mdd.shared.annotations.MainAction;
+import io.mateu.mdd.shared.data.GoBack;
 import io.mateu.mdd.shared.data.Result;
 import io.mateu.mdd.shared.interfaces.Listing;
 import io.mateu.reflection.ReflectionHelper;
@@ -273,6 +275,11 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       return List.of(
           new Message(UUID.randomUUID().toString(), ResultType.Success, "", "" + response));
     }
+    if (response instanceof GoBack) {
+      var goBack = (GoBack) response;
+      return List.of(
+              new Message(UUID.randomUUID().toString(), goBack.getResultType(), "", goBack.getMessage()));
+    }
     return List.of();
   }
 
@@ -290,7 +297,9 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   private void processResponse(
       String journeyId, Method m, Object r, ServerHttpRequest serverHttpRequest) throws Throwable {
     Object whatToShow = getActualResponse(r, m);
-    if (needsToBeShown(m, r)) {
+    if (whatToShow instanceof GoBack) {
+      store.back(journeyId);
+    } else if (needsToBeShown(m, r)) {
       if (whatToShow instanceof Result) {
         addBackDestination((Result) whatToShow, store.getInitialStep(journeyId));
       }
