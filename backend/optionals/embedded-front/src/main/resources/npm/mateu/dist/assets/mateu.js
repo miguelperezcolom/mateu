@@ -13854,11 +13854,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         grid-template-columns: repeat(auto-fill, calc(50% - 20px));
         grid-column-gap: 20px;
     }
-    
+fix read only pojo with crud
     .field {
         border-bottom: 1px dashed lightgrey;
         display: flex;
     }
+
+      .field:nth-child(1), .field:nth-child(2) {
+          border-top: 1px dashed lightgrey;
+      }
 
     .field:nth-child(n+3)  {
     /*

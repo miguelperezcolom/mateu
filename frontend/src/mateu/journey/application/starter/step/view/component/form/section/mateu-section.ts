@@ -214,11 +214,15 @@ export class MateuSection extends LitElement {
         grid-template-columns: repeat(auto-fill, calc(50% - 20px));
         grid-column-gap: 20px;
     }
-    
+
     .field {
         border-bottom: 1px dashed lightgrey;
         display: flex;
     }
+
+      .field:nth-child(1), .field:nth-child(2) {
+          border-top: 1px dashed lightgrey;
+      }
 
     .field:nth-child(n+3)  {
     /*
