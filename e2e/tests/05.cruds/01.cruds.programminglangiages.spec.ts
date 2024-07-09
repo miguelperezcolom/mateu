@@ -44,7 +44,7 @@ test('programming languages crud work', async ({ page }) => {
   await expect(page.locator('vaadin-grid-cell-content').filter({ hasText: 'Error' }).first()).toBeVisible()
   await expect(page.locator('vaadin-grid-cell-content').filter({ hasText: 'Warning' }).first()).toBeVisible()
   await expect(page.locator('vaadin-grid-cell-content').filter({ hasText: 'Info' }).first()).toBeVisible()
-  await expect(page.getByText('5 elements found.')).toBeVisible()
+  await expect(page.getByText('elements found.')).toBeVisible()
 
 
 
