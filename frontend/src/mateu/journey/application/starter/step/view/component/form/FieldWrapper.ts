@@ -30,6 +30,10 @@ export default class FieldWrapper {
 
     setEnabled(enabled: boolean) {
         this.enabled = enabled;
-        this.component?.setEnabled(this.enabled);
+        try {
+            this.component?.setEnabled(this.enabled);
+        } catch (e: any) {
+            console.log('exception when calling setEnabled()', this, e)
+        }
     }
 }

@@ -30,9 +30,6 @@ public class FieldStereotypeMapper {
     if (field.isAnnotationPresent(CustomFieldStereotype.class)) {
       return field.getAnnotation(CustomFieldStereotype.class).value();
     }
-    if (field.isAnnotationPresent(CustomElement.class)) {
-      return "custom:" + field.getAnnotation(CustomElement.class).value();
-    }
     if (field.isAnnotationPresent(RawContent.class)) {
       return "rawcontent";
     }

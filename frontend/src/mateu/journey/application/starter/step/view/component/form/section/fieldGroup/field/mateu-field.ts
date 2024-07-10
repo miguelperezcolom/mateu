@@ -84,16 +84,19 @@ export class MateuField extends LitElement {
 
   setupComponent() {
     if (this.component) {
-      this.component.setLabel(this.field.caption);
-      this.component.setPlaceholder(this.field.placeholder)
-      this.component.setField(this.field);
-      this.component.setValue(this.value)
-      this.component.setBaseUrl(this.baseUrl)
-      this.component.setRequired(this.field.validations
-          .filter(v => 'NotEmpty' == v.type).length > 0)
-      this.field.validations.filter(v => 'Pattern' == v.type)
-          .forEach(v => this.component?.setPattern(v.data))
-
+      try {
+        this.component.setLabel(this.field.caption);
+        this.component.setPlaceholder(this.field.placeholder)
+        this.component.setField(this.field);
+        this.component.setValue(this.value)
+        this.component.setBaseUrl(this.baseUrl)
+        this.component.setRequired(this.field.validations
+            .filter(v => 'NotEmpty' == v.type).length > 0)
+        this.field.validations.filter(v => 'Pattern' == v.type)
+            .forEach(v => this.component?.setPattern(v.data))
+      } catch (e: any) {
+        console.log('exception when calling setupComponent()', this.component, e)
+      }
     }
   }
 
