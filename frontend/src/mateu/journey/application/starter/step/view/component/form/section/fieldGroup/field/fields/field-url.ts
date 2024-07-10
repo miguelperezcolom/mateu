@@ -91,10 +91,8 @@ export class FieldUrl extends LitElement implements Component {
                 data-testid="${this.name}"
                    ?disabled=${!this.enabled}
                 ?required=${this.required}
-                placeholder="${this.placeholder}"
             >
-                
-                <a href="${this.value}">${this.placeholder}</a>
+                <a href="${this.value}">${this.placeholder??this.value}</a>
                 
             </vaadin-custom-field>
             `

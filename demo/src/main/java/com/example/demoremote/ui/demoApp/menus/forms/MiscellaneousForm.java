@@ -4,6 +4,8 @@ import io.mateu.mdd.shared.annotations.*;
 import io.mateu.mdd.shared.data.Badge;
 import io.mateu.mdd.shared.data.BadgeTheme;
 import io.mateu.mdd.shared.interfaces.HasBadges;
+
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import lombok.Data;
@@ -14,13 +16,17 @@ public class MiscellaneousForm implements HasBadges {
   @Section("Links")
   private URL url;
 
-  @Link private String linkAsString;
-
-  @Html private String htmlWithLinks;
+  @RawContent
+  private String htmlWithLinks;
 
   @Section("Assessment")
   @ReadOnly
   private String assessment;
+
+  public MiscellaneousForm() throws MalformedURLException {
+    url  = new URL("https://www.google.es");
+    htmlWithLinks = "Esto es un <a href='https://www.google.es'>link</a>";
+  }
 
   @Action
   public void assess() {

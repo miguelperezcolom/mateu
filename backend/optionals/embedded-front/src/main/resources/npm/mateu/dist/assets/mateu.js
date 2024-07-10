@@ -10826,10 +10826,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 data-testid="${this.name}"
                    ?disabled=${!this.enabled}
                 ?required=${this.required}
-                placeholder="${this.placeholder}"
             >
-                
-                <a href="${this.value}">${this.placeholder}</a>
+                <a href="${this.value}">${this.placeholder??this.value}</a>
                 
             </vaadin-custom-field>
             `}};FieldUrl.styles=i$4`
