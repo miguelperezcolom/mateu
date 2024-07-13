@@ -33,6 +33,8 @@ export class JourneyStarter extends LitElement {
     @property()
     instant: string | undefined = undefined;
     @property()
+    label: string | undefined = undefined;
+    @property()
     actionId: string | undefined = undefined;
     @property()
     actionData: unknown | undefined = undefined;
@@ -164,6 +166,9 @@ export class JourneyStarter extends LitElement {
                             await this.service.runAction(this.actionId, this.actionData)
                         } else {
                             console.log('starting journey due to props change', this.baseUrl, this.journeyTypeId, changedProperties)
+                            mateuApiClient.abortAll();
+                            document.title = this.label??''
+                            window.history.pushState({},"", '#' + this.journeyTypeId);
                             await this.service.startJourney(this.baseUrl, this.journeyTypeId)
                         }
                     }
