@@ -149,6 +149,7 @@ export class JourneyStarter extends LitElement {
             || changedProperties.has("journeyTypeId")
             || changedProperties.has("instant")
         ) {
+            console.log('changedProperties', changedProperties)
                 setTimeout(async () => {
                     if (this.baseUrl && this.journeyTypeId) {
                         mateuApiClient.baseUrl = this.baseUrl

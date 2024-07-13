@@ -275,7 +275,7 @@ export class MateuForm extends LitElement implements FormElement {
   editFieldListener = async (event: Event) => {
     const customEvent = event as CustomEvent
     const fieldId = customEvent.detail.fieldId;
-    await this.service!.runAction('__editfield__' + fieldId, this.data)
+    await this.doRunAction('__editfield__' + fieldId)
   }
 
   connectedCallback() {
