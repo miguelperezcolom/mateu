@@ -118,7 +118,7 @@ export class MateuField extends LitElement {
     const element = document.createElement(mapInputTypeToFieldType(this.field.type, this.field.stereotype));
     element.setAttribute('id', this.field.id)
     element.setAttribute('name', this.field.id)
-    element.setAttribute('data-testid', this.field.id)
+    element.setAttribute('data-testid', 'field-' + this.field.id)
     const container = this.shadowRoot!.getElementById('container')!;
     if (this.field.stereotype.startsWith('element:')) {
       this.element = element;
