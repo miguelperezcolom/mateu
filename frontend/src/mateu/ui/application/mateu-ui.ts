@@ -42,6 +42,8 @@ export class MateuUi extends LitElement {
     journeyTypeId: string | undefined;
     @state()
     instant: string | undefined;
+    @state()
+    label: string | undefined;
     @property()
     loading: boolean = false;
     @property()
@@ -118,7 +120,9 @@ export class MateuUi extends LitElement {
     itemSelected(event: MenuBarItemSelectedEvent) {
         this.instant = nanoid()
         let item = event.detail.value as MyMenuBarItem
-        service.createJourney(item.journeyTypeId!, item.text!)
+        this.journeyTypeId = item.journeyTypeId
+        this.label = item.text
+        //service.createJourney(item.journeyTypeId!, item.text!)
     }
 
     login() {

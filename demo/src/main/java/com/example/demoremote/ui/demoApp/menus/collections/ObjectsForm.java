@@ -3,7 +3,6 @@ package com.example.demoremote.ui.demoApp.menus.collections;
 import com.example.demoremote.domains.agnostic.pojos.Movie;
 import com.example.demoremote.domains.agnostic.pojos.Profile;
 import io.mateu.mdd.shared.annotations.Caption;
-import io.mateu.mdd.shared.annotations.Embed;
 import io.mateu.mdd.shared.annotations.Section;
 import lombok.Data;
 
@@ -16,5 +15,4 @@ public class ObjectsForm {
 
   private Profile emptyProfile;
 
-  @Embed private Profile embeddedProfile;
 }

@@ -15,10 +15,7 @@ public class CollectionsSubmenu {
 
   @MenuOption private WithValuesProvidersCollectionsForm withValuesProvidersCollections;
 
-  @MenuOption private CustomComponentForm customComponents;
-
   @MenuOption private ObjectsForm objects;
-
 
   @MenuOption private ComplexCollectionsForm complexCollections;
 

@@ -10,7 +10,6 @@ export class CreateJourneyCommandHandler {
         mateuApiClient.abortAll();
         document.title = command.label;
         window.history.pushState({},"", '#' + command.journeyTypeId);
-
     }
 
 }

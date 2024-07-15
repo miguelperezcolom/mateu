@@ -266,12 +266,18 @@ export class FieldCrud extends LitElement implements Component {
     }
 
     private save() {
+        console.log('save', this.value, this.selectedItem)
         if (this.selectedIndex >= 0) {
             // @ts-ignore
             this.value = this.value?.map((e, i) => i == this.selectedIndex?this.selectedItem:e)
         } else {
-            // @ts-ignore
-            this.value = [].concat(this.value, this.selectedItem)
+            if (!this.value) {
+                // @ts-ignore
+                this.value = Array.of(this.selectedItem)
+            } else {
+                // @ts-ignore
+                this.value = [].concat(this.value, this.selectedItem)
+            }
         }
         this.onValueChanged({
             fieldId: this.field!.id,

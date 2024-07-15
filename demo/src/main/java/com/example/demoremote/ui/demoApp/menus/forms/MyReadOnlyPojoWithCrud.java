@@ -13,9 +13,12 @@ import io.mateu.remote.dtos.ResultType;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Data
-@Caption("ead only pojo with crud")
+@Caption("Read only pojo with crud")
+@Component
 public class MyReadOnlyPojoWithCrud
     implements io.mateu.mdd.core.interfaces.ReadOnlyPojo, HasBadges, HasStatus {
 
@@ -51,6 +54,7 @@ public class MyReadOnlyPojoWithCrud
 
   private double balance = 20.31;
 
+  @Autowired
   private ProgrammingLanguages programmingLanguages;
 
   @Section("Assessment")

@@ -7,7 +7,7 @@ import io.mateu.mdd.shared.interfaces.HasStatus;
 import lombok.Data;
 
 @Data
-@Caption("Hide field")
+@Caption("Hide action")
 public class HideActionForm implements HasStatus {
 
   @VisibleIf("!active")

@@ -52,18 +52,27 @@ public class StartJourneyCommandHandler {
 
         if (formInstance instanceof RemoteJourney) {
           RemoteJourney remoteJourney = (RemoteJourney) formInstance;
-
-          store(
-              journeyId,
-              journeyTypeId,
-              journey,
-              remoteJourney.getBaseUrl(),
-              remoteJourney.getJourneyTypeId());
+          Journey finalJourney = journey;
+          log.info("it's a remote journey " + journeyTypeId + "/" + journeyId);
           return mateuRemoteClient.startJourney(
               remoteJourney.getBaseUrl(),
               remoteJourney.getJourneyTypeId(),
               journeyId,
-              serverHttpRequest);
+              serverHttpRequest)
+                  .doOnError(e -> System.out.println("error!!!!" + e))
+            .flatMap(sw -> {
+                var step = sw.getStep();
+                finalJourney.setCurrentStepId(step.getId());
+                finalJourney.setCurrentStepDefinitionId(step.getType());
+                store(
+                        journeyId,
+                        journeyTypeId,
+                        finalJourney,
+                        step,
+                        remoteJourney.getBaseUrl(),
+                        remoteJourney.getJourneyTypeId());
+                return Mono.just(sw);
+          }).then();
         }
 
       } catch (Exception e) {
@@ -85,7 +94,7 @@ public class StartJourneyCommandHandler {
       journeyContainer.reset();
     }
 
-    return Mono.empty();
+    return Mono.empty().then();
   }
 
   private String getStepId(Object formInstance) {
@@ -111,6 +120,7 @@ public class StartJourneyCommandHandler {
       String journeyId,
       String journeyTypeId,
       Journey journey,
+      Step step,
       String remoteBaseUrl,
       String remoteJourneyTypeId) {
     JourneyContainer journeyContainer =
@@ -118,8 +128,8 @@ public class StartJourneyCommandHandler {
             .journeyId(journeyId)
             .journeyTypeId(journeyTypeId)
             .journey(journey)
-            .steps(Map.of())
-            .initialStep(null)
+                .steps(Map.of(step.getId(), step))
+                .initialStep(step)
             .lastUsedFilters(new HashMap<>())
             .lastUsedSorting(new HashMap<>())
             .remoteBaseUrl(remoteBaseUrl)

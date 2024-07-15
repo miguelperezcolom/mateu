@@ -84,16 +84,19 @@ export class MateuField extends LitElement {
 
   setupComponent() {
     if (this.component) {
-      this.component.setLabel(this.field.caption);
-      this.component.setPlaceholder(this.field.placeholder)
-      this.component.setField(this.field);
-      this.component.setValue(this.value)
-      this.component.setBaseUrl(this.baseUrl)
-      this.component.setRequired(this.field.validations
-          .filter(v => 'NotEmpty' == v.type).length > 0)
-      this.field.validations.filter(v => 'Pattern' == v.type)
-          .forEach(v => this.component?.setPattern(v.data))
-
+      try {
+        this.component.setLabel(this.field.caption);
+        this.component.setPlaceholder(this.field.placeholder)
+        this.component.setField(this.field);
+        this.component.setValue(this.value)
+        this.component.setBaseUrl(this.baseUrl)
+        this.component.setRequired(this.field.validations
+            .filter(v => 'NotEmpty' == v.type).length > 0)
+        this.field.validations.filter(v => 'Pattern' == v.type)
+            .forEach(v => this.component?.setPattern(v.data))
+      } catch (e: any) {
+        console.log('exception when calling setupComponent()', this.component, e)
+      }
     }
   }
 
@@ -115,6 +118,7 @@ export class MateuField extends LitElement {
     const element = document.createElement(mapInputTypeToFieldType(this.field.type, this.field.stereotype));
     element.setAttribute('id', this.field.id)
     element.setAttribute('name', this.field.id)
+    element.setAttribute('data-testid', 'field-' + this.field.id)
     const container = this.shadowRoot!.getElementById('container')!;
     if (this.field.stereotype.startsWith('element:')) {
       this.element = element;
