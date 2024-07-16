@@ -4,7 +4,7 @@ import io.mateu.core.domain.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.annotations.Status;
 import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import io.mateu.jpa.domain.ui.cruds.queries.QueryHelper;
-import io.mateu.remote.dtos.StatusType;
+import io.mateu.dtos.StatusType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.*;
@@ -66,7 +66,7 @@ public class RowsQueryHandler {
     }
     if (field != null && field.isAnnotationPresent(Status.class)) {
       Status statusAnnotation = field.getAnnotation(Status.class);
-      return new io.mateu.remote.dtos.Status(
+      return new io.mateu.dtos.Status(
           getStatusType(statusAnnotation, "" + value), "" + value);
     }
     if (ReflectionHelper.isBasico(value.getClass())) {

@@ -17,7 +17,7 @@ import io.mateu.core.domain.uidefinition.shared.data.GoBack;
 import io.mateu.core.domain.uidefinition.shared.data.Result;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.core.domain.util.Serializer;
-import io.mateu.remote.dtos.ResultType;
+import io.mateu.dtos.ResultType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -239,12 +239,12 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     }
   }
 
-  private List<io.mateu.remote.dtos.Message> mapMessages(List<Message> messages) {
+  private List<io.mateu.dtos.Message> mapMessages(List<Message> messages) {
     if (messages != null) {
       return messages.stream()
           .map(
               m ->
-                  new io.mateu.remote.dtos.Message(
+                  new io.mateu.dtos.Message(
                       m.getId(), m.getType(), m.getTitle(), m.getText()))
           .collect(Collectors.toList());
     } else {

@@ -1,6 +1,6 @@
 package io.mateu.core.domain.uidefinition.shared.data;
 
-import io.mateu.remote.dtos.ResultType;
+import io.mateu.dtos.ResultType;
 
 public class GoBack {
 

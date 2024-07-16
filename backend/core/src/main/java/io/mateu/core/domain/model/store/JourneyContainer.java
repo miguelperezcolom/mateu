@@ -1,8 +1,8 @@
 package io.mateu.core.domain.model.store;
 
 import io.mateu.core.domain.uidefinition.shared.interfaces.SortCriteria;
-import io.mateu.remote.dtos.Journey;
-import io.mateu.remote.dtos.Step;
+import io.mateu.dtos.Journey;
+import io.mateu.dtos.Step;
 import jakarta.persistence.Id;
 import java.io.Serializable;
 import java.time.LocalDateTime;

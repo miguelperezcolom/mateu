@@ -11,6 +11,7 @@ import io.mateu.core.domain.uidefinition.shared.data.Stepper;
 import io.mateu.core.domain.uidefinition.shared.interfaces.JpaCrud;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
+import io.mateu.dtos.*;
 import io.mateu.remote.dtos.*;
 import java.util.List;
 import lombok.SneakyThrows;
@@ -102,16 +103,16 @@ public class ViewMetadataBuilder {
     return methodParametersEditorMetadataBuilder.build(stepId, uiInstance);
   }
 
-  private io.mateu.remote.dtos.Result getResult(Result uiInstance) {
+  private io.mateu.dtos.Result getResult(Result uiInstance) {
     return resultMetadataBuilder.build(uiInstance);
   }
 
-  private io.mateu.remote.dtos.Stepper getStepper(
+  private io.mateu.dtos.Stepper getStepper(
       String stepId, Object uiInstance, List<FieldInterfaced> slotFields) {
     return stepperMetadataBuilder.build(stepId, uiInstance, slotFields);
   }
 
-  private io.mateu.remote.dtos.Card getCard(
+  private io.mateu.dtos.Card getCard(
       String stepId, Object uiInstance, List<FieldInterfaced> slotFields) {
     return cardMetadataBuilder.build(stepId, uiInstance, slotFields);
   }

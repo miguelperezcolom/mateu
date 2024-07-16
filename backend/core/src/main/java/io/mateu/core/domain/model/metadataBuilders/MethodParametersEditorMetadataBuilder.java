@@ -6,6 +6,7 @@ import io.mateu.core.domain.uidefinition.shared.annotations.SameLine;
 import io.mateu.core.domain.uidefinition.shared.annotations.UseCrud;
 import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import io.mateu.core.domain.util.Helper;
+import io.mateu.dtos.*;
 import io.mateu.remote.dtos.*;
 import java.lang.reflect.Method;
 import java.util.ArrayList;

@@ -11,7 +11,7 @@ import io.mateu.core.domain.uidefinition.shared.data.DestinationType;
 import io.mateu.core.domain.uidefinition.shared.data.Result;
 import io.mateu.core.domain.uidefinition.shared.data.ResultType;
 import io.mateu.core.domain.util.Serializer;
-import io.mateu.remote.dtos.Step;
+import io.mateu.dtos.Step;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;

@@ -1,6 +1,6 @@
 package io.mateu.core.domain.uidefinition.core.interfaces;
 
-import io.mateu.remote.dtos.Form;
+import io.mateu.dtos.Form;
 import reactor.core.publisher.Mono;
 
 public interface DynamicForm {

@@ -1,6 +1,6 @@
 package io.mateu.core.domain.uidefinition.core.interfaces;
 
-import io.mateu.remote.dtos.ResultType;
+import io.mateu.dtos.ResultType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

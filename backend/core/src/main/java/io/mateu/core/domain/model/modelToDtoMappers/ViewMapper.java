@@ -18,6 +18,7 @@ import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.core.domain.uidefinition.shared.interfaces.PartialForm;
 import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import io.mateu.core.domain.util.Serializer;
+import io.mateu.dtos.*;
 import io.mateu.remote.dtos.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

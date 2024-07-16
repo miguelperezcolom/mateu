@@ -4,6 +4,7 @@ import io.mateu.core.domain.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
+import io.mateu.dtos.*;
 import io.mateu.remote.dtos.*;
 import java.lang.reflect.Method;
 import java.util.ArrayList;

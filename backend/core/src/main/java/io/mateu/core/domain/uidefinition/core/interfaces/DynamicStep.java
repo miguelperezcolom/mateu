@@ -1,6 +1,6 @@
 package io.mateu.core.domain.uidefinition.core.interfaces;
 
-import io.mateu.remote.dtos.Step;
+import io.mateu.dtos.Step;
 import reactor.core.publisher.Mono;
 
 public interface DynamicStep {

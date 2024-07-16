@@ -91,7 +91,7 @@ public class FieldTypeMapper {
 
   public String mapColumnType(FieldInterfaced field) {
     if (field.isAnnotationPresent(Status.class)) {
-      return io.mateu.remote.dtos.Status.class.getSimpleName();
+      return io.mateu.dtos.Status.class.getSimpleName();
     }
     return mapFieldType(field);
   }

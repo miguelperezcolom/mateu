@@ -7,7 +7,7 @@ import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.core.domain.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.data.Result;
 import io.mateu.core.domain.util.Serializer;
-import io.mateu.remote.dtos.Step;
+import io.mateu.dtos.Step;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;

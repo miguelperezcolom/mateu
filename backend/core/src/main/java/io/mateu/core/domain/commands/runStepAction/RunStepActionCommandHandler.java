@@ -8,7 +8,7 @@ import io.mateu.core.domain.model.modelToDtoMappers.ViewMapper;
 import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.core.domain.reflection.ReflectionHelper;
-import io.mateu.remote.dtos.Form;
+import io.mateu.dtos.Form;
 import java.time.LocalDateTime;
 import java.util.*;
 import lombok.RequiredArgsConstructor;

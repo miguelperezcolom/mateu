@@ -10,7 +10,7 @@ import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
 import io.mateu.core.domain.uidefinition.shared.annotations.Section;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasBadges;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasStatus;
-import io.mateu.remote.dtos.ResultType;
+import io.mateu.dtos.ResultType;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;

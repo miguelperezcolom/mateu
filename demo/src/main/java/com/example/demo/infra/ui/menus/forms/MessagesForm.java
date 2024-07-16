@@ -11,7 +11,7 @@ import io.mateu.core.domain.uidefinition.shared.data.Status;
 import io.mateu.core.domain.uidefinition.shared.data.StatusType;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasBadges;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasStatus;
-import io.mateu.remote.dtos.ResultType;
+import io.mateu.dtos.ResultType;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;

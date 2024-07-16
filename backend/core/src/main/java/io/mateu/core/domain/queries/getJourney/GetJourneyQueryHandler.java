@@ -2,7 +2,7 @@ package io.mateu.core.domain.queries.getJourney;
 
 import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.remote.dtos.Journey;
+import io.mateu.dtos.Journey;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

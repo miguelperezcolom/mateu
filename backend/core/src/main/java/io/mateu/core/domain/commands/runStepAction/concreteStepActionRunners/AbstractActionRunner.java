@@ -3,7 +3,7 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 import io.mateu.core.domain.uidefinition.shared.data.Destination;
 import io.mateu.core.domain.uidefinition.shared.data.DestinationType;
 import io.mateu.core.domain.uidefinition.shared.data.Result;
-import io.mateu.remote.dtos.Step;
+import io.mateu.dtos.Step;
 
 public class AbstractActionRunner {
 

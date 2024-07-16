@@ -4,7 +4,7 @@ import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.editors.FieldEditor;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.core.domain.util.Serializer;
-import io.mateu.remote.dtos.Step;
+import io.mateu.dtos.Step;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.server.reactive.ServerHttpRequest;
