@@ -1,6 +1,6 @@
 package io.mateu.core.domain.queries.getJourneyTypes;
 
-import io.mateu.core.application.NotFoundException;
+import io.mateu.core.domain.util.exceptions.NotFoundException;
 import io.mateu.core.domain.UIRegistry;
 import io.mateu.core.domain.model.modelToDtoMappers.UIMapper;
 import io.mateu.core.domain.reflection.ReflectionHelper;

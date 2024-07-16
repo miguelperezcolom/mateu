@@ -1,6 +1,6 @@
 package io.mateu.core.domain.commands.startJourney;
 
-import io.mateu.core.application.NotFoundException;
+import io.mateu.core.domain.util.exceptions.NotFoundException;
 import io.mateu.core.domain.model.modelToDtoMappers.JourneyMapper;
 import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;

@@ -1,4 +1,4 @@
-package io.mateu.core.application;
+package io.mateu.core.domain.util.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
