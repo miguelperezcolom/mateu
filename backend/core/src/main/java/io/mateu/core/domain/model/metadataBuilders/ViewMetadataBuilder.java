@@ -12,7 +12,6 @@ import io.mateu.core.domain.uidefinition.shared.interfaces.JpaCrud;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import io.mateu.dtos.*;
-import io.mateu.remote.dtos.*;
 import java.util.List;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;

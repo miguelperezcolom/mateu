@@ -1,6 +1,6 @@
 package io.mateu.core.domain.commands.runStepAction;
 
-import java.util.*;
+import java.util.Map;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

@@ -11,7 +11,6 @@ import io.mateu.core.domain.uidefinition.shared.annotations.StyleClassNames;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasBadgesOnFields;
 import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import io.mateu.dtos.*;
-import io.mateu.remote.dtos.*;
 import jakarta.validation.constraints.*;
 import java.util.ArrayList;
 import java.util.List;

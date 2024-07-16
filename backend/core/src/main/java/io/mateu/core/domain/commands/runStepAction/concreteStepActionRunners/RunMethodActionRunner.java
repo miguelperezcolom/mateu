@@ -242,10 +242,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   private List<io.mateu.dtos.Message> mapMessages(List<Message> messages) {
     if (messages != null) {
       return messages.stream()
-          .map(
-              m ->
-                  new io.mateu.dtos.Message(
-                      m.getId(), m.getType(), m.getTitle(), m.getText()))
+          .map(m -> new io.mateu.dtos.Message(m.getId(), m.getType(), m.getTitle(), m.getText()))
           .collect(Collectors.toList());
     } else {
       return List.of();

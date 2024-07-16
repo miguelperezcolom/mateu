@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClas
 import org.springframework.stereotype.Service;
 
 @Service
-@ConditionalOnMissingClass("io.mateu.domain.uidefinition.ui.cruds.JpaMDDOpenCrudActionViewBuilder")
+@ConditionalOnMissingClass("io.mateu.jpa.domain.ui.cruds.JpaMDDOpenCrudActionViewBuilder")
 public class FakeMDDOpenCRUDActionViewBuilder implements MDDOpenCRUDActionViewBuilder {
   @Override
   public Crud buildView(MDDOpenCRUDAction action) throws Exception {

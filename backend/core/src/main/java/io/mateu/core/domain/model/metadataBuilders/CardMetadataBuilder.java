@@ -10,7 +10,6 @@ import io.mateu.core.domain.util.Helper;
 import io.mateu.domain.uidefinition.annotations.Caption;
 import io.mateu.dtos.*;
 import io.mateu.dtos.Card;
-import io.mateu.remote.dtos.*;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import java.util.ArrayList;

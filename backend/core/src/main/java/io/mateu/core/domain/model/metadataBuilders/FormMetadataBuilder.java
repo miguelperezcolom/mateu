@@ -16,7 +16,6 @@ import io.mateu.core.domain.util.Helper;
 import io.mateu.domain.uidefinition.annotations.Caption;
 import io.mateu.dtos.*;
 import io.mateu.dtos.Section;
-import io.mateu.remote.dtos.*;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToMany;

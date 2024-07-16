@@ -3,7 +3,6 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.dtos.*;
-import io.mateu.remote.dtos.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +56,7 @@ public class CancelPartialFormActionRunner implements ActionRunner {
   }
 
   private void updatedSectionToReadOnly(
-          String sectionId, List<Section> sections, ArrayList<Object> actions) {
+      String sectionId, List<Section> sections, ArrayList<Object> actions) {
     var actionEdit =
         Action.builder()
             .id(EDIT_PARTIAL_FORM_IDENTIFIER + sectionId)

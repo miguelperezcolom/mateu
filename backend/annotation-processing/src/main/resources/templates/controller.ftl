@@ -2,7 +2,7 @@ package ${pkgName};
 
 import io.mateu.core.domain.uidefinition.shared.data.Value;
 import io.mateu.core.application.MateuService;
-import io.mateu.remote.dtos.*;
+import io.mateu.dtos.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.core.io.InputStreamResource;

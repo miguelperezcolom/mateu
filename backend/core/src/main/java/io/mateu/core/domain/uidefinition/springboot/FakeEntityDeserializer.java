@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClas
 import org.springframework.stereotype.Service;
 
 @Service
-@ConditionalOnMissingClass("io.mateu.domain.uidefinition.json.MateuEntityDeserializer")
+@ConditionalOnMissingClass("io.mateu.jpa.domain.json.MateuEntityDeserializer")
 public class FakeEntityDeserializer implements EntityDeserializer {
   @Override
   public <T> T fromJson(EntityManager em, String json, Class<T> c) throws Exception {
