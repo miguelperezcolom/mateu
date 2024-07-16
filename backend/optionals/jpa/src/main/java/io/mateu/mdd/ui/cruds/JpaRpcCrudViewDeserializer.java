@@ -1,4 +1,4 @@
-package io.mateu.mdd.ui.cruds;
+package io.mateu.domain.uidefinition.ui.cruds;
 
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;

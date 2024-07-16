@@ -1,14 +1,14 @@
 package io.mateu.core.domain.model.metadataBuilders;
 
 import io.mateu.core.domain.model.metadataBuilders.fields.FieldTypeMapper;
-import io.mateu.mdd.core.interfaces.DynamicCrud;
-import io.mateu.mdd.core.interfaces.HasSubtitle;
-import io.mateu.mdd.core.interfaces.HasTitle;
-import io.mateu.mdd.core.interfaces.RpcCrudViewExtended;
-import io.mateu.mdd.shared.annotations.Ignored;
-import io.mateu.mdd.shared.interfaces.Listing;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.core.interfaces.DynamicCrud;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasSubtitle;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasTitle;
+import io.mateu.core.domain.uidefinition.core.interfaces.RpcCrudViewExtended;
+import io.mateu.core.domain.uidefinition.shared.annotations.Ignored;
+import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import io.mateu.remote.dtos.*;
 import io.mateu.remote.dtos.Crud;
 import java.util.HashMap;

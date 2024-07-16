@@ -1,9 +1,9 @@
 package io.mateu.core.application;
 
 import com.google.common.base.Strings;
-import io.mateu.mdd.shared.interfaces.SortCriteria;
-import io.mateu.mdd.shared.interfaces.SortType;
-import io.mateu.util.Serializer;
+import io.mateu.core.domain.uidefinition.shared.interfaces.SortCriteria;
+import io.mateu.core.domain.uidefinition.shared.interfaces.SortType;
+import io.mateu.core.domain.util.Serializer;
 import java.util.*;
 import java.util.stream.Collectors;
 

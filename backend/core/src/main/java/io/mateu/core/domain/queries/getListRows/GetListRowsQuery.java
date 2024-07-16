@@ -1,6 +1,6 @@
 package io.mateu.core.domain.queries.getListRows;
 
-import io.mateu.mdd.shared.interfaces.SortCriteria;
+import io.mateu.core.domain.uidefinition.shared.interfaces.SortCriteria;
 import java.util.List;
 import java.util.Map;
 import lombok.*;

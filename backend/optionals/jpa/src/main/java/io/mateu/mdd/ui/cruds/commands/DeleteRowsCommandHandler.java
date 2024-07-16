@@ -1,4 +1,4 @@
-package io.mateu.mdd.ui.cruds.commands;
+package io.mateu.domain.uidefinition.ui.cruds.commands;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

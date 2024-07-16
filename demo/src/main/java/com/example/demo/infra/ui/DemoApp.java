@@ -2,11 +2,11 @@ package com.example.demo.infra.ui;
 
 import com.example.demo.infra.ui.menus.*;
 import com.example.demo.infra.ui.menus.forms.BasicFieldsForm;
-import io.mateu.mdd.core.interfaces.HasAppTitle;
-import io.mateu.mdd.core.interfaces.HasLogin;
-import io.mateu.mdd.shared.annotations.MenuOption;
-import io.mateu.mdd.shared.annotations.Private;
-import io.mateu.mdd.shared.annotations.Submenu;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasAppTitle;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasLogin;
+import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
+import io.mateu.core.domain.uidefinition.shared.annotations.Private;
+import io.mateu.core.domain.uidefinition.shared.annotations.Submenu;
 import lombok.Getter;
 
 @Getter

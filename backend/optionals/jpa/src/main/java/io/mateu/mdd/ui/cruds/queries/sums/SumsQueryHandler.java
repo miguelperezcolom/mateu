@@ -1,12 +1,12 @@
-package io.mateu.mdd.ui.cruds.queries.sums;
+package io.mateu.domain.uidefinition.ui.cruds.queries.sums;
 
 import com.google.common.base.Strings;
-import io.mateu.mdd.shared.annotations.Sum;
-import io.mateu.mdd.shared.data.SumData;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.mdd.ui.cruds.queries.QueryHelper;
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.util.Helper;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.shared.annotations.Sum;
+import io.mateu.core.domain.uidefinition.shared.data.SumData;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
+import io.mateu.core.domain.util.Helper;
+import io.mateu.domain.uidefinition.ui.cruds.queries.QueryHelper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.text.DecimalFormat;

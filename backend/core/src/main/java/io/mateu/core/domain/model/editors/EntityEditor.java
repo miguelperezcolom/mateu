@@ -1,7 +1,7 @@
 package io.mateu.core.domain.model.editors;
 
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.util.Serializer;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.util.Serializer;
 import java.util.HashMap;
 import java.util.Map;
 

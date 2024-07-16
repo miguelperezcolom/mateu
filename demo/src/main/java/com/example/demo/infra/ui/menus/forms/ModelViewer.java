@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.mdd.shared.annotations.Attribute;
-import io.mateu.mdd.shared.annotations.Element;
+import io.mateu.core.domain.uidefinition.shared.annotations.Attribute;
+import io.mateu.core.domain.uidefinition.shared.annotations.Element;
 import lombok.Data;
 
 /*

@@ -7,17 +7,17 @@ import io.mateu.core.domain.model.editors.MethodParametersEditor;
 import io.mateu.core.domain.model.editors.ObjectEditor;
 import io.mateu.core.domain.model.persistence.Merger;
 import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.mdd.core.interfaces.Message;
-import io.mateu.mdd.core.interfaces.ResponseWrapper;
-import io.mateu.mdd.shared.annotations.Action;
-import io.mateu.mdd.shared.annotations.ActionTarget;
-import io.mateu.mdd.shared.annotations.MainAction;
-import io.mateu.mdd.shared.data.GoBack;
-import io.mateu.mdd.shared.data.Result;
-import io.mateu.mdd.shared.interfaces.Listing;
-import io.mateu.reflection.ReflectionHelper;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.core.interfaces.Message;
+import io.mateu.core.domain.uidefinition.core.interfaces.ResponseWrapper;
+import io.mateu.core.domain.uidefinition.shared.annotations.Action;
+import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
+import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
+import io.mateu.core.domain.uidefinition.shared.data.GoBack;
+import io.mateu.core.domain.uidefinition.shared.data.Result;
+import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
+import io.mateu.core.domain.util.Serializer;
 import io.mateu.remote.dtos.ResultType;
-import io.mateu.util.Serializer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -239,8 +239,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     }
   }
 
-  private List<io.mateu.remote.dtos.Message> mapMessages(
-      List<io.mateu.mdd.core.interfaces.Message> messages) {
+  private List<io.mateu.remote.dtos.Message> mapMessages(List<Message> messages) {
     if (messages != null) {
       return messages.stream()
           .map(

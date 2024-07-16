@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ResultMetadataBuilder {
 
-  public Result build(io.mateu.mdd.shared.data.Result result) {
+  public Result build(io.mateu.core.domain.uidefinition.shared.data.Result result) {
     return Result.builder()
         .resultType(ResultType.valueOf(result.getType().toString()))
         .message(result.getMessage())

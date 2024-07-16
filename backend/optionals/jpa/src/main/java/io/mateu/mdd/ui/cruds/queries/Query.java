@@ -1,9 +1,9 @@
-package io.mateu.mdd.ui.cruds.queries;
+package io.mateu.domain.uidefinition.ui.cruds.queries;
 
-import io.mateu.mdd.core.app.MDDOpenCRUDAction;
-import io.mateu.mdd.core.views.ExtraFilters;
-import io.mateu.mdd.shared.interfaces.SortCriteria;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
+import io.mateu.core.domain.uidefinition.core.views.ExtraFilters;
+import io.mateu.core.domain.uidefinition.shared.interfaces.SortCriteria;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;

@@ -1,9 +1,9 @@
-package io.mateu.mdd.json;
+package io.mateu.domain.uidefinition.json;
 
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.util.Serializer;
-import io.mateu.util.persistence.EntityDeserializer;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
+import io.mateu.core.domain.util.Serializer;
+import io.mateu.core.domain.util.persistence.EntityDeserializer;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;

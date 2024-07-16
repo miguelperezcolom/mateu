@@ -1,18 +1,18 @@
 package io.mateu.core.domain.model.modelToDtoMappers;
 
 import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.AbstractMenu;
-import io.mateu.mdd.core.interfaces.*;
-import io.mateu.mdd.shared.annotations.MenuOption;
-import io.mateu.mdd.shared.annotations.Submenu;
-import io.mateu.mdd.shared.interfaces.MenuEntry;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.core.app.AbstractAction;
+import io.mateu.core.domain.uidefinition.core.app.AbstractMenu;
+import io.mateu.core.domain.uidefinition.core.interfaces.*;
+import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
+import io.mateu.core.domain.uidefinition.shared.annotations.Submenu;
+import io.mateu.core.domain.uidefinition.shared.interfaces.MenuEntry;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
+import io.mateu.core.domain.util.Helper;
 import io.mateu.remote.dtos.Menu;
 import io.mateu.remote.dtos.MenuType;
 import io.mateu.remote.dtos.UI;
-import io.mateu.util.Helper;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;

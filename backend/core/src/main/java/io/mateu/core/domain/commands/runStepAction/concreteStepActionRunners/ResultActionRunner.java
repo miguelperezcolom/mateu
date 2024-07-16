@@ -2,7 +2,7 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.mdd.shared.data.Result;
+import io.mateu.core.domain.uidefinition.shared.data.Result;
 import io.mateu.remote.dtos.Step;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;

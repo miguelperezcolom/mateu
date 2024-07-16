@@ -3,8 +3,8 @@ package com.example.demo.infra.ui.menus;
 import com.example.demo.domain.nfl.entities.Player;
 import com.example.demo.domain.nfl.entities.Team;
 import com.example.demo.infra.ui.menus.nfl.NflTeamsCrud;
-import io.mateu.mdd.shared.annotations.MenuOption;
-import io.mateu.mdd.shared.interfaces.JpaCrud;
+import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
+import io.mateu.core.domain.uidefinition.shared.interfaces.JpaCrud;
 
 import java.util.List;
 

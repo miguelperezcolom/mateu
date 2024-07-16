@@ -1,9 +1,9 @@
-package io.mateu.mdd.ui.cruds.queries.rows;
+package io.mateu.domain.uidefinition.ui.cruds.queries.rows;
 
-import io.mateu.mdd.shared.annotations.Status;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.mdd.ui.cruds.queries.QueryHelper;
-import io.mateu.reflection.ReflectionHelper;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.shared.annotations.Status;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
+import io.mateu.domain.uidefinition.ui.cruds.queries.QueryHelper;
 import io.mateu.remote.dtos.StatusType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

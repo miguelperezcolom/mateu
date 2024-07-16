@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.useCases.insurance.newLife;
 
-import io.mateu.mdd.shared.data.ItemsListProvider;
-import io.mateu.mdd.shared.data.Value;
+import io.mateu.core.domain.uidefinition.shared.data.ItemsListProvider;
+import io.mateu.core.domain.uidefinition.shared.data.Value;
 
 import java.util.List;
 import java.util.stream.Collectors;

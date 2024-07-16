@@ -2,9 +2,9 @@ package com.example.demo.infra.ui.menus;
 
 import com.example.demo.domain.cities.City;
 import com.example.demo.domain.programmingLanguages.ProgrammingLanguages;
-import io.mateu.mdd.shared.annotations.MenuOption;
-import io.mateu.mdd.shared.annotations.Submenu;
-import io.mateu.mdd.shared.interfaces.JpaCrud;
+import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
+import io.mateu.core.domain.uidefinition.shared.annotations.Submenu;
+import io.mateu.core.domain.uidefinition.shared.interfaces.JpaCrud;
 
 import java.util.List;
 

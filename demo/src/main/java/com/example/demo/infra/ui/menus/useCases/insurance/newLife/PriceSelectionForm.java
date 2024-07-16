@@ -1,11 +1,11 @@
 package com.example.demo.infra.ui.menus.useCases.insurance.newLife;
 
-import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.data.ComplexKey;
-import io.mateu.mdd.shared.data.Stepper;
-import io.mateu.mdd.shared.data.StepperStep;
-import io.mateu.mdd.shared.interfaces.ComplexKeyChoice;
-import io.mateu.mdd.shared.interfaces.ComplexKeyOption;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
+import io.mateu.core.domain.uidefinition.shared.data.ComplexKey;
+import io.mateu.core.domain.uidefinition.shared.data.Stepper;
+import io.mateu.core.domain.uidefinition.shared.data.StepperStep;
+import io.mateu.core.domain.uidefinition.shared.interfaces.ComplexKeyChoice;
+import io.mateu.core.domain.uidefinition.shared.interfaces.ComplexKeyOption;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +16,8 @@ import java.util.List;
 @Setter
 public class PriceSelectionForm {
 
-  @Ignored private InsuredInformationForm insuredInformationForm;
+  @Ignored
+  private InsuredInformationForm insuredInformationForm;
 
   public PriceSelectionForm(InsuredInformationForm insuredInformationForm) {
     this.insuredInformationForm = insuredInformationForm;

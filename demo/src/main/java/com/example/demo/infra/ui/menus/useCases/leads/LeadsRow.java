@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.useCases.leads;
 
-import io.mateu.mdd.core.app.ColumnAction;
-import io.mateu.mdd.core.app.ColumnActionGroup;
+import io.mateu.core.domain.uidefinition.core.app.ColumnAction;
+import io.mateu.core.domain.uidefinition.core.app.ColumnActionGroup;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

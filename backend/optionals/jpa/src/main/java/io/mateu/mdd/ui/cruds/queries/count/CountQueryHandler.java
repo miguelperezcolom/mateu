@@ -1,7 +1,7 @@
-package io.mateu.mdd.ui.cruds.queries.count;
+package io.mateu.domain.uidefinition.ui.cruds.queries.count;
 
-import io.mateu.mdd.ui.cruds.queries.QueryHelper;
-import io.mateu.reflection.ReflectionHelper;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.domain.uidefinition.ui.cruds.queries.QueryHelper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;

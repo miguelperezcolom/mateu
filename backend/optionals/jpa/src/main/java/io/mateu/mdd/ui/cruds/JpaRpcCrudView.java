@@ -1,33 +1,33 @@
-package io.mateu.mdd.ui.cruds;
+package io.mateu.domain.uidefinition.ui.cruds;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import io.mateu.mdd.core.app.MDDOpenCRUDAction;
-import io.mateu.mdd.core.interfaces.Crud;
-import io.mateu.mdd.core.interfaces.HasActions;
-import io.mateu.mdd.core.interfaces.RpcCrudViewExtended;
-import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.data.Status;
-import io.mateu.mdd.shared.data.SumData;
-import io.mateu.mdd.shared.interfaces.IResource;
-import io.mateu.mdd.shared.interfaces.SortCriteria;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.mdd.ui.cruds.commands.DeleteRowsCommand;
-import io.mateu.mdd.ui.cruds.commands.DeleteRowsCommandHandler;
-import io.mateu.mdd.ui.cruds.queries.count.CountQuery;
-import io.mateu.mdd.ui.cruds.queries.count.CountQueryHandler;
-import io.mateu.mdd.ui.cruds.queries.findById.FindByIdQuery;
-import io.mateu.mdd.ui.cruds.queries.findById.FindByIdQueryHandler;
-import io.mateu.mdd.ui.cruds.queries.rows.RowsQuery;
-import io.mateu.mdd.ui.cruds.queries.rows.RowsQueryHandler;
-import io.mateu.mdd.ui.cruds.queries.sums.SumsQuery;
-import io.mateu.mdd.ui.cruds.queries.sums.SumsQueryHandler;
-import io.mateu.reflection.FieldInterfacedFromType;
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.util.Helper;
-import io.mateu.util.Serializer;
-import io.mateu.util.data.Pair;
+import io.mateu.core.domain.reflection.FieldInterfacedFromType;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
+import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasActions;
+import io.mateu.core.domain.uidefinition.core.interfaces.RpcCrudViewExtended;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
+import io.mateu.core.domain.uidefinition.shared.data.Status;
+import io.mateu.core.domain.uidefinition.shared.data.SumData;
+import io.mateu.core.domain.uidefinition.shared.interfaces.IResource;
+import io.mateu.core.domain.uidefinition.shared.interfaces.SortCriteria;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
+import io.mateu.core.domain.util.Helper;
+import io.mateu.core.domain.util.Serializer;
+import io.mateu.core.domain.util.data.Pair;
+import io.mateu.domain.uidefinition.ui.cruds.commands.DeleteRowsCommand;
+import io.mateu.domain.uidefinition.ui.cruds.commands.DeleteRowsCommandHandler;
+import io.mateu.domain.uidefinition.ui.cruds.queries.count.CountQuery;
+import io.mateu.domain.uidefinition.ui.cruds.queries.count.CountQueryHandler;
+import io.mateu.domain.uidefinition.ui.cruds.queries.findById.FindByIdQuery;
+import io.mateu.domain.uidefinition.ui.cruds.queries.findById.FindByIdQueryHandler;
+import io.mateu.domain.uidefinition.ui.cruds.queries.rows.RowsQuery;
+import io.mateu.domain.uidefinition.ui.cruds.queries.rows.RowsQueryHandler;
+import io.mateu.domain.uidefinition.ui.cruds.queries.sums.SumsQuery;
+import io.mateu.domain.uidefinition.ui.cruds.queries.sums.SumsQueryHandler;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
@@ -623,7 +623,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   @Override
   public List<Method> getActionMethods() {
     return reflectionHelper.getAllMethods(getEntityClass()).stream()
-        .filter(m -> m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class))
+        .filter(m -> m.isAnnotationPresent(Action.class))
         .filter(m -> Modifier.isStatic(m.getModifiers()))
         .collect(Collectors.toList());
   }

@@ -1,16 +1,16 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.mdd.core.interfaces.HasSubtitle;
-import io.mateu.mdd.core.interfaces.HasTitle;
-import io.mateu.mdd.core.interfaces.Message;
-import io.mateu.mdd.core.interfaces.ResponseWrapper;
-import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.data.Badge;
-import io.mateu.mdd.shared.data.BadgeTheme;
-import io.mateu.mdd.shared.data.Status;
-import io.mateu.mdd.shared.data.StatusType;
-import io.mateu.mdd.shared.interfaces.HasBadges;
-import io.mateu.mdd.shared.interfaces.HasStatus;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasSubtitle;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasTitle;
+import io.mateu.core.domain.uidefinition.core.interfaces.Message;
+import io.mateu.core.domain.uidefinition.core.interfaces.ResponseWrapper;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
+import io.mateu.core.domain.uidefinition.shared.data.Badge;
+import io.mateu.core.domain.uidefinition.shared.data.BadgeTheme;
+import io.mateu.core.domain.uidefinition.shared.data.Status;
+import io.mateu.core.domain.uidefinition.shared.data.StatusType;
+import io.mateu.core.domain.uidefinition.shared.interfaces.HasBadges;
+import io.mateu.core.domain.uidefinition.shared.interfaces.HasStatus;
 import io.mateu.remote.dtos.ResultType;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;

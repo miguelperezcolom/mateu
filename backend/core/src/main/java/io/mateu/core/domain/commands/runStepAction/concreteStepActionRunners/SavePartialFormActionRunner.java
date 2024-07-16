@@ -2,8 +2,8 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.mdd.shared.interfaces.PartialForm;
-import io.mateu.reflection.ReflectionHelper;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.shared.interfaces.PartialForm;
 import io.mateu.remote.dtos.Action;
 import io.mateu.remote.dtos.ActionType;
 import io.mateu.remote.dtos.Form;

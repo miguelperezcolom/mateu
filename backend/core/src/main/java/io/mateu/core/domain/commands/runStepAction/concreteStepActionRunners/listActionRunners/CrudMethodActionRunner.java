@@ -2,11 +2,12 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.li
 
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ListActionRunner;
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.RunMethodActionRunner;
-import io.mateu.mdd.core.interfaces.Crud;
-import io.mateu.mdd.core.interfaces.HasActions;
-import io.mateu.mdd.shared.interfaces.SelectedRowsContext;
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.util.Serializer;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasActions;
+import io.mateu.core.domain.uidefinition.shared.annotations.Action;
+import io.mateu.core.domain.uidefinition.shared.interfaces.SelectedRowsContext;
+import io.mateu.core.domain.util.Serializer;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ public class CrudMethodActionRunner implements ListActionRunner {
   public boolean applies(Crud crud, String actionId) {
     List<Method> allMethods =
         reflectionHelper.getAllMethods(crud.getClass()).stream()
-            .filter(m -> m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class))
+            .filter(m -> m.isAnnotationPresent(Action.class))
             .collect(Collectors.toList());
     if (crud instanceof HasActions) {
       allMethods.addAll(((HasActions) crud).getActionMethods());
@@ -75,7 +76,7 @@ public class CrudMethodActionRunner implements ListActionRunner {
 
       List<Method> allMethods =
           reflectionHelper.getAllMethods(crud.getClass()).stream()
-              .filter(m -> m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class))
+              .filter(m -> m.isAnnotationPresent(Action.class))
               .collect(Collectors.toList());
       if (crud instanceof HasActions) {
         allMethods.addAll(((HasActions) crud).getActionMethods());

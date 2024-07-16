@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.mdd.shared.annotations.Action;
-import io.mateu.mdd.shared.annotations.ReadOnly;
+import io.mateu.core.domain.uidefinition.shared.annotations.Action;
+import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
 import lombok.Data;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 

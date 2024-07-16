@@ -1,8 +1,8 @@
 package io.mateu.core.domain.model.modelToDtoMappers.viewMapperStuff;
 
-import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;

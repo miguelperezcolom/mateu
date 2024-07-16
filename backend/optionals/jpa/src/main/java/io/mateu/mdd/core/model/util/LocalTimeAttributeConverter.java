@@ -1,4 +1,4 @@
-package io.mateu.mdd.core.model.util;
+package io.mateu.domain.uidefinition.core.model.util;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;

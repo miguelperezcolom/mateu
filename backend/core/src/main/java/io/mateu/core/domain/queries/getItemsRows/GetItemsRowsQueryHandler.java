@@ -1,9 +1,9 @@
 package io.mateu.core.domain.queries.getItemsRows;
 
 import io.mateu.core.domain.queries.EntitiesFinder;
-import io.mateu.mdd.shared.data.ItemsListProvider;
-import io.mateu.mdd.shared.data.Value;
-import io.mateu.reflection.ReflectionHelper;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.shared.data.ItemsListProvider;
+import io.mateu.core.domain.uidefinition.shared.data.Value;
 import jakarta.persistence.Entity;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;

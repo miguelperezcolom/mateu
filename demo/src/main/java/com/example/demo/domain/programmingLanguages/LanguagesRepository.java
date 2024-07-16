@@ -1,9 +1,9 @@
 package com.example.demo.domain.programmingLanguages;
 
-import io.mateu.mdd.shared.annotations.Ignored;
-import io.mateu.mdd.shared.data.Status;
-import io.mateu.mdd.shared.data.StatusType;
-import io.mateu.util.Serializer;
+import io.mateu.core.domain.uidefinition.shared.annotations.Ignored;
+import io.mateu.core.domain.uidefinition.shared.data.Status;
+import io.mateu.core.domain.uidefinition.shared.data.StatusType;
+import io.mateu.core.domain.util.Serializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;

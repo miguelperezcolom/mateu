@@ -2,8 +2,8 @@ package com.example.demo.infra.ui.menus.useCases.processDefinition.poller;
 
 import com.example.demo.infra.ui.menus.useCases.processDefinition.poller.dtos.ProductDto;
 import com.example.demo.infra.ui.menus.useCases.processDefinition.poller.dtos.ProductsListDto;
-import io.mateu.util.Helper;
-import io.mateu.util.Serializer;
+import io.mateu.core.domain.util.Helper;
+import io.mateu.core.domain.util.Serializer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

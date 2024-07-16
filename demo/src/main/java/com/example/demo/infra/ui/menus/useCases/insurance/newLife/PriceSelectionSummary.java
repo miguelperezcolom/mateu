@@ -1,10 +1,10 @@
 package com.example.demo.infra.ui.menus.useCases.insurance.newLife;
 
-import io.mateu.mdd.core.interfaces.Card;
-import io.mateu.mdd.core.interfaces.HasIcon;
-import io.mateu.mdd.core.interfaces.HasTitle;
-import io.mateu.mdd.core.interfaces.HasTotal;
-import io.mateu.mdd.shared.annotations.ReadOnly;
+import io.mateu.core.domain.uidefinition.core.interfaces.Card;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasIcon;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasTitle;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasTotal;
+import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
 import lombok.Getter;
 import lombok.Setter;
 

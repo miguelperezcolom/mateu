@@ -1,9 +1,9 @@
 package com.example.demo.infra.ui.menus.useCases.intermediaries.salesAgents;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.mateu.mdd.core.interfaces.Crud;
-import io.mateu.mdd.shared.annotations.Action;
-import io.mateu.mdd.shared.interfaces.SortCriteria;
+import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
+import io.mateu.core.domain.uidefinition.shared.annotations.Action;
+import io.mateu.core.domain.uidefinition.shared.interfaces.SortCriteria;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;

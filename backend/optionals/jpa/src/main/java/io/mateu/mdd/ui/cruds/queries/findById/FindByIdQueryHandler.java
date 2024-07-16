@@ -1,4 +1,4 @@
-package io.mateu.mdd.ui.cruds.queries.findById;
+package io.mateu.domain.uidefinition.ui.cruds.queries.findById;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

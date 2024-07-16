@@ -1,13 +1,13 @@
-package io.mateu.mdd.ui.cruds;
+package io.mateu.domain.uidefinition.ui.cruds;
 
 import com.google.common.base.Strings;
-import io.mateu.mdd.core.app.MDDOpenCRUDAction;
-import io.mateu.mdd.core.interfaces.JpaRpcCrudFactory;
-import io.mateu.mdd.core.views.ExtraFilters;
-import io.mateu.mdd.shared.interfaces.JpaCrud;
-import io.mateu.mdd.shared.interfaces.Listing;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
+import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
+import io.mateu.core.domain.uidefinition.core.views.ExtraFilters;
+import io.mateu.core.domain.uidefinition.shared.interfaces.JpaCrud;
+import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import lombok.RequiredArgsConstructor;

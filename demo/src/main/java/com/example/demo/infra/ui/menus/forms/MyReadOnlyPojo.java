@@ -2,13 +2,15 @@ package com.example.demo.infra.ui.menus.forms;
 
 import com.example.demo.domain.nfl.dtos.Conference;
 import com.example.demo.domain.nfl.dtos.Division;
-import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.data.Badge;
-import io.mateu.mdd.shared.data.BadgeTheme;
-import io.mateu.mdd.shared.data.Status;
-import io.mateu.mdd.shared.data.StatusType;
-import io.mateu.mdd.shared.interfaces.HasBadges;
-import io.mateu.mdd.shared.interfaces.HasStatus;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
+import io.mateu.domain.uidefinition.annotations.Caption;
+import io.mateu.core.domain.uidefinition.core.interfaces.ReadOnlyPojo;
+import io.mateu.core.domain.uidefinition.shared.data.Badge;
+import io.mateu.core.domain.uidefinition.shared.data.BadgeTheme;
+import io.mateu.core.domain.uidefinition.shared.data.Status;
+import io.mateu.core.domain.uidefinition.shared.data.StatusType;
+import io.mateu.core.domain.uidefinition.shared.interfaces.HasBadges;
+import io.mateu.core.domain.uidefinition.shared.interfaces.HasStatus;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -19,7 +21,7 @@ import java.util.List;
 @Data
 @Caption("Read only pojo")
 public class MyReadOnlyPojo
-    implements io.mateu.mdd.core.interfaces.ReadOnlyPojo, HasBadges, HasStatus {
+    implements ReadOnlyPojo, HasBadges, HasStatus {
 
   @Section("Basic")
   private String name = "Mateu";
@@ -49,7 +51,8 @@ public class MyReadOnlyPojo
   @Section("Checks")
   private boolean check;
 
-  @UseRadioButtons private boolean usingRadioButtons;
+  @UseRadioButtons
+  private boolean usingRadioButtons;
 
   @Toggle private boolean toggle;
 

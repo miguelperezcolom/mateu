@@ -1,6 +1,10 @@
 package com.example.demo.infra.ui;
 
-import io.mateu.mdd.shared.annotations.*;
+import io.mateu.domain.uidefinition.annotations.ExternalScripts;
+import io.mateu.core.domain.uidefinition.shared.annotations.RawContent;
+import io.mateu.core.domain.uidefinition.shared.annotations.Section;
+import io.mateu.domain.uidefinition.annotations.Caption;
+import io.mateu.domain.uidefinition.annotations.MateuUI;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
 

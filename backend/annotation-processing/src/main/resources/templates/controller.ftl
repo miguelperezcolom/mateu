@@ -1,6 +1,6 @@
 package ${pkgName};
 
-import io.mateu.mdd.shared.data.Value;
+import io.mateu.core.domain.uidefinition.shared.data.Value;
 import io.mateu.core.application.MateuService;
 import io.mateu.remote.dtos.*;
 import lombok.extern.slf4j.Slf4j;

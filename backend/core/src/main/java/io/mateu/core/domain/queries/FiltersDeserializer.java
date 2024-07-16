@@ -2,11 +2,11 @@ package io.mateu.core.domain.queries;
 
 import com.google.common.base.Strings;
 import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.mdd.shared.data.DatesRange;
-import io.mateu.mdd.shared.interfaces.Listing;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.util.Serializer;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.shared.data.DatesRange;
+import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
+import io.mateu.core.domain.util.Serializer;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.HashMap;

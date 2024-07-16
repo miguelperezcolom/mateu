@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.store;
 
-import io.mateu.mdd.shared.interfaces.SortCriteria;
+import io.mateu.core.domain.uidefinition.shared.interfaces.SortCriteria;
 import io.mateu.remote.dtos.Journey;
 import io.mateu.remote.dtos.Step;
 import jakarta.persistence.Id;

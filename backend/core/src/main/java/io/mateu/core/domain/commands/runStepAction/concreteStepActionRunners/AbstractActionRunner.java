@@ -1,8 +1,8 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
-import io.mateu.mdd.shared.data.Destination;
-import io.mateu.mdd.shared.data.DestinationType;
-import io.mateu.mdd.shared.data.Result;
+import io.mateu.core.domain.uidefinition.shared.data.Destination;
+import io.mateu.core.domain.uidefinition.shared.data.DestinationType;
+import io.mateu.core.domain.uidefinition.shared.data.Result;
 import io.mateu.remote.dtos.Step;
 
 public class AbstractActionRunner {

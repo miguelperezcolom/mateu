@@ -1,11 +1,15 @@
 package com.example.demo.infra.ui.menus.forms;
 
 import com.example.demo.domain.programmingLanguages.ProgrammingLanguages;
-import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.data.Status;
-import io.mateu.mdd.shared.data.*;
-import io.mateu.mdd.shared.interfaces.HasBadges;
-import io.mateu.mdd.shared.interfaces.HasStatus;
+import io.mateu.core.domain.uidefinition.shared.data.*;
+import io.mateu.domain.uidefinition.annotations.Caption;
+import io.mateu.core.domain.uidefinition.core.interfaces.ReadOnlyPojo;
+import io.mateu.core.domain.uidefinition.shared.annotations.Action;
+import io.mateu.core.domain.uidefinition.shared.annotations.Placeholder;
+import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
+import io.mateu.core.domain.uidefinition.shared.annotations.Section;
+import io.mateu.core.domain.uidefinition.shared.interfaces.HasBadges;
+import io.mateu.core.domain.uidefinition.shared.interfaces.HasStatus;
 import io.mateu.remote.dtos.ResultType;
 import lombok.Data;
 import lombok.Getter;
@@ -19,7 +23,7 @@ import java.util.List;
 @Caption("Read only pojo with crud")
 @Component
 public class MyReadOnlyPojoWithCrud
-    implements io.mateu.mdd.core.interfaces.ReadOnlyPojo, HasBadges, HasStatus {
+    implements ReadOnlyPojo, HasBadges, HasStatus {
 
   @Getter@Setter
   public class MyEditor {

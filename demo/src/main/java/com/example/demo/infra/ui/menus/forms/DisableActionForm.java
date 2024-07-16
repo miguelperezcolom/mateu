@@ -1,9 +1,13 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.data.Status;
-import io.mateu.mdd.shared.data.StatusType;
-import io.mateu.mdd.shared.interfaces.HasStatus;
+import io.mateu.domain.uidefinition.annotations.Caption;
+import io.mateu.core.domain.uidefinition.shared.annotations.Action;
+import io.mateu.core.domain.uidefinition.shared.annotations.EnabledIf;
+import io.mateu.core.domain.uidefinition.shared.annotations.Ignored;
+import io.mateu.core.domain.uidefinition.shared.annotations.RawContent;
+import io.mateu.core.domain.uidefinition.shared.data.Status;
+import io.mateu.core.domain.uidefinition.shared.data.StatusType;
+import io.mateu.core.domain.uidefinition.shared.interfaces.HasStatus;
 import lombok.Data;
 
 @Data

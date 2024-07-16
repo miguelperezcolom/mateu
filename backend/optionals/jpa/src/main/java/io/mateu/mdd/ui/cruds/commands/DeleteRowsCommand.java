@@ -1,4 +1,4 @@
-package io.mateu.mdd.ui.cruds.commands;
+package io.mateu.domain.uidefinition.ui.cruds.commands;
 
 import java.util.List;
 import lombok.Builder;

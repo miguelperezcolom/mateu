@@ -1,6 +1,6 @@
 package com.example.demo.domain.nfl.entities;
 
-import io.mateu.mdd.shared.annotations.Section;
+import io.mateu.core.domain.uidefinition.shared.annotations.Section;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;

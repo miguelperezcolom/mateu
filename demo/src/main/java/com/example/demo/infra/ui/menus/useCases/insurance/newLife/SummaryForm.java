@@ -1,7 +1,8 @@
 package com.example.demo.infra.ui.menus.useCases.insurance.newLife;
 
-import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.data.*;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
+import io.mateu.core.domain.uidefinition.shared.data.*;
+import io.mateu.domain.uidefinition.annotations.Caption;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,7 +15,8 @@ import java.util.List;
 @ReadOnly
 public class SummaryForm {
 
-  @Ignored private ContractForm contractForm;
+  @Ignored
+  private ContractForm contractForm;
 
   public SummaryForm(ContractForm contractForm) throws MalformedURLException {
     this.contractForm = contractForm;

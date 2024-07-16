@@ -1,6 +1,7 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.mdd.shared.annotations.*;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
+import io.mateu.domain.uidefinition.annotations.Caption;
 import lombok.Data;
 
 @Data
@@ -10,9 +11,11 @@ public class BooleanFieldsForm {
   @Section("Primitives")
   private boolean check;
 
-  @UseRadioButtons private boolean usingRadioButtons;
+  @UseRadioButtons
+  private boolean usingRadioButtons;
 
-  @Toggle private boolean toggle;
+  @Toggle
+  private boolean toggle;
 
   @Section("Non primitives")
   private Boolean alsoCheck;

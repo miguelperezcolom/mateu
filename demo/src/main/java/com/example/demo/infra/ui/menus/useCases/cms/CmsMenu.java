@@ -5,8 +5,8 @@ import com.example.demo.domain.cms.site.Site;
 import com.example.demo.domain.cms.site.links.FooterLink;
 import com.example.demo.domain.cms.site.links.HeaderLink;
 import com.example.demo.domain.cms.site.links.SidebarLink;
-import io.mateu.mdd.shared.annotations.MenuOption;
-import io.mateu.mdd.shared.interfaces.JpaCrud;
+import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
+import io.mateu.core.domain.uidefinition.shared.interfaces.JpaCrud;
 
 import java.util.List;
 

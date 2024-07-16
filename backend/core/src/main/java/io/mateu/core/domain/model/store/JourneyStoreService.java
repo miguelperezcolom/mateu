@@ -7,16 +7,19 @@ import io.mateu.core.domain.model.editors.ObjectEditor;
 import io.mateu.core.domain.model.modelToDtoMappers.StepMapper;
 import io.mateu.core.domain.model.modelToDtoMappers.UIMapper;
 import io.mateu.core.domain.model.persistence.Merger;
-import io.mateu.mdd.core.app.*;
-import io.mateu.mdd.core.interfaces.HasInitMethod;
-import io.mateu.mdd.core.interfaces.JpaRpcCrudFactory;
-import io.mateu.mdd.shared.interfaces.Listing;
-import io.mateu.mdd.shared.interfaces.SortCriteria;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
+import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDActionViewBuilder;
+import io.mateu.core.domain.uidefinition.core.app.MDDOpenEditorAction;
+import io.mateu.core.domain.uidefinition.core.app.MDDOpenListViewAction;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
+import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
+import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
+import io.mateu.core.domain.uidefinition.shared.interfaces.SortCriteria;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
+import io.mateu.core.domain.util.Serializer;
 import io.mateu.remote.dtos.Journey;
 import io.mateu.remote.dtos.Step;
-import io.mateu.util.Serializer;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -57,7 +60,7 @@ public class JourneyStoreService {
       throw new Exception(
           "No step with id " + stepId + " for journey with id " + journeyId + " found");
     }
-    if (false && "io.mateu.mdd.ui.cruds.JpaRpcCrudView".equals(step.getType())) {
+    if (false && "io.mateu.domain.uidefinition.ui.cruds.JpaRpcCrudView".equals(step.getType())) {
       Object jpaRpcCrudView =
           createInstanceFromJourneyTypeId(container.get().getJourneyTypeId(), serverHttpRequest);
       return jpaRpcCrudView;

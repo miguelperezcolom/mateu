@@ -1,9 +1,10 @@
 package com.example.demo.infra.ui.menus.refs;
 
-import io.mateu.mdd.shared.annotations.Action;
-import io.mateu.mdd.shared.annotations.Caption;
-import io.mateu.mdd.shared.annotations.ReadOnly;
-import io.mateu.mdd.shared.annotations.Section;
+import io.mateu.core.domain.uidefinition.shared.annotations.File;
+import io.mateu.core.domain.uidefinition.shared.annotations.Action;
+import io.mateu.domain.uidefinition.annotations.Caption;
+import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
+import io.mateu.core.domain.uidefinition.shared.annotations.Section;
 import lombok.Data;
 
 import java.util.List;
@@ -20,10 +21,11 @@ public class FilesForm {
    */
 
   @Section("Files using strings")
-  @io.mateu.mdd.shared.annotations.File
+  @File
   private String singleFileAsString;
 
-  @io.mateu.mdd.shared.annotations.File private List<String> filesAsStrings;
+  @File
+  private List<String> filesAsStrings;
 
   @Section("Assessment")
   @ReadOnly

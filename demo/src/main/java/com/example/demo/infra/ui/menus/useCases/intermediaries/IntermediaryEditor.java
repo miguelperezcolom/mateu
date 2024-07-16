@@ -1,6 +1,6 @@
 package com.example.demo.infra.ui.menus.useCases.intermediaries;
 
-import io.mateu.mdd.core.interfaces.PersistentPojo;
+import io.mateu.core.domain.uidefinition.core.interfaces.PersistentPojo;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.annotation.Scope;

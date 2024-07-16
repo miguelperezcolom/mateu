@@ -1,9 +1,9 @@
 package com.example.demo.domain.swapi.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.mateu.mdd.shared.annotations.FieldGroup;
-import io.mateu.mdd.shared.annotations.UseCheckboxes;
-import io.mateu.mdd.shared.annotations.UseChips;
+import io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup;
+import io.mateu.core.domain.uidefinition.shared.annotations.UseCheckboxes;
+import io.mateu.core.domain.uidefinition.shared.annotations.UseChips;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;

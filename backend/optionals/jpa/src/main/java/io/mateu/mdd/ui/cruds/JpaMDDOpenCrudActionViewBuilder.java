@@ -1,9 +1,9 @@
-package io.mateu.mdd.ui.cruds;
+package io.mateu.domain.uidefinition.ui.cruds;
 
-import io.mateu.mdd.core.app.MDDOpenCRUDAction;
-import io.mateu.mdd.core.app.MDDOpenCRUDActionViewBuilder;
-import io.mateu.mdd.core.interfaces.Crud;
-import io.mateu.reflection.ReflectionHelper;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
+import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDActionViewBuilder;
+import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

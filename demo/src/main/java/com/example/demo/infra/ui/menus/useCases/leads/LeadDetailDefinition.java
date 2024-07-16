@@ -1,7 +1,8 @@
 package com.example.demo.infra.ui.menus.useCases.leads;
 
-import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.data.TelephoneNumber;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
+import io.mateu.domain.uidefinition.annotations.Caption;
+import io.mateu.core.domain.uidefinition.shared.data.TelephoneNumber;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;

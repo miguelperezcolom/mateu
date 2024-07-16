@@ -1,9 +1,10 @@
 package com.example.demo.infra.ui.menus.useCases.insurance.newLife;
 
-import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.data.Stepper;
-import io.mateu.mdd.shared.data.StepperStep;
-import io.mateu.mdd.shared.data.TelephoneNumber;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
+import io.mateu.domain.uidefinition.annotations.Caption;
+import io.mateu.core.domain.uidefinition.shared.data.Stepper;
+import io.mateu.core.domain.uidefinition.shared.data.StepperStep;
+import io.mateu.core.domain.uidefinition.shared.data.TelephoneNumber;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,7 +15,8 @@ import java.util.List;
 @Setter
 public class ContractForm {
 
-  @Ignored PriceSelectionForm priceSelectionForm;
+  @Ignored
+  PriceSelectionForm priceSelectionForm;
 
   public ContractForm(PriceSelectionForm priceSelectionForm) {
     this.priceSelectionForm = priceSelectionForm;
@@ -24,7 +26,7 @@ public class ContractForm {
 
   @Slot(SlotName.header)
   Stepper stepper =
-      io.mateu.mdd.shared.data.Stepper.builder()
+      Stepper.builder()
           .value(0.5)
           .text("Contract (Step 3 of 4)")
           .steps(

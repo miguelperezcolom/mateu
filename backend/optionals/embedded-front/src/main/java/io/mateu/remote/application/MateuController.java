@@ -1,6 +1,6 @@
 package io.mateu.remote.application;
 
-import io.mateu.util.Helper;
+import io.mateu.core.domain.util.Helper;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;

@@ -8,17 +8,17 @@ import io.mateu.core.domain.model.metadataBuilders.ViewMetadataBuilder;
 import io.mateu.core.domain.model.modelToDtoMappers.viewMapperStuff.*;
 import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.mdd.core.interfaces.HasSubtitle;
-import io.mateu.mdd.core.interfaces.HasTitle;
-import io.mateu.mdd.core.interfaces.RpcCrudViewExtended;
-import io.mateu.mdd.shared.annotations.SlotName;
-import io.mateu.mdd.shared.data.Result;
-import io.mateu.mdd.shared.interfaces.Listing;
-import io.mateu.mdd.shared.interfaces.PartialForm;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasSubtitle;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasTitle;
+import io.mateu.core.domain.uidefinition.core.interfaces.RpcCrudViewExtended;
+import io.mateu.core.domain.uidefinition.shared.annotations.SlotName;
+import io.mateu.core.domain.uidefinition.shared.data.Result;
+import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
+import io.mateu.core.domain.uidefinition.shared.interfaces.PartialForm;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
+import io.mateu.core.domain.util.Serializer;
 import io.mateu.remote.dtos.*;
-import io.mateu.util.Serializer;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.ArrayList;
@@ -205,7 +205,7 @@ public class ViewMapper {
       // fieldEditor.getType());
     } else if (("view".equals(stepId) || "edit".equals(stepId))
         && journeyContainer.getInitialStep() != null
-        && "io.mateu.mdd.ui.cruds.JpaRpcCrudView"
+        && "io.mateu.domain.uidefinition.ui.cruds.JpaRpcCrudView"
             .equals(journeyContainer.getInitialStep().getType())) { // todo: check si es un crud jpa
       RpcCrudViewExtended rpcCrudView =
           (RpcCrudViewExtended)

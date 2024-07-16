@@ -3,14 +3,14 @@ package io.mateu.core.domain.model.metadataBuilders;
 import io.mateu.core.domain.model.editors.EntityEditor;
 import io.mateu.core.domain.model.editors.FieldEditor;
 import io.mateu.core.domain.model.editors.MethodParametersEditor;
-import io.mateu.mdd.core.interfaces.Card;
-import io.mateu.mdd.core.interfaces.JpaRpcCrudFactory;
-import io.mateu.mdd.shared.data.Result;
-import io.mateu.mdd.shared.data.Stepper;
-import io.mateu.mdd.shared.interfaces.JpaCrud;
-import io.mateu.mdd.shared.interfaces.Listing;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.core.interfaces.Card;
+import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
+import io.mateu.core.domain.uidefinition.shared.data.Result;
+import io.mateu.core.domain.uidefinition.shared.data.Stepper;
+import io.mateu.core.domain.uidefinition.shared.interfaces.JpaCrud;
+import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import io.mateu.remote.dtos.*;
 import java.util.List;
 import lombok.SneakyThrows;
@@ -40,10 +40,15 @@ public class ViewMetadataBuilder {
       String stepId, Object uiInstance, Object model, List<FieldInterfaced> slotFields) {
     ViewMetadata metadata;
 
-    if (uiInstance instanceof io.mateu.mdd.shared.interfaces.JourneyStarter) {
-      metadata = getJourneyStarter((io.mateu.mdd.shared.interfaces.JourneyStarter) uiInstance);
-    } else if (uiInstance instanceof io.mateu.mdd.shared.interfaces.JourneyRunner) {
-      metadata = getJourneyRunner((io.mateu.mdd.shared.interfaces.JourneyRunner) uiInstance);
+    if (uiInstance instanceof io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter) {
+      metadata =
+          getJourneyStarter(
+              (io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter) uiInstance);
+    } else if (uiInstance
+        instanceof io.mateu.core.domain.uidefinition.shared.interfaces.JourneyRunner) {
+      metadata =
+          getJourneyRunner(
+              (io.mateu.core.domain.uidefinition.shared.interfaces.JourneyRunner) uiInstance);
     } else if (uiInstance instanceof MethodParametersEditor) {
       metadata = getMethodParametersEditor(stepId, (MethodParametersEditor) uiInstance);
     } else if (uiInstance instanceof Result) {
@@ -80,7 +85,8 @@ public class ViewMetadataBuilder {
     return crudMetadataBuilder.build(stepId, listId, listing);
   }
 
-  private JourneyRunner getJourneyRunner(io.mateu.mdd.shared.interfaces.JourneyRunner uiInstance) {
+  private JourneyRunner getJourneyRunner(
+      io.mateu.core.domain.uidefinition.shared.interfaces.JourneyRunner uiInstance) {
     return JourneyRunner.builder()
         .baseUrl(uiInstance.getBaseUrl())
         .journeyType(uiInstance.getJourneyType())
@@ -88,7 +94,7 @@ public class ViewMetadataBuilder {
   }
 
   private JourneyStarter getJourneyStarter(
-      io.mateu.mdd.shared.interfaces.JourneyStarter uiInstance) {
+      io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter uiInstance) {
     return JourneyStarter.builder().baseUrl(uiInstance.getBaseUrl()).build();
   }
 

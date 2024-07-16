@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.useCases.leads;
 
-import io.mateu.mdd.core.interfaces.PersistentPojo;
-import io.mateu.mdd.shared.data.TelephoneNumber;
+import io.mateu.core.domain.uidefinition.core.interfaces.PersistentPojo;
+import io.mateu.core.domain.uidefinition.shared.data.TelephoneNumber;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.annotation.Scope;

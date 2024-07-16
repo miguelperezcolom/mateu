@@ -1,10 +1,11 @@
 package io.mateu.core.domain.model.metadataBuilders.fields;
 
-import io.mateu.mdd.shared.annotations.UseCrud;
-import io.mateu.mdd.shared.annotations.Width;
-import io.mateu.mdd.shared.data.ExternalReference;
-import io.mateu.mdd.shared.data.TelephoneNumber;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
+import io.mateu.core.domain.uidefinition.shared.annotations.Status;
+import io.mateu.core.domain.uidefinition.shared.annotations.UseCrud;
+import io.mateu.core.domain.uidefinition.shared.annotations.Width;
+import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
+import io.mateu.core.domain.uidefinition.shared.data.TelephoneNumber;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -89,7 +90,7 @@ public class FieldTypeMapper {
   }
 
   public String mapColumnType(FieldInterfaced field) {
-    if (field.isAnnotationPresent(io.mateu.mdd.shared.annotations.Status.class)) {
+    if (field.isAnnotationPresent(Status.class)) {
       return io.mateu.remote.dtos.Status.class.getSimpleName();
     }
     return mapFieldType(field);

@@ -1,7 +1,7 @@
 package io.mateu.core.domain.model.persistence;
 
-import io.mateu.util.Serializer;
-import io.mateu.util.persistence.EntityDeserializer;
+import io.mateu.core.domain.util.Serializer;
+import io.mateu.core.domain.util.persistence.EntityDeserializer;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.Map;

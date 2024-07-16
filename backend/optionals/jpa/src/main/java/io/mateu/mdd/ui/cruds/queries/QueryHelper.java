@@ -1,11 +1,11 @@
-package io.mateu.mdd.ui.cruds.queries;
+package io.mateu.domain.uidefinition.ui.cruds.queries;
 
 import com.google.common.base.Strings;
-import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.interfaces.SortCriteria;
-import io.mateu.mdd.shared.interfaces.SortType;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
+import io.mateu.core.domain.uidefinition.shared.interfaces.SortCriteria;
+import io.mateu.core.domain.uidefinition.shared.interfaces.SortType;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import jakarta.persistence.*;
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;

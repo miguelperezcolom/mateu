@@ -1,8 +1,8 @@
 package com.example.demo.domain.programmingLanguages;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.mateu.mdd.core.interfaces.PersistentPojo;
-import io.mateu.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.core.interfaces.PersistentPojo;
+import io.mateu.core.domain.reflection.ReflectionHelper;
 import jakarta.persistence.Id;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;

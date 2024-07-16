@@ -2,10 +2,10 @@ package com.example.demo.infra.ui.menus.useCases.intermediaries;
 
 import com.example.demo.infra.ui.menus.useCases.intermediaries.salesAgents.SalesAgentsCrud;
 import com.example.demo.infra.ui.menus.useCases.leads.QuestionsProvider;
-import io.mateu.mdd.shared.annotations.Caption;
-import io.mateu.mdd.shared.annotations.Section;
-import io.mateu.mdd.shared.annotations.ValuesProvider;
-import io.mateu.mdd.shared.data.ExternalReference;
+import io.mateu.domain.uidefinition.annotations.Caption;
+import io.mateu.core.domain.uidefinition.shared.annotations.Section;
+import io.mateu.core.domain.uidefinition.shared.annotations.ValuesProvider;
+import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;

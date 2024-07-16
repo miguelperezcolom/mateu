@@ -1,8 +1,8 @@
 package com.example.demo.infra.ui.menus.errors.rpcTimeouts;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.mateu.mdd.core.interfaces.Crud;
-import io.mateu.mdd.shared.interfaces.SortCriteria;
+import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
+import io.mateu.core.domain.uidefinition.shared.interfaces.SortCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;

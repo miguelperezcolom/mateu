@@ -1,15 +1,15 @@
 package io.mateu.core.domain.model.modelToDtoMappers;
 
 import com.google.common.base.Strings;
-import io.mateu.mdd.core.app.*;
-import io.mateu.mdd.core.app.menuResolvers.MenuResolver;
-import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.interfaces.Listing;
-import io.mateu.mdd.shared.interfaces.MateuSecurityManager;
-import io.mateu.mdd.shared.interfaces.MenuEntry;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.util.Helper;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.core.app.*;
+import io.mateu.core.domain.uidefinition.core.app.menuResolvers.MenuResolver;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
+import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
+import io.mateu.core.domain.uidefinition.shared.interfaces.MateuSecurityManager;
+import io.mateu.core.domain.uidefinition.shared.interfaces.MenuEntry;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
+import io.mateu.core.domain.util.Helper;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;

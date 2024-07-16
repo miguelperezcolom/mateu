@@ -4,7 +4,7 @@ import io.mateu.core.application.NotFoundException;
 import io.mateu.core.domain.model.modelToDtoMappers.JourneyMapper;
 import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.mdd.shared.interfaces.Listing;
+import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.remote.dtos.Journey;
 import io.mateu.remote.dtos.Step;
 import java.util.HashMap;

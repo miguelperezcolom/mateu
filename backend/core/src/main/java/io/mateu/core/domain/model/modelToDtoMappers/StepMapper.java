@@ -1,10 +1,10 @@
 package io.mateu.core.domain.model.modelToDtoMappers;
 
 import io.mateu.core.domain.model.store.JourneyContainer;
-import io.mateu.mdd.core.interfaces.DynamicStep;
-import io.mateu.mdd.core.interfaces.JpaRpcCrudFactory;
-import io.mateu.mdd.shared.interfaces.JpaCrud;
-import io.mateu.reflection.ReflectionHelper;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.core.interfaces.DynamicStep;
+import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
+import io.mateu.core.domain.uidefinition.shared.interfaces.JpaCrud;
 import io.mateu.remote.dtos.Rule;
 import io.mateu.remote.dtos.Step;
 import java.util.ArrayList;

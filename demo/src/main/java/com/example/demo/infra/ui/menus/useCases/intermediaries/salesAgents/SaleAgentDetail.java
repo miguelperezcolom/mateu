@@ -1,8 +1,8 @@
 package com.example.demo.infra.ui.menus.useCases.intermediaries.salesAgents;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.mateu.mdd.core.interfaces.ReadOnlyPojo;
-import io.mateu.mdd.shared.annotations.Ignored;
+import io.mateu.core.domain.uidefinition.core.interfaces.ReadOnlyPojo;
+import io.mateu.core.domain.uidefinition.shared.annotations.Ignored;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;

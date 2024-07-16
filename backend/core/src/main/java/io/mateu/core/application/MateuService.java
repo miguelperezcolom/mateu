@@ -1,7 +1,6 @@
 package io.mateu.core.application;
 
 import com.opencsv.CSVWriter;
-import io.mateu.core.domain.UploadService;
 import io.mateu.core.domain.commands.runStepAction.RunStepActionCommand;
 import io.mateu.core.domain.commands.runStepAction.RunStepActionCommandHandler;
 import io.mateu.core.domain.commands.startJourney.StartJourneyCommand;
@@ -24,10 +23,10 @@ import io.mateu.core.domain.queries.getStep.GetStepQuery;
 import io.mateu.core.domain.queries.getStep.GetStepQueryHandler;
 import io.mateu.core.domain.queries.getUI.GetUIQuery;
 import io.mateu.core.domain.queries.getUI.GetUIQueryHandler;
+import io.mateu.core.domain.uidefinition.shared.data.Value;
+import io.mateu.core.domain.util.Serializer;
 import io.mateu.core.infra.csv.ByteArrayInOutStream;
-import io.mateu.mdd.shared.data.Value;
 import io.mateu.remote.dtos.*;
-import io.mateu.util.Serializer;
 import java.io.*;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;

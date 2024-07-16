@@ -1,9 +1,12 @@
-package io.mateu.mdd.ui.cruds;
+package io.mateu.domain.uidefinition.ui.cruds;
 
-import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.data.Value;
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.util.Helper;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.shared.annotations.Ignored;
+import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
+import io.mateu.core.domain.uidefinition.shared.annotations.ValuesProviderMethod;
+import io.mateu.core.domain.uidefinition.shared.data.Value;
+import io.mateu.core.domain.util.Helper;
+import io.mateu.domain.uidefinition.annotations.Caption;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;

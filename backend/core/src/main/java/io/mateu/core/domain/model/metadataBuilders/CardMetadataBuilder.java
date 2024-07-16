@@ -1,14 +1,15 @@
 package io.mateu.core.domain.model.metadataBuilders;
 
-import io.mateu.mdd.core.interfaces.*;
-import io.mateu.mdd.shared.annotations.Caption;
-import io.mateu.mdd.shared.annotations.UseCrud;
-import io.mateu.mdd.shared.interfaces.HasStatus;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.core.interfaces.*;
+import io.mateu.core.domain.uidefinition.shared.annotations.SameLine;
+import io.mateu.core.domain.uidefinition.shared.annotations.UseCrud;
+import io.mateu.core.domain.uidefinition.shared.interfaces.HasStatus;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
+import io.mateu.core.domain.util.Helper;
+import io.mateu.domain.uidefinition.annotations.Caption;
 import io.mateu.remote.dtos.*;
 import io.mateu.remote.dtos.Card;
-import io.mateu.util.Helper;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import java.util.ArrayList;
@@ -76,7 +77,7 @@ public class CardMetadataBuilder {
         mapStatusType(hasStatus.getStatus().getType()), hasStatus.getStatus().getMessage());
   }
 
-  private StatusType mapStatusType(io.mateu.mdd.shared.data.StatusType type) {
+  private StatusType mapStatusType(io.mateu.core.domain.uidefinition.shared.data.StatusType type) {
     return StatusType.valueOf(type.toString());
   }
 
@@ -99,19 +100,20 @@ public class CardMetadataBuilder {
     for (FieldInterfaced fieldInterfaced : allEditableFields) {
       if (fieldGroup == null
           || fieldInterfaced.isAnnotationPresent(
-              io.mateu.mdd.shared.annotations.FieldGroup.class)) {
+              io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)) {
         String caption = "";
-        if (fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.FieldGroup.class)) {
+        if (fieldInterfaced.isAnnotationPresent(
+            io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)) {
           caption =
               fieldInterfaced
-                  .getAnnotation(io.mateu.mdd.shared.annotations.FieldGroup.class)
+                  .getAnnotation(
+                      io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
                   .value();
         }
         fieldGroup = FieldGroup.builder().caption(caption).lines(new ArrayList<>()).build();
         fieldGroups.add(fieldGroup);
       }
-      if (fieldGroupLine == null
-          || !fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.SameLine.class)) {
+      if (fieldGroupLine == null || !fieldInterfaced.isAnnotationPresent(SameLine.class)) {
         fieldGroupLine = FieldGroupLine.builder().fields(new ArrayList<>()).build();
         fieldGroup.getLines().add(fieldGroupLine);
       }

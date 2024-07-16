@@ -1,8 +1,8 @@
-package io.mateu.mdd.springboot;
+package io.mateu.domain.uidefinition.springboot;
 
-import io.mateu.mdd.shared.annotations.Private;
-import io.mateu.mdd.shared.interfaces.MateuSecurityManager;
-import io.mateu.mdd.shared.interfaces.UserPrincipal;
+import io.mateu.core.domain.uidefinition.shared.annotations.Private;
+import io.mateu.core.domain.uidefinition.shared.interfaces.MateuSecurityManager;
+import io.mateu.core.domain.uidefinition.shared.interfaces.UserPrincipal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
