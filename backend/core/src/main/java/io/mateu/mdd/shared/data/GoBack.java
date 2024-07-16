@@ -4,25 +4,24 @@ import io.mateu.remote.dtos.ResultType;
 
 public class GoBack {
 
-    private final ResultType resultType;
-    private final String message;
+  private final ResultType resultType;
+  private final String message;
 
+  public GoBack() {
+    resultType = ResultType.Success;
+    message = null;
+  }
 
-    public GoBack() {
-        resultType = ResultType.Success;
-        message = null;
-    }
+  public GoBack(ResultType resultType, String message) {
+    this.resultType = resultType;
+    this.message = message;
+  }
 
-    public GoBack(ResultType resultType, String message) {
-        this.resultType = resultType;
-        this.message = message;
-    }
+  public ResultType getResultType() {
+    return resultType;
+  }
 
-    public ResultType getResultType() {
-        return resultType;
-    }
-
-    public String getMessage() {
-        return message;
-    }
+  public String getMessage() {
+    return message;
+  }
 }

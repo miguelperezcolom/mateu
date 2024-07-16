@@ -170,11 +170,16 @@ public class MateuService {
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     return createJourney(journeyTypeId, journeyId, rq, serverHttpRequest)
-        .then(Mono.fromCallable(() -> StepWrapper.builder()
-                .journey(getJourneyFromStore(journeyId))
-                .store(getJourneyContainer(journeyId)) // en este momento se está construyendo la pipeline.
-                .step(getStep(journeyId))
-                .build()))
+        .then(
+            Mono.fromCallable(
+                () ->
+                    StepWrapper.builder()
+                        .journey(getJourneyFromStore(journeyId))
+                        .store(
+                            getJourneyContainer(
+                                journeyId)) // en este momento se está construyendo la pipeline.
+                        .step(getStep(journeyId))
+                        .build()))
         .subscribeOn(Schedulers.boundedElastic());
   }
 

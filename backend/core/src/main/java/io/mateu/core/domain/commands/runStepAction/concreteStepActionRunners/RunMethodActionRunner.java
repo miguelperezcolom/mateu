@@ -1,6 +1,5 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
-import com.google.common.base.Strings;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
 import io.mateu.core.domain.model.editors.EntityEditor;
@@ -278,7 +277,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     if (response instanceof GoBack) {
       var goBack = (GoBack) response;
       return List.of(
-              new Message(UUID.randomUUID().toString(), goBack.getResultType(), "", goBack.getMessage()));
+          new Message(
+              UUID.randomUUID().toString(), goBack.getResultType(), "", goBack.getMessage()));
     }
     return List.of();
   }

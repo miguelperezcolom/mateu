@@ -1819,9 +1819,11 @@ public class ReflectionHelper extends BaseReflectionHelper {
     if (o == null) { // no viene de spring
       if (c.getDeclaringClass() != null) { // caso inner class
         Object p = newInstance(c.getDeclaringClass());
-        Constructor<?> cons = Arrays.stream(c.getDeclaredConstructors())
+        Constructor<?> cons =
+            Arrays.stream(c.getDeclaredConstructors())
                 .filter(constructor -> constructor.getParameterCount() == 1)
-                .findFirst().get();
+                .findFirst()
+                .get();
         cons.setAccessible(true);
         o = cons.newInstance(p);
       } else {
