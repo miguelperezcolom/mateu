@@ -1,7 +1,6 @@
 package com.example.demoremote.ui.demoApp.menus;
 
 import com.example.demoremote.domains.cities.City;
-import com.example.demoremote.domains.journeyStore.JourneyContainerCrud;
 import com.example.demoremote.domains.programmingLanguages.ProgrammingLanguages;
 import io.mateu.mdd.shared.annotations.MenuOption;
 import io.mateu.mdd.shared.annotations.Submenu;
@@ -26,8 +25,6 @@ public class CrudsSubmenu {
                     return List.of("name", "country", "population");
                 }
             };
-
-    @MenuOption JourneyContainerCrud journeyContainers;
 
     @Submenu("NFL")
     private NFLSubmenu nfl;
