@@ -15,8 +15,6 @@ public class JourneyContainerRow {
 
     String remoteBaseUrl;
 
-    String remoteJourneyTypeId;
-
     Class journeyClass;
 
     LocalDateTime created;

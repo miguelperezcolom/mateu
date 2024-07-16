@@ -23,7 +23,6 @@ public class JourneyContainerCrud implements Crud<JourneyContainerSearchForm, Jo
             c.getJourneyId(),
             c.getJourneyTypeId(),
             c.getRemoteBaseUrl(),
-            c.getRemoteJourneyTypeId(),
             c.getJourneyClass(),
             c.getCreated(),
             c.getLastAccess()

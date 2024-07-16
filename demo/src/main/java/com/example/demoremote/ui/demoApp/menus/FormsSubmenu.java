@@ -70,8 +70,4 @@ public class FormsSubmenu {
   @MenuOption private WizardPage1 wizard;
 
   @MenuOption private WebComponentForm webComponent;
-
-  @MenuOption
-  private RemoteJourney remoteForm =
-      new RemoteJourney("https://explorer.mateu.io/mateu/v2", "forms_pattern");
 }
