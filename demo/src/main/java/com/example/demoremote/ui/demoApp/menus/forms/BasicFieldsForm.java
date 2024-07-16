@@ -49,19 +49,7 @@ public class BasicFieldsForm implements HasBadges, HasStatus, HasTitle, HasSubti
 
   @Action(order = 2)
   public void assess(ServerHttpRequest serverHttpRequest) {
-    assessment = "" + getCurrentUser(serverHttpRequest) + "" + name + ", " + age + ", " + balance + ", " + withPlaceholder;
-  }
-
-  private String getCurrentUser(ServerHttpRequest serverHttpRequest) {
-    try {
-      UserPrincipal principal = Helper.getImpl(MateuSecurityManager.class).getPrincipal(serverHttpRequest);
-      if (principal == null) {
-        return "principal es null";
-      }
-      return principal.getName();
-    } catch (Exception e) {
-      return "" + e.getClass().getSimpleName() + ": " + e.getMessage();
-    }
+    assessment = "" + name + ", " + age + ", " + balance + ", " + withPlaceholder;
   }
 
   public String toString() {

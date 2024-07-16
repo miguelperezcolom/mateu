@@ -12,7 +12,6 @@ import com.google.common.base.Strings;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import io.mateu.mdd.shared.SlimHelper;
-import io.mateu.util.xml.XMLSerializable;
 import java.io.*;
 import java.net.URL;
 import java.text.DecimalFormat;
@@ -398,21 +397,9 @@ public class Helper extends SlimHelper {
     }
   }
 
-  public static <T> T getImpl(Class<T> c) throws Exception {
-    return SharedHelper.getImpl(c);
-  }
-
-  public static <T> List<T> getImpls(Class<T> c) throws Exception {
-    return SharedHelper.getImpls(c);
-  }
-
   public static String toString(Element element) {
     if (element == null) return "";
     else return new XMLOutputter(Format.getPrettyFormat()).outputString(element);
-  }
-
-  public static boolean areXmlSerializableEqual(XMLSerializable a, XMLSerializable b) {
-    return a == b || (b != null && Helper.toString(a.toXml()).equals(Helper.toString((b.toXml()))));
   }
 
   public static boolean equals(Object a, Object b) {

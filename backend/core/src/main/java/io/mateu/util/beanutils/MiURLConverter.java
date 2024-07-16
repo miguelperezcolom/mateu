@@ -3,6 +3,7 @@ package io.mateu.util.beanutils;
 import java.net.URL;
 import org.apache.commons.beanutils.converters.AbstractConverter;
 
+/** Converter for URLs. We want to convert it to a simple String and vice versa. */
 public class MiURLConverter extends AbstractConverter {
   public MiURLConverter() {}
 

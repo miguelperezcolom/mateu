@@ -27,6 +27,7 @@ public class MenuParser {
 
   private final ReflectionHelper reflectionHelper;
   private final MenuResolver menuResolver;
+  private final MateuSecurityManager mateuSecurityManager;
 
   public List<MenuEntry> parse(Object uiInstance, ServerHttpRequest serverHttpRequest) {
     return buildMenu(uiInstance, serverHttpRequest, true, true);
@@ -100,7 +101,7 @@ public class MenuParser {
 
   private boolean check(Private pa, ServerHttpRequest serverHttpRequest) {
     try {
-      return Helper.getImpl(MateuSecurityManager.class).check(pa, serverHttpRequest);
+      return mateuSecurityManager.check(pa, serverHttpRequest);
     } catch (Exception e) {
       e.printStackTrace();
     }

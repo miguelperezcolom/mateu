@@ -3,6 +3,7 @@ package io.mateu.util.asciiart;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+/** Class for writing the banner. */
 public class Painter {
 
   public static void paint(String message) {
