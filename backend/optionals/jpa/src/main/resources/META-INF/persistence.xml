@@ -5,10 +5,10 @@
     <persistence-unit name="mateu-basic" transaction-type="RESOURCE_LOCAL">
 
         <class>io.mateu.domain.uidefinition.core.model.multilanguage.Literal</class>
-        <class>io.mateu.domain.uidefinition.core.model.util.IntArrayAttributeConverter</class>
-        <class>io.mateu.domain.uidefinition.core.model.util.LocalDateAttributeConverter</class>
-        <class>io.mateu.domain.uidefinition.core.model.util.LocalDateTimeAttributeConverter</class>
-        <class>io.mateu.domain.uidefinition.core.model.util.LocalTimeAttributeConverter</class>
+        <class>io.mateu.jpa.domain.util.IntArrayAttributeConverter</class>
+        <class>io.mateu.jpa.domain.util.LocalDateAttributeConverter</class>
+        <class>io.mateu.jpa.domain.util.LocalDateTimeAttributeConverter</class>
+        <class>io.mateu.jpa.domain.util.LocalTimeAttributeConverter</class>
 
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
 
