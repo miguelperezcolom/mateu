@@ -1,7 +1,5 @@
 package io.mateu.core.domain.queries.getListRows;
 
-import com.google.common.base.Strings;
-import io.mateu.core.domain.apiClients.MateuRemoteClient;
 import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.core.domain.queries.FiltersDeserializer;
@@ -20,8 +18,6 @@ public class GetListRowsQueryHandler {
 
   @Autowired JourneyStoreService store;
 
-  @Autowired MateuRemoteClient mateuRemoteClient;
-
   @Autowired ReflectionHelper reflectionHelper;
 
   @Autowired Serializer serializer;
@@ -33,20 +29,6 @@ public class GetListRowsQueryHandler {
 
     if (journeyContainer == null) {
       throw new Exception("No journey with id " + query.getJourneyId());
-    }
-
-    if (!Strings.isNullOrEmpty(journeyContainer.getRemoteJourneyTypeId())) {
-      return mateuRemoteClient.getListRows(
-          journeyContainer.getRemoteBaseUrl(),
-          journeyContainer.getRemoteJourneyTypeId(),
-          journeyContainer.getJourneyId(),
-          query.getStepId(),
-          query.getListId(),
-          query.getFilters(),
-          query.getOrdering(),
-          query.getPage() * query.getPageSize(),
-          (query.getPage() + 1) * query.getPageSize() - 1,
-          query.getServerHttpRequest());
     }
 
     Object filtersDeserialized =

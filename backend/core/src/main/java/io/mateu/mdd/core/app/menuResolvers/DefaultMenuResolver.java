@@ -1,12 +1,10 @@
 package io.mateu.mdd.core.app.menuResolvers;
 
 import io.mateu.mdd.core.app.AbstractMenu;
-import io.mateu.mdd.core.app.MDDOpenRemoteJourneyAction;
 import io.mateu.mdd.core.app.MDDOpenUrlAction;
 import io.mateu.mdd.core.app.MDDOpenUserJourneyAction;
 import io.mateu.mdd.shared.interfaces.JourneyRunner;
 import io.mateu.mdd.shared.interfaces.MenuEntry;
-import io.mateu.mdd.shared.interfaces.RemoteJourney;
 import io.mateu.mdd.shared.reflection.FieldInterfaced;
 import io.mateu.reflection.ReflectionHelper;
 import java.lang.reflect.InvocationTargetException;
@@ -30,16 +28,7 @@ public class DefaultMenuResolver implements MenuResolver {
   public boolean addMenuEntry(
       Object app, List<MenuEntry> l, FieldInterfaced f, String caption, int order, String icon)
       throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
-    if (RemoteJourney.class.isAssignableFrom(f.getType())) {
-
-      MDDOpenRemoteJourneyAction a;
-      l.add(
-          a =
-              new MDDOpenRemoteJourneyAction(
-                  caption, (RemoteJourney) reflectionHelper.getValue(f, app)));
-      a.setOrder(order);
-
-    } else if (JourneyRunner.class.isAssignableFrom(f.getType())) {
+    if (JourneyRunner.class.isAssignableFrom(f.getType())) {
 
       MDDOpenUserJourneyAction a;
       l.add(

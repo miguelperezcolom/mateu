@@ -1,9 +1,7 @@
 package com.example.demoremote.ui.demoApp.menus;
 
 import com.example.demoremote.ui.demoApp.menus.forms.*;
-import io.mateu.mdd.core.interfaces.HasInitMethod;
 import io.mateu.mdd.shared.annotations.MenuOption;
-import io.mateu.mdd.shared.interfaces.RemoteJourney;
 
 public class FormsSubmenu {
 

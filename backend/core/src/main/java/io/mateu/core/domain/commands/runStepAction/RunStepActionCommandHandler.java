@@ -1,7 +1,6 @@
 package io.mateu.core.domain.commands.runStepAction;
 
 import com.google.common.base.Strings;
-import io.mateu.core.domain.apiClients.MateuRemoteClient;
 import io.mateu.core.domain.model.editors.EntityEditor;
 import io.mateu.core.domain.model.editors.FieldEditor;
 import io.mateu.core.domain.model.editors.ObjectEditor;
@@ -25,7 +24,6 @@ import reactor.core.publisher.Mono;
 public class RunStepActionCommandHandler {
 
   final JourneyStoreService store;
-  final MateuRemoteClient mateuRemoteClient;
   final List<ActionRunner> actionRunners;
   final ActualValueExtractor actualValueExtractor;
   final ReflectionHelper reflectionHelper;
@@ -58,28 +56,6 @@ public class RunStepActionCommandHandler {
       resetMessages(journeyId);
 
       return Mono.empty().then();
-    }
-
-    if (!Strings.isNullOrEmpty(journeyContainer.getRemoteJourneyTypeId())) {
-      mateuRemoteClient
-          .runStep(
-              journeyContainer.getRemoteBaseUrl(),
-              journeyContainer.getRemoteJourneyTypeId(),
-              journeyContainer.getJourneyId(),
-              stepId,
-              actionId,
-              data,
-              serverHttpRequest)
-          .flatMap(
-              step -> {
-                try {
-                  store.updateStep(journeyId, stepId, step);
-                } catch (Throwable e) {
-                  throw new RuntimeException(e);
-                }
-
-                return Mono.empty().then();
-              });
     }
 
     Object viewInstance = store.getViewInstance(journeyId, stepId, serverHttpRequest);

@@ -433,10 +433,7 @@ public class JourneyStoreService {
   }
 
   private Object createInstanceFromMenuMapping(Object menuEntry) throws Exception {
-    if (menuEntry instanceof MDDOpenRemoteJourneyAction) {
-      MDDOpenRemoteJourneyAction action = (MDDOpenRemoteJourneyAction) menuEntry;
-      return action.getRemoteJourney();
-    } else if (menuEntry instanceof MDDOpenEditorAction) {
+    if (menuEntry instanceof MDDOpenEditorAction) {
       MDDOpenEditorAction action = (MDDOpenEditorAction) menuEntry;
       return reflectionHelper.newInstance(action.getViewClass());
     } else if (menuEntry instanceof MDDOpenCRUDAction) {

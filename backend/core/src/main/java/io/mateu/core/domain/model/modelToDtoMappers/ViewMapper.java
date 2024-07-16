@@ -1,6 +1,5 @@
 package io.mateu.core.domain.model.modelToDtoMappers;
 
-import io.mateu.core.domain.apiClients.MateuRemoteClient;
 import io.mateu.core.domain.model.editors.EntityEditor;
 import io.mateu.core.domain.model.editors.FieldEditor;
 import io.mateu.core.domain.model.editors.MethodParametersEditor;
@@ -36,8 +35,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class ViewMapper {
   @PersistenceContext EntityManager em;
-
-  @Autowired MateuRemoteClient mateuRemoteClient;
 
   @Autowired ApplicationContext applicationContext;
 

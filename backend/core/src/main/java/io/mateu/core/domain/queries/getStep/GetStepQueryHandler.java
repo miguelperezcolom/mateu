@@ -1,7 +1,5 @@
 package io.mateu.core.domain.queries.getStep;
 
-import com.google.common.base.Strings;
-import io.mateu.core.domain.apiClients.MateuRemoteClient;
 import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.remote.dtos.Crud;
@@ -19,8 +17,6 @@ public class GetStepQueryHandler {
 
   @Autowired JourneyStoreService store;
 
-  @Autowired MateuRemoteClient mateuRemoteClient;
-
   @Autowired Serializer serializer;
 
   public Mono<Step> run(GetStepQuery query) throws Exception {
@@ -34,17 +30,6 @@ public class GetStepQueryHandler {
     if (journeyContainer == null) {
       throw new Exception("No journey with id " + journeyId);
     }
-
-    if (!Strings.isNullOrEmpty(journeyContainer.getRemoteJourneyTypeId())) {
-      return mateuRemoteClient.getStep(
-          journeyContainer.getRemoteBaseUrl(),
-          journeyContainer.getRemoteJourneyTypeId(),
-          journeyContainer.getJourneyId(),
-          stepId,
-          serverHttpRequest);
-    }
-
-    // dump(journeyContainer);
 
     Step step = store.getStepAndSetAsCurrent(journeyId, stepId);
     if (isCrud(step)) {
@@ -66,22 +51,5 @@ public class GetStepQueryHandler {
       return false;
     }
     return step.getView().getMain().getComponents().get(0).getMetadata() instanceof Crud;
-  }
-
-  private void dump(JourneyContainer journeyContainer) {
-
-    log.info("-------------------------------------");
-    log.info("journey id: " + journeyContainer.getJourneyId());
-    journeyContainer.getSteps().values().stream()
-        .forEach(
-            s -> {
-              log.info("step: " + s.getId());
-              log.info("previous: " + s.getPreviousStepId());
-              try {
-                log.info("data: " + serializer.toJson(s.getData()));
-              } catch (Exception e) {
-                e.printStackTrace();
-              }
-            });
   }
 }

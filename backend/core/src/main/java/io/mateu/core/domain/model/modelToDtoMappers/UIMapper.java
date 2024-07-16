@@ -1,6 +1,5 @@
 package io.mateu.core.domain.model.modelToDtoMappers;
 
-import io.mateu.core.domain.apiClients.MateuRemoteClient;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.mdd.core.app.AbstractAction;
 import io.mateu.mdd.core.app.AbstractMenu;
@@ -26,7 +25,6 @@ import org.springframework.stereotype.Service;
 public class UIMapper {
 
   final ApplicationContext applicationContext;
-  final MateuRemoteClient mateuRemoteClient;
   final ReflectionHelper reflectionHelper;
   final MenuParser menuParser;
 
