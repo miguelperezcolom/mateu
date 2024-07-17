@@ -13,8 +13,6 @@ import io.mateu.core.domain.queries.getItemsRows.GetItemsRowsQuery;
 import io.mateu.core.domain.queries.getItemsRows.GetItemsRowsQueryHandler;
 import io.mateu.core.domain.queries.getJourney.GetJourneyQuery;
 import io.mateu.core.domain.queries.getJourney.GetJourneyQueryHandler;
-import io.mateu.core.domain.queries.getJourneyTypes.GetJourneyTypesQuery;
-import io.mateu.core.domain.queries.getJourneyTypes.GetJourneyTypesQueryHandler;
 import io.mateu.core.domain.queries.getListCount.GetListCountQuery;
 import io.mateu.core.domain.queries.getListCount.GetListCountQueryHandler;
 import io.mateu.core.domain.queries.getListRows.GetListRowsQuery;
@@ -62,8 +60,6 @@ public class MateuService {
 
   @Autowired GetStepQueryHandler getStepQueryHandler;
 
-  @Autowired GetJourneyTypesQueryHandler getJourneyTypesQueryHandler;
-
   @Autowired GetListRowsQueryHandler getListRowsQueryHandler;
 
   @Autowired GetListCountQueryHandler getListCountQueryHandler;
@@ -79,14 +75,6 @@ public class MateuService {
   public Mono<UI> getUI(String uiId, ServerHttpRequest serverHttpRequest) throws Exception {
     return Mono.just(
         getUIQueryHandler.run(GetUIQuery.builder().uiId(uiId).build(), serverHttpRequest));
-  }
-
-  public Flux<JourneyType> getJourneyTypes(ServerHttpRequest serverHttpRequest) throws Exception {
-    return Flux.fromStream(
-            getJourneyTypesQueryHandler
-                .run(GetJourneyTypesQuery.builder().build(), serverHttpRequest)
-                .stream())
-        .subscribeOn(Schedulers.boundedElastic());
   }
 
   public Mono<Void> createJourney(

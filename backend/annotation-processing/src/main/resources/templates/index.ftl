@@ -4,7 +4,6 @@ import io.mateu.core.domain.model.modelToDtoMappers.UIMapper;
 import io.mateu.core.domain.reflection.ReflectionHelper;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import io.mateu.core.domain.UIRegistry;
 import io.mateu.core.domain.util.Helper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,22 +99,6 @@ public class ${simpleClassName}Controller {
         return html;
     }
 
-    @Autowired
-    UIRegistry uiRegistry;
-
-
-
-    @PostConstruct
-    public void init() {
-        try {
-            var uiClass = Class.forName("${className}");
-            uiRegistry.add(uiClass);
-            uiMapper.map(reflectionHelper.newInstance(uiClass), null);
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.error("Unable to find class ${className} for UI registration");
-        }
-    }
 
 @GetMapping(value = "/assets/**")
 public ResponseEntity<String> getAssets(ServerHttpRequest request) {

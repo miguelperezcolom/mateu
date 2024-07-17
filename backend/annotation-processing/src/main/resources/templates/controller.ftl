@@ -37,12 +37,6 @@ public class ${simpleClassName}MateuController {
         return service.getUI(uiId, serverHttpRequest);
     }
 
-    @GetMapping("v1/journey-types")
-    public Flux<JourneyType> getJourneyTypes(ServerHttpRequest serverHttpRequest)
-        throws Exception {
-        return service.getJourneyTypes(serverHttpRequest);
-    }
-
     @PostMapping("v1/journeys/{journeyTypeId}/{journeyId}")
     public Mono<Void> createJourney(@PathVariable String journeyTypeId, @PathVariable String journeyId,
             @RequestBody JourneyCreationRq rq,

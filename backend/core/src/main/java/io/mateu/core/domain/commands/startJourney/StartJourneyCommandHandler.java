@@ -1,10 +1,10 @@
 package io.mateu.core.domain.commands.startJourney;
 
-import io.mateu.core.domain.util.exceptions.NotFoundException;
 import io.mateu.core.domain.model.modelToDtoMappers.JourneyMapper;
 import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
+import io.mateu.core.domain.util.exceptions.NotFoundException;
 import io.mateu.dtos.Journey;
 import io.mateu.dtos.Step;
 import java.util.HashMap;
