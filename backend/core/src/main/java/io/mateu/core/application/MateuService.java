@@ -1,31 +1,15 @@
 package io.mateu.core.application;
 
 import com.opencsv.CSVWriter;
-import io.mateu.core.domain.commands.runStepAction.RunStepActionCommand;
-import io.mateu.core.domain.commands.runStepAction.RunStepActionCommandHandler;
-import io.mateu.core.domain.commands.startJourney.StartJourneyCommand;
-import io.mateu.core.domain.commands.startJourney.StartJourneyCommandHandler;
-import io.mateu.core.domain.model.store.JourneyContainer;
-import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.core.domain.queries.getItemsCount.GetItemsCountQuery;
-import io.mateu.core.domain.queries.getItemsCount.GetItemsCountQueryHandler;
-import io.mateu.core.domain.queries.getItemsRows.GetItemsRowsQuery;
-import io.mateu.core.domain.queries.getItemsRows.GetItemsRowsQueryHandler;
-import io.mateu.core.domain.queries.getJourney.GetJourneyQuery;
-import io.mateu.core.domain.queries.getJourney.GetJourneyQueryHandler;
-import io.mateu.core.domain.queries.getListCount.GetListCountQuery;
-import io.mateu.core.domain.queries.getListCount.GetListCountQueryHandler;
-import io.mateu.core.domain.queries.getListRows.GetListRowsQuery;
-import io.mateu.core.domain.queries.getListRows.GetListRowsQueryHandler;
-import io.mateu.core.domain.queries.getStep.GetStepQuery;
-import io.mateu.core.domain.queries.getStep.GetStepQueryHandler;
-import io.mateu.core.domain.queries.getUI.GetUIQuery;
-import io.mateu.core.domain.queries.getUI.GetUIQueryHandler;
-import io.mateu.core.domain.uidefinition.shared.data.Value;
 import io.mateu.core.domain.util.Serializer;
 import io.mateu.core.infra.csv.ByteArrayInOutStream;
-import io.mateu.dtos.*;
-import java.io.*;
+import io.mateu.dtos.JourneyCreationRq;
+import io.mateu.dtos.RunActionRq;
+import io.mateu.dtos.StepWrapper;
+import io.mateu.dtos.UI;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -40,7 +24,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -48,126 +31,44 @@ import reactor.core.scheduler.Schedulers;
 @Service
 public class MateuService {
 
-  @Autowired JourneyStoreService store;
+  private final GetUiUseCase getUiUseCase;
 
-  @Autowired StartJourneyCommandHandler startJourneyCommandHandler;
+  private final CreateJourneyUseCase createJourneyUseCase;
 
-  @Autowired RunStepActionCommandHandler runStepActionCommandHandler;
+  private final RunStepUseCase runStepUseCase;
 
-  @Autowired GetUIQueryHandler getUIQueryHandler;
+  private final FetchListUseCase fetchListUseCase;
 
-  @Autowired GetJourneyQueryHandler getJourneyQueryHandler;
-
-  @Autowired GetStepQueryHandler getStepQueryHandler;
-
-  @Autowired GetListRowsQueryHandler getListRowsQueryHandler;
-
-  @Autowired GetListCountQueryHandler getListCountQueryHandler;
-
-  @Autowired GetItemsCountQueryHandler getItemsCountQueryHandler;
-
-  @Autowired GetItemsRowsQueryHandler getItemsRowsQueryHandler;
+  private final FetchItemsUseCase fetchItemsUseCase;
 
   @Autowired UploadService uploadService;
 
   @Autowired Serializer serializer;
 
+  public MateuService(
+      GetUiUseCase getUiUseCase,
+      CreateJourneyUseCase createJourneyUseCase,
+      RunStepUseCase runStepUseCase,
+      FetchListUseCase fetchListUseCase,
+      FetchItemsUseCase fetchItemsUseCase) {
+    this.getUiUseCase = getUiUseCase;
+    this.createJourneyUseCase = createJourneyUseCase;
+    this.runStepUseCase = runStepUseCase;
+    this.fetchListUseCase = fetchListUseCase;
+    this.fetchItemsUseCase = fetchItemsUseCase;
+  }
+
   public Mono<UI> getUI(String uiId, ServerHttpRequest serverHttpRequest) throws Exception {
-    return Mono.just(
-        getUIQueryHandler.run(GetUIQuery.builder().uiId(uiId).build(), serverHttpRequest));
+    return getUiUseCase.getUI(uiId, serverHttpRequest);
   }
 
-  public Mono<Void> createJourney(
+  public Mono<StepWrapper> createJourney(
       String journeyTypeId,
       String journeyId,
       JourneyCreationRq rq,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
-    log.info("creating journey " + journeyTypeId + "/" + journeyId);
-    return startJourneyCommandHandler
-        .handle(
-            StartJourneyCommand.builder()
-                .journeyId(journeyId)
-                .journeyTypeId(journeyTypeId)
-                .serverHttpRequest(serverHttpRequest)
-                .build())
-        .subscribeOn(Schedulers.boundedElastic());
-  }
-
-  public Mono<Journey> getJourney(
-      String journeyTypeId, String journeyId, ServerHttpRequest serverHttpRequest)
-      throws Exception {
-    log.info("getting journey " + journeyTypeId + "/" + journeyId);
-    return getJourneyQueryHandler
-        .run(
-            GetJourneyQuery.builder()
-                .journeyTypeId(journeyTypeId)
-                .journeyId(journeyId)
-                .serverHttpRequest(serverHttpRequest)
-                .build())
-        .subscribeOn(Schedulers.boundedElastic());
-  }
-
-  public Mono<Step> getStep(
-      String journeyTypeId, String journeyId, String stepId, ServerHttpRequest serverHttpRequest)
-      throws Exception {
-    log.info("getting step " + journeyTypeId + "/" + journeyId + "/" + stepId);
-    return getStepQueryHandler
-        .run(
-            GetStepQuery.builder()
-                .journeyTypeId(journeyTypeId)
-                .journeyId(journeyId)
-                .stepId(stepId)
-                .serverHttpRequest(serverHttpRequest)
-                .build())
-        .subscribeOn(Schedulers.boundedElastic());
-  }
-
-  public Mono<Void> runStep(
-      String journeyTypeId,
-      String journeyId,
-      String stepId,
-      String actionId,
-      RunActionRq rq,
-      ServerHttpRequest serverHttpRequest)
-      throws Throwable {
-    log.info("running action " + journeyTypeId + "/" + journeyId + "/" + stepId + "/" + actionId);
-    if (rq.getJourney() != null) {
-      JourneyContainer journey =
-          serializer.fromJson(serializer.toJson(rq.getJourney()), JourneyContainer.class);
-      store.save(journey);
-    }
-    return runStepActionCommandHandler
-        .handle(
-            RunStepActionCommand.builder()
-                .journeyTypeId(journeyTypeId)
-                .journeyId(journeyId)
-                .stepId(stepId)
-                .actionId(actionId)
-                .data(rq.getData())
-                .serverHttpRequest(serverHttpRequest)
-                .build())
-        .subscribeOn(Schedulers.boundedElastic());
-  }
-
-  public Mono<StepWrapper> createJourneyAndReturn(
-      String journeyTypeId,
-      String journeyId,
-      JourneyCreationRq rq,
-      ServerHttpRequest serverHttpRequest)
-      throws Throwable {
-    return createJourney(journeyTypeId, journeyId, rq, serverHttpRequest)
-        .then(
-            Mono.fromCallable(
-                () ->
-                    StepWrapper.builder()
-                        .journey(getJourneyFromStore(journeyId))
-                        .store(
-                            getJourneyContainer(
-                                journeyId)) // en este momento se está construyendo la pipeline.
-                        .step(getStep(journeyId))
-                        .build()))
-        .subscribeOn(Schedulers.boundedElastic());
+    return createJourneyUseCase.createJourney(journeyTypeId, journeyId, rq, serverHttpRequest);
   }
 
   public Mono<StepWrapper> runStepAndReturn(
@@ -178,42 +79,11 @@ public class MateuService {
       RunActionRq rq,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
-    return runStep(journeyTypeId, journeyId, stepId, actionId, rq, serverHttpRequest)
-        .thenReturn(
-            StepWrapper.builder()
-                .journey(getJourneyFromStore(journeyId))
-                .store(getJourneyContainer(journeyId))
-                .step(getStep(journeyId))
-                .build())
-        .subscribeOn(Schedulers.boundedElastic());
+    return runStepUseCase.runStep(
+        journeyTypeId, journeyId, stepId, actionId, rq, serverHttpRequest);
   }
 
-  private Map<String, Object> getJourneyContainer(String journeyId) {
-    try {
-      return serializer.toMap(store.findJourneyById(journeyId).get());
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  private Step getStep(String journeyId) {
-    try {
-      return store.getCurrentStep(journeyId);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  private Journey getJourneyFromStore(String journeyId) {
-    try {
-      var journey = store.getJourney(journeyId);
-      return journey;
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  public Flux<Object> getListRows(
+  public Mono<Page> getListRows(
       String journeyTypeId,
       String journeyId,
       String stepId,
@@ -227,80 +97,24 @@ public class MateuService {
       Map<String, Object> journey,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
-    if (journey != null) {
-      JourneyContainer journeyContainer =
-          serializer.fromJson(serializer.toJson(journey), JourneyContainer.class);
-      store.save(journeyContainer);
-    }
-
-    return getListRowsQueryHandler
-        .run(
-            GetListRowsQuery.builder()
-                .journeyTypeId(journeyTypeId)
-                .journeyId(journeyId)
-                .stepId(stepId)
-                .listId(listId)
-                .page(page)
-                .pageSize(page_size)
-                .filters(filters)
-                .ordering(new OrderingDeserializer(ordering).deserialize(serializer))
-                .serverHttpRequest(serverHttpRequest)
-                .build())
+    return fetchListUseCase
+        .fetchPage(
+            journeyTypeId,
+            journeyId,
+            stepId,
+            listId,
+            page,
+            page_size,
+            filters,
+            ordering,
+            journey,
+            serverHttpRequest)
         .subscribeOn(Schedulers.boundedElastic());
   }
 
-  public Mono<Long> getListCount(
-      String journeyTypeId,
-      String journeyId,
-      String stepId,
-      String listId,
-      // urlencoded form of filters json serialized
-      Map<String, Object> filters,
-      Map<String, Object> journey,
-      ServerHttpRequest serverHttpRequest)
+  public Mono<Items> getItems(String itemProviderId, int page, int page_size, String search_text)
       throws Throwable {
-    if (journey != null) {
-      JourneyContainer journeyContainer =
-          serializer.fromJson(serializer.toJson(journey), JourneyContainer.class);
-      store.save(journeyContainer);
-    }
-
-    return getListCountQueryHandler
-        .run(
-            GetListCountQuery.builder()
-                .journeyTypeId(journeyTypeId)
-                .journeyId(journeyId)
-                .stepId(stepId)
-                .listId(listId)
-                .filters(filters)
-                .serverHttpRequest(serverHttpRequest)
-                .build())
-        .subscribeOn(Schedulers.boundedElastic());
-  }
-
-  public Flux<Value> getItems(String itemProviderId, int page, int page_size, String search_text)
-      throws Throwable {
-    return Flux.fromStream(
-            getItemsRowsQueryHandler
-                .run(
-                    GetItemsRowsQuery.builder()
-                        .itemsProviderId(itemProviderId)
-                        .page(page)
-                        .pageSize(page_size)
-                        .searchText(search_text)
-                        .build())
-                .stream())
-        .subscribeOn(Schedulers.boundedElastic());
-  }
-
-  public Mono<Integer> getItemCount(String itemProviderId, String search_text) throws Throwable {
-    return Mono.just(
-            getItemsCountQueryHandler.run(
-                GetItemsCountQuery.builder()
-                    .itemsProviderId(itemProviderId)
-                    .searchText(search_text)
-                    .build()))
-        .subscribeOn(Schedulers.boundedElastic());
+    return fetchItemsUseCase.getItems(itemProviderId, page, page_size, search_text);
   }
 
   // TODO: .subscribeOn(Schedulers.boundedElastic())
@@ -344,11 +158,7 @@ public class MateuService {
             ordering,
             journey,
             serverHttpRequest)
-        .map(o -> toMap(o))
-        .map(m -> m.values())
-        .map(a -> a.stream().map(o -> "" + o).collect(Collectors.toList()))
-        .map(l -> l.toArray(new String[0]))
-        .collectList()
+        .map(Page::content)
         .map(
             list -> {
               try {
@@ -356,7 +166,13 @@ public class MateuService {
                 OutputStreamWriter streamWriter = new OutputStreamWriter(stream);
                 CSVWriter writer = new CSVWriter(streamWriter);
 
-                writer.writeAll(list);
+                writer.writeAll(
+                    list.stream()
+                        .map(this::toMap)
+                        .map(Map::values)
+                        .map(a -> a.stream().map(o -> "" + o).collect(Collectors.toList()))
+                        .map(l -> l.toArray(new String[0]))
+                        .toList());
                 streamWriter.flush();
                 return stream.getInputStream();
               } catch (IOException e) {
@@ -403,11 +219,15 @@ public class MateuService {
             ordering,
             journey,
             serverHttpRequest)
-        .map(o -> toMap(o))
-        .map(m -> m.values())
-        .map(a -> a.stream().map(o -> "" + o).collect(Collectors.toList()))
-        .map(l -> l.toArray(new String[0]))
-        .collectList()
+        .map(Page::content)
+        .map(
+            list ->
+                list.stream()
+                    .map(this::toMap)
+                    .map(Map::values)
+                    .map(a -> a.stream().map(o -> "" + o).collect(Collectors.toList()))
+                    .map(l -> l.toArray(new String[0]))
+                    .toList())
         .map(
             list -> {
               try {

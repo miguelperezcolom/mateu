@@ -40,11 +40,6 @@ public class JourneyContainer implements Serializable {
 
   private Map<String, List<SortCriteria>> lastUsedSorting;
 
-  public void reset() {
-    journey.setCurrentStepId(initialStep.getId());
-    journey.setCurrentStepDefinitionId(initialStep.getType());
-  }
-
   @Override
   public String toString() {
     return journeyId;

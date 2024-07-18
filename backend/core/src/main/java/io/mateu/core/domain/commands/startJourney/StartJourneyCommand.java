@@ -1,5 +1,6 @@
 package io.mateu.core.domain.commands.startJourney;
 
+import io.mateu.dtos.JourneyCreationRq;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,8 @@ public class StartJourneyCommand {
   private String journeyTypeId;
 
   private String journeyId;
+
+  private JourneyCreationRq journeyCreationRq;
 
   private ServerHttpRequest serverHttpRequest;
 }

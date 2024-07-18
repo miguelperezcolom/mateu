@@ -8,11 +8,7 @@ import io.mateu.core.domain.model.modelToDtoMappers.StepMapper;
 import io.mateu.core.domain.model.modelToDtoMappers.UIMapper;
 import io.mateu.core.domain.model.persistence.Merger;
 import io.mateu.core.domain.reflection.ReflectionHelper;
-import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDActionViewBuilder;
-import io.mateu.core.domain.uidefinition.core.app.MDDOpenEditorAction;
-import io.mateu.core.domain.uidefinition.core.app.MDDOpenListViewAction;
-import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
 import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.core.domain.uidefinition.shared.interfaces.SortCriteria;
@@ -60,40 +56,34 @@ public class JourneyStoreService {
       throw new Exception(
           "No step with id " + stepId + " for journey with id " + journeyId + " found");
     }
-    if (false && "io.mateu.domain.uidefinition.ui.cruds.JpaRpcCrudView".equals(step.getType())) {
-      Object jpaRpcCrudView =
-          createInstanceFromJourneyTypeId(container.get().getJourneyTypeId(), serverHttpRequest);
-      return jpaRpcCrudView;
+    Object viewInstance = reflectionHelper.newInstance(Class.forName(step.getType()));
+    Map<String, Object> data = step.getData();
+    if (viewInstance instanceof EntityEditor) {
+      ((EntityEditor) viewInstance)
+          .setEntityClass(Class.forName((String) data.get("__entityClassName__")));
+      ((EntityEditor) viewInstance).setData(data);
+    } else if (viewInstance instanceof ObjectEditor) {
+      ((ObjectEditor) viewInstance)
+          .setType(Class.forName((String) data.get("__entityClassName__")));
+      ((ObjectEditor) viewInstance).setData(data);
+    } else if (viewInstance instanceof FieldEditor) {
+      ((FieldEditor) viewInstance).setType(Class.forName((String) data.get("__type__")));
+      ((FieldEditor) viewInstance).setFieldId((String) data.get("__fieldId__"));
+      ((FieldEditor) viewInstance).setInitialStep((String) data.get("__initialStep__"));
+      ((FieldEditor) viewInstance).setData(data);
     } else {
-      Object viewInstance = reflectionHelper.newInstance(Class.forName(step.getType()));
-      Map<String, Object> data = step.getData();
-      if (viewInstance instanceof EntityEditor) {
-        ((EntityEditor) viewInstance)
-            .setEntityClass(Class.forName((String) data.get("__entityClassName__")));
-        ((EntityEditor) viewInstance).setData(data);
-      } else if (viewInstance instanceof ObjectEditor) {
-        ((ObjectEditor) viewInstance)
-            .setType(Class.forName((String) data.get("__entityClassName__")));
-        ((ObjectEditor) viewInstance).setData(data);
-      } else if (viewInstance instanceof FieldEditor) {
-        ((FieldEditor) viewInstance).setType(Class.forName((String) data.get("__type__")));
-        ((FieldEditor) viewInstance).setFieldId((String) data.get("__fieldId__"));
-        ((FieldEditor) viewInstance).setInitialStep((String) data.get("__initialStep__"));
-        ((FieldEditor) viewInstance).setData(data);
-      } else {
-        data.entrySet()
-            .forEach(
-                entry -> {
-                  try {
-                    Object actualValue = actualValueExtractor.getActualValue(entry, viewInstance);
-                    reflectionHelper.setValue(entry.getKey(), viewInstance, actualValue);
-                  } catch (Exception ex) {
-                    System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
-                  }
-                });
-      }
-      return viewInstance;
+      data.entrySet()
+          .forEach(
+              entry -> {
+                try {
+                  Object actualValue = actualValueExtractor.getActualValue(entry, viewInstance);
+                  reflectionHelper.setValue(entry.getKey(), viewInstance, actualValue);
+                } catch (Exception ex) {
+                  System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
+                }
+              });
     }
+    return viewInstance;
   }
 
   @Transactional
@@ -379,74 +369,6 @@ public class JourneyStoreService {
 
   public void storeMenuAction(String actionId, Object bean) {
     menuMappingRepo.save(MenuToBeanMapping.builder().actionId(actionId).bean(bean).build());
-  }
-
-  public MenuToBeanMapping getMenuMapping(String actionId, ServerHttpRequest serverHttpRequest) {
-    Optional<MenuToBeanMapping> menuToBeanMapping = menuMappingRepo.findById(actionId);
-    if (menuToBeanMapping.isEmpty()) {
-      if (actionId.contains("_")) { // it's a ui
-        String uiClassName = actionId.split("_")[1];
-        Object uiInstance = null;
-        try {
-          uiInstance = reflectionHelper.newInstance(Class.forName(uiClassName));
-          if (uiInstance instanceof HasInitMethod) {
-            ((HasInitMethod) uiInstance).init(serverHttpRequest);
-          }
-          uiMapper.map(uiInstance, serverHttpRequest);
-          menuToBeanMapping = menuMappingRepo.findById(actionId);
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      } else { // it's a form
-        String uiClassName = actionId;
-        Object uiInstance = null;
-        try {
-          // todo: refactor for improving
-          uiInstance = reflectionHelper.newInstance(Class.forName(uiClassName));
-          if (uiInstance instanceof HasInitMethod) {
-            ((HasInitMethod) uiInstance).init(serverHttpRequest);
-          }
-          uiMapper.map(uiInstance, serverHttpRequest);
-          Object finalUiInstance = uiInstance;
-          storeMenuAction(actionId, new MDDOpenEditorAction("", () -> finalUiInstance));
-          menuToBeanMapping = menuMappingRepo.findById(actionId);
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      }
-    }
-    return menuToBeanMapping.orElse(null);
-  }
-
-  public Object createInstanceFromJourneyTypeId(
-      String journeyTypeId, ServerHttpRequest serverHttpRequest) {
-    MenuToBeanMapping menuMapping = getMenuMapping(journeyTypeId, serverHttpRequest);
-    Object formInstance = null;
-    try {
-      formInstance = createInstanceFromMenuMapping(menuMapping.getBean());
-
-      if (formInstance instanceof HasInitMethod) {
-        ((HasInitMethod) formInstance).init(serverHttpRequest);
-      }
-
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return formInstance;
-  }
-
-  private Object createInstanceFromMenuMapping(Object menuEntry) throws Exception {
-    if (menuEntry instanceof MDDOpenEditorAction) {
-      MDDOpenEditorAction action = (MDDOpenEditorAction) menuEntry;
-      return reflectionHelper.newInstance(action.getViewClass());
-    } else if (menuEntry instanceof MDDOpenCRUDAction) {
-      MDDOpenCRUDAction action = (MDDOpenCRUDAction) menuEntry;
-      return mddOpenCRUDActionViewBuilder.buildView(action);
-    } else if (menuEntry instanceof MDDOpenListViewAction) {
-      MDDOpenListViewAction action = (MDDOpenListViewAction) menuEntry;
-      return reflectionHelper.newInstance(action.getListViewClass());
-    }
-    return null;
   }
 
   public StepMapper getStepMapper() {

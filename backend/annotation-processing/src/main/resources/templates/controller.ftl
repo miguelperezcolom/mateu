@@ -2,6 +2,8 @@ package ${pkgName};
 
 import io.mateu.core.domain.uidefinition.shared.data.Value;
 import io.mateu.core.application.MateuService;
+import io.mateu.core.application.Page;
+import io.mateu.core.application.Items;
 import io.mateu.dtos.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -38,54 +40,24 @@ public class ${simpleClassName}MateuController {
     }
 
     @PostMapping("v1/journeys/{journeyTypeId}/{journeyId}")
-    public Mono<Void> createJourney(@PathVariable String journeyTypeId, @PathVariable String journeyId,
+    public Mono<StepWrapper> createJourney(@PathVariable String journeyTypeId, @PathVariable String journeyId,
             @RequestBody JourneyCreationRq rq,
             ServerHttpRequest serverHttpRequest) throws Throwable {
         return service.createJourney(journeyTypeId, journeyId, rq, serverHttpRequest);
     }
 
-    @GetMapping("v1/journeys/{journeyTypeId}/{journeyId}")
-    public Mono<Journey> getJourney(@PathVariable String journeyTypeId, @PathVariable String journeyId,
-                ServerHttpRequest serverHttpRequest) throws Exception {
-        return service.getJourney(journeyTypeId, journeyId, serverHttpRequest);
-    }
-
-    @GetMapping("v1/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}")
-    public Mono<Step> getStep(@PathVariable String journeyTypeId, @PathVariable String journeyId
-                    , @PathVariable String stepId,
-                    ServerHttpRequest serverHttpRequest) throws Exception {
-        return service.getStep(journeyTypeId, journeyId, stepId, serverHttpRequest);
-    }
-
     @PostMapping("v1/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{actionId}")
-    public Mono<Void> runStep(@PathVariable String journeyTypeId,
+    public Mono<StepWrapper> runStep(@PathVariable String journeyTypeId,
                         @PathVariable String journeyId,
                         @PathVariable String stepId,
                         @PathVariable String actionId,
                         @RequestBody RunActionRq rq,
                         ServerHttpRequest serverHttpRequest) throws Throwable {
-        return service.runStep(journeyTypeId, journeyId, stepId, actionId, rq, serverHttpRequest);
-    }
-
-    @PostMapping("v2/journeys/{journeyTypeId}/{journeyId}")
-    public Mono<StepWrapper> createJourneyAndReturn(@PathVariable String journeyTypeId, @PathVariable String journeyId,
-        @RequestBody JourneyCreationRq rq,
-        ServerHttpRequest serverHttpRequest) throws Throwable {
-        return service.createJourneyAndReturn(journeyTypeId, journeyId, rq, serverHttpRequest);
-        }
-
-    @PostMapping("v2/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{actionId}")
-    public Mono<StepWrapper> runStepAndReturn(@PathVariable String journeyTypeId,
-        @PathVariable String journeyId,
-        @PathVariable String stepId,
-        @PathVariable String actionId,
-        @RequestBody RunActionRq rq,
-        ServerHttpRequest serverHttpRequest) throws Throwable {
-            return service.runStepAndReturn(journeyTypeId, journeyId, stepId, actionId, rq, serverHttpRequest);
+        return service.runStepAndReturn(journeyTypeId, journeyId, stepId, actionId, rq, serverHttpRequest);
     }
 
     @PostMapping("v1/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/lists/{listId}/rows")
-    public Flux<Object> getListRows(@PathVariable String journeyTypeId,
+    public Mono<Page> getListRows(@PathVariable String journeyTypeId,
                                     @PathVariable String journeyId,
                                     @PathVariable String stepId,
                                     @PathVariable String listId,
@@ -107,40 +79,13 @@ public class ${simpleClassName}MateuController {
                             filters, ordering, journey, serverHttpRequest);
     }
 
-    @PostMapping("v1/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/lists/{listId}/count")
-    public Mono<Long> getListCount(@PathVariable String journeyTypeId,
-                                    @PathVariable String journeyId,
-                                    @PathVariable String stepId,
-                                    @PathVariable String listId,
-                                    // urlencoded form of filters json serialized
-                                    @RequestBody Map<String, Object> body,
-                                    ServerHttpRequest serverHttpRequest
-                                    ) throws Throwable {
-        Map<String, Object> filters = null;
-        Map<String, Object> journey = null;
-        if (body != null) {
-            filters = (Map<String, Object>) body.get("__filters");
-            journey = (Map<String, Object>) body.get("__journey");
-        }
-        return service.getListCount(journeyTypeId, journeyId, stepId, listId, filters, journey
-                                , serverHttpRequest);
-    }
-
-
     @GetMapping("v1/itemproviders/{itemProviderId}/items")
-    public Flux<Value> getItems(@PathVariable String itemProviderId,
+    public Mono<Items> getItems(@PathVariable String itemProviderId,
                                 @RequestParam int page,
                                 @RequestParam int page_size,
                                 @RequestParam String search_text
                                 ) throws Throwable {
         return service.getItems(itemProviderId, page, page_size, search_text);
-    }
-
-    @GetMapping("v1/itemproviders/{itemProviderId}/count")
-    public Mono<Integer> getItemCount(@PathVariable String itemProviderId,
-                                        @RequestParam String search_text
-                                        ) throws Throwable {
-        return service.getItemCount(itemProviderId, search_text);
     }
 
     @GetMapping("v1/cdn/{fileId}/{filename:.+}")
