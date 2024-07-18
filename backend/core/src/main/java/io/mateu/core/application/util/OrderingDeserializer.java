@@ -1,4 +1,4 @@
-package io.mateu.core.application;
+package io.mateu.core.application.util;
 
 import com.google.common.base.Strings;
 import io.mateu.core.domain.uidefinition.shared.interfaces.SortCriteria;

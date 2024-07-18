@@ -1,4 +1,4 @@
-package io.mateu.core.application;
+package io.mateu.core.application.usecases;
 
 import io.mateu.core.domain.commands.runStepAction.RunStepActionCommand;
 import io.mateu.core.domain.commands.runStepAction.RunStepActionCommandHandler;

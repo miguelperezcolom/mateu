@@ -1,5 +1,6 @@
-package io.mateu.core.application;
+package io.mateu.core.application.usecases;
 
+import io.mateu.core.application.dtos.Items;
 import io.mateu.core.domain.queries.getItemsCount.GetItemsCountQuery;
 import io.mateu.core.domain.queries.getItemsCount.GetItemsCountQueryHandler;
 import io.mateu.core.domain.queries.getItemsRows.GetItemsRowsQuery;

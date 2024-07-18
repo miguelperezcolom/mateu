@@ -1,4 +1,4 @@
-package io.mateu.core.application;
+package io.mateu.core.application.dtos;
 
 import io.mateu.core.domain.uidefinition.shared.data.Value;
 import java.util.List;

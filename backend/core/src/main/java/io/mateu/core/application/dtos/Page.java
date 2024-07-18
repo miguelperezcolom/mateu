@@ -1,4 +1,4 @@
-package io.mateu.core.application;
+package io.mateu.core.application.dtos;
 
 import java.util.List;
 

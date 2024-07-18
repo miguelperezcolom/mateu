@@ -1,6 +1,9 @@
 package io.mateu.core.application;
 
 import com.opencsv.CSVWriter;
+import io.mateu.core.application.dtos.Items;
+import io.mateu.core.application.dtos.Page;
+import io.mateu.core.application.usecases.*;
 import io.mateu.core.domain.util.Serializer;
 import io.mateu.core.infra.csv.ByteArrayInOutStream;
 import io.mateu.dtos.JourneyCreationRq;
@@ -41,7 +44,11 @@ public class MateuService {
 
   private final FetchItemsUseCase fetchItemsUseCase;
 
-  @Autowired UploadService uploadService;
+  private final GetFileUrlUseCase getFileUrlUseCase;
+
+  private final HandleFileUploadUseCase handleFileUploadUseCase;
+
+  private final ServeFileUseCase serveFileUseCase;
 
   @Autowired Serializer serializer;
 
@@ -50,12 +57,18 @@ public class MateuService {
       CreateJourneyUseCase createJourneyUseCase,
       RunStepUseCase runStepUseCase,
       FetchListUseCase fetchListUseCase,
-      FetchItemsUseCase fetchItemsUseCase) {
+      FetchItemsUseCase fetchItemsUseCase,
+      GetFileUrlUseCase getFileUrlUseCase,
+      HandleFileUploadUseCase handleFileUploadUseCase,
+      ServeFileUseCase serveFileUseCase) {
     this.getUiUseCase = getUiUseCase;
     this.createJourneyUseCase = createJourneyUseCase;
     this.runStepUseCase = runStepUseCase;
     this.fetchListUseCase = fetchListUseCase;
     this.fetchItemsUseCase = fetchItemsUseCase;
+    this.getFileUrlUseCase = getFileUrlUseCase;
+    this.handleFileUploadUseCase = handleFileUploadUseCase;
+    this.serveFileUseCase = serveFileUseCase;
   }
 
   public Mono<UI> getUI(String uiId, ServerHttpRequest serverHttpRequest) throws Exception {
@@ -117,21 +130,22 @@ public class MateuService {
     return fetchItemsUseCase.getItems(itemProviderId, page, page_size, search_text);
   }
 
-  // TODO: .subscribeOn(Schedulers.boundedElastic())
-  public ResponseEntity<Resource> serveFile(String fileId, String filename)
+  public Mono<ResponseEntity<Resource>> serveFile(String fileId, String filename)
       throws AuthenticationException {
-    return uploadService.serveFile(fileId, filename);
+    return Mono.fromCallable(() -> serveFileUseCase.serveFile(fileId, filename))
+        .subscribeOn(Schedulers.boundedElastic());
   }
 
-  // TODO: .subscribeOn(Schedulers.boundedElastic())
-  public String getFileUrl(String fileId, String fileName) throws AuthenticationException {
-    return uploadService.getFileUrl(fileId, fileName);
+  public Mono<String> getFileUrl(String fileId, String fileName) throws AuthenticationException {
+    return Mono.fromCallable(() -> getFileUrlUseCase.getFileUrl(fileId, fileName))
+        .subscribeOn(Schedulers.boundedElastic());
   }
 
-  // TODO: .subscribeOn(Schedulers.boundedElastic())
   public Mono<Void> handleFileUpload(String fileId, Mono<FilePart> file)
       throws AuthenticationException, ExecutionException, InterruptedException, TimeoutException {
-    return uploadService.handleFileUpload(fileId, file);
+    return handleFileUploadUseCase
+        .handleFileUpload(fileId, file)
+        .subscribeOn(Schedulers.boundedElastic());
   }
 
   public Mono<ByteArrayInputStream> generateCsv(

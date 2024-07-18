@@ -1,4 +1,4 @@
-package io.mateu.core.application;
+package io.mateu.core.application.usecases;
 
 import io.mateu.core.domain.queries.getUI.GetUIQuery;
 import io.mateu.core.domain.queries.getUI.GetUIQueryHandler;

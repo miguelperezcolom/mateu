@@ -1,5 +1,7 @@
-package io.mateu.core.application;
+package io.mateu.core.application.usecases;
 
+import io.mateu.core.application.dtos.Page;
+import io.mateu.core.application.util.OrderingDeserializer;
 import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.queries.getListCount.GetListCountQuery;
 import io.mateu.core.domain.queries.getListCount.GetListCountQueryHandler;

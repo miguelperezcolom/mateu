@@ -1,4 +1,4 @@
-package io.mateu.core.application;
+package io.mateu.core.application.usecases;
 
 import io.mateu.core.domain.commands.startJourney.StartJourneyCommand;
 import io.mateu.core.domain.commands.startJourney.StartJourneyCommandHandler;

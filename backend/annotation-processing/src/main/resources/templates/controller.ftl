@@ -2,8 +2,8 @@ package ${pkgName};
 
 import io.mateu.core.domain.uidefinition.shared.data.Value;
 import io.mateu.core.application.MateuService;
-import io.mateu.core.application.Page;
-import io.mateu.core.application.Items;
+import io.mateu.core.application.dtos.Page;
+import io.mateu.core.application.dtos.Items;
 import io.mateu.dtos.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -90,14 +90,14 @@ public class ${simpleClassName}MateuController {
 
     @GetMapping("v1/cdn/{fileId}/{filename:.+}")
     @ResponseBody
-    public ResponseEntity<Resource> serveFile(@PathVariable String fileId, @PathVariable String filename)
+    public Mono<ResponseEntity<Resource>> serveFile(@PathVariable String fileId, @PathVariable String filename)
         throws AuthenticationException {
         return service.serveFile(fileId, filename);
     }
 
     @GetMapping(value = "v1/files/{fileId}/{fileName}", produces = MediaType.TEXT_PLAIN_VALUE)
     public Mono<String> getFileUrl(@PathVariable String fileId, @PathVariable String fileName) throws AuthenticationException {
-        return Mono.just(service.getFileUrl(fileId, fileName));
+        return service.getFileUrl(fileId, fileName);
     }
 
     @PostMapping("v1/files/{fileId}")
