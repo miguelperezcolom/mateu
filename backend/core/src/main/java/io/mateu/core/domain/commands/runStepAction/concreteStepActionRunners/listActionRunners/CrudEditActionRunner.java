@@ -3,6 +3,7 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.li
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ListActionRunner;
 import io.mateu.core.domain.model.editors.EntityEditorFactory;
 import io.mateu.core.domain.model.editors.ObjectEditorFactory;
+import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.core.domain.queries.FiltersDeserializer;
 import io.mateu.core.domain.reflection.ReflectionHelper;
@@ -26,14 +27,14 @@ public class CrudEditActionRunner implements ListActionRunner {
   final Serializer serializer;
 
   @Override
-  public boolean applies(Crud crud, String actionId) {
+  public boolean applies(JourneyContainer journeyContainer, Crud crud, String actionId) {
     return "edit".equals(actionId);
   }
 
   @Override
   public Mono<Void> run(
+      JourneyContainer journeyContainer,
       Crud crud,
-      String journeyId,
       String stepId,
       String listId,
       String actionId,
@@ -54,16 +55,16 @@ public class CrudEditActionRunner implements ListActionRunner {
 
       Object filtersDeserialized =
           new FiltersDeserializer(
-                  journeyId,
+                  journeyContainer,
                   stepId,
                   listId,
-                  getAsMap(store.getLastUsedFilters(journeyId, stepId, listId)),
+                  getAsMap(store.getLastUsedFilters(journeyContainer, stepId, listId)),
                   serverHttpRequest,
                   reflectionHelper,
                   serializer)
               .deserialize(store);
 
-      var ordering = store.getLastUsedOrders(journeyId, stepId, listId);
+      var ordering = store.getLastUsedOrders(journeyContainer, stepId, listId);
       // new OrderingDeserializer(store.getLastUsedOrders(journeyId, stepId,
       // listId)).deserialize(serializer);
 
@@ -102,7 +103,7 @@ public class CrudEditActionRunner implements ListActionRunner {
           reflectionHelper.newInstance(ObjectEditorFactory.class).create(editor, __index, __count);
     }
 
-    store.setStep(journeyId, newStepId, editor, serverHttpRequest);
+    store.setStep(journeyContainer, newStepId, editor, serverHttpRequest);
 
     return Mono.empty();
   }

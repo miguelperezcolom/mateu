@@ -1,6 +1,7 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
+import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.core.domain.uidefinition.core.interfaces.ReadOnlyPojo;
 import java.util.Map;
@@ -15,14 +16,14 @@ public class ReadOnlyPojoEditActionRunner implements ActionRunner {
   @Autowired JourneyStoreService store;
 
   @Override
-  public boolean applies(Object viewInstance, String actionId) {
+  public boolean applies(JourneyContainer journeyContainer, Object viewInstance, String actionId) {
     return viewInstance instanceof ReadOnlyPojo && "edit".equals(actionId);
   }
 
   @Override
   public Mono<Void> run(
+      JourneyContainer journeyContainer,
       Object viewInstance,
-      String journeyId,
       String stepId,
       String actionId,
       Map<String, Object> data,
@@ -36,7 +37,7 @@ public class ReadOnlyPojoEditActionRunner implements ActionRunner {
               + viewInstance.getClass().getSimpleName());
     }
 
-    store.setStep(journeyId, "edit", editor, serverHttpRequest);
+    store.setStep(journeyContainer, "edit", editor, serverHttpRequest);
 
     return Mono.empty();
   }

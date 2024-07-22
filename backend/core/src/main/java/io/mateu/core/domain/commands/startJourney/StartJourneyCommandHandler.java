@@ -19,7 +19,6 @@ import io.mateu.dtos.Journey;
 import io.mateu.dtos.JourneyCreationRq;
 import io.mateu.dtos.Step;
 import io.mateu.dtos.StepWrapper;
-import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -84,7 +83,6 @@ public class StartJourneyCommandHandler {
             .journeyId(journeyId)
             .journeyClass(formInstance.getClass())
             .journeyData(journeyCreationRq.getContextData())
-            .created(LocalDateTime.now())
             .steps(Map.of())
             .journey(journey)
             .lastUsedSorting(Map.of())
@@ -98,6 +96,7 @@ public class StartJourneyCommandHandler {
     journey.setCurrentStepDefinitionId(step.getType());
 
     journeyContainer.setInitialStep(step);
+    journeyContainer.setSteps(Map.of(step.getId(), step));
 
     return Mono.just(
         StepWrapper.builder().journey(journey).step(step).store(toMap(journeyContainer)).build());

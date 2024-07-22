@@ -1,5 +1,6 @@
 package io.mateu.core.domain.queries.getListRows;
 
+import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.uidefinition.shared.interfaces.SortCriteria;
 import java.util.List;
 import java.util.Map;
@@ -13,9 +14,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 @Getter
 public class GetListRowsQuery {
 
-  private String journeyTypeId;
-
-  private String journeyId;
+  private JourneyContainer journeyContainer;
 
   private String stepId;
 

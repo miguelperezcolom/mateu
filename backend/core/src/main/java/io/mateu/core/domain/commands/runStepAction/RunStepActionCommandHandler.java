@@ -9,7 +9,6 @@ import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.reflection.ReflectionHelper;
 import io.mateu.dtos.Form;
 import io.mateu.dtos.Step;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +46,6 @@ public class RunStepActionCommandHandler {
     if ("xxxbacktostep".equals(actionId)) {
       journeyContainer.getJourney().setCurrentStepId(stepId);
       journeyContainer.getJourney().setCurrentStepDefinitionId("xxx");
-      journeyContainer.setLastAccess(LocalDateTime.now());
       resetMessages(journeyContainer);
 
       return Mono.empty().then();
@@ -88,9 +86,9 @@ public class RunStepActionCommandHandler {
     if (!"component-0".equals(componentId)) {}
 
     for (ActionRunner actionRunner : actionRunners) {
-      if (actionRunner.applies(viewInstance, actionId)) {
+      if (actionRunner.applies(journeyContainer, viewInstance, actionId)) {
         return actionRunner
-            .run(viewInstance, journeyId, stepId, actionId, data, serverHttpRequest)
+            .run(journeyContainer, viewInstance, stepId, actionId, data, serverHttpRequest)
             .then(
                 Mono.deferContextual(
                     contextView -> {

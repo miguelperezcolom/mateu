@@ -213,7 +213,7 @@ export default class MateuApiClient {
     }
 
     async createJourneyAndReturn(journeyType: string, journeyId: string): Promise<StepWrapper> {
-        return await this.wrap<StepWrapper>(this.getUsingPost(this.baseUrl.replace('v1', 'v2') + '/journeys/'
+        return await this.wrap<StepWrapper>(this.getUsingPost(this.baseUrl + '/journeys/'
             + journeyType + '/' + journeyId,
             {
                 "context-data": {}
@@ -222,7 +222,7 @@ export default class MateuApiClient {
     }
     async runStepActionAndReturn(journeyType: string, journeyId: string, stepId: string, actionId: string,
                         data: unknown): Promise<StepWrapper> {
-        return await this.wrap<StepWrapper>(this.getUsingPost(this.baseUrl.replace('v1', 'v2') + '/journeys/' +
+        return await this.wrap<StepWrapper>(this.getUsingPost(this.baseUrl + '/journeys/' +
             journeyType + '/' + journeyId + '/steps/' + stepId
             + '/' + actionId, {
                 data: data,

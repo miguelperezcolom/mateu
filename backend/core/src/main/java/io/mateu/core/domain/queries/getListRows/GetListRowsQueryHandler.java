@@ -1,6 +1,5 @@
 package io.mateu.core.domain.queries.getListRows;
 
-import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.core.domain.queries.FiltersDeserializer;
 import io.mateu.core.domain.reflection.ReflectionHelper;
@@ -25,15 +24,9 @@ public class GetListRowsQueryHandler {
   @Transactional
   public Flux<Object> run(GetListRowsQuery query) throws Throwable {
 
-    JourneyContainer journeyContainer = store.findJourneyById(query.getJourneyId()).orElse(null);
-
-    if (journeyContainer == null) {
-      throw new Exception("No journey with id " + query.getJourneyId());
-    }
-
     Object filtersDeserialized =
         new FiltersDeserializer(
-                query.getJourneyId(),
+                query.getJourneyContainer(),
                 query.getStepId(),
                 query.getListId(),
                 query.getFilters(),
@@ -45,15 +38,15 @@ public class GetListRowsQueryHandler {
     Listing rpcView =
         (Listing)
             store.getRpcViewInstance(
-                query.getJourneyId(),
+                query.getJourneyContainer(),
                 query.getStepId(),
                 query.getListId(),
                 query.getServerHttpRequest());
 
     store.saveFilters(
-        query.getJourneyId(), query.getStepId(), query.getListId(), filtersDeserialized);
+        query.getJourneyContainer(), query.getStepId(), query.getListId(), filtersDeserialized);
     store.saveOrders(
-        query.getJourneyId(), query.getStepId(), query.getListId(), query.getOrdering());
+        query.getJourneyContainer(), query.getStepId(), query.getListId(), query.getOrdering());
 
     if (rpcView == null) {
       return Flux.empty();

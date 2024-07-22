@@ -1,5 +1,6 @@
 package io.mateu.core.domain.queries.getStep;
 
+import io.mateu.core.domain.model.store.JourneyContainer;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -8,9 +9,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 @Getter
 public class GetStepQuery {
 
-  private String journeyTypeId;
-
-  private String journeyId;
+  private JourneyContainer journeyContainer;
 
   private String stepId;
 

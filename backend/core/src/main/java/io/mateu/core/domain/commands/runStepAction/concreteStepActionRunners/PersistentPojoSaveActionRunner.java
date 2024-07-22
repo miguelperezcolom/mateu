@@ -1,6 +1,7 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
+import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.core.domain.uidefinition.core.interfaces.PersistentPojo;
 import io.mateu.core.domain.uidefinition.core.interfaces.ReadOnlyPojo;
@@ -26,14 +27,14 @@ public class PersistentPojoSaveActionRunner implements ActionRunner {
   final ValidationService validationService;
 
   @Override
-  public boolean applies(Object viewInstance, String actionId) {
+  public boolean applies(JourneyContainer journeyContainer, Object viewInstance, String actionId) {
     return viewInstance instanceof PersistentPojo && "save".equals(actionId);
   }
 
   @Override
   public Mono<Void> run(
+      JourneyContainer journeyContainer,
       Object viewInstance,
-      String journeyId,
       String stepId,
       String actionId,
       Map<String, Object> data,
@@ -41,14 +42,14 @@ public class PersistentPojoSaveActionRunner implements ActionRunner {
       throws Throwable {
     validationService.validate(viewInstance);
     ((PersistentPojo) viewInstance).save();
-    refreshDetailView(journeyId, stepId, serverHttpRequest);
+    refreshDetailView(journeyContainer, stepId, serverHttpRequest);
 
-    Step initialStep = store.getInitialStep(journeyId);
+    Step initialStep = store.getInitialStep(journeyContainer);
 
-    Step currentStep = store.readStep(journeyId, stepId);
+    Step currentStep = store.readStep(journeyContainer, stepId);
 
     List<Destination> youMayBeInterestedIn = new ArrayList<>();
-    Step detail = store.readStep(journeyId, currentStep.getPreviousStepId());
+    Step detail = store.readStep(journeyContainer, currentStep.getPreviousStepId());
     if (detail != null) {
       youMayBeInterestedIn.add(
           new Destination(
@@ -68,18 +69,19 @@ public class PersistentPojoSaveActionRunner implements ActionRunner {
                 initialStep.getId()),
             null);
     String newStepId = "result_" + UUID.randomUUID().toString();
-    store.setStep(journeyId, newStepId, whatToShow, serverHttpRequest);
+    store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest);
 
     return Mono.empty();
   }
 
   private void refreshDetailView(
-      String journeyId, String stepId, ServerHttpRequest serverHttpRequest) throws Throwable {
+      JourneyContainer journeyContainer, String stepId, ServerHttpRequest serverHttpRequest)
+      throws Throwable {
     if ("list_view_edit".equals(stepId)) {
-      Object detailView = store.getViewInstance(journeyId, "list_view", serverHttpRequest);
+      Object detailView = store.getViewInstance(journeyContainer, "list_view", serverHttpRequest);
       if (detailView instanceof ReadOnlyPojo) {
         ((ReadOnlyPojo) detailView).load(((ReadOnlyPojo) detailView).retrieveId());
-        store.updateStep(journeyId, "list_view", detailView, serverHttpRequest);
+        store.updateStep(journeyContainer, "list_view", detailView, serverHttpRequest);
       }
     }
   }

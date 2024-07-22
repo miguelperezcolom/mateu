@@ -1,6 +1,5 @@
 package io.mateu.core.domain.queries.getListCount;
 
-import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.core.domain.queries.FiltersDeserializer;
 import io.mateu.core.domain.reflection.ReflectionHelper;
@@ -23,15 +22,9 @@ public class GetListCountQueryHandler {
 
   public Mono<Long> run(GetListCountQuery query) throws Throwable {
 
-    JourneyContainer journeyContainer = store.findJourneyById(query.getJourneyId()).orElse(null);
-
-    if (journeyContainer == null) {
-      throw new Exception("No journey with id " + query.getJourneyId());
-    }
-
     Object filtersDeserialized =
         new FiltersDeserializer(
-                query.getJourneyId(),
+                query.getJourneyContainer(),
                 query.getStepId(),
                 query.getListId(),
                 query.getFilters(),
@@ -42,7 +35,7 @@ public class GetListCountQueryHandler {
 
     Listing rpcView =
         store.getRpcViewInstance(
-            query.getJourneyId(),
+            query.getJourneyContainer(),
             query.getStepId(),
             query.getListId(),
             query.getServerHttpRequest());

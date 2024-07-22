@@ -1,6 +1,7 @@
 package io.mateu.core.domain.queries;
 
 import com.google.common.base.Strings;
+import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.core.domain.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.data.DatesRange;
@@ -16,7 +17,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 
 public class FiltersDeserializer {
 
-  private final String journeyId;
+  private final JourneyContainer journeyContainer;
   private final String stepId;
   private final String listId;
   private final Map<String, Object> raw;
@@ -27,14 +28,14 @@ public class FiltersDeserializer {
   private final Serializer serializer;
 
   public FiltersDeserializer(
-      String journeyId,
+      JourneyContainer journeyContainer,
       String stepId,
       String listId,
       Map<String, Object> raw,
       ServerHttpRequest serverHttpRequest,
       ReflectionHelper reflectionHelper,
       Serializer serializer) {
-    this.journeyId = journeyId;
+    this.journeyContainer = journeyContainer;
     this.stepId = stepId;
     this.listId = listId;
     this.raw = raw;
@@ -44,7 +45,7 @@ public class FiltersDeserializer {
   }
 
   public Object deserialize(JourneyStoreService store) throws Exception {
-    Listing rpcView = store.getRpcViewInstance(journeyId, stepId, listId, serverHttpRequest);
+    Listing rpcView = store.getRpcViewInstance(journeyContainer, stepId, listId, serverHttpRequest);
     if (rpcView == null) {
       return null;
     }

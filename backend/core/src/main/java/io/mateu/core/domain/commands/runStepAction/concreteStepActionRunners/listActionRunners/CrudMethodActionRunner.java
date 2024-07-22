@@ -2,6 +2,7 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.li
 
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ListActionRunner;
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.RunMethodActionRunner;
+import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasActions;
@@ -29,7 +30,7 @@ public class CrudMethodActionRunner implements ListActionRunner {
   final Serializer serializer;
 
   @Override
-  public boolean applies(Crud crud, String actionId) {
+  public boolean applies(JourneyContainer journeyContainer, Crud crud, String actionId) {
     List<Method> allMethods =
         reflectionHelper.getAllMethods(crud.getClass()).stream()
             .filter(m -> m.isAnnotationPresent(Action.class))
@@ -45,8 +46,8 @@ public class CrudMethodActionRunner implements ListActionRunner {
 
   @Override
   public Mono<Void> run(
+      JourneyContainer journeyContainer,
       Crud crud,
-      String journeyId,
       String stepId,
       String listId,
       String actionId,
@@ -85,7 +86,13 @@ public class CrudMethodActionRunner implements ListActionRunner {
       Method method = allMethods.stream().filter(m -> actionId.equals(m.getName())).findAny().get();
 
       runMethodActionRunner.runMethod(
-          getInstance(crud, method), method, journeyId, stepId, actionId, data, serverHttpRequest);
+          journeyContainer,
+          getInstance(crud, method),
+          method,
+          stepId,
+          actionId,
+          data,
+          serverHttpRequest);
 
     } catch (Throwable e) {
       throw new Exception(

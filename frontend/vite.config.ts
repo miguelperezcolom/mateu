@@ -22,4 +22,10 @@ export default defineConfig({
       name: 'chrome',
     },
   },
+  server: {
+    proxy: {
+      // string shorthand: http://localhost:5173/foo -> http://localhost:4567/foo
+      '/mateu': 'http://localhost:8091',
+    },
+  },
 })

@@ -3,6 +3,7 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
 import io.mateu.core.domain.model.editors.ObjectEditor;
+import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.core.domain.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.interfaces.PersistentPojo;
@@ -31,14 +32,14 @@ public class ObjectEditorSaveActionRunner implements ActionRunner {
   final ValidationService validationService;
 
   @Override
-  public boolean applies(Object viewInstance, String actionId) {
+  public boolean applies(JourneyContainer journeyContainer, Object viewInstance, String actionId) {
     return viewInstance instanceof ObjectEditor && "save".equals(actionId);
   }
 
   @Override
   public Mono<Void> run(
+      JourneyContainer journeyContainer,
       Object viewInstance,
-      String journeyId,
       String stepId,
       String actionId,
       Map<String, Object> data,
@@ -56,9 +57,9 @@ public class ObjectEditorSaveActionRunner implements ActionRunner {
 
     data.remove("__entityClassName__");
     objectEditor.setData(data);
-    store.setStep(journeyId, stepId, objectEditor, serverHttpRequest);
+    store.setStep(journeyContainer, stepId, objectEditor, serverHttpRequest);
 
-    Step initialStep = store.getInitialStep(journeyId);
+    Step initialStep = store.getInitialStep(journeyContainer);
 
     Result whatToShow =
         new Result(
@@ -69,7 +70,7 @@ public class ObjectEditorSaveActionRunner implements ActionRunner {
                 DestinationType.ActionId, "Back to " + initialStep.getName(), initialStep.getId()),
             null);
     String newStepId = "result_" + UUID.randomUUID().toString();
-    store.setStep(journeyId, newStepId, whatToShow, serverHttpRequest);
+    store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest);
 
     return Mono.empty();
   }

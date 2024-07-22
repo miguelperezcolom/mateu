@@ -212,7 +212,7 @@ public class ViewMapper {
               applicationContext
                   .getBean(JourneyStoreService.class)
                   .getViewInstance(
-                      journeyContainer.getJourneyId(),
+                      journeyContainer,
                       journeyContainer.getInitialStep().getId(),
                       serverHttpRequest);
       actualUiInstance =

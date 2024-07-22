@@ -3,6 +3,7 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
 import io.mateu.core.domain.model.editors.MethodParametersEditor;
+import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.core.domain.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.data.Result;
@@ -30,14 +31,14 @@ public class MethodParametersEditorRunActionRunner extends AbstractActionRunner
   final Serializer serializer;
 
   @Override
-  public boolean applies(Object viewInstance, String actionId) {
+  public boolean applies(JourneyContainer journeyContainer, Object viewInstance, String actionId) {
     return viewInstance instanceof MethodParametersEditor && "run".equals(actionId);
   }
 
   @Override
   public Mono<Void> run(
+      JourneyContainer journeyContainer,
       Object viewInstance,
-      String journeyId,
       String stepId,
       String actionId,
       Map<String, Object> data,
@@ -45,7 +46,7 @@ public class MethodParametersEditorRunActionRunner extends AbstractActionRunner
       throws Throwable {
     MethodParametersEditor methodParametersEditor = (MethodParametersEditor) viewInstance;
 
-    Step initialStep = store.readStep(journeyId, methodParametersEditor.getInitialStep());
+    Step initialStep = store.readStep(journeyContainer, methodParametersEditor.getInitialStep());
 
     Method m =
         reflectionHelper.getMethod(
@@ -69,18 +70,18 @@ public class MethodParametersEditorRunActionRunner extends AbstractActionRunner
     Object result = m.invoke(object, values.toArray());
 
     if (object != null) {
-      store.updateStep(journeyId, initialStep.getId(), object, serverHttpRequest);
+      store.updateStep(journeyContainer, initialStep.getId(), object, serverHttpRequest);
     }
 
     Object whatToShow = result;
     if (!void.class.equals(m.getReturnType())) {
       if (whatToShow instanceof Result) {
-        addBackDestination((Result) whatToShow, store.getInitialStep(journeyId));
+        addBackDestination((Result) whatToShow, store.getInitialStep(journeyContainer));
       }
       String newStepId = "result_" + UUID.randomUUID().toString();
-      store.setStep(journeyId, newStepId, whatToShow, serverHttpRequest);
+      store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest);
     } else {
-      store.backToStep(journeyId, initialStep.getId()); // will save the step
+      store.backToStep(journeyContainer, initialStep.getId()); // will save the step
     }
 
     return Mono.empty();

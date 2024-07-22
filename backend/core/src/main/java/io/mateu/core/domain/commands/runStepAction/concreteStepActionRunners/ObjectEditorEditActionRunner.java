@@ -2,6 +2,7 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.editors.ObjectEditor;
+import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.core.domain.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.interfaces.ReadOnlyPojo;
@@ -21,14 +22,14 @@ public class ObjectEditorEditActionRunner implements ActionRunner {
   final Serializer serializer;
 
   @Override
-  public boolean applies(Object viewInstance, String actionId) {
+  public boolean applies(JourneyContainer journeyContainer, Object viewInstance, String actionId) {
     return viewInstance instanceof ObjectEditor && "edit".equals(actionId);
   }
 
   @Override
   public Mono<Void> run(
+      JourneyContainer journeyContainer,
       Object viewInstance,
-      String journeyId,
       String stepId,
       String actionId,
       Map<String, Object> data,
@@ -36,7 +37,8 @@ public class ObjectEditorEditActionRunner implements ActionRunner {
       throws Throwable {
     // store.setStep(journeyId, "edit_object", getObject((ObjectEditor) viewInstance),
     // serverHttpRequest);
-    store.setStep(journeyId, "edit", getEditor((ObjectEditor) viewInstance), serverHttpRequest);
+    store.setStep(
+        journeyContainer, "edit", getEditor((ObjectEditor) viewInstance), serverHttpRequest);
     return Mono.empty();
   }
 

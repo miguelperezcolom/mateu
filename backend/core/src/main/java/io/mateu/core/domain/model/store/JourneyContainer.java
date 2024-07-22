@@ -5,7 +5,6 @@ import io.mateu.dtos.Journey;
 import io.mateu.dtos.Step;
 import jakarta.persistence.Id;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import lombok.*;
@@ -31,10 +30,6 @@ public class JourneyContainer implements Serializable {
   private Map<String, Step> steps;
 
   private Step initialStep;
-
-  private LocalDateTime created = LocalDateTime.now();
-
-  private LocalDateTime lastAccess = LocalDateTime.now();
 
   private Map<String, Object> lastUsedFilters;
 

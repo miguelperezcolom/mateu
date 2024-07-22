@@ -50,8 +50,7 @@ public class FetchListUseCase {
     return getListRowsQueryHandler
         .run(
             GetListRowsQuery.builder()
-                .journeyTypeId(journeyTypeId)
-                .journeyId(journeyId)
+                .journeyContainer(journeyContainer)
                 .stepId(stepId)
                 .listId(listId)
                 .page(page)
@@ -66,8 +65,7 @@ public class FetchListUseCase {
                 ? Mono.just(-1L)
                 : getListCountQueryHandler.run(
                     GetListCountQuery.builder()
-                        .journeyTypeId(journeyTypeId)
-                        .journeyId(journeyId)
+                        .journeyContainer(journeyContainer)
                         .stepId(stepId)
                         .listId(listId)
                         .filters(filters)

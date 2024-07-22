@@ -1,6 +1,5 @@
 package io.mateu.core.domain.queries.getStep;
 
-import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.core.domain.util.Serializer;
 import io.mateu.dtos.Crud;
@@ -21,17 +20,10 @@ public class GetStepQueryHandler {
 
   public Mono<Step> run(GetStepQuery query) throws Exception {
 
-    String journeyId = query.getJourneyId();
     String stepId = query.getStepId();
     ServerHttpRequest serverHttpRequest = query.getServerHttpRequest();
 
-    JourneyContainer journeyContainer = store.findJourneyById(journeyId).orElse(null);
-
-    if (journeyContainer == null) {
-      throw new Exception("No journey with id " + journeyId);
-    }
-
-    Step step = store.getStepAndSetAsCurrent(journeyId, stepId);
+    Step step = store.getStepAndSetAsCurrent(query.getJourneyContainer(), stepId);
     if (isCrud(step)) {
       step.getData().remove("__index");
       step.getData().remove("__count");
