@@ -1,5 +1,4 @@
 import {fetchRowsQueryHandler} from "./queries/fetchRows/FetchRowsQueryHandler";
-import {fetchCountQueryHandler} from "./queries/fetchCount/FetchCountQueryHandler";
 import {CrudState} from "./crudstate";
 import {Subject} from "rxjs";
 
@@ -25,25 +24,7 @@ export class CrudService {
          */
 
         // Pagination
-        const count = await fetchCountQueryHandler.handle({
-            journeyTypeId: crudState.journeyTypeId,
-            journeyId: crudState.journeyId,
-            stepId: crudState.stepId,
-            listId: params.listId,
-            filters: params.filters
-        })
-        // @ts-ignore
-        if (count.message) {
-            // @ts-ignore
-            crudState.message = count.message;
-            crudState.items = []
-            crudState.count = 0
-        } else {
-            crudState.count = count
-            crudState.message = `${crudState.count} elements found.`;
-        }
-        crudUpstream.next({...crudState})
-        const items = await fetchRowsQueryHandler.handle({
+        const page = await fetchRowsQueryHandler.handle({
             journeyTypeId: crudState.journeyTypeId,
             journeyId: crudState.journeyId,
             stepId: crudState.stepId,
@@ -53,13 +34,18 @@ export class CrudService {
             pageSize: params.pageSize,
             sortOrders: params.sortOrders
         })
+        const items = page.content
+        const count = page.totalElements
         // @ts-ignore
-        if (items.message) {
+        if (page.message) {
             // @ts-ignore
-            crudState.message = items.message;
+            crudState.message = page.message;
             crudState.items = []
             crudState.count = 0
         } else {
+            crudState.count = count
+            crudState.message = `${crudState.count} elements found.`;
+
             items.forEach((r, i) => {
                 // @ts-ignore
                 r.__index = i + (params.page * params.pageSize);
