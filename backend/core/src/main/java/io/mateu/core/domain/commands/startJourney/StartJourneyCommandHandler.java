@@ -1,18 +1,27 @@
 package io.mateu.core.domain.commands.startJourney;
 
-import io.mateu.core.application.NotFoundException;
-import io.mateu.core.domain.apiClients.MateuRemoteClient;
 import io.mateu.core.domain.model.modelToDtoMappers.JourneyMapper;
+import io.mateu.core.domain.model.modelToDtoMappers.StepMapper;
+import io.mateu.core.domain.model.modelToDtoMappers.UIMapper;
 import io.mateu.core.domain.model.store.JourneyContainer;
-import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.mdd.shared.interfaces.Listing;
-import io.mateu.mdd.shared.interfaces.RemoteJourney;
-import io.mateu.remote.dtos.Journey;
-import io.mateu.remote.dtos.Step;
-import java.util.HashMap;
+import io.mateu.core.domain.model.store.MenuToBeanMapping;
+import io.mateu.core.domain.model.store.MenuToBeanMappingRepository;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
+import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDActionViewBuilder;
+import io.mateu.core.domain.uidefinition.core.app.MDDOpenEditorAction;
+import io.mateu.core.domain.uidefinition.core.app.MDDOpenListViewAction;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
+import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
+import io.mateu.core.domain.util.Serializer;
+import io.mateu.core.domain.util.exceptions.NotFoundException;
+import io.mateu.dtos.Journey;
+import io.mateu.dtos.JourneyCreationRq;
+import io.mateu.dtos.Step;
+import io.mateu.dtos.StepWrapper;
 import java.util.Map;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -21,80 +30,76 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class StartJourneyCommandHandler {
 
-  @Autowired MateuRemoteClient mateuRemoteClient;
-  @Autowired JourneyStoreService store;
+  private final ReflectionHelper reflectionHelper;
+  private final UIMapper uiMapper;
+  private final MenuToBeanMappingRepository menuMappingRepo;
+  private final MDDOpenCRUDActionViewBuilder mddOpenCRUDActionViewBuilder;
+  private final StepMapper stepMapper;
+  private final Serializer serializer;
 
-  public Mono<Void> handle(StartJourneyCommand command) throws Throwable {
+  public StartJourneyCommandHandler(
+      ReflectionHelper reflectionHelper,
+      UIMapper uiMapper,
+      MenuToBeanMappingRepository menuMappingRepo,
+      MDDOpenCRUDActionViewBuilder mddOpenCRUDActionViewBuilder,
+      StepMapper stepMapper,
+      Serializer serializer) {
+    this.reflectionHelper = reflectionHelper;
+    this.uiMapper = uiMapper;
+    this.menuMappingRepo = menuMappingRepo;
+    this.mddOpenCRUDActionViewBuilder = mddOpenCRUDActionViewBuilder;
+    this.stepMapper = stepMapper;
+    this.serializer = serializer;
+  }
 
-    // listar todas las matu uis
+  public Mono<StepWrapper> handle(StartJourneyCommand command) throws Throwable {
 
     String journeyId = command.getJourneyId();
     String journeyTypeId = command.getJourneyTypeId();
+    JourneyCreationRq journeyCreationRq = command.getJourneyCreationRq();
     ServerHttpRequest serverHttpRequest = command.getServerHttpRequest();
 
     Journey journey = null;
     Object formInstance = null;
 
-    JourneyContainer journeyContainer = store.findJourneyById(journeyId).orElse(null);
-    if (journeyContainer == null) {
+    try {
 
-      try {
+      formInstance = createInstanceFromJourneyTypeId(journeyTypeId, serverHttpRequest);
 
-        formInstance = store.createInstanceFromJourneyTypeId(journeyTypeId, serverHttpRequest);
-
-        if (formInstance == null) {
-          throw new Exception();
-        }
-
-        // we are passing the form instance to avoid creating a new form instance,
-        // even though we already have the step definition id, and we could recreate it
-        journey = new JourneyMapper().map(formInstance);
-
-        if (formInstance instanceof RemoteJourney) {
-          RemoteJourney remoteJourney = (RemoteJourney) formInstance;
-          Journey finalJourney = journey;
-          log.info("it's a remote journey " + journeyTypeId + "/" + journeyId);
-          return mateuRemoteClient.startJourney(
-              remoteJourney.getBaseUrl(),
-              remoteJourney.getJourneyTypeId(),
-              journeyId,
-              serverHttpRequest)
-                  .doOnError(e -> System.out.println("error!!!!" + e))
-            .flatMap(sw -> {
-                var step = sw.getStep();
-                finalJourney.setCurrentStepId(step.getId());
-                finalJourney.setCurrentStepDefinitionId(step.getType());
-                store(
-                        journeyId,
-                        journeyTypeId,
-                        finalJourney,
-                        step,
-                        remoteJourney.getBaseUrl(),
-                        remoteJourney.getJourneyTypeId());
-                return Mono.just(sw);
-          }).then();
-        }
-
-      } catch (Exception e) {
-        e.printStackTrace();
-        log.error("error on getUi", e);
-        throw new NotFoundException("No class with name " + journeyTypeId + " found");
+      if (formInstance == null) {
+        throw new Exception();
       }
 
-      Step step =
-          store
-              .getStepMapper()
-              .map(
-                  journeyContainer, getStepId(formInstance), null, formInstance, serverHttpRequest);
-      journey.setCurrentStepId(step.getId());
-      journey.setCurrentStepDefinitionId(step.getType());
-      store(journeyId, journeyTypeId, journey, step);
+      journey = new JourneyMapper().map(formInstance);
 
-    } else {
-      journeyContainer.reset();
+    } catch (Exception e) {
+      log.error("error on getUi", e);
+      throw new NotFoundException("No class with name " + journeyTypeId + " found");
     }
 
-    return Mono.empty().then();
+    JourneyContainer journeyContainer =
+        JourneyContainer.builder()
+            .journeyTypeId(journeyTypeId)
+            .journeyId(journeyId)
+            .journeyClass(formInstance.getClass())
+            .journeyData(journeyCreationRq.getContextData())
+            .steps(Map.of())
+            .journey(journey)
+            .lastUsedSorting(Map.of())
+            .lastUsedFilters(Map.of())
+            .build();
+
+    Step step =
+        stepMapper.map(
+            journeyContainer, getStepId(formInstance), null, formInstance, serverHttpRequest);
+    journey.setCurrentStepId(step.getId());
+    journey.setCurrentStepDefinitionId(step.getType());
+
+    journeyContainer.setInitialStep(step);
+    journeyContainer.setSteps(Map.of(step.getId(), step));
+
+    return Mono.just(
+        StepWrapper.builder().journey(journey).step(step).store(toMap(journeyContainer)).build());
   }
 
   private String getStepId(Object formInstance) {
@@ -102,39 +107,88 @@ public class StartJourneyCommandHandler {
     return "form";
   }
 
-  private void store(String journeyId, String journeyTypeId, Journey journey, Step step) {
-    JourneyContainer journeyContainer =
-        JourneyContainer.builder()
-            .journeyId(journeyId)
-            .journeyTypeId(journeyTypeId)
-            .journey(journey)
-            .steps(Map.of(step.getId(), step))
-            .initialStep(step)
-            .lastUsedFilters(new HashMap<>())
-            .lastUsedSorting(new HashMap<>())
-            .build();
-    store.save(journeyContainer);
+  public Object createInstanceFromJourneyTypeId(
+      String journeyTypeId, ServerHttpRequest serverHttpRequest) {
+    MenuToBeanMapping menuMapping = getMenuMapping(journeyTypeId, serverHttpRequest);
+    Object formInstance = null;
+    try {
+      formInstance = createInstanceFromMenuMapping(menuMapping.getBean());
+
+      if (formInstance instanceof HasInitMethod) {
+        ((HasInitMethod) formInstance).init(serverHttpRequest);
+      }
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return formInstance;
   }
 
-  private void store(
-      String journeyId,
-      String journeyTypeId,
-      Journey journey,
-      Step step,
-      String remoteBaseUrl,
-      String remoteJourneyTypeId) {
-    JourneyContainer journeyContainer =
-        JourneyContainer.builder()
-            .journeyId(journeyId)
-            .journeyTypeId(journeyTypeId)
-            .journey(journey)
-                .steps(Map.of(step.getId(), step))
-                .initialStep(step)
-            .lastUsedFilters(new HashMap<>())
-            .lastUsedSorting(new HashMap<>())
-            .remoteBaseUrl(remoteBaseUrl)
-            .remoteJourneyTypeId(remoteJourneyTypeId)
-            .build();
-    store.save(journeyContainer);
+  private Object createInstanceFromMenuMapping(Object menuEntry) throws Exception {
+    if (menuEntry instanceof MDDOpenEditorAction) {
+      MDDOpenEditorAction action = (MDDOpenEditorAction) menuEntry;
+      return reflectionHelper.newInstance(action.getViewClass());
+    } else if (menuEntry instanceof MDDOpenCRUDAction) {
+      MDDOpenCRUDAction action = (MDDOpenCRUDAction) menuEntry;
+      return mddOpenCRUDActionViewBuilder.buildView(action);
+    } else if (menuEntry instanceof MDDOpenListViewAction) {
+      MDDOpenListViewAction action = (MDDOpenListViewAction) menuEntry;
+      return reflectionHelper.newInstance(action.getListViewClass());
+    }
+    return null;
+  }
+
+  public MenuToBeanMapping getMenuMapping(String actionId, ServerHttpRequest serverHttpRequest) {
+    Optional<MenuToBeanMapping> menuToBeanMapping = menuMappingRepo.findById(actionId);
+    if (menuToBeanMapping.isEmpty()) {
+      if (actionId.contains("_")) { // it's a ui
+        String uiClassName = actionId.split("_")[1];
+        Object uiInstance = null;
+        try {
+          uiInstance = reflectionHelper.newInstance(Class.forName(uiClassName));
+          if (uiInstance instanceof HasInitMethod) {
+            ((HasInitMethod) uiInstance).init(serverHttpRequest);
+          }
+          uiMapper.map(uiInstance, serverHttpRequest);
+          menuToBeanMapping = menuMappingRepo.findById(actionId);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      } else { // it's a form
+        String uiClassName = actionId;
+        Object uiInstance = null;
+        try {
+          // todo: refactor for improving
+          uiInstance = reflectionHelper.newInstance(Class.forName(uiClassName));
+          if (uiInstance instanceof HasInitMethod) {
+            ((HasInitMethod) uiInstance).init(serverHttpRequest);
+          }
+          uiMapper.map(uiInstance, serverHttpRequest);
+          Object finalUiInstance = uiInstance;
+          storeMenuAction(actionId, new MDDOpenEditorAction("", () -> finalUiInstance));
+          menuToBeanMapping = menuMappingRepo.findById(actionId);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+    }
+    return menuToBeanMapping.orElse(null);
+  }
+
+  public void storeMenuAction(String actionId, Object bean) {
+    menuMappingRepo.save(MenuToBeanMapping.builder().actionId(actionId).bean(bean).build());
+  }
+
+  private Map<String, Object> toMap(Object o) {
+    if (o instanceof Map) {
+      return (Map<String, Object>) o;
+    } else {
+      try {
+        return serializer.toMap(o);
+      } catch (Exception e) {
+        e.printStackTrace();
+        return Map.of();
+      }
+    }
   }
 }

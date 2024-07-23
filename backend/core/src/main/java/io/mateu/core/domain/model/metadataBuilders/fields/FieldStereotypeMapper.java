@@ -1,10 +1,10 @@
 package io.mateu.core.domain.model.metadataBuilders.fields;
 
 import io.mateu.core.domain.model.files.FileChecker;
-import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.data.ExternalReference;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
+import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import jakarta.persistence.*;
 import java.util.Collection;
 import java.util.List;

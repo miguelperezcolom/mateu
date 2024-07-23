@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.editors;
 
-import io.mateu.util.Serializer;
+import io.mateu.core.domain.util.Serializer;
 import java.util.Map;
 
 public class FieldEditor {

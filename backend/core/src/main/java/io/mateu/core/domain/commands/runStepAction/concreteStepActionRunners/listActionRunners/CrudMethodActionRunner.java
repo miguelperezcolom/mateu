@@ -2,11 +2,13 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.li
 
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ListActionRunner;
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.RunMethodActionRunner;
-import io.mateu.mdd.core.interfaces.Crud;
-import io.mateu.mdd.core.interfaces.HasActions;
-import io.mateu.mdd.shared.interfaces.SelectedRowsContext;
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.util.Serializer;
+import io.mateu.core.domain.model.store.JourneyContainer;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasActions;
+import io.mateu.core.domain.uidefinition.shared.annotations.Action;
+import io.mateu.core.domain.uidefinition.shared.interfaces.SelectedRowsContext;
+import io.mateu.core.domain.util.Serializer;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -28,10 +30,10 @@ public class CrudMethodActionRunner implements ListActionRunner {
   final Serializer serializer;
 
   @Override
-  public boolean applies(Crud crud, String actionId) {
+  public boolean applies(JourneyContainer journeyContainer, Crud crud, String actionId) {
     List<Method> allMethods =
         reflectionHelper.getAllMethods(crud.getClass()).stream()
-            .filter(m -> m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class))
+            .filter(m -> m.isAnnotationPresent(Action.class))
             .collect(Collectors.toList());
     if (crud instanceof HasActions) {
       allMethods.addAll(((HasActions) crud).getActionMethods());
@@ -44,8 +46,8 @@ public class CrudMethodActionRunner implements ListActionRunner {
 
   @Override
   public Mono<Void> run(
+      JourneyContainer journeyContainer,
       Crud crud,
-      String journeyId,
       String stepId,
       String listId,
       String actionId,
@@ -75,7 +77,7 @@ public class CrudMethodActionRunner implements ListActionRunner {
 
       List<Method> allMethods =
           reflectionHelper.getAllMethods(crud.getClass()).stream()
-              .filter(m -> m.isAnnotationPresent(io.mateu.mdd.shared.annotations.Action.class))
+              .filter(m -> m.isAnnotationPresent(Action.class))
               .collect(Collectors.toList());
       if (crud instanceof HasActions) {
         allMethods.addAll(((HasActions) crud).getActionMethods());
@@ -84,7 +86,13 @@ public class CrudMethodActionRunner implements ListActionRunner {
       Method method = allMethods.stream().filter(m -> actionId.equals(m.getName())).findAny().get();
 
       runMethodActionRunner.runMethod(
-          getInstance(crud, method), method, journeyId, stepId, actionId, data, serverHttpRequest);
+          journeyContainer,
+          getInstance(crud, method),
+          method,
+          stepId,
+          actionId,
+          data,
+          serverHttpRequest);
 
     } catch (Throwable e) {
       throw new Exception(

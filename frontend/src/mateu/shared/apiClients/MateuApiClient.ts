@@ -5,6 +5,7 @@ import Journey from "./dtos/Journey";
 import Step from "./dtos/Step";
 import {nanoid} from "nanoid";
 import StepWrapper from "./dtos/StepWrapper";
+import Page from "./dtos/Page";
 
 let abortControllers: AbortController[] = [];
 let fetchRowsAbortController0 = new AbortController()
@@ -213,7 +214,7 @@ export default class MateuApiClient {
     }
 
     async createJourneyAndReturn(journeyType: string, journeyId: string): Promise<StepWrapper> {
-        return await this.wrap<StepWrapper>(this.getUsingPost(this.baseUrl.replace('v1', 'v2') + '/journeys/'
+        return await this.wrap<StepWrapper>(this.getUsingPost(this.baseUrl + '/journeys/'
             + journeyType + '/' + journeyId,
             {
                 "context-data": {}
@@ -222,7 +223,7 @@ export default class MateuApiClient {
     }
     async runStepActionAndReturn(journeyType: string, journeyId: string, stepId: string, actionId: string,
                         data: unknown): Promise<StepWrapper> {
-        return await this.wrap<StepWrapper>(this.getUsingPost(this.baseUrl.replace('v1', 'v2') + '/journeys/' +
+        return await this.wrap<StepWrapper>(this.getUsingPost(this.baseUrl + '/journeys/' +
             journeyType + '/' + journeyId + '/steps/' + stepId
             + '/' + actionId, {
                 data: data,
@@ -237,30 +238,16 @@ export default class MateuApiClient {
     async fetchRows(journeyType: string, journeyId: string, stepId: string, listId: string,
                     page: number, pageSize: number,
                     sortOrders: string, filters: object
-                    ): Promise<any[]> {
+                    ): Promise<Page> {
         const data = {
             __filters: filters,
             __journey: JSON.parse(sessionStorage.getItem(journeyId)!)
         }
-        return await this.wrap<any[]>(this.postMax2(this.baseUrl + "/journeys/" + journeyType
+        return await this.wrap<Page>(this.postMax2(this.baseUrl + "/journeys/" + journeyType
             + '/' + journeyId +
             "/steps/" + stepId +
             "/lists/" + listId + "/rows?page=" + page + "&page_size=" + pageSize +
             "&ordering=" + sortOrders, data)
-            .then((response) => response.data))
-    }
-
-    async fetchCount(journeyType: string, journeyId: string, stepId: string, listId: string,
-                     filters: object
-    ): Promise<number> {
-        const data = {
-            __filters: filters,
-            __journey: JSON.parse(sessionStorage.getItem(journeyId)!)
-        }
-        return await this.wrap<number>(this.getUsingPost(this.baseUrl + "/journeys/" + journeyType
-            + '/' + journeyId
-            + "/steps/" + stepId +
-            "/lists/" + listId + "/count", data)
             .then((response) => response.data))
     }
 

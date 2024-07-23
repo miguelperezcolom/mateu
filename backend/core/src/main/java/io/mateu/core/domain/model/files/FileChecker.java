@@ -1,8 +1,8 @@
 package io.mateu.core.domain.model.files;
 
-import io.mateu.mdd.shared.annotations.File;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.shared.annotations.File;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -1,9 +1,9 @@
 package io.mateu.core.domain.queries;
 
 import com.google.common.base.Strings;
-import io.mateu.mdd.shared.data.Value;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.shared.data.Value;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;

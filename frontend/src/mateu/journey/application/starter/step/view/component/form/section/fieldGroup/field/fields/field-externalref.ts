@@ -5,7 +5,7 @@ import ValueChangedEvent from "./interfaces/ValueChangedEvent";
 import '@vaadin/combo-box'
 import Field from "../../../../../../../../../../../shared/apiClients/dtos/Field";
 import Value from "../../../../../../../../../../../shared/apiClients/dtos/Value";
-import {ComboBox, ComboBoxDataProvider, ComboBoxDataProviderParams} from "@vaadin/combo-box";
+import {ComboBox, ComboBoxDataProvider} from "@vaadin/combo-box";
 import Attribute from "../../../../../../../../../../../shared/apiClients/dtos/Attribute";
 
 @customElement('field-externalref')
@@ -96,27 +96,12 @@ export class FieldExternalRef extends LitElement implements Component {
         const API = `${this.baseUrl}/itemproviders/${itemProvider}/items`;
         const { filter, page, pageSize } = params;
 
-        const count = await this.getCount(params)
-
         const res = await fetch(`${API}?page=${page}&page_size=${pageSize}&search_text=${filter}`);
         if (res.ok) {
-            const result = await res.json();
-            callback(result, count);
+            const items = await res.json();
+            callback(items.content, items.totalElements);
         }
     };
-
-    private async getCount(params: ComboBoxDataProviderParams):Promise<number> {
-        const itemProvider = this._attributes?.filter(a => a.key == 'itemprovider')[0].value;
-        const API = `${this.baseUrl}/itemproviders/${itemProvider}/count`;
-        const { filter } = params;
-
-        const res = await fetch(`${API}?search_text=${filter}`);
-        if (res.ok) {
-            const size = parseInt(await res.text());
-            return size;
-        }
-        return 0;
-    }
 
     protected firstUpdated(_changedProperties: PropertyValues) {
         const comboBox = this.shadowRoot?.querySelector('vaadin-combo-box') as ComboBox;

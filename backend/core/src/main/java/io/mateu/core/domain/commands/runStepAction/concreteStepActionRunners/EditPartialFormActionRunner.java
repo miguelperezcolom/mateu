@@ -2,10 +2,11 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import com.google.common.base.Strings;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
+import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.mdd.shared.interfaces.PartialForm;
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.remote.dtos.*;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.shared.interfaces.PartialForm;
+import io.mateu.dtos.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,14 +31,14 @@ public class EditPartialFormActionRunner implements ActionRunner {
   final ReflectionHelper reflectionHelper;
 
   @Override
-  public boolean applies(Object viewInstance, String actionId) {
+  public boolean applies(JourneyContainer journeyContainer, Object viewInstance, String actionId) {
     return actionId.startsWith(EDIT_PARTIAL_FORM_IDENTIFIER);
   }
 
   @Override
   public Mono<Void> run(
+      JourneyContainer journeyContainer,
       Object viewInstance,
-      String journeyId,
       String stepId,
       String actionId,
       Map<String, Object> data,
@@ -46,7 +47,7 @@ public class EditPartialFormActionRunner implements ActionRunner {
 
     var sectionId = getSectionIdFromActionId(actionId);
 
-    var step = store.getStep(journeyId, stepId);
+    var step = store.getStep(journeyContainer, stepId);
 
     var metadata = step.getView().getMain().getComponents().get(0).getMetadata();
 
@@ -70,7 +71,7 @@ public class EditPartialFormActionRunner implements ActionRunner {
 
     storeDataReminder(step, sectionId);
 
-    store.updateStep(journeyId, stepId, step);
+    store.updateStep(journeyContainer, stepId, step);
 
     return Mono.empty();
   }

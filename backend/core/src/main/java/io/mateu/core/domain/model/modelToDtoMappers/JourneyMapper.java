@@ -1,8 +1,8 @@
 package io.mateu.core.domain.model.modelToDtoMappers;
 
-import io.mateu.mdd.core.app.MDDOpenCRUDAction;
-import io.mateu.remote.dtos.Journey;
-import io.mateu.remote.dtos.JourneyStatus;
+import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
+import io.mateu.dtos.Journey;
+import io.mateu.dtos.JourneyStatus;
 
 public class JourneyMapper {
 

@@ -1,13 +1,14 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.listActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ListActionRunner;
+import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.mdd.core.interfaces.Crud;
-import io.mateu.mdd.shared.data.Destination;
-import io.mateu.mdd.shared.data.DestinationType;
-import io.mateu.mdd.shared.data.Result;
-import io.mateu.mdd.shared.data.ResultType;
-import io.mateu.util.Serializer;
+import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
+import io.mateu.core.domain.uidefinition.shared.data.Destination;
+import io.mateu.core.domain.uidefinition.shared.data.DestinationType;
+import io.mateu.core.domain.uidefinition.shared.data.Result;
+import io.mateu.core.domain.uidefinition.shared.data.ResultType;
+import io.mateu.core.domain.util.Serializer;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,14 +23,14 @@ public class CrudDeleteActionRunner implements ListActionRunner {
   @Autowired Serializer serializer;
 
   @Override
-  public boolean applies(Crud crud, String actionId) {
+  public boolean applies(JourneyContainer journeyContainer, Crud crud, String actionId) {
     return "delete".equals(actionId);
   }
 
   @Override
   public Mono<Void> run(
+      JourneyContainer journeyContainer,
       Crud crud,
-      String journeyId,
       String stepId,
       String listId,
       String actionId,
@@ -66,11 +67,11 @@ public class CrudDeleteActionRunner implements ListActionRunner {
               List.of(),
               new Destination(
                   DestinationType.ActionId,
-                  "Back to " + store.getInitialStep(journeyId).getName(),
-                  store.getInitialStep(journeyId).getId()),
+                  "Back to " + store.getInitialStep(journeyContainer).getName(),
+                  store.getInitialStep(journeyContainer).getId()),
               null);
       String newStepId = "result_" + UUID.randomUUID().toString();
-      store.setStep(journeyId, newStepId, whatToShow, serverHttpRequest);
+      store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest);
 
     } catch (Throwable e) {
       throw new Exception(

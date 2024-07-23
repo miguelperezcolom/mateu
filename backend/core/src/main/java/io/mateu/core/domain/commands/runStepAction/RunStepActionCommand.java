@@ -1,6 +1,7 @@
 package io.mateu.core.domain.commands.runStepAction;
 
-import java.util.*;
+import io.mateu.core.domain.model.store.JourneyContainer;
+import java.util.Map;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,8 @@ public class RunStepActionCommand {
   private String actionId;
 
   private Map<String, Object> data;
+
+  private JourneyContainer journeyContainer;
 
   private ServerHttpRequest serverHttpRequest;
 }

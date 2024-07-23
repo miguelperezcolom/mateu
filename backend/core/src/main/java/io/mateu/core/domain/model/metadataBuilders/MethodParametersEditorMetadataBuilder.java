@@ -1,11 +1,12 @@
 package io.mateu.core.domain.model.metadataBuilders;
 
 import io.mateu.core.domain.model.editors.MethodParametersEditor;
-import io.mateu.mdd.shared.annotations.UseCrud;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.remote.dtos.*;
-import io.mateu.util.Helper;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.shared.annotations.SameLine;
+import io.mateu.core.domain.uidefinition.shared.annotations.UseCrud;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
+import io.mateu.core.domain.util.Helper;
+import io.mateu.dtos.*;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -75,12 +76,15 @@ public class MethodParametersEditorMetadataBuilder {
     int paramPos = 0;
     for (FieldInterfaced fieldInterfaced : allEditableFields) {
       if (section == null
-          || fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Section.class)) {
+          || fieldInterfaced.isAnnotationPresent(
+              io.mateu.core.domain.uidefinition.shared.annotations.Section.class)) {
         String caption = "";
         boolean card = true;
-        if (fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.Section.class)) {
-          io.mateu.mdd.shared.annotations.Section annotation =
-              fieldInterfaced.getAnnotation(io.mateu.mdd.shared.annotations.Section.class);
+        if (fieldInterfaced.isAnnotationPresent(
+            io.mateu.core.domain.uidefinition.shared.annotations.Section.class)) {
+          io.mateu.core.domain.uidefinition.shared.annotations.Section annotation =
+              fieldInterfaced.getAnnotation(
+                  io.mateu.core.domain.uidefinition.shared.annotations.Section.class);
           caption = annotation.value();
           card = annotation.card();
         }
@@ -96,19 +100,20 @@ public class MethodParametersEditorMetadataBuilder {
       }
       if (fieldGroup == null
           || fieldInterfaced.isAnnotationPresent(
-              io.mateu.mdd.shared.annotations.FieldGroup.class)) {
+              io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)) {
         String caption = "";
-        if (fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.FieldGroup.class)) {
+        if (fieldInterfaced.isAnnotationPresent(
+            io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)) {
           caption =
               fieldInterfaced
-                  .getAnnotation(io.mateu.mdd.shared.annotations.FieldGroup.class)
+                  .getAnnotation(
+                      io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
                   .value();
         }
         fieldGroup = FieldGroup.builder().caption(caption).lines(new ArrayList<>()).build();
         section.getFieldGroups().add(fieldGroup);
       }
-      if (fieldGroupLine == null
-          || !fieldInterfaced.isAnnotationPresent(io.mateu.mdd.shared.annotations.SameLine.class)) {
+      if (fieldGroupLine == null || !fieldInterfaced.isAnnotationPresent(SameLine.class)) {
         fieldGroupLine = FieldGroupLine.builder().fields(new ArrayList<>()).build();
         fieldGroup.getLines().add(fieldGroupLine);
       }

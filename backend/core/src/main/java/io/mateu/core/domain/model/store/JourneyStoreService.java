@@ -7,21 +7,17 @@ import io.mateu.core.domain.model.editors.ObjectEditor;
 import io.mateu.core.domain.model.modelToDtoMappers.StepMapper;
 import io.mateu.core.domain.model.modelToDtoMappers.UIMapper;
 import io.mateu.core.domain.model.persistence.Merger;
-import io.mateu.mdd.core.app.*;
-import io.mateu.mdd.core.interfaces.HasInitMethod;
-import io.mateu.mdd.core.interfaces.JpaRpcCrudFactory;
-import io.mateu.mdd.shared.interfaces.Listing;
-import io.mateu.mdd.shared.interfaces.SortCriteria;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.remote.dtos.Journey;
-import io.mateu.remote.dtos.Step;
-import io.mateu.util.Serializer;
-import java.time.LocalDateTime;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDActionViewBuilder;
+import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
+import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
+import io.mateu.core.domain.uidefinition.shared.interfaces.SortCriteria;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
+import io.mateu.core.domain.util.Serializer;
+import io.mateu.dtos.Step;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +33,6 @@ public class JourneyStoreService {
 
   private final StepMapper stepMapper;
   private final UIMapper uiMapper;
-  private final JourneyRepository journeyRepo;
   private final ActualValueExtractor actualValueExtractor;
   private final ApplicationContext applicationContext;
   private final Merger merger;
@@ -47,58 +42,56 @@ public class JourneyStoreService {
   private final MDDOpenCRUDActionViewBuilder mddOpenCRUDActionViewBuilder;
 
   public Object getViewInstance(
-      String journeyId, String stepId, ServerHttpRequest serverHttpRequest) throws Exception {
-    Optional<JourneyContainer> container = journeyRepo.findById(journeyId);
-    if (!container.isPresent()) {
-      throw new Exception("No journey with id " + journeyId + " found");
-    }
-    Step step = container.get().getSteps().get(stepId);
+      JourneyContainer journeyContainer, String stepId, ServerHttpRequest serverHttpRequest)
+      throws Exception {
+    Step step = journeyContainer.getSteps().get(stepId);
     if (step == null) {
       throw new Exception(
-          "No step with id " + stepId + " for journey with id " + journeyId + " found");
+          "No step with id "
+              + stepId
+              + " for journey with id "
+              + journeyContainer.getJourneyId()
+              + " found");
     }
-    if (false && "io.mateu.mdd.ui.cruds.JpaRpcCrudView".equals(step.getType())) {
-      Object jpaRpcCrudView =
-          createInstanceFromJourneyTypeId(container.get().getJourneyTypeId(), serverHttpRequest);
-      return jpaRpcCrudView;
+    Object viewInstance = reflectionHelper.newInstance(Class.forName(step.getType()));
+    Map<String, Object> data = step.getData();
+    if (viewInstance instanceof EntityEditor) {
+      ((EntityEditor) viewInstance)
+          .setEntityClass(Class.forName((String) data.get("__entityClassName__")));
+      ((EntityEditor) viewInstance).setData(data);
+    } else if (viewInstance instanceof ObjectEditor) {
+      ((ObjectEditor) viewInstance)
+          .setType(Class.forName((String) data.get("__entityClassName__")));
+      ((ObjectEditor) viewInstance).setData(data);
+    } else if (viewInstance instanceof FieldEditor) {
+      ((FieldEditor) viewInstance).setType(Class.forName((String) data.get("__type__")));
+      ((FieldEditor) viewInstance).setFieldId((String) data.get("__fieldId__"));
+      ((FieldEditor) viewInstance).setInitialStep((String) data.get("__initialStep__"));
+      ((FieldEditor) viewInstance).setData(data);
     } else {
-      Object viewInstance = reflectionHelper.newInstance(Class.forName(step.getType()));
-      Map<String, Object> data = step.getData();
-      if (viewInstance instanceof EntityEditor) {
-        ((EntityEditor) viewInstance)
-            .setEntityClass(Class.forName((String) data.get("__entityClassName__")));
-        ((EntityEditor) viewInstance).setData(data);
-      } else if (viewInstance instanceof ObjectEditor) {
-        ((ObjectEditor) viewInstance)
-            .setType(Class.forName((String) data.get("__entityClassName__")));
-        ((ObjectEditor) viewInstance).setData(data);
-      } else if (viewInstance instanceof FieldEditor) {
-        ((FieldEditor) viewInstance).setType(Class.forName((String) data.get("__type__")));
-        ((FieldEditor) viewInstance).setFieldId((String) data.get("__fieldId__"));
-        ((FieldEditor) viewInstance).setInitialStep((String) data.get("__initialStep__"));
-        ((FieldEditor) viewInstance).setData(data);
-      } else {
-        data.entrySet()
-            .forEach(
-                entry -> {
-                  try {
-                    Object actualValue = actualValueExtractor.getActualValue(entry, viewInstance);
-                    reflectionHelper.setValue(entry.getKey(), viewInstance, actualValue);
-                  } catch (Exception ex) {
-                    System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
-                  }
-                });
-      }
-      return viewInstance;
+      data.entrySet()
+          .forEach(
+              entry -> {
+                try {
+                  Object actualValue = actualValueExtractor.getActualValue(entry, viewInstance);
+                  reflectionHelper.setValue(entry.getKey(), viewInstance, actualValue);
+                } catch (Exception ex) {
+                  System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
+                }
+              });
     }
+    return viewInstance;
   }
 
   @Transactional
   public Listing getRpcViewInstance(
-      String journeyId, String stepId, String listId, ServerHttpRequest serverHttpRequest)
+      JourneyContainer journeyContainer,
+      String stepId,
+      String listId,
+      ServerHttpRequest serverHttpRequest)
       throws Exception {
     try {
-      Object viewInstance = getViewInstance(journeyId, stepId, serverHttpRequest);
+      Object viewInstance = getViewInstance(journeyContainer, stepId, serverHttpRequest);
       if (viewInstance instanceof Listing) {
         return (Listing) viewInstance;
       }
@@ -134,81 +127,67 @@ public class JourneyStoreService {
       }
       return rpcView;
     } catch (Exception e) {
-      log.warn("on getRpcViewInstance for " + journeyId + " " + stepId + " " + listId, e);
+      log.warn(
+          "on getRpcViewInstance for "
+              + journeyContainer.getJourneyId()
+              + " "
+              + stepId
+              + " "
+              + listId,
+          e);
     }
     return null;
   }
 
-  public Optional<JourneyContainer> findJourneyById(String journeyId) {
-    return journeyRepo.findById(journeyId);
-  }
-
-  public void save(JourneyContainer journeyContainer) {
-    journeyContainer.setLastAccess(LocalDateTime.now());
-    journeyRepo.save(journeyContainer);
-  }
-
   public void updateStep(
-      String journeyId, String stepId, Object editor, ServerHttpRequest serverHttpRequest)
+      JourneyContainer journeyContainer,
+      String stepId,
+      Object editor,
+      ServerHttpRequest serverHttpRequest)
       throws Throwable {
-    Optional<JourneyContainer> container = journeyRepo.findById(journeyId);
-    if (!container.isPresent()) {
-      throw new Exception("No journey with id " + journeyId + " found");
-    }
-    Step oldStep = container.get().getSteps().get(stepId);
+    Step oldStep = journeyContainer.getSteps().get(stepId);
     Step step =
         stepMapper.map(
-            container.get(), stepId, oldStep.getPreviousStepId(), editor, serverHttpRequest);
+            journeyContainer, stepId, oldStep.getPreviousStepId(), editor, serverHttpRequest);
     if (oldStep != null) {
       var data = oldStep.getData();
       data.putAll(step.getData());
       step.setData(data);
     }
-    if (!container.get().getSteps().containsKey(stepId)) {
-      container.get().setSteps(extendMap(container.get().getSteps(), stepId, step));
+    if (!journeyContainer.getSteps().containsKey(stepId)) {
+      journeyContainer.setSteps(extendMap(journeyContainer.getSteps(), stepId, step));
     } else {
-      HashMap<String, Step> modifiableMap = new HashMap<>(container.get().getSteps());
+      HashMap<String, Step> modifiableMap = new HashMap<>(journeyContainer.getSteps());
       modifiableMap.put(stepId, step);
-      container.get().setSteps(modifiableMap);
+      journeyContainer.setSteps(modifiableMap);
     }
-    container.get().setLastAccess(LocalDateTime.now());
-    journeyRepo.save(container.get());
   }
 
-  public void updateStep(String journeyId, Object editor, ServerHttpRequest serverHttpRequest)
+  public void updateStep(
+      JourneyContainer journeyContainer, Object editor, ServerHttpRequest serverHttpRequest)
       throws Throwable {
-    Optional<JourneyContainer> container = journeyRepo.findById(journeyId);
-    if (!container.isPresent()) {
-      throw new Exception("No journey with id " + journeyId + " found");
-    }
-    String stepId = container.get().getJourney().getCurrentStepId();
-    updateStep(journeyId, stepId, editor, serverHttpRequest);
+    String stepId = journeyContainer.getJourney().getCurrentStepId();
+    updateStep(journeyContainer, stepId, editor, serverHttpRequest);
   }
 
-  public void updateStep(String journeyId, String stepId, Step step) throws Throwable {
-    Optional<JourneyContainer> container = journeyRepo.findById(journeyId);
-    if (!container.isPresent()) {
-      throw new Exception("No journey with id " + journeyId + " found");
-    }
-    if (!container.get().getSteps().containsKey(stepId)) {
-      container.get().setSteps(extendMap(container.get().getSteps(), stepId, step));
+  public void updateStep(JourneyContainer journeyContainer, String stepId, Step step)
+      throws Throwable {
+    if (!journeyContainer.getSteps().containsKey(stepId)) {
+      journeyContainer.setSteps(extendMap(journeyContainer.getSteps(), stepId, step));
     } else {
-      HashMap<String, Step> modifiableMap = new HashMap<>(container.get().getSteps());
+      HashMap<String, Step> modifiableMap = new HashMap<>(journeyContainer.getSteps());
       modifiableMap.put(stepId, step);
-      container.get().setSteps(modifiableMap);
+      journeyContainer.setSteps(modifiableMap);
     }
-    container.get().setLastAccess(LocalDateTime.now());
-    journeyRepo.save(container.get());
   }
 
   public void setStep(
-      String journeyId, String stepId, Object editor, ServerHttpRequest serverHttpRequest)
+      JourneyContainer journeyContainer,
+      String stepId,
+      Object editor,
+      ServerHttpRequest serverHttpRequest)
       throws Throwable {
-    Optional<JourneyContainer> container = journeyRepo.findById(journeyId);
-    if (!container.isPresent()) {
-      throw new Exception("No journey with id " + journeyId + " found");
-    }
-    String stepIdPrefix = container.get().getJourney().getCurrentStepId();
+    String stepIdPrefix = journeyContainer.getJourney().getCurrentStepId();
     if (stepIdPrefix == null) {
       stepIdPrefix = "";
     } else {
@@ -223,40 +202,32 @@ public class JourneyStoreService {
     String newStepId = stepIdPrefix + stepId;
     Step step =
         stepMapper.map(
-            container.get(),
+            journeyContainer,
             newStepId,
-            getPreviousStepId(newStepId, container),
+            getPreviousStepId(newStepId, journeyContainer),
             editor,
             serverHttpRequest);
-    if (!container.get().getSteps().containsKey(newStepId)) {
-      container.get().setSteps(extendMap(container.get().getSteps(), newStepId, step));
+    if (!journeyContainer.getSteps().containsKey(newStepId)) {
+      journeyContainer.setSteps(extendMap(journeyContainer.getSteps(), newStepId, step));
     } else {
-      HashMap<String, Step> modifiableMap = new HashMap<>(container.get().getSteps());
+      HashMap<String, Step> modifiableMap = new HashMap<>(journeyContainer.getSteps());
       modifiableMap.put(newStepId, step);
-      container.get().setSteps(modifiableMap);
+      journeyContainer.setSteps(modifiableMap);
     }
-    container.get().getJourney().setCurrentStepId(newStepId);
-    container.get().getJourney().setCurrentStepDefinitionId(editor.getClass().getName());
-    container.get().setLastAccess(LocalDateTime.now());
-    journeyRepo.save(container.get());
+    journeyContainer.getJourney().setCurrentStepId(newStepId);
+    journeyContainer.getJourney().setCurrentStepDefinitionId(editor.getClass().getName());
   }
 
-  private String getPreviousStepId(String targetStepId, Optional<JourneyContainer> container) {
-    if (container.isEmpty()) {
-      return null;
-    }
-    String currentStepId = container.get().getJourney().getCurrentStepId();
+  private String getPreviousStepId(String targetStepId, JourneyContainer journeyContainer) {
+    String currentStepId = journeyContainer.getJourney().getCurrentStepId();
     if (targetStepId.equals(currentStepId)) {
-      return container.get().getSteps().get(currentStepId).getPreviousStepId();
+      return journeyContainer.getSteps().get(currentStepId).getPreviousStepId();
     }
     return currentStepId;
   }
 
-  private String getCurrentStepId(Optional<JourneyContainer> container) {
-    if (container.isEmpty()) {
-      return null;
-    }
-    return container.get().getJourney().getCurrentStepId();
+  private String getCurrentStepId(JourneyContainer journeyContainer) {
+    return journeyContainer.getJourney().getCurrentStepId();
   }
 
   private Map<String, Step> extendMap(Map<String, Step> steps, String stepId, Step step) {
@@ -266,187 +237,74 @@ public class JourneyStoreService {
     return extended;
   }
 
-  public Journey getJourney(String journeyId) throws Exception {
-    Optional<JourneyContainer> container = findJourneyById(journeyId);
-    if (!container.isPresent()) {
-      throw new Exception("No journey with id " + journeyId + " found");
-    }
-    return container.get().getJourney();
-  }
-
-  public void removeJourney(String journeyId) throws Exception {
-    journeyRepo.remove(journeyId);
-  }
-
-  public void backToStep(String journeyId, String stepId) throws Exception {
-    Optional<JourneyContainer> container = findJourneyById(journeyId);
-    if (!container.isPresent()) {
-      throw new Exception("No journey with id " + journeyId + " found");
-    }
-    Step step = container.get().getSteps().get(stepId);
+  public void backToStep(JourneyContainer journeyContainer, String stepId) throws Exception {
+    Step step = journeyContainer.getSteps().get(stepId);
     if (step == null) {
       throw new Exception(
-          "No step with id " + stepId + " for journey with id " + journeyId + " found");
+          "No step with id "
+              + stepId
+              + " for journey with id "
+              + journeyContainer.getJourneyId()
+              + " found");
     }
-    container.get().getJourney().setCurrentStepId(stepId);
-    container.get().getJourney().setCurrentStepDefinitionId(step.getType());
-    container.get().setLastAccess(LocalDateTime.now());
-    journeyRepo.save(container.get());
+    journeyContainer.getJourney().setCurrentStepId(stepId);
+    journeyContainer.getJourney().setCurrentStepDefinitionId(step.getType());
   }
 
-  public void back(String journeyId) throws Exception {
-    Optional<JourneyContainer> container = findJourneyById(journeyId);
-    if (!container.isPresent()) {
-      throw new Exception("No journey with id " + journeyId + " found");
-    }
-    var previousStepId = getPreviousStepId(getCurrentStepId(container), container);
-    backToStep(journeyId, previousStepId);
+  public void back(JourneyContainer journeyContainer) throws Exception {
+    var previousStepId = getPreviousStepId(getCurrentStepId(journeyContainer), journeyContainer);
+    backToStep(journeyContainer, previousStepId);
   }
 
-  public boolean isCrud(String journeyId) throws Exception {
-    Optional<JourneyContainer> container = findJourneyById(journeyId);
-    if (!container.isPresent()) {
-      throw new Exception("No journey with id " + journeyId + " found");
-    }
-    return "list".equals(container.get().getInitialStep());
+  public boolean isCrud(JourneyContainer journeyContainer) throws Exception {
+    return "list".equals(journeyContainer.getInitialStep());
   }
 
-  public Step getStep(String journeyId, String stepId) throws Exception {
-    Optional<JourneyContainer> container = findJourneyById(journeyId);
-    if (!container.isPresent()) {
-      throw new Exception("No journey with id " + journeyId + " found");
-    }
-    Step step = container.get().getSteps().get(stepId);
+  public Step getStep(JourneyContainer journeyContainer, String stepId) throws Exception {
+    Step step = journeyContainer.getSteps().get(stepId);
     if (step == null) {
-      throw new Exception("No step with id " + journeyId + " found for journey " + journeyId);
+      throw new Exception(
+          "No step with id " + stepId + " found for journey " + journeyContainer.getJourneyId());
     }
-    container.get().getJourney().setCurrentStepDefinitionId(step.getType());
-    container.get().getJourney().setCurrentStepId(stepId);
-    container.get().setLastAccess(LocalDateTime.now());
-    journeyRepo.save(container.get());
+    journeyContainer.getJourney().setCurrentStepDefinitionId(step.getType());
+    journeyContainer.getJourney().setCurrentStepId(stepId);
     return step;
   }
 
-  public Step getStepAndSetAsCurrent(String journeyId, String stepId) throws Exception {
-    Optional<JourneyContainer> container = findJourneyById(journeyId);
-    if (!container.isPresent()) {
-      throw new Exception("No journey with id " + journeyId + " found");
-    }
-    Step step = container.get().getSteps().get(stepId);
+  public Step getStepAndSetAsCurrent(JourneyContainer journeyContainer, String stepId)
+      throws Exception {
+    Step step = journeyContainer.getSteps().get(stepId);
     if (step == null) {
-      throw new Exception("No step with id " + journeyId + " found for journey " + journeyId);
+      throw new Exception(
+          "No step with id " + stepId + " found for journey " + journeyContainer.getJourneyId());
     }
-    container.get().getJourney().setCurrentStepDefinitionId(step.getType());
-    container.get().getJourney().setCurrentStepId(stepId);
-    container.get().setLastAccess(LocalDateTime.now());
-    journeyRepo.save(container.get());
+    journeyContainer.getJourney().setCurrentStepDefinitionId(step.getType());
+    journeyContainer.getJourney().setCurrentStepId(stepId);
     return step;
   }
 
-  public Step readStep(String journeyId, String stepId) throws Exception {
-    Optional<JourneyContainer> container = findJourneyById(journeyId);
-    if (!container.isPresent()) {
-      throw new Exception("No journey with id " + journeyId + " found");
-    }
-    Step step = container.get().getSteps().get(stepId);
+  public Step readStep(JourneyContainer journeyContainer, String stepId) throws Exception {
+    Step step = journeyContainer.getSteps().get(stepId);
     if (step == null) {
-      throw new Exception("No step with id " + journeyId + " found for journey " + journeyId);
+      throw new Exception(
+          "No step with id " + stepId + " found for journey " + journeyContainer.getJourneyId());
     }
     return step;
   }
 
-  public Step getInitialStep(String journeyId) throws Exception {
-    Optional<JourneyContainer> container = findJourneyById(journeyId);
-    if (!container.isPresent()) {
-      throw new Exception("No journey with id " + journeyId + " found");
-    }
-    return container.get().getInitialStep();
+  public Step getInitialStep(JourneyContainer journeyContainer) throws Exception {
+    return journeyContainer.getInitialStep();
   }
 
-  public Step getCurrentStep(String journeyId) throws Exception {
-    Optional<JourneyContainer> container = findJourneyById(journeyId);
-    if (!container.isPresent()) {
-      throw new Exception("No journey with id " + journeyId + " found");
-    }
-    String currentStepId = container.get().getJourney().getCurrentStepId();
-    return container.get().getSteps().get(currentStepId);
+  public Step getCurrentStep(JourneyContainer journeyContainer) throws Exception {
+    String currentStepId = journeyContainer.getJourney().getCurrentStepId();
+    return journeyContainer.getSteps().get(currentStepId);
   }
 
   @Autowired private MenuToBeanMappingRepository menuMappingRepo;
 
   public void storeMenuAction(String actionId, Object bean) {
     menuMappingRepo.save(MenuToBeanMapping.builder().actionId(actionId).bean(bean).build());
-  }
-
-  public MenuToBeanMapping getMenuMapping(String actionId, ServerHttpRequest serverHttpRequest) {
-    Optional<MenuToBeanMapping> menuToBeanMapping = menuMappingRepo.findById(actionId);
-    if (menuToBeanMapping.isEmpty()) {
-      if (actionId.contains("_")) { // it's a ui
-        String uiClassName = actionId.split("_")[1];
-        Object uiInstance = null;
-        try {
-          uiInstance = reflectionHelper.newInstance(Class.forName(uiClassName));
-          if (uiInstance instanceof HasInitMethod) {
-            ((HasInitMethod) uiInstance).init(serverHttpRequest);
-          }
-          uiMapper.map(uiInstance, serverHttpRequest);
-          menuToBeanMapping = menuMappingRepo.findById(actionId);
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      } else { // it's a form
-        String uiClassName = actionId;
-        Object uiInstance = null;
-        try {
-          // todo: refactor for improving
-          uiInstance = reflectionHelper.newInstance(Class.forName(uiClassName));
-          if (uiInstance instanceof HasInitMethod) {
-            ((HasInitMethod) uiInstance).init(serverHttpRequest);
-          }
-          uiMapper.map(uiInstance, serverHttpRequest);
-          Object finalUiInstance = uiInstance;
-          storeMenuAction(actionId, new MDDOpenEditorAction("", () -> finalUiInstance));
-          menuToBeanMapping = menuMappingRepo.findById(actionId);
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      }
-    }
-    return menuToBeanMapping.orElse(null);
-  }
-
-  public Object createInstanceFromJourneyTypeId(
-      String journeyTypeId, ServerHttpRequest serverHttpRequest) {
-    MenuToBeanMapping menuMapping = getMenuMapping(journeyTypeId, serverHttpRequest);
-    Object formInstance = null;
-    try {
-      formInstance = createInstanceFromMenuMapping(menuMapping.getBean());
-
-      if (formInstance instanceof HasInitMethod) {
-        ((HasInitMethod) formInstance).init(serverHttpRequest);
-      }
-
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return formInstance;
-  }
-
-  private Object createInstanceFromMenuMapping(Object menuEntry) throws Exception {
-    if (menuEntry instanceof MDDOpenRemoteJourneyAction) {
-      MDDOpenRemoteJourneyAction action = (MDDOpenRemoteJourneyAction) menuEntry;
-      return action.getRemoteJourney();
-    } else if (menuEntry instanceof MDDOpenEditorAction) {
-      MDDOpenEditorAction action = (MDDOpenEditorAction) menuEntry;
-      return reflectionHelper.newInstance(action.getViewClass());
-    } else if (menuEntry instanceof MDDOpenCRUDAction) {
-      MDDOpenCRUDAction action = (MDDOpenCRUDAction) menuEntry;
-      return mddOpenCRUDActionViewBuilder.buildView(action);
-    } else if (menuEntry instanceof MDDOpenListViewAction) {
-      MDDOpenListViewAction action = (MDDOpenListViewAction) menuEntry;
-      return reflectionHelper.newInstance(action.getListViewClass());
-    }
-    return null;
   }
 
   public StepMapper getStepMapper() {
@@ -457,26 +315,23 @@ public class JourneyStoreService {
     return applicationContext;
   }
 
-  public Object getLastUsedFilters(String journeyId, String stepId, String listId) {
-    JourneyContainer journeyContainer = journeyRepo.findById(journeyId).get();
+  public Object getLastUsedFilters(
+      JourneyContainer journeyContainer, String stepId, String listId) {
     return journeyContainer.getLastUsedFilters().get(stepId + "#" + listId);
   }
 
-  public List<SortCriteria> getLastUsedOrders(String journeyId, String stepId, String listId) {
-    JourneyContainer journeyContainer = journeyRepo.findById(journeyId).get();
+  public List<SortCriteria> getLastUsedOrders(
+      JourneyContainer journeyContainer, String stepId, String listId) {
     return journeyContainer.getLastUsedSorting().get(stepId + "#" + listId);
   }
 
-  public void saveFilters(String journeyId, String stepId, String listId, Object filters) {
-    JourneyContainer journeyContainer = journeyRepo.findById(journeyId).get();
+  public void saveFilters(
+      JourneyContainer journeyContainer, String stepId, String listId, Object filters) {
     journeyContainer.getLastUsedFilters().put(stepId + "#" + listId, filters);
-    journeyRepo.save(journeyContainer);
   }
 
   public void saveOrders(
-      String journeyId, String stepId, String listId, List<SortCriteria> sorting) {
-    JourneyContainer journeyContainer = journeyRepo.findById(journeyId).get();
+      JourneyContainer journeyContainer, String stepId, String listId, List<SortCriteria> sorting) {
     journeyContainer.getLastUsedSorting().put(stepId + "#" + listId, sorting);
-    journeyRepo.save(journeyContainer);
   }
 }

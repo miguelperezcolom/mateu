@@ -1,16 +1,16 @@
 package io.mateu.core.domain.model.metadataBuilders.fields;
 
 import io.mateu.core.domain.model.files.FileChecker;
-import io.mateu.mdd.shared.annotations.*;
-import io.mateu.mdd.shared.data.ExternalReference;
-import io.mateu.mdd.shared.data.TelephoneNumber;
-import io.mateu.mdd.shared.data.ValuesListProvider;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.remote.dtos.Column;
-import io.mateu.remote.dtos.Pair;
-import io.mateu.remote.dtos.TelephonePrefix;
-import io.mateu.remote.dtos.Value;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
+import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
+import io.mateu.core.domain.uidefinition.shared.data.TelephoneNumber;
+import io.mateu.core.domain.uidefinition.shared.data.ValuesListProvider;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
+import io.mateu.dtos.Column;
+import io.mateu.dtos.Pair;
+import io.mateu.dtos.TelephonePrefix;
+import io.mateu.dtos.Value;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -103,8 +103,8 @@ public class FieldAttributeBuilder {
         Method m =
             reflectionHelper.getMethod(
                 field.getDeclaringClass(), field.getAnnotation(ValuesProviderMethod.class).value());
-        List<io.mateu.mdd.shared.data.Value> choices =
-            (List<io.mateu.mdd.shared.data.Value>) m.invoke(view);
+        List<io.mateu.core.domain.uidefinition.shared.data.Value> choices =
+            (List<io.mateu.core.domain.uidefinition.shared.data.Value>) m.invoke(view);
         choices.forEach(
             v -> {
               attributes.add(

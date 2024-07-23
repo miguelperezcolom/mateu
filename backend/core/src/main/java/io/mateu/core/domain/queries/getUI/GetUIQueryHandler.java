@@ -1,11 +1,11 @@
 package io.mateu.core.domain.queries.getUI;
 
-import io.mateu.core.application.NotFoundException;
 import io.mateu.core.domain.model.modelToDtoMappers.UIMapper;
-import io.mateu.mdd.core.interfaces.DynamicUI;
-import io.mateu.mdd.core.interfaces.HasInitMethod;
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.remote.dtos.UI;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.core.interfaces.DynamicUI;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
+import io.mateu.core.domain.util.exceptions.NotFoundException;
+import io.mateu.dtos.UI;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -44,7 +44,7 @@ public class GetUIQueryHandler {
       return ui;
 
     } catch (Exception e) {
-//      log.error("error on getUi", e);
+      //      log.error("error on getUi", e);
       throw new NotFoundException("No class with name " + uiId + " found");
     }
   }

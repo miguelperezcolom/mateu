@@ -1,8 +1,8 @@
 package io.mateu.core.domain.queries.getItemsCount;
 
 import io.mateu.core.domain.queries.EntitiesFinder;
-import io.mateu.mdd.shared.data.ItemsListProvider;
-import io.mateu.reflection.ReflectionHelper;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.shared.data.ItemsListProvider;
 import jakarta.persistence.Entity;
 import java.lang.reflect.InvocationTargetException;
 import lombok.RequiredArgsConstructor;

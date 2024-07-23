@@ -1,7 +1,7 @@
 package io.mateu.core.domain.model.metadataBuilders;
 
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.remote.dtos.Stepper;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
+import io.mateu.dtos.Stepper;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

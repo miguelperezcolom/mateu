@@ -11,7 +11,7 @@ test('objects work', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Read request' })).toBeVisible()
 
   await page.getByRole('button', { name: 'Read request' }).click()
-  await expect(page.getByTestId('rq').first()).toContainText('/mateu/v2/journeys/util_httpRequest/')
+  await expect(page.getByTestId('rq').first()).toContainText('/mateu/v1/journeys/util_httpRequest/')
   await expect(page.getByTestId('rq').first()).toContainText('/steps/form/component-0___readRequest')
 
 });

@@ -1,9 +1,10 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
+import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.mdd.shared.data.Result;
-import io.mateu.remote.dtos.Step;
+import io.mateu.core.domain.uidefinition.shared.data.Result;
+import io.mateu.dtos.Step;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -16,22 +17,22 @@ public class ResultActionRunner implements ActionRunner {
   @Autowired JourneyStoreService store;
 
   @Override
-  public boolean applies(Object viewInstance, String actionId) {
+  public boolean applies(JourneyContainer journeyContainer, Object viewInstance, String actionId) {
     return viewInstance instanceof Result;
   }
 
   @Override
   public Mono<Void> run(
+      JourneyContainer journeyContainer,
       Object viewInstance,
-      String journeyId,
       String stepId,
       String actionId,
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
-    Step step = store.readStep(journeyId, actionId);
-    store.getJourney(journeyId).setCurrentStepId(step.getId());
-    store.getJourney(journeyId).setCurrentStepDefinitionId(step.getType());
+    Step step = store.readStep(journeyContainer, actionId);
+    journeyContainer.getJourney().setCurrentStepId(step.getId());
+    journeyContainer.getJourney().setCurrentStepDefinitionId(step.getType());
     return Mono.empty();
   }
 }

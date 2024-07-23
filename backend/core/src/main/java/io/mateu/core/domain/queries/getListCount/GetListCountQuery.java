@@ -1,5 +1,6 @@
 package io.mateu.core.domain.queries.getListCount;
 
+import io.mateu.core.domain.model.store.JourneyContainer;
 import java.util.Map;
 import lombok.*;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -11,9 +12,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 @Getter
 public class GetListCountQuery {
 
-  private String journeyTypeId;
-
-  private String journeyId;
+  private JourneyContainer journeyContainer;
 
   private String stepId;
 

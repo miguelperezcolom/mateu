@@ -1,8 +1,9 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.listActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ListActionRunner;
+import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.mdd.core.interfaces.Crud;
+import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,14 +17,14 @@ public class CrudNewActionRunner implements ListActionRunner {
   @Autowired JourneyStoreService store;
 
   @Override
-  public boolean applies(Crud crud, String actionId) {
+  public boolean applies(JourneyContainer journeyContainer, Crud crud, String actionId) {
     return "new".equals(actionId);
   }
 
   @Override
   public Mono<Void> run(
+      JourneyContainer journeyContainer,
       Crud crud,
-      String journeyId,
       String stepId,
       String listId,
       String actionId,
@@ -40,7 +41,7 @@ public class CrudNewActionRunner implements ListActionRunner {
       }
 
       String newStepId = "new_" + UUID.randomUUID().toString();
-      store.setStep(journeyId, newStepId, editor, serverHttpRequest);
+      store.setStep(journeyContainer, newStepId, editor, serverHttpRequest);
 
     } catch (Throwable e) {
       throw new Exception(

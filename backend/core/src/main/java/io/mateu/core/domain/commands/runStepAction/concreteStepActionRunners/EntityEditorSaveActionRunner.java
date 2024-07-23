@@ -3,12 +3,13 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.editors.EntityEditor;
 import io.mateu.core.domain.model.persistence.Merger;
+import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.mdd.shared.data.Destination;
-import io.mateu.mdd.shared.data.DestinationType;
-import io.mateu.mdd.shared.data.Result;
-import io.mateu.mdd.shared.data.ResultType;
-import io.mateu.remote.dtos.Step;
+import io.mateu.core.domain.uidefinition.shared.data.Destination;
+import io.mateu.core.domain.uidefinition.shared.data.DestinationType;
+import io.mateu.core.domain.uidefinition.shared.data.Result;
+import io.mateu.core.domain.uidefinition.shared.data.ResultType;
+import io.mateu.dtos.Step;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -25,14 +26,14 @@ public class EntityEditorSaveActionRunner implements ActionRunner {
   final ValidationService validationService;
 
   @Override
-  public boolean applies(Object viewInstance, String actionId) {
+  public boolean applies(JourneyContainer journeyContainer, Object viewInstance, String actionId) {
     return viewInstance instanceof EntityEditor && "save".equals(actionId);
   }
 
   @Override
   public Mono<Void> run(
+      JourneyContainer journeyContainer,
       Object viewInstance,
-      String journeyId,
       String stepId,
       String actionId,
       Map<String, Object> data,
@@ -45,9 +46,9 @@ public class EntityEditorSaveActionRunner implements ActionRunner {
     merger.mergeAndCommit(data, entityEditor.getEntityClass());
     data.remove("__entityClassName__");
     entityEditor.setData(data);
-    store.setStep(journeyId, stepId, entityEditor, serverHttpRequest);
+    store.setStep(journeyContainer, stepId, entityEditor, serverHttpRequest);
 
-    Step initialStep = store.getInitialStep(journeyId);
+    Step initialStep = store.getInitialStep(journeyContainer);
 
     Result whatToShow =
         new Result(
@@ -58,7 +59,7 @@ public class EntityEditorSaveActionRunner implements ActionRunner {
                 DestinationType.ActionId, "Back to " + initialStep.getName(), initialStep.getId()),
             null);
     String newStepId = "result_" + UUID.randomUUID().toString();
-    store.setStep(journeyId, newStepId, whatToShow, serverHttpRequest);
+    store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest);
 
     return Mono.empty();
   }

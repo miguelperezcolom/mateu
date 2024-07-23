@@ -2,10 +2,11 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.editors.FieldEditor;
+import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.util.Serializer;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
+import io.mateu.core.domain.util.Serializer;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -21,21 +22,21 @@ public class FieldEditorActionRunner implements ActionRunner {
   final Serializer serializer;
 
   @Override
-  public boolean applies(Object viewInstance, String actionId) {
+  public boolean applies(JourneyContainer journeyContainer, Object viewInstance, String actionId) {
     return actionId.startsWith("__editfield__");
   }
 
   @Override
   public Mono<Void> run(
+      JourneyContainer journeyContainer,
       Object viewInstance,
-      String journeyId,
       String stepId,
       String actionId,
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     if (viewInstance instanceof FieldEditor) {
-      store.setStep(journeyId, actionId, viewInstance, serverHttpRequest);
+      store.setStep(journeyContainer, actionId, viewInstance, serverHttpRequest);
       return Mono.empty();
     }
     String fieldId = actionId.substring("__editfield__".length());
@@ -49,9 +50,10 @@ public class FieldEditorActionRunner implements ActionRunner {
     }
 
     store.setStep(
-        journeyId,
+        journeyContainer,
         actionId,
-        new FieldEditor(targetValue, fieldId, store.getCurrentStep(journeyId).getId(), serializer),
+        new FieldEditor(
+            targetValue, fieldId, store.getCurrentStep(journeyContainer).getId(), serializer),
         serverHttpRequest);
 
     return Mono.empty();

@@ -1,8 +1,9 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
+import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.remote.dtos.*;
+import io.mateu.dtos.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,14 +23,14 @@ public class CancelPartialFormActionRunner implements ActionRunner {
   final JourneyStoreService store;
 
   @Override
-  public boolean applies(Object viewInstance, String actionId) {
+  public boolean applies(JourneyContainer journeyContainer, Object viewInstance, String actionId) {
     return actionId.startsWith(CANCEL_PARTIAL_FORM_IDENTIFIER);
   }
 
   @Override
   public Mono<Void> run(
+      JourneyContainer journeyContainer,
       Object viewInstance,
-      String journeyId,
       String stepId,
       String actionId,
       Map<String, Object> data,
@@ -38,7 +39,7 @@ public class CancelPartialFormActionRunner implements ActionRunner {
 
     var sectionId = getSectionIdFromActionId(actionId);
 
-    var step = store.getStep(journeyId, stepId);
+    var step = store.getStep(journeyContainer, stepId);
 
     var metadata = step.getView().getMain().getComponents().get(0).getMetadata();
 
@@ -50,7 +51,7 @@ public class CancelPartialFormActionRunner implements ActionRunner {
 
     restoreOldData(step, sectionId);
 
-    store.updateStep(journeyId, stepId, step);
+    store.updateStep(journeyContainer, stepId, step);
 
     return Mono.empty();
   }

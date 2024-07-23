@@ -2,13 +2,14 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.persistence.Merger;
+import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.mdd.shared.data.Destination;
-import io.mateu.mdd.shared.data.DestinationType;
-import io.mateu.mdd.shared.data.Result;
-import io.mateu.mdd.shared.data.ResultType;
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.remote.dtos.Step;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.shared.data.Destination;
+import io.mateu.core.domain.uidefinition.shared.data.DestinationType;
+import io.mateu.core.domain.uidefinition.shared.data.Result;
+import io.mateu.core.domain.uidefinition.shared.data.ResultType;
+import io.mateu.dtos.Step;
 import jakarta.persistence.Entity;
 import java.util.List;
 import java.util.Map;
@@ -27,14 +28,14 @@ public class EntitySaveActionRunner implements ActionRunner {
   final ValidationService validationService;
 
   @Override
-  public boolean applies(Object viewInstance, String actionId) {
+  public boolean applies(JourneyContainer journeyContainer, Object viewInstance, String actionId) {
     return viewInstance.getClass().isAnnotationPresent(Entity.class) && "save".equals(actionId);
   }
 
   @Override
   public Mono<Void> run(
+      JourneyContainer journeyContainer,
       Object viewInstance,
-      String journeyId,
       String stepId,
       String actionId,
       Map<String, Object> data,
@@ -45,7 +46,7 @@ public class EntitySaveActionRunner implements ActionRunner {
 
     reflectionHelper.newInstance(Merger.class).merge(viewInstance);
 
-    Step initialStep = store.getInitialStep(journeyId);
+    Step initialStep = store.getInitialStep(journeyContainer);
 
     Result whatToShow =
         new Result(
@@ -56,7 +57,7 @@ public class EntitySaveActionRunner implements ActionRunner {
                 DestinationType.ActionId, "Back to " + initialStep.getName(), initialStep.getId()),
             null);
     String newStepId = "result_" + UUID.randomUUID().toString();
-    store.setStep(journeyId, newStepId, whatToShow, serverHttpRequest);
+    store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest);
 
     return Mono.empty();
   }

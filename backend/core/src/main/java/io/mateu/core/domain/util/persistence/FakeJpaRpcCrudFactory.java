@@ -1,0 +1,21 @@
+package io.mateu.core.domain.util.persistence;
+
+import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
+import io.mateu.core.domain.uidefinition.shared.interfaces.JpaCrud;
+import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
+import org.apache.commons.lang3.NotImplementedException;
+import org.springframework.stereotype.Service;
+
+@Service
+public class FakeJpaRpcCrudFactory implements JpaRpcCrudFactory {
+  @Override
+  public Listing create(Object parentEntity, FieldInterfaced field) throws Exception {
+    throw new NotImplementedException();
+  }
+
+  @Override
+  public Listing create(JpaCrud crud) throws Exception {
+    throw new NotImplementedException();
+  }
+}

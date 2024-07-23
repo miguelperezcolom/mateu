@@ -1,6 +1,7 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
+import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import jakarta.persistence.Entity;
 import java.util.Map;
@@ -15,20 +16,20 @@ public class EntityEditActionRunner implements ActionRunner {
   @Autowired JourneyStoreService store;
 
   @Override
-  public boolean applies(Object viewInstance, String actionId) {
+  public boolean applies(JourneyContainer journeyContainer, Object viewInstance, String actionId) {
     return viewInstance.getClass().isAnnotationPresent(Entity.class) && "edit".equals(actionId);
   }
 
   @Override
   public Mono<Void> run(
+      JourneyContainer journeyContainer,
       Object viewInstance,
-      String journeyId,
       String stepId,
       String actionId,
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
-    store.setStep(journeyId, "edit", viewInstance, serverHttpRequest);
+    store.setStep(journeyContainer, "edit", viewInstance, serverHttpRequest);
     return Mono.empty();
   }
 }

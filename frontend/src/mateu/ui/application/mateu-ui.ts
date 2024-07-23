@@ -122,7 +122,6 @@ export class MateuUi extends LitElement {
         let item = event.detail.value as MyMenuBarItem
         this.journeyTypeId = item.journeyTypeId
         this.label = item.text
-        //service.createJourney(item.journeyTypeId!, item.text!)
     }
 
     login() {

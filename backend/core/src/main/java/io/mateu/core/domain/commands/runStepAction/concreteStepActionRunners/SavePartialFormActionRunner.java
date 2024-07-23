@@ -1,13 +1,14 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
+import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.mdd.shared.interfaces.PartialForm;
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.remote.dtos.Action;
-import io.mateu.remote.dtos.ActionType;
-import io.mateu.remote.dtos.Form;
-import io.mateu.remote.dtos.Section;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.shared.interfaces.PartialForm;
+import io.mateu.dtos.Action;
+import io.mateu.dtos.ActionType;
+import io.mateu.dtos.Form;
+import io.mateu.dtos.Section;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,21 +30,21 @@ public class SavePartialFormActionRunner implements ActionRunner {
   final ReflectionHelper reflectionHelper;
 
   @Override
-  public boolean applies(Object viewInstance, String actionId) {
+  public boolean applies(JourneyContainer journeyContainer, Object viewInstance, String actionId) {
     return actionId.startsWith(SAVE_PARTIAL_FORM_IDENTIFIER);
   }
 
   @Override
   public Mono<Void> run(
+      JourneyContainer journeyContainer,
       Object form,
-      String journeyId,
       String stepId,
       String actionId,
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
-    var step = store.getStep(journeyId, stepId);
+    var step = store.getStep(journeyContainer, stepId);
 
     var metadata = step.getView().getMain().getComponents().get(0).getMetadata();
 
@@ -57,7 +58,7 @@ public class SavePartialFormActionRunner implements ActionRunner {
 
     partialForm.save();
 
-    store.updateStep(journeyId, stepId, step);
+    store.updateStep(journeyContainer, stepId, step);
 
     return Mono.empty();
   }

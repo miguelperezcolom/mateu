@@ -1,17 +1,17 @@
 package io.mateu.core.domain.commands.runStepAction;
 
 import com.google.common.base.Strings;
-import io.mateu.core.domain.apiClients.MateuRemoteClient;
 import io.mateu.core.domain.model.editors.EntityEditor;
 import io.mateu.core.domain.model.editors.FieldEditor;
 import io.mateu.core.domain.model.editors.ObjectEditor;
 import io.mateu.core.domain.model.modelToDtoMappers.ViewMapper;
 import io.mateu.core.domain.model.store.JourneyContainer;
-import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.remote.dtos.Form;
-import java.time.LocalDateTime;
-import java.util.*;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.dtos.Form;
+import io.mateu.dtos.Step;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -24,8 +24,6 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class RunStepActionCommandHandler {
 
-  final JourneyStoreService store;
-  final MateuRemoteClient mateuRemoteClient;
   final List<ActionRunner> actionRunners;
   final ActualValueExtractor actualValueExtractor;
   final ReflectionHelper reflectionHelper;
@@ -40,46 +38,20 @@ public class RunStepActionCommandHandler {
     if (data == null) {
       data = new HashMap<>();
     }
+    JourneyContainer journeyContainer = command.getJourneyContainer();
     ServerHttpRequest serverHttpRequest = command.getServerHttpRequest();
 
     data = nestPartialFormData(data);
 
-    JourneyContainer journeyContainer = store.findJourneyById(journeyId).orElse(null);
-
-    if (journeyContainer == null) {
-      throw new Exception("No journey with id " + journeyId);
-    }
-
     if ("xxxbacktostep".equals(actionId)) {
       journeyContainer.getJourney().setCurrentStepId(stepId);
       journeyContainer.getJourney().setCurrentStepDefinitionId("xxx");
-      journeyContainer.setLastAccess(LocalDateTime.now());
-      store.save(journeyContainer);
-      resetMessages(journeyId);
+      resetMessages(journeyContainer);
 
       return Mono.empty().then();
     }
 
-    if (!Strings.isNullOrEmpty(journeyContainer.getRemoteJourneyTypeId())) {
-      mateuRemoteClient.runStep(
-          journeyContainer.getRemoteBaseUrl(),
-          journeyContainer.getRemoteJourneyTypeId(),
-          journeyContainer.getJourneyId(),
-          stepId,
-          actionId,
-          data,
-          serverHttpRequest).flatMap(step -> {
-        try {
-          store.updateStep(journeyId, stepId, step);
-        } catch (Throwable e) {
-          throw new RuntimeException(e);
-        }
-
-        return Mono.empty().then();
-      });
-    }
-
-    Object viewInstance = store.getViewInstance(journeyId, stepId, serverHttpRequest);
+    Object viewInstance = getViewInstance(journeyId, stepId, journeyContainer, serverHttpRequest);
 
     if (viewInstance instanceof FieldEditor) {
       // no need to fill the fieldEditor
@@ -100,10 +72,9 @@ public class RunStepActionCommandHandler {
               });
     }
 
-    var step = store.readStep(journeyId, stepId);
+    var step = journeyContainer.getSteps().get(stepId);
     step.mergeData(data);
     viewMapper.unnestPartialFormData(step.getData(), viewInstance);
-    store.updateStep(journeyId, stepId, step);
 
     // todo: look for the target object
     String componentId = "component-0";
@@ -115,15 +86,15 @@ public class RunStepActionCommandHandler {
     if (!"component-0".equals(componentId)) {}
 
     for (ActionRunner actionRunner : actionRunners) {
-      if (actionRunner.applies(viewInstance, actionId)) {
+      if (actionRunner.applies(journeyContainer, viewInstance, actionId)) {
         return actionRunner
-            .run(viewInstance, journeyId, stepId, actionId, data, serverHttpRequest)
+            .run(journeyContainer, viewInstance, stepId, actionId, data, serverHttpRequest)
             .then(
                 Mono.deferContextual(
                     contextView -> {
                       String activeTabId = (String) command.getData().get("__activeTabId");
                       try {
-                        var stepAfterRun = store.readStep(journeyId, stepId);
+                        var stepAfterRun = journeyContainer.getSteps().get(stepId);
                         stepAfterRun.getView().getMain().getComponents().stream()
                             .map(c -> c.getMetadata())
                             .filter(m -> m instanceof Form)
@@ -134,7 +105,6 @@ public class RunStepActionCommandHandler {
                                     t.setActive(
                                         !Strings.isNullOrEmpty(activeTabId)
                                             && activeTabId.equals(t.getId())));
-                        store.updateStep(journeyId, stepId, stepAfterRun);
                       } catch (Throwable e) {
                         throw new RuntimeException(e);
                       }
@@ -147,12 +117,10 @@ public class RunStepActionCommandHandler {
     throw new Exception("Unknown action " + actionId);
   }
 
-  private void resetMessages(String journeyId) {
-    var journeyContainer = store.findJourneyById(journeyId).get();
+  private void resetMessages(JourneyContainer journeyContainer) {
     var currentStepId = journeyContainer.getJourney().getCurrentStepId();
     var step = journeyContainer.getSteps().get(currentStepId);
     step.getView().setMessages(List.of());
-    store.save(journeyContainer);
   }
 
   private Map<String, Object> nestPartialFormData(Map<String, Object> data) {
@@ -188,5 +156,46 @@ public class RunStepActionCommandHandler {
             });
 
     return nestedData;
+  }
+
+  public Object getViewInstance(
+      String journeyId,
+      String stepId,
+      JourneyContainer journeyContainer,
+      ServerHttpRequest serverHttpRequest)
+      throws Exception {
+    Step step = journeyContainer.getSteps().get(stepId);
+    if (step == null) {
+      throw new Exception(
+          "No step with id " + stepId + " for journey with id " + journeyId + " found");
+    }
+    Object viewInstance = reflectionHelper.newInstance(Class.forName(step.getType()));
+    Map<String, Object> data = step.getData();
+    if (viewInstance instanceof EntityEditor) {
+      ((EntityEditor) viewInstance)
+          .setEntityClass(Class.forName((String) data.get("__entityClassName__")));
+      ((EntityEditor) viewInstance).setData(data);
+    } else if (viewInstance instanceof ObjectEditor) {
+      ((ObjectEditor) viewInstance)
+          .setType(Class.forName((String) data.get("__entityClassName__")));
+      ((ObjectEditor) viewInstance).setData(data);
+    } else if (viewInstance instanceof FieldEditor) {
+      ((FieldEditor) viewInstance).setType(Class.forName((String) data.get("__type__")));
+      ((FieldEditor) viewInstance).setFieldId((String) data.get("__fieldId__"));
+      ((FieldEditor) viewInstance).setInitialStep((String) data.get("__initialStep__"));
+      ((FieldEditor) viewInstance).setData(data);
+    } else {
+      data.entrySet()
+          .forEach(
+              entry -> {
+                try {
+                  Object actualValue = actualValueExtractor.getActualValue(entry, viewInstance);
+                  reflectionHelper.setValue(entry.getKey(), viewInstance, actualValue);
+                } catch (Exception ex) {
+                  System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
+                }
+              });
+    }
+    return viewInstance;
   }
 }

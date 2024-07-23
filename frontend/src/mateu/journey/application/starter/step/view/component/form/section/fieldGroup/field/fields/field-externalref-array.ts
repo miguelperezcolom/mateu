@@ -5,7 +5,7 @@ import ValueChangedEvent from "./interfaces/ValueChangedEvent";
 import '@vaadin/multi-select-combo-box';
 import Field from "../../../../../../../../../../../shared/apiClients/dtos/Field";
 import Value from "../../../../../../../../../../../shared/apiClients/dtos/Value";
-import {ComboBoxDataProvider, ComboBoxDataProviderParams,} from "@vaadin/combo-box";
+import {ComboBoxDataProvider} from "@vaadin/combo-box";
 import {MultiSelectComboBox, MultiSelectComboBoxSelectedItemsChangedEvent} from "@vaadin/multi-select-combo-box";
 
 
@@ -96,27 +96,12 @@ export class FieldExternalrefArray extends LitElement implements Component {
         const API = `${this.baseUrl}/itemproviders/${itemProvider}/items`;
         const { filter, page, pageSize } = params;
 
-        const count = await this.getCount(params)
-
         const res = await fetch(`${API}?page=${page}&page_size=${pageSize}&search_text=${filter}`);
         if (res.ok) {
             const result = await res.json();
-            callback(result, count);
+            callback(result.content, result.totalElements);
         }
     };
-
-    private async getCount(params: ComboBoxDataProviderParams):Promise<number> {
-        const itemProvider = this.field?.attributes.filter(a => a.key == 'itemprovider')[0].value;
-        const API = `${this.baseUrl}/itemproviders/${itemProvider}/count`;
-        const { filter } = params;
-
-        const res = await fetch(`${API}?search_text=${filter}`);
-        if (res.ok) {
-            const size = parseInt(await res.text());
-            return size;
-        }
-        return 0;
-    }
 
     protected firstUpdated(_changedProperties: PropertyValues) {
         const comboBox = this.shadowRoot?.querySelector('vaadin-multi-select-combo-box') as MultiSelectComboBox<Value>;

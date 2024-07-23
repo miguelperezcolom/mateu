@@ -1,15 +1,15 @@
 package io.mateu.core.domain.model.metadataBuilders;
 
-import io.mateu.remote.dtos.Destination;
-import io.mateu.remote.dtos.DestinationType;
-import io.mateu.remote.dtos.Result;
-import io.mateu.remote.dtos.ResultType;
+import io.mateu.dtos.Destination;
+import io.mateu.dtos.DestinationType;
+import io.mateu.dtos.Result;
+import io.mateu.dtos.ResultType;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ResultMetadataBuilder {
 
-  public Result build(io.mateu.mdd.shared.data.Result result) {
+  public Result build(io.mateu.core.domain.uidefinition.shared.data.Result result) {
     return Result.builder()
         .resultType(ResultType.valueOf(result.getType().toString()))
         .message(result.getMessage())

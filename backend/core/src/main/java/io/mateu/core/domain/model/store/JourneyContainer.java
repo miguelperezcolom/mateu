@@ -1,11 +1,10 @@
 package io.mateu.core.domain.model.store;
 
-import io.mateu.mdd.shared.interfaces.SortCriteria;
-import io.mateu.remote.dtos.Journey;
-import io.mateu.remote.dtos.Step;
+import io.mateu.core.domain.uidefinition.shared.interfaces.SortCriteria;
+import io.mateu.dtos.Journey;
+import io.mateu.dtos.Step;
 import jakarta.persistence.Id;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import lombok.*;
@@ -22,8 +21,6 @@ public class JourneyContainer implements Serializable {
 
   private String remoteBaseUrl;
 
-  private String remoteJourneyTypeId;
-
   private Class journeyClass;
 
   private Map<String, Object> journeyData;
@@ -34,18 +31,9 @@ public class JourneyContainer implements Serializable {
 
   private Step initialStep;
 
-  private LocalDateTime created = LocalDateTime.now();
-
-  private LocalDateTime lastAccess = LocalDateTime.now();
-
   private Map<String, Object> lastUsedFilters;
 
   private Map<String, List<SortCriteria>> lastUsedSorting;
-
-  public void reset() {
-    journey.setCurrentStepId(initialStep.getId());
-    journey.setCurrentStepDefinitionId(initialStep.getType());
-  }
 
   @Override
   public String toString() {

@@ -1,20 +1,19 @@
 package io.mateu.core.domain.model.modelToDtoMappers;
 
-import io.mateu.core.domain.apiClients.MateuRemoteClient;
 import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.mdd.core.app.AbstractAction;
-import io.mateu.mdd.core.app.AbstractMenu;
-import io.mateu.mdd.core.interfaces.*;
-import io.mateu.mdd.shared.annotations.MenuOption;
-import io.mateu.mdd.shared.annotations.Submenu;
-import io.mateu.mdd.shared.interfaces.MenuEntry;
-import io.mateu.mdd.shared.reflection.FieldInterfaced;
-import io.mateu.reflection.ReflectionHelper;
-import io.mateu.remote.dtos.Menu;
-import io.mateu.remote.dtos.MenuType;
-import io.mateu.remote.dtos.UI;
-import io.mateu.util.Helper;
-import java.util.*;
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.core.app.AbstractAction;
+import io.mateu.core.domain.uidefinition.core.app.AbstractMenu;
+import io.mateu.core.domain.uidefinition.core.interfaces.*;
+import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
+import io.mateu.core.domain.uidefinition.shared.annotations.Submenu;
+import io.mateu.core.domain.uidefinition.shared.interfaces.MenuEntry;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
+import io.mateu.core.domain.util.Helper;
+import io.mateu.dtos.Menu;
+import io.mateu.dtos.MenuType;
+import io.mateu.dtos.UI;
+import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationContext;
@@ -26,7 +25,6 @@ import org.springframework.stereotype.Service;
 public class UIMapper {
 
   final ApplicationContext applicationContext;
-  final MateuRemoteClient mateuRemoteClient;
   final ReflectionHelper reflectionHelper;
   final MenuParser menuParser;
 
