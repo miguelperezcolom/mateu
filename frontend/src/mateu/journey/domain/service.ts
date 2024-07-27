@@ -92,8 +92,17 @@ export class Service {
     }
 
     async goToIndex(data: { __listId: string; __index: number; __count: number }) {
-        await goToIndexCommandHandler.handle(data, this.state)
-        await this.reloadJourney()
+        await goToIndexCommandHandler.handle(data, this.state).then(async (value: StepWrapper) => {
+            sessionStorage.setItem(this.state.journeyId!, JSON.stringify(value.store))
+            this.state.journey = value.journey
+            this.state.stepId = this.state.journey.currentStepId
+            if (this.state.journey.status != 'Finished') {
+                this.state.step = value.step
+                this.state.previousStepId = this.state.step.previousStepId
+            }
+            console.log('journey reloaded from response', this.state)
+            this.upstream.next({...this.state})
+        })
         this.upstream.next({...this.state})
     }
 
