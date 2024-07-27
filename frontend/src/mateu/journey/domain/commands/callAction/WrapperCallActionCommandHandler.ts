@@ -8,6 +8,7 @@ export class WrapperCallActionCommandHandler {
     public async handle(command: CallActionCommand, state: State): Promise<StepWrapper> {
 
         return await mateuApiClient.runStepActionAndReturn(
+            state.uiId!,
             state.journeyTypeId!,
             state.journeyId!,
             state.stepId!,

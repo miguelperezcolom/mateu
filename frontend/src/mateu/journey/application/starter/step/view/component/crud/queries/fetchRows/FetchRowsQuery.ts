@@ -1,5 +1,6 @@
 export interface FetchRowsQuery {
 
+    uiId: string
     journeyTypeId: string
     journeyId: string
     stepId: string

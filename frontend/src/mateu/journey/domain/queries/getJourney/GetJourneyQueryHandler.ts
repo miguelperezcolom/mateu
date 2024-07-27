@@ -6,7 +6,7 @@ export class GetJourneyQueryHandler {
 
     public async handle(_query: GetJourneyQuery): Promise<Journey> {
         return await mateuApiClient
-            .fetchJourney(_query.journeyTypeId, _query.journeyId)
+            .fetchJourney(_query.uiId, _query.journeyTypeId, _query.journeyId)
     }
 
 }

@@ -182,13 +182,13 @@ export class MateuUi extends LitElement {
                 
                     ${this.ui.homeJourneyTypeId && !this.journeyTypeId?html`
 
-                    <journey-starter journeytypeid="${this.ui.homeJourneyTypeId}" baseUrl="${this.baseUrl}" instant="${this.instant}"></journey-starter>
+                    <journey-starter uiId="${this.uiId}" journeytypeid="${this.ui.homeJourneyTypeId}" baseUrl="${this.baseUrl}" instant="${this.instant}"></journey-starter>
                     
                 `:''}
 
                     ${this.journeyTypeId?html`
 
-                    <journey-starter journeytypeid=${this.journeyTypeId} baseUrl="${this.baseUrl}"  instant="${this.instant}"></journey-starter>
+                    <journey-starter uiId="${this.uiId}" journeytypeid=${this.journeyTypeId} baseUrl="${this.baseUrl}"  instant="${this.instant}"></journey-starter>
                     
                 `:''}
 

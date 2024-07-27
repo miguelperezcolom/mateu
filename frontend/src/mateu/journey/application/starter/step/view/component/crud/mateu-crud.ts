@@ -48,6 +48,9 @@ export class MateuCrud extends LitElement {
   baseUrl = ''
 
   @property()
+  uiId!: string
+
+  @property()
   journeyTypeId!: string
 
   @property()
@@ -128,6 +131,7 @@ export class MateuCrud extends LitElement {
   items:any[] = []
 
   state: CrudState = {
+    uiId: '',
     journeyTypeId: '',
     journeyId: '',
     stepId: '',
@@ -449,9 +453,9 @@ export class MateuCrud extends LitElement {
   exportItemSelected(event: MenuBarItemSelectedEvent) {
     let item = event.detail.value
     if (item.text == 'Excel') {
-      mateuApiClient.getXls(this.journeyTypeId, this.journeyId, this.stepId, this.listId, this.getSortOrders(), this.data)
+      mateuApiClient.getXls(this.uiId, this.journeyTypeId, this.journeyId, this.stepId, this.listId, this.getSortOrders(), this.data)
     } else if (item.text == 'Csv') {
-      mateuApiClient.getCsv(this.journeyTypeId, this.journeyId, this.stepId, this.listId, this.getSortOrders(), this.data)
+      mateuApiClient.getCsv(this.uiId, this.journeyTypeId, this.journeyId, this.stepId, this.listId, this.getSortOrders(), this.data)
     }
   }
 

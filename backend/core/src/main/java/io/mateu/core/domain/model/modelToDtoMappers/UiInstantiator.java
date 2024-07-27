@@ -1,0 +1,43 @@
+package io.mateu.core.domain.model.modelToDtoMappers;
+
+import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.core.interfaces.DynamicUI;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
+import io.mateu.core.domain.util.exceptions.NotFoundException;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.stereotype.Service;
+
+@Service
+public class UiInstantiator {
+
+  private final ReflectionHelper reflectionHelper;
+
+  public UiInstantiator(ReflectionHelper reflectionHelper) {
+    this.reflectionHelper = reflectionHelper;
+  }
+
+  public Object instantiateUi(String uiId, ServerHttpRequest serverHttpRequest) {
+    try {
+      Class uiClass = Class.forName(uiId);
+      Object uiInstance = reflectionHelper.newInstance(uiClass);
+
+      if (uiInstance == null) {
+        throw new Exception();
+      }
+
+      if (uiInstance instanceof HasInitMethod) {
+        ((HasInitMethod) uiInstance).init(serverHttpRequest);
+      }
+
+      if (uiInstance instanceof DynamicUI) {
+        return ((DynamicUI) uiInstance).build().toFuture().get();
+      }
+
+      return uiInstance;
+
+    } catch (Exception e) {
+      //      log.error("error on getUi", e);
+      throw new NotFoundException("No class with name " + uiId + " found");
+    }
+  }
+}

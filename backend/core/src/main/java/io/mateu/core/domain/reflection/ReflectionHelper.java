@@ -1352,6 +1352,11 @@ public class ReflectionHelper extends BaseReflectionHelper {
       }
 
       @Override
+      public Annotation[] getAnnotations() {
+        return p.getAnnotations();
+      }
+
+      @Override
       public Object getValue(Object o)
           throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         return null;

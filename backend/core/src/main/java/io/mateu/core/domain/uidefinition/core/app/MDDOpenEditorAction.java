@@ -16,4 +16,8 @@ public class MDDOpenEditorAction extends AbstractAction {
   public Class getViewClass() {
     return supplier != null ? supplier.get().getClass() : viewClass;
   }
+
+  public Supplier<Object> getSupplier() {
+    return supplier;
+  }
 }

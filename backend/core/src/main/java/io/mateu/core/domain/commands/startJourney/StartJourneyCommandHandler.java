@@ -1,17 +1,12 @@
 package io.mateu.core.domain.commands.startJourney;
 
-import io.mateu.core.domain.model.modelToDtoMappers.JourneyMapper;
-import io.mateu.core.domain.model.modelToDtoMappers.StepMapper;
-import io.mateu.core.domain.model.modelToDtoMappers.UIMapper;
+import io.mateu.core.domain.model.modelToDtoMappers.*;
 import io.mateu.core.domain.model.store.JourneyContainer;
-import io.mateu.core.domain.model.store.MenuToBeanMapping;
-import io.mateu.core.domain.model.store.MenuToBeanMappingRepository;
 import io.mateu.core.domain.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDActionViewBuilder;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenEditorAction;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenListViewAction;
-import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.core.domain.util.Serializer;
 import io.mateu.core.domain.util.exceptions.NotFoundException;
@@ -20,7 +15,7 @@ import io.mateu.dtos.JourneyCreationRq;
 import io.mateu.dtos.Step;
 import io.mateu.dtos.StepWrapper;
 import java.util.Map;
-import java.util.Optional;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
@@ -32,28 +27,32 @@ public class StartJourneyCommandHandler {
 
   private final ReflectionHelper reflectionHelper;
   private final UIMapper uiMapper;
-  private final MenuToBeanMappingRepository menuMappingRepo;
   private final MDDOpenCRUDActionViewBuilder mddOpenCRUDActionViewBuilder;
   private final StepMapper stepMapper;
   private final Serializer serializer;
+  private final MenuResolver menuResolver;
+  private final UiInstantiator uiInstantiator;
 
   public StartJourneyCommandHandler(
       ReflectionHelper reflectionHelper,
       UIMapper uiMapper,
-      MenuToBeanMappingRepository menuMappingRepo,
       MDDOpenCRUDActionViewBuilder mddOpenCRUDActionViewBuilder,
       StepMapper stepMapper,
-      Serializer serializer) {
+      Serializer serializer,
+      MenuResolver menuResolver,
+      UiInstantiator uiInstantiator) {
     this.reflectionHelper = reflectionHelper;
     this.uiMapper = uiMapper;
-    this.menuMappingRepo = menuMappingRepo;
     this.mddOpenCRUDActionViewBuilder = mddOpenCRUDActionViewBuilder;
     this.stepMapper = stepMapper;
     this.serializer = serializer;
+    this.menuResolver = menuResolver;
+    this.uiInstantiator = uiInstantiator;
   }
 
   public Mono<StepWrapper> handle(StartJourneyCommand command) throws Throwable {
 
+    String uiId = command.getUiId();
     String journeyId = command.getJourneyId();
     String journeyTypeId = command.getJourneyTypeId();
     JourneyCreationRq journeyCreationRq = command.getJourneyCreationRq();
@@ -64,7 +63,7 @@ public class StartJourneyCommandHandler {
 
     try {
 
-      formInstance = createInstanceFromJourneyTypeId(journeyTypeId, serverHttpRequest);
+      formInstance = resolveJourneyTypeId(uiId, journeyTypeId, serverHttpRequest);
 
       if (formInstance == null) {
         throw new Exception();
@@ -107,76 +106,35 @@ public class StartJourneyCommandHandler {
     return "form";
   }
 
-  public Object createInstanceFromJourneyTypeId(
-      String journeyTypeId, ServerHttpRequest serverHttpRequest) {
-    MenuToBeanMapping menuMapping = getMenuMapping(journeyTypeId, serverHttpRequest);
-    Object formInstance = null;
-    try {
-      formInstance = createInstanceFromMenuMapping(menuMapping.getBean());
+  public Object resolveJourneyTypeId(
+      String uiId, String journeyTypeId, ServerHttpRequest serverHttpRequest) {
 
-      if (formInstance instanceof HasInitMethod) {
-        ((HasInitMethod) formInstance).init(serverHttpRequest);
-      }
+    var ui = uiInstantiator.instantiateUi(uiId, serverHttpRequest);
 
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return formInstance;
+    var menuEntry = menuResolver.resolve(ui, journeyTypeId, serverHttpRequest);
+
+    return menuEntry.map(entry -> createInstanceFromMenuMapping(entry)).orElse(null);
   }
 
-  private Object createInstanceFromMenuMapping(Object menuEntry) throws Exception {
+  @SneakyThrows
+  private Object createInstanceFromMenuMapping(Object menuEntry) {
     if (menuEntry instanceof MDDOpenEditorAction) {
       MDDOpenEditorAction action = (MDDOpenEditorAction) menuEntry;
+      if (action.getSupplier() != null) {
+        return action.getSupplier().get();
+      }
       return reflectionHelper.newInstance(action.getViewClass());
     } else if (menuEntry instanceof MDDOpenCRUDAction) {
       MDDOpenCRUDAction action = (MDDOpenCRUDAction) menuEntry;
       return mddOpenCRUDActionViewBuilder.buildView(action);
     } else if (menuEntry instanceof MDDOpenListViewAction) {
       MDDOpenListViewAction action = (MDDOpenListViewAction) menuEntry;
+      if (action.getSupplier() != null) {
+        return action.getSupplier().get();
+      }
       return reflectionHelper.newInstance(action.getListViewClass());
     }
     return null;
-  }
-
-  public MenuToBeanMapping getMenuMapping(String actionId, ServerHttpRequest serverHttpRequest) {
-    Optional<MenuToBeanMapping> menuToBeanMapping = menuMappingRepo.findById(actionId);
-    if (menuToBeanMapping.isEmpty()) {
-      if (actionId.contains("_")) { // it's a ui
-        String uiClassName = actionId.split("_")[1];
-        Object uiInstance = null;
-        try {
-          uiInstance = reflectionHelper.newInstance(Class.forName(uiClassName));
-          if (uiInstance instanceof HasInitMethod) {
-            ((HasInitMethod) uiInstance).init(serverHttpRequest);
-          }
-          uiMapper.map(uiInstance, serverHttpRequest);
-          menuToBeanMapping = menuMappingRepo.findById(actionId);
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      } else { // it's a form
-        String uiClassName = actionId;
-        Object uiInstance = null;
-        try {
-          // todo: refactor for improving
-          uiInstance = reflectionHelper.newInstance(Class.forName(uiClassName));
-          if (uiInstance instanceof HasInitMethod) {
-            ((HasInitMethod) uiInstance).init(serverHttpRequest);
-          }
-          uiMapper.map(uiInstance, serverHttpRequest);
-          Object finalUiInstance = uiInstance;
-          storeMenuAction(actionId, new MDDOpenEditorAction("", () -> finalUiInstance));
-          menuToBeanMapping = menuMappingRepo.findById(actionId);
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      }
-    }
-    return menuToBeanMapping.orElse(null);
-  }
-
-  public void storeMenuAction(String actionId, Object bean) {
-    menuMappingRepo.save(MenuToBeanMapping.builder().actionId(actionId).bean(bean).build());
   }
 
   private Map<String, Object> toMap(Object o) {

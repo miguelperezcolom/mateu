@@ -1,10 +1,8 @@
 package io.mateu.core.domain.queries.getUI;
 
 import io.mateu.core.domain.model.modelToDtoMappers.UIMapper;
+import io.mateu.core.domain.model.modelToDtoMappers.UiInstantiator;
 import io.mateu.core.domain.reflection.ReflectionHelper;
-import io.mateu.core.domain.uidefinition.core.interfaces.DynamicUI;
-import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
-import io.mateu.core.domain.util.exceptions.NotFoundException;
 import io.mateu.dtos.UI;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,34 +16,16 @@ public class GetUIQueryHandler {
 
   final UIMapper uiMapper;
   final ReflectionHelper reflectionHelper;
+  final UiInstantiator uiInstantiator;
 
-  public UI run(GetUIQuery query, ServerHttpRequest serverHttpRequest) {
+  public UI run(GetUIQuery query, ServerHttpRequest serverHttpRequest) throws Exception {
 
     String uiId = query.getUiId();
 
-    try {
-      Class uiClass = Class.forName(uiId);
-      Object uiInstance = reflectionHelper.newInstance(uiClass);
+    Object uiInstance = uiInstantiator.instantiateUi(uiId, serverHttpRequest);
 
-      if (uiInstance == null) {
-        throw new Exception();
-      }
+    UI ui = uiMapper.map(uiInstance, serverHttpRequest);
 
-      if (uiInstance instanceof HasInitMethod) {
-        ((HasInitMethod) uiInstance).init(serverHttpRequest);
-      }
-
-      if (uiInstance instanceof DynamicUI) {
-        return ((DynamicUI) uiInstance).build().toFuture().get();
-      }
-
-      UI ui = uiMapper.map(uiInstance, serverHttpRequest);
-
-      return ui;
-
-    } catch (Exception e) {
-      //      log.error("error on getUi", e);
-      throw new NotFoundException("No class with name " + uiId + " found");
-    }
+    return ui;
   }
 }

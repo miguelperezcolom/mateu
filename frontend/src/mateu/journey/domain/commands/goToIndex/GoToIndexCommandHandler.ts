@@ -7,6 +7,7 @@ export class GoToIndexCommandHandler {
     public async handle(command: GoToIndexCommand, state: State): Promise<void> {
         await mateuApiClient
             .runStepAction(
+                state.uiId!,
                 state.journeyTypeId!,
                 state.journeyId!,
                 state.previousStepId!,

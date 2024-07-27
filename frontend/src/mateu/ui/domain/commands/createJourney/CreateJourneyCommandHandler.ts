@@ -9,7 +9,11 @@ export class CreateJourneyCommandHandler {
 
         mateuApiClient.abortAll();
         document.title = command.label;
-        window.history.pushState({},"", '#' + command.journeyTypeId);
+        var url = '#' + command.journeyTypeId
+        if ('____home____' == command.journeyTypeId) {
+            url = ''
+        }
+        window.history.pushState({},"", url);
     }
 
 }

@@ -26,6 +26,9 @@ export class MateuView extends LitElement {
   @property()
   view!: View
 
+    @property()
+    uiId!: string
+
   @property()
   journeyTypeId!: string
 
@@ -97,6 +100,7 @@ export class MateuView extends LitElement {
         <header>
                 ${this.view?.header?.components.map(c => html`<mateu-component
                         .component=${c}
+                        uiId="${this.uiId}"
                         journeyTypeId="${this.journeyTypeId}"
                         journeyId="${this.journeyId}"
                         stepId="${this.stepId}"
@@ -110,6 +114,7 @@ export class MateuView extends LitElement {
       <aside class="left">
         ${this.view?.left?.components.map(c => html`<mateu-component
             .component=${c}
+            uiId="${this.uiId}"
             journeyTypeId="${this.journeyTypeId}"
             journeyId="${this.journeyId}"
             stepId="${this.stepId}"
@@ -132,7 +137,8 @@ export class MateuView extends LitElement {
           
           <vaadin-vertical-layout style="width: 100%" theme="spacing-xl">
         ${this.view?.main?.components.map(c => html`<mateu-component 
-            .component=${c} 
+            .component=${c}
+            uiId="${this.uiId}"
             journeyTypeId="${this.journeyTypeId}" 
             journeyId="${this.journeyId}" 
             stepId="${this.stepId}"
@@ -146,7 +152,8 @@ export class MateuView extends LitElement {
           
       </main><aside class="right">
         ${this.view?.right?.components.map(c => html`<mateu-component 
-            .component=${c} 
+            .component=${c}
+            uiId="${this.uiId}"
             journeyTypeId="${this.journeyTypeId}" 
             journeyId="${this.journeyId}" 
             stepId="${this.stepId}"
@@ -160,6 +167,7 @@ export class MateuView extends LitElement {
         <footer>
             ${this.view?.footer?.components.map(c => html`<mateu-component
             .component=${c}
+            uiId="${this.uiId}"
             journeyTypeId="${this.journeyTypeId}"
             journeyId="${this.journeyId}"
             stepId="${this.stepId}"

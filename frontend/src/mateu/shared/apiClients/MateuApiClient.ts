@@ -174,8 +174,8 @@ export default class MateuApiClient {
             .then((response) => response.data))
     }
 
-    async createJourney(journeyType: string, journeyId: string): Promise<void> {
-        return await this.wrap<void>(this.post(this.baseUrl + '/journeys/'
+    async createJourney(uiId: string, journeyType: string, journeyId: string): Promise<void> {
+        return await this.wrap<void>(this.post(this.baseUrl + '/' + uiId  + '/journeys/'
             + journeyType + '/' + journeyId,
             {
                     "context-data": {}
@@ -183,14 +183,14 @@ export default class MateuApiClient {
             ))
     }
 
-    async fetchJourney(journeyType: string, journeyId: string): Promise<Journey> {
-        return await this.wrap<Journey>(this.get(this.baseUrl + '/journeys/'
+    async fetchJourney(uiId: string, journeyType: string, journeyId: string): Promise<Journey> {
+        return await this.wrap<Journey>(this.get(this.baseUrl + '/' + uiId + '/journeys/'
             + journeyType + '/' + journeyId)
                 .then((response) => response.data))
     }
 
-    async fetchStep(journeyType: string, journeyId: string, stepId: string): Promise<Step> {
-        return await this.wrap<Step>(this.get(this.baseUrl + '/journeys/' +
+    async fetchStep(uiId: string, journeyType: string, journeyId: string, stepId: string): Promise<Step> {
+        return await this.wrap<Step>(this.get(this.baseUrl + '/' + uiId + '/journeys/' +
             journeyType + '/' + journeyId + '/steps/' + stepId)
                 .then((response) => {
                     const newStep = response.data
@@ -199,9 +199,9 @@ export default class MateuApiClient {
                 }))
     }
 
-    async runStepAction(journeyType: string, journeyId: string, stepId: string, actionId: string,
+    async runStepAction(uiId: string, journeyType: string, journeyId: string, stepId: string, actionId: string,
                         data: unknown): Promise<void> {
-        return await this.wrap<void>(this.post(this.baseUrl + '/journeys/' +
+        return await this.wrap<void>(this.post(this.baseUrl + '/' + uiId + '/journeys/' +
             journeyType + '/' + journeyId + '/steps/' + stepId
                 + '/' + actionId, {
                     data: data,
@@ -213,17 +213,17 @@ export default class MateuApiClient {
         }))
     }
 
-    async createJourneyAndReturn(journeyType: string, journeyId: string): Promise<StepWrapper> {
-        return await this.wrap<StepWrapper>(this.getUsingPost(this.baseUrl + '/journeys/'
+    async createJourneyAndReturn(uiId: string, journeyType: string, journeyId: string): Promise<StepWrapper> {
+        return await this.wrap<StepWrapper>(this.getUsingPost(this.baseUrl + '/' + uiId + '/journeys/'
             + journeyType + '/' + journeyId,
             {
                 "context-data": {}
             }
         ).then((response) => response.data))
     }
-    async runStepActionAndReturn(journeyType: string, journeyId: string, stepId: string, actionId: string,
+    async runStepActionAndReturn(uiId: string, journeyType: string, journeyId: string, stepId: string, actionId: string,
                         data: unknown): Promise<StepWrapper> {
-        return await this.wrap<StepWrapper>(this.getUsingPost(this.baseUrl + '/journeys/' +
+        return await this.wrap<StepWrapper>(this.getUsingPost(this.baseUrl + '/' + uiId + '/journeys/' +
             journeyType + '/' + journeyId + '/steps/' + stepId
             + '/' + actionId, {
                 data: data,
@@ -235,7 +235,7 @@ export default class MateuApiClient {
         }))
     }
 
-    async fetchRows(journeyType: string, journeyId: string, stepId: string, listId: string,
+    async fetchRows(uiId: string, journeyType: string, journeyId: string, stepId: string, listId: string,
                     page: number, pageSize: number,
                     sortOrders: string, filters: object
                     ): Promise<Page> {
@@ -243,7 +243,7 @@ export default class MateuApiClient {
             __filters: filters,
             __journey: JSON.parse(sessionStorage.getItem(journeyId)!)
         }
-        return await this.wrap<Page>(this.postMax2(this.baseUrl + "/journeys/" + journeyType
+        return await this.wrap<Page>(this.postMax2(this.baseUrl + '/' + uiId + "/" + uiId + "/journeys/" + journeyType
             + '/' + journeyId +
             "/steps/" + stepId +
             "/lists/" + listId + "/rows?page=" + page + "&page_size=" + pageSize +
@@ -251,13 +251,13 @@ export default class MateuApiClient {
             .then((response) => response.data))
     }
 
-    async getCsv(journeyType: string, journeyId: string, stepId: string, listId: string,
+    async getCsv(uiId: string, journeyType: string, journeyId: string, stepId: string, listId: string,
                  sortOrders: string, filters: string): Promise<void> {
         const data = {
             __filters: filters,
             __journey: JSON.parse(sessionStorage.getItem(journeyId)!)
         }
-        await this.wrap<void>(this.getUsingPost(this.baseUrl + "/journeys/" + journeyType
+        await this.wrap<void>(this.getUsingPost(this.baseUrl + '/' + uiId + "/journeys/" + journeyType
             + '/' + journeyId +
             "/steps/" + stepId +
             "/lists/" + listId + "/csv?" +
@@ -273,13 +273,13 @@ export default class MateuApiClient {
             }))
     }
 
-    async getXls(journeyType: string, journeyId: string, stepId: string, listId: string,
+    async getXls(uiId: string, journeyType: string, journeyId: string, stepId: string, listId: string,
                  sortOrders: string, filters: any): Promise<void> {
         const data = {
             __filters: filters,
             __journey: JSON.parse(sessionStorage.getItem(journeyId)!)
         }
-        await this.wrap<number>(this.getUsingPost(this.baseUrl + "/journeys/" + journeyType
+        await this.wrap<number>(this.getUsingPost(this.baseUrl + '/' + uiId + "/journeys/" + journeyType
             + '/' + journeyId +
             "/steps/" + stepId +
             "/lists/" + listId + "/xls?" +
@@ -292,31 +292,6 @@ export default class MateuApiClient {
                 link.download = 'file.xlsx'
                 link.click()
                 return response.data
-            }))
-    }
-
-    async getCsvMemory(journeyType: string, journeyId: string, stepId: string, listId: string,
-                 sortOrders: string, filters: any): Promise<void> {
-        window.open()
-        return await this.wrap<void>(this.getBlob(this.baseUrl + "/journeys/" + journeyType
-            + '/' + journeyId +
-            "/steps/" + stepId +
-            "/lists/" + listId + "/csv?" +
-            "&ordering=" + sortOrders + "&filters=" + filters)
-            .then((response) => {
-                // create file link in browser's memory
-                const href = URL.createObjectURL(response.data);
-
-                // create "a" HTML element with href to file & click
-                const link = document.createElement('a');
-                link.href = href;
-                link.setAttribute('download', 'file.csv'); //or any other extension
-                document.body.appendChild(link);
-                link.click();
-
-                // clean up "a" element & remove ObjectURL
-                document.body.removeChild(link);
-                URL.revokeObjectURL(href);
             }))
     }
 

@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
@@ -299,12 +298,6 @@ public class JourneyStoreService {
   public Step getCurrentStep(JourneyContainer journeyContainer) throws Exception {
     String currentStepId = journeyContainer.getJourney().getCurrentStepId();
     return journeyContainer.getSteps().get(currentStepId);
-  }
-
-  @Autowired private MenuToBeanMappingRepository menuMappingRepo;
-
-  public void storeMenuAction(String actionId, Object bean) {
-    menuMappingRepo.save(MenuToBeanMapping.builder().actionId(actionId).bean(bean).build());
   }
 
   public StepMapper getStepMapper() {

@@ -1,5 +1,4 @@
 import {State} from "./state";
-import {startJourneyCommandHandler} from "./commands/startJourney/StartJourneyCommandHandler";
 import {callActionCommandHandler} from "./commands/callAction/CallActionCommandHandler";
 import {getJourneyQueryHandler} from "./queries/getJourney/GetJourneyQueryHandler";
 import {getStepQueryHandler} from "./queries/getStep/GetStepQueryHandler";
@@ -20,27 +19,9 @@ export class Service {
         this.upstream = upstream;
     }
 
-    async startJourneyOld(baseUrl: string, journeyTypeId: string) {
+    async startJourney(baseUrl: string, uiId: string, journeyTypeId: string) {
         console.log('start journey', baseUrl, journeyTypeId)
-        await startJourneyCommandHandler.handle({baseUrl, journeyTypeId}, this.state)
-        this.upstream.next({...this.state})
-    }
-
-    async runActionOld(actionId: string, data: unknown) {
-        await callActionCommandHandler
-            .handle({actionId, data}, this.state)
-            .catch((error) => {
-            console.log('error', error)
-            throw error
-        }).then(async () => {
-            await this.reloadJourney()
-            this.upstream.next({...this.state})
-        })
-    }
-
-    async startJourney(baseUrl: string, journeyTypeId: string) {
-        console.log('start journey', baseUrl, journeyTypeId)
-        await wrapperStartJourneyCommandHandler.handle({baseUrl, journeyTypeId}, this.state)
+        await wrapperStartJourneyCommandHandler.handle({baseUrl, uiId, journeyTypeId}, this.state)
         this.upstream.next({...this.state})
     }
 
@@ -76,12 +57,14 @@ export class Service {
 
     private async reloadJourney() {
         this.state.journey = await getJourneyQueryHandler.handle({
+            uiId: this.state.uiId!,
             journeyTypeId: this.state.journeyTypeId!,
             journeyId: this.state.journeyId!
         })
         this.state.stepId = this.state.journey.currentStepId
         if (this.state.journey.status != 'Finished') {
             this.state.step = await getStepQueryHandler.handle({
+                uiId: this.state.uiId!,
                 journeyTypeId: this.state.journeyTypeId!,
                 journeyId: this.state.journeyId!,
                 stepId: this.state.stepId

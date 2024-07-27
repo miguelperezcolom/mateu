@@ -11,6 +11,8 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 @Getter
 public class StartJourneyCommand {
 
+  private String uiId;
+
   private String journeyTypeId;
 
   private String journeyId;

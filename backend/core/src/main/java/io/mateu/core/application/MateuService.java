@@ -76,15 +76,18 @@ public class MateuService {
   }
 
   public Mono<StepWrapper> createJourney(
+      String uiId,
       String journeyTypeId,
       String journeyId,
       JourneyCreationRq rq,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
-    return createJourneyUseCase.createJourney(journeyTypeId, journeyId, rq, serverHttpRequest);
+    return createJourneyUseCase.createJourney(
+        uiId, journeyTypeId, journeyId, rq, serverHttpRequest);
   }
 
   public Mono<StepWrapper> runStepAndReturn(
+      String uiId,
       String journeyTypeId,
       String journeyId,
       String stepId,
@@ -97,6 +100,7 @@ public class MateuService {
   }
 
   public Mono<Page> getListRows(
+      String uiId,
       String journeyTypeId,
       String journeyId,
       String stepId,
@@ -112,6 +116,7 @@ public class MateuService {
       throws Throwable {
     return fetchListUseCase
         .fetchPage(
+            uiId,
             journeyTypeId,
             journeyId,
             stepId,
@@ -149,6 +154,7 @@ public class MateuService {
   }
 
   public Mono<ByteArrayInputStream> generateCsv(
+      String uiId,
       String journeyTypeId,
       String journeyId,
       String stepId,
@@ -162,6 +168,7 @@ public class MateuService {
       throws Throwable {
 
     return getListRows(
+            uiId,
             journeyTypeId,
             journeyId,
             stepId,
@@ -210,6 +217,7 @@ public class MateuService {
   }
 
   public Mono<ByteArrayInputStream> generateExcel(
+      String uiId,
       String journeyTypeId,
       String journeyId,
       String stepId,
@@ -223,6 +231,7 @@ public class MateuService {
       throws Throwable {
 
     return getListRows(
+            uiId,
             journeyTypeId,
             journeyId,
             stepId,

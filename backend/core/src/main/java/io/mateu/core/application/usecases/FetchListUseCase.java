@@ -32,6 +32,7 @@ public class FetchListUseCase {
   }
 
   public Mono<Page> fetchPage(
+      String uiId,
       String journeyTypeId,
       String journeyId,
       String stepId,

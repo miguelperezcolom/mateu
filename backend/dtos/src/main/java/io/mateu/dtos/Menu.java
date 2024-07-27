@@ -1,5 +1,6 @@
 package io.mateu.dtos;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.List;
 import lombok.*;
 
@@ -18,4 +19,6 @@ public class Menu {
   private String journeyTypeId;
 
   private List<Menu> submenus;
+
+  @JsonIgnore private int order;
 }
