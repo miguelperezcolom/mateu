@@ -200,6 +200,7 @@ export class MateuCrud extends LitElement {
     filters: object
     sortOrders: string
   }) {
+      this.state.uiId = this.uiId
       this.state.journeyTypeId = this.journeyTypeId
       this.state.journeyId = this.journeyId
       this.state.stepId = this.stepId

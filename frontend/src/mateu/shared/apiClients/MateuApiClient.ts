@@ -243,7 +243,7 @@ export default class MateuApiClient {
             __filters: filters,
             __journey: JSON.parse(sessionStorage.getItem(journeyId)!)
         }
-        return await this.wrap<Page>(this.postMax2(this.baseUrl + '/' + uiId + "/" + uiId + "/journeys/" + journeyType
+        return await this.wrap<Page>(this.postMax2(this.baseUrl + '/' + uiId + '/journeys/' + journeyType
             + '/' + journeyId +
             "/steps/" + stepId +
             "/lists/" + listId + "/rows?page=" + page + "&page_size=" + pageSize +
