@@ -26,6 +26,9 @@ export class MateuComponent extends LitElement {
     component: Component | undefined;
 
     @property()
+    uiId!: string
+
+    @property()
     journeyTypeId!: string
 
     @property()
@@ -93,6 +96,7 @@ export class MateuComponent extends LitElement {
                     html`<mateu-crud 
                             .metadata=${this.component.metadata} 
                             .data=${this.step.data}
+                            uiId="${this.uiId}"
                             journeyTypeId="${this.journeyTypeId}"
                             journeyId="${this.journeyId}" 
                             stepId="${this.stepId}"

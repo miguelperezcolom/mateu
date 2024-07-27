@@ -11,6 +11,9 @@ export class JourneyStep extends LitElement {
     baseUrl = '';
 
     @property()
+    uiId!: string
+
+    @property()
     journeyTypeId = '';
 
     @property()
@@ -36,6 +39,7 @@ export class JourneyStep extends LitElement {
         return html`
         <mateu-view 
                 .view=${this.step?.view}
+                uiId="${this.uiId}"
                 journeyTypeId="${this.journeyTypeId}"
                 journeyId="${this.journeyId}" 
                 stepId="${this.stepId}"

@@ -116,6 +116,11 @@ public class FieldInterfacedFromField implements FieldInterfaced {
   }
 
   @Override
+  public Annotation[] getAnnotations() {
+    return ff.getAnnotations();
+  }
+
+  @Override
   public Object getValue(Object o)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
     return reflectionHelper.getValue(this, o);

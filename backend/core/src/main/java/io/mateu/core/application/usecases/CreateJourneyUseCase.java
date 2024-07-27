@@ -20,14 +20,15 @@ public class CreateJourneyUseCase {
   }
 
   public Mono<StepWrapper> createJourney(
+      String uiId,
       String journeyTypeId,
       String journeyId,
       JourneyCreationRq rq,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
-    log.info("Creating journey with id {} and type id {}", journeyId, journeyId);
     return startJourneyCommandHandler.handle(
         StartJourneyCommand.builder()
+            .uiId(uiId)
             .journeyId(journeyId)
             .journeyTypeId(journeyTypeId)
             .journeyCreationRq(rq)

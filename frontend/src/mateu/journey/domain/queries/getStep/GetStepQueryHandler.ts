@@ -5,7 +5,7 @@ import Step from "../../../../shared/apiClients/dtos/Step";
 export class GetStepQueryHandler {
 
     public handle(_query: GetStepQuery): Promise<Step> {
-        return mateuApiClient.fetchStep(_query.journeyTypeId, _query.journeyId, _query.stepId)
+        return mateuApiClient.fetchStep(_query.uiId, _query.journeyTypeId, _query.journeyId, _query.stepId)
     }
 
 }

@@ -25,6 +25,8 @@ export class JourneyStarter extends LitElement {
     @property()
     baseUrl = ''
     @property()
+    uiId: string | undefined = undefined;
+    @property()
     journeyTypeId: string | undefined = undefined;
     @property()
     journeyId: string | undefined = undefined;
@@ -143,6 +145,7 @@ export class JourneyStarter extends LitElement {
         this.version = state.version
         this.notificationOpened = state.notificationOpened
         this.notificationMessage = state.notificationMessage
+        this.uiId = state.uiId
         this.journeyTypeId = state.journeyTypeId
     }
 
@@ -158,6 +161,7 @@ export class JourneyStarter extends LitElement {
                         mateuApiClient.element = this
                         if (this.actionId) {
                             console.log('running action as prop is set', this.baseUrl, this.journeyTypeId, this.journeyId, this.stepId, this.actionId, this.actionData, changedProperties)
+                            this.service.state.uiId = this.uiId
                             this.service.state.journeyTypeId = this.journeyTypeId
                             this.service.state.journeyId = this.journeyId
                             this.service.state.baseUrl = this.baseUrl
@@ -168,8 +172,12 @@ export class JourneyStarter extends LitElement {
                             console.log('starting journey due to props change', this.baseUrl, this.journeyTypeId, changedProperties)
                             mateuApiClient.abortAll();
                             document.title = this.label??''
-                            window.history.pushState({},"", '#' + this.journeyTypeId);
-                            await this.service.startJourney(this.baseUrl, this.journeyTypeId)
+                            var url = '#' + this.journeyTypeId
+                            if ('____home____' == this.journeyTypeId) {
+                                url = ''
+                            }
+                            window.history.pushState({},"", url);
+                            await this.service.startJourney(this.baseUrl, this.uiId!, this.journeyTypeId)
                         }
                     }
                 })
@@ -229,6 +237,7 @@ export class JourneyStarter extends LitElement {
         return html`
             <div style="${this.modalStyle}">
             <journey-starter
+                    uiId="${this.uiId}"
                     journeyTypeId="${this.journeyTypeId}"
                     journeyId="${this.journeyId}"
                     stepId="${this.modalStepId}"
@@ -270,6 +279,7 @@ export class JourneyStarter extends LitElement {
                 
                         <journey-step
                                 id="step"
+                                uiId="${this.uiId}"
                                 journeyTypeId="${this.journeyTypeId}"
                                 journeyId="${this.journeyId}" 
                                        stepId="${this.stepId}" 

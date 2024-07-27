@@ -1,13 +1,10 @@
 package io.mateu.core.domain.uidefinition.shared.reflection;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedType;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 
 /** Created by miguel on 22/2/17. */
-public interface FieldInterfaced {
+public interface FieldInterfaced extends AnnotatedElement {
   boolean isAnnotationPresent(Class<? extends Annotation> annotationClass);
 
   Class<?> getType();

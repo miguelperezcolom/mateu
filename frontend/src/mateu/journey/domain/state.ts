@@ -7,6 +7,7 @@ export class State {
     cargando: boolean | undefined = undefined;
     error: boolean | undefined = undefined;
     tipos:JourneyType[] = [];
+    uiId: string | undefined = undefined;
     journeyTypeId: string | undefined = undefined;
     journeyId: string | undefined = undefined;
     journey: Journey | undefined = undefined;

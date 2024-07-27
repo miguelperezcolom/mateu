@@ -101,6 +101,21 @@ public class FieldInterfacedFromType implements FieldInterfaced {
   }
 
   @Override
+  public Annotation[] getAnnotations() {
+    return type.getAnnotations();
+  }
+
+  @Override
+  public <T extends Annotation> T[] getAnnotationsByType(Class<T> annotationClass) {
+    return FieldInterfaced.super.getAnnotationsByType(annotationClass);
+  }
+
+  @Override
+  public <T extends Annotation> T getDeclaredAnnotation(Class<T> annotationClass) {
+    return FieldInterfaced.super.getDeclaredAnnotation(annotationClass);
+  }
+
+  @Override
   public Object getValue(Object o)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
     return reflectionHelper.getValue(this, o);

@@ -7,6 +7,7 @@ export class CallActionCommandHandler {
     public async handle(command: CallActionCommand, state: State): Promise<void> {
 
         return await mateuApiClient.runStepAction(
+            state.uiId!,
             state.journeyTypeId!,
             state.journeyId!,
             state.stepId!,

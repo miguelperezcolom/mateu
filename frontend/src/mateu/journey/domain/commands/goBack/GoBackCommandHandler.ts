@@ -8,6 +8,7 @@ export class GoBackCommandHandler {
     public async handle(_command: GoBackCommand, state: State): Promise<StepWrapper> {
         return await mateuApiClient
             .runStepActionAndReturn(
+                state.uiId!,
                 state.journeyTypeId!,
                 state.journeyId!,
                 state.previousStepId!,

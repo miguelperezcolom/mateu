@@ -112,6 +112,11 @@ public class FieldInterfacedForCheckboxColumn implements FieldInterfaced {
   }
 
   @Override
+  public Annotation[] getAnnotations() {
+    return type.getAnnotations();
+  }
+
+  @Override
   public Object getValue(Object o)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
     return ((Collection) reflectionHelper.getValue(collectionField, o)).contains(value);

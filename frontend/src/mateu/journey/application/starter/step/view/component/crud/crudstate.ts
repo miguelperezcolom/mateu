@@ -1,5 +1,6 @@
 export interface CrudState {
 
+    uiId: string
     journeyTypeId: string
     journeyId: string
     stepId: string
