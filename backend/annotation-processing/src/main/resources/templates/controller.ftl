@@ -84,10 +84,10 @@ public class ${simpleClassName}MateuController {
 
     @GetMapping("v1/itemproviders/{itemProviderId}/items")
     public Mono<Items> getItems(@PathVariable String itemProviderId,
-                @RequestParam int page,
-                @RequestParam int page_size,
-                @RequestParam String search_text
-                ) throws Throwable {
+                                @RequestParam int page,
+                                @RequestParam int page_size,
+                                @RequestParam String search_text
+                                ) throws Throwable {
         return service.getItems(itemProviderId, page, page_size, search_text);
     }
 
