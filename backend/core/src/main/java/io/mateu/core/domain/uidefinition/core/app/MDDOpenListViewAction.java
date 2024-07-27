@@ -1,8 +1,6 @@
 package io.mateu.core.domain.uidefinition.core.app;
 
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
-
-import javax.swing.text.html.ListView;
 import java.util.function.Supplier;
 
 public class MDDOpenListViewAction extends AbstractAction {
@@ -19,7 +17,8 @@ public class MDDOpenListViewAction extends AbstractAction {
     this(name, null, supplier, null);
   }
 
-  public MDDOpenListViewAction(String name, Class listViewClass, Supplier<Listing> supplier, Object selectedId) {
+  public MDDOpenListViewAction(
+      String name, Class listViewClass, Supplier<Listing> supplier, Object selectedId) {
     super(name);
     this.listViewClass = listViewClass;
     this.supplier = supplier;

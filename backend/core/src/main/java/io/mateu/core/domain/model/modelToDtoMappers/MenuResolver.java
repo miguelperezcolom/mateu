@@ -36,10 +36,7 @@ public class MenuResolver {
   }
 
   private MenuEntry buildHomeMenuEntry(Object uiInstance) {
-    return new MDDOpenEditorAction(
-            reflectionHelper.getCaption(uiInstance),
-            () -> uiInstance);
-
+    return new MDDOpenEditorAction(reflectionHelper.getCaption(uiInstance), () -> uiInstance);
   }
 
   private MenuEntry resolve(
@@ -156,17 +153,16 @@ public class MenuResolver {
 
   @SneakyThrows
   private AbstractAction buildMenuEntry(String caption, AnnotatedElement m, Object uiInstance) {
-    if (reflectionHelper.isBasico(uiInstance.getClass()) || String.class.equals(uiInstance.getClass())) {
+    if (reflectionHelper.isBasico(uiInstance.getClass())
+        || String.class.equals(uiInstance.getClass())) {
       if (m.isAnnotationPresent(Home.class)
-              || m.isAnnotationPresent(PublicHome.class)
-              || m.isAnnotationPresent(PrivateHome.class))
+          || m.isAnnotationPresent(PublicHome.class)
+          || m.isAnnotationPresent(PrivateHome.class))
         return new MDDOpenHtmlAction(caption, "" + uiInstance);
     } else if (Listing.class.isAssignableFrom(uiInstance.getClass())) {
       return new MDDOpenListViewAction(caption, () -> (Listing) uiInstance);
     } else {
-      return new MDDOpenEditorAction(
-              caption,
-              () -> uiInstance);
+      return new MDDOpenEditorAction(caption, () -> uiInstance);
     }
     return null;
   }
@@ -196,5 +192,4 @@ public class MenuResolver {
     }
     return null;
   }
-
 }

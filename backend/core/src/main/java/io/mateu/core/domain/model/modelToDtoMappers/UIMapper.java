@@ -31,7 +31,7 @@ public class UIMapper {
 
     ui.setTitle(getTitle(uiInstance));
     ui.setSubtitle(getSubtitle(uiInstance));
-      ui.setHomeJourneyTypeId("____home____");
+    ui.setHomeJourneyTypeId("____home____");
     List<Menu> menuOptions = menuCreator.buildMenuForUi(uiInstance, serverHttpRequest);
     ui.setMenu(menuOptions);
     if (uiInstance instanceof HasLogin) {
