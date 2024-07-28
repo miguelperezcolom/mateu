@@ -3,7 +3,7 @@ package io.mateu.core.domain.model.metadataBuilders;
 import io.mateu.core.domain.model.editors.EntityEditor;
 import io.mateu.core.domain.model.editors.FieldEditor;
 import io.mateu.core.domain.model.editors.MethodParametersEditor;
-import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.interfaces.Card;
 import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.core.domain.uidefinition.shared.data.Result;

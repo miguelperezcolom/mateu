@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.modelToDtoMappers;
 
-import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
 import io.mateu.core.domain.uidefinition.shared.annotations.Submenu;

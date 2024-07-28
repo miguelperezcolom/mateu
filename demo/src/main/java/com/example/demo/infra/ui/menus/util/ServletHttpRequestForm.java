@@ -2,7 +2,7 @@ package com.example.demo.infra.ui.menus.util;
 
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
-import io.mateu.core.domain.util.Serializer;
+import io.mateu.core.domain.model.util.Serializer;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;

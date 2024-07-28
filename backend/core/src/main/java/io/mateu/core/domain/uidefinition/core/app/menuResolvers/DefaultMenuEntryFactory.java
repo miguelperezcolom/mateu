@@ -1,6 +1,6 @@
 package io.mateu.core.domain.uidefinition.core.app.menuResolvers;
 
-import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.app.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.Home;
 import io.mateu.core.domain.uidefinition.shared.annotations.PrivateHome;

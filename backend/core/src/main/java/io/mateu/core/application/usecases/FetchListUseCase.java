@@ -7,7 +7,7 @@ import io.mateu.core.domain.queries.getListCount.GetListCountQuery;
 import io.mateu.core.domain.queries.getListCount.GetListCountQueryHandler;
 import io.mateu.core.domain.queries.getListRows.GetListRowsQuery;
 import io.mateu.core.domain.queries.getListRows.GetListRowsQueryHandler;
-import io.mateu.core.domain.util.Serializer;
+import io.mateu.core.domain.model.util.Serializer;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;

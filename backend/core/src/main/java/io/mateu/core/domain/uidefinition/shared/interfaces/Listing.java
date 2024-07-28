@@ -1,7 +1,7 @@
 package io.mateu.core.domain.uidefinition.shared.interfaces;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.SlimHelper;
 import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import java.lang.reflect.ParameterizedType;

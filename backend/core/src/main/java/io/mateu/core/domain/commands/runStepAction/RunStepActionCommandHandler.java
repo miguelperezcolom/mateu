@@ -6,7 +6,7 @@ import io.mateu.core.domain.model.editors.FieldEditor;
 import io.mateu.core.domain.model.editors.ObjectEditor;
 import io.mateu.core.domain.model.modelToDtoMappers.ViewMapper;
 import io.mateu.core.domain.model.store.JourneyContainer;
-import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.dtos.Form;
 import io.mateu.dtos.Step;
 import java.util.HashMap;

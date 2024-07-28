@@ -2,9 +2,9 @@ package io.mateu.core.domain.queries.getListRows;
 
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.core.domain.queries.FiltersDeserializer;
-import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
-import io.mateu.core.domain.util.Serializer;
+import io.mateu.core.domain.model.util.Serializer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

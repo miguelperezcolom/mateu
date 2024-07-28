@@ -4,7 +4,7 @@ import com.google.common.base.Strings;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.interfaces.PartialForm;
 import io.mateu.dtos.*;
 import java.lang.reflect.InvocationTargetException;

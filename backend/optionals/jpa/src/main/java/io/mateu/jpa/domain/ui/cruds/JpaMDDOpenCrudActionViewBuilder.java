@@ -1,6 +1,6 @@
 package io.mateu.jpa.domain.ui.cruds;
 
-import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDActionViewBuilder;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;

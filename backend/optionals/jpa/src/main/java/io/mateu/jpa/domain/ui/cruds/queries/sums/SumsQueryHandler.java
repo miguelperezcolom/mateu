@@ -1,11 +1,11 @@
 package io.mateu.jpa.domain.ui.cruds.queries.sums;
 
 import com.google.common.base.Strings;
-import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.annotations.Sum;
 import io.mateu.core.domain.uidefinition.shared.data.SumData;
 import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
-import io.mateu.core.domain.util.Helper;
+import io.mateu.core.domain.model.util.Helper;
 import io.mateu.jpa.domain.ui.cruds.queries.QueryHelper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

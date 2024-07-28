@@ -3,12 +3,12 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.li
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ListActionRunner;
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.RunMethodActionRunner;
 import io.mateu.core.domain.model.store.JourneyContainer;
-import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasActions;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import io.mateu.core.domain.uidefinition.shared.interfaces.SelectedRowsContext;
-import io.mateu.core.domain.util.Serializer;
+import io.mateu.core.domain.model.util.Serializer;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;

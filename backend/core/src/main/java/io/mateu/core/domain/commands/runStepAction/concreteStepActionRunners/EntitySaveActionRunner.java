@@ -4,7 +4,7 @@ import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.persistence.Merger;
 import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.data.Destination;
 import io.mateu.core.domain.uidefinition.shared.data.DestinationType;
 import io.mateu.core.domain.uidefinition.shared.data.Result;

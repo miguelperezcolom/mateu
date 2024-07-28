@@ -1,7 +1,7 @@
 package io.mateu.core.domain.queries;
 
 import com.google.common.base.Strings;
-import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.data.Value;
 import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import jakarta.persistence.EntityManager;

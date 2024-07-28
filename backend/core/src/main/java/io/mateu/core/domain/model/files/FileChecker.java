@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.files;
 
-import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.annotations.File;
 import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import java.util.List;

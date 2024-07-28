@@ -2,7 +2,7 @@ package io.mateu.core.domain.model.metadataBuilders;
 
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.EditPartialFormActionRunner;
 import io.mateu.core.domain.model.editors.EntityEditor;
-import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
@@ -13,7 +13,7 @@ import io.mateu.core.domain.uidefinition.shared.interfaces.HasBanners;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasStatus;
 import io.mateu.core.domain.uidefinition.shared.interfaces.PartialForm;
 import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
-import io.mateu.core.domain.util.Helper;
+import io.mateu.core.domain.model.util.Helper;
 import io.mateu.dtos.*;
 import io.mateu.dtos.Section;
 import jakarta.persistence.CascadeType;

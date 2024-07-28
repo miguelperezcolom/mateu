@@ -1,6 +1,6 @@
 package io.mateu.core.domain.uidefinition.core.interfaces;
 
-import io.mateu.core.domain.util.Helper;
+import io.mateu.core.domain.model.util.Helper;
 
 public interface ReadOnlyPojo<Id> {
 

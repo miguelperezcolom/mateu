@@ -4,7 +4,7 @@ import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.Lis
 import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
-import io.mateu.core.domain.util.Serializer;
+import io.mateu.core.domain.model.util.Serializer;
 import java.lang.reflect.Method;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;

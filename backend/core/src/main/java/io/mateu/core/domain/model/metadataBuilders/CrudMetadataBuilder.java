@@ -1,7 +1,7 @@
 package io.mateu.core.domain.model.metadataBuilders;
 
 import io.mateu.core.domain.model.metadataBuilders.fields.FieldTypeMapper;
-import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.interfaces.DynamicCrud;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasSubtitle;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasTitle;

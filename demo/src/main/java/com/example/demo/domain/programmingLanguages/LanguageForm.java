@@ -2,7 +2,7 @@ package com.example.demo.domain.programmingLanguages;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.core.domain.uidefinition.core.interfaces.PersistentPojo;
-import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import jakarta.persistence.Id;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;

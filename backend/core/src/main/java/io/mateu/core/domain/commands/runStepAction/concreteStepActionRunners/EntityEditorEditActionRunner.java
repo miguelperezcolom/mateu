@@ -4,7 +4,7 @@ import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.editors.EntityEditor;
 import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
-import io.mateu.core.domain.util.Serializer;
+import io.mateu.core.domain.model.util.Serializer;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;

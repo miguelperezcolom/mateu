@@ -3,7 +3,7 @@ package io.mateu.core.application.util;
 import com.google.common.base.Strings;
 import io.mateu.core.domain.uidefinition.shared.interfaces.SortCriteria;
 import io.mateu.core.domain.uidefinition.shared.interfaces.SortType;
-import io.mateu.core.domain.util.Serializer;
+import io.mateu.core.domain.model.util.Serializer;
 import java.util.*;
 import java.util.stream.Collectors;
 

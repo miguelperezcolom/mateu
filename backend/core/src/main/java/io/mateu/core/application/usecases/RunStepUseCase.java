@@ -3,7 +3,7 @@ package io.mateu.core.application.usecases;
 import io.mateu.core.domain.commands.runStepAction.RunStepActionCommand;
 import io.mateu.core.domain.commands.runStepAction.RunStepActionCommandHandler;
 import io.mateu.core.domain.model.store.JourneyContainer;
-import io.mateu.core.domain.util.Serializer;
+import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.dtos.RunActionRq;
 import io.mateu.dtos.StepWrapper;
 import java.util.Map;

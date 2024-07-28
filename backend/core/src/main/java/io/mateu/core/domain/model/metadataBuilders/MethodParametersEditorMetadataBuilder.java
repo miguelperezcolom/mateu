@@ -1,11 +1,11 @@
 package io.mateu.core.domain.model.metadataBuilders;
 
 import io.mateu.core.domain.model.editors.MethodParametersEditor;
-import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.annotations.SameLine;
 import io.mateu.core.domain.uidefinition.shared.annotations.UseCrud;
 import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
-import io.mateu.core.domain.util.Helper;
+import io.mateu.core.domain.model.util.Helper;
 import io.mateu.dtos.*;
 import java.lang.reflect.Method;
 import java.util.ArrayList;

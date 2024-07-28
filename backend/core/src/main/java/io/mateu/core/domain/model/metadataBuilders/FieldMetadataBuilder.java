@@ -3,7 +3,7 @@ package io.mateu.core.domain.model.metadataBuilders;
 import io.mateu.core.domain.model.metadataBuilders.fields.FieldAttributeBuilder;
 import io.mateu.core.domain.model.metadataBuilders.fields.FieldStereotypeMapper;
 import io.mateu.core.domain.model.metadataBuilders.fields.FieldTypeMapper;
-import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.annotations.CallActionOnChange;
 import io.mateu.core.domain.uidefinition.shared.annotations.Help;
 import io.mateu.core.domain.uidefinition.shared.annotations.Placeholder;

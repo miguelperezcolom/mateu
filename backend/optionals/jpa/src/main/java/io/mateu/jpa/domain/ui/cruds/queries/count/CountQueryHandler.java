@@ -1,6 +1,6 @@
 package io.mateu.jpa.domain.ui.cruds.queries.count;
 
-import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.jpa.domain.ui.cruds.queries.QueryHelper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

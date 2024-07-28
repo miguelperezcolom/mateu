@@ -1,7 +1,7 @@
 package io.mateu.core.domain.model.metadataBuilders;
 
 import com.google.common.base.Strings;
-import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;

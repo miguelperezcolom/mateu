@@ -1,9 +1,9 @@
 package io.mateu.core.domain.uidefinition.core.interfaces;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
-import io.mateu.core.domain.util.Serializer;
+import io.mateu.core.domain.model.util.Serializer;
 import java.util.List;
 import java.util.Map;
 

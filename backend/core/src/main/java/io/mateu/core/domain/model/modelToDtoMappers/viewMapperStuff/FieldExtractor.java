@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.modelToDtoMappers.viewMapperStuff;
 
-import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import java.util.List;

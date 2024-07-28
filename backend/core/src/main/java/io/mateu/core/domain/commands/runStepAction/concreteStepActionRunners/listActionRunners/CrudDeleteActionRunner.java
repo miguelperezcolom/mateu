@@ -8,7 +8,7 @@ import io.mateu.core.domain.uidefinition.shared.data.Destination;
 import io.mateu.core.domain.uidefinition.shared.data.DestinationType;
 import io.mateu.core.domain.uidefinition.shared.data.Result;
 import io.mateu.core.domain.uidefinition.shared.data.ResultType;
-import io.mateu.core.domain.util.Serializer;
+import io.mateu.core.domain.model.util.Serializer;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
