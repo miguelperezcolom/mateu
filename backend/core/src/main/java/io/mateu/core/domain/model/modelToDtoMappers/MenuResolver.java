@@ -149,7 +149,10 @@ public class MenuResolver {
         || m.isAnnotationPresent(PublicHome.class)
         || m.isAnnotationPresent(PrivateHome.class)) {
 
-      return buildMenuEntry(caption, m, getValue(uiInstance, m)).setIcon(icon);
+      if (actionId.equals(journeyTypeId)) {
+        return buildMenuEntry(caption, m, getValue(uiInstance, m)).setIcon(icon);
+      }
+
     }
     return null;
   }
