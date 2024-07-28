@@ -27,17 +27,17 @@ public abstract class AbstractAction implements MenuEntry {
     return order;
   }
 
-  public AbstractAction setOrder(int order) {
+  public MenuEntry setOrder(int order) {
     this.order = order;
     return this;
   }
 
-  public AbstractAction setCaption(String caption) {
+  public MenuEntry setCaption(String caption) {
     this.caption = caption;
     return this;
   }
 
-  public AbstractAction setIcon(String icon) {
+  public MenuEntry setIcon(String icon) {
     this.icon = icon;
     return this;
   }

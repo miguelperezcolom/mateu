@@ -61,8 +61,18 @@ public abstract class AbstractMenu implements MenuEntry {
     return order;
   }
 
-  public AbstractMenu setOrder(int order) {
+  public MenuEntry setOrder(int order) {
     this.order = order;
+    return this;
+  }
+
+  public MenuEntry setCaption(String caption) {
+    this.name = caption;
+    return this;
+  }
+
+  public MenuEntry setIcon(String icon) {
+    this.icon = icon;
     return this;
   }
 }

@@ -2,7 +2,6 @@ package io.mateu.core.domain.model.modelToDtoMappers;
 
 import com.google.common.base.Strings;
 import io.mateu.core.domain.reflection.ReflectionHelper;
-import io.mateu.core.domain.uidefinition.core.app.menuResolvers.MenuResolver;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.interfaces.MateuSecurityManager;
 import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
@@ -25,7 +24,6 @@ import org.springframework.stereotype.Service;
 public class MenuBuilder {
 
   private final ReflectionHelper reflectionHelper;
-  private final MenuResolver menuResolver;
   private final MateuSecurityManager mateuSecurityManager;
 
   @SneakyThrows

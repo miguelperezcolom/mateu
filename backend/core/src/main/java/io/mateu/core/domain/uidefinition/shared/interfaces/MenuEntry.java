@@ -12,4 +12,10 @@ public interface MenuEntry {
   void setId(String id);
 
   int getOrder();
+
+  MenuEntry setOrder(int order);
+
+  MenuEntry setCaption(String caption);
+
+  MenuEntry setIcon(String icon);
 }

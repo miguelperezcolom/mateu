@@ -3,8 +3,9 @@ package io.mateu.core.domain.model.modelToDtoMappers;
 import com.google.common.base.Strings;
 import io.mateu.core.domain.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.app.*;
+import io.mateu.core.domain.uidefinition.core.app.menuResolvers.MenuEntryFactory;
+import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
-import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.core.domain.uidefinition.shared.interfaces.MateuSecurityManager;
 import io.mateu.core.domain.uidefinition.shared.interfaces.MenuEntry;
 import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
@@ -26,6 +27,8 @@ public class MenuResolver {
 
   private final ReflectionHelper reflectionHelper;
   private final MateuSecurityManager mateuSecurityManager;
+  private final JpaRpcCrudFactory jpaRpcCrudFactory;
+  private final MenuEntryFactory menuEntryFactory;
 
   public Optional<MenuEntry> resolve(
       Object uiInstance, String actionId, ServerHttpRequest serverHttpRequest) {
@@ -152,19 +155,8 @@ public class MenuResolver {
   }
 
   @SneakyThrows
-  private AbstractAction buildMenuEntry(String caption, AnnotatedElement m, Object uiInstance) {
-    if (reflectionHelper.isBasico(uiInstance.getClass())
-        || String.class.equals(uiInstance.getClass())) {
-      if (m.isAnnotationPresent(Home.class)
-          || m.isAnnotationPresent(PublicHome.class)
-          || m.isAnnotationPresent(PrivateHome.class))
-        return new MDDOpenHtmlAction(caption, "" + uiInstance);
-    } else if (Listing.class.isAssignableFrom(uiInstance.getClass())) {
-      return new MDDOpenListViewAction(caption, () -> (Listing) uiInstance);
-    } else {
-      return new MDDOpenEditorAction(caption, () -> uiInstance);
-    }
-    return null;
+  private MenuEntry buildMenuEntry(String caption, AnnotatedElement m, Object uiInstance) {
+    return menuEntryFactory.buildMenuEntry(uiInstance, m, caption);
   }
 
   private List<Method> getAllMenuMethods(Class c) {

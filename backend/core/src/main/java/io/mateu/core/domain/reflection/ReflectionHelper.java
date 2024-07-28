@@ -164,6 +164,26 @@ public class ReflectionHelper extends BaseReflectionHelper {
     }
   }
 
+  public Object getValue(AnnotatedElement e, Object o)
+      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+
+    if (o == null) return null;
+
+    if (e instanceof FieldInterfaced f) {
+      if (Map.class.isAssignableFrom(o.getClass())) {
+        return ((Map<?, ?>) o).get(f.getName());
+      } else if (f instanceof FieldInterfacedForCheckboxColumn) {
+        return f.getValue(o);
+      } else {
+        return getValue(f.getId(), o);
+      }
+    } else if (e instanceof Method m) {
+      return m.invoke(o);
+    } else {
+      return null;
+    }
+  }
+
   public Object getValue(String id, Object o)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
     Object v = null;
@@ -696,6 +716,19 @@ public class ReflectionHelper extends BaseReflectionHelper {
       return getGenericClass(
           (t instanceof ParameterizedType) ? (ParameterizedType) t : null,
           field.getType(),
+          asClassOrInterface,
+          genericArgumentName);
+  }
+
+  public Class getGenericClass(
+      AnnotatedElement field, Class asClassOrInterface, String genericArgumentName) {
+    Type t = getGenericType(field);
+    if (field.isAnnotationPresent(GenericClass.class))
+      return field.getAnnotation(GenericClass.class).clazz();
+    else
+      return getGenericClass(
+          (t instanceof ParameterizedType) ? (ParameterizedType) t : null,
+          getType(field),
           asClassOrInterface,
           genericArgumentName);
   }
@@ -2180,6 +2213,26 @@ public class ReflectionHelper extends BaseReflectionHelper {
         m.setAccessible(true);
       else if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
       return m.invoke(instance, args);
+    }
+  }
+
+  public Class getType(AnnotatedElement f) {
+    if (f instanceof FieldInterfaced) {
+      return ((FieldInterfaced) f).getType();
+    } else if (f instanceof Method) {
+      return ((Method) f).getReturnType();
+    } else {
+      return null;
+    }
+  }
+
+  private Type getGenericType(AnnotatedElement f) {
+    if (f instanceof FieldInterfaced) {
+      return ((FieldInterfaced) f).getGenericType();
+    } else if (f instanceof Method) {
+      return ((Method) f).getGenericReturnType();
+    } else {
+      return Object.class;
     }
   }
 }
