@@ -5,19 +5,14 @@ import io.mateu.core.domain.model.editors.EntityEditor;
 import io.mateu.core.domain.model.editors.FieldEditor;
 import io.mateu.core.domain.model.editors.ObjectEditor;
 import io.mateu.core.domain.model.modelToDtoMappers.StepMapper;
-import io.mateu.core.domain.model.modelToDtoMappers.UIMapper;
 import io.mateu.core.domain.model.persistence.Merger;
 import io.mateu.core.domain.reflection.ReflectionHelper;
-import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDActionViewBuilder;
 import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.core.domain.uidefinition.shared.interfaces.SortCriteria;
 import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import io.mateu.core.domain.util.Serializer;
 import io.mateu.dtos.Step;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
@@ -25,20 +20,22 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class JourneyStoreService {
 
   private final StepMapper stepMapper;
-  private final UIMapper uiMapper;
   private final ActualValueExtractor actualValueExtractor;
   private final ApplicationContext applicationContext;
   private final Merger merger;
   private final JpaRpcCrudFactory jpaRpcCrudFactory;
   private final ReflectionHelper reflectionHelper;
   private final Serializer serializer;
-  private final MDDOpenCRUDActionViewBuilder mddOpenCRUDActionViewBuilder;
 
   public Object getViewInstance(
       JourneyContainer journeyContainer, String stepId, ServerHttpRequest serverHttpRequest)
