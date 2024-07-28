@@ -2,7 +2,7 @@ package com.example.demo.infra.ui.menus.refs;
 
 import io.mateu.core.domain.uidefinition.shared.annotations.File;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
-import io.mateu.domain.uidefinition.annotations.Caption;
+import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
 import io.mateu.core.domain.uidefinition.shared.annotations.Section;
 import lombok.Data;

@@ -2,7 +2,7 @@ package com.example.demo.infra.ui.menus.useCases.intermediaries;
 
 import com.example.demo.infra.ui.menus.useCases.intermediaries.salesAgents.SalesAgentsCrud;
 import com.example.demo.infra.ui.menus.useCases.leads.QuestionsProvider;
-import io.mateu.domain.uidefinition.annotations.Caption;
+import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.shared.annotations.Section;
 import io.mateu.core.domain.uidefinition.shared.annotations.ValuesProvider;
 import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;

@@ -4,7 +4,7 @@ import com.example.demo.domain.swapi.entities.SWCharacter;
 import com.example.demo.domain.swapi.entities.SWFilm;
 import com.example.demo.domain.swapi.entities.SWSpecie;
 import com.example.demo.domain.swapi.entities.SWStarship;
-import io.mateu.domain.uidefinition.annotations.Caption;
+import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
 import io.mateu.core.domain.uidefinition.shared.interfaces.JpaCrud;
 

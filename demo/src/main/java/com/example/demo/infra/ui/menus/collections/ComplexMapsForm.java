@@ -2,7 +2,7 @@ package com.example.demo.infra.ui.menus.collections;
 
 import com.example.demo.domain.agnostic.records.AddressRecord;
 import com.example.demo.domain.nfl.providers.TeamsProvider;
-import io.mateu.domain.uidefinition.annotations.Caption;
+import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.shared.annotations.ItemsProvider;
 import io.mateu.core.domain.uidefinition.shared.annotations.Section;
 import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;

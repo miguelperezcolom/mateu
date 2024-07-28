@@ -3,7 +3,7 @@ package com.example.demo.infra.ui.menus.forms;
 import com.example.demo.domain.nfl.dtos.Conference;
 import com.example.demo.domain.nfl.dtos.Division;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
-import io.mateu.domain.uidefinition.annotations.Caption;
+import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.core.interfaces.ReadOnlyPojo;
 import io.mateu.core.domain.uidefinition.shared.data.Badge;
 import io.mateu.core.domain.uidefinition.shared.data.BadgeTheme;

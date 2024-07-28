@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.forms;
 
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
-import io.mateu.domain.uidefinition.annotations.Caption;
+import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
 import io.mateu.core.domain.uidefinition.shared.annotations.Section;
 import io.mateu.core.domain.uidefinition.shared.data.TelephoneNumber;

@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.useCases.insurance.newLife;
 
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
-import io.mateu.domain.uidefinition.annotations.Caption;
+import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.shared.data.Stepper;
 import io.mateu.core.domain.uidefinition.shared.data.StepperStep;
 import lombok.Getter;

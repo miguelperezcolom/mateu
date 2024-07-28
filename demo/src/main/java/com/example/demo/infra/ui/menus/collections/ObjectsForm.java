@@ -2,7 +2,7 @@ package com.example.demo.infra.ui.menus.collections;
 
 import com.example.demo.domain.agnostic.pojos.Movie;
 import com.example.demo.domain.agnostic.pojos.Profile;
-import io.mateu.domain.uidefinition.annotations.Caption;
+import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.shared.annotations.Section;
 import lombok.Data;
 

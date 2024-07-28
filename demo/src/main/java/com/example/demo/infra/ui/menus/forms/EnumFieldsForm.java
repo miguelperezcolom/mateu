@@ -2,7 +2,7 @@ package com.example.demo.infra.ui.menus.forms;
 
 import com.example.demo.domain.nfl.dtos.Conference;
 import com.example.demo.domain.nfl.dtos.Division;
-import io.mateu.domain.uidefinition.annotations.Caption;
+import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
 import io.mateu.core.domain.uidefinition.shared.annotations.Section;

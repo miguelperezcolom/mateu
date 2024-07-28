@@ -1,6 +1,6 @@
 package com.example.demo.infra.ui.menus.collections;
 
-import io.mateu.domain.uidefinition.annotations.Caption;
+import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.shared.annotations.Section;
 import lombok.Data;
 

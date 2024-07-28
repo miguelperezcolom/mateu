@@ -2,7 +2,7 @@ package com.example.demo.infra.ui.menus.forms;
 
 import com.example.demo.domain.programmingLanguages.ProgrammingLanguages;
 import io.mateu.core.domain.uidefinition.shared.data.*;
-import io.mateu.domain.uidefinition.annotations.Caption;
+import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.core.interfaces.ReadOnlyPojo;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import io.mateu.core.domain.uidefinition.shared.annotations.Placeholder;

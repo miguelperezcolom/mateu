@@ -6,7 +6,7 @@ import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasSubtitle;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasTitle;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
-import io.mateu.domain.uidefinition.annotations.Caption;
+import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.shared.annotations.Placeholder;
 import io.mateu.core.domain.uidefinition.shared.data.DatesRange;
 import io.mateu.core.domain.uidefinition.shared.interfaces.SortCriteria;

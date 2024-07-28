@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.collections;
 
 import com.example.demo.domain.nfl.providers.TeamsProvider;
-import io.mateu.domain.uidefinition.annotations.Caption;
+import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import io.mateu.core.domain.uidefinition.shared.annotations.ItemsProvider;
 import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;

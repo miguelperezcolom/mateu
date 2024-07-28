@@ -1,4 +1,4 @@
-package io.mateu.domain.uidefinition.annotations;
+package io.mateu.core.domain.uidefinition.shared.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,13 +7,12 @@ import java.lang.annotation.Target;
 
 /** Created by miguel on 18/1/17. */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({
-  ElementType.FIELD,
-  ElementType.METHOD,
-  ElementType.PARAMETER,
-  ElementType.TYPE
-}) // can use in method only.
-public @interface Caption {
+@Target({ElementType.TYPE}) // can use in method only.
+public @interface KeycloakSecured {
 
-  String value();
+  String url();
+
+  String realm();
+
+  String clientId();
 }
