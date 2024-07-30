@@ -74,7 +74,6 @@ public class StartJourneyCommandHandler {
         ((HasInitMethod) formInstance).init(serverHttpRequest);
       }
 
-
       journey = new JourneyMapper().map(formInstance);
 
     } catch (Exception e) {

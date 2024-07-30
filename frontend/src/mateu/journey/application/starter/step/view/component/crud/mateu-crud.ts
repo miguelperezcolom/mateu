@@ -561,7 +561,7 @@ export class MateuCrud extends LitElement {
         </vaadin-grid>
       
       <vaadin-horizontal-layout style="align-items: baseline; width: 100%;" theme="spacing">
-        <div style=" flex-grow: 1;">${this.message}</div>
+        <div style=" flex-grow: 1;">${this.message?this.message:`${this.count} elements found.`}</div>
         <div style="justify-content: end;">
           <mateu-paginator
                             @page-changed="${this.pageChanged}"

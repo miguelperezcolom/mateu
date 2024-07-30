@@ -45,7 +45,7 @@ export class CrudService {
             crudState.count = 0
         } else {
             crudState.count = count
-            crudState.message = `${crudState.count} elements found.`;
+            crudState.message = crudState.count > 0?`${crudState.count} elements found.`:''
 
             items.forEach((r, i) => {
                 // @ts-ignore
